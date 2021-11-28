@@ -35,5 +35,8 @@ What doesn't work / needs to be fixed:
 - Undo/Redo
 - Some hacky solutions
 - Leaks
+- No VU meter
+- GraphOnParent
+- Subpatches
 
 Please contact me if you wish to contribute, I could use some help!
