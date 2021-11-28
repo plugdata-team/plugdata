@@ -8,8 +8,8 @@
 
 namespace BinaryData
 {
-    extern const char*   cerite_font_ttf;
-    const int            cerite_font_ttfSize = 8592;
+    extern const char*   forkawesomewebfont_ttf;
+    const int            forkawesomewebfont_ttfSize = 188756;
 
     // Number of elements in the namedResourceList and originalFileNames arrays.
     const int namedResourceListSize = 1;

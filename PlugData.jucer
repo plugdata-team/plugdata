@@ -4,7 +4,8 @@
               addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1">
   <MAINGROUP id="z62cXr" name="PlugData">
     <GROUP id="{171D99A2-B546-271C-0402-DD73AC24E8BF}" name="Assets">
-      <FILE id="vxjHJ9" name="cerite_font.ttf" compile="0" resource="1" file="Assets/cerite_font.ttf"/>
+      <FILE id="z7p1vR" name="forkawesome-webfont.ttf" compile="0" resource="1"
+            file="Assets/forkawesome-webfont.ttf"/>
     </GROUP>
     <GROUP id="{1FDD27F0-496A-B907-2894-02B97EDBF019}" name="Source">
       <GROUP id="{F0680A4A-C876-B3D2-A63F-321CA924A53C}" name="IPC">

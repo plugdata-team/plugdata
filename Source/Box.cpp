@@ -178,14 +178,7 @@ void Box::set_type (String new_type)
     String arguments = new_type.fromFirstOccurrenceOf(" ", false, false);
     String type = new_type.upToFirstOccurrenceOf(" ", false, false);
     
-
-    
-    //ports.clear();
-    
     String obj_name = text_label.getText();
-    
-    is_message = obj_name == "msg";
-    
     
     if(type.isNotEmpty()) {
         auto* pd = cnv->get_pd();
@@ -196,28 +189,12 @@ void Box::set_type (String new_type)
         else {
             pd_object = pd->createObject(obj_name, getX(), getY());
         }
-        
     }
     else {
         pd_object = nullptr;
     }
     
-    if(is_message) {
-        //pd_object = dynamic_cast<t_message*>(pd_object)->m_messresponder->mr_pd;
-    }
-    
     update_ports();
-    
-
-    
-    /*
-    if(is_message) {
-        Uuid id;
-        send_id = id.toString();
-       
-        auto* pd = cnv->get_pd();
-        message_send = pd->createObject("send " + send_id, getX(), getY());
-    } */
     
     if(pd_object || true) { // temp
         graphics.reset(GUIComponent::create_gui(type, this));
@@ -252,8 +229,6 @@ void Box::set_type (String new_type)
 //==============================================================================
 void Box::paint (Graphics& g)
 {
-    if(is_edge) return;
-    
     auto rect = getLocalBounds().reduced(4);
     
     auto base_colour = findColour(TextButton::buttonColourId);
@@ -266,10 +241,10 @@ void Box::paint (Graphics& g)
     
     
     g.setColour(base_colour);
-    g.fillRect(rect);
+    g.fillRoundedRectangle(rect.toFloat(), 2.0f);
     
     g.setColour(findColour(ComboBox::outlineColourId));
-    g.drawRect(rect);
+    g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
     
 }
 
@@ -279,7 +254,7 @@ void Box::moved()
         edge->sendMovedResizedMessages(true, true);
     }
     
-    if(pd_object && !is_message) {
+    if(pd_object) {
         cnv->get_pd()->moveObject(pd_object, getX(), getY());
     }
     
@@ -313,20 +288,10 @@ void Box::resized()
         
         bool sideways = false;
         
-        int total = is_input ? total_in - hidden_in : total_out - hidden_out;
-        
-        float newX, newY;
-        if(sideways)
-        {
-            //newY = (is_input ? index : index - total_in) * (getHeight() - 24 / (total - 1 + (total == 1))) + 12;
-            //newX = is_input ? getLocalBounds().getTopLeft().x : getLocalBounds().getRight();
-        }
-        else
-        {
+        int total = is_input ? total_in : total_out;
             
-            newY = is_input ? 4 : getHeight() - 4;
-            newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
-        }
+        float newY = is_input ? 4 : getHeight() - 4;
+        float newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
         
         edge->setCentrePosition(newX, newY);
         edge->setSize(8, 8);

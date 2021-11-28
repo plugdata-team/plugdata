@@ -61,7 +61,6 @@ public:
     
     //==============================================================================
     void paint (Graphics&) override;
-    
     void resized() override;
     void moved() override;
     
@@ -86,8 +85,6 @@ public:
     
     String send_id;
     
-    bool is_message;
-    
     void mouseMove(const MouseEvent& e) override;
     
     void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
@@ -96,11 +93,7 @@ public:
     int total_in = 0;
     int total_out = 0;
     
-    int hidden_in = 0;
-    int hidden_out = 0;
-    
     ClickLabel text_label;
-    bool is_edge = false;
     
 private:
 

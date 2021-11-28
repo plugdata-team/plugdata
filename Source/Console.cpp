@@ -79,11 +79,13 @@ Console::Console (bool captureStdErrImmediately, bool captureStdOutImmediately) 
 	if (captureStdOutImmediately)
 		captureStdOut();
     
-    clearButton.setButtonText("X");
+    clearButton.setButtonText(CharPointer_UTF8("\xef\x80\x8d"));
     clearButton.setConnectedEdges(12);
+    clearButton.setLookAndFeel(&statusbar_look);
     clearButton.onClick = [this]() {
         clear();
     };
+    
     addAndMakeVisible(clearButton);
     addAndMakeVisible(viewport);
 }
@@ -93,6 +95,8 @@ Console::~Console()
 	releaseStdOut();
 	releaseStdErr();
 
+    clearButton.setLookAndFeel(nullptr);
+    
 	if (Logger::getCurrentLogger() == this)
 		Logger::setCurrentLogger (nullptr);
 }
@@ -208,7 +212,7 @@ void Console::resized()
 	logContainer.setBounds(0, 0, getWidth(), std::max(totalHeight, getHeight()-30));
     
     viewport.setBounds(0, 0, getWidth(), getHeight()-30);
-    clearButton.setBounds(getWidth() - 30, getHeight()-25, 20, 18);
+    clearButton.setBounds(getWidth() - 50, getHeight()-30, 30, 30);
 	repaint();
 }
 
@@ -219,7 +223,7 @@ void Console::paint(Graphics &g)
     g.setColour(Colours::grey);
     g.drawLine(0, getHeight()-35, getWidth(), getHeight()-35);
     
-    g.setColour(Colour(31, 31, 31));
+    g.setColour(Colour(25, 25, 25));
     g.fillRect(0, getHeight()-35, getWidth(), 35);
 }
 

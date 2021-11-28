@@ -47,6 +47,7 @@
 
 #include <JuceHeader.h>
 #include <thread>
+#include "LookAndFeel.h"
 
 
 /**
@@ -142,10 +143,11 @@ private:
 
 	static const int tmpBufLen = 512;
     
-    std::vector<Colour> colours = {Colour(40, 40, 40), Colour(32, 32, 32)};
+    std::vector<Colour> colours = {Colour(32, 32, 32), Colour(25, 25, 25)};
     
     LogContainer logContainer;
 
+    SidebarLook statusbar_look = SidebarLook(1.4);
     TextButton clearButton;
 
 	Colour stdOutColour = Colours::white;

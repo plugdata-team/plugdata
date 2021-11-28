@@ -3,14 +3,60 @@
 #include <JuceHeader.h>
 
 
+class PlugData_DocumentWindowButton   : public Button
+{
+public:
+    PlugData_DocumentWindowButton (const String& name, Colour c, const Path& normal, const Path& toggled)
+        : Button (name), colour (c), normalShape (normal), toggledShape (toggled)
+    {
+    }
+
+    void paintButton (Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
+        auto background = Colour(25, 25, 25);
+
+      
+      if (auto* rw = findParentComponentOfClass<ResizableWindow>())
+
+        g.fillAll (background);
+
+        g.setColour ((! isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha (0.6f)
+                                                     : colour);
+
+        if (shouldDrawButtonAsHighlighted)
+        {
+            g.fillAll();
+            g.setColour (background);
+        }
+
+        auto& p = getToggleState() ? toggledShape : normalShape;
+
+        auto reducedRect = Justification (Justification::centred)
+                              .appliedToRectangle (Rectangle<int> (getHeight(), getHeight()), getLocalBounds())
+                              .toFloat()
+                              .reduced ((float) getHeight() * 0.3f);
+
+        g.fillPath (p, p.getTransformToScaleToFit (reducedRect, true));
+    }
+
+private:
+    Colour colour;
+    Path normalShape, toggledShape;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugData_DocumentWindowButton)
+};
+
 struct MainLook : public LookAndFeel_V4
 {
     MainLook() {
+        
+        auto highlight_colour = Colour(0xff42a2c8);
+        
         setColour(PopupMenu::backgroundColourId, Colour(25, 25, 25));
-        setColour (ResizableWindow::backgroundColourId, Colour(50, 50, 50));
-        setColour (TextButton::buttonColourId, Colour(31, 31, 31));
-        setColour (TextButton::buttonOnColourId, Colour(25, 25, 25));
-        setColour (juce::TextEditor::backgroundColourId, Colour(68, 68, 68));
+        setColour (ResizableWindow::backgroundColourId, Colour(32, 32, 32));
+        setColour (TextButton::buttonColourId, Colour(25, 25, 25));
+        setColour (TextButton::buttonOnColourId, highlight_colour);
+        setColour (juce::TextEditor::backgroundColourId, Colour(45, 45, 45));
         setColour (SidePanel::backgroundColour, Colour(50, 50, 50));
         setColour (ComboBox::backgroundColourId, Colour(50, 50, 50));
         setColour (ListBox::backgroundColourId, Colour(50, 50, 50));
@@ -20,8 +66,9 @@ struct MainLook : public LookAndFeel_V4
         setColour(CodeEditorComponent::defaultTextColourId, Colours::white);
         setColour(TextEditor::textColourId, Colours::white);
         setColour(TooltipWindow::backgroundColourId, Colour(25, 25, 25).withAlpha(float(0.8)));
-        setColour (PopupMenu::backgroundColourId, Colour(50, 50, 50));
-        setColour (PopupMenu::highlightedBackgroundColourId, Colour(41, 41, 41));
+        
+        setColour (PopupMenu::backgroundColourId, Colour(30, 30, 30));
+        setColour (PopupMenu::highlightedBackgroundColourId, highlight_colour);
         
         setColour(CodeEditorComponent::lineNumberBackgroundId, Colour(41, 41, 41));
     }
@@ -31,6 +78,99 @@ struct MainLook : public LookAndFeel_V4
        
         return button_bar.getWidth() / button_bar.getNumTabs();
     }
+    
+    void drawDocumentWindowTitleBar(DocumentWindow &window, Graphics &g, int w,
+                                    int h, int titleSpaceX, int titleSpaceW,
+                                    const Image *icon,
+                                    bool drawTitleTextOnLeft) override {
+      if (w * h == 0)
+        return;
+
+      auto isActive = window.isActiveWindow();
+
+      g.setColour(Colour(25, 25, 25));
+      g.fillAll();
+
+      Font font((float)h * 0.65f, Font::plain);
+      g.setFont(font);
+
+      auto textW = font.getStringWidth(window.getName());
+      auto iconW = 0;
+      auto iconH = 0;
+
+      if (icon != nullptr) {
+        iconH = static_cast<int>(font.getHeight());
+        iconW = icon->getWidth() * iconH / icon->getHeight() + 4;
+      }
+
+      textW = jmin(titleSpaceW, textW + iconW);
+      auto textX =
+          drawTitleTextOnLeft ? titleSpaceX : jmax(titleSpaceX, (w - textW) / 2);
+
+      if (textX + textW > titleSpaceX + titleSpaceW)
+        textX = titleSpaceX + titleSpaceW - textW;
+
+      if (icon != nullptr) {
+        g.setOpacity(isActive ? 1.0f : 0.6f);
+        g.drawImageWithin(*icon, textX, (h - iconH) / 2, iconW, iconH,
+                          RectanglePlacement::centred, false);
+        textX += iconW;
+        textW -= iconW;
+      }
+
+      if (window.isColourSpecified(DocumentWindow::textColourId) ||
+          isColourSpecified(DocumentWindow::textColourId))
+        g.setColour(window.findColour(DocumentWindow::textColourId));
+      else
+        g.setColour(
+            getCurrentColourScheme().getUIColour(ColourScheme::defaultText));
+
+      g.setColour(Colours::white);
+      g.drawText(window.getName(), textX, 0, textW, h, Justification::centredLeft,
+                 true);
+    }
+    
+    Button* createDocumentWindowButton (int buttonType)
+    {
+        Path shape;
+        auto crossThickness = 0.15f;
+
+        if (buttonType == DocumentWindow::closeButton)
+        {
+            shape.addLineSegment ({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+            shape.addLineSegment ({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
+
+            return new PlugData_DocumentWindowButton ("close", Colour (0xff42a2c8), shape, shape);
+        }
+
+        if (buttonType == DocumentWindow::minimiseButton)
+        {
+            shape.addLineSegment ({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+
+            return new PlugData_DocumentWindowButton ("minimise", Colour (0xff42a2c8), shape, shape);
+        }
+
+        if (buttonType == DocumentWindow::maximiseButton)
+        {
+            shape.addLineSegment ({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+            shape.addLineSegment ({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
+
+            Path fullscreenShape;
+            fullscreenShape.startNewSubPath (45.0f, 100.0f);
+            fullscreenShape.lineTo (0.0f, 100.0f);
+            fullscreenShape.lineTo (0.0f, 0.0f);
+            fullscreenShape.lineTo (100.0f, 0.0f);
+            fullscreenShape.lineTo (100.0f, 45.0f);
+            fullscreenShape.addRectangle (45.0f, 45.0f, 100.0f, 100.0f);
+            PathStrokeType (30.0f).createStrokedPath (fullscreenShape, fullscreenShape);
+
+            return new PlugData_DocumentWindowButton ("maximise", Colour (0xff42a2c8), shape, fullscreenShape);
+        }
+
+        jassertfalse;
+        return nullptr;
+    }
+
     
     void drawTabButton (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
@@ -123,7 +263,7 @@ struct PdGuiLook : public MainLook
 struct ToolbarLook : public MainLook
 {
     
-    inline static Font icon_font = Font(Typeface::createSystemTypefaceFor (BinaryData::cerite_font_ttf, BinaryData::cerite_font_ttfSize));
+    inline static Font icon_font = Font(Typeface::createSystemTypefaceFor (BinaryData::forkawesomewebfont_ttf, BinaryData::forkawesomewebfont_ttfSize));
     
     bool icons;
     
@@ -135,7 +275,7 @@ struct ToolbarLook : public MainLook
         
         auto rect = button.getLocalBounds();
         
-        auto base_colour = Colour(31, 31, 31);
+        auto base_colour = Colour(25, 25, 25);
         
         auto highlight_colour = Colour (0xff42a2c8);
         

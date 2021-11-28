@@ -7,10 +7,12 @@
 MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(true, true), pd(&console)
 {
     setSize(1000, 700);
-        
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, Colour(31, 31, 31));
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, Colour(31, 31, 31));
-    tabbar.setColour(TabbedComponent::outlineColourId, Colour(31, 31, 31));
+    
+    LookAndFeel::setDefaultLookAndFeel(&main_look);
+    
+    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, Colour(25, 25, 25));
+    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, Colour(25, 25, 25));
+    tabbar.setColour(TabbedComponent::outlineColourId, Colour(25, 25, 25));
     
     //player.reset(nullptr);
     //set_remote(false);
@@ -77,10 +79,17 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
         menu.addItem (2, "Message");
         menu.addItem (3, "Bang");
         menu.addItem (4, "Toggle");
-        menu.addItem (5, "HSlider");
-        menu.addItem (6, "VSlider");
-        menu.addItem (7, "HRadio");
-        menu.addItem (8, "VRadio");
+        menu.addItem (5, "Horizontal Slider");
+        menu.addItem (6, "Vertical Slider");
+        menu.addItem (7, "Horizontal Radio");
+        menu.addItem (8, "Vertical Radio");
+        
+        menu.addSeparator();
+        
+        menu.addItem (11, "Float Atom");
+        menu.addItem (12, "Symbol Atom");
+        
+        menu.addSeparator();
         
         menu.addItem (9, "Graph");
         menu.addItem (10, "Canvas");
@@ -129,11 +138,19 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
                 break;
                 
                 case 9:
-                box_name = "graph";
+                box_name = "graph arr1 128";
                 break;
                 
                 case 10:
                 box_name = "canvas";
+                break;
+                    
+                case 11:
+                box_name = "floatatom";
+                break;
+                    
+                case 12:
+                box_name = "symbolatom";
                 break;
             }
             
@@ -151,14 +168,14 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
 
 
     
-    hide_button.setLookAndFeel(&sidebar_look);
+    hide_button.setLookAndFeel(&toolbar_look);
     hide_button.setClickingTogglesState(true);
     hide_button.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     hide_button.setConnectedEdges(12);
     
     hide_button.onClick = [this](){
         sidebar_hidden = hide_button.getToggleState();
-        hide_button.setButtonText(sidebar_hidden ? "J" : "K");
+        hide_button.setButtonText(sidebar_hidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
         
         repaint();
         resized();
@@ -176,6 +193,7 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
 
 MainComponent::~MainComponent()
 {
+    LookAndFeel::setDefaultLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
     start_button.setLookAndFeel(nullptr);
     hide_button.setLookAndFeel(nullptr);
@@ -205,29 +223,31 @@ void MainComponent::paint (Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
     
-    auto base_colour = Colour(31, 31, 31);
+    auto base_colour = Colour(25, 25, 25);
     auto highlight_colour = Colour (0xff42a2c8).darker(0.2);
     
-    // Toolbar background
-    g.setColour(base_colour);
-    g.fillRect(0, 0, getWidth(), toolbar_height);
-    
-    g.setColour(highlight_colour);
-    g.fillRect(0, 42, getWidth(), 4);
-    
-    // Statusbar background
-    g.setColour(base_colour);
-    g.fillRect(0, getHeight() - statusbar_height, getWidth(), statusbar_height);
-    
     int s_width = sidebar_hidden ? dragbar_width : std::max(dragbar_width, sidebar_width);
+
     
     // Sidebar
     g.setColour(base_colour.darker(0.1));
     g.fillRect(getWidth() - s_width, dragbar_width, s_width, getHeight() - toolbar_height);
     
+    // Toolbar background
+    g.setColour(base_colour);
+    g.fillRect(0, 0, getWidth(), toolbar_height - 4);
+    
+    g.setColour(highlight_colour);
+    g.drawRoundedRectangle({-4.0f, 39.0f, (float)getWidth() + 9, 20.0f}, 10.0, 4.0);
+    
+    // Statusbar background
+    g.setColour(base_colour);
+    g.fillRect(0, getHeight() - statusbar_height, getWidth(), statusbar_height);
+    
     // Draggable bar
     g.setColour(base_colour);
-    g.fillRect(getWidth() - s_width, dragbar_width, statusbar_height, getHeight() - toolbar_height);
+    g.fillRect(getWidth() - s_width, dragbar_width, statusbar_height, getHeight() - (toolbar_height - 5));
+    
     
 }
 
@@ -237,28 +257,29 @@ void MainComponent::resized()
     
     int s_content_width = s_width - dragbar_width;
     
-    int sbar_y = toolbar_height - 15;
+    int sbar_y = toolbar_height - 4;
     
-    console.setBounds(getWidth() - s_content_width, sbar_y, s_content_width, getHeight() - sbar_y);
+    console.setBounds(getWidth() - s_content_width, sbar_y + 2, s_content_width, getHeight() - sbar_y);
+    console.toFront(false);
     
-    tabbar.setBounds(0, toolbar_height, getWidth() - s_width, getHeight() - toolbar_height - statusbar_height);
+    tabbar.setBounds(0, sbar_y, getWidth() - s_width, getHeight() - sbar_y - statusbar_height);
+    tabbar.toFront(false);
     
-    start_button.setBounds(getWidth() - s_width - 40, getHeight() - 32, 30, 30);
+    start_button.setBounds(getWidth() - s_width - 40, getHeight() - 30, 30, 30);
     
     
     int jump_positions[2] = {3, 5};
     int idx = 0;
     int toolbar_position = 0;
     for(auto& button : toolbar_buttons) {
-        int spacing = (25 * (idx >= jump_positions[0])) +  (25 * (idx >= jump_positions[1]));
+        int spacing = (25 * (idx >= jump_positions[0])) +  (25 * (idx >= jump_positions[1])) + 10;
         button.setBounds(toolbar_position + spacing, 0, 70, toolbar_height);
         toolbar_position += 70;
         idx++;
     }
     
-    int button_height = 40;
     
-    hide_button.setBounds(getWidth() - s_width, toolbar_height + 20, dragbar_width, button_height);
+    hide_button.setBounds(std::min(getWidth() - s_width, getWidth() - 80), 0, 70, toolbar_height);
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
@@ -354,9 +375,21 @@ void MainComponent::open_project() {
                             
                             name = name.dropLastCharacters(2); // remove excess space and semicolon
                             
-                            if(name.startsWith("bng")) {
-                                name = "bng";
-                            }
+                            auto gui_simplify = [](String& target, const String& selector) {
+                                if(target.startsWith(selector)) {
+                                    target = selector;
+                                }
+                            };
+                            
+                            gui_simplify(name, "bng");
+                            gui_simplify(name, "tgl");
+                            gui_simplify(name, "nbx");
+                            //gui_simplify(name, "msg"); // not sure
+                            gui_simplify(name, "hsl");
+                            gui_simplify(name, "vsl");
+                            gui_simplify(name, "hradio");
+                            gui_simplify(name, "vradio");
+  
                             
                             auto box = ValueTree(Identifiers::box);
                    
@@ -368,18 +401,6 @@ void MainComponent::open_project() {
                             
                             continue;
                         }
-                        if(args[1] == std::string("floatatom")) {
-                            String name = "nbx";
-                            auto x = std::stoi(args[2]);
-                            auto y = std::stoi(args[3]);
-                            
-                            auto box = ValueTree(Identifiers::box);
-                            canvas->getState().appendChild(box, nullptr);
-                            box.setProperty(Identifiers::box_name, name, nullptr);
-                            box.setProperty(Identifiers::box_x, x, nullptr);
-                            box.setProperty(Identifiers::box_y, y, nullptr);
-                            
-                        }
                         else if(args[1] == std::string("msg")) {
                             auto x = std::stoi(args[2]);
                             auto y = std::stoi(args[3]);
@@ -390,6 +411,7 @@ void MainComponent::open_project() {
                             }
                             
                             message = message.dropLastCharacters(2);
+                            message.removeCharacters("\\");
                             
                             auto box = ValueTree(Identifiers::box);
                             canvas->getState().appendChild(box, nullptr);
@@ -472,7 +494,7 @@ Canvas* MainComponent::get_current_canvas()
 
 void MainComponent::add_tab(Canvas* cnv)
 {
-    tabbar.addTab(cnv->getState().getProperty("Title"), Colour(40, 40, 40), &cnv->viewport, false);
+    tabbar.addTab(cnv->getState().getProperty("Title"), findColour(ResizableWindow::backgroundColourId), &cnv->viewport, false);
     
     int tab_idx = tabbar.getNumTabs() - 1;
     tabbar.setCurrentTabIndex(tab_idx);

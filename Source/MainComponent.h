@@ -81,19 +81,21 @@ private:
     
     //std::unique_ptr<PatchInterface> player;
     
-    int toolbar_height = 50;
-    int statusbar_height = 35;
+    int toolbar_height = 45;
+    int statusbar_height = 30;
     int sidebar_width = 300;
-    int dragbar_width = 35;
+    int dragbar_width = 10;
     
     bool sidebar_hidden = false;
 
 
-    std::array<TextButton, 7> toolbar_buttons = {TextButton("C"), TextButton("D"), TextButton("P"), TextButton("G"), TextButton("H"), TextButton("H"), TextButton("g")};
+    std::array<TextButton, 7> toolbar_buttons = {TextButton(CharPointer_UTF8("\xef\x85\x9b")), TextButton(CharPointer_UTF8("\xef\x81\xbb")), TextButton(CharPointer_UTF8("\xef\x80\x99")), TextButton(CharPointer_UTF8("\xef\x83\xa2")), TextButton(CharPointer_UTF8("\xef\x80\x9e")), TextButton(CharPointer_UTF8("\xef\x81\xa7")), TextButton(CharPointer_UTF8("\xef\x81\x94"))};
     
-    TextButton start_button = TextButton("N");
+    TextButton& hide_button = toolbar_buttons[6];
+    
+    TextButton start_button = TextButton(CharPointer_UTF8("\xef\x80\x91"));
 
-    TextButton hide_button = TextButton("K");
+    //TextButton hide_button = TextButton("K");
     
     int drag_start_width = 0;
     bool dragging_sidebar = false;

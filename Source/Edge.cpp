@@ -31,9 +31,7 @@ void Edge::paint (Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
     
-    //auto background_colour = Library::colours[(String)ValueTreeObject::getState().getProperty("Context")];
-
-    auto background_colour = ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : Colours::skyblue;
+    auto background_colour = ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : Colour (0xff42a2c8);
     
     auto base_colour = background_colour.withMultipliedSaturation (hasKeyboardFocus (true) ? 1.3f : 0.9f)
                                       .withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
