@@ -20,15 +20,14 @@ What works:
 - Creating, deleting and moving objects
 - Signal and data objects
 - Most GUI objects:
-  - Bang, Numbox, Toggle, Radio, Sliders, Array/Graph work perfectly
-  - Message boxes almost work, but have some quirks
+  - Bang, Numbox, Toggle, Radio, Sliders, Array/Graph and Message work perfectly
   - GraphOnParent does not yet work
+  - No atom objects yet
 - Usable in DAW
 - Console
 
 What kinda works (but needs testing):
 - Saving and loading patches
-- Message boxes
 
 What doesn't work / needs to be fixed:
 - Not entirely thread-safe yet

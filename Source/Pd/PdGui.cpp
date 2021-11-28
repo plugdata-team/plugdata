@@ -13,6 +13,7 @@ extern "C"
 {
 #include <z_libpd.h>
 #include <m_pd.h>
+
 #include <m_imp.h>
 #include <g_canvas.h>
 #include <g_all_guis.h>
@@ -25,24 +26,6 @@ namespace pd
     //                                      GUI                                             //
     // ==================================================================================== //
     
-    // False GATOM
-    typedef struct _fake_gatom
-    {
-        t_text      a_text;
-        t_atom      a_atom;
-        t_glist*    a_glist;
-        t_float a_toggle;
-        t_float a_draghi;
-        t_float a_draglo;
-        t_symbol *a_label;
-        t_symbol *a_symfrom;
-        t_symbol *a_symto;
-        char a_buf[40];
-        char a_shift;
-        char a_wherelabel;      // 0-3 for left, right, above, below
-        t_symbol *a_expanded_to;
-    } t_fake_gatom;
-
     typedef struct _messresponder
     {
         t_pd mr_pd;
@@ -56,6 +39,46 @@ namespace pd
         t_glist *m_glist;
         t_clock *m_clock;
     } t_message;
+
+  // False GATOM
+  typedef struct _fake_gatom
+  {
+      t_text a_text;
+      int a_flavor;           /* A_FLOAT, A_SYMBOL, or A_LIST */
+      t_glist *a_glist;       /* owning glist */
+      t_float a_toggle;       /* value to toggle to */
+      t_float a_draghi;       /* high end of drag range */
+      t_float a_draglo;       /* low end of drag range */
+      t_symbol *a_label;      /* symbol to show as label next to box */
+      t_symbol *a_symfrom;    /* "receive" name -- bind ourselves to this */
+      t_symbol *a_symto;      /* "send" name -- send to this on output */
+      t_binbuf *a_revertbuf;  /* binbuf to revert to if typing canceled */
+      int a_dragindex;        /* index of atom being dragged */
+      int a_fontsize;
+      unsigned int a_shift:1;         /* was shift key down when drag started? */
+      unsigned int a_wherelabel:2;    /* 0-3 for left, right, above, below */
+      unsigned int a_grabbed:1;       /* 1 if we've grabbed keyboard */
+      unsigned int a_doubleclicked:1; /* 1 if dragging from a double click */
+      t_symbol *a_expanded_to;
+  } t_fake_gatom;
+  
+  static t_atom *fake_gatom_getatom(t_fake_gatom *x)
+  {
+      int ac = binbuf_getnatom(x->a_text.te_binbuf);
+      t_atom *av = binbuf_getvec(x->a_text.te_binbuf);
+      if (x->a_flavor == A_FLOAT && (ac != 1 || av[0].a_type != A_FLOAT))
+      {
+          binbuf_clear(x->a_text.te_binbuf);
+          binbuf_addv(x->a_text.te_binbuf, "f", 0.);
+      }
+      else if (x->a_flavor == A_SYMBOL && (ac != 1 || av[0].a_type != A_SYMBOL))
+      {
+          binbuf_clear(x->a_text.te_binbuf);
+          binbuf_addv(x->a_text.te_binbuf, "s", &s_);
+      }
+      return (binbuf_getvec(x->a_text.te_binbuf));
+  }
+
 
 
     Gui::Gui(void* ptr, void* patch, Instance* instance) noexcept :
@@ -108,10 +131,15 @@ namespace pd
         }
         else if(name == "gatom")
         {
-            if(static_cast<t_fake_gatom*>(m_ptr)->a_atom.a_type == A_FLOAT)
-                m_type = Type::AtomNumber;
-            else if(static_cast<t_fake_gatom*>(m_ptr)->a_atom.a_type == A_SYMBOL)
+            if(static_cast<t_fake_gatom*>(m_ptr)->a_flavor == A_FLOAT)
+                            m_type = Type::AtomNumber;
+            else if(static_cast<t_fake_gatom*>(m_ptr)->a_flavor == A_SYMBOL)
                 m_type = Type::AtomSymbol;
+            
+            /*
+            else if(static_cast<t_fake_gatom*>(m_ptr)->a_flavor == A_NULL)
+                m_type = Type::AtomList; */
+
         }
         else if(name == "canvas")
         {
@@ -254,7 +282,13 @@ namespace pd
         }
         else if(m_type == Type::Bang)
         {
-            return (static_cast<t_bng*>(m_ptr))->x_flashed;
+            // hack to trigger off the bang if no GUI update
+            if((static_cast<t_bng*>(m_ptr))->x_flashed > 0)
+            {
+                static_cast<t_bng*>(m_ptr)->x_flashed = 0;
+                return 1.0f;
+            }
+            return 0.0f;
         }
         else if(m_type == Type::VuMeter)
         {
@@ -262,7 +296,7 @@ namespace pd
         }
         else if(m_type == Type::AtomNumber)
         {
-            return atom_getfloat(&(static_cast<t_fake_gatom*>(m_ptr)->a_atom));
+            return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(m_ptr)));
         }
         return 0.f;
     }
@@ -314,29 +348,33 @@ namespace pd
             
             binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
             return std::string(argv, argc);
-            
-
-            
         }
         else if (m_ptr &&  m_type == Type::AtomSymbol)
         {
             m_instance->setThis();
-            return atom_getsymbol(&(static_cast<t_fake_gatom*>(m_ptr)->a_atom))->s_name;
+            return atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(m_ptr)))->s_name;
         }
         
         return std::string();
+    }
+
+    void Gui::click() noexcept
+    {
+        m_instance->enqueueDirectMessages(m_ptr, 0);
     }
     
     void Gui::setSymbol(std::string const& value) noexcept
     {
         if(m_ptr && m_type == Type::Message) {
-            // ugly fixes but fine for now...
-            t_message* messobj = static_cast<t_message*>(m_ptr);
-            binbuf_clear(messobj->m_text.te_binbuf);
-            binbuf_text(messobj->m_text.te_binbuf, value.c_str(), value.size());
-            glist_retext(messobj->m_glist, &messobj->m_text);
-            m_instance->enqueueDirectMessages(m_ptr, "click");
+            last_symbol = value;
             
+            auto value_copy = value; // to ensure thread safety
+            m_instance->enqueueFunction([this, value_copy]() mutable {
+                t_message* messobj = static_cast<t_message*>(m_ptr);
+                binbuf_clear(messobj->m_text.te_binbuf);
+                binbuf_text(messobj->m_text.te_binbuf, value_copy.c_str(), value_copy.size());
+                glist_retext(messobj->m_glist, &messobj->m_text);
+            });
         }
      
         else if(m_ptr && m_type == Type::AtomSymbol) {

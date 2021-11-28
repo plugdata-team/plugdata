@@ -388,19 +388,16 @@ void Instance::processPrints()
     }
 }
 
+void Instance::enqueueFunction(std::function<void(void)> fn) {
+    m_function_queue.try_enqueue(fn);
+}
+
 void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
 {
     m_send_queue.try_enqueue(dmessage{nullptr, dest, msg, std::move(list)});
     messageEnqueued();
 }
 
-void Instance::enqueueDirectMessages(void* object, const std::string& msg,  const std::string& args)
-{
-    m_send_queue.try_enqueue(dmessage{object, std::string(), msg, std::vector<Atom>(1, args)});
-    
-    m_send_queue.try_enqueue(dmessage{object, std::string(), "click", std::vector<Atom>()}); // temp solution
-    messageEnqueued();
-}
 
 
 void Instance::enqueueDirectMessages(void* object, const std::string& msg)
@@ -419,6 +416,16 @@ void Instance::dequeueMessages()
 {
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     dmessage mess;
+    
+    std::function<void(void)> callback;
+    
+    while(m_function_queue.try_dequeue(callback))
+    {
+        sys_lock();
+        callback();
+        sys_unlock();
+    }
+    
     while(m_send_queue.try_dequeue(mess))
     {
         if(mess.object && !mess.list.empty())

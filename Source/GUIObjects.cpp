@@ -8,7 +8,7 @@
 
 GUIComponent::GUIComponent(Box* parent)  : box(parent), m_processor(parent->cnv->main->pd), edited(false)
 {
-    if(!box->pd_object) return;
+    //if(!box->pd_object) return;
     
     auto* checked_object = pd_checkobject(box->pd_object);
     assert(box->pd_object && checked_object);
@@ -224,11 +224,18 @@ MessageComponent::MessageComponent(Box* parent) : GUIComponent(parent)
     
     bang_button.onClick = [this](){
         startEdition();
-        gui.setSymbol(input.getText().toStdString());
+        //gui.setSymbol(input.getText().toStdString());
+        gui.click();
         stopEdition();
     };
     
+    input.onTextChange = [this]() {
+        gui.setSymbol(input.getText().toStdString());
+    };
+    
     input.onFocusLost = [this](){
+        
+        
         //t_atom args[1];
         //SETSYMBOL(args, gensym(input.getText().toRawUTF8()));
         //pd_typedmess(static_cast<t_pd*>(gui.getPointer()), gensym("set"), 1, args);
@@ -427,6 +434,7 @@ ArrayComponent::ArrayComponent(Box* box) : GUIComponent(box), m_graph(gui.getArr
     setInterceptsMouseClicks(false, true);
     m_array.setBounds(getLocalBounds());
     addAndMakeVisible(&m_array);
+    
 }
 
 void ArrayComponent::resized()

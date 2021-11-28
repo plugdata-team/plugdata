@@ -98,6 +98,8 @@ namespace pd
         
         void setSymbol(std::string const& value) noexcept;
         
+        void click() noexcept;
+        
         std::array<int, 4> getBounds() const noexcept override;
         
         bool jumpOnClick() const noexcept;
@@ -113,6 +115,7 @@ namespace pd
         Gui(void* ptr, void* patch, Instance* instance) noexcept;
     private:
 
+        std::string last_symbol;
     
         Type m_type = Type::Undefined;
         friend class Patch;

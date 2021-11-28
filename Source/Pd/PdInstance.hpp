@@ -69,10 +69,10 @@ public:
     virtual void receiveList(const std::string& dest, const std::vector<Atom>& list) {}
     virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list) {}
     
+    void enqueueFunction(std::function<void(void)> fn);
     void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list);
     void enqueueDirectMessages(void* object, const std::string& msg);
     void enqueueDirectMessages(void* object, const float msg);
-    void enqueueDirectMessages(void* object, const std::string& msg, const std::string& args);
     
     void addListener(const char* sym);
     
@@ -158,6 +158,7 @@ public:
     moodycamel::ConcurrentQueue<Message> m_message_queue = moodycamel::ConcurrentQueue<Message>(4096);
     moodycamel::ConcurrentQueue<midievent> m_midi_queue = moodycamel::ConcurrentQueue<midievent>(4096);
     moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
+    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
     
     struct internal;
 };
