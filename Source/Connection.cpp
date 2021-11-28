@@ -86,7 +86,7 @@ void Connection::paint (Graphics& g)
     auto base_colour = Colours::white;
 
     if(is_selected) {
-        base_colour = start->ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : Colours::skyblue;
+        base_colour = start->ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : Colour (0xff42a2c8);
         
         //Library::colours[(String)];
     }
