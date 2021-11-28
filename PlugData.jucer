@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<JUCERPROJECT id="sz6NnN" name="PlugData" projectType="audioplug" useAppConfig="0"
+              addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1">
+  <MAINGROUP id="z62cXr" name="PlugData">
+    <GROUP id="{171D99A2-B546-271C-0402-DD73AC24E8BF}" name="Assets">
+      <FILE id="vxjHJ9" name="cerite_font.ttf" compile="0" resource="1" file="Assets/cerite_font.ttf"/>
+    </GROUP>
+    <GROUP id="{1FDD27F0-496A-B907-2894-02B97EDBF019}" name="Source">
+      <GROUP id="{F0680A4A-C876-B3D2-A63F-321CA924A53C}" name="IPC">
+        <FILE id="loDHro" name="IPCMain.hpp" compile="0" resource="0" file="Source/IPC/IPCMain.hpp"/>
+        <FILE id="UGhiUJ" name="IPCWorker.hpp" compile="0" resource="0" file="Source/IPC/IPCWorker.hpp"/>
+      </GROUP>
+      <GROUP id="{228776EE-A3C3-1DB9-DAE6-D4D53391219E}" name="Pd">
+        <GROUP id="{956335A7-BE92-2D93-CB71-7E78BEDF6DB1}" name="Queues">
+          <FILE id="TUJmZT" name="atomicops.h" compile="0" resource="0" file="Source/Pd/Queues/atomicops.h"/>
+          <FILE id="GIqXaS" name="blockingconcurrentqueue.h" compile="0" resource="0"
+                file="Source/Pd/Queues/blockingconcurrentqueue.h"/>
+          <FILE id="J1GaZj" name="concurrentqueue.h" compile="0" resource="0"
+                file="Source/Pd/Queues/concurrentqueue.h"/>
+          <FILE id="rhCfoy" name="readerwriterqueue.h" compile="0" resource="0"
+                file="Source/Pd/Queues/readerwriterqueue.h"/>
+        </GROUP>
+        <FILE id="Z9repm" name="PdArray.cpp" compile="1" resource="0" file="Source/Pd/PdArray.cpp"/>
+        <FILE id="lCNM5B" name="PdArray.hpp" compile="0" resource="0" file="Source/Pd/PdArray.hpp"/>
+        <FILE id="qeevPA" name="PdAtom.hpp" compile="0" resource="0" file="Source/Pd/PdAtom.hpp"/>
+        <FILE id="uUFZot" name="PdGui.cpp" compile="1" resource="0" file="Source/Pd/PdGui.cpp"/>
+        <FILE id="UgmFGj" name="PdGui.hpp" compile="0" resource="0" file="Source/Pd/PdGui.hpp"/>
+        <FILE id="XWSAXG" name="PdInstance.cpp" compile="1" resource="0" file="Source/Pd/PdInstance.cpp"/>
+        <FILE id="iKDV5o" name="PdInstance.hpp" compile="0" resource="0" file="Source/Pd/PdInstance.hpp"/>
+        <FILE id="zLay56" name="PdObject.cpp" compile="1" resource="0" file="Source/Pd/PdObject.cpp"/>
+        <FILE id="o3cqwN" name="PdObject.hpp" compile="0" resource="0" file="Source/Pd/PdObject.hpp"/>
+        <FILE id="Ir3aRf" name="PdPatch.cpp" compile="1" resource="0" file="Source/Pd/PdPatch.cpp"/>
+        <FILE id="KPPx78" name="PdPatch.hpp" compile="0" resource="0" file="Source/Pd/PdPatch.hpp"/>
+        <FILE id="vtwSIC" name="x_libpd_extra_utils.c" compile="1" resource="0"
+              file="Source/Pd/x_libpd_extra_utils.c"/>
+        <FILE id="P7hzfG" name="x_libpd_extra_utils.h" compile="0" resource="0"
+              file="Source/Pd/x_libpd_extra_utils.h"/>
+        <FILE id="eN86WJ" name="x_libpd_mod_utils.c" compile="1" resource="0"
+              file="Source/Pd/x_libpd_mod_utils.c"/>
+        <FILE id="kFBQ41" name="x_libpd_mod_utils.h" compile="0" resource="0"
+              file="Source/Pd/x_libpd_mod_utils.h"/>
+        <FILE id="CzKQdd" name="x_libpd_multi.c" compile="1" resource="0" file="Source/Pd/x_libpd_multi.c"/>
+        <FILE id="JJ8E5s" name="x_libpd_multi.h" compile="0" resource="0" file="Source/Pd/x_libpd_multi.h"/>
+      </GROUP>
+      <GROUP id="{5907070B-0201-FABF-287C-DDFD5614EC47}" name="Plugin">
+        <FILE id="idYapB" name="PluginEditor.cpp" compile="1" resource="0"
+              file="Source/Plugin/PluginEditor.cpp"/>
+        <FILE id="V8L4T7" name="PluginEditor.h" compile="0" resource="0" file="Source/Plugin/PluginEditor.h"/>
+        <FILE id="rvMBlb" name="PluginProcessor.cpp" compile="1" resource="0"
+              file="Source/Plugin/PluginProcessor.cpp"/>
+        <FILE id="VxjLTs" name="PluginProcessor.h" compile="0" resource="0"
+              file="Source/Plugin/PluginProcessor.h"/>
+      </GROUP>
+      <GROUP id="{9FE053EB-CCAB-BDCF-A7B2-F3A9B88F4B7D}" name="Utility">
+        <FILE id="OfIaiR" name="gin_valuetreeobject.cpp" compile="1" resource="0"
+              file="Source/Utility/gin_valuetreeobject.cpp"/>
+        <FILE id="Jtxqry" name="gin_valuetreeobject.h" compile="0" resource="0"
+              file="Source/Utility/gin_valuetreeobject.h"/>
+        <FILE id="xeZrN2" name="MultiComponentDragger.h" compile="0" resource="0"
+              file="Source/Utility/MultiComponentDragger.h"/>
+        <FILE id="AR0cEW" name="ValueTreeObjectList.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeObjectList.h"/>
+      </GROUP>
+      <FILE id="ZHKZty" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
+      <FILE id="wt7Q8v" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
+      <FILE id="xDAht2" name="Canvas.cpp" compile="1" resource="0" file="Source/Canvas.cpp"/>
+      <FILE id="hMIzq1" name="Canvas.h" compile="0" resource="0" file="Source/Canvas.h"/>
+      <FILE id="t5qvKv" name="Connection.cpp" compile="1" resource="0" file="Source/Connection.cpp"/>
+      <FILE id="ZiDap7" name="Connection.h" compile="0" resource="0" file="Source/Connection.h"/>
+      <FILE id="pWSxMs" name="Console.cpp" compile="1" resource="0" file="Source/Console.cpp"/>
+      <FILE id="kgJhi2" name="Console.h" compile="0" resource="0" file="Source/Console.h"/>
+      <FILE id="AFk5pW" name="Edge.cpp" compile="1" resource="0" file="Source/Edge.cpp"/>
+      <FILE id="ZQuZZr" name="Edge.h" compile="0" resource="0" file="Source/Edge.h"/>
+      <FILE id="t7vooz" name="GUIObjects.cpp" compile="1" resource="0" file="Source/GUIObjects.cpp"/>
+      <FILE id="omXKtf" name="GUIObjects.h" compile="0" resource="0" file="Source/GUIObjects.h"/>
+      <FILE id="t1O4PV" name="LookAndFeel.h" compile="0" resource="0" file="Source/LookAndFeel.h"/>
+      <FILE id="Wzj7yC" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
+      <FILE id="NUrPmJ" name="MainComponent.cpp" compile="1" resource="0"
+            file="Source/MainComponent.cpp"/>
+      <FILE id="Q6rN6C" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
+      <FILE id="LPXvQI" name="PlugData.cpp" compile="1" resource="0" file="Source/PlugData.cpp"/>
+      <FILE id="BJ9gJl" name="PlugData.h" compile="0" resource="0" file="Source/PlugData.h"/>
+      <FILE id="pWrYpO" name="SettingsDialog.cpp" compile="1" resource="0"
+            file="Source/SettingsDialog.cpp"/>
+      <FILE id="JYIN7M" name="SettingsDialog.h" compile="0" resource="0"
+            file="Source/SettingsDialog.h"/>
+    </GROUP>
+  </MAINGROUP>
+  <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
+  <EXPORTFORMATS>
+    <XCODE_MAC targetFolder="Builds/MacOSX">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" targetName="PlugData" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="PlugData"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_devices" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_formats" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_plugin_client" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_processors" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_audio_utils" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_core" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_data_structures" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_events" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_graphics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_basics" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_gui_extra" path="../../../JUCE/modules"/>
+      </MODULEPATHS>
+    </XCODE_MAC>
+  </EXPORTFORMATS>
+  <MODULES>
+    <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_devices" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_formats" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_plugin_client" showAllCode="1" useLocalCopy="0"
+            useGlobalPath="1"/>
+    <MODULE id="juce_audio_processors" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_audio_utils" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_core" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_data_structures" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_events" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+  </MODULES>
+</JUCERPROJECT>
