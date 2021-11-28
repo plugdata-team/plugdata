@@ -1,6 +1,7 @@
 # PlugData
 Pure Data as a plugin, with a new GUI
 
+<img width="948" alt="Screenshot 2021-11-28 at 03 25 00" src="https://user-images.githubusercontent.com/44585538/143726469-66ece9d1-77ba-46e3-a24e-7e2ff650dc4d.png">
 
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. Currently not very stable!
 
@@ -32,5 +33,6 @@ What doesn't work / needs to be fixed:
 - Not entirely thread-safe yet
 - Undo/Redo
 - Some hacky solutions
+- Leaks
 
 Please contact me if you wish to contribute, I could use some help!
