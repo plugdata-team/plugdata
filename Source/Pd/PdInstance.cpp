@@ -562,17 +562,21 @@ t_pd* Instance::createObject(String name, int x, int y)
         return createGraphOnParent();
     }
     
+    t_symbol* typesymbol =  gensym("obj");
     
-    t_symbol* typesymbol = gensym(tokens[0] == "msg" ? "msg" : "obj");
-    //const char* type = tokens[0].toRawUTF8();
-    
-    
-    
-    bool is_message = tokens[0] == "msg";
-    
-    if(is_message && tokens.size())
+    if(tokens[0] == "msg") {
+        typesymbol = gensym("msg");
         tokens.remove(0);
-    
+    }
+    if(tokens[0] == "floatatom") {
+        typesymbol = gensym("floatatom");
+        tokens.remove(0);
+    }
+    if(tokens[0] == "symbolatom") {
+        typesymbol = gensym("symbolatom");
+        tokens.remove(0);
+    }
+
     int argc = tokens.size() + 2;
     
     // might leak!!!
@@ -581,7 +585,6 @@ t_pd* Instance::createObject(String name, int x, int y)
     // Set position
     SETFLOAT(argv, (float)x);
     SETFLOAT(argv + 1, (float)y);
-    
     
     for(int i = 0; i < tokens.size(); i++) {
         if(tokens[i].containsOnly("0123456789.-") && tokens[i] != "-") {
