@@ -22,7 +22,6 @@ What works:
 - Most GUI objects:
   - Bang, Numbox, Toggle, Radio, Sliders, Array/Graph and Message work perfectly
   - GraphOnParent does not yet work
-  - No atom objects yet
 - Usable in DAW
 - Console
 

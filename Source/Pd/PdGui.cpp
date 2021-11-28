@@ -346,6 +346,7 @@ namespace pd
             char* argv;
             int argc;
             
+            // TODO: NOT THREAD SAFE!
             binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
             return std::string(argv, argc);
         }

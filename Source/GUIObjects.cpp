@@ -61,6 +61,15 @@ GUIComponent* GUIComponent::create_gui(String name, Box* parent)
     if(name == "canvas") {
         return new GraphOnParent(parent);
     }
+    if(name == "vu") {
+        return new GraphOnParent(parent);
+    }
+    if(name == "floatatom") {
+        return new NumboxComponent(parent);
+    }
+    if(name == "symbolatom") {
+        return new MessageComponent(parent);
+    }
     
     
     
@@ -220,7 +229,10 @@ MessageComponent::MessageComponent(Box* parent) : GUIComponent(parent)
     bang_button.setConnectedEdges(12);
    
     addAndMakeVisible(input);
-    addAndMakeVisible(bang_button);
+    
+    if(gui.getType() != pd::Gui::Type::AtomSymbol) {
+        addAndMakeVisible(bang_button);
+    }
     
     bang_button.onClick = [this](){
         startEdition();
@@ -247,8 +259,10 @@ MessageComponent::MessageComponent(Box* parent) : GUIComponent(parent)
 
 
 void MessageComponent::resized() {
-    input.setBounds(0, 0, getWidth() - 28, getHeight());
-    bang_button.setBounds(getWidth() - 29, 0, 29, getHeight());
+    int button_width = gui.getType() == pd::Gui::Type::AtomSymbol ? 0 : 28;
+    
+    input.setBounds(0, 0, getWidth() - button_width, getHeight());
+    bang_button.setBounds(getWidth() - (button_width + 1), 0, (button_width + 1), getHeight());
 }
 
 String MessageComponent::parseData(libcerite::Data d) {
