@@ -1,7 +1,8 @@
 # PlugData
 Pure Data as a plugin, with a new GUI
 
-<img width="948" alt="Screenshot 2021-11-28 at 03 25 00" src="https://user-images.githubusercontent.com/44585538/143726469-66ece9d1-77ba-46e3-a24e-7e2ff650dc4d.png">
+<img width="1007" alt="Screenshot 2021-11-28 at 20 06 01" src="https://user-images.githubusercontent.com/44585538/143782272-858d8b40-ccb0-4ed7-81aa-08709cc9d472.png">
+
 
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. Currently not very stable!
 This project differs from Camomile in that it actually allows you to modify patches
