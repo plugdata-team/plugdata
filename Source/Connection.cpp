@@ -14,36 +14,38 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
     end = cnv->find_edge_by_id(tree.getProperty("EndID"));
     
 
-
+    
     if(!start || !end) {
         start = nullptr;
         end = nullptr;
-        parent->getState().removeChild(tree, &cnv->undo_manager);
+        parent->getState().removeChild(tree, nullptr);
         return;
     }
     
+    if(!getState().getProperty(Identifiers::exists)) {
 
-    if(start->ValueTreeObject::getState().getProperty(Identifiers::edge_in)) {
-        in_idx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-        out_idx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-        in_obj = start->box->pd_object;
-        out_obj = end->box->pd_object;
+        if(start->ValueTreeObject::getState().getProperty(Identifiers::edge_in)) {
+            in_idx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            out_idx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            in_obj = start->box->pd_object;
+            out_obj = end->box->pd_object;
+        }
+        else {
+            in_idx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            out_idx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            in_obj = end->box->pd_object;
+            out_obj = start->box->pd_object;
+        }
+        
+
+        bool can_connect = parent->get_pd()->createConnection(out_obj, out_idx, in_obj, in_idx);
+
     }
-    else {
-        in_idx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-        out_idx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-        in_obj = end->box->pd_object;
-        out_obj = start->box->pd_object;
-    }
-    
-
-    bool can_connect = parent->get_pd()->createConnection(out_obj, out_idx, in_obj, in_idx);
-
     /*
     if(!can_connect) {
         start = nullptr;
         end = nullptr;
-        parent->getState().removeChild(tree, &cnv->undo_manager);
+        parent->getState().removeChild(tree, nullptr);
         return;
     } */
     
@@ -86,7 +88,8 @@ void Connection::paint (Graphics& g)
     auto base_colour = Colours::white;
 
     if(is_selected) {
-        base_colour = start->ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : Colour (0xff42a2c8);
+        
+        base_colour = start->ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : MainLook::highlight_colour;
         
         //Library::colours[(String)];
     }
@@ -139,9 +142,7 @@ void Connection::componentBeingDeleted(Component& component) {
     
     if(!deleted) {
         deleted = true;
-        
-        if(!cnv->undo_manager.isPerformingUndoRedo())
-            getState().getParent().removeChild(getState(), &cnv->undo_manager);
+        getState().getParent().removeChild(getState(), nullptr);
     }
     
     

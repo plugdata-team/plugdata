@@ -31,7 +31,7 @@ void Edge::paint (Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
     
-    auto background_colour = ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : Colour (0xff42a2c8);
+    auto background_colour = ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : MainLook::highlight_colour;
     
     auto base_colour = background_colour.withMultipliedSaturation (hasKeyboardFocus (true) ? 1.3f : 0.9f)
                                       .withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
@@ -97,7 +97,7 @@ void Edge::create_connection()
             new_connection.setProperty(Identifiers::start_id, Edge::connecting_edge->ValueTreeObject::getState().getProperty(Identifiers::edge_id), nullptr);
             new_connection.setProperty(Identifiers::end_id, ValueTreeObject::getState().getProperty(Identifiers::edge_id), nullptr);
             Canvas* cnv = findParentComponentOfClass<Canvas>();
-            cnv->getState().appendChild(new_connection, &cnv->undo_manager);
+            cnv->getState().appendChild(new_connection, nullptr);
             Edge::connecting_edge = nullptr;
         }
     }

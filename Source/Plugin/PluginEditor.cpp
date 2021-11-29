@@ -13,9 +13,16 @@
 PlugDataAudioProcessorEditor::PlugDataAudioProcessorEditor (PlugDataAudioProcessor& p)
     : AudioProcessorEditor (&p), audioProcessor (p), main_component(p.main_component)
 {
+    // Using openGL could really speed up the rendering
+    // But currently it causes issues because we draw outside of object bounds in a few places...
+    //openGLContext.attachTo(*this);
+    
     addAndMakeVisible(main_component);
     
-    addAndMakeVisible (resizer = new ResizableCornerComponent (this, &restrainer));
+    
+    resizer.reset(new ResizableCornerComponent (this, &restrainer));
+    addAndMakeVisible(resizer.get());
+    
     restrainer.setSizeLimits (150, 150, 1200, 1200);
     setSize (audioProcessor.lastUIWidth, audioProcessor.lastUIHeight);
     

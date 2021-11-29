@@ -178,9 +178,6 @@ BangComponent::BangComponent(Box* parent) : GUIComponent(parent)
         setValueOriginal(1);
         stopEdition();
     };
-    
-    auto highlight_colour = Colour (0xff42a2c8).darker(0.2);
-    bang_button.setColour(TextButton::buttonOnColourId, highlight_colour);
 }
 
 void BangComponent::update()  {
@@ -206,9 +203,6 @@ ToggleComponent::ToggleComponent(Box* parent) : GUIComponent(parent)
         toggle_button.setToggleState(new_value, dontSendNotification);
         stopEdition();
     };
-    
-    auto highlight_colour = Colour (0xff42a2c8).darker(0.2);
-    toggle_button.setColour(TextButton::buttonOnColourId, highlight_colour);
 }
 
 
@@ -253,8 +247,6 @@ MessageComponent::MessageComponent(Box* parent) : GUIComponent(parent)
         //pd_typedmess(static_cast<t_pd*>(gui.getPointer()), gensym("set"), 1, args);
     };
     
-    auto highlight_colour = Colour (0xff42a2c8).darker(0.2);
-    bang_button.setColour(TextButton::buttonOnColourId, highlight_colour);
 }
 
 

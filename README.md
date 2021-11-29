@@ -18,22 +18,20 @@ Possible thanks to:
 - Audio Unit PlugIn Technology by Apple
 
 What works:
-- Creating, deleting and moving objects
+- Creating, deleting and moving objects and connections
 - Signal and data objects
 - Most GUI objects:
   - Bang, Numbox, Toggle, Radio, Sliders, Array/Graph and Message work perfectly
-  - GraphOnParent does not yet work
+  - GraphOnParent and VUMeter do not yet work
 - Usable in DAW
 - Console
-
-What kinda works (but needs testing):
 - Saving and loading patches
+
 
 What doesn't work / needs to be fixed:
 - Not entirely thread-safe yet
 - Undo/Redo
 - Some hacky solutions
-- Leaks
 - No VU meter
 - GraphOnParent
 - Subpatches

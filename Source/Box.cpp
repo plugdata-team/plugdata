@@ -92,13 +92,13 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragg
     
     if(!tree.hasProperty(Identifiers::box_x)) {
         auto pos = cnv->getMouseXYRelative();
-        tree.setProperty(Identifiers::box_x, pos.getX(), &cnv->undo_manager);
-        tree.setProperty(Identifiers::box_y, pos.getY(), &cnv->undo_manager);
+        tree.setProperty(Identifiers::box_x, pos.getX(), nullptr);
+        tree.setProperty(Identifiers::box_y, pos.getY(), nullptr);
     }
     
     if(!tree.hasProperty("ID")) {
         Uuid id;
-        tree.setProperty("ID", id.toString(), &cnv->undo_manager);
+        tree.setProperty("ID", id.toString(), nullptr);
     }
     
     setSize (100, 32);
@@ -112,7 +112,7 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragg
     
     text_label.onTextChange = [this]() {
         String new_text = text_label.getText();
-        getState().setProperty(Identifiers::box_name, new_text, &cnv->undo_manager);
+        getState().setProperty(Identifiers::box_name, new_text, nullptr);
     };
     
     
@@ -180,7 +180,7 @@ void Box::set_type (String new_type)
     
     String obj_name = text_label.getText();
     
-    if(type.isNotEmpty()) {
+    if(type.isNotEmpty() && !getState().getProperty(Identifiers::exists)) {
         auto* pd = cnv->get_pd();
         
         if(pd_object) {
@@ -190,7 +190,7 @@ void Box::set_type (String new_type)
             pd_object = pd->createObject(obj_name, getX(), getY());
         }
     }
-    else {
+    else if(!getState().getProperty(Identifiers::exists)) {
         pd_object = nullptr;
     }
     
@@ -219,7 +219,7 @@ void Box::set_type (String new_type)
     // Handle subpatchers
     /*
     if(auto* subcnv = findChildOfClass<Canvas>(0)) {
-        getState().removeChild(subcnv->getState(), &cnv->undo_manager);
+        getState().removeChild(subcnv->getState(), nullptr);
     } */
     
 
@@ -263,10 +263,8 @@ void Box::moved()
 
 void Box::update_position()
 {
-    if(!cnv->undo_manager.isPerformingUndoRedo()) {
-        getState().setPropertyExcludingListener(this, Identifiers::box_x, getX(), &cnv->undo_manager);
-        getState().setPropertyExcludingListener(this, Identifiers::box_y, getY(), &cnv->undo_manager);
-    }
+    getState().setPropertyExcludingListener(this, Identifiers::box_x, getX(), nullptr);
+    getState().setPropertyExcludingListener(this, Identifiers::box_y, getY(), nullptr);
 }
 
 void Box::resized()
