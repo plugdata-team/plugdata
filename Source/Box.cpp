@@ -180,17 +180,23 @@ void Box::set_type (String new_type)
 {
     String arguments = new_type.fromFirstOccurrenceOf(" ", false, false);
     String type = new_type.upToFirstOccurrenceOf(" ", false, false);
-    
-    String obj_name = text_label.getText();
+
+    bool is_gui = GUIComponent::is_gui(type);
     
     if(type.isNotEmpty() && !getState().getProperty(Identifiers::exists)) {
         auto* pd = cnv->get_pd();
         
-        if(pd_object) {
-            pd_object = pd->renameObject(pd_object, obj_name);
+        // Pd doesn't normally allow changing between gui and non-gui objects
+        if((pd_object && graphics.get() != nullptr) || is_gui) {
+            pd->removeObject(pd_object);
+            pd_object = pd->createObject(new_type, getX(), getY());
+            graphics.reset(nullptr);
+        }
+        else if(pd_object) {
+            pd_object = pd->renameObject(pd_object, new_type);
         }
         else {
-            pd_object = pd->createObject(obj_name, getX(), getY());
+            pd_object = pd->createObject(new_type, getX(), getY());
         }
     }
     else if(!getState().getProperty(Identifiers::exists)) {
@@ -199,7 +205,7 @@ void Box::set_type (String new_type)
     
     update_ports();
     
-    if(pd_object || true) { // temp
+    if(pd_object && is_gui) {
         graphics.reset(GUIComponent::create_gui(type, this));
     }
     

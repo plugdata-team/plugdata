@@ -1,8 +1,5 @@
 #pragma once
 
-#define NO_CERITE_MACROS
-#include "/Users/timschoen/Documents/Cerite/.exec/libcerite.h"
-
 #include <type_traits>
 #include <utility>
 #include <JuceHeader.h>
@@ -23,6 +20,8 @@ struct GUIComponent : public Component, public Timer
     Array<int> num_registered;
     
     GUIComponent(Box* parent);
+    
+    static bool is_gui(String name);
     
     virtual ~GUIComponent();
     
@@ -145,9 +144,7 @@ struct MessageComponent : public GUIComponent
         
     };
     
-    virtual void updateValue();
-    
-    String parseData(libcerite::Data d);
+    void updateValue() override;
     
     void resized() override;
 

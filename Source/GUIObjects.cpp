@@ -29,6 +29,10 @@ GUIComponent::~GUIComponent()
     setLookAndFeel(nullptr);
 }
 
+bool GUIComponent::is_gui(String name)  {
+    return name == "bng" || name == "tgl" || name == "hsl" || name == "vsl" || name == "hradio" || name == "vradio" || name == "msg" || name == "nbx" || name == "graph" || name == "canvas" || name == "floatatom" || name == "symbolatom";
+}
+
 GUIComponent* GUIComponent::create_gui(String name, Box* parent)
 {
     if(name == "bng") {
@@ -183,7 +187,7 @@ BangComponent::BangComponent(Box* parent) : GUIComponent(parent)
 void BangComponent::update()  {
     if(getValueOriginal() > std::numeric_limits<float>::epsilon()) {
         bang_button.setToggleState(true, dontSendNotification);
-        bang_timer.startTimer(50);
+        bang_timer.startTimer(80);
     }
 }
 
@@ -255,39 +259,6 @@ void MessageComponent::resized() {
     
     input.setBounds(0, 0, getWidth() - button_width, getHeight());
     bang_button.setBounds(getWidth() - (button_width + 1), 0, (button_width + 1), getHeight());
-}
-
-String MessageComponent::parseData(libcerite::Data d) {
-    if(d.type == libcerite::tNumber)
-    {
-        return String(d.number);
-        
-    }
-    else if(d.type == libcerite::tString)
-    {
-        
-        return String(d.string);
-    }
-    else if(d.type == libcerite::tBang)
-    {
-        return "bang";
-    }
-    else if(d.type == libcerite::tList)
-    {
-        String new_text;
-        
-        for(int i = 0; i < d.listlen; i++)
-        {
-            new_text += parseData(d.list[i]);
-            if(i != d.listlen - 1) new_text += " ";
-        }
-        return new_text;
-    }
-    else {
-        return "";
-    }
-    
-    
 }
 
 void MessageComponent::update()  {

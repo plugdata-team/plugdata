@@ -1,7 +1,5 @@
 #pragma once
 
-#define NO_CERITE_MACROS
-#include "/Users/timschoen/Documents/Cerite/.exec/libcerite.h"
 
 #include "Utility/MultiComponentDragger.h"
 #include "Utility/gin_valuetreeobject.h"
