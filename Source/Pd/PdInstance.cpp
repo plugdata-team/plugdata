@@ -9,7 +9,7 @@
 
 extern "C"
 {
-
+#include <g_undo.h>
 #include "x_libpd_multi.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_mod_utils.h"
@@ -18,8 +18,33 @@ extern "C"
 #include "PdInstance.hpp"
 #include "PdPatch.hpp"
 
+
 extern "C"
 {
+
+struct _instanceeditor
+{
+    t_binbuf *copy_binbuf;
+    char *canvas_textcopybuf;
+    int canvas_textcopybufsize;
+    t_undofn canvas_undo_fn;         /* current undo function if any */
+    int canvas_undo_whatnext;        /* whether we can now UNDO or REDO */
+    void *canvas_undo_buf;           /* data private to the undo function */
+    t_canvas *canvas_undo_canvas;    /* which canvas we can undo on */
+    const char *canvas_undo_name;
+    int canvas_undo_already_set_move;
+    double canvas_upclicktime;
+    int canvas_upx, canvas_upy;
+    int canvas_find_index, canvas_find_wholeword;
+    t_binbuf *canvas_findbuf;
+    int paste_onset;
+    t_canvas *paste_canvas;
+    t_glist *canvas_last_glist;
+    int canvas_last_glist_x, canvas_last_glist_y;
+    t_canvas *canvas_cursorcanvaswas;
+    unsigned int canvas_cursorwas;
+};
+
 struct pd::Instance::internal
 {
     static void instance_multi_bang(pd::Instance* ptr, const char *recv)
@@ -473,6 +498,7 @@ void Instance::openPatch(std::string const& path, std::string const& name)
     closePatch();
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     m_patch = libpd_create_canvas(name.c_str(), path.c_str());
+    setThis();
     
 }
 
@@ -639,6 +665,8 @@ t_pd* Instance::renameObject(t_pd* obj, String name) {
     
     libpd_renameobj(static_cast<t_canvas*>(m_patch), &pd_checkobject(obj)->te_g, name.toRawUTF8(), name.length());
     
+    
+    
     return static_cast<t_pdinstance*>(m_instance)->pd_newest;
     
     
@@ -652,21 +680,22 @@ void Instance::moveObject(t_pd* obj, int x, int y) {
     
 }
 
-String Instance::undo() {
+void Instance::undo() {
     setThis();
-    //pd_typedmess(static_cast<t_pd*>(m_patch), gensym("undo"), 0, nullptr);
+
+    auto* instance = static_cast<_pdinstance*>(m_instance);
+    
+    instance->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+    
     pd_typedmess(static_cast<t_pd*>(m_patch), gensym("undo"), 0, nullptr);
-    
-    //auto* instance = static_cast<_pdinstance*>(m_instance);
-    
-    //instance->pd_gui->i_editor
-    return getCanvasContent();
 }
 
-String Instance::redo() {
+void Instance::redo() {
+    setThis();
     
-    pd_typedmess(static_cast<t_pd*>(m_patch), gensym("undo"), 0, nullptr);
-    return getCanvasContent();
+    //auto* instance = static_cast<_pdinstance*>(m_instance);
+    //instance->pd_gui->i_editor->canvas_undo_already_set_move = 0;
+    pd_typedmess(static_cast<t_pd*>(m_patch), gensym("redo"), 0, nullptr);
 }
 
 bool Instance::checkState(String pdstate) {

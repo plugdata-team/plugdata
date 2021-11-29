@@ -65,9 +65,8 @@ public:
     void mouseMove(const MouseEvent& e) override;
     
     void load_patch(String patch);
-    
-    //Patch create_patch(int gui_offset = 0);
-    
+    void load_state();
+
     bool keyPressed(const KeyPress &key, Component *originatingComponent) override;
     
     String copy_selection();
@@ -88,9 +87,10 @@ public:
     bool connecting_with_drag = false;
     
     bool main_patch = true;
-    
+
 private:
 
+    
     MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this);
 
     LassoComponent<Box*> lasso;

@@ -21,7 +21,7 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     
     tabbar.on_tab_change = [this](int idx) {
         Edge::connecting_edge = nullptr;
-        triggerChange();
+        valueTreeChanged();
     };
     
     start_button.setClickingTogglesState(true);
@@ -66,6 +66,7 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     };
     
     toolbar_buttons[3].onClick = [this]() {
+       
         get_current_canvas()->undo();
     };
     
@@ -158,15 +159,8 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
             canvas->getState().appendChild(box, nullptr);
         };
         
-        
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbar_buttons[5]), ModalCallbackFunction::create(callback));
-
-        
     };
-    
-    
-
-
     
     hide_button.setLookAndFeel(&toolbar_look);
     hide_button.setClickingTogglesState(true);
@@ -182,7 +176,6 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     };
     
     addAndMakeVisible(hide_button);
-    
     
     if(!getState().hasProperty("Canvas")) {
         ValueTree cnv_state("Canvas");
@@ -282,7 +275,6 @@ void MainComponent::resized()
         idx++;
     }
     
-    
     hide_button.setBounds(std::min(getWidth() - s_width, getWidth() - 80), 0, 70, toolbar_height);
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should
@@ -335,19 +327,13 @@ void MainComponent::pd_synchonize() {
             new_objects.push_back(object);
         }
     }
-
-    
-    
 }
 
 void MainComponent::open_project() {
     open_chooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
           File openedfile = f.getResult();
           if(openedfile.exists() && openedfile.getFileExtension().equalsIgnoreCase(".pd")) {
-              
-              for(auto& box : canvas->findChildrenOfClass<Box>()) {
-                  box->remove_box();
-              }
+            
               
               canvas->load_patch(openedfile.loadFileAsString());
               
@@ -481,10 +467,13 @@ void MainComponent::save_project() {
 }
 
 
-void MainComponent::triggerChange() {
+void MainComponent::valueTreeChanged() {
     
-    toolbar_buttons[3].setEnabled(true);
-    toolbar_buttons[4].setEnabled(true);
+    pd.setThis();
+    
+    
+    toolbar_buttons[3].setEnabled(libpd_can_undo(static_cast<t_canvas*>(pd.m_patch)));
+    toolbar_buttons[4].setEnabled(libpd_can_redo(static_cast<t_canvas*>(pd.m_patch)));
     
     
     /*

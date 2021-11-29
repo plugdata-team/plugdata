@@ -63,8 +63,9 @@ public:
     void add_tab(Canvas* cnv);
     
     Canvas* get_current_canvas();
+
     
-    void triggerChange();
+    void valueTreeChanged() override;
     
     ValueTreeObject* factory (const Identifier&, const ValueTree&) override;
     
