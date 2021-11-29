@@ -31,7 +31,7 @@ What works:
 
 
 What doesn't work / needs to be fixed:
-- Perhaps entirely thread-safe yet
+- Perhaps not entirely thread-safe yet
 - Some hacky solutions
 - No VU meter
 - GraphOnParent and Subpatches not supported yet
