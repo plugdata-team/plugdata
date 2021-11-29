@@ -568,6 +568,7 @@ GraphOnParent::GraphOnParent(Box* box) : GUIComponent(box), canvas(new Canvas(Va
     addAndMakeVisible(canvas.get());
 
     subpatch = gui.getPatch();
+    
     //canvas->load_patch(subpatch);
     
     resized();
