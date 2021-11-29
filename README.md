@@ -26,14 +26,14 @@ What works:
 - Usable in DAW
 - Console
 - Saving and loading patches
+- Undoing and redoing
 
 
 What doesn't work / needs to be fixed:
-- Not entirely thread-safe yet
-- Undo/Redo
+- Perhaps entirely thread-safe yet
 - Some hacky solutions
 - No VU meter
-- GraphOnParent
-- Subpatches
+- GraphOnParent and Subpatches not supported yet
+
 
 Please contact me if you wish to contribute, I could use some help!
