@@ -63,6 +63,9 @@ ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueT
 }
 
 void Canvas::load_state() {
+    
+    dragger.deselectAll();
+    
     // Clear canvas
     for(auto& box : findChildrenOfClass<Box>()) {
         // set clear_pd to false: no need to clean up pd's objects, pd will take care of that
@@ -163,16 +166,7 @@ void Canvas::load_state() {
 }
 
 void Canvas::load_patch(String patch) {
-    dragger.deselectAll();
     
-    // Clear canvas
-    for(auto& box : findChildrenOfClass<Box>()) {
-        // set clear_pd to false: no need to clean up pd's objects, pd will take care of that
-        box->remove_box(false);
-    }
-    
-    // Removing all boxes should automatically remove all connections
-    jassert(findChildrenOfClass<Connection>().size() == 0);
     
     // Create the pd save file
     auto temp_patch = File::createTempFile(".pd");
@@ -183,92 +177,7 @@ void Canvas::load_patch(String patch) {
     // Instead we can load the patch and iterate through it to add GUI components
     main->pd.openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
     
-    Array<Box*> boxes;
-    
-    // Go through all the boxes in the pd patch, and add GUI components for them
-    for(auto& object : main->pd.getPatch().getObjects()) {
-        
-        auto box = ValueTree(Identifiers::box);
-        
-        // Setting the exists flag tells the box that this refers to an objects that already exists in the pd patch
-        box.setProperty(Identifiers::exists, true, nullptr);
-        box.setProperty(Identifiers::box_x, object.getBounds()[0], nullptr);
-        box.setProperty(Identifiers::box_y, object.getBounds()[1], nullptr);
-        
-        getState().appendChild(box, nullptr);
-        
-        auto* last_box = findChildrenOfClass<Box>().getLast();
-        last_box->pd_object = static_cast<t_pd*>(object.getPointer());
-        boxes.add(last_box); // lets hope this preserves the object order...
-        
-        String name = object.getText();
-        
-        
-        if(object.getName() == "message") {
-            name = "msg " + name;
-        }
-        
-        if(object.getName() == "gatom" && name.containsOnly("0123456789.")) {
-            name = "floatatom";
-        }
-        else if(object.getName() == "gatom") {
-            name = "symbolatom";
-        }
-        
-        // Some of these GUI objects have a lot of extra symbols that we don't want to show
-        auto gui_simplify = [](String& target, const String& selector) {
-            if(target.startsWith(selector)) {
-                target = selector;
-            }
-        };
-        gui_simplify(name, "bng");
-        gui_simplify(name, "tgl");
-        gui_simplify(name, "nbx");
-        gui_simplify(name, "hsl");
-        gui_simplify(name, "vsl");
-        gui_simplify(name, "hradio");
-        gui_simplify(name, "vradio");
-
-        box.setProperty(Identifiers::box_name, name, nullptr);
-        
-        // Return to normal operation
-        box.setProperty(Identifiers::exists, false, nullptr);
-    }
-    
-    auto lines = StringArray::fromLines(patch);
-    
-    // Connections are easier to read from the save file than to extract from the loaded patch
-    // These connections already exists in libpd, we just need to add GUI components for them
-    for(auto& line : lines) {
-        if(line.startsWith("#X connect")) {
-            auto segments = StringArray::fromTokens(line.fromFirstOccurrenceOf("#X connect ", false, false), " ", "\"");
-            
-            int end_box   = segments[0].getIntValue();
-            int outlet    = segments[1].getIntValue();
-            int start_box = segments[2].getIntValue();
-            int inlet     = segments[3].getIntValue();
-            
-            auto start_edges = boxes[start_box]->findChildrenOfClass<Edge>();
-            auto end_edges = boxes[end_box]->findChildrenOfClass<Edge>();
-            
-            auto new_connection = ValueTree(Identifiers::connection);
-            
-            String start_id = start_edges[inlet]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
-            String end_id = end_edges[boxes[end_box]->total_in + outlet]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
-            
-            new_connection.setProperty(Identifiers::start_id, start_id, nullptr);
-            new_connection.setProperty(Identifiers::end_id, end_id, nullptr);
-            
-            new_connection.setProperty(Identifiers::exists, true, nullptr); // let the connection know that this connection already exists
-            
-            getState().appendChild(new_connection, nullptr);
-            
-            // Return to normal operation
-            new_connection.setProperty(Identifiers::exists, false, nullptr);
-        }
-        
-    }
-    
+    load_state();
     
 }
 
