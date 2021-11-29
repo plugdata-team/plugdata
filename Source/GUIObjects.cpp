@@ -11,7 +11,7 @@ GUIComponent::GUIComponent(Box* parent)  : box(parent), m_processor(parent->cnv-
     //if(!box->pd_object) return;
     
     auto* checked_object = pd_checkobject(box->pd_object);
-    assert(box->pd_object && checked_object);
+    jassert(box->pd_object && checked_object);
     
     gui = pd::Gui(static_cast<void*>(checked_object), parent->cnv->main->pd.m_patch, &(parent->cnv->main->pd));
     

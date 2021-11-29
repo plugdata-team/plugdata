@@ -104,8 +104,8 @@ public:
     t_pd* renameObject(t_pd* obj, String name);
     void moveObject (t_pd*, int x, int y);
 
-    String undo();
-    String redo();
+    void undo();
+    void redo();
     
     bool createConnection(t_pd* src, int nout, t_pd* sink, int nin);
     void removeConnection(t_pd* src, int nout, t_pd*sink, int nin);

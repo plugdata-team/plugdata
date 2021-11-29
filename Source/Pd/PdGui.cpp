@@ -343,11 +343,14 @@ namespace pd
     {
         if(m_ptr && m_type == Type::Message) {
             m_instance->setThis();
+            
             char* argv;
             int argc;
             
-            // TODO: NOT THREAD SAFE!
+            sys_lock();
             binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
+            sys_unlock();
+            
             return std::string(argv, argc);
         }
         else if (m_ptr &&  m_type == Type::AtomSymbol)

@@ -143,10 +143,13 @@ Box::~Box()
 {
 }
 
-void Box::remove_box() {
-    if(pd_object) {
+void Box::remove_box(bool clear_pd) {
+    
+    
+    if(pd_object && clear_pd) {
         cnv->get_pd()->removeObject(pd_object);
     }
+    
     pd_object = nullptr;
     cnv->getState().removeChild(ValueTreeObject::getState(), nullptr);
 }

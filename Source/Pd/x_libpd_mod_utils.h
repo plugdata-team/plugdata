@@ -16,7 +16,12 @@ extern "C"
     
 #include <z_libpd.h>
 #include <m_pd.h>
-    
+#include <g_canvas.h>
+
+
+
+
+
 
     t_pd* libpd_createobj(t_pd *x, t_symbol *s, int argc, t_atom *argv);
     t_pd* libpd_creategraph(t_pd *x, int argc, t_atom *argv);
@@ -36,6 +41,10 @@ extern "C"
     int libpd_noutlets(const t_object *x);
 
     int libpd_ninlets(const t_object *x);
+
+    int libpd_can_undo(t_canvas* cnv);
+    int libpd_can_redo(t_canvas* cnv);
+
 
     int libpd_issignalinlet(const t_object *x, int m);
     int libpd_issignaloutlet(const t_object *x, int m);

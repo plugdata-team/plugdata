@@ -70,20 +70,9 @@ public:
     
     void update_ports();
     
-    void remove_box();
-    
-    /*
-    Ports update_subpatch(ValueTree tree);
-    
-    
-    
-    
-    Ports load_subpatch (String title); */
+    void remove_box(bool clear_pd = true);
     
     t_pd* pd_object = nullptr;
-    t_pd* message_send = nullptr;
-    
-    String send_id;
     
     void mouseMove(const MouseEvent& e) override;
     

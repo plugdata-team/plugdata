@@ -8,20 +8,54 @@
 #include <m_imp.h>
 #include <g_canvas.h>
 #include <g_all_guis.h>
+#include <g_undo.h>
+
+#include <string.h>
+
 #include "x_libpd_multi.h"
 #include "x_libpd_extra_utils.h"
 
+struct _instanceeditor
+{
+    t_binbuf *copy_binbuf;
+    char *canvas_textcopybuf;
+    int canvas_textcopybufsize;
+    t_undofn canvas_undo_fn;         /* current undo function if any */
+    int canvas_undo_whatnext;        /* whether we can now UNDO or REDO */
+    void *canvas_undo_buf;           /* data private to the undo function */
+    t_canvas *canvas_undo_canvas;    /* which canvas we can undo on */
+    const char *canvas_undo_name;
+    int canvas_undo_already_set_move;
+    double canvas_upclicktime;
+    int canvas_upx, canvas_upy;
+    int canvas_find_index, canvas_find_wholeword;
+    t_binbuf *canvas_findbuf;
+    int paste_onset;
+    t_canvas *paste_canvas;
+    t_glist *canvas_last_glist;
+    int canvas_last_glist_x, canvas_last_glist_y;
+    t_canvas *canvas_cursorcanvaswas;
+    unsigned int canvas_cursorwas;
+};
+
+extern void canvas_displaceselection_ext(t_canvas *x, int dx, int dy);
+extern void* canvas_undo_set_disconnect(t_canvas *x, int index1, int outno, int index2, int inno);
+extern int glist_getindex(t_glist *x, t_gobj *y);
 
 void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
 {
+
+    
     if (x->g_pd->c_wb && x->g_pd->c_wb->w_getrectfn && x->g_pd->c_wb && x->g_pd->c_wb->w_displacefn) {
         
         int x1, y1, x2, y2;
 
         (*x->g_pd->c_wb->w_getrectfn)(x, glist, &x1, &y1, &x2, &y2);
         
-        (*x->g_pd->c_wb->w_displacefn)(x, glist, xpos - x1, ypos - y1);
-        
+        glist_noselect(glist);
+        glist_select(glist, x);
+        canvas_displaceselection_ext(glist, xpos - x1, ypos - y1);
+        glist_deselect(glist, x);
     }
     
 
@@ -192,9 +226,9 @@ int libpd_tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
                 (obj_issignaloutlet(src, nout) ? 2 : 1) *
                 x->gl_zoom,
                 oc);
-            //canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
-           //         canvas_getindex(x, &src->ob_g), nout,
-            //        canvas_getindex(x, &sink->ob_g), nin));
+            canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
+                   canvas_getindex(x, &src->ob_g), nout,
+                    canvas_getindex(x, &sink->ob_g), nin));
             canvas_dirty(x, 1);
             return 1;
         }
@@ -207,58 +241,136 @@ int libpd_tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
 t_pd* libpd_creategraphonparent(t_pd *x, int argc, t_atom *argv) {
         
     pd_typedmess(x, gensym("graph"), argc, argv);
+    
+    canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
+        (void *)canvas_undo_set_create((t_canvas*)x));
+    
     glist_noselect(x);
     return pd_newest();
 }
     
 t_pd* libpd_creategraph(t_pd *x, int argc, t_atom *argv) {
         
+    sys_lock();
+    
     pd_typedmess(x, gensym("arraydialog"), argc, argv);
+    
+    canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
+        (void *)canvas_undo_set_create((t_canvas*)x));
+    
     glist_noselect(x);
+    
+    sys_unlock();
     return pd_newest();
 }
 
 t_pd* libpd_createobj(t_pd *x, t_symbol *s, int argc, t_atom *argv) {
+    sys_lock();
+    
     pd_typedmess(x, s, argc, argv);
+    
+    canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
+        (void *)canvas_undo_set_create((t_canvas*)x));
+    
     glist_noselect(x);
+    
+    sys_unlock();
     return pd_newest();
     
 }
 
 void libpd_removeobj(t_canvas* cnv, t_gobj* obj)
 {
+    glist_noselect(cnv);
     glist_select(cnv, obj);
     libpd_canvas_doclear(cnv);
+    
+    
     glist_noselect(cnv);
 }
 
 
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 {
+    
     glist_noselect(cnv);
     glist_select(cnv, obj);
     canvas_stowconnections(cnv); // for restoring connections when possible!
     text_setto((t_text *)obj, cnv, buf, bufsize);
+    
+
+    
     glist_noselect(cnv);
 }
 
+
+int libpd_can_undo(t_canvas* cnv) {
+    t_undo* udo = canvas_undo_get(cnv);
+    
+    if(udo->u_last) {
+        return strcmp(udo->u_last->name, "no");
+    }
+    
+    return 0;
+}
+
+int libpd_can_redo(t_canvas* cnv) {
+    
+    t_undo* udo = canvas_undo_get(cnv);
+    
+    if(udo->u_last && udo->u_last->next) {
+        return strcmp(udo->u_last->next->name, "no");
+    }
+    
+    return 0;
+}
+
+
 void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
 {
-    gobj_setposition(obj, cnv,  x, y);
+    //EDITOR->canvas_undo_already_set_move = 0;
+    //int state = EDITOR->canvas_undo_already_set_move;
+    
+    sys_lock();
+    gobj_setposition(obj, cnv, x, y);
     glist_noselect(cnv);
+    sys_unlock();
+    
+    //EDITOR->canvas_undo_already_set_move = state;
 }
 
 
 void libpd_createconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
+    sys_lock();
     libpd_tryconnect(cnv, src, nout, sink, nin);
     glist_noselect(cnv);
+    sys_unlock();
 }
+
+/* ------- specific undo methods: 1. connect -------- */
+typedef struct _undo_connect
+{
+    int u_index1;
+    int u_outletno;
+    int u_index2;
+    int u_inletno;
+} t_undo_connect;
+
+
 
 void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
+    sys_lock();
     obj_disconnect(src, nout, sink, nin);
+    
+    int dest_i = canvas_getindex(cnv, &(sink->te_g));
+    int src_i = canvas_getindex(cnv, &(src->te_g));
+    
+    canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv,
+                                                                                   src_i, nout, dest_i, nin));
     glist_noselect(cnv);
+    sys_unlock();
 }
 
 
