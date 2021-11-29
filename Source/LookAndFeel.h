@@ -3,71 +3,76 @@
 #include <JuceHeader.h>
 
 
-class PlugData_DocumentWindowButton   : public Button
-{
-public:
-    PlugData_DocumentWindowButton (const String& name, Colour c, const Path& normal, const Path& toggled)
-        : Button (name), colour (c), normalShape (normal), toggledShape (toggled)
-    {
-    }
-
-    void paintButton (Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
-    {
-        auto background = Colour(25, 25, 25);
-
-      
-      if (auto* rw = findParentComponentOfClass<ResizableWindow>())
-
-        g.fillAll (background);
-
-        g.setColour ((! isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha (0.6f)
-                                                     : colour);
-
-        if (shouldDrawButtonAsHighlighted)
-        {
-            g.fillAll();
-            g.setColour (background);
-        }
-
-        auto& p = getToggleState() ? toggledShape : normalShape;
-
-        auto reducedRect = Justification (Justification::centred)
-                              .appliedToRectangle (Rectangle<int> (getHeight(), getHeight()), getLocalBounds())
-                              .toFloat()
-                              .reduced ((float) getHeight() * 0.3f);
-
-        g.fillPath (p, p.getTransformToScaleToFit (reducedRect, true));
-    }
-
-private:
-    Colour colour;
-    Path normalShape, toggledShape;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugData_DocumentWindowButton)
-};
 
 struct MainLook : public LookAndFeel_V4
 {
+    
+    inline static Colour highlight_colour = Colour(0xff42a2c8);
+    inline static Colour background_1 = Colour(23, 23, 23);
+    inline static Colour background_2 = Colour(32, 32, 32);
+    
+    
+    
+    class PlugData_DocumentWindowButton   : public Button
+    {
+    public:
+        PlugData_DocumentWindowButton (const String& name, Colour c, const Path& normal, const Path& toggled)
+            : Button (name), colour (c), normalShape (normal), toggledShape (toggled)
+        {
+        }
+
+        void paintButton (Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+        {
+            auto background = MainLook::background_1;
+
+          
+          if (auto* rw = findParentComponentOfClass<ResizableWindow>())
+
+            g.fillAll (background);
+
+            g.setColour ((! isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha (0.6f)
+                                                         : colour);
+
+            if (shouldDrawButtonAsHighlighted)
+            {
+                g.fillAll();
+                g.setColour (background);
+            }
+
+            auto& p = getToggleState() ? toggledShape : normalShape;
+
+            auto reducedRect = Justification (Justification::centred)
+                                  .appliedToRectangle (Rectangle<int> (getHeight(), getHeight()), getLocalBounds())
+                                  .toFloat()
+                                  .reduced ((float) getHeight() * 0.3f);
+
+            g.fillPath (p, p.getTransformToScaleToFit (reducedRect, true));
+        }
+
+    private:
+        Colour colour;
+        Path normalShape, toggledShape;
+
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugData_DocumentWindowButton)
+    };
+    
     MainLook() {
-        
-        auto highlight_colour = Colour(0xff42a2c8);
-        
-        setColour(PopupMenu::backgroundColourId, Colour(25, 25, 25));
-        setColour (ResizableWindow::backgroundColourId, Colour(32, 32, 32));
-        setColour (TextButton::buttonColourId, Colour(25, 25, 25));
+        setColour(PopupMenu::backgroundColourId, background_1);
+        setColour (ResizableWindow::backgroundColourId, background_2);
+        setColour (TextButton::buttonColourId, background_1);
         setColour (TextButton::buttonOnColourId, highlight_colour);
         setColour (juce::TextEditor::backgroundColourId, Colour(45, 45, 45));
         setColour (SidePanel::backgroundColour, Colour(50, 50, 50));
-        setColour (ComboBox::backgroundColourId, Colour(50, 50, 50));
-        setColour (ListBox::backgroundColourId, Colour(50, 50, 50));
+        setColour (ComboBox::backgroundColourId, background_1);
+        setColour (ListBox::backgroundColourId, background_1);
         setColour (Slider::backgroundColourId, Colour(60, 60, 60));
         setColour (Slider::trackColourId, Colour(50, 50, 50));
         setColour(CodeEditorComponent::backgroundColourId, Colour(50, 50, 50));
         setColour(CodeEditorComponent::defaultTextColourId, Colours::white);
         setColour(TextEditor::textColourId, Colours::white);
-        setColour(TooltipWindow::backgroundColourId, Colour(25, 25, 25).withAlpha(float(0.8)));
+        setColour(TooltipWindow::backgroundColourId, background_1.withAlpha(float(0.8)));
         
-        setColour (PopupMenu::backgroundColourId, Colour(30, 30, 30));
+        setColour (PopupMenu::backgroundColourId, background_2);
         setColour (PopupMenu::highlightedBackgroundColourId, highlight_colour);
         
         setColour(CodeEditorComponent::lineNumberBackgroundId, Colour(41, 41, 41));
@@ -88,7 +93,7 @@ struct MainLook : public LookAndFeel_V4
 
       auto isActive = window.isActiveWindow();
 
-      g.setColour(Colour(25, 25, 25));
+      g.setColour(background_1);
       g.fillAll();
 
       Font font((float)h * 0.65f, Font::plain);
@@ -130,7 +135,7 @@ struct MainLook : public LookAndFeel_V4
                  true);
     }
     
-    Button* createDocumentWindowButton (int buttonType)
+    Button* createDocumentWindowButton (int buttonType) override
     {
         Path shape;
         auto crossThickness = 0.15f;
@@ -140,14 +145,14 @@ struct MainLook : public LookAndFeel_V4
             shape.addLineSegment ({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
             shape.addLineSegment ({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
 
-            return new PlugData_DocumentWindowButton ("close", Colour (0xff42a2c8), shape, shape);
+            return new PlugData_DocumentWindowButton ("close", highlight_colour, shape, shape);
         }
 
         if (buttonType == DocumentWindow::minimiseButton)
         {
             shape.addLineSegment ({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
-            return new PlugData_DocumentWindowButton ("minimise", Colour (0xff42a2c8), shape, shape);
+            return new PlugData_DocumentWindowButton ("minimise", highlight_colour, shape, shape);
         }
 
         if (buttonType == DocumentWindow::maximiseButton)
@@ -174,21 +179,6 @@ struct MainLook : public LookAndFeel_V4
     
     void drawTabButton (TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
-        /*
-        Path tabShape;
-        createTabButtonShape (button, tabShape, isMouseOver, isMouseDown);
-
-        auto activeArea = button.getActiveArea();
-        tabShape.applyTransform (AffineTransform::translation ((float) activeArea.getX(),
-                                                               (float) activeArea.getY()));
-
-        DropShadow (Colours::black.withAlpha (0.5f), 2, Point<int> (0, 1)).drawForPath (g, tabShape);
-
-        fillTabButtonShape (button, g, tabShape, isMouseOver, isMouseDown);
-        */
-        
-        
-       
         g.setColour(button.getToggleState() ? Colour(55, 55, 55) : Colour(41, 41, 41));
         g.fillRect(button.getLocalBounds());
         
@@ -210,6 +200,10 @@ struct MainLook : public LookAndFeel_V4
 
 struct PdGuiLook : public MainLook
 {
+    
+    PdGuiLook() {
+        setColour(TextButton::buttonOnColourId, highlight_colour);
+    }
     void drawButtonBackground (Graphics& g, Button& button, const Colour& backgroundColour,  bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
         
         auto cornerSize = 6.0f;
@@ -275,7 +269,7 @@ struct ToolbarLook : public MainLook
         
         auto rect = button.getLocalBounds();
         
-        auto base_colour = Colour(25, 25, 25);
+        auto base_colour = background_1;
         
         auto highlight_colour = Colour (0xff42a2c8);
         
@@ -306,12 +300,20 @@ struct ToolbarLook : public MainLook
     }
 };
 
-struct SidebarLook : public MainLook
+struct StatusbarLook : public MainLook
 {
     float scalar;
     
-    SidebarLook(float button_scalar = 1.0f) {
+    StatusbarLook(float button_scalar = 1.0f) {
         scalar = button_scalar;
+        
+        setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+
+            
+        setColour(TextButton::textColourOnId, highlight_colour);
+        setColour(TextButton::textColourOffId, Colours::white);
+        setColour(TextButton::buttonOnColourId, Colour(10, 10, 10));
+        
         setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     }
     

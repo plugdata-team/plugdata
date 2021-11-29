@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="sz6NnN" name="PlugData" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1">
+              addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1"
+              cppLanguageStandard="17">
   <MAINGROUP id="z62cXr" name="PlugData">
     <GROUP id="{171D99A2-B546-271C-0402-DD73AC24E8BF}" name="Assets">
       <FILE id="z7p1vR" name="forkawesome-webfont.ttf" compile="0" resource="1"
@@ -82,10 +83,6 @@
       <FILE id="Q6rN6C" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="LPXvQI" name="PlugData.cpp" compile="1" resource="0" file="Source/PlugData.cpp"/>
       <FILE id="BJ9gJl" name="PlugData.h" compile="0" resource="0" file="Source/PlugData.h"/>
-      <FILE id="pWrYpO" name="SettingsDialog.cpp" compile="1" resource="0"
-            file="Source/SettingsDialog.cpp"/>
-      <FILE id="JYIN7M" name="SettingsDialog.h" compile="0" resource="0"
-            file="Source/SettingsDialog.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
@@ -108,6 +105,7 @@
         <MODULEPATH id="juce_graphics" path="../../../JUCE/modules"/>
         <MODULEPATH id="juce_gui_basics" path="../../../JUCE/modules"/>
         <MODULEPATH id="juce_gui_extra" path="../../../JUCE/modules"/>
+        <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
   </EXPORTFORMATS>
@@ -125,5 +123,6 @@
     <MODULE id="juce_graphics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
     <MODULE id="juce_gui_extra" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
+    <MODULE id="juce_opengl" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>
   </MODULES>
 </JUCERPROJECT>

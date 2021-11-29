@@ -530,18 +530,17 @@ t_pd* Instance::createGraph(String name, int size)
 {
     int argc = 4;
     
-    // might leak!!!
-    t_atom* argv = new t_atom[argc];
+    auto argv = std::vector<t_atom>(argc);
     
-    SETSYMBOL(argv, gensym(name.toRawUTF8()));
+    SETSYMBOL(argv.data(), gensym(name.toRawUTF8()));
     
     // Set position
-    SETFLOAT(argv + 1, size);
-    SETFLOAT(argv + 2, 1);
-    SETFLOAT(argv + 3, 0);
+    SETFLOAT(argv.data() + 1, size);
+    SETFLOAT(argv.data() + 2, 1);
+    SETFLOAT(argv.data() + 3, 0);
 
     setThis();
-    t_pd* pdobject = libpd_creategraph(static_cast<t_pd*>(m_patch), argc, argv);
+    t_pd* pdobject = libpd_creategraph(static_cast<t_pd*>(m_patch), argc, argv.data());
     
     return pdobject;
 }
@@ -579,25 +578,24 @@ t_pd* Instance::createObject(String name, int x, int y)
 
     int argc = tokens.size() + 2;
     
-    // might leak!!!
-    t_atom* argv = new t_atom[argc];
+    auto argv = std::vector<t_atom>(argc);
     
     // Set position
-    SETFLOAT(argv, (float)x);
-    SETFLOAT(argv + 1, (float)y);
+    SETFLOAT(argv.data(), (float)x);
+    SETFLOAT(argv.data() + 1, (float)y);
     
     for(int i = 0; i < tokens.size(); i++) {
         if(tokens[i].containsOnly("0123456789.-") && tokens[i] != "-") {
-            SETFLOAT(argv + i + 2, tokens[i].getFloatValue());
+            SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         }
         else {
-            SETSYMBOL(argv + i + 2, gensym(tokens[i].toRawUTF8()));
+            SETSYMBOL(argv.data() + i + 2, gensym(tokens[i].toRawUTF8()));
         }
     }
     
     
     setThis();
-    t_pd* pdobject = libpd_createobj(static_cast<t_pd*>(m_patch), typesymbol, argc, argv);
+    t_pd* pdobject = libpd_createobj(static_cast<t_pd*>(m_patch), typesymbol, argc, argv.data());
     
     return pdobject;
 }
@@ -655,7 +653,13 @@ void Instance::moveObject(t_pd* obj, int x, int y) {
 }
 
 String Instance::undo() {
+    setThis();
+    //pd_typedmess(static_cast<t_pd*>(m_patch), gensym("undo"), 0, nullptr);
     pd_typedmess(static_cast<t_pd*>(m_patch), gensym("undo"), 0, nullptr);
+    
+    //auto* instance = static_cast<_pdinstance*>(m_instance);
+    
+    //instance->pd_gui->i_editor
     return getCanvasContent();
 }
 

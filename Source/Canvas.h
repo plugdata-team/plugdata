@@ -19,7 +19,8 @@ struct Identifiers
     inline static Identifier edge = Identifier("Edge");
     inline static Identifier connection = Identifier("Connection");
     
-    // Parameter identifiers
+    // Other identifiers
+    inline static Identifier exists = Identifier("Exists");
     
     // Box
     inline static Identifier box_x = Identifier("X");
@@ -41,7 +42,7 @@ struct Identifiers
 
 class Edge;
 class MainComponent;
-class Canvas  : public Component, public ValueTreeObject, public KeyListener, public Timer
+class Canvas  : public Component, public ValueTreeObject, public KeyListener
 {
 public:
     //==============================================================================
@@ -63,7 +64,7 @@ public:
     void mouseUp(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
     
-    void load_patch(pd::Patch& patch);
+    void load_patch(String patch);
     
     //Patch create_patch(int gui_offset = 0);
     
@@ -76,24 +77,11 @@ public:
     void undo();
     void redo();
     
-    void encapsulate(std::function<String(ValueTree)> encapsulate_func);
-    
-    //Patch encapsulate_subpatcher(Box* subpatcher, std::map<String, std::vector<std::vector<int>>> box_nodes, std::map<String, std::pair<int, int>> box_ports, std::map<String, int> offset);
-
-    
-    void timerCallback() override;
-    
-    void valueTreeChanged() override {
-        startTimer(250);
-    }
-    
     PlugData* get_pd();
     
     Edge* find_edge_by_id(String ID);
     
     Array<Edge*> get_all_edges();
-
-    UndoManager undo_manager;
     
     Viewport viewport;
     

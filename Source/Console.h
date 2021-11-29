@@ -143,11 +143,11 @@ private:
 
 	static const int tmpBufLen = 512;
     
-    std::vector<Colour> colours = {Colour(32, 32, 32), Colour(25, 25, 25)};
+    std::vector<Colour> colours = {MainLook::background_2, MainLook::background_1};
     
     LogContainer logContainer;
 
-    SidebarLook statusbar_look = SidebarLook(1.4);
+    StatusbarLook statusbar_look = StatusbarLook(1.4);
     TextButton clearButton;
 
 	Colour stdOutColour = Colours::white;

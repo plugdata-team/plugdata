@@ -10,9 +10,9 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     
     LookAndFeel::setDefaultLookAndFeel(&main_look);
     
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, Colour(25, 25, 25));
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, Colour(25, 25, 25));
-    tabbar.setColour(TabbedComponent::outlineColourId, Colour(25, 25, 25));
+    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::background_1);
+    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::background_1);
+    tabbar.setColour(TabbedComponent::outlineColourId, MainLook::background_1);
     
     //player.reset(nullptr);
     //set_remote(false);
@@ -223,7 +223,7 @@ void MainComponent::paint (Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
     
-    auto base_colour = Colour(25, 25, 25);
+    auto base_colour = MainLook::background_1;
     auto highlight_colour = Colour (0xff42a2c8).darker(0.2);
     
     int s_width = sidebar_hidden ? dragbar_width : std::max(dragbar_width, sidebar_width);
@@ -231,14 +231,18 @@ void MainComponent::paint (Graphics& g)
     
     // Sidebar
     g.setColour(base_colour.darker(0.1));
-    g.fillRect(getWidth() - s_width, dragbar_width, s_width, getHeight() - toolbar_height);
+    g.fillRect(getWidth() - s_width, dragbar_width, s_width + 10, getHeight() - toolbar_height);
     
     // Toolbar background
     g.setColour(base_colour);
     g.fillRect(0, 0, getWidth(), toolbar_height - 4);
     
     g.setColour(highlight_colour);
-    g.drawRoundedRectangle({-4.0f, 39.0f, (float)getWidth() + 9, 20.0f}, 10.0, 4.0);
+    g.drawRoundedRectangle({-4.0f, 39.0f, (float)getWidth() + 9, 20.0f}, 12.0, 4.0);
+    
+    // Make sure we cant see the bottom half of the rounded rectangle
+    g.setColour(base_colour);
+    g.fillRect(0, toolbar_height - 4, getWidth(), toolbar_height + 16);
     
     // Statusbar background
     g.setColour(base_colour);
@@ -246,7 +250,7 @@ void MainComponent::paint (Graphics& g)
     
     // Draggable bar
     g.setColour(base_colour);
-    g.fillRect(getWidth() - s_width, dragbar_width, statusbar_height, getHeight() - (toolbar_height - 5));
+    g.fillRect(getWidth() - s_width, dragbar_width, statusbar_height, getHeight() - (toolbar_height - statusbar_height));
     
     
 }
@@ -265,7 +269,7 @@ void MainComponent::resized()
     tabbar.setBounds(0, sbar_y, getWidth() - s_width, getHeight() - sbar_y - statusbar_height);
     tabbar.toFront(false);
     
-    start_button.setBounds(getWidth() - s_width - 40, getHeight() - 30, 30, 30);
+    start_button.setBounds(getWidth() - s_width - 40, getHeight() - 27, 27, 27);
     
     
     int jump_positions[2] = {3, 5};
@@ -340,13 +344,19 @@ void MainComponent::open_project() {
     open_chooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
           File openedfile = f.getResult();
           if(openedfile.exists() && openedfile.getFileExtension().equalsIgnoreCase(".pd")) {
+              
+              for(auto& box : canvas->findChildrenOfClass<Box>()) {
+                  box->remove_box();
+              }
+              
+              canvas->load_patch(openedfile.loadFileAsString());
+              
+              
+              /*
               try
               {
-                  for(auto& box : canvas->findChildrenOfClass<Box>()) {
-                      box->remove_box();
-                  }
+
                   
-                  libpd_canvas_doclear(static_cast<t_canvas*>(pd.m_patch));
                   
                   StringArray lines;
                   openedfile.readLines(lines);
@@ -452,8 +462,8 @@ void MainComponent::open_project() {
               {
                   std::cout << "Failed to open project" << std::endl;
               }
+          */
           }
-    
     });
 }
 
@@ -472,14 +482,17 @@ void MainComponent::save_project() {
 
 
 void MainComponent::triggerChange() {
+    
+    toolbar_buttons[3].setEnabled(true);
+    toolbar_buttons[4].setEnabled(true);
+    
+    
+    /*
     if(!get_current_canvas())  {
         toolbar_buttons[3].setEnabled(false);
         toolbar_buttons[4].setEnabled(false);
         return;
-    }
-    
-    toolbar_buttons[3].setEnabled(get_current_canvas()->undo_manager.canUndo());
-    toolbar_buttons[4].setEnabled(get_current_canvas()->undo_manager.canRedo());
+    } */
 }
 
 Canvas* MainComponent::get_current_canvas()

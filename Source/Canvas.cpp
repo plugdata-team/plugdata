@@ -41,7 +41,7 @@ Canvas::~Canvas()
 {
     removeAllChildren();
     removeKeyListener(this);
-    ValueTreeObject::getState().removeAllChildren(&undo_manager);
+    ValueTreeObject::getState().removeAllChildren(nullptr);
 }
 
 ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueTree & tree)
@@ -62,21 +62,98 @@ ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueT
     return static_cast<ValueTreeObject*>(nullptr);
 }
 
-void Canvas::load_patch(pd::Patch& patch) {
+void Canvas::load_patch(String patch) {
+        
+    // Create the pd save file
+    auto temp_patch = File::createTempFile(".pd");
+    temp_patch.replaceWithText(patch);
     
-    for(auto& object : patch.getObjects()) {
+    // Load the patch into libpd
+    // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
+    // Instead we can load the patch and iterate through it to add GUI components
+    main->pd.openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
+    
+    Array<Box*> boxes;
+    
+    // Go through all the boxes in the pd patch, and add GUI components for them
+    for(auto& object : main->pd.getPatch().getObjects()) {
         
         auto box = ValueTree(Identifiers::box);
-        box.setProperty(Identifiers::box_name, String(object.getText()), nullptr);
+        
+        // Setting the exists flag tells the box that this refers to an objects that already exists in the pd patch
+        box.setProperty(Identifiers::exists, true, nullptr);
         box.setProperty(Identifiers::box_x, object.getBounds()[0], nullptr);
         box.setProperty(Identifiers::box_y, object.getBounds()[1], nullptr);
         
         getState().appendChild(box, nullptr);
+        
+        auto* last_box = findChildrenOfClass<Box>().getLast();
+        last_box->pd_object = static_cast<t_pd*>(object.getPointer());
+        boxes.add(last_box); // lets hope this preserves the object order...
+        
+        String name = object.getText();
+        
+        
+        if(object.getName() == "message") {
+            name = "msg " + name;
+        }
+        
+        if(object.getName() == "gatom" && name.containsOnly("0123456789.")) {
+            name = "floatatom";
+        }
+        else if(object.getName() == "gatom") {
+            name = "symbolatom";
+        }
+        
+        // Some of these GUI objects have a lot of extra symbols that we don't want to show
+        auto gui_simplify = [](String& target, const String& selector) {
+            if(target.startsWith(selector)) {
+                target = selector;
+            }
+        };
+        gui_simplify(name, "bng");
+        gui_simplify(name, "tgl");
+        gui_simplify(name, "nbx");
+        gui_simplify(name, "hsl");
+        gui_simplify(name, "vsl");
+        gui_simplify(name, "hradio");
+        gui_simplify(name, "vradio");
+
+        box.setProperty(Identifiers::box_name, name, nullptr);
     }
     
-    String content = patch.getCanvasContent();
+    auto lines = StringArray::fromLines(patch);
     
-    std::cout << content << std::endl;
+    // Connections are easier to read from the save file than to extract from the loaded patch
+    // These connections already exists in libpd, we just need to add GUI components for them
+    for(auto& line : lines) {
+        if(line.startsWith("#X connect")) {
+            auto segments = StringArray::fromTokens(line.fromFirstOccurrenceOf("#X connect ", false, false), " ", "\"");
+            
+            int end_box   = segments[0].getIntValue();
+            int outlet    = segments[1].getIntValue();
+            int start_box = segments[2].getIntValue();
+            int inlet     = segments[3].getIntValue();
+            
+            auto start_edges = boxes[start_box]->findChildrenOfClass<Edge>();
+            auto end_edges = boxes[end_box]->findChildrenOfClass<Edge>();
+            
+            auto new_connection = ValueTree(Identifiers::connection);
+            
+            String start_id = start_edges[inlet]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
+            String end_id = end_edges[boxes[end_box]->total_in + outlet]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
+            
+            new_connection.setProperty(Identifiers::start_id, start_id, nullptr);
+            new_connection.setProperty(Identifiers::end_id, end_id, nullptr);
+            
+            new_connection.setProperty(Identifiers::exists, true, nullptr); // let the connection know that this connection already exists
+            
+            getState().appendChild(new_connection, nullptr);
+        }
+        
+    }
+    
+    
 }
 
 void Canvas::mouseDown(const MouseEvent& e)
@@ -108,91 +185,42 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupmenu.clear();
         popupmenu.addItem(1, "Open", has_selection && !multiple && !lasso_selection.getSelectedItem(0)->findChildrenOfClass<Canvas>().isEmpty());
         popupmenu.addSeparator();
-        popupmenu.addItem(2, "Encapsulate to new object", has_selection && multiple);
-        popupmenu.addItem(3, "Encapsulate to subpatcher", has_selection && multiple);
-        popupmenu.addSeparator();
         popupmenu.addItem(4,"Cut", has_selection);
         popupmenu.addItem(5,"Copy", has_selection);
         popupmenu.addItem(6,"Duplicate", has_selection);
         popupmenu.addItem(7,"Delete", has_selection);
         popupmenu.setLookAndFeel(&getLookAndFeel());
-       
-        /* TODO: FIX THIS
-        int result = popupmenu.show();
-        
-        if(result == 1) {
-            auto* new_cnv = lasso_selection.getSelectedItem(0)->findChildrenOfClass<Canvas>()[0];
-            MainComponent::current_main->add_tab(new_cnv);
-        }
-        else if(result == 4) {
-            SystemClipboard::copyTextToClipboard(copy_selection());
-            remove_selection();
-        }
-        else if(result == 5) {
-            SystemClipboard::copyTextToClipboard(copy_selection());
-        }
-        else if(result == 6) {
-            auto copy = copy_selection();
-            paste_selection(copy);
-        }
-        else if(result == 7) {
-            remove_selection();
-        }
-        
-        else if(result == 3) {
-        std::function<String(ValueTree)> encapsulate_callback = [this](ValueTree state) {
-            auto temp_cnv = Canvas(state);
-            auto patch = temp_cnv.create_patch();
-            auto objects = NodeConverter::create_objects(patch);
-            auto formatted = NodeConverter::format_nodes(objects, Library::contexts);
-
-            String result_path;
-                
-            auto returned_true = patch_save_chooser.browseForFileToSave(true);
-                
-            auto file = patch_save_chooser.getResult();
-
-            if(!returned_true) return String();
+    
+        auto callback = [this, &lasso_selection](int result) {
+            if(result < 1) return;
             
-            FileOutputStream ostream(file);
-            temp_cnv.getState().writeToStream(ostream);
-        
-            result_path = file.getRelativePathFrom(MainComponent::home_dir.getChildFile("Saves"));
-            
-            return "p " + result_path.upToLastOccurrenceOf(".", false, false);
+            switch (result) {
+                case 1: {
+                auto* new_cnv = lasso_selection.getSelectedItem(0)->findChildrenOfClass<Canvas>()[0];
+                main->add_tab(new_cnv);
+                    break;
+                }
+                case 4:
+                SystemClipboard::copyTextToClipboard(copy_selection());
+                remove_selection();
+                    break;
+                case 5:
+                SystemClipboard::copyTextToClipboard(copy_selection());
+                    break;
+                case 6: {
+                auto copy = copy_selection();
+                paste_selection(copy);
+                    break;
+                }
+                case 7:
+                remove_selection();
+                    break;
+            }
         };
-            
-            encapsulate(encapsulate_callback);
-            
-        }
-        else if(result == 2) {
-            std::function<String(ValueTree)> encapsulate_callback = [this](ValueTree state) {
-            auto temp_cnv = Canvas(state);
-            auto patch = temp_cnv.create_patch();
-            auto objects = NodeConverter::create_objects(patch);
-            auto formatted = NodeConverter::format_nodes(objects, Library::contexts);
-
-            String result_path;
-                
-            auto returned_true = obj_save_chooser.browseForFileToSave(true);
-                
-            auto file = obj_save_chooser.getResult();
-
-            if(!returned_true) return String();
-            
-            Uuid id;
-            String name = file.getFileNameWithoutExtension() + id.toString().substring(0, 6);
-            auto subpatcher = Engine::create_subpatcher(name, formatted, Library::contexts);
-            String to_save = Engine::reconstruct_object(subpatcher, Library::contexts);
-            file.replaceWithText(to_save);
         
-                Library::refresh();
-                
-                return file.getRelativePathFrom(MainComponent::home_dir.getChildFile("Objects")).upToLastOccurrenceOf(".", false, false);
-            };
-            
-            encapsulate(encapsulate_callback);
-        }*/
+        
+        popupmenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (e.originalComponent), ModalCallbackFunction::create(callback));
+
     }
 }
 
@@ -301,7 +329,7 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     
     if(key.getTextCharacter() == 'n') {
         auto box = ValueTree(Identifiers::box);
-        getState().appendChild(box, &undo_manager);
+        getState().appendChild(box, nullptr);
         return true;
     }
     
@@ -420,7 +448,7 @@ void Canvas::remove_selection() {
             removeMouseListener(con);
            
             get_pd()->removeConnection(con->out_obj, con->out_idx,  con->in_obj, con->in_idx);
-            getState().removeChild(con->getState(), &undo_manager);
+            getState().removeChild(con->getState(), nullptr);
         }
     }
     
@@ -439,7 +467,7 @@ void Canvas::paste_selection(String to_paste) {
             child.setProperty(Identifiers::box_y, old_y + 30, nullptr);
         }
         
-        getState().appendChild(child.createCopy(), &undo_manager);
+        getState().appendChild(child.createCopy(), nullptr);
     }
 }
 
@@ -448,20 +476,6 @@ PlugData* Canvas::get_pd()
     return &main->pd;
 }
 
-void Canvas::timerCallback() {
-    if(!undo_manager.isPerformingUndoRedo())
-        undo_manager.beginNewTransaction();
-    
-    if(auto* box = findParentOfType<Box>()) {
-        //auto new_ports = box->update_subpatch(getState());
-        //box->update_ports(new_ports);
-    }
-
-    
-    main->triggerChange();
-
-    stopTimer();
-}
 
 Array<Edge*> Canvas::get_all_edges() {
     Array<Edge*> all_edges;

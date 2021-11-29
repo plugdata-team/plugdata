@@ -82,7 +82,7 @@ private:
     //std::unique_ptr<PatchInterface> player;
     
     int toolbar_height = 45;
-    int statusbar_height = 30;
+    int statusbar_height = 27;
     int sidebar_width = 300;
     int dragbar_width = 10;
     
@@ -101,8 +101,7 @@ private:
     bool dragging_sidebar = false;
 
     ToolbarLook toolbar_look;
-    SidebarLook sidebar_look;
-    SidebarLook statusbar_look = SidebarLook(1.4);
+    StatusbarLook statusbar_look = StatusbarLook(1.4);
     MainLook main_look;
     
 
