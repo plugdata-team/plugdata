@@ -1,7 +1,8 @@
 # PlugData
 Pure Data as a plugin, with a new GUI
 
-<img width="1007" alt="Screenshot 2021-11-28 at 20 06 01" src="https://user-images.githubusercontent.com/44585538/143782272-858d8b40-ccb0-4ed7-81aa-08709cc9d472.png">
+<img width="948" alt="Screenshot 2021-11-29 at 20 29 57" src="https://user-images.githubusercontent.com/44585538/143930579-2af7e038-4dd9-4c71-9b02-2c9f16c13538.png">
+
 
 
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. Currently not very stable!
