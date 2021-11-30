@@ -36,8 +36,6 @@ GUIComponent* GUIComponent::create_gui(String name, Box* parent)
     
     auto gui = pd::Gui(static_cast<void*>(checked_object), parent->cnv->patch.getPointer(), &(parent->cnv->main->pd));
     
-    std::cout << name << std::endl;
-    
     if(gui.getType() == pd::Gui::Type::Bang) {
         return new BangComponent(gui, parent);
     }

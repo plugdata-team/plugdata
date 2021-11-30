@@ -96,9 +96,14 @@ public:
     
 
     void waitForStateUpdate() {
-        update_wait.wait();
+        // Need to wait twice to ensure that pd has processed all changes
+        if(audio_started) {
+            update_wait.wait();
+            update_wait.wait();
+        }
     }
     
+           
     String getCanvasContent();
     
     void* m_instance                         = nullptr;
@@ -152,7 +157,9 @@ public:
     moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
 
     WaitableEvent update_wait;
-    
     struct internal;
+    
+protected:
+    bool audio_started = false;
 };
 }

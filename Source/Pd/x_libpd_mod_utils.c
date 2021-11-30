@@ -68,6 +68,10 @@ void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
 
 void libpd_canvas_doclear(t_canvas *x)
 {
+    
+    canvas_undo_add(x, UNDO_CUT, "clear",
+        canvas_undo_set_cut(x, 2));
+    
     t_gobj *y, *y2;
     int dspstate;
     
@@ -411,6 +415,7 @@ void libpd_paste(t_canvas* x) {
     // sys_unlock();
 }
 
+
 void libpd_undo(t_canvas *x) {
     
     EDITOR->canvas_undo_already_set_move = 0;
@@ -562,7 +567,35 @@ static void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
 
 
 
-t_pd* libpd_creategraphonparent(t_pd *x, int argc, t_atom *argv) {
+t_pd* libpd_creategraphonparent(t_pd *x) {
+    
+    int argc = 9;
+    
+    t_atom argv[9];
+    
+    t_float x1 = 0.0f;
+    t_float y1 = 0.0f;
+    t_float x2 = 0.0f;
+    t_float y2 = 0.0f;
+    t_float px1 = 0.0f;
+    t_float py1 = 0.0f;
+    t_float px2 = 0.0f;
+    t_float py2 = 0.0f;
+    
+    t_symbol* sym = gensym("graph");
+    
+    SETSYMBOL(argv, sym);
+    SETFLOAT(argv + 1, x1);
+    SETFLOAT(argv + 2, y1);
+    SETFLOAT(argv + 3, x2);
+    SETFLOAT(argv + 4, y2);
+    
+    SETFLOAT(argv + 5, px1);
+    SETFLOAT(argv + 6, py1);
+    
+    SETFLOAT(argv + 7, px2);
+    SETFLOAT(argv + 8, py2);
+    
     
     pd_typedmess(x, gensym("graph"), argc, argv);
     
@@ -570,6 +603,7 @@ t_pd* libpd_creategraphonparent(t_pd *x, int argc, t_atom *argv) {
                     (void *)canvas_undo_set_create((t_canvas*)x));
     
     glist_noselect(x);
+    
     return pd_newest();
 }
 
@@ -617,6 +651,7 @@ t_pd* libpd_createobj(t_pd *x, t_symbol *s, int argc, t_atom *argv) {
 
 void libpd_removeobj(t_canvas* cnv, t_gobj* obj)
 {
+    
     glist_noselect(cnv);
     glist_select(cnv, obj);
     libpd_canvas_doclear(cnv);

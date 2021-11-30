@@ -244,7 +244,7 @@ void PlugData::processInternal()
         processMidi();
     }*/
     
-    
+    audio_started = true;
 }
 
 

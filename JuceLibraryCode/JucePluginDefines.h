@@ -44,28 +44,28 @@
  #define JucePlugin_Desc                   "PlugData"
 #endif
 #ifndef  JucePlugin_Manufacturer
- #define JucePlugin_Manufacturer           "yourcompany"
+ #define JucePlugin_Manufacturer           "Octagon"
 #endif
 #ifndef  JucePlugin_ManufacturerWebsite
- #define JucePlugin_ManufacturerWebsite    ""
+ #define JucePlugin_ManufacturerWebsite    "octagonplugins.com"
 #endif
 #ifndef  JucePlugin_ManufacturerEmail
- #define JucePlugin_ManufacturerEmail      ""
+ #define JucePlugin_ManufacturerEmail      "info@octagonplugins.com"
 #endif
 #ifndef  JucePlugin_ManufacturerCode
- #define JucePlugin_ManufacturerCode       0x4d616e75
+ #define JucePlugin_ManufacturerCode       0x4f637461
 #endif
 #ifndef  JucePlugin_PluginCode
- #define JucePlugin_PluginCode             0x537a366e
+ #define JucePlugin_PluginCode             0x706c7064
 #endif
 #ifndef  JucePlugin_IsSynth
  #define JucePlugin_IsSynth                0
 #endif
 #ifndef  JucePlugin_WantsMidiInput
- #define JucePlugin_WantsMidiInput         0
+ #define JucePlugin_WantsMidiInput         1
 #endif
 #ifndef  JucePlugin_ProducesMidiOutput
- #define JucePlugin_ProducesMidiOutput     0
+ #define JucePlugin_ProducesMidiOutput     1
 #endif
 #ifndef  JucePlugin_IsMidiEffect
  #define JucePlugin_IsMidiEffect           0
@@ -74,13 +74,13 @@
  #define JucePlugin_EditorRequiresKeyboardFocus  0
 #endif
 #ifndef  JucePlugin_Version
- #define JucePlugin_Version                1.0.0
+ #define JucePlugin_Version                0.1
 #endif
 #ifndef  JucePlugin_VersionCode
- #define JucePlugin_VersionCode            0x10000
+ #define JucePlugin_VersionCode            0x100
 #endif
 #ifndef  JucePlugin_VersionString
- #define JucePlugin_VersionString          "1.0.0"
+ #define JucePlugin_VersionString          "0.1"
 #endif
 #ifndef  JucePlugin_VSTUniqueID
  #define JucePlugin_VSTUniqueID            JucePlugin_PluginCode
@@ -89,10 +89,10 @@
  #define JucePlugin_VSTCategory            kPlugCategEffect
 #endif
 #ifndef  JucePlugin_Vst3Category
- #define JucePlugin_Vst3Category           "Fx"
+ #define JucePlugin_Vst3Category           "Fx|Instrument"
 #endif
 #ifndef  JucePlugin_AUMainType
- #define JucePlugin_AUMainType             'aufx'
+ #define JucePlugin_AUMainType             'aumf'
 #endif
 #ifndef  JucePlugin_AUSubType
  #define JucePlugin_AUSubType              JucePlugin_PluginCode
@@ -107,7 +107,7 @@
  #define JucePlugin_AUManufacturerCode     JucePlugin_ManufacturerCode
 #endif
 #ifndef  JucePlugin_CFBundleIdentifier
- #define JucePlugin_CFBundleIdentifier     com.yourcompany.PlugData
+ #define JucePlugin_CFBundleIdentifier     com.Octagon.PlugData
 #endif
 #ifndef  JucePlugin_RTASCategory
  #define JucePlugin_RTASCategory           0
@@ -125,7 +125,7 @@
  #define JucePlugin_RTASDisableMultiMono   0
 #endif
 #ifndef  JucePlugin_AAXIdentifier
- #define JucePlugin_AAXIdentifier          com.yourcompany.PlugData
+ #define JucePlugin_AAXIdentifier          com.Octagon.PlugData
 #endif
 #ifndef  JucePlugin_AAXManufacturerCode
  #define JucePlugin_AAXManufacturerCode    JucePlugin_ManufacturerCode
@@ -143,13 +143,13 @@
  #define JucePlugin_AAXDisableMultiMono    0
 #endif
 #ifndef  JucePlugin_IAAType
- #define JucePlugin_IAAType                0x61757278
+ #define JucePlugin_IAAType                0x6175726d
 #endif
 #ifndef  JucePlugin_IAASubType
  #define JucePlugin_IAASubType             JucePlugin_PluginCode
 #endif
 #ifndef  JucePlugin_IAAName
- #define JucePlugin_IAAName                "yourcompany: PlugData"
+ #define JucePlugin_IAAName                "Octagon: PlugData"
 #endif
 #ifndef  JucePlugin_VSTNumMidiInputs
  #define JucePlugin_VSTNumMidiInputs       16

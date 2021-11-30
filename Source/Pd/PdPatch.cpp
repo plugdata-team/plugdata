@@ -57,7 +57,7 @@ namespace pd
     {
         if(m_ptr)
         {
-            return static_cast<bool>(static_cast<t_canvas*>(m_ptr)->gl_isgraph);
+            return static_cast<bool>(getPointer()->gl_isgraph);
         }
         return false;
     }
@@ -66,7 +66,7 @@ namespace pd
     {
         if(m_ptr)
         {
-            t_canvas const* cnv = static_cast<t_canvas*>(m_ptr);
+            t_canvas const* cnv = getPointer();
             if(cnv->gl_isgraph)
             {
                 return {cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth - 2, cnv->gl_pixheight - 2};
@@ -80,7 +80,7 @@ namespace pd
         if(m_ptr)
         {
             std::vector<Object> objects;
-            t_canvas const* cnv = static_cast<t_canvas*>(m_ptr);
+            t_canvas const* cnv = getPointer();
             
             for(t_gobj *y = cnv->gl_list; y; y = y->g_next)
             {
@@ -106,8 +106,10 @@ namespace pd
 
 
 t_pd* Patch::createGraphOnParent() {
-    // TODO: implement this
-    return nullptr;
+    m_instance->setThis();
+    t_pd* pdobject = libpd_creategraphonparent(static_cast<t_pd*>(m_ptr));
+    
+    return pdobject;
 }
 
 t_pd* Patch::createGraph(String name, int size)
@@ -128,10 +130,14 @@ t_pd* Patch::createObject(String name, int x, int y)
     StringArray tokens;
     tokens.addTokens(name, " ", "");
     
-    
+
     if(tokens[0] == "graph" && tokens.size() == 3) {
         return createGraph(tokens[1], tokens[2].getIntValue());
     }
+    else if(tokens[0] == "graph") {
+        return createGraphOnParent();
+    }
+    
     
     t_symbol* typesymbol = gensym("obj");
     
@@ -176,32 +182,32 @@ t_pd* Patch::createObject(String name, int x, int y)
 
 void Patch::copy() {
     m_instance->enqueueFunction([this]() {
-        libpd_copy(static_cast<t_canvas*>(m_ptr));
+        libpd_copy(getPointer());
     });
 }
 
 void Patch::paste() {
     m_instance->enqueueFunction([this]() {
-        libpd_paste(static_cast<t_canvas*>(m_ptr));
+        libpd_paste(getPointer());
     });
 }
 
 void Patch::duplicate() {
     m_instance->enqueueFunction([this]() {
-        libpd_duplicate(static_cast<t_canvas*>(m_ptr));
+        libpd_duplicate(getPointer());
     });
 }
 
 
 void Patch::selectObject(t_pd* x) {
     m_instance->enqueueFunction([this, x]() {
-        glist_select(static_cast<t_canvas*>(m_ptr), &(pd_checkobject(x)->te_g));
+        glist_select(getPointer(), &(pd_checkobject(x)->te_g));
     });
 }
 
 void Patch::deselectAll() {
     m_instance->enqueueFunction([this]() {
-        glist_noselect(static_cast<t_canvas*>(m_ptr));
+        glist_noselect(getPointer());
     });
 }
 
@@ -273,17 +279,23 @@ void Patch::moveObject(t_pd* obj, int x, int y) {
     
 }
 
+void Patch::removeSelection() {
+    m_instance->enqueueFunction([this]() mutable {
+        libpd_canvas_doclear(getPointer());
+    });
+}
+
 void Patch::undo() {
     m_instance->enqueueFunction([this]() {
         m_instance->setThis();
-        libpd_undo(static_cast<t_canvas*>(m_ptr));
+        libpd_undo(getPointer());
     });
 }
 
 void Patch::redo() {
     m_instance->enqueueFunction([this]() {
         m_instance->setThis();
-        libpd_redo(static_cast<t_canvas*>(m_ptr));
+        libpd_redo(getPointer());
     });
 }
 

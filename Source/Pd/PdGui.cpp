@@ -141,7 +141,7 @@ namespace pd
                 m_type = Type::AtomList; */
 
         }
-        else if(name == "canvas")
+        else if(name == "canvas" || name == "graph")
         {
             if(static_cast<t_canvas*>(m_ptr)->gl_list)
             {
@@ -150,8 +150,11 @@ namespace pd
                 {
                     m_type = Type::Array;
                 }
-                else {
+                else if (String(getText()).startsWith("pd")){
                     m_type = Type::Subpatch;
+                }
+                else {
+                    m_type = Type::GraphOnParent;
                 }
             }
             else if(m_type != Type::Array && static_cast<t_canvas*>(m_ptr)->gl_isgraph)
@@ -410,7 +413,7 @@ namespace pd
         }
         else
         {
-            return libpd_getCanvas_font_height(static_cast<t_canvas*>(m_patch));
+            return libpd_get_canvas_font_height(static_cast<t_canvas*>(m_patch));
         }
     }
     

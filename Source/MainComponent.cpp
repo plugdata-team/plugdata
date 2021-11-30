@@ -5,7 +5,15 @@
 #include "SaveDialog.h"
 
 //==============================================================================
-MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(true, true), pd(&console)
+
+// Print std::cout and std::cerr to console when in debug mode
+#if JUCE_DEBUG
+#define LOG_STDOUT true
+#else
+#define LOG_STDOUT false
+#endif
+
+MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG_STDOUT, LOG_STDOUT), pd(&console)
 {
     setSize(1000, 700);
     
@@ -106,6 +114,8 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
         menu.addSeparator();
         
         menu.addItem (9, "Graph");
+        menu.addItem (13, "GraphOnParent");
+        menu.addItem (14, "Comment");
         menu.addItem (10, "Canvas");
         
         
@@ -166,6 +176,16 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
                 case 12:
                 box_name = "symbolatom";
                 break;
+                    
+                case 13:
+                box_name = "graph";
+                break;
+                    
+                case 14:
+                box_name = "comment";
+                break;
+                    
+
             }
             
             box.setProperty(Identifiers::box_name, box_name, nullptr);
@@ -328,40 +348,77 @@ void MainComponent::mouseUp(const MouseEvent &e) {
 
 void MainComponent::openProject() {
     
-    SaveDialog dialog;
+    int result = 2;
+    
+    if(getCurrentCanvas()->changed()) {
+        SaveDialog dialog;
 
-    dialog.setBounds(getScreenX()  + (getWidth() / 2.) - 200., getScreenY() + toolbarHeight - 3, 400, 130);
-    
-    int result = dialog.runModalLoop();
-    
-    // TODO: the async calling is killing me here
-    if(result == 1) {
-        saveProject();
+        dialog.setBounds(getScreenX()  + (getWidth() / 2.) - 200., getScreenY() + toolbarHeight - 3, 400, 130);
+        
+        result = dialog.runModalLoop();
+        
+        // TODO: the async calling is killing me here
+        if(result == 1) {
+            saveProject();
+        }
     }
+    
     if(result != 0) {
         // Close all tabs
         //tabbar.clearTabs();
+#if JUCE_MODAL_LOOPS_PERMITTED
+    openChooser.browseForFileToOpen();
+    
+    File openedFile = openChooser.getResult();
+    
+    if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
+        canvas->loadPatch(openedFile.loadFileAsString());
+    }
+    
+#else
+    openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
+          File openedFile = f.getResult();
+          if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
+              canvas->loadPatch(openedFile.loadFileAsString());
+          }
+    });
+    
+#endif
         
-        openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
-              File openedfile = f.getResult();
-              if(openedfile.exists() && openedfile.getFileExtension().equalsIgnoreCase(".pd")) {
-                  canvas->loadPatch(openedfile.loadFileAsString());
-              }
-        });
+
     }
 }
 
 void MainComponent::saveProject() {
     
+    WaitableEvent event;
+    
     auto to_save = pd.getCanvasContent();
-    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save](const FileChooser &f) mutable {
-        File result = f.getResult();
+    
+#if JUCE_MODAL_LOOPS_PERMITTED
+    saveChooser.browseForFileToSave(true);
+    
+    File result = saveChooser.getResult();
+    
+    FileOutputStream ostream(result);
+    ostream.writeString(to_save);
+    
+    getCurrentCanvas()->getState().setProperty("Title", result.getFileName(), nullptr);
+    
+#else
+    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, &event](const FileChooser &f) mutable {
+        
+        File result = saveChooser.getResult();
         
         FileOutputStream ostream(result);
         ostream.writeString(to_save);
         
         getCurrentCanvas()->getState().setProperty("Title", result.getFileName(), nullptr);
     });
+    
+#endif
+    
+    getCurrentCanvas()->hasChanged = false;
     
 }
 
