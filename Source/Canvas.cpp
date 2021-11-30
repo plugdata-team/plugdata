@@ -179,6 +179,8 @@ void Canvas::synchronise() {
         
     }
     
+    patch.deselectAll();
+    
 }
 
 void Canvas::loadPatch(String patch) {
@@ -470,6 +472,7 @@ void Canvas::pasteSelection() {
 }
 
 void Canvas::duplicateSelection() {
+    
     for(auto* sel : dragger.getLassoSelection()) {
         if(auto* box = dynamic_cast<Box*>(sel)) {
             patch.selectObject(box->pd_object);
@@ -483,21 +486,37 @@ void Canvas::duplicateSelection() {
 }
 
 void Canvas::removeSelection() {
+    
+    /*
     for(auto& sel : dragger.getLassoSelection()) {
-        removeMouseListener(sel);
         dynamic_cast<Box*>(sel)->remove();
+    } */
+    
+    Array<t_pd*> objects;
+    for(auto* sel : dragger.getLassoSelection()) {
+        if(auto* box = dynamic_cast<Box*>(sel)) {
+            if(box->pd_object) {
+                patch.selectObject(box->pd_object);
+                objects.add(box->pd_object);
+            }
+        }
     }
     
     for(auto& con : findChildrenOfClass<Connection>()) {
         if(con->isSelected) {
             removeMouseListener(con);
-           
-            patch.removeConnection(con->outObj, con->outIdx,  con->inObj, con->inIdx);
+            
+            if(!(objects.contains(con->outObj) || objects.contains(con->inObj))) {
+                patch.removeConnection(con->outObj, con->outIdx,  con->inObj, con->inIdx);
+            }
             getState().removeChild(con->getState(), nullptr);
         }
     }
     
     dragger.deselectAll();
+    patch.removeSelection();
+    
+    synchronise();
 }
 
 

@@ -133,9 +133,12 @@ Box::~Box()
 
 void Box::remove(bool clear_pd) {
     
+    cnv->removeMouseListener(this);
+    
     if(pd_object && clear_pd) {
         cnv->patch.removeObject(pd_object);
     }
+    
     
     pd_object = nullptr;
     cnv->getState().removeChild(ValueTreeObject::getState(), nullptr);

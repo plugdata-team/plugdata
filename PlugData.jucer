@@ -1,28 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <JUCERPROJECT id="sz6NnN" name="PlugData" projectType="audioplug" useAppConfig="0"
-              addUsingNamespaceToJuceHeader="1" displaySplashScreen="1" jucerFormatVersion="1"
-              cppLanguageStandard="17">
+              addUsingNamespaceToJuceHeader="1" displaySplashScreen="0" jucerFormatVersion="1"
+              cppLanguageStandard="17" version="0.1" companyName="Octagon"
+              pluginCharacteristicsValue="pluginProducesMidiOut,pluginWantsMidiIn"
+              pluginVST3Category="Fx,Instrument" pluginRTASCategory="0" pluginAAXCategory="0"
+              pluginVSTCategory="kPlugCategEffect" companyWebsite="octagonplugins.com"
+              companyEmail="info@octagonplugins.com" pluginManufacturerCode="Octa"
+              pluginCode="plpd">
   <MAINGROUP id="z62cXr" name="PlugData">
     <GROUP id="{171D99A2-B546-271C-0402-DD73AC24E8BF}" name="Assets">
       <FILE id="z7p1vR" name="forkawesome-webfont.ttf" compile="0" resource="1"
             file="Assets/forkawesome-webfont.ttf"/>
     </GROUP>
     <GROUP id="{1FDD27F0-496A-B907-2894-02B97EDBF019}" name="Source">
-      <GROUP id="{F0680A4A-C876-B3D2-A63F-321CA924A53C}" name="IPC">
-        <FILE id="loDHro" name="IPCMain.hpp" compile="0" resource="0" file="Source/IPC/IPCMain.hpp"/>
-        <FILE id="UGhiUJ" name="IPCWorker.hpp" compile="0" resource="0" file="Source/IPC/IPCWorker.hpp"/>
-      </GROUP>
       <GROUP id="{228776EE-A3C3-1DB9-DAE6-D4D53391219E}" name="Pd">
-        <GROUP id="{956335A7-BE92-2D93-CB71-7E78BEDF6DB1}" name="Queues">
-          <FILE id="TUJmZT" name="atomicops.h" compile="0" resource="0" file="Source/Pd/Queues/atomicops.h"/>
-          <FILE id="GIqXaS" name="blockingconcurrentqueue.h" compile="0" resource="0"
-                file="Source/Pd/Queues/blockingconcurrentqueue.h"/>
-          <FILE id="J1GaZj" name="concurrentqueue.h" compile="0" resource="0"
-                file="Source/Pd/Queues/concurrentqueue.h"/>
-          <FILE id="rhCfoy" name="readerwriterqueue.h" compile="0" resource="0"
-                file="Source/Pd/Queues/readerwriterqueue.h"/>
-        </GROUP>
+        <FILE id="FvL3ue" name="concurrentqueue.h" compile="0" resource="0"
+              file="Source/Pd/concurrentqueue.h"/>
         <FILE id="Z9repm" name="PdArray.cpp" compile="1" resource="0" file="Source/Pd/PdArray.cpp"/>
         <FILE id="lCNM5B" name="PdArray.hpp" compile="0" resource="0" file="Source/Pd/PdArray.hpp"/>
         <FILE id="qeevPA" name="PdAtom.hpp" compile="0" resource="0" file="Source/Pd/PdAtom.hpp"/>
@@ -61,8 +55,6 @@
               file="Source/Utility/gin_valuetreeobject.h"/>
         <FILE id="xeZrN2" name="MultiComponentDragger.h" compile="0" resource="0"
               file="Source/Utility/MultiComponentDragger.h"/>
-        <FILE id="AR0cEW" name="ValueTreeObjectList.h" compile="0" resource="0"
-              file="Source/Utility/ValueTreeObjectList.h"/>
       </GROUP>
       <FILE id="ZHKZty" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
       <FILE id="wt7Q8v" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
@@ -83,6 +75,8 @@
       <FILE id="Q6rN6C" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="LPXvQI" name="PlugData.cpp" compile="1" resource="0" file="Source/PlugData.cpp"/>
       <FILE id="BJ9gJl" name="PlugData.h" compile="0" resource="0" file="Source/PlugData.h"/>
+      <FILE id="M3K6EJ" name="SaveDialog.cpp" compile="1" resource="0" file="Source/SaveDialog.cpp"/>
+      <FILE id="OxrAEu" name="SaveDialog.h" compile="0" resource="0" file="Source/SaveDialog.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>

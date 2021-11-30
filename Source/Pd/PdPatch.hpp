@@ -51,6 +51,8 @@ namespace pd
         t_pd* renameObject(t_pd* obj, String name);
         void moveObject (t_pd*, int x, int y);
         
+        void removeSelection();
+        
         void selectObject(t_pd*);
         void deselectAll();
 
@@ -65,7 +67,7 @@ namespace pd
         void removeConnection(t_pd* src, int nout, t_pd*sink, int nin);
         
         
-        t_canvas* getPointer() {
+        t_canvas* getPointer() const {
             return static_cast<t_canvas*>(m_ptr);
         }
         

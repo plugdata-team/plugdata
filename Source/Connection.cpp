@@ -19,22 +19,22 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
         parent->getState().removeChild(tree, nullptr);
         return;
     }
+
+    if(start->ValueTreeObject::getState().getProperty(Identifiers::edge_in)) {
+        inIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+        outIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+        inObj = start->box->pd_object;
+        outObj = end->box->pd_object;
+    }
+    else {
+        inIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+        outIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+        inObj = end->box->pd_object;
+        outObj = start->box->pd_object;
+    }
+        
     
     if(!getState().getProperty(Identifiers::exists)) {
-
-        if(start->ValueTreeObject::getState().getProperty(Identifiers::edge_in)) {
-            inIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            outIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            inObj = start->box->pd_object;
-            outObj = end->box->pd_object;
-        }
-        else {
-            inIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            outIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            inObj = end->box->pd_object;
-            outObj = start->box->pd_object;
-        }
-        
         bool can_connect = parent->patch.createConnection(outObj, outIdx, inObj, inIdx);
 
         if(!can_connect) {

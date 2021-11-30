@@ -79,6 +79,16 @@ public:
     void undo();
     void redo();
     
+    void valueTreeChanged() override {
+        hasChanged = true;
+    }
+    
+    bool changed() {
+        return hasChanged && findChildrenOfClass<Box>().size();
+    }
+    
+    bool hasChanged = false;
+    
     Edge* findEdgeByID(String ID);
     
     Array<Edge*> getAllEdges();

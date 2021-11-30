@@ -392,7 +392,13 @@ void Instance::processPrints()
 }
 
 void Instance::enqueueFunction(std::function<void(void)> fn) {
+    
+    sys_lock();
     fn();
+    sys_unlock();
+    
+    // This should be the way to do it, but it currently causes some issues
+    // By calling fn directly we fix these issues at the cost of possible thread unsafety
     //m_function_queue.try_enqueue(fn);
 }
 
