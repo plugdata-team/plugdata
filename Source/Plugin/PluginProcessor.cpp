@@ -197,7 +197,7 @@ void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBy
     
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
-    main_component.canvas->loadPatch(state);
+    main_component.getMainCanvas()->loadPatch(state);
 }
 
 //==============================================================================

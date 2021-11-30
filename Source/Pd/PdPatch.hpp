@@ -31,6 +31,11 @@ namespace pd
         //! @brief The copy constructor.
         Patch(const Patch&) noexcept = default;
         
+        //! @brief The compare equal operator.
+        bool operator==(Patch const& other) const noexcept {
+            return getPointer() == other.getPointer();
+        }
+        
         //! @brief The copy operator.
         Patch& operator=(const Patch& other) noexcept = default;
         

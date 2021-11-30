@@ -411,11 +411,10 @@
 				3DF49BF77E12628885B476B9 /* Plugin */,
 				EA95DC20589F06C1D433F1FF /* Utility */,
 				E4EC2A3290FA8553E6E79FF2 /* Box.cpp */,
-				2DD51CD644A75BF44B2981F6 /* Box.h */,
 				A02DF36FD5F133A12A7FE45D /* Canvas.cpp */,
 				4FC85EB628F74950951DF513 /* Canvas.h */,
-				0EF9FE54746C2E3D9B3646D3 /* Connection.cpp */,
 				E113C5A6E4096219A82356D6 /* Connection.h */,
+				0EF9FE54746C2E3D9B3646D3 /* Connection.cpp */,
 				F92AD92D2BC5FE71A5B5A0C9 /* Console.cpp */,
 				C5297235640E400AF461D479 /* Console.h */,
 				424840F1FBABB32568B10980 /* Edge.cpp */,
@@ -460,6 +459,7 @@
 			children = (
 				BD48A56AFF07CDC3856B679C /* PluginEditor.cpp */,
 				E057F90DB9FC45D5BD9B3B77 /* PluginEditor.h */,
+				2DD51CD644A75BF44B2981F6 /* Box.h */,
 				AC95FE692B5599ACA0109E0D /* PluginProcessor.cpp */,
 				3759A84C5EFDD545D74B196E /* PluginProcessor.h */,
 			);

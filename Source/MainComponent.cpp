@@ -36,10 +36,17 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
             if(box->graphics && box->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent) {
                 box->graphics.get()->getCanvas()->synchronise();
             }
-            if(box->graphics && box->graphics->getGUI().getType() == pd::Gui::Type::Subpatch) {
+            if(box->graphics && (box->graphics->getGUI().getType() == pd::Gui::Type::Subpatch || box->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent)) {
                 box->updatePorts();
             }
         }
+        
+        if(getCurrentCanvas()->patch.getPointer())
+        {
+            canvas_setcurrent(getCurrentCanvas()->patch.getPointer());
+        }
+        
+
         
         valueTreeChanged();
     };
@@ -189,7 +196,7 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
             }
             
             box.setProperty(Identifiers::box_name, box_name, nullptr);
-            canvas->getState().appendChild(box, nullptr);
+            getCurrentCanvas()->getState().appendChild(box, nullptr);
         };
         
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
@@ -217,9 +224,10 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
         
         getState().appendChild(cnv_state, nullptr);
         
-        auto* new_cnv = findChildOfClass<Canvas>(0);
-        new_cnv->loadPatch("#N canvas 827 239 527 327 12;");
-        pd.m_patch = new_cnv->patch.getPointer();
+        mainCanvas = findChildOfClass<Canvas>(0);
+        mainCanvas->loadPatch("#N canvas 827 239 527 327 12;");
+        pd.m_patch = mainCanvas->patch.getPointer();
+        
     }
 }
 
@@ -239,7 +247,7 @@ MainComponent::~MainComponent()
 ValueTreeObject* MainComponent::factory(const Identifier& id, const ValueTree& tree)
 {
     if(id == Identifiers::canvas) {
-        canvas = new Canvas(tree, this);
+        auto* canvas = new Canvas(tree, this);
         addTab(canvas);
 
         return static_cast<ValueTreeObject*>(canvas);
@@ -372,7 +380,7 @@ void MainComponent::openProject() {
     File openedFile = openChooser.getResult();
     
     if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-        canvas->loadPatch(openedFile.loadFileAsString());
+        getMainCanvas()->loadPatch(openedFile.loadFileAsString());
     }
     
 #else
@@ -433,14 +441,16 @@ void MainComponent::valueTreeChanged() {
 
 Canvas* MainComponent::getCurrentCanvas()
 {
-    
-    
     if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
         if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
             return cnv;
         }
     }
     return nullptr;
+}
+
+Canvas* MainComponent::getMainCanvas() {
+    return mainCanvas;
 }
 
 void MainComponent::addTab(Canvas* cnv)
@@ -498,6 +508,6 @@ void MainComponent::addTab(Canvas* cnv)
     
     tabbar.repaint();
     
-    canvas->setVisible(true);
-    canvas->setBounds(0, 0, 1000, 700);
+    cnv->setVisible(true);
+    cnv->setBounds(0, 0, 1000, 700);
 }

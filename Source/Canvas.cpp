@@ -64,11 +64,12 @@ ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueT
 
 void Canvas::synchronise() {
     
-
     main->pd.waitForStateUpdate();
     
+    synchonising = true;
+    
     dragger.deselectAll();
-
+    
     
     // Clear canvas
     for(auto& box : findChildrenOfClass<Box>()) {
@@ -82,7 +83,7 @@ void Canvas::synchronise() {
     String content = patch.getCanvasContent();
     
     Array<Box*> boxes;
-
+    
     // Go through all the boxes in the pd patch, and add GUI components for them
     for(auto& object : patch.getObjects(getState().getProperty(Identifiers::is_graph))) {
         
@@ -125,7 +126,7 @@ void Canvas::synchronise() {
         gui_simplify(name, "vsl");
         gui_simplify(name, "hradio");
         gui_simplify(name, "vradio");
-
+        
         box.setProperty(Identifiers::box_name, name, nullptr);
         
         // Return to normal operation
@@ -145,11 +146,11 @@ void Canvas::synchronise() {
         if(line.startsWith("#N canvas")) {
             canvas_idx++;
         }
-           
+        
         if(line.startsWith("#X restore")) {
             canvas_idx--;
         }
-           
+        
         if(line.startsWith("#X connect") && canvas_idx == 0) {
             auto segments = StringArray::fromTokens(line.fromFirstOccurrenceOf("#X connect ", false, false), " ", "\"");
             
@@ -180,6 +181,8 @@ void Canvas::synchronise() {
     }
     
     patch.deselectAll();
+    
+    synchonising = false;
     
 }
 
@@ -247,7 +250,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addItem(6,"Duplicate", has_selection);
         popupMenu.addItem(7,"Delete", has_selection);
         popupMenu.setLookAndFeel(&getLookAndFeel());
-    
+        
         auto callback = [this, &lasso_selection](int result) {
             if(result < 1) return;
             
@@ -267,25 +270,25 @@ void Canvas::mouseDown(const MouseEvent& e)
                     break;
                 }
                 case 4:
-                copySelection();
-                removeSelection();
+                    copySelection();
+                    removeSelection();
                     break;
                 case 5:
-                copySelection();
+                    copySelection();
                     break;
                 case 6: {
-                duplicateSelection();
+                    duplicateSelection();
                     break;
                 }
                 case 7:
-                removeSelection();
+                    removeSelection();
                     break;
             }
         };
         
         
         popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (e.originalComponent), ModalCallbackFunction::create(callback));
-
+        
     }
 }
 
@@ -357,7 +360,7 @@ void Canvas::mouseUp(const MouseEvent& e)
                 nearest_edge = new_pos.getDistanceFrom(pos) < old_pos.getDistanceFrom(pos) ? edge : nearest_edge;
             }
         }
-
+        
         if(nearest_edge) nearest_edge->createConnection();
         
         Edge::connectingEdge = nullptr;
@@ -438,17 +441,17 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     
     // cmd-shift-z
     if(key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(90)) {
-    
+        
         redo();
         return true;
     }
     // cmd-z
     if(key.getModifiers().isCommandDown() && key.isKeyCode(90)) {
-    
+        
         undo();
         return true;
     }
-
+    
     return false;
 }
 
@@ -488,9 +491,9 @@ void Canvas::duplicateSelection() {
 void Canvas::removeSelection() {
     
     /*
-    for(auto& sel : dragger.getLassoSelection()) {
-        dynamic_cast<Box*>(sel)->remove();
-    } */
+     for(auto& sel : dragger.getLassoSelection()) {
+     dynamic_cast<Box*>(sel)->remove();
+     } */
     
     Array<t_pd*> objects;
     for(auto* sel : dragger.getLassoSelection()) {
@@ -524,8 +527,8 @@ void Canvas::removeSelection() {
 Array<Edge*> Canvas::getAllEdges() {
     Array<Edge*> all_edges;
     for(auto* box : findChildrenOfClass<Box>()) {
-       for(auto* edge : box->findChildrenOfClass<Edge>())
-           all_edges.add(edge);
+        for(auto* edge : box->findChildrenOfClass<Edge>())
+            all_edges.add(edge);
     };
     
     return all_edges;
@@ -541,4 +544,34 @@ void Canvas::redo() {
     patch.redo();
     synchronise();
     main->valueTreeChanged();
+}
+
+void Canvas::closeAllInstances()
+{
+    auto& tabbar = main->getTabbar();
+    
+    for(int n = 0; n < tabbar.getNumTabs(); n++) {
+        auto* viewport = static_cast<Viewport*>(tabbar.getTabContentComponent(n));
+        if(static_cast<Canvas*>(viewport->getViewedComponent())->patch == patch) {
+            main->getState().removeChild(static_cast<Canvas*>(viewport->getViewedComponent())->getState(), nullptr);
+            
+            
+            
+            tabbar.removeTab(n);
+            
+            canvas_setcurrent(main->getMainCanvas()->patch.getPointer());
+            
+            
+        }
+    }
+    
+    if(tabbar.getNumTabs() > 1) {
+        tabbar.getTabbedButtonBar().setVisible(true);
+        tabbar.setTabBarDepth(30);
+    }
+    else {
+        tabbar.getTabbedButtonBar().setVisible(false);
+        tabbar.setTabBarDepth(1);
+    }
+    
 }
