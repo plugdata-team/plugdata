@@ -41,8 +41,6 @@ public:
     MainComponent();
     ~MainComponent() override;
     
-    Canvas* canvas = nullptr;
-    
     Console console;
     PlugData pd;
     
@@ -60,6 +58,7 @@ public:
     void addTab(Canvas* cnv);
     
     Canvas* getCurrentCanvas();
+    Canvas* getMainCanvas();
 
     
     void valueTreeChanged() override;
@@ -73,6 +72,7 @@ public:
     
 private:
     
+    Canvas* mainCanvas = nullptr;
     
     FileChooser saveChooser =  FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
     FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation( File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");

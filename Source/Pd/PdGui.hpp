@@ -7,6 +7,7 @@
 
 #include "PdObject.hpp"
 #include "PdArray.hpp"
+#include <JuceHeader.h>
 
 namespace pd
 {
@@ -62,6 +63,8 @@ namespace pd
         {
             return m_type;
         }
+        
+        static Type getType(void* ptr, String obj_text);
         
         //! @brief If the GUI is an IEM's GUI.
         bool isIEM() const noexcept

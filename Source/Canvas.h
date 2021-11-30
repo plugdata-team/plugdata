@@ -83,6 +83,8 @@ public:
         hasChanged = true;
     }
     
+    void closeAllInstances();
+    
     bool changed() {
         return hasChanged && findChildrenOfClass<Box>().size();
     }
@@ -98,7 +100,8 @@ public:
     bool connectingWithDrag = false;
     
     bool isMainPatch = true;
-
+    static inline bool synchonising = false;
+    
     pd::Patch patch;
     
 private:

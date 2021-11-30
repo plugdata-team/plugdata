@@ -139,6 +139,10 @@ void Box::remove(bool clear_pd) {
         cnv->patch.removeObject(pd_object);
     }
     
+    if(graphics && (graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent || graphics->getGUI().getType() == pd::Gui::Type::Subpatch)) {
+        
+        // TODO: find the tabs and close them!!
+    }
     
     pd_object = nullptr;
     cnv->getState().removeChild(ValueTreeObject::getState(), nullptr);
@@ -171,10 +175,13 @@ void Box::setType (String new_type)
     String arguments = new_type.fromFirstOccurrenceOf(" ", false, false);
     String type = new_type.upToFirstOccurrenceOf(" ", false, false);
 
+    // TODO: this bit can be improved
+    // Wrap t_pd* in a pd::Object
     bool is_gui = GUIComponent::is_gui(type);
     
     if(type.isNotEmpty() && !getState().getProperty(Identifiers::exists)) {
         auto* pd = &cnv->patch;
+        
         
         // Pd doesn't normally allow changing between gui and non-gui objects
         if((pd_object && graphics.get() != nullptr) || is_gui) {
@@ -237,6 +244,11 @@ void Box::paint (Graphics& g)
     g.fillRoundedRectangle(rect.toFloat(), 2.0f);
     
     g.setColour(findColour(ComboBox::outlineColourId));
+    
+    if(graphics && graphics->getGUI().getType() == pd::Gui::Type::Comment) {
+        std::cout << "todo: comment style";
+        
+    }
     g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
 }
 

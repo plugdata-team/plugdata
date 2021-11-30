@@ -295,6 +295,7 @@ struct GraphOnParent : public GUIComponent
 {
 public:
     GraphOnParent(pd::Gui gui, Box* box);
+    ~GraphOnParent();
     
     void paint(Graphics& g) override {
         g.fillAll(findColour(TextButton::buttonColourId));
@@ -328,6 +329,8 @@ struct Subpatch : public GUIComponent
 
     Subpatch(pd::Gui gui, Box* box);
     
+    ~Subpatch();
+    
     std::pair<int, int> getBestSize() override {return {0, 5}; };
     
     void resized() override {};
@@ -345,7 +348,22 @@ struct Subpatch : public GUIComponent
     
 private:
     pd::Patch subpatch;
-    std::unique_ptr<Canvas> canvas;
+    std::unique_ptr<Canvas> canvas = nullptr;
     
 };
 
+
+class CommentComponent : public GUIComponent
+{
+public:
+    CommentComponent(pd::Gui gui, Box* box);
+    void paint(Graphics& g) override;
+    
+    void updateValue() override {};
+    
+    std::pair<int, int> getBestSize() override {return {120, 28}; };
+    
+    ComponentBoundsConstrainer getConstrainer()  override {
+        
+    };
+};

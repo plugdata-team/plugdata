@@ -72,6 +72,9 @@ GUIComponent* GUIComponent::create_gui(String name, Box* parent)
     if(gui.getType() == pd::Gui::Type::VuMeter) {
         return nullptr; //new GraphOnParent(gui, parent);
     }
+    if(gui.getType() == pd::Gui::Type::Comment) {
+        return new CommentComponent(gui, parent);
+    }
     if(gui.getType() == pd::Gui::Type::AtomNumber) {
         return new NumboxComponent(gui, parent);
     }
@@ -575,6 +578,13 @@ GraphOnParent::GraphOnParent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, bo
     
 }
 
+GraphOnParent::~GraphOnParent() {
+    if(canvas && box) {
+        canvas->closeAllInstances();
+    }
+    
+}
+
 void GraphOnParent::resized()
 {
     canvas->setBounds(getLocalBounds());
@@ -594,6 +604,28 @@ Subpatch::Subpatch(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
     
     canvas->isMainPatch = false;
     canvas->loadPatch(subpatch);
-
 }
 
+Subpatch::~Subpatch() {
+    if(canvas) {
+        canvas->closeAllInstances();
+    }
+    
+}
+
+
+CommentComponent::CommentComponent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
+{
+    setInterceptsMouseClicks(false, false);
+    edited = true;
+}
+
+void CommentComponent::paint(Graphics& g)
+{
+    const auto fheight = gui.getFontHeight();
+    //auto const ft = PdGuiLook::getFont(gui.getFontName()).withPointHeight(fheight);
+    auto ft = Font(13);
+    g.setFont(ft);
+    g.setColour(Colours::black);
+    g.drawMultiLineText(gui.getText(), 0, static_cast<int>(ft.getAscent()), getWidth());
+}

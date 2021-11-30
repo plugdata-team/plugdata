@@ -56,10 +56,13 @@ void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
         
         (*x->g_pd->c_wb->w_getrectfn)(x, glist, &x1, &y1, &x2, &y2);
         
+        /*
         glist_noselect(glist);
         glist_select(glist, x);
-        canvas_displaceselection_ext(glist, xpos - x1, ypos - y1);
-        glist_deselect(glist, x);
+        (*x->g_pd->c_wb->w_displacefn)(x, glist, dx, dy);
+        //canvas_displaceselection_ext(glist, xpos - x1, ypos - y1);
+        glist_deselect(glist, x); */
+        (*x->g_pd->c_wb->w_displacefn)(x, glist, xpos - x1, ypos - y1);
     }
     
     
@@ -344,6 +347,7 @@ void libpd_copy(t_canvas* x) {
     
     binbuf_free(EDITOR->copy_binbuf);
     EDITOR->copy_binbuf = canvas_docopy(x);
+    
     if (x->gl_editor->e_textedfor)
     {
         char *buf;
@@ -423,6 +427,7 @@ void libpd_undo(t_canvas *x) {
 }
 
 void libpd_redo(t_canvas *x) {
+    pd_this->pd_newest = 0;
     pd_typedmess((t_pd*)x, gensym("redo"), 0, NULL);
 }
 
@@ -568,6 +573,7 @@ static void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
 
 
 t_pd* libpd_creategraphonparent(t_pd *x) {
+
     
     int argc = 9;
     
@@ -575,12 +581,12 @@ t_pd* libpd_creategraphonparent(t_pd *x) {
     
     t_float x1 = 0.0f;
     t_float y1 = 0.0f;
-    t_float x2 = 0.0f;
-    t_float y2 = 0.0f;
+    t_float x2 = 100.0f;
+    t_float y2 = 100.0f;
     t_float px1 = 0.0f;
     t_float py1 = 0.0f;
-    t_float px2 = 0.0f;
-    t_float py2 = 0.0f;
+    t_float px2 = 100.0f;
+    t_float py2 = 100.0f;
     
     t_symbol* sym = gensym("graph");
     
@@ -595,6 +601,7 @@ t_pd* libpd_creategraphonparent(t_pd *x) {
     
     SETFLOAT(argv + 7, px2);
     SETFLOAT(argv + 8, py2);
+    
     
     
     pd_typedmess(x, gensym("graph"), argc, argv);
