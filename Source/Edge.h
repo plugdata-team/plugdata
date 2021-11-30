@@ -27,11 +27,11 @@ public:
     void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     
-    void create_connection();
+    void createConnection();
     
-    Rectangle<int> get_canvas_bounds();
+    Rectangle<int> getCanvasBounds();
     
-    static inline SafePointer<Edge> connecting_edge = nullptr;
+    static inline SafePointer<Edge> connectingEdge = nullptr;
     
 private:
 

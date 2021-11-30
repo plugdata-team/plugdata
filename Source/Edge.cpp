@@ -8,7 +8,7 @@ Edge::Edge(ValueTree tree, Box* parent) : ValueTreeObject(tree), box(parent)
     setSize (8, 8);
     
     onClick = [this](){
-        create_connection();
+        createConnection();
     };
 }
 
@@ -16,7 +16,7 @@ Edge::~Edge()
 {
 }
 
-Rectangle<int> Edge::get_canvas_bounds()
+Rectangle<int> Edge::getCanvasBounds()
 {
     auto bounds = getBounds();
     if(auto* box = dynamic_cast<Box*>(getParentComponent())) {
@@ -59,10 +59,10 @@ void Edge::mouseDrag(const MouseEvent& e) {
     // For dragging to create new connections
     
     TextButton::mouseDrag(e);
-    if(!Edge::connecting_edge && e.getLengthOfMousePress() > 300) {
-        Edge::connecting_edge = this;
+    if(!Edge::connectingEdge && e.getLengthOfMousePress() > 300) {
+        Edge::connectingEdge = this;
         auto* cnv = findParentComponentOfClass<Canvas>();
-        cnv->connecting_with_drag = true;
+        cnv->connectingWithDrag = true;
     }
 }
 
@@ -70,39 +70,39 @@ void Edge::mouseMove(const MouseEvent& e) {
     findParentComponentOfClass<Canvas>()->repaint();
 }
 
-void Edge::create_connection()
+void Edge::createConnection()
 {
     // Check if this is the start or end action of connecting
-    if(Edge::connecting_edge) {
+    if(Edge::connectingEdge) {
         
         // Check type for input and output
         bool is_input = ValueTreeObject::getState().getProperty("Input");
-        String ctx1 = is_input ? Edge::connecting_edge->ValueTreeObject::getState().getProperty("Context") : ValueTreeObject::getState().getProperty("Context");
-        String ctx2 = !is_input ? Edge::connecting_edge->ValueTreeObject::getState().getProperty("Context") : ValueTreeObject::getState().getProperty("Context");
+        String ctx1 = is_input ? Edge::connectingEdge->ValueTreeObject::getState().getProperty("Context") : ValueTreeObject::getState().getProperty("Context");
+        String ctx2 = !is_input ? Edge::connectingEdge->ValueTreeObject::getState().getProperty("Context") : ValueTreeObject::getState().getProperty("Context");
         
         
-        bool connection_allowed = ctx1 == ctx2 && connecting_edge->getParentComponent() != getParentComponent() && Edge::connecting_edge->box->cnv == box->cnv;
+        bool connection_allowed = ctx1 == ctx2 && connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv;
         
         // Dont create if this is the same edge
-        if(Edge::connecting_edge == this) {
-            Edge::connecting_edge = nullptr;
+        if(Edge::connectingEdge == this) {
+            Edge::connectingEdge = nullptr;
         }
         else if(!connection_allowed) {
-            Edge::connecting_edge = nullptr;
+            Edge::connectingEdge = nullptr;
         }
         // Create new connection if allowed
         else if(connection_allowed) {
             ValueTree new_connection = ValueTree(Identifiers::connection);
             
-            new_connection.setProperty(Identifiers::start_id, Edge::connecting_edge->ValueTreeObject::getState().getProperty(Identifiers::edge_id), nullptr);
+            new_connection.setProperty(Identifiers::start_id, Edge::connectingEdge->ValueTreeObject::getState().getProperty(Identifiers::edge_id), nullptr);
             new_connection.setProperty(Identifiers::end_id, ValueTreeObject::getState().getProperty(Identifiers::edge_id), nullptr);
             Canvas* cnv = findParentComponentOfClass<Canvas>();
             cnv->getState().appendChild(new_connection, nullptr);
-            Edge::connecting_edge = nullptr;
+            Edge::connectingEdge = nullptr;
         }
     }
     // Else set this edge as start of a connection
     else {
-        Edge::connecting_edge = this;
+        Edge::connectingEdge = this;
     }
 }

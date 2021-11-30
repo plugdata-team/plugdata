@@ -41,7 +41,8 @@ namespace pd
             AtomSymbol       = 12,
             Array            = 13,
             GraphOnParent    = 14,
-            Message          = 15
+            Message          = 15,
+            Subpatch         = 16
         };
         
         //! @brief The default constructor

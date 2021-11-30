@@ -115,6 +115,8 @@ t_pd* Patch::createGraph(String name, int size)
     m_instance->setThis();
     t_pd* pdobject = libpd_creategraph(static_cast<t_pd*>(m_ptr), name.toRawUTF8(), size);
     
+    // Cant enqueue this...
+    
     return pdobject;
 }
 
@@ -129,10 +131,6 @@ t_pd* Patch::createObject(String name, int x, int y)
     
     if(tokens[0] == "graph" && tokens.size() == 3) {
         return createGraph(tokens[1], tokens[2].getIntValue());
-    }
-    
-    if(tokens[0] == "pd")  {
-        return createGraphOnParent();
     }
     
     t_symbol* typesymbol = gensym("obj");
@@ -167,6 +165,7 @@ t_pd* Patch::createObject(String name, int x, int y)
         }
     }
     
+    // Cant enqueue this...
     
     m_instance->setThis();
     t_pd* pdobject = libpd_createobj(static_cast<t_pd*>(m_ptr), typesymbol, argc, argv.data());
@@ -175,13 +174,45 @@ t_pd* Patch::createObject(String name, int x, int y)
 }
 
 
+void Patch::copy() {
+    m_instance->enqueueFunction([this]() {
+        libpd_copy(static_cast<t_canvas*>(m_ptr));
+    });
+}
+
+void Patch::paste() {
+    m_instance->enqueueFunction([this]() {
+        libpd_paste(static_cast<t_canvas*>(m_ptr));
+    });
+}
+
+void Patch::duplicate() {
+    m_instance->enqueueFunction([this]() {
+        libpd_duplicate(static_cast<t_canvas*>(m_ptr));
+    });
+}
+
+
+void Patch::selectObject(t_pd* x) {
+    m_instance->enqueueFunction([this, x]() {
+        glist_select(static_cast<t_canvas*>(m_ptr), &(pd_checkobject(x)->te_g));
+    });
+}
+
+void Patch::deselectAll() {
+    m_instance->enqueueFunction([this]() {
+        glist_noselect(static_cast<t_canvas*>(m_ptr));
+    });
+}
+
 void Patch::removeObject(t_pd* obj)
 {
     if(!obj || !m_ptr) return;
-    // not sure if this works
-    //canvas_deletelinesfor(static_cast<t_pd*>(m_patch), static_cast<t_text*>(pd_checkobject(obj)));
-    m_instance->setThis();
-    libpd_removeobj(getPointer(), &pd_checkobject(obj)->te_g);
+    
+    m_instance->enqueueFunction([this, obj](){
+        m_instance->setThis();
+        libpd_removeobj(getPointer(), &pd_checkobject(obj)->te_g);
+    });
     
 }
 
@@ -189,12 +220,19 @@ bool Patch::createConnection(t_pd* src, int nout, t_pd* sink, int nin)
 {
     if(!src || !sink || !m_ptr) return false;
     
-    bool can_connect = libpd_canconnect(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+
     
-    if(!can_connect) return false;
+    m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
+        
+        bool can_connect = libpd_canconnect(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+        
+        if(!can_connect) return;
+        
+        m_instance->setThis();
+        libpd_createconnection(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+    });
     
-    m_instance->setThis();
-    libpd_createconnection(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+
     
     return true;
 }
@@ -203,13 +241,20 @@ void Patch::removeConnection(t_pd* src, int nout, t_pd*sink, int nin)
 {
     if(!src || !sink || !m_ptr) return;
     
-    m_instance->setThis();
-    libpd_removeconnection(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+    m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
+        m_instance->setThis();
+        libpd_removeconnection(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+    });
+    
+    
+
 }
 
 
 t_pd* Patch::renameObject(t_pd* obj, String name) {
     if(!obj || !m_ptr) return nullptr;
+    
+    // Cant use the queue for this...
     
     m_instance->setThis();
     
@@ -220,27 +265,26 @@ t_pd* Patch::renameObject(t_pd* obj, String name) {
 
 void Patch::moveObject(t_pd* obj, int x, int y) {
     if(!obj || !m_ptr) return;
-    m_instance->setThis();
-    libpd_moveobj(getPointer(), &pd_checkobject(obj)->te_g, x, y);
+    
+    m_instance->enqueueFunction([this, obj, x, y]() mutable {
+        m_instance->setThis();
+        libpd_moveobj(getPointer(), &pd_checkobject(obj)->te_g, x, y);
+    });
     
 }
 
 void Patch::undo() {
-    m_instance->setThis();
-
-    auto* instance = static_cast<_pdinstance*>(m_instance->m_instance);
-    
-    instance->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-    
-    pd_typedmess(static_cast<t_pd*>(m_ptr), gensym("undo"), 0, nullptr);
+    m_instance->enqueueFunction([this]() {
+        m_instance->setThis();
+        libpd_undo(static_cast<t_canvas*>(m_ptr));
+    });
 }
 
 void Patch::redo() {
-    m_instance->setThis();
-    
-    //auto* instance = static_cast<_pdinstance*>(m_instance);
-    //instance->pd_gui->i_editor->canvas_undo_already_set_move = 0;
-    pd_typedmess(static_cast<t_pd*>(m_ptr), gensym("redo"), 0, nullptr);
+    m_instance->enqueueFunction([this]() {
+        m_instance->setThis();
+        libpd_redo(static_cast<t_canvas*>(m_ptr));
+    });
 }
 
 }

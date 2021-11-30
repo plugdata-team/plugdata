@@ -19,16 +19,19 @@ extern "C"
 #include <g_canvas.h>
 
 
-
-
-
-
     t_pd* libpd_createobj(t_pd *x, t_symbol *s, int argc, t_atom *argv);
     t_pd* libpd_creategraph(t_pd *x, const char* name, int size);
 
     void libpd_removeobj(t_canvas* cnv, t_gobj* obj);
     void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize);
     void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y);
+
+    void libpd_copy(t_canvas* x);
+    void libpd_paste(t_canvas* x);
+    void libpd_duplicate(t_canvas *x);
+
+    void libpd_undo(t_canvas* x);
+    void libpd_redo(t_canvas *x);
 
     void libpd_createconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);
     void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);

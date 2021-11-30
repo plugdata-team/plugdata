@@ -20,7 +20,7 @@ public:
     PlugDataAudioProcessorEditor (PlugDataAudioProcessor&);
     ~PlugDataAudioProcessorEditor() override;
 
-    MainComponent& main_component;
+    MainComponent& mainComponent;
     //==============================================================================
     void paint (juce::Graphics&) override;
     void resized() override;

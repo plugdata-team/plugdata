@@ -120,7 +120,7 @@ unsigned int libpd_iemgui_get_foreground_color(void* ptr)
     return convert_from_iem_color(((t_iemgui*)ptr)->x_fcol);
 }
 
-float libpd_get_canvas_font_height(t_canvas* cnv)
+float libpd_getCanvas_font_height(t_canvas* cnv)
 {
     const int fontsize = glist_getfont(cnv);
     const float zoom = (float)glist_getzoom(cnv);

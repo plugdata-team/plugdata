@@ -36,7 +36,7 @@ GUIComponent* GUIComponent::create_gui(String name, Box* parent)
     
     auto gui = pd::Gui(static_cast<void*>(checked_object), parent->cnv->patch.getPointer(), &(parent->cnv->main->pd));
     
-    
+    std::cout << name << std::endl;
     
     if(gui.getType() == pd::Gui::Type::Bang) {
         return new BangComponent(gui, parent);
@@ -68,8 +68,8 @@ GUIComponent* GUIComponent::create_gui(String name, Box* parent)
     if(gui.getType() == pd::Gui::Type::GraphOnParent) {
         return new GraphOnParent(gui, parent);
     }
-    if(name == "pd") {
-        return nullptr;//new GraphOnParent(gui, parent);
+    if(gui.getType() == pd::Gui::Type::Subpatch) {
+        return new Subpatch(gui, parent);
     }
     if(gui.getType() == pd::Gui::Type::VuMeter) {
         return nullptr; //new GraphOnParent(gui, parent);
@@ -570,13 +570,9 @@ GraphOnParent::GraphOnParent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, bo
 
     subpatch = gui.getPatch();
     
-    canvas->main_patch = false;
+    canvas->isMainPatch = false;
+    canvas->loadPatch(subpatch);
 
-    // Not good yet...
-    
-    canvas->load_patch(subpatch);
-    //canvas->load_patch(subpatch.getCanvasContent());
-    
     resized();
     
 }
@@ -585,3 +581,21 @@ void GraphOnParent::resized()
 {
     canvas->setBounds(getLocalBounds());
 }
+
+Subpatch::Subpatch(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
+{
+    
+    auto tree = ValueTree(Identifiers::canvas);
+    tree.setProperty(Identifiers::is_graph, true, nullptr);
+    tree.setProperty("Title",  box->textLabel.getText().fromFirstOccurrenceOf("pd ", false, false), nullptr);
+    
+    canvas.reset(new Canvas(tree, box->cnv->main));
+    
+    // TODO: might not work
+    subpatch = gui.getPatch();
+    
+    canvas->isMainPatch = false;
+    canvas->loadPatch(subpatch);
+
+}
+

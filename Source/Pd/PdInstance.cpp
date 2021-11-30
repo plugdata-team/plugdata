@@ -392,7 +392,8 @@ void Instance::processPrints()
 }
 
 void Instance::enqueueFunction(std::function<void(void)> fn) {
-    m_function_queue.try_enqueue(fn);
+    fn();
+    //m_function_queue.try_enqueue(fn);
 }
 
 void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
@@ -429,6 +430,8 @@ void Instance::dequeueMessages()
         sys_unlock();
     }
     
+    update_wait.signal();
+    
     while(m_send_queue.try_dequeue(mess))
     {
         if(mess.object && !mess.list.empty())
@@ -464,6 +467,7 @@ void Instance::dequeueMessages()
             sendMessage(mess.destination.c_str(), mess.selector.c_str(), mess.list);
         }
     }
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -513,54 +517,9 @@ void Instance::setThis()
 
 void Instance::stringToAtom(String name, int& argc, t_atom& target)
 {
-    /*
 
-    for(int i = 0; i < argc; i++) {
-        if(tokens[i].containsOnly("0123456789.-") && tokens[i] != "-") {
-            SETFLOAT(argv + i + 2, tokens[i].getFloatValue());
-        }
-        else {
-            SETSYMBOL(argv + i + 2, gensym(tokens[i].toRawUTF8()));
-        }
-    }
-    */
 }
 
-bool Instance::checkState(String pdstate) {
-    /*
-    StringArray currentstate;
-    currentstate.addTokens(getCanvasContent(), ";\n", "");
-    
-    StringArray newstate;
-    newstate.addTokens(pdstate, ";\n", "");
-    
-    for(auto line : currentstate) {
-        StringArray singleline;
-        singleline.addTokens(line, " ", "");
-        if(!newstate.contains(line)) {
-            if(singleline[1] == "obj") {
-                // DELETE OBJECT FROM PD PATCH
-            else if(singleline[1] == "connect") {
-                // DELETE CONNECTION FROM PD PATCH
-            
-        }
-    }
-    
-    for(auto line : newstate) {
-        StringArray singleline;
-        singleline.addTokens(line, " ", "");
-        if(!currentstate.contains(line)) {
-            if(singleline[1] == "obj") {
-                // ADD OBJECT FROM PD PATCH
-            else if(singleline[1] == "connect") {
-                // ADD CONNECTION FROM PD PATCH
-                
-            }
-        }
-    }
-    
-    */
-}
 
 String Instance::getCanvasContent() {
     

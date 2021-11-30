@@ -10,8 +10,8 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
     cnv = parent;
     rebuildObjects();
    
-    start = cnv->find_edge_by_id(tree.getProperty("StartID"));
-    end = cnv->find_edge_by_id(tree.getProperty("EndID"));
+    start = cnv->findEdgeByID(tree.getProperty("StartID"));
+    end = cnv->findEdgeByID(tree.getProperty("EndID"));
     
     if(!start || !end) {
         start = nullptr;
@@ -23,19 +23,19 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
     if(!getState().getProperty(Identifiers::exists)) {
 
         if(start->ValueTreeObject::getState().getProperty(Identifiers::edge_in)) {
-            in_idx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            out_idx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            in_obj = start->box->pd_object;
-            out_obj = end->box->pd_object;
+            inIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            outIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            inObj = start->box->pd_object;
+            outObj = end->box->pd_object;
         }
         else {
-            in_idx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            out_idx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-            in_obj = end->box->pd_object;
-            out_obj = start->box->pd_object;
+            inIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            outIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+            inObj = end->box->pd_object;
+            outObj = start->box->pd_object;
         }
         
-        bool can_connect = parent->patch.createConnection(out_obj, out_idx, in_obj, in_idx);
+        bool can_connect = parent->patch.createConnection(outObj, outIdx, inObj, inIdx);
 
         if(!can_connect) {
             start = nullptr;
@@ -80,7 +80,7 @@ void Connection::paint (Graphics& g)
 
     auto base_colour = Colours::white;
 
-    if(is_selected) {
+    if(isSelected) {
         
         base_colour = start->ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : MainLook::highlight_colour;
     }
@@ -91,16 +91,16 @@ void Connection::paint (Graphics& g)
 
 void Connection::mouseDown(const MouseEvent& e)  {
     if(path.contains(e.getPosition().toFloat())) {
-        is_selected = !is_selected;
+        isSelected = !isSelected;
     }
 }
 
 
 void Connection::componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) {
-    int left = std::min(start->get_canvas_bounds().getCentreX(), end->get_canvas_bounds().getCentreX()) - 10;
-    int top = std::min(start->get_canvas_bounds().getCentreY(), end->get_canvas_bounds().getCentreY()) - 10;
-    int right = std::max(start->get_canvas_bounds().getCentreX(), end->get_canvas_bounds().getCentreX()) + 10;
-    int bottom = std::max(start->get_canvas_bounds().getCentreY(), end->get_canvas_bounds().getCentreY()) + 10;
+    int left = std::min(start->getCanvasBounds().getCentreX(), end->getCanvasBounds().getCentreX()) - 10;
+    int top = std::min(start->getCanvasBounds().getCentreY(), end->getCanvasBounds().getCentreY()) - 10;
+    int right = std::max(start->getCanvasBounds().getCentreX(), end->getCanvasBounds().getCentreX()) + 10;
+    int bottom = std::max(start->getCanvasBounds().getCentreY(), end->getCanvasBounds().getCentreY()) + 10;
     
     setBounds(left, top, right - left, bottom - top);
     resized();
@@ -109,8 +109,8 @@ void Connection::componentMovedOrResized (Component &component, bool wasMoved, b
 
 void Connection::resized()
 {
-    Point<float> pstart = start->get_canvas_bounds().getCentre().toFloat() - getPosition().toFloat();
-    Point<float> pend = end->get_canvas_bounds().getCentre().toFloat() - getPosition().toFloat();
+    Point<float> pstart = start->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
+    Point<float> pend = end->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
     path.clear();
     path.startNewSubPath(pstart.x, pstart.y);
 

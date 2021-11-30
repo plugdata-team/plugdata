@@ -187,15 +187,17 @@ juce::AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 //==============================================================================
 void PlugDataAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
-    // You should use this method to store your parameters in the memory block.
-    // You could do that either as raw data, or use the XML or ValueTree classes
-    // as intermediaries to make it easy to save and load complex data.
+    // Store pure-data state
+    MemoryOutputStream ostream(destData, false);
+    ostream.writeString(main_component.pd.getCanvasContent());
 }
 
 void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
 {
-    // You should use this method to restore your parameters from this memory block,
-    // whose contents will have been created by the getStateInformation() call.
+    
+    MemoryInputStream istream(data, sizeInBytes, false);
+    String state = istream.readString();
+    main_component.canvas->loadPatch(state);
 }
 
 //==============================================================================

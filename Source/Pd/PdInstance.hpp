@@ -95,6 +95,9 @@ public:
     void stringToAtom(String name, int& argc, t_atom& target);
     
 
+    void waitForStateUpdate() {
+        update_wait.wait();
+    }
     
     String getCanvasContent();
     
@@ -104,6 +107,8 @@ public:
     void* m_midi_receiver                    = nullptr;
     void* m_print_receiver                   = nullptr;
     std::vector<void*> m_message_receiver    = std::vector<void*>(1, nullptr);
+    
+    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
     
     private:
     struct Message
@@ -145,7 +150,8 @@ public:
     moodycamel::ConcurrentQueue<Message> m_message_queue = moodycamel::ConcurrentQueue<Message>(4096);
     moodycamel::ConcurrentQueue<midievent> m_midi_queue = moodycamel::ConcurrentQueue<midievent>(4096);
     moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
-    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+
+    WaitableEvent update_wait;
     
     struct internal;
 };

@@ -70,6 +70,7 @@
 		AB01000C275508F1007FFEB7 /* WebKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = F2EFEF5BB8B5455D5890F5BB /* WebKit.framework */; };
 		AB01002327550943007FFEB7 /* libpd-osx-multi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AB01002227550937007FFEB7 /* libpd-osx-multi.a */; };
 		AB0100242755094C007FFEB7 /* libpd-osx-multi.a in Frameworks */ = {isa = PBXBuildFile; fileRef = AB01002227550937007FFEB7 /* libpd-osx-multi.a */; };
+		AB0100272755C72D007FFEB7 /* SaveDialog.cpp in Sources */ = {isa = PBXBuildFile; fileRef = AB0100252755C72D007FFEB7 /* SaveDialog.cpp */; };
 		AB01FFF1275508F1007FFEB7 /* RecentFilesMenuTemplate.nib in Resources */ = {isa = PBXBuildFile; fileRef = 6A0DE3BFB37B479D75399A18 /* RecentFilesMenuTemplate.nib */; };
 		AB01FFF2275508F1007FFEB7 /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 829F1A215D6D7AC90F597586 /* Accelerate.framework */; };
 		AB01FFF3275508F1007FFEB7 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = FEE49C5278138708B3F6FBB9 /* AudioToolbox.framework */; };
@@ -261,6 +262,8 @@
 		A8388DEED0108095D13A5F5C /* PdPatch.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = PdPatch.hpp; path = ../../Source/Pd/PdPatch.hpp; sourceTree = SOURCE_ROOT; };
 		AA35E98A4DF6C29701725877 /* include_juce_core.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_core.mm; path = ../../JuceLibraryCode/include_juce_core.mm; sourceTree = SOURCE_ROOT; };
 		AB01001427550937007FFEB7 /* libpd.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libpd.xcodeproj; path = ../../Libraries/libpd/libpd.xcodeproj; sourceTree = "<group>"; };
+		AB0100252755C72D007FFEB7 /* SaveDialog.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SaveDialog.cpp; path = ../../Source/SaveDialog.cpp; sourceTree = "<group>"; };
+		AB0100262755C72D007FFEB7 /* SaveDialog.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SaveDialog.h; path = ../../Source/SaveDialog.h; sourceTree = "<group>"; };
 		ABAB091AF668B3BF5BBE006B /* PlugData.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugData.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABD99866B66F7A58E759742C /* x_libpd_mod_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = x_libpd_mod_utils.c; path = ../../Source/Pd/x_libpd_mod_utils.c; sourceTree = SOURCE_ROOT; };
 		AC95FE692B5599ACA0109E0D /* PluginProcessor.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PluginProcessor.cpp; path = ../../Source/Plugin/PluginProcessor.cpp; sourceTree = SOURCE_ROOT; };
@@ -426,6 +429,8 @@
 				5216455B651B7DA2CB6FC944 /* GUIObjects.h */,
 				4B9EDB58063DA936810B6D37 /* LookAndFeel.h */,
 				B35219FC2559BEFA99200DFA /* Main.cpp */,
+				AB0100252755C72D007FFEB7 /* SaveDialog.cpp */,
+				AB0100262755C72D007FFEB7 /* SaveDialog.h */,
 				BBBC5C9E427E21C7BC6E143D /* MainComponent.cpp */,
 				077F54978FF0DC75BFA0679D /* MainComponent.h */,
 				2A9AC93F382EDFD3FC55D9FF /* PlugData.cpp */,
@@ -916,6 +921,7 @@
 				FC4E5FC16BF642BD7CF20D05 /* include_juce_graphics.mm in Sources */,
 				B83994742268231AEC93BF64 /* include_juce_gui_basics.mm in Sources */,
 				EB4DAA14D12F7D72BA73BDC7 /* include_juce_gui_extra.mm in Sources */,
+				AB0100272755C72D007FFEB7 /* SaveDialog.cpp in Sources */,
 				92496B37DB032467B31C4FBF /* include_juce_opengl.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

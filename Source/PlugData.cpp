@@ -160,6 +160,9 @@ void PlugData::processInternal()
     //                                     DEQUEUE MESSAGES                                 //
     //////////////////////////////////////////////////////////////////////////////////////////
     dequeueMessages();
+    processMessages();
+    processPrints();
+    processMidi();
     
     //////////////////////////////////////////////////////////////////////////////////////////
     //                                          MIDI IN                                     //

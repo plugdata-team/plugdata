@@ -150,12 +150,23 @@ namespace pd
                 {
                     m_type = Type::Array;
                 }
+                else {
+                    m_type = Type::Subpatch;
+                }
             }
-            if(m_type != Type::Array && static_cast<t_canvas*>(m_ptr)->gl_isgraph)
+            else if(m_type != Type::Array && static_cast<t_canvas*>(m_ptr)->gl_isgraph)
             {
                 m_type = Type::GraphOnParent;
                 canvas_vis(static_cast<t_canvas*>(m_ptr), 1.f);
             }
+            else {
+                m_type = Type::Subpatch;
+            }
+
+        }
+        else if(name == "pd")
+        {
+            m_type = Type::Subpatch;
         }
     }
     
@@ -399,7 +410,7 @@ namespace pd
         }
         else
         {
-            return libpd_get_canvas_font_height(static_cast<t_canvas*>(m_patch));
+            return libpd_getCanvas_font_height(static_cast<t_canvas*>(m_patch));
         }
     }
     
@@ -478,6 +489,10 @@ namespace pd
         {
             return Patch(m_ptr, m_instance);
         }
+        if(m_type == Type::Subpatch) {
+            return Patch(m_ptr, m_instance);
+        }
+        
         return Patch();
     }
     

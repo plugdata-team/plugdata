@@ -43,7 +43,7 @@ class Box  : public Component, public ValueTreeObject
     
 public:
     //==============================================================================
-    Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragger);
+    Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragger);
 
     ~Box() override;
     
@@ -58,13 +58,13 @@ public:
     void resized() override;
     void moved() override;
     
-    void update_position();
+    void updatePosition();
     
-    void set_type (String new_type);
+    void setType(String new_type);
     
-    void update_ports();
+    void updatePorts();
     
-    void remove_box(bool clear_pd = true);
+    void remove(bool clear_pd = true);
     
     t_pd* pd_object = nullptr;
     
@@ -72,10 +72,10 @@ public:
     
     void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
     
-    int total_in = 0;
-    int total_out = 0;
+    int numInputs = 0;
+    int numOutputs = 0;
     
-    ClickLabel text_label;
+    ClickLabel textLabel;
     
 private:
 
