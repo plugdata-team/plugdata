@@ -12,7 +12,7 @@
 
 
 
-class PlugData : public pd::Instance, public Timer
+class PlugData : public pd::Instance
 {
 public:
     
@@ -37,21 +37,12 @@ public:
         
         processMessages();
         
-        startTimerHz(50);
-        
     }
     
     ~PlugData() override {
         
     }
     
-    void timerCallback() override
-    {
-        dequeueMessages();
-        processMessages();
-        processPrints();
-        processMidi();
-    }
 
     
     //virtual void receiveList(const std::string& dest, const std::vector<Atom>& list) {}
@@ -90,13 +81,8 @@ public:
         dequeueMessages();
         processMessages();
     }
-    //void updateTrackProperties(const TrackProperties& properties) override;
-    //const TrackProperties& getTrackProperties() const { return m_track_properties; }
-    
-    typedef std::array<std::string, 3> MessageGui;
 
     void reloadPatch();
-
     
     
     std::vector<const float*> bufferin;

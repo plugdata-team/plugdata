@@ -6,7 +6,6 @@
 #include "Utility/gin_valuetreeobject.h"
 
 #include "Console.h"
-#include "Utility.h"
 
 
 #include <JuceHeader.h>
@@ -20,7 +19,7 @@
 struct TabComponent : public TabbedComponent
 {
     
-    std::function<void(int)> on_tab_change = [](int){};
+    std::function<void(int)> onTabChange = [](int){};
     
     TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop) {
         
@@ -28,7 +27,7 @@ struct TabComponent : public TabbedComponent
     
     void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
     {
-        on_tab_change(newCurrentTabIndex);
+        onTabChange(newCurrentTabIndex);
     }
 
     
@@ -55,54 +54,53 @@ public:
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
         
-    void open_project();
-    void save_project();
+    void openProject();
+    void saveProject();
     
-    void add_tab(Canvas* cnv);
+    void addTab(Canvas* cnv);
     
-    Canvas* get_current_canvas();
+    Canvas* getCurrentCanvas();
 
     
     void valueTreeChanged() override;
     
     ValueTreeObject* factory (const Identifier&, const ValueTree&) override;
     
-    TabComponent& get_tabbar()  { return tabbar; };
+    TabComponent& getTabbar()  { return tabbar; };
     
-    static inline File home_dir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite");
-    static inline File app_dir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite");
+    static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
     
 private:
     
     
-    FileChooser save_chooser =  FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
-    FileChooser open_chooser = FileChooser("Choose file to open", File::getSpecialLocation( File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
+    FileChooser saveChooser =  FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
+    FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation( File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
     
     //std::unique_ptr<PatchInterface> player;
     
-    int toolbar_height = 45;
-    int statusbar_height = 27;
-    int sidebar_width = 300;
-    int dragbar_width = 10;
+    int toolbarHeight = 45;
+    int statusbarHeight = 27;
+    int sidebarWidth = 300;
+    int dragbarWidth = 10;
     
-    bool sidebar_hidden = false;
+    bool sidebarHidden = false;
 
 
-    std::array<TextButton, 7> toolbar_buttons = {TextButton(CharPointer_UTF8("\xef\x85\x9b")), TextButton(CharPointer_UTF8("\xef\x81\xbb")), TextButton(CharPointer_UTF8("\xef\x80\x99")), TextButton(CharPointer_UTF8("\xef\x83\xa2")), TextButton(CharPointer_UTF8("\xef\x80\x9e")), TextButton(CharPointer_UTF8("\xef\x81\xa7")), TextButton(CharPointer_UTF8("\xef\x81\x94"))};
+    std::array<TextButton, 7> toolbarButtons = {TextButton(CharPointer_UTF8("\xef\x85\x9b")), TextButton(CharPointer_UTF8("\xef\x81\xbb")), TextButton(CharPointer_UTF8("\xef\x80\x99")), TextButton(CharPointer_UTF8("\xef\x83\xa2")), TextButton(CharPointer_UTF8("\xef\x80\x9e")), TextButton(CharPointer_UTF8("\xef\x81\xa7")), TextButton(CharPointer_UTF8("\xef\x81\x94"))};
     
-    TextButton& hide_button = toolbar_buttons[6];
+    TextButton& hideButton = toolbarButtons[6];
     
-    TextButton start_button = TextButton(CharPointer_UTF8("\xef\x80\x91"));
+    TextButton startButton = TextButton(CharPointer_UTF8("\xef\x80\x91"));
 
-    //TextButton hide_button = TextButton("K");
+    //TextButton hideButton = TextButton("K");
     
-    int drag_start_width = 0;
-    bool dragging_sidebar = false;
+    int dragStartWidth = 0;
+    bool draggingSidebar = false;
 
-    ToolbarLook toolbar_look;
-    StatusbarLook statusbar_look = StatusbarLook(1.4);
-    MainLook main_look;
-    
+    ToolbarLook toolbarLook;
+    StatusbarLook statusbarLook = StatusbarLook(1.4);
+    MainLook mainLook;
 
     
     TabComponent tabbar;

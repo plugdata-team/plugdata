@@ -19,12 +19,12 @@ public:
     
     Canvas* cnv;
     
-    int in_idx;
-    int out_idx;
-    t_pd* in_obj;
-    t_pd* out_obj;
+    int inIdx;
+    int outIdx;
+    t_pd* inObj;
+    t_pd* outObj;
     
-    bool is_selected = false;
+    bool isSelected = false;
     
     //==============================================================================
     Connection(Canvas* parent, ValueTree tree);

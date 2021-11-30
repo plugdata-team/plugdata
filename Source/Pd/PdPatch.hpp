@@ -50,7 +50,14 @@ namespace pd
         void removeObject(t_pd* obj);
         t_pd* renameObject(t_pd* obj, String name);
         void moveObject (t_pd*, int x, int y);
+        
+        void selectObject(t_pd*);
+        void deselectAll();
 
+        void copy();
+        void paste();
+        void duplicate();
+        
         void undo();
         void redo();
         

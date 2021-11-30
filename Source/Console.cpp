@@ -81,7 +81,7 @@ Console::Console (bool captureStdErrImmediately, bool captureStdOutImmediately) 
     
     clearButton.setButtonText(CharPointer_UTF8("\xef\x80\x8d"));
     clearButton.setConnectedEdges(12);
-    clearButton.setLookAndFeel(&statusbar_look);
+    clearButton.setLookAndFeel(&statusbarLook);
     clearButton.onClick = [this]() {
         clear();
     };

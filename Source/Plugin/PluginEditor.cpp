@@ -11,13 +11,13 @@
 
 //==============================================================================
 PlugDataAudioProcessorEditor::PlugDataAudioProcessorEditor (PlugDataAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), main_component(p.main_component)
+    : AudioProcessorEditor (&p), audioProcessor (p), mainComponent(p.main_component)
 {
     // Using openGL could really speed up the rendering
     // But currently it causes issues because we draw outside of object bounds in a few places...
     //openGLContext.attachTo(*this);
     
-    addAndMakeVisible(main_component);
+    addAndMakeVisible(mainComponent);
     
     
     resizer.reset(new ResizableCornerComponent (this, &restrainer));
@@ -43,7 +43,7 @@ void PlugDataAudioProcessorEditor::resized()
     audioProcessor.lastUIWidth = getWidth();
     audioProcessor.lastUIHeight = getHeight();
     
-    main_component.setBounds(getLocalBounds());
+    mainComponent.setBounds(getLocalBounds());
     
     // This is generally where you'll want to lay out the positions of any
     // subcomponents in your editor..

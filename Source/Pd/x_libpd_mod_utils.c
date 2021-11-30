@@ -43,15 +43,17 @@ struct _instanceeditor
 extern void canvas_displaceselection_ext(t_canvas *x, int dx, int dy);
 extern void* canvas_undo_set_disconnect(t_canvas *x, int index1, int outno, int index2, int inno);
 extern int glist_getindex(t_glist *x, t_gobj *y);
+extern int glist_selectionindex(t_glist *x, t_gobj *y, int selected);
+extern void glist_deselectline(t_glist *x);
 
 void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
 {
-
+    
     
     if (x->g_pd->c_wb && x->g_pd->c_wb->w_getrectfn && x->g_pd->c_wb && x->g_pd->c_wb->w_displacefn) {
         
         int x1, y1, x2, y2;
-
+        
         (*x->g_pd->c_wb->w_getrectfn)(x, glist, &x1, &y1, &x2, &y2);
         
         glist_noselect(glist);
@@ -60,28 +62,28 @@ void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
         glist_deselect(glist, x);
     }
     
-
-        
+    
+    
 }
 
 void libpd_canvas_doclear(t_canvas *x)
 {
     t_gobj *y, *y2;
     int dspstate;
-
+    
     dspstate = canvas_suspend_dsp();
     if (x->gl_editor->e_selectedline)
     {
         canvas_disconnect(x,
-            x->gl_editor->e_selectline_index1,
-            x->gl_editor->e_selectline_outno,
-            x->gl_editor->e_selectline_index2,
-            x->gl_editor->e_selectline_inno);
+                          x->gl_editor->e_selectline_index1,
+                          x->gl_editor->e_selectline_outno,
+                          x->gl_editor->e_selectline_index2,
+                          x->gl_editor->e_selectline_inno);
         x->gl_editor->e_selectedline=0;
     }
-        /* if text is selected, deselecting it might remake the
-           object. So we deselect it and hunt for a "new" object on
-           the glist to reselect. */
+    /* if text is selected, deselecting it might remake the
+     object. So we deselect it and hunt for a "new" object on
+     the glist to reselect. */
     if (x->gl_editor->e_textedfor)
     {
         //t_gobj *selwas = x->gl_editor->e_selection->sel_what;
@@ -114,73 +116,19 @@ restore:
 
 void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
 
-static void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
+
+static int binbuf_nextmess(int argc, const t_atom *argv)
 {
-    t_gobj *y;
-    t_linetraverser t;
-    t_outconnect *oc;
-
-        // subpatch
-    if (x->gl_owner && !x->gl_env)
+    int i=0;
+    while(argc--)
     {
-        // have to go to original binbuf to find out how we were named.
-        t_binbuf *bz = binbuf_new();
-        t_symbol *patchsym;
-        binbuf_addbinbuf(bz, x->gl_obj.ob_binbuf);
-        patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
-        binbuf_free(bz);
-        binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
-            (int)(x->gl_screenx1),
-            (int)(x->gl_screeny1),
-            (int)(x->gl_screenx2 - x->gl_screenx1),
-            (int)(x->gl_screeny2 - x->gl_screeny1),
-            (patchsym != &s_ ? patchsym: gensym("(subpatch)")),
-            x->gl_mapped);
+        argv++;
+        i++;
+        if (A_SEMI == argv->a_type) {
+            return i+1;
+        }
     }
-        // root or abstraction
-    else
-    {
-        binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
-            (int)(x->gl_screenx1),
-            (int)(x->gl_screeny1),
-            (int)(x->gl_screenx2 - x->gl_screenx1),
-            (int)(x->gl_screeny2 - x->gl_screeny1),
-                (int)x->gl_font);
-        canvas_savedeclarationsto(x, b);
-    }
-    for (y = x->gl_list; y; y = y->g_next)
-        gobj_save(y, b);
-
-    linetraverser_start(&t, x);
-    while ((oc = linetraverser_next(&t)))
-    {
-        int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
-        int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
-        binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
-            srcno, t.tr_outno, sinkno, t.tr_inno);
-    }
-        // unless everything is the default (as in ordinary subpatches)
-        // print out a "coords" message to set up the coordinate systems
-    if (x->gl_isgraph || x->gl_x1 || x->gl_y1 ||
-        x->gl_x2 != 1 ||  x->gl_y2 != 1 || x->gl_pixwidth || x->gl_pixheight)
-    {
-        if (x->gl_isgraph && x->gl_goprect)
-                // if we have a graph-on-parent rectangle, we're new style.
-                // The format is arranged so
-                // that old versions of Pd can at least do something with it.
-            binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
-                x->gl_x1, x->gl_y1,
-                x->gl_x2, x->gl_y2,
-                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                (t_float)((x->gl_hidetext)?2.:1.),
-                (t_float)x->gl_xmargin, (t_float)x->gl_ymargin);
-                    // otherwise write in 0.38-compatible form
-        else binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
-                x->gl_x1, x->gl_y1,
-                x->gl_x2, x->gl_y2,
-                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                (t_float)x->gl_isgraph);
-    }
+    return i;
 }
 
 int libpd_canconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
@@ -209,28 +157,28 @@ int libpd_tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
             int noutlets1, ninlets, lx1, ly1, lx2, ly2;
             gobj_getrect(&src->ob_g, x, &x11, &y11, &x12, &y12);
             gobj_getrect(&sink->ob_g, x, &x21, &y21, &x22, &y22);
-
+            
             noutlets1 = obj_noutlets(src);
             ninlets = obj_ninlets(sink);
-
+            
             lx1 = x11 + (noutlets1 > 1 ?
-                             ((x12-x11-iow) * nout)/(noutlets1-1) : 0)
-                + iom;
+                         ((x12-x11-iow) * nout)/(noutlets1-1) : 0)
+            + iom;
             ly1 = y12;
             lx2 = x21 + (ninlets > 1 ?
-                             ((x22-x21-iow) * nin)/(ninlets-1) : 0)
-                + iom;
+                         ((x22-x21-iow) * nin)/(ninlets-1) : 0)
+            + iom;
             ly2 = y21;
             sys_vgui(
-                ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord]\n",
-                glist_getcanvas(x),
-                lx1, ly1, lx2, ly2,
-                (obj_issignaloutlet(src, nout) ? 2 : 1) *
-                x->gl_zoom,
-                oc);
+                     ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord]\n",
+                     glist_getcanvas(x),
+                     lx1, ly1, lx2, ly2,
+                     (obj_issignaloutlet(src, nout) ? 2 : 1) *
+                     x->gl_zoom,
+                     oc);
             canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
-                   canvas_getindex(x, &src->ob_g), nout,
-                    canvas_getindex(x, &sink->ob_g), nin));
+                                                                                canvas_getindex(x, &src->ob_g), nout,
+                                                                                canvas_getindex(x, &sink->ob_g), nin));
             canvas_dirty(x, 1);
             return 1;
         }
@@ -238,19 +186,395 @@ int libpd_tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
     return 0;
 }
 
-t_pd* libpd_creategraphonparent(t_pd *x, int argc, t_atom *argv) {
+static int binbuf_getpos(t_binbuf*b, int *x0, int *y0, t_symbol**type)
+{
+    /*
+     * checks how many objects the binbuf contains and where they are located
+     * for simplicity, we stop after the first object...
+     * "objects" are any patchable things
+     * returns: 0: no objects/...
+     *          1: single object in binbuf
+     *          2: more than one object in binbuf
+     * (x0,y0) are the coordinates of the first object
+     * (type) is the type of the first object ("obj", "msg",...)
+     */
+    t_atom*argv = binbuf_getvec(b);
+    int argc = binbuf_getnatom(b);
+    const int argc0 = argc;
+    int count = 0;
+    t_symbol*s;
+    /* get the position of the first object in the argv binbuf */
+    if(argc > 2
+       && atom_getsymbol(argv+0) == &s__N
+       && atom_getsymbol(argv+1) == gensym("canvas"))
+    {
+        int ac = argc;
+        t_atom*ap = argv;
+        int stack = 0;
+        do {
+            int off = binbuf_nextmess(argc, argv);
+            if(!off)
+                break;
+            ac = argc;
+            ap = argv;
+            argc-=off;
+            argv+=off;
+            count+=off;
+            if(off >= 2)
+            {
+                if (atom_getsymbol(ap+1) == gensym("restore")
+                    && atom_getsymbol(ap) == &s__X)
+                {
+                    stack--;
+                }
+                if (atom_getsymbol(ap+1) == gensym("canvas")
+                    && atom_getsymbol(ap) == &s__N)
+                {
+                    stack++;
+                }
+            }
+            if(argc<0)
+                return 0;
+        } while (stack>0);
+        argc = ac;
+        argv = ap;
+    }
+    if(argc < 4 || atom_getsymbol(argv) != &s__X)
+        return 0;
+    /* #X obj|msg|text|floatatom|symbolatom <x> <y> ...
+     * TODO: subpatches #N canvas + #X restore <x> <y>
+     */
+    s = atom_getsymbol(argv+1);
+    if(gensym("restore") == s
+       || gensym("obj") == s
+       || gensym("msg") == s
+       || gensym("text") == s
+       || gensym("floatatom") == s
+       || gensym("symbolatom") == s)
+    {
+        if(x0)*x0=atom_getfloat(argv+2);
+        if(y0)*y0=atom_getfloat(argv+3);
+        if(type)*type=s;
+    } else
+        return 0;
+    
+    /* no wind the binbuf to the next message */
+    while(argc--)
+    {
+        count++;
+        if (A_SEMI == argv->a_type)
+            break;
+        argv++;
+    }
+    return 1+(argc0 > count);
+}
+
+static t_binbuf *canvas_docopy(t_canvas *x)
+{
+    t_gobj *y;
+    t_linetraverser t;
+    t_outconnect *oc;
+    t_binbuf *b = binbuf_new();
+    for (y = x->gl_list; y; y = y->g_next)
+    {
+        if (glist_isselected(x, y))
+            gobj_save(y, b);
+    }
+    linetraverser_start(&t, x);
+    while ((oc = linetraverser_next(&t)))
+    {
+        if (glist_isselected(x, &t.tr_ob->ob_g)
+            && glist_isselected(x, &t.tr_ob2->ob_g))
+        {
+            binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
+                        glist_selectionindex(x, &t.tr_ob->ob_g, 1), t.tr_outno,
+                        glist_selectionindex(x, &t.tr_ob2->ob_g, 1), t.tr_inno);
+        }
+    }
+    return (b);
+}
+
+static void canvas_dopaste(t_canvas *x, t_binbuf *b)
+{
+    t_gobj *g2;
+    int dspstate = canvas_suspend_dsp(), nbox, count;
+    t_symbol *asym = gensym("#A");
+    /* save and clear bindings to symbols #A, #N, #X; restore when done */
+    t_pd *boundx = s__X.s_thing, *bounda = asym->s_thing,
+    *boundn = s__N.s_thing;
+    asym->s_thing = 0;
+    s__X.s_thing = &x->gl_pd;
+    s__N.s_thing = &pd_canvasmaker;
+    
+    canvas_editmode(x, 1.);
+    glist_noselect(x);
+    for (g2 = x->gl_list, nbox = 0; g2; g2 = g2->g_next) nbox++;
+    
+    EDITOR->paste_onset = nbox;
+    EDITOR->paste_canvas = x;
+    
+    binbuf_eval(b, 0, 0, 0);
+    for (g2 = x->gl_list, count = 0; g2; g2 = g2->g_next, count++)
+        if (count >= nbox)
+            glist_select(x, g2);
+    EDITOR->paste_canvas = 0;
+    canvas_resume_dsp(dspstate);
+    canvas_dirty(x, 1);
+    if (x->gl_mapped)
+        sys_vgui("pdtk_canvas_getscroll .x%lx.c\n", x);
+    
+    /* TODO: fix this
+     if (!sys_noloadbang)
+     glist_donewloadbangs(x); */
+    
+    asym->s_thing = bounda;
+    s__X.s_thing = boundx;
+    s__N.s_thing = boundn;
+}
+
+void libpd_copy(t_canvas* x) {
+    if (!x->gl_editor || !x->gl_editor->e_selection)
+        return;
         
+    // sys_lock();
+    
+    binbuf_free(EDITOR->copy_binbuf);
+    EDITOR->copy_binbuf = canvas_docopy(x);
+    if (x->gl_editor->e_textedfor)
+    {
+        char *buf;
+        int bufsize;
+        rtext_getseltext(x->gl_editor->e_textedfor, &buf, &bufsize);
+        sys_gui("clipboard clear\n");
+        sys_vgui("clipboard append {%.*s}\n", bufsize, buf);
+    }
+    
+    // sys_unlock();
+    
+    return;
+    
+}
+
+void libpd_paste(t_canvas* x) {
+    
+    // sys_lock();
+    
+    if (!x->gl_editor)
+        return;
+    if (x->gl_editor->e_textedfor)
+    {
+        /* simulate keystrokes as if the copy buffer were typed in. */
+        sys_vgui("pdtk_pastetext .x%lx\n", x);
+    }
+    else
+    {
+        int offset = 0;
+        int x0 = 0, y0 = 0;
+        int foundplace = 0;
+        binbuf_getpos(EDITOR->copy_binbuf, &x0, &y0, 0);
+        do {
+            /* iterate over all existing objects
+             * to see whether one occupies the space we want.
+             * if so, move along
+             */
+            t_gobj *y;
+            foundplace = 1;
+            for (y = x->gl_list; y; y = y->g_next) {
+                t_text *txt = (t_text *)y;
+                if((x0 + offset) == txt->te_xpix && (y0 + offset) == txt->te_ypix)
+                {
+                    foundplace = 0;
+                    offset += 10;
+                    break;
+                }
+            }
+        } while(!foundplace);
+        canvas_undo_add(x, UNDO_PASTE, "paste",
+                        (void *)canvas_undo_set_paste(x, 0, 0, offset));
+        
+        //t_binbuf* paste_bin = binbuf_new();
+        //binbuf_text(paste_bin, text, strlen(text));
+        
+        canvas_dopaste(x, EDITOR->copy_binbuf);
+        
+        //binbuf_free(paste_bin);
+        
+        if(offset)
+        {
+            t_selection *y;
+            for (y = x->gl_editor->e_selection; y; y = y->sel_next)
+                gobj_displace(y->sel_what, x,
+                              offset, offset);
+        }
+    }
+    
+    // sys_unlock();
+}
+
+void libpd_undo(t_canvas *x) {
+    
+    EDITOR->canvas_undo_already_set_move = 0;
+    pd_typedmess((t_pd*)x, gensym("undo"), 0, NULL);
+}
+
+void libpd_redo(t_canvas *x) {
+    pd_typedmess((t_pd*)x, gensym("redo"), 0, NULL);
+}
+
+
+void libpd_duplicate(t_canvas *x)
+{
+    if (!x->gl_editor)
+        return;
+
+    if (x->gl_editor->e_selection && x->gl_editor->e_selectedline)
+        glist_deselectline(x);
+
+        /* if a connection is selected, we extend it to the right (if possible) */
+    if (x->gl_editor->e_selectedline)
+    {
+        int outindex = x->gl_editor->e_selectline_index1;
+        int inindex  = x->gl_editor->e_selectline_index2;
+        int outno = x->gl_editor->e_selectline_outno + 1;
+        int inno  = x->gl_editor->e_selectline_inno + 1;
+        t_gobj *outgobj = 0, *ingobj = 0;
+        t_object *outobj = 0, *inobj = 0;
+        int whoout = outindex;
+        int whoin = inindex;
+
+        for (outgobj = x->gl_list; whoout; outgobj = outgobj->g_next, whoout--)
+            if (!outgobj->g_next) return;
+        for (ingobj = x->gl_list; whoin; ingobj = ingobj->g_next, whoin--)
+            if (!ingobj->g_next) return;
+        outobj = (t_object*)outgobj;
+        inobj = (t_object*)ingobj;
+
+        
+        while(!libpd_canconnect(x, outobj, outno, inobj, inno))
+        {
+            if (!outobj || obj_noutlets(outobj) <= outno)
+                return;
+            if (!inobj  || obj_ninlets (inobj ) <= inno )
+                return;
+            outno++;
+            inno++;
+        }
+
+        if(libpd_tryconnect(x, outobj, outno, inobj, inno))
+        {
+            x->gl_editor->e_selectline_outno = outno;
+            x->gl_editor->e_selectline_inno = inno;
+        }
+        return;
+    }
+    if (x->gl_editor->e_onmotion == MA_NONE && x->gl_editor->e_selection)
+    {
+        t_selection *y;
+        t_binbuf*b = 0;
+        if(EDITOR->copy_binbuf)
+            b = binbuf_duplicate(EDITOR->copy_binbuf);
+        libpd_copy(x);
+        canvas_undo_add(x, UNDO_PASTE, "duplicate",
+            (void *)canvas_undo_set_paste(x, 0, 1, 10));
+        canvas_dopaste(x, EDITOR->copy_binbuf);
+        for (y = x->gl_editor->e_selection; y; y = y->sel_next)
+            gobj_displace(y->sel_what, x,
+                10, 10);
+        if(b)
+        {
+            if(EDITOR->copy_binbuf)
+                binbuf_free(EDITOR->copy_binbuf);
+            EDITOR->copy_binbuf = b;
+        }
+        canvas_dirty(x, 1);
+    }
+}
+
+
+static void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
+{
+    t_gobj *y;
+    t_linetraverser t;
+    t_outconnect *oc;
+    
+    // subpatch
+    if (x->gl_owner && !x->gl_env)
+    {
+        // have to go to original binbuf to find out how we were named.
+        t_binbuf *bz = binbuf_new();
+        t_symbol *patchsym;
+        binbuf_addbinbuf(bz, x->gl_obj.ob_binbuf);
+        patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
+        binbuf_free(bz);
+        binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
+                    (int)(x->gl_screenx1),
+                    (int)(x->gl_screeny1),
+                    (int)(x->gl_screenx2 - x->gl_screenx1),
+                    (int)(x->gl_screeny2 - x->gl_screeny1),
+                    (patchsym != &s_ ? patchsym: gensym("(subpatch)")),
+                    x->gl_mapped);
+    }
+    // root or abstraction
+    else
+    {
+        binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
+                    (int)(x->gl_screenx1),
+                    (int)(x->gl_screeny1),
+                    (int)(x->gl_screenx2 - x->gl_screenx1),
+                    (int)(x->gl_screeny2 - x->gl_screeny1),
+                    (int)x->gl_font);
+        canvas_savedeclarationsto(x, b);
+    }
+    for (y = x->gl_list; y; y = y->g_next)
+        gobj_save(y, b);
+    
+    linetraverser_start(&t, x);
+    while ((oc = linetraverser_next(&t)))
+    {
+        int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
+        int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
+        binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
+                    srcno, t.tr_outno, sinkno, t.tr_inno);
+    }
+    // unless everything is the default (as in ordinary subpatches)
+    // print out a "coords" message to set up the coordinate systems
+    if (x->gl_isgraph || x->gl_x1 || x->gl_y1 ||
+        x->gl_x2 != 1 ||  x->gl_y2 != 1 || x->gl_pixwidth || x->gl_pixheight)
+    {
+        if (x->gl_isgraph && x->gl_goprect)
+            // if we have a graph-on-parent rectangle, we're new style.
+            // The format is arranged so
+            // that old versions of Pd can at least do something with it.
+            binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
+                        x->gl_x1, x->gl_y1,
+                        x->gl_x2, x->gl_y2,
+                        (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
+                        (t_float)((x->gl_hidetext)?2.:1.),
+                        (t_float)x->gl_xmargin, (t_float)x->gl_ymargin);
+        // otherwise write in 0.38-compatible form
+        else binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
+                         x->gl_x1, x->gl_y1,
+                         x->gl_x2, x->gl_y2,
+                         (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
+                         (t_float)x->gl_isgraph);
+    }
+}
+
+
+
+t_pd* libpd_creategraphonparent(t_pd *x, int argc, t_atom *argv) {
+    
     pd_typedmess(x, gensym("graph"), argc, argv);
     
     canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
-        (void *)canvas_undo_set_create((t_canvas*)x));
+                    (void *)canvas_undo_set_create((t_canvas*)x));
     
     glist_noselect(x);
     return pd_newest();
 }
-    
+
 t_pd* libpd_creategraph(t_pd *x, const char* name, int size) {
-        
+    
     int argc = 4;
     
     t_atom argv[4];
@@ -262,31 +586,31 @@ t_pd* libpd_creategraph(t_pd *x, const char* name, int size) {
     SETFLOAT(argv + 2, 1);
     SETFLOAT(argv + 3, 0);
     
-    sys_lock();
+    // sys_lock();
     
     pd_typedmess(x, gensym("arraydialog"), argc, argv);
     
     canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
-        (void *)canvas_undo_set_create((t_canvas*)x));
+                    (void *)canvas_undo_set_create((t_canvas*)x));
     
     glist_noselect(x);
     
-    sys_unlock();
+    // sys_unlock();
     
     return pd_newest();
 }
 
 t_pd* libpd_createobj(t_pd *x, t_symbol *s, int argc, t_atom *argv) {
-    sys_lock();
+    // sys_lock();
     
     pd_typedmess(x, s, argc, argv);
     
     canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
-        (void *)canvas_undo_set_create((t_canvas*)x));
+                    (void *)canvas_undo_set_create((t_canvas*)x));
     
     glist_noselect(x);
     
-    sys_unlock();
+    // sys_unlock();
     return pd_newest();
     
 }
@@ -310,7 +634,7 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
     canvas_stowconnections(cnv); // for restoring connections when possible!
     text_setto((t_text *)obj, cnv, buf, bufsize);
     
-
+    
     
     glist_noselect(cnv);
 }
@@ -343,10 +667,10 @@ void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
     //EDITOR->canvas_undo_already_set_move = 0;
     //int state = EDITOR->canvas_undo_already_set_move;
     
-    sys_lock();
+    // sys_lock();
     gobj_setposition(obj, cnv, x, y);
     glist_noselect(cnv);
-    sys_unlock();
+    // sys_unlock();
     
     //EDITOR->canvas_undo_already_set_move = state;
 }
@@ -354,10 +678,10 @@ void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
 
 void libpd_createconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
-    sys_lock();
+    // sys_lock();
     libpd_tryconnect(cnv, src, nout, sink, nin);
     glist_noselect(cnv);
-    sys_unlock();
+    // sys_unlock();
 }
 
 /* ------- specific undo methods: 1. connect -------- */
@@ -373,7 +697,7 @@ typedef struct _undo_connect
 
 void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
-    sys_lock();
+    // sys_lock();
     obj_disconnect(src, nout, sink, nin);
     
     int dest_i = canvas_getindex(cnv, &(sink->te_g));
@@ -382,7 +706,7 @@ void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink
     canvas_undo_add(cnv, UNDO_DISCONNECT, "disconnect", canvas_undo_set_disconnect(cnv,
                                                                                    src_i, nout, dest_i, nin));
     glist_noselect(cnv);
-    sys_unlock();
+    // sys_unlock();
 }
 
 
@@ -397,19 +721,19 @@ typedef t_pd *(*t_newgimme)(t_symbol *s, int argc, t_atom *argv);
 typedef void(*t_messgimme)(t_pd *x, t_symbol *s, int argc, t_atom *argv);
 
 typedef t_pd *(*t_fun0)(
-    t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
+                        t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 typedef t_pd *(*t_fun1)(t_int i1,
-    t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
+                        t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 typedef t_pd *(*t_fun2)(t_int i1, t_int i2,
-    t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
+                        t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 typedef t_pd *(*t_fun3)(t_int i1, t_int i2, t_int i3,
-    t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
+                        t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 typedef t_pd *(*t_fun4)(t_int i1, t_int i2, t_int i3, t_int i4,
-    t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
+                        t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 typedef t_pd *(*t_fun5)(t_int i1, t_int i2, t_int i3, t_int i4, t_int i5,
-    t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
+                        t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 typedef t_pd *(*t_fun6)(t_int i1, t_int i2, t_int i3, t_int i4, t_int i5, t_int i6,
-    t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
+                        t_floatarg d1, t_floatarg d2, t_floatarg d3, t_floatarg d4, t_floatarg d5);
 
 
 int libpd_type_exists(const char* type) {
@@ -417,17 +741,17 @@ int libpd_type_exists(const char* type) {
     t_class* c = pd_objectmaker;
     t_methodentry *mlist, *m;
     
-    #ifdef PDINSTANCE
-        mlist = c->c_methods[pd_this->pd_instanceno];
-    #else
-        mlist = c->c_methods;
-    #endif
+#ifdef PDINSTANCE
+    mlist = c->c_methods[pd_this->pd_instanceno];
+#else
+    mlist = c->c_methods;
+#endif
     
     for (i = c->c_nmethod, m = mlist; i--; m++)
         if (m->me_name == gensym(type))
-    {
-        return 1;
-    }
+        {
+            return 1;
+        }
     
     return 0;
 }

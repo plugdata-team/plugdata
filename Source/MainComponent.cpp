@@ -2,13 +2,14 @@
 #include "Canvas.h"
 #include "Edge.h"
 #include "Pd/x_libpd_mod_utils.h"
+#include "SaveDialog.h"
 
 //==============================================================================
 MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(true, true), pd(&console)
 {
     setSize(1000, 700);
     
-    LookAndFeel::setDefaultLookAndFeel(&main_look);
+    LookAndFeel::setDefaultLookAndFeel(&mainLook);
     
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::background_1);
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::background_1);
@@ -17,26 +18,28 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     //player.reset(nullptr);
     //set_remote(false);
     
-    setLookAndFeel(&main_look);
+    setLookAndFeel(&mainLook);
     
-    tabbar.on_tab_change = [this](int idx) {
-        Edge::connecting_edge = nullptr;
+    tabbar.onTabChange = [this](int idx) {
+        Edge::connectingEdge = nullptr;
         
         // update GraphOnParent when changing tabs
-        
-        for(auto* box : get_current_canvas()->findChildrenOfClass<Box>()) {
+        for(auto* box : getCurrentCanvas()->findChildrenOfClass<Box>()) {
             if(box->graphics && box->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent) {
-                static_cast<GraphOnParent*>(box->graphics.get())->get_canvas()->load_state();
+                box->graphics.get()->getCanvas()->synchronise();
+            }
+            if(box->graphics && box->graphics->getGUI().getType() == pd::Gui::Type::Subpatch) {
+                box->updatePorts();
             }
         }
         
         valueTreeChanged();
     };
     
-    start_button.setClickingTogglesState(true);
-    start_button.setConnectedEdges(12);
-    start_button.setLookAndFeel(&statusbar_look);
-    addAndMakeVisible(start_button);
+    startButton.setClickingTogglesState(true);
+    startButton.setConnectedEdges(12);
+    startButton.setLookAndFeel(&statusbarLook);
+    addAndMakeVisible(startButton);
 
     
     addAndMakeVisible(tabbar);
@@ -45,20 +48,20 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     addAndMakeVisible(&console);
     
 
-    start_button.onClick = [this]() {
-        pd.setBypass(!start_button.getToggleState());
+    startButton.onClick = [this]() {
+        pd.setBypass(!startButton.getToggleState());
     };
     
-    start_button.setToggleState(true, dontSendNotification);
+    startButton.setToggleState(true, dontSendNotification);
     
-    for(auto& button : toolbar_buttons) {
-        button.setLookAndFeel(&toolbar_look);
+    for(auto& button : toolbarButtons) {
+        button.setLookAndFeel(&toolbarLook);
         button.setConnectedEdges(12);
         addAndMakeVisible(button);
     }
     
     // New button
-    toolbar_buttons[0].onClick = [this]() {
+    toolbarButtons[0].onClick = [this]() {
         auto new_cnv = ValueTree(Identifiers::canvas);
         new_cnv.setProperty("Title", "Untitled Patcher", nullptr);
         new_cnv.setProperty(Identifiers::is_graph, false, nullptr);
@@ -66,25 +69,25 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     };
     
     // Open button
-    toolbar_buttons[1].onClick = [this]() {
-        open_project();
+    toolbarButtons[1].onClick = [this]() {
+        openProject();
     };
     
     // Save button
-    toolbar_buttons[2].onClick = [this]() {
-        save_project();
+    toolbarButtons[2].onClick = [this]() {
+        saveProject();
     };
     
-    toolbar_buttons[3].onClick = [this]() {
+    toolbarButtons[3].onClick = [this]() {
        
-        get_current_canvas()->undo();
+        getCurrentCanvas()->undo();
     };
     
-    toolbar_buttons[4].onClick = [this]() {
-        get_current_canvas()->redo();
+    toolbarButtons[4].onClick = [this]() {
+        getCurrentCanvas()->redo();
     };
     
-    toolbar_buttons[5].onClick = [this]() {
+    toolbarButtons[5].onClick = [this]() {
         PopupMenu menu;
         menu.addItem (1, "Numbox");
         menu.addItem (2, "Message");
@@ -169,23 +172,23 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
             canvas->getState().appendChild(box, nullptr);
         };
         
-        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbar_buttons[5]), ModalCallbackFunction::create(callback));
+        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
     };
     
-    hide_button.setLookAndFeel(&toolbar_look);
-    hide_button.setClickingTogglesState(true);
-    hide_button.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    hide_button.setConnectedEdges(12);
+    hideButton.setLookAndFeel(&toolbarLook);
+    hideButton.setClickingTogglesState(true);
+    hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    hideButton.setConnectedEdges(12);
     
-    hide_button.onClick = [this](){
-        sidebar_hidden = hide_button.getToggleState();
-        hide_button.setButtonText(sidebar_hidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
+    hideButton.onClick = [this](){
+        sidebarHidden = hideButton.getToggleState();
+        hideButton.setButtonText(sidebarHidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
         
         repaint();
         resized();
     };
     
-    addAndMakeVisible(hide_button);
+    addAndMakeVisible(hideButton);
     
     if(!getState().hasProperty("Canvas")) {
         ValueTree cnv_state("Canvas");
@@ -195,7 +198,7 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
         getState().appendChild(cnv_state, nullptr);
         
         auto* new_cnv = findChildOfClass<Canvas>(0);
-        new_cnv->load_patch("#N canvas 827 239 527 327 12;");
+        new_cnv->loadPatch("#N canvas 827 239 527 327 12;");
         pd.m_patch = new_cnv->patch.getPointer();
     }
 }
@@ -204,10 +207,10 @@ MainComponent::~MainComponent()
 {
     LookAndFeel::setDefaultLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
-    start_button.setLookAndFeel(nullptr);
-    hide_button.setLookAndFeel(nullptr);
+    startButton.setLookAndFeel(nullptr);
+    hideButton.setLookAndFeel(nullptr);
     
-    for(auto& button : toolbar_buttons) {
+    for(auto& button : toolbarButtons) {
         button.setLookAndFeel(nullptr);
     }
 }
@@ -217,7 +220,7 @@ ValueTreeObject* MainComponent::factory(const Identifier& id, const ValueTree& t
 {
     if(id == Identifiers::canvas) {
         canvas = new Canvas(tree, this);
-        add_tab(canvas);
+        addTab(canvas);
 
         return static_cast<ValueTreeObject*>(canvas);
     }
@@ -235,229 +238,131 @@ void MainComponent::paint (Graphics& g)
     auto base_colour = MainLook::background_1;
     auto highlight_colour = MainLook::highlight_colour;
     
-    int s_width = sidebar_hidden ? dragbar_width : std::max(dragbar_width, sidebar_width);
+    int s_width = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
 
     
     // Sidebar
     g.setColour(base_colour.darker(0.1));
-    g.fillRect(getWidth() - s_width, dragbar_width, s_width + 10, getHeight() - toolbar_height);
+    g.fillRect(getWidth() - s_width, dragbarWidth, s_width + 10, getHeight() - toolbarHeight);
     
     // Toolbar background
     g.setColour(base_colour);
-    g.fillRect(0, 0, getWidth(), toolbar_height - 4);
+    g.fillRect(0, 0, getWidth(), toolbarHeight - 4);
     
     g.setColour(highlight_colour);
     g.drawRoundedRectangle({-4.0f, 39.0f, (float)getWidth() + 9, 20.0f}, 12.0, 4.0);
     
     // Make sure we cant see the bottom half of the rounded rectangle
     g.setColour(base_colour);
-    g.fillRect(0, toolbar_height - 4, getWidth(), toolbar_height + 16);
+    g.fillRect(0, toolbarHeight - 4, getWidth(), toolbarHeight + 16);
     
     // Statusbar background
     g.setColour(base_colour);
-    g.fillRect(0, getHeight() - statusbar_height, getWidth(), statusbar_height);
+    g.fillRect(0, getHeight() - statusbarHeight, getWidth(), statusbarHeight);
     
     // Draggable bar
     g.setColour(base_colour);
-    g.fillRect(getWidth() - s_width, dragbar_width, statusbar_height, getHeight() - (toolbar_height - statusbar_height));
+    g.fillRect(getWidth() - s_width, dragbarWidth, statusbarHeight, getHeight() - (toolbarHeight - statusbarHeight));
     
     
 }
 
 void MainComponent::resized()
 {
-    int s_width = sidebar_hidden ? dragbar_width : std::max(dragbar_width, sidebar_width);
+    int s_width = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
     
-    int s_content_width = s_width - dragbar_width;
+    int s_content_width = s_width - dragbarWidth;
     
-    int sbar_y = toolbar_height - 4;
+    int sbar_y = toolbarHeight - 4;
     
     console.setBounds(getWidth() - s_content_width, sbar_y + 2, s_content_width, getHeight() - sbar_y);
     console.toFront(false);
     
-    tabbar.setBounds(0, sbar_y, getWidth() - s_width, getHeight() - sbar_y - statusbar_height);
+    tabbar.setBounds(0, sbar_y, getWidth() - s_width, getHeight() - sbar_y - statusbarHeight);
     tabbar.toFront(false);
     
-    start_button.setBounds(getWidth() - s_width - 40, getHeight() - 27, 27, 27);
+    startButton.setBounds(getWidth() - s_width - 40, getHeight() - 27, 27, 27);
     
     
     int jump_positions[2] = {3, 5};
     int idx = 0;
     int toolbar_position = 0;
-    for(auto& button : toolbar_buttons) {
+    for(auto& button : toolbarButtons) {
         int spacing = (25 * (idx >= jump_positions[0])) +  (25 * (idx >= jump_positions[1])) + 10;
-        button.setBounds(toolbar_position + spacing, 0, 70, toolbar_height);
+        button.setBounds(toolbar_position + spacing, 0, 70, toolbarHeight);
         toolbar_position += 70;
         idx++;
     }
     
-    hide_button.setBounds(std::min(getWidth() - s_width, getWidth() - 80), 0, 70, toolbar_height);
+    hideButton.setBounds(std::min(getWidth() - s_width, getWidth() - 80), 0, 70, toolbarHeight);
     // This is called when the MainComponent is resized.
     // If you add any child components, this is where you should
     // update their positions.
 }
 
 void MainComponent::mouseDown(const MouseEvent &e) {
-    Rectangle<int> drag_bar(getWidth() - sidebar_width, dragbar_width, sidebar_width, getHeight() - toolbar_height);
-    if(drag_bar.contains(e.getPosition()) && !sidebar_hidden) {
-        dragging_sidebar = true;
-        drag_start_width = sidebar_width;
+    Rectangle<int> drag_bar(getWidth() - sidebarWidth, dragbarWidth, sidebarWidth, getHeight() - toolbarHeight);
+    if(drag_bar.contains(e.getPosition()) && !sidebarHidden) {
+        draggingSidebar = true;
+        dragStartWidth = sidebarWidth;
     }
     else {
-        dragging_sidebar = false;
+        draggingSidebar = false;
     }
     
    
 }
 
 void MainComponent::mouseDrag(const MouseEvent &e) {
-    if(dragging_sidebar) {
-        sidebar_width = drag_start_width - e.getDistanceFromDragStartX();
+    if(draggingSidebar) {
+        sidebarWidth = dragStartWidth - e.getDistanceFromDragStartX();
         repaint();
         resized();
     }
 }
 
 void MainComponent::mouseUp(const MouseEvent &e) {
-    dragging_sidebar = false;
+    draggingSidebar = false;
 }
 
 
-void MainComponent::open_project() {
-    open_chooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
-          File openedfile = f.getResult();
-          if(openedfile.exists() && openedfile.getFileExtension().equalsIgnoreCase(".pd")) {
-            
-              
-              canvas->load_patch(openedfile.loadFileAsString());
-              
-              
-              /*
-              try
-              {
+void MainComponent::openProject() {
+    
+    SaveDialog dialog;
 
-                  
-                  
-                  StringArray lines;
-                  openedfile.readLines(lines);
-                  
-                  Array<Box*> boxes;
-                  
-                  for(auto& line : lines) {
-                      
-                      auto args = TokenString(line.toStdString(), ' ', '\"');
-                      
-                      if(!args.size()) return;
-                      
-                      if(args[0] == std::string("#N")) {
-                          continue;
-                      }
-                      else if(args[0] == std::string("#X")) {
-                        if(args[1] == std::string("obj")) {
-                            
-                            auto x = std::stoi(args[2]);
-                            auto y = std::stoi(args[3]);
-                            
-                            String name;
-                            for(int i = 4; i < args.size(); i++) {
-                                name += String(args[i] + " ");
-                            }
-                            
-                            name = name.dropLastCharacters(2); // remove excess space and semicolon
-                            
-                            auto gui_simplify = [](String& target, const String& selector) {
-                                if(target.startsWith(selector)) {
-                                    target = selector;
-                                }
-                            };
-                            
-                            gui_simplify(name, "bng");
-                            gui_simplify(name, "tgl");
-                            gui_simplify(name, "nbx");
-                            //gui_simplify(name, "msg"); // not sure
-                            gui_simplify(name, "hsl");
-                            gui_simplify(name, "vsl");
-                            gui_simplify(name, "hradio");
-                            gui_simplify(name, "vradio");
-  
-                            
-                            auto box = ValueTree(Identifiers::box);
-                   
-                            canvas->getState().appendChild(box, nullptr);
-                            box.setProperty(Identifiers::box_name, name, nullptr);
-                            box.setProperty(Identifiers::box_x, x, nullptr);
-                            box.setProperty(Identifiers::box_y, y, nullptr);
-                            
-                            
-                            continue;
-                        }
-                        else if(args[1] == std::string("msg")) {
-                            auto x = std::stoi(args[2]);
-                            auto y = std::stoi(args[3]);
-                            
-                            String message;
-                            for(int i = 4; i < args.size(); i++) {
-                                message += String(args[i] + " ");
-                            }
-                            
-                            message = message.dropLastCharacters(2);
-                            message.removeCharacters("\\");
-                            
-                            auto box = ValueTree(Identifiers::box);
-                            canvas->getState().appendChild(box, nullptr);
-                            box.setProperty(Identifiers::box_name, "msg " + message, nullptr);
-                            box.setProperty(Identifiers::box_x, x, nullptr);
-                            box.setProperty(Identifiers::box_y, y, nullptr);
-                            
-                        }
-                        else if(args[1] == std::string("connect")) {
-                            int start_box = std::stoi(args[4]);
-                            int inlet = std::stoi(args[5]);
-                            int end_box = std::stoi(args[2]);
-                            int outlet = std::stoi(args[3]);
-                            
-                            auto boxes = canvas->findChildrenOfClass<Box>();
-                            
-                            auto start_edges = boxes[start_box]->findChildrenOfClass<Edge>();
-                            auto end_edges = boxes[end_box]->findChildrenOfClass<Edge>();
-                            
-                            auto new_connection = ValueTree(Identifiers::connection);
-                            
-                            String start_id = start_edges[inlet]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
-                            
-                            String end_id = end_edges[outlet + boxes[end_box]->total_in]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
-                            
-                            new_connection.setProperty(Identifiers::start_id, start_id, nullptr);
-                            new_connection.setProperty(Identifiers::end_id, end_id, nullptr);
-                            
-                            canvas->getState().appendChild(new_connection, nullptr);
-                            
-                        }
-                      }
-                      
-                  }
-                  
+    dialog.setBounds(getScreenX()  + (getWidth() / 2.) - 200., getScreenY() + toolbarHeight - 3, 400, 130);
+    
+    int result = dialog.runModalLoop();
+    
+    // TODO: the async calling is killing me here
+    if(result == 1) {
+        saveProject();
+    }
+    if(result != 0) {
+        // Close all tabs
+        //tabbar.clearTabs();
+        
+        openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
+              File openedfile = f.getResult();
+              if(openedfile.exists() && openedfile.getFileExtension().equalsIgnoreCase(".pd")) {
+                  canvas->loadPatch(openedfile.loadFileAsString());
               }
-              catch (...)
-              {
-                  std::cout << "Failed to open project" << std::endl;
-              }
-          */
-          }
-    });
+        });
+    }
 }
 
-void MainComponent::save_project() {
+void MainComponent::saveProject() {
     
     auto to_save = pd.getCanvasContent();
-    save_chooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save](const FileChooser &f) mutable {
+    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save](const FileChooser &f) mutable {
         File result = f.getResult();
         
         FileOutputStream ostream(result);
         ostream.writeString(to_save);
         
-        get_current_canvas()->getState().setProperty("Title", result.getFileName(), nullptr);
+        getCurrentCanvas()->getState().setProperty("Title", result.getFileName(), nullptr);
     });
+    
 }
 
 
@@ -465,11 +370,11 @@ void MainComponent::valueTreeChanged() {
     
     pd.setThis();
     
-    toolbar_buttons[3].setEnabled(libpd_can_undo(static_cast<t_canvas*>(pd.m_patch)));
-    toolbar_buttons[4].setEnabled(libpd_can_redo(static_cast<t_canvas*>(pd.m_patch)));
+    toolbarButtons[3].setEnabled(libpd_can_undo(static_cast<t_canvas*>(pd.m_patch)));
+    toolbarButtons[4].setEnabled(libpd_can_redo(static_cast<t_canvas*>(pd.m_patch)));
 }
 
-Canvas* MainComponent::get_current_canvas()
+Canvas* MainComponent::getCurrentCanvas()
 {
     
     
@@ -481,7 +386,7 @@ Canvas* MainComponent::get_current_canvas()
     return nullptr;
 }
 
-void MainComponent::add_tab(Canvas* cnv)
+void MainComponent::addTab(Canvas* cnv)
 {
     tabbar.addTab(cnv->getState().getProperty("Title"), findColour(ResizableWindow::backgroundColourId), &cnv->viewport, false);
     

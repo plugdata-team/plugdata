@@ -64,30 +64,30 @@ public:
     void mouseUp(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
     
-    void load_patch(String patch);
-    void load_patch(pd::Patch& patch);
+    void loadPatch(String patch);
+    void loadPatch(pd::Patch& patch);
     
-    void load_state();
+    void synchronise();
 
     bool keyPressed(const KeyPress &key, Component *originatingComponent) override;
     
-    String copy_selection();
-    void remove_selection();
-    void paste_selection(String to_paste);
+    void copySelection();
+    void removeSelection();
+    void pasteSelection();
+    void duplicateSelection();
     
     void undo();
     void redo();
     
+    Edge* findEdgeByID(String ID);
     
-    Edge* find_edge_by_id(String ID);
-    
-    Array<Edge*> get_all_edges();
+    Array<Edge*> getAllEdges();
     
     Viewport viewport;
     
-    bool connecting_with_drag = false;
+    bool connectingWithDrag = false;
     
-    bool main_patch = true;
+    bool isMainPatch = true;
 
     pd::Patch patch;
     
@@ -99,9 +99,9 @@ private:
 
     LassoComponent<Box*> lasso;
     
-    Point<int> drag_start_position;
+    Point<int> dragStartPosition;
    
-    PopupMenu popupmenu;
+    PopupMenu popupMenu;
     
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Canvas)

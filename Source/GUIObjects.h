@@ -9,6 +9,7 @@
 #include "PlugData.h"
 #include "LookAndFeel.h"
 
+class Canvas;
 class Box;
 struct GUIComponent : public Component, public Timer
 {
@@ -25,9 +26,9 @@ struct GUIComponent : public Component, public Timer
     
     virtual ~GUIComponent();
     
-    virtual std::pair<int, int> get_best_size() = 0;
+    virtual std::pair<int, int> getBestSize() = 0;
     
-    virtual ComponentBoundsConstrainer get_constrainer() = 0;
+    virtual ComponentBoundsConstrainer getConstrainer() = 0;
     
     void paint(Graphics& g) override {
         g.setColour(findColour(TextButton::buttonColourId));
@@ -44,6 +45,10 @@ struct GUIComponent : public Component, public Timer
     virtual void updateValue();
     
     virtual void update() {};
+    
+    virtual Canvas* getCanvas() {
+        return nullptr;
+    }
     
     std::unique_ptr<Label> getLabel();
     pd::Gui getGUI();
@@ -95,9 +100,9 @@ struct BangComponent : public GUIComponent
     
     BangComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> get_best_size() override {return {24, 46}; };
+    std::pair<int, int> getBestSize() override {return {24, 46}; };
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         return ComponentBoundsConstrainer();
     };
     
@@ -116,9 +121,9 @@ struct ToggleComponent : public GUIComponent
     
     ToggleComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> get_best_size() override {return {24, 46}; };
+    std::pair<int, int> getBestSize() override {return {24, 46}; };
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         
     };
     
@@ -138,9 +143,9 @@ struct MessageComponent : public GUIComponent
     
     MessageComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> get_best_size() override {return {120, 28}; };
+    std::pair<int, int> getBestSize() override {return {120, 28}; };
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         
     };
     
@@ -159,9 +164,9 @@ struct NumboxComponent : public GUIComponent
     
     NumboxComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> get_best_size() override {return {70, 28}; };
+    std::pair<int, int> getBestSize() override {return {70, 28}; };
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         
     };
     
@@ -194,12 +199,12 @@ struct SliderComponent : public GUIComponent
     
     SliderComponent(bool vertical, pd::Gui gui, Box* parent);
     
-    std::pair<int, int> get_best_size() override {
+    std::pair<int, int> getBestSize() override {
         if(v_slider) return {35, 130};
         
         return {130, 35}; };
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         
     };
 
@@ -220,13 +225,13 @@ struct RadioComponent : public GUIComponent
     
     std::array<TextButton, 8> radio_buttons;
     
-    std::pair<int, int> get_best_size() override {
+    std::pair<int, int> getBestSize() override {
         if(v_radio) return {24, 164};
         
         return {161, 24};
     };
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         
     };
     
@@ -237,7 +242,7 @@ struct RadioComponent : public GUIComponent
     
 };
 
-class GraphicalArray : public Component, public Timer
+struct GraphicalArray : public Component, public Timer
 {
 public:
     GraphicalArray(PlugData* pd, pd::Array& graph);
@@ -265,7 +270,7 @@ private:
 };
 
 
-class ArrayComponent : public GUIComponent
+struct ArrayComponent : public GUIComponent
 {
 public:
     ArrayComponent(pd::Gui gui, Box* box);
@@ -274,10 +279,10 @@ public:
     void updateValue() override {}
     
     
-    std::pair<int, int> get_best_size() override {return {200, 140}; };
+    std::pair<int, int> getBestSize() override {return {200, 140}; };
     
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         
     };
     
@@ -286,8 +291,7 @@ private:
     GraphicalArray m_array;
 };
 
-class Canvas;
-class GraphOnParent : public GUIComponent
+struct GraphOnParent : public GUIComponent
 {
 public:
     GraphOnParent(pd::Gui gui, Box* box);
@@ -300,15 +304,14 @@ public:
     void resized() override;
     void updateValue() override {}
     
+    std::pair<int, int> getBestSize() override {return {200, 140}; };
     
-    std::pair<int, int> get_best_size() override {return {200, 140}; };
     
-    
-    Canvas* get_canvas() {
+    Canvas* getCanvas() override {
         return canvas.get();
     }
     
-    ComponentBoundsConstrainer get_constrainer()  override {
+    ComponentBoundsConstrainer getConstrainer()  override {
         
     };
     
@@ -318,4 +321,31 @@ private:
     
 };
 
+
+
+struct Subpatch : public GUIComponent
+{
+
+    Subpatch(pd::Gui gui, Box* box);
+    
+    std::pair<int, int> getBestSize() override {return {0, 5}; };
+    
+    void resized() override {};
+    void updateValue() override {};
+    
+    ComponentBoundsConstrainer getConstrainer()  override {
+        
+    };
+    
+    
+    Canvas* getCanvas() override {
+        return canvas.get();
+    }
+    
+    
+private:
+    pd::Patch subpatch;
+    std::unique_ptr<Canvas> canvas;
+    
+};
 

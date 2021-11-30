@@ -147,7 +147,7 @@ private:
     
     LogContainer logContainer;
 
-    StatusbarLook statusbar_look = StatusbarLook(1.4);
+    StatusbarLook statusbarLook = StatusbarLook(1.4);
     TextButton clearButton;
 
 	Colour stdOutColour = Colours::white;

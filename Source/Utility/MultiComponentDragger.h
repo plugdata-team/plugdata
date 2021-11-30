@@ -157,7 +157,7 @@ public:
         
         component->repaint();
         for(auto& component : selectedComponents) {
-            component->update_position();
+            component->updatePosition();
         }
         
     }
