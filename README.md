@@ -24,17 +24,16 @@ What works:
 - Signal and data objects
 - Most GUI objects:
   - Bang, Numbox, Toggle, Radio, Sliders, Array/Graph and Message work perfectly
-  - Basic support for GraphOnParent
+  - Experimental support for GraphOnParent and subpatchers
 - Usable in DAW
 - Console
 - Saving and loading patches
-- Undoing and redoing
+- Undoing, redoing, copying, pasting, duplicating
 
 
 What doesn't work / needs to be fixed:
 - No VU meter
-- Cannot open/edit subpatches or abstractions
-- Possibly some thread-safety issues, and some slightly hacky manipulation of pd
-
+- Possibly some thread-safety issues, and some slightly hacky manipulations of pd
+- Subpatcher support can be slightly buggy (especially when combined with undo/redo)
 
 Please contact me if you wish to contribute, I could use some help!
