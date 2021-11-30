@@ -43,9 +43,27 @@ namespace pd
         //! @brief Gets the bounds of the patch.
         std::array<int, 4> getBounds() const noexcept;
         
-        //! @brief Gets the GUI objects of the patch.
-        std::vector<Gui> getGuis() noexcept;
-        std::vector<Object> getObjects() noexcept;
+        t_pd* createGraph(String name, int size);
+        t_pd* createGraphOnParent();
+        
+        t_pd* createObject(String name, int x, int y);
+        void removeObject(t_pd* obj);
+        t_pd* renameObject(t_pd* obj, String name);
+        void moveObject (t_pd*, int x, int y);
+
+        void undo();
+        void redo();
+        
+        bool createConnection(t_pd* src, int nout, t_pd* sink, int nin);
+        void removeConnection(t_pd* src, int nout, t_pd*sink, int nin);
+        
+        
+        t_canvas* getPointer() {
+            return static_cast<t_canvas*>(m_ptr);
+        }
+        
+        //! @brief Gets the objects of the patch.
+        std::vector<Object> getObjects(bool only_gui = false) noexcept;
         
         String getCanvasContent() {
             

@@ -75,12 +75,12 @@ void Canvas::load_state() {
     // Removing all boxes should automatically remove all connections
     jassert(findChildrenOfClass<Connection>().size() == 0);
     
-    String patch = main->pd.getCanvasContent();
+    String content = patch.getCanvasContent();
     
     Array<Box*> boxes;
-    
+
     // Go through all the boxes in the pd patch, and add GUI components for them
-    for(auto& object : main->pd.getPatch().getObjects()) {
+    for(auto& object : patch.getObjects(getState().getProperty(Identifiers::is_graph))) {
         
         auto box = ValueTree(Identifiers::box);
         
@@ -96,7 +96,6 @@ void Canvas::load_state() {
         boxes.add(last_box); // lets hope this preserves the object order...
         
         String name = object.getText();
-        
         
         if(object.getName() == "message") {
             name = "msg " + name;
@@ -129,12 +128,23 @@ void Canvas::load_state() {
         box.setProperty(Identifiers::exists, false, nullptr);
     }
     
-    auto lines = StringArray::fromLines(patch);
+    auto lines = StringArray::fromLines(content);
+    lines.remove(0); // remove first canvas part
     
     // Connections are easier to read from the save file than to extract from the loaded patch
     // These connections already exists in libpd, we just need to add GUI components for them
+    int canvas_idx = 0;
     for(auto& line : lines) {
-        if(line.startsWith("#X connect")) {
+        
+        if(line.startsWith("#N canvas")) {
+            canvas_idx++;
+        }
+           
+        if(line.startsWith("#X restore")) {
+            canvas_idx--;
+        }
+           
+        if(line.startsWith("#X connect") && canvas_idx == 0) {
             auto segments = StringArray::fromTokens(line.fromFirstOccurrenceOf("#X connect ", false, false), " ", "\"");
             
             int end_box   = segments[0].getIntValue();
@@ -177,12 +187,24 @@ void Canvas::load_patch(String patch) {
     // Instead we can load the patch and iterate through it to add GUI components
     main->pd.openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
     
+    this->patch = main->pd.getPatch();
+    
+    load_state();
+    
+}
+
+void Canvas::load_patch(pd::Patch& patch) {
+    
+    this->patch = patch;
+    
     load_state();
     
 }
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
+    if(getState().getProperty(Identifiers::is_graph)) return;
+    
     if(!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         auto* source = e.originalComponent;
         
@@ -207,8 +229,10 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool has_selection = lasso_selection.getNumSelected();
         bool multiple = lasso_selection.getNumSelected() > 1;
         
+        bool is_subpatch = has_selection && ((lasso_selection.getSelectedItem(0)->graphics &&  lasso_selection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent) || lasso_selection.getSelectedItem(0)->text_label.getText().startsWith("pd"));
+        
         popupmenu.clear();
-        popupmenu.addItem(1, "Open", has_selection && !multiple && !lasso_selection.getSelectedItem(0)->findChildrenOfClass<Canvas>().isEmpty());
+        popupmenu.addItem(1, "Open", !multiple && is_subpatch);
         popupmenu.addSeparator();
         popupmenu.addItem(4,"Cut", has_selection);
         popupmenu.addItem(5,"Copy", has_selection);
@@ -221,8 +245,17 @@ void Canvas::mouseDown(const MouseEvent& e)
             
             switch (result) {
                 case 1: {
-                auto* new_cnv = lasso_selection.getSelectedItem(0)->findChildrenOfClass<Canvas>()[0];
-                main->add_tab(new_cnv);
+                    
+                    auto* cnv = static_cast<GraphOnParent*>(lasso_selection.getSelectedItem(0)->graphics.get())->get_canvas();
+                    
+                    auto tree = ValueTree(Identifiers::canvas);
+                    tree.setProperty(Identifiers::is_graph, false, nullptr);
+                    tree.setProperty("Title", "Subpatcher", nullptr);
+                    main->getState().appendChild(tree, nullptr);
+                    
+                    auto* new_cnv = main->findChildrenOfClass<Canvas>().getLast();
+                    new_cnv->load_patch(cnv->patch);
+                    
                     break;
                 }
                 case 4:
@@ -261,6 +294,8 @@ Edge* Canvas::find_edge_by_id(String ID) {
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
+    if(getState().getProperty(Identifiers::is_graph)) return;
+    
     auto* source = e.originalComponent;
     
     if(dynamic_cast<Connection*>(source)) {
@@ -350,7 +385,9 @@ void Canvas::resized()
 {
     
 }
+
 bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
+    if(getState().getProperty(Identifiers::is_graph)) return false;
     
     if(key.getTextCharacter() == 'n') {
         auto box = ValueTree(Identifiers::box);
@@ -472,7 +509,7 @@ void Canvas::remove_selection() {
         if(con->is_selected) {
             removeMouseListener(con);
            
-            get_pd()->removeConnection(con->out_obj, con->out_idx,  con->in_obj, con->in_idx);
+            patch.removeConnection(con->out_obj, con->out_idx,  con->in_obj, con->in_idx);
             getState().removeChild(con->getState(), nullptr);
         }
     }
@@ -496,12 +533,6 @@ void Canvas::paste_selection(String to_paste) {
     }
 }
 
-PlugData* Canvas::get_pd()
-{
-    return &main->pd;
-}
-
-
 Array<Edge*> Canvas::get_all_edges() {
     Array<Edge*> all_edges;
     for(auto* box : findChildrenOfClass<Box>()) {
@@ -513,13 +544,13 @@ Array<Edge*> Canvas::get_all_edges() {
 }
 
 void Canvas::undo() {
-    main->pd.undo();
+    patch.undo();
     load_state();
     main->valueTreeChanged();
 }
 
 void Canvas::redo() {
-    main->pd.redo();
+    patch.redo();
     load_state();
     main->valueTreeChanged();
 }

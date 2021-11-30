@@ -13,8 +13,7 @@
 #include "PdPatch.hpp"
 #include "PdAtom.hpp"
 
-#include "Queues/readerwriterqueue.h"
-#include "Queues/concurrentqueue.h"
+#include "concurrentqueue.h"
 
 namespace pd
 {
@@ -95,20 +94,7 @@ public:
     
     void stringToAtom(String name, int& argc, t_atom& target);
     
-    t_pd* createGraph(String name, int size);
-    
-    t_pd* createGraphOnParent();
-    
-    t_pd* createObject(String name, int x, int y);
-    void removeObject(t_pd* obj);
-    t_pd* renameObject(t_pd* obj, String name);
-    void moveObject (t_pd*, int x, int y);
 
-    void undo();
-    void redo();
-    
-    bool createConnection(t_pd* src, int nout, t_pd* sink, int nin);
-    void removeConnection(t_pd* src, int nout, t_pd*sink, int nin);
     
     String getCanvasContent();
     
@@ -153,6 +139,7 @@ public:
     } midievent;
     
     typedef moodycamel::ConcurrentQueue<dmessage> message_queue;
+    
     message_queue m_send_queue = message_queue(4096);
     
     moodycamel::ConcurrentQueue<Message> m_message_queue = moodycamel::ConcurrentQueue<Message>(4096);

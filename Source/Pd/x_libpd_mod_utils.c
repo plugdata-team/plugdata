@@ -10,6 +10,8 @@
 #include <g_all_guis.h>
 #include <g_undo.h>
 
+#include <stdlib.h>
+
 #include <string.h>
 
 #include "x_libpd_multi.h"
@@ -82,7 +84,7 @@ void libpd_canvas_doclear(t_canvas *x)
            the glist to reselect. */
     if (x->gl_editor->e_textedfor)
     {
-        t_gobj *selwas = x->gl_editor->e_selection->sel_what;
+        //t_gobj *selwas = x->gl_editor->e_selection->sel_what;
         pd_this->pd_newest = 0;
         glist_noselect(x);
         if (pd_this->pd_newest)
@@ -235,8 +237,6 @@ int libpd_tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
     }
     return 0;
 }
-    
-// TODO: this is stupid. move stuff from PdInstance to here eventually
 
 t_pd* libpd_creategraphonparent(t_pd *x, int argc, t_atom *argv) {
         
@@ -249,8 +249,19 @@ t_pd* libpd_creategraphonparent(t_pd *x, int argc, t_atom *argv) {
     return pd_newest();
 }
     
-t_pd* libpd_creategraph(t_pd *x, int argc, t_atom *argv) {
+t_pd* libpd_creategraph(t_pd *x, const char* name, int size) {
         
+    int argc = 4;
+    
+    t_atom argv[4];
+    
+    SETSYMBOL(argv, gensym(name));
+    
+    // Set position
+    SETFLOAT(argv + 1, size);
+    SETFLOAT(argv + 2, 1);
+    SETFLOAT(argv + 3, 0);
+    
     sys_lock();
     
     pd_typedmess(x, gensym("arraydialog"), argc, argv);
@@ -261,6 +272,7 @@ t_pd* libpd_creategraph(t_pd *x, int argc, t_atom *argv) {
     glist_noselect(x);
     
     sys_unlock();
+    
     return pd_newest();
 }
 
@@ -307,7 +319,7 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 int libpd_can_undo(t_canvas* cnv) {
     t_undo* udo = canvas_undo_get(cnv);
     
-    if(udo->u_last) {
+    if(udo && udo->u_last) {
         return strcmp(udo->u_last->name, "no");
     }
     
@@ -318,7 +330,7 @@ int libpd_can_redo(t_canvas* cnv) {
     
     t_undo* udo = canvas_undo_get(cnv);
     
-    if(udo->u_last && udo->u_last->next) {
+    if(udo && udo->u_last && udo->u_last->next) {
         return strcmp(udo->u_last->next->name, "no");
     }
     

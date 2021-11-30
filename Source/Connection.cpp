@@ -13,8 +13,6 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
     start = cnv->find_edge_by_id(tree.getProperty("StartID"));
     end = cnv->find_edge_by_id(tree.getProperty("EndID"));
     
-
-    
     if(!start || !end) {
         start = nullptr;
         end = nullptr;
@@ -37,17 +35,15 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
             out_obj = start->box->pd_object;
         }
         
+        bool can_connect = parent->patch.createConnection(out_obj, out_idx, in_obj, in_idx);
 
-        bool can_connect = parent->get_pd()->createConnection(out_obj, out_idx, in_obj, in_idx);
-
+        if(!can_connect) {
+            start = nullptr;
+            end = nullptr;
+            parent->getState().removeChild(tree, nullptr);
+            return;
+        }
     }
-    /*
-    if(!can_connect) {
-        start = nullptr;
-        end = nullptr;
-        parent->getState().removeChild(tree, nullptr);
-        return;
-    } */
     
     start->addComponentListener(this);
     end->addComponentListener(this);
@@ -65,9 +61,6 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
 
 Connection::~Connection()
 {
-
-    
-    
     delete_listeners();
 }
 
@@ -90,8 +83,6 @@ void Connection::paint (Graphics& g)
     if(is_selected) {
         
         base_colour = start->ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : MainLook::highlight_colour;
-        
-        //Library::colours[(String)];
     }
     
     g.setColour(base_colour);
@@ -99,7 +90,6 @@ void Connection::paint (Graphics& g)
 }
 
 void Connection::mouseDown(const MouseEvent& e)  {
-    
     if(path.contains(e.getPosition().toFloat())) {
         is_selected = !is_selected;
     }
@@ -144,7 +134,4 @@ void Connection::componentBeingDeleted(Component& component) {
         deleted = true;
         getState().getParent().removeChild(getState(), nullptr);
     }
-    
-    
-
 }

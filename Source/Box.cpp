@@ -6,37 +6,26 @@
 #include "Pd/x_libpd_extra_utils.h"
 #include "Pd/x_libpd_mod_utils.h"
 
-typedef struct _messresponder
-{
-    t_pd mr_pd;
-    t_outlet *mr_outlet;
-} t_messresponder;
-
-typedef struct _message
-{
-    t_text m_text;
-    t_messresponder m_messresponder;
-    t_glist *m_glist;
-    t_clock *m_clock;
-} t_message;
-
 void ClickLabel::mouseDown(const MouseEvent & e)
 {
+    Canvas* canvas = findParentComponentOfClass<Canvas>();
+    if(canvas->getState().getProperty(Identifiers::is_graph)) return;
+    
     is_down = true;
     dragger.handleMouseDown(box, e);
 }
 
 void ClickLabel::mouseUp(const MouseEvent & e)
 {
+    Canvas* canvas = findParentComponentOfClass<Canvas>();
+    if(canvas->getState().getProperty(Identifiers::is_graph)) return;
+    
     is_down = false;
     dragger.handleMouseUp(box, e);
     
     if(e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600) {
         Edge::connecting_edge = nullptr;
     }
-    
-    Viewport* viewport = findParentComponentOfClass<Viewport>();
-    Canvas* canvas = findParentComponentOfClass<Canvas>();
     
     if(canvas) {
         
@@ -81,12 +70,15 @@ void ClickLabel::mouseUp(const MouseEvent & e)
 
 void ClickLabel::mouseDrag(const MouseEvent & e)
 {
+    Canvas* canvas = findParentComponentOfClass<Canvas>();
+    if(canvas->getState().getProperty(Identifiers::is_graph)) return;
+    
     dragger.handleMouseDrag(e);
 }
 
 
 //==============================================================================
-Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragger) : ValueTreeObject(tree), dragger(multi_dragger), text_label(this, multi_dragger)
+Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragger) : ValueTreeObject(tree), text_label(this, multi_dragger), dragger(multi_dragger)
 {
     cnv = parent;
     
@@ -134,11 +126,6 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragg
 }
 
 
-Box::Box(t_pd* object, Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragger) : ValueTreeObject(tree), dragger(multi_dragger), text_label(this, multi_dragger)
-{
-    
-}
-
 Box::~Box()
 {
 }
@@ -147,7 +134,7 @@ void Box::remove_box(bool clear_pd) {
     
     
     if(pd_object && clear_pd) {
-        cnv->get_pd()->removeObject(pd_object);
+        cnv->patch.removeObject(pd_object);
     }
     
     pd_object = nullptr;
@@ -184,7 +171,7 @@ void Box::set_type (String new_type)
     bool is_gui = GUIComponent::is_gui(type);
     
     if(type.isNotEmpty() && !getState().getProperty(Identifiers::exists)) {
-        auto* pd = cnv->get_pd();
+        auto* pd = &cnv->patch;
         
         // Pd doesn't normally allow changing between gui and non-gui objects
         if((pd_object && graphics.get() != nullptr) || is_gui) {
@@ -224,13 +211,6 @@ void Box::set_type (String new_type)
     if(type.isEmpty()) {
         setSize (100, 32);
     }
-    
-    // Handle subpatchers
-    /*
-    if(auto* subcnv = findChildOfClass<Canvas>(0)) {
-        getState().removeChild(subcnv->getState(), nullptr);
-    } */
-    
 
     resized();
 }
@@ -254,7 +234,6 @@ void Box::paint (Graphics& g)
     
     g.setColour(findColour(ComboBox::outlineColourId));
     g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
-    
 }
 
 void Box::moved()
@@ -264,10 +243,9 @@ void Box::moved()
     }
     
     if(pd_object) {
-        cnv->get_pd()->moveObject(pd_object, getX(), getY());
+        
+        cnv->patch.moveObject(pd_object, getX(), getY());
     }
-    
-    
 }
 
 void Box::update_position()
@@ -284,7 +262,6 @@ void Box::resized()
         graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
     }
     
-    
     int index = 0;
     for(auto& edge : findChildrenOfClass<Edge>()) {
         
@@ -292,8 +269,6 @@ void Box::resized()
         bool is_input = state.getProperty(Identifiers::edge_in);
         
         int position = index < total_in ? index : index - total_in;
-        
-        bool sideways = false;
         
         int total = is_input ? total_in : total_out;
             

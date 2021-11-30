@@ -52,13 +52,11 @@ void Edge::paint (Graphics& g)
 
 void Edge::resized()
 {
-    // This is called when the MainComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
 }
 
 
 void Edge::mouseDrag(const MouseEvent& e) {
+    // For dragging to create new connections
     
     TextButton::mouseDrag(e);
     if(!Edge::connecting_edge && e.getLengthOfMousePress() > 300) {
@@ -74,8 +72,10 @@ void Edge::mouseMove(const MouseEvent& e) {
 
 void Edge::create_connection()
 {
+    // Check if this is the start or end action of connecting
     if(Edge::connecting_edge) {
         
+        // Check type for input and output
         bool is_input = ValueTreeObject::getState().getProperty("Input");
         String ctx1 = is_input ? Edge::connecting_edge->ValueTreeObject::getState().getProperty("Context") : ValueTreeObject::getState().getProperty("Context");
         String ctx2 = !is_input ? Edge::connecting_edge->ValueTreeObject::getState().getProperty("Context") : ValueTreeObject::getState().getProperty("Context");
@@ -83,14 +83,14 @@ void Edge::create_connection()
         
         bool connection_allowed = ctx1 == ctx2 && connecting_edge->getParentComponent() != getParentComponent() && Edge::connecting_edge->box->cnv == box->cnv;
         
-       
-    
+        // Dont create if this is the same edge
         if(Edge::connecting_edge == this) {
             Edge::connecting_edge = nullptr;
         }
         else if(!connection_allowed) {
             Edge::connecting_edge = nullptr;
         }
+        // Create new connection if allowed
         else if(connection_allowed) {
             ValueTree new_connection = ValueTree(Identifiers::connection);
             
@@ -101,6 +101,7 @@ void Edge::create_connection()
             Edge::connecting_edge = nullptr;
         }
     }
+    // Else set this edge as start of a connection
     else {
         Edge::connecting_edge = this;
     }

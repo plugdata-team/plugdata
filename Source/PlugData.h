@@ -25,15 +25,15 @@ public:
     m_accepts_midi(true),
     m_produces_midi(false),
     m_is_midi_effect(false),
-    m_bypass(false),
-    numin(2), numout(2){
+    numin(2), numout(2), m_bypass(false){
         
         m_midi_buffer_in.ensureSize(2048);
         m_midi_buffer_out.ensureSize(2048);
         m_midi_buffer_temp.ensureSize(2048);
         
         dequeueMessages();
-        openPatch(PlugData::getPatchPath(), PlugData::getPatchName());
+        
+        //openPatch(PlugData::getPatchPath(), PlugData::getPatchName());
         
         processMessages();
         
@@ -112,9 +112,7 @@ private:
     
     void processInternal();
     
-    typedef moodycamel::ReaderWriterQueue<MessageGui> QueueGui;
-    
-    String const            m_name              = String("Camomile");
+    String const            m_name              = String("PlugData");
     bool const              m_accepts_midi      = false;
     bool const              m_produces_midi     = false;
     bool const              m_is_midi_effect    = false;

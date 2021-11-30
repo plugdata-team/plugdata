@@ -19,7 +19,7 @@ struct GUIComponent : public Component, public Timer
     
     Array<int> num_registered;
     
-    GUIComponent(Box* parent);
+    GUIComponent(pd::Gui gui, Box* parent);
     
     static bool is_gui(String name);
     
@@ -93,12 +93,12 @@ struct BangComponent : public GUIComponent
     
     TextButton bang_button;
     
-    BangComponent(Box* parent);
+    BangComponent(pd::Gui gui, Box* parent);
     
     std::pair<int, int> get_best_size() override {return {24, 46}; };
     
     ComponentBoundsConstrainer get_constrainer()  override {
-        
+        return ComponentBoundsConstrainer();
     };
     
     void update() override;
@@ -114,7 +114,7 @@ struct ToggleComponent : public GUIComponent
     
     TextButton toggle_button;
     
-    ToggleComponent(Box* parent);
+    ToggleComponent(pd::Gui gui, Box* parent);
     
     std::pair<int, int> get_best_size() override {return {24, 46}; };
     
@@ -136,7 +136,7 @@ struct MessageComponent : public GUIComponent
     
     std::string last_message = "";
     
-    MessageComponent(Box* parent);
+    MessageComponent(pd::Gui gui, Box* parent);
     
     std::pair<int, int> get_best_size() override {return {120, 28}; };
     
@@ -157,7 +157,7 @@ struct NumboxComponent : public GUIComponent
 
     TextEditor input;
     
-    NumboxComponent(Box* parent);
+    NumboxComponent(pd::Gui gui, Box* parent);
     
     std::pair<int, int> get_best_size() override {return {70, 28}; };
     
@@ -192,7 +192,7 @@ struct SliderComponent : public GUIComponent
     
     Slider slider;
     
-    SliderComponent(bool vertical, Box* parent);
+    SliderComponent(bool vertical, pd::Gui gui, Box* parent);
     
     std::pair<int, int> get_best_size() override {
         if(v_slider) return {35, 130};
@@ -216,7 +216,7 @@ struct RadioComponent : public GUIComponent
     int last_state = 0;
     
     bool v_radio;
-    RadioComponent(bool vertical, Box* parent);
+    RadioComponent(bool vertical, pd::Gui gui, Box* parent);
     
     std::array<TextButton, 8> radio_buttons;
     
@@ -268,7 +268,7 @@ private:
 class ArrayComponent : public GUIComponent
 {
 public:
-    ArrayComponent(Box* box);
+    ArrayComponent(pd::Gui gui, Box* box);
     void paint(Graphics& ) override {}
     void resized() override;
     void updateValue() override {}
@@ -290,7 +290,7 @@ class Canvas;
 class GraphOnParent : public GUIComponent
 {
 public:
-    GraphOnParent(Box* box);
+    GraphOnParent(pd::Gui gui, Box* box);
     
     void paint(Graphics& g) override {
         g.fillAll(findColour(TextButton::buttonColourId));
@@ -303,6 +303,10 @@ public:
     
     std::pair<int, int> get_best_size() override {return {200, 140}; };
     
+    
+    Canvas* get_canvas() {
+        return canvas.get();
+    }
     
     ComponentBoundsConstrainer get_constrainer()  override {
         

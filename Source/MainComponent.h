@@ -58,8 +58,6 @@ public:
     void open_project();
     void save_project();
     
-    void pd_synchonize();
-    
     void add_tab(Canvas* cnv);
     
     Canvas* get_current_canvas();

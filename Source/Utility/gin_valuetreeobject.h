@@ -23,7 +23,7 @@ public:
         
     virtual ~ValueTreeObject() {};
     
-    virtual ValueTreeObject* factory(const juce::Identifier&, const juce::ValueTree&) {};
+    virtual ValueTreeObject* factory(const juce::Identifier&, const juce::ValueTree&) { return nullptr; };
 
 public:
     const juce::OwnedArray<ValueTreeObject>& getChildren() const    { return children; }
