@@ -21,6 +21,15 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     
     tabbar.on_tab_change = [this](int idx) {
         Edge::connecting_edge = nullptr;
+        
+        // update GraphOnParent when changing tabs
+        
+        for(auto* box : get_current_canvas()->findChildrenOfClass<Box>()) {
+            if(box->graphics && box->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent) {
+                static_cast<GraphOnParent*>(box->graphics.get())->get_canvas()->load_state();
+            }
+        }
+        
         valueTreeChanged();
     };
     
@@ -50,8 +59,9 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     
     // New button
     toolbar_buttons[0].onClick = [this]() {
-        auto new_cnv = ValueTree("Canvas");
+        auto new_cnv = ValueTree(Identifiers::canvas);
         new_cnv.setProperty("Title", "Untitled Patcher", nullptr);
+        new_cnv.setProperty(Identifiers::is_graph, false, nullptr);
         getState().appendChild(new_cnv, nullptr);
     };
     
@@ -180,7 +190,13 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(tru
     if(!getState().hasProperty("Canvas")) {
         ValueTree cnv_state("Canvas");
         cnv_state.setProperty("Title", "Untitled Patcher", nullptr);
+        cnv_state.setProperty(Identifiers::is_graph, false, nullptr);
+        
         getState().appendChild(cnv_state, nullptr);
+        
+        auto* new_cnv = findChildOfClass<Canvas>(0);
+        new_cnv->load_patch("#N canvas 827 239 527 327 12;");
+        pd.m_patch = new_cnv->patch.getPointer();
     }
 }
 
@@ -217,7 +233,7 @@ void MainComponent::paint (Graphics& g)
     g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
     
     auto base_colour = MainLook::background_1;
-    auto highlight_colour = Colour (0xff42a2c8).darker(0.2);
+    auto highlight_colour = MainLook::highlight_colour;
     
     int s_width = sidebar_hidden ? dragbar_width : std::max(dragbar_width, sidebar_width);
 
@@ -306,28 +322,6 @@ void MainComponent::mouseUp(const MouseEvent &e) {
     dragging_sidebar = false;
 }
 
-void MainComponent::pd_synchonize() {
-    auto objects = pd.getPatch().getObjects();
-    
-    std::vector<pd::Object> found_objects;
-    std::vector<pd::Object> new_objects;
-    
-    for(auto& object : objects) {
-        bool found = false;
-        
-        for(auto& box : canvas->findChildrenOfClass<Box>()) {
-            if(object.getPointer() == box->pd_object) {
-                found_objects.push_back(object);
-                found = true;
-                break;
-            }
-        }
-        
-        if(!found) {
-            new_objects.push_back(object);
-        }
-    }
-}
 
 void MainComponent::open_project() {
     open_chooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
@@ -471,21 +465,14 @@ void MainComponent::valueTreeChanged() {
     
     pd.setThis();
     
-    
     toolbar_buttons[3].setEnabled(libpd_can_undo(static_cast<t_canvas*>(pd.m_patch)));
     toolbar_buttons[4].setEnabled(libpd_can_redo(static_cast<t_canvas*>(pd.m_patch)));
-    
-    
-    /*
-    if(!get_current_canvas())  {
-        toolbar_buttons[3].setEnabled(false);
-        toolbar_buttons[4].setEnabled(false);
-        return;
-    } */
 }
 
 Canvas* MainComponent::get_current_canvas()
 {
+    
+    
     if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
         if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
             return cnv;

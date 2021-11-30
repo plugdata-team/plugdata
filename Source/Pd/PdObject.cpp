@@ -23,6 +23,7 @@ namespace pd
     Object::Object(void* ptr, void* patch, Instance* instance) noexcept :
     m_ptr(ptr), m_patch(patch), m_instance(instance)
     {
+        
     }
     
     std::string Object::getText() const

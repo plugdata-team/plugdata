@@ -61,7 +61,7 @@ namespace pd
         
         void*   m_ptr   = nullptr;
         void*   m_patch = nullptr;
-        Instance* m_instance = nullptr;
+        Instance* __attribute__((aligned (8))) m_instance = nullptr ;
         friend class Patch;
     };
 }

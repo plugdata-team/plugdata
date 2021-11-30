@@ -24,7 +24,7 @@ extern "C"
 
 
     t_pd* libpd_createobj(t_pd *x, t_symbol *s, int argc, t_atom *argv);
-    t_pd* libpd_creategraph(t_pd *x, int argc, t_atom *argv);
+    t_pd* libpd_creategraph(t_pd *x, const char* name, int size);
 
     void libpd_removeobj(t_canvas* cnv, t_gobj* obj);
     void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize);

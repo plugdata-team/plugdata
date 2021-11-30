@@ -26,11 +26,9 @@ struct ClickLabel : Label
     
     Box* box;
     
-    
-    
     bool is_down = false;
     
-    ClickLabel(Box* parent, MultiComponentDragger<Box>& multi_dragger) : dragger(multi_dragger), box(parent) {};
+    ClickLabel(Box* parent, MultiComponentDragger<Box>& multi_dragger) : box(parent), dragger(multi_dragger) {};
     
     void mouseDown(const MouseEvent & e) override;
     void mouseUp(const MouseEvent & e) override;
@@ -46,9 +44,7 @@ class Box  : public Component, public ValueTreeObject
 public:
     //==============================================================================
     Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragger);
-    
-    Box(t_pd* object, Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multi_dragger);
-    
+
     ~Box() override;
     
     Canvas* cnv;
@@ -75,7 +71,6 @@ public:
     void mouseMove(const MouseEvent& e) override;
     
     void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
-    
     
     int total_in = 0;
     int total_out = 0;

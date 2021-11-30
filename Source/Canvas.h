@@ -21,6 +21,7 @@ struct Identifiers
     
     // Other identifiers
     inline static Identifier exists = Identifier("Exists");
+    inline static Identifier is_graph = Identifier("Graph");
     
     // Box
     inline static Identifier box_x = Identifier("X");
@@ -48,7 +49,6 @@ public:
     //==============================================================================
     Canvas(ValueTree tree, MainComponent* parent);
     
-    Canvas(ValueTree tree, MainComponent* parent, pd::Patch& subpatch);
     ~Canvas();
     
     MainComponent* main;
@@ -65,6 +65,8 @@ public:
     void mouseMove(const MouseEvent& e) override;
     
     void load_patch(String patch);
+    void load_patch(pd::Patch& patch);
+    
     void load_state();
 
     bool keyPressed(const KeyPress &key, Component *originatingComponent) override;
@@ -76,7 +78,6 @@ public:
     void undo();
     void redo();
     
-    PlugData* get_pd();
     
     Edge* find_edge_by_id(String ID);
     
@@ -88,7 +89,10 @@ public:
     
     bool main_patch = true;
 
+    pd::Patch patch;
+    
 private:
+
 
     
     MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this);

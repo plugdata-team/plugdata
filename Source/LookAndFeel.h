@@ -169,7 +169,7 @@ struct MainLook : public LookAndFeel_V4
             fullscreenShape.addRectangle (45.0f, 45.0f, 100.0f, 100.0f);
             PathStrokeType (30.0f).createStrokedPath (fullscreenShape, fullscreenShape);
 
-            return new PlugData_DocumentWindowButton ("maximise", Colour (0xff42a2c8), shape, fullscreenShape);
+            return new PlugData_DocumentWindowButton ("maximise", MainLook::highlight_colour, shape, fullscreenShape);
         }
 
         jassertfalse;
@@ -211,7 +211,7 @@ struct PdGuiLook : public MainLook
 
         auto baseColour = backgroundColour;
 
-        auto highlight_colour = Colour (0xff42a2c8);
+        auto highlight_colour = MainLook::highlight_colour;
         
         if (shouldDrawButtonAsDown)
             baseColour = highlight_colour;
@@ -271,15 +271,15 @@ struct ToolbarLook : public MainLook
         
         auto base_colour = background_1;
         
-        auto highlight_colour = Colour (0xff42a2c8);
+        auto highlight_colour = MainLook::highlight_colour;
         
         if(shouldDrawButtonAsHighlighted || button.getToggleState())
             highlight_colour = highlight_colour.brighter (0.4f);
         
         if(shouldDrawButtonAsDown)
-            highlight_colour = highlight_colour.brighter (0.1f);
+            highlight_colour = highlight_colour.brighter (0.2f);
         else
-            highlight_colour = highlight_colour.darker(0.2f);
+            highlight_colour = highlight_colour;
         
         
         g.setColour(base_colour);

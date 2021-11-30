@@ -303,8 +303,9 @@ namespace pd
     
     void Gui::setValue(float value) noexcept
     {
-        if(!m_ptr || m_type == Type::Comment || m_type == Type::AtomSymbol)
+        if(!m_instance || !m_ptr || m_type == Type::Comment || m_type == Type::AtomSymbol)
             return;
+       
         m_instance->enqueueDirectMessages(m_ptr, value);
         
     }

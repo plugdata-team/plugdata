@@ -6,14 +6,10 @@
 #include "Canvas.h"
 
 
-GUIComponent::GUIComponent(Box* parent)  : box(parent), m_processor(parent->cnv->main->pd), edited(false)
+GUIComponent::GUIComponent(pd::Gui pd_gui, Box* parent)  : box(parent), gui(pd_gui),  m_processor(parent->cnv->main->pd), edited(false)
 {
     //if(!box->pd_object) return;
     
-    auto* checked_object = pd_checkobject(box->pd_object);
-    jassert(box->pd_object && checked_object);
-    
-    gui = pd::Gui(static_cast<void*>(checked_object), parent->cnv->main->pd.m_patch, &(parent->cnv->main->pd));
     
     value = gui.getValue();
     min = gui.getMinimum();
@@ -30,52 +26,60 @@ GUIComponent::~GUIComponent()
 }
 
 bool GUIComponent::is_gui(String name)  {
-    return name == "bng" || name == "tgl" || name == "hsl" || name == "vsl" || name == "hradio" || name == "vradio" || name == "msg" || name == "nbx" || name == "graph" || name == "canvas" || name == "floatatom" || name == "symbolatom";
+    return name == "bng" || name == "tgl" || name == "hsl" || name == "vsl" || name == "hradio" || name == "vradio" || name == "msg" || name == "nbx" || name == "graph" || name == "canvas" || name == "floatatom" || name == "symbolatom" || name == "pd";
 }
 
 GUIComponent* GUIComponent::create_gui(String name, Box* parent)
 {
-    if(name == "bng") {
-        return new BangComponent(parent);
-    }
-    if(name == "tgl") {
-        return new ToggleComponent(parent);
-    }
-    if(name == "hsl") {
-        return new SliderComponent(false, parent);
-    }
-    if(name == "vsl") {
-        return new SliderComponent(true, parent);
-    }
-    if(name == "hradio") {
-        return new RadioComponent(false, parent);
-    }
-    if(name == "vradio") {
-        return new RadioComponent(true, parent);
-    }
-    if(name == "msg") {
-        return new MessageComponent(parent);
-    }
-    if(name == "nbx") {
-        return new NumboxComponent(parent);
-    }
-    if(name == "graph") {
-        return new ArrayComponent(parent);
-    }
-    if(name == "canvas") {
-        return new GraphOnParent(parent);
-    }
-    if(name == "vu") {
-        return new GraphOnParent(parent);
-    }
-    if(name == "floatatom") {
-        return new NumboxComponent(parent);
-    }
-    if(name == "symbolatom") {
-        return new MessageComponent(parent);
-    }
+    auto* checked_object = pd_checkobject(parent->pd_object);
+    jassert(parent->pd_object && checked_object);
+    
+    auto gui = pd::Gui(static_cast<void*>(checked_object), parent->cnv->patch.getPointer(), &(parent->cnv->main->pd));
     
     
+    
+    if(gui.getType() == pd::Gui::Type::Bang) {
+        return new BangComponent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::Toggle) {
+        return new ToggleComponent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::HorizontalSlider) {
+        return new SliderComponent(false, gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::VerticalSlider) {
+        return new SliderComponent(true, gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::HorizontalRadio) {
+        return new RadioComponent(false, gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::VerticalRadio) {
+        return new RadioComponent(true, gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::Message) {
+        return new MessageComponent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::Number) {
+        return new NumboxComponent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::Array) {
+        return new ArrayComponent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::GraphOnParent) {
+        return new GraphOnParent(gui, parent);
+    }
+    if(name == "pd") {
+        return nullptr;//new GraphOnParent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::VuMeter) {
+        return nullptr; //new GraphOnParent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::AtomNumber) {
+        return new NumboxComponent(gui, parent);
+    }
+    if(gui.getType() == pd::Gui::Type::AtomSymbol) {
+        return new MessageComponent(gui, parent);
+    }
     
     return nullptr;
 }
@@ -174,7 +178,7 @@ pd::Gui GUIComponent::getGUI()
 
 // BangComponent
 
-BangComponent::BangComponent(Box* parent) : GUIComponent(parent)
+BangComponent::BangComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     addAndMakeVisible(bang_button);
     bang_button.onClick = [this](){
@@ -196,7 +200,7 @@ void BangComponent::resized() {
 }
 
 // ToggleComponent
-ToggleComponent::ToggleComponent(Box* parent) : GUIComponent(parent)
+ToggleComponent::ToggleComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     addAndMakeVisible(toggle_button);
     
@@ -221,7 +225,7 @@ void ToggleComponent::update()  {
 
 
 // MessageComponent
-MessageComponent::MessageComponent(Box* parent) : GUIComponent(parent)
+MessageComponent::MessageComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     
     bang_button.setConnectedEdges(12);
@@ -234,7 +238,6 @@ MessageComponent::MessageComponent(Box* parent) : GUIComponent(parent)
     
     bang_button.onClick = [this](){
         startEdition();
-        //gui.setSymbol(input.getText().toStdString());
         gui.click();
         stopEdition();
     };
@@ -242,15 +245,6 @@ MessageComponent::MessageComponent(Box* parent) : GUIComponent(parent)
     input.onTextChange = [this]() {
         gui.setSymbol(input.getText().toStdString());
     };
-    
-    input.onFocusLost = [this](){
-        
-        
-        //t_atom args[1];
-        //SETSYMBOL(args, gensym(input.getText().toRawUTF8()));
-        //pd_typedmess(static_cast<t_pd*>(gui.getPointer()), gensym("set"), 1, args);
-    };
-    
 }
 
 
@@ -286,7 +280,7 @@ void MessageComponent::updateValue()
 
 
 
-NumboxComponent::NumboxComponent(Box* parent) : GUIComponent(parent)
+NumboxComponent::NumboxComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     input.addMouseListener(this, false);
     
@@ -327,7 +321,7 @@ void NumboxComponent::update()  {
 
 
 
-SliderComponent::SliderComponent(bool is_vertical, Box* parent) : GUIComponent(parent)
+SliderComponent::SliderComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     v_slider = is_vertical;
     addAndMakeVisible(slider);
@@ -374,7 +368,7 @@ void SliderComponent::update()  {
 
 // RadioComponent
 
-RadioComponent::RadioComponent(bool is_vertical, Box* parent) : GUIComponent(parent)
+RadioComponent::RadioComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     v_radio = is_vertical;
     
@@ -406,7 +400,7 @@ void RadioComponent::update()  {
 }
 
 
-ArrayComponent::ArrayComponent(Box* box) : GUIComponent(box), m_graph(gui.getArray()), m_array(box->cnv->get_pd(), m_graph)
+ArrayComponent::ArrayComponent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box), m_graph(gui.getArray()), m_array(&box->cnv->main->pd, m_graph)
 {
     setInterceptsMouseClicks(false, true);
     m_array.setBounds(getLocalBounds());
@@ -562,14 +556,26 @@ size_t GraphicalArray::getArraySize() const noexcept
 }
 
 
-GraphOnParent::GraphOnParent(Box* box) : GUIComponent(box), canvas(new Canvas(ValueTree(Identifiers::canvas), box->cnv->main))
+GraphOnParent::GraphOnParent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
 {
+    auto tree = ValueTree(Identifiers::canvas);
+    tree.setProperty(Identifiers::is_graph, true, nullptr);
+    tree.setProperty("Title", "Subpatcher", nullptr);
+    
+    canvas.reset(new Canvas(tree, box->cnv->main));
+    
     setInterceptsMouseClicks(false, true);
+    
     addAndMakeVisible(canvas.get());
 
     subpatch = gui.getPatch();
     
-    //canvas->load_patch(subpatch);
+    canvas->main_patch = false;
+
+    // Not good yet...
+    
+    canvas->load_patch(subpatch);
+    //canvas->load_patch(subpatch.getCanvasContent());
     
     resized();
     
