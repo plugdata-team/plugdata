@@ -81,7 +81,7 @@ static t_atom *fake_gatom_getatom(t_fake_gatom *x)
 
 
 
-Gui::Gui(void* ptr, void* patch, Instance* instance) noexcept :
+Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept :
 Object(ptr, patch, instance), m_type(Type::Undefined)
 {
     m_type = getType(ptr, String(getText()));
@@ -423,7 +423,7 @@ float Gui::getFontHeight() const noexcept
     }
     else
     {
-        return libpd_get_canvas_font_height(static_cast<t_canvas*>(m_patch));
+        return libpd_get_canvas_font_height(m_patch->getPointer());
     }
 }
 
@@ -545,7 +545,7 @@ Label Gui::getLabel() const noexcept
             auto const* gatom       = static_cast<t_fake_gatom*>(m_ptr);
             auto const color        = 0xff000000;
             auto const fontname     = getFontName();
-            auto const fontheight   = sys_hostfontsize(glist_getfont(static_cast<t_canvas*>(m_patch)), glist_getzoom(static_cast<t_canvas*>(m_patch)));
+            auto const fontheight   = sys_hostfontsize(glist_getfont(m_patch->getPointer()), glist_getzoom(m_patch->getPointer()));
             
             if (gatom->a_wherelabel == 0) // Left
             {

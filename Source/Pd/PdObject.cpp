@@ -16,77 +16,78 @@ extern "C"
 
 namespace pd
 {
-    // ==================================================================================== //
-    //                                      OBJECT                                          //
-    // ==================================================================================== //
-    
-    Object::Object(void* ptr, void* patch, Instance* instance) noexcept :
-    m_ptr(ptr), m_patch(patch), m_instance(instance)
-    {
-        
-    }
-    
-    std::string Object::getText() const
-    {
-        if(m_ptr)
-        {
-            char* text = nullptr;
-            int size = 0;
-            m_instance->setThis();
-            libpd_get_object_text(m_ptr, &text, &size);
-            if(text && size)
-            {
-                std::string txt(text, size);
-                freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-                return txt;
-            }
-        }
-        return std::string();
-    }
-    
-    std::string Object::getName() const
-    {
-        if(m_ptr)
-        {
-            char const* name = libpd_get_object_class_name(m_ptr);
-            if(name)
-            {
-                return std::string(name);
-            }
-        }
-        return std::string();
-    }
-    
-    std::array<int, 4> Object::getBounds() const noexcept
-    {
-        if(m_ptr)
-        {
-            int x = 0, y = 0, w = 0, h = 0;
-            m_instance->setThis();
-            libpd_get_object_bounds(m_patch, m_ptr, &x, &y, &w, &h);
-            
-            t_canvas const* cnv = static_cast<t_canvas*>(m_patch);
-            if(cnv != nullptr)
-            {
-                x -= cnv->gl_xmargin;
-                y -= cnv->gl_ymargin;
-            }
+// ==================================================================================== //
+//                                      OBJECT                                          //
+// ==================================================================================== //
 
-            return {x, y, w, h};
+Object::Object(void* ptr, Patch* patch, Instance* instance) noexcept :
+m_ptr(ptr), m_patch(patch), m_instance(instance)
+{
+    
+}
+
+std::string Object::getText() const
+{
+    if(m_ptr)
+    {
+        char* text = nullptr;
+        int size = 0;
+        m_instance->setThis();
+        libpd_get_object_text(m_ptr, &text, &size);
+        if(text && size)
+        {
+            std::string txt(text, size);
+            freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+            return txt;
         }
-        return {0, 0, 0, 0};
     }
-    
-    
-    bool Object::operator==(Object const& other) const noexcept
+    return std::string();
+}
+
+std::string Object::getName() const
+{
+    if(m_ptr)
     {
-        return m_ptr == other.m_ptr;
+        char const* name = libpd_get_object_class_name(m_ptr);
+        if(name)
+        {
+            return std::string(name);
+        }
     }
-    
-    bool Object::operator!=(Object const& other) const noexcept
+    return std::string();
+}
+
+std::array<int, 4> Object::getBounds() const noexcept
+{
+    if(m_ptr)
     {
-        return m_ptr != other.m_ptr;
+        int x = 0, y = 0, w = 0, h = 0;
+        m_instance->setThis();
+        
+        libpd_get_object_bounds(m_patch->getPointer(), m_ptr, &x, &y, &w, &h, m_patch->isGraph());
+        
+        t_canvas const* cnv = m_patch->getPointer();
+        if(cnv != nullptr)
+        {
+            x -= cnv->gl_xmargin;
+            y -= cnv->gl_ymargin;
+        }
+        
+        return {x, y, w, h};
     }
+    return {0, 0, 0, 0};
+}
+
+
+bool Object::operator==(Object const& other) const noexcept
+{
+    return m_ptr == other.m_ptr;
+}
+
+bool Object::operator!=(Object const& other) const noexcept
+{
+    return m_ptr != other.m_ptr;
+}
 }
 
 

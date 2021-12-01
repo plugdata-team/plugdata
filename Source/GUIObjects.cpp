@@ -22,6 +22,7 @@ GUIComponent::GUIComponent(pd::Gui pd_gui, Box* parent)  : box(parent), gui(pd_g
 
 GUIComponent::~GUIComponent()
 {
+    stopTimer();
     setLookAndFeel(nullptr);
 }
 
@@ -34,7 +35,7 @@ GUIComponent* GUIComponent::create_gui(String name, Box* parent)
     auto* checked_object = pd_checkobject(parent->pd_object);
     jassert(parent->pd_object && checked_object);
     
-    auto gui = pd::Gui(static_cast<void*>(checked_object), parent->cnv->patch.getPointer(), &(parent->cnv->main->pd));
+    auto gui = pd::Gui(static_cast<void*>(checked_object), &parent->cnv->patch, &(parent->cnv->main->pd));
     
     if(gui.getType() == pd::Gui::Type::Bang) {
         return new BangComponent(gui, parent);
@@ -570,6 +571,7 @@ GraphOnParent::GraphOnParent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, bo
     addAndMakeVisible(canvas.get());
 
     subpatch = gui.getPatch();
+    subpatch.setGraph(true);
     
     canvas->isMainPatch = false;
     canvas->loadPatch(subpatch);

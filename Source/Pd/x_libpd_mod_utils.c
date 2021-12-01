@@ -57,11 +57,11 @@ void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
         (*x->g_pd->c_wb->w_getrectfn)(x, glist, &x1, &y1, &x2, &y2);
         
         /*
-        glist_noselect(glist);
-        glist_select(glist, x);
-        (*x->g_pd->c_wb->w_displacefn)(x, glist, dx, dy);
-        //canvas_displaceselection_ext(glist, xpos - x1, ypos - y1);
-        glist_deselect(glist, x); */
+         glist_noselect(glist);
+         glist_select(glist, x);
+         (*x->g_pd->c_wb->w_displacefn)(x, glist, dx, dy);
+         //canvas_displaceselection_ext(glist, xpos - x1, ypos - y1);
+         glist_deselect(glist, x); */
         (*x->g_pd->c_wb->w_displacefn)(x, glist, xpos - x1, ypos - y1);
     }
     
@@ -69,17 +69,33 @@ void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
     
 }
 
+t_pd* libpd_newest(t_canvas* cnv)
+{
+    // Regular pd_newest won't work because it doesn't get assigned for some gui components
+    t_gobj* y;
+    
+    // Get to the last object
+    for(y = cnv->gl_list; y && y->g_next; y = y->g_next)
+    {
+    }
+    
+    return y;
+}
+
+
 void libpd_canvas_doclear(t_canvas *x)
 {
     
     canvas_undo_add(x, UNDO_CUT, "clear",
-        canvas_undo_set_cut(x, 2));
+                    canvas_undo_set_cut(x, 2));
     
     t_gobj *y, *y2;
     int dspstate;
     
     dspstate = canvas_suspend_dsp();
-    if (x->gl_editor->e_selectedline)
+    
+    /* don't clear connections, call removeconnection instead
+    if (x->gl_editor && x->gl_editor->e_selectedline)
     {
         canvas_disconnect(x,
                           x->gl_editor->e_selectline_index1,
@@ -87,11 +103,12 @@ void libpd_canvas_doclear(t_canvas *x)
                           x->gl_editor->e_selectline_index2,
                           x->gl_editor->e_selectline_inno);
         x->gl_editor->e_selectedline=0;
-    }
+    } */
+    
     /* if text is selected, deselecting it might remake the
      object. So we deselect it and hunt for a "new" object on
      the glist to reselect. */
-    if (x->gl_editor->e_textedfor)
+    if (x->gl_editor && x->gl_editor->e_textedfor)
     {
         //t_gobj *selwas = x->gl_editor->e_selection->sel_what;
         pd_this->pd_newest = 0;
@@ -342,7 +359,7 @@ static void canvas_dopaste(t_canvas *x, t_binbuf *b)
 void libpd_copy(t_canvas* x) {
     if (!x->gl_editor || !x->gl_editor->e_selection)
         return;
-        
+    
     // sys_lock();
     
     binbuf_free(EDITOR->copy_binbuf);
@@ -428,6 +445,8 @@ void libpd_undo(t_canvas *x) {
 
 void libpd_redo(t_canvas *x) {
     pd_this->pd_newest = 0;
+    if(!x->gl_editor) return;
+    
     pd_typedmess((t_pd*)x, gensym("redo"), 0, NULL);
 }
 
@@ -436,11 +455,11 @@ void libpd_duplicate(t_canvas *x)
 {
     if (!x->gl_editor)
         return;
-
+    
     if (x->gl_editor->e_selection && x->gl_editor->e_selectedline)
         glist_deselectline(x);
-
-        /* if a connection is selected, we extend it to the right (if possible) */
+    
+    /* if a connection is selected, we extend it to the right (if possible) */
     if (x->gl_editor->e_selectedline)
     {
         int outindex = x->gl_editor->e_selectline_index1;
@@ -451,14 +470,14 @@ void libpd_duplicate(t_canvas *x)
         t_object *outobj = 0, *inobj = 0;
         int whoout = outindex;
         int whoin = inindex;
-
+        
         for (outgobj = x->gl_list; whoout; outgobj = outgobj->g_next, whoout--)
             if (!outgobj->g_next) return;
         for (ingobj = x->gl_list; whoin; ingobj = ingobj->g_next, whoin--)
             if (!ingobj->g_next) return;
         outobj = (t_object*)outgobj;
         inobj = (t_object*)ingobj;
-
+        
         
         while(!libpd_canconnect(x, outobj, outno, inobj, inno))
         {
@@ -469,7 +488,7 @@ void libpd_duplicate(t_canvas *x)
             outno++;
             inno++;
         }
-
+        
         if(libpd_tryconnect(x, outobj, outno, inobj, inno))
         {
             x->gl_editor->e_selectline_outno = outno;
@@ -485,11 +504,11 @@ void libpd_duplicate(t_canvas *x)
             b = binbuf_duplicate(EDITOR->copy_binbuf);
         libpd_copy(x);
         canvas_undo_add(x, UNDO_PASTE, "duplicate",
-            (void *)canvas_undo_set_paste(x, 0, 1, 10));
+                        (void *)canvas_undo_set_paste(x, 0, 1, 10));
         canvas_dopaste(x, EDITOR->copy_binbuf);
         for (y = x->gl_editor->e_selection; y; y = y->sel_next)
             gobj_displace(y->sel_what, x,
-                10, 10);
+                          10, 10);
         if(b)
         {
             if(EDITOR->copy_binbuf)
@@ -572,9 +591,7 @@ static void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
 
 
 
-t_pd* libpd_creategraphonparent(t_pd *x) {
-
-    
+t_pd* libpd_creategraphonparent(t_canvas* cnv) {
     int argc = 9;
     
     t_atom argv[9];
@@ -604,17 +621,17 @@ t_pd* libpd_creategraphonparent(t_pd *x) {
     
     
     
-    pd_typedmess(x, gensym("graph"), argc, argv);
+    pd_typedmess((t_pd*)cnv, gensym("graph"), argc, argv);
     
-    canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
-                    (void *)canvas_undo_set_create((t_canvas*)x));
+    canvas_undo_add(cnv, UNDO_CREATE, "create",
+                    (void *)canvas_undo_set_create(cnv));
     
-    glist_noselect(x);
+    glist_noselect(cnv);
     
-    return pd_newest();
+    return libpd_newest(cnv);
 }
 
-t_pd* libpd_creategraph(t_pd *x, const char* name, int size) {
+t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size) {
     
     int argc = 4;
     
@@ -629,30 +646,30 @@ t_pd* libpd_creategraph(t_pd *x, const char* name, int size) {
     
     // sys_lock();
     
-    pd_typedmess(x, gensym("arraydialog"), argc, argv);
+    pd_typedmess((t_pd*)cnv, gensym("arraydialog"), argc, argv);
     
-    canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
-                    (void *)canvas_undo_set_create((t_canvas*)x));
+    canvas_undo_add(cnv, UNDO_CREATE, "create",
+                    (void *)canvas_undo_set_create(cnv));
     
-    glist_noselect(x);
+    glist_noselect(cnv);
     
     // sys_unlock();
     
-    return pd_newest();
+    return libpd_newest(cnv);
 }
 
-t_pd* libpd_createobj(t_pd *x, t_symbol *s, int argc, t_atom *argv) {
+t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
     // sys_lock();
     
-    pd_typedmess(x, s, argc, argv);
+    pd_typedmess((t_pd*)cnv, s, argc, argv);
     
-    canvas_undo_add((t_canvas*)x, UNDO_CREATE, "create",
-                    (void *)canvas_undo_set_create((t_canvas*)x));
+    canvas_undo_add(cnv, UNDO_CREATE, "create",
+                    (void *)canvas_undo_set_create(cnv));
     
-    glist_noselect(x);
+    glist_noselect(cnv);
     
     // sys_unlock();
-    return pd_newest();
+    return libpd_newest(cnv);
     
 }
 

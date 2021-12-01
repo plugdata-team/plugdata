@@ -393,9 +393,9 @@ void Instance::processPrints()
 
 void Instance::enqueueFunction(std::function<void(void)> fn) {
     
-    sys_lock();
+    //sys_lock();
     fn();
-    sys_unlock();
+    //sys_unlock();
     
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
@@ -473,7 +473,7 @@ void Instance::dequeueMessages()
             sendMessage(mess.destination.c_str(), mess.selector.c_str(), mess.list);
         }
     }
-
+    
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -523,7 +523,7 @@ void Instance::setThis()
 
 void Instance::stringToAtom(String name, int& argc, t_atom& target)
 {
-
+    
 }
 
 

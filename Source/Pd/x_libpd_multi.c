@@ -256,7 +256,7 @@ static void libpd_multi_print_setup(void)
 {
     sys_lock();
     libpd_multi_print_class = class_new(gensym("libpd_multi_print"), (t_newmethod)NULL, (t_method)NULL,
-                                       sizeof(t_libpd_multi_print), CLASS_DEFAULT, A_NULL, 0);
+                                        sizeof(t_libpd_multi_print), CLASS_DEFAULT, A_NULL, 0);
     sys_unlock();
 }
 
@@ -269,7 +269,7 @@ void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print)
         sys_lock();
         t_symbol* s = gensym("#libpd_multi_print");
         sys_unlock();
-        pd_bind(&x->x_obj.ob_pd, s); 
+        pd_bind(&x->x_obj.ob_pd, s);
         x->x_ptr = ptr;
         x->x_hook = hook_print;
     }

@@ -46,13 +46,14 @@ void libpd_get_object_text(void* ptr, char** text, int* size)
     binbuf_gettext(((t_text*)ptr)->te_binbuf, text, size);
 }
 
-void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h)
+void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h, int is_graph)
 {
-    t_canvas *cnv = (t_canvas*)glist_getcanvas(patch);
+    t_canvas* cnv = patch;
+    while (cnv->gl_owner && !cnv->gl_havewindow && cnv->gl_isgraph && is_graph)
+        cnv = cnv->gl_owner;
+    
     *x = 0; *y = 0; *w = 0; *h = 0;
     gobj_getrect((t_gobj *)ptr, cnv, x, y, w, h);
-    *x -= 1;
-    *y -= 1;
     *w -= *x;
     *h -= *y;
 }
@@ -156,71 +157,71 @@ float libpd_get_canvas_font_height(t_canvas* cnv)
 void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
 
 /*
-static void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
-{
-    t_gobj *y;
-    t_linetraverser t;
-    t_outconnect *oc;
-
-    // subpatch
-    if (x->gl_owner && !x->gl_env)
-    {
-        // have to go to original binbuf to find out how we were named.
-        t_binbuf *bz = binbuf_new();
-        t_symbol *patchsym;
-        binbuf_addbinbuf(bz, x->gl_obj.ob_binbuf);
-        patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
-        binbuf_free(bz);
-        binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
-            (int)(x->gl_screenx1),
-            (int)(x->gl_screeny1),
-            (int)(x->gl_screenx2 - x->gl_screenx1),
-            (int)(x->gl_screeny2 - x->gl_screeny1),
-            (patchsym != &s_ ? patchsym: gensym("(subpatch)")),
-            x->gl_mapped);
-    }
-        // root or abstraction
-    else
-    {
-        binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
-            (int)(x->gl_screenx1),
-            (int)(x->gl_screeny1),
-            (int)(x->gl_screenx2 - x->gl_screenx1),
-            (int)(x->gl_screeny2 - x->gl_screeny1),
-                (int)x->gl_font);
-        canvas_savedeclarationsto(x, b);
-    }
-    for (y = x->gl_list; y; y = y->g_next)
-        gobj_save(y, b);
-
-    linetraverser_start(&t, x);
-    while ((oc = linetraverser_next(&t)))
-    {
-        int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
-        int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
-        binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
-            srcno, t.tr_outno, sinkno, t.tr_inno);
-    }
-        // unless everything is the default (as in ordinary subpatches)
-        print out a "coords" message to set up the coordinate systems
-    if (x->gl_isgraph || x->gl_x1 || x->gl_y1 ||
-        x->gl_x2 != 1 ||  x->gl_y2 != 1 || x->gl_pixwidth || x->gl_pixheight)
-    {
-        if (x->gl_isgraph && x->gl_goprect)
-                // if we have a graph-on-parent rectangle, we're new style.
-                The format is arranged so
-                that old versions of Pd can at least do something with it.
-            binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
-                x->gl_x1, x->gl_y1,
-                x->gl_x2, x->gl_y2,
-                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                (t_float)((x->gl_hidetext)?2.:1.),
-                (t_float)x->gl_xmargin, (t_float)x->gl_ymargin);
-                    // otherwise write in 0.38-compatible form
-        else binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
-                x->gl_x1, x->gl_y1,
-                x->gl_x2, x->gl_y2,
-                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                (t_float)x->gl_isgraph);
-    }
-} */
+ static void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
+ {
+ t_gobj *y;
+ t_linetraverser t;
+ t_outconnect *oc;
+ 
+ // subpatch
+ if (x->gl_owner && !x->gl_env)
+ {
+ // have to go to original binbuf to find out how we were named.
+ t_binbuf *bz = binbuf_new();
+ t_symbol *patchsym;
+ binbuf_addbinbuf(bz, x->gl_obj.ob_binbuf);
+ patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
+ binbuf_free(bz);
+ binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
+ (int)(x->gl_screenx1),
+ (int)(x->gl_screeny1),
+ (int)(x->gl_screenx2 - x->gl_screenx1),
+ (int)(x->gl_screeny2 - x->gl_screeny1),
+ (patchsym != &s_ ? patchsym: gensym("(subpatch)")),
+ x->gl_mapped);
+ }
+ // root or abstraction
+ else
+ {
+ binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
+ (int)(x->gl_screenx1),
+ (int)(x->gl_screeny1),
+ (int)(x->gl_screenx2 - x->gl_screenx1),
+ (int)(x->gl_screeny2 - x->gl_screeny1),
+ (int)x->gl_font);
+ canvas_savedeclarationsto(x, b);
+ }
+ for (y = x->gl_list; y; y = y->g_next)
+ gobj_save(y, b);
+ 
+ linetraverser_start(&t, x);
+ while ((oc = linetraverser_next(&t)))
+ {
+ int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
+ int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
+ binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
+ srcno, t.tr_outno, sinkno, t.tr_inno);
+ }
+ // unless everything is the default (as in ordinary subpatches)
+ print out a "coords" message to set up the coordinate systems
+ if (x->gl_isgraph || x->gl_x1 || x->gl_y1 ||
+ x->gl_x2 != 1 ||  x->gl_y2 != 1 || x->gl_pixwidth || x->gl_pixheight)
+ {
+ if (x->gl_isgraph && x->gl_goprect)
+ // if we have a graph-on-parent rectangle, we're new style.
+ The format is arranged so
+ that old versions of Pd can at least do something with it.
+ binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
+ x->gl_x1, x->gl_y1,
+ x->gl_x2, x->gl_y2,
+ (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
+ (t_float)((x->gl_hidetext)?2.:1.),
+ (t_float)x->gl_xmargin, (t_float)x->gl_ymargin);
+ // otherwise write in 0.38-compatible form
+ else binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
+ x->gl_x1, x->gl_y1,
+ x->gl_x2, x->gl_y2,
+ (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
+ (t_float)x->gl_isgraph);
+ }
+ } */
