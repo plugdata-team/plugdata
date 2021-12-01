@@ -19,7 +19,8 @@ Canvas::Canvas(ValueTree tree, MainComponent* parent) : ValueTreeObject(tree), m
     
     setWantsKeyboardFocus(true);
     
-    viewport.setViewedComponent(this, false);
+    viewport = new Viewport; // Owned by the tabbar!
+    viewport->setViewedComponent(this, true);
     
     int max_x = 600;
     int max_y = 400;
@@ -84,6 +85,8 @@ void Canvas::synchronise() {
     
     Array<Box*> boxes;
     
+    patch.setCurrent();
+    
     // Go through all the boxes in the pd patch, and add GUI components for them
     for(auto& object : patch.getObjects(getState().getProperty(Identifiers::is_graph))) {
         
@@ -91,8 +94,8 @@ void Canvas::synchronise() {
         
         // Setting the exists flag tells the box that this refers to an objects that already exists in the pd patch
         box.setProperty(Identifiers::exists, true, nullptr);
-        box.setProperty(Identifiers::box_x, object.getBounds()[0] + 1, nullptr);
-        box.setProperty(Identifiers::box_y, object.getBounds()[1] + 1, nullptr);
+        box.setProperty(Identifiers::box_x, object.getBounds()[0], nullptr);
+        box.setProperty(Identifiers::box_y, object.getBounds()[1], nullptr);
         
         getState().appendChild(box, nullptr);
         
@@ -106,7 +109,7 @@ void Canvas::synchronise() {
             name = "msg " + name;
         }
         
-        if(object.getName() == "gatom" && name.containsOnly("0123456789.")) {
+        if(object.getName() == "gatom" && name.containsOnly("0123456789.")) { // TODO: is this correct?
             name = "floatatom";
         }
         else if(object.getName() == "gatom") {
@@ -119,6 +122,7 @@ void Canvas::synchronise() {
                 target = selector;
             }
         };
+        
         gui_simplify(name, "bng");
         gui_simplify(name, "tgl");
         gui_simplify(name, "nbx");
@@ -182,8 +186,14 @@ void Canvas::synchronise() {
     
     patch.deselectAll();
     
-    synchonising = false;
+    // Synchonise subcanvases
+    for(auto& box : findChildrenOfClass<Box>()) {
+        if(box->graphics && box->graphics->getCanvas()) {
+            box->graphics->getCanvas()->synchronise();
+        }
+    }
     
+    synchonising = false;
 }
 
 void Canvas::loadPatch(String patch) {
@@ -264,8 +274,12 @@ void Canvas::mouseDown(const MouseEvent& e)
                     tree.setProperty("Title", lasso_selection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false), nullptr);
                     main->getState().appendChild(tree, nullptr);
                     
+                    // TODO: how does this cause a crash...
                     auto* new_cnv = main->findChildrenOfClass<Canvas>().getLast();
-                    new_cnv->loadPatch(cnv->patch);
+                    auto patch_copy = cnv->patch;
+                    patch_copy.setGraph(false);
+                    new_cnv->loadPatch(patch_copy);
+                    new_cnv->isMainPatch = false;
                     
                     break;
                 }
@@ -397,6 +411,7 @@ void Canvas::resized()
 }
 
 bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
+    if(main->getCurrentCanvas() != this) return false;
     if(getState().getProperty(Identifiers::is_graph)) return false;
     
     if(key.getTextCharacter() == 'n') {
@@ -490,10 +505,7 @@ void Canvas::duplicateSelection() {
 
 void Canvas::removeSelection() {
     
-    /*
-     for(auto& sel : dragger.getLassoSelection()) {
-     dynamic_cast<Box*>(sel)->remove();
-     } */
+    patch.setCurrent();
     
     Array<t_pd*> objects;
     for(auto* sel : dragger.getLassoSelection()) {
@@ -501,9 +513,15 @@ void Canvas::removeSelection() {
             if(box->pd_object) {
                 patch.selectObject(box->pd_object);
                 objects.add(box->pd_object);
+                
+                // Make sure we stop reading values from pd
+                if(box->graphics) {
+                    box->graphics->stopTimer();
+                }
             }
         }
     }
+    patch.removeSelection();
     
     for(auto& con : findChildrenOfClass<Connection>()) {
         if(con->isSelected) {
@@ -517,8 +535,7 @@ void Canvas::removeSelection() {
     }
     
     dragger.deselectAll();
-    patch.removeSelection();
-    
+
     synchronise();
 }
 
@@ -552,14 +569,13 @@ void Canvas::closeAllInstances()
     
     for(int n = 0; n < tabbar.getNumTabs(); n++) {
         auto* viewport = static_cast<Viewport*>(tabbar.getTabContentComponent(n));
-        if(static_cast<Canvas*>(viewport->getViewedComponent())->patch == patch) {
-            main->getState().removeChild(static_cast<Canvas*>(viewport->getViewedComponent())->getState(), nullptr);
-            
-            
+        auto* cnv = static_cast<Canvas*>(viewport->getViewedComponent());
+        if(cnv->patch == patch && cnv->main == main) {
+            main->getState().removeChild(cnv->getState(), nullptr);
             
             tabbar.removeTab(n);
             
-            canvas_setcurrent(main->getMainCanvas()->patch.getPointer());
+            //canvas_setcurrent(main->getMainCanvas()->patch.getPointer());
             
             
         }

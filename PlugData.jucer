@@ -81,7 +81,8 @@
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
-    <XCODE_MAC targetFolder="Builds/MacOSX">
+    <XCODE_MAC targetFolder="Builds/MacOSX" xcodeSubprojects="../../Libraries/libpd/libpd.xcodeproj: libpd-osx-multi"
+               extraDefs="PDINSTANCE">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="PlugData" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="PlugData"/>

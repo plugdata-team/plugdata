@@ -41,9 +41,12 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
             }
         }
         
-        if(getCurrentCanvas()->patch.getPointer())
+        auto* cnv = getCurrentCanvas();
+        if(cnv->patch.getPointer())
         {
-            canvas_setcurrent(getCurrentCanvas()->patch.getPointer());
+            canvas_setcurrent(cnv->patch.getPointer());
+            canvas_vis(cnv->patch.getPointer(), 1.);
+            //cnv->synchronise();
         }
         
 
@@ -435,8 +438,8 @@ void MainComponent::valueTreeChanged() {
     
     pd.setThis();
     
-    toolbarButtons[3].setEnabled(libpd_can_undo(static_cast<t_canvas*>(pd.m_patch)));
-    toolbarButtons[4].setEnabled(libpd_can_redo(static_cast<t_canvas*>(pd.m_patch)));
+    toolbarButtons[3].setEnabled(libpd_can_undo(getCurrentCanvas()->patch.getPointer()));
+    toolbarButtons[4].setEnabled(libpd_can_redo(getCurrentCanvas()->patch.getPointer()));
 }
 
 Canvas* MainComponent::getCurrentCanvas()
@@ -455,7 +458,7 @@ Canvas* MainComponent::getMainCanvas() {
 
 void MainComponent::addTab(Canvas* cnv)
 {
-    tabbar.addTab(cnv->getState().getProperty("Title"), findColour(ResizableWindow::backgroundColourId), &cnv->viewport, false);
+    tabbar.addTab(cnv->getState().getProperty("Title"), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
     
     int tab_idx = tabbar.getNumTabs() - 1;
     tabbar.setCurrentTabIndex(tab_idx);
@@ -487,7 +490,12 @@ void MainComponent::addTab(Canvas* cnv)
         if(tabbar.getCurrentTabIndex() == idx) {
             tabbar.setCurrentTabIndex(idx == 1 ? idx - 1 : idx + 1);
         }
+        
+        auto* cnv = static_cast<Canvas*>(static_cast<Viewport*>(tabbar.getTabContentComponent(idx))->getViewedComponent());
+        
+        getState().removeChild(cnv->getState(), nullptr);
         tabbar.removeTab(idx);
+        
         
         if(tabbar.getNumTabs() == 1) {
             tabbar.getTabbedButtonBar().setVisible(false);

@@ -95,7 +95,7 @@ public:
     
     Array<Edge*> getAllEdges();
     
-    Viewport viewport;
+    Viewport* viewport;
     
     bool connectingWithDrag = false;
     

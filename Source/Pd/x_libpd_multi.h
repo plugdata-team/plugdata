@@ -11,7 +11,7 @@
 extern "C"
 {
 #endif
-    
+
 #include <z_libpd.h>
 
 void libpd_multi_init(void);

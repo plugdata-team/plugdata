@@ -116,7 +116,7 @@ namespace pd
             
         Patch getPatch() const noexcept;
         
-        Gui(void* ptr, void* patch, Instance* instance) noexcept;
+        Gui(void* ptr, Patch* patch, Instance* instance) noexcept;
     private:
 
         std::string last_symbol;

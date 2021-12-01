@@ -34,6 +34,6 @@ What works:
 What doesn't work / needs to be fixed:
 - No VU meter
 - Possibly some thread-safety issues, and some slightly hacky manipulations of pd
-- Subpatcher support can be slightly buggy (especially when combined with undo/redo)
+- Support for editing subpatchers and GraphOnParent is experimental
 
 Please contact me if you wish to contribute, I could use some help!

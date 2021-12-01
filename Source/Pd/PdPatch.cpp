@@ -42,72 +42,78 @@ struct _instanceeditor
 };
 namespace pd
 {    
-    // ==================================================================================== //
-    //                                          PATCHER                                     //
-    // ==================================================================================== //
-    
+// ==================================================================================== //
+//                                          PATCHER                                     //
+// ==================================================================================== //
 
 
-    Patch::Patch(void* ptr, Instance* instance) noexcept :
-    m_ptr(ptr), m_instance(instance)
+
+Patch::Patch(void* ptr, Instance* instance) noexcept :
+m_ptr(ptr), m_instance(instance)
+{
+}
+
+bool Patch::isGraph() const noexcept
+{
+    return is_graph;
+}
+
+bool Patch::setGraph(bool graph) noexcept {
+    is_graph = graph;
+}
+
+std::array<int, 4> Patch::getBounds() const noexcept
+{
+    if(m_ptr)
     {
-    }
-    
-    bool Patch::isGraph() const noexcept
-    {
-        if(m_ptr)
+        t_canvas const* cnv = getPointer();
+        if(cnv->gl_isgraph)
         {
-            return static_cast<bool>(getPointer()->gl_isgraph);
+            return {cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth - 2, cnv->gl_pixheight - 2};
         }
-        return false;
     }
-    
-    std::array<int, 4> Patch::getBounds() const noexcept
-    {
-        if(m_ptr)
-        {
-            t_canvas const* cnv = getPointer();
-            if(cnv->gl_isgraph)
-            {
-                return {cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth - 2, cnv->gl_pixheight - 2};
-            }
-        }
-        return {0, 0, 0, 0};
-    }
+    return {0, 0, 0, 0};
+}
 
-    std::vector<Object> Patch::getObjects(bool only_gui) noexcept
+void Patch::setCurrent() {
+    //canvas_setcurrent(getPointer());
+    //set_currnet
+    //get_curent_canvas();
+}
+
+std::vector<Object> Patch::getObjects(bool only_gui) noexcept
+{
+    if(m_ptr)
     {
-        if(m_ptr)
+        std::vector<Object> objects;
+        t_canvas const* cnv = getPointer();
+        
+        for(t_gobj *y = cnv->gl_list; y; y = y->g_next)
         {
-            std::vector<Object> objects;
-            t_canvas const* cnv = getPointer();
+            Object object(static_cast<void*>(y), this, m_instance);
             
-            for(t_gobj *y = cnv->gl_list; y; y = y->g_next)
-            {
-                Object object(static_cast<void*>(y), m_ptr, m_instance);
-                
-                if(only_gui) {
-                    Gui gui(static_cast<void*>(y), m_ptr, m_instance);
-                    if(gui.getType() != Gui::Type::Undefined)
-                    {
-                        objects.push_back(object);
-                    }
-                }
-                else {
+            if(only_gui) {
+                Gui gui(static_cast<void*>(y), this, m_instance);
+                if(gui.getType() != Gui::Type::Undefined)
+                {
                     objects.push_back(object);
                 }
-                
-                
             }
-            return objects;
+            else {
+                objects.push_back(object);
+            }
+            
+            
         }
-        return std::vector<Object>();
+        return objects;
     }
+    return std::vector<Object>();
+}
 
 
 t_pd* Patch::createGraphOnParent() {
     m_instance->setThis();
-    t_pd* pdobject = libpd_creategraphonparent(static_cast<t_pd*>(m_ptr));
+    t_pd* pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr));
     
     return pdobject;
 }
@@ -115,7 +121,7 @@ t_pd* Patch::createGraphOnParent() {
 t_pd* Patch::createGraph(String name, int size)
 {
     m_instance->setThis();
-    t_pd* pdobject = libpd_creategraph(static_cast<t_pd*>(m_ptr), name.toRawUTF8(), size);
+    t_pd* pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size);
     
     // Cant enqueue this...
     
@@ -130,7 +136,7 @@ t_pd* Patch::createObject(String name, int x, int y)
     StringArray tokens;
     tokens.addTokens(name, " ", "");
     
-
+    
     if(tokens[0] == "graph" && tokens.size() == 3) {
         return createGraph(tokens[1], tokens[2].getIntValue());
     }
@@ -153,7 +159,7 @@ t_pd* Patch::createObject(String name, int x, int y)
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
     }
-
+    
     int argc = tokens.size() + 2;
     
     auto argv = std::vector<t_atom>(argc);
@@ -174,7 +180,7 @@ t_pd* Patch::createObject(String name, int x, int y)
     // Cant enqueue this...
     
     m_instance->setThis();
-    t_pd* pdobject = libpd_createobj(static_cast<t_pd*>(m_ptr), typesymbol, argc, argv.data());
+    t_pd* pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
     
     return pdobject;
 }
@@ -226,7 +232,7 @@ bool Patch::createConnection(t_pd* src, int nout, t_pd* sink, int nin)
 {
     if(!src || !sink || !m_ptr) return false;
     
-
+    
     
     m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
         
@@ -238,7 +244,7 @@ bool Patch::createConnection(t_pd* src, int nout, t_pd* sink, int nin)
         libpd_createconnection(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
     });
     
-
+    
     
     return true;
 }
@@ -253,7 +259,7 @@ void Patch::removeConnection(t_pd* src, int nout, t_pd*sink, int nin)
     });
     
     
-
+    
 }
 
 
@@ -266,7 +272,7 @@ t_pd* Patch::renameObject(t_pd* obj, String name) {
     
     libpd_renameobj(getPointer(), &pd_checkobject(obj)->te_g, name.toRawUTF8(), name.length());
     
-    return static_cast<t_pdinstance*>(m_instance->m_instance)->pd_newest;
+    return libpd_newest(getPointer());
 }
 
 void Patch::moveObject(t_pd* obj, int x, int y) {
