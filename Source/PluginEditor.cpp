@@ -1,4 +1,4 @@
-#include "MainComponent.h"
+#include "PluginEditor.h"
 #include "Canvas.h"
 #include "Edge.h"
 #include "Pd/x_libpd_mod_utils.h"
@@ -6,25 +6,15 @@
 
 //==============================================================================
 
-// Print std::cout and std::cerr to console when in debug mode
-#if JUCE_DEBUG
-#define LOG_STDOUT true
-#else
-#define LOG_STDOUT false
-#endif
-
-MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG_STDOUT, LOG_STDOUT), pd(&console)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debug_console) : AudioProcessorEditor(&p), ValueTreeObject(ValueTree("Main")), pd(p)
 {
-    setSize(1000, 700);
     
+    console = debug_console;
     LookAndFeel::setDefaultLookAndFeel(&mainLook);
     
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::background_1);
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::background_1);
     tabbar.setColour(TabbedComponent::outlineColourId, MainLook::background_1);
-    
-    //player.reset(nullptr);
-    //set_remote(false);
     
     setLookAndFeel(&mainLook);
     
@@ -35,10 +25,10 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
         
         // update GraphOnParent when changing tabs
         for(auto* box : getCurrentCanvas()->findChildrenOfClass<Box>()) {
-            if(box->graphics && box->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent) {
+            if(box->graphics && box->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
                 box->graphics.get()->getCanvas()->synchronise();
             }
-            if(box->graphics && (box->graphics->getGUI().getType() == pd::Gui::Type::Subpatch || box->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent)) {
+            if(box->graphics && (box->graphics->getGUI().getType() == pd::Type::Subpatch || box->graphics->getGUI().getType() == pd::Type::GraphOnParent)) {
                 box->updatePorts();
             }
         }
@@ -61,7 +51,7 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
     addAndMakeVisible(tabbar);
     rebuildObjects();
     
-    addAndMakeVisible(&console);
+    addAndMakeVisible(console);
     
 
     startButton.onClick = [this]() {
@@ -252,9 +242,15 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
         pd.m_patch = mainCanvas->patch.getPointer();
         
     }
+    
+    resizer.reset(new ResizableCornerComponent (this, &restrainer));
+    addAndMakeVisible(resizer.get());
+    
+    restrainer.setSizeLimits (150, 150, 1200, 1200);
+    setSize (pd.lastUIWidth, pd.lastUIHeight);
 }
 
-MainComponent::~MainComponent()
+PlugDataPluginEditor::~PlugDataPluginEditor()
 {
     LookAndFeel::setDefaultLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
@@ -267,7 +263,7 @@ MainComponent::~MainComponent()
 }
 
 
-ValueTreeObject* MainComponent::factory(const Identifier& id, const ValueTree& tree)
+ValueTreeObject* PlugDataPluginEditor::factory(const Identifier& id, const ValueTree& tree)
 {
     if(id == Identifiers::canvas) {
         auto* canvas = new Canvas(tree, this);
@@ -281,7 +277,7 @@ ValueTreeObject* MainComponent::factory(const Identifier& id, const ValueTree& t
 
 
 //==============================================================================
-void MainComponent::paint (Graphics& g)
+void PlugDataPluginEditor::paint (Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
@@ -290,7 +286,6 @@ void MainComponent::paint (Graphics& g)
     auto highlight_colour = MainLook::highlight_colour;
     
     int s_width = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
-
     
     // Sidebar
     g.setColour(base_colour.darker(0.1));
@@ -318,7 +313,7 @@ void MainComponent::paint (Graphics& g)
     
 }
 
-void MainComponent::resized()
+void PlugDataPluginEditor::resized()
 {
     int s_width = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
     
@@ -326,8 +321,8 @@ void MainComponent::resized()
     
     int sbar_y = toolbarHeight - 4;
     
-    console.setBounds(getWidth() - s_content_width, sbar_y + 2, s_content_width, getHeight() - sbar_y);
-    console.toFront(false);
+    console->setBounds(getWidth() - s_content_width, sbar_y + 2, s_content_width, getHeight() - sbar_y);
+    console->toFront(false);
     
     tabbar.setBounds(0, sbar_y, getWidth() - s_width, getHeight() - sbar_y - statusbarHeight);
     tabbar.toFront(false);
@@ -346,12 +341,13 @@ void MainComponent::resized()
     }
     
     hideButton.setBounds(std::min(getWidth() - s_width, getWidth() - 80), 0, 70, toolbarHeight);
-    // This is called when the MainComponent is resized.
-    // If you add any child components, this is where you should
-    // update their positions.
+    
+    resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
+    pd.lastUIWidth = getWidth();
+    pd.lastUIHeight = getHeight();
 }
 
-void MainComponent::mouseDown(const MouseEvent &e) {
+void PlugDataPluginEditor::mouseDown(const MouseEvent &e) {
     Rectangle<int> drag_bar(getWidth() - sidebarWidth, dragbarWidth, sidebarWidth, getHeight() - toolbarHeight);
     if(drag_bar.contains(e.getPosition()) && !sidebarHidden) {
         draggingSidebar = true;
@@ -364,7 +360,7 @@ void MainComponent::mouseDown(const MouseEvent &e) {
    
 }
 
-void MainComponent::mouseDrag(const MouseEvent &e) {
+void PlugDataPluginEditor::mouseDrag(const MouseEvent &e) {
     if(draggingSidebar) {
         sidebarWidth = dragStartWidth - e.getDistanceFromDragStartX();
         repaint();
@@ -372,12 +368,12 @@ void MainComponent::mouseDrag(const MouseEvent &e) {
     }
 }
 
-void MainComponent::mouseUp(const MouseEvent &e) {
+void PlugDataPluginEditor::mouseUp(const MouseEvent &e) {
     draggingSidebar = false;
 }
 
 
-void MainComponent::openProject() {
+void PlugDataPluginEditor::openProject() {
     
     int result = 2;
     
@@ -434,7 +430,7 @@ void MainComponent::openProject() {
     }
 }
 
-void MainComponent::saveProject() {
+void PlugDataPluginEditor::saveProject() {
     
     WaitableEvent event;
     
@@ -467,7 +463,7 @@ void MainComponent::saveProject() {
     
 }
 
-void MainComponent::timerCallback() {
+void PlugDataPluginEditor::timerCallback() {
     for(auto* cnv : findChildrenOfClass<Canvas>(true)) {
         for(auto& box : cnv->findChildrenOfClass<Box>()) {
             if(box->graphics) {
@@ -477,7 +473,7 @@ void MainComponent::timerCallback() {
     }
 }
 
-void MainComponent::valueTreeChanged() {
+void PlugDataPluginEditor::valueTreeChanged() {
     
     pd.setThis();
     
@@ -485,7 +481,7 @@ void MainComponent::valueTreeChanged() {
     //toolbarButtons[4].setEnabled(libpd_can_redo(getCurrentCanvas()->patch.getPointer()));
 }
 
-Canvas* MainComponent::getCurrentCanvas()
+Canvas* PlugDataPluginEditor::getCurrentCanvas()
 {
     if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
         if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
@@ -495,11 +491,11 @@ Canvas* MainComponent::getCurrentCanvas()
     return nullptr;
 }
 
-Canvas* MainComponent::getMainCanvas() {
+Canvas* PlugDataPluginEditor::getMainCanvas() {
     return mainCanvas;
 }
 
-Canvas* MainComponent::getCanvas(int idx) {
+Canvas* PlugDataPluginEditor::getCanvas(int idx) {
     if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
         if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
             return cnv;
@@ -510,7 +506,7 @@ Canvas* MainComponent::getCanvas(int idx) {
 }
 
 
-void MainComponent::addTab(Canvas* cnv)
+void PlugDataPluginEditor::addTab(Canvas* cnv)
 {
     tabbar.addTab(cnv->getProperty("Title"), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
     

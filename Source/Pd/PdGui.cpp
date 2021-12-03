@@ -87,7 +87,7 @@ Object(ptr, patch, instance), m_type(Type::Undefined)
     m_type = getType(ptr, String(getText()));
 }
 
-Gui::Type Gui::getType(void* ptr, String obj_text)
+Type Gui::getType(void* ptr, String obj_text)
 {
     Type m_type = Type::Undefined;
     

@@ -88,7 +88,37 @@ bool Object::operator!=(Object const& other) const noexcept
 {
     return m_ptr != other.m_ptr;
 }
+
+int Object::getNumInlets() noexcept {
+    if(auto* checked = m_patch->checkObject(this)) {
+        return libpd_ninlets(checked);
+    }
+    
+    return 0;
+}
+int Object::getNumOutlets() noexcept {
+    if(auto* checked = m_patch->checkObject(this)) {
+        return libpd_noutlets(checked);
+    }
+    
+    return 0;
 }
 
+bool Object::isSignalInlet(int idx) noexcept {
+    if(auto* checked = m_patch->checkObject(this)) {
+        return libpd_issignalinlet(checked, idx);
+    }
+    
+    return 0;
+}
+bool Object::isSignalOutlet(int idx) noexcept {
+    if(auto* checked = m_patch->checkObject(this)) {
+        return libpd_issignaloutlet(checked, idx);
+    }
+    
+    return 0;
+}
+
+}
 
 

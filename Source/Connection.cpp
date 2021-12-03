@@ -23,14 +23,14 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
     if(start->ValueTreeObject::getProperty(Identifiers::edgeIsInput)) {
         inIdx = start->ValueTreeObject::getProperty(Identifiers::edgeIdx);
         outIdx = end->ValueTreeObject::getProperty(Identifiers::edgeIdx);
-        inObj = start->box->pd_object;
-        outObj = end->box->pd_object;
+        inObj = start->box->pdObject.get();
+        outObj = end->box->pdObject.get();
     }
     else {
         inIdx = end->ValueTreeObject::getProperty(Identifiers::edgeIdx);
         outIdx = start->ValueTreeObject::getProperty(Identifiers::edgeIdx);
-        inObj = end->box->pd_object;
-        outObj = start->box->pd_object;
+        inObj = end->box->pdObject.get();
+        outObj = start->box->pdObject.get();
     }
         
     

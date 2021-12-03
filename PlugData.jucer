@@ -50,10 +50,10 @@
               file="Source/Plugin/PluginProcessor.h"/>
       </GROUP>
       <GROUP id="{9FE053EB-CCAB-BDCF-A7B2-F3A9B88F4B7D}" name="Utility">
-        <FILE id="OfIaiR" name="gin_valuetreeobject.cpp" compile="1" resource="0"
-              file="Source/Utility/gin_valuetreeobject.cpp"/>
-        <FILE id="Jtxqry" name="gin_valuetreeobject.h" compile="0" resource="0"
-              file="Source/Utility/gin_valuetreeobject.h"/>
+        <FILE id="SB8oLD" name="ValueTreeObject.cpp" compile="1" resource="0"
+              file="Source/Utility/ValueTreeObject.cpp"/>
+        <FILE id="FR8uYC" name="ValueTreeObject.h" compile="0" resource="0"
+              file="Source/Utility/ValueTreeObject.h"/>
         <FILE id="xeZrN2" name="MultiComponentDragger.h" compile="0" resource="0"
               file="Source/Utility/MultiComponentDragger.h"/>
       </GROUP>
@@ -76,14 +76,14 @@
       <FILE id="Q6rN6C" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
       <FILE id="LPXvQI" name="PlugData.cpp" compile="1" resource="0" file="Source/PlugData.cpp"/>
       <FILE id="BJ9gJl" name="PlugData.h" compile="0" resource="0" file="Source/PlugData.h"/>
-      <FILE id="M3K6EJ" name="SaveDialog.cpp" compile="1" resource="0" file="Source/SaveDialog.cpp"/>
-      <FILE id="OxrAEu" name="SaveDialog.h" compile="0" resource="0" file="Source/SaveDialog.h"/>
+      <FILE id="D0oEjh" name="Dialogs.cpp" compile="1" resource="0" file="Source/Dialogs.cpp"/>
+      <FILE id="gfMkUh" name="Dialogs.h" compile="0" resource="0" file="Source/Dialogs.h"/>
     </GROUP>
   </MAINGROUP>
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" xcodeSubprojects="../../Libraries/libpd/libpd.xcodeproj: libpd-osx-multi"
-               extraDefs="PDINSTANCE" bigIcon="moDv9b">
+               extraDefs="PDINSTANCE" bigIcon="moDv9b" smallIcon="moDv9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="PlugData" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="PlugData"/>

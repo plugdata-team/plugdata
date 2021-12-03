@@ -98,7 +98,11 @@ public:
     void waitForStateUpdate() {
         // Need to wait twice to ensure that pd has processed all changes
         if(audio_started) {
-            update_wait.wait();
+            // Append signal to resume thread at the end of the queue
+            // This will make sure that any actions we performed are definitely finished now
+            m_function_queue.enqueue([this](){
+                update_wait.signal();
+            });
             update_wait.wait();
         }
     }

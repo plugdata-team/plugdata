@@ -443,7 +443,7 @@ void libpd_undo(t_canvas *x) {
 }
 
 void libpd_redo(t_canvas *x) {
-    pd_this->pd_newest = 0;
+    //pd_this->pd_newest = 0;
     if(!x->gl_editor) return;
     
     pd_typedmess((t_pd*)x, gensym("redo"), 0, NULL);
@@ -718,7 +718,7 @@ int libpd_can_redo(t_canvas* cnv) {
 
 void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
 {
-
+    glist_noselect(cnv);
     glist_select(cnv, obj);
     
     int x1, y1, x2, y2;

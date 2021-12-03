@@ -4,7 +4,8 @@
 #include "Box.h"
 
 #include "Utility/ValueTreeObject.h"
-#include "PlugData.h"
+#include "PluginProcessor.h"
+#include "Pd/PdPatch.hpp"
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -42,7 +43,7 @@ struct Identifiers
 };
 
 class Edge;
-class MainComponent;
+class PlugDataPluginEditor;
 class Canvas  : public Component, public ValueTreeObject, public KeyListener
 {
 public:
@@ -50,11 +51,11 @@ public:
     static inline constexpr int guiUpdateMs = 80;
     
     //==============================================================================
-    Canvas(ValueTree tree, MainComponent* parent);
+    Canvas(ValueTree tree, PlugDataPluginEditor* parent);
     
     ~Canvas();
     
-    MainComponent* main;
+    PlugDataPluginEditor* main;
     
     ValueTreeObject* factory (const juce::Identifier&, const juce::ValueTree&) override;
 
@@ -109,8 +110,6 @@ public:
     bool isMainPatch = true;
     
     pd::Patch patch;
-    
-    Box* findInfoObject();
     
     // Our objects are bigger than pd's, so move everything apart by this factor
     static inline constexpr float zoom = 3.0f;

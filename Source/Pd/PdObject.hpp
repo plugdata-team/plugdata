@@ -21,6 +21,30 @@ class Instance;
 //! @details The class is a wrapper around a Pd object. The lifetime of the internal\n
 //! object is not guaranteed by the class.
 //! @see Instance, Patch, Gui
+
+
+//!         //! @brief The type of GUI.
+enum class Type : size_t
+{
+    Undefined        = 0,
+    HorizontalSlider = 1,
+    VerticalSlider   = 2,
+    Toggle           = 3,
+    Number           = 4,
+    HorizontalRadio  = 5,
+    VerticalRadio    = 6,
+    Bang             = 7,
+    Panel            = 8,
+    VuMeter          = 9,
+    Comment          = 10,
+    AtomNumber       = 11,
+    AtomSymbol       = 12,
+    Array            = 13,
+    GraphOnParent    = 14,
+    Message          = 15,
+    Subpatch         = 16
+};
+
 class Object
 {
 public:
@@ -49,6 +73,10 @@ public:
     //! @brief The name of the Object.
     std::string getName() const;
     
+    virtual inline Type getType() const noexcept {
+        return Type::Undefined;
+    }
+    
     //! @brief The bounds of the Object.
     virtual std::array<int, 4> getBounds() const noexcept;
     
@@ -56,9 +84,15 @@ public:
         return m_ptr;
     }
     
-protected:
+    int getNumInlets() noexcept;
+    int getNumOutlets() noexcept;
+    
+    bool isSignalInlet(int idx) noexcept;
+    bool isSignalOutlet(int idx) noexcept;
+    
     Object(void* ptr, Patch* patch, Instance* instance) noexcept;
     
+protected:
     void*   m_ptr   = nullptr;
     Patch*   m_patch = nullptr;
     Instance* m_instance = nullptr ;

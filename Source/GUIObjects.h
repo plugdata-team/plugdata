@@ -6,16 +6,14 @@
 #include <m_pd.h>
 #include "Pd/x_libpd_extra_utils.h"
 #include "Pd/PdGui.hpp"
-#include "PlugData.h"
+#include "Pd/PdPatch.hpp"
 #include "LookAndFeel.h"
+#include "PluginProcessor.h"
 
 class Canvas;
 class Box;
 struct GUIComponent : public Component
 {
-    
-    
-    
     std::unique_ptr<ResizableBorderComponent> resizer;
     
     Box* box;
@@ -23,8 +21,6 @@ struct GUIComponent : public Component
     Array<int> num_registered;
     
     GUIComponent(pd::Gui gui, Box* parent);
-    
-    static bool is_gui(String name);
     
     virtual ~GUIComponent();
     
@@ -68,7 +64,7 @@ protected:
     const std::string string_mouse = std::string("mouse");
     
     
-    PlugData& m_processor;
+    PlugDataAudioProcessor& m_processor;
     pd::Gui     gui;
     std::atomic<bool> edited;
     float       value   = 0;
@@ -246,7 +242,7 @@ struct RadioComponent : public GUIComponent
 struct GraphicalArray : public Component, public Timer
 {
 public:
-    GraphicalArray(PlugData* pd, pd::Array& graph);
+    GraphicalArray(PlugDataAudioProcessor* pd, pd::Array& graph);
     void paint(Graphics& g) override;
     void mouseDown(const MouseEvent& event) override;
     void mouseDrag(const MouseEvent& event) override;
@@ -267,7 +263,7 @@ private:
     bool                    m_error = false;
     const std::string string_array = std::string("array");
     
-    PlugData* m_instance;
+    PlugDataAudioProcessor* m_instance;
 };
 
 
@@ -366,7 +362,7 @@ public:
     
     void updateValue() override {};
     
-    std::pair<int, int> getBestSize() override {return {120, 28}; };
+    std::pair<int, int> getBestSize() override {return {120, 4}; };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 32, 100, 32};

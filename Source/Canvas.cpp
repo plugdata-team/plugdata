@@ -1,11 +1,11 @@
 #include "Canvas.h"
 #include "Box.h"
 #include "Connection.h"
-#include "MainComponent.h"
+#include "PluginEditor.h"
 //#include "../../Source/Library.hpp"
 
 //==============================================================================
-Canvas::Canvas(ValueTree tree, MainComponent* parent) : ValueTreeObject(tree), main(parent)
+Canvas::Canvas(ValueTree tree, PlugDataPluginEditor* parent) : ValueTreeObject(tree), main(parent)
 {
     
     setSize (600, 400);
@@ -24,9 +24,11 @@ Canvas::Canvas(ValueTree tree, MainComponent* parent) : ValueTreeObject(tree), m
         viewport->setViewedComponent(this, false);
     }
     
+    
     rebuildObjects();
     
     main->startTimer(guiUpdateMs);
+    
 }
 
 
@@ -66,7 +68,8 @@ void Canvas::synchronise() {
     
     // Save all open tabs to restore later
     Array<std::pair<pd::Patch, String>> tabs;
-    //main->pd.waitForStateUpdate();
+    main->pd.waitForStateUpdate();
+    
     int open_tab = main->getTabbar().getCurrentTabIndex();
     for(int n = 1; n < main->getTabbar().getNumTabs(); n++) {
         tabs.add({main->getCanvas(n)->patch, main->getTabbar().getTabbedButtonBar().getTabNames()[n]});
@@ -102,7 +105,7 @@ void Canvas::synchronise() {
         appendChild(box);
         
         auto* last_box = findChildrenOfClass<Box>().getLast();
-        last_box->pd_object = static_cast<t_pd*>(object.getPointer());
+        *last_box->pdObject = object;
         boxes.add(last_box); // lets hope this preserves the object order...
         
         String name = object.getText();
@@ -233,39 +236,13 @@ void Canvas::synchronise() {
     String extra_info;
     for(auto* box : findChildrenOfClass<Box>()) {
         extra_info += String(box->getWidth()) + ":" +  String(box->getHeight()) + " ";
-    }
-    
-    // TODO: create a comment
-    
-    if(auto* box = findInfoObject()) {
-        box->setProperty(Identifiers::boxName, "plugdata_info:" + extra_info);
-    }
-    else {
-        auto info_box = ValueTree(Identifiers::box);
-        info_box.setProperty(Identifiers::boxX, 0, nullptr);
-        info_box.setProperty(Identifiers::boxY, 0, nullptr);
-        appendChild(info_box);
-        info_box.setProperty(Identifiers::boxName, "plugdata_info:" + extra_info, nullptr);
-    }
-    
+    }    
 }
 
-Box* Canvas::findInfoObject() {
-    
-    for(auto* box : findChildrenOfClass<Box>()) {
-        if(box->is_pdinfo) {
-            return box;
-        }
-    }
-    
-    return nullptr;
-}
 
 void Canvas::loadPatch(String patch) {
     
-    if(!patch.contains("plugdata_info:")) {
-        patch += "#X text 0 0 plugdata_info:";
-    }
+    String extra_info = patch.fromFirstOccurrenceOf("#X text plugdata_info:",false, false).upToFirstOccurrenceOf(";", false, false);
     
     // Create the pd save file
     auto temp_patch = File::createTempFile(".pd");
@@ -321,7 +298,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool has_selection = lasso_selection.getNumSelected();
         bool multiple = lasso_selection.getNumSelected() > 1;
         
-        bool is_subpatch = has_selection && ((lasso_selection.getSelectedItem(0)->graphics &&  lasso_selection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent) || lasso_selection.getSelectedItem(0)->textLabel.getText().startsWith("pd"));
+        bool is_subpatch = has_selection && ((lasso_selection.getSelectedItem(0)->graphics &&  lasso_selection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::GraphOnParent) || lasso_selection.getSelectedItem(0)->textLabel.getText().startsWith("pd"));
         
         popupMenu.clear();
         popupMenu.addItem(1, "Open", !multiple && is_subpatch);
@@ -565,7 +542,7 @@ void Canvas::copySelection() {
     
     for(auto* sel : dragger.getLassoSelection()) {
         if(auto* box = dynamic_cast<Box*>(sel)) {
-            patch.selectObject(box->pd_object);
+            patch.selectObject(box->pdObject.get());
         }
     }
     
@@ -586,7 +563,7 @@ void Canvas::duplicateSelection() {
     
     for(auto* sel : dragger.getLassoSelection()) {
         if(auto* box = dynamic_cast<Box*>(sel)) {
-            patch.selectObject(box->pd_object);
+            patch.selectObject(box->pdObject.get());
         }
     }
     
@@ -602,12 +579,12 @@ void Canvas::removeSelection() {
     
     main->stopTimer();
     
-    Array<t_pd*> objects;
+    Array<pd::Object*> objects;
     for(auto* sel : dragger.getLassoSelection()) {
         if(auto* box = dynamic_cast<Box*>(sel)) {
-            if(box->pd_object) {
-                patch.selectObject(box->pd_object);
-                objects.add(box->pd_object);
+            if(box->pdObject) {
+                patch.selectObject(box->pdObject.get());
+                objects.add(box->pdObject.get());
             }
         }
     }

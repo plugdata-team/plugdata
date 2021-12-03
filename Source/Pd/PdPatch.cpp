@@ -84,7 +84,7 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
             
             if(only_gui) {
                 Gui gui(static_cast<void*>(y), this, m_instance);
-                if(gui.getType() != Gui::Type::Undefined)
+                if(gui.getType() != Type::Undefined)
                 {
                     objects.push_back(object);
                 }
@@ -101,31 +101,27 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
 }
 
 
-t_pd* Patch::createGraphOnParent() {
+std::unique_ptr<Object> Patch::createGraphOnParent() {
     m_instance->setThis();
     t_pd* pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr));
-    
-    return pdobject;
+    return std::make_unique<Gui>(pdobject, this, m_instance);
 }
 
-t_pd* Patch::createGraph(String name, int size)
+std::unique_ptr<Object> Patch::createGraph(String name, int size)
 {
     m_instance->setThis();
     t_pd* pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size);
     
-    // Cant enqueue this...
-    
-    return pdobject;
+    return std::make_unique<Gui>(pdobject, this, m_instance);
 }
 
-t_pd* Patch::createObject(String name, int x, int y)
+std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
 {
     
     if(!m_ptr) return nullptr;
     
     StringArray tokens;
     tokens.addTokens(name, " ", "");
-    
     
     if(tokens[0] == "graph" && tokens.size() == 3) {
         return createGraph(tokens[1], tokens[2].getIntValue());
@@ -134,20 +130,32 @@ t_pd* Patch::createObject(String name, int x, int y)
         return createGraphOnParent();
     }
     
-    
+    bool is_gui = false;
     t_symbol* typesymbol = gensym("obj");
     
     if(tokens[0] == "msg") {
+        is_gui = true;
         typesymbol = gensym("msg");
         tokens.remove(0);
     }
+    if(tokens[0] == "comment") {
+        is_gui = true;
+        typesymbol = gensym("text");
+        tokens.remove(0);
+    }
     if(tokens[0] == "floatatom") {
+        is_gui = true;
         typesymbol = gensym("floatatom");
         tokens.remove(0);
     }
     if(tokens[0] == "symbolatom") {
+        is_gui = true;
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
+    }
+    
+    if(tokens[0] == "bng" || tokens[0] == "tgl" || tokens[0] == "hsl" || tokens[0] == "vsl" || tokens[0] == "hradio" || tokens[0] == "vradio" || tokens[0] == "nbx" || tokens[0] == "graph" || tokens[0] == "canvas" || tokens[0] == "pd") {
+        is_gui = true;
     }
     
     int argc = tokens.size() + 2;
@@ -172,7 +180,12 @@ t_pd* Patch::createObject(String name, int x, int y)
     m_instance->setThis();
     t_pd* pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
     
-    return pdobject;
+    if(is_gui) {
+        return std::make_unique<Gui>(pdobject, this, m_instance);
+    }
+    else {
+        return std::make_unique<Object>(pdobject, this, m_instance);
+    }
 }
 
 
@@ -195,9 +208,9 @@ void Patch::duplicate() {
 }
 
 
-void Patch::selectObject(t_pd* x) {
-    m_instance->enqueueFunction([this, x]() {
-        glist_select(getPointer(), &(pd_checkobject(x)->te_g));
+void Patch::selectObject(Object* obj)  {
+    m_instance->enqueueFunction([this, obj]() {
+        glist_select(getPointer(), &checkObject(obj)->te_g);
     });
 }
 
@@ -207,18 +220,18 @@ void Patch::deselectAll() {
     });
 }
 
-void Patch::removeObject(t_pd* obj)
+void Patch::removeObject(Object* obj)
 {
     if(!obj || !m_ptr) return;
     
     m_instance->enqueueFunction([this, obj](){
         m_instance->setThis();
-        libpd_removeobj(getPointer(), &pd_checkobject(obj)->te_g);
+        libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
     });
     
 }
 
-bool Patch::createConnection(t_pd* src, int nout, t_pd* sink, int nin)
+bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
 {
     if(!src || !sink || !m_ptr) return false;
     
@@ -226,12 +239,12 @@ bool Patch::createConnection(t_pd* src, int nout, t_pd* sink, int nin)
     
     m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
         
-        bool can_connect = libpd_canconnect(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+        bool can_connect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
         
         if(!can_connect) return;
         
         m_instance->setThis();
-        libpd_createconnection(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+        libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
     
     
@@ -239,13 +252,13 @@ bool Patch::createConnection(t_pd* src, int nout, t_pd* sink, int nin)
     return true;
 }
 
-void Patch::removeConnection(t_pd* src, int nout, t_pd*sink, int nin)
+void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
 {
     if(!src || !sink || !m_ptr) return;
     
     m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
         m_instance->setThis();
-        libpd_removeconnection(getPointer(), pd_checkobject(src), nout, pd_checkobject(sink), nin);
+        libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
     
     
@@ -253,24 +266,32 @@ void Patch::removeConnection(t_pd* src, int nout, t_pd*sink, int nin)
 }
 
 
-t_pd* Patch::renameObject(t_pd* obj, String name) {
+std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     if(!obj || !m_ptr) return nullptr;
     
     // Cant use the queue for this...
     
     m_instance->setThis();
     
-    libpd_renameobj(getPointer(), &pd_checkobject(obj)->te_g, name.toRawUTF8(), name.length());
+    libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
     
-    return libpd_newest(getPointer());
+    auto gui = Gui(libpd_newest(getPointer()), this, m_instance);
+    if(gui.getType() == Type::Undefined) {
+        return std::make_unique<Object>(libpd_newest(getPointer()), this, m_instance);
+    }
+    else {
+        return std::make_unique<Gui>(gui);
+    }
+    
+   
 }
 
-void Patch::moveObject(t_pd* obj, int x, int y) {
+void Patch::moveObject(Object* obj, int x, int y) {
     if(!obj || !m_ptr) return;
     
     m_instance->enqueueFunction([this, obj, x, y]() mutable {
         m_instance->setThis();
-        libpd_moveobj(getPointer(), &pd_checkobject(obj)->te_g, x, y);
+        libpd_moveobj(getPointer(), &checkObject(obj)->te_g, x, y);
     });
     
 }
@@ -284,18 +305,24 @@ void Patch::removeSelection() {
 void Patch::undo() {
     m_instance->enqueueFunction([this]() {
         m_instance->setThis();
+        setCurrent();
         libpd_undo(getPointer());
     });
 }
 
 void Patch::redo() {
     m_instance->enqueueFunction([this]() {
+        setCurrent();
         m_instance->setThis();
         libpd_redo(getPointer());
     });
 }
 
+t_object* Patch::checkObject(Object* obj) const noexcept {
+    return pd_checkobject(static_cast<t_pd*>(obj->getPointer()));
 }
+}
+
 
 
 

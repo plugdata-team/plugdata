@@ -1,10 +1,7 @@
 #pragma once
 
 #include "LookAndFeel.h"
-#include "Canvas.h"
-#include "PlugData.h"
 #include "Utility/ValueTreeObject.h"
-
 #include "Console.h"
 
 
@@ -35,16 +32,16 @@ struct TabComponent : public TabbedComponent
     
 };
 
-
-class MainComponent : public Component, public ValueTreeObject, public Timer
+class Canvas;
+class PlugDataAudioProcessor;
+class PlugDataPluginEditor : public AudioProcessorEditor, public ValueTreeObject, public Timer
 {
 public:
     //==============================================================================
-    MainComponent();
-    ~MainComponent() override;
+    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
+    ~PlugDataPluginEditor() override;
     
-    Console console;
-    PlugData pd;
+    Component::SafePointer<Console> console;
     
     //==============================================================================
     void paint (Graphics&) override;
@@ -72,19 +69,23 @@ public:
     
     TabComponent& getTabbar()  { return tabbar; };
     
-    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite");
+    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Pd");
     static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
+    
+    // This reference is provided as a quick way for your editor to
+    // access the processor object that created it.
+    PlugDataAudioProcessor& pd;
+    
+    const std::string defaultPatch = "#N canvas 827 239 527 327 12;";
+    
     
 private:
     
-    const std::string defaultPatch = "#N canvas 827 239 527 327 12; #X text 0 0 plugdata_info:";
-    
+
     Canvas* mainCanvas = nullptr;
     
     FileChooser saveChooser =  FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
     FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation( File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
-    
-    //std::unique_ptr<PatchInterface> player;
     
     int toolbarHeight = 45;
     int statusbarHeight = 27;
@@ -99,8 +100,6 @@ private:
     TextButton& hideButton = toolbarButtons[6];
     
     TextButton startButton = TextButton(CharPointer_UTF8("\xef\x80\x91"));
-
-    //TextButton hideButton = TextButton("K");
     
     int dragStartWidth = 0;
     bool draggingSidebar = false;
@@ -109,9 +108,14 @@ private:
     StatusbarLook statusbarLook = StatusbarLook(1.4);
     MainLook mainLook;
 
-    
     TabComponent tabbar;
     
+    OpenGLContext openGLContext;
     
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainComponent)
+    ComponentBoundsConstrainer restrainer;
+    std::unique_ptr<ResizableCornerComponent> resizer;
+
+    
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugDataPluginEditor)
 };
