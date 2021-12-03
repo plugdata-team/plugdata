@@ -2,13 +2,13 @@
 #include "Edge.h"
 #include "Box.h"
 #include "GUIObjects.h"
-#include "MainComponent.h"
+#include "PluginEditor.h"
 #include "Canvas.h"
 
 
-GUIComponent::GUIComponent(pd::Gui pd_gui, Box* parent)  : box(parent), gui(pd_gui),  m_processor(parent->cnv->main->pd), edited(false)
+GUIComponent::GUIComponent(pd::Gui pd_gui, Box* parent)  : box(parent), m_processor(parent->cnv->main->pd), gui(pd_gui), edited(false)
 {
-    //if(!box->pd_object) return;
+    //if(!box->pdObject) return;
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
@@ -21,60 +21,61 @@ GUIComponent::~GUIComponent()
     setLookAndFeel(nullptr);
 }
 
-bool GUIComponent::is_gui(String name)  {
-    return name == "bng" || name == "tgl" || name == "hsl" || name == "vsl" || name == "hradio" || name == "vradio" || name == "msg" || name == "nbx" || name == "graph" || name == "canvas" || name == "floatatom" || name == "symbolatom" || name == "pd";
-}
-
 GUIComponent* GUIComponent::create_gui(String name, Box* parent)
 {
-    auto* checked_object = pd_checkobject(parent->pd_object);
-    jassert(parent->pd_object && checked_object);
     
-    auto gui = pd::Gui(static_cast<void*>(checked_object), &parent->cnv->patch, &(parent->cnv->main->pd));
+    //auto* checked_object = pd_checkobject(parent->pdObject);
+    //jassert(parent->pdObject && checked_object);
     
-    if(gui.getType() == pd::Gui::Type::Bang) {
+    auto* gui_ptr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
+    
+    if(!gui_ptr) return nullptr;
+    
+    auto& gui = *gui_ptr;
+    
+    if(gui.getType() == pd::Type::Bang) {
         return new BangComponent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::Toggle) {
+    if(gui.getType() == pd::Type::Toggle) {
         return new ToggleComponent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::HorizontalSlider) {
+    if(gui.getType() == pd::Type::HorizontalSlider) {
         return new SliderComponent(false, gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::VerticalSlider) {
+    if(gui.getType() == pd::Type::VerticalSlider) {
         return new SliderComponent(true, gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::HorizontalRadio) {
+    if(gui.getType() == pd::Type::HorizontalRadio) {
         return new RadioComponent(false, gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::VerticalRadio) {
+    if(gui.getType() == pd::Type::VerticalRadio) {
         return new RadioComponent(true, gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::Message) {
+    if(gui.getType() == pd::Type::Message) {
         return new MessageComponent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::Number) {
+    if(gui.getType() == pd::Type::Number) {
         return new NumboxComponent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::Array) {
+    if(gui.getType() == pd::Type::Array) {
         return new ArrayComponent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::GraphOnParent) {
+    if(gui.getType() == pd::Type::GraphOnParent) {
         return new GraphOnParent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::Subpatch) {
+    if(gui.getType() == pd::Type::Subpatch) {
         return new Subpatch(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::VuMeter) {
+    if(gui.getType() == pd::Type::VuMeter) {
         return nullptr; //new GraphOnParent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::Comment) {
+    if(gui.getType() == pd::Type::Comment) {
         return new CommentComponent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::AtomNumber) {
+    if(gui.getType() == pd::Type::AtomNumber) {
         return new NumboxComponent(gui, parent);
     }
-    if(gui.getType() == pd::Gui::Type::AtomSymbol) {
+    if(gui.getType() == pd::Type::AtomSymbol) {
         return new MessageComponent(gui, parent);
     }
     
@@ -123,7 +124,7 @@ void GUIComponent::updateValue()
     if(edited == false)
     {
         float const v = gui.getValue();
-        if(v != value || gui.getType() == pd::Gui::Type::Message)
+        if(v != value || gui.getType() == pd::Type::Message)
         {
             value = v;
             update();
@@ -224,7 +225,7 @@ MessageComponent::MessageComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(p
    
     addAndMakeVisible(input);
     
-    if(gui.getType() != pd::Gui::Type::AtomSymbol) {
+    if(gui.getType() != pd::Type::AtomSymbol) {
         addAndMakeVisible(bang_button);
     }
     
@@ -242,7 +243,7 @@ MessageComponent::MessageComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(p
 
 
 void MessageComponent::resized() {
-    int button_width = gui.getType() == pd::Gui::Type::AtomSymbol ? 0 : 28;
+    int button_width = gui.getType() == pd::Type::AtomSymbol ? 0 : 28;
     
     input.setBounds(0, 0, getWidth() - button_width, getHeight());
     bang_button.setBounds(getWidth() - (button_width + 1), 0, (button_width + 1), getHeight());
@@ -406,7 +407,7 @@ void ArrayComponent::resized()
 }
 
 // Array graph
-GraphicalArray::GraphicalArray(PlugData* pd, pd::Array& graph) : m_array(graph), m_edited(false), m_instance(pd)
+GraphicalArray::GraphicalArray(PlugDataAudioProcessor* pd, pd::Array& graph) : m_array(graph), m_edited(false), m_instance(pd)
 {
     if(graph.getName().empty()) return;
     

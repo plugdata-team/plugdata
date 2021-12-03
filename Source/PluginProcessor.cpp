@@ -1,6 +1,241 @@
-#include "PlugData.h"
+/*
+  ==============================================================================
 
-void PlugData::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+    This file contains the basic framework code for a JUCE plugin processor.
+
+  ==============================================================================
+*/
+
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
+#include "Canvas.h"
+
+// Print std::cout and std::cerr to console when in debug mode
+#if JUCE_DEBUG
+#define LOG_STDOUT true
+#else
+#define LOG_STDOUT false
+#endif
+
+
+//==============================================================================
+PlugDataAudioProcessor::PlugDataAudioProcessor()
+#ifndef JucePlugin_PreferredChannelConfigurations
+     : AudioProcessor (BusesProperties()
+                     #if ! JucePlugin_IsMidiEffect
+                      #if ! JucePlugin_IsSynth
+                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
+                      #endif
+                       .withOutput ("Output", AudioChannelSet::stereo(), true)
+                     #endif
+                       ),  pd::Instance("PlugData"),
+#endif
+    numin(2), numout(2),
+    m_name("PlugData"),
+    m_accepts_midi(true),
+    m_produces_midi(false),
+    m_is_midi_effect(false),
+    m_bypass(false){
+    
+    m_midi_buffer_in.ensureSize(2048);
+    m_midi_buffer_out.ensureSize(2048);
+    m_midi_buffer_temp.ensureSize(2048);
+    
+        
+    console.reset(new Console(LOG_STDOUT, LOG_STDOUT));
+    dequeueMessages();
+    
+
+    editor.reset(new PlugDataPluginEditor(*this, console.get()));
+        
+    processMessages();
+        
+    
+
+    
+}
+
+PlugDataAudioProcessor::~PlugDataAudioProcessor()
+{
+}
+
+//==============================================================================
+const String PlugDataAudioProcessor::getName() const
+{
+    return JucePlugin_Name;
+}
+
+bool PlugDataAudioProcessor::acceptsMidi() const
+{
+   #if JucePlugin_WantsMidiInput
+    return true;
+   #else
+    return false;
+   #endif
+}
+
+bool PlugDataAudioProcessor::producesMidi() const
+{
+   #if JucePlugin_ProducesMidiOutput
+    return true;
+   #else
+    return false;
+   #endif
+}
+
+bool PlugDataAudioProcessor::isMidiEffect() const
+{
+   #if JucePlugin_IsMidiEffect
+    return true;
+   #else
+    return false;
+   #endif
+}
+
+double PlugDataAudioProcessor::getTailLengthSeconds() const
+{
+    return 0.0;
+}
+
+int PlugDataAudioProcessor::getNumPrograms()
+{
+    return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
+                // so this should be at least 1, even if you're not really implementing programs.
+}
+
+int PlugDataAudioProcessor::getCurrentProgram()
+{
+    return 0;
+}
+
+void PlugDataAudioProcessor::setCurrentProgram (int index)
+{
+}
+
+const String PlugDataAudioProcessor::getProgramName (int index)
+{
+    return {};
+}
+
+void PlugDataAudioProcessor::changeProgramName (int index, const String& newName)
+{
+}
+
+//==============================================================================
+void PlugDataAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
+{
+    samplerate = sampleRate;
+    sampsperblock = samplesPerBlock;
+    
+    const int nins      = std::max(numin, 2);
+    const int nouts     = std::max(numout, 2);
+
+    
+    bufferout.resize(nouts);
+    bufferin.resize(nins);
+    
+    
+    for(int i = 2; i < nins; i++) {
+        bufferin[i] = new const float[sampsperblock]();
+    }
+    
+    for(int i = 2; i < nouts; i++) {
+        bufferout[i] = new float[sampsperblock]();
+    }
+
+    prepareDSP(nins, nouts, samplerate);
+    //sendCurrentBusesLayoutInformation();
+    m_audio_advancement = 0;
+    const size_t blksize = static_cast<size_t>(Instance::getBlockSize());
+
+    m_audio_buffer_in.resize(nins * blksize);
+    m_audio_buffer_out.resize(nouts * blksize);
+    std::fill(m_audio_buffer_out.begin(), m_audio_buffer_out.end(), 0.f);
+    std::fill(m_audio_buffer_in.begin(), m_audio_buffer_in.end(), 0.f);
+    m_midi_buffer_in.clear();
+    m_midi_buffer_out.clear();
+    m_midi_buffer_temp.clear();
+    
+    startDSP();
+    processMessages();
+    processPrints();
+    
+    processingBuffer.setSize(2, samplesPerBlock);
+}
+
+void PlugDataAudioProcessor::releaseResources()
+{
+    // When playback stops, you can use this as an opportunity to free up any
+    // spare memory, etc.
+}
+
+#ifndef JucePlugin_PreferredChannelConfigurations
+bool PlugDataAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
+{
+  #if JucePlugin_IsMidiEffect
+    ignoreUnused (layouts);
+    return true;
+  #else
+    // This is the place where you check if the layout is supported.
+    // In this template code we only support mono or stereo.
+    // Some plugin hosts, such as certain GarageBand versions, will only
+    // load plugins that support stereo bus layouts.
+    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
+     && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
+        return false;
+
+    // This checks if the input layout matches the output layout
+   #if ! JucePlugin_IsSynth
+    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
+        return false;
+   #endif
+
+    return true;
+  #endif
+}
+#endif
+
+void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+{
+    ScopedNoDenormals noDenormals;
+    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
+
+    // In case we have more outputs than inputs, this code clears any output
+    // channels that didn't contain input data, (because these aren't
+    // guaranteed to be empty - they may contain garbage).
+    // This is here to avoid people getting screaming feedback
+    // when they first compile a plugin, but obviously you don't need to keep
+    // this code if your algorithm always overwrites all the output channels.
+    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+        buffer.clear (i, 0, buffer.getNumSamples());
+
+    // This is the place where you'd normally do the guts of your plugin's
+    // audio processing...
+    // Make sure to reset the state if your inner loop is processing
+    // the samples and the outer loop is handling the channels.
+    // Alternatively, you can process the samples with the channels
+    // interleaved by keeping the same state.
+
+   //midiCollector.removeNextBlockOfMessages(midiMessages, 512);
+    
+    processingBuffer.setSize(2, buffer.getNumSamples());
+    
+    processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
+    processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
+    
+    process(processingBuffer, midiMessages);
+    
+    buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
+    if(totalNumOutputChannels == 2) {
+        buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
+    }
+   
+    
+    // ..do something to the data...
+}
+
+void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
     //ScopedNoDenormals noDenormals;
     const int blocksize = Instance::getBlockSize();
@@ -154,7 +389,7 @@ void PlugData::processBlock(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
     }
 }
 
-void PlugData::processInternal()
+void PlugDataAudioProcessor::processInternal()
 {
     //////////////////////////////////////////////////////////////////////////////////////////
     //                                     DEQUEUE MESSAGES                                 //
@@ -248,43 +483,39 @@ void PlugData::processInternal()
 }
 
 
-void PlugData::prepareToPlay(double sampleRate, int samplesPerBlock, int oversamp)
+//==============================================================================
+bool PlugDataAudioProcessor::hasEditor() const
 {
-    oversample = oversamp;
-    osfactor = pow(2, oversamp);
-    samplerate = sampleRate * osfactor;
-    sampsperblock = samplesPerBlock * osfactor;
-    
-    const int nins      = std::max(numin, 2);
-    const int nouts     = std::max(numout, 2);
+    return true; // (change this to false if you choose to not supply an editor)
+}
 
-    
-    bufferout.resize(nouts);
-    bufferin.resize(nins);
-    
-    
-    for(int i = 2; i < nins; i++) {
-        bufferin[i] = new const float[sampsperblock]();
-    }
-    
-    for(int i = 2; i < nouts; i++) {
-        bufferout[i] = new float[sampsperblock]();
-    }
+AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
+{
+    return editor.get();
+}
 
-    prepareDSP(nins, nouts, samplerate);
-    //sendCurrentBusesLayoutInformation();
-    m_audio_advancement = 0;
-    const size_t blksize = static_cast<size_t>(Instance::getBlockSize());
-
-    m_audio_buffer_in.resize(nins * blksize);
-    m_audio_buffer_out.resize(nouts * blksize);
-    std::fill(m_audio_buffer_out.begin(), m_audio_buffer_out.end(), 0.f);
-    std::fill(m_audio_buffer_in.begin(), m_audio_buffer_in.end(), 0.f);
-    m_midi_buffer_in.clear();
-    m_midi_buffer_out.clear();
-    m_midi_buffer_temp.clear();
+//==============================================================================
+void PlugDataAudioProcessor::getStateInformation (MemoryBlock& destData)
+{
     
-    startDSP();
-    processMessages();
-    processPrints();
+    // Store pure-data state
+    MemoryOutputStream ostream(destData, false);
+    ostream.writeString(getCanvasContent());
+}
+
+void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
+{
+    
+    MemoryInputStream istream(data, sizeInBytes, false);
+    String state = istream.readString();
+    
+    
+    editor->getMainCanvas()->loadPatch(state);
+}
+
+//==============================================================================
+// This creates new instances of the plugin..
+AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new PlugDataAudioProcessor();
 }

@@ -1,7 +1,7 @@
 #include "Box.h"
 #include "Canvas.h"
 #include "Edge.h"
-#include "MainComponent.h"
+#include "PluginEditor.h"
 
 #include "Pd/x_libpd_extra_utils.h"
 #include "Pd/x_libpd_mod_utils.h"
@@ -145,11 +145,11 @@ void Box::remove(bool clear_pd) {
     
     cnv->removeMouseListener(this);
     
-    if(pd_object && clear_pd) {
-        cnv->patch.removeObject(pd_object);
+    if(pdObject && clear_pd) {
+        cnv->patch.removeObject(pdObject.get());
     }
     
-    pd_object = nullptr;
+    pdObject = nullptr;
     cnv->removeChild(ValueTreeObject::getState());
 }
 
@@ -179,64 +179,62 @@ void Box::setType (String new_type)
 {
     String arguments = new_type.fromFirstOccurrenceOf(" ", false, false);
     String type = new_type.upToFirstOccurrenceOf(" ", false, false);
-
-    // TODO: this bit can be improved
-    // Wrap t_pd* in a pd::Object
-    bool is_gui = GUIComponent::is_gui(type);
     
     if(type.isNotEmpty() && !getProperty(Identifiers::exists)) {
         auto* pd = &cnv->patch;
         
         // Pd doesn't normally allow changing between gui and non-gui objects
-        if((pd_object && graphics.get() != nullptr) || is_gui) {
-            pd->removeObject(pd_object);
-            pd_object = pd->createObject(new_type, getX(), getY());
-            graphics.reset(nullptr);
+        if(pdObject && (graphics.get() != nullptr || pdObject->getType() != pd::Type::Undefined)) {
+            pd->removeObject(pdObject.get());
+            pdObject = pd->createObject(new_type, getX() / Canvas::zoom, getY() / Canvas::zoom);
         }
-        else if(pd_object) {
-            pd_object = pd->renameObject(pd_object, new_type);
+        else if(pdObject) {
+            pdObject = pd->renameObject(pdObject.get(), new_type);
         }
         else {
-            pd_object = pd->createObject(new_type, getX(), getY());
+            pdObject = pd->createObject(new_type, getX() / Canvas::zoom,  getY() / Canvas::zoom);
         }
     }
     else if(!getProperty(Identifiers::exists)) {
-        pd_object = nullptr;
+        pdObject = nullptr;
     }
-    
-    // Hide plug_data specific info comment
-    if(type.startsWith("plugdata_info:")) {
-        is_pdinfo = true;
-        setVisible(false);
-    }
-    
     
     updatePorts();
     
-    if(pd_object && is_gui) {
+    if(pdObject) {
         graphics.reset(GUIComponent::create_gui(type, this));
-        auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
-        restrainer.setSizeLimits(minW, minH, maxW, maxH);
         
-        addAndMakeVisible(graphics.get());
-        auto [w, h] = graphics->getBestSize();
-        setSize(std::max(getWidth(), w + 8), h + 28);
-        graphics->toBack();
+        if(graphics) {
+            auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
+            restrainer.setSizeLimits(minW, minH, maxW, maxH);
+            
+            addAndMakeVisible(graphics.get());
+            auto [w, h] = graphics->getBestSize();
+            setSize(std::max(getWidth(), w + 8), h + 28);
+            graphics->toBack();
+        }
+        else {
+            setSize(getWidth(), 32);
+            auto& [minW, minH, maxW, maxH] = defaultLimits;
+        
+            auto bestWidth = textLabel.getFont().getStringWidth(type) + getHeight();
+            restrainer.setSizeLimits(bestWidth, minH, std::max(700, bestWidth * 2), maxH);
+        }
     }
     else {
         setSize(getWidth(), 32);
         auto& [minW, minH, maxW, maxH] = defaultLimits;
-    
         
         auto bestWidth = textLabel.getFont().getStringWidth(type) + getHeight();
         restrainer.setSizeLimits(bestWidth, minH, std::max(700, bestWidth * 2), maxH);
-        
     }
-
-
     
     if(type.isEmpty()) {
         setSize (100, 32);
+    }
+    
+    if(new_type.startsWith("comment ")) {
+        textLabel.setText(new_type.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
 
     resized();
@@ -255,17 +253,18 @@ void Box::paint (Graphics& g)
     if (isDown || isOver || dragger.isSelected(this))
         baseColour = baseColour.contrasting (isDown ? 0.2f : 0.05f);
     
-    
-    g.setColour(baseColour);
-    g.fillRoundedRectangle(rect.toFloat(), 2.0f);
-    
-    g.setColour(findColour(ComboBox::outlineColourId));
-    
-    if(graphics && graphics->getGUI().getType() == pd::Gui::Type::Comment) {
-        std::cout << "todo: comment style";
-        
+    if(graphics && graphics->getGUI().getType() == pd::Type::Comment) {
+        g.setColour(findColour(ComboBox::outlineColourId));
+        g.drawRect(rect.toFloat(), 0.5f);
     }
-    g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
+    else {
+        g.setColour(baseColour);
+        g.fillRoundedRectangle(rect.toFloat(), 2.0f);
+        g.setColour(findColour(ComboBox::outlineColourId));
+        g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
+    }
+    
+
 }
 
 void Box::moved()
@@ -274,8 +273,8 @@ void Box::moved()
         edge->sendMovedResizedMessages(true, true);
     }
     
-    if(pd_object) {
-        cnv->patch.moveObject(pd_object, getX() / Canvas::zoom, getY() / Canvas::zoom);
+    if(pdObject) {
+        cnv->patch.moveObject(pdObject.get(), getX() / Canvas::zoom, getY() / Canvas::zoom);
     }
 }
 
@@ -346,15 +345,9 @@ void Box::updatePorts() {
     numInputs = 0;
     numOutputs = 0;
     
-    t_object* validobject = nullptr;
-    
-    if(pd_object) {
-        validobject = pd_checkobject(pd_object);
-        if(validobject) {
-            // Count number of inlets and outlets on the object returned
-            numInputs = libpd_ninlets(validobject);
-            numOutputs = libpd_noutlets(validobject);
-        }
+    if(pdObject) {
+        numInputs = pdObject->getNumInlets();
+        numOutputs = pdObject->getNumOutlets();
     }
 
 
@@ -397,7 +390,7 @@ void Box::updatePorts() {
         
         bool input = edge.getProperty(Identifiers::edgeIsInput);
         
-        bool is_signal = validobject && (i < numInputs ? libpd_issignalinlet(validobject, i) : libpd_issignaloutlet(validobject, i - numInputs));
+        bool is_signal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
         bool was_signal = edge.getProperty(Identifiers::edgeSignal);
         
         if(is_signal != was_signal) {

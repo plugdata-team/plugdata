@@ -45,17 +45,17 @@ public:
     //! @brief Gets the bounds of the patch.
     std::array<int, 4> getBounds() const noexcept;
     
-    t_pd* createGraph(String name, int size);
-    t_pd* createGraphOnParent();
+    std::unique_ptr<Object> createGraph(String name, int size);
+    std::unique_ptr<Object> createGraphOnParent();
     
-    t_pd* createObject(String name, int x, int y);
-    void removeObject(t_pd* obj);
-    t_pd* renameObject(t_pd* obj, String name);
-    void moveObject (t_pd*, int x, int y);
+    std::unique_ptr<Object> createObject(String name, int x, int y);
+    void removeObject(Object* obj);
+    std::unique_ptr<Object> renameObject(Object* obj, String name);
+    void moveObject (Object*, int x, int y);
     
     void removeSelection();
     
-    void selectObject(t_pd*);
+    void selectObject(Object*);
     void deselectAll();
     
     void copy();
@@ -67,8 +67,8 @@ public:
     
     void setCurrent();
     
-    bool createConnection(t_pd* src, int nout, t_pd* sink, int nin);
-    void removeConnection(t_pd* src, int nout, t_pd*sink, int nin);
+    bool createConnection(Object* src, int nout, Object* sink, int nin);
+    void removeConnection(Object* src, int nout, Object*sink, int nin);
     
     
     t_canvas* getPointer() const {
@@ -94,10 +94,13 @@ public:
 private:
     Patch(void* ptr, Instance* instance) noexcept;
     
+    t_object* checkObject(Object* obj) const noexcept;
+    
     void*     m_ptr      = nullptr;
     Instance* m_instance = nullptr;
     
     friend class Instance;
     friend class Gui;
+    friend class Object;
 };
 }

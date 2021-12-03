@@ -431,12 +431,11 @@ void Instance::dequeueMessages()
     
     while(m_function_queue.try_dequeue(callback))
     {
-        //sys_lock();
+        sys_lock();
         callback();
-        //sys_unlock();
+        sys_unlock();
     }
     
-    update_wait.signal();
     
     while(m_send_queue.try_dequeue(mess))
     {
@@ -460,7 +459,10 @@ void Instance::dequeueMessages()
                         SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().c_str()));
                     }
                 }
+                
+                sys_lock();
                 pd_typedmess(static_cast<t_pd *>(mess.object), gensym(mess.selector.c_str()), argc, argv);
+                sys_unlock();
             }
             else {
                 sys_lock();

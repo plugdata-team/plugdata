@@ -4,6 +4,7 @@
 #include <m_pd.h>
 #include "Edge.h"
 #include "Utility/ValueTreeObject.h"
+#include "Pd/PdObject.hpp"
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all
@@ -21,8 +22,8 @@ public:
     
     int inIdx;
     int outIdx;
-    t_pd* inObj;
-    t_pd* outObj;
+    pd::Object* inObj;
+    pd::Object* outObj;
     
     bool isSelected = false;
     

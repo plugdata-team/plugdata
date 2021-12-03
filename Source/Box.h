@@ -60,7 +60,6 @@ public:
     
     void updatePosition();
     
-    void setType(String new_type);
     
     void setLimits(std::tuple<int, int, int, int> limits);
     
@@ -68,7 +67,7 @@ public:
     
     void remove(bool clear_pd = true);
     
-    t_pd* pd_object = nullptr;
+    std::unique_ptr<pd::Object> pdObject = nullptr;
     
     void mouseMove(const MouseEvent& e) override;
     
@@ -76,8 +75,6 @@ public:
     
     int numInputs = 0;
     int numOutputs = 0;
-    
-    bool is_pdinfo = false;
     
     ComponentBoundsConstrainer restrainer;
     std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};
@@ -87,6 +84,8 @@ public:
     std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
     
 private:
+    
+    void setType(String new_type);
 
     MultiComponentDragger<Box>& dragger;
 

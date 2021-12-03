@@ -24,27 +24,7 @@ namespace pd
     class Gui : public Object
     {
     public:
-        //! @brief The type of GUI.
-        enum class Type : size_t
-        {
-            Undefined        = 0,
-            HorizontalSlider = 1,
-            VerticalSlider   = 2,
-            Toggle           = 3,
-            Number           = 4,
-            HorizontalRadio  = 5,
-            VerticalRadio    = 6,
-            Bang             = 7,
-            Panel            = 8,
-            VuMeter          = 9,
-            Comment          = 10,
-            AtomNumber       = 11,
-            AtomSymbol       = 12,
-            Array            = 13,
-            GraphOnParent    = 14,
-            Message          = 15,
-            Subpatch         = 16
-        };
+
         
         //! @brief The default constructor
         Gui() noexcept = default;
@@ -58,8 +38,9 @@ namespace pd
         //! @brief The destructor.
         ~Gui() noexcept = default;
         
+        
         //! @brief The type of the GUI.
-        inline Type getType() const noexcept
+        inline Type getType() const noexcept override
         {
             return m_type;
         }
