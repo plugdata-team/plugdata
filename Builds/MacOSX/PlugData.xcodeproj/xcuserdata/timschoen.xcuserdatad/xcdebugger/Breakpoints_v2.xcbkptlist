@@ -880,8 +880,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "175"
             endingLineNumber = "175"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            landmarkName = "Box::mouseMove(e)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
@@ -1552,8 +1552,8 @@
             endingColumnNumber = "9223372036854775807"
             startingLineNumber = "136"
             endingLineNumber = "136"
-            landmarkName = "unknown"
-            landmarkType = "0">
+            landmarkName = "Box::Box(parent, tree, multiDragger)"
+            landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy

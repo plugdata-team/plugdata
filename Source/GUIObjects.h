@@ -342,7 +342,7 @@ struct Subpatch : public GUIComponent
     void updateValue() override {};
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
-        
+        return {40, 32, 100, 32};
     };
     
     
@@ -369,6 +369,6 @@ public:
     std::pair<int, int> getBestSize() override {return {120, 28}; };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
-        
+        return {40, 32, 100, 32};
     };
 };

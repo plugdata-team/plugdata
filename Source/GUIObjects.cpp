@@ -603,14 +603,9 @@ Subpatch::Subpatch(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
 }
 
 Subpatch::~Subpatch() {
-    if(box) {
-        box->removeChild(canvas->getState());
-    }
-    if(canvas) {
+    if(canvas && box) {
         canvas->closeAllInstances();
     }
-
-    
 }
 
 // Comment
