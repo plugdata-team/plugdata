@@ -11,8 +11,10 @@
 
 class Canvas;
 class Box;
-struct GUIComponent : public Component, public Timer
+struct GUIComponent : public Component
 {
+    
+    
     
     std::unique_ptr<ResizableBorderComponent> resizer;
     
@@ -28,7 +30,7 @@ struct GUIComponent : public Component, public Timer
     
     virtual std::pair<int, int> getBestSize() = 0;
     
-    virtual ComponentBoundsConstrainer getConstrainer() = 0;
+    virtual std::tuple<int, int, int, int> getSizeLimits() = 0;
     
     void paint(Graphics& g) override {
         g.setColour(findColour(TextButton::buttonColourId));
@@ -58,8 +60,6 @@ struct GUIComponent : public Component, public Timer
     float getValueScaled() const noexcept;
     void setValueScaled(float v);
     
-    void timerCallback() override;
-    
     void startEdition() noexcept;
     void stopEdition() noexcept;
     
@@ -81,7 +81,8 @@ protected:
 
 struct BangComponent : public GUIComponent
 {
-    
+ 
+    // TODO: clean this up
     struct BangTimer : public Timer {
         
         BangTimer(TextButton* button) {
@@ -102,8 +103,8 @@ struct BangComponent : public GUIComponent
     
     std::pair<int, int> getBestSize() override {return {24, 46}; };
     
-    ComponentBoundsConstrainer getConstrainer()  override {
-        return ComponentBoundsConstrainer();
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {40, 60, 200, 200};
     };
     
     void update() override;
@@ -123,8 +124,8 @@ struct ToggleComponent : public GUIComponent
     
     std::pair<int, int> getBestSize() override {return {24, 46}; };
     
-    ComponentBoundsConstrainer getConstrainer()  override {
-        
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {40, 60, 200, 200};
     };
     
     void resized() override;
@@ -145,8 +146,8 @@ struct MessageComponent : public GUIComponent
     
     std::pair<int, int> getBestSize() override {return {120, 28}; };
     
-    ComponentBoundsConstrainer getConstrainer()  override {
-        
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {100, 50, 500, 600};
     };
     
     void updateValue() override;
@@ -166,8 +167,8 @@ struct NumboxComponent : public GUIComponent
     
     std::pair<int, int> getBestSize() override {return {70, 28}; };
     
-    ComponentBoundsConstrainer getConstrainer()  override {
-        
+    std::tuple<int, int, int, int> getSizeLimits() override {
+        return {100, 50, 500, 600};
     };
     
     void mouseDrag(const MouseEvent & e) override {
@@ -204,8 +205,8 @@ struct SliderComponent : public GUIComponent
         
         return {130, 35}; };
     
-    ComponentBoundsConstrainer getConstrainer()  override {
-        
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {100, 60, 500, 600};
     };
 
     void resized() override;
@@ -231,8 +232,8 @@ struct RadioComponent : public GUIComponent
         return {161, 24};
     };
     
-    ComponentBoundsConstrainer getConstrainer()  override {
-        
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {100, 40, 500, 600};
     };
     
     
@@ -282,8 +283,10 @@ public:
     std::pair<int, int> getBestSize() override {return {200, 140}; };
     
     
-    ComponentBoundsConstrainer getConstrainer()  override {
+    std::tuple<int, int, int, int> getSizeLimits()  override {
         
+        
+        return {100, 40, 500, 600};
     };
     
 private:
@@ -309,16 +312,18 @@ public:
     
     
     Canvas* getCanvas() override {
-        return canvas.get();
+        return canvas;
     }
     
-    ComponentBoundsConstrainer getConstrainer()  override {
+    std::tuple<int, int, int, int> getSizeLimits()  override {
         
+        
+        return {100, 80, 500, 600};
     };
     
 private:
     pd::Patch subpatch;
-    std::unique_ptr<Canvas> canvas;
+    Canvas* canvas;
     
 };
 
@@ -336,19 +341,19 @@ struct Subpatch : public GUIComponent
     void resized() override {};
     void updateValue() override {};
     
-    ComponentBoundsConstrainer getConstrainer()  override {
+    std::tuple<int, int, int, int> getSizeLimits()  override {
         
     };
     
     
     Canvas* getCanvas() override {
-        return canvas.get();
+        return canvas;
     }
     
     
 private:
     pd::Patch subpatch;
-    std::unique_ptr<Canvas> canvas = nullptr;
+    Canvas* canvas = nullptr;
     
 };
 
@@ -363,7 +368,7 @@ public:
     
     std::pair<int, int> getBestSize() override {return {120, 28}; };
     
-    ComponentBoundsConstrainer getConstrainer()  override {
+    std::tuple<int, int, int, int> getSizeLimits()  override {
         
     };
 };

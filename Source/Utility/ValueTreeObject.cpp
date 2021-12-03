@@ -4,7 +4,7 @@
  For more information visit www.rabiensoftware.com
 
  ==============================================================================*/
-#include "gin_valuetreeobject.h"
+#include "ValueTreeObject.h"
 
 ValueTreeObject::ValueTreeObject (const juce::ValueTree& state_)
   : state (state_)

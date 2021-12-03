@@ -431,9 +431,9 @@ void Instance::dequeueMessages()
     
     while(m_function_queue.try_dequeue(callback))
     {
-        sys_lock();
+        //sys_lock();
         callback();
-        sys_unlock();
+        //sys_unlock();
     }
     
     update_wait.signal();

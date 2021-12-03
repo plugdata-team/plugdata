@@ -42,10 +42,6 @@ public:
     //! @brief The destructor.
     ~Patch() noexcept = default;
     
-    //! @brief Gets if the patch is Graph On Parent.
-    bool isGraph() const noexcept;
-    bool setGraph(bool graph) noexcept;
-    
     //! @brief Gets the bounds of the patch.
     std::array<int, 4> getBounds() const noexcept;
     
@@ -93,8 +89,7 @@ public:
         return String(buf, bufsize);
         
     }
-    
-    bool is_graph = false;
+
     
 private:
     Patch(void* ptr, Instance* instance) noexcept;

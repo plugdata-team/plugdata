@@ -2,7 +2,7 @@
 
 
 #include "Utility/MultiComponentDragger.h"
-#include "Utility/gin_valuetreeobject.h"
+#include "Utility/ValueTreeObject.h"
 
 //#include "../../Source/Engine.hpp"
 
@@ -26,7 +26,7 @@ struct ClickLabel : Label
     
     Box* box;
     
-    bool is_down = false;
+    bool isDown = false;
     
     ClickLabel(Box* parent, MultiComponentDragger<Box>& multi_dragger) : box(parent), dragger(multi_dragger) {};
     
@@ -62,6 +62,8 @@ public:
     
     void setType(String new_type);
     
+    void setLimits(std::tuple<int, int, int, int> limits);
+    
     void updatePorts();
     
     void remove(bool clear_pd = true);
@@ -75,7 +77,14 @@ public:
     int numInputs = 0;
     int numOutputs = 0;
     
+    bool is_pdinfo = false;
+    
+    ComponentBoundsConstrainer restrainer;
+    std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};
+    
     ClickLabel textLabel;
+    
+    std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
     
 private:
 

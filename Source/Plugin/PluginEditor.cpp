@@ -11,7 +11,7 @@
 
 //==============================================================================
 PlugDataAudioProcessorEditor::PlugDataAudioProcessorEditor (PlugDataAudioProcessor& p)
-    : AudioProcessorEditor (&p), audioProcessor (p), mainComponent(p.main_component)
+    : AudioProcessorEditor (&p), audioProcessor (p), mainComponent(p.mainComponent)
 {
     // Using openGL could really speed up the rendering
     // But currently it causes issues because we draw outside of object bounds in a few places...

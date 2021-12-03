@@ -16,31 +16,31 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
     if(!start || !end) {
         start = nullptr;
         end = nullptr;
-        parent->getState().removeChild(tree, nullptr);
+        parent->removeChild(tree);
         return;
     }
 
-    if(start->ValueTreeObject::getState().getProperty(Identifiers::edge_in)) {
-        inIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-        outIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+    if(start->ValueTreeObject::getProperty(Identifiers::edgeIsInput)) {
+        inIdx = start->ValueTreeObject::getProperty(Identifiers::edgeIdx);
+        outIdx = end->ValueTreeObject::getProperty(Identifiers::edgeIdx);
         inObj = start->box->pd_object;
         outObj = end->box->pd_object;
     }
     else {
-        inIdx = end->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
-        outIdx = start->ValueTreeObject::getState().getProperty(Identifiers::edge_idx);
+        inIdx = end->ValueTreeObject::getProperty(Identifiers::edgeIdx);
+        outIdx = start->ValueTreeObject::getProperty(Identifiers::edgeIdx);
         inObj = end->box->pd_object;
         outObj = start->box->pd_object;
     }
         
     
-    if(!getState().getProperty(Identifiers::exists)) {
+    if(!getProperty(Identifiers::exists)) {
         bool can_connect = parent->patch.createConnection(outObj, outIdx, inObj, inIdx);
 
         if(!can_connect) {
             start = nullptr;
             end = nullptr;
-            parent->getState().removeChild(tree, nullptr);
+            parent->removeChild(tree);
             return;
         }
     }
@@ -81,8 +81,7 @@ void Connection::paint (Graphics& g)
     auto base_colour = Colours::white;
 
     if(isSelected) {
-        
-        base_colour = start->ValueTreeObject::getState().getProperty("Context") ? Colours::yellow : MainLook::highlight_colour;
+        base_colour = start->ValueTreeObject::getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlight_colour;
     }
     
     g.setColour(base_colour);
@@ -132,6 +131,6 @@ void Connection::componentBeingDeleted(Component& component) {
     
     if(!deleted) {
         deleted = true;
-        getState().getParent().removeChild(getState(), nullptr);
+        getParent().removeChild(getState(), nullptr);
     }
 }

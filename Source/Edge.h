@@ -1,7 +1,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "Utility/gin_valuetreeobject.h"
+#include "Utility/ValueTreeObject.h"
 
 //==============================================================================
 /*

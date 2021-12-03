@@ -2,7 +2,7 @@
 #include "Canvas.h"
 #include "Edge.h"
 #include "Pd/x_libpd_mod_utils.h"
-#include "SaveDialog.h"
+#include "Dialogs.h"
 
 //==============================================================================
 
@@ -31,6 +31,8 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
     tabbar.onTabChange = [this](int idx) {
         Edge::connectingEdge = nullptr;
         
+        if(idx == -1) return;
+        
         // update GraphOnParent when changing tabs
         for(auto* box : getCurrentCanvas()->findChildrenOfClass<Box>()) {
             if(box->graphics && box->graphics->getGUI().getType() == pd::Gui::Type::GraphOnParent) {
@@ -42,13 +44,9 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
         }
         
         auto* cnv = getCurrentCanvas();
-        if(cnv->patch.getPointer())
-        {
-            canvas_setcurrent(cnv->patch.getPointer());
-            canvas_vis(cnv->patch.getPointer(), 1.);
-            //cnv->synchronise();
+        if(cnv->patch.getPointer()) {
+            cnv->patch.setCurrent();
         }
-        
 
         
         valueTreeChanged();
@@ -80,10 +78,16 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
     
     // New button
     toolbarButtons[0].onClick = [this]() {
-        auto new_cnv = ValueTree(Identifiers::canvas);
-        new_cnv.setProperty("Title", "Untitled Patcher", nullptr);
-        new_cnv.setProperty(Identifiers::is_graph, false, nullptr);
-        getState().appendChild(new_cnv, nullptr);
+        ValueTreeObject::removeAllChildren();
+        tabbar.clearTabs();
+        
+        auto canvas = ValueTree(Identifiers::canvas);
+        canvas.setProperty("Title", "Untitled Patcher", nullptr);
+        canvas.setProperty(Identifiers::isGraph, false, nullptr);
+        appendChild(canvas);
+        
+        mainCanvas = findChildOfClass<Canvas>(0);
+        mainCanvas->loadPatch(defaultPatch);
     };
     
     // Open button
@@ -123,7 +127,7 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
         
         menu.addSeparator();
         
-        menu.addItem (9, "Graph");
+        menu.addItem (9, "Array");
         menu.addItem (13, "GraphOnParent");
         menu.addItem (14, "Comment");
         menu.addItem (10, "Canvas");
@@ -133,73 +137,89 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
             if(choice < 1) return;
             
             auto box = ValueTree(Identifiers::box);
-            box.setProperty(Identifiers::box_x, 100, nullptr);
-            box.setProperty(Identifiers::box_y, 100, nullptr);
+            box.setProperty(Identifiers::boxX, 100, nullptr);
+            box.setProperty(Identifiers::boxY, 100, nullptr);
             
-            String box_name;
+            String boxName;
             
             switch (choice) {
                 case 1:
-                box_name = "nbx";
+                boxName = "nbx";
                 break;
                 
                 case 2:
-                box_name = "msg";
+                boxName = "msg";
                 break;
                 
                 case 3:
-                box_name = "bng";
+                boxName = "bng";
                 break;
                 
                 case 4:
-                box_name = "tgl";
+                boxName = "tgl";
                 break;
                 
                 case 5:
-                box_name = "hsl";
+                boxName = "hsl";
                 break;
                 
                 case 6:
-                box_name = "vsl";
+                boxName = "vsl";
                 break;
                 
                 case 7:
-                box_name = "hradio";
+                boxName = "hradio";
                 break;
                 
                 case 8:
-                box_name = "vradio";
+                boxName = "vradio";
                 break;
                 
-                case 9:
-                box_name = "graph arr1 128";
-                break;
+                case 9: {
+                    String size;
+                    String name;
+                    
+                    ArrayDialog arrayDialog(&size, &name);
+                    
+                    arrayDialog.setBounds(getScreenX()  + (getWidth() / 2.) - 200., getScreenY() + toolbarHeight - 3, 300, 200);
+                    
+                    auto result = arrayDialog.runModalLoop();
+                    if(result == 1) {
+                        boxName = "graph " + name + " " + size;
+                    }
+                    else {
+                        return;
+                    }
+                    break;
+                }
+                
+               
                 
                 case 10:
-                box_name = "canvas";
+                boxName = "canvas";
                 break;
                     
                 case 11:
-                box_name = "floatatom";
+                boxName = "floatatom";
                 break;
                     
                 case 12:
-                box_name = "symbolatom";
+                boxName = "symbolatom";
                 break;
                     
                 case 13:
-                box_name = "graph";
+                boxName = "graph";
                 break;
                     
                 case 14:
-                box_name = "comment";
+                boxName = "comment";
                 break;
                     
 
             }
             
-            box.setProperty(Identifiers::box_name, box_name, nullptr);
-            getCurrentCanvas()->getState().appendChild(box, nullptr);
+            box.setProperty(Identifiers::boxName, boxName, nullptr);
+            getCurrentCanvas()->appendChild(box);
         };
         
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
@@ -220,15 +240,15 @@ MainComponent::MainComponent() : ValueTreeObject(ValueTree("Main")), console(LOG
     
     addAndMakeVisible(hideButton);
     
-    if(!getState().hasProperty("Canvas")) {
+    if(!hasProperty("Canvas")) {
         ValueTree cnv_state("Canvas");
         cnv_state.setProperty("Title", "Untitled Patcher", nullptr);
-        cnv_state.setProperty(Identifiers::is_graph, false, nullptr);
+        cnv_state.setProperty(Identifiers::isGraph, false, nullptr);
         
-        getState().appendChild(cnv_state, nullptr);
+        appendChild(cnv_state);
         
         mainCanvas = findChildOfClass<Canvas>(0);
-        mainCanvas->loadPatch("#N canvas 827 239 527 327 12;");
+        mainCanvas->loadPatch(defaultPatch);
         pd.m_patch = mainCanvas->patch.getPointer();
         
     }
@@ -376,18 +396,32 @@ void MainComponent::openProject() {
     
     if(result != 0) {
         // Close all tabs
-        //tabbar.clearTabs();
 #if JUCE_MODAL_LOOPS_PERMITTED
     openChooser.browseForFileToOpen();
     
     File openedFile = openChooser.getResult();
     
     if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-        getMainCanvas()->loadPatch(openedFile.loadFileAsString());
+        
+        ValueTreeObject::removeAllChildren();
+        tabbar.clearTabs();
+        
+        auto canvas = ValueTree(Identifiers::canvas);
+        canvas.setProperty("Title", openedFile.getFileName(), nullptr);
+        canvas.setProperty(Identifiers::isGraph, false, nullptr);
+        appendChild(canvas);
+        
+        mainCanvas = findChildOfClass<Canvas>(0);
+        mainCanvas->loadPatch(openedFile.loadFileAsString());
     }
     
 #else
     openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
+        
+          ValueTreeObject::removeAllChildren();
+          tabbar.clearTabs();
+        
+        
           File openedFile = f.getResult();
           if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
               canvas->loadPatch(openedFile.loadFileAsString());
@@ -414,7 +448,7 @@ void MainComponent::saveProject() {
     FileOutputStream ostream(result);
     ostream.writeString(to_save);
     
-    getCurrentCanvas()->getState().setProperty("Title", result.getFileName(), nullptr);
+    getCurrentCanvas()->setProperty("Title", result.getFileName());
     
 #else
     saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, &event](const FileChooser &f) mutable {
@@ -424,7 +458,7 @@ void MainComponent::saveProject() {
         FileOutputStream ostream(result);
         ostream.writeString(to_save);
         
-        getCurrentCanvas()->getState().setProperty("Title", result.getFileName(), nullptr);
+        getCurrentCanvas()->setProperty("Title", result.getFileName(), nullptr);
     });
     
 #endif
@@ -433,13 +467,22 @@ void MainComponent::saveProject() {
     
 }
 
+void MainComponent::timerCallback() {
+    for(auto* cnv : findChildrenOfClass<Canvas>(true)) {
+        for(auto& box : cnv->findChildrenOfClass<Box>()) {
+            if(box->graphics) {
+                box->graphics->updateValue();
+            }
+        }
+    }
+}
 
 void MainComponent::valueTreeChanged() {
     
     pd.setThis();
     
-    toolbarButtons[3].setEnabled(libpd_can_undo(getCurrentCanvas()->patch.getPointer()));
-    toolbarButtons[4].setEnabled(libpd_can_redo(getCurrentCanvas()->patch.getPointer()));
+    //toolbarButtons[3].setEnabled(libpd_can_undo(getCurrentCanvas()->patch.getPointer()));
+    //toolbarButtons[4].setEnabled(libpd_can_redo(getCurrentCanvas()->patch.getPointer()));
 }
 
 Canvas* MainComponent::getCurrentCanvas()
@@ -456,9 +499,20 @@ Canvas* MainComponent::getMainCanvas() {
     return mainCanvas;
 }
 
+Canvas* MainComponent::getCanvas(int idx) {
+    if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
+        if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+            return cnv;
+        }
+    }
+    
+    return nullptr;
+}
+
+
 void MainComponent::addTab(Canvas* cnv)
 {
-    tabbar.addTab(cnv->getState().getProperty("Title"), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+    tabbar.addTab(cnv->getProperty("Title"), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
     
     int tab_idx = tabbar.getNumTabs() - 1;
     tabbar.setCurrentTabIndex(tab_idx);
@@ -472,30 +526,33 @@ void MainComponent::addTab(Canvas* cnv)
         tabbar.setTabBarDepth(1);
     }
     
-    auto* tab_button = tabbar.getTabbedButtonBar().getTabButton(tab_idx);
+    auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tab_idx);
     
-    auto* close_button = new TextButton("x");
+    auto* closeButton = new TextButton("x");
    
-    close_button->onClick = [this, tab_button]() mutable {
+    closeButton->onClick = [this, tabButton]() mutable {
         
+        // We cant use the index from earlier because it might change!
         int idx = -1;
         for(int i = 0; i < tabbar.getNumTabs(); i++) {
-            if(tabbar.getTabbedButtonBar().getTabButton(i) == tab_button) {
+            if(tabbar.getTabbedButtonBar().getTabButton(i) == tabButton) {
                 idx = i;
                 break;
             }
         }
+        
         if(idx == -1) return;
         
         if(tabbar.getCurrentTabIndex() == idx) {
-            tabbar.setCurrentTabIndex(idx == 1 ? idx - 1 : idx + 1);
+            tabbar.setCurrentTabIndex(0, false);
         }
         
-        auto* cnv = static_cast<Canvas*>(static_cast<Viewport*>(tabbar.getTabContentComponent(idx))->getViewedComponent());
+        auto* cnv = getCanvas(idx);
         
-        getState().removeChild(cnv->getState(), nullptr);
+        removeChild(cnv->getState());
         tabbar.removeTab(idx);
         
+        tabbar.setCurrentTabIndex(0, true);
         
         if(tabbar.getNumTabs() == 1) {
             tabbar.getTabbedButtonBar().setVisible(false);
@@ -503,16 +560,16 @@ void MainComponent::addTab(Canvas* cnv)
         }
     };
     
-    close_button->setColour(TextButton::buttonColourId, Colour());
-    close_button->setColour(TextButton::buttonOnColourId, Colour());
-    close_button->setColour(ComboBox::outlineColourId, Colour());
-    close_button->setColour(TextButton::textColourOnId, Colours::white);
-    close_button->setColour(TextButton::textColourOffId, Colours::white);
-    close_button->setConnectedEdges(12);
-    tab_button->setExtraComponent(close_button, TabBarButton::beforeText);
+    closeButton->setColour(TextButton::buttonColourId, Colour());
+    closeButton->setColour(TextButton::buttonOnColourId, Colour());
+    closeButton->setColour(ComboBox::outlineColourId, Colour());
+    closeButton->setColour(TextButton::textColourOnId, Colours::white);
+    closeButton->setColour(TextButton::textColourOffId, Colours::white);
+    closeButton->setConnectedEdges(12);
+    tabButton->setExtraComponent(closeButton, TabBarButton::beforeText);
     
-    close_button->setVisible(true);
-    close_button->setSize(28, 28);
+    closeButton->setVisible(tab_idx != 0);
+    closeButton->setSize(28, 28);
     
     tabbar.repaint();
     

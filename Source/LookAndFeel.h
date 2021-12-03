@@ -72,6 +72,7 @@ struct MainLook : public LookAndFeel_V4
         setColour(TextEditor::textColourId, Colours::white);
         setColour(TooltipWindow::backgroundColourId, background_1.withAlpha(float(0.8)));
         
+        
         setColour (PopupMenu::backgroundColourId, background_2);
         setColour (PopupMenu::highlightedBackgroundColourId, highlight_colour);
         

@@ -3,7 +3,7 @@
 #include "LookAndFeel.h"
 #include "Canvas.h"
 #include "PlugData.h"
-#include "Utility/gin_valuetreeobject.h"
+#include "Utility/ValueTreeObject.h"
 
 #include "Console.h"
 
@@ -29,12 +29,14 @@ struct TabComponent : public TabbedComponent
     {
         onTabChange(newCurrentTabIndex);
     }
+    
+    
 
     
 };
 
 
-class MainComponent : public Component, public ValueTreeObject
+class MainComponent : public Component, public ValueTreeObject, public Timer
 {
 public:
     //==============================================================================
@@ -59,6 +61,9 @@ public:
     
     Canvas* getCurrentCanvas();
     Canvas* getMainCanvas();
+    Canvas* getCanvas(int idx);
+    
+    void timerCallback() override;
 
     
     void valueTreeChanged() override;
@@ -71,6 +76,8 @@ public:
     static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
     
 private:
+    
+    const std::string defaultPatch = "#N canvas 827 239 527 327 12; #X text 0 0 plugdata_info:";
     
     Canvas* mainCanvas = nullptr;
     
