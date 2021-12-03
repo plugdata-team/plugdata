@@ -104,11 +104,21 @@ void Canvas::synchronise() {
         
         appendChild(box);
         
+        String name = object.getText();
+        
         auto* last_box = findChildrenOfClass<Box>().getLast();
-        *last_box->pdObject = object;
+        bool is_gui = pd::Gui::getType(object.getPointer(), name.toStdString()) != pd::Type::Undefined;
+       
+        if(is_gui) {
+            last_box->pdObject = std::make_unique<pd::Gui>(object.getPointer(), &patch, &main->pd);
+        }
+        else {
+            last_box->pdObject = std::make_unique<pd::Object>(object);
+        }
+       
         boxes.add(last_box); // lets hope this preserves the object order...
         
-        String name = object.getText();
+       
         
         if(object.getName() == "message") {
             name = "msg " + name;

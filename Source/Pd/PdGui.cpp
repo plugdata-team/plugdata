@@ -84,10 +84,10 @@ static t_atom *fake_gatom_getatom(t_fake_gatom *x)
 Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept :
 Object(ptr, patch, instance), m_type(Type::Undefined)
 {
-    m_type = getType(ptr, String(getText()));
+    m_type = getType(ptr, getText());
 }
 
-Type Gui::getType(void* ptr, String obj_text)
+Type Gui::getType(void* ptr, std::string obj_text)
 {
     Type m_type = Type::Undefined;
     
@@ -158,7 +158,7 @@ Type Gui::getType(void* ptr, String obj_text)
             {
                 m_type = Type::Array;
             }
-            else if (obj_text.startsWith("pd")){
+            else if (obj_text.rfind("pd", 0) == 0){
                 m_type = Type::Subpatch;
             }
             else {
