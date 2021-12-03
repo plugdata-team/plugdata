@@ -130,32 +130,24 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
         return createGraphOnParent();
     }
     
-    bool is_gui = false;
+    
     t_symbol* typesymbol = gensym("obj");
     
     if(tokens[0] == "msg") {
-        is_gui = true;
         typesymbol = gensym("msg");
         tokens.remove(0);
     }
     if(tokens[0] == "comment") {
-        is_gui = true;
         typesymbol = gensym("text");
         tokens.remove(0);
     }
     if(tokens[0] == "floatatom") {
-        is_gui = true;
         typesymbol = gensym("floatatom");
         tokens.remove(0);
     }
     if(tokens[0] == "symbolatom") {
-        is_gui = true;
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
-    }
-    
-    if(tokens[0] == "bng" || tokens[0] == "tgl" || tokens[0] == "hsl" || tokens[0] == "vsl" || tokens[0] == "hradio" || tokens[0] == "vradio" || tokens[0] == "nbx" || tokens[0] == "graph" || tokens[0] == "canvas" || tokens[0] == "pd") {
-        is_gui = true;
     }
     
     int argc = tokens.size() + 2;
@@ -179,6 +171,8 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
     
     m_instance->setThis();
     t_pd* pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
+    
+    bool is_gui = Gui::getType(pdobject, name.toStdString()) != Type::Undefined;
     
     if(is_gui) {
         return std::make_unique<Gui>(pdobject, this, m_instance);
@@ -274,6 +268,9 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     m_instance->setThis();
     
     libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
+    
+    // This only works if pd always recreats the object
+    // TODO: find out if thats always the case
     
     auto gui = Gui(libpd_newest(getPointer()), this, m_instance);
     if(gui.getType() == Type::Undefined) {

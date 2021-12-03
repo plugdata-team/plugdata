@@ -45,7 +45,7 @@ namespace pd
             return m_type;
         }
         
-        static Type getType(void* ptr, String obj_text);
+        static Type getType(void* ptr, std::string obj_text);
         
         //! @brief If the GUI is an IEM's GUI.
         bool isIEM() const noexcept
