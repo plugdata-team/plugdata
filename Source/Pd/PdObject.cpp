@@ -64,7 +64,7 @@ std::array<int, 4> Object::getBounds() const noexcept
         int x = 0, y = 0, w = 0, h = 0;
         m_instance->setThis();
         
-        libpd_get_object_bounds(m_patch->getPointer(), m_ptr, &x, &y, &w, &h, m_patch->isGraph());
+        libpd_get_object_bounds(m_patch->getPointer(), m_ptr, &x, &y, &w, &h);
         
         t_canvas const* cnv = m_patch->getPointer();
         if(cnv != nullptr)

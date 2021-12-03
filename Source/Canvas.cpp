@@ -19,30 +19,23 @@ Canvas::Canvas(ValueTree tree, MainComponent* parent) : ValueTreeObject(tree), m
     
     setWantsKeyboardFocus(true);
     
-    viewport = new Viewport; // Owned by the tabbar!
-    viewport->setViewedComponent(this, true);
-    
-    int max_x = 600;
-    int max_y = 400;
-    for(auto obj : tree) {
-        if(obj.hasProperty("X")) {
-            max_x = std::max(max_x, (int)obj.getProperty("X"));
-            max_y = std::max(max_y, (int)obj.getProperty("Y"));
-        }
+    if(!getProperty(Identifiers::isGraph)) {
+        viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
+        viewport->setViewedComponent(this, false);
     }
-    
-    setSize(max_x + 500, max_y + 500);
     
     rebuildObjects();
     
+    main->startTimer(guiUpdateMs);
 }
 
 
 Canvas::~Canvas()
 {
-    removeAllChildren();
+    main->removeChild(getState());
+    Component::removeAllChildren();
     removeKeyListener(this);
-    ValueTreeObject::getState().removeAllChildren(nullptr);
+    ValueTreeObject::removeAllChildren();
 }
 
 ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueTree & tree)
@@ -63,14 +56,23 @@ ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueT
     return static_cast<ValueTreeObject*>(nullptr);
 }
 
+void Canvas::synchroniseAll() {
+    for(auto* cnv : getAllInstances()) {
+        cnv->synchronise();
+    }
+}
+
 void Canvas::synchronise() {
     
-    main->pd.waitForStateUpdate();
-    
-    synchonising = true;
+    // Save all open tabs to restore later
+    Array<std::pair<pd::Patch, String>> tabs;
+    //main->pd.waitForStateUpdate();
+    int open_tab = main->getTabbar().getCurrentTabIndex();
+    for(int n = 1; n < main->getTabbar().getNumTabs(); n++) {
+        tabs.add({main->getCanvas(n)->patch, main->getTabbar().getTabbedButtonBar().getTabNames()[n]});
+    }
     
     dragger.deselectAll();
-    
     
     // Clear canvas
     for(auto& box : findChildrenOfClass<Box>()) {
@@ -88,16 +90,16 @@ void Canvas::synchronise() {
     patch.setCurrent();
     
     // Go through all the boxes in the pd patch, and add GUI components for them
-    for(auto& object : patch.getObjects(getState().getProperty(Identifiers::is_graph))) {
+    for(auto& object : patch.getObjects(getProperty(Identifiers::isGraph))) {
         
         auto box = ValueTree(Identifiers::box);
         
         // Setting the exists flag tells the box that this refers to an objects that already exists in the pd patch
         box.setProperty(Identifiers::exists, true, nullptr);
-        box.setProperty(Identifiers::box_x, object.getBounds()[0], nullptr);
-        box.setProperty(Identifiers::box_y, object.getBounds()[1], nullptr);
+        box.setProperty(Identifiers::boxX, object.getBounds()[0] * zoom, nullptr);
+        box.setProperty(Identifiers::boxY, object.getBounds()[1] * zoom, nullptr);
         
-        getState().appendChild(box, nullptr);
+        appendChild(box);
         
         auto* last_box = findChildrenOfClass<Box>().getLast();
         last_box->pd_object = static_cast<t_pd*>(object.getPointer());
@@ -131,13 +133,19 @@ void Canvas::synchronise() {
         gui_simplify(name, "hradio");
         gui_simplify(name, "vradio");
         
-        box.setProperty(Identifiers::box_name, name, nullptr);
+        box.setProperty(Identifiers::boxName, name, nullptr);
         
         // Return to normal operation
         box.setProperty(Identifiers::exists, false, nullptr);
     }
     
-    if(getState().getProperty(Identifiers::is_graph)) return;
+    if(getProperty(Identifiers::isGraph))
+    {
+        patch.deselectAll();
+    
+        
+        return;
+    }
     
     auto lines = StringArray::fromLines(content);
     lines.remove(0); // remove first canvas part
@@ -168,50 +176,111 @@ void Canvas::synchronise() {
             
             auto new_connection = ValueTree(Identifiers::connection);
             
-            String start_id = start_edges[inlet]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
-            String end_id = end_edges[boxes[end_box]->numInputs + outlet]->ValueTreeObject::getState().getProperty(Identifiers::edge_id);
+            String start_id = start_edges[inlet]->ValueTreeObject::getProperty(Identifiers::edgeID);
+            String end_id = end_edges[boxes[end_box]->numInputs + outlet]->ValueTreeObject::getProperty(Identifiers::edgeID);
             
             new_connection.setProperty(Identifiers::start_id, start_id, nullptr);
             new_connection.setProperty(Identifiers::end_id, end_id, nullptr);
             
             new_connection.setProperty(Identifiers::exists, true, nullptr); // let the connection know that this connection already exists
             
-            getState().appendChild(new_connection, nullptr);
+            appendChild(new_connection);
             
             // Return to normal operation
             new_connection.setProperty(Identifiers::exists, false, nullptr);
         }
-        
     }
     
+
     patch.deselectAll();
     
-    // Synchonise subcanvases
-    for(auto& box : findChildrenOfClass<Box>()) {
-        if(box->graphics && box->graphics->getCanvas()) {
-            box->graphics->getCanvas()->synchronise();
+    // Check canvas bounds
+    int max_x = 600;
+    int max_y = 400;
+    for(auto obj : findChildrenOfClass<Box>()) {
+            max_x = std::max<int>(max_x, (int)obj->getProperty(Identifiers::boxX) + 200);
+            max_y = std::max<int>(max_y, (int)obj->getProperty(Identifiers::boxY) + 200);
+    }
+    
+    setSize(max_x, max_y);
+    
+    for(int n = 0; n < tabs.size(); n++) {
+        bool found = false;
+        for(auto& object : patch.getObjects(false)) {
+            if(object.getPointer() == tabs[n].first.getPointer()) {
+                found = true;
+                break;
+            }
+        }
+        
+        // restore tab if it survived the sync
+        // Kinda hacky, could be improved in the future
+        if(found) {
+            auto tree = ValueTree(Identifiers::canvas);
+            tree.setProperty(Identifiers::isGraph, false, nullptr);
+            tree.setProperty("Title", tabs[n].second, nullptr);
+            main->appendChild(tree);
+            
+            auto* new_cnv = main->findChildrenOfClass<Canvas>().getLast();
+            new_cnv->loadPatch(tabs.getReference(n).first);
+            new_cnv->isMainPatch = false;
         }
     }
     
-    synchonising = false;
+    main->getTabbar().setCurrentTabIndex(open_tab);
+    
+    // Create a comment for plugdata specific information
+    String extra_info;
+    for(auto* box : findChildrenOfClass<Box>()) {
+        extra_info += String(box->getWidth()) + ":" +  String(box->getHeight()) + " ";
+    }
+    
+    // TODO: create a comment
+    
+    if(auto* box = findInfoObject()) {
+        box->setProperty(Identifiers::boxName, "plugdata_info:" + extra_info);
+    }
+    else {
+        auto info_box = ValueTree(Identifiers::box);
+        info_box.setProperty(Identifiers::boxX, 0, nullptr);
+        info_box.setProperty(Identifiers::boxY, 0, nullptr);
+        appendChild(info_box);
+        info_box.setProperty(Identifiers::boxName, "plugdata_info:" + extra_info, nullptr);
+    }
+    
+}
+
+Box* Canvas::findInfoObject() {
+    
+    for(auto* box : findChildrenOfClass<Box>()) {
+        if(box->is_pdinfo) {
+            return box;
+        }
+    }
+    
+    return nullptr;
 }
 
 void Canvas::loadPatch(String patch) {
     
+    if(!patch.contains("plugdata_info:")) {
+        patch += "#X text 0 0 plugdata_info:";
+    }
     
     // Create the pd save file
     auto temp_patch = File::createTempFile(".pd");
     temp_patch.replaceWithText(patch);
     
+    
     // Load the patch into libpd
     // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
-    // Instead we can load the patch and iterate through it to add GUI components
+    // Instead we can load the patch and iterate through it to create the gui
     main->pd.openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
     
     this->patch = main->pd.getPatch();
     
-    synchronise();
     
+    synchronise();
 }
 
 void Canvas::loadPatch(pd::Patch& patch) {
@@ -219,12 +288,14 @@ void Canvas::loadPatch(pd::Patch& patch) {
     this->patch = patch;
     
     synchronise();
-    
 }
+
+
+
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
-    if(getState().getProperty(Identifiers::is_graph)) return;
+    if(getProperty(Identifiers::isGraph)) return;
     
     if(!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         auto* source = e.originalComponent;
@@ -268,16 +339,24 @@ void Canvas::mouseDown(const MouseEvent& e)
                 case 1: {
                     
                     auto* cnv = lasso_selection.getSelectedItem(0)->graphics.get()->getCanvas();
+                    auto& tabbar = main->getTabbar();
+                    
+                    for(int n = 0; n < tabbar.getNumTabs(); n++) {
+                        auto* tab_canvas = main->getCanvas(n);
+                        
+                        if(tab_canvas->patch == cnv->patch) {
+                            tabbar.setCurrentTabIndex(n);
+                            return;
+                        }
+                    }
                     
                     auto tree = ValueTree(Identifiers::canvas);
-                    tree.setProperty(Identifiers::is_graph, false, nullptr);
+                    tree.setProperty(Identifiers::isGraph, false, nullptr);
                     tree.setProperty("Title", lasso_selection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false), nullptr);
-                    main->getState().appendChild(tree, nullptr);
+                    main->appendChild(tree);
                     
-                    // TODO: how does this cause a crash...
                     auto* new_cnv = main->findChildrenOfClass<Canvas>().getLast();
                     auto patch_copy = cnv->patch;
-                    patch_copy.setGraph(false);
                     new_cnv->loadPatch(patch_copy);
                     new_cnv->isMainPatch = false;
                     
@@ -300,15 +379,28 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
         };
         
+        if(auto* box = dynamic_cast<ClickLabel*>(e.originalComponent)) {
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(box), ModalCallbackFunction::create(callback));
+        }
+        else if(auto* box = dynamic_cast<Box*>(e.originalComponent)) {
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel), ModalCallbackFunction::create(callback));
+        }
+        else if(auto* gui = dynamic_cast<GUIComponent*>(e.originalComponent)) {
+            auto* box = gui->box;
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel), ModalCallbackFunction::create(callback));
+        }
+        else {
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetScreenArea({e.getScreenX(), e.getScreenY(), 10, 10}), ModalCallbackFunction::create(callback));
+        }
+
         
-        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (e.originalComponent), ModalCallbackFunction::create(callback));
         
     }
 }
 
 Edge* Canvas::findEdgeByID(String ID) {
     for(auto& box : findChildrenOfClass<Box>()) {
-        auto tree = box->getState().getChildWithProperty(Identifiers::edge_id, ID);
+        auto tree = box->getChildWithProperty(Identifiers::edgeID, ID);
         if(auto* result = box->findObjectForTree<Edge>(tree))
             return result;
     };
@@ -318,7 +410,7 @@ Edge* Canvas::findEdgeByID(String ID) {
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
-    if(getState().getProperty(Identifiers::is_graph)) return;
+    if(getProperty(Identifiers::isGraph)) return;
     
     auto* source = e.originalComponent;
     
@@ -356,7 +448,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
 void Canvas::mouseUp(const MouseEvent& e)
 {
-    
     if(connectingWithDrag) {
         auto pos = e.getEventRelativeTo(this).getPosition();
         auto all_edges = getAllEdges();
@@ -412,11 +503,11 @@ void Canvas::resized()
 
 bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     if(main->getCurrentCanvas() != this) return false;
-    if(getState().getProperty(Identifiers::is_graph)) return false;
+    if(getProperty(Identifiers::isGraph)) return false;
     
     if(key.getTextCharacter() == 'n') {
         auto box = ValueTree(Identifiers::box);
-        getState().appendChild(box, nullptr);
+        appendChild(box);
         
         // Open editor
         findChildrenOfClass<Box>().getLast()->textLabel.showEditor();
@@ -491,6 +582,8 @@ void Canvas::pasteSelection() {
 
 void Canvas::duplicateSelection() {
     
+    patch.setCurrent();
+    
     for(auto* sel : dragger.getLassoSelection()) {
         if(auto* box = dynamic_cast<Box*>(sel)) {
             patch.selectObject(box->pd_object);
@@ -507,20 +600,18 @@ void Canvas::removeSelection() {
     
     patch.setCurrent();
     
+    main->stopTimer();
+    
     Array<t_pd*> objects;
     for(auto* sel : dragger.getLassoSelection()) {
         if(auto* box = dynamic_cast<Box*>(sel)) {
             if(box->pd_object) {
                 patch.selectObject(box->pd_object);
                 objects.add(box->pd_object);
-                
-                // Make sure we stop reading values from pd
-                if(box->graphics) {
-                    box->graphics->stopTimer();
-                }
             }
         }
     }
+    
     patch.removeSelection();
     
     for(auto& con : findChildrenOfClass<Connection>()) {
@@ -530,15 +621,16 @@ void Canvas::removeSelection() {
             if(!(objects.contains(con->outObj) || objects.contains(con->inObj))) {
                 patch.removeConnection(con->outObj, con->outIdx,  con->inObj, con->inIdx);
             }
-            getState().removeChild(con->getState(), nullptr);
+            removeChild(con->getState());
         }
     }
     
-    dragger.deselectAll();
-
-    synchronise();
+    dragger.deselectAll();    
+    
+    synchroniseAll();
+    
+    main->startTimer(guiUpdateMs);
 }
-
 
 
 Array<Edge*> Canvas::getAllEdges() {
@@ -553,31 +645,39 @@ Array<Edge*> Canvas::getAllEdges() {
 
 void Canvas::undo() {
     patch.undo();
-    synchronise();
+    synchroniseAll();
     main->valueTreeChanged();
 }
 
 void Canvas::redo() {
     patch.redo();
-    synchronise();
+    synchroniseAll();
     main->valueTreeChanged();
 }
+
+Array<Canvas*> Canvas::getAllInstances()
+{
+    Array<Canvas*> all_instances;
+    for(auto* cnv : main->findChildrenOfClass<Canvas>(true)) {
+        if(cnv->patch == patch && cnv->main == main) {
+            all_instances.add(cnv);
+        }
+    }
+    
+    return all_instances;
+}
+
 
 void Canvas::closeAllInstances()
 {
     auto& tabbar = main->getTabbar();
-    
     for(int n = 0; n < tabbar.getNumTabs(); n++) {
-        auto* viewport = static_cast<Viewport*>(tabbar.getTabContentComponent(n));
-        auto* cnv = static_cast<Canvas*>(viewport->getViewedComponent());
-        if(cnv->patch == patch && cnv->main == main) {
-            main->getState().removeChild(cnv->getState(), nullptr);
-            
+        auto* cnv = main->getCanvas(n);
+        if(cnv && cnv->patch == patch && cnv->main == main) {
             tabbar.removeTab(n);
             
-            //canvas_setcurrent(main->getMainCanvas()->patch.getPointer());
-            
-            
+            auto state = cnv->getState();
+            main->removeChild(state);
         }
     }
     

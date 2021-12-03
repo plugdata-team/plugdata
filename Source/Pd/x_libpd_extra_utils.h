@@ -22,7 +22,7 @@ void* libpd_create_canvas(const char* name, const char* path);
 
 char const* libpd_get_object_class_name(void* ptr);
 void libpd_get_object_text(void* ptr, char** text, int* size);
-void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h, int is_graph);
+void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h);
 
 
 char const* libpd_array_get_name(void* ptr);

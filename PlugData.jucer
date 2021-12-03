@@ -10,6 +10,7 @@
               pluginCode="plpd">
   <MAINGROUP id="z62cXr" name="PlugData">
     <GROUP id="{171D99A2-B546-271C-0402-DD73AC24E8BF}" name="Assets">
+      <FILE id="moDv9b" name="plugd_logo.png" compile="0" resource="1" file="Assets/plugd_logo.png"/>
       <FILE id="z7p1vR" name="forkawesome-webfont.ttf" compile="0" resource="1"
             file="Assets/forkawesome-webfont.ttf"/>
     </GROUP>
@@ -82,7 +83,7 @@
   <JUCEOPTIONS JUCE_STRICT_REFCOUNTEDPOINTER="1" JUCE_VST3_CAN_REPLACE_VST2="0"/>
   <EXPORTFORMATS>
     <XCODE_MAC targetFolder="Builds/MacOSX" xcodeSubprojects="../../Libraries/libpd/libpd.xcodeproj: libpd-osx-multi"
-               extraDefs="PDINSTANCE">
+               extraDefs="PDINSTANCE" bigIcon="moDv9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="PlugData" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
         <CONFIGURATION isDebug="0" name="Release" targetName="PlugData"/>
@@ -103,6 +104,27 @@
         <MODULEPATH id="juce_opengl" path="../../JUCE/modules"/>
       </MODULEPATHS>
     </XCODE_MAC>
+    <VS2019 targetFolder="Builds/VisualStudio2019" extraDefs="PDINSTANCE">
+      <CONFIGURATIONS>
+        <CONFIGURATION isDebug="1" name="Debug" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
+        <CONFIGURATION isDebug="0" name="Release" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
+      </CONFIGURATIONS>
+      <MODULEPATHS>
+        <MODULEPATH id="juce_opengl"/>
+        <MODULEPATH id="juce_gui_extra"/>
+        <MODULEPATH id="juce_gui_basics"/>
+        <MODULEPATH id="juce_graphics"/>
+        <MODULEPATH id="juce_events"/>
+        <MODULEPATH id="juce_data_structures"/>
+        <MODULEPATH id="juce_core"/>
+        <MODULEPATH id="juce_audio_utils"/>
+        <MODULEPATH id="juce_audio_processors"/>
+        <MODULEPATH id="juce_audio_plugin_client"/>
+        <MODULEPATH id="juce_audio_formats"/>
+        <MODULEPATH id="juce_audio_devices"/>
+        <MODULEPATH id="juce_audio_basics"/>
+      </MODULEPATHS>
+    </VS2019>
   </EXPORTFORMATS>
   <MODULES>
     <MODULE id="juce_audio_basics" showAllCode="1" useLocalCopy="0" useGlobalPath="1"/>

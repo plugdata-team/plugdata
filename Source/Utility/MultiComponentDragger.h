@@ -13,7 +13,7 @@
 
 
 #include <JuceHeader.h>
-#include "gin_valuetreeobject.h"
+#include "ValueTreeObject.h"
 
 class Canvas;
 /**
@@ -216,15 +216,15 @@ public:
 
     SelectedItemSet<T*>& getLassoSelection()
     {
-        raw_pointers.deselectAll();
+        rawPointers.deselectAll();
         
         for(auto& selected : selectedComponents) {
             if(selected) {
-                raw_pointers.addToSelection(selected);
+                rawPointers.addToSelection(selected);
             }
         }
         
-        return raw_pointers;
+        return rawPointers;
     }
     
     Rectangle<int> getAreaOfSelectedComponents()
@@ -325,10 +325,10 @@ private:
     Point<int> mouseDownWithinTarget;
     Point<int> totalDragDelta;
 
-    Array<T*> temp_selection;
+    Array<T*> tempSelection;
     
     SelectedItemSet<Component::SafePointer<T>> selectedComponents;
-    SelectedItemSet<T*> raw_pointers;
+    SelectedItemSet<T*> rawPointers;
     
     T* componentBeingDragged { nullptr };
     

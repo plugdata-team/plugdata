@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include <m_pd.h>
 #include "Edge.h"
-#include "Utility/gin_valuetreeobject.h"
+#include "Utility/ValueTreeObject.h"
 //==============================================================================
 /*
     This component lives inside our window, and this is where you should put all

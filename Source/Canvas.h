@@ -3,7 +3,7 @@
 #include <JuceHeader.h>
 #include "Box.h"
 
-#include "Utility/gin_valuetreeobject.h"
+#include "Utility/ValueTreeObject.h"
 #include "PlugData.h"
 //==============================================================================
 /*
@@ -21,18 +21,18 @@ struct Identifiers
     
     // Other identifiers
     inline static Identifier exists = Identifier("Exists");
-    inline static Identifier is_graph = Identifier("Graph");
+    inline static Identifier isGraph = Identifier("Graph");
     
     // Box
-    inline static Identifier box_x = Identifier("X");
-    inline static Identifier box_y = Identifier("Y");
-    inline static Identifier box_name = Identifier("Name");
+    inline static Identifier boxX = Identifier("X");
+    inline static Identifier boxY = Identifier("Y");
+    inline static Identifier boxName = Identifier("Name");
     
     // Edge
-    inline static Identifier edge_id = Identifier("ID");
-    inline static Identifier edge_idx = Identifier("Index");
-    inline static Identifier edge_in = Identifier("Input");
-    inline static Identifier edge_ctx = Identifier("Context");
+    inline static Identifier edgeID = Identifier("ID");
+    inline static Identifier edgeIdx = Identifier("Index");
+    inline static Identifier edgeIsInput = Identifier("Input");
+    inline static Identifier edgeSignal = Identifier("Signal");
 
     
     // Connection
@@ -46,6 +46,9 @@ class MainComponent;
 class Canvas  : public Component, public ValueTreeObject, public KeyListener
 {
 public:
+    
+    static inline constexpr int guiUpdateMs = 80;
+    
     //==============================================================================
     Canvas(ValueTree tree, MainComponent* parent);
     
@@ -67,6 +70,7 @@ public:
     void loadPatch(String patch);
     void loadPatch(pd::Patch& patch);
     
+    void synchroniseAll();
     void synchronise();
 
     bool keyPressed(const KeyPress &key, Component *originatingComponent) override;
@@ -75,7 +79,7 @@ public:
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
-    
+
     void undo();
     void redo();
     
@@ -84,6 +88,9 @@ public:
     }
     
     void closeAllInstances();
+    
+    // Returns all canvas classes pointing to the same pd canvas
+    Array<Canvas*> getAllInstances();
     
     bool changed() {
         return hasChanged && findChildrenOfClass<Box>().size();
@@ -95,19 +102,21 @@ public:
     
     Array<Edge*> getAllEdges();
     
-    Viewport* viewport;
+    Viewport* viewport = nullptr;
     
     bool connectingWithDrag = false;
     
     bool isMainPatch = true;
-    static inline bool synchonising = false;
     
     pd::Patch patch;
     
+    Box* findInfoObject();
+    
+    // Our objects are bigger than pd's, so move everything apart by this factor
+    static inline constexpr float zoom = 3.0f;
+    
 private:
 
-
-    
     MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this);
 
     LassoComponent<Box*> lasso;

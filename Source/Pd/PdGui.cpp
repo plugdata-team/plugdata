@@ -373,6 +373,9 @@ std::string Gui::getSymbol() const noexcept
         int argc;
         
         sys_lock();
+        
+        assert(static_cast<t_message*>(m_ptr)->m_glist->gl_editor);
+        //m_instance->enqueueFunction([this](){});
         binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
         sys_unlock();
         

@@ -93,11 +93,11 @@ void PlugDataAudioProcessor::changeProgramName (int index, const juce::String& n
 //==============================================================================
 void PlugDataAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlock)
 {
-    main_component.pd.prepareToPlay(sampleRate, samplesPerBlock, 0);
+    mainComponent.pd.prepareToPlay(sampleRate, samplesPerBlock, 0);
     // Use this method as the place to do any pre-playback
     // initialisation that you need..
     
-    processing_buffer.setSize(2, samplesPerBlock);
+    processingBuffer.setSize(2, samplesPerBlock);
 }
 
 void PlugDataAudioProcessor::releaseResources()
@@ -156,17 +156,17 @@ void PlugDataAudioProcessor::processBlock (juce::AudioBuffer<float>& buffer, juc
 
    //midiCollector.removeNextBlockOfMessages(midiMessages, 512);
     
-    processing_buffer.setSize(2, buffer.getNumSamples());
+    processingBuffer.setSize(2, buffer.getNumSamples());
     
-    processing_buffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
-    processing_buffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
+    processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
+    processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
     
     
-    main_component.pd.processBlock(processing_buffer, midiMessages);
+    mainComponent.pd.processBlock(processingBuffer, midiMessages);
     
-    buffer.copyFrom(0, 0, processing_buffer, 0, 0, buffer.getNumSamples());
+    buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
     if(totalNumOutputChannels == 2) {
-        buffer.copyFrom(1, 0, processing_buffer, 1, 0, buffer.getNumSamples());
+        buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
     }
    
     
@@ -189,7 +189,7 @@ void PlugDataAudioProcessor::getStateInformation (juce::MemoryBlock& destData)
 {
     // Store pure-data state
     MemoryOutputStream ostream(destData, false);
-    ostream.writeString(main_component.pd.getCanvasContent());
+    ostream.writeString(mainComponent.pd.getCanvasContent());
 }
 
 void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -197,7 +197,7 @@ void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBy
     
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
-    main_component.getMainCanvas()->loadPatch(state);
+    mainComponent.getMainCanvas()->loadPatch(state);
 }
 
 //==============================================================================

@@ -21,11 +21,12 @@ public:
     PlugData(Console* debug_console) :
     pd::Instance("PlugData"),
     console(debug_console),
+    numin(2), numout(2),
     m_name("PlugData"),
     m_accepts_midi(true),
     m_produces_midi(false),
     m_is_midi_effect(false),
-    numin(2), numout(2), m_bypass(false){
+    m_bypass(false){
         
         m_midi_buffer_in.ensureSize(2048);
         m_midi_buffer_out.ensureSize(2048);

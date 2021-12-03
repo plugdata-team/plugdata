@@ -9,20 +9,15 @@
 GUIComponent::GUIComponent(pd::Gui pd_gui, Box* parent)  : box(parent), gui(pd_gui),  m_processor(parent->cnv->main->pd), edited(false)
 {
     //if(!box->pd_object) return;
-    
-    
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
-    
-    startTimer(25);
     
     setLookAndFeel(&banglook);
 }
 
 GUIComponent::~GUIComponent()
 {
-    stopTimer();
     setLookAndFeel(nullptr);
 }
 
@@ -137,13 +132,6 @@ void GUIComponent::updateValue()
     }
 }
 
-
-void GUIComponent::timerCallback()
-{
-    
-    updateValue();
-}
-
 std::unique_ptr<Label> GUIComponent::getLabel()
 {
     pd::Label const lbl = gui.getLabel();
@@ -193,7 +181,7 @@ BangComponent::BangComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui,
 void BangComponent::update()  {
     if(getValueOriginal() > std::numeric_limits<float>::epsilon()) {
         bang_button.setToggleState(true, dontSendNotification);
-        bang_timer.startTimer(80);
+        bang_timer.startTimer(Canvas::guiUpdateMs);
     }
 }
 
@@ -213,6 +201,8 @@ ToggleComponent::ToggleComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_
         toggle_button.setToggleState(new_value, dontSendNotification);
         stopEdition();
     };
+    
+
 }
 
 
@@ -247,6 +237,7 @@ MessageComponent::MessageComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(p
     input.onTextChange = [this]() {
         gui.setSymbol(input.getText().toStdString());
     };
+    
 }
 
 
@@ -320,9 +311,6 @@ void NumboxComponent::update()  {
 }
 
 // SliderComponent
-
-
-
 SliderComponent::SliderComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     v_slider = is_vertical;
@@ -355,6 +343,7 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) 
     slider.onDragEnd = [this]() {
         stopEdition();
     };
+
 }
 
 
@@ -369,7 +358,6 @@ void SliderComponent::update()  {
 
 
 // RadioComponent
-
 RadioComponent::RadioComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
 {
     v_radio = is_vertical;
@@ -387,6 +375,7 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : 
             gui.setValue(i);
         };
     }
+
 }
 
 
@@ -401,12 +390,13 @@ void RadioComponent::update()  {
 
 }
 
-
+// Array component
 ArrayComponent::ArrayComponent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box), m_graph(gui.getArray()), m_array(&box->cnv->main->pd, m_graph)
 {
     setInterceptsMouseClicks(false, true);
     m_array.setBounds(getLocalBounds());
     addAndMakeVisible(&m_array);
+    
     
 }
 
@@ -415,6 +405,7 @@ void ArrayComponent::resized()
     m_array.setBounds(getLocalBounds());
 }
 
+// Array graph
 GraphicalArray::GraphicalArray(PlugData* pd, pd::Array& graph) : m_array(graph), m_edited(false), m_instance(pd)
 {
     if(graph.getName().empty()) return;
@@ -557,21 +548,22 @@ size_t GraphicalArray::getArraySize() const noexcept
     return m_vector.size();
 }
 
-
+// Graph On Parent
 GraphOnParent::GraphOnParent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
 {
     auto tree = ValueTree(Identifiers::canvas);
-    tree.setProperty(Identifiers::is_graph, true, nullptr);
+    tree.setProperty(Identifiers::isGraph, true, nullptr);
     tree.setProperty("Title", "Subpatcher", nullptr);
     
-    canvas.reset(new Canvas(tree, box->cnv->main));
+    box->appendChild(tree);
+    
+    canvas = box->findChildrenOfClass<Canvas>().getLast();
     
     setInterceptsMouseClicks(false, true);
     
-    addAndMakeVisible(canvas.get());
+    addAndMakeVisible(canvas);
 
     subpatch = gui.getPatch();
-    subpatch.setGraph(true);
     
     canvas->isMainPatch = false;
     canvas->loadPatch(subpatch);
@@ -592,16 +584,18 @@ void GraphOnParent::resized()
     canvas->setBounds(getLocalBounds());
 }
 
+// Subpatch, phony UI
 Subpatch::Subpatch(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
 {
     
     auto tree = ValueTree(Identifiers::canvas);
-    tree.setProperty(Identifiers::is_graph, true, nullptr);
+    tree.setProperty(Identifiers::isGraph, true, nullptr);
     tree.setProperty("Title",  box->textLabel.getText().fromFirstOccurrenceOf("pd ", false, false), nullptr);
     
-    canvas.reset(new Canvas(tree, box->cnv->main));
+    box->appendChild(tree);
     
-    // TODO: might not work
+    canvas = box->findChildrenOfClass<Canvas>().getLast();
+    
     subpatch = gui.getPatch();
     
     canvas->isMainPatch = false;
@@ -609,13 +603,17 @@ Subpatch::Subpatch(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
 }
 
 Subpatch::~Subpatch() {
+    if(box) {
+        box->removeChild(canvas->getState());
+    }
     if(canvas) {
         canvas->closeAllInstances();
     }
+
     
 }
 
-
+// Comment
 CommentComponent::CommentComponent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
 {
     setInterceptsMouseClicks(false, false);

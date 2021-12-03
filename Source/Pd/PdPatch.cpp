@@ -53,15 +53,6 @@ m_ptr(ptr), m_instance(instance)
 {
 }
 
-bool Patch::isGraph() const noexcept
-{
-    return is_graph;
-}
-
-bool Patch::setGraph(bool graph) noexcept {
-    is_graph = graph;
-}
-
 std::array<int, 4> Patch::getBounds() const noexcept
 {
     if(m_ptr)
@@ -76,9 +67,8 @@ std::array<int, 4> Patch::getBounds() const noexcept
 }
 
 void Patch::setCurrent() {
-    //canvas_setcurrent(getPointer());
-    //set_currnet
-    //get_curent_canvas();
+    canvas_setcurrent(getPointer());
+    canvas_vis(getPointer(), 1.);
 }
 
 std::vector<Object> Patch::getObjects(bool only_gui) noexcept

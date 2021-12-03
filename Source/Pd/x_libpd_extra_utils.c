@@ -46,10 +46,10 @@ void libpd_get_object_text(void* ptr, char** text, int* size)
     binbuf_gettext(((t_text*)ptr)->te_binbuf, text, size);
 }
 
-void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h, int is_graph)
+void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int* h)
 {
     t_canvas* cnv = patch;
-    while (cnv->gl_owner && !cnv->gl_havewindow && cnv->gl_isgraph && is_graph)
+    while (cnv->gl_owner && !cnv->gl_havewindow && cnv->gl_isgraph)
         cnv = cnv->gl_owner;
     
     *x = 0; *y = 0; *w = 0; *h = 0;

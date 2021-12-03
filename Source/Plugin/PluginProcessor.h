@@ -54,11 +54,11 @@ public:
     void getStateInformation (juce::MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    MainComponent main_component;
+    MainComponent mainComponent;
     
     int lastUIWidth = 900, lastUIHeight = 600;
     
-    juce::AudioBuffer<float> processing_buffer;
+    juce::AudioBuffer<float> processingBuffer;
     
 private:
     //==============================================================================
