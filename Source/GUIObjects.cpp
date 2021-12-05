@@ -568,8 +568,6 @@ GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
     addAndMakeVisible(canvas);
 
     subpatch = gui.getPatch();
-    
-    canvas->isMainPatch = false;
     canvas->loadPatch(subpatch);
 
     resized();
@@ -605,8 +603,6 @@ Subpatch::Subpatch(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
     canvas = box->appendChild<Canvas>(tree);
     
     subpatch = gui.getPatch();
-    
-    canvas->isMainPatch = false;
     canvas->loadPatch(subpatch);
 }
 

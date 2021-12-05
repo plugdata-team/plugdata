@@ -53,8 +53,11 @@ ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueT
 }
 
 void Canvas::synchroniseAll() {
-    for(auto* cnv : getAllInstances()) {
-        cnv->synchronise();
+    // Synchronise all canvases that refer to this patch
+    for(auto* cnv : main->findChildrenOfClass<Canvas>(true)) {
+        if(cnv->patch == patch && cnv->main == main) {
+            cnv->synchronise();
+        }
     }
 }
 
@@ -338,9 +341,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                     
                     auto* newCanvas = main->appendChild<Canvas>(tree);
                     auto patchCopy = cnv->patch;
-                    newCanvas->loadPatch(patchCopy);
-                    newCanvas->isMainPatch = false;
-                    
+                    newCanvas->loadPatch(patchCopy);                    
                     break;
                 }
                 case 4:
@@ -509,6 +510,8 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     if(main->getCurrentCanvas() != this) return false;
     if(getProperty(Identifiers::isGraph)) return false;
     
+    
+    // Key shortcuts for creating objects
     if(key.getTextCharacter() == 'n') {
         auto box = ValueTree(Identifiers::box);
         appendChild<Box>(box)->textLabel.showEditor();
@@ -710,19 +713,8 @@ void Canvas::redo() {
     main->valueTreeChanged();
 }
 
-Array<Canvas*> Canvas::getAllInstances()
-{
-    Array<Canvas*> allInstances;
-    for(auto* cnv : main->findChildrenOfClass<Canvas>(true)) {
-        if(cnv->patch == patch && cnv->main == main) {
-            allInstances.add(cnv);
-        }
-    }
-    
-    return allInstances;
-}
 
-
+// Called from subpatcher objects to close all tabs that refer to that subpatcher
 void Canvas::closeAllInstances()
 {
     auto& tabbar = main->getTabbar();

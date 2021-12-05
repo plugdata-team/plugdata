@@ -262,7 +262,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     resizer.reset(new ResizableCornerComponent (this, &restrainer));
     addAndMakeVisible(resizer.get());
     
-    
     setSize (pd.lastUIWidth, pd.lastUIHeight);
 
 }

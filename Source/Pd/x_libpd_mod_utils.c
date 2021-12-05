@@ -479,6 +479,7 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
     
+    pd_this->pd_islocked = 1; // To silence globallock warning from pd...
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     
     // Needed here but not for graphs??
@@ -486,6 +487,8 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
                     (void *)canvas_undo_set_create(cnv));
     
     glist_noselect(cnv);
+    
+    pd_this->pd_islocked = 0;
     
     return libpd_newest(cnv);
     
