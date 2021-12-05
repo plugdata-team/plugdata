@@ -143,7 +143,7 @@ private:
 
 	static const int tmpBufLen = 512;
     
-    std::vector<Colour> colours = {MainLook::background_2, MainLook::background_1};
+    std::vector<Colour> colours = {MainLook::secondBackground, MainLook::firstBackground};
     
     LogContainer logContainer;
 

@@ -114,8 +114,8 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragge
     textLabel.toBack();
     
     textLabel.onTextChange = [this]() {
-        String new_text = textLabel.getText();
-        setProperty(Identifiers::boxName, new_text);
+        String newText = textLabel.getText();
+        setProperty(Identifiers::boxName, newText);
     };
     
     
@@ -125,8 +125,8 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragge
     int total = edges.size();
     int numIn = 0;
     for(auto& edge : edges) {
-        auto edge_tree = edge->getObjectState();
-        numIn += (int)edge_tree.getProperty("Input");
+        auto edgeTree = edge->getObjectState();
+        numIn += (int)edgeTree.getProperty("Input");
     }
     numInputs = numIn;
     numOutputs = total - numIn;
@@ -149,9 +149,9 @@ ValueTreeObject* Box::factory (const juce::Identifier& id, const juce::ValueTree
     if(indexOf(tree) < 0) return nullptr;
     
     if(id == Identifiers::edge) {
-        auto* new_edge = new Edge(tree, this);
-        addAndMakeVisible(new_edge);
-        return static_cast<ValueTreeObject*>(new_edge);
+        auto* newEdge = new Edge(tree, this);
+        addAndMakeVisible(newEdge);
+        return static_cast<ValueTreeObject*>(newEdge);
     }
     if(id == Identifiers::canvas) {
         auto* canvas = new Canvas(tree, cnv->main);
@@ -166,10 +166,10 @@ void Box::mouseMove(const MouseEvent& e) {
 }
 
 
-void Box::setType (String new_type)
+void Box::setType (String newType)
 {
-    String arguments = new_type.fromFirstOccurrenceOf(" ", false, false);
-    String type = new_type.upToFirstOccurrenceOf(" ", false, false);
+    String arguments = newType.fromFirstOccurrenceOf(" ", false, false);
+    String type = newType.upToFirstOccurrenceOf(" ", false, false);
     
     if(type.isNotEmpty() && !getProperty(Identifiers::exists)) {
         auto* pd = &cnv->patch;
@@ -177,13 +177,13 @@ void Box::setType (String new_type)
         // Pd doesn't normally allow changing between gui and non-gui objects
         if(pdObject && (graphics.get() != nullptr || pdObject->getType() != pd::Type::Undefined) && pdObject->getType() != pd::Type::Comment) {
             pd->removeObject(pdObject.get());
-            pdObject = pd->createObject(new_type, getX() / Canvas::zoom, getY() / Canvas::zoom);
+            pdObject = pd->createObject(newType, getX() / Canvas::zoomX, getY() / Canvas::zoomY);
         }
         else if(pdObject) {
-            pdObject = pd->renameObject(pdObject.get(), new_type);
+            pdObject = pd->renameObject(pdObject.get(), newType);
         }
         else {
-            pdObject = pd->createObject(new_type, getX() / Canvas::zoom,  getY() / Canvas::zoom);
+            pdObject = pd->createObject(newType, getX() / Canvas::zoomX,  getY() / Canvas::zoomY);
         }
     }
     else if(!getProperty(Identifiers::exists)) {
@@ -193,7 +193,7 @@ void Box::setType (String new_type)
     updatePorts();
     
     if(pdObject) {
-        graphics.reset(GUIComponent::create_gui(type, this));
+        graphics.reset(GUIComponent::createGui(type, this));
         
         if(graphics) {
             auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
@@ -224,8 +224,8 @@ void Box::setType (String new_type)
         setSize (100, 32);
     }
     
-    if(new_type.startsWith("comment ")) {
-        textLabel.setText(new_type.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
+    if(newType.startsWith("comment ")) {
+        textLabel.setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
 
     resized();
@@ -237,21 +237,29 @@ void Box::paint (Graphics& g)
     auto rect = getLocalBounds().reduced(4);
     
     auto baseColour = findColour(TextButton::buttonColourId);
+    auto outlineColour = findColour(ComboBox::outlineColourId);
     
     bool isOver = getLocalBounds().contains(getMouseXYRelative());
     bool isDown = textLabel.isDown;
     
-    if (isDown || isOver || dragger.isSelected(this))
+    bool selected = dragger.isSelected(this);
+    if (isDown || isOver || selected) {
         baseColour = baseColour.contrasting (isDown ? 0.2f : 0.05f);
+
+    }
+    if(selected) {
+        outlineColour = MainLook::highlightColour;
+    }
     
     if(graphics && graphics->getGUI().getType() == pd::Type::Comment) {
-        g.setColour(findColour(ComboBox::outlineColourId));
+        g.setColour(outlineColour);
         g.drawRect(rect.toFloat(), 0.5f);
     }
     else {
         g.setColour(baseColour);
         g.fillRoundedRectangle(rect.toFloat(), 2.0f);
-        g.setColour(findColour(ComboBox::outlineColourId));
+
+        g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
     }
     
@@ -287,13 +295,13 @@ void Box::resized()
     for(auto& edge : findChildrenOfClass<Edge>()) {
         
         auto& state = edge->getObjectState();
-        bool is_input = state.getProperty(Identifiers::edgeIsInput);
+        bool isInput = state.getProperty(Identifiers::edgeIsInput);
         
         int position = index < numInputs ? index : index - numInputs;
         
-        int total = is_input ? numInputs : numOutputs;
+        int total = isInput ? numInputs : numOutputs;
             
-        float newY = is_input ? 4 : getHeight() - 4;
+        float newY = isInput ? 4 : getHeight() - 4;
         float newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
         
         edge->setCentrePosition(newX, newY);
@@ -368,8 +376,8 @@ void Box::updatePorts() {
         oldnumOutputs++;
     }
     
-    int num_in = 0;
-    int num_out = 0;
+    int numIn = 0;
+    int numOut = 0;
     
     for(int i = 0; i < numInputs + numOutputs; i++) {
         auto edge = getChild(i);
@@ -377,19 +385,19 @@ void Box::updatePorts() {
         
         bool input = edge.getProperty(Identifiers::edgeIsInput);
         
-        bool is_signal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
-        bool was_signal = edge.getProperty(Identifiers::edgeSignal);
+        bool isSignal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
+        bool wasSignal = edge.getProperty(Identifiers::edgeSignal);
         
-        if(is_signal != was_signal) {
+        if(isSignal != wasSignal) {
             removeChild(edge);
             addChild(edge, i);
         }
         
-        edge.setProperty(Identifiers::edgeIdx, input ? num_in : num_out, nullptr);
-        edge.setProperty(Identifiers::edgeSignal, is_signal, nullptr);
+        edge.setProperty(Identifiers::edgeIdx, input ? numIn : numOut, nullptr);
+        edge.setProperty(Identifiers::edgeSignal, isSignal, nullptr);
         
-        num_in += input;
-        num_out += !input;
+        numIn += input;
+        numOut += !input;
     }
     
     

@@ -28,7 +28,7 @@ struct ClickLabel : Label
     
     bool isDown = false;
     
-    ClickLabel(Box* parent, MultiComponentDragger<Box>& multi_dragger) : box(parent), dragger(multi_dragger) {};
+    ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : box(parent), dragger(multiDragger) {};
     
     void mouseDown(const MouseEvent & e) override;
     void mouseUp(const MouseEvent & e) override;
@@ -73,15 +73,15 @@ public:
     
     std::unique_ptr<GUIComponent> graphics = nullptr;
     
+    MultiComponentDragger<Box>& dragger;
+    
 private:
     
     void mouseMove(const MouseEvent& e) override;
     
     void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
     
-    void setType(String new_type);
-
-    MultiComponentDragger<Box>& dragger;
+    void setType(String newType);
     
     ComponentBoundsConstrainer restrainer;
     std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};

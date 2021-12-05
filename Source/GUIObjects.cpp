@@ -21,7 +21,7 @@ GUIComponent::~GUIComponent()
     setLookAndFeel(nullptr);
 }
 
-GUIComponent* GUIComponent::create_gui(String name, Box* parent)
+GUIComponent* GUIComponent::createGui(String name, Box* parent)
 {
     
     //auto* checked_object = pd_checkobject(parent->pdObject);
@@ -590,6 +590,12 @@ GraphOnParent::~GraphOnParent() {
 void GraphOnParent::resized()
 {
     canvas->setBounds(getLocalBounds());
+}
+
+void GraphOnParent::paint(Graphics& g) {
+    g.setColour(findColour(TextButton::buttonColourId));
+    g.fillRect(getLocalBounds().reduced(1));
+    
 }
 
 // Subpatch, phony UI

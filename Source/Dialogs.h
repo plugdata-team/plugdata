@@ -3,26 +3,33 @@
 #include <JuceHeader.h>
 #include "LookAndFeel.h"
 
+
 class SaveDialog : public Component
 {
 
-	MainLook mainLook;
+    MainLook mainLook;
 
-	Label savelabel = Label("savelabel", "Save Changes?");
+    Label savelabel = Label("savelabel", "Save Changes?");
 
-	TextButton cancel = TextButton("Cancel");
-	TextButton dontsave = TextButton("Don't Save");
-	TextButton save = TextButton("Save");
+    TextButton cancel = TextButton("Cancel");
+    TextButton dontsave = TextButton("Don't Save");
+    TextButton save = TextButton("Save");
 
-	void resized() override;
+    void resized() override;
 
-	void paint(Graphics & g) override;
+    void paint(Graphics & g) override;
+    
 
+    std::function<void(int)> cb;
+    
 public:
+    
+    
+    static void show(Component* centre, std::function<void(int)> callback);
 
-	SaveDialog();
+    SaveDialog();
 
-	~SaveDialog();
+    ~SaveDialog();
 
 
 };
@@ -30,6 +37,7 @@ public:
 
 class ArrayDialog : public Component
 {
+    
 
     MainLook mainLook;
 
@@ -48,13 +56,16 @@ class ArrayDialog : public Component
     void resized() override;
 
     void paint(Graphics & g) override;
-
+    
+    std::function<void(int, String, String)> cb;
+    
 public:
     
-    String* arrSize;
-    String* arrName;
-
-    ArrayDialog(String* size, String* name);
+    static void show(Component* centre, std::function<void(int, String, String)> callback);
+    
+    
+    
+    ArrayDialog();
 
     ~ArrayDialog();
 

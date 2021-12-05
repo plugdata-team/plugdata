@@ -522,16 +522,21 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     auto temp_patch = File::createTempFile(".pd");
     temp_patch.replaceWithText(patch);
     
-    
+    ScopedLock lock(*getCallbackLock());
     // Load the patch into libpd
     // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
     // Instead we can load the patch and iterate through it to create the gui
    openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
     
+    
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        auto* cnv = editor->getMainCanvas();
-        cnv->patch = getPatch();
-        cnv->synchronise();
+        
+        auto canvas = ValueTree(Identifiers::canvas);
+        canvas.setProperty("Title", "Untitled Patcher", nullptr);
+        canvas.setProperty(Identifiers::isGraph, false, nullptr);
+        editor->mainCanvas = editor->appendChild<Canvas>(canvas);
+        editor->mainCanvas->patch = getPatch();
+        editor->mainCanvas->synchronise();
     }
 }
 

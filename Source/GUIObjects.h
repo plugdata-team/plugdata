@@ -30,7 +30,7 @@ struct GUIComponent : public Component
     
     void paint(Graphics& g) override {
         g.setColour(findColour(TextButton::buttonColourId));
-        g.fillRect(getLocalBounds().reduced(1));
+        g.fillRect(getLocalBounds().reduced(2));
     }
     
     void paintOverChildren(Graphics& g) override {
@@ -38,7 +38,7 @@ struct GUIComponent : public Component
         g.drawLine(0, 0, getWidth(), 0);
     }
     
-    static GUIComponent* create_gui(String name, Box* parent);
+    static GUIComponent* createGui(String name, Box* parent);
     
     virtual void updateValue();
     
@@ -296,11 +296,7 @@ public:
     GraphOnParent(pd::Gui gui, Box* box);
     ~GraphOnParent();
     
-    void paint(Graphics& g) override {
-        g.fillAll(findColour(TextButton::buttonColourId));
-        g.setColour(findColour(ComboBox::outlineColourId));
-        g.drawRect(getLocalBounds(), 1);
-    }
+    void paint(Graphics& g) override;
     void resized() override;
     void updateValue() override {}
     

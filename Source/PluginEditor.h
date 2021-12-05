@@ -52,7 +52,7 @@ public:
     void mouseUp(const MouseEvent& e) override;
         
     void openProject();
-    void saveProject();
+    void saveProject(std::function<void()> nestedCallback = [](){});
     
     void addTab(Canvas* cnv);
     
@@ -78,11 +78,10 @@ public:
     
     const std::string defaultPatch = "#N canvas 827 239 527 327 12;";
     
+    Canvas* mainCanvas = nullptr;
     
 private:
     
-
-    Canvas* mainCanvas = nullptr;
     
     FileChooser saveChooser =  FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
     FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation( File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");

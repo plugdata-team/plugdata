@@ -37,7 +37,7 @@ public:
     
     void mouseDown(const MouseEvent& e) override;
     
-    void delete_listeners();
+    void deleteListeners();
     
     void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) override;
     

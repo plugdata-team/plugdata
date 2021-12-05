@@ -35,9 +35,9 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
         
     
     if(!getProperty(Identifiers::exists)) {
-        bool can_connect = parent->patch.createConnection(outObj, outIdx, inObj, inIdx);
+        bool canConnect = parent->patch.createConnection(outObj, outIdx, inObj, inIdx);
 
-        if(!can_connect) {
+        if(!canConnect) {
             start = nullptr;
             end = nullptr;
             parent->removeChild(tree);
@@ -61,10 +61,10 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
 
 Connection::~Connection()
 {
-    delete_listeners();
+    deleteListeners();
 }
 
-void Connection::delete_listeners() {
+void Connection::deleteListeners() {
     if(start) {
         start->removeComponentListener(this);
     }
@@ -78,13 +78,13 @@ void Connection::paint (Graphics& g)
     g.setColour(Colours::grey);
     g.strokePath(path, PathStrokeType(3.0f));
 
-    auto base_colour = Colours::white;
+    auto baseColour = Colours::white;
 
     if(isSelected) {
-        base_colour = start->getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlight_colour;
+        baseColour = start->getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlightColour;
     }
     
-    g.setColour(base_colour);
+    g.setColour(baseColour);
     g.strokePath(path, PathStrokeType(1.5f));
 }
 
@@ -127,7 +127,7 @@ void Connection::resized()
 
 
 void Connection::componentBeingDeleted(Component& component) {
-    delete_listeners();
+    deleteListeners();
     
     if(!deleted) {
         deleted = true;
