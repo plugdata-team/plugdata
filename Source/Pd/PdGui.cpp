@@ -87,7 +87,7 @@ Object(ptr, patch, instance), m_type(Type::Undefined)
     m_type = getType(ptr, getText());
 }
 
-Type Gui::getType(void* ptr, std::string obj_text)
+Type Gui::getType(void* ptr, std::string obj_text) noexcept
 {
     Type m_type = Type::Undefined;
     
@@ -168,7 +168,8 @@ Type Gui::getType(void* ptr, std::string obj_text)
         else if(m_type != Type::Array && static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
             m_type = Type::GraphOnParent;
-            canvas_vis(static_cast<t_canvas*>(ptr), 1.f);
+            // Maybe not?
+            //canvas_vis(static_cast<t_canvas*>(ptr), 1.f);
         }
         else {
             m_type = Type::Subpatch;
@@ -278,6 +279,9 @@ float Gui::getMaximum() const noexcept
 
 float Gui::getValue() const noexcept
 {
+    
+    ScopedLock lock();
+
     if(!m_ptr)
         return 0.f;
     if(m_type == Type::HorizontalSlider)

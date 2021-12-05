@@ -31,7 +31,7 @@ void Edge::paint (Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
     
-    auto background_colour = ValueTreeObject::getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlight_colour;
+    auto background_colour = getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlight_colour;
     
     auto base_colour = background_colour.withMultipliedSaturation (hasKeyboardFocus (true) ? 1.3f : 0.9f)
                                       .withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
@@ -76,9 +76,9 @@ void Edge::createConnection()
     if(Edge::connectingEdge) {
         
         // Check type for input and output
-        bool is_input = ValueTreeObject::getProperty("Input");
-        String ctx1 = is_input ? Edge::connectingEdge->ValueTreeObject::getProperty(Identifiers::edgeSignal) : ValueTreeObject::getProperty(Identifiers::edgeSignal);
-        String ctx2 = !is_input ? Edge::connectingEdge->ValueTreeObject::getProperty(Identifiers::edgeSignal) : ValueTreeObject::getProperty(Identifiers::edgeSignal);
+        bool is_input = getProperty("Input");
+        String ctx1 = is_input ? Edge::connectingEdge->getProperty(Identifiers::edgeSignal) : getProperty(Identifiers::edgeSignal);
+        String ctx2 = !is_input ? Edge::connectingEdge->getProperty(Identifiers::edgeSignal) : getProperty(Identifiers::edgeSignal);
         
         
         bool connection_allowed = ctx1 == ctx2 && connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv;
@@ -94,8 +94,8 @@ void Edge::createConnection()
         else if(connection_allowed) {
             ValueTree new_connection = ValueTree(Identifiers::connection);
             
-            new_connection.setProperty(Identifiers::start_id, Edge::connectingEdge->ValueTreeObject::getProperty(Identifiers::edgeID), nullptr);
-            new_connection.setProperty(Identifiers::end_id, ValueTreeObject::getProperty(Identifiers::edgeID), nullptr);
+            new_connection.setProperty(Identifiers::start_id, Edge::connectingEdge->getProperty(Identifiers::edgeID), nullptr);
+            new_connection.setProperty(Identifiers::end_id, getProperty(Identifiers::edgeID), nullptr);
             Canvas* cnv = findParentComponentOfClass<Canvas>();
             cnv->appendChild(new_connection);
             Edge::connectingEdge = nullptr;

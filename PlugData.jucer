@@ -40,15 +40,6 @@
         <FILE id="CzKQdd" name="x_libpd_multi.c" compile="1" resource="0" file="Source/Pd/x_libpd_multi.c"/>
         <FILE id="JJ8E5s" name="x_libpd_multi.h" compile="0" resource="0" file="Source/Pd/x_libpd_multi.h"/>
       </GROUP>
-      <GROUP id="{5907070B-0201-FABF-287C-DDFD5614EC47}" name="Plugin">
-        <FILE id="idYapB" name="PluginEditor.cpp" compile="1" resource="0"
-              file="Source/Plugin/PluginEditor.cpp"/>
-        <FILE id="V8L4T7" name="PluginEditor.h" compile="0" resource="0" file="Source/Plugin/PluginEditor.h"/>
-        <FILE id="rvMBlb" name="PluginProcessor.cpp" compile="1" resource="0"
-              file="Source/Plugin/PluginProcessor.cpp"/>
-        <FILE id="VxjLTs" name="PluginProcessor.h" compile="0" resource="0"
-              file="Source/Plugin/PluginProcessor.h"/>
-      </GROUP>
       <GROUP id="{9FE053EB-CCAB-BDCF-A7B2-F3A9B88F4B7D}" name="Utility">
         <FILE id="SB8oLD" name="ValueTreeObject.cpp" compile="1" resource="0"
               file="Source/Utility/ValueTreeObject.cpp"/>
@@ -70,12 +61,13 @@
       <FILE id="t7vooz" name="GUIObjects.cpp" compile="1" resource="0" file="Source/GUIObjects.cpp"/>
       <FILE id="omXKtf" name="GUIObjects.h" compile="0" resource="0" file="Source/GUIObjects.h"/>
       <FILE id="t1O4PV" name="LookAndFeel.h" compile="0" resource="0" file="Source/LookAndFeel.h"/>
-      <FILE id="Wzj7yC" name="Main.cpp" compile="1" resource="0" file="Source/Main.cpp"/>
-      <FILE id="NUrPmJ" name="MainComponent.cpp" compile="1" resource="0"
-            file="Source/MainComponent.cpp"/>
-      <FILE id="Q6rN6C" name="MainComponent.h" compile="0" resource="0" file="Source/MainComponent.h"/>
-      <FILE id="LPXvQI" name="PlugData.cpp" compile="1" resource="0" file="Source/PlugData.cpp"/>
-      <FILE id="BJ9gJl" name="PlugData.h" compile="0" resource="0" file="Source/PlugData.h"/>
+      <FILE id="ytxH1j" name="PluginEditor.cpp" compile="1" resource="0"
+            file="Source/PluginEditor.cpp"/>
+      <FILE id="ozP1Bk" name="PluginEditor.h" compile="0" resource="0" file="Source/PluginEditor.h"/>
+      <FILE id="j9V4c9" name="PluginProcessor.cpp" compile="1" resource="0"
+            file="Source/PluginProcessor.cpp"/>
+      <FILE id="SuVNGI" name="PluginProcessor.h" compile="0" resource="0"
+            file="Source/PluginProcessor.h"/>
       <FILE id="D0oEjh" name="Dialogs.cpp" compile="1" resource="0" file="Source/Dialogs.cpp"/>
       <FILE id="gfMkUh" name="Dialogs.h" compile="0" resource="0" file="Source/Dialogs.h"/>
     </GROUP>
@@ -86,7 +78,7 @@
                extraDefs="PDINSTANCE" bigIcon="moDv9b" smallIcon="moDv9b">
       <CONFIGURATIONS>
         <CONFIGURATION isDebug="1" name="Debug" targetName="PlugData" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
-        <CONFIGURATION isDebug="0" name="Release" targetName="PlugData"/>
+        <CONFIGURATION isDebug="0" name="Release" targetName="PlugData" headerPath="../../Libraries&#10;../../Libraries/libpd/pure-data/src&#10;../../Libraries/libpd/libpd_wrapper/"/>
       </CONFIGURATIONS>
       <MODULEPATHS>
         <MODULEPATH id="juce_audio_basics" path="../../../JUCE/modules"/>

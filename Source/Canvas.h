@@ -12,6 +12,24 @@
     your controls and content.
 */
 
+class TreeSorter
+{
+public:
+    
+    Array<ValueTree>* indexTree;
+    
+    TreeSorter(Array<ValueTree>* index) : indexTree(index) {
+        
+    }
+    
+    int compareElements (const ValueTree& first, const ValueTree& second)
+    {
+        auto first_idx = indexTree->indexOf(first);
+        auto second_idx = indexTree->indexOf(second);
+        return (first_idx < second_idx) ? -1 : ((second_idx < first_idx) ? 1 : 0);
+    }
+};
+
 struct Identifiers
 {
     // Object identifiers
@@ -44,7 +62,7 @@ struct Identifiers
 
 class Edge;
 class PlugDataPluginEditor;
-class Canvas  : public Component, public ValueTreeObject, public KeyListener
+class Canvas  : public Component, public ValueTreeObject, public KeyListener, public MultiComponentDraggerListener
 {
 public:
     
@@ -68,7 +86,7 @@ public:
     void mouseUp(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
     
-    void loadPatch(String patch);
+    void createPatch();
     void loadPatch(pd::Patch& patch);
     
     void synchroniseAll();
@@ -87,6 +105,8 @@ public:
     void valueTreeChanged() override {
         hasChanged = true;
     }
+    
+    void dragCallback(int dx, int dy) override;
     
     void closeAllInstances();
     
@@ -112,7 +132,7 @@ public:
     pd::Patch patch;
     
     // Our objects are bigger than pd's, so move everything apart by this factor
-    static inline constexpr float zoom = 3.0f;
+    static inline constexpr float zoom = 2.5f;
     
 private:
 

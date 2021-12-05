@@ -6,11 +6,10 @@
 
 //==============================================================================
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debug_console) : AudioProcessorEditor(&p), ValueTreeObject(ValueTree("Main")), pd(p)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole, ValueTree mainTree) : AudioProcessorEditor(&p), ValueTreeObject(mainTree), pd(p)
 {
     
-    console = debug_console;
-    LookAndFeel::setDefaultLookAndFeel(&mainLook);
+    console = debugConsole;
     
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::background_1);
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::background_1);
@@ -49,8 +48,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     
     addAndMakeVisible(tabbar);
-    rebuildObjects();
-    
     addAndMakeVisible(console);
     
 
@@ -77,7 +74,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         appendChild(canvas);
         
         mainCanvas = findChildOfClass<Canvas>(0);
-        mainCanvas->loadPatch(defaultPatch);
+        mainCanvas->createPatch();
     };
     
     // Open button
@@ -230,29 +227,31 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     
     addAndMakeVisible(hideButton);
     
-    if(!hasProperty("Canvas")) {
+    rebuildObjects();
+    
+    if(!countChildrenOfClass<Canvas>()) {
         ValueTree cnv_state("Canvas");
         cnv_state.setProperty("Title", "Untitled Patcher", nullptr);
         cnv_state.setProperty(Identifiers::isGraph, false, nullptr);
         
-        appendChild(cnv_state);
-        
+        mainCanvas = appendChild<Canvas>(cnv_state);
+        mainCanvas->createPatch();
+    }
+    else {
         mainCanvas = findChildOfClass<Canvas>(0);
-        mainCanvas->loadPatch(defaultPatch);
-        pd.m_patch = mainCanvas->patch.getPointer();
-        
     }
     
+    restrainer.setSizeLimits (150, 150, 1200, 1200);
     resizer.reset(new ResizableCornerComponent (this, &restrainer));
     addAndMakeVisible(resizer.get());
     
-    restrainer.setSizeLimits (150, 150, 1200, 1200);
+    
     setSize (pd.lastUIWidth, pd.lastUIHeight);
+
 }
 
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
-    LookAndFeel::setDefaultLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
     startButton.setLookAndFeel(nullptr);
     hideButton.setLookAndFeel(nullptr);
@@ -343,6 +342,8 @@ void PlugDataPluginEditor::resized()
     hideButton.setBounds(std::min(getWidth() - s_width, getWidth() - 80), 0, 70, toolbarHeight);
     
     resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
+    resizer->toFront(false);
+    
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
 }
@@ -405,10 +406,9 @@ void PlugDataPluginEditor::openProject() {
         auto canvas = ValueTree(Identifiers::canvas);
         canvas.setProperty("Title", openedFile.getFileName(), nullptr);
         canvas.setProperty(Identifiers::isGraph, false, nullptr);
-        appendChild(canvas);
+        mainCanvas = appendChild<Canvas>(canvas);
         
-        mainCanvas = findChildOfClass<Canvas>(0);
-        mainCanvas->loadPatch(openedFile.loadFileAsString());
+        pd.loadPatch(openedFile.loadFileAsString());
     }
     
 #else
@@ -476,9 +476,19 @@ void PlugDataPluginEditor::timerCallback() {
 void PlugDataPluginEditor::valueTreeChanged() {
     
     pd.setThis();
-    
-    //toolbarButtons[3].setEnabled(libpd_can_undo(getCurrentCanvas()->patch.getPointer()));
-    //toolbarButtons[4].setEnabled(libpd_can_redo(getCurrentCanvas()->patch.getPointer()));
+
+
+    if(getCurrentCanvas() && getCurrentCanvas()->patch.getPointer()) {
+        
+        getCurrentCanvas()->patch.setCurrent();
+        
+        toolbarButtons[3].setEnabled(pd.canUndo);
+        toolbarButtons[4].setEnabled(pd.canRedo);
+    }
+    else {
+        toolbarButtons[3].setEnabled(false);
+        toolbarButtons[4].setEnabled(false);
+    }
 }
 
 Canvas* PlugDataPluginEditor::getCurrentCanvas()
@@ -545,7 +555,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
         
         auto* cnv = getCanvas(idx);
         
-        removeChild(cnv->getState());
+        removeChild(cnv->getObjectState());
         tabbar.removeTab(idx);
         
         tabbar.setCurrentTabIndex(0, true);

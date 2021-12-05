@@ -45,13 +45,14 @@ public:
     //! @brief Gets the bounds of the patch.
     std::array<int, 4> getBounds() const noexcept;
     
-    std::unique_ptr<Object> createGraph(String name, int size);
-    std::unique_ptr<Object> createGraphOnParent();
+    std::unique_ptr<Object> createGraph(String name, int size, int x, int y);
+    std::unique_ptr<Object> createGraphOnParent(int x, int y);
     
     std::unique_ptr<Object> createObject(String name, int x, int y);
     void removeObject(Object* obj);
     std::unique_ptr<Object> renameObject(Object* obj, String name);
-    void moveObject (Object*, int x, int y);
+   
+    void moveObjects (std::vector<Object*>, int x, int y);
     
     void removeSelection();
     
@@ -65,6 +66,13 @@ public:
     void undo();
     void redo();
     
+    enum GroupUndoType
+    {
+        Remove = 0,
+        Move
+    };
+
+
     void setCurrent();
     
     bool createConnection(Object* src, int nout, Object* sink, int nin);
