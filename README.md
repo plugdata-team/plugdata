@@ -7,7 +7,7 @@ Pure Data as a plugin, with a new GUI
 
 
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. Currently not very stable!
-This project differs from Camomile in that it actually allows you to modify patches
+This project differs from Camomile in that it allows you to modify patches
 
 Possible thanks to:
 
@@ -24,7 +24,7 @@ What works:
 - Signal and data objects
 - Most GUI objects:
   - Bang, Numbox, Toggle, Radio, Sliders, Array/Graph and Message work perfectly
-  - Experimental support for GraphOnParent and subpatchers
+  - Fairly good support for GraphOnParent and subpatchers (could use more testing)
 - Usable in DAW
 - Console
 - Saving and loading patches
@@ -33,7 +33,6 @@ What works:
 
 What doesn't work / needs to be fixed:
 - No VU meter
-- Possibly some thread-safety issues, and some slightly hacky manipulations of pd
-- Support for editing subpatchers and GraphOnParent is experimental
+- More testing needed! There might still be some bugs
 
 Please contact me if you wish to contribute, I could use some help!
