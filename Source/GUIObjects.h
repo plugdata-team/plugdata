@@ -18,8 +18,6 @@ struct GUIComponent : public Component
     
     Box* box;
     
-    Array<int> num_registered;
-    
     GUIComponent(pd::Gui gui, Box* parent);
     
     virtual ~GUIComponent();
@@ -60,11 +58,11 @@ struct GUIComponent : public Component
     void stopEdition() noexcept;
     
 protected:
-    const std::string string_gui = std::string("gui");
-    const std::string string_mouse = std::string("mouse");
+    const std::string stringGui = std::string("gui");
+    const std::string stringMouse = std::string("mouse");
     
     
-    PlugDataAudioProcessor& m_processor;
+    PlugDataAudioProcessor& processor;
     pd::Gui     gui;
     std::atomic<bool> edited;
     float       value   = 0;
@@ -72,28 +70,14 @@ protected:
     float       max     = 1;
     
     
-    PdGuiLook banglook;
+    PdGuiLook guiLook;
 };
 
-struct BangComponent : public GUIComponent
+struct BangComponent : public GUIComponent, public Timer
 {
- 
-    // TODO: clean this up
-    struct BangTimer : public Timer {
-        
-        BangTimer(TextButton* button) {
-            bang_button = button;
-        }
-        
-        void timerCallback() override {
-            bang_button->setToggleState(false, dontSendNotification);
-            stopTimer();
-        };
-        
-        TextButton* bang_button;
-    };
+
     
-    TextButton bang_button;
+    TextButton bangButton;
     
     BangComponent(pd::Gui gui, Box* parent);
     
@@ -107,14 +91,17 @@ struct BangComponent : public GUIComponent
     
     void resized() override;
     
-    BangTimer bang_timer = BangTimer(&bang_button);
+    void timerCallback() override {
+        bangButton.setToggleState(false, dontSendNotification);
+        stopTimer();
+    };
     
 };
 
 struct ToggleComponent : public GUIComponent
 {
     
-    TextButton toggle_button;
+    TextButton toggleButton;
     
     ToggleComponent(pd::Gui gui, Box* parent);
     
@@ -134,9 +121,9 @@ struct MessageComponent : public GUIComponent
 {
     
     TextEditor input;
-    TextButton bang_button;
+    TextButton bangButton;
     
-    std::string last_message = "";
+    std::string lastMessage = "";
     
     MessageComponent(pd::Gui gui, Box* parent);
     
@@ -190,14 +177,14 @@ struct NumboxComponent : public GUIComponent
 struct SliderComponent : public GUIComponent
 {
 
-    bool v_slider;
+    bool isVertical;
     
     Slider slider;
     
     SliderComponent(bool vertical, pd::Gui gui, Box* parent);
     
     std::pair<int, int> getBestSize() override {
-        if(v_slider) return {35, 130};
+        if(isVertical) return {35, 130};
         
         return {130, 35}; };
     
@@ -217,13 +204,13 @@ struct RadioComponent : public GUIComponent
     
     int last_state = 0;
     
-    bool v_radio;
+    bool isVertical;
     RadioComponent(bool vertical, pd::Gui gui, Box* parent);
     
     std::array<TextButton, 8> radio_buttons;
     
     std::pair<int, int> getBestSize() override {
-        if(v_radio) return {24, 164};
+        if(isVertical) return {24, 164};
         
         return {161, 24};
     };
@@ -256,14 +243,14 @@ private:
         return std::max(std::min(n, upper), lower);
     }
     
-    pd::Array               m_array;
-    std::vector<float>      m_vector;
-    std::vector<float>      m_temp;
-    std::atomic<bool>       m_edited;
-    bool                    m_error = false;
-    const std::string string_array = std::string("array");
+    pd::Array               array;
+    std::vector<float>      vec;
+    std::vector<float>      temp;
+    std::atomic<bool>       edited;
+    bool                    error = false;
+    const std::string stringArray = std::string("array");
     
-    PlugDataAudioProcessor* m_instance;
+    PlugDataAudioProcessor* pd;
 };
 
 
@@ -286,8 +273,8 @@ public:
     };
     
 private:
-    pd::Array      m_graph;
-    GraphicalArray m_array;
+    pd::Array      graph;
+    GraphicalArray array;
 };
 
 struct GraphOnParent : public GUIComponent

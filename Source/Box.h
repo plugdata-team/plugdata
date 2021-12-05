@@ -1,16 +1,12 @@
 #pragma once
 
-
 #include "Utility/MultiComponentDragger.h"
 #include "Utility/ValueTreeObject.h"
-
-//#include "../../Source/Engine.hpp"
 
 #include "GUIObjects.h"
 
 #include <m_pd.h>
 #include <JuceHeader.h>
-
 
 
 //==============================================================================
@@ -86,6 +82,5 @@ private:
     ComponentBoundsConstrainer restrainer;
     std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};
     
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Box)
 };

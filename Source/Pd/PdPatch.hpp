@@ -75,6 +75,7 @@ public:
 
     void setCurrent();
     
+    bool canConnect(Object* src, int nout, Object* sink, int nin);
     bool createConnection(Object* src, int nout, Object* sink, int nin);
     void removeConnection(Object* src, int nout, Object*sink, int nin);
     
