@@ -112,6 +112,7 @@ std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y) {
     m_instance->enqueueFunction([this, x, y, &pdobject]() mutable {
         m_instance->setThis();
         pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr), x, y);
+        setCurrent();
     });
     
     m_instance->waitForStateUpdate();
@@ -128,6 +129,7 @@ std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
     m_instance->enqueueFunction([this, name, size, x, y, &pdobject]() mutable {
         m_instance->setThis();
         pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size, x, y);
+        setCurrent();
     });
     
     m_instance->waitForStateUpdate();
@@ -223,6 +225,7 @@ void Patch::paste() {
 
 void Patch::duplicate() {
     m_instance->enqueueFunction([this]() {
+        setCurrent();
         libpd_duplicate(getPointer());
     });
 }
@@ -299,6 +302,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     
     libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
     
+    setCurrent();
     // This only works if pd always recreats the object
     // TODO: find out if thats always the case
     
@@ -329,13 +333,14 @@ void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
         
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
-        
+        setCurrent();
     });
 }
 
 
 void Patch::removeSelection() {
     m_instance->enqueueFunction([this]() mutable {
+        setCurrent();
         libpd_removeselection(getPointer());
         
     });
@@ -347,6 +352,7 @@ void Patch::undo() {
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
         libpd_undo(getPointer());
+        setCurrent();
     });
 }
 
@@ -356,6 +362,7 @@ void Patch::redo() {
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
         libpd_redo(getPointer());
+        setCurrent();
     });
 }
 

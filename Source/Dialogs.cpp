@@ -1,59 +1,77 @@
 #include <JuceHeader.h>
 #include "Dialogs.h"
 
-// Dialog that asks the user if it wants to save the current project before closing
+
 SaveDialog::SaveDialog()
 {
-	setLookAndFeel(&mainLook);
-	setSize(400, 200);
-	addAndMakeVisible(savelabel);
-	addAndMakeVisible(cancel);
-	addAndMakeVisible(dontsave);
-	addAndMakeVisible(save);
-	cancel.onClick = [this]
-	{
-		exitModalState(0);
-	};
-	save.onClick = [this]
-	{
-		exitModalState(1);
-	};
-	dontsave.onClick = [this]
-	{
-		exitModalState(2);
-	};
-	cancel.changeWidthToFitText();
-	dontsave.changeWidthToFitText();
-	save.changeWidthToFitText();
-	setOpaque(false);
-	addToDesktop (ComponentPeer::windowHasDropShadow);
+    setLookAndFeel(&mainLook);
+    setSize(400, 200);
+    addAndMakeVisible(savelabel);
+    addAndMakeVisible(cancel);
+    addAndMakeVisible(dontsave);
+    addAndMakeVisible(save);
+    cancel.onClick = [this]
+    {
+        cb(0);
+        delete this; // yikesss
+    };
+    save.onClick = [this]
+    {
+        cb(2);
+        delete this; // yikesss
+    };
+    dontsave.onClick = [this]
+    {
+        cb(1);
+        delete this; // yikesss
+    };
+    cancel.changeWidthToFitText();
+    dontsave.changeWidthToFitText();
+    save.changeWidthToFitText();
+    setOpaque(false);
+    addToDesktop (ComponentPeer::windowHasDropShadow);
 }
 
 SaveDialog::~SaveDialog()
 {
-	removeFromDesktop();
-	setLookAndFeel(nullptr);
+    removeFromDesktop();
+    setLookAndFeel(nullptr);
 }
 
 void SaveDialog::resized()
 {
-	savelabel.setBounds(20, 25, 200, 30);
-	cancel.setBounds(20, 80, 80, 25);
-	dontsave.setBounds(200, 80, 80, 25);
-	save.setBounds(300, 80, 80, 25);
+    savelabel.setBounds(20, 25, 200, 30);
+    cancel.setBounds(20, 80, 80, 25);
+    dontsave.setBounds(200, 80, 80, 25);
+    save.setBounds(300, 80, 80, 25);
 }
 
 
 
 void SaveDialog::paint(Graphics & g)
 {
-	g.setColour(Colour(60, 60, 60));
-	g.drawRect(getLocalBounds());
-	g.setColour(Colour(20, 20, 20));
-	g.fillRect(getLocalBounds());
+    g.setColour(Colour(60, 60, 60));
+    g.drawRect(getLocalBounds());
+    
+    g.setColour(MainLook::secondBackground);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), 3.0f);
+    
+    g.setColour(findColour(ComboBox::outlineColourId));
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 3.0f, 1.0f);
 }
 
-ArrayDialog::ArrayDialog(String* size, String* name) : arrSize(size), arrName(name) {
+void SaveDialog::show(Component* centre, std::function<void(int)> callback) {
+    
+    SaveDialog* dialog = new SaveDialog;
+    dialog->cb = callback;
+    
+    centre->addAndMakeVisible(dialog);
+    
+    dialog->setBounds((centre->getWidth() / 2.) - 200., 40, 400, 130);
+}
+
+
+ArrayDialog::ArrayDialog() {
     setLookAndFeel(&mainLook);
     setSize(400, 200);
     
@@ -63,13 +81,13 @@ ArrayDialog::ArrayDialog(String* size, String* name) : arrSize(size), arrName(na
     
     cancel.onClick = [this]
     {
-        exitModalState(0);
+        cb(0, "", "");
+        delete this;
     };
     ok.onClick = [this]
     {
-        *arrSize = sizeEditor.getText();
-        *arrName = nameEditor.getText();
-        exitModalState(1);
+        cb(1, nameEditor.getText(), sizeEditor.getText());
+        delete this;
     };
     
     sizeEditor.setInputRestrictions(10, "0123456789");
@@ -91,21 +109,35 @@ ArrayDialog::~ArrayDialog() {
     setLookAndFeel(nullptr);
 }
 
+void ArrayDialog::show(Component* centre, std::function<void(int, String, String)> callback) {
+    
+    ArrayDialog* dialog = new ArrayDialog;
+    dialog->cb = callback;
+    
+    centre->addAndMakeVisible(dialog);
+    
+    dialog->setBounds((centre->getWidth() / 2.) - 200., 40, 300, 180);
+}
+
 void ArrayDialog::resized()  {
-    label.setBounds(20, 5, 200, 30);
+    label.setBounds(20, 7, 200, 30);
     cancel.setBounds(30, getHeight() - 40, 80, 25);
     ok.setBounds(getWidth() - 110, getHeight() - 40, 80, 25);
     
-    nameEditor.setBounds(50, 60, getWidth() - 65, 25);
-    sizeEditor.setBounds(50, 100, getWidth() - 65, 25);
-    nameLabel.setBounds(5, 60, 45, 25);
-    sizeLabel.setBounds(5, 100, 45, 25);
+    nameEditor.setBounds(65, 45, getWidth() - 85, 25);
+    sizeEditor.setBounds(65, 85, getWidth() - 85, 25);
+    nameLabel.setBounds(8, 45, 52, 25);
+    sizeLabel.setBounds(8, 85, 52, 25);
 }
 
 void ArrayDialog::paint(Graphics & g)  {
     g.setColour(Colour(60, 60, 60));
     g.drawRect(getLocalBounds());
-    g.setColour(Colour(20, 20, 20));
-    g.fillRect(getLocalBounds());
+    
+    g.setColour(MainLook::secondBackground);
+    g.fillRoundedRectangle(getLocalBounds().toFloat(), 3.0f);
+    
+    g.setColour(findColour(ComboBox::outlineColourId));
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 3.0f, 1.0f);
 }
 

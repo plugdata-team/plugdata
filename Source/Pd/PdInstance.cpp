@@ -431,7 +431,10 @@ void Instance::waitForStateUpdate() {
             update_wait.signal();
         });
         update_wait.wait(50);
-        
+        m_function_queue.enqueue([this](){
+            update_wait.signal();
+        });
+        update_wait.wait(50);
     }
 }
 
@@ -558,7 +561,9 @@ String Instance::getCanvasContent() {
     char* buf;
     int bufsize;
     
+    sys_lock();
     libpd_getcontent(static_cast<t_canvas*>(m_patch), &buf, &bufsize);
+    sys_unlock();
     
     return String(buf, bufsize);
     

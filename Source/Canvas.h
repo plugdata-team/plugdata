@@ -24,9 +24,9 @@ public:
     
     int compareElements (const ValueTree& first, const ValueTree& second)
     {
-        auto first_idx = indexTree->indexOf(first);
-        auto second_idx = indexTree->indexOf(second);
-        return (first_idx < second_idx) ? -1 : ((second_idx < first_idx) ? 1 : 0);
+        auto firstIdx = indexTree->indexOf(first);
+        auto secondIdx = indexTree->indexOf(second);
+        return (firstIdx < secondIdx) ? -1 : ((secondIdx < firstIdx) ? 1 : 0);
     }
 };
 
@@ -55,8 +55,8 @@ struct Identifiers
 
     
     // Connection
-    inline static Identifier start_id = Identifier("StartID");
-    inline static Identifier end_id = Identifier("EndID");
+    inline static Identifier startID = Identifier("StartID");
+    inline static Identifier endID = Identifier("EndID");
     
 };
 
@@ -132,9 +132,12 @@ public:
     pd::Patch patch;
     
     // Our objects are bigger than pd's, so move everything apart by this factor
-    static inline constexpr float zoom = 2.5f;
+    static inline constexpr float zoomX = 3.0f;
+    static inline constexpr float zoomY = 2.0f;
     
 private:
+    
+    Point<int> lastMousePos;
 
     MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this);
 

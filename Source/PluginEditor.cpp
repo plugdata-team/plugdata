@@ -11,9 +11,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     
     console = debugConsole;
     
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::background_1);
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::background_1);
-    tabbar.setColour(TabbedComponent::outlineColourId, MainLook::background_1);
+    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::firstBackground);
+    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::firstBackground);
+    tabbar.setColour(TabbedComponent::outlineColourId, MainLook::firstBackground);
     
     setLookAndFeel(&mainLook);
     
@@ -65,16 +65,37 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     
     // New button
     toolbarButtons[0].onClick = [this]() {
-        ValueTreeObject::removeAllChildren();
-        tabbar.clearTabs();
+
         
-        auto canvas = ValueTree(Identifiers::canvas);
-        canvas.setProperty("Title", "Untitled Patcher", nullptr);
-        canvas.setProperty(Identifiers::isGraph, false, nullptr);
-        appendChild(canvas);
         
-        mainCanvas = findChildOfClass<Canvas>(0);
-        mainCanvas->createPatch();
+        auto createFunc = [this](){
+            ValueTreeObject::removeAllChildren();
+            tabbar.clearTabs();
+            
+            auto canvas = ValueTree(Identifiers::canvas);
+            canvas.setProperty("Title", "Untitled Patcher", nullptr);
+            canvas.setProperty(Identifiers::isGraph, false, nullptr);
+            
+            mainCanvas = appendChild<Canvas>(canvas);
+            mainCanvas->createPatch();
+        };
+
+        
+        if(getMainCanvas()->changed()) {
+            SaveDialog::show(this, [this, createFunc](int result){
+                if(result == 1) {
+                    saveProject([this, createFunc]() mutable {
+                        createFunc();
+                    });
+                }
+                else if(result != 0) {
+                    createFunc();
+                }
+            });
+        }
+        else {
+            createFunc();
+        }
     };
     
     // Open button
@@ -123,9 +144,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         auto callback = [this](int choice) {
             if(choice < 1) return;
             
-            auto box = ValueTree(Identifiers::box);
-            box.setProperty(Identifiers::boxX, 100, nullptr);
-            box.setProperty(Identifiers::boxY, 100, nullptr);
             
             String boxName;
             
@@ -163,21 +181,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 break;
                 
                 case 9: {
-                    String size;
-                    String name;
-                    
-                    ArrayDialog arrayDialog(&size, &name);
-                    
-                    arrayDialog.setBounds(getScreenX()  + (getWidth() / 2.) - 200., getScreenY() + toolbarHeight - 3, 300, 200);
-                    
-                    auto result = arrayDialog.runModalLoop();
-                    if(result == 1) {
-                        boxName = "graph " + name + " " + size;
-                    }
-                    else {
-                        return;
-                    }
-                    break;
+                    ArrayDialog::show(this, [this](int result, String name, String size) {
+                        if(result) {
+                            auto box = ValueTree(Identifiers::box);
+                            box.setProperty(Identifiers::boxX, 100, nullptr);
+                            box.setProperty(Identifiers::boxY, 100, nullptr);
+                            String boxName = "graph " + name + " " + size;
+                            box.setProperty(Identifiers::boxName, boxName, nullptr);
+                            getCurrentCanvas()->appendChild(box);
+                        }
+                    });
+                    return;
                 }
                 
                
@@ -205,8 +219,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
             }
             
+            
+            auto box = ValueTree(Identifiers::box);
             box.setProperty(Identifiers::boxName, boxName, nullptr);
             getCurrentCanvas()->appendChild(box);
+            box.setProperty(Identifiers::boxX, 100, nullptr);
+            box.setProperty(Identifiers::boxY, 100, nullptr);
         };
         
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
@@ -230,11 +248,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     rebuildObjects();
     
     if(!countChildrenOfClass<Canvas>()) {
-        ValueTree cnv_state("Canvas");
-        cnv_state.setProperty("Title", "Untitled Patcher", nullptr);
-        cnv_state.setProperty(Identifiers::isGraph, false, nullptr);
+        ValueTree canvasState("Canvas");
+        canvasState.setProperty("Title", "Untitled Patcher", nullptr);
+        canvasState.setProperty(Identifiers::isGraph, false, nullptr);
         
-        mainCanvas = appendChild<Canvas>(cnv_state);
+        mainCanvas = appendChild<Canvas>(canvasState);
         mainCanvas->createPatch();
     }
     else {
@@ -281,65 +299,65 @@ void PlugDataPluginEditor::paint (Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll (getLookAndFeel().findColour (ResizableWindow::backgroundColourId));
     
-    auto base_colour = MainLook::background_1;
-    auto highlight_colour = MainLook::highlight_colour;
+    auto baseColour = MainLook::firstBackground;
+    auto highlightColour = MainLook::highlightColour;
     
-    int s_width = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
+    int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
     
     // Sidebar
-    g.setColour(base_colour.darker(0.1));
-    g.fillRect(getWidth() - s_width, dragbarWidth, s_width + 10, getHeight() - toolbarHeight);
+    g.setColour(baseColour.darker(0.1));
+    g.fillRect(getWidth() - sWidth, dragbarWidth, sWidth + 10, getHeight() - toolbarHeight);
     
     // Toolbar background
-    g.setColour(base_colour);
+    g.setColour(baseColour);
     g.fillRect(0, 0, getWidth(), toolbarHeight - 4);
     
-    g.setColour(highlight_colour);
+    g.setColour(highlightColour);
     g.drawRoundedRectangle({-4.0f, 39.0f, (float)getWidth() + 9, 20.0f}, 12.0, 4.0);
     
     // Make sure we cant see the bottom half of the rounded rectangle
-    g.setColour(base_colour);
+    g.setColour(baseColour);
     g.fillRect(0, toolbarHeight - 4, getWidth(), toolbarHeight + 16);
     
     // Statusbar background
-    g.setColour(base_colour);
+    g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbarHeight, getWidth(), statusbarHeight);
     
     // Draggable bar
-    g.setColour(base_colour);
-    g.fillRect(getWidth() - s_width, dragbarWidth, statusbarHeight, getHeight() - (toolbarHeight - statusbarHeight));
+    g.setColour(baseColour);
+    g.fillRect(getWidth() - sWidth, dragbarWidth, statusbarHeight, getHeight() - (toolbarHeight - statusbarHeight));
     
     
 }
 
 void PlugDataPluginEditor::resized()
 {
-    int s_width = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
+    int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
     
-    int s_content_width = s_width - dragbarWidth;
+    int sContentWidth = sWidth - dragbarWidth;
     
-    int sbar_y = toolbarHeight - 4;
+    int sbarY = toolbarHeight - 4;
     
-    console->setBounds(getWidth() - s_content_width, sbar_y + 2, s_content_width, getHeight() - sbar_y);
+    console->setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
     console->toFront(false);
     
-    tabbar.setBounds(0, sbar_y, getWidth() - s_width, getHeight() - sbar_y - statusbarHeight);
+    tabbar.setBounds(0, sbarY, getWidth() - sWidth, getHeight() - sbarY - statusbarHeight);
     tabbar.toFront(false);
     
-    startButton.setBounds(getWidth() - s_width - 40, getHeight() - 27, 27, 27);
+    startButton.setBounds(getWidth() - sWidth - 40, getHeight() - 27, 27, 27);
     
     
-    int jump_positions[2] = {3, 5};
+    int jumpPositions[2] = {3, 5};
     int idx = 0;
-    int toolbar_position = 0;
+    int toolbarPosition = 0;
     for(auto& button : toolbarButtons) {
-        int spacing = (25 * (idx >= jump_positions[0])) +  (25 * (idx >= jump_positions[1])) + 10;
-        button.setBounds(toolbar_position + spacing, 0, 70, toolbarHeight);
-        toolbar_position += 70;
+        int spacing = (25 * (idx >= jumpPositions[0])) +  (25 * (idx >= jumpPositions[1])) + 10;
+        button.setBounds(toolbarPosition + spacing, 0, 70, toolbarHeight);
+        toolbarPosition += 70;
         idx++;
     }
     
-    hideButton.setBounds(std::min(getWidth() - s_width, getWidth() - 80), 0, 70, toolbarHeight);
+    hideButton.setBounds(std::min(getWidth() - sWidth, getWidth() - 80), 0, 70, toolbarHeight);
     
     resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
     resizer->toFront(false);
@@ -375,89 +393,51 @@ void PlugDataPluginEditor::mouseUp(const MouseEvent &e) {
 
 
 void PlugDataPluginEditor::openProject() {
-    
-    int result = 2;
-    
-    if(getCurrentCanvas()->changed()) {
-        SaveDialog dialog;
-
-        dialog.setBounds(getScreenX()  + (getWidth() / 2.) - 200., getScreenY() + toolbarHeight - 3, 400, 130);
         
-        result = dialog.runModalLoop();
+    auto openFunc = [this](const FileChooser& f) {
+        File openedFile = f.getResult();
         
-        // TODO: the async calling is killing me here
-        if(result == 1) {
-            saveProject();
+        if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {       ValueTreeObject::removeAllChildren();
+            tabbar.clearTabs();
+            pd.loadPatch(openedFile.loadFileAsString());
         }
+    };
+    
+    if(getMainCanvas()->changed()) {
+        
+        SaveDialog::show(this, [this, openFunc](int result){
+            if(result == 1) {
+                saveProject([this, openFunc]() mutable {
+                    openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+                });
+            }
+            else if(result != 0) {
+                openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+            }
+        });
     }
-    
-    if(result != 0) {
-        // Close all tabs
-#if JUCE_MODAL_LOOPS_PERMITTED
-    openChooser.browseForFileToOpen();
-    
-    File openedFile = openChooser.getResult();
-    
-    if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-        
-        ValueTreeObject::removeAllChildren();
-        tabbar.clearTabs();
-        
-        auto canvas = ValueTree(Identifiers::canvas);
-        canvas.setProperty("Title", openedFile.getFileName(), nullptr);
-        canvas.setProperty(Identifiers::isGraph, false, nullptr);
-        mainCanvas = appendChild<Canvas>(canvas);
-        
-        pd.loadPatch(openedFile.loadFileAsString());
-    }
-    
-#else
-    openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, [this](const FileChooser& f) {
-        
-          ValueTreeObject::removeAllChildren();
-          tabbar.clearTabs();
-        
-        
-          File openedFile = f.getResult();
-          if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-              canvas->loadPatch(openedFile.loadFileAsString());
-          }
-    });
-    
-#endif
-        
-
+    else {
+        openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
     }
 }
 
-void PlugDataPluginEditor::saveProject() {
-    
-    WaitableEvent event;
+void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
+
     
     auto to_save = pd.getCanvasContent();
+
     
-#if JUCE_MODAL_LOOPS_PERMITTED
-    saveChooser.browseForFileToSave(true);
-    
-    File result = saveChooser.getResult();
-    
-    FileOutputStream ostream(result);
-    ostream.writeString(to_save);
-    
-    getCurrentCanvas()->setProperty("Title", result.getFileName());
-    
-#else
-    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, &event](const FileChooser &f) mutable {
+    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, nestedCallback](const FileChooser &f) mutable {
         
         File result = saveChooser.getResult();
         
         FileOutputStream ostream(result);
         ostream.writeString(to_save);
         
-        getCurrentCanvas()->setProperty("Title", result.getFileName(), nullptr);
+        getCurrentCanvas()->setProperty("Title", result.getFileName());
+        
+        nestedCallback();
     });
-    
-#endif
     
     getCurrentCanvas()->hasChanged = false;
     
@@ -520,8 +500,8 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
 {
     tabbar.addTab(cnv->getProperty("Title"), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
     
-    int tab_idx = tabbar.getNumTabs() - 1;
-    tabbar.setCurrentTabIndex(tab_idx);
+    int tabIdx = tabbar.getNumTabs() - 1;
+    tabbar.setCurrentTabIndex(tabIdx);
     
     if(tabbar.getNumTabs() > 1) {
         tabbar.getTabbedButtonBar().setVisible(true);
@@ -532,7 +512,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
         tabbar.setTabBarDepth(1);
     }
     
-    auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tab_idx);
+    auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
     
     auto* closeButton = new TextButton("x");
    
@@ -574,7 +554,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
     closeButton->setConnectedEdges(12);
     tabButton->setExtraComponent(closeButton, TabBarButton::beforeText);
     
-    closeButton->setVisible(tab_idx != 0);
+    closeButton->setVisible(tabIdx != 0);
     closeButton->setSize(28, 28);
     
     tabbar.repaint();

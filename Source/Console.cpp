@@ -224,7 +224,7 @@ void Console::paint(Graphics &g)
     g.drawLine(0, getHeight()-35, getWidth(), getHeight()-35);
     
     
-    g.setColour(MainLook::background_1);
+    g.setColour(MainLook::firstBackground);
     g.fillRect(0, getHeight()-35, getWidth(), 35);
 }
 

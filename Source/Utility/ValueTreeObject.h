@@ -175,7 +175,8 @@ public:
     template <typename T>
     T* appendChild (const ValueTree& child)
     {
-        return addChild<T>(child, -1);
+        addChild(child, -1);
+        return dynamic_cast<T*>(children.getLast());
     }
 
     void removeChild (int childIndex)
