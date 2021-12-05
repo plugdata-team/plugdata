@@ -2,7 +2,6 @@
 #include "Edge.h"
 #include "Box.h"
 #include "Canvas.h"
-//#include "../../Source/Library.hpp"
 
 //==============================================================================
 Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)

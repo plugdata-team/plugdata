@@ -2,7 +2,6 @@
 #include "Box.h"
 #include "Connection.h"
 #include "PluginEditor.h"
-//#include "../../Source/Library.hpp"
 
 //==============================================================================
 Canvas::Canvas(ValueTree tree, PlugDataPluginEditor* parent) : ValueTreeObject(tree), main(parent)
@@ -408,6 +407,10 @@ void Canvas::mouseDrag(const MouseEvent& e)
         lasso.dragLasso(e);
         
         for(auto& con : findChildrenOfClass<Connection>()) {
+            if(!con->start || !con->end) {
+                removeChild(con->getObjectState());
+                continue;
+            }
             
             Line<int> path(con->start->getCanvasBounds().getCentre(), con->end->getCanvasBounds().getCentre());
             

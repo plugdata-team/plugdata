@@ -9,6 +9,7 @@
     your controls and content.
 */
 
+class Connection;
 class Box;
 class Edge  : public TextButton, public ValueTreeObject
 {
@@ -28,6 +29,8 @@ public:
     void mouseDrag(const MouseEvent& e) override;
     
     void createConnection();
+    
+    Array<Component::SafePointer<Connection>> getConnections();
     
     Rectangle<int> getCanvasBounds();
     

@@ -6,14 +6,14 @@
 #include "Canvas.h"
 
 
-GUIComponent::GUIComponent(pd::Gui pd_gui, Box* parent)  : box(parent), m_processor(parent->cnv->main->pd), gui(pd_gui), edited(false)
+GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)  : box(parent), processor(parent->cnv->main->pd), gui(pdGui), edited(false)
 {
     //if(!box->pdObject) return;
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
     
-    setLookAndFeel(&banglook);
+    setLookAndFeel(&guiLook);
 }
 
 GUIComponent::~GUIComponent()
@@ -23,10 +23,6 @@ GUIComponent::~GUIComponent()
 
 GUIComponent* GUIComponent::createGui(String name, Box* parent)
 {
-    
-    //auto* checked_object = pd_checkobject(parent->pdObject);
-    //jassert(parent->pdObject && checked_object);
-    
     auto* gui_ptr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
     
     if(!gui_ptr) return nullptr;
@@ -114,7 +110,7 @@ void GUIComponent::setValueScaled(float v)
 void GUIComponent::startEdition() noexcept
 {
     edited = true;
-    m_processor.enqueueMessages(string_gui, string_mouse, {1.f});
+    processor.enqueueMessages(stringGui, stringMouse, {1.f});
     
     ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
     value = gui.getValue();
@@ -123,7 +119,7 @@ void GUIComponent::startEdition() noexcept
 void GUIComponent::stopEdition() noexcept
 {
     edited = false;
-    m_processor.enqueueMessages(string_gui, string_mouse, {0.f});
+    processor.enqueueMessages(stringGui, stringMouse, {0.f});
 }
 
 void GUIComponent::updateValue()
@@ -177,10 +173,10 @@ pd::Gui GUIComponent::getGUI()
 
 // BangComponent
 
-BangComponent::BangComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
+BangComponent::BangComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
-    addAndMakeVisible(bang_button);
-    bang_button.onClick = [this](){
+    addAndMakeVisible(bangButton);
+    bangButton.onClick = [this](){
         startEdition();
         setValueOriginal(1);
         stopEdition();
@@ -189,25 +185,25 @@ BangComponent::BangComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui,
 
 void BangComponent::update()  {
     if(getValueOriginal() > std::numeric_limits<float>::epsilon()) {
-        bang_button.setToggleState(true, dontSendNotification);
-        bang_timer.startTimer(Canvas::guiUpdateMs);
+        bangButton.setToggleState(true, dontSendNotification);
+        startTimer(Canvas::guiUpdateMs);
     }
 }
 
 void BangComponent::resized() {
-    bang_button.setBounds(getWidth() / 4, getHeight() / 4, getWidth() / 2, getHeight() / 2);
+    bangButton.setBounds(getWidth() / 4, getHeight() / 4, getWidth() / 2, getHeight() / 2);
 }
 
 // ToggleComponent
-ToggleComponent::ToggleComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
+ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
-    addAndMakeVisible(toggle_button);
+    addAndMakeVisible(toggleButton);
     
-    toggle_button.onClick = [this](){
+    toggleButton.onClick = [this](){
         startEdition();
         auto new_value = 1.f - getValueOriginal();
         setValueOriginal(new_value);
-        toggle_button.setToggleState(new_value, dontSendNotification);
+        toggleButton.setToggleState(new_value, dontSendNotification);
         stopEdition();
     };
     
@@ -216,28 +212,28 @@ ToggleComponent::ToggleComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_
 
 
 void ToggleComponent::resized() {
-    toggle_button.setBounds(getWidth() / 4, getHeight() / 4, getWidth() / 2, getHeight() / 2);
+    toggleButton.setBounds(getWidth() / 4, getHeight() / 4, getWidth() / 2, getHeight() / 2);
 }
 
 
 void ToggleComponent::update()  {
-    toggle_button.setToggleState((getValueOriginal() > std::numeric_limits<float>::epsilon()), dontSendNotification);
+    toggleButton.setToggleState((getValueOriginal() > std::numeric_limits<float>::epsilon()), dontSendNotification);
 }
 
 
 // MessageComponent
-MessageComponent::MessageComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
+MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
     
-    bang_button.setConnectedEdges(12);
+    bangButton.setConnectedEdges(12);
    
     addAndMakeVisible(input);
     
     if(gui.getType() != pd::Type::AtomSymbol) {
-        addAndMakeVisible(bang_button);
+        addAndMakeVisible(bangButton);
     }
     
-    bang_button.onClick = [this](){
+    bangButton.onClick = [this](){
         startEdition();
         gui.click();
         stopEdition();
@@ -254,7 +250,7 @@ void MessageComponent::resized() {
     int button_width = gui.getType() == pd::Type::AtomSymbol ? 0 : 28;
     
     input.setBounds(0, 0, getWidth() - button_width, getHeight());
-    bang_button.setBounds(getWidth() - (button_width + 1), 0, (button_width + 1), getHeight());
+    bangButton.setBounds(getWidth() - (button_width + 1), 0, (button_width + 1), getHeight());
 }
 
 void MessageComponent::update()  {
@@ -268,10 +264,10 @@ void MessageComponent::updateValue()
     {
         std::string const v = gui.getSymbol();
         
-        if(last_message != v && !String(v).startsWith("click"))
+        if(lastMessage != v && !String(v).startsWith("click"))
         {
           
-            last_message = v;
+            lastMessage = v;
             update();
             //repaint();
         }
@@ -282,7 +278,7 @@ void MessageComponent::updateValue()
 
 
 
-NumboxComponent::NumboxComponent(pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
+NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
     input.addMouseListener(this, false);
     
@@ -320,9 +316,9 @@ void NumboxComponent::update()  {
 }
 
 // SliderComponent
-SliderComponent::SliderComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
+SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
-    v_slider = is_vertical;
+    isVertical = is_vertical;
     addAndMakeVisible(slider);
     
     if(is_vertical) slider.setSliderStyle(Slider::LinearVertical);
@@ -357,7 +353,7 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) 
 
 
 void SliderComponent::resized() {
-    slider.setBounds(getLocalBounds().reduced(v_slider ? 0.0 : 6.0, v_slider ? 6.0 : 0.0));
+    slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 6.0, isVertical ? 6.0 : 0.0));
 }
 
 
@@ -367,9 +363,9 @@ void SliderComponent::update()  {
 
 
 // RadioComponent
-RadioComponent::RadioComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : GUIComponent(pd_gui, parent)
+RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
-    v_radio = is_vertical;
+    isVertical = is_vertical;
     
     for(int i = 0; i < 8; i++) {
         radio_buttons[i].setConnectedEdges(12);
@@ -390,7 +386,7 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : 
 
 void RadioComponent::resized() {
     for(int i = 0; i < 8; i++) {
-        radio_buttons[i].setBounds(v_radio ? getWidth() / 2 - 11 : i*20, v_radio ? (i*20) - 1 : -1, 21, 21);
+        radio_buttons[i].setBounds(isVertical ? getWidth() / 2 - 11 : i*20, isVertical ? (i*20) - 1 : -1, 21, 21);
     }
 }
 
@@ -400,29 +396,29 @@ void RadioComponent::update()  {
 }
 
 // Array component
-ArrayComponent::ArrayComponent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box), m_graph(gui.getArray()), m_array(&box->cnv->main->pd, m_graph)
+ArrayComponent::ArrayComponent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box), graph(gui.getArray()), array(&box->cnv->main->pd, graph)
 {
     setInterceptsMouseClicks(false, true);
-    m_array.setBounds(getLocalBounds());
-    addAndMakeVisible(&m_array);
+    array.setBounds(getLocalBounds());
+    addAndMakeVisible(&array);
     
     
 }
 
 void ArrayComponent::resized()
 {
-    m_array.setBounds(getLocalBounds());
+    array.setBounds(getLocalBounds());
 }
 
 // Array graph
-GraphicalArray::GraphicalArray(PlugDataAudioProcessor* pd, pd::Array& graph) : m_array(graph), m_edited(false), m_instance(pd)
+GraphicalArray::GraphicalArray(PlugDataAudioProcessor* instance, pd::Array& graph) : array(graph), edited(false), pd(instance)
 {
     if(graph.getName().empty()) return;
     
-    m_vector.reserve(8192);
-    m_temp.reserve(8192);
-    try { m_array.read(m_vector); }
-    catch(...) { m_error = true; }
+    vec.reserve(8192);
+    temp.reserve(8192);
+    try { array.read(vec); }
+    catch(...) { error = true; }
     startTimer(100);
     setInterceptsMouseClicks(true, false);
     setOpaque(false);
@@ -432,29 +428,29 @@ void GraphicalArray::paint(Graphics& g)
 {
     g.fillAll(findColour(TextButton::buttonColourId));
     
-    if(m_error)
+    if(error)
     {
         //g.setFont(CamoLookAndFeel::getDefaultFont());
-        g.drawText("array " + m_array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), juce::Justification::centred);
+        g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), juce::Justification::centred);
     }
     else
     {
         const float h = static_cast<float>(getHeight());
         const float w = static_cast<float>(getWidth());
-        if(!m_vector.empty())
+        if(!vec.empty())
         {
-            const std::array<float, 2> scale = m_array.getScale();
-            if(m_array.isDrawingCurve())
+            const std::array<float, 2> scale = array.getScale();
+            if(array.isDrawingCurve())
             {
                 const float dh = h / (scale[1] - scale[0]);
-                const float dw = w / static_cast<float>(m_vector.size() - 1);
+                const float dw = w / static_cast<float>(vec.size() - 1);
                 Path p;
-                p.startNewSubPath(0, h - (clip(m_vector[0], scale[0], scale[1]) - scale[0]) * dh);
-                for(size_t i = 1; i < m_vector.size() - 1; i += 2)
+                p.startNewSubPath(0, h - (clip(vec[0], scale[0], scale[1]) - scale[0]) * dh);
+                for(size_t i = 1; i < vec.size() - 1; i += 2)
                 {
-                    const float y1 = h - (clip(m_vector[i-1], scale[0], scale[1]) - scale[0]) * dh;
-                    const float y2 = h - (clip(m_vector[i], scale[0], scale[1]) - scale[0]) * dh;
-                    const float y3 = h - (clip(m_vector[i+1], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y1 = h - (clip(vec[i-1], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y2 = h - (clip(vec[i], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y3 = h - (clip(vec[i+1], scale[0], scale[1]) - scale[0]) * dh;
                     p.cubicTo(static_cast<float>(i-1) * dw, y1,
                               static_cast<float>(i) * dw, y2,
                               static_cast<float>(i+1) * dw, y3);
@@ -462,15 +458,15 @@ void GraphicalArray::paint(Graphics& g)
                 g.setColour(findColour(ComboBox::outlineColourId));
                 g.strokePath(p, PathStrokeType(1));
             }
-            else if(m_array.isDrawingLine())
+            else if(array.isDrawingLine())
             {
                 const float dh = h / (scale[1] - scale[0]);
-                const float dw = w / static_cast<float>(m_vector.size() - 1);
+                const float dw = w / static_cast<float>(vec.size() - 1);
                 Path p;
-                p.startNewSubPath(0, h - (clip(m_vector[0], scale[0], scale[1]) - scale[0]) * dh);
-                for(size_t i = 1; i < m_vector.size(); ++i)
+                p.startNewSubPath(0, h - (clip(vec[0], scale[0], scale[1]) - scale[0]) * dh);
+                for(size_t i = 1; i < vec.size(); ++i)
                 {
-                    const float y = h - (clip(m_vector[i], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y = h - (clip(vec[i], scale[0], scale[1]) - scale[0]) * dh;
                     p.lineTo(static_cast<float>(i) * dw, y);
                 }
                 g.setColour(findColour(ComboBox::outlineColourId));
@@ -479,11 +475,11 @@ void GraphicalArray::paint(Graphics& g)
             else
             {
                 const float dh = h / (scale[1] - scale[0]);
-                const float dw = w / static_cast<float>(m_vector.size());
+                const float dw = w / static_cast<float>(vec.size());
                 g.setColour(findColour(ComboBox::outlineColourId));
-                for(size_t i = 0; i < m_vector.size(); ++i)
+                for(size_t i = 0; i < vec.size(); ++i)
                 {
-                    const float y = h - (clip(m_vector[i], scale[0], scale[1]) - scale[0]) * dh;
+                    const float y = h - (clip(vec[i], scale[0], scale[1]) - scale[0]) * dh;
                     g.drawLine(static_cast<float>(i) * dw, y, static_cast<float>(i+1) * dw, y);
                 }
             }
@@ -496,58 +492,58 @@ void GraphicalArray::paint(Graphics& g)
 
 void GraphicalArray::mouseDown(const MouseEvent& event)
 {
-    if(m_error)
+    if(error)
         return;
-    m_edited = true;
+    edited = true;
     mouseDrag(event);
 }
 
 void GraphicalArray::mouseDrag(const MouseEvent& event)
 {
-    if(m_error)
+    if(error)
         return;
-    const float s = static_cast<float>(m_vector.size() - 1);
+    const float s = static_cast<float>(vec.size() - 1);
     const float w = static_cast<float>(getWidth());
     const float h = static_cast<float>(getHeight());
     const float x = static_cast<float>(event.x);
     const float y = static_cast<float>(event.y);
     
-    const std::array<float, 2> scale = m_array.getScale();
+    const std::array<float, 2> scale = array.getScale();
     const size_t index = static_cast<size_t>(std::round(clip(x / w, 0.f, 1.f) * s));
-    m_vector[index] = (1.f - clip(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
+    vec[index] = (1.f - clip(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
     
     
-    const CriticalSection* cs = m_instance->getCallbackLock();
+    const CriticalSection* cs = pd->getCallbackLock();
     
     if(cs->tryEnter())
     {
-        try { m_array.write(index, m_vector[index]); }
-        catch(...) { m_error = true; }
+        try { array.write(index, vec[index]); }
+        catch(...) { error = true; }
         cs->exit();
     }
     
     
-    m_instance->enqueueMessages(string_array, m_array.getName(), {});
+    pd->enqueueMessages(stringArray, array.getName(), {});
     repaint();
 }
 
 void GraphicalArray::mouseUp(const MouseEvent& event)
 {
-    if(m_error)
+    if(error)
         return;
-    m_edited = false;
+    edited = false;
 }
 
 void GraphicalArray::timerCallback()
 {
-    if(!m_edited)
+    if(!edited)
     {
-        m_error = false;
-        try { m_array.read(m_temp); }
-        catch(...) { m_error = true; }
-        if(m_temp != m_vector)
+        error = false;
+        try { array.read(temp); }
+        catch(...) { error = true; }
+        if(temp != vec)
         {
-            m_vector.swap(m_temp);
+            vec.swap(temp);
             repaint();
         }
     }
@@ -555,11 +551,11 @@ void GraphicalArray::timerCallback()
 
 size_t GraphicalArray::getArraySize() const noexcept
 {
-    return m_vector.size();
+    return vec.size();
 }
 
 // Graph On Parent
-GraphOnParent::GraphOnParent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
+GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
     auto tree = ValueTree(Identifiers::canvas);
     tree.setProperty(Identifiers::isGraph, true, nullptr);
@@ -599,7 +595,7 @@ void GraphOnParent::paint(Graphics& g) {
 }
 
 // Subpatch, phony UI
-Subpatch::Subpatch(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
+Subpatch::Subpatch(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
     
     auto tree = ValueTree(Identifiers::canvas);
@@ -621,7 +617,7 @@ Subpatch::~Subpatch() {
 }
 
 // Comment
-CommentComponent::CommentComponent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
+CommentComponent::CommentComponent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
     setInterceptsMouseClicks(false, false);
     edited = true;

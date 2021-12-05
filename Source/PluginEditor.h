@@ -109,12 +109,8 @@ private:
 
     TabComponent tabbar;
     
-    OpenGLContext openGLContext;
-    
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;
-
-    
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugDataPluginEditor)
 };

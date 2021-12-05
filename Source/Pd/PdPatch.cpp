@@ -255,16 +255,29 @@ void Patch::removeObject(Object* obj)
     
 }
 
+bool Patch::canConnect(Object* src, int nout, Object* sink, int nin) {
+    
+    bool can_connect = false;
+    
+    m_instance->enqueueFunction([this, &can_connect, src, nout, sink, nin]() mutable {
+        
+        can_connect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    });
+                                
+    m_instance->waitForStateUpdate();
+
+    return can_connect;
+}
 
 bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
 {
     if(!src || !sink || !m_ptr) return false;
     
+    bool can_connect = false;
     
-    
-    m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
+    m_instance->enqueueFunction([this, &can_connect, src, nout, sink, nin]() mutable {
         
-        bool can_connect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+        can_connect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
         
         if(!can_connect) return;
         
@@ -273,9 +286,10 @@ bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
         libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
     
+    m_instance->waitForStateUpdate();
     
     
-    return true;
+    return can_connect;
 }
 
 void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)

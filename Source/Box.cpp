@@ -1,6 +1,7 @@
 #include "Box.h"
 #include "Canvas.h"
 #include "Edge.h"
+#include "Connection.h"
 #include "PluginEditor.h"
 
 #include "Pd/x_libpd_extra_utils.h"
@@ -13,8 +14,6 @@ void ClickLabel::mouseDown(const MouseEvent & e)
     
     isDown = true;
     dragger.handleMouseDown(box, e);
-    
-    
 }
 
 void ClickLabel::mouseUp(const MouseEvent & e)
@@ -30,7 +29,6 @@ void ClickLabel::mouseUp(const MouseEvent & e)
     }
     
     if(canvas) {
-        
         auto pos = e.getEventRelativeTo(canvas).getPosition() - e.getPosition();
         auto bounds = Rectangle<int>(pos, pos + Point<int>(getParentWidth(), getParentHeight()));
         if(!canvas->getLocalBounds().contains(bounds)) {
@@ -40,7 +38,6 @@ void ClickLabel::mouseUp(const MouseEvent & e)
             if(bounds.getBottom() > canvas->getHeight())
                 canvas->setSize(canvas->getWidth(), bounds.getBottom() + 10);
             
-            
             if(bounds.getX() < 0.0f) {
                 for(auto& box : canvas->findChildrenOfClass<Box>()) {
                     if(&box->textLabel != this)
@@ -48,7 +45,6 @@ void ClickLabel::mouseUp(const MouseEvent & e)
                     else
                         box->setTopLeftPosition(0, box->getY());
                 }
-                
             }
             if(bounds.getY() < 0) {
                 for(auto& box : canvas->findChildrenOfClass<Box>()) {
@@ -58,16 +54,12 @@ void ClickLabel::mouseUp(const MouseEvent & e)
                         box->setTopLeftPosition(box->getX(), 0);
                 }
             }
-            
-            
         }
     }
     
     if(auto* box = dynamic_cast<Box*>(getParentComponent())) {
         box->updatePosition();
     }
-    
-    
 }
 
 void ClickLabel::mouseDrag(const MouseEvent & e)
@@ -88,11 +80,6 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragge
         auto pos = cnv->getMouseXYRelative();
         tree.setProperty(Identifiers::boxX, pos.getX(), nullptr);
         tree.setProperty(Identifiers::boxY, pos.getY(), nullptr);
-    }
-    
-    if(!tree.hasProperty("ID")) {
-        Uuid id;
-        tree.setProperty("ID", id.toString(), nullptr);
     }
     
     setSize (100, 32);
@@ -133,8 +120,6 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragge
     
     sendPropertyChangeMessage(Identifiers::boxName);
     sendPropertyChangeMessage(Identifiers::boxX);
-    
-    
 }
 
 
@@ -345,7 +330,7 @@ void Box::updatePorts() {
         numOutputs = pdObject->getNumOutlets();
     }
 
-
+    // TODO: Make sure that this logic is exactly the same as PD
     while(numInputs < oldnumInputs) {
         int idx = oldnumInputs-1;
         removeChild(idx);
@@ -388,10 +373,25 @@ void Box::updatePorts() {
         bool isSignal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
         bool wasSignal = edge.getProperty(Identifiers::edgeSignal);
         
-        if(isSignal != wasSignal) {
+        /* this removes the connection if it's illegal
+         disabled because regular pd doesn't even do this!!
+        if((!input && isSignal && !wasSignal) || (input && isSignal && !wasSignal)) {
             removeChild(edge);
             addChild(edge, i);
+        } */
+        
+        auto* edge_obj = findObjectForTree<Edge>(edge);
+        for(auto& connection : edge_obj->getConnections()) {
+            if(!connection) continue;
+                
+            if(connection->start == edge_obj) {
+                connection->inObj = pdObject.get();
+            }
+            else {
+                connection->outObj = pdObject.get();
+            }
         }
+        
         
         edge.setProperty(Identifiers::edgeIdx, input ? numIn : numOut, nullptr);
         edge.setProperty(Identifiers::edgeSignal, isSignal, nullptr);

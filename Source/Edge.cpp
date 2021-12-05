@@ -1,6 +1,6 @@
 #include "Edge.h"
 #include "Canvas.h"
-//#include "../../Source/Library.hpp"
+#include "Connection.h"
 
 //==============================================================================
 Edge::Edge(ValueTree tree, Box* parent) : ValueTreeObject(tree), box(parent)
@@ -14,6 +14,17 @@ Edge::Edge(ValueTree tree, Box* parent) : ValueTreeObject(tree), box(parent)
 
 Edge::~Edge()
 {
+}
+
+Array<Component::SafePointer<Connection>> Edge::getConnections() {
+    Array<Component::SafePointer<Connection>> connections;
+    for(auto* connection : box->cnv->findChildrenOfClass<Connection>()) {
+        if(connection->start == this || connection->end == this) {
+            connections.add(connection);
+        }
+    }
+    
+    return connections;
 }
 
 Rectangle<int> Edge::getCanvasBounds()
@@ -81,13 +92,10 @@ void Edge::createConnection()
         String ctx2 = !isInput ? Edge::connectingEdge->getProperty(Identifiers::edgeSignal) : getProperty(Identifiers::edgeSignal);
         
         
-        bool connectionAllowed = ctx1 == ctx2 && connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv;
+        bool connectionAllowed = connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv;
         
         // Dont create if this is the same edge
         if(Edge::connectingEdge == this) {
-            Edge::connectingEdge = nullptr;
-        }
-        else if(!connectionAllowed) {
             Edge::connectingEdge = nullptr;
         }
         // Create new connection if allowed

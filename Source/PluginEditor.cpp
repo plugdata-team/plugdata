@@ -8,7 +8,6 @@
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole, ValueTree mainTree) : AudioProcessorEditor(&p), ValueTreeObject(mainTree), pd(p)
 {
-    
     console = debugConsole;
     
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::firstBackground);
@@ -259,7 +258,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         mainCanvas = findChildOfClass<Canvas>(0);
     }
     
-    restrainer.setSizeLimits (150, 150, 1200, 1200);
+    restrainer.setSizeLimits (150, 150, 2000, 2000);
     resizer.reset(new ResizableCornerComponent (this, &restrainer));
     addAndMakeVisible(resizer.get());
     
