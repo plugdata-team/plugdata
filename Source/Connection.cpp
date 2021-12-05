@@ -20,15 +20,15 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
         return;
     }
 
-    if(start->ValueTreeObject::getProperty(Identifiers::edgeIsInput)) {
-        inIdx = start->ValueTreeObject::getProperty(Identifiers::edgeIdx);
-        outIdx = end->ValueTreeObject::getProperty(Identifiers::edgeIdx);
+    if(start->getProperty(Identifiers::edgeIsInput)) {
+        inIdx = start->getProperty(Identifiers::edgeIdx);
+        outIdx = end->getProperty(Identifiers::edgeIdx);
         inObj = start->box->pdObject.get();
         outObj = end->box->pdObject.get();
     }
     else {
-        inIdx = end->ValueTreeObject::getProperty(Identifiers::edgeIdx);
-        outIdx = start->ValueTreeObject::getProperty(Identifiers::edgeIdx);
+        inIdx = end->getProperty(Identifiers::edgeIdx);
+        outIdx = start->getProperty(Identifiers::edgeIdx);
         inObj = end->box->pdObject.get();
         outObj = start->box->pdObject.get();
     }
@@ -81,7 +81,7 @@ void Connection::paint (Graphics& g)
     auto base_colour = Colours::white;
 
     if(isSelected) {
-        base_colour = start->ValueTreeObject::getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlight_colour;
+        base_colour = start->getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlight_colour;
     }
     
     g.setColour(base_colour);
@@ -131,6 +131,6 @@ void Connection::componentBeingDeleted(Component& component) {
     
     if(!deleted) {
         deleted = true;
-        getParent().removeChild(getState(), nullptr);
+        getParent().removeChild(getObjectState(), nullptr);
     }
 }

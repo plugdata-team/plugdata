@@ -95,17 +95,7 @@ public:
     void stringToAtom(String name, int& argc, t_atom& target);
     
 
-    void waitForStateUpdate() {
-        // Need to wait twice to ensure that pd has processed all changes
-        if(audio_started) {
-            // Append signal to resume thread at the end of the queue
-            // This will make sure that any actions we performed are definitely finished now
-            m_function_queue.enqueue([this](){
-                update_wait.signal();
-            });
-            update_wait.wait();
-        }
-    }
+    void waitForStateUpdate();
     
            
     String getCanvasContent();
@@ -118,6 +108,12 @@ public:
     std::vector<void*> m_message_receiver    = std::vector<void*>(1, nullptr);
     
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    
+    std::atomic<bool> audio_started = false;
+    std::atomic<bool> canUndo = false;
+    std::atomic<bool> canRedo = false;
+
+    
     
     private:
     struct Message
@@ -163,7 +159,6 @@ public:
     WaitableEvent update_wait;
     struct internal;
     
-protected:
-    bool audio_started = false;
+
 };
 }

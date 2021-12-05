@@ -14,6 +14,21 @@ extern "C"
 #include "x_libpd_extra_utils.h"
 }
 
+struct _outconnect
+{
+    struct _outconnect *oc_next;
+    t_pd *oc_to;
+};
+
+
+struct _outlet
+{
+    t_object *o_owner;
+    struct _outlet *o_next;
+    t_outconnect *o_connections;
+    t_symbol *o_sym;
+};
+
 namespace pd
 {
 // ==================================================================================== //
@@ -69,14 +84,17 @@ std::array<int, 4> Object::getBounds() const noexcept
         t_canvas const* cnv = m_patch->getPointer();
         if(cnv != nullptr)
         {
-            x -= cnv->gl_xmargin;
-            y -= cnv->gl_ymargin;
+            //x -= cnv->gl_xmargin;
+            //y -= cnv->gl_ymargin;
         }
         
         return {x, y, w, h};
     }
     return {0, 0, 0, 0};
 }
+
+
+
 
 
 bool Object::operator==(Object const& other) const noexcept

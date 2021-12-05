@@ -22,8 +22,8 @@ extern "C"
 t_pd* libpd_newest(t_canvas* cnv);
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv);
-t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size);
-t_pd* libpd_creategraphonparent(t_canvas* cnv);
+t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y);
+t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y);
 
 void libpd_removeobj(t_canvas* cnv, t_gobj* obj);
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize);
@@ -36,6 +36,11 @@ void libpd_duplicate(t_canvas *x);
 
 void libpd_undo(t_canvas* x);
 void libpd_redo(t_canvas *x);
+
+// Start and end of remove action, to group them together for undo/redo
+void libpd_removeselection(t_canvas* x);
+
+void libpd_moveselection(t_canvas* cnv, int dx, int dy);
 
 void libpd_createconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);
 void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);

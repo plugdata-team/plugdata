@@ -80,7 +80,7 @@ public:
     //! @brief The bounds of the Object.
     virtual std::array<int, 4> getBounds() const noexcept;
     
-    void* getPointer() {
+    void* getPointer() const noexcept{
         return m_ptr;
     }
     

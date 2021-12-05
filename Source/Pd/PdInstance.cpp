@@ -145,6 +145,8 @@ Instance::Instance(std::string const& symbol)
     m_atoms = malloc(sizeof(t_atom) * 512);
     
     libpd_set_verbose(0);
+    
+    
     setThis();
 }
 
@@ -394,12 +396,12 @@ void Instance::processPrints()
 void Instance::enqueueFunction(std::function<void(void)> fn) {
     
     //sys_lock();
-    fn();
+    //fn();
     //sys_unlock();
     
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
-    //m_function_queue.try_enqueue(fn);
+    m_function_queue.try_enqueue(fn);
 }
 
 void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
@@ -407,8 +409,6 @@ void Instance::enqueueMessages(const std::string& dest, const std::string& msg, 
     m_send_queue.try_enqueue(dmessage{nullptr, dest, msg, std::move(list)});
     messageEnqueued();
 }
-
-
 
 void Instance::enqueueDirectMessages(void* object, const std::string& msg)
 {
@@ -422,8 +422,23 @@ void Instance::enqueueDirectMessages(void* object, const float msg)
     messageEnqueued();
 }
 
+void Instance::waitForStateUpdate() {
+    // Need to wait twice to ensure that pd has processed all changes
+    if(audio_started) {
+        // Append signal to resume thread at the end of the queue
+        // This will make sure that any actions we performed are definitely finished now
+        m_function_queue.enqueue([this](){
+            update_wait.signal();
+        });
+        update_wait.wait(50);
+        
+    }
+}
+
+
 void Instance::dequeueMessages()
 {
+    
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     dmessage mess;
     
@@ -431,9 +446,11 @@ void Instance::dequeueMessages()
     
     while(m_function_queue.try_dequeue(callback))
     {
-        sys_lock();
+        //sys_lock();
+        // Dont know if we should lock here!!
+        // If can cause a deadlock when combined with undo/redo, and I believe that Pd only uses the audio thread?
         callback();
-        sys_unlock();
+        //sys_unlock();
     }
     
     
@@ -475,6 +492,11 @@ void Instance::dequeueMessages()
             sendMessage(mess.destination.c_str(), mess.selector.c_str(), mess.list);
         }
     }
+    
+    sys_lock();
+    canUndo = libpd_can_undo(canvas_getcurrent());
+    canRedo = libpd_can_redo(canvas_getcurrent());
+    sys_unlock();
     
 }
 
@@ -531,6 +553,8 @@ void Instance::stringToAtom(String name, int& argc, t_atom& target)
 
 String Instance::getCanvasContent() {
     
+    if(!m_patch) return String();
+        
     char* buf;
     int bufsize;
     

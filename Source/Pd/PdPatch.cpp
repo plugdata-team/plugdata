@@ -67,8 +67,12 @@ std::array<int, 4> Patch::getBounds() const noexcept
 }
 
 void Patch::setCurrent() {
+    
+    sys_lock();
+    m_instance->setThis();
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
+    sys_unlock();
 }
 
 std::vector<Object> Patch::getObjects(bool only_gui) noexcept
@@ -101,16 +105,34 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
 }
 
 
-std::unique_ptr<Object> Patch::createGraphOnParent() {
-    m_instance->setThis();
-    t_pd* pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr));
+std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y) {
+    
+    
+    t_pd* pdobject = nullptr;
+    m_instance->enqueueFunction([this, x, y, &pdobject]() mutable {
+        m_instance->setThis();
+        pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr), x, y);
+    });
+    
+    m_instance->waitForStateUpdate();
+    
+    
+    assert(pdobject);
+    
     return std::make_unique<Gui>(pdobject, this, m_instance);
 }
 
-std::unique_ptr<Object> Patch::createGraph(String name, int size)
+std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
 {
-    m_instance->setThis();
-    t_pd* pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size);
+    t_pd* pdobject = nullptr;
+    m_instance->enqueueFunction([this, name, size, x, y, &pdobject]() mutable {
+        m_instance->setThis();
+        pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size, x, y);
+    });
+    
+    m_instance->waitForStateUpdate();
+    
+    assert(pdobject);
     
     return std::make_unique<Gui>(pdobject, this, m_instance);
 }
@@ -124,10 +146,10 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
     tokens.addTokens(name, " ", "");
     
     if(tokens[0] == "graph" && tokens.size() == 3) {
-        return createGraph(tokens[1], tokens[2].getIntValue());
+        return createGraph(tokens[1], tokens[2].getIntValue(), x, y);
     }
     else if(tokens[0] == "graph") {
-        return createGraphOnParent();
+        return createGraphOnParent(x, y);
     }
     
     
@@ -166,11 +188,15 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
             SETSYMBOL(argv.data() + i + 2, gensym(tokens[i].toRawUTF8()));
         }
     }
+    t_pd* pdobject = nullptr;
+    m_instance->enqueueFunction([this, argc, argv, typesymbol, &pdobject]() mutable {
+        m_instance->setThis();
+        pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
+    });
     
-    // Cant enqueue this...
+    m_instance->waitForStateUpdate();
     
-    m_instance->setThis();
-    t_pd* pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
+    assert(pdobject);
     
     bool is_gui = Gui::getType(pdobject, name.toStdString()) != Type::Undefined;
     
@@ -211,6 +237,7 @@ void Patch::selectObject(Object* obj)  {
 void Patch::deselectAll() {
     m_instance->enqueueFunction([this]() {
         glist_noselect(getPointer());
+        EDITOR->canvas_undo_already_set_move = 0;
     });
 }
 
@@ -225,6 +252,7 @@ void Patch::removeObject(Object* obj)
     
 }
 
+
 bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
 {
     if(!src || !sink || !m_ptr) return false;
@@ -238,6 +266,7 @@ bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
         if(!can_connect) return;
         
         m_instance->setThis();
+        
         libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
     
@@ -252,6 +281,7 @@ void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
     
     m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
         m_instance->setThis();
+        
         libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
     
@@ -265,7 +295,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     
     // Cant use the queue for this...
     
-    m_instance->setThis();
+    setCurrent();
     
     libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
     
@@ -283,26 +313,39 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
    
 }
 
-void Patch::moveObject(Object* obj, int x, int y) {
-    if(!obj || !m_ptr) return;
+void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
+    //if(!obj || !m_ptr) return;
     
-    m_instance->enqueueFunction([this, obj, x, y]() mutable {
-        m_instance->setThis();
-        libpd_moveobj(getPointer(), &checkObject(obj)->te_g, x, y);
+    m_instance->enqueueFunction([this, objects, dx, dy]() mutable {
+        setCurrent();
+        
+        for(auto* obj : objects) {
+            if(!obj) continue;
+            glist_select(getPointer(), &checkObject(obj)->te_g);
+        }
+        
+        
+        libpd_moveselection(getPointer(), dx, dy);
+        
+        glist_noselect(getPointer());
+        EDITOR->canvas_undo_already_set_move = 0;
+        
     });
-    
 }
+
 
 void Patch::removeSelection() {
     m_instance->enqueueFunction([this]() mutable {
-        libpd_canvas_doclear(getPointer());
+        libpd_removeselection(getPointer());
+        
     });
 }
 
 void Patch::undo() {
     m_instance->enqueueFunction([this]() {
-        m_instance->setThis();
         setCurrent();
+        glist_noselect(getPointer());
+        EDITOR->canvas_undo_already_set_move = 0;
         libpd_undo(getPointer());
     });
 }
@@ -310,7 +353,8 @@ void Patch::undo() {
 void Patch::redo() {
     m_instance->enqueueFunction([this]() {
         setCurrent();
-        m_instance->setThis();
+        glist_noselect(getPointer());
+        EDITOR->canvas_undo_already_set_move = 0;
         libpd_redo(getPointer());
     });
 }

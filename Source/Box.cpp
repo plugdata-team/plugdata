@@ -125,7 +125,7 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragge
     int total = edges.size();
     int numIn = 0;
     for(auto& edge : edges) {
-        auto edge_tree = edge->ValueTreeObject::getState();
+        auto edge_tree = edge->getObjectState();
         numIn += (int)edge_tree.getProperty("Input");
     }
     numInputs = numIn;
@@ -133,6 +133,8 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragge
     
     sendPropertyChangeMessage(Identifiers::boxName);
     sendPropertyChangeMessage(Identifiers::boxX);
+    
+    
 }
 
 
@@ -141,17 +143,6 @@ Box::~Box()
 }
 
 
-void Box::remove(bool clear_pd) {
-    
-    cnv->removeMouseListener(this);
-    
-    if(pdObject && clear_pd) {
-        cnv->patch.removeObject(pdObject.get());
-    }
-    
-    pdObject = nullptr;
-    cnv->removeChild(ValueTreeObject::getState());
-}
 
 ValueTreeObject* Box::factory (const juce::Identifier& id, const juce::ValueTree& tree)
 {
@@ -184,7 +175,7 @@ void Box::setType (String new_type)
         auto* pd = &cnv->patch;
         
         // Pd doesn't normally allow changing between gui and non-gui objects
-        if(pdObject && (graphics.get() != nullptr || pdObject->getType() != pd::Type::Undefined)) {
+        if(pdObject && (graphics.get() != nullptr || pdObject->getType() != pd::Type::Undefined) && pdObject->getType() != pd::Type::Comment) {
             pd->removeObject(pdObject.get());
             pdObject = pd->createObject(new_type, getX() / Canvas::zoom, getY() / Canvas::zoom);
         }
@@ -272,10 +263,6 @@ void Box::moved()
     for(auto& edge : findChildrenOfClass<Edge>()) {
         edge->sendMovedResizedMessages(true, true);
     }
-    
-    if(pdObject) {
-        cnv->patch.moveObject(pdObject.get(), getX() / Canvas::zoom, getY() / Canvas::zoom);
-    }
 }
 
 void Box::updatePosition()
@@ -299,7 +286,7 @@ void Box::resized()
     int index = 0;
     for(auto& edge : findChildrenOfClass<Edge>()) {
         
-        auto& state = edge->ValueTreeObject::getState();
+        auto& state = edge->getObjectState();
         bool is_input = state.getProperty(Identifiers::edgeIsInput);
         
         int position = index < numInputs ? index : index - numInputs;
@@ -318,7 +305,7 @@ void Box::resized()
 
 void Box::valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property)
 {
-    if(treeWhosePropertyHasChanged != getState()) return;
+    if(treeWhosePropertyHasChanged != getObjectState()) return;
     
     if(property == Identifiers::boxX || property == Identifiers::boxY) {
         setTopLeftPosition(getProperty(Identifiers::boxX), getProperty(Identifiers::boxY));
@@ -339,7 +326,7 @@ void Box::updatePorts() {
     int oldnumOutputs = 0;
     
     for(auto& edge : findChildrenOfClass<Edge>()) {
-        (bool)edge->ValueTreeObject::getProperty("Input") ? oldnumInputs++ : oldnumOutputs++;
+        (bool)edge->getProperty("Input") ? oldnumInputs++ : oldnumOutputs++;
     }
     
     numInputs = 0;

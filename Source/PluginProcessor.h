@@ -81,14 +81,15 @@ public:
         m_bypass = bypass;
     }
     
-    void setCallbackLock(CriticalSection* lock) {
+    void setCallbackLock(const CriticalSection* lock) {
         audioLock = lock;
     };
     
     
-    CriticalSection* getCallbackLock() {
+    const CriticalSection* getCallbackLock() {
         return audioLock;
     };
+    
     
     void messageEnqueued() override {
         dequeueMessages();
@@ -109,11 +110,14 @@ public:
     int sampsperblock = 512;
     
     
+    ValueTree mainTree = ValueTree("Main");
+    void loadPatch(String patch);
+    
 private:
     
-    std::unique_ptr<PlugDataPluginEditor> editor;
-    
     void processInternal();
+    
+
     
     String const            m_name              = String("PlugData");
     bool const              m_accepts_midi      = false;
@@ -130,8 +134,10 @@ private:
     MidiBuffer               m_midi_buffer_temp;
 
     
-    CriticalSection* audioLock;
+    const CriticalSection* audioLock;
     double samplerate;
+    
+    MainLook mainLook;
     
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugDataAudioProcessor)

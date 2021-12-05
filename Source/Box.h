@@ -47,10 +47,6 @@ public:
 
     ~Box() override;
     
-    Canvas* cnv;
-    
-    std::unique_ptr<GUIComponent> graphics = nullptr;
-    
     ValueTreeObject* factory (const juce::Identifier&, const juce::ValueTree&) override;
     
     //==============================================================================
@@ -60,34 +56,36 @@ public:
     
     void updatePosition();
     
-    
     void setLimits(std::tuple<int, int, int, int> limits);
     
     void updatePorts();
     
-    void remove(bool clear_pd = true);
-    
     std::unique_ptr<pd::Object> pdObject = nullptr;
-    
-    void mouseMove(const MouseEvent& e) override;
-    
-    void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
     
     int numInputs = 0;
     int numOutputs = 0;
-    
-    ComponentBoundsConstrainer restrainer;
-    std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};
     
     ClickLabel textLabel;
     
     std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
     
+    Canvas* cnv;
+    
+    std::unique_ptr<GUIComponent> graphics = nullptr;
+    
 private:
+    
+    void mouseMove(const MouseEvent& e) override;
+    
+    void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
     
     void setType(String new_type);
 
     MultiComponentDragger<Box>& dragger;
+    
+    ComponentBoundsConstrainer restrainer;
+    std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};
+    
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Box)
 };

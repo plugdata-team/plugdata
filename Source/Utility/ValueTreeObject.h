@@ -19,7 +19,7 @@ class ValueTreeObject : public ValueTree::Listener
 public:
     ValueTreeObject (const ValueTree& state);
 
-    ValueTree& getState() { return state; }
+    ValueTree& getObjectState() { return state; }
         
     virtual ~ValueTreeObject() {};
     
@@ -110,7 +110,7 @@ public:
     template <class TargetClass>
     TargetClass* findObjectForTree(ValueTree object) {
         for(auto& child : children) {
-            if(child->getState() == object) {
+            if(child->getObjectState() == object) {
                 return dynamic_cast<TargetClass*>(child);
             }
         }
@@ -163,6 +163,20 @@ public:
     {
         addChild(child, -1);
     }
+    
+    // Helpers to create and return an object
+    template <typename T>
+    T* addChild (const ValueTree& child, int index)
+    {
+        state.addChild(child, index, undoManager);
+        return findObjectForTree<T>(child);
+    }
+
+    template <typename T>
+    T* appendChild (const ValueTree& child)
+    {
+        return addChild<T>(child, -1);
+    }
 
     void removeChild (int childIndex)
     {
@@ -188,6 +202,7 @@ public:
     {
         return state.getChild(index);
     }
+    
     
     ValueTree& setPropertyExcludingListener (ValueTree::Listener* listenerToExclude, const Identifier& name,
                                                         const var& newValue)

@@ -38,6 +38,10 @@ class Canvas;
  * @TODO: Add 'grid' support.
  */
 
+struct MultiComponentDraggerListener
+{
+    virtual void dragCallback(int dx, int dy) = 0;
+};
 
 template<typename T>
 class MultiComponentDragger : public LassoSource<T*>
@@ -113,6 +117,8 @@ public:
                          component) != selectedComponents.end();
     }
     
+    
+    
     /** 
      Call this from your components mouseDown event.
      */
@@ -146,6 +152,10 @@ public:
      */
     void handleMouseUp (T* component, const MouseEvent & e)
     {
+        if(didStartDragging) {
+            static_cast<MultiComponentDraggerListener*>(canvas)->dragCallback(totalDragDelta.x, totalDragDelta.y);
+        }
+        
         if (didStartDragging)
             didStartDragging = false;
         /* uncomment to deselect when clicking a selected component
@@ -156,10 +166,11 @@ public:
         didJustSelect = false;
         
         component->repaint();
+        
         for(auto& component : selectedComponents) {
             component->updatePosition();
         }
-        
+    
     }
 
     /**

@@ -40,23 +40,22 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     m_midi_buffer_in.ensureSize(2048);
     m_midi_buffer_out.ensureSize(2048);
     m_midi_buffer_temp.ensureSize(2048);
+        
+    setCallbackLock(&AudioProcessor::getCallbackLock());
+        
+    LookAndFeel::setDefaultLookAndFeel(&mainLook);
     
         
     console.reset(new Console(LOG_STDOUT, LOG_STDOUT));
     dequeueMessages();
-    
 
-    editor.reset(new PlugDataPluginEditor(*this, console.get()));
-        
     processMessages();
-        
-    
-
     
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
+    LookAndFeel::setDefaultLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -491,7 +490,10 @@ bool PlugDataAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
-    return editor.get();
+    auto* editor = new PlugDataPluginEditor(*this, console.get(), mainTree);
+    auto patch = getPatch();
+    editor->getMainCanvas()->loadPatch(patch);
+    return editor;
 }
 
 //==============================================================================
@@ -509,8 +511,28 @@ void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBy
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
     
+    loadPatch(state);
+}
+
+void PlugDataAudioProcessor::loadPatch(String patch) {
     
-    editor->getMainCanvas()->loadPatch(state);
+    String extra_info = patch.fromFirstOccurrenceOf("#X text plugdata_info:",false, false).upToFirstOccurrenceOf(";", false, false);
+    
+    // Create the pd save file
+    auto temp_patch = File::createTempFile(".pd");
+    temp_patch.replaceWithText(patch);
+    
+    
+    // Load the patch into libpd
+    // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
+    // Instead we can load the patch and iterate through it to create the gui
+   openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
+    
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        auto* cnv = editor->getMainCanvas();
+        cnv->patch = getPatch();
+        cnv->synchronise();
+    }
 }
 
 //==============================================================================

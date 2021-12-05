@@ -90,17 +90,22 @@ float GUIComponent::getValueOriginal() const noexcept
 
 void GUIComponent::setValueOriginal(float v, bool sendNotification)
 {
+    ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
+    
     value = (min < max) ? std::max(std::min(v, max), min) : std::max(std::min(v, min), max);
     if(sendNotification) gui.setValue(value);
 }
 
 float GUIComponent::getValueScaled() const noexcept
 {
+    
     return (min < max) ? (value - min) / (max - min) : 1.f - (value - max) / (min - max);
 }
 
 void GUIComponent::setValueScaled(float v)
 {
+    ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
+    
     value = (min < max) ? std::max(std::min(v, 1.f), 0.f) * (max - min) + min
     : (1.f - std::max(std::min(v, 1.f), 0.f)) * (min - max) + max;
     gui.setValue(value);
@@ -110,6 +115,8 @@ void GUIComponent::startEdition() noexcept
 {
     edited = true;
     m_processor.enqueueMessages(string_gui, string_mouse, {1.f});
+    
+    ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
     value = gui.getValue();
 }
 
@@ -123,6 +130,7 @@ void GUIComponent::updateValue()
 {
     if(edited == false)
     {
+        ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
         float const v = gui.getValue();
         if(v != value || gui.getType() == pd::Type::Message)
         {
@@ -373,7 +381,7 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pd_gui, Box* parent) : 
     for(int i = 0; i < radio_buttons.size(); i++) {
         radio_buttons[i].onClick = [this, i]() mutable {
             last_state = i;
-            gui.setValue(i);
+            setValueOriginal(i);
         };
     }
 
@@ -508,14 +516,15 @@ void GraphicalArray::mouseDrag(const MouseEvent& event)
     const size_t index = static_cast<size_t>(std::round(clip(x / w, 0.f, 1.f) * s));
     m_vector[index] = (1.f - clip(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
     
-    //CriticalSection* cs = m_processor.getCallbackLock();
     
-    //if(cs->tryEnter())
-    //{
+    const CriticalSection* cs = m_instance->getCallbackLock();
+    
+    if(cs->tryEnter())
+    {
         try { m_array.write(index, m_vector[index]); }
         catch(...) { m_error = true; }
-        //cs->exit();
-    //}
+        cs->exit();
+    }
     
     
     m_instance->enqueueMessages(string_array, m_array.getName(), {});
@@ -556,9 +565,7 @@ GraphOnParent::GraphOnParent(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, bo
     tree.setProperty(Identifiers::isGraph, true, nullptr);
     tree.setProperty("Title", "Subpatcher", nullptr);
     
-    box->appendChild(tree);
-    
-    canvas = box->findChildrenOfClass<Canvas>().getLast();
+    canvas = box->appendChild<Canvas>(tree);
     
     setInterceptsMouseClicks(false, true);
     
@@ -592,10 +599,8 @@ Subpatch::Subpatch(pd::Gui pd_gui, Box* box) : GUIComponent(pd_gui, box)
     auto tree = ValueTree(Identifiers::canvas);
     tree.setProperty(Identifiers::isGraph, true, nullptr);
     tree.setProperty("Title",  box->textLabel.getText().fromFirstOccurrenceOf("pd ", false, false), nullptr);
-    
-    box->appendChild(tree);
-    
-    canvas = box->findChildrenOfClass<Canvas>().getLast();
+        
+    canvas = box->appendChild<Canvas>(tree);
     
     subpatch = gui.getPatch();
     

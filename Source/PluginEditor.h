@@ -38,7 +38,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ValueTreeObject
 {
 public:
     //==============================================================================
-    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
+    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console, ValueTree mainTree);
     ~PlugDataPluginEditor() override;
     
     Component::SafePointer<Console> console;
