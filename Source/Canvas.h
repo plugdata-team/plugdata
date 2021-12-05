@@ -109,10 +109,7 @@ public:
     void dragCallback(int dx, int dy) override;
     
     void closeAllInstances();
-    
-    // Returns all canvas classes pointing to the same pd canvas
-    Array<Canvas*> getAllInstances();
-    
+      
     bool changed() {
         return hasChanged && findChildrenOfClass<Box>().size();
     }
@@ -126,8 +123,6 @@ public:
     Viewport* viewport = nullptr;
     
     bool connectingWithDrag = false;
-    
-    bool isMainPatch = true;
     
     pd::Patch patch;
     
