@@ -243,6 +243,8 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pd
         gui.setSymbol(input.getText().toStdString());
     };
     
+    input.setMultiLine(true);
+    
 }
 
 

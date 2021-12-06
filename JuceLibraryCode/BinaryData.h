@@ -8,14 +8,20 @@
 
 namespace BinaryData
 {
+    extern const char*   fontaudio_ttf;
+    const int            fontaudio_ttfSize = 36948;
+
     extern const char*   plugd_logo_png;
     const int            plugd_logo_pngSize = 12479;
 
     extern const char*   forkawesomewebfont_ttf;
     const int            forkawesomewebfont_ttfSize = 188756;
 
+    extern const char*   Abstractions_zip;
+    const int            Abstractions_zipSize = 370945;
+
     // Number of elements in the namedResourceList and originalFileNames arrays.
-    const int namedResourceListSize = 2;
+    const int namedResourceListSize = 4;
 
     // Points to the start of a list of resource names.
     extern const char* namedResourceList[];

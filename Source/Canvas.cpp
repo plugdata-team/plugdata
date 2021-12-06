@@ -8,6 +8,9 @@ Canvas::Canvas(ValueTree tree, PlugDataPluginEditor* parent) : ValueTreeObject(t
 {
     setSize (600, 400);
     
+    setTransform(parent->transform);
+    
+    
     addAndMakeVisible(&lasso);
     lasso.setAlwaysOnTop(true);
     lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::ColourIds::thumbColourId).withAlpha((float)0.3));
@@ -62,6 +65,8 @@ void Canvas::synchroniseAll() {
 }
 
 void Canvas::synchronise() {
+    
+    setTransform(main->transform);
     
     main->pd.waitForStateUpdate();
     dragger.deselectAll();
@@ -248,14 +253,12 @@ void Canvas::synchronise() {
     }
 
     patch.deselectAll();
-
 }
 
 void Canvas::createPatch() {
     // Create the pd save file
     auto tempPatch = File::createTempFile(".pd");
     tempPatch.replaceWithText(main->defaultPatch);
-    
     
     ScopedLock lock(*main->pd.getCallbackLock());
     // Load the patch into libpd
@@ -275,11 +278,13 @@ void Canvas::loadPatch(pd::Patch& patch) {
 }
 
 
-
-
 void Canvas::mouseDown(const MouseEvent& e)
 {
-    if(getProperty(Identifiers::isGraph)) return;
+    if(getProperty(Identifiers::isGraph))  {
+        auto* box = findParentOfType<Box>();
+        box->dragger.setSelected(box, true);
+        return;
+    }
     
     if(!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         auto* source = e.originalComponent;
@@ -305,7 +310,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool hasSelection = lassoSelection.getNumSelected();
         bool multiple = lassoSelection.getNumSelected() > 1;
         
-        bool isSubpatch = hasSelection && ((lassoSelection.getSelectedItem(0)->graphics &&  lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::GraphOnParent) || lassoSelection.getSelectedItem(0)->textLabel.getText().startsWith("pd"));
+        bool isSubpatch = hasSelection && ((lassoSelection.getSelectedItem(0)->graphics &&  lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::GraphOnParent) || lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::Subpatch);
         
         popupMenu.clear();
         popupMenu.addItem(1, "Open", !multiple && isSubpatch);
@@ -336,6 +341,8 @@ void Canvas::mouseDown(const MouseEvent& e)
                     
                     auto tree = ValueTree(Identifiers::canvas);
                     tree.setProperty(Identifiers::isGraph, false, nullptr);
+                    
+                    
                     tree.setProperty("Title", lassoSelection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false), nullptr);
                     
                     
@@ -510,7 +517,18 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     if(main->getCurrentCanvas() != this) return false;
     if(getProperty(Identifiers::isGraph)) return false;
     
-    
+    // Zoom in
+    if(key.isKeyCode(61) && key.getModifiers().isCommandDown()) {        
+        main->transform = main->transform.scaled(1.25f);
+        setTransform(main->transform);
+        return true;
+    }
+    // Zoom out
+    if(key.isKeyCode(45) && key.getModifiers().isCommandDown()) {
+        main->transform = main->transform.scaled(0.8f);
+        setTransform(main->transform);
+        return true;
+    }
     // Key shortcuts for creating objects
     if(key.getTextCharacter() == 'n') {
         auto box = ValueTree(Identifiers::box);

@@ -133,6 +133,11 @@ private:
     MidiBuffer               m_midi_buffer_out;
     MidiBuffer               m_midi_buffer_temp;
 
+    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
+    static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    
+    static inline File abstractions = appDir.getChildFile("Abstractions");
+    
     
     const CriticalSection* audioLock;
     double samplerate;

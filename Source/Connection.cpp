@@ -75,7 +75,7 @@ void Connection::deleteListeners() {
 void Connection::paint (Graphics& g)
 {
     g.setColour(Colours::grey);
-    g.strokePath(path, PathStrokeType(3.0f));
+    g.strokePath(path, PathStrokeType(3.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 
     auto baseColour = Colours::white;
 
@@ -83,8 +83,10 @@ void Connection::paint (Graphics& g)
         baseColour = start->getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlightColour;
     }
     
-    g.setColour(baseColour);
-    g.strokePath(path, PathStrokeType(1.5f));
+    
+    g.setColour(baseColour.withAlpha(0.8f));
+    g.strokePath(path, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+    
 }
 
 void Connection::mouseDown(const MouseEvent& e)  {
@@ -112,16 +114,23 @@ void Connection::resized()
     path.clear();
     path.startNewSubPath(pstart.x, pstart.y);
 
+    bool curvedConnection = true;
+    if(auto* main = findParentComponentOfClass<PlugDataPluginEditor>()) {
+        curvedConnection = !main->getProperty(Identifiers::connectionStyle);
+    }
+
     int curvetype = fabs(pstart.x - pend.x) < (fabs(pstart.y - pend.y) * 5.0f) ? 1 : 2;
     
     curvetype *= !(fabs(pstart.x - pend.x) < 2 || fabs(pstart.y - pend.y) < 2);
     
-    if (curvetype == 1) // smooth vertical lines
+    if (curvetype == 1 && curvedConnection) // smooth vertical lines
         path.cubicTo(pstart.x, fabs(pstart.y - pend.y) * 0.5f, pend.x, fabs(pstart.y - pend.y) * 0.5f, pend.x, pend.y);
-    else if (curvetype == 2) // smooth horizontal lines
+    else if (curvetype == 2 && curvedConnection) // smooth horizontal lines
         path.cubicTo(fabs(pstart.x - pend.x) * 0.5f, pstart.y, fabs(pstart.x - pend.x) * 0.5f, pend.y, pend.x, pend.y);
     else // Dont smooth when almost straight
         path.lineTo(pend.x, pend.y);
+    
+    repaint();
 }
 
 

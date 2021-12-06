@@ -32,6 +32,8 @@ public:
     
     Array<Component::SafePointer<Connection>> getConnections();
     
+    bool hasConnection();
+    
     Rectangle<int> getCanvasBounds();
     
     static inline SafePointer<Edge> connectingEdge = nullptr;

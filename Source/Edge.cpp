@@ -27,6 +27,17 @@ Array<Component::SafePointer<Connection>> Edge::getConnections() {
     return connections;
 }
 
+bool Edge::hasConnection() {
+    for(auto* connection : box->cnv->findChildrenOfClass<Connection>()) {
+        if(connection->start == this || connection->end == this) {
+            return true;
+        }
+    }
+    
+    return false;
+    
+}
+
 Rectangle<int> Edge::getCanvasBounds()
 {
     auto bounds = getBounds();
@@ -46,14 +57,26 @@ void Edge::paint (Graphics& g)
     
     auto baseColour = backgroundColour.withMultipliedSaturation (hasKeyboardFocus (true) ? 1.3f : 0.9f)
                                       .withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
-
     
     if (isDown() || isOver())
         baseColour = baseColour.contrasting (isDown() ? 0.2f : 0.05f);
 
-    
     Path path;
-    path.addEllipse(bounds);
+    
+    if(hasConnection()) {
+        //path.addArc(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, MathConstants<float>::pi);
+        if((bool)getProperty(Identifiers::edgeIsInput)) {
+            path.addPieSegment(bounds, MathConstants<float>::pi + MathConstants<float>::halfPi, MathConstants<float>::halfPi, 0.3f);
+        }
+        else {
+            path.addPieSegment(bounds, -MathConstants<float>::halfPi, MathConstants<float>::halfPi, 0.3f);
+        }
+        
+    }
+    else {
+        path.addEllipse(bounds);
+    }
+    
     
     g.setColour (baseColour);
     g.fillPath (path);
