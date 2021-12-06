@@ -266,10 +266,25 @@ void Box::updatePosition()
 
 void Box::resized()
 {
-    textLabel.setBounds(4, 4, getWidth() - 8, 24);
+    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && (cnv->main->getProperty(Identifiers::hideHeaders) || cnv->getProperty(Identifiers::isGraph));
     
-    if(graphics) {
-        graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
+    if(hideLabel) {
+        textLabel.setVisible(false);
+        auto [w, h] = graphics->getBestSize();
+        graphics->setBounds(4, 4, std::max(getWidth() - 8, w), h);
+        setSize(std::max(getWidth(), w + 8), h + 8);
+    }
+    else {
+        textLabel.setVisible(true);
+        textLabel.setBounds(4, 4, getWidth() - 8, 24);
+        
+        if(graphics)  {
+            auto [w, h] = graphics->getBestSize();
+            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
+            setSize(getWidth(), h + 28);
+        }
+        
+        
     }
     
     if(resizer) {

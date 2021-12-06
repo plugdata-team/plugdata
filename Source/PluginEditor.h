@@ -69,9 +69,6 @@ public:
     
     TabComponent& getTabbar()  { return tabbar; };
     
-    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Pd");
-    static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
-    
     // This reference is provided as a quick way for your editor to
     // access the processor object that created it.
     PlugDataAudioProcessor& pd;
@@ -79,6 +76,7 @@ public:
     const std::string defaultPatch = "#N canvas 827 239 527 327 12;";
     
     Canvas* mainCanvas = nullptr;
+    AffineTransform transform;
     
 private:
     
@@ -94,17 +92,20 @@ private:
     bool sidebarHidden = false;
 
 
+
     std::array<TextButton, 7> toolbarButtons = {TextButton(CharPointer_UTF8("\xef\x85\x9b")), TextButton(CharPointer_UTF8("\xef\x81\xbb")), TextButton(CharPointer_UTF8("\xef\x80\x99")), TextButton(CharPointer_UTF8("\xef\x83\xa2")), TextButton(CharPointer_UTF8("\xef\x80\x9e")), TextButton(CharPointer_UTF8("\xef\x81\xa7")), TextButton(CharPointer_UTF8("\xef\x81\x94"))};
     
     TextButton& hideButton = toolbarButtons[6];
     
-    TextButton startButton = TextButton(CharPointer_UTF8("\xef\x80\x91"));
+    TextButton startButton = TextButton(CharPointer_UTF8 ("\xef\x85\xab"));
+    TextButton hideHeadersButton = TextButton(CharPointer_UTF8 ("\xef\x86\x8a"));
+    TextButton connectionStyleButton = TextButton(CharPointer_UTF8 ("\xef\x85\xb2"));
     
     int dragStartWidth = 0;
     bool draggingSidebar = false;
 
     ToolbarLook toolbarLook;
-    StatusbarLook statusbarLook = StatusbarLook(1.4);
+    StatusbarLook statusbarLook = StatusbarLook(true, 1.4);
     MainLook mainLook;
 
     TabComponent tabbar;

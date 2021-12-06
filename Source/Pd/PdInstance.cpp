@@ -144,6 +144,7 @@ Instance::Instance(std::string const& symbol)
                                                      reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
     
+
     libpd_set_verbose(0);
     
     

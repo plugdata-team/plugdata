@@ -112,7 +112,6 @@ std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y) {
     m_instance->enqueueFunction([this, x, y, &pdobject]() mutable {
         m_instance->setThis();
         pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr), x, y);
-        setCurrent();
     });
     
     m_instance->waitForStateUpdate();
@@ -129,7 +128,6 @@ std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
     m_instance->enqueueFunction([this, name, size, x, y, &pdobject]() mutable {
         m_instance->setThis();
         pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size, x, y);
-        setCurrent();
     });
     
     m_instance->waitForStateUpdate();

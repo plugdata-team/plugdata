@@ -1,0 +1,16 @@
+#N canvas 880 108 473 264 10;
+#X declare -path else;
+#X obj 144 108 /~ 20;
+#X obj 75 146 pow~;
+#X msg 75 116 10;
+#X obj 144 43 inlet~;
+#X obj 75 207 outlet~;
+#X text 222 161 Part of ELSE \; https://github.com/porres/pd-else;
+#X text 224 142 Alexandre Torres Porres (2017);
+#X obj 75 90 lb -init;
+#X obj 249 86 declare -path else;
+#X connect 0 0 1 1;
+#X connect 1 0 4 0;
+#X connect 2 0 1 0;
+#X connect 3 0 0 0;
+#X connect 7 0 2 0;

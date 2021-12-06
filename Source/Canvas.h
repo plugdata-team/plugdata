@@ -58,6 +58,10 @@ struct Identifiers
     inline static Identifier startID = Identifier("StartID");
     inline static Identifier endID = Identifier("EndID");
     
+    
+    inline static Identifier hideHeaders = Identifier("HideHeaders");
+    inline static Identifier connectionStyle = Identifier("ConnectionStyle");
+    
 };
 
 class Edge;
@@ -131,6 +135,7 @@ public:
     static inline constexpr float zoomY = 2.0f;
     
 private:
+    
     
     Point<int> lastMousePos;
 

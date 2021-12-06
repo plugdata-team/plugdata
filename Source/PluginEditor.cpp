@@ -1,6 +1,7 @@
 #include "PluginEditor.h"
 #include "Canvas.h"
 #include "Edge.h"
+#include "Connection.h"
 #include "Pd/x_libpd_mod_utils.h"
 #include "Dialogs.h"
 
@@ -49,6 +50,27 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addAndMakeVisible(tabbar);
     addAndMakeVisible(console);
     
+    hideHeadersButton.setClickingTogglesState(true);
+    hideHeadersButton.setConnectedEdges(12);
+    hideHeadersButton.setLookAndFeel(&statusbarLook);
+    hideHeadersButton.onClick = [this](){
+        pd.mainTree.setProperty(Identifiers::hideHeaders, hideHeadersButton.getToggleState(), nullptr);
+        for(auto* box : getCurrentCanvas()->findChildrenOfClass<Box>()) {
+            box->resized();
+            
+        }
+    };
+    
+    connectionStyleButton.setClickingTogglesState(true);
+    connectionStyleButton.setConnectedEdges(12);
+    connectionStyleButton.setLookAndFeel(&statusbarLook);
+    connectionStyleButton.onClick = [this](){
+        pd.mainTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
+        for(auto* connection : getCurrentCanvas()->findChildrenOfClass<Connection>()) connection->resized();
+    };
+    
+    addAndMakeVisible(hideHeadersButton);
+    addAndMakeVisible(connectionStyleButton);
 
     startButton.onClick = [this]() {
         pd.setBypass(!startButton.getToggleState());
@@ -356,6 +378,9 @@ void PlugDataPluginEditor::resized()
     }
     
     hideButton.setBounds(std::min(getWidth() - sWidth, getWidth() - 80), 0, 70, toolbarHeight);
+    
+    hideHeadersButton.setBounds(8, getHeight() - 27, 27, 27);
+    connectionStyleButton.setBounds(38, getHeight() - 27, 27, 27);
     
     resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
     resizer->toFront(false);

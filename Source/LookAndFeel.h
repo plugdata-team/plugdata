@@ -305,13 +305,16 @@ struct ToolbarLook : public MainLook
 struct StatusbarLook : public MainLook
 {
     float scalar;
+    inline static Font icon_font = Font(Typeface::createSystemTypefaceFor (BinaryData::fontaudio_ttf, BinaryData::fontaudio_ttfSize));
     
-    StatusbarLook(float button_scalar = 1.0f) {
+    bool font_choice;
+    
+    StatusbarLook(bool font = true, float button_scalar = 1.0f) {
         scalar = button_scalar;
+        font_choice = font;
         
         setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
 
-            
         setColour(TextButton::textColourOnId, highlightColour);
         setColour(TextButton::textColourOffId, Colours::white);
         setColour(TextButton::buttonOnColourId, Colour(10, 10, 10));
@@ -321,10 +324,7 @@ struct StatusbarLook : public MainLook
     
     Font getTextButtonFont (TextButton&, int buttonHeight)
     {
-        ToolbarLook::icon_font.setHeight(buttonHeight / (3.8 / scalar));
-        return ToolbarLook::icon_font;
+        auto font = font_choice ? icon_font.withHeight(buttonHeight / (3.2 / scalar)) : ToolbarLook::icon_font.withHeight(buttonHeight / (3.8 / scalar));
+        return font;
     }
-    
-    
-    
 };

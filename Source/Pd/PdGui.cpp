@@ -158,12 +158,10 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
             {
                 m_type = Type::Array;
             }
-            else if (obj_text.rfind("pd", 0) == 0){
+            else { // abstraction or subpatch
                 m_type = Type::Subpatch;
             }
-            else {
-                m_type = Type::GraphOnParent;
-            }
+            
         }
         else if(m_type != Type::Array && static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
@@ -376,14 +374,19 @@ std::string Gui::getSymbol() const noexcept
         char* argv;
         int argc;
         
-        sys_lock();
         
-        assert(static_cast<t_message*>(m_ptr)->m_glist->gl_editor);
-        //m_instance->enqueueFunction([this](){});
-        binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
+        
+        //assert(static_cast<t_message*>(m_ptr)->m_glist->gl_editor);
+        sys_lock();
+        if(static_cast<t_message*>(m_ptr)->m_glist && static_cast<t_message*>(m_ptr)->m_glist->gl_editor) {
+            //m_instance->enqueueFunction([this](){});
+            binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
+            sys_unlock();
+            return std::string(argv, argc);
+        }
         sys_unlock();
         
-        return std::string(argv, argc);
+        return std::string();
     }
     else if (m_ptr &&  m_type == Type::AtomSymbol)
     {

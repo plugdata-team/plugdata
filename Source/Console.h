@@ -147,7 +147,7 @@ private:
     
     LogContainer logContainer;
 
-    StatusbarLook statusbarLook = StatusbarLook(1.4);
+    StatusbarLook statusbarLook = StatusbarLook(false, 1.4);
     TextButton clearButton;
 
 	Colour stdOutColour = Colours::white;
@@ -160,8 +160,6 @@ private:
 	int numLinesToRemoveWhenFull = 20;
 	int numLinesStored = 0;
 	int numNewLinesSinceUpdate = 0;
-
-	
 
 	OwnedArray<Label> items;
 	StringArray lines;

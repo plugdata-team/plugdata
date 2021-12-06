@@ -37,6 +37,17 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     m_is_midi_effect(false),
     m_bypass(false){
     
+    if(!appDir.exists() || !abstractions.exists()) {
+            appDir.createDirectory();
+
+            MemoryInputStream binaryAbstractions(BinaryData::Abstractions_zip, BinaryData::Abstractions_zipSize, false);
+            auto file = ZipFile(binaryAbstractions);
+            file.uncompressTo(appDir);
+    }
+        
+    libpd_add_to_search_path(abstractions.getFullPathName().toRawUTF8());
+        
+        
     m_midi_buffer_in.ensureSize(2048);
     m_midi_buffer_out.ensureSize(2048);
     m_midi_buffer_temp.ensureSize(2048);
@@ -50,6 +61,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     dequeueMessages();
 
     processMessages();
+        
+        
     
 }
 
@@ -522,7 +535,8 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     auto temp_patch = File::createTempFile(".pd");
     temp_patch.replaceWithText(patch);
     
-    ScopedLock lock(*getCallbackLock());
+    //ScopedLock lock(*getCallbackLock());
+    
     // Load the patch into libpd
     // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
     // Instead we can load the patch and iterate through it to create the gui
