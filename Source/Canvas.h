@@ -70,7 +70,7 @@ class Canvas  : public Component, public ValueTreeObject, public KeyListener, pu
 {
 public:
     
-    static inline constexpr int guiUpdateMs = 80;
+    static inline constexpr int guiUpdateMs = 500;
     
     //==============================================================================
     Canvas(ValueTree tree, PlugDataPluginEditor* parent);

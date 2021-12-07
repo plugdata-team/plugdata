@@ -432,11 +432,11 @@ void Instance::waitForStateUpdate() {
         m_function_queue.enqueue([this](){
             update_wait.signal();
         });
-        update_wait.wait(50);
+        update_wait.wait();
         m_function_queue.enqueue([this](){
             update_wait.signal();
         });
-        update_wait.wait(50);
+        update_wait.wait();
     }
 }
 
@@ -455,6 +455,7 @@ void Instance::dequeueMessages()
         // Dont know if we should lock here!!
         // If can cause a deadlock when combined with undo/redo, and I believe that Pd only uses the audio thread?
         callback();
+        audio_started = true;
         //sys_unlock();
     }
     
