@@ -12,6 +12,7 @@
 #include "PluginEditor.h"
 #include "Console.h"
 #include "Pd/PdInstance.hpp"
+#include "Pd/PdLibrary.hpp"
 
 //==============================================================================
 /**
@@ -95,6 +96,7 @@ public:
         dequeueMessages();
         processMessages();
     }
+    void loadPatch(String patch);
     
     std::unique_ptr<Console> console;
     
@@ -111,7 +113,8 @@ public:
     
     
     ValueTree mainTree = ValueTree("Main");
-    void loadPatch(String patch);
+
+    pd::Library objectLibrary;
     
 private:
     

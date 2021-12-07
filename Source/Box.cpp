@@ -7,69 +7,6 @@
 #include "Pd/x_libpd_extra_utils.h"
 #include "Pd/x_libpd_mod_utils.h"
 
-void ClickLabel::mouseDown(const MouseEvent & e)
-{
-    Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->getProperty(Identifiers::isGraph)) return;
-    
-    isDown = true;
-    dragger.handleMouseDown(box, e);
-}
-
-void ClickLabel::mouseUp(const MouseEvent & e)
-{
-    Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->getProperty(Identifiers::isGraph)) return;
-    
-    isDown = false;
-    dragger.handleMouseUp(box, e);
-    
-    if(e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600) {
-        Edge::connectingEdge = nullptr;
-    }
-    
-    if(canvas) {
-        auto pos = e.getEventRelativeTo(canvas).getPosition() - e.getPosition();
-        auto bounds = Rectangle<int>(pos, pos + Point<int>(getParentWidth(), getParentHeight()));
-        if(!canvas->getLocalBounds().contains(bounds)) {
-            if(bounds.getRight() > canvas->getWidth())
-                canvas->setSize(bounds.getRight() + 10, canvas->getHeight());
-            
-            if(bounds.getBottom() > canvas->getHeight())
-                canvas->setSize(canvas->getWidth(), bounds.getBottom() + 10);
-            
-            if(bounds.getX() < 0.0f) {
-                for(auto& box : canvas->findChildrenOfClass<Box>()) {
-                    if(&box->textLabel != this)
-                        box->setTopLeftPosition(box->getX() - bounds.getX(), box->getY());
-                    else
-                        box->setTopLeftPosition(0, box->getY());
-                }
-            }
-            if(bounds.getY() < 0) {
-                for(auto& box : canvas->findChildrenOfClass<Box>()) {
-                    if(&box->textLabel != this)
-                        box->setTopLeftPosition(box->getX(), box->getY() - bounds.getY());
-                    else
-                        box->setTopLeftPosition(box->getX(), 0);
-                }
-            }
-        }
-    }
-    
-    if(auto* box = dynamic_cast<Box*>(getParentComponent())) {
-        box->updatePosition();
-    }
-}
-
-void ClickLabel::mouseDrag(const MouseEvent & e)
-{
-    Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->getProperty(Identifiers::isGraph)) return;
-    
-    dragger.handleMouseDrag(e);
-}
-
 
 //==============================================================================
 Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragger) : ValueTreeObject(tree), textLabel(this, multiDragger), dragger(multiDragger)
@@ -92,9 +29,6 @@ Box::Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragge
     // Uncomment to enable resizing
     // doesn't work right yet!
     //addAndMakeVisible(resizer.get());
-    
-    textLabel.setEditable(false, true);
-    textLabel.setJustificationType(Justification::centred);
     
     addAndMakeVisible(&textLabel);
     
@@ -386,10 +320,12 @@ void Box::updatePorts() {
         bool input = edge.getProperty(Identifiers::edgeIsInput);
         
         bool isSignal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
-        bool wasSignal = edge.getProperty(Identifiers::edgeSignal);
+       
         
         /* this removes the connection if it's illegal
          disabled because regular pd doesn't even do this!!
+         bool wasSignal = edge.getProperty(Identifiers::edgeSignal);
+         
         if((!input && isSignal && !wasSignal) || (input && isSignal && !wasSignal)) {
             removeChild(edge);
             addChild(edge, i);

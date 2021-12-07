@@ -22,7 +22,6 @@ extern "C"
 extern "C"
 {
 
-
 struct pd::Instance::internal
 {
     static void instance_multi_bang(pd::Instance* ptr, const char *recv)
@@ -163,6 +162,8 @@ Instance::~Instance()
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance *>(m_instance));
 }
+
+
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////

@@ -47,7 +47,6 @@ void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink
 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize);
 
-t_pd* libpd_getobjectbyname(t_symbol *s, int argc, t_atom *argv);
 int libpd_type_exists(const char* type);
 
 int libpd_noutlets(const t_object *x);

@@ -4,6 +4,7 @@
 #include "Utility/ValueTreeObject.h"
 
 #include "GUIObjects.h"
+#include "BoxEditor.h"
 
 #include <m_pd.h>
 #include <JuceHeader.h>
@@ -15,23 +16,6 @@
  your controls and content.
  */
 
-
-class Box;
-struct ClickLabel : Label
-{
-    
-    Box* box;
-    
-    bool isDown = false;
-    
-    ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : box(parent), dragger(multiDragger) {};
-    
-    void mouseDown(const MouseEvent & e) override;
-    void mouseUp(const MouseEvent & e) override;
-    void mouseDrag(const MouseEvent & e) override;
-    
-    MultiComponentDragger<Box>& dragger;
-};
 
 class Canvas;
 class Box  : public Component, public ValueTreeObject
