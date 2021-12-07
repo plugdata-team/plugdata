@@ -467,13 +467,12 @@ void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
 
 void PlugDataPluginEditor::timerCallback() {
     pd.getCallbackLock()->enter();
-    for(auto* cnv : findChildrenOfClass<Canvas>(true)) {
-        cnv->patch.setCurrent();
-        
-        for(auto& box : cnv->findChildrenOfClass<Box>()) {
-            if(box->graphics) {
-                box->graphics->updateValue();
-            }
+    auto* cnv = getCurrentCanvas();
+    cnv->patch.setCurrent();
+    
+    for(auto& box : cnv->findChildrenOfClass<Box>()) {
+        if(box->graphics) {
+            box->graphics->updateValue();
         }
     }
     

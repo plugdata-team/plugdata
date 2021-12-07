@@ -174,6 +174,7 @@ void PlugDataAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     processPrints();
     
     processingBuffer.setSize(2, samplesPerBlock);
+    
 }
 
 void PlugDataAudioProcessor::releaseResources()
@@ -492,7 +493,6 @@ void PlugDataAudioProcessor::processInternal()
         processMidi();
     }*/
     
-    audio_started = true;
 }
 
 

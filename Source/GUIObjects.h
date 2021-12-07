@@ -285,7 +285,8 @@ public:
     
     void paint(Graphics& g) override;
     void resized() override;
-    void updateValue() override {}
+    void updateValue() override;
+
     
     std::pair<int, int> getBestSize() override {return {200, 140}; };
     

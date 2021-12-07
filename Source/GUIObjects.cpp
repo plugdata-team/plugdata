@@ -593,6 +593,15 @@ void GraphOnParent::paint(Graphics& g) {
     
 }
 
+void GraphOnParent::updateValue() {
+    
+    for(auto& box : canvas->findChildrenOfClass<Box>()) {
+        if(box->graphics) {
+            box->graphics->updateValue();
+        }
+    }
+}
+
 // Subpatch, phony UI
 Subpatch::Subpatch(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {

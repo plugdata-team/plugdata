@@ -358,8 +358,8 @@ void Patch::removeSelection() {
     m_instance->enqueueFunction([this]() mutable {
         setCurrent();
         libpd_removeselection(getPointer());
-        
     });
+    
 }
 
 void Patch::undo() {
