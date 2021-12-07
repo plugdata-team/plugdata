@@ -536,12 +536,17 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     auto temp_patch = File::createTempFile(".pd");
     temp_patch.replaceWithText(patch);
     
-    //ScopedLock lock(*getCallbackLock());
+    const CriticalSection* lock = getCallbackLock();
     
     // Load the patch into libpd
     // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
     // Instead we can load the patch and iterate through it to create the gui
+    
+    lock->enter();
+    
    openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
+    
+    lock->exit();
     
     
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {

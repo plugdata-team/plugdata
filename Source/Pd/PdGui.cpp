@@ -374,19 +374,11 @@ std::string Gui::getSymbol() const noexcept
         char* argv;
         int argc;
         
-        
-        
-        //assert(static_cast<t_message*>(m_ptr)->m_glist->gl_editor);
         sys_lock();
-        if(static_cast<t_message*>(m_ptr)->m_glist && static_cast<t_message*>(m_ptr)->m_glist->gl_editor) {
-            //m_instance->enqueueFunction([this](){});
-            binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
-            sys_unlock();
-            return std::string(argv, argc);
-        }
+        binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
         sys_unlock();
         
-        return std::string();
+        return std::string(argv, argc);
     }
     else if (m_ptr &&  m_type == Type::AtomSymbol)
     {

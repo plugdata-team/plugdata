@@ -104,12 +104,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         
         if(getMainCanvas()->changed()) {
             SaveDialog::show(this, [this, createFunc](int result){
-                if(result == 1) {
+                if(result == 2) {
                     saveProject([this, createFunc]() mutable {
                         createFunc();
                     });
                 }
-                else if(result != 0) {
+                else if(result == 1) {
                     createFunc();
                 }
             });
@@ -468,6 +468,7 @@ void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
 
 void PlugDataPluginEditor::timerCallback() {
     for(auto* cnv : findChildrenOfClass<Canvas>(true)) {
+        cnv->patch.setCurrent();
         for(auto& box : cnv->findChildrenOfClass<Box>()) {
             if(box->graphics) {
                 box->graphics->updateValue();
