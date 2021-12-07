@@ -1,8 +1,8 @@
 # PlugData
 Pure Data as a plugin, with a new GUI
 
-<img width="948" alt="Screenshot 2021-11-30 at 20 06 32" src="https://user-images.githubusercontent.com/44585538/144111560-4907f0a1-afb7-452e-b3f0-e69ac98128ce.png">
 
+<img width="1124" alt="Screenshot 2021-12-07 at 02 19 24" src="https://user-images.githubusercontent.com/44585538/144948333-97e9b1ea-c323-46c1-8d7e-abfcc0b569f8.png">
 
 
 
