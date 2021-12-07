@@ -113,7 +113,7 @@ void Box::setType (String newType)
     
     if(pdObject) {
         graphics.reset(GUIComponent::createGui(type, this));
-        
+         
         if(graphics) {
             auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
             restrainer.setSizeLimits(minW, minH, maxW, maxH);

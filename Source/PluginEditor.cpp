@@ -463,18 +463,21 @@ void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
     });
     
     getCurrentCanvas()->hasChanged = false;
-    
 }
 
 void PlugDataPluginEditor::timerCallback() {
+    pd.getCallbackLock()->enter();
     for(auto* cnv : findChildrenOfClass<Canvas>(true)) {
         cnv->patch.setCurrent();
+        
         for(auto& box : cnv->findChildrenOfClass<Box>()) {
             if(box->graphics) {
                 box->graphics->updateValue();
             }
         }
     }
+    
+    pd.getCallbackLock()->exit();
 }
 
 void PlugDataPluginEditor::valueTreeChanged() {

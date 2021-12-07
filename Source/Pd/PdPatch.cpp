@@ -68,11 +68,11 @@ std::array<int, 4> Patch::getBounds() const noexcept
 
 void Patch::setCurrent() {
     
-    sys_lock();
+    //sys_lock();
     m_instance->setThis();
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
-    sys_unlock();
+    //sys_unlock();
 }
 
 std::vector<Object> Patch::getObjects(bool only_gui) noexcept

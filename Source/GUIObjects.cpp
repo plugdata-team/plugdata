@@ -126,7 +126,6 @@ void GUIComponent::updateValue()
 {
     if(edited == false)
     {
-        ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
         float const v = gui.getValue();
         if(v != value || gui.getType() == pd::Type::Message)
         {

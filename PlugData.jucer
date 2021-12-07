@@ -296,6 +296,8 @@
         <FILE id="UgmFGj" name="PdGui.hpp" compile="0" resource="0" file="Source/Pd/PdGui.hpp"/>
         <FILE id="XWSAXG" name="PdInstance.cpp" compile="1" resource="0" file="Source/Pd/PdInstance.cpp"/>
         <FILE id="iKDV5o" name="PdInstance.hpp" compile="0" resource="0" file="Source/Pd/PdInstance.hpp"/>
+        <FILE id="u92AGj" name="PdLibrary.cpp" compile="1" resource="0" file="Source/Pd/PdLibrary.cpp"/>
+        <FILE id="dzKrYP" name="PdLibrary.hpp" compile="0" resource="0" file="Source/Pd/PdLibrary.hpp"/>
         <FILE id="zLay56" name="PdObject.cpp" compile="1" resource="0" file="Source/Pd/PdObject.cpp"/>
         <FILE id="o3cqwN" name="PdObject.hpp" compile="0" resource="0" file="Source/Pd/PdObject.hpp"/>
         <FILE id="Ir3aRf" name="PdPatch.cpp" compile="1" resource="0" file="Source/Pd/PdPatch.cpp"/>
@@ -321,6 +323,8 @@
       </GROUP>
       <FILE id="ZHKZty" name="Box.cpp" compile="1" resource="0" file="Source/Box.cpp"/>
       <FILE id="wt7Q8v" name="Box.h" compile="0" resource="0" file="Source/Box.h"/>
+      <FILE id="MLblVX" name="BoxEditor.cpp" compile="1" resource="0" file="Source/BoxEditor.cpp"/>
+      <FILE id="ih8Cui" name="BoxEditor.h" compile="0" resource="0" file="Source/BoxEditor.h"/>
       <FILE id="xDAht2" name="Canvas.cpp" compile="1" resource="0" file="Source/Canvas.cpp"/>
       <FILE id="hMIzq1" name="Canvas.h" compile="0" resource="0" file="Source/Canvas.h"/>
       <FILE id="t5qvKv" name="Connection.cpp" compile="1" resource="0" file="Source/Connection.cpp"/>
