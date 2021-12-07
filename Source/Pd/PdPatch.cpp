@@ -194,7 +194,11 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
         pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
     });
     
-    m_instance->waitForStateUpdate();
+    
+    
+    while(!pdobject) {
+        m_instance->waitForStateUpdate();
+    }
     
     assert(pdobject);
     

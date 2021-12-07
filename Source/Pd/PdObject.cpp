@@ -41,9 +41,9 @@ m_ptr(ptr), m_patch(patch), m_instance(instance)
     
 }
 
-std::string Object::getText() const
+std::string Object::getText()
 {
-    if(m_ptr)
+    if(m_ptr && m_patch->checkObject(this))
     {
         char* text = nullptr;
         int size = 0;

@@ -57,9 +57,14 @@ ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueT
 
 void Canvas::synchroniseAll() {
     // Synchronise all canvases that refer to this patch
+    
     for(auto* cnv : main->findChildrenOfClass<Canvas>(true)) {
-        if(cnv->patch == patch && cnv->main == main) {
-            cnv->synchronise();
+        
+        // Hacky check to see if the last synchronise action didn't delete the canvas...
+        if(main->findChildrenOfClass<Canvas>(true).contains(cnv)) {
+            if(cnv->patch == patch && cnv->main == main) {
+                cnv->synchronise();
+            }
         }
     }
 }
@@ -77,7 +82,7 @@ void Canvas::synchronise() {
     
     auto* cs = main->pd.getCallbackLock();
     cs->tryEnter();
-    const auto currentObjects = patch.getObjects(getProperty(Identifiers::isGraph));
+    auto currentObjects = patch.getObjects(getProperty(Identifiers::isGraph));
     cs->exit();
     
     auto currentBoxes = findChildrenOfClass<Box>();

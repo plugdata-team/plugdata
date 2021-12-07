@@ -68,7 +68,7 @@ public:
     virtual ~Object() noexcept = default;
     
     //! @brief The text of the Object.
-    std::string getText() const;
+    std::string getText();
     
     //! @brief The name of the Object.
     std::string getName() const;

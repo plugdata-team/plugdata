@@ -499,8 +499,8 @@ void Instance::dequeueMessages()
     }
     
     sys_lock();
-    canUndo = libpd_can_undo(canvas_getcurrent());
-    canRedo = libpd_can_redo(canvas_getcurrent());
+    //canUndo = libpd_can_undo(canvas_getcurrent());
+    //canRedo = libpd_can_redo(canvas_getcurrent());
     sys_unlock();
     
 }
@@ -515,6 +515,7 @@ void Instance::openPatch(std::string const& path, std::string const& name)
     closePatch();
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     m_patch = libpd_create_canvas(name.c_str(), path.c_str());
+    canvas_setcurrent(static_cast<t_canvas*>(m_patch));
     setThis();
     
 }
