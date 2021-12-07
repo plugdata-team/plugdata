@@ -33,8 +33,8 @@ What works:
 - Automatic object name completion
 
 Known issues:
-- Some abstractions from ELSE cause crashes
 - There may still be some other stability problems
+- Some objects crash on native Apple Silicon (I believe this is a pd issue), it runs fine in Rosetta
 
 Future plans:
 - Add DAW automation as receive
