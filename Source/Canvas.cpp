@@ -102,10 +102,10 @@ void Canvas::synchronise() {
         if(exists) {
             auto [x, y, h, w] = object.getBounds();
             // Ignore rounding errors because of zooming
-            if(abs(x - (int)exists->getProperty(Identifiers::boxX)) > 6.0f) {
+            if(abs((x * zoomX) - (int)exists->getProperty(Identifiers::boxX)) > 6.0f) {
                 exists->setProperty(Identifiers::boxX, x * zoomX);
             }
-            if(abs(y - (int)exists->getProperty(Identifiers::boxY)) > 6.0f) {
+            if(abs((y * zoomY) - (int)exists->getProperty(Identifiers::boxY)) > 6.0f) {
                 exists->setProperty(Identifiers::boxY, y * zoomY);
             }
         }
@@ -310,7 +310,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool hasSelection = lassoSelection.getNumSelected();
         bool multiple = lassoSelection.getNumSelected() > 1;
         
-        bool isSubpatch = hasSelection && ((lassoSelection.getSelectedItem(0)->graphics &&  lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::GraphOnParent) || lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::Subpatch);
+        bool isSubpatch = hasSelection && (lassoSelection.getSelectedItem(0)->graphics &&  (lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::GraphOnParent || lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::Subpatch));
         
         popupMenu.clear();
         popupMenu.addItem(1, "Open", !multiple && isSubpatch);
@@ -326,7 +326,6 @@ void Canvas::mouseDown(const MouseEvent& e)
             
             switch (result) {
                 case 1: {
-                    
                     auto* cnv = lassoSelection.getSelectedItem(0)->graphics.get()->getCanvas();
                     auto& tabbar = main->getTabbar();
                     
@@ -342,9 +341,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                     auto tree = ValueTree(Identifiers::canvas);
                     tree.setProperty(Identifiers::isGraph, false, nullptr);
                     
-                    
                     tree.setProperty("Title", lassoSelection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false), nullptr);
-                    
                     
                     auto* newCanvas = main->appendChild<Canvas>(tree);
                     auto patchCopy = cnv->patch;

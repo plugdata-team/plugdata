@@ -94,6 +94,7 @@ public:
     
     void stringToAtom(String name, int& argc, t_atom& target);
     
+   
 
     void waitForStateUpdate();
     
@@ -112,8 +113,6 @@ public:
     std::atomic<bool> audio_started = false;
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
-
-    
     
     private:
     struct Message
@@ -156,7 +155,9 @@ public:
     moodycamel::ConcurrentQueue<midievent> m_midi_queue = moodycamel::ConcurrentQueue<midievent>(4096);
     moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
 
+    
     WaitableEvent update_wait;
+    
     struct internal;
     
 

@@ -46,7 +46,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     }
         
     libpd_add_to_search_path(abstractions.getFullPathName().toRawUTF8());
-        
+    
+    objectLibrary.initialiseLibrary();
         
     m_midi_buffer_in.ensureSize(2048);
     m_midi_buffer_out.ensureSize(2048);

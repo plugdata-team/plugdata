@@ -508,7 +508,7 @@ void libpd_removeobj(t_canvas* cnv, t_gobj* obj)
 
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 {
-    
+    pd_this->pd_islocked = 1; // To silence globallock warning from pd...
     glist_noselect(cnv);
     glist_select(cnv, obj);
     canvas_stowconnections(cnv); // for restoring connections when possible!
@@ -630,6 +630,7 @@ int libpd_type_exists(const char* type) {
     
     return 0;
 }
+
 
 //typedef struct _outlet t_outlet;
 

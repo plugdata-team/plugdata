@@ -84,8 +84,8 @@ std::array<int, 4> Object::getBounds() const noexcept
         t_canvas const* cnv = m_patch->getPointer();
         if(cnv != nullptr)
         {
-            //x -= cnv->gl_xmargin;
-            //y -= cnv->gl_ymargin;
+            x -= cnv->gl_xmargin;
+            y -= cnv->gl_ymargin;
         }
         
         return {x, y, w, h};

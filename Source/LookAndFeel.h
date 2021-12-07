@@ -328,3 +328,52 @@ struct StatusbarLook : public MainLook
         return font;
     }
 };
+
+class BoxEditorLook : public MainLook
+{
+public:
+    //BoxEditorLook();
+
+    void drawButtonText (Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) {
+        
+            auto font = getTextButtonFont (button, button.getHeight());
+            g.setFont (font);
+            g.setColour (button.findColour (button.getToggleState() ? TextButton::textColourOnId
+                                            : TextButton::textColourOffId)
+                         .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f));
+            auto yIndent = jmin (4, button.proportionOfHeight (0.3f));
+            auto cornerSize = jmin (button.getHeight(), button.getWidth()) / 2;
+            auto fontHeight = roundToInt (font.getHeight() * 0.6f);
+            auto leftIndent  = 25;
+            auto rightIndent = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+            auto textWidth = button.getWidth() - leftIndent - rightIndent;
+
+            if (textWidth > 0)
+                g.drawFittedText (button.getButtonText(),
+                                  leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2,
+                                  Justification::left, 2);
+    }
+
+
+    void drawButtonBackground(Graphics & g, Button & button, const Colour & backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)  {
+        
+        auto buttonArea = button.getLocalBounds();
+
+        if(shouldDrawButtonAsDown)
+        {
+            g.setColour (backgroundColour.darker());
+        }
+        else if (shouldDrawButtonAsHighlighted)
+        {
+            g.setColour (backgroundColour.brighter());
+        }
+        else
+        {
+            g.setColour (backgroundColour);
+        }
+
+        g.fillRect (buttonArea.toFloat());
+        
+    }
+
+};
