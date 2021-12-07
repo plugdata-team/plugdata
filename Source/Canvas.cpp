@@ -58,6 +58,7 @@ ValueTreeObject* Canvas::factory(const juce::Identifier & id, const juce::ValueT
 void Canvas::synchroniseAll() {
     // Synchronise all canvases that refer to this patch
     
+    
     for(auto* cnv : main->findChildrenOfClass<Canvas>(true)) {
         
         // Hacky check to see if the last synchronise action didn't delete the canvas...
@@ -70,7 +71,7 @@ void Canvas::synchroniseAll() {
 }
 
 void Canvas::synchronise() {
-    
+    main->stopTimer();
     setTransform(main->transform);
     
     main->pd.waitForStateUpdate();
@@ -258,6 +259,8 @@ void Canvas::synchronise() {
     }
 
     patch.deselectAll();
+    
+    main->startTimer(guiUpdateMs);
 }
 
 void Canvas::createPatch() {

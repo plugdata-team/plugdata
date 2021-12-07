@@ -14,9 +14,9 @@
             buildForAnalyzing = "YES">
             <BuildableReference
                BuildableIdentifier = "primary"
-               BlueprintIdentifier = "DA901971DF2F87394E98F7CF"
-               BuildableName = "PlugData.app"
-               BlueprintName = "PlugData - Standalone Plugin"
+               BlueprintIdentifier = "A617F5DB6E8B66B645A22DF9"
+               BuildableName = "PlugData.component"
+               BlueprintName = "PlugData - AU"
                ReferencedContainer = "container:PlugData.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
@@ -40,16 +40,11 @@
       debugDocumentVersioning = "YES"
       debugServiceExtension = "internal"
       allowLocationSimulation = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
-         <BuildableReference
-            BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DA901971DF2F87394E98F7CF"
-            BuildableName = "PlugData.app"
-            BlueprintName = "PlugData - Standalone Plugin"
-            ReferencedContainer = "container:PlugData.xcodeproj">
-         </BuildableReference>
-      </BuildableProductRunnable>
+      <PathRunnable
+         runnableDebuggingMode = "0"
+         BundleIdentifier = "com.cockos.reaper"
+         FilePath = "/Applications/REAPER-ARM.app">
+      </PathRunnable>
    </LaunchAction>
    <ProfileAction
       buildConfiguration = "Release"
@@ -57,16 +52,15 @@
       savedToolIdentifier = ""
       useCustomWorkingDirectory = "NO"
       debugDocumentVersioning = "YES">
-      <BuildableProductRunnable
-         runnableDebuggingMode = "0">
+      <MacroExpansion>
          <BuildableReference
             BuildableIdentifier = "primary"
-            BlueprintIdentifier = "DA901971DF2F87394E98F7CF"
-            BuildableName = "PlugData.app"
-            BlueprintName = "PlugData - Standalone Plugin"
+            BlueprintIdentifier = "A617F5DB6E8B66B645A22DF9"
+            BuildableName = "PlugData.component"
+            BlueprintName = "PlugData - AU"
             ReferencedContainer = "container:PlugData.xcodeproj">
          </BuildableReference>
-      </BuildableProductRunnable>
+      </MacroExpansion>
    </ProfileAction>
    <AnalyzeAction
       buildConfiguration = "Debug">

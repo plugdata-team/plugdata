@@ -42,8 +42,10 @@ static void vu_set(t_sigvu *x, t_floatarg f1, t_floatarg f2){
         hop = size / MAXOVERLAP + 1;
     if(hop < x->x_block)
         hop = x->x_block;
+    
     if(!(buf = getbytes(sizeof(t_sample) * (size + INITVSTAKEN))))
         error("[vu~]: couldn't allocate buffer");
+    
     x->x_buf = buf;
     x->x_phase = 0;
     x->x_npoints = size;

@@ -374,9 +374,7 @@ std::string Gui::getSymbol() const noexcept
         char* argv;
         int argc;
         
-        sys_lock();
         binbuf_gettext(static_cast<t_message*>(m_ptr)->m_text.te_binbuf, &argv, &argc);
-        sys_unlock();
         
         return std::string(argv, argc);
     }

@@ -72,9 +72,9 @@ static t_int * median_perform(t_int *w){
 }
 
 static void median_dsp(t_median *x, t_signal **sp){
-    t_int block = (t_int)sp[0]->s_vec;
+    t_int block = (t_int)sp[0]->s_n;
     if(block != x->x_block_size){
-        x->x_block_size = (t_int)sp[0]->s_vec;
+        x->x_block_size = (t_int)sp[0]->s_n;
         x->x_temp = realloc(x->x_temp, sizeof(t_float)*x->x_block_size);
     }
     dsp_add(median_perform, 4, x, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
