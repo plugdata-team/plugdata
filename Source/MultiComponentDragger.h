@@ -85,11 +85,15 @@ public:
 
         bool isAlreadySelected = isSelected(component);
         
-        if (! isAlreadySelected && shouldNowBeSelected)
+        if (! isAlreadySelected && shouldNowBeSelected) {
             selectedComponents.addToSelection(component);
+            component->repaint();
+        }
         
-        if (isAlreadySelected && ! shouldNowBeSelected)
+        if (isAlreadySelected && ! shouldNowBeSelected) {
             removeSelectedComponent(component);
+            component->repaint();
+        }
     }
 
     /** Toggles the selected status of a particular component. */

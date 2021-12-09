@@ -6,7 +6,7 @@
 #include "Canvas.h"
 
 
-GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)  : box(parent), processor(parent->cnv->main->pd), gui(pdGui), edited(false)
+GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)  : box(parent), processor(parent->cnv->main.pd), gui(pdGui), edited(false)
 {
     //if(!box->pdObject) return;
     value = gui.getValue();
@@ -86,7 +86,7 @@ float GUIComponent::getValueOriginal() const noexcept
 
 void GUIComponent::setValueOriginal(float v, bool sendNotification)
 {
-    ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
+    ScopedLock lock (*box->cnv->main.pd.getCallbackLock());
     
     value = (min < max) ? std::max(std::min(v, max), min) : std::max(std::min(v, min), max);
     if(sendNotification) gui.setValue(value);
@@ -100,7 +100,7 @@ float GUIComponent::getValueScaled() const noexcept
 
 void GUIComponent::setValueScaled(float v)
 {
-    ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
+    ScopedLock lock (*box->cnv->main.pd.getCallbackLock());
     
     value = (min < max) ? std::max(std::min(v, 1.f), 0.f) * (max - min) + min
     : (1.f - std::max(std::min(v, 1.f), 0.f)) * (min - max) + max;
@@ -112,7 +112,7 @@ void GUIComponent::startEdition() noexcept
     edited = true;
     processor.enqueueMessages(stringGui, stringMouse, {1.f});
     
-    ScopedLock lock (*box->cnv->main->pd.getCallbackLock());
+    ScopedLock lock (*box->cnv->main.pd.getCallbackLock());
     value = gui.getValue();
 }
 
@@ -168,6 +168,7 @@ pd::Gui GUIComponent::getGUI()
 {
     return gui;
 }
+
 
 
 // BangComponent
@@ -397,7 +398,7 @@ void RadioComponent::update()  {
 }
 
 // Array component
-ArrayComponent::ArrayComponent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box), graph(gui.getArray()), array(&box->cnv->main->pd, graph)
+ArrayComponent::ArrayComponent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box), graph(gui.getArray()), array(&box->cnv->main.pd, graph)
 {
     setInterceptsMouseClicks(false, true);
     array.setBounds(getLocalBounds());
@@ -558,15 +559,14 @@ size_t GraphicalArray::getArraySize() const noexcept
 // Graph On Parent
 GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
-    canvas.reset(new Canvas(box->cnv->main, true));
-    canvas->title = "Subpatcher";
     
     setInterceptsMouseClicks(false, true);
-    
-    addAndMakeVisible(canvas.get());
 
     subpatch = gui.getPatch();
-    canvas->loadPatch(subpatch);
+    updateCanvas();
+    
+    subpatch.getPointer()->gl_pixwidth = 70;
+    subpatch.getPointer()->gl_pixheight = 70;
 
     resized();
     
@@ -581,7 +581,7 @@ GraphOnParent::~GraphOnParent() {
 
 void GraphOnParent::resized()
 {
-    canvas->setBounds(getLocalBounds());
+
 }
 
 void GraphOnParent::paint(Graphics& g) {
@@ -590,7 +590,51 @@ void GraphOnParent::paint(Graphics& g) {
     
 }
 
+void GraphOnParent::updateCanvas() {
+    if(isShowing() && !canvas) {
+        
+        canvas.reset(new Canvas(box->cnv->main, true));
+        canvas->title = "Subpatcher";
+        addAndMakeVisible(canvas.get());
+        canvas->loadPatch(subpatch);
+        
+        // Make sure that the graph doesn't become the current canvas
+        box->cnv->main.getCurrentCanvas()->patch.setCurrent();
+        box->cnv->main.updateUndoState();
+    }
+    else if(!isShowing() && canvas) {
+        canvas.reset(nullptr);
+    }
+    
+    if(canvas) {
+        auto const* pdCanvas = subpatch.getPointer();
+        
+        auto [x, y, w, h] = getPatch()->getBounds();
+        
+        x *= Canvas::zoomX;
+        y *= Canvas::zoomY;
+        w *= Canvas::zoomX;
+        h *= Canvas::zoomY;
+        
+        canvas->setBounds(-x, -y, w + x, h + y);
+        bestW = w;
+        bestH = h;
+        
+        // This must be called but is pretty inefficient for how often this gets called!
+        // TODO: optimise this
+        box->resized();
+        
+    }
+    
+}
+
 void GraphOnParent::updateValue() {
+    
+    updateCanvas();
+    
+    if(!canvas) return;
+    
+   
     
     for(auto& box : canvas->boxes) {
         if(box->graphics) {
@@ -602,16 +646,10 @@ void GraphOnParent::updateValue() {
 // Subpatch, phony UI
 Subpatch::Subpatch(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
-    canvas.reset(new Canvas(box->cnv->main, true));
-    canvas->title = box->textLabel.getText().fromFirstOccurrenceOf("pd ", false, false);
-    
     subpatch = gui.getPatch();
 }
 
 Subpatch::~Subpatch() {
-    if(canvas && box) {
-        canvas->closeAllInstances();
-    }
 }
 
 // Comment

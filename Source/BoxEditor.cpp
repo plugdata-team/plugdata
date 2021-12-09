@@ -94,7 +94,7 @@ TextEditor* ClickLabel::createEditorComponent()  {
 
     suggestor.createCalloutBox(box, editor);
     
-    box->cnv->addAndMakeVisible(suggestor);
+    box->cnv->addChildComponent(suggestor);
     auto boundsInParent = getBounds() + box->getPosition();
     
     suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 200);
@@ -250,6 +250,8 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput) {
     String mutableInput = newInput;
     //onChange(mutableInput);
     
+
+    
     // Find start of highlighted region
     // This is the start of the last auto-completion suggestion
     // This region will automatically be removed after this function because it's selected
@@ -257,9 +259,14 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput) {
     
     // Reconstruct users typing
     String typedText = e.getText().substring(0, start) + mutableInput;
-
+    highlightStart = typedText.length();
+    
+    if(typedText.length() > 0) setVisible(true);
+    else                       setVisible(false);
+       
+    
     // Update suggestions
-    auto found = currentBox->cnv->main->pd.objectLibrary.autocomplete(typedText.toStdString());
+    auto found = currentBox->cnv->main.pd.objectLibrary.autocomplete(typedText.toStdString());
     
     for(int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
         buttons[i]->setText(found[i]);
@@ -270,14 +277,19 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput) {
     numOptions = found.size();
     resized();
     
+    
     // Get length of user-typed text
     int textlen = e.getText().substring(0, start).length();
 
     // Retrieve best suggestion
-    if(currentidx >= found.size()) return mutableInput;
+    if(currentidx >= found.size() || textlen == 0)  {
+        highlightEnd = 0;
+        return mutableInput;
+    }
     
     String fullName = found[currentidx];
     
+    highlightEnd = fullName.length();
     
     if(!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" ")) {
         isCompleting = false;
@@ -286,11 +298,6 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput) {
 
     isCompleting = true;
     mutableInput = fullName.substring(textlen);
-    
-    highlightStart = typedText.length();
-    highlightEnd = fullName.length();
-
-    
     
     return mutableInput;
 }

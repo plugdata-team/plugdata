@@ -20,19 +20,18 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
     if(start->isInput) {
         inIdx = start->edgeIdx;
         outIdx = end->edgeIdx;
-        inObj = start->box->pdObject.get();;
-        outObj = end->box->pdObject.get();;
+        inObj = &start->box->pdObject;
+        outObj = &end->box->pdObject;
     }
     else {
         inIdx = end->edgeIdx;
         outIdx = start->edgeIdx;
-        inObj = end->box->pdObject.get();
-        outObj = start->box->pdObject.get();
+        inObj = &end->box->pdObject;
+        outObj = &start->box->pdObject;
     }
-        
     
     if(!exists) {
-        bool canConnect = parent->patch.createConnection(outObj, outIdx, inObj, inIdx);
+        bool canConnect = parent->patch.createConnection(outObj->get(), outIdx, inObj->get(), inIdx);
 
         if(!canConnect) {
             start = nullptr;
@@ -55,13 +54,11 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
     resized();
     repaint();
     
-    cnv->main->updateUndoState();
     cnv->addAndMakeVisible(this);
 }
 
 Connection::~Connection()
 {
-    cnv->main->updateUndoState();
     deleteListeners();
 }
 

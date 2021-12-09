@@ -29,8 +29,6 @@ public:
     
     void createConnection();
     
-    Array<Component::SafePointer<Connection>> getConnections();
-    
     bool hasConnection();
     
     Rectangle<int> getCanvasBounds();

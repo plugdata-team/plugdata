@@ -481,7 +481,7 @@ void PlugDataAudioProcessor::processInternal()
     //////////////////////////////////////////////////////////////////////////////////////////
     //                                          MIDI OUT                                    //
     //////////////////////////////////////////////////////////////////////////////////////////
-   /*
+   
     if(m_produces_midi)
     {
         m_midibyte_index = 0;
@@ -490,7 +490,7 @@ void PlugDataAudioProcessor::processInternal()
         m_midibyte_buffer[2] = 0;
         m_midi_buffer_out.clear();
         processMidi();
-    }*/
+    }
     
 }
 
@@ -550,7 +550,7 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         
-        auto* cnv = editor->canvases.add(new Canvas(editor, false));
+        auto* cnv = editor->canvases.add(new Canvas(*editor, false));
         cnv->title = "Untitled Patcher";
         
         editor->mainCanvas = cnv;

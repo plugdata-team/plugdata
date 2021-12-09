@@ -19,17 +19,6 @@ Edge::~Edge()
 {
 }
 
-Array<Component::SafePointer<Connection>> Edge::getConnections() {
-    Array<Component::SafePointer<Connection>> connections;
-    for(auto* connection : box->cnv->connections) {
-        if(connection->start == this || connection->end == this) {
-            connections.add(connection);
-        }
-    }
-    
-    return connections;
-}
-
 bool Edge::hasConnection() {
     for(auto* connection : box->cnv->connections) {
         if(connection->start == this || connection->end == this) {

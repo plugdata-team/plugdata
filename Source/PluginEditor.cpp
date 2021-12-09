@@ -25,7 +25,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         // update GraphOnParent when changing tabs
         for(auto* box : getCurrentCanvas()->boxes) {
             if(box->graphics && box->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
-                box->graphics.get()->getCanvas()->synchronise();
+                auto* cnv = box->graphics.get()->getCanvas();
+                if(cnv) cnv->synchronise();
             }
             if(box->graphics && (box->graphics->getGUI().getType() == pd::Type::Subpatch || box->graphics->getGUI().getType() == pd::Type::GraphOnParent)) {
                 box->updatePorts();
@@ -37,8 +38,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             cnv->patch.setCurrent();
         }
 
-        
-        updateUndoState();
+        timerCallback();
     };
     
     startButton.setClickingTogglesState(true);
@@ -88,7 +88,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     toolbarButtons[0].onClick = [this]() {
         auto createFunc = [this](){
             tabbar.clearTabs();
-            auto* cnv = canvases.add(new Canvas(this, false));
+            canvases.clear();
+            auto* cnv = canvases.add(new Canvas(*this, false));
             cnv->title = "Untitled Patcher";
             mainCanvas = cnv;
             mainCanvas->createPatch();
@@ -257,7 +258,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     
     
     if(!mainCanvas) {
-        auto* cnv = canvases.add(new Canvas(this, false));
+        auto* cnv = canvases.add(new Canvas(*this, false));
         cnv->title = "Untitled Patcher";
         mainCanvas = cnv;
         mainCanvas->createPatch();
@@ -437,7 +438,7 @@ void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
 }
 
 void PlugDataPluginEditor::timerCallback() {
-    pd.getCallbackLock()->enter();
+    //pd.getCallbackLock()->enter();
     auto* cnv = getCurrentCanvas();
     cnv->patch.setCurrent();
     
@@ -447,17 +448,20 @@ void PlugDataPluginEditor::timerCallback() {
         }
     }
     
-    pd.getCallbackLock()->exit();
+    updateUndoState();
+    
+   // pd.getCallbackLock()->exit();
 }
 
 void PlugDataPluginEditor::updateUndoState() {
     
     pd.setThis();
-
+    
 
     if(getCurrentCanvas() && getCurrentCanvas()->patch.getPointer()) {
         
         getCurrentCanvas()->patch.setCurrent();
+        getCurrentCanvas()->hasChanged = true;
         
         toolbarButtons[3].setEnabled(pd.canUndo);
         toolbarButtons[4].setEnabled(pd.canRedo);
