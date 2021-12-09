@@ -1,7 +1,6 @@
 #pragma once
 
 #include "LookAndFeel.h"
-#include "Utility/ValueTreeObject.h"
 #include "Console.h"
 
 
@@ -34,11 +33,11 @@ struct TabComponent : public TabbedComponent
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public ValueTreeObject, public Timer
+class PlugDataPluginEditor : public AudioProcessorEditor, public Timer
 {
 public:
     //==============================================================================
-    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console, ValueTree mainTree);
+    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
     ~PlugDataPluginEditor() override;
     
     Component::SafePointer<Console> console;
@@ -63,9 +62,8 @@ public:
     void timerCallback() override;
 
     
-    void valueTreeChanged() override;
+    void updateUndoState();
     
-    ValueTreeObject* factory (const Identifier&, const ValueTree&) override;
     
     TabComponent& getTabbar()  { return tabbar; };
     
@@ -77,6 +75,8 @@ public:
     
     Canvas* mainCanvas = nullptr;
     AffineTransform transform;
+    
+    OwnedArray<Canvas> canvases;
     
 private:
     
@@ -112,6 +112,7 @@ private:
     
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;
+    
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugDataPluginEditor)
 };

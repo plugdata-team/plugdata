@@ -7,7 +7,7 @@
 
 //==============================================================================
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole, ValueTree mainTree) : AudioProcessorEditor(&p), ValueTreeObject(mainTree), pd(p)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p)
 {
     console = debugConsole;
     
@@ -23,7 +23,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         if(idx == -1) return;
         
         // update GraphOnParent when changing tabs
-        for(auto* box : getCurrentCanvas()->findChildrenOfClass<Box>()) {
+        for(auto* box : getCurrentCanvas()->boxes) {
             if(box->graphics && box->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
                 box->graphics.get()->getCanvas()->synchronise();
             }
@@ -38,7 +38,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         }
 
         
-        valueTreeChanged();
+        updateUndoState();
     };
     
     startButton.setClickingTogglesState(true);
@@ -55,7 +55,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     hideHeadersButton.setLookAndFeel(&statusbarLook);
     hideHeadersButton.onClick = [this](){
         pd.mainTree.setProperty(Identifiers::hideHeaders, hideHeadersButton.getToggleState(), nullptr);
-        for(auto* box : getCurrentCanvas()->findChildrenOfClass<Box>()) {
+        for(auto* box : getCurrentCanvas()->boxes) {
             box->resized();
             
         }
@@ -66,7 +66,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     connectionStyleButton.setLookAndFeel(&statusbarLook);
     connectionStyleButton.onClick = [this](){
         pd.mainTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
-        for(auto* connection : getCurrentCanvas()->findChildrenOfClass<Connection>()) connection->resized();
+        for(auto* connection : getCurrentCanvas()->connections) connection->resized();
     };
     
     addAndMakeVisible(hideHeadersButton);
@@ -86,19 +86,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     
     // New button
     toolbarButtons[0].onClick = [this]() {
-
-        
-        
         auto createFunc = [this](){
-            ValueTreeObject::removeAllChildren();
             tabbar.clearTabs();
-            
-            auto canvas = ValueTree(Identifiers::canvas);
-            canvas.setProperty("Title", "Untitled Patcher", nullptr);
-            canvas.setProperty(Identifiers::isGraph, false, nullptr);
-            
-            mainCanvas = appendChild<Canvas>(canvas);
+            auto* cnv = canvases.add(new Canvas(this, false));
+            cnv->title = "Untitled Patcher";
+            mainCanvas = cnv;
             mainCanvas->createPatch();
+            addTab(cnv);
         };
 
         
@@ -204,12 +198,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 case 9: {
                     ArrayDialog::show(this, [this](int result, String name, String size) {
                         if(result) {
-                            auto box = ValueTree(Identifiers::box);
-                            box.setProperty(Identifiers::boxX, 100, nullptr);
-                            box.setProperty(Identifiers::boxY, 100, nullptr);
-                            String boxName = "graph " + name + " " + size;
-                            box.setProperty(Identifiers::boxName, boxName, nullptr);
-                            getCurrentCanvas()->appendChild(box);
+                            auto* cnv = getCurrentCanvas();
+                            auto* box = new Box(cnv, "graph " + name + " " + size);
+                            box->setTopLeftPosition(100, 100);
+                            cnv->boxes.add(box);
                         }
                     });
                     return;
@@ -239,13 +231,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                     
 
             }
-            
-            
-            auto box = ValueTree(Identifiers::box);
-            box.setProperty(Identifiers::boxName, boxName, nullptr);
-            getCurrentCanvas()->appendChild(box);
-            box.setProperty(Identifiers::boxX, 100, nullptr);
-            box.setProperty(Identifiers::boxY, 100, nullptr);
+            auto* cnv = getCurrentCanvas();
+            auto* box = new Box(cnv, boxName);
+            box->setType(boxName);
+            box->setTopLeftPosition(100, 100);
         };
         
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
@@ -266,18 +255,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     
     addAndMakeVisible(hideButton);
     
-    rebuildObjects();
     
-    if(!countChildrenOfClass<Canvas>()) {
-        ValueTree canvasState("Canvas");
-        canvasState.setProperty("Title", "Untitled Patcher", nullptr);
-        canvasState.setProperty(Identifiers::isGraph, false, nullptr);
-        
-        mainCanvas = appendChild<Canvas>(canvasState);
+    if(!mainCanvas) {
+        auto* cnv = canvases.add(new Canvas(this, false));
+        cnv->title = "Untitled Patcher";
+        mainCanvas = cnv;
         mainCanvas->createPatch();
-    }
-    else {
-        mainCanvas = findChildOfClass<Canvas>(0);
+        addTab(cnv);
     }
     
     restrainer.setSizeLimits (150, 150, 2000, 2000);
@@ -297,19 +281,6 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     for(auto& button : toolbarButtons) {
         button.setLookAndFeel(nullptr);
     }
-}
-
-
-ValueTreeObject* PlugDataPluginEditor::factory(const Identifier& id, const ValueTree& tree)
-{
-    if(id == Identifiers::canvas) {
-        auto* canvas = new Canvas(tree, this);
-        addTab(canvas);
-
-        return static_cast<ValueTreeObject*>(canvas);
-    }
-    
-    return nullptr;
 }
 
 
@@ -420,7 +391,7 @@ void PlugDataPluginEditor::openProject() {
     auto openFunc = [this](const FileChooser& f) {
         File openedFile = f.getResult();
         
-        if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {       ValueTreeObject::removeAllChildren();
+        if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
             tabbar.clearTabs();
             pd.loadPatch(openedFile.loadFileAsString());
         }
@@ -457,7 +428,7 @@ void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
         FileOutputStream ostream(result);
         ostream.writeString(to_save);
         
-        getCurrentCanvas()->setProperty("Title", result.getFileName());
+        getCurrentCanvas()->title = result.getFileName();
         
         nestedCallback();
     });
@@ -470,7 +441,7 @@ void PlugDataPluginEditor::timerCallback() {
     auto* cnv = getCurrentCanvas();
     cnv->patch.setCurrent();
     
-    for(auto& box : cnv->findChildrenOfClass<Box>()) {
+    for(auto& box : cnv->boxes) {
         if(box->graphics) {
             box->graphics->updateValue();
         }
@@ -479,7 +450,7 @@ void PlugDataPluginEditor::timerCallback() {
     pd.getCallbackLock()->exit();
 }
 
-void PlugDataPluginEditor::valueTreeChanged() {
+void PlugDataPluginEditor::updateUndoState() {
     
     pd.setThis();
 
@@ -524,7 +495,7 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx) {
 
 void PlugDataPluginEditor::addTab(Canvas* cnv)
 {
-    tabbar.addTab(cnv->getProperty("Title"), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+    tabbar.addTab(cnv->title, findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
     
     int tabIdx = tabbar.getNumTabs() - 1;
     tabbar.setCurrentTabIndex(tabIdx);
@@ -560,8 +531,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
         }
         
         auto* cnv = getCanvas(idx);
-        
-        removeChild(cnv->getObjectState());
+        canvases.removeObject(cnv);
         tabbar.removeTab(idx);
         
         tabbar.setCurrentTabIndex(0, true);

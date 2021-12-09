@@ -558,15 +558,12 @@ size_t GraphicalArray::getArraySize() const noexcept
 // Graph On Parent
 GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
-    auto tree = ValueTree(Identifiers::canvas);
-    tree.setProperty(Identifiers::isGraph, true, nullptr);
-    tree.setProperty("Title", "Subpatcher", nullptr);
-    
-    canvas = box->appendChild<Canvas>(tree);
+    canvas.reset(new Canvas(box->cnv->main, true));
+    canvas->title = "Subpatcher";
     
     setInterceptsMouseClicks(false, true);
     
-    addAndMakeVisible(canvas);
+    addAndMakeVisible(canvas.get());
 
     subpatch = gui.getPatch();
     canvas->loadPatch(subpatch);
@@ -595,7 +592,7 @@ void GraphOnParent::paint(Graphics& g) {
 
 void GraphOnParent::updateValue() {
     
-    for(auto& box : canvas->findChildrenOfClass<Box>()) {
+    for(auto& box : canvas->boxes) {
         if(box->graphics) {
             box->graphics->updateValue();
         }
@@ -605,15 +602,10 @@ void GraphOnParent::updateValue() {
 // Subpatch, phony UI
 Subpatch::Subpatch(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
-    
-    auto tree = ValueTree(Identifiers::canvas);
-    tree.setProperty(Identifiers::isGraph, true, nullptr);
-    tree.setProperty("Title",  box->textLabel.getText().fromFirstOccurrenceOf("pd ", false, false), nullptr);
-        
-    canvas = box->appendChild<Canvas>(tree);
+    canvas.reset(new Canvas(box->cnv->main, true));
+    canvas->title = box->textLabel.getText().fromFirstOccurrenceOf("pd ", false, false);
     
     subpatch = gui.getPatch();
-    canvas->loadPatch(subpatch);
 }
 
 Subpatch::~Subpatch() {

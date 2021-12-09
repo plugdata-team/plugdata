@@ -2,8 +2,6 @@
 
 #include <JuceHeader.h>
 #include "Box.h"
-
-#include "Utility/ValueTreeObject.h"
 #include "PluginProcessor.h"
 #include "Pd/PdPatch.hpp"
 //==============================================================================
@@ -16,13 +14,13 @@ class TreeSorter
 {
 public:
     
-    Array<ValueTree>* indexTree;
+    Array<Box*>* indexTree;
     
-    TreeSorter(Array<ValueTree>* index) : indexTree(index) {
+    TreeSorter(Array<Box*>* index) : indexTree(index) {
         
     }
     
-    int compareElements (const ValueTree& first, const ValueTree& second)
+    int compareElements (Box* first, Box* second)
     {
         auto firstIdx = indexTree->indexOf(first);
         auto secondIdx = indexTree->indexOf(second);
@@ -32,55 +30,27 @@ public:
 
 struct Identifiers
 {
-    // Object identifiers
-    inline static Identifier canvas = Identifier("Canvas");
-    inline static Identifier box = Identifier("Box");
-    inline static Identifier edge = Identifier("Edge");
-    inline static Identifier connection = Identifier("Connection");
-    
-    // Other identifiers
-    inline static Identifier exists = Identifier("Exists");
-    inline static Identifier isGraph = Identifier("Graph");
-    
-    // Box
-    inline static Identifier boxX = Identifier("X");
-    inline static Identifier boxY = Identifier("Y");
-    inline static Identifier boxName = Identifier("Name");
-    
-    // Edge
-    inline static Identifier edgeID = Identifier("ID");
-    inline static Identifier edgeIdx = Identifier("Index");
-    inline static Identifier edgeIsInput = Identifier("Input");
-    inline static Identifier edgeSignal = Identifier("Signal");
-
-    
-    // Connection
-    inline static Identifier startID = Identifier("StartID");
-    inline static Identifier endID = Identifier("EndID");
-    
-    
     inline static Identifier hideHeaders = Identifier("HideHeaders");
     inline static Identifier connectionStyle = Identifier("ConnectionStyle");
     
 };
 
+
 class Edge;
 class PlugDataPluginEditor;
-class Canvas  : public Component, public ValueTreeObject, public KeyListener, public MultiComponentDraggerListener
+class Canvas  : public Component, public KeyListener, public MultiComponentDraggerListener
 {
 public:
     
     static inline constexpr int guiUpdateMs = 500;
     
     //==============================================================================
-    Canvas(ValueTree tree, PlugDataPluginEditor* parent);
+    Canvas(PlugDataPluginEditor* parent, bool isGraph = false);
     
     ~Canvas();
     
     PlugDataPluginEditor* main;
     
-    ValueTreeObject* factory (const juce::Identifier&, const juce::ValueTree&) override;
-
     //==============================================================================
     void paintOverChildren (Graphics&) override;
     void resized() override;
@@ -93,6 +63,7 @@ public:
     void createPatch();
     void loadPatch(pd::Patch& patch);
     
+    Array<Canvas*> getSubcanvases();
     void synchroniseAll();
     void synchronise();
 
@@ -102,25 +73,21 @@ public:
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
+    
+    void checkBounds();
 
     void undo();
     void redo();
-    
-    void valueTreeChanged() override {
-        hasChanged = true;
-    }
     
     void dragCallback(int dx, int dy) override;
     
     void closeAllInstances();
       
     bool changed() {
-        return hasChanged && findChildrenOfClass<Box>().size();
+        return hasChanged && boxes.size();
     }
     
-    bool hasChanged = false;
-    
-    Edge* findEdgeByID(String ID);
+    bool hasChanged = false; // TODO: fix this!
     
     Array<Edge*> getAllEdges();
     
@@ -134,19 +101,21 @@ public:
     static inline constexpr float zoomX = 3.0f;
     static inline constexpr float zoomY = 2.0f;
     
+    OwnedArray<Box> boxes;
+    OwnedArray<Connection> connections;
+    
+    bool isGraph = false;
+    String title = "Untitled Patcher";
+    
+    MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this, &boxes);
+    
 private:
     
-    
-    Point<int> lastMousePos;
-
-    MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this);
-
-    LassoComponent<Box*> lasso;
-    
     Point<int> dragStartPosition;
-   
+    Point<int> lastMousePos;
+    
+    LassoComponent<Box*> lasso;
     PopupMenu popupMenu;
-    
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Canvas)
 };

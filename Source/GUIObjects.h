@@ -42,9 +42,14 @@ struct GUIComponent : public Component
     
     virtual void update() {};
     
+    virtual pd::Patch* getPatch() {
+        return nullptr;
+    }
+    
     virtual Canvas* getCanvas() {
         return nullptr;
     }
+    
     
     std::unique_ptr<Label> getLabel();
     pd::Gui getGUI();
@@ -291,9 +296,14 @@ public:
     std::pair<int, int> getBestSize() override {return {200, 140}; };
     
     
-    Canvas* getCanvas() override {
-        return canvas;
+    pd::Patch* getPatch() override {
+        return &subpatch;
     }
+    
+    Canvas* getCanvas() override {
+        return canvas.get();
+    }
+    
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         
@@ -303,7 +313,7 @@ public:
     
 private:
     pd::Patch subpatch;
-    Canvas* canvas;
+    std::unique_ptr<Canvas> canvas;
     
 };
 
@@ -326,14 +336,15 @@ struct Subpatch : public GUIComponent
     };
     
     
-    Canvas* getCanvas() override {
-        return canvas;
+    pd::Patch* getPatch() override {
+        return &subpatch;
     }
     
+
     
 private:
     pd::Patch subpatch;
-    Canvas* canvas = nullptr;
+    std::unique_ptr<Canvas> canvas = nullptr;
     
 };
 

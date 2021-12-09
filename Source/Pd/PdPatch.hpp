@@ -88,15 +88,12 @@ public:
     std::vector<Object> getObjects(bool only_gui = false) noexcept;
     
     String getCanvasContent() {
-        
         char* buf;
         int bufsize;
         
-        
         libpd_getcontent(static_cast<t_canvas*>(m_ptr), &buf, &bufsize);
         
-        return String(buf, bufsize);
-        
+        return String(CharPointer_UTF8(buf));
     }
 
     

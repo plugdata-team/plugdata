@@ -111,7 +111,6 @@ public:
     int numout;
     int sampsperblock = 512;
     
-    
     ValueTree mainTree = ValueTree("Main");
 
     pd::Library objectLibrary;

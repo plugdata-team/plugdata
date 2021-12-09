@@ -3,9 +3,12 @@
 #include "Connection.h"
 
 //==============================================================================
-Edge::Edge(ValueTree tree, Box* parent) : ValueTreeObject(tree), box(parent)
+Edge::Edge(Box* parent, bool input) : box(parent)
 {
+    isInput = input;
     setSize (8, 8);
+    
+    parent->addAndMakeVisible(this);
     
     onClick = [this](){
         createConnection();
@@ -18,7 +21,7 @@ Edge::~Edge()
 
 Array<Component::SafePointer<Connection>> Edge::getConnections() {
     Array<Component::SafePointer<Connection>> connections;
-    for(auto* connection : box->cnv->findChildrenOfClass<Connection>()) {
+    for(auto* connection : box->cnv->connections) {
         if(connection->start == this || connection->end == this) {
             connections.add(connection);
         }
@@ -28,7 +31,7 @@ Array<Component::SafePointer<Connection>> Edge::getConnections() {
 }
 
 bool Edge::hasConnection() {
-    for(auto* connection : box->cnv->findChildrenOfClass<Connection>()) {
+    for(auto* connection : box->cnv->connections) {
         if(connection->start == this || connection->end == this) {
             return true;
         }
@@ -53,7 +56,7 @@ void Edge::paint (Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
     
-    auto backgroundColour = getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlightColour;
+    auto backgroundColour = isSignal ? Colours::yellow : MainLook::highlightColour;
     
     auto baseColour = backgroundColour.withMultipliedSaturation (hasKeyboardFocus (true) ? 1.3f : 0.9f)
                                       .withMultipliedAlpha (isEnabled() ? 1.0f : 0.5f);
@@ -65,7 +68,7 @@ void Edge::paint (Graphics& g)
     
     if(hasConnection()) {
         //path.addArc(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, MathConstants<float>::pi);
-        if((bool)getProperty(Identifiers::edgeIsInput)) {
+        if(isInput) {
             path.addPieSegment(bounds, MathConstants<float>::pi + MathConstants<float>::halfPi, MathConstants<float>::halfPi, 0.3f);
         }
         else {
@@ -110,10 +113,8 @@ void Edge::createConnection()
     if(Edge::connectingEdge) {
         
         // Check type for input and output
-        bool isInput = getProperty("Input");
-        String ctx1 = isInput ? Edge::connectingEdge->getProperty(Identifiers::edgeSignal) : getProperty(Identifiers::edgeSignal);
-        String ctx2 = !isInput ? Edge::connectingEdge->getProperty(Identifiers::edgeSignal) : getProperty(Identifiers::edgeSignal);
-        
+        bool startSignal = isInput ? connectingEdge->isSignal : isSignal;
+        bool endSignal =  !isInput ? connectingEdge->isSignal : isSignal;
         
         bool connectionAllowed = connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv;
         
@@ -123,12 +124,8 @@ void Edge::createConnection()
         }
         // Create new connection if allowed
         else if(connectionAllowed) {
-            ValueTree newConnection = ValueTree(Identifiers::connection);
-            
-            newConnection.setProperty(Identifiers::startID, Edge::connectingEdge->getProperty(Identifiers::edgeID), nullptr);
-            newConnection.setProperty(Identifiers::endID, getProperty(Identifiers::edgeID), nullptr);
             Canvas* cnv = findParentComponentOfClass<Canvas>();
-            cnv->appendChild(newConnection);
+            cnv->connections.add(new Connection(cnv, connectingEdge, this));
             Edge::connectingEdge = nullptr;
         }
     }
