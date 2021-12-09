@@ -433,10 +433,12 @@ void Instance::waitForStateUpdate() {
             update_wait.signal();
         });
         update_wait.wait();
+        
+        /*
         m_function_queue.enqueue([this](){
             update_wait.signal();
         });
-        update_wait.wait();
+        update_wait.wait(); */
     }
 }
 
@@ -500,8 +502,8 @@ void Instance::dequeueMessages()
     }
     
     sys_lock();
-    //canUndo = libpd_can_undo(canvas_getcurrent());
-    //canRedo = libpd_can_redo(canvas_getcurrent());
+    canUndo = libpd_can_undo(canvas_getcurrent());
+    canRedo = libpd_can_redo(canvas_getcurrent());
     sys_unlock();
     
 }

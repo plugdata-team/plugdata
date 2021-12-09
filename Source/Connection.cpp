@@ -4,42 +4,40 @@
 #include "Canvas.h"
 
 //==============================================================================
-Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
+Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s), end(e)
 {
     cnv = parent;
-    rebuildObjects();
-   
-    start = cnv->findEdgeByID(tree.getProperty("StartID"));
-    end = cnv->findEdgeByID(tree.getProperty("EndID"));
     
+    addMouseListener(cnv, true);
+   
     if(!start || !end) {
         start = nullptr;
         end = nullptr;
-        parent->removeChild(tree);
+        parent->connections.removeObject(this);
         return;
     }
 
-    if(start->getProperty(Identifiers::edgeIsInput)) {
-        inIdx = start->getProperty(Identifiers::edgeIdx);
-        outIdx = end->getProperty(Identifiers::edgeIdx);
-        inObj = start->box->pdObject.get();
-        outObj = end->box->pdObject.get();
+    if(start->isInput) {
+        inIdx = start->edgeIdx;
+        outIdx = end->edgeIdx;
+        inObj = start->box->pdObject.get();;
+        outObj = end->box->pdObject.get();;
     }
     else {
-        inIdx = end->getProperty(Identifiers::edgeIdx);
-        outIdx = start->getProperty(Identifiers::edgeIdx);
+        inIdx = end->edgeIdx;
+        outIdx = start->edgeIdx;
         inObj = end->box->pdObject.get();
         outObj = start->box->pdObject.get();
     }
         
     
-    if(!getProperty(Identifiers::exists)) {
+    if(!exists) {
         bool canConnect = parent->patch.createConnection(outObj, outIdx, inObj, inIdx);
 
         if(!canConnect) {
             start = nullptr;
             end = nullptr;
-            parent->removeChild(tree);
+            parent->connections.removeObject(this);
             return;
         }
     }
@@ -56,10 +54,14 @@ Connection::Connection(Canvas* parent, ValueTree tree) : ValueTreeObject(tree)
     
     resized();
     repaint();
+    
+    cnv->main->updateUndoState();
+    cnv->addAndMakeVisible(this);
 }
 
 Connection::~Connection()
 {
+    cnv->main->updateUndoState();
     deleteListeners();
 }
 
@@ -80,7 +82,7 @@ void Connection::paint (Graphics& g)
     auto baseColour = Colours::white;
 
     if(isSelected) {
-        baseColour = start->getProperty(Identifiers::edgeSignal) ? Colours::yellow : MainLook::highlightColour;
+        baseColour = start->isSignal ? Colours::yellow : MainLook::highlightColour;
     }
     
     
@@ -116,7 +118,7 @@ void Connection::resized()
 
     bool curvedConnection = true;
     if(auto* main = findParentComponentOfClass<PlugDataPluginEditor>()) {
-        curvedConnection = !main->getProperty(Identifiers::connectionStyle);
+        curvedConnection = !main->pd.mainTree.getProperty(Identifiers::connectionStyle);
     }
 
     int curvetype = fabs(pstart.x - pend.x) < (fabs(pstart.y - pend.y) * 5.0f) ? 1 : 2;
@@ -139,6 +141,6 @@ void Connection::componentBeingDeleted(Component& component) {
     
     if(!deleted) {
         deleted = true;
-        getParent().removeChild(getObjectState(), nullptr);
+        //getParent().removeChild(getObjectState(), nullptr);
     }
 }

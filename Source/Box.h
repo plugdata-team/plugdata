@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Utility/MultiComponentDragger.h"
-#include "Utility/ValueTreeObject.h"
 
 #include "GUIObjects.h"
 #include "BoxEditor.h"
+#include "Edge.h"
 
 #include <m_pd.h>
 #include <JuceHeader.h>
@@ -18,16 +18,16 @@
 
 
 class Canvas;
-class Box  : public Component, public ValueTreeObject
+class Box  : public Component
 {
     
 public:
     //==============================================================================
-    Box(Canvas* parent, ValueTree tree, MultiComponentDragger<Box>& multiDragger);
+    Box(Canvas* parent, String name = "");
+    
+    Box(pd::Object* object, Canvas* parent, String name = "");
 
     ~Box() override;
-    
-    ValueTreeObject* factory (const juce::Identifier&, const juce::ValueTree&) override;
     
     //==============================================================================
     void paint (Graphics&) override;
@@ -55,13 +55,15 @@ public:
     
     MultiComponentDragger<Box>& dragger;
     
+    OwnedArray<Edge> edges;
+    
+    void setType(String newType, bool exists = false);
+    
 private:
     
+    void initialise();
+    
     void mouseMove(const MouseEvent& e) override;
-    
-    void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
-    
-    void setType(String newType);
     
     ComponentBoundsConstrainer restrainer;
     std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};

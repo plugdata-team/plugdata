@@ -179,8 +179,7 @@ void PlugDataAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
 
 void PlugDataAudioProcessor::releaseResources()
 {
-    // When playback stops, you can use this as an opportunity to free up any
-    // spare memory, etc.
+    audio_started = false;
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -504,7 +503,7 @@ bool PlugDataAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
-    auto* editor = new PlugDataPluginEditor(*this, console.get(), mainTree);
+    auto* editor = new PlugDataPluginEditor(*this, console.get());
     auto patch = getPatch();
     editor->getMainCanvas()->loadPatch(patch);
     return editor;
@@ -551,12 +550,13 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         
-        auto canvas = ValueTree(Identifiers::canvas);
-        canvas.setProperty("Title", "Untitled Patcher", nullptr);
-        canvas.setProperty(Identifiers::isGraph, false, nullptr);
-        editor->mainCanvas = editor->appendChild<Canvas>(canvas);
-        editor->mainCanvas->patch = getPatch();
-        editor->mainCanvas->synchronise();
+        auto* cnv = editor->canvases.add(new Canvas(editor, false));
+        cnv->title = "Untitled Patcher";
+        
+        editor->mainCanvas = cnv;
+        cnv->patch = getPatch();
+        cnv->synchronise();
+        editor->addTab(cnv);
     }
 }
 

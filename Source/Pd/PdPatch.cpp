@@ -344,7 +344,6 @@ void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
             glist_select(getPointer(), &checkObject(obj)->te_g);
         }
         
-        
         libpd_moveselection(getPointer(), dx, dy);
         
         glist_noselect(getPointer());

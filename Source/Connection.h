@@ -3,7 +3,6 @@
 #include <JuceHeader.h>
 #include <m_pd.h>
 #include "Edge.h"
-#include "Utility/ValueTreeObject.h"
 #include "Pd/PdObject.hpp"
 //==============================================================================
 /*
@@ -11,7 +10,7 @@
     your controls and content.
 */
 class Canvas;
-class Connection  : public Component, public ValueTreeObject, public ComponentListener
+class Connection  : public Component, public ComponentListener
 {
 public:
     
@@ -28,7 +27,7 @@ public:
     bool isSelected = false;
     
     //==============================================================================
-    Connection(Canvas* parent, ValueTree tree);
+    Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);
     ~Connection() override;
 
     //==============================================================================

@@ -13,7 +13,6 @@
 
 
 #include <JuceHeader.h>
-#include "ValueTreeObject.h"
 
 class Canvas;
 /**
@@ -41,6 +40,8 @@ class Canvas;
 struct MultiComponentDraggerListener
 {
     virtual void dragCallback(int dx, int dy) = 0;
+    
+    
 };
 
 template<typename T>
@@ -49,8 +50,11 @@ class MultiComponentDragger : public LassoSource<T*>
 public:
     
     Canvas* canvas;
-    MultiComponentDragger(Canvas* parent) {
+    OwnedArray<T>* selectable;
+    
+    MultiComponentDragger(Canvas* parent, OwnedArray<T>* selectableObjects) {
         canvas = parent;
+        selectable = selectableObjects;
     }
     virtual ~MultiComponentDragger() {}
 
@@ -167,9 +171,6 @@ public:
         
         component->repaint();
         
-        for(auto& component : selectedComponents) {
-            component->updatePosition();
-        }
     
     }
 
@@ -302,9 +303,10 @@ private:
         selectedComponents.deselect(component);
     }
     
+    
     void findLassoItemsInArea (Array<T*> & itemsFound, const Rectangle<int>& area)
     {
-        for(auto element : static_cast<ValueTreeObject*>(canvas)->findChildrenOfClass<T>())
+        for(auto* element : *selectable)
         {
             if (area.intersects(element->getBounds()))
             {

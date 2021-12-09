@@ -340,7 +340,6 @@
 		EBA7401EB35073368C386CF3 /* BinaryData.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 742A915C90AF1348E6362078 /* BinaryData.cpp */; };
 		EBD44D1A9716D177B7D405D0 /* fdn.rev~.c in Sources */ = {isa = PBXBuildFile; fileRef = F0E0CDAF9570B5938405E8EF /* fdn.rev~.c */; };
 		EC01B6FD9DA2D405E25E1026 /* comb.rev~.c in Sources */ = {isa = PBXBuildFile; fileRef = A8381549AA1393EEEFF8EBA2 /* comb.rev~.c */; };
-		ECFE50C8A90275E5EA5858F7 /* ValueTreeObject.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 4D14CCB5A3D54C53FADDF6E4 /* ValueTreeObject.cpp */; };
 		EDAB32690A244055A13116A5 /* routetype.c in Sources */ = {isa = PBXBuildFile; fileRef = 25CD9DB21FA5417A856C61B9 /* routetype.c */; };
 		EEB25A60DC5E959EB6F48383 /* zerocross~.c in Sources */ = {isa = PBXBuildFile; fileRef = C96725142CB83FFD12E898AD /* zerocross~.c */; };
 		EF9AB2927595B6971D4A96C7 /* loop.c in Sources */ = {isa = PBXBuildFile; fileRef = FAE5F59D8AD1697D6F2003B3 /* loop.c */; };
@@ -575,7 +574,6 @@
 		4B9EDB58063DA936810B6D37 /* LookAndFeel.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = LookAndFeel.h; path = ../../Source/LookAndFeel.h; sourceTree = SOURCE_ROOT; };
 		4BD08A198DE384095C5B6BC1 /* floor~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "floor~.c"; path = "../../Source/Pd/ELSE/floor~.c"; sourceTree = SOURCE_ROOT; };
 		4C3C8A7170547F06D0BE3909 /* include_juce_data_structures.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_data_structures.mm; path = ../../JuceLibraryCode/include_juce_data_structures.mm; sourceTree = SOURCE_ROOT; };
-		4D14CCB5A3D54C53FADDF6E4 /* ValueTreeObject.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = ValueTreeObject.cpp; path = ../../Source/Utility/ValueTreeObject.cpp; sourceTree = SOURCE_ROOT; };
 		4D7603E02D60CB1643677E9A /* bandstop~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "bandstop~.c"; path = "../../Source/Pd/ELSE/bandstop~.c"; sourceTree = SOURCE_ROOT; };
 		4E077F72F8160463585857E3 /* svfilter~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "svfilter~.c"; path = "../../Source/Pd/ELSE/svfilter~.c"; sourceTree = SOURCE_ROOT; };
 		4E62CD53E24A5DB42CFB50D8 /* include_juce_audio_utils.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_audio_utils.mm; path = ../../JuceLibraryCode/include_juce_audio_utils.mm; sourceTree = SOURCE_ROOT; };
@@ -586,7 +584,6 @@
 		4FF18804C3CA2B53B0DA7F98 /* downsample~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "downsample~.c"; path = "../../Source/Pd/ELSE/downsample~.c"; sourceTree = SOURCE_ROOT; };
 		501360AF7655D006EE277EEA /* random.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = random.h; path = ../../Source/Pd/ELSE/shared/random.h; sourceTree = SOURCE_ROOT; };
 		5216455B651B7DA2CB6FC944 /* GUIObjects.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = GUIObjects.h; path = ../../Source/GUIObjects.h; sourceTree = SOURCE_ROOT; };
-		52780A213C8FBC5F7DA04192 /* ValueTreeObject.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = ValueTreeObject.h; path = ../../Source/Utility/ValueTreeObject.h; sourceTree = SOURCE_ROOT; };
 		535FF42379F8022ACA4C3DB0 /* JucePluginDefines.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = JucePluginDefines.h; path = ../../JuceLibraryCode/JucePluginDefines.h; sourceTree = SOURCE_ROOT; };
 		536B237779951CAE4A97D902 /* s_utf8.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = s_utf8.c; path = ../../Source/Pd/ELSE/shared/s_utf8.c; sourceTree = SOURCE_ROOT; };
 		544E8C2736F7B206173072F8 /* include_juce_events.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_events.mm; path = ../../JuceLibraryCode/include_juce_events.mm; sourceTree = SOURCE_ROOT; };
@@ -1351,8 +1348,6 @@
 		EA95DC20589F06C1D433F1FF /* Utility */ = {
 			isa = PBXGroup;
 			children = (
-				4D14CCB5A3D54C53FADDF6E4 /* ValueTreeObject.cpp */,
-				52780A213C8FBC5F7DA04192 /* ValueTreeObject.h */,
 				39EEDC447CB3EAECB252ED6A /* MultiComponentDragger.h */,
 			);
 			name = Utility;
@@ -1948,7 +1943,6 @@
 				0C79F2E97B18A6C006AE7DBB /* x_libpd_extra_utils.c in Sources */,
 				D497B7D2E596AB835F456637 /* x_libpd_mod_utils.c in Sources */,
 				5923D03488FC5DA697DB9025 /* x_libpd_multi.c in Sources */,
-				ECFE50C8A90275E5EA5858F7 /* ValueTreeObject.cpp in Sources */,
 				174586AE12A30907C990D35B /* Box.cpp in Sources */,
 				B8B570BC060A0A53F911E65F /* BoxEditor.cpp in Sources */,
 				42754ECDF30B6CF0AFE17A34 /* Canvas.cpp in Sources */,
@@ -3035,7 +3029,7 @@
 				CONFIGURATION_BUILD_DIR = "$(PROJECT_DIR)/build/$(CONFIGURATION)";
 				DEAD_CODE_STRIPPING = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
-				GCC_OPTIMIZATION_LEVEL = 3;
+				GCC_OPTIMIZATION_LEVEL = s;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"_NDEBUG=1",
 					"NDEBUG=1",

@@ -14,7 +14,7 @@ ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : 
 void ClickLabel::mouseDown(const MouseEvent & e)
 {
     Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->getProperty(Identifiers::isGraph)) return;
+    if(canvas->isGraph) return;
     
     isDown = true;
     dragger.handleMouseDown(box, e);
@@ -23,7 +23,7 @@ void ClickLabel::mouseDown(const MouseEvent & e)
 void ClickLabel::mouseUp(const MouseEvent & e)
 {
     Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->getProperty(Identifiers::isGraph)) return;
+    if(canvas->isGraph) return;
     
     isDown = false;
     dragger.handleMouseUp(box, e);
@@ -32,34 +32,6 @@ void ClickLabel::mouseUp(const MouseEvent & e)
         Edge::connectingEdge = nullptr;
     }
     
-    if(canvas) {
-        auto pos = e.getEventRelativeTo(canvas).getPosition() - e.getPosition();
-        auto bounds = Rectangle<int>(pos, pos + Point<int>(getParentWidth(), getParentHeight()));
-        if(!canvas->getLocalBounds().contains(bounds)) {
-            if(bounds.getRight() > canvas->getWidth())
-                canvas->setSize(bounds.getRight() + 10, canvas->getHeight());
-            
-            if(bounds.getBottom() > canvas->getHeight())
-                canvas->setSize(canvas->getWidth(), bounds.getBottom() + 10);
-            
-            if(bounds.getX() < 0.0f) {
-                for(auto& box : canvas->findChildrenOfClass<Box>()) {
-                    if(&box->textLabel != this)
-                        box->setTopLeftPosition(box->getX() - bounds.getX(), box->getY());
-                    else
-                        box->setTopLeftPosition(0, box->getY());
-                }
-            }
-            if(bounds.getY() < 0) {
-                for(auto& box : canvas->findChildrenOfClass<Box>()) {
-                    if(&box->textLabel != this)
-                        box->setTopLeftPosition(box->getX(), box->getY() - bounds.getY());
-                    else
-                        box->setTopLeftPosition(box->getX(), 0);
-                }
-            }
-        }
-    }
     
     if(auto* box = dynamic_cast<Box*>(getParentComponent())) {
         box->updatePosition();
@@ -69,7 +41,7 @@ void ClickLabel::mouseUp(const MouseEvent & e)
 void ClickLabel::mouseDrag(const MouseEvent & e)
 {
     Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->getProperty(Identifiers::isGraph)) return;
+    if(canvas->isGraph) return;
     
     dragger.handleMouseDrag(e);
 }

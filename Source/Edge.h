@@ -1,7 +1,6 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "Utility/ValueTreeObject.h"
 
 //==============================================================================
 /*
@@ -11,14 +10,14 @@
 
 class Connection;
 class Box;
-class Edge  : public TextButton, public ValueTreeObject
+class Edge  : public TextButton
 {
     
 public:
     
     Box* box;
     
-    Edge(ValueTree tree, Box* parent);
+    Edge(Box* parent, bool isInput);
     ~Edge() override;
 
     //==============================================================================
@@ -38,9 +37,11 @@ public:
     
     static inline SafePointer<Edge> connectingEdge = nullptr;
     
+    int edgeIdx;
+    bool isInput;
+    bool isSignal;
+    
 private:
-
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Edge)
 };
