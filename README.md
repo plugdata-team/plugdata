@@ -20,22 +20,15 @@ Possible thanks to:
 - Audio Unit PlugIn Technology by Apple
 
 What works:
-- Creating, deleting and moving objects and connections
-- Signal and data objects
-- Most GUI objects:
-  - Bang, Numbox, Toggle, Radio, Sliders, Array/Graph and Message work perfectly
-  - Fairly good support for GraphOnParent and subpatchers (could use more testing)
-- Usable in DAW
-- Console
-- Saving and loading patches
-- Undoing, redoing, copying, pasting, duplicating
-- GUI where locking is optional, all components have headers. There is a option to set it to headerless mode to make native pd patches look better.
+- Full support for editing Pd patches (including all GUI objects, undo/redo, copy/paste, saving, loading, console)
+- GUI where locking is optional, all components have headers. There is a option to set it to headerless mode to make old existing patches look better.
 - Automatic object name completion
 
 Known issues:
-- Some objects crash on native Apple Silicon (I believe this is a pd issue), it runs fine in Rosetta
-- There may still be some other stability problems
-- Very large patches are slow (try All_objects from ELSE)
+- No VU meter
+- Some ELSE abstractions have their own GUI, these are not yet supported
+- There may still be some bugs
+- Stability in DAW needs to be tested
 
 Future plans:
 - Add DAW automation as receive
