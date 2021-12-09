@@ -33,8 +33,9 @@ What works:
 - Automatic object name completion
 
 Known issues:
-- There may still be some other stability problems
 - Some objects crash on native Apple Silicon (I believe this is a pd issue), it runs fine in Rosetta
+- There may still be some other stability problems
+- Very large patches are slow (try All_objects from ELSE)
 
 Future plans:
 - Add DAW automation as receive
