@@ -49,8 +49,7 @@ struct GUIComponent : public Component
     virtual Canvas* getCanvas() {
         return nullptr;
     }
-    
-    
+
     std::unique_ptr<Label> getLabel();
     pd::Gui getGUI();
     
@@ -86,7 +85,7 @@ struct BangComponent : public GUIComponent, public Timer
     
     BangComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {24, 46}; };
+    std::pair<int, int> getBestSize() override {return {24, 50}; };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 60, 200, 200};
@@ -110,7 +109,7 @@ struct ToggleComponent : public GUIComponent
     
     ToggleComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {24, 46}; };
+    std::pair<int, int> getBestSize() override {return {24, 50}; };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 60, 200, 200};
@@ -292,8 +291,10 @@ public:
     void resized() override;
     void updateValue() override;
 
+    int bestW = 205;
+    int bestH = 135;
     
-    std::pair<int, int> getBestSize() override {return {200, 140}; };
+    std::pair<int, int> getBestSize() override {return {bestW, bestH}; };
     
     
     pd::Patch* getPatch() override {
@@ -311,7 +312,10 @@ public:
         return {100, 80, 500, 600};
     };
     
+    void updateCanvas();
+    
 private:
+    
     pd::Patch subpatch;
     std::unique_ptr<Canvas> canvas;
     
@@ -344,8 +348,6 @@ struct Subpatch : public GUIComponent
     
 private:
     pd::Patch subpatch;
-    std::unique_ptr<Canvas> canvas = nullptr;
-    
 };
 
 

@@ -36,7 +36,7 @@ void Box::initialise() {
     auto& [minW, minH, maxW, maxH] = defaultLimits;
     restrainer.setSizeLimits(minW, minH, maxW, maxH);
     
-    resizer.reset(new ResizableBorderComponent(this, &restrainer));
+    //resizer.reset(new ResizableBorderComponent(this, &restrainer));
     
     // Uncomment to enable resizing
     // doesn't work right yet!
@@ -84,7 +84,7 @@ void Box::setType (String newType, bool exists)
         pdObject = nullptr;
     }
     
-    updatePorts();
+    if(!cnv->isGraph) updatePorts();
     
     auto& [minW, minH, maxW, maxH] = defaultLimits;
     
@@ -119,7 +119,7 @@ void Box::setType (String newType, bool exists)
         textLabel.setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
     
-    cnv->main->updateUndoState();
+    cnv->main.updateUndoState();
 
     resized();
 }
@@ -174,13 +174,14 @@ void Box::updatePosition()
 
 void Box::resized()
 {
-    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && (cnv->main->pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
+    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
     
     if(hideLabel) {
         textLabel.setVisible(false);
         auto [w, h] = graphics->getBestSize();
-        graphics->setBounds(4, 4, std::max(getWidth() - 8, w), h);
         setSize(std::max(getWidth(), w + 8), h + 8);
+        graphics->setBounds(4, 4, std::max(getWidth() - 8, w), h);
+        
     }
     else {
         textLabel.setVisible(true);
@@ -188,11 +189,10 @@ void Box::resized()
         
         if(graphics)  {
             auto [w, h] = graphics->getBestSize();
+            setSize(std::max(getWidth(), w + 8), h + 28);
             graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
-            setSize(getWidth(), h + 28);
+            
         }
-        
-        
     }
     
     if(resizer) {
@@ -275,17 +275,6 @@ void Box::updatePorts() {
             removeChild(edge);
             addChild(edge, i);
         } */
-        
-        for(auto& connection : edge->getConnections()) {
-            if(!connection) continue;
-                
-            if(connection->start == edge) {
-                connection->inObj = pdObject.get();
-            }
-            else {
-                connection->outObj = pdObject.get();
-            }
-        }
         
         //edge->isInput = input;
         edge->edgeIdx = input ? numIn : numOut;

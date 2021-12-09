@@ -158,6 +158,9 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
             {
                 m_type = Type::Array;
             }
+            if(name == "graph") {
+                m_type = Type::GraphOnParent;
+            }
             else { // abstraction or subpatch
                 m_type = Type::Subpatch;
             }

@@ -21,8 +21,8 @@ public:
     
     int inIdx;
     int outIdx;
-    pd::Object* inObj;
-    pd::Object* outObj;
+    std::unique_ptr<pd::Object>* inObj;
+    std::unique_ptr<pd::Object>* outObj;
     
     bool isSelected = false;
     

@@ -10,23 +10,7 @@
     your controls and content.
 */
 
-class TreeSorter
-{
-public:
-    
-    Array<Box*>* indexTree;
-    
-    TreeSorter(Array<Box*>* index) : indexTree(index) {
-        
-    }
-    
-    int compareElements (Box* first, Box* second)
-    {
-        auto firstIdx = indexTree->indexOf(first);
-        auto secondIdx = indexTree->indexOf(second);
-        return (firstIdx < secondIdx) ? -1 : ((secondIdx < firstIdx) ? 1 : 0);
-    }
-};
+
 
 struct Identifiers
 {
@@ -35,9 +19,10 @@ struct Identifiers
     
 };
 
-
+class GraphArea;
 class Edge;
 class PlugDataPluginEditor;
+class PlugDataPluginProcessor;
 class Canvas  : public Component, public KeyListener, public MultiComponentDraggerListener
 {
 public:
@@ -45,11 +30,12 @@ public:
     static inline constexpr int guiUpdateMs = 500;
     
     //==============================================================================
-    Canvas(PlugDataPluginEditor* parent, bool isGraph = false);
+    Canvas(PlugDataPluginEditor& parent, bool isGraph = false, bool isGraphChild = false);
     
     ~Canvas();
     
-    PlugDataPluginEditor* main;
+    PlugDataPluginEditor& main;
+    PlugDataAudioProcessor& pd;
     
     //==============================================================================
     void paintOverChildren (Graphics&) override;
@@ -63,8 +49,6 @@ public:
     void createPatch();
     void loadPatch(pd::Patch& patch);
     
-    Array<Canvas*> getSubcanvases();
-    void synchroniseAll();
     void synchronise();
 
     bool keyPressed(const KeyPress &key, Component *originatingComponent) override;
@@ -87,7 +71,7 @@ public:
         return hasChanged && boxes.size();
     }
     
-    bool hasChanged = false; // TODO: fix this!
+    bool hasChanged = false;
     
     Array<Edge*> getAllEdges();
     
@@ -105,9 +89,13 @@ public:
     OwnedArray<Connection> connections;
     
     bool isGraph = false;
+    bool isGraphChild = false;
+    
     String title = "Untitled Patcher";
     
     MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this, &boxes);
+    
+    std::unique_ptr<GraphArea> graphArea;
     
 private:
     

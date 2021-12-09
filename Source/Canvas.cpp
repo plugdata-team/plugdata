@@ -1,14 +1,111 @@
 #include "Canvas.h"
 #include "Box.h"
 #include "Connection.h"
-#include "PluginEditor.h"
+#include "PluginProcessor.h"
+
+
+class TreeSorter
+{
+public:
+    
+    Array<Box*>* indexTree;
+    TreeSorter(Array<Box*>* index) : indexTree(index) {
+        
+    }
+    
+    int compareElements (Box* first, Box* second)
+    {
+        auto firstIdx = indexTree->indexOf(first);
+        auto secondIdx = indexTree->indexOf(second);
+        return (firstIdx < secondIdx) ? -1 : ((secondIdx < firstIdx) ? 1 : 0);
+    }
+};
+
+struct GraphArea : public Component, public ComponentDragger
+{
+    
+    ResizableBorderComponent resizer;
+    Canvas* canvas;
+    
+    GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent) {
+        t_canvas* cnv = canvas->patch.getPointer();
+        if(cnv) {
+            int width = cnv->gl_pixwidth * Canvas::zoomX;
+            int height = cnv->gl_pixheight * Canvas::zoomY;
+            int x = cnv->gl_xmargin * Canvas::zoomX;
+            int y = cnv->gl_ymargin * Canvas::zoomY;
+            
+            setBounds(x, y, width, height);
+        }
+        else {
+            setBounds(0, 0, 200, 140);
+        }
+        
+        
+        addAndMakeVisible(resizer);
+    }
+    
+    void paint(Graphics& g) override {
+        g.setColour(MainLook::highlightColour);
+        g.drawRect(getLocalBounds());
+    }
+    
+    void mouseDown(const MouseEvent& e) override {
+        startDraggingComponent(this, e);
+    }
+    
+    
+    void mouseDrag(const MouseEvent& e) override {
+        dragComponent(this, e, nullptr);
+        repaint();
+    }
+    
+    void resized() override {
+        
+        t_canvas* cnv = canvas->patch.getPointer();
+        // Lock first?
+        if(cnv) {
+            cnv->gl_pixwidth = getWidth() / Canvas::zoomX;
+            cnv->gl_pixheight = getHeight() / Canvas::zoomY;
+            cnv->gl_xmargin = getX() / Canvas::zoomX;
+            cnv->gl_ymargin = getY() / Canvas::zoomY;
+        }
+        
+        
+        resizer.setBounds(getLocalBounds());
+        repaint();
+    }
+    
+    void mouseUp(const MouseEvent& e) override {
+        t_canvas* cnv = canvas->patch.getPointer();
+        // Lock first?
+        if(cnv) {
+            cnv->gl_pixwidth = getWidth() / Canvas::zoomX;
+            cnv->gl_pixheight = getHeight() / Canvas::zoomY;
+            cnv->gl_xmargin = getX() / Canvas::zoomX;
+            cnv->gl_ymargin = getY() / Canvas::zoomY;
+        }
+        
+        repaint();
+        
+    }
+    
+};
 
 //==============================================================================
-Canvas::Canvas(PlugDataPluginEditor* parent, bool isGraph) : main(parent)
+Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main(parent), pd(parent.pd)
 {
+    isGraph = graph;
+    isGraphChild = graphChild;
+    
+    if(isGraphChild) {
+        graphArea.reset(new GraphArea(this));
+        addAndMakeVisible(graphArea.get());
+    }
+    
     setSize (600, 400);
     
-    setTransform(parent->transform);
+    setTransform(parent.transform);
     
     
     addAndMakeVisible(&lasso);
@@ -24,7 +121,7 @@ Canvas::Canvas(PlugDataPluginEditor* parent, bool isGraph) : main(parent)
         viewport->setViewedComponent(this, false);
     }
     
-    main->startTimer(guiUpdateMs);
+    main.startTimer(guiUpdateMs);
 }
 
 
@@ -35,47 +132,18 @@ Canvas::~Canvas()
     removeKeyListener(this);
 }
 
-Array<Canvas*> Canvas::getSubcanvases() {
-    Array<Canvas*> subcanvases;
-    
-    subcanvases.add(this);
-    for(auto* box : boxes) {
-        if(box->graphics && box->graphics->getCanvas()) {
-            
-            subcanvases.add(box->graphics->getCanvas());
-            subcanvases.addArray(box->graphics->getCanvas()->getSubcanvases());
-            
-        }
-    }
-    
-    return subcanvases;
-}
-
-void Canvas::synchroniseAll() {
-    // Synchronise all canvases that refer to this patch
-    for(auto* cnv : getSubcanvases()) {
-        
-        // Hacky check to see if the last synchronise action didn't delete the canvas...
-        if(getSubcanvases().contains(cnv)) {
-            if(cnv->patch == patch && cnv->main == main) {
-                cnv->synchronise();
-            }
-        }
-    }
-}
-
 void Canvas::synchronise() {
-    main->stopTimer();
-    setTransform(main->transform);
+    main.stopTimer();
+    setTransform(main.transform);
     
-    main->pd.waitForStateUpdate();
+    pd.waitForStateUpdate();
     dragger.deselectAll();
     
     patch.setCurrent();
     
     Array<Box*> removedBoxes;
     
-    auto* cs = main->pd.getCallbackLock();
+    auto* cs = pd.getCallbackLock();
     cs->tryEnter();
     auto currentObjects = patch.getObjects(isGraph);
     cs->exit();
@@ -113,7 +181,7 @@ void Canvas::synchronise() {
             
             auto type = pd::Gui::getType(object.getPointer(), name.toStdString());
             auto isGui = type != pd::Type::Undefined;
-            auto* pdObject = isGui ? new pd::Gui(object.getPointer(), &patch, &main->pd) : new pd::Object(object);
+            auto* pdObject = isGui ? new pd::Gui(object.getPointer(), &patch, &pd) : new pd::Object(object);
 
             if(object.getName() == "message") {
                 name = "msg " + name;
@@ -180,6 +248,7 @@ void Canvas::synchronise() {
     // Skip connections for graphs
     if(isGraph)  {
         patch.deselectAll();
+        main.startTimer(guiUpdateMs);
         return;
     }
     
@@ -215,21 +284,21 @@ void Canvas::synchronise() {
 
     patch.deselectAll();
     
-    main->startTimer(guiUpdateMs);
+    main.startTimer(guiUpdateMs);
 }
 
 void Canvas::createPatch() {
     // Create the pd save file
     auto tempPatch = File::createTempFile(".pd");
-    tempPatch.replaceWithText(main->defaultPatch);
+    tempPatch.replaceWithText(main.defaultPatch);
     
-    ScopedLock lock(*main->pd.getCallbackLock());
+    auto* cs = pd.getCallbackLock();
     // Load the patch into libpd
     // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
     // Instead we can load the patch and iterate through it to create the gui
-    main->pd.openPatch(tempPatch.getParentDirectory().getFullPathName().toStdString(), tempPatch.getFileName().toStdString());
+    pd.openPatch(tempPatch.getParentDirectory().getFullPathName().toStdString(), tempPatch.getFileName().toStdString());
     
-    patch = main->pd.getPatch();
+    patch = pd.getPatch();
     synchronise();
 }
 
@@ -290,21 +359,22 @@ void Canvas::mouseDown(const MouseEvent& e)
             switch (result) {
                 case 1: {
                     auto* subpatch = lassoSelection.getSelectedItem(0)->graphics.get()->getPatch();
-                    auto& tabbar = main->getTabbar();
+                    auto& tabbar = main.getTabbar();
                     
                     for(int n = 0; n < tabbar.getNumTabs(); n++) {
-                        auto* tabCanvas = main->getCanvas(n);
+                        auto* tabCanvas = main.getCanvas(n);
                         if(tabCanvas->patch == *subpatch) {
                             tabbar.setCurrentTabIndex(n);
                             return;
                         }
                     }
-
-                    auto* newCanvas = new Canvas(main, false);
+                    bool isGraphChild = lassoSelection.getSelectedItem(0)->graphics.get()->getGUI().getType() == pd::Type::GraphOnParent;
+                    auto* newCanvas = new Canvas(main, false, isGraphChild);
                     newCanvas->title = lassoSelection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false);
                     auto patchCopy = *subpatch;
                     newCanvas->loadPatch(patchCopy);
-                    main->addTab(newCanvas);
+                    main.addTab(newCanvas);
+                    newCanvas->checkBounds();
                     break;
                 }
                 case 4:
@@ -432,12 +502,13 @@ void Canvas::dragCallback(int dx, int dy)
     patch.moveObjects(objects, round((float)dx / zoomX), round((float)dy / zoomY));
     
     checkBounds();
-    main->updateUndoState();
+    main.updateUndoState();
 }
 
 //==============================================================================
 void Canvas::paintOverChildren (Graphics& g)
 {
+    
     if(Edge::connectingEdge && Edge::connectingEdge->box->cnv == this) {
         Point<float> mousePos = getMouseXYRelative().toFloat();
         Point<int> edgePos =  Edge::connectingEdge->getCanvasBounds().getPosition();
@@ -451,7 +522,6 @@ void Canvas::paintOverChildren (Graphics& g)
         g.setColour(Colours::grey);
         g.strokePath(path, PathStrokeType(3.0f));
     }
-    
 }
 
 void Canvas::mouseMove(const MouseEvent& e) {
@@ -460,23 +530,22 @@ void Canvas::mouseMove(const MouseEvent& e) {
 }
 void Canvas::resized()
 {
-    
 }
 
 bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
-    if(main->getCurrentCanvas() != this) return false;
+    if(main.getCurrentCanvas() != this) return false;
     if(isGraph) return false;
     
     // Zoom in
     if(key.isKeyCode(61) && key.getModifiers().isCommandDown()) {        
-        main->transform = main->transform.scaled(1.25f);
-        setTransform(main->transform);
+        main.transform = main.transform.scaled(1.25f);
+        setTransform(main.transform);
         return true;
     }
     // Zoom out
     if(key.isKeyCode(45) && key.getModifiers().isCommandDown()) {
-        main->transform = main->transform.scaled(0.8f);
-        setTransform(main->transform);
+        main.transform = main.transform.scaled(0.8f);
+        setTransform(main.transform);
         return true;
     }
     // Key shortcuts for creating objects
@@ -611,7 +680,7 @@ void Canvas::duplicateSelection() {
 
 void Canvas::removeSelection() {
     
-    main->stopTimer();
+    main.stopTimer();
     
     Array<pd::Object*> objects;
     for(auto* sel : dragger.getLassoSelection()) {
@@ -627,18 +696,18 @@ void Canvas::removeSelection() {
     
     for(auto& con : connections) {
         if(con->isSelected) {
-            if(!(objects.contains(con->outObj) || objects.contains(con->inObj))) {
-                patch.removeConnection(con->outObj, con->outIdx,  con->inObj, con->inIdx);
+            if(!(objects.contains(con->outObj->get()) || objects.contains(con->inObj->get()))) {
+                patch.removeConnection(con->outObj->get(), con->outIdx,  con->inObj->get(), con->inIdx);
             }
         }
     }
     
     dragger.deselectAll();    
     
-    synchroniseAll();
+    synchronise();
     
-    main->startTimer(guiUpdateMs);
-    main->updateUndoState();
+    main.startTimer(guiUpdateMs);
+    main.updateUndoState();
 }
 
 
@@ -654,26 +723,26 @@ Array<Edge*> Canvas::getAllEdges() {
 
 void Canvas::undo() {
     patch.undo();
-    synchroniseAll();
-    main->updateUndoState();
+    synchronise();
+    main.updateUndoState();
 }
 
 void Canvas::redo() {
     patch.redo();
-    synchroniseAll();
-    main->updateUndoState();
+    synchronise();
+    main.updateUndoState();
 }
 
 
 // Called from subpatcher objects to close all tabs that refer to that subpatcher
 void Canvas::closeAllInstances()
 {
-    auto& tabbar = main->getTabbar();
+    auto& tabbar = main.getTabbar();
     for(int n = 0; n < tabbar.getNumTabs(); n++) {
-        auto* cnv = main->getCanvas(n);
-        if(cnv && cnv->patch == patch && cnv->main == main) {
+        auto* cnv = main.getCanvas(n);
+        if(cnv && cnv->patch == patch && &cnv->main == &main) {
             tabbar.removeTab(n);
-            main->canvases.removeObject(cnv);
+            main.canvases.removeObject(cnv);
         }
     }
     

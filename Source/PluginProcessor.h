@@ -61,9 +61,7 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
-    //virtual void receiveList(const std::string& dest, const std::vector<Atom>& list) {}
-    //virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list) {}
-    
+
     void receivePrint(const std::string& message) override {
         if(console) {
             console->logMessage(message);
@@ -123,7 +121,7 @@ private:
     
     String const            m_name              = String("PlugData");
     bool const              m_accepts_midi      = false;
-    bool const              m_produces_midi     = false;
+    bool const              m_produces_midi     = true;
     bool const              m_is_midi_effect    = false;
     bool                    m_bypass            = true;
     
@@ -134,6 +132,10 @@ private:
     MidiBuffer               m_midi_buffer_in;
     MidiBuffer               m_midi_buffer_out;
     MidiBuffer               m_midi_buffer_temp;
+    
+    bool                     m_midibyte_issysex = false;
+    uint8                    m_midibyte_buffer[512];
+    size_t                   m_midibyte_index = 0;
 
     static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
     static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");

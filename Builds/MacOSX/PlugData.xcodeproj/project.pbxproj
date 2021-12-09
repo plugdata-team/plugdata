@@ -538,7 +538,6 @@
 		36986E32BB86A2FD92C0801F /* PdGui.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = PdGui.cpp; path = ../../Source/Pd/PdGui.cpp; sourceTree = SOURCE_ROOT; };
 		37415541EB7F064624D5B790 /* ratio2cents.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = ratio2cents.c; path = ../../Source/Pd/ELSE/ratio2cents.c; sourceTree = SOURCE_ROOT; };
 		38CEE8563821FB01AA457464 /* dir.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = dir.c; path = ../../Source/Pd/ELSE/dir.c; sourceTree = SOURCE_ROOT; };
-		39EEDC447CB3EAECB252ED6A /* MultiComponentDragger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MultiComponentDragger.h; path = ../../Source/Utility/MultiComponentDragger.h; sourceTree = SOURCE_ROOT; };
 		3A23475773B96DD38D3B4397 /* henon~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "henon~.c"; path = "../../Source/Pd/ELSE/henon~.c"; sourceTree = SOURCE_ROOT; };
 		3A427B6CC9897520133B48BA /* buffer_obj.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = buffer_obj.c; path = ../../Source/Pd/ELSE/buffer_obj.c; sourceTree = SOURCE_ROOT; };
 		3BE289283F270ABFE116178A /* x_libpd_extra_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = x_libpd_extra_utils.c; path = ../../Source/Pd/x_libpd_extra_utils.c; sourceTree = SOURCE_ROOT; };
@@ -698,6 +697,7 @@
 		A846688CF5F1F3219FA414A9 /* eq~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "eq~.c"; path = "../../Source/Pd/ELSE/eq~.c"; sourceTree = SOURCE_ROOT; };
 		A8DDEC6E90562A2B108B9ACB /* t2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = t2.c; path = ../../Source/Pd/ELSE/t2.c; sourceTree = SOURCE_ROOT; };
 		AA35E98A4DF6C29701725877 /* include_juce_core.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_core.mm; path = ../../JuceLibraryCode/include_juce_core.mm; sourceTree = SOURCE_ROOT; };
+		AB9F70C8276237E5005E4B3A /* MultiComponentDragger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MultiComponentDragger.h; path = ../../Source/MultiComponentDragger.h; sourceTree = "<group>"; };
 		ABAB091AF668B3BF5BBE006B /* PlugData.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugData.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABD99866B66F7A58E759742C /* x_libpd_mod_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = x_libpd_mod_utils.c; path = ../../Source/Pd/x_libpd_mod_utils.c; sourceTree = SOURCE_ROOT; };
 		AC2750B9F24B092696B025A9 /* ffdelay~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "ffdelay~.c"; path = "../../Source/Pd/ELSE/ffdelay~.c"; sourceTree = SOURCE_ROOT; };
@@ -934,7 +934,6 @@
 			isa = PBXGroup;
 			children = (
 				07C55CCD2615C4D589388A63 /* Pd */,
-				EA95DC20589F06C1D433F1FF /* Utility */,
 				E4EC2A3290FA8553E6E79FF2 /* Box.cpp */,
 				2DD51CD644A75BF44B2981F6 /* Box.h */,
 				63743EF50FA96F6A120F77E8 /* BoxEditor.cpp */,
@@ -950,6 +949,7 @@
 				DC79C3A558A41256B209DE8E /* GUIObjects.cpp */,
 				5216455B651B7DA2CB6FC944 /* GUIObjects.h */,
 				4B9EDB58063DA936810B6D37 /* LookAndFeel.h */,
+				AB9F70C8276237E5005E4B3A /* MultiComponentDragger.h */,
 				DA54899E7A9D23CCE1343C6B /* PluginEditor.cpp */,
 				C554E09E99092A120D6D2328 /* PluginEditor.h */,
 				10824BE48533C935D0858B01 /* PluginProcessor.cpp */,
@@ -1343,14 +1343,6 @@
 				9F21AA57B282A171C4A94FEE /* forkawesome-webfont.ttf */,
 			);
 			name = Assets;
-			sourceTree = "<group>";
-		};
-		EA95DC20589F06C1D433F1FF /* Utility */ = {
-			isa = PBXGroup;
-			children = (
-				39EEDC447CB3EAECB252ED6A /* MultiComponentDragger.h */,
-			);
-			name = Utility;
 			sourceTree = "<group>";
 		};
 		F6E74775F0E8A27A8CF6B7D8 /* Resources */ = {
