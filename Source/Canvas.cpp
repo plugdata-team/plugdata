@@ -1,3 +1,10 @@
+/*
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
+
 #include "Canvas.h"
 #include "Box.h"
 #include "Connection.h"
@@ -207,8 +214,7 @@ void Canvas::synchronise() {
             guiSimplify(name, "hradio");
             guiSimplify(name, "vradio");
             
-            auto* newBox = boxes.add(new Box(pdObject, this, name));
-            newBox->setTopLeftPosition(x * zoomX, y * zoomY);
+            auto* newBox = boxes.add(new Box(pdObject, this, name, {(int)(x * zoomX), (int)(y * zoomY)}));
         }
     }
     
@@ -373,6 +379,16 @@ void Canvas::mouseDown(const MouseEvent& e)
                     newCanvas->title = lassoSelection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false);
                     auto patchCopy = *subpatch;
                     newCanvas->loadPatch(patchCopy);
+                    
+                    auto [x, y, w, h] = subpatch->getBounds();
+                    
+                    x *= zoomX;
+                    y *= zoomY;
+                    w *= zoomX;
+                    h *= zoomY;
+                    
+                    newCanvas->graphArea->setBounds(x, y, w, h);
+                    
                     main.addTab(newCanvas);
                     newCanvas->checkBounds();
                     break;
@@ -550,8 +566,7 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     }
     // Key shortcuts for creating objects
     if(key.getTextCharacter() == 'n') {
-        auto* box = boxes.add(new Box(this));
-        box->setTopLeftPosition(lastMousePos);
+        auto* box = boxes.add(new Box(this, "", lastMousePos));
         return true;
     }
     if(key.isKeyCode(65) && key.getModifiers().isCommandDown()) {
@@ -567,33 +582,27 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
         return true;
     }
     if(key.getTextCharacter() == 'b') {
-        auto* box = boxes.add(new Box(this, "bng"));
-        box->setTopLeftPosition(lastMousePos);
+        auto* box = boxes.add(new Box(this, "bng", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 'm') {
-        auto* box = boxes.add(new Box(this, "msg"));
-        box->setTopLeftPosition(lastMousePos);
+        auto* box = boxes.add(new Box(this, "msg", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 'i') {
-        auto* box = boxes.add(new Box(this, "nbx"));
-        box->setTopLeftPosition(lastMousePos);
+        auto* box = boxes.add(new Box(this, "nbx", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 'f') {
-        auto* box = boxes.add(new Box(this, "floatatom"));
-        box->setTopLeftPosition(lastMousePos);
+        auto* box = boxes.add(new Box(this, "floatatom", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 't') {
-        auto* box = boxes.add(new Box(this, "tgl"));
-        box->setTopLeftPosition(lastMousePos);
+        auto* box = boxes.add(new Box(this, "tgl", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 's') {
-        auto* box = boxes.add(new Box(this, "vsl"));
-        box->setTopLeftPosition(lastMousePos);
+        auto* box = boxes.add(new Box(this, "vsl", lastMousePos));
         return true;
     }
     
@@ -603,9 +612,7 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     }
     // cmd-c
     if(key.getModifiers().isCommandDown() && key.isKeyCode(67)) {
-        
         copySelection();
-        
         return true;
     }
     // cmd-v

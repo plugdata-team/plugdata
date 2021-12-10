@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 
 #include <type_traits>
@@ -351,9 +357,8 @@ private:
 };
 
 
-class CommentComponent : public GUIComponent
+struct CommentComponent : public GUIComponent
 {
-public:
     CommentComponent(pd::Gui gui, Box* box);
     void paint(Graphics& g) override;
     
@@ -364,4 +369,65 @@ public:
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 32, 100, 32};
     };
+};
+
+
+// ELSE mousepad
+struct MousePad : public GUIComponent
+{
+
+    typedef struct _pad{
+        t_object        x_obj;
+        t_glist        *x_glist;
+        void           *x_proxy; // dont have this object and dont need it
+        t_symbol       *x_bindname;
+        int             x_x;
+        int             x_y;
+        int             x_w;
+        int             x_h;
+        int             x_sel;
+        int             x_zoom;
+        int             x_edit;
+        unsigned char   x_color[3];
+    }t_pad;
+    
+    MousePad(pd::Gui gui, Box* box);
+    
+    
+    void paint(Graphics& g) override;
+    
+    void updateValue() override;
+    
+    void mouseDown(const MouseEvent& e) override;
+    void mouseMove(const MouseEvent& e) override;
+    
+    std::pair<int, int> getBestSize() override {return {205, 135}; };
+    
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {40, 32, 100, 32};
+    };
+    
+    t_template* t_template;
+    
+};
+
+// TODO: Pd template class for drawing (using "drawcurve", "drawpolygon", etc)
+struct TemplateComponent : public GUIComponent
+{
+
+    TemplateComponent(pd::Gui gui, Box* box);
+    
+    
+    void paint(Graphics& g) override;
+    
+    void updateValue() override;
+    
+    std::pair<int, int> getBestSize() override {return {205, 135}; };
+    
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {40, 32, 100, 32};
+    };
+    
+    t_template* t_template;
+    
 };

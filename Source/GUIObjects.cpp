@@ -1,9 +1,17 @@
+/*
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #include "Connection.h"
 #include "Edge.h"
 #include "Box.h"
 #include "GUIObjects.h"
 #include "PluginEditor.h"
 #include "Canvas.h"
+
+#include <m_pd.h>
 
 
 GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)  : box(parent), processor(parent->cnv->main.pd), gui(pdGui), edited(false)
@@ -73,6 +81,9 @@ GUIComponent* GUIComponent::createGui(String name, Box* parent)
     }
     if(gui.getType() == pd::Type::AtomSymbol) {
         return new MessageComponent(gui, parent);
+    }
+    if(gui.getType() == pd::Type::Mousepad) {
+        return new MousePad(gui, parent);
     }
     
     return nullptr;
@@ -598,6 +609,13 @@ void GraphOnParent::updateCanvas() {
         addAndMakeVisible(canvas.get());
         canvas->loadPatch(subpatch);
         
+        auto [x, y, w, h] = getPatch()->getBounds();
+        
+        x *= Canvas::zoomX;
+        y *= Canvas::zoomY;
+        w *= Canvas::zoomX;
+        h *= Canvas::zoomY;
+        
         // Make sure that the graph doesn't become the current canvas
         box->cnv->main.getCurrentCanvas()->patch.setCurrent();
         box->cnv->main.updateUndoState();
@@ -668,3 +686,74 @@ void CommentComponent::paint(Graphics& g)
     g.setColour(Colours::black);
     g.drawMultiLineText(gui.getText(), 0, static_cast<int>(ft.getAscent()), getWidth());
 }
+
+MousePad::MousePad(pd::Gui gui, Box* box) : GUIComponent(gui, box)
+{
+    //setInterceptsMouseClicks(false, true);
+}
+
+void MousePad::paint(Graphics& g) {
+    
+};
+
+
+void MousePad::updateValue() {
+    
+    
+};
+
+
+
+void MousePad::mouseDown(const MouseEvent& e)  {
+    
+    
+    auto* glist = gui.getPatch().getPointer();
+    auto* x = static_cast<t_pad*>(gui.getPointer());
+    t_atom at[3];
+    //int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
+    x->x_x = e.getPosition().x / getWidth();
+    x->x_y = getHeight() - (e.getPosition().y / getWidth());
+    
+    
+    
+    SETFLOAT(at, 1.0f);
+    sys_lock();
+    outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
+    sys_unlock();
+    
+    //glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
+}
+
+void MousePad::mouseMove(const MouseEvent& e)  {
+    auto* glist = gui.getPatch().getPointer();
+    auto* x = static_cast<t_pad*>(gui.getPointer());
+    t_atom at[3];
+    //int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
+    x->x_x = (e.getPosition().x / (float)getWidth()) * 127.0f;
+    x->x_y = (getHeight() - (e.getPosition().y / (float)getHeight())) * 127.0f;
+
+    SETFLOAT(at, x->x_x);
+    SETFLOAT(at+1, x->x_y);
+    
+    sys_lock();
+    outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
+    sys_unlock();
+}
+
+
+
+TemplateComponent::TemplateComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box)
+{
+    auto* object = static_cast<_gtemplate*>(getGUI().getPointer());
+    //templateoObject = object->x_template;
+}
+
+void TemplateComponent::paint(Graphics& g) {
+    
+};
+
+
+void TemplateComponent::updateValue() {
+    
+    
+};

@@ -1,3 +1,11 @@
+/*
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
+#inclu
+
 #include "Box.h"
 #include "Canvas.h"
 #include "Edge.h"
@@ -9,17 +17,19 @@
 
 
 //==============================================================================
-Box::Box(Canvas* parent, String name) : textLabel(this, parent->dragger), dragger(parent->dragger)
+Box::Box(Canvas* parent, String name, Point<int> position) : textLabel(this, parent->dragger), dragger(parent->dragger)
 {
     cnv = parent;
     initialise();
+    setTopLeftPosition(position);
     setType(name);
 }
 
-Box::Box(pd::Object* object, Canvas* parent, String name) : textLabel(this, parent->dragger), pdObject(object), dragger(parent->dragger)
+Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position) : textLabel(this, parent->dragger), pdObject(object), dragger(parent->dragger)
 {
     cnv = parent;
     initialise();
+    setTopLeftPosition(position);
     setType(name, true);
 }
 
@@ -65,7 +75,7 @@ void Box::setType (String newType, bool exists)
     String arguments = newType.fromFirstOccurrenceOf(" ", false, false);
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
     
-    if(type.isNotEmpty() && !exists) {
+    if(!exists) {
         auto* pd = &cnv->patch;
         
         // Pd doesn't normally allow changing between gui and non-gui objects
@@ -191,7 +201,6 @@ void Box::resized()
             auto [w, h] = graphics->getBestSize();
             setSize(std::max(getWidth(), w + 8), h + 28);
             graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
-            
         }
     }
     

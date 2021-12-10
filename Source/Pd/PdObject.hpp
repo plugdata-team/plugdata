@@ -42,7 +42,9 @@ enum class Type : size_t
     Array            = 13,
     GraphOnParent    = 14,
     Message          = 15,
-    Subpatch         = 16
+    Subpatch         = 16,
+    Mousepad         = 17,
+    Template         = 18
 };
 
 class Object

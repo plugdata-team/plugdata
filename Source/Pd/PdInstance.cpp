@@ -560,6 +560,7 @@ void Instance::stringToAtom(String name, int& argc, t_atom& target)
 }
 
 
+
 String Instance::getCanvasContent() {
     
     if(!m_patch) return String();

@@ -1,9 +1,7 @@
 /*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
 #include "PluginProcessor.h"
@@ -21,49 +19,49 @@
 //==============================================================================
 PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-     : AudioProcessor (BusesProperties()
-                     #if ! JucePlugin_IsMidiEffect
-                      #if ! JucePlugin_IsSynth
-                       .withInput  ("Input",  AudioChannelSet::stereo(), true)
-                      #endif
-                       .withOutput ("Output", AudioChannelSet::stereo(), true)
-                     #endif
-                       ),  pd::Instance("PlugData"),
+: AudioProcessor (BusesProperties()
+#if ! JucePlugin_IsMidiEffect
+#if ! JucePlugin_IsSynth
+                  .withInput  ("Input",  AudioChannelSet::stereo(), true)
 #endif
-    numin(2), numout(2),
-    m_name("PlugData"),
-    m_accepts_midi(true),
-    m_produces_midi(false),
-    m_is_midi_effect(false),
-    m_bypass(false){
+                  .withOutput ("Output", AudioChannelSet::stereo(), true)
+#endif
+                  ),  pd::Instance("PlugData"),
+#endif
+numin(2), numout(2),
+m_name("PlugData"),
+m_accepts_midi(true),
+m_produces_midi(false),
+m_is_midi_effect(false),
+m_bypass(false){
     
     if(!appDir.exists() || !abstractions.exists()) {
-            appDir.createDirectory();
-
-            MemoryInputStream binaryAbstractions(BinaryData::Abstractions_zip, BinaryData::Abstractions_zipSize, false);
-            auto file = ZipFile(binaryAbstractions);
-            file.uncompressTo(appDir);
-    }
+        appDir.createDirectory();
         
+        MemoryInputStream binaryAbstractions(BinaryData::Abstractions_zip, BinaryData::Abstractions_zipSize, false);
+        auto file = ZipFile(binaryAbstractions);
+        file.uncompressTo(appDir);
+    }
+    
     libpd_add_to_search_path(abstractions.getFullPathName().toRawUTF8());
     
     objectLibrary.initialiseLibrary();
-        
+    
     m_midi_buffer_in.ensureSize(2048);
     m_midi_buffer_out.ensureSize(2048);
     m_midi_buffer_temp.ensureSize(2048);
-        
+    
     setCallbackLock(&AudioProcessor::getCallbackLock());
-        
+    
     LookAndFeel::setDefaultLookAndFeel(&mainLook);
     
-        
+    
     console.reset(new Console(LOG_STDOUT, LOG_STDOUT));
     dequeueMessages();
-
+    
     processMessages();
-        
-        
+    
+    
     
 }
 
@@ -80,29 +78,29 @@ const String PlugDataAudioProcessor::getName() const
 
 bool PlugDataAudioProcessor::acceptsMidi() const
 {
-   #if JucePlugin_WantsMidiInput
+#if JucePlugin_WantsMidiInput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool PlugDataAudioProcessor::producesMidi() const
 {
-   #if JucePlugin_ProducesMidiOutput
+#if JucePlugin_ProducesMidiOutput
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 bool PlugDataAudioProcessor::isMidiEffect() const
 {
-   #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     return true;
-   #else
+#else
     return false;
-   #endif
+#endif
 }
 
 double PlugDataAudioProcessor::getTailLengthSeconds() const
@@ -113,7 +111,7 @@ double PlugDataAudioProcessor::getTailLengthSeconds() const
 int PlugDataAudioProcessor::getNumPrograms()
 {
     return 1;   // NB: some hosts don't cope very well if you tell them there are 0 programs,
-                // so this should be at least 1, even if you're not really implementing programs.
+    // so this should be at least 1, even if you're not really implementing programs.
 }
 
 int PlugDataAudioProcessor::getCurrentProgram()
@@ -142,7 +140,7 @@ void PlugDataAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     
     const int nins      = std::max(numin, 2);
     const int nouts     = std::max(numout, 2);
-
+    
     
     bufferout.resize(nouts);
     bufferin.resize(nins);
@@ -155,12 +153,12 @@ void PlugDataAudioProcessor::prepareToPlay (double sampleRate, int samplesPerBlo
     for(int i = 2; i < nouts; i++) {
         bufferout[i] = new float[sampsperblock]();
     }
-
+    
     prepareDSP(nins, nouts, samplerate);
     //sendCurrentBusesLayoutInformation();
     m_audio_advancement = 0;
     const size_t blksize = static_cast<size_t>(Instance::getBlockSize());
-
+    
     m_audio_buffer_in.resize(nins * blksize);
     m_audio_buffer_out.resize(nouts * blksize);
     std::fill(m_audio_buffer_out.begin(), m_audio_buffer_out.end(), 0.f);
@@ -185,26 +183,26 @@ void PlugDataAudioProcessor::releaseResources()
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool PlugDataAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts) const
 {
-  #if JucePlugin_IsMidiEffect
+#if JucePlugin_IsMidiEffect
     ignoreUnused (layouts);
     return true;
-  #else
+#else
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
     // load plugins that support stereo bus layouts.
     if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono()
-     && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
+        && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo())
         return false;
-
+    
     // This checks if the input layout matches the output layout
-   #if ! JucePlugin_IsSynth
+#if ! JucePlugin_IsSynth
     if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet())
         return false;
-   #endif
-
+#endif
+    
     return true;
-  #endif
+#endif
 }
 #endif
 
@@ -213,7 +211,7 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
-
+    
     // In case we have more outputs than inputs, this code clears any output
     // channels that didn't contain input data, (because these aren't
     // guaranteed to be empty - they may contain garbage).
@@ -222,15 +220,15 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     // this code if your algorithm always overwrites all the output channels.
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
-
+    
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
     // the samples and the outer loop is handling the channels.
     // Alternatively, you can process the samples with the channels
     // interleaved by keeping the same state.
-
-   //midiCollector.removeNextBlockOfMessages(midiMessages, 512);
+    
+    //midiCollector.removeNextBlockOfMessages(midiMessages, 512);
     
     processingBuffer.setSize(2, buffer.getNumSamples());
     
@@ -243,7 +241,7 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     if(totalNumOutputChannels == 2) {
         buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
     }
-   
+    
     
     // ..do something to the data...
 }
@@ -255,12 +253,12 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     const int nsamples  = buffer.getNumSamples();
     const int adv       = m_audio_advancement >= 64 ? 0 : m_audio_advancement;
     const int nleft     = blocksize - adv;
-
+    
     const int nins      = numin;
     const int nouts     = numout;
     
     const bool midi_consume = m_accepts_midi;
-    const bool midi_produce = m_produces_midi;
+    const bool midi_produce = true; //m_produces_midi;
     
     bufferin[0] = buffer.getReadPointer(0);
     bufferin[1] = buffer.getReadPointer(1);
@@ -268,7 +266,7 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     bufferout[0] = buffer.getWritePointer(0);
     bufferout[1] = buffer.getWritePointer(1);
     
-                    
+    
     auto const maxOuts = std::max(nouts, buffer.getNumChannels());
     for(int i = nins; i < maxOuts; ++i)
     {
@@ -463,25 +461,25 @@ void PlugDataAudioProcessor::processInternal()
     //////////////////////////////////////////////////////////////////////////////////////////
     
     if(!m_bypass) {
-    // Copy circuitlab's output to Pure data to Pd input channels
-    std::copy_n(m_audio_buffer_out.data() + (2 * 64), (numout-2) * 64, m_audio_buffer_in.data() + (2 * 64));
-    
-    performDSP(m_audio_buffer_in.data(), m_audio_buffer_out.data());
+        // Copy circuitlab's output to Pure data to Pd input channels
+        std::copy_n(m_audio_buffer_out.data() + (2 * 64), (numout-2) * 64, m_audio_buffer_in.data() + (2 * 64));
+        
+        performDSP(m_audio_buffer_in.data(), m_audio_buffer_out.data());
     }
     
     else {
         std::fill(m_audio_buffer_in.begin(), m_audio_buffer_in.end(), 0.f);
-
+        
         performDSP(m_audio_buffer_in.data(), m_audio_buffer_out.data());
         
         std::fill(m_audio_buffer_out.begin(), m_audio_buffer_out.end(), 0.f);
-
+        
     }
     
     //////////////////////////////////////////////////////////////////////////////////////////
     //                                          MIDI OUT                                    //
     //////////////////////////////////////////////////////////////////////////////////////////
-   
+    
     if(m_produces_midi)
     {
         m_midibyte_index = 0;
@@ -493,6 +491,7 @@ void PlugDataAudioProcessor::processInternal()
     }
     
 }
+
 
 
 //==============================================================================
@@ -543,7 +542,7 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     
     lock->enter();
     
-   openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
+    openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
     
     lock->exit();
     
@@ -560,9 +559,81 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     }
 }
 
+void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)
+{
+    if(velocity == 0)
+    {
+        m_midi_buffer_out.addEvent(MidiMessage::noteOff(channel, pitch, uint8(0)), m_audio_advancement);
+    }
+    else
+    {
+        m_midi_buffer_out.addEvent(MidiMessage::noteOn(channel, pitch, static_cast<uint8>(velocity)), m_audio_advancement);
+    }
+}
+
+void PlugDataAudioProcessor::receiveControlChange(const int channel, const int controller, const int value)
+{
+    m_midi_buffer_out.addEvent(MidiMessage::controllerEvent(channel, controller, value), m_audio_advancement);
+}
+
+void PlugDataAudioProcessor::receiveProgramChange(const int channel, const int value)
+{
+    m_midi_buffer_out.addEvent(MidiMessage::programChange(channel, value), m_audio_advancement);
+}
+
+void PlugDataAudioProcessor::receivePitchBend(const int channel, const int value)
+{
+    m_midi_buffer_out.addEvent(MidiMessage::pitchWheel(channel, value + 8192), m_audio_advancement);
+}
+
+void PlugDataAudioProcessor::receiveAftertouch(const int channel, const int value)
+{
+    m_midi_buffer_out.addEvent(MidiMessage::channelPressureChange(channel, value), m_audio_advancement);
+}
+
+void PlugDataAudioProcessor::receivePolyAftertouch(const int channel, const int pitch, const int value)
+{
+    m_midi_buffer_out.addEvent(MidiMessage::aftertouchChange(channel, pitch, value), m_audio_advancement);
+}
+
+void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
+{
+    if(m_midibyte_issysex)
+    {
+        if(byte == 0xf7)
+        {
+            m_midi_buffer_out.addEvent(MidiMessage::createSysExMessage(m_midibyte_buffer, static_cast<int>(m_midibyte_index)), m_audio_advancement);
+            m_midibyte_index = 0;
+            m_midibyte_issysex = false;
+        }
+        else
+        {
+            m_midibyte_buffer[m_midibyte_index++] = static_cast<uint8> (byte);
+            if(m_midibyte_index == 512)
+            {
+                m_midibyte_index = 511;
+            }
+        }
+    }
+    else if(m_midibyte_index == 0 && byte == 0xf0)
+    {
+        m_midibyte_issysex = true;
+    }
+    else
+    {
+        m_midibyte_buffer[m_midibyte_index++] = static_cast<uint8> (byte);
+        if(m_midibyte_index >= 3)
+        {
+            m_midi_buffer_out.addEvent(MidiMessage(m_midibyte_buffer, 3), m_audio_advancement);
+            m_midibyte_index = 0;
+        }
+    }
+}
+
 //==============================================================================
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {
     return new PlugDataAudioProcessor();
 }
+
