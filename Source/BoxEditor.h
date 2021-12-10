@@ -13,6 +13,7 @@
 #include "LookAndFeel.h"
 
 
+// Text element in suggestion box
 class SuggestionComponent : public TextButton
 {
     BoxEditorLook editorLook;
@@ -62,6 +63,7 @@ public:
     }
 };
 
+// Box with suggestions for object names
 class Box;
 class ClickLabel;
 class SuggestionBox : public Component, public KeyListener, public TextEditor::InputFilter
@@ -111,7 +113,7 @@ private:
     bool isCompleting = false;
 };
 
-
+// Label that shows the box name and can be double clicked to change the text
 class ClickLabel : public Label
 {
 public:

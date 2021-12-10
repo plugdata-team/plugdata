@@ -503,8 +503,20 @@ bool PlugDataAudioProcessor::hasEditor() const
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
     auto* editor = new PlugDataPluginEditor(*this, console.get());
+    auto* cnv = editor->canvases.add(new Canvas(*editor, false));
+    cnv->title = "Untitled Patcher";
+    editor->mainCanvas = cnv;
+    
     auto patch = getPatch();
-    editor->getMainCanvas()->loadPatch(patch);
+    if(!patch.getPointer()) {
+        editor->mainCanvas->createPatch();
+    }
+    else {
+        editor->getMainCanvas()->loadPatch(patch);
+    }
+    
+    editor->addTab(cnv);
+    
     return editor;
 }
 

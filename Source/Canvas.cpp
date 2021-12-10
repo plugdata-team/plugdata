@@ -10,7 +10,7 @@
 #include "Connection.h"
 #include "PluginProcessor.h"
 
-
+// Sorter for matching pd object order
 class TreeSorter
 {
 public:
@@ -28,6 +28,7 @@ public:
     }
 };
 
+// Graph bounds component
 struct GraphArea : public Component, public ComponentDragger
 {
     
