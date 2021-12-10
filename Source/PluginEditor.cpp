@@ -1,3 +1,10 @@
+/*
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
+
 #include "PluginEditor.h"
 #include "Canvas.h"
 #include "Edge.h"
@@ -201,7 +208,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                         if(result) {
                             auto* cnv = getCurrentCanvas();
                             auto* box = new Box(cnv, "graph " + name + " " + size);
-                            box->setTopLeftPosition(100, 100);
                             cnv->boxes.add(box);
                         }
                     });
@@ -234,8 +240,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             }
             auto* cnv = getCurrentCanvas();
             auto* box = new Box(cnv, boxName);
-            box->setType(boxName);
-            box->setTopLeftPosition(100, 100);
         };
         
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
@@ -443,7 +447,7 @@ void PlugDataPluginEditor::timerCallback() {
     cnv->patch.setCurrent();
     
     for(auto& box : cnv->boxes) {
-        if(box->graphics) {
+        if(box->graphics && box->isShowing()) {
             box->graphics->updateValue();
         }
     }

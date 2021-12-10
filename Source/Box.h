@@ -1,3 +1,10 @@
+/*
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
+
 #pragma once
 
 #include "MultiComponentDragger.h"
@@ -10,11 +17,6 @@
 #include <JuceHeader.h>
 
 
-//==============================================================================
-/*
- This component lives inside our window, and this is where you should put all
- your controls and content.
- */
 
 
 class Canvas;
@@ -23,9 +25,9 @@ class Box  : public Component
     
 public:
     //==============================================================================
-    Box(Canvas* parent, String name = "");
+    Box(Canvas* parent, String name = "", Point<int> position = {100, 100});
     
-    Box(pd::Object* object, Canvas* parent, String name = "");
+    Box(pd::Object* object, Canvas* parent, String name = "", Point<int> position = {100, 100});
 
     ~Box() override;
     

@@ -152,7 +152,6 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
         return createGraphOnParent(x, y);
     }
     
-    
     t_symbol* typesymbol = gensym("obj");
     
     if(tokens[0] == "msg") {

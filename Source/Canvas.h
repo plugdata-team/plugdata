@@ -1,3 +1,10 @@
+/*
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
+
 #pragma once
 
 #include <JuceHeader.h>
@@ -27,7 +34,7 @@ class Canvas  : public Component, public KeyListener, public MultiComponentDragg
 {
 public:
     
-    static inline constexpr int guiUpdateMs = 500;
+    static inline constexpr int guiUpdateMs = 25;
     
     //==============================================================================
     Canvas(PlugDataPluginEditor& parent, bool isGraph = false, bool isGraphChild = false);

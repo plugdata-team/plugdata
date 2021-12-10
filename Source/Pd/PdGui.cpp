@@ -136,6 +136,10 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
     {
         m_type = Type::Message;
     }
+    else if(name == "pad")
+    {
+        m_type = Type::Mousepad;
+    }
     else if(name == "gatom")
     {
         if(static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
@@ -158,7 +162,7 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
             {
                 m_type = Type::Array;
             }
-            if(name == "graph") {
+            if(static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 m_type = Type::GraphOnParent;
             }
             else { // abstraction or subpatch

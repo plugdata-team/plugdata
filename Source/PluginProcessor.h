@@ -1,10 +1,9 @@
 /*
-  ==============================================================================
-
-    This file contains the basic framework code for a JUCE plugin processor.
-
-  ==============================================================================
+ // Copyright (c) 2021 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
+
 
 #pragma once
 
@@ -61,6 +60,14 @@ public:
     void getStateInformation (MemoryBlock& destData) override;
     void setStateInformation (const void* data, int sizeInBytes) override;
 
+    void receiveNoteOn(const int channel, const int pitch, const int velocity) override;
+    void receiveControlChange(const int channel, const int controller, const int value) override;
+    void receiveProgramChange(const int channel, const int value) override;
+    void receivePitchBend(const int channel, const int value) override;
+    void receiveAftertouch(const int channel, const int value) override;
+    void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
+    void receiveMidiByte(const int port, const int byte) override;
+
 
     void receivePrint(const std::string& message) override {
         if(console) {
@@ -116,7 +123,6 @@ public:
 private:
     
     void processInternal();
-    
 
     
     String const            m_name              = String("PlugData");
