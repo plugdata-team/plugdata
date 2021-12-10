@@ -1,10 +1,9 @@
 /*
- // Copyright (c) 2021 Timothy Schoen
+ // Copyright (c) 2015-2018 Pierre Guillot.
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
-#inclu
 
 #include "Box.h"
 #include "Canvas.h"
@@ -79,7 +78,8 @@ void Box::setType (String newType, bool exists)
         auto* pd = &cnv->patch;
         
         // Pd doesn't normally allow changing between gui and non-gui objects
-        if(pdObject && (graphics.get() != nullptr || pdObject->getType() != pd::Type::Undefined) && pdObject->getType() != pd::Type::Comment) {
+
+        if(pdObject && graphics) {
             pd->removeObject(pdObject.get());
             pdObject = pd->createObject(newType, getX() / Canvas::zoomX, getY() / Canvas::zoomY);
         }

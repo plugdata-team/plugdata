@@ -25,10 +25,10 @@ What works:
 - Automatic object name completion
 
 Known issues:
-- No VU meter
-- Some ELSE abstractions have their own GUI, these are not yet supported
 - There may still be some bugs
-- Stability in DAW needs to be tested
+- No VU meter
+- No drawing functions (like the "drawpolygon" objects)
+- Incorrect MIDI output
 
 Future plans:
 - Add DAW automation as receive
