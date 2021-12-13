@@ -239,7 +239,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
             }
             auto* cnv = getCurrentCanvas();
-            auto* box = new Box(cnv, boxName);
+            cnv->boxes.add(new Box(cnv, boxName));
         };
         
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
@@ -259,15 +259,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
     
     addAndMakeVisible(hideButton);
-    
-    /*
-    if(!mainCanvas) {
-        auto* cnv = canvases.add(new Canvas(*this, false));
-        cnv->title = "Untitled Patcher";
-        mainCanvas = cnv;
-        mainCanvas->createPatch();
-        addTab(cnv);
-    } */
     
     restrainer.setSizeLimits (150, 150, 2000, 2000);
     resizer.reset(new ResizableCornerComponent (this, &restrainer));

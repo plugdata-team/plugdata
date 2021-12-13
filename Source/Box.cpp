@@ -40,7 +40,7 @@ void Box::initialise() {
     addMouseListener(cnv, true);
     cnv->addAndMakeVisible(this);
     
-    setSize (100, 32);
+    setSize (100, 30);
     
     auto& [minW, minH, maxW, maxH] = defaultLimits;
     restrainer.setSizeLimits(minW, minH, maxW, maxH);
@@ -98,8 +98,8 @@ void Box::setType (String newType, bool exists)
     
     auto& [minW, minH, maxW, maxH] = defaultLimits;
     
-    auto bestWidth = textLabel.getFont().getStringWidth(newType) + getHeight();
-    restrainer.setSizeLimits(bestWidth, minH, std::max(700, bestWidth * 2), maxH);
+    auto bestWidth = textLabel.getFont().getStringWidth(newType) + 25;
+    restrainer.setSizeLimits(std::max(getHeight(), bestWidth), minH, std::max(700, bestWidth * 2), maxH);
     
     if(pdObject) {
         graphics.reset(GUIComponent::createGui(type, this));
@@ -110,19 +110,19 @@ void Box::setType (String newType, bool exists)
             
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
-            setSize(std::max(bestWidth, w + 8), h + 28);
+            setSize(std::max(bestWidth, w + 8), h + 27);
             graphics->toBack();
         }
         else {
-            setSize(bestWidth, 32);
+            setSize(bestWidth, 31);
         }
     }
     else {
-        setSize(bestWidth, 32);
+        setSize(bestWidth, 31);
     }
     
     if(type.isEmpty()) {
-        setSize (100, 32);
+        setSize (100, 31);
     }
     
     if(newType.startsWith("comment ")) {
@@ -195,12 +195,12 @@ void Box::resized()
     }
     else {
         textLabel.setVisible(true);
-        textLabel.setBounds(4, 4, getWidth() - 8, 24);
+        textLabel.setBounds(4, 4, getWidth() - 8, 22);
         
         if(graphics)  {
             auto [w, h] = graphics->getBestSize();
-            setSize(std::max(getWidth(), w + 8), h + 28);
-            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
+            setSize(std::max(getWidth(), w + 8), h + 27);
+            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 31);
         }
     }
     
