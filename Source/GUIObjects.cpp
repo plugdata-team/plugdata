@@ -11,7 +11,9 @@
 #include "PluginEditor.h"
 #include "Canvas.h"
 
+#include <g_canvas.h>
 #include <m_pd.h>
+#include <m_imp.h>
 
 
 GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)  : box(parent), processor(parent->cnv->main.pd), gui(pdGui), edited(false)
@@ -84,6 +86,9 @@ GUIComponent* GUIComponent::createGui(String name, Box* parent)
     }
     if(gui.getType() == pd::Type::Mousepad) {
         return new MousePad(gui, parent);
+    }
+    if(gui.getType() == pd::Type::Template) {
+        return new TemplateComponent(gui, parent);
     }
     
     return nullptr;
@@ -581,6 +586,8 @@ GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 
     resized();
     
+    
+    
 }
 
 GraphOnParent::~GraphOnParent() {
@@ -602,7 +609,10 @@ void GraphOnParent::paint(Graphics& g) {
 }
 
 void GraphOnParent::updateCanvas() {
-    if(isShowing() && !canvas) {
+    //if(isShowing() && !canvas) {
+    // It could be an optimisation to only construct the canvas if its showing
+    // But it's also kinda weird
+    if(!canvas) {
         
         canvas.reset(new Canvas(box->cnv->main, true));
         canvas->title = "Subpatcher";
@@ -619,10 +629,11 @@ void GraphOnParent::updateCanvas() {
         // Make sure that the graph doesn't become the current canvas
         box->cnv->main.getCurrentCanvas()->patch.setCurrent();
         box->cnv->main.updateUndoState();
-    }
+    }/*
+    
     else if(!isShowing() && canvas) {
         canvas.reset(nullptr);
-    }
+    } */
     
     if(canvas) {
         auto const* pdCanvas = subpatch.getPointer();
@@ -740,12 +751,57 @@ void MousePad::mouseMove(const MouseEvent& e)  {
     sys_unlock();
 }
 
+void MousePad::mouseUp(const MouseEvent& e)  {
+    auto* x = static_cast<t_pad*>(gui.getPointer());
+    t_atom at[1];
+    SETFLOAT(at, 0);
+    outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
 
+}
 
 TemplateComponent::TemplateComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box)
 {
-    auto* object = static_cast<_gtemplate*>(getGUI().getPointer());
-    //templateoObject = object->x_template;
+    auto* glist = box->cnv->patch.getPointer();
+    
+
+    t_symbol *s1 = gensym("struct");
+
+    t_gobj *gobj;
+    
+    for (gobj = glist->gl_list; gobj; gobj = gobj->g_next)
+    {
+        
+        t_object *ob = pd_checkobject(&gobj->g_pd);
+        t_atom *argv;
+        if (!ob || ob->te_type != T_OBJECT ||
+            binbuf_getnatom(ob->te_binbuf) < 2)
+            continue;
+        argv = binbuf_getvec(ob->te_binbuf);
+        
+        if (argv[0].a_type != A_SYMBOL || argv[0].a_w.w_symbol != s1)
+                continue;
+        
+        // This fix is kinda ugly, not sure if thhis always works...
+        if(argv[1].a_type == A_DOLLSYM) {
+            argv[1].a_w.w_symbol = canvas_realizedollar(glist, argv[1].a_w.w_symbol);
+            argv[1].a_type = A_SYMBOL;
+            
+            std::string new_symbol = "pd-" + std::string(argv[1].a_w.w_symbol->s_name);
+            argv[1].a_w.w_symbol = gensym(new_symbol.c_str());
+        }
+        
+        if(argv[1].a_type != A_SYMBOL) continue;
+    
+        templ = template_findbyname(argv[1].a_w.w_symbol);
+        
+        if(templ) break;
+    }
+    x = static_cast<t_curve*>(getGUI().getPointer());
+    
+    // This logic is kinda correct but we don't find the correct canvas yet...
+    target = template_findcanvas(templ);
+    
+    allTemplates.add(this);
 }
 
 void TemplateComponent::paint(Graphics& g) {
@@ -757,3 +813,183 @@ void TemplateComponent::updateValue() {
     
     
 };
+
+
+#define CLOSED 1      /* polygon */
+#define BEZ 2         /* bezier shape */
+#define NOMOUSERUN 4  /* disable mouse interaction when in run mode  */
+#define NOMOUSEEDIT 8 /* same in edit mode */
+#define NOVERTICES 16 /* disable only vertex grabbing in run mode */
+#define A_ARRAY 55      /* LATER decide whether to enshrine this in m_pd.h */
+
+    /* getting and setting values via fielddescs -- note confusing names;
+    the above are setting up the fielddesc itself. */
+static t_float fielddesc_getfloat(t_fielddesc *f, t_template *templ,
+    t_word *wp, int loud)
+{
+    if (f->fd_type == A_FLOAT)
+    {
+        if (f->fd_var)
+            return (template_getfloat(templ, f->fd_un.fd_varsym, wp, loud));
+        else return (f->fd_un.fd_float);
+    }
+    else
+    {
+        if (loud)
+            error("symbolic data field used as number");
+        return (0);
+    }
+}
+
+static int rangecolor(int n)    /* 0 to 9 in 5 steps */
+{
+    int n2 = (n == 9 ? 8 : n);               /* 0 to 8 */
+    int ret = (n2 << 5);        /* 0 to 256 in 9 steps */
+    if (ret > 255) ret = 255;
+    return (ret);
+}
+
+static void numbertocolor(int n, char *s)
+{
+    int red, blue, green;
+    if (n < 0) n = 0;
+    red = n / 100;
+    blue = ((n / 10) % 10);
+    green = n % 10;
+    sprintf(s, "#%2.2x%2.2x%2.2x", rangecolor(red), rangecolor(blue),
+        rangecolor(green));
+}
+
+
+void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* scalar)
+{
+    //auto* glist = box->cnv->patch.getPointer();
+    bool vis = true;
+    float basex = 0;
+    float basey = 0;
+
+    int i, n = x->x_npoints;
+    t_fielddesc *f = x->x_vec;
+    
+    auto* data = scalar->sc_vec;
+
+        /* see comment in plot_vis() */
+    if (vis && !fielddesc_getfloat(&x->x_vis, templ, data, 0))
+        return;
+    
+    Path toDraw;
+    
+    if (vis)
+    {
+        if (n > 1)
+        {
+            int flags = x->x_flags, closed = (flags & CLOSED);
+            t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
+            char outline[20], fill[20];
+            int pix[200];
+            if (n > 100)
+                n = 100;
+                /* calculate the pixel values before we start printing
+                out the TK message so that "error" printout won't be
+                interspersed with it.  Only show up to 100 points so we don't
+                have to allocate memory here. */
+            for (i = 0, f = x->x_vec; i < n; i++, f += 2)
+            {
+                pix[2*i] = glist_xtopixels(glist, basex + fielddesc_getcoord(f, templ, data, 1));
+                pix[2*i+1] = glist_ytopixels(glist, basey + fielddesc_getcoord(f+1, templ, data, 1));
+            }
+            if (width < 1) width = 1;
+            if (glist->gl_isgraph)
+                width *= glist_getzoom(glist);
+            numbertocolor(fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1), outline);
+            if (flags & CLOSED)
+            {
+                numbertocolor(fielddesc_getfloat(&x->x_fillcolor, templ, data, 1), fill);
+                 
+                //sys_vgui(".x%lx.c create polygon\\\n",
+                //    glist_getcanvas(glist));
+            }
+            //else sys_vgui(".x%lx.c create line\\\n", glist_getcanvas(glist));
+            
+            
+            //sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
+            
+            if(box->textLabel.getText().contains("polygon")) {
+                toDraw.startNewSubPath(pix[0], pix[1]);
+                for (i = 1; i < n; i++) {
+                    toDraw.lineTo(pix[2*i], pix[2*i+1]);
+                }
+                toDraw.lineTo(pix[0], pix[1]);
+            }
+            else {
+                toDraw.startNewSubPath(pix[0], pix[1]);
+                
+                bool isCircle = true;
+                
+                // People often make circles in pd by creating a curve with the same xy values, and then setting a width
+                // This doesn't work in juce so we hack our way around that
+                for (i = 1; i < n; i++) {
+                    isCircle = isCircle && pix[2*i] == pix[0];
+                    isCircle = isCircle && pix[2*i+1] == pix[1];
+                }
+                if(isCircle) {
+                    toDraw.addEllipse(pix[0] - (width / 2.0f), pix[1] - (width / 2.0f), width, width);
+                }
+                else {
+                    for (i = 1; i < n; i++) {
+                        toDraw.lineTo(pix[2*i], pix[2*i+1]);
+                    }
+                }
+                
+            }
+            
+            Colour juceColourOutline =  Colour::fromString("FF" + String::fromUTF8(outline + 1));
+            Colour juceColourFill = Colour::fromString("FF" +  String::fromUTF8(fill + 1));
+            
+            // Our bg colour is different from pd's
+            // very dark lines should probably become very bright?
+            if(juceColourFill.getPerceivedBrightness() < 0.5) {
+                juceColourFill = Colours::white;
+            }
+            if(juceColourFill.getPerceivedBrightness() < 0.5) {
+                juceColourOutline = Colours::white;
+            }
+            
+            g.setColour(juceColourFill);
+                                     
+            //sys_vgui("-width %f\\\n", width);
+ 
+            
+            if(box->textLabel.getText().contains("fill")) {
+                g.fillPath(toDraw);
+                
+            }
+            else {
+                g.strokePath(toDraw, PathStrokeType(width));
+            }
+            
+            
+            
+            if (flags & CLOSED) {
+                //sys_vgui("-fill %s -outline %s\\\n", fill, outline);
+                
+            }
+            
+            else {
+                //sys_vgui("-fill %s\\\n", outline);
+            }
+            
+            if (flags & BEZ) {
+                //sys_vgui("-smooth 1\\\n")
+            };
+            
+            //sys_vgui("-tags curve%lx\n", data);
+        }
+        else post("warning: curves need at least two points to be graphed");
+    }
+    else
+    {
+        if (n > 1) sys_vgui(".x%lx.c delete curve%lx\n",
+            glist_getcanvas(glist), data);
+    }
+}

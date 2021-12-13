@@ -400,6 +400,7 @@ struct MousePad : public GUIComponent
     
     void mouseDown(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
     
     std::pair<int, int> getBestSize() override {return {205, 135}; };
     
@@ -411,23 +412,69 @@ struct MousePad : public GUIComponent
     
 };
 
+struct _fielddesc
+{
+    char fd_type;       /* LATER consider removing this? */
+    char fd_var;
+    union
+    {
+        t_float fd_float;       /* the field is a constant float */
+        t_symbol *fd_symbol;    /* the field is a constant symbol */
+        t_symbol *fd_varsym;    /* the field is variable and this is the name */
+    } fd_un;
+    float fd_v1;        /* min and max values */
+    float fd_v2;
+    float fd_screen1;   /* min and max screen values */
+    float fd_screen2;
+    float fd_quantum;   /* quantization in value */
+};
+
 // TODO: Pd template class for drawing (using "drawcurve", "drawpolygon", etc)
 struct TemplateComponent : public GUIComponent
 {
 
+
+    struct t_curve
+    {
+        t_object x_obj;
+        int x_flags;    /* CLOSED, BEZ, NOMOUSERUN, NOMOUSEEDIT */
+        t_fielddesc x_fillcolor;
+        t_fielddesc x_outlinecolor;
+        t_fielddesc x_width;
+        t_fielddesc x_vis;
+        int x_npoints;
+        t_fielddesc *x_vec;
+        t_canvas *x_canvas;
+    };
+    
     TemplateComponent(pd::Gui gui, Box* box);
     
+    
+    ~TemplateComponent() {
+        allTemplates.removeAllInstancesOf(this);
+    }
     
     void paint(Graphics& g) override;
     
     void updateValue() override;
     
-    std::pair<int, int> getBestSize() override {return {205, 135}; };
+    void paintOnCanvas(Graphics& g, t_canvas* glist, t_scalar* scalar);
+    
+    std::pair<int, int> getBestSize() override {return {0, 5}; };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 32, 100, 32};
     };
     
-    t_template* t_template;
+    static inline Array<TemplateComponent*> allTemplates;
+    
+    t_symbol* templatesym;
+    t_template *templ = nullptr;
+    t_curve* x;
+    
+    t_canvas* target;
+    
+    t_atom *templateargs = static_cast<t_atom*>(getbytes(0));
+    int ntemplateargs = 0;
     
 };

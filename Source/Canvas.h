@@ -65,6 +65,8 @@ public:
     void pasteSelection();
     void duplicateSelection();
     
+    Array<Canvas*> findCanvas(t_canvas* cnv);
+    
     void checkBounds();
 
     void undo();
@@ -77,6 +79,8 @@ public:
     bool changed() {
         return hasChanged && boxes.size();
     }
+    
+    Array<TemplateComponent*> templates;
     
     bool hasChanged = false;
     

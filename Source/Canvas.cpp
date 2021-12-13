@@ -135,6 +135,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
 
 Canvas::~Canvas()
 {
+    
+   
     popupMenu.setLookAndFeel(nullptr);
     Component::removeAllChildren();
     removeKeyListener(this);
@@ -165,6 +167,8 @@ void Canvas::synchronise() {
     boxPointers.addArray(boxes);
     
     for(auto& object : currentObjects) {
+        
+        if(((t_gobj*)object.getPointer())->g_pd == scalar_class) continue;
         // Check if pd objects are already represented in the GUI
         Box* exists = nullptr;
         for(auto* box : boxPointers) {
@@ -306,12 +310,16 @@ void Canvas::createPatch() {
     pd.openPatch(tempPatch.getParentDirectory().getFullPathName().toStdString(), tempPatch.getFileName().toStdString());
     
     patch = pd.getPatch();
+    
+    
     synchronise();
 }
 
 void Canvas::loadPatch(pd::Patch& patch) {
     
+    
     this->patch = patch;
+    
     
     synchronise();
 }
@@ -388,7 +396,9 @@ void Canvas::mouseDown(const MouseEvent& e)
                     w *= zoomX;
                     h *= zoomY;
                     
-                    newCanvas->graphArea->setBounds(x, y, w, h);
+                    if(isGraphChild) {
+                        newCanvas->graphArea->setBounds(x, y, std::max(w, 500), std::max(h, 500));
+                    }
                     
                     main.addTab(newCanvas);
                     newCanvas->checkBounds();
@@ -526,6 +536,20 @@ void Canvas::dragCallback(int dx, int dy)
 void Canvas::paintOverChildren (Graphics& g)
 {
     
+    // Pd Template drawing: not the most efficient implementation but it seems to work!
+    for (auto* gobj = patch.getPointer()->gl_list; gobj; gobj = gobj->g_next)
+    {
+        if (gobj->g_pd == scalar_class)
+        {
+            for(auto* tmpl : TemplateComponent::allTemplates) {
+                if(tmpl->templ->t_sym == (((t_scalar*)gobj)->sc_template)) {
+                    tmpl->paintOnCanvas(g, patch.getPointer(), (t_scalar*)gobj);
+                }
+            }
+        }
+    }
+    
+    
     if(Edge::connectingEdge && Edge::connectingEdge->box->cnv == this) {
         Point<float> mousePos = getMouseXYRelative().toFloat();
         Point<int> edgePos =  Edge::connectingEdge->getCanvasBounds().getPosition();
@@ -543,6 +567,7 @@ void Canvas::paintOverChildren (Graphics& g)
 
 void Canvas::mouseMove(const MouseEvent& e) {
     lastMousePos = e.getPosition();
+    
     repaint();
 }
 void Canvas::resized()
@@ -567,7 +592,7 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     }
     // Key shortcuts for creating objects
     if(key.getTextCharacter() == 'n') {
-        auto* box = boxes.add(new Box(this, "", lastMousePos));
+        boxes.add(new Box(this, "", lastMousePos));
         return true;
     }
     if(key.isKeyCode(65) && key.getModifiers().isCommandDown()) {
@@ -583,27 +608,27 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
         return true;
     }
     if(key.getTextCharacter() == 'b') {
-        auto* box = boxes.add(new Box(this, "bng", lastMousePos));
+        boxes.add(new Box(this, "bng", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 'm') {
-        auto* box = boxes.add(new Box(this, "msg", lastMousePos));
+        boxes.add(new Box(this, "msg", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 'i') {
-        auto* box = boxes.add(new Box(this, "nbx", lastMousePos));
+        boxes.add(new Box(this, "nbx", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 'f') {
-        auto* box = boxes.add(new Box(this, "floatatom", lastMousePos));
+        boxes.add(new Box(this, "floatatom", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 't') {
-        auto* box = boxes.add(new Box(this, "tgl", lastMousePos));
+        boxes.add(new Box(this, "tgl", lastMousePos));
         return true;
     }
     if(key.getTextCharacter() == 's') {
-        auto* box = boxes.add(new Box(this, "vsl", lastMousePos));
+        boxes.add(new Box(this, "vsl", lastMousePos));
         return true;
     }
     
@@ -727,6 +752,29 @@ Array<Edge*> Canvas::getAllEdges() {
     };
     
     return allEdges;
+}
+
+Array<Canvas*> Canvas::findCanvas(t_canvas* cnv)
+{
+    Array<Canvas*> result;
+    // For objects like drawpolygon that can draw on the canvas!
+
+    if(patch.getPointer() == cnv) {
+        result.add(this);
+    }
+
+    for(auto* box : boxes) {
+        if(box->graphics && box->graphics->getGUI().getType() == pd::Type::Subpatch) {
+
+            
+        }
+        if(box->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
+            auto subresult = box->graphics->getCanvas()->findCanvas(cnv);
+            result.addArray(subresult);
+        }
+    }
+
+    return result;
 }
 
 void Canvas::undo() {
