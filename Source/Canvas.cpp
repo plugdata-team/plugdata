@@ -545,13 +545,12 @@ void Canvas::paintOverChildren (Graphics& g)
 }
 
 void Canvas::mouseMove(const MouseEvent& e) {
-    lastMousePos = e.getPosition();
-
-    patch.getPointer()->gl_screenx1 = e.getScreenX();
-    patch.getPointer()->gl_screeny1 = e.getScreenY();
     
+    // For deciding where to place a new object
+    lastMousePos = e.getPosition();
     repaint();
 }
+
 void Canvas::resized()
 {
     transformLayer.setBounds(getLocalBounds());

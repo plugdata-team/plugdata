@@ -556,6 +556,7 @@ static void mouse__getscreen(t_mouse *x, t_float screenx, t_float screeny){
     // callback from tcl for requesting screen coords
     if(x->x_zero == 1)
         mouse_dozero(x, screenx, screeny);
+    
     mouse_dobang(x, screenx, screeny);
 }
 
