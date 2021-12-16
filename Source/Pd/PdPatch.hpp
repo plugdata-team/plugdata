@@ -101,6 +101,8 @@ public:
 
     t_object* checkObject(Object* obj) const noexcept;
     
+    void keyPress(int keycode, int shift);
+    
     static inline int zoom = 2;
     
 private:

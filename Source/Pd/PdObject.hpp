@@ -44,7 +44,8 @@ enum class Type : size_t
     Message          = 15,
     Subpatch         = 16,
     Mousepad         = 17,
-    Mouse            = 18
+    Mouse            = 18,
+    Keyboard         = 19
 };
 
 class Object
