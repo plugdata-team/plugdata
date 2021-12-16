@@ -186,11 +186,6 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
         m_type = Type::Subpatch;
     }
     
-    else if(name == "drawpolygon" || name == "drawcurve" || name == "filledpolygon" || name == "filledcurve")
-    {
-        m_type = Type::Template;
-    }
-    
     return m_type;
 }
 

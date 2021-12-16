@@ -126,7 +126,7 @@ private:
 
     
     String const            m_name              = String("PlugData");
-    bool const              m_accepts_midi      = false;
+    bool const              m_accepts_midi      = true;
     bool const              m_produces_midi     = true;
     bool const              m_is_midi_effect    = false;
     bool                    m_bypass            = true;

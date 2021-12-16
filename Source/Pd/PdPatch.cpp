@@ -51,6 +51,10 @@ namespace pd
 Patch::Patch(void* ptr, Instance* instance) noexcept :
 m_ptr(ptr), m_instance(instance)
 {
+    if(ptr) {
+        setZoom(1);
+    }
+    
 }
 
 std::array<int, 4> Patch::getBounds() const noexcept
@@ -58,9 +62,10 @@ std::array<int, 4> Patch::getBounds() const noexcept
     if(m_ptr)
     {
         t_canvas const* cnv = getPointer();
+        
         if(cnv->gl_isgraph)
         {
-            return {cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth - 2, cnv->gl_pixheight - 2};
+            return {cnv->gl_xmargin * 2, cnv->gl_ymargin * 2, cnv->gl_pixwidth, cnv->gl_pixheight};
         }
     }
     return {0, 0, 0, 0};
@@ -141,6 +146,9 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
 {
     
     if(!m_ptr) return nullptr;
+    
+    x /= zoom;
+    y /= zoom;
     
     StringArray tokens;
     tokens.addTokens(name, " ", "");
@@ -343,7 +351,7 @@ void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
             glist_select(getPointer(), &checkObject(obj)->te_g);
         }
         
-        libpd_moveselection(getPointer(), dx, dy);
+        libpd_moveselection(getPointer(), dx / zoom, dy / zoom);
         
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
@@ -365,7 +373,11 @@ void Patch::undo() {
         setCurrent();
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
+        
+
         libpd_undo(getPointer());
+
+        
         setCurrent();
     });
 }
@@ -375,9 +387,18 @@ void Patch::redo() {
         setCurrent();
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
+        
         libpd_redo(getPointer());
+        
         setCurrent();
     });
+}
+
+void Patch::setZoom(int zoom)
+{
+    t_atom arg;
+    SETFLOAT(&arg, zoom);
+    pd_typedmess((t_pd*)getPointer(), gensym("zoom"), 2, &arg);
 }
 
 t_object* Patch::checkObject(Object* obj) const noexcept {

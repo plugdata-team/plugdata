@@ -22,6 +22,10 @@ Box::Box(Canvas* parent, String name, Point<int> position) : textLabel(this, par
     initialise();
     setTopLeftPosition(position);
     setType(name);
+    
+    if(name.isEmpty()) {
+        textLabel.showEditor();
+    }
 }
 
 Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position) : textLabel(this, parent->dragger), pdObject(object), dragger(parent->dragger)
@@ -40,7 +44,7 @@ void Box::initialise() {
     addMouseListener(cnv, true);
     cnv->addAndMakeVisible(this);
     
-    setSize (100, 30);
+    setSize (55, 31);
     
     auto& [minW, minH, maxW, maxH] = defaultLimits;
     restrainer.setSizeLimits(minW, minH, maxW, maxH);
@@ -81,13 +85,13 @@ void Box::setType (String newType, bool exists)
 
         if(pdObject && graphics) {
             pd->removeObject(pdObject.get());
-            pdObject = pd->createObject(newType, getX() / Canvas::zoomX, getY() / Canvas::zoomY);
+            pdObject = pd->createObject(newType, getX(), getY());
         }
         else if(pdObject) {
             pdObject = pd->renameObject(pdObject.get(), newType);
         }
         else {
-            pdObject = pd->createObject(newType, getX() / Canvas::zoomX,  getY() / Canvas::zoomY);
+            pdObject = pd->createObject(newType, getX(),  getY());
         }
     }
     else if (!exists) {
@@ -104,13 +108,13 @@ void Box::setType (String newType, bool exists)
     if(pdObject) {
         graphics.reset(GUIComponent::createGui(type, this));
          
-        if(graphics) {
+        if(graphics && graphics->getGUI().getType() != pd::Type::Subpatch) {
             auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
             restrainer.setSizeLimits(minW, minH, maxW, maxH);
             
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
-            setSize(std::max(bestWidth, w + 8), h + 27);
+            setSize(w + 8, h + 27);
             graphics->toBack();
         }
         else {
@@ -146,6 +150,9 @@ void Box::paint (Graphics& g)
     bool isDown = textLabel.isDown;
     
     bool selected = dragger.isSelected(this);
+    
+    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && graphics->getGUI().getType() != pd::Type::Subpatch && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
+    
     if (isDown || isOver || selected) {
         baseColour = baseColour.contrasting (isDown ? 0.2f : 0.05f);
 
@@ -159,8 +166,10 @@ void Box::paint (Graphics& g)
         g.drawRect(rect.toFloat(), 0.5f);
     }
     else {
-        g.setColour(baseColour);
-        g.fillRoundedRectangle(rect.toFloat(), 2.0f);
+        if(!hideLabel) {
+            g.setColour(baseColour);
+            g.fillRoundedRectangle(rect.toFloat().withTrimmedBottom(getHeight() - 32), 2.0f);
+        }
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
@@ -174,23 +183,21 @@ void Box::moved()
     for(auto& edge : edges) {
         edge->sendMovedResizedMessages(true, true);
     }
+    
+    std::cout << getX() << std::endl;
 }
 
-void Box::updatePosition()
-{
-    //setPropertyExcludingListener(this, Identifiers::boxX, getX());
-    //setPropertyExcludingListener(this, Identifiers::boxY, getY());
-}
 
 void Box::resized()
 {
-    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
+    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && graphics->getGUI().getType() != pd::Type::Subpatch && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
     
+    // Hidden header mode: gui objects become undraggable
     if(hideLabel) {
         textLabel.setVisible(false);
         auto [w, h] = graphics->getBestSize();
-        setSize(std::max(getWidth(), w + 8), h + 8);
-        graphics->setBounds(4, 4, std::max(getWidth() - 8, w), h);
+        setSize(w + 8, h + 8);
+        graphics->setBounds(4, 4, w , h);
         
     }
     else {
@@ -200,7 +207,7 @@ void Box::resized()
         if(graphics)  {
             auto [w, h] = graphics->getBestSize();
             setSize(std::max(getWidth(), w + 8), h + 27);
-            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 31);
+            graphics->setBounds(4, 26, getWidth() - 8, getHeight() - 30);
         }
     }
     
@@ -292,6 +299,7 @@ void Box::updatePorts() {
         numIn += input;
         numOut += !input;
     }
+
     
     resized();
 }

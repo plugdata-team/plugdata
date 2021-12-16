@@ -91,7 +91,11 @@ struct BangComponent : public GUIComponent, public Timer
     
     BangComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {24, 50}; };
+    std::pair<int, int> getBestSize() override {
+        auto [x, y, w, h] = gui.getBounds();
+        float mult = std::min(h, w) > 20.0f ? 1.0f : 2.0f;
+        return {w * mult, h * mult};
+    };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 60, 200, 200};
@@ -115,7 +119,12 @@ struct ToggleComponent : public GUIComponent
     
     ToggleComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {24, 50}; };
+    std::pair<int, int> getBestSize() override {
+        auto [x, y, w, h] = gui.getBounds();
+        float mult = std::min(h, w) > 20.0f ? 1.0f : 2.0f;
+        return {w * mult, h * mult};
+        
+    };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 60, 200, 200};
@@ -137,7 +146,15 @@ struct MessageComponent : public GUIComponent
     
     MessageComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {120, 28}; };
+    std::pair<int, int> getBestSize() override {
+        auto [x, y, w, h] = gui.getBounds();
+        int offset = bangButton.isVisible() ? 60 : 30;
+        int stringLength = input.getFont().getStringWidth(input.getText());
+        return {stringLength + offset, numLines * 25};
+        
+    };
+    
+    
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {100, 50, 500, 600};
@@ -148,6 +165,9 @@ struct MessageComponent : public GUIComponent
     void resized() override;
 
     void update() override;
+    
+    int numLines = 1;
+    int longestLine = 7;
 };
 
 
@@ -158,7 +178,7 @@ struct NumboxComponent : public GUIComponent
     
     NumboxComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {70, 28}; };
+    std::pair<int, int> getBestSize() override {return {50, 26}; };
     
     std::tuple<int, int, int, int> getSizeLimits() override {
         return {100, 50, 500, 600};
@@ -220,9 +240,9 @@ struct RadioComponent : public GUIComponent
     std::array<TextButton, 8> radio_buttons;
     
     std::pair<int, int> getBestSize() override {
-        if(isVertical) return {24, 164};
+        if(isVertical) return {24, 163};
         
-        return {161, 24};
+        return {161, 23};
     };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
@@ -297,10 +317,14 @@ public:
     void resized() override;
     void updateValue() override;
 
-    int bestW = 205;
-    int bestH = 135;
+    int bestW = 410;
+    int bestH = 270;
     
-    std::pair<int, int> getBestSize() override {return {bestW, bestH}; };
+    std::pair<int, int> getBestSize() override {
+        auto [x, y, w, h] = gui.getBounds();
+        return {w, h};
+        
+    };
     
     
     pd::Patch* getPatch() override {
@@ -315,7 +339,7 @@ public:
     std::tuple<int, int, int, int> getSizeLimits()  override {
         
         
-        return {100, 80, 500, 600};
+        return {30, 30, 500, 600};
     };
     
     void updateCanvas();
@@ -336,7 +360,7 @@ struct Subpatch : public GUIComponent
     
     ~Subpatch();
     
-    std::pair<int, int> getBestSize() override {return {0, 5}; };
+    std::pair<int, int> getBestSize() override {return {0, 3}; };
     
     void resized() override {};
     void updateValue() override {};
@@ -401,8 +425,12 @@ struct MousePad : public GUIComponent
     void mouseDown(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
     
-    std::pair<int, int> getBestSize() override {return {205, 135}; };
+    std::pair<int, int> getBestSize() override {
+        auto [x, y, w, h] = gui.getBounds();
+        return {w, h};
+    };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 32, 100, 32};
@@ -430,10 +458,8 @@ struct _fielddesc
 };
 
 // TODO: Pd template class for drawing (using "drawcurve", "drawpolygon", etc)
-struct TemplateComponent : public GUIComponent
+struct TemplateDraw
 {
-
-
     struct t_curve
     {
         t_object x_obj;
@@ -445,36 +471,9 @@ struct TemplateComponent : public GUIComponent
         int x_npoints;
         t_fielddesc *x_vec;
         t_canvas *x_canvas;
-    };
+    };    
     
-    TemplateComponent(pd::Gui gui, Box* box);
-    
-    
-    ~TemplateComponent() {
-        allTemplates.removeAllInstancesOf(this);
-    }
-    
-    void paint(Graphics& g) override;
-    
-    void updateValue() override;
-    
-    void paintOnCanvas(Graphics& g, t_canvas* glist, t_scalar* scalar);
-    
-    std::pair<int, int> getBestSize() override {return {0, 5}; };
-    
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 32, 100, 32};
-    };
-    
-    static inline Array<TemplateComponent*> allTemplates;
-    
-    t_symbol* templatesym;
-    t_template *templ = nullptr;
-    t_curve* x;
-    
-    t_canvas* target;
-    
-    t_atom *templateargs = static_cast<t_atom*>(getbytes(0));
-    int ntemplateargs = 0;
+    static void paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, t_gobj* obj, int baseX, int baseY);
+
     
 };

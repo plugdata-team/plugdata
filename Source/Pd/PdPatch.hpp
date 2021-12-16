@@ -59,6 +59,8 @@ public:
     void selectObject(Object*);
     void deselectAll();
     
+    void setZoom(int zoom);
+    
     void copy();
     void paste();
     void duplicate();
@@ -93,14 +95,18 @@ public:
         
         libpd_getcontent(static_cast<t_canvas*>(m_ptr), &buf, &bufsize);
         
-        return String(CharPointer_UTF8(buf));
+        
+        return String(buf, bufsize);
     }
 
+    t_object* checkObject(Object* obj) const noexcept;
+    
+    static inline int zoom = 2;
     
 private:
     Patch(void* ptr, Instance* instance) noexcept;
     
-    t_object* checkObject(Object* obj) const noexcept;
+
     
     void*     m_ptr      = nullptr;
     Instance* m_instance = nullptr;

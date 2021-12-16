@@ -396,7 +396,7 @@ void PlugDataPluginEditor::openProject() {
     if(getMainCanvas()->changed()) {
         
         SaveDialog::show(this, [this, openFunc](int result){
-            if(result == 1) {
+            if(result == 2) {
                 saveProject([this, openFunc]() mutable {
                     openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
                 });
@@ -470,7 +470,7 @@ void PlugDataPluginEditor::updateUndoState() {
 Canvas* PlugDataPluginEditor::getCurrentCanvas()
 {
     if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
-        if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+        if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()->getChildComponent(0))) {
             return cnv;
         }
     }
@@ -483,7 +483,7 @@ Canvas* PlugDataPluginEditor::getMainCanvas() {
 
 Canvas* PlugDataPluginEditor::getCanvas(int idx) {
     if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
-        if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+        if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()->getChildComponent(0))) {
             return cnv;
         }
     }
