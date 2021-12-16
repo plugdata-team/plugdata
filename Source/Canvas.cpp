@@ -656,6 +656,8 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
         return true;
     }
     
+    patch.keyPress(key.getKeyCode(), key.getModifiers().isShiftDown());
+    
     return false;
 }
 

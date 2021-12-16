@@ -449,7 +449,6 @@ struct MousePad : public GUIComponent
     };
     
     t_template* t_template;
-    
 };
 
 // Else "mouse" component
@@ -491,6 +490,86 @@ struct MouseComponent : public GUIComponent
     
     
 };
+
+
+
+// ELSE keyboard
+struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
+{
+
+    
+    typedef struct _edit_proxy{
+        t_object    p_obj;
+        t_symbol   *p_sym;
+        t_clock    *p_clock;
+        struct      _keyboard *p_cnv;
+    }t_edit_proxy;
+
+    
+    typedef struct _keyboard{
+        t_object       x_obj;
+        t_glist       *x_glist;
+        t_edit_proxy  *x_proxy;
+        int           *x_tgl_notes;    // to store which notes should be played
+        int            x_velocity;     // to store velocity
+        int            x_last_note;    // to store last note
+        float          x_vel_in;       // to store the second inlet values
+        float          x_space;
+        int            x_width;
+        int            x_height;
+        int            x_octaves;
+        int            x_first_c;
+        int            x_low_c;
+        int            x_toggle_mode;
+        int            x_norm;
+        int            x_zoom;
+        int            x_shift;
+        int            x_xpos;
+        int            x_ypos;
+        int            x_snd_set;
+        int            x_rcv_set;
+        int            x_flag;
+        int            x_s_flag;
+        int            x_r_flag;
+        int            x_edit;
+        t_symbol      *x_receive;
+        t_symbol      *x_rcv_raw;
+        t_symbol      *x_send;
+        t_symbol      *x_snd_raw;
+        t_symbol      *x_bindsym;
+        t_outlet      *x_out;
+    }t_keyboard;
+    
+    KeyboardComponent(pd::Gui gui, Box* box);
+    
+    
+    void paint(Graphics& g) override {};
+    
+    void updateValue() override;
+    
+    void resized() override;
+    
+    
+    void handleNoteOn (MidiKeyboardState* source,
+                       int midiChannel, int midiNoteNumber, float velocity) override;
+
+    void handleNoteOff (MidiKeyboardState* source,
+                        int midiChannel, int midiNoteNumber, float velocity) override;
+    
+    std::pair<int, int> getBestSize() override {
+        auto [x, y, w, h] = gui.getBounds();
+        return {w, h};
+    };
+    
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {40, 32, 100, 32};
+    };
+    
+    MidiKeyboardState state;
+    MidiKeyboardComponent keyboard;
+
+};
+
 
 struct _fielddesc
 {

@@ -144,6 +144,11 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
     {
         m_type = Type::Mouse;
     }
+    else if(name == "keyboard")
+    {
+        m_type = Type::Keyboard;
+    }
+    
     else if(name == "gatom")
     {
         if(static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)

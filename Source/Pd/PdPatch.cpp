@@ -404,8 +404,21 @@ void Patch::setZoom(int zoom)
 t_object* Patch::checkObject(Object* obj) const noexcept {
     return pd_checkobject(static_cast<t_pd*>(obj->getPointer()));
 }
+
+void Patch::keyPress(int keycode, int shift)
+{
+    t_atom args[3];
+    
+    SETFLOAT(args, 1);
+    SETFLOAT(args + 1, keycode);
+    SETFLOAT(args + 2, shift);
+    
+    pd_typedmess((t_pd*)getPointer(), gensym("key"), 3, args);
+    
 }
 
+               
+}
 
 
 
