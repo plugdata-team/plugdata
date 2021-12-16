@@ -183,8 +183,6 @@ void Box::moved()
     for(auto& edge : edges) {
         edge->sendMovedResizedMessages(true, true);
     }
-    
-    std::cout << getX() << std::endl;
 }
 
 

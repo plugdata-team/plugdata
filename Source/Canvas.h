@@ -169,8 +169,7 @@ struct GraphArea : public Component, public ComponentDragger
             cnv->gl_pixheight = getHeight();
             cnv->gl_xmargin = getX() / 2.0f;
             cnv->gl_ymargin = getY() / 2.0f;
-            
-            std::cout << "graphwinx:" << getX() << std::endl;
+        
         }
         
         repaint();
@@ -186,9 +185,7 @@ struct GraphArea : public Component, public ComponentDragger
             cnv->gl_xmargin = getX() / 2.0f;
             cnv->gl_ymargin = getY() / 2.0f;
         }
-        
-        std::cout << "graphwinx:" << getX() << std::endl;
-        
+
         resizer.setBounds(getLocalBounds());
         repaint();
     }
