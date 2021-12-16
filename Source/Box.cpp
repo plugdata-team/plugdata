@@ -108,7 +108,7 @@ void Box::setType (String newType, bool exists)
     if(pdObject) {
         graphics.reset(GUIComponent::createGui(type, this));
          
-        if(graphics && graphics->getGUI().getType() != pd::Type::Subpatch) {
+        if(graphics && !graphics->fakeGUI()) {
             auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
             restrainer.setSizeLimits(minW, minH, maxW, maxH);
             
@@ -151,7 +151,8 @@ void Box::paint (Graphics& g)
     
     bool selected = dragger.isSelected(this);
     
-    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && graphics->getGUI().getType() != pd::Type::Subpatch && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
+    
+    bool hideLabel = graphics && !graphics->fakeGUI() && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
     
     if (isDown || isOver || selected) {
         baseColour = baseColour.contrasting (isDown ? 0.2f : 0.05f);
@@ -188,7 +189,7 @@ void Box::moved()
 
 void Box::resized()
 {
-    bool hideLabel = graphics && graphics->getGUI().getType() != pd::Type::Comment && graphics->getGUI().getType() != pd::Type::Subpatch && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
+    bool hideLabel = graphics && !graphics->fakeGUI() && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
     
     // Hidden header mode: gui objects become undraggable
     if(hideLabel) {

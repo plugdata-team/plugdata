@@ -55,6 +55,10 @@ struct GUIComponent : public Component
     virtual Canvas* getCanvas() {
         return nullptr;
     }
+    
+    virtual bool fakeGUI() {
+        return false;
+    }
 
     std::unique_ptr<Label> getLabel();
     pd::Gui getGUI();
@@ -374,6 +378,10 @@ struct Subpatch : public GUIComponent
         return &subpatch;
     }
     
+    bool fakeGUI() override {
+        return true;
+    }
+    
 
     
 private:
@@ -393,6 +401,10 @@ struct CommentComponent : public GUIComponent
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {40, 32, 100, 32};
     };
+    
+    bool fakeGUI() {
+        return true;
+    }
 };
 
 
@@ -437,6 +449,46 @@ struct MousePad : public GUIComponent
     };
     
     t_template* t_template;
+    
+};
+
+// Else "mouse" component
+struct MouseComponent : public GUIComponent
+{
+    
+    typedef struct _mouse{
+        t_object   x_obj;
+        int        x_hzero;
+        int        x_vzero;
+        int        x_zero;
+        int        x_wx;
+        int        x_wy;
+        t_glist   *x_glist;
+        t_outlet  *x_horizontal;
+        t_outlet  *x_vertical;
+    } t_mouse;
+
+    
+    MouseComponent(pd::Gui gui, Box* box);
+    
+    std::pair<int, int> getBestSize() override {return {0, 3}; };
+    
+    void resized() override {};
+    void updateValue() override;
+    
+    std::tuple<int, int, int, int> getSizeLimits()  override {
+        return {40, 32, 100, 32};
+    };
+    
+    bool fakeGUI() override {
+        return true;
+    }
+    
+    void mouseDown(const MouseEvent& e) override;
+    void mouseMove(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+    
     
 };
 
