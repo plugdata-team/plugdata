@@ -1,10 +1,8 @@
 # PlugData
 Pure Data as a plugin, with a new GUI
 
+<img width="948" alt="Screenshot 2021-12-13 at 18 17 48" src="https://user-images.githubusercontent.com/44585538/146430791-d3ca9baf-32ae-4156-9e37-d458c065615a.png">
 
-<img width="1124" alt="Screenshot 2021-12-07 at 02 19 24" src="https://user-images.githubusercontent.com/44585538/144948333-97e9b1ea-c323-46c1-8d7e-abfcc0b569f8.png">
-
-<img width="948" alt="Screenshot 2021-12-13 at 18 17 48" src="https://user-images.githubusercontent.com/44585538/145858268-60782163-0e2c-4d49-8118-495c2b234b03.png">
 
 
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. It can still use some stability fixes, especially for complicated patches. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs.
@@ -24,13 +22,11 @@ What works:
 - Full support for editing Pd patches (including all GUI objects, undo/redo, copy/paste, saving, loading, console)
 - GUI where locking is optional, all components have headers. There is a option to set it to headerless mode to make old existing patches look better.
 - Automatic object name completion
-- Experimental support for Pd's drawing functions (drawpolygon, filledcurve etc.)
+- Supports most objects in the ELSE library (including more complex GUI objects like keyboard, pad and circle)
 
 Known issues:
 - There may still be some bugs
-- Some ELSE objects don't work (mouse, pad)
 - No VU meter
-- Incorrect MIDI output
 
 Future plans:
 - Add DAW automation as receive
