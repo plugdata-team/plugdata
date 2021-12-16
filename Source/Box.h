@@ -36,8 +36,6 @@ public:
     void resized() override;
     void moved() override;
     
-    void updatePosition();
-    
     void setLimits(std::tuple<int, int, int, int> limits);
     
     void updatePorts();

@@ -2579,10 +2579,9 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_HEADER_SEARCH_PATHS = "$(HOME)/JUCE/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules $(SRCROOT)/../../Libraries $(SRCROOT)/../../Libraries/libpd/pure-data/src $(SRCROOT)/../../Libraries/libpd/libpd_wrapper/ /opt/homebrew/include/ $(HOME)/JUCE/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = (
-					"-lPlugData",
-					/opt/homebrew/lib/libcairo.a,
-				);
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				OTHER_LDFLAGS = "-lPlugData";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Octagon.PlugData;
 				PRODUCT_NAME = PlugData;
 				USE_HEADERMAP = NO;
@@ -2874,10 +2873,9 @@
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_HEADER_SEARCH_PATHS = "$(HOME)/JUCE/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules $(SRCROOT)/../../Libraries $(SRCROOT)/../../Libraries/libpd/pure-data/src $(SRCROOT)/../../Libraries/libpd/libpd_wrapper/ /opt/homebrew/include/ $(HOME)/JUCE/modules/juce_audio_plugin_client";
-				OTHER_LDFLAGS = (
-					"-lPlugData",
-					/opt/homebrew/lib/libcairo.a,
-				);
+				OTHER_CFLAGS = "";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
+				OTHER_LDFLAGS = "-lPlugData";
 				PRODUCT_BUNDLE_IDENTIFIER = com.Octagon.PlugData;
 				PRODUCT_NAME = PlugData;
 				USE_HEADERMAP = NO;
@@ -2993,6 +2991,7 @@
 				);
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_HEADER_SEARCH_PATHS = "$(HOME)/JUCE/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules $(SRCROOT)/../../Libraries $(SRCROOT)/../../Libraries/libpd/pure-data/src $(SRCROOT)/../../Libraries/libpd/libpd_wrapper/ /opt/homebrew/include/ $(HOME)/JUCE/modules/juce_audio_plugin_client";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = /opt/homebrew/lib/libcairo.a;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Octagon.PlugData;
 				PRODUCT_NAME = PlugData;
@@ -3119,6 +3118,7 @@
 				LLVM_LTO = YES;
 				MACOSX_DEPLOYMENT_TARGET = 10.11;
 				MTL_HEADER_SEARCH_PATHS = "$(HOME)/JUCE/modules/juce_audio_processors/format_types/VST3_SDK $(SRCROOT)/../../JuceLibraryCode $(HOME)/JUCE/modules $(SRCROOT)/../../Libraries $(SRCROOT)/../../Libraries/libpd/pure-data/src $(SRCROOT)/../../Libraries/libpd/libpd_wrapper/ /opt/homebrew/include/ $(HOME)/JUCE/modules/juce_audio_plugin_client";
+				OTHER_CPLUSPLUSFLAGS = "$(OTHER_CFLAGS)";
 				OTHER_LDFLAGS = /opt/homebrew/lib/libcairo.a;
 				PRODUCT_BUNDLE_IDENTIFIER = com.Octagon.PlugData;
 				PRODUCT_NAME = PlugData;

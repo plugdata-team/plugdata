@@ -209,13 +209,15 @@ struct PdGuiLook : public MainLook
     
     PdGuiLook() {
         setColour(TextButton::buttonOnColourId, highlightColour);
+        setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        
     }
     void drawButtonBackground (Graphics& g, Button& button, const Colour& backgroundColour,  bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
         
         auto cornerSize = 6.0f;
-        auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
+        auto bounds = button.getLocalBounds().toFloat();//.reduced (0.5f, 0.5f);
 
-        auto baseColour = backgroundColour;
+        auto baseColour = Colours::transparentBlack;
 
         auto highlightColour = MainLook::highlightColour;
         
@@ -250,10 +252,14 @@ struct PdGuiLook : public MainLook
         }
         else
         {
-            g.fillRoundedRectangle (bounds, cornerSize);
+            int dimension = std::min(bounds.getHeight(), bounds.getWidth()) / 2.0f;
+            auto centre = bounds.getCentre();
+            auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
+            //g.fillRoundedRectangle (bounds, cornerSize);
+            g.fillEllipse(ellpiseBounds);
 
             g.setColour (button.findColour (ComboBox::outlineColourId));
-            g.drawRoundedRectangle (bounds, cornerSize, 1.0f);
+            g.drawEllipse(ellpiseBounds, 1.0f);
         }
         
     }

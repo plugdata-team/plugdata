@@ -26,7 +26,7 @@ struct Identifiers
     
 };
 
-class GraphArea;
+struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
@@ -65,7 +65,11 @@ public:
     void pasteSelection();
     void duplicateSelection();
     
+    void paint(Graphics&);
+    
     Array<Canvas*> findCanvas(t_canvas* cnv);
+    
+    bool hitTest(int x, int y);
     
     void checkBounds();
 
@@ -80,8 +84,6 @@ public:
         return hasChanged && boxes.size();
     }
     
-    Array<TemplateComponent*> templates;
-    
     bool hasChanged = false;
     
     Array<Edge*> getAllEdges();
@@ -92,9 +94,6 @@ public:
     
     pd::Patch patch;
     
-    // Our objects are bigger than pd's, so move everything apart by this factor
-    static inline constexpr float zoomX = 3.0f;
-    static inline constexpr float zoomY = 2.0f;
     
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
@@ -108,13 +107,89 @@ public:
     
     std::unique_ptr<GraphArea> graphArea;
     
+    // Layer to help us draw negative object positions
+    Component transformLayer;
+    
 private:
     
     Point<int> dragStartPosition;
     Point<int> lastMousePos;
     
+    
     LassoComponent<Box*> lasso;
     PopupMenu popupMenu;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Canvas)
+};
+
+
+// Graph bounds component
+struct GraphArea : public Component, public ComponentDragger
+{
+    
+    ResizableBorderComponent resizer;
+    Canvas* canvas;
+    
+    Rectangle<int> startRect;
+    
+    GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent) {
+
+        addAndMakeVisible(resizer);
+    }
+    
+    void paint(Graphics& g) override {
+        g.setColour(MainLook::highlightColour);
+        g.drawRect(getLocalBounds());
+        
+        g.setColour(MainLook::highlightColour.darker(0.8f));
+        g.drawRect(getLocalBounds().reduced(6));
+    }
+    
+    bool hitTest(int x, int y) override {
+        return !getLocalBounds().reduced(8).contains(Point<int>{x, y});
+    }
+    
+    void mouseMove(const MouseEvent& e) override {
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+    }
+    
+    void mouseDown(const MouseEvent& e) override {
+        startDraggingComponent(this, e);
+    }
+    
+    void mouseDrag(const MouseEvent& e) override {
+        dragComponent(this, e, nullptr);
+    }
+    
+    void mouseUp(const MouseEvent& e) override {
+        t_canvas* cnv = canvas->patch.getPointer();
+        // Lock first?
+        if(cnv) {
+            cnv->gl_pixwidth = getWidth();
+            cnv->gl_pixheight = getHeight();
+            cnv->gl_xmargin = getX() / 2.0f;
+            cnv->gl_ymargin = getY() / 2.0f;
+            
+            std::cout << "graphwinx:" << getX() << std::endl;
+        }
+        
+        repaint();
+    }
+    
+    void resized() override {
+        
+        t_canvas* cnv = canvas->patch.getPointer();
+        // Lock first?
+        if(cnv) {
+            cnv->gl_pixwidth = getWidth();
+            cnv->gl_pixheight = getHeight();
+            cnv->gl_xmargin = getX() / 2.0f;
+            cnv->gl_ymargin = getY() / 2.0f;
+        }
+        
+        std::cout << "graphwinx:" << getX() << std::endl;
+        
+        resizer.setBounds(getLocalBounds());
+        repaint();
+    }
 };

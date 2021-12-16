@@ -16,6 +16,7 @@ ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : 
     setEditable(false, true);
     setJustificationType(Justification::centred);
     setLookAndFeel(&clook);
+    
 };
 
 void ClickLabel::mouseDown(const MouseEvent & e)
@@ -37,11 +38,6 @@ void ClickLabel::mouseUp(const MouseEvent & e)
     
     if(e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600) {
         Edge::connectingEdge = nullptr;
-    }
-    
-    
-    if(auto* box = dynamic_cast<Box*>(getParentComponent())) {
-        box->updatePosition();
     }
 }
 

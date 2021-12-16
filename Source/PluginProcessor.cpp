@@ -31,7 +31,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 numin(2), numout(2),
 m_name("PlugData"),
 m_accepts_midi(true),
-m_produces_midi(false),
+m_produces_midi(true),
 m_is_midi_effect(false),
 m_bypass(false){
     
@@ -258,7 +258,7 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     const int nouts     = numout;
     
     const bool midi_consume = m_accepts_midi;
-    const bool midi_produce = true; //m_produces_midi;
+    const bool midi_produce = m_produces_midi;
     
     bufferin[0] = buffer.getReadPointer(0);
     bufferin[1] = buffer.getReadPointer(1);
@@ -540,17 +540,13 @@ void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBy
 
 void PlugDataAudioProcessor::loadPatch(String patch) {
     
-    String extra_info = patch.fromFirstOccurrenceOf("#X text plugdata_info:",false, false).upToFirstOccurrenceOf(";", false, false);
+    //String extra_info = patch.fromFirstOccurrenceOf("#X text plugdata_info:",false, false).upToFirstOccurrenceOf(";", false, false);
     
     // Create the pd save file
     auto temp_patch = File::createTempFile(".pd");
     temp_patch.replaceWithText(patch);
     
     const CriticalSection* lock = getCallbackLock();
-    
-    // Load the patch into libpd
-    // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
-    // Instead we can load the patch and iterate through it to create the gui
     
     lock->enter();
     

@@ -5,15 +5,19 @@
 */
 
 
+#include <m_pd.h>
+#include <m_imp.h>
+
+
 #include "Canvas.h"
 #include "Box.h"
 #include "Connection.h"
 #include "PluginProcessor.h"
 
+
 // Sorter for matching pd object order
-class TreeSorter
+struct TreeSorter
 {
-public:
     
     Array<Box*>* indexTree;
     TreeSorter(Array<Box*>* index) : indexTree(index) {
@@ -26,78 +30,6 @@ public:
         auto secondIdx = indexTree->indexOf(second);
         return (firstIdx < secondIdx) ? -1 : ((secondIdx < firstIdx) ? 1 : 0);
     }
-};
-
-// Graph bounds component
-struct GraphArea : public Component, public ComponentDragger
-{
-    
-    ResizableBorderComponent resizer;
-    Canvas* canvas;
-    
-    GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent) {
-        t_canvas* cnv = canvas->patch.getPointer();
-        if(cnv) {
-            int width = cnv->gl_pixwidth * Canvas::zoomX;
-            int height = cnv->gl_pixheight * Canvas::zoomY;
-            int x = cnv->gl_xmargin * Canvas::zoomX;
-            int y = cnv->gl_ymargin * Canvas::zoomY;
-            
-            setBounds(x, y, width, height);
-        }
-        else {
-            setBounds(0, 0, 200, 140);
-        }
-        
-        
-        addAndMakeVisible(resizer);
-    }
-    
-    void paint(Graphics& g) override {
-        g.setColour(MainLook::highlightColour);
-        g.drawRect(getLocalBounds());
-    }
-    
-    void mouseDown(const MouseEvent& e) override {
-        startDraggingComponent(this, e);
-    }
-    
-    
-    void mouseDrag(const MouseEvent& e) override {
-        dragComponent(this, e, nullptr);
-        repaint();
-    }
-    
-    void resized() override {
-        
-        t_canvas* cnv = canvas->patch.getPointer();
-        // Lock first?
-        if(cnv) {
-            cnv->gl_pixwidth = getWidth() / Canvas::zoomX;
-            cnv->gl_pixheight = getHeight() / Canvas::zoomY;
-            cnv->gl_xmargin = getX() / Canvas::zoomX;
-            cnv->gl_ymargin = getY() / Canvas::zoomY;
-        }
-        
-        
-        resizer.setBounds(getLocalBounds());
-        repaint();
-    }
-    
-    void mouseUp(const MouseEvent& e) override {
-        t_canvas* cnv = canvas->patch.getPointer();
-        // Lock first?
-        if(cnv) {
-            cnv->gl_pixwidth = getWidth() / Canvas::zoomX;
-            cnv->gl_pixheight = getHeight() / Canvas::zoomY;
-            cnv->gl_xmargin = getX() / Canvas::zoomX;
-            cnv->gl_ymargin = getY() / Canvas::zoomY;
-        }
-        
-        repaint();
-        
-    }
-    
 };
 
 //==============================================================================
@@ -125,8 +57,13 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
     setWantsKeyboardFocus(true);
     
     if(!isGraph) {
+     
+        transformLayer.addMouseListener(this, false);
+        transformLayer.addAndMakeVisible(this);
+        
         viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
-        viewport->setViewedComponent(this, false);
+        viewport->setViewedComponent(&transformLayer, false);
+        setPaintingIsUnclipped(true);
     }
     
     main.startTimer(guiUpdateMs);
@@ -168,7 +105,10 @@ void Canvas::synchronise() {
     
     for(auto& object : currentObjects) {
         
-        if(((t_gobj*)object.getPointer())->g_pd == scalar_class) continue;
+        // Don't show non-patchable objects
+        if(!patch.checkObject(&object)) continue;
+        
+        
         // Check if pd objects are already represented in the GUI
         Box* exists = nullptr;
         for(auto* box : boxPointers) {
@@ -181,11 +121,8 @@ void Canvas::synchronise() {
         if(exists) {
             auto [x, y, h, w] = object.getBounds();
             
-            // Ignore rounding errors because of zooming
-            bool updateX = abs((x * zoomX) - (int)exists->getX()) > 6.0f;
-            bool updateY = abs((y * zoomY) - (int)exists->getY()) > 6.0f;
-            
-            exists->setTopLeftPosition(updateX ? x * zoomX : exists->getX(), updateY ? y * zoomY : exists->getY());
+            exists->setTopLeftPosition(x, y);
+            exists->toBack();
         }
         else {
             auto [x, y, w, h] = object.getBounds();
@@ -219,7 +156,8 @@ void Canvas::synchronise() {
             guiSimplify(name, "hradio");
             guiSimplify(name, "vradio");
             
-            auto* newBox = boxes.add(new Box(pdObject, this, name, {(int)(x * zoomX), (int)(y * zoomY)}));
+            auto* newBox = boxes.add(new Box(pdObject, this, name, {(int)x, (int)y}));
+            newBox->toBack();
         }
     }
     
@@ -295,6 +233,7 @@ void Canvas::synchronise() {
 
     patch.deselectAll();
     
+    
     main.startTimer(guiUpdateMs);
 }
 
@@ -324,32 +263,49 @@ void Canvas::loadPatch(pd::Patch& patch) {
     synchronise();
 }
 
+bool Canvas::hitTest(int x, int y) {
+    if(x < 0 || y < 0) {
+        transformLayer.repaint();
+        return transformLayer.hitTest(x + getX(), y + getY());
+    }
+    
+    return x < getWidth() && y < getHeight();
+}
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
+
+    auto* source = e.originalComponent;
+    
     if(isGraph)  {
         auto* box = findParentComponentOfClass<Box>();
         box->dragger.setSelected(box, true);
         return;
     }
     
+    if(source == &transformLayer) {
+        source = this;
+    }
+    
+    
     if(!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
-        auto* source = e.originalComponent;
-        
+       
         dragStartPosition = e.getMouseDownPosition();
         
         if(dynamic_cast<Connection*>(source)) {
             lasso.beginLasso(e.getEventRelativeTo(this), &dragger);
         }
-        else if(source == this){
+
+        if(source == this || source == graphArea.get()){
             Edge::connectingEdge = nullptr;
-            lasso.beginLasso(e, &dragger);
+            lasso.beginLasso(e.getEventRelativeTo(this), &dragger);
             
             for(auto& con : connections) {
                 con->isSelected = false;
                 con->repaint();
             }
         }
+
     }
     else
     {
@@ -389,15 +345,10 @@ void Canvas::mouseDown(const MouseEvent& e)
                     auto patchCopy = *subpatch;
                     newCanvas->loadPatch(patchCopy);
                     
-                    auto [x, y, w, h] = subpatch->getBounds();
-                    
-                    x *= zoomX;
-                    y *= zoomY;
-                    w *= zoomX;
-                    h *= zoomY;
-                    
+                    auto [x, y, w, h] = patchCopy.getBounds();
+
                     if(isGraphChild) {
-                        newCanvas->graphArea->setBounds(x, y, std::max(w, 500), std::max(h, 500));
+                        newCanvas->graphArea->setBounds(x, y, std::max(w, 60), std::max(h, 60));
                     }
                     
                     main.addTab(newCanvas);
@@ -485,6 +436,13 @@ void Canvas::mouseDrag(const MouseEvent& e)
     }
     
     if(connectingWithDrag) repaint();
+    transformLayer.repaint();
+    
+}
+
+void Canvas::paint(Graphics&)
+{
+    transformLayer.repaint();
 }
 
 void Canvas::mouseUp(const MouseEvent& e)
@@ -526,11 +484,12 @@ void Canvas::dragCallback(int dx, int dy)
         }
     }
     
-    patch.moveObjects(objects, round((float)dx / zoomX), round((float)dy / zoomY));
+    patch.moveObjects(objects, dx, dy);
     
     checkBounds();
     main.updateUndoState();
 }
+
 
 //==============================================================================
 void Canvas::paintOverChildren (Graphics& g)
@@ -541,13 +500,33 @@ void Canvas::paintOverChildren (Graphics& g)
     {
         if (gobj->g_pd == scalar_class)
         {
-            for(auto* tmpl : TemplateComponent::allTemplates) {
-                if(tmpl->templ->t_sym == (((t_scalar*)gobj)->sc_template)) {
-                    tmpl->paintOnCanvas(g, patch.getPointer(), (t_scalar*)gobj);
+            t_scalar *x = (t_scalar *)gobj;
+            t_template *templ = template_findbyname(x->sc_template);
+            t_canvas *templatecanvas = template_findcanvas(templ);
+            t_gobj *y;
+            t_float basex, basey;
+            scalar_getbasexy(x, &basex, &basey);
+
+            if (!templatecanvas)
+            {
+                return;
+            }
+
+            for (y = templatecanvas->gl_list; y; y = y->g_next)
+            {
+                const t_parentwidgetbehavior *wb = pd_getparentwidget(&y->g_pd);
+                
+                if(!strcmp(y->g_pd->c_name->s_name, "filledcurve")) {
+                    std::cout << "boom" << std::endl;
                 }
+                
+                //std::cout << y->g_pd->c_name->s_name << std::endl;
+                if (!wb) continue;
+                
+                TemplateDraw::paintOnCanvas(g, this, x, y, basex, basey);
             }
         }
-    }
+    } 
     
     
     if(Edge::connectingEdge && Edge::connectingEdge->box->cnv == this) {
@@ -567,11 +546,15 @@ void Canvas::paintOverChildren (Graphics& g)
 
 void Canvas::mouseMove(const MouseEvent& e) {
     lastMousePos = e.getPosition();
+
+    patch.getPointer()->gl_screenx1 = e.getScreenX();
+    patch.getPointer()->gl_screeny1 = e.getScreenY();
     
     repaint();
 }
 void Canvas::resized()
 {
+    transformLayer.setBounds(getLocalBounds());
 }
 
 bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
@@ -787,6 +770,7 @@ void Canvas::redo() {
     patch.redo();
     synchronise();
     main.updateUndoState();
+
 }
 
 
@@ -810,7 +794,6 @@ void Canvas::closeAllInstances()
         tabbar.getTabbedButtonBar().setVisible(false);
         tabbar.setTabBarDepth(1);
     }
-    
 }
 
 
@@ -819,8 +802,8 @@ void Canvas::checkBounds() {
     // Check new bounds
     int minX = 0;
     int minY = 0;
-    int maxX = getWidth();
-    int maxY = getHeight();
+    int maxX = getWidth() - getX();
+    int maxY = getHeight() - getY();
 
     for(auto obj : boxes) {
         maxX = std::max<int>(maxX, (int)obj->getX() + obj->getWidth());
@@ -828,19 +811,19 @@ void Canvas::checkBounds() {
         minX = std::min<int>(minX, (int)obj->getX());
         minY = std::min<int>(minY, (int)obj->getY());
     }
-
-    if(minY < 0 || minX < 0) {
-        auto objects = std::vector<pd::Object*>();
-        for(auto box : boxes) {
-                objects.push_back(box->pdObject.get());
-                box->setTopLeftPosition(box->getX() - minX, box->getY() - minY);
-        }
-        
-        if(minY < 0) maxY += -minY;
-        if(minX < 0) maxX += -minX;
-        
-        patch.moveObjects(objects, (-minX) / zoomX, (-minY) / zoomY);
-    }
     
-    setSize(maxX, maxY);
+    //if(!isGraph) {
+        setTopLeftPosition(-minX, -minY);
+        setSize(maxX - minX, maxY - minY);
+    //}
+    
+    
+    
+    
+    if(graphArea) {
+        auto [x, y, w, h] = patch.getBounds();
+
+        
+        graphArea->setBounds(x, y, w, h);
+    }
 }

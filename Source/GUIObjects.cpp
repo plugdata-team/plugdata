@@ -73,7 +73,7 @@ GUIComponent* GUIComponent::createGui(String name, Box* parent)
         return new Subpatch(gui, parent);
     }
     if(gui.getType() == pd::Type::VuMeter) {
-        return nullptr; //new GraphOnParent(gui, parent);
+        return nullptr;
     }
     if(gui.getType() == pd::Type::Comment) {
         return new CommentComponent(gui, parent);
@@ -87,10 +87,7 @@ GUIComponent* GUIComponent::createGui(String name, Box* parent)
     if(gui.getType() == pd::Type::Mousepad) {
         return new MousePad(gui, parent);
     }
-    if(gui.getType() == pd::Type::Template) {
-        return new TemplateComponent(gui, parent);
-    }
-    
+
     return nullptr;
 }
 
@@ -192,6 +189,9 @@ pd::Gui GUIComponent::getGUI()
 BangComponent::BangComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
     addAndMakeVisible(bangButton);
+    
+    bangButton.setTriggeredOnMouseDown(true);
+    
     bangButton.onClick = [this](){
         startEdition();
         setValueOriginal(1);
@@ -207,7 +207,7 @@ void BangComponent::update()  {
 }
 
 void BangComponent::resized() {
-    bangButton.setBounds(getWidth() / 4, getHeight() / 4, getWidth() / 2, getHeight() / 2);
+    bangButton.setBounds(getLocalBounds().reduced(6));
 }
 
 // ToggleComponent
@@ -222,13 +222,11 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGu
         toggleButton.setToggleState(new_value, dontSendNotification);
         stopEdition();
     };
-    
-
 }
 
 
 void ToggleComponent::resized() {
-    toggleButton.setBounds(getWidth() / 4, getHeight() / 4, getWidth() / 2, getHeight() / 2);
+    toggleButton.setBounds(getLocalBounds().reduced(6));
 }
 
 
@@ -257,6 +255,25 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pd
     
     input.onTextChange = [this]() {
         gui.setSymbol(input.getText().toStdString());
+        
+        numLines = 1;
+        longestLine = 7;
+        
+        int currentLineLength = 0;
+        for(auto& c : input.getText().toStdString()) {
+            if(c == '\n')  {
+                numLines++;
+                longestLine = std::max(longestLine, currentLineLength);
+                currentLineLength = 0;
+            }
+            else {
+                currentLineLength++;
+            }
+        }
+        if(numLines == 1) longestLine = std::max(longestLine, currentLineLength);
+        
+        
+        box->resized();
     };
     
     input.setMultiLine(true);
@@ -286,6 +303,8 @@ void MessageComponent::updateValue()
         {
           
             lastMessage = v;
+            
+            
             update();
             //repaint();
         }
@@ -581,9 +600,13 @@ GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
     subpatch = gui.getPatch();
     updateCanvas();
     
-    subpatch.getPointer()->gl_pixwidth = 70;
-    subpatch.getPointer()->gl_pixheight = 70;
+    //subpatch.getPointer()->gl_pixwidth = 140;
+    //subpatch.getPointer()->gl_pixheight = 140;
+    
+    bestH = subpatch.getPointer()->gl_pixheight;
+    bestW = subpatch.getPointer()->gl_pixwidth;
 
+    box->resized();
     resized();
     
     
@@ -603,8 +626,8 @@ void GraphOnParent::resized()
 }
 
 void GraphOnParent::paint(Graphics& g) {
-    g.setColour(findColour(TextButton::buttonColourId));
-    g.fillRect(getLocalBounds().reduced(1));
+    //g.setColour(findColour(TextButton::buttonColourId));
+    //g.fillRect(getLocalBounds().reduced(1));
     
 }
 
@@ -621,10 +644,12 @@ void GraphOnParent::updateCanvas() {
         
         auto [x, y, w, h] = getPatch()->getBounds();
         
-        x *= Canvas::zoomX;
-        y *= Canvas::zoomY;
-        w *= Canvas::zoomX;
-        h *= Canvas::zoomY;
+        canvas->setBounds(-x, -y, w + x, h + y);
+        
+        bestH = w;
+        bestW = h;
+
+        box->resized();
         
         // Make sure that the graph doesn't become the current canvas
         box->cnv->main.getCurrentCanvas()->patch.setCurrent();
@@ -636,16 +661,13 @@ void GraphOnParent::updateCanvas() {
     } */
     
     if(canvas) {
-        auto const* pdCanvas = subpatch.getPointer();
-        
         auto [x, y, w, h] = getPatch()->getBounds();
-        
-        x *= Canvas::zoomX;
-        y *= Canvas::zoomY;
-        w *= Canvas::zoomX;
-        h *= Canvas::zoomY;
-        
+
+        //x /= 2.0f;
+        //y /= 2.0f;
+        canvas->checkBounds();
         canvas->setBounds(-x, -y, w + x, h + y);
+        
         bestW = w;
         bestH = h;
         
@@ -672,7 +694,7 @@ void GraphOnParent::updateValue() {
     }
 }
 
-// Subpatch, phony UI
+// Subpatch, phony GUI object
 Subpatch::Subpatch(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
     subpatch = gui.getPatch();
@@ -685,17 +707,13 @@ Subpatch::~Subpatch() {
 CommentComponent::CommentComponent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, box)
 {
     setInterceptsMouseClicks(false, false);
-    edited = true;
+    setVisible(false);
+    
+
 }
 
 void CommentComponent::paint(Graphics& g)
 {
-    const auto fheight = gui.getFontHeight();
-    //auto const ft = PdGuiLook::getFont(gui.getFontName()).withPointHeight(fheight);
-    auto ft = Font(13);
-    g.setFont(ft);
-    g.setColour(Colours::black);
-    g.drawMultiLineText(gui.getText(), 0, static_cast<int>(ft.getAscent()), getWidth());
 }
 
 MousePad::MousePad(pd::Gui gui, Box* box) : GUIComponent(gui, box)
@@ -735,13 +753,17 @@ void MousePad::mouseDown(const MouseEvent& e)  {
     //glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
 }
 
+void MousePad::mouseDrag(const MouseEvent& e)  {
+    mouseMove(e);
+}
+
 void MousePad::mouseMove(const MouseEvent& e)  {
     auto* glist = gui.getPatch().getPointer();
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
     //int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
     x->x_x = (e.getPosition().x / (float)getWidth()) * 127.0f;
-    x->x_y = (getHeight() - (e.getPosition().y / (float)getHeight())) * 127.0f;
+    x->x_y = (e.getPosition().y / (float)getHeight()) * 127.0f;
 
     SETFLOAT(at, x->x_x);
     SETFLOAT(at+1, x->x_y);
@@ -759,60 +781,7 @@ void MousePad::mouseUp(const MouseEvent& e)  {
 
 }
 
-TemplateComponent::TemplateComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box)
-{
-    auto* glist = box->cnv->patch.getPointer();
-    
 
-    t_symbol *s1 = gensym("struct");
-
-    t_gobj *gobj;
-    
-    for (gobj = glist->gl_list; gobj; gobj = gobj->g_next)
-    {
-        
-        t_object *ob = pd_checkobject(&gobj->g_pd);
-        t_atom *argv;
-        if (!ob || ob->te_type != T_OBJECT ||
-            binbuf_getnatom(ob->te_binbuf) < 2)
-            continue;
-        argv = binbuf_getvec(ob->te_binbuf);
-        
-        if (argv[0].a_type != A_SYMBOL || argv[0].a_w.w_symbol != s1)
-                continue;
-        
-        // This fix is kinda ugly, not sure if thhis always works...
-        if(argv[1].a_type == A_DOLLSYM) {
-            argv[1].a_w.w_symbol = canvas_realizedollar(glist, argv[1].a_w.w_symbol);
-            argv[1].a_type = A_SYMBOL;
-            
-            std::string new_symbol = "pd-" + std::string(argv[1].a_w.w_symbol->s_name);
-            argv[1].a_w.w_symbol = gensym(new_symbol.c_str());
-        }
-        
-        if(argv[1].a_type != A_SYMBOL) continue;
-    
-        templ = template_findbyname(argv[1].a_w.w_symbol);
-        
-        if(templ) break;
-    }
-    x = static_cast<t_curve*>(getGUI().getPointer());
-    
-    // This logic is kinda correct but we don't find the correct canvas yet...
-    target = template_findcanvas(templ);
-    
-    allTemplates.add(this);
-}
-
-void TemplateComponent::paint(Graphics& g) {
-    
-};
-
-
-void TemplateComponent::updateValue() {
-    
-    
-};
 
 
 #define CLOSED 1      /* polygon */
@@ -861,12 +830,14 @@ static void numbertocolor(int n, char *s)
 }
 
 
-void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* scalar)
+void TemplateDraw::paintOnCanvas(Graphics &g, Canvas* canvas, t_scalar* scalar, t_gobj* obj, int baseX, int baseY)
 {
-    //auto* glist = box->cnv->patch.getPointer();
+    auto* glist = canvas->patch.getPointer();
+    auto* x = (t_curve*)obj;
+    auto* templ = template_findbyname(scalar->sc_template);
+    
+    
     bool vis = true;
-    float basex = 0;
-    float basey = 0;
 
     int i, n = x->x_npoints;
     t_fielddesc *f = x->x_vec;
@@ -885,6 +856,9 @@ void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* sc
         {
             int flags = x->x_flags, closed = (flags & CLOSED);
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
+            
+
+            // TODO: use width to fix!
             char outline[20], fill[20];
             int pix[200];
             if (n > 100)
@@ -895,12 +869,18 @@ void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* sc
                 have to allocate memory here. */
             for (i = 0, f = x->x_vec; i < n; i++, f += 2)
             {
-                pix[2*i] = glist_xtopixels(glist, basex + fielddesc_getcoord(f, templ, data, 1));
-                pix[2*i+1] = glist_ytopixels(glist, basey + fielddesc_getcoord(f+1, templ, data, 1));
+                glist->gl_havewindow = canvas->isGraphChild;
+                glist->gl_isgraph = canvas->isGraph;
+                float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
+                float yCoord = (baseY + fielddesc_getcoord(f+1, templ, data, 1))  / glist->gl_pixheight;
+                
+                pix[2*i] = xCoord * canvas->getWidth();
+                pix[2*i+1] = yCoord * canvas->getHeight();
             }
             if (width < 1) width = 1;
             if (glist->gl_isgraph)
                 width *= glist_getzoom(glist);
+            
             numbertocolor(fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1), outline);
             if (flags & CLOSED)
             {
@@ -911,10 +891,10 @@ void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* sc
             }
             //else sys_vgui(".x%lx.c create line\\\n", glist_getcanvas(glist));
             
-            
             //sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
             
-            if(box->textLabel.getText().contains("polygon")) {
+            String objName = String::fromUTF8(x->x_obj.te_g.g_pd->c_name->s_name);
+            if(flags & CLOSED) {
                 toDraw.startNewSubPath(pix[0], pix[1]);
                 for (i = 1; i < n; i++) {
                     toDraw.lineTo(pix[2*i], pix[2*i+1]);
@@ -933,7 +913,7 @@ void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* sc
                     isCircle = isCircle && pix[2*i+1] == pix[1];
                 }
                 if(isCircle) {
-                    toDraw.addEllipse(pix[0] - (width / 2.0f), pix[1] - (width / 2.0f), width, width);
+                    toDraw.addEllipse(pix[0] - (width / 4.0f), pix[1] - (width / 4.0f),  width / 2.0f, width / 2.0f);
                 }
                 else {
                     for (i = 1; i < n; i++) {
@@ -960,7 +940,7 @@ void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* sc
             //sys_vgui("-width %f\\\n", width);
  
             
-            if(box->textLabel.getText().contains("fill")) {
+            if(objName.contains("fill")) {
                 g.fillPath(toDraw);
                 
             }
@@ -968,16 +948,7 @@ void TemplateComponent::paintOnCanvas(Graphics &g, t_canvas* glist, t_scalar* sc
                 g.strokePath(toDraw, PathStrokeType(width));
             }
             
-            
-            
-            if (flags & CLOSED) {
-                //sys_vgui("-fill %s -outline %s\\\n", fill, outline);
-                
-            }
-            
-            else {
-                //sys_vgui("-fill %s\\\n", outline);
-            }
+
             
             if (flags & BEZ) {
                 //sys_vgui("-smooth 1\\\n")
