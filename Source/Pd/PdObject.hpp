@@ -45,7 +45,8 @@ enum class Type : size_t
     Subpatch         = 16,
     Mousepad         = 17,
     Mouse            = 18,
-    Keyboard         = 19
+    Keyboard         = 19,
+    AtomList         = 20
 };
 
 class Object
@@ -75,6 +76,9 @@ public:
     
     //! @brief The name of the Object.
     std::string getName() const;
+    
+    //! @brief The name of the help file
+    std::string getHelp() const;
     
     virtual inline Type getType() const noexcept {
         return Type::Undefined;

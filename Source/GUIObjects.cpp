@@ -23,6 +23,8 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)  : box(parent), processor
     min = gui.getMinimum();
     max = gui.getMaximum();
     
+
+    
     setLookAndFeel(&guiLook);
 }
 
@@ -63,6 +65,10 @@ GUIComponent* GUIComponent::createGui(String name, Box* parent)
     if(gui.getType() == pd::Type::Number) {
         return new NumboxComponent(gui, parent);
     }
+    if(gui.getType() == pd::Type::AtomList)
+     {
+         return new ListComponent(gui, parent);
+     }
     if(gui.getType() == pd::Type::Array) {
         return new ArrayComponent(gui, parent);
     }
@@ -203,12 +209,14 @@ BangComponent::BangComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, p
         setValueOriginal(1);
         stopEdition();
     };
+    
+   // initColours();
 }
 
 void BangComponent::update()  {
     if(getValueOriginal() > std::numeric_limits<float>::epsilon()) {
         bangButton.setToggleState(true, dontSendNotification);
-        startTimer(Canvas::guiUpdateMs);
+        startTimer(bangInterrupt);
     }
 }
 
@@ -221,6 +229,7 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGu
 {
     addAndMakeVisible(toggleButton);
     
+    
     toggleButton.onClick = [this](){
         startEdition();
         auto new_value = 1.f - getValueOriginal();
@@ -228,6 +237,8 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGu
         toggleButton.setToggleState(new_value, dontSendNotification);
         stopEdition();
     };
+    
+    initColours();
 }
 
 
@@ -262,24 +273,6 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pd
     input.onTextChange = [this]() {
         gui.setSymbol(input.getText().toStdString());
         
-        numLines = 1;
-        longestLine = 7;
-        
-        int currentLineLength = 0;
-        for(auto& c : input.getText().toStdString()) {
-            if(c == '\n')  {
-                numLines++;
-                longestLine = std::max(longestLine, currentLineLength);
-                currentLineLength = 0;
-            }
-            else {
-                currentLineLength++;
-            }
-        }
-        if(numLines == 1) longestLine = std::max(longestLine, currentLineLength);
-        
-        
-        box->resized();
     };
     
     input.setMultiLine(true);
@@ -307,7 +300,25 @@ void MessageComponent::updateValue()
         
         if(lastMessage != v && !String(v).startsWith("click"))
         {
-          
+            numLines = 1;
+            longestLine = 7;
+            
+            int currentLineLength = 0;
+            for(auto& c : v) {
+                if(c == '\n')  {
+                    numLines++;
+                    longestLine = std::max(longestLine, currentLineLength);
+                    currentLineLength = 0;
+                }
+                else {
+                    currentLineLength++;
+                }
+            }
+            if(numLines == 1) longestLine = std::max(longestLine, currentLineLength);
+            
+            
+            box->resized();
+            
             lastMessage = v;
             
             
@@ -358,6 +369,91 @@ void NumboxComponent::update()  {
     input.setText(String(getValueOriginal()), dontSendNotification);
 }
 
+
+ListComponent::ListComponent(pd::Gui gui, Box* parent) : GUIComponent(gui, parent) {
+    static const int border = 1;
+    
+    label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
+    label.setMinimumHorizontalScale(1.f);
+    label.setJustificationType(Justification::centredLeft);
+    label.setBorderSize(BorderSize<int>(border+2, border, border, border));
+    label.setText(String(getValueOriginal()), NotificationType::dontSendNotification);
+    label.setEditable(false, false);
+    label.setInterceptsMouseClicks(false, false);
+    label.setColour(Label::textColourId, Colour(static_cast<uint32>(gui.getForegroundColor())));
+    setInterceptsMouseClicks(true, false);
+    addAndMakeVisible(label);
+    
+    label.onEditorHide = [this]()
+    {
+        auto const newValue = label.getText().getFloatValue();
+        if(std::abs(newValue - getValueOriginal()) > std::numeric_limits<float>::epsilon())
+        {
+            startEdition();
+            setValueOriginal(newValue);
+            stopEdition();
+            label.setText(juce::String(getValueOriginal()), juce::NotificationType::dontSendNotification);
+        }
+    };
+    
+    label.onEditorShow = [this]()
+    {
+        auto* editor = label.getCurrentTextEditor();
+        if(editor != nullptr)
+        {
+            editor->setIndents(1, 2);
+            editor->setBorder(juce::BorderSize<int>(0));
+        }
+    };
+    
+    updateValue();
+    
+}
+
+void ListComponent::paint(juce::Graphics& g) {
+     static auto const border = 1.0f;
+     const float h = static_cast<float>(getHeight());
+     const float w = static_cast<float>(getWidth());
+     const float o = h * 0.25f;
+     juce::Path p;
+     p.startNewSubPath(0.5f, 0.5f);
+     p.lineTo(0.5f, h - 0.5f);
+     p.lineTo(w - o, h - 0.5f);
+     p.lineTo(w - 0.5f, h - o);
+     p.lineTo(w - 0.5f, o);
+     p.lineTo(w - o, 0.5f);
+     p.closeSubPath();
+     g.setColour(juce::Colour(static_cast<uint32>(gui.getBackgroundColor())));
+     g.fillPath(p);
+     g.setColour(juce::Colours::black);
+     g.strokePath(p, juce::PathStrokeType(border));
+}
+
+void ListComponent::update() {
+    
+    if(edited == false && !label.isBeingEdited())
+     {
+         auto const array = gui.getList();
+         juce::String message;
+         for(auto const& atom : array)
+         {
+             if(message.isNotEmpty())
+             {
+                 message += " ";
+             }
+             if(atom.isFloat())
+             {
+                 message += juce::String(atom.getFloat());
+             }
+             else if(atom.isSymbol())
+             {
+                 message += juce::String(atom.getSymbol());
+             }
+         }
+         label.setText(message, juce::NotificationType::dontSendNotification);
+     }
+}
+
 // SliderComponent
 SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
@@ -391,6 +487,8 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent) :
     slider.onDragEnd = [this]() {
         stopEdition();
     };
+    
+    initColours();
 
 }
 
@@ -423,6 +521,8 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent) : G
             setValueOriginal(i);
         };
     }
+    
+    initColours();
 
 }
 
@@ -649,6 +749,7 @@ void GraphOnParent::updateCanvas() {
         canvas->loadPatch(subpatch);
         
         auto [x, y, w, h] = getPatch()->getBounds();
+        
         
         canvas->setBounds(-x, -y, w + x, h + y);
         
@@ -1012,26 +1113,12 @@ void TemplateDraw::paintOnCanvas(Graphics &g, Canvas* canvas, t_scalar* scalar, 
                 }
                 toDraw.lineTo(pix[0], pix[1]);
             }
-            else {
+            else { 
                 toDraw.startNewSubPath(pix[0], pix[1]);
-                
-                bool isCircle = true;
-                
-                // People often make circles in pd by creating a curve with the same xy values, and then setting a width
-                // This doesn't work in juce so we hack our way around that
                 for (i = 1; i < n; i++) {
-                    isCircle = isCircle && pix[2*i] == pix[0];
-                    isCircle = isCircle && pix[2*i+1] == pix[1];
+                    toDraw.lineTo(pix[2*i], pix[2*i+1]);
                 }
-                if(isCircle) {
-                    toDraw.addEllipse(pix[0] - (width / 4.0f), pix[1] - (width / 4.0f),  width / 2.0f, width / 2.0f);
-                }
-                else {
-                    for (i = 1; i < n; i++) {
-                        toDraw.lineTo(pix[2*i], pix[2*i+1]);
-                    }
-                }
-                
+
             }
             
             Colour juceColourOutline =  Colour::fromString("FF" + String::fromUTF8(outline + 1));

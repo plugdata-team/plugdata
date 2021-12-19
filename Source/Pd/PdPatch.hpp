@@ -103,12 +103,10 @@ public:
     
     void keyPress(int keycode, int shift);
     
-    static inline int zoom = 2;
+    static inline float zoom = 1.7f;
     
 private:
     Patch(void* ptr, Instance* instance) noexcept;
-    
-
     
     void*     m_ptr      = nullptr;
     Instance* m_instance = nullptr;

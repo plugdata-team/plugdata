@@ -10,6 +10,8 @@ extern "C"
 {
 #include <z_libpd.h>
 #include <m_pd.h>
+#include <m_imp.h>
+#include <s_stuff.h>
 #include <g_canvas.h>
 #include "x_libpd_extra_utils.h"
 }
@@ -88,12 +90,48 @@ std::array<int, 4> Object::getBounds() const noexcept
             //y -= cnv->gl_ymargin;
         }
         
-        return {x * Patch::zoom, y * Patch::zoom, w, h};
+        return {int(x * Patch::zoom), int(y * Patch::zoom), w, h};
     }
     return {0, 0, 0, 0};
 }
 
+//! @brief The name of the help file
+std::string Object::getHelp() const
+{
+    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    static File helpDir = appDir.getChildFile("Documentation/5.reference/");
+    
+    auto* pdclass = pd_class((t_pd*)m_ptr);
+    auto* name = class_gethelpname(pdclass);
+    auto* dir = class_gethelpdir(pdclass);
 
+    char realname[MAXPDSTRING], dirbuf[MAXPDSTRING];
+        /* make up a silly "dir" if none is supplied */
+    const char *usedir = (*dir ? dir :  helpDir.getFullPathName().toRawUTF8());
+
+        /* 1. "objectname-help.pd" */
+    strncpy(realname, name, MAXPDSTRING-10);
+    realname[MAXPDSTRING-10] = 0;
+    if (strlen(realname) > 3 && !strcmp(realname+strlen(realname)-3, ".pd"))
+        realname[strlen(realname)-3] = 0;
+    strcat(realname, "-help.pd");
+    
+    if(File(usedir).getChildFile(realname).existsAsFile()) {
+        return File(usedir).getChildFile(realname).getFullPathName().toStdString();
+    }
+
+        /* 2. "help-objectname.pd" */
+    strcpy(realname, "help-");
+    strncat(realname, name, MAXPDSTRING-10);
+    realname[MAXPDSTRING-1] = 0;
+    
+    if(File(dir).getChildFile(realname).existsAsFile()) {
+        
+        return File(dir).getChildFile(realname).getFullPathName().toStdString();
+    }
+    
+    return std::string();
+}
 
 
 

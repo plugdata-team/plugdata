@@ -42,15 +42,9 @@ public:
     
     void mouseDown(const MouseEvent& e) override;
     
-    void deleteListeners();
-    
     void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) override;
     
-    virtual void componentBeingDeleted(Component& component) override;
-
 private:
-    
-    bool deleted = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Connection)
 };

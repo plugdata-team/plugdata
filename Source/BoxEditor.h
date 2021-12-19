@@ -124,9 +124,6 @@ public:
         setLookAndFeel(nullptr);
     }
     
-    void onChange(String& newInput);
-
-    
     void mouseDown(const MouseEvent & e) override;
     void mouseUp(const MouseEvent & e) override;
     void mouseDrag(const MouseEvent & e) override;

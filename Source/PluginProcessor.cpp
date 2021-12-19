@@ -17,7 +17,7 @@
 
 
 //==============================================================================
-PlugDataAudioProcessor::PlugDataAudioProcessor()
+PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
 #ifndef JucePlugin_PreferredChannelConfigurations
 : AudioProcessor (BusesProperties()
 #if ! JucePlugin_IsMidiEffect
@@ -53,21 +53,28 @@ m_bypass(false){
     
     setCallbackLock(&AudioProcessor::getCallbackLock());
     
-    LookAndFeel::setDefaultLookAndFeel(&mainLook);
+    // Help patches have to run on their own instance, but not have their own console
+    // This is a woraround that could be solved in a nicer way
+    if(externalConsole) {
+        console = externalConsole;
+        ownsConsole = false;
+    }
+    else {
+        LookAndFeel::setDefaultLookAndFeel(&mainLook);
+        console = new Console(LOG_STDOUT, LOG_STDOUT);
+        ownsConsole = true;
+    }
     
-    
-    console.reset(new Console(LOG_STDOUT, LOG_STDOUT));
     dequeueMessages();
-    
     processMessages();
-    
-    
-    
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
-    LookAndFeel::setDefaultLookAndFeel(nullptr);
+    if(ownsConsole) {
+        delete console;
+    }
+    //LookAndFeel::setDefaultLookAndFeel(nullptr);
 }
 
 //==============================================================================
@@ -236,6 +243,15 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
     
     process(processingBuffer, midiMessages);
+    
+    // Handle audio in help files
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        for(auto& cnv : editor->canvases) {
+            if(cnv->aux_instance) {
+                cnv->aux_instance->process(processingBuffer, midiMessages);
+            }
+        }
+    }
     
     buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
     if(totalNumOutputChannels == 2) {
@@ -502,7 +518,7 @@ bool PlugDataAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
-    auto* editor = new PlugDataPluginEditor(*this, console.get());
+    auto* editor = new PlugDataPluginEditor(*this, console);
     auto* cnv = editor->canvases.add(new Canvas(*editor, false));
     cnv->title = "Untitled Patcher";
     editor->mainCanvas = cnv;
@@ -542,15 +558,21 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     
     //String extra_info = patch.fromFirstOccurrenceOf("#X text plugdata_info:",false, false).upToFirstOccurrenceOf(";", false, false);
     
-    // Create the pd save file
-    auto temp_patch = File::createTempFile(".pd");
-    temp_patch.replaceWithText(patch);
+    // Load from content or location
+    File patchFile;
+    if(File(patch).existsAsFile() && patch.endsWith(".pd")) {
+        patchFile = File(patch);
+    }
+    else {
+        patchFile = File::createTempFile(".pd");
+        patchFile.replaceWithText(patch);
+    }
     
     const CriticalSection* lock = getCallbackLock();
     
     lock->enter();
     
-    openPatch(temp_patch.getParentDirectory().getFullPathName().toStdString(), temp_patch.getFileName().toStdString());
+    openPatch(patchFile.getParentDirectory().getFullPathName().toStdString(), patchFile.getFileName().toStdString());
     
     lock->exit();
     

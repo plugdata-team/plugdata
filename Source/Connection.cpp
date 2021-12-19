@@ -66,10 +66,6 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
 
 Connection::~Connection()
 {
-    deleteListeners();
-}
-
-void Connection::deleteListeners() {
     if(start) {
         start->removeComponentListener(this);
     }
@@ -77,6 +73,7 @@ void Connection::deleteListeners() {
         end->removeComponentListener(this);
     }
 }
+
 //==============================================================================
 void Connection::paint (Graphics& g)
 {
@@ -137,14 +134,4 @@ void Connection::resized()
         path.lineTo(pend.x, pend.y);
     
     repaint();
-}
-
-
-void Connection::componentBeingDeleted(Component& component) {
-    deleteListeners();
-    
-    if(!deleted) {
-        deleted = true;
-        //getParent().removeChild(getObjectState(), nullptr);
-    }
 }

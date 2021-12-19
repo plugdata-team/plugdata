@@ -217,11 +217,11 @@ struct PdGuiLook : public MainLook
         auto cornerSize = 6.0f;
         auto bounds = button.getLocalBounds().toFloat();//.reduced (0.5f, 0.5f);
 
-        auto baseColour = Colours::transparentBlack;
+        auto baseColour =  findColour(TextButton::buttonColourId);
 
-        auto highlightColour = MainLook::highlightColour;
+        auto highlightColour = findColour(TextButton::buttonOnColourId);
         
-        if (shouldDrawButtonAsDown)
+        if (shouldDrawButtonAsDown || button.getToggleState())
             baseColour = highlightColour;
         
         baseColour = baseColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)

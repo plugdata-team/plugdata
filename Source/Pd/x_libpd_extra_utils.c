@@ -111,6 +111,12 @@ static unsigned int convert_from_iem_color(int const color)
     return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
 }
 
+
+static unsigned int convert_to_iem_color(int r, int g, int b)
+{
+    return -(float)(r*65536 + g*256 + b) - 1;
+}
+
 unsigned int libpd_iemgui_get_background_color(void* ptr)
 {
     return convert_from_iem_color(((t_iemgui*)ptr)->x_bcol);
@@ -119,6 +125,16 @@ unsigned int libpd_iemgui_get_background_color(void* ptr)
 unsigned int libpd_iemgui_get_foreground_color(void* ptr)
 {
     return convert_from_iem_color(((t_iemgui*)ptr)->x_fcol);
+}
+
+void libpd_iemgui_set_background_color(void* ptr, int r, int g, int b)
+{
+    ((t_iemgui*)ptr)->x_bcol = convert_to_iem_color(r, g, b);
+}
+
+void libpd_iemgui_set_foreground_color(void* ptr, int r, int g, int b)
+{
+    ((t_iemgui*)ptr)->x_fcol = convert_to_iem_color(r, g, b);
 }
 
 float libpd_get_canvas_font_height(t_canvas* cnv)

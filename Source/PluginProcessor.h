@@ -23,7 +23,7 @@ class PlugDataAudioProcessor  : public AudioProcessor, public pd::Instance
     
 public:
     //==============================================================================
-    PlugDataAudioProcessor();
+    PlugDataAudioProcessor(Console* console = nullptr);
     ~PlugDataAudioProcessor() override;
 
     
@@ -103,7 +103,7 @@ public:
     }
     void loadPatch(String patch);
     
-    std::unique_ptr<Console> console;
+    Console* console;
     
     int lastUIWidth = 900, lastUIHeight = 600;
     
@@ -120,10 +120,18 @@ public:
 
     pd::Library objectLibrary;
     
+    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
+    static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    
+    static inline File abstractions = appDir.getChildFile("Abstractions");
+    
+    
+    
 private:
     
     void processInternal();
 
+    bool ownsConsole;
     
     String const            m_name              = String("PlugData");
     bool const              m_accepts_midi      = true;
@@ -143,12 +151,6 @@ private:
     uint8                    m_midibyte_buffer[512];
     size_t                   m_midibyte_index = 0;
 
-    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
-    static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
-    
-    static inline File abstractions = appDir.getChildFile("Abstractions");
-    
-    
     const CriticalSection* audioLock;
     double samplerate;
     

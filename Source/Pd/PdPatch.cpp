@@ -65,7 +65,7 @@ std::array<int, 4> Patch::getBounds() const noexcept
         
         if(cnv->gl_isgraph)
         {
-            return {cnv->gl_xmargin * 2, cnv->gl_ymargin * 2, cnv->gl_pixwidth, cnv->gl_pixheight};
+            return {int(cnv->gl_xmargin * pd::Patch::zoom) + 4, int(cnv->gl_ymargin * pd::Patch::zoom) + 4, cnv->gl_pixwidth, cnv->gl_pixheight};
         }
     }
     return {0, 0, 0, 0};

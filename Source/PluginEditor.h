@@ -9,6 +9,7 @@
 
 #include "LookAndFeel.h"
 #include "Console.h"
+#include "Inspector.h"
 
 
 #include <JuceHeader.h>
@@ -37,6 +38,7 @@ struct TabComponent : public TabbedComponent
 
     
 };
+
 
 class Canvas;
 class PlugDataAudioProcessor;
@@ -84,6 +86,7 @@ public:
     AffineTransform transform;
     
     OwnedArray<Canvas> canvases;
+    Inspector inspector;
     
 private:
     
@@ -98,9 +101,9 @@ private:
     
     bool sidebarHidden = false;
 
-
-
-    std::array<TextButton, 7> toolbarButtons = {TextButton(CharPointer_UTF8("\xef\x85\x9b")), TextButton(CharPointer_UTF8("\xef\x81\xbb")), TextButton(CharPointer_UTF8("\xef\x80\x99")), TextButton(CharPointer_UTF8("\xef\x83\xa2")), TextButton(CharPointer_UTF8("\xef\x80\x9e")), TextButton(CharPointer_UTF8("\xef\x81\xa7")), TextButton(CharPointer_UTF8("\xef\x81\x94"))};
+    std::array<TextButton, 9> toolbarButtons = {TextButton(CharPointer_UTF8("\xef\x85\x9b")), TextButton(CharPointer_UTF8("\xef\x81\xbb")), TextButton(CharPointer_UTF8("\xef\x80\x99")), TextButton(CharPointer_UTF8("\xef\x83\xa2")), TextButton(CharPointer_UTF8("\xef\x80\x9e")), TextButton(CharPointer_UTF8("\xef\x81\xa7")), TextButton(CharPointer_UTF8("\xef\x81\x94")),
+        TextButton(CharPointer_UTF8 ("\xef\x84\xa0")), TextButton(CharPointer_UTF8 ("\xef\x87\x9e"))
+    };
     
     TextButton& hideButton = toolbarButtons[6];
     
@@ -110,6 +113,8 @@ private:
     
     int dragStartWidth = 0;
     bool draggingSidebar = false;
+    
+    Array<TextButton> sidebarSelectors = {};
 
     ToolbarLook toolbarLook;
     StatusbarLook statusbarLook = StatusbarLook(true, 1.4);
@@ -119,6 +124,8 @@ private:
     
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;
+    
+
     
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugDataPluginEditor)
