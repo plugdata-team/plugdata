@@ -35,7 +35,9 @@ struct Library
     
     std::vector<std::string> autocomplete(std::string query);
     
+    
     TrieNode* tree;
+    
 };
 
 

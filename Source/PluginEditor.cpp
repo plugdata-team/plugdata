@@ -57,6 +57,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addAndMakeVisible(tabbar);
     addAndMakeVisible(console);
     
+    addChildComponent(inspector);
+    
     hideHeadersButton.setClickingTogglesState(true);
     hideHeadersButton.setConnectedEdges(12);
     hideHeadersButton.setLookAndFeel(&statusbarLook);
@@ -131,17 +133,23 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         saveProject();
     };
     
+    //  Undo button
     toolbarButtons[3].onClick = [this]() {
        
         getCurrentCanvas()->undo();
     };
     
+    // Redo button
     toolbarButtons[4].onClick = [this]() {
         getCurrentCanvas()->redo();
     };
     
+    // New object button
     toolbarButtons[5].onClick = [this]() {
         PopupMenu menu;
+        menu.addItem (15, "Empty Object");
+        menu.addSeparator();
+        
         menu.addItem (1, "Numbox");
         menu.addItem (2, "Message");
         menu.addItem (3, "Bang");
@@ -250,9 +258,24 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     hideButton.setConnectedEdges(12);
     
+    //  Open console
+    toolbarButtons[7].onClick = [this]() {
+        console->setVisible(true);
+        inspector.setVisible(false);
+    };
+    
+    // Open inspector
+    toolbarButtons[8].onClick = [this]() {
+        console->setVisible(false);
+        inspector.setVisible(true);
+    };
+    
     hideButton.onClick = [this](){
         sidebarHidden = hideButton.getToggleState();
         hideButton.setButtonText(sidebarHidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
+        
+        toolbarButtons[7].setVisible(!sidebarHidden);
+        toolbarButtons[8].setVisible(!sidebarHidden);
         
         repaint();
         resized();
@@ -328,6 +351,9 @@ void PlugDataPluginEditor::resized()
     console->setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
     console->toFront(false);
     
+    inspector.setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
+    inspector.toFront(false);
+    
     tabbar.setBounds(0, sbarY, getWidth() - sWidth, getHeight() - sbarY - statusbarHeight);
     tabbar.toFront(false);
     
@@ -337,7 +363,8 @@ void PlugDataPluginEditor::resized()
     int jumpPositions[2] = {3, 5};
     int idx = 0;
     int toolbarPosition = 0;
-    for(auto& button : toolbarButtons) {
+    for(int b = 0; b < 7; b++) {
+        auto& button = toolbarButtons[b];
         int spacing = (25 * (idx >= jumpPositions[0])) +  (25 * (idx >= jumpPositions[1])) + 10;
         button.setBounds(toolbarPosition + spacing, 0, 70, toolbarHeight);
         toolbarPosition += 70;
@@ -345,6 +372,8 @@ void PlugDataPluginEditor::resized()
     }
     
     hideButton.setBounds(std::min(getWidth() - sWidth, getWidth() - 80), 0, 70, toolbarHeight);
+    toolbarButtons[7].setBounds(std::min(getWidth() - sWidth + 90, getWidth() - 80), 0, 70, toolbarHeight);
+    toolbarButtons[8].setBounds(std::min(getWidth() - sWidth + 160, getWidth() - 80), 0, 70, toolbarHeight);
     
     hideHeadersButton.setBounds(8, getHeight() - 27, 27, 27);
     connectionStyleButton.setBounds(38, getHeight() - 27, 27, 27);
@@ -389,7 +418,7 @@ void PlugDataPluginEditor::openProject() {
         
         if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
             tabbar.clearTabs();
-            pd.loadPatch(openedFile.loadFileAsString());
+            pd.loadPatch(openedFile.getFullPathName());
         }
     };
     
@@ -399,7 +428,7 @@ void PlugDataPluginEditor::openProject() {
             if(result == 2) {
                 saveProject([this, openFunc]() mutable {
                     openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
-                });
+                }); 
             }
             else if(result != 0) {
                 openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
@@ -412,11 +441,8 @@ void PlugDataPluginEditor::openProject() {
 }
 
 void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
-
-    
     auto to_save = pd.getCanvasContent();
 
-    
     saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, nestedCallback](const FileChooser &f) mutable {
         
         File result = saveChooser.getResult();
@@ -555,5 +581,5 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
     tabbar.repaint();
     
     cnv->setVisible(true);
-    cnv->setBounds(0, 0, 1000, 700);
+    //cnv->setBounds(0, 0, 1000, 700);
 }

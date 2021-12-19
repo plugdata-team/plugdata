@@ -171,7 +171,7 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
             {
                 m_type = Type::Array;
             }
-            if(static_cast<t_canvas*>(ptr)->gl_isgraph) {
+            else if(static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 m_type = Type::GraphOnParent;
             }
             else { // abstraction or subpatch
@@ -351,6 +351,47 @@ void Gui::setValue(float value) noexcept
     m_instance->enqueueDirectMessages(m_ptr, value);
     
 }
+
+std::vector<Atom> Gui::getList() const noexcept
+{
+    if(!m_ptr || m_type != Type::AtomList)
+        return {};
+    else
+    {
+        std::vector<Atom> array;
+        m_instance->setThis();
+        
+        int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(m_ptr)->a_text.te_binbuf);
+        t_atom *av = binbuf_getvec(static_cast<t_fake_gatom*>(m_ptr)->a_text.te_binbuf);
+        array.reserve(ac);
+        for(int i = 0; i < ac; ++i)
+        {
+            if(av[i].a_type == A_FLOAT)
+            {
+                array.push_back({atom_getfloat(av+i)});
+            }
+            else if(av[i].a_type == A_SYMBOL)
+            {
+                array.push_back({atom_getsymbol(av+i)->s_name});
+            }
+            else
+            {
+                array.push_back({});
+            }
+        }
+        return array;
+    }
+}
+
+void Gui::setList(std::vector<Atom> const& value) noexcept
+{
+    if(!m_ptr || m_type != Type::AtomList)
+        return;
+    
+    m_instance->enqueueDirectMessages(m_ptr, value);
+}
+
+
 
 bool Gui::jumpOnClick() const noexcept
 {

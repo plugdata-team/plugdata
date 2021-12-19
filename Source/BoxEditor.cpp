@@ -49,42 +49,6 @@ void ClickLabel::mouseDrag(const MouseEvent & e)
     dragger.handleMouseDrag(e);
 }
 
-void ClickLabel::onChange(String& ttext) {
-
-
-    /*
-
-
-    // In case of non-text characters such as backspace, newline etc.
-    if(typedText.contains(" ")) {
-        moveCaretToEnd();
-        highlightStart = typedText.length();
-        highlightEnd = typedText.length();
-        return;
-    }
-    
-    // Retrieve best suggestion
-    fullName = parent->getCurrentSelection();
-    
-    if(fullName.isEmpty())  {
-        moveCaretToEnd();
-        highlightStart = typedText.length();
-        highlightEnd = typedText.length();
-        return;
-    }
-    
-    // Add suggestion at the end of the typed text
-    ttext = fullName.substring(textlen);
-    
-    // Unfortunately we cant directly highlight the suggestion from here
-    // This happens in the onTextChange lambda
-    //highlightStart = typedText.length();
-    //highlightEnd = fullName.length();
-    //oldText = typedText;
-    //typedText = fullName;
-     */
-}
-
 TextEditor* ClickLabel::createEditorComponent()  {
     
     auto* editor = Label::createEditorComponent();

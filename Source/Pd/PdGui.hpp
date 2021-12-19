@@ -7,6 +7,7 @@
 
 #include "PdObject.hpp"
 #include "PdArray.hpp"
+#include "PdAtom.hpp"
 #include <JuceHeader.h>
 
 namespace pd
@@ -96,6 +97,10 @@ namespace pd
         Label getLabel() const noexcept;
             
         Patch getPatch() const noexcept;
+        
+        std::vector<Atom> getList() const noexcept;
+        
+        void setList(std::vector<Atom> const& value) noexcept;
         
         Gui(void* ptr, Patch* patch, Instance* instance) noexcept;
     private:

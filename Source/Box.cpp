@@ -107,8 +107,11 @@ void Box::setType (String newType, bool exists)
     
     if(pdObject) {
         graphics.reset(GUIComponent::createGui(type, this));
-         
-        if(graphics && !graphics->fakeGUI()) {
+        
+        if(graphics && graphics->getGUI().getType() == pd::Type::Comment) {
+            setSize(bestWidth, 31);
+        }
+        else if(graphics && !graphics->fakeGUI()) {
             auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
             restrainer.setSizeLimits(minW, minH, maxW, maxH);
             
@@ -203,7 +206,13 @@ void Box::resized()
         textLabel.setVisible(true);
         textLabel.setBounds(4, 4, getWidth() - 8, 22);
         
-        if(graphics)  {
+        if(graphics && graphics->getGUI().getType() == pd::Type::Comment) {
+            auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
+            int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
+            setSize(bestWidth + 30, (num_lines * 17) + 14);
+            textLabel.setBounds(getLocalBounds().reduced(4));
+        }
+        else if(graphics)  {
             auto [w, h] = graphics->getBestSize();
             setSize(std::max(getWidth(), w + 8), h + 27);
             graphics->setBounds(4, 26, getWidth() - 8, getHeight() - 30);

@@ -18,6 +18,7 @@
 */
 
 
+extern juce::JUCEApplicationBase* juce_CreateApplication();
 
 struct Identifiers
 {
@@ -42,7 +43,7 @@ public:
     ~Canvas();
     
     PlugDataPluginEditor& main;
-    PlugDataAudioProcessor& pd;
+    PlugDataAudioProcessor* pd;
     
     //==============================================================================
     void paintOverChildren (Graphics&) override;
@@ -54,7 +55,7 @@ public:
     void mouseMove(const MouseEvent& e) override;
     
     void createPatch();
-    void loadPatch(pd::Patch& patch);
+    void loadPatch(pd::Patch patch);
     
     void synchronise();
 
@@ -65,12 +66,9 @@ public:
     void pasteSelection();
     void duplicateSelection();
     
-    void paint(Graphics&);
-    
-    Array<Canvas*> findCanvas(t_canvas* cnv);
-    
-    bool hitTest(int x, int y);
-    
+    void paint(Graphics&) override;
+    bool hitTest(int x, int y) override;
+
     void checkBounds();
 
     void undo();
@@ -86,14 +84,12 @@ public:
     
     bool hasChanged = false;
     
-    Array<Edge*> getAllEdges();
-    
     Viewport* viewport = nullptr;
     
     bool connectingWithDrag = false;
     
     pd::Patch patch;
-    
+    std::unique_ptr<PlugDataAudioProcessor> aux_instance;
     
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
@@ -167,8 +163,9 @@ struct GraphArea : public Component, public ComponentDragger
         if(cnv) {
             cnv->gl_pixwidth = getWidth();
             cnv->gl_pixheight = getHeight();
-            cnv->gl_xmargin = getX() / 2.0f;
-            cnv->gl_ymargin = getY() / 2.0f;
+            
+            cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;
+            cnv->gl_ymargin = (getY() - 4) / pd::Patch::zoom;
         
         }
         
@@ -182,8 +179,8 @@ struct GraphArea : public Component, public ComponentDragger
         if(cnv) {
             cnv->gl_pixwidth = getWidth();
             cnv->gl_pixheight = getHeight();
-            cnv->gl_xmargin = getX() / 2.0f;
-            cnv->gl_ymargin = getY() / 2.0f;
+            cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;
+            cnv->gl_ymargin = (getY() - 4) / pd::Patch::zoom;
         }
 
         resizer.setBounds(getLocalBounds());

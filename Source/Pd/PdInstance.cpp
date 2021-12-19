@@ -414,6 +414,12 @@ void Instance::enqueueMessages(const std::string& dest, const std::string& msg, 
     messageEnqueued();
 }
 
+void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list)
+{
+    m_send_queue.try_enqueue(dmessage{object, std::string(), "list", list});
+    messageEnqueued();
+}
+
 void Instance::enqueueDirectMessages(void* object, const std::string& msg)
 {
     m_send_queue.try_enqueue(dmessage{object, std::string(), std::string(), std::vector<Atom>(1, msg)});
@@ -503,10 +509,10 @@ void Instance::dequeueMessages()
         }
     }
     
-    sys_lock();
+    //sys_lock();
     canUndo = libpd_can_undo(canvas_getcurrent());
     canRedo = libpd_can_redo(canvas_getcurrent());
-    sys_unlock();
+    //sys_unlock();
     
 }
 

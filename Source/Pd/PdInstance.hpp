@@ -70,6 +70,8 @@ public:
     
     void enqueueFunction(std::function<void(void)> fn);
     void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list);
+    
+    void enqueueDirectMessages(void* object, std::vector<Atom> const& list);
     void enqueueDirectMessages(void* object, const std::string& msg);
     void enqueueDirectMessages(void* object, const float msg);
     

@@ -697,6 +697,7 @@
 		A846688CF5F1F3219FA414A9 /* eq~.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = "eq~.c"; path = "../../Source/Pd/ELSE/eq~.c"; sourceTree = SOURCE_ROOT; };
 		A8DDEC6E90562A2B108B9ACB /* t2.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = t2.c; path = ../../Source/Pd/ELSE/t2.c; sourceTree = SOURCE_ROOT; };
 		AA35E98A4DF6C29701725877 /* include_juce_core.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; name = include_juce_core.mm; path = ../../JuceLibraryCode/include_juce_core.mm; sourceTree = SOURCE_ROOT; };
+		AB63134A276F79D1001858A3 /* Inspector.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Inspector.h; path = ../../Source/Inspector.h; sourceTree = "<group>"; };
 		AB9F70C8276237E5005E4B3A /* MultiComponentDragger.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MultiComponentDragger.h; path = ../../Source/MultiComponentDragger.h; sourceTree = "<group>"; };
 		ABAB091AF668B3BF5BBE006B /* PlugData.component */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = PlugData.component; sourceTree = BUILT_PRODUCTS_DIR; };
 		ABD99866B66F7A58E759742C /* x_libpd_mod_utils.c */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.c; name = x_libpd_mod_utils.c; path = ../../Source/Pd/x_libpd_mod_utils.c; sourceTree = SOURCE_ROOT; };
@@ -952,6 +953,7 @@
 				AB9F70C8276237E5005E4B3A /* MultiComponentDragger.h */,
 				DA54899E7A9D23CCE1343C6B /* PluginEditor.cpp */,
 				C554E09E99092A120D6D2328 /* PluginEditor.h */,
+				AB63134A276F79D1001858A3 /* Inspector.h */,
 				10824BE48533C935D0858B01 /* PluginProcessor.cpp */,
 				63948342C37ED51C2DFC354F /* PluginProcessor.h */,
 				63AB3E8B11096354C642B816 /* Dialogs.cpp */,
@@ -2474,7 +2476,7 @@
 		609DFB000780A99BE25D23A3 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				CODE_SIGN_IDENTITY = "";
@@ -2767,7 +2769,7 @@
 		D9BDFB963FE65882EBFB722B /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				CODE_SIGN_IDENTITY = "";
@@ -2886,7 +2888,7 @@
 		DF11EB28EE5FE7700095D466 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				CODE_SIGN_IDENTITY = "";
@@ -3012,7 +3014,7 @@
 		F3BF46C009E7C9049064AA96 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
-				CLANG_CXX_LANGUAGE_STANDARD = "c++17";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_LINK_OBJC_RUNTIME = NO;
 				CODE_SIGN_IDENTITY = "";

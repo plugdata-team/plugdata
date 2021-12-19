@@ -35,6 +35,7 @@ public:
     
     void createConnection();
     
+    
     bool hasConnection();
     
     Rectangle<int> getCanvasBounds();

@@ -183,26 +183,29 @@ void Library::initialiseLibrary()
 #endif
     
     for (i = o->c_nmethod, m = mlist; i--; m++) {
+        String name(m->me_name->s_name);
         insert(tree, m->me_name->s_name);
     }
     
     insert(tree, "graph");
     
-    auto abstractionDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    auto abstractionDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Abstractions");
     
     // Not sure how to get this info from pd, so we simply search the default abstractions folder...
     for(auto& iter : RangedDirectoryIterator(abstractionDir, true)) {
         auto file = iter.getFile();
         if(file.getFileExtension() == ".pd")
             insert(tree, file.getFileNameWithoutExtension().toStdString());
+
     }
 }
 
 std::vector<std::string> Library::autocomplete(std::string query) {
     std::vector<std::string> result;
-    ::pd::autocomplete(tree, query, result);
+    pd::autocomplete(tree, query, result);
     return result;
 }
+
 
 }
 
