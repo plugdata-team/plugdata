@@ -51,14 +51,16 @@ void GUIComponent::setForeground(Colour colour) {
     getLookAndFeel().setColour(Slider::thumbColourId, colour);
     
     // TODO: these functions aren't working correctly yet...
-    //libpd_iemgui_set_foreground_color(gui.getPointer(), colour.getRed(), colour.getGreen(), colour.getBlue());
+    
+    
+    libpd_iemgui_set_foreground_color(gui.getPointer(), colour.toString().toRawUTF8());
 }
 
 void GUIComponent::setBackground(Colour colour) {
     getLookAndFeel().setColour(TextButton::buttonColourId, colour);
     getLookAndFeel().setColour(Slider::backgroundColourId, colour);
     
-    //libpd_iemgui_set_background_color(gui.getPointer(), colour.getRed(), colour.getGreen(), colour.getBlue());
+    libpd_iemgui_set_background_color(gui.getPointer(), colour.toString().toRawUTF8());
 }
 
 GUIComponent* GUIComponent::createGui(String name, Box* parent)

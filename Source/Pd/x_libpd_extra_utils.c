@@ -4,6 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <string.h>
+#include <stdlib.h>
+
 #include <m_pd.h>
 #include <m_imp.h>
 #include <g_canvas.h>
@@ -127,14 +130,21 @@ unsigned int libpd_iemgui_get_foreground_color(void* ptr)
     return convert_from_iem_color(((t_iemgui*)ptr)->x_fcol);
 }
 
-void libpd_iemgui_set_background_color(void* ptr, int r, int g, int b)
+void libpd_iemgui_set_background_color(void* ptr, const char* hex)
 {
-    ((t_iemgui*)ptr)->x_bcol = convert_to_iem_color(r, g, b);
+    
+    if(strlen(hex) == 8) hex += 2; // remove alpha channel if needed
+    int col = (int)strtol(hex, 0, 16);
+    
+    ((t_iemgui*)ptr)->x_bcol = col & 0xFFFFFF;
 }
 
-void libpd_iemgui_set_foreground_color(void* ptr, int r, int g, int b)
+void libpd_iemgui_set_foreground_color(void* ptr, const char* hex)
 {
-    ((t_iemgui*)ptr)->x_fcol = convert_to_iem_color(r, g, b);
+    if(strlen(hex) == 8) hex += 2; // remove alpha channel if needed
+    int col = (int)strtol(hex, 0, 16);
+    
+    ((t_iemgui*)ptr)->x_fcol = col & 0xFFFFFF;
 }
 
 float libpd_get_canvas_font_height(t_canvas* cnv)
