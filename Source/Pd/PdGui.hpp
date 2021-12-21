@@ -67,8 +67,16 @@ namespace pd
         std::string getFontName() const;
         
         float getMinimum() const noexcept;
-        
         float getMaximum() const noexcept;
+        
+        void setMinimum(float value) noexcept;
+        void setMaximum(float value) noexcept;
+
+        void setSendSymbol(const std::string& symbol) const noexcept;
+        void setReceiveSymbol(const std::string& symbol) const noexcept;
+        
+        std::string getSendSymbol() noexcept;
+        std::string getReceiveSymbol() noexcept;
         
         float getValue() const noexcept;
         
@@ -91,6 +99,7 @@ namespace pd
         bool jumpOnClick() const noexcept;
         
         bool isLogScale() const noexcept;
+        void setLogScale(bool log) noexcept;
         
         Array getArray() const noexcept;
         
@@ -104,6 +113,8 @@ namespace pd
         
         Gui(void* ptr, Patch* patch, Instance* instance) noexcept;
     private:
+        
+        
 
         std::string last_symbol;
     

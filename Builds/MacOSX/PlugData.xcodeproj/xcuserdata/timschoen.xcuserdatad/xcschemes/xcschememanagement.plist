@@ -12,12 +12,12 @@
 		<key>PlugData - All.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>5</integer>
+			<integer>3</integer>
 		</dict>
 		<key>PlugData - Shared Code.xcscheme_^#shared#^_</key>
 		<dict>
 			<key>orderHint</key>
-			<integer>4</integer>
+			<integer>8</integer>
 		</dict>
 		<key>PlugData - Standalone Plugin.xcscheme_^#shared#^_</key>
 		<dict>

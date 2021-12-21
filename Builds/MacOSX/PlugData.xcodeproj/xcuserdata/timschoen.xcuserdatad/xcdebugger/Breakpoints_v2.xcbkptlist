@@ -510,8 +510,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "551"
-            endingLineNumber = "551"
+            startingLineNumber = "644"
+            endingLineNumber = "644"
             landmarkName = "Gui::getArray()"
             landmarkType = "7">
          </BreakpointContent>
@@ -542,8 +542,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "553"
-            endingLineNumber = "553"
+            startingLineNumber = "646"
+            endingLineNumber = "646"
             landmarkName = "Gui::getArray()"
             landmarkType = "7">
          </BreakpointContent>
@@ -558,8 +558,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "748"
-            endingLineNumber = "748"
+            startingLineNumber = "768"
+            endingLineNumber = "768"
             landmarkName = "unknown"
             landmarkType = "0">
          </BreakpointContent>
@@ -574,8 +574,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "449"
-            endingLineNumber = "449"
+            startingLineNumber = "539"
+            endingLineNumber = "539"
             landmarkName = "Gui::click()"
             landmarkType = "7">
          </BreakpointContent>
@@ -590,10 +590,10 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "450"
-            endingLineNumber = "450"
-            landmarkName = "Gui::click()"
-            landmarkType = "7">
+            startingLineNumber = "540"
+            endingLineNumber = "540"
+            landmarkName = "unknown"
+            landmarkType = "0">
             <Locations>
                <Location
                   uuid = "81B4F834-1CA5-44A7-A5BA-94D1D30069D7 - f964f2c5e9896010"
@@ -638,8 +638,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "337"
-            endingLineNumber = "337"
+            startingLineNumber = "411"
+            endingLineNumber = "411"
             landmarkName = "Gui::getValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -910,8 +910,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "739"
-            endingLineNumber = "739"
+            startingLineNumber = "759"
+            endingLineNumber = "759"
             landmarkName = "Canvas::undo()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1182,8 +1182,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "434"
-            endingLineNumber = "434"
+            startingLineNumber = "524"
+            endingLineNumber = "524"
             landmarkName = "Gui::getSymbol()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1278,8 +1278,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "351"
-            endingLineNumber = "351"
+            startingLineNumber = "425"
+            endingLineNumber = "425"
             landmarkName = "Gui::setValue(value)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1342,8 +1342,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "234"
-            endingLineNumber = "234"
+            startingLineNumber = "243"
+            endingLineNumber = "243"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
             <Locations>
@@ -1406,8 +1406,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "352"
-            endingLineNumber = "352"
+            startingLineNumber = "426"
+            endingLineNumber = "426"
             landmarkName = "Gui::setValue(value)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1422,8 +1422,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "271"
-            endingLineNumber = "271"
+            startingLineNumber = "270"
+            endingLineNumber = "270"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1438,8 +1438,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "79"
-            endingLineNumber = "79"
+            startingLineNumber = "107"
+            endingLineNumber = "107"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1454,8 +1454,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "78"
-            endingLineNumber = "78"
+            startingLineNumber = "106"
+            endingLineNumber = "106"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1470,8 +1470,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "80"
-            endingLineNumber = "80"
+            startingLineNumber = "108"
+            endingLineNumber = "108"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1742,8 +1742,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "807"
-            endingLineNumber = "807"
+            startingLineNumber = "863"
+            endingLineNumber = "863"
             landmarkName = "Subpatch::Subpatch(pdGui, box)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1758,8 +1758,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "563"
-            endingLineNumber = "563"
+            startingLineNumber = "656"
+            endingLineNumber = "656"
             landmarkName = "Gui::getPatch()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1774,8 +1774,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "38"
-            endingLineNumber = "38"
+            startingLineNumber = "66"
+            endingLineNumber = "66"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1790,8 +1790,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "103"
-            endingLineNumber = "103"
+            startingLineNumber = "131"
+            endingLineNumber = "131"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1806,8 +1806,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "44"
-            endingLineNumber = "44"
+            startingLineNumber = "72"
+            endingLineNumber = "72"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -1838,8 +1838,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "562"
-            endingLineNumber = "562"
+            startingLineNumber = "655"
+            endingLineNumber = "655"
             landmarkName = "Gui::getPatch()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1886,8 +1886,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "677"
-            endingLineNumber = "677"
+            startingLineNumber = "696"
+            endingLineNumber = "696"
             landmarkName = "Canvas::copySelection()"
             landmarkType = "7">
          </BreakpointContent>
@@ -1966,8 +1966,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "691"
-            endingLineNumber = "691"
+            startingLineNumber = "710"
+            endingLineNumber = "710"
             landmarkName = "Canvas::duplicateSelection()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2094,8 +2094,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "76"
-            endingLineNumber = "76"
+            startingLineNumber = "104"
+            endingLineNumber = "104"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2142,8 +2142,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "758"
-            endingLineNumber = "758"
+            startingLineNumber = "779"
+            endingLineNumber = "779"
             landmarkName = "Canvas::closeAllInstances()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2158,8 +2158,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "760"
-            endingLineNumber = "760"
+            startingLineNumber = "781"
+            endingLineNumber = "781"
             landmarkName = "Canvas::closeAllInstances()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2174,8 +2174,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "756"
-            endingLineNumber = "756"
+            startingLineNumber = "777"
+            endingLineNumber = "777"
             landmarkName = "Canvas::closeAllInstances()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2318,8 +2318,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "62"
-            endingLineNumber = "62"
+            startingLineNumber = "65"
+            endingLineNumber = "65"
             landmarkName = "Canvas::~Canvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2334,8 +2334,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "568"
-            endingLineNumber = "568"
+            startingLineNumber = "587"
+            endingLineNumber = "587"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2350,8 +2350,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "565"
-            endingLineNumber = "565"
+            startingLineNumber = "584"
+            endingLineNumber = "584"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2366,8 +2366,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "582"
-            endingLineNumber = "582"
+            startingLineNumber = "601"
+            endingLineNumber = "601"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2382,8 +2382,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "624"
-            endingLineNumber = "624"
+            startingLineNumber = "643"
+            endingLineNumber = "643"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -2398,8 +2398,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "706"
-            endingLineNumber = "706"
+            startingLineNumber = "726"
+            endingLineNumber = "726"
             landmarkName = "Canvas::removeSelection()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2414,8 +2414,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "715"
-            endingLineNumber = "715"
+            startingLineNumber = "735"
+            endingLineNumber = "735"
             landmarkName = "Canvas::removeSelection()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2430,8 +2430,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "709"
-            endingLineNumber = "709"
+            startingLineNumber = "729"
+            endingLineNumber = "729"
             landmarkName = "Canvas::removeSelection()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2542,8 +2542,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "710"
-            endingLineNumber = "710"
+            startingLineNumber = "730"
+            endingLineNumber = "730"
             landmarkName = "Canvas::removeSelection()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2558,8 +2558,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "705"
-            endingLineNumber = "705"
+            startingLineNumber = "725"
+            endingLineNumber = "725"
             landmarkName = "Canvas::removeSelection()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2906,8 +2906,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "292"
-            endingLineNumber = "292"
+            startingLineNumber = "322"
+            endingLineNumber = "322"
             landmarkName = "MessageComponent::update()"
             landmarkType = "7">
          </BreakpointContent>
@@ -2922,8 +2922,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "322"
-            endingLineNumber = "322"
+            startingLineNumber = "352"
+            endingLineNumber = "352"
             landmarkName = "MessageComponent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -3082,8 +3082,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "371"
-            endingLineNumber = "371"
+            startingLineNumber = "370"
+            endingLineNumber = "370"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3098,8 +3098,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "381"
-            endingLineNumber = "381"
+            startingLineNumber = "380"
+            endingLineNumber = "380"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3114,8 +3114,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "369"
-            endingLineNumber = "369"
+            startingLineNumber = "368"
+            endingLineNumber = "368"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3130,8 +3130,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "296"
-            endingLineNumber = "296"
+            startingLineNumber = "295"
+            endingLineNumber = "295"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3146,8 +3146,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "294"
-            endingLineNumber = "294"
+            startingLineNumber = "293"
+            endingLineNumber = "293"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3162,8 +3162,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "292"
-            endingLineNumber = "292"
+            startingLineNumber = "291"
+            endingLineNumber = "291"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3402,8 +3402,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "40"
-            endingLineNumber = "40"
+            startingLineNumber = "68"
+            endingLineNumber = "68"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3786,8 +3786,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "487"
-            endingLineNumber = "487"
+            startingLineNumber = "497"
+            endingLineNumber = "497"
             landmarkName = "Canvas::dragCallback(dx, dy)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3946,8 +3946,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "587"
-            endingLineNumber = "587"
+            startingLineNumber = "606"
+            endingLineNumber = "606"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3962,8 +3962,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "370"
-            endingLineNumber = "370"
+            startingLineNumber = "369"
+            endingLineNumber = "369"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -3978,8 +3978,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "384"
-            endingLineNumber = "384"
+            startingLineNumber = "383"
+            endingLineNumber = "383"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
             <Locations>
@@ -4261,8 +4261,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "34"
-            endingLineNumber = "34"
+            startingLineNumber = "36"
+            endingLineNumber = "36"
             landmarkName = "Canvas::Canvas(parent, graph, graphChild)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4277,8 +4277,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "571"
-            endingLineNumber = "571"
+            startingLineNumber = "590"
+            endingLineNumber = "590"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4293,8 +4293,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "579"
-            endingLineNumber = "579"
+            startingLineNumber = "598"
+            endingLineNumber = "598"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4309,8 +4309,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "570"
-            endingLineNumber = "570"
+            startingLineNumber = "589"
+            endingLineNumber = "589"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4325,8 +4325,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "577"
-            endingLineNumber = "577"
+            startingLineNumber = "596"
+            endingLineNumber = "596"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4341,8 +4341,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "577"
-            endingLineNumber = "577"
+            startingLineNumber = "596"
+            endingLineNumber = "596"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4357,8 +4357,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "575"
-            endingLineNumber = "575"
+            startingLineNumber = "594"
+            endingLineNumber = "594"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4373,8 +4373,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "172"
-            endingLineNumber = "172"
+            startingLineNumber = "174"
+            endingLineNumber = "174"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4389,8 +4389,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "189"
-            endingLineNumber = "189"
+            startingLineNumber = "192"
+            endingLineNumber = "192"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4405,8 +4405,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "178"
-            endingLineNumber = "178"
+            startingLineNumber = "180"
+            endingLineNumber = "180"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -4997,8 +4997,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "799"
-            endingLineNumber = "799"
+            startingLineNumber = "855"
+            endingLineNumber = "855"
             landmarkName = "GraphOnParent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5141,8 +5141,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "444"
-            endingLineNumber = "444"
+            startingLineNumber = "443"
+            endingLineNumber = "443"
             landmarkName = "Canvas::mouseUp(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5157,8 +5157,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "489"
-            endingLineNumber = "489"
+            startingLineNumber = "499"
+            endingLineNumber = "499"
             landmarkName = "Canvas::dragCallback(dx, dy)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5173,8 +5173,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "784"
-            endingLineNumber = "784"
+            startingLineNumber = "805"
+            endingLineNumber = "805"
             landmarkName = "Canvas::checkBounds()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5429,8 +5429,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "741"
-            endingLineNumber = "741"
+            startingLineNumber = "797"
+            endingLineNumber = "797"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5445,8 +5445,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "747"
-            endingLineNumber = "747"
+            startingLineNumber = "803"
+            endingLineNumber = "803"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5461,8 +5461,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "767"
-            endingLineNumber = "767"
+            startingLineNumber = "823"
+            endingLineNumber = "823"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5477,8 +5477,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "748"
-            endingLineNumber = "748"
+            startingLineNumber = "804"
+            endingLineNumber = "804"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5525,8 +5525,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "776"
-            endingLineNumber = "776"
+            startingLineNumber = "832"
+            endingLineNumber = "832"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5541,8 +5541,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "749"
-            endingLineNumber = "749"
+            startingLineNumber = "805"
+            endingLineNumber = "805"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5557,8 +5557,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "793"
-            endingLineNumber = "793"
+            startingLineNumber = "849"
+            endingLineNumber = "849"
             landmarkName = "GraphOnParent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5573,8 +5573,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "778"
-            endingLineNumber = "778"
+            startingLineNumber = "834"
+            endingLineNumber = "834"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5621,8 +5621,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "779"
-            endingLineNumber = "779"
+            startingLineNumber = "835"
+            endingLineNumber = "835"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5646,22 +5646,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "38E61DEB-AAB6-48D5-8A02-9928F655C543"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/Box.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "218"
-            endingLineNumber = "218"
-            landmarkName = "Box::resized()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "0E76DC5F-D2DB-4193-A8D5-C1D5CDC4A038"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -5669,8 +5653,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "795"
-            endingLineNumber = "795"
+            startingLineNumber = "851"
+            endingLineNumber = "851"
             landmarkName = "GraphOnParent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -5701,8 +5685,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "202"
-            endingLineNumber = "202"
+            startingLineNumber = "211"
+            endingLineNumber = "211"
             landmarkName = "Canvas::loadPatch(patch)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5749,8 +5733,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "168"
-            endingLineNumber = "168"
+            startingLineNumber = "169"
+            endingLineNumber = "169"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5765,8 +5749,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "167"
-            endingLineNumber = "167"
+            startingLineNumber = "168"
+            endingLineNumber = "168"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5781,8 +5765,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "169"
-            endingLineNumber = "169"
+            startingLineNumber = "171"
+            endingLineNumber = "171"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5797,8 +5781,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "184"
-            endingLineNumber = "184"
+            startingLineNumber = "187"
+            endingLineNumber = "187"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5813,8 +5797,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "188"
-            endingLineNumber = "188"
+            startingLineNumber = "191"
+            endingLineNumber = "191"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5845,8 +5829,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "94"
-            endingLineNumber = "94"
+            startingLineNumber = "122"
+            endingLineNumber = "122"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -5893,8 +5877,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "879"
-            endingLineNumber = "879"
+            startingLineNumber = "935"
+            endingLineNumber = "935"
             landmarkName = "MousePad::mouseMove(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6222,22 +6206,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "D1623D98-198E-4ABA-928F-98394578C7A5"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/GUIObjects.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1126"
-            endingLineNumber = "1126"
-            landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "5D8581EE-D127-4AD1-B143-06B6A81234BC"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -6245,8 +6213,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "198"
-            endingLineNumber = "198"
+            startingLineNumber = "201"
+            endingLineNumber = "201"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6277,8 +6245,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1063"
-            endingLineNumber = "1063"
+            startingLineNumber = "1123"
+            endingLineNumber = "1123"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6293,8 +6261,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1054"
-            endingLineNumber = "1054"
+            startingLineNumber = "1107"
+            endingLineNumber = "1107"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6469,8 +6437,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1065"
-            endingLineNumber = "1065"
+            startingLineNumber = "1125"
+            endingLineNumber = "1125"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6485,8 +6453,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1125"
-            endingLineNumber = "1125"
+            startingLineNumber = "1185"
+            endingLineNumber = "1185"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6501,8 +6469,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1142"
-            endingLineNumber = "1142"
+            startingLineNumber = "1194"
+            endingLineNumber = "1194"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6517,24 +6485,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1146"
-            endingLineNumber = "1146"
-            landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "97A48D6A-9CE8-47D9-BF94-FF98107C9624"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/GUIObjects.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1138"
-            endingLineNumber = "1138"
+            startingLineNumber = "1198"
+            endingLineNumber = "1198"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6549,8 +6501,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1143"
-            endingLineNumber = "1143"
+            startingLineNumber = "1195"
+            endingLineNumber = "1195"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6565,8 +6517,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1114"
-            endingLineNumber = "1114"
+            startingLineNumber = "1174"
+            endingLineNumber = "1174"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6581,8 +6533,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1124"
-            endingLineNumber = "1124"
+            startingLineNumber = "1184"
+            endingLineNumber = "1184"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6638,22 +6590,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "1D6F03B1-505A-46DE-9D61-0CBA9430EFE0"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/GUIObjects.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1136"
-            endingLineNumber = "1136"
-            landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "C3A5C16B-B924-4A44-BB69-C4BC05C9F4CF"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -6661,8 +6597,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1096"
-            endingLineNumber = "1096"
+            startingLineNumber = "1156"
+            endingLineNumber = "1156"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6677,8 +6613,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1094"
-            endingLineNumber = "1094"
+            startingLineNumber = "1154"
+            endingLineNumber = "1154"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6741,8 +6677,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "297"
-            endingLineNumber = "297"
+            startingLineNumber = "327"
+            endingLineNumber = "327"
             landmarkName = "MessageComponent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -6757,8 +6693,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "299"
-            endingLineNumber = "299"
+            startingLineNumber = "329"
+            endingLineNumber = "329"
             landmarkName = "MessageComponent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -6773,8 +6709,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "301"
-            endingLineNumber = "301"
+            startingLineNumber = "331"
+            endingLineNumber = "331"
             landmarkName = "MessageComponent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -6805,8 +6741,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "219"
-            endingLineNumber = "219"
+            startingLineNumber = "228"
+            endingLineNumber = "228"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6821,8 +6757,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "230"
-            endingLineNumber = "230"
+            startingLineNumber = "238"
+            endingLineNumber = "238"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6837,8 +6773,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "267"
-            endingLineNumber = "267"
+            startingLineNumber = "266"
+            endingLineNumber = "266"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6853,8 +6789,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "232"
-            endingLineNumber = "232"
+            startingLineNumber = "241"
+            endingLineNumber = "241"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6885,8 +6821,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "762"
-            endingLineNumber = "762"
+            startingLineNumber = "818"
+            endingLineNumber = "818"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -6901,8 +6837,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1112"
-            endingLineNumber = "1112"
+            startingLineNumber = "1172"
+            endingLineNumber = "1172"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6933,8 +6869,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "31"
-            endingLineNumber = "31"
+            startingLineNumber = "33"
+            endingLineNumber = "33"
             landmarkName = "Canvas::Canvas(parent, graph, graphChild)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6949,8 +6885,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "572"
-            endingLineNumber = "572"
+            startingLineNumber = "591"
+            endingLineNumber = "591"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6965,8 +6901,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "578"
-            endingLineNumber = "578"
+            startingLineNumber = "597"
+            endingLineNumber = "597"
             landmarkName = "Canvas::keyPressed(key, originatingComponent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -6981,8 +6917,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "397"
-            endingLineNumber = "397"
+            startingLineNumber = "396"
+            endingLineNumber = "396"
             landmarkName = "Canvas::mouseDrag(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7029,8 +6965,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "398"
-            endingLineNumber = "398"
+            startingLineNumber = "397"
+            endingLineNumber = "397"
             landmarkName = "Canvas::mouseDrag(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7045,8 +6981,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "240"
-            endingLineNumber = "240"
+            startingLineNumber = "249"
+            endingLineNumber = "249"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7061,8 +6997,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "211"
-            endingLineNumber = "211"
+            startingLineNumber = "220"
+            endingLineNumber = "220"
             landmarkName = "Canvas::hitTest(x, y)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7077,8 +7013,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "792"
-            endingLineNumber = "792"
+            startingLineNumber = "813"
+            endingLineNumber = "813"
             landmarkName = "Canvas::checkBounds()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7093,8 +7029,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "313"
-            endingLineNumber = "313"
+            startingLineNumber = "312"
+            endingLineNumber = "312"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7109,8 +7045,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "788"
-            endingLineNumber = "788"
+            startingLineNumber = "809"
+            endingLineNumber = "809"
             landmarkName = "Canvas::checkBounds()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7141,8 +7077,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "308"
-            endingLineNumber = "308"
+            startingLineNumber = "307"
+            endingLineNumber = "307"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7157,8 +7093,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "783"
-            endingLineNumber = "783"
+            startingLineNumber = "839"
+            endingLineNumber = "839"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7173,8 +7109,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "771"
-            endingLineNumber = "771"
+            startingLineNumber = "827"
+            endingLineNumber = "827"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7189,8 +7125,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "759"
-            endingLineNumber = "759"
+            startingLineNumber = "815"
+            endingLineNumber = "815"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7205,8 +7141,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "756"
-            endingLineNumber = "756"
+            startingLineNumber = "812"
+            endingLineNumber = "812"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7301,8 +7237,8 @@
             filePath = "../../Source/GUIObjects.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "190"
-            endingLineNumber = "190"
+            startingLineNumber = "192"
+            endingLineNumber = "192"
             landmarkName = "getBestSize()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7317,41 +7253,9 @@
             filePath = "../../Source/GUIObjects.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "236"
-            endingLineNumber = "236"
+            startingLineNumber = "221"
+            endingLineNumber = "221"
             landmarkName = "getBestSize()"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "6D516BD2-5199-469E-AC29-6A378C9281D0"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/Canvas.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "530"
-            endingLineNumber = "530"
-            landmarkName = "Canvas::paintOverChildren(g)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "4A859B50-AA32-430B-9C76-BAB05B76437C"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/Canvas.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "532"
-            endingLineNumber = "532"
-            landmarkName = "Canvas::paintOverChildren(g)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -7445,8 +7349,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1089"
-            endingLineNumber = "1089"
+            startingLineNumber = "1149"
+            endingLineNumber = "1149"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7461,41 +7365,9 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1090"
-            endingLineNumber = "1090"
+            startingLineNumber = "1150"
+            endingLineNumber = "1150"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "8C1F2E26-A42A-4600-8474-F5162E19FE7A"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/GUIObjects.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1108"
-            endingLineNumber = "1108"
-            landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "DB3DEFC2-535D-463F-9C0A-A13D2CB8870A"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/Canvas.cpp"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "518"
-            endingLineNumber = "518"
-            landmarkName = "Canvas::paintOverChildren(g)"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -7509,8 +7381,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "873"
-            endingLineNumber = "873"
+            startingLineNumber = "929"
+            endingLineNumber = "929"
             landmarkName = "MousePad::mouseMove(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7525,8 +7397,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "875"
-            endingLineNumber = "875"
+            startingLineNumber = "931"
+            endingLineNumber = "931"
             landmarkName = "MousePad::mouseMove(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7541,8 +7413,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "555"
-            endingLineNumber = "555"
+            startingLineNumber = "574"
+            endingLineNumber = "574"
             landmarkName = "Canvas::mouseMove(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7605,8 +7477,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "795"
-            endingLineNumber = "795"
+            startingLineNumber = "816"
+            endingLineNumber = "816"
             landmarkName = "Canvas::checkBounds()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7621,8 +7493,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "774"
-            endingLineNumber = "774"
+            startingLineNumber = "830"
+            endingLineNumber = "830"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7637,8 +7509,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "773"
-            endingLineNumber = "773"
+            startingLineNumber = "829"
+            endingLineNumber = "829"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7653,8 +7525,8 @@
             filePath = "../../Source/Canvas.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "168"
-            endingLineNumber = "168"
+            startingLineNumber = "174"
+            endingLineNumber = "174"
             landmarkName = "mouseUp(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7669,8 +7541,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "780"
-            endingLineNumber = "780"
+            startingLineNumber = "836"
+            endingLineNumber = "836"
             landmarkName = "GraphOnParent::updateCanvas()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7685,8 +7557,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "49"
-            endingLineNumber = "49"
+            startingLineNumber = "52"
+            endingLineNumber = "52"
             landmarkName = "Canvas::Canvas(parent, graph, graphChild)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7701,8 +7573,8 @@
             filePath = "../../Source/GUIObjects.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "637"
-            endingLineNumber = "637"
+            startingLineNumber = "648"
+            endingLineNumber = "648"
             landmarkName = "fakeGUI()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7733,8 +7605,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "929"
-            endingLineNumber = "929"
+            startingLineNumber = "982"
+            endingLineNumber = "982"
             landmarkName = "MouseComponent::mouseMove(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7765,8 +7637,8 @@
             filePath = "../../Source/GUIObjects.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "95"
-            endingLineNumber = "95"
+            startingLineNumber = "106"
+            endingLineNumber = "106"
             landmarkName = "fakeGUI()"
             landmarkType = "7">
          </BreakpointContent>
@@ -7909,8 +7781,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "1116"
-            endingLineNumber = "1116"
+            startingLineNumber = "1176"
+            endingLineNumber = "1176"
             landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7973,8 +7845,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "365"
-            endingLineNumber = "365"
+            startingLineNumber = "364"
+            endingLineNumber = "364"
             landmarkName = "Canvas::mouseDown(e)"
             landmarkType = "7">
          </BreakpointContent>
@@ -7989,8 +7861,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "175"
-            endingLineNumber = "175"
+            startingLineNumber = "177"
+            endingLineNumber = "177"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8005,8 +7877,8 @@
             filePath = "../../Source/Pd/PdGui.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "190"
-            endingLineNumber = "190"
+            startingLineNumber = "193"
+            endingLineNumber = "193"
             landmarkName = "Gui::getType(ptr, obj_text)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8021,8 +7893,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "73"
-            endingLineNumber = "73"
+            startingLineNumber = "101"
+            endingLineNumber = "101"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8037,8 +7909,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "42"
-            endingLineNumber = "42"
+            startingLineNumber = "70"
+            endingLineNumber = "70"
             landmarkName = "GUIComponent::createGui(name, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8053,8 +7925,8 @@
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "789"
-            endingLineNumber = "789"
+            startingLineNumber = "810"
+            endingLineNumber = "810"
             landmarkName = "Canvas::checkBounds()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8085,8 +7957,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "251"
-            endingLineNumber = "251"
+            startingLineNumber = "281"
+            endingLineNumber = "281"
             landmarkName = "ToggleComponent::update()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8101,8 +7973,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "154"
-            endingLineNumber = "154"
+            startingLineNumber = "182"
+            endingLineNumber = "182"
             landmarkName = "GUIComponent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8117,8 +7989,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "155"
-            endingLineNumber = "155"
+            startingLineNumber = "183"
+            endingLineNumber = "183"
             landmarkName = "GUIComponent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8133,8 +8005,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "158"
-            endingLineNumber = "158"
+            startingLineNumber = "186"
+            endingLineNumber = "186"
             landmarkName = "GUIComponent::updateValue()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8149,8 +8021,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "109"
-            endingLineNumber = "109"
+            startingLineNumber = "137"
+            endingLineNumber = "137"
             landmarkName = "GUIComponent::getValueOriginal()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8197,8 +8069,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "269"
-            endingLineNumber = "269"
+            startingLineNumber = "299"
+            endingLineNumber = "299"
             landmarkName = "MessageComponent::MessageComponent(pdGui, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8245,8 +8117,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "238"
-            endingLineNumber = "238"
+            startingLineNumber = "268"
+            endingLineNumber = "268"
             landmarkName = "ToggleComponent::ToggleComponent(pdGui, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8261,8 +8133,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "252"
-            endingLineNumber = "252"
+            startingLineNumber = "282"
+            endingLineNumber = "282"
             landmarkName = "ToggleComponent::update()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8309,8 +8181,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "219"
-            endingLineNumber = "219"
+            startingLineNumber = "249"
+            endingLineNumber = "249"
             landmarkName = "BangComponent::update()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8325,8 +8197,8 @@
             filePath = "../../Source/GUIObjects.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "175"
-            endingLineNumber = "175"
+            startingLineNumber = "177"
+            endingLineNumber = "177"
             landmarkName = "timerCallback()"
             landmarkType = "7">
          </BreakpointContent>
@@ -8414,22 +8286,6 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "4F2D9C56-0C41-440C-8F86-77805BAABED8"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/Inspector.h"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "230"
-            endingLineNumber = "230"
-            landmarkName = "loadData(params)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
             uuid = "D970B99A-3D88-4E07-A46F-4C45B936E81A"
             shouldBeEnabled = "No"
             ignoreCount = "0"
@@ -8437,8 +8293,8 @@
             filePath = "../../Source/Inspector.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "253"
-            endingLineNumber = "253"
+            startingLineNumber = "282"
+            endingLineNumber = "282"
             landmarkName = "loadData(params)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8453,8 +8309,8 @@
             filePath = "../../Source/Inspector.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "169"
-            endingLineNumber = "169"
+            startingLineNumber = "196"
+            endingLineNumber = "196"
             landmarkName = "refreshComponentForCell(rowNumber, columnId, existingComponentToUpdate)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8469,8 +8325,8 @@
             filePath = "../../Source/Inspector.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "168"
-            endingLineNumber = "168"
+            startingLineNumber = "195"
+            endingLineNumber = "195"
             landmarkName = "refreshComponentForCell(rowNumber, columnId, existingComponentToUpdate)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8485,8 +8341,8 @@
             filePath = "../../Source/Inspector.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "166"
-            endingLineNumber = "166"
+            startingLineNumber = "193"
+            endingLineNumber = "193"
             landmarkName = "refreshComponentForCell(rowNumber, columnId, existingComponentToUpdate)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8501,25 +8357,9 @@
             filePath = "../../Source/Inspector.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "175"
-            endingLineNumber = "175"
+            startingLineNumber = "205"
+            endingLineNumber = "205"
             landmarkName = "refreshComponentForCell(rowNumber, columnId, existingComponentToUpdate)"
-            landmarkType = "7">
-         </BreakpointContent>
-      </BreakpointProxy>
-      <BreakpointProxy
-         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
-         <BreakpointContent
-            uuid = "0FC1B3DA-A597-4B1A-AAED-ED36C753051D"
-            shouldBeEnabled = "No"
-            ignoreCount = "0"
-            continueAfterRunningActions = "No"
-            filePath = "../../Source/GUIObjects.h"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "159"
-            endingLineNumber = "159"
-            landmarkName = "getParameters()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>
@@ -8533,8 +8373,8 @@
             filePath = "../../Source/Inspector.h"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "325"
-            endingLineNumber = "325"
+            startingLineNumber = "407"
+            endingLineNumber = "407"
             landmarkName = "changeListenerCallback(source)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8581,8 +8421,8 @@
             filePath = "../../Source/GUIObjects.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "28"
-            endingLineNumber = "28"
+            startingLineNumber = "31"
+            endingLineNumber = "31"
             landmarkName = "GUIComponent::GUIComponent(pdGui, parent)"
             landmarkType = "7">
          </BreakpointContent>
@@ -8590,16 +8430,400 @@
       <BreakpointProxy
          BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
          <BreakpointContent
-            uuid = "0A050183-0D25-4949-B625-EE7C6841F874"
+            uuid = "1426A857-ACF4-441E-8221-60B25268A8FD"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Inspector.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "437"
+            endingLineNumber = "437"
+            landmarkName = "EditableComponent(owner_, value, rowIdx)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "0E114C27-EEED-4E00-96BC-0A5BBB0F38E4"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "566"
+            endingLineNumber = "566"
+            landmarkName = "RadioComponent::update()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "95429F19-422B-4A41-A47A-117BCA212B91"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Pd/PdGui.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "336"
+            endingLineNumber = "336"
+            landmarkName = "Gui::setMaximum(value)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "D425FC49-39AA-4D76-819A-ED9934677FB7"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "390"
+            endingLineNumber = "390"
+            landmarkName = "getBestSize()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E8B257E5-1846-424F-BECA-FCC907A24473"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "341"
+            endingLineNumber = "341"
+            landmarkName = "defineParamters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "70506841-5A1F-4907-AF92-7DE8B32B6AA0"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "339"
+            endingLineNumber = "339"
+            landmarkName = "defineParamters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B1088CC8-616C-4414-8854-1C89EF33B8BD"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "68"
+            endingLineNumber = "68"
+            landmarkName = "getParameters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "E3EF6C01-D091-426D-95DF-2454958EE595"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "86"
+            endingLineNumber = "86"
+            landmarkName = "getParameters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "A8F89EDA-6351-4137-99FC-8A9D3FC5441D"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Pd/PdGui.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "676"
+            endingLineNumber = "676"
+            landmarkName = "Gui::setSendSymbol(symbol)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "2B4196A9-386A-4534-A09E-0A1F7442C1A4"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Pd/PdGui.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "714"
+            endingLineNumber = "714"
+            landmarkName = "Gui::setReceiveSymbol(symbol)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "30F6F4CE-C0D1-4707-95E9-278D670FEDC9"
             shouldBeEnabled = "No"
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "../../Source/Canvas.cpp"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "505"
-            endingLineNumber = "505"
-            landmarkName = "Canvas::paintOverChildren(g)"
+            startingLineNumber = "122"
+            endingLineNumber = "122"
+            landmarkName = "Canvas::synchronise()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "58CEFF97-D4F9-43C7-8B51-8FF50B2F8B18"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Canvas.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "123"
+            endingLineNumber = "123"
+            landmarkName = "Canvas::synchronise()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "277D638E-6789-4EE3-83DF-D95261395855"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "519"
+            endingLineNumber = "519"
+            landmarkName = "SliderComponent::SliderComponent(is_vertical, pdGui, parent)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "EC9AF42A-D072-4580-8222-7AEA7ED6C560"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "523"
+            endingLineNumber = "523"
+            landmarkName = "SliderComponent::SliderComponent(is_vertical, pdGui, parent)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "B5C66566-C393-4068-8934-BC3F7636AEE3"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "350"
+            endingLineNumber = "350"
+            landmarkName = "defineParamters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "482E881B-AFE4-4FCC-9355-366A8E62865C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "349"
+            endingLineNumber = "349"
+            landmarkName = "defineParamters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8925387C-B368-469B-B4BE-F00930E193A9"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "338"
+            endingLineNumber = "338"
+            landmarkName = "defineParamters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "8A811EC0-660F-417A-8B8A-A4CCE565D868"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.h"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "56"
+            endingLineNumber = "56"
+            landmarkName = "getParameters()"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "32F4F205-33D9-4D44-8CAD-67270FBAE7A6"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Canvas.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "523"
+            endingLineNumber = "523"
+            landmarkName = "Canvas::findDrawables(g, cnv)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "292733C6-2019-4D62-94CE-18A2E20278EF"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Canvas.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "506"
+            endingLineNumber = "506"
+            landmarkName = "Canvas::findDrawables(g, cnv)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "741CB7C8-4E73-4561-AD56-5B57149F714C"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Canvas.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "525"
+            endingLineNumber = "525"
+            landmarkName = "Canvas::findDrawables(g, cnv)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "5CEF5E99-D0CF-425E-A9C4-2269CF2BF2BE"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Canvas.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "532"
+            endingLineNumber = "532"
+            landmarkName = "Canvas::findDrawables(g, cnv)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F6536971-9801-46DA-8A33-8A56749030E5"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/Canvas.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "538"
+            endingLineNumber = "538"
+            landmarkName = "Canvas::findDrawables(g, cnv)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "87314E48-0218-4BBA-9A86-6AA283E74840"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "1151"
+            endingLineNumber = "1151"
+            landmarkName = "TemplateDraw::paintOnCanvas(g, canvas, scalar, obj, baseX, baseY)"
+            landmarkType = "7">
+         </BreakpointContent>
+      </BreakpointProxy>
+      <BreakpointProxy
+         BreakpointExtensionID = "Xcode.Breakpoint.FileBreakpoint">
+         <BreakpointContent
+            uuid = "F6508009-81D0-48D8-9374-49E36D7C06C5"
+            shouldBeEnabled = "No"
+            ignoreCount = "0"
+            continueAfterRunningActions = "No"
+            filePath = "../../Source/GUIObjects.cpp"
+            startingColumnNumber = "9223372036854775807"
+            endingColumnNumber = "9223372036854775807"
+            startingLineNumber = "45"
+            endingLineNumber = "45"
+            landmarkName = "GUIComponent::initColours()"
             landmarkType = "7">
          </BreakpointContent>
       </BreakpointProxy>

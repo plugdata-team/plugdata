@@ -164,8 +164,10 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
     
     else if(name == "canvas" || name == "graph")
     {
+        
         if(static_cast<t_canvas*>(ptr)->gl_list)
         {
+            sys_lock();
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
             if(c && c->c_name && (std::string(c->c_name->s_name) == std::string("array")))
             {
@@ -177,8 +179,9 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
             else { // abstraction or subpatch
                 m_type = Type::Subpatch;
             }
-            
+            sys_unlock();
         }
+        
         else if(m_type != Type::Array && static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
             m_type = Type::GraphOnParent;
@@ -290,6 +293,77 @@ float Gui::getMaximum() const noexcept
     }
     return 1.f;
 }
+
+
+void Gui::setMinimum(float value) noexcept
+{
+    if(!m_ptr)
+        return;
+    
+    if(m_type == Type::HorizontalSlider)
+    {
+        static_cast<t_hslider*>(m_ptr)->x_min = value;
+    }
+    else if(m_type == Type::VerticalSlider)
+    {
+        static_cast<t_vslider*>(m_ptr)->x_min = value;
+    }
+    else if(m_type == Type::Number)
+    {
+        static_cast<t_my_numbox*>(m_ptr)->x_min = value;
+    }
+    else if(m_type == Type::AtomNumber)
+    {
+        t_fake_gatom* gatom = static_cast<t_fake_gatom*>(m_ptr);
+        if(std::abs(value) > std::numeric_limits<float>::epsilon() &&
+           std::abs(value) > std::numeric_limits<float>::epsilon())
+        {
+            
+            gatom->a_draglo = value;
+        }
+    }
+    
+    return;
+}
+
+void Gui::setMaximum(float value) noexcept
+{
+    if(!m_ptr)
+        return;
+    
+    if(m_type == Type::HorizontalSlider)
+    {
+        static_cast<t_hslider*>(m_ptr)->x_max = value;
+    }
+    else if(m_type == Type::VerticalSlider)
+    {
+        static_cast<t_vslider*>(m_ptr)->x_max = value;
+    }
+    else if(m_type == Type::Number)
+    {
+        static_cast<t_my_numbox*>(m_ptr)->x_max = value;
+    }
+    else if(m_type == Type::HorizontalRadio)
+    {
+        
+        static_cast<t_hdial*>(m_ptr)->x_number = value + 1;
+    }
+    else if(m_type == Type::VerticalRadio)
+    {
+        static_cast<t_vdial*>(m_ptr)->x_number = value + 1;
+    }
+    else if(m_type == Type::AtomNumber)
+    {
+        t_fake_gatom* gatom = static_cast<t_fake_gatom*>(m_ptr);
+        if(std::abs(value) > std::numeric_limits<float>::epsilon() &&
+           std::abs(value) > std::numeric_limits<float>::epsilon())
+        {
+            gatom->a_draghi = value;
+        }
+    }
+    return;
+}
+
 
 float Gui::getValue() const noexcept
 {
@@ -423,6 +497,22 @@ bool Gui::isLogScale() const noexcept
     return false;
 }
 
+void Gui::setLogScale(bool log) noexcept
+{
+    if(!m_ptr)
+        return;
+    
+    if(m_type == Type::HorizontalSlider)
+    {
+        static_cast<t_hslider*>(m_ptr)->x_lin0_log1 = log;
+    }
+    else if(m_type == Type::VerticalSlider)
+    {
+        static_cast<t_vslider*>(m_ptr)->x_lin0_log1 = log;
+    }
+    return;;
+}
+
 std::string Gui::getSymbol() const noexcept
 {
     if(m_ptr && m_type == Type::Message) {
@@ -498,6 +588,9 @@ std::string Gui::getFontName() const
     }
 }
 
+
+
+
 static unsigned int fromIemColors(int const color)
 {
     unsigned int const c = static_cast<unsigned int>(color << 8 | 0xFF);
@@ -564,6 +657,87 @@ Patch Gui::getPatch() const noexcept
     }
     
     return Patch();
+}
+
+void Gui::setSendSymbol(const std::string& symbol) const noexcept {
+    if(m_ptr && isIEM()) {
+        auto* iemgui = static_cast<t_iemgui*>(m_ptr);
+        
+        int sndable = 1, oldsndrcvable = 0;
+        
+        if(iemgui->x_fsf.x_snd_able)
+            oldsndrcvable += IEM_GUI_OLD_SND_FLAG;
+        
+        if(symbol == "empty") sndable = 0;
+        
+        iemgui->x_snd = gensym(symbol.c_str());
+        iemgui->x_fsf.x_snd_able = true;
+        
+        iemgui_verify_snd_ne_rcv(iemgui);
+    }
+}
+
+
+void Gui::setReceiveSymbol(const std::string& symbol) const noexcept {
+    if(m_ptr && isIEM()) {
+        auto* iemgui = static_cast<t_iemgui*>(m_ptr);
+        
+        int rcvable = 1, oldsndrcvable = 0;
+
+        if(iemgui->x_fsf.x_rcv_able)
+            oldsndrcvable += IEM_GUI_OLD_RCV_FLAG;
+
+        if(symbol == "empty") rcvable = 0;
+        
+        //iemgui_all_raute2dollar(srl);
+        //iemgui_all_dollararg2sym(iemgui, srl);
+        
+        if(rcvable)
+        {
+            if(strcmp(symbol.c_str(), iemgui->x_rcv->s_name))
+            {
+                if(iemgui->x_fsf.x_rcv_able)
+                    pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
+                iemgui->x_rcv = gensym(symbol.c_str());
+                pd_bind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
+            }
+        }
+        else if(!rcvable && iemgui->x_fsf.x_rcv_able)
+        {
+            pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
+            iemgui->x_rcv = gensym(symbol.c_str());
+        }
+
+        iemgui->x_fsf.x_rcv_able = rcvable;
+        
+        iemgui->x_rcv = gensym(symbol.c_str());
+        iemgui_verify_snd_ne_rcv(iemgui);
+    }
+}
+
+std::string Gui::getSendSymbol() noexcept {
+    if(m_ptr && isIEM()) {
+        auto* iemgui = static_cast<t_iemgui*>(m_ptr);
+        std::string name = iemgui->x_snd->s_name;
+        if(name == "empty") return "";
+        
+        return name;
+    }
+    
+    return "";
+}
+std::string Gui::getReceiveSymbol() noexcept {
+    
+    if(m_ptr && isIEM()) {
+        auto* iemgui = static_cast<t_iemgui*>(m_ptr);
+        std::string name = iemgui->x_rcv->s_name;
+        
+        if(name == "empty") return "";
+        
+        return name;
+    }
+    
+    return "";
 }
 
 // ==================================================================================== //

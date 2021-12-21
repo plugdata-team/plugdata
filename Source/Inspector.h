@@ -31,7 +31,8 @@ enum ParameterType
     tString,
     tInt,
     tFloat,
-    tColour
+    tColour,
+    tBool
 };
 
 using ObjectParameter = std::tuple<String, ParameterType, void*>;  // name, type and pointer to value
@@ -44,23 +45,42 @@ using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<v
 */
 
 
-class Inspector    : public Component,
+struct Inspector    : public Component,
                               public TableListBoxModel
 {
-public:
     //==============================================================================
     Inspector()
         : font (14.0f)
     {
+        auto* nameColumn = new XmlElement("COLUMN");
+        nameColumn->setAttribute("columnId", "1");
+        nameColumn->setAttribute("name", "Name");
+        nameColumn->setAttribute("width", "50");
+    
+        auto* valueColumn = new XmlElement("COLUMN");
+        valueColumn->setAttribute("columnId", "2");
+        valueColumn->setAttribute("name", "Value");
+        valueColumn->setAttribute("width", "80");
+        
+        columnList = new XmlElement("HEADERS");
+        columnList->addChildElement(nameColumn);
+        columnList->addChildElement(valueColumn);
+        
+        dataList = new XmlElement("DATA");
+        
         // Load some data from an embedded XML file..
         loadData({});
+        
+        
 
         // Create our table component and add it to this component..
         addAndMakeVisible (&table);
         table.setModel (this);
 
         // give it a border
-        table.setColour (ListBox::outlineColourId, Colours::grey);
+        table.setColour (ListBox::outlineColourId, Colours::transparentBlack);
+        table.setColour (ListBox::textColourId, Colours::white);
+        
         table.setOutlineThickness (1);
 
         // Add some columns to the table header, based on the column list in our database..
@@ -83,6 +103,9 @@ public:
 
         // un-comment this line to have a go of stretch-to-fit mode
         table.getHeader().setStretchToFitActive (true);
+        
+        table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
+        table.getHeader().setColour(TableHeaderComponent::backgroundColourId, MainLook::highlightColour);
 
         table.setMultipleSelectionEnabled (true);
     }
@@ -99,10 +122,14 @@ public:
     }
 
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
-    void paintRowBackground (Graphics& g, int /*rowNumber*/, int /*width*/, int /*height*/, bool rowIsSelected)
+    void paintRowBackground (Graphics& g, int row, int w, int h, bool rowIsSelected)
     {
-        if (rowIsSelected)
+        if (rowIsSelected) {
             g.fillAll (MainLook::highlightColour);
+        }
+        else {
+            g.fillAll ((row % 2) ? MainLook::firstBackground : MainLook::secondBackground);
+        }
     }
 
     // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
@@ -135,8 +162,8 @@ public:
     {
         if (newSortColumnId != 0)
         {
-            //DemoDataSorter sorter (getAttributeNameForColumnId (newSortColumnId), isForwards);
-            //dataList->sortChildElements (sorter);
+            DataSorter sorter (getAttributeNameForColumnId (newSortColumnId), isForwards);
+            dataList->sortChildElements(sorter);
 
             table.updateContent();
         }
@@ -146,14 +173,14 @@ public:
     Component* refreshComponentForCell (int rowNumber, int columnId, bool /*isRowSelected*/,
                                         Component* existingComponentToUpdate)
     {
+        delete existingComponentToUpdate;
+        
         // Draw names regularly
         if(columnId == 1) return 0;
         
         auto type = dataList->getChildElement(rowNumber)->getIntAttribute("Type");
         auto value = dataList->getChildElement(rowNumber)->getStringAttribute("Value");
         auto* ptr = (void*)dataList->getChildElement(rowNumber)->getStringAttribute("Pointer").getLargeIntValue();
-        
-        
         
         switch (type) {
             case tString:
@@ -167,6 +194,9 @@ public:
                 break;
             case tColour:
                 return new ColourComponent(*this, (String*)ptr, rowNumber);
+                break;
+            case tBool:
+                return new ToggleComponent(*this, (bool*)ptr, rowNumber);
                 break;
         }
         
@@ -200,46 +230,47 @@ public:
         return widest + 8;
     }
 
-    // A couple of quick methods to set and get the "rating" value when the user
-    // changes the combo box
-    int getRating (const int rowNumber) const
-    {
-        return dataList->getChildElement (rowNumber)->getIntAttribute ("Rating");
-    }
 
-    void setRating (const int rowNumber, const int newRating)
+    
+    struct DataSorter
     {
-        dataList->getChildElement (rowNumber)->setAttribute ("Rating", newRating);
-    }
+        DataSorter (const juce::String& attributeToSortBy, bool forwards)
+            : attributeToSort (attributeToSortBy),
+              direction (forwards ? 1 : -1)
+        {}
 
+        int compareElements (juce::XmlElement* first, juce::XmlElement* second) const
+        {
+            auto result = first->getStringAttribute (attributeToSort)
+                                .compareNatural (second->getStringAttribute (attributeToSort)); // [1]
+
+            if (result == 0)
+                result = first->getStringAttribute ("ID")
+                               .compareNatural (second->getStringAttribute ("ID"));             // [2]
+
+            return direction * result;                                                          // [3]
+        }
+
+    private:
+        String attributeToSort;
+        int direction;
+    };
+    
     //==============================================================================
     void resized()
     {
         // position our table with a gap around its edge
-        table.setBounds(getLocalBounds());
+        table.setBounds(getLocalBounds().expanded(2));
+    }
+    
+    void deselect() {
+        loadData({});
     }
 
     void loadData(ObjectParameters params)
     {
-        
-        //XmlDocument dataDoc (String ((const char*) BinaryData::demo_table_data_xml));
-        //demoData = dataDoc.getDocumentElement();
-        
-        auto* nameColumn = new XmlElement("COLUMN");
-        nameColumn->setAttribute("columnId", "1");
-        nameColumn->setAttribute("name", "Name");
-        nameColumn->setAttribute("width", "50");
-    
-        auto* valueColumn = new XmlElement("COLUMN");
-        valueColumn->setAttribute("columnId", "2");
-        valueColumn->setAttribute("name", "Value");
-        valueColumn->setAttribute("width", "80");
-        
-        auto* columns = new XmlElement("HEADERS");
-        columns->addChildElement(nameColumn);
-        columns->addChildElement(valueColumn);
-        
-        auto* rows = new XmlElement("DATA");
+        dataList->deleteAllChildElements();
+
         auto& [parameters, cb] = params;
         
         callback = cb;
@@ -248,8 +279,6 @@ public:
             
             auto* dataElement = new XmlElement("DATA");
             dataElement->setAttribute("Name", name);
-            
-    
             dataElement->setAttribute("Type", type);
             dataElement->setAttribute("Pointer", String((long)ptr));
             
@@ -266,15 +295,14 @@ public:
                 case tString:
                 dataElement->setAttribute("Value", *(String*)ptr);
                     break;
+                case tBool:
+                    dataElement->setAttribute("Value", *(bool*)ptr);
             }
             
             
-            rows->addChildElement(dataElement);
+            dataList->addChildElement(dataElement);
         }
         
-        dataList = rows;
-        columnList = columns;
-
         numRows = dataList->getNumChildElements();
         table.updateContent();
         repaint();
@@ -285,25 +313,56 @@ private:
     TableListBox table;     // the table component itself
     Font font;
 
-    ScopedPointer<XmlElement> demoData;   // This is the XML document loaded from the embedded file "demo table data.xml"
-    XmlElement* columnList; // A pointer to the sub-node of demoData that contains the list of columns
-    XmlElement* dataList;   // A pointer to the sub-node of demoData that contains the list of data rows
+    XmlElement* columnList;
+    XmlElement* dataList;
     std::function<void(int)> callback;
     
     int numRows;            // The number of rows of data we've got
 
 
-    class ColourComponent    : public Component, public ChangeListener
+    struct ToggleComponent    : public Component
     {
         
-
-    public:
+        ToggleComponent(Inspector& owner_, bool* value, int rowIdx)  : row(rowIdx), owner(owner_) {
+            toggleButton.setClickingTogglesState(true);
+            
+            toggleButton.setToggleState(*value, sendNotification);
+            toggleButton.setButtonText((*value) ? "true" : "false");
+            toggleButton.setConnectedEdges(12);
+            
+            addAndMakeVisible(toggleButton);
+            
+            toggleButton.onClick = [this, value](){
+                *value = toggleButton.getToggleState();
+                toggleButton.setButtonText((*value) ? "true" : "false");
+                owner.callback(row);
+            };
+        }
+        
+        
+        void resized()
+        {
+            toggleButton.setBounds(getLocalBounds());
+        }
+    private:
+        Inspector& owner;
+        int row;
+        TextButton toggleButton;
+        
+    };
+    
+    struct ColourComponent    : public Component, public ChangeListener
+    {
+        
         ColourComponent (Inspector& owner_, String* value, int rowIdx)
         : owner (owner_), currentColour(value), row(rowIdx)
         {
             button.setButtonText(*value);
+            button.setConnectedEdges(12);
+            button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             
             addAndMakeVisible(button);
+            updateColour();
             
             button.onClick = [this]() {
                 
@@ -312,16 +371,39 @@ private:
                 colourSelector->setCurrentColour (findColour (TextButton::buttonColourId));
                 colourSelector->addChangeListener(this);
                 colourSelector->setSize (300, 400);
+                colourSelector->setColour(ColourSelector::backgroundColourId, MainLook::firstBackground);
+                
+                colourSelector->setCurrentColour(Colour::fromString(*currentColour));
+                
                 
                 CallOutBox::launchAsynchronously (std::move(colourSelector), button.getScreenBounds(), nullptr);
                 
             };
         }
         
+        void updateColour() {
+            
+            auto colour = Colour::fromString(*currentColour);
+            
+            button.setColour(TextButton::buttonColourId, colour);
+            button.setColour(TextButton::buttonOnColourId, colour.brighter());
+            
+            auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
+            
+            // make sure text is readable
+            button.setColour(TextButton::textColourOffId, textColour);
+            button.setColour(TextButton::textColourOnId, textColour);
+            
+        }
+        
         void changeListenerCallback (ChangeBroadcaster* source) override
         {
             ColourSelector* cs = dynamic_cast <ColourSelector*> (source);
-            *currentColour = cs->getCurrentColour().toString();
+            
+            auto colour = cs->getCurrentColour();
+            *currentColour = colour.toString();
+            
+            updateColour();
             owner.callback(row);
         }
 
@@ -345,17 +427,19 @@ private:
     };
 
     template<typename T>
-    class EditableComponent : public Label
+    struct EditableComponent : public Label
     {
-    public:
         EditableComponent (Inspector& owner_, T* value, int rowIdx)
             : owner (owner_), row(rowIdx)
         {
             setEditable(false, true);
+            
             setText(String(*value), dontSendNotification);
             
             
             onTextChange = [this, value]() {
+                
+                
                 
                 if constexpr (std::is_floating_point<T>::value) {
                     *value = getText().getFloatValue();
@@ -380,7 +464,7 @@ private:
         }
 
         TextEditor* createEditorComponent() override {
-            TextEditor* editor = new TextEditor;
+            auto* editor = Label::createEditorComponent();
             
             if constexpr (std::is_floating_point<T>::value) {
                 editor->setInputRestrictions(0, "0123456789.-");
@@ -398,33 +482,6 @@ private:
 
         int row;
     };
-    
-    /*
-    class DemoDataSorter
-    {
-    public:
-        DemoDataSorter (const String attributeToSort_, bool forwards)
-            : attributeToSort (attributeToSort_),
-              direction (forwards ? 1 : -1)
-        {
-        }
-
-        int compareElements (XmlElement* first, XmlElement* second) const
-        {
-            int result = first->getStringAttribute (attributeToSort)
-                           .compareLexicographically (second->getStringAttribute (attributeToSort));
-
-            if (result == 0)
-                result = first->getStringAttribute ("ID")
-                           .compareLexicographically (second->getStringAttribute ("ID"));
-
-            return direction * result;
-        }
-
-    private:
-        String attributeToSort;
-        int direction;
-    }; */
 
 
 
