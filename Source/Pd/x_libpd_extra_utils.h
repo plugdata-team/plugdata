@@ -32,8 +32,8 @@ int libpd_array_get_style(char const* name);
 unsigned int libpd_iemgui_get_background_color(void* ptr);
 unsigned int libpd_iemgui_get_foreground_color(void* ptr);
 
-void libpd_iemgui_set_background_color(void* ptr, int r, int g, int b);
-void libpd_iemgui_set_foreground_color(void* ptr, int r, int g, int b);
+void libpd_iemgui_set_background_color(void* ptr, const char* hex);
+void libpd_iemgui_set_foreground_color(void* ptr, const char* hex);
 
 float libpd_get_canvas_font_height(t_canvas* cnv);
 
