@@ -205,16 +205,16 @@ void Box::resized()
     else {
         textLabel.setVisible(true);
         textLabel.setBounds(4, 4, getWidth() - 8, 22);
+        auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
         
         if(graphics && graphics->getGUI().getType() == pd::Type::Comment) {
-            auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
             int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
             setSize(bestWidth + 30, (num_lines * 17) + 14);
             textLabel.setBounds(getLocalBounds().reduced(4));
         }
         else if(graphics)  {
             auto [w, h] = graphics->getBestSize();
-            setSize(std::max(getWidth(), w + 8), h + 27);
+            setSize(std::max(bestWidth, w + 8), h + 27);
             graphics->setBounds(4, 26, getWidth() - 8, getHeight() - 30);
         }
     }

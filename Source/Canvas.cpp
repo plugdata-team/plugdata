@@ -21,6 +21,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
     isGraph = graph;
     isGraphChild = graphChild;
     
+    tabbar = &parent.getTabbar();
+    
     if(isGraphChild) {
         graphArea.reset(new GraphArea(this));
         addAndMakeVisible(graphArea.get());
@@ -42,6 +44,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
     if(!isGraph) {
      
         transformLayer.addMouseListener(this, false);
+        transformLayer.addKeyListener(this);
         transformLayer.addAndMakeVisible(this);
         
         viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
@@ -67,6 +70,8 @@ void Canvas::synchronise() {
         main.stopTimer();
         setTransform(main.transform);
         
+        main.inspector.deselect();
+    
         pd->waitForStateUpdate();
         dragger.deselectAll();
         
@@ -95,8 +100,6 @@ void Canvas::synchronise() {
         
         for(auto& object : objects)
         {
-            // Don't show non-patchable (internal) objects
-            if(!patch.checkObject(&object)) continue;
             
             auto it = std::find_if(boxes.begin(), boxes.end(), [&object](Box* b)
             {
@@ -115,7 +118,7 @@ void Canvas::synchronise() {
                 if(object.getType() == pd::Type::Message)         name = "msg " + name;
                 else if(object.getType() == pd::Type::AtomNumber) name = "floatatom";
                 else if(object.getType() == pd::Type::AtomSymbol) name = "symbolatom";
-
+                
                 // Some of these GUI objects have a lot of extra symbols that we don't want to show
                 auto guiSimplify = [](String& target, const StringArray selectors) {
                     for(auto& str : selectors) {
@@ -130,6 +133,9 @@ void Canvas::synchronise() {
                 
                 auto* newBox = boxes.add(new Box(pdObject, this, name, {(int)x, (int)y}));
                 newBox->toBack();
+                
+                // Don't show non-patchable (internal) objects
+                if(!patch.checkObject(&object)) newBox->setVisible(false);
             }
             else
             {
@@ -138,6 +144,9 @@ void Canvas::synchronise() {
                 
                 box->setTopLeftPosition(x, y);
                 box->toBack();
+                
+                // Don't show non-patchable (internal) objects
+                if(!patch.checkObject(&object)) box->setVisible(false);
             }
         }
     
@@ -226,9 +235,9 @@ void Canvas::mouseDown(const MouseEvent& e)
         source = this;
     }
     
-    
     if(!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
-       
+        main.inspector.deselect();
+        
         dragStartPosition = e.getMouseDownPosition();
         
         if(dynamic_cast<Connection*>(source)) {
@@ -245,17 +254,6 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
         }
         
-        // Pass parameters of selected box to inspector
-        
-        if(auto* label = dynamic_cast<ClickLabel*>(e.originalComponent)) {
-            if(label->box->graphics) main.inspector.loadData(label->box->graphics->getParameters());
-        }
-        else if(auto* box = dynamic_cast<Box*>(e.originalComponent)) {
-            if(box->graphics)  main.inspector.loadData(box->graphics->getParameters());
-        }
-        else if(auto* gui = dynamic_cast<GUIComponent*>(e.originalComponent)) {
-            main.inspector.loadData(gui->getParameters());
-        }
         
     }
     else
@@ -263,6 +261,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         auto& lassoSelection = dragger.getLassoSelection();
         bool hasSelection = lassoSelection.getNumSelected();
         bool multiple = lassoSelection.getNumSelected() > 1;
+        
         
         bool isSubpatch = hasSelection && (lassoSelection.getSelectedItem(0)->graphics &&  (lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::GraphOnParent || lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::Subpatch));
         
@@ -287,12 +286,12 @@ void Canvas::mouseDown(const MouseEvent& e)
             switch (result) {
                 case 1: {
                     auto* subpatch = lassoSelection.getSelectedItem(0)->graphics.get()->getPatch();
-                    auto& tabbar = main.getTabbar();
                     
-                    for(int n = 0; n < tabbar.getNumTabs(); n++) {
+                    
+                    for(int n = 0; n < tabbar->getNumTabs(); n++) {
                         auto* tabCanvas = main.getCanvas(n);
                         if(tabCanvas->patch == *subpatch) {
-                            tabbar.setCurrentTabIndex(n);
+                            tabbar->setCurrentTabIndex(n);
                             return;
                         }
                     }
@@ -470,6 +469,17 @@ void Canvas::mouseUp(const MouseEvent& e)
         Edge::connectingEdge = nullptr;
         connectingWithDrag = false;
     }
+    
+    auto& lassoSelection = dragger.getLassoSelection();
+    
+    // Pass parameters of selected box to inspector
+    if(lassoSelection.getNumSelected() == 1) {
+        auto* box = lassoSelection.getSelectedItem(0);
+        if(box->graphics) {
+            main.inspector.loadData(box->graphics->getParameters());
+        }
+    }
+    
     lasso.endLasso();
     
 }
@@ -490,22 +500,28 @@ void Canvas::dragCallback(int dx, int dy)
     main.updateUndoState();
 }
 
-
-//==============================================================================
-void Canvas::paintOverChildren (Graphics& g)
+void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
 {
-    
-    // Pd Template drawing: not the most efficient implementation but it seems to work!
-    for (auto* gobj = patch.getPointer()->gl_list; gobj; gobj = gobj->g_next)
+    int n = 0;
+    for (auto* gobj = cnv->gl_list; gobj; gobj = gobj->g_next)
     {
+        if (gobj->g_pd == canvas_class)
+        {
+            if(boxes[n]->graphics && boxes[n]->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
+                auto* canvas = boxes[n]->graphics->getCanvas();
+                
+                g.saveState();
+                auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
+                auto bounds = canvas->getParentComponent()->getLocalBounds().withPosition(pos);
+                g.reduceClipRegion(bounds);
+                
+                canvas->findDrawables(g, static_cast<t_canvas*>((void*)gobj));
+                
+                g.restoreState();
+            }
+        }
         if (gobj->g_pd == scalar_class)
         {
-            // Make sure we draw on top
-            if(isGraph) {
-                //findParentComponentOfClass<Box>()->toFront(false);
-                
-            }
-            
             t_scalar *x = (t_scalar *)gobj;
             t_template *templ = template_findbyname(x->sc_template);
             t_canvas *templatecanvas = template_findcanvas(templ);
@@ -513,25 +529,28 @@ void Canvas::paintOverChildren (Graphics& g)
             t_float basex, basey;
             scalar_getbasexy(x, &basex, &basey);
 
-            if (!templatecanvas)
-            {
-                return;
-            }
-
+            if (!templatecanvas) return;
+            
             for (y = templatecanvas->gl_list; y; y = y->g_next)
             {
                 const t_parentwidgetbehavior *wb = pd_getparentwidget(&y->g_pd);
-                
-                if(!strcmp(y->g_pd->c_name->s_name, "filledcurve")) {
-                    std::cout << "boom" << std::endl;
-                }
-                
-                //std::cout << y->g_pd->c_name->s_name << std::endl;
                 if (!wb) continue;
-                
                 TemplateDraw::paintOnCanvas(g, this, x, y, basex, basey);
             }
         }
+        n++;
+    }
+}
+
+
+//==============================================================================
+void Canvas::paintOverChildren (Graphics& g)
+{
+    
+    // Pd Template drawing: not the most efficient implementation but it seems to work!
+    // Graphs are drawn from their parent, so pd drawings are always on top of other objects
+    if(!isGraph) {
+        findDrawables(g, patch.getPointer());
     }
     
     if(Edge::connectingEdge && Edge::connectingEdge->box->cnv == this) {
@@ -700,6 +719,7 @@ void Canvas::duplicateSelection() {
 
 void Canvas::removeSelection() {
     
+    main.inspector.deselect();
     main.stopTimer();
     
     Array<pd::Object*> objects;
@@ -750,22 +770,23 @@ void Canvas::redo() {
 // Called from subpatcher objects to close all tabs that refer to that subpatcher
 void Canvas::closeAllInstances()
 {
-    auto& tabbar = main.getTabbar();
-    for(int n = 0; n < tabbar.getNumTabs(); n++) {
+    if(!tabbar) return;
+    
+    for(int n = 0; n < tabbar->getNumTabs(); n++) {
         auto* cnv = main.getCanvas(n);
         if(cnv && cnv->patch == patch && &cnv->main == &main) {
-            tabbar.removeTab(n);
+            tabbar->removeTab(n);
             main.canvases.removeObject(cnv);
         }
     }
     
-    if(tabbar.getNumTabs() > 1) {
-        tabbar.getTabbedButtonBar().setVisible(true);
-        tabbar.setTabBarDepth(30);
+    if(tabbar->getNumTabs() > 1) {
+        tabbar->getTabbedButtonBar().setVisible(true);
+        tabbar->setTabBarDepth(30);
     }
     else {
-        tabbar.getTabbedButtonBar().setVisible(false);
-        tabbar.setTabBarDepth(1);
+        tabbar->getTabbedButtonBar().setVisible(false);
+        tabbar->setTabBarDepth(1);
     }
 }
 

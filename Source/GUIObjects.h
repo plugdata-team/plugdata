@@ -2,7 +2,7 @@
  // Copyright (c) 2021 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
-*/
+ */
 
 #pragma once
 
@@ -21,29 +21,17 @@ class Canvas;
 class Box;
 struct GUIComponent : public Component
 {
-    std::unique_ptr<ResizableBorderComponent> resizer;
-    
-    Box* box;
-    
-    String primaryColour;
-    String secondaryColour;
-    
+
     GUIComponent(pd::Gui gui, Box* parent);
     
-    void initColours() {
-        primaryColour = Colour(gui.getForegroundColor()).toString();
-        secondaryColour = Colour(gui.getBackgroundColor()).toString();
-        if(primaryColour == "ff000000") primaryColour = MainLook::highlightColour.toString();
-        if(secondaryColour == "fffcfcfc") secondaryColour = MainLook::firstBackground.toString();
-        setForeground(Colour::fromString(primaryColour));
-        setBackground(Colour::fromString(secondaryColour));
-    }
-    
     virtual ~GUIComponent();
-    
     virtual std::pair<int, int> getBestSize() = 0;
-    
     virtual std::tuple<int, int, int, int> getSizeLimits() = 0;
+    
+    virtual void updateValue();
+    virtual void update() {};
+    
+    void initColours();
     
     void paint(Graphics& g) override {
         g.setColour(findColour(TextButton::buttonColourId));
@@ -57,31 +45,54 @@ struct GUIComponent : public Component
     
     static GUIComponent* createGui(String name, Box* parent);
     
-    virtual void updateValue();
+    void setForeground(Colour colour);
+    void setBackground(Colour colour);
     
-    virtual void update() {};
+    virtual ObjectParameters defineParamters() { return {}; };
     
-    
-    void setForeground(Colour colour) {
+    ObjectParameters getParameters() {
+        ObjectParameters params = defineParamters();
         
-        getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
-        getLookAndFeel().setColour(Slider::thumbColourId, colour);
+        auto& [parameters, callback] = params;
         
-        // TODO: fix this!
-        libpd_iemgui_set_foreground_color(gui.getPointer(), colour.getRed(), colour.getGreen(), colour.getBlue());
+        if(gui.isIEM()) {
+            parameters.insert(parameters.begin(), {"Foreground", tColour, (void*)&primaryColour});
+            parameters.insert(parameters.begin() + 1, {"Background", tColour, (void*)&secondaryColour});
+            parameters.insert(parameters.begin() + 2, {"Send Symbol", tString, (void*)&sendSymbol});
+            parameters.insert(parameters.begin() + 3, {"Receive Symbol", tString, (void*)&receiveSymbol});
+        
+        
+            auto oldCallback = callback;
+            callback = [this, oldCallback](int changedParameter) {
+                
+                if(changedParameter == 0) {
+                    setForeground(Colour::fromString(primaryColour));
+                    repaint();
+                }
+                else if(changedParameter == 1) {
+                    setBackground(Colour::fromString(secondaryColour));
+                    repaint();
+                }
+                
+                else if(changedParameter == 2) {
+                    gui.setSendSymbol(sendSymbol.toStdString());
+                    repaint();
+                }
+                else if(changedParameter == 3) {
+                    gui.setReceiveSymbol(receiveSymbol.toStdString());
+                    repaint();
+                }
+                else {
+                    oldCallback(changedParameter - 4);
+                }
+            };
+            
+        }
+        
+        
+        return params;
     }
     
-    void setBackground(Colour colour) {
-        getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-        getLookAndFeel().setColour(Slider::backgroundColourId, colour);
-        
-        // TODO: fix this!
-       // libpd_iemgui_set_background_color(gui.getPointer(), colour.getRed(), colour.getGreen(), colour.getBlue());
-    }
-    
-    virtual ObjectParameters getParameters() {
-        return {};
-    }
     
     virtual pd::Patch* getPatch() {
         return nullptr;
@@ -96,7 +107,6 @@ struct GUIComponent : public Component
     }
     
     
-
     std::unique_ptr<Label> getLabel();
     pd::Gui getGUI();
     
@@ -108,6 +118,9 @@ struct GUIComponent : public Component
     void startEdition() noexcept;
     void stopEdition() noexcept;
     
+    std::unique_ptr<ResizableBorderComponent> resizer;
+    Box* box;
+    
 protected:
     const std::string stringGui = std::string("gui");
     const std::string stringMouse = std::string("mouse");
@@ -116,21 +129,26 @@ protected:
     PlugDataAudioProcessor& processor;
     pd::Gui     gui;
     std::atomic<bool> edited;
-    float       value   = 0;
-    float       min     = 0;
-    float       max     = 1;
+    float value = 0;
+    float min   = 0;
+    float max   = 0;
     
     
+    String sendSymbol;
+    String receiveSymbol;
+    
+    String primaryColour = MainLook::highlightColour.toString();
+    String secondaryColour = MainLook::firstBackground.toString();
+
     PdGuiLook guiLook;
 };
 
 struct BangComponent : public GUIComponent, public Timer
 {
-
+    
     int bangInterrupt = 40;
     
     TextButton bangButton;
-    
     
     BangComponent(pd::Gui gui, Box* parent);
     
@@ -144,26 +162,10 @@ struct BangComponent : public GUIComponent, public Timer
         return {40, 60, 200, 200};
     };
     
-    ObjectParameters getParameters() override {
-        
-        auto callback = [this](int changedParameter) {
-            if(changedParameter == 0) {
-                setForeground(Colour::fromString(primaryColour));
-                repaint();
-            }
-            if(changedParameter == 1) {
-                setBackground(Colour::fromString(secondaryColour));
-                repaint();
-            }
-            else {
-
-            }
-        };
-        
-        return {{{"Foreground", tColour, (void*)&primaryColour},
-                {"Background", tColour, (void*)&secondaryColour},
-            {"Interrupt", tInt, (void*)&bangInterrupt}
-        }, callback};
+    ObjectParameters defineParamters() override {
+                
+        return {{{"Interrupt", tInt, (void*)&bangInterrupt},
+        }, [this](int){}};
     }
     
     void update() override;
@@ -199,23 +201,6 @@ struct ToggleComponent : public GUIComponent
     
     void update() override;
     
-    ObjectParameters getParameters() override {
-        
-        auto callback = [this](int changedParameter) {
-            if(changedParameter == 0) {
-                setForeground(Colour::fromString(primaryColour));
-                repaint();
-            }
-            if(changedParameter == 1) {
-                setBackground(Colour::fromString(secondaryColour));
-                repaint();
-            }
-        };
-        
-        return {{{"Foreground", tColour, (void*)&primaryColour},
-                {"Background", tColour, (void*)&secondaryColour}
-        }, callback};
-    }
 };
 
 
@@ -246,7 +231,7 @@ struct MessageComponent : public GUIComponent
     void updateValue() override;
     
     void resized() override;
-
+    
     void update() override;
     
     int numLines = 1;
@@ -256,12 +241,12 @@ struct MessageComponent : public GUIComponent
 
 struct NumboxComponent : public GUIComponent
 {
-
+    
     TextEditor input;
     
     NumboxComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {50, 26}; };
+    std::pair<int, int> getBestSize() override {return {60, 26}; };
     
     std::tuple<int, int, int, int> getSizeLimits() override {
         return {100, 50, 500, 600};
@@ -279,7 +264,23 @@ struct NumboxComponent : public GUIComponent
         //onMouseDrag();
     }
     
-
+    ObjectParameters defineParamters() override {
+        
+        auto callback = [this](int changedParameter) {
+            if(changedParameter == 0) {
+                gui.setMinimum(min);
+            }
+            if(changedParameter == 1) {
+                gui.setMaximum(min);
+            }
+        };
+        
+        return {{{"Minimum", tFloat, (void*)&min},
+            {"Maximum", tFloat, (void*)&max}
+        }, callback};
+    }
+    
+    
     
     void resized() override;
     
@@ -287,82 +288,85 @@ struct NumboxComponent : public GUIComponent
 };
 
 struct ListComponent : public GUIComponent
- {
-     
-     ListComponent(pd::Gui gui, Box* parent);
-     void paint(juce::Graphics& g) override;
-     void update() override;
-     
-     std::pair<int, int> getBestSize() override {
-         auto [x, y, w, h] = gui.getBounds();
-         return {w, h};
-         
-     };
-     
-     std::tuple<int, int, int, int> getSizeLimits() override {
-         return {100, 50, 500, 600};
-     };
-     
- private:
-     Label label;
-     
- };
+{
+    
+    ListComponent(pd::Gui gui, Box* parent);
+    void paint(juce::Graphics& g) override;
+    void update() override;
+    
+    std::pair<int, int> getBestSize() override {
+        auto [x, y, w, h] = gui.getBounds();
+        return {w, h};
+        
+    };
+    
+    std::tuple<int, int, int, int> getSizeLimits() override {
+        return {100, 50, 500, 600};
+    };
+    
+private:
+    Label label;
+    
+};
 
 
 struct SliderComponent : public GUIComponent
 {
-
+    
     bool isVertical;
+    bool isLogarithmic;
     
     Slider slider;
-    String trackColour = "ff121212";
+    String trackColour = "ff323232";
     
     SliderComponent(bool vertical, pd::Gui gui, Box* parent);
     
     
     std::pair<int, int> getBestSize() override {
         /*
-        if(isVertical) return {35, 130};
-        
-        return {130, 35}; */
+         if(isVertical) return {35, 130};
+         
+         return {130, 35}; */
         
         auto [x, y, w, h] = gui.getBounds();
         return {isVertical ? w + 10 : w, isVertical ? h : h + 10};
         
     };
     
-    ObjectParameters getParameters() override {
+    ObjectParameters defineParamters() override {
         
         auto callback = [this](int changedParameter) {
             if(changedParameter == 0) {
-                setForeground(Colour::fromString(primaryColour));
-                repaint();
-            }
-            if(changedParameter == 1) {
-                setBackground(Colour::fromString(secondaryColour));
-                repaint();
-            }
-            else if(changedParameter == 2) {
                 getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(trackColour));
                 repaint();
             }
-
+            else if(changedParameter == 1) {
+                gui.setMinimum(min);
+            }
+            else if(changedParameter == 2) {
+                gui.setMaximum(max);
+            }
+            else if(changedParameter == 3) {
+                gui.setLogScale(isLogarithmic);
+            }
         };
         
-        return {{{"Foreground", tColour, (void*)&primaryColour},
-                {"Background", tColour, (void*)&secondaryColour},
-                {"Track", tColour, (void*)&trackColour}
+        return {{
+            {"Track", tColour, (void*)&trackColour},
+            {"Minimum", tFloat, (void*)&min},
+            {"Maximum", tFloat, (void*)&max},
+            {"Logarithmic", tBool, (void*)&isLogarithmic},
         }, callback};
     }
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {100, 60, 500, 600};
     };
-
+    
     void resized() override;
-
+    
     void update() override;
-
+    
 };
 
 
@@ -371,43 +375,50 @@ struct RadioComponent : public GUIComponent
     
     int last_state = 0;
     
+    int minimum = 0, maximum = 8;
+    
     bool isVertical;
     RadioComponent(bool vertical, pd::Gui gui, Box* parent);
     
-    std::array<TextButton, 8> radio_buttons;
+    OwnedArray<TextButton> radioButtons;
     
     std::pair<int, int> getBestSize() override {
-        if(isVertical) return {24, 163};
+        int numButtons = maximum - minimum;
         
-        return {161, 23};
+        if(isVertical) return {24, 20 * numButtons};
+        
+        return {20 * numButtons, 23};
     };
     
     std::tuple<int, int, int, int> getSizeLimits()  override {
         return {100, 40, 500, 600};
     };
     
-    ObjectParameters getParameters() override {
+    ObjectParameters defineParamters() override {
         
         auto callback = [this](int changedParameter) {
             if(changedParameter == 0) {
-                setForeground(Colour::fromString(primaryColour));
-                repaint();
+                gui.setMinimum(minimum);
+                updateRange();
             }
-            if(changedParameter == 1) {
-                setBackground(Colour::fromString(secondaryColour));
-                repaint();
+            else if(changedParameter == 1) {
+                gui.setMaximum(maximum);
+                updateRange();
             }
         };
         
-        return {{{"Foreground", tColour, (void*)&primaryColour},
-                {"Background", tColour, (void*)&secondaryColour}
+        return {{
+            {"Minimum", tInt, (void*)&minimum},
+            {"Maximum", tInt, (void*)&maximum},
         }, callback};
     }
     
     
     void resized() override;
-
+    
     void update() override;
+    
+    void updateRange();
     
 };
 
@@ -474,7 +485,7 @@ public:
     void paint(Graphics& g) override;
     void resized() override;
     void updateValue() override;
-
+    
     int bestW = 410;
     int bestH = 270;
     
@@ -513,7 +524,7 @@ private:
 
 struct Subpatch : public GUIComponent
 {
-
+    
     Subpatch(pd::Gui gui, Box* box);
     
     ~Subpatch();
@@ -536,7 +547,7 @@ struct Subpatch : public GUIComponent
         return true;
     }
     
-
+    
     
 private:
     pd::Patch subpatch;
@@ -565,7 +576,7 @@ struct CommentComponent : public GUIComponent
 // ELSE mousepad
 struct MousePad : public GUIComponent
 {
-
+    
     typedef struct _pad{
         t_object        x_obj;
         t_glist        *x_glist;
@@ -620,7 +631,7 @@ struct MouseComponent : public GUIComponent
         t_outlet  *x_horizontal;
         t_outlet  *x_vertical;
     } t_mouse;
-
+    
     
     MouseComponent(pd::Gui gui, Box* box);
     
@@ -650,7 +661,7 @@ struct MouseComponent : public GUIComponent
 // ELSE keyboard
 struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
 {
-
+    
     
     typedef struct _edit_proxy{
         t_object    p_obj;
@@ -658,7 +669,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_clock    *p_clock;
         struct      _keyboard *p_cnv;
     }t_edit_proxy;
-
+    
     
     typedef struct _keyboard{
         t_object       x_obj;
@@ -706,7 +717,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     
     void handleNoteOn (MidiKeyboardState* source,
                        int midiChannel, int midiNoteNumber, float velocity) override;
-
+    
     void handleNoteOff (MidiKeyboardState* source,
                         int midiChannel, int midiNoteNumber, float velocity) override;
     
@@ -721,7 +732,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     
     MidiKeyboardState state;
     MidiKeyboardComponent keyboard;
-
+    
 };
 
 
@@ -756,9 +767,9 @@ struct TemplateDraw
         int x_npoints;
         t_fielddesc *x_vec;
         t_canvas *x_canvas;
-    };    
+    };
     
     static void paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, t_gobj* obj, int baseX, int baseY);
-
+    
     
 };

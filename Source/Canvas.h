@@ -35,6 +35,7 @@ class Canvas  : public Component, public KeyListener, public MultiComponentDragg
 {
 public:
     
+    
     static inline constexpr int guiUpdateMs = 25;
     
     //==============================================================================
@@ -82,6 +83,9 @@ public:
         return hasChanged && boxes.size();
     }
     
+    
+    void findDrawables(Graphics& g, t_canvas* cnv);
+    
     bool hasChanged = false;
     
     Viewport* viewport = nullptr;
@@ -107,6 +111,8 @@ public:
     Component transformLayer;
     
 private:
+    
+    SafePointer<TabbedComponent> tabbar;
     
     Point<int> dragStartPosition;
     Point<int> lastMousePos;

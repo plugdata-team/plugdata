@@ -25,6 +25,9 @@ class Instance;
 class Patch
 {
 public:
+    
+    Patch(void* ptr, Instance* instance) noexcept;
+    
     //! @brief The default constructor.
     Patch() noexcept = default;
     
@@ -106,7 +109,7 @@ public:
     static inline float zoom = 1.7f;
     
 private:
-    Patch(void* ptr, Instance* instance) noexcept;
+
     
     void*     m_ptr      = nullptr;
     Instance* m_instance = nullptr;
