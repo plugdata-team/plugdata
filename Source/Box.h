@@ -20,7 +20,7 @@
 
 
 class Canvas;
-class Box  : public Component
+class Box  : public Component, public ChangeListener
 {
     
 public:
@@ -30,6 +30,8 @@ public:
     Box(pd::Object* object, Canvas* parent, String name = "", Point<int> position = {100, 100});
 
     ~Box() override;
+    
+    void changeListenerCallback(ChangeBroadcaster* source) override;
     
     //==============================================================================
     void paint (Graphics&) override;
@@ -46,9 +48,7 @@ public:
     int numOutputs = 0;
     
     ClickLabel textLabel;
-    
-    std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
-    
+
     Canvas* cnv;
     
     std::unique_ptr<GUIComponent> graphics = nullptr;
@@ -56,6 +56,9 @@ public:
     MultiComponentDragger<Box>& dragger;
     
     OwnedArray<Edge> edges;
+    
+    std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
+    ComponentBoundsConstrainer restrainer;
     
     void setType(String newType, bool exists = false);
     
@@ -65,8 +68,7 @@ private:
     
     void mouseMove(const MouseEvent& e) override;
     
-    ComponentBoundsConstrainer restrainer;
-    std::tuple<int, int, int, int> defaultLimits = {40, 32, 100, 32};
-    
+    bool locked = false;
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Box)
 };

@@ -92,6 +92,11 @@ struct MainLook : public LookAndFeel_V4
         return button_bar.getWidth() / button_bar.getNumTabs();
     }
     
+    void drawResizableFrame (Graphics& g, int w, int h, const BorderSize<int>& border) override
+    {
+    }
+
+    
     void drawDocumentWindowTitleBar(DocumentWindow &window, Graphics &g, int w,
                                     int h, int titleSpaceX, int titleSpaceW,
                                     const Image *icon,
@@ -331,6 +336,10 @@ struct StatusbarLook : public MainLook
         setColour(TextButton::textColourOffId, Colours::white);
         setColour(TextButton::buttonOnColourId, Colour(10, 10, 10));
         
+        setColour(Slider::trackColourId, firstBackground);
+        
+        
+        
         setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     }
     
@@ -339,6 +348,43 @@ struct StatusbarLook : public MainLook
         auto font = font_choice ? icon_font.withHeight(buttonHeight / (3.2 / scalar)) : ToolbarLook::icon_font.withHeight(buttonHeight / (3.8 / scalar));
         return font;
     }
+    
+    void drawLinearSlider (Graphics& g, int x, int y, int width, int height,
+            float sliderPos,
+            float minSliderPos,
+            float maxSliderPos,
+            const Slider::SliderStyle style, Slider& slider)
+    {
+        float trackWidth = 6.;
+        Point<float> startPoint (slider.isHorizontal() ? x : x + width * 0.5f,
+                                 slider.isHorizontal() ? y + height * 0.5f : height + y);
+        Point<float> endPoint (slider.isHorizontal() ? width + x : startPoint.x,
+                               slider.isHorizontal() ? startPoint.y : y);
+        Path backgroundTrack;
+        backgroundTrack.startNewSubPath (startPoint);
+        backgroundTrack.lineTo (endPoint);
+        g.setColour (slider.findColour (Slider::backgroundColourId));
+        g.strokePath (backgroundTrack, { trackWidth, PathStrokeType::mitered});
+        Path valueTrack;
+        Point<float> minPoint, maxPoint;
+        auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
+        auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
+        minPoint = startPoint;
+        maxPoint = { kx, ky };
+        auto thumbWidth = getSliderThumbRadius (slider);
+        valueTrack.startNewSubPath (minPoint);
+        valueTrack.lineTo (maxPoint);
+        g.setColour (slider.findColour (Slider::trackColourId));
+        g.strokePath (valueTrack, { trackWidth, PathStrokeType::mitered});
+        g.setColour (slider.findColour (Slider::thumbColourId));
+        g.fillRect (Rectangle<float> (static_cast<float> (thumbWidth), static_cast<float> (24)).withCentre (maxPoint));
+    }
+    
+    int getSliderThumbRadius(Slider &)
+    {
+        return 6;
+    }
+
 };
 
 class BoxEditorLook : public MainLook

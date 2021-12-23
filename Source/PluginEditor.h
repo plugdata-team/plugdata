@@ -10,7 +10,7 @@
 #include "LookAndFeel.h"
 #include "Console.h"
 #include "Inspector.h"
-
+#include "LevelMeter.h"
 
 #include <JuceHeader.h>
 
@@ -42,7 +42,7 @@ struct TabComponent : public TabbedComponent
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public Timer
+class PlugDataPluginEditor : public AudioProcessorEditor, public Timer, public ChangeBroadcaster
 {
 public:
     //==============================================================================
@@ -89,6 +89,9 @@ public:
     OwnedArray<Canvas> canvases;
     Inspector inspector;
     
+    LevelMeter levelmeter;
+
+    
 private:
     
     
@@ -109,7 +112,7 @@ private:
     TextButton& hideButton = toolbarButtons[6];
     
     TextButton startButton = TextButton(CharPointer_UTF8 ("\xef\x85\xab"));
-    TextButton hideHeadersButton = TextButton(CharPointer_UTF8 ("\xef\x86\x8a"));
+    TextButton lockButton = TextButton(CharPointer_UTF8("\xef\x82\x9c"));
     TextButton connectionStyleButton = TextButton(CharPointer_UTF8 ("\xef\x85\xb2"));
     
     int dragStartWidth = 0;
@@ -119,7 +122,9 @@ private:
 
     ToolbarLook toolbarLook;
     StatusbarLook statusbarLook = StatusbarLook(true, 1.4);
+    StatusbarLook statusbarLook2 = StatusbarLook(false, 1.4);
     MainLook mainLook;
+    
 
     TabComponent tabbar;
     

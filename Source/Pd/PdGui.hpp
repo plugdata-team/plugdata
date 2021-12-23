@@ -95,6 +95,7 @@ namespace pd
         void click() noexcept;
         
         std::array<int, 4> getBounds() const noexcept override;
+        void setSize(int w, int h) noexcept;
         
         bool jumpOnClick() const noexcept;
         

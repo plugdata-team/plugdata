@@ -56,6 +56,7 @@ void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int
         cnv = cnv->gl_owner;
     
     *x = 0; *y = 0; *w = 0; *h = 0;
+    
     gobj_getrect((t_gobj *)ptr, cnv, x, y, w, h);
     *w -= *x;
     *h -= *y;

@@ -33,7 +33,36 @@ m_name("PlugData"),
 m_accepts_midi(true),
 m_produces_midi(true),
 m_is_midi_effect(false),
-m_bypass(false){
+
+parameters (*this, nullptr, juce::Identifier ("APVTSTutorial"),
+                      {
+                            std::make_unique<juce::AudioParameterFloat> ("volume", "Volume", 0.0f, 1.0f, 0.75f),
+                            std::make_unique<juce::AudioParameterBool> ("enabled", "Enabled", true),
+                          
+                            std::make_unique<juce::AudioParameterFloat> ("param1", "Parameter 1", 0.0f, 1.0f, 0.0f),
+                            std::make_unique<juce::AudioParameterFloat> ("param2", "Parameter 2", 0.0f, 1.0f, 0.0f),
+                            std::make_unique<juce::AudioParameterFloat> ("param3", "Parameter 3", 0.0f, 1.0f, 0.0f),
+                            std::make_unique<juce::AudioParameterFloat> ("param4", "Parameter 4", 0.0f, 1.0f, 0.0f),
+                            std::make_unique<juce::AudioParameterFloat> ("param5", "Parameter 5", 0.0f, 1.0f, 0.0f),
+                            std::make_unique<juce::AudioParameterFloat> ("param6", "Parameter 6", 0.0f, 1.0f, 0.0f),
+                            std::make_unique<juce::AudioParameterFloat> ("param7", "Parameter 7", 0.0f, 1.0f, 0.0f),
+                            std::make_unique<juce::AudioParameterFloat> ("param8", "Parameter 8", 0.0f, 1.0f, 0.0f)
+                      })
+{
+    
+                          
+    volume = parameters.getRawParameterValue("volume");
+    enabled = parameters.getRawParameterValue("enabled");
+    
+    for(int n = 0; n < 8; n++) {
+        parameterValues[n] = parameters.getRawParameterValue("param" + String(n + 1));
+        lastParameters[n] = 0;
+    }
+      
+                          
+                        
+    
+    
     
     if(!appDir.exists() || !abstractions.exists()) {
         appDir.createDirectory();
@@ -228,6 +257,12 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    auto const maxOuts = std::max(numout, buffer.getNumChannels());
+    for(int i = numin; i < maxOuts; ++i)
+    {
+        buffer.clear(i, 0, buffer.getNumSamples());
+    }
+    
     // This is the place where you'd normally do the guts of your plugin's
     // audio processing...
     // Make sure to reset the state if your inner loop is processing
@@ -236,6 +271,17 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     // interleaved by keeping the same state.
     
     //midiCollector.removeNextBlockOfMessages(midiMessages, 512);
+    
+    for(int n = 0; n < 8; n++) {
+        if(parameterValues[n]->load() != lastParameters[n]) {
+            lastParameters[n] = parameterValues[n]->load();
+            
+            parameterAtom[0] = {pd::Atom(lastParameters[n])};
+            
+            sendList(("param" + String(n + 1)).toRawUTF8(), parameterAtom);
+            
+        }
+    }
     
     processingBuffer.setSize(2, buffer.getNumSamples());
     
@@ -257,6 +303,22 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     if(totalNumOutputChannels == 2) {
         buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
     }
+    
+    float avg = 0.0f;
+    for(int ch = 0; ch < numout; ch++) {
+        avg += buffer.getRMSLevel(ch, 0, buffer.getNumSamples());
+    }
+    avg /= numout;
+    
+    
+    
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        editor->levelmeter.level = avg;
+        
+    }
+    
+    
+    buffer.applyGain(getParameters()[0]->getValue());
     
     
     // ..do something to the data...
@@ -281,15 +343,7 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     
     bufferout[0] = buffer.getWritePointer(0);
     bufferout[1] = buffer.getWritePointer(1);
-    
-    
-    auto const maxOuts = std::max(nouts, buffer.getNumChannels());
-    for(int i = nins; i < maxOuts; ++i)
-    {
-        buffer.clear(i, 0, nsamples);
-    }
-    
-    
+
     //////////////////////////////////////////////////////////////////////////////////////////
     
     // If the current number of samples in this block
@@ -476,7 +530,7 @@ void PlugDataAudioProcessor::processInternal()
     //                                          AUDIO                                       //
     //////////////////////////////////////////////////////////////////////////////////////////
     
-    if(!m_bypass) {
+    if(enabled->load()) {
         // Copy circuitlab's output to Pure data to Pd input channels
         std::copy_n(m_audio_buffer_out.data() + (2 * 64), (numout-2) * 64, m_audio_buffer_in.data() + (2 * 64));
         
@@ -540,9 +594,22 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 void PlugDataAudioProcessor::getStateInformation (MemoryBlock& destData)
 {
     
+    MemoryBlock xmlBlock;
+    
+    auto state = parameters.copyState();
+    std::unique_ptr<juce::XmlElement> xml (state.createXml());
+    copyXmlToBinary (*xml, xmlBlock);
+    
+    
+    
+    
     // Store pure-data state
     MemoryOutputStream ostream(destData, false);
+    
     ostream.writeString(getCanvasContent());
+    ostream.writeInt(xmlBlock.getSize());
+    ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+    
 }
 
 void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBytes)
@@ -550,6 +617,17 @@ void PlugDataAudioProcessor::setStateInformation (const void* data, int sizeInBy
     
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
+    int xmlSize = istream.readInt();
+    
+    void* xmlData = (void*)new char[xmlSize];
+    istream.read(xmlData, xmlSize);
+    
+    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
+
+    if (xmlState.get() != nullptr)
+        if (xmlState->hasTagName (parameters.state.getType()))
+            parameters.replaceState (juce::ValueTree::fromXml (*xmlState));
+    
     
     loadPatch(state);
 }

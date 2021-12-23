@@ -21,12 +21,11 @@ class Canvas;
 class Box;
 struct GUIComponent : public Component
 {
-
+    
     GUIComponent(pd::Gui gui, Box* parent);
     
     virtual ~GUIComponent();
     virtual std::pair<int, int> getBestSize() = 0;
-    virtual std::tuple<int, int, int, int> getSizeLimits() = 0;
     
     virtual void updateValue();
     virtual void update() {};
@@ -118,7 +117,6 @@ struct GUIComponent : public Component
     void startEdition() noexcept;
     void stopEdition() noexcept;
     
-    std::unique_ptr<ResizableBorderComponent> resizer;
     Box* box;
     
 protected:
@@ -158,9 +156,8 @@ struct BangComponent : public GUIComponent, public Timer
         return {w * mult, h * mult};
     };
     
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 60, 200, 200};
-    };
+    
+    
     
     ObjectParameters defineParamters() override {
                 
@@ -193,10 +190,9 @@ struct ToggleComponent : public GUIComponent
         
     };
     
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 60, 200, 200};
-    };
+
     
+
     void resized() override;
     
     void update() override;
@@ -224,10 +220,6 @@ struct MessageComponent : public GUIComponent
     
     
     
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {100, 50, 500, 600};
-    };
-    
     void updateValue() override;
     
     void resized() override;
@@ -248,9 +240,7 @@ struct NumboxComponent : public GUIComponent
     
     std::pair<int, int> getBestSize() override {return {60, 26}; };
     
-    std::tuple<int, int, int, int> getSizeLimits() override {
-        return {100, 50, 500, 600};
-    };
+    
     
     void mouseDrag(const MouseEvent & e) override {
         startEdition();
@@ -300,9 +290,6 @@ struct ListComponent : public GUIComponent
         
     };
     
-    std::tuple<int, int, int, int> getSizeLimits() override {
-        return {100, 50, 500, 600};
-    };
     
 private:
     Label label;
@@ -357,12 +344,8 @@ struct SliderComponent : public GUIComponent
             {"Maximum", tFloat, (void*)&max},
             {"Logarithmic", tBool, (void*)&isLogarithmic},
         }, callback};
-    }
-    
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {100, 60, 500, 600};
-    };
-    
+    }    
+
     void resized() override;
     
     void update() override;
@@ -390,10 +373,7 @@ struct RadioComponent : public GUIComponent
         return {20 * numButtons, 23};
     };
     
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {100, 40, 500, 600};
-    };
-    
+
     ObjectParameters defineParamters() override {
         
         auto callback = [this](int changedParameter) {
@@ -465,12 +445,6 @@ public:
     };
     
     
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        
-        
-        return {100, 40, 500, 600};
-    };
-    
 private:
     pd::Array      graph;
     GraphicalArray array;
@@ -503,13 +477,8 @@ public:
     Canvas* getCanvas() override {
         return canvas.get();
     }
+
     
-    
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        
-        
-        return {30, 30, 500, 600};
-    };
     
     void updateCanvas();
     
@@ -533,10 +502,7 @@ struct Subpatch : public GUIComponent
     
     void resized() override {};
     void updateValue() override {};
-    
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 32, 100, 32};
-    };
+
     
     
     pd::Patch* getPatch() override {
@@ -562,11 +528,7 @@ struct CommentComponent : public GUIComponent
     void updateValue() override {};
     
     std::pair<int, int> getBestSize() override {return {120, 4}; };
-    
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 32, 100, 32};
-    };
-    
+
     bool fakeGUI() override {
         return true;
     }
@@ -609,9 +571,6 @@ struct MousePad : public GUIComponent
         return {w, h};
     };
     
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 32, 100, 32};
-    };
     
     t_template* t_template;
 };
@@ -640,9 +599,6 @@ struct MouseComponent : public GUIComponent
     void resized() override {};
     void updateValue() override;
     
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 32, 100, 32};
-    };
     
     bool fakeGUI() override {
         return true;
@@ -725,10 +681,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         auto [x, y, w, h] = gui.getBounds();
         return {w, h};
     };
-    
-    std::tuple<int, int, int, int> getSizeLimits()  override {
-        return {40, 32, 100, 32};
-    };
+
     
     MidiKeyboardState state;
     MidiKeyboardComponent keyboard;

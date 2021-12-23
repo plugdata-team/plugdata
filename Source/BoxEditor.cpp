@@ -22,7 +22,7 @@ ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : 
 void ClickLabel::mouseDown(const MouseEvent & e)
 {
     Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->isGraph) return;
+    if(canvas->isGraph || canvas->pd->locked) return;
     
     isDown = true;
     dragger.handleMouseDown(box, e);
@@ -31,7 +31,7 @@ void ClickLabel::mouseDown(const MouseEvent & e)
 void ClickLabel::mouseUp(const MouseEvent & e)
 {
     Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->isGraph) return;
+    if(canvas->isGraph || canvas->pd->locked) return;
     
     isDown = false;
     dragger.handleMouseUp(box, e);
@@ -44,7 +44,7 @@ void ClickLabel::mouseUp(const MouseEvent & e)
 void ClickLabel::mouseDrag(const MouseEvent & e)
 {
     Canvas* canvas = findParentComponentOfClass<Canvas>();
-    if(canvas->isGraph) return;
+    if(canvas->isGraph || canvas->pd->locked) return;
     
     dragger.handleMouseDrag(e);
 }

@@ -46,10 +46,8 @@ Edge::Edge(Box* parent, bool input) : box(parent)
     
     parent->addAndMakeVisible(this);
     
-   
-    
-    
     onClick = [this](){
+        if(box->cnv->pd->locked) return;
         createConnection();
     };
 }
@@ -122,6 +120,8 @@ void Edge::resized()
 
 void Edge::mouseDrag(const MouseEvent& e) {
     // For dragging to create new connections
+    
+    if(box->cnv->pd->locked) return;
     
     TextButton::mouseDrag(e);
     if(!Edge::connectingEdge && e.getLengthOfMousePress() > 300) {
