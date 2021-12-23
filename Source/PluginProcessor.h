@@ -84,7 +84,7 @@ public:
     static std::string getPatchName() {return "patch"; }
     
     void setBypass(bool bypass) {
-        m_bypass = bypass;
+        *enabled = !bypass;
     }
     
     void setCallbackLock(const CriticalSection* lock) {
@@ -112,6 +112,10 @@ public:
     std::vector<const float*> bufferin;
     std::vector<float*> bufferout;
     
+    std::atomic<float>* volume;
+
+    std::vector<pd::Atom> parameterAtom = std::vector<pd::Atom>(1);
+    
     int numin;
     int numout;
     int sampsperblock = 512;
@@ -125,9 +129,12 @@ public:
     
     static inline File abstractions = appDir.getChildFile("Abstractions");
     
+    bool locked = false;
     
+    AudioProcessorValueTreeState parameters;
     
 private:
+    
     
     void processInternal();
 
@@ -137,7 +144,7 @@ private:
     bool const              m_accepts_midi      = true;
     bool const              m_produces_midi     = true;
     bool const              m_is_midi_effect    = false;
-    bool                    m_bypass            = true;
+    std::atomic<float>*      enabled;
     
     int                      m_audio_advancement;
     std::vector<float>       m_audio_buffer_in;
@@ -150,9 +157,13 @@ private:
     bool                     m_midibyte_issysex = false;
     uint8                    m_midibyte_buffer[512];
     size_t                   m_midibyte_index = 0;
+    
+    std::array<std::atomic<float>*, 8> parameterValues;
+    std::array<float, 8> lastParameters;
 
     const CriticalSection* audioLock;
     double samplerate;
+
     
     MainLook mainLook;
     

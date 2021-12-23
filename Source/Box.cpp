@@ -19,6 +19,9 @@
 Box::Box(Canvas* parent, String name, Point<int> position) : textLabel(this, parent->dragger), dragger(parent->dragger)
 {
     cnv = parent;
+    
+    cnv->main.addChangeListener(this);
+    
     initialise();
     setTopLeftPosition(position);
     setType(name);
@@ -26,18 +29,51 @@ Box::Box(Canvas* parent, String name, Point<int> position) : textLabel(this, par
     if(name.isEmpty()) {
         textLabel.showEditor();
     }
+    
+    changeListenerCallback(nullptr);
 }
 
-Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position) : textLabel(this, parent->dragger), pdObject(object), dragger(parent->dragger)
+Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position) : pdObject(object), textLabel(this, parent->dragger), dragger(parent->dragger)
 {
     cnv = parent;
     initialise();
     setTopLeftPosition(position);
     setType(name, true);
+    
+    cnv->main.addChangeListener(this);
+    changeListenerCallback(nullptr);
 }
 
 Box::~Box()
 {
+    cnv->main.removeChangeListener(this);
+}
+
+void Box::changeListenerCallback(ChangeBroadcaster* source) {
+    if(graphics && !graphics->fakeGUI() && (cnv->pd->locked || cnv->isGraph)) {
+        locked = true;
+        textLabel.setVisible(false);
+        if(resizer) resizer->setVisible(false);
+        
+        auto [w, h] = graphics->getBestSize();
+        graphics->setSize(w, h);
+        setSize(w + 8, h + 8);
+        
+        
+    }
+    else {
+        locked = false;
+        textLabel.setVisible(true);
+        if(resizer) resizer->setVisible(true);
+        
+        if(graphics && !graphics->fakeGUI()) {
+            auto [w, h] = graphics->getBestSize();
+            graphics->setSize(w, h);
+            setSize(w + 8, h + 30);
+        }
+        
+
+    }
 }
 
 void Box::initialise() {
@@ -45,16 +81,7 @@ void Box::initialise() {
     cnv->addAndMakeVisible(this);
     
     setSize (55, 31);
-    
-    auto& [minW, minH, maxW, maxH] = defaultLimits;
-    restrainer.setSizeLimits(minW, minH, maxW, maxH);
-    
-    //resizer.reset(new ResizableBorderComponent(this, &restrainer));
-    
-    // Uncomment to enable resizing
-    // doesn't work right yet!
-    //addAndMakeVisible(resizer.get());
-    
+
     addAndMakeVisible(&textLabel);
     
     textLabel.toBack();
@@ -98,13 +125,11 @@ void Box::setType (String newType, bool exists)
         pdObject = nullptr;
     }
     
+    
     if(!cnv->isGraph) updatePorts();
     
-    auto& [minW, minH, maxW, maxH] = defaultLimits;
-    
     auto bestWidth = textLabel.getFont().getStringWidth(newType) + 25;
-    restrainer.setSizeLimits(std::max(getHeight(), bestWidth), minH, std::max(700, bestWidth * 2), maxH);
-    
+
     if(pdObject) {
         graphics.reset(GUIComponent::createGui(type, this));
         
@@ -112,9 +137,6 @@ void Box::setType (String newType, bool exists)
             setSize(bestWidth, 31);
         }
         else if(graphics && !graphics->fakeGUI()) {
-            auto [minW, minH, maxW, maxH] = graphics->getSizeLimits();
-            restrainer.setSizeLimits(minW, minH, maxW, maxH);
-            
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
             setSize(w + 8, h + 27);
@@ -136,7 +158,17 @@ void Box::setType (String newType, bool exists)
         textLabel.setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
     
+    if(graphics && graphics->getGUI().isIEM()) {
+        resizer.reset(new ResizableBorderComponent(this, &restrainer));
+        addAndMakeVisible(resizer.get());
+        resizer->toBack(); // make sure it's behind the edges
+    }
+    else {
+        resizer.reset(nullptr);
+    }
+    
     cnv->main.updateUndoState();
+    
 
     resized();
 }
@@ -155,7 +187,7 @@ void Box::paint (Graphics& g)
     bool selected = dragger.isSelected(this);
     
     
-    bool hideLabel = graphics && !graphics->fakeGUI() && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
+    bool hideLabel = graphics && !graphics->fakeGUI() && locked;
     
     if (isDown || isOver || selected) {
         baseColour = baseColour.contrasting (isDown ? 0.2f : 0.05f);
@@ -192,18 +224,13 @@ void Box::moved()
 
 void Box::resized()
 {
-    bool hideLabel = graphics && !graphics->fakeGUI() && (cnv->main.pd.mainTree.getProperty(Identifiers::hideHeaders) || cnv->isGraph);
+    bool hideLabel = graphics && !graphics->fakeGUI() && locked;
     
     // Hidden header mode: gui objects become undraggable
     if(hideLabel) {
-        textLabel.setVisible(false);
-        auto [w, h] = graphics->getBestSize();
-        setSize(w + 8, h + 8);
-        graphics->setBounds(4, 4, w , h);
-        
+        graphics->setBounds(4, 4, getWidth() - 8, getHeight() - 8);
     }
     else {
-        textLabel.setVisible(true);
         textLabel.setBounds(4, 4, getWidth() - 8, 22);
         auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
         
@@ -213,24 +240,18 @@ void Box::resized()
             textLabel.setBounds(getLocalBounds().reduced(4));
         }
         else if(graphics)  {
-            auto [w, h] = graphics->getBestSize();
-            setSize(std::max(bestWidth, w + 8), h + 27);
-            graphics->setBounds(4, 26, getWidth() - 8, getHeight() - 30);
+            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 30);
         }
     }
     
     if(resizer) {
         resizer->setBounds(getLocalBounds());
     }
-    
+
     int index = 0;
     for(auto& edge : edges) {
-        
-        //auto& state = edge->getObjectState();
         bool isInput = edge->isInput;
-        
         int position = index < numInputs ? index : index - numInputs;
-        
         int total = isInput ? numInputs : numOutputs;
             
         float newY = isInput ? 4 : getHeight() - 4;

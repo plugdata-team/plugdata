@@ -637,6 +637,15 @@ std::array<int, 4> Gui::getBounds() const noexcept
     return Object::getBounds();
 }
 
+void Gui::setSize(int w, int h) noexcept {
+    // Only works for IEM objects right now...
+    if(isIEM()) {
+        auto* iemgui = static_cast<t_iemgui*>(m_ptr);
+        iemgui->x_w = w;
+        iemgui->x_h = h;
+    }
+}
+
 Array Gui::getArray() const noexcept
 {
     if(m_type == Type::Array)

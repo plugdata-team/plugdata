@@ -145,6 +145,10 @@ void Canvas::synchronise() {
                 box->setTopLeftPosition(x, y);
                 box->toBack();
                 
+                if(box->graphics) {
+                    box->graphics->initColours();
+                }
+                
                 // Don't show non-patchable (internal) objects
                 if(!patch.checkObject(&object)) box->setVisible(false);
             }
@@ -222,7 +226,8 @@ bool Canvas::hitTest(int x, int y) {
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
-
+    if(pd->locked) return;
+    
     auto* source = e.originalComponent;
     
     if(isGraph)  {
@@ -391,7 +396,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
-    if(isGraph) return;
+    if(isGraph || pd->locked) return;
     
     auto* source = e.originalComponent;
     
@@ -486,6 +491,8 @@ void Canvas::mouseUp(const MouseEvent& e)
 
 void Canvas::dragCallback(int dx, int dy)
 {
+    if(pd->locked) return;
+    
     auto objects = std::vector<pd::Object*>();
     
     for(auto* box : dragger.getLassoSelection()) {
@@ -584,6 +591,8 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     if(isGraph) return false;
     
     patch.keyPress(key.getKeyCode(), key.getModifiers().isShiftDown());
+    
+    if(pd->locked) return false;
     
     // Zoom in
     if(key.isKeyCode(61) && key.getModifiers().isCommandDown()) {        

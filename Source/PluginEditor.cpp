@@ -14,7 +14,7 @@
 
 //==============================================================================
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters)
 {
     console = debugConsole;
     
@@ -23,6 +23,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     tabbar.setColour(TabbedComponent::outlineColourId, MainLook::firstBackground);
     
     setLookAndFeel(&mainLook);
+    
+    addAndMakeVisible(levelmeter);
     
     tabbar.onTabChange = [this](int idx) {
         Edge::connectingEdge = nullptr;
@@ -59,16 +61,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     
     addChildComponent(inspector);
     
-    hideHeadersButton.setClickingTogglesState(true);
-    hideHeadersButton.setConnectedEdges(12);
-    hideHeadersButton.setLookAndFeel(&statusbarLook);
-    hideHeadersButton.onClick = [this](){
-        pd.mainTree.setProperty(Identifiers::hideHeaders, hideHeadersButton.getToggleState(), nullptr);
-        for(auto* box : getCurrentCanvas()->boxes) {
-            box->resized();
-            
-        }
+    lockButton.setClickingTogglesState(true);
+    lockButton.setConnectedEdges(12);
+    lockButton.setLookAndFeel(&statusbarLook2);
+    lockButton.onClick = [this](){
+        pd.locked = lockButton.getToggleState();
+        
+        lockButton.setButtonText(lockButton.getToggleState() ? CharPointer_UTF8 ("\xef\x80\xa3") : CharPointer_UTF8("\xef\x82\x9c"));
+        
+        sendChangeMessage();
     };
+    addAndMakeVisible(lockButton);
     
     connectionStyleButton.setClickingTogglesState(true);
     connectionStyleButton.setConnectedEdges(12);
@@ -78,7 +81,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         for(auto* connection : getCurrentCanvas()->connections) connection->resized();
     };
     
-    addAndMakeVisible(hideHeadersButton);
     addAndMakeVisible(connectionStyleButton);
 
     startButton.onClick = [this]() {
@@ -375,8 +377,10 @@ void PlugDataPluginEditor::resized()
     toolbarButtons[7].setBounds(std::min(getWidth() - sWidth + 90, getWidth() - 80), 0, 70, toolbarHeight);
     toolbarButtons[8].setBounds(std::min(getWidth() - sWidth + 160, getWidth() - 80), 0, 70, toolbarHeight);
     
-    hideHeadersButton.setBounds(8, getHeight() - 27, 27, 27);
+    lockButton.setBounds(8, getHeight() - 27, 27, 27);
     connectionStyleButton.setBounds(38, getHeight() - 27, 27, 27);
+    
+    levelmeter.setBounds(getWidth() - sWidth - 150, getHeight() - 27, 100, 27);
     
     resizer->setBounds (getWidth() - 16, getHeight() - 16, 16, 16);
     resizer->toFront(false);
@@ -478,8 +482,10 @@ void PlugDataPluginEditor::updateUndoState() {
     
     pd.setThis();
     
+    toolbarButtons[5].setEnabled(!pd.locked);
 
-    if(getCurrentCanvas() && getCurrentCanvas()->patch.getPointer()) {
+    
+    if(getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {
         
         getCurrentCanvas()->patch.setCurrent();
         getCurrentCanvas()->hasChanged = true;

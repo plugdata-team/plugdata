@@ -26,6 +26,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)  : box(parent), processor
     sendSymbol = gui.getSendSymbol();
     receiveSymbol = gui.getReceiveSymbol();
     
+
     
     
     setLookAndFeel(&guiLook);
@@ -241,6 +242,9 @@ BangComponent::BangComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGui, p
     };
     
     initColours();
+    
+    box->restrainer.setSizeLimits(40, 60, 200, 200);
+    
 }
 
 
@@ -253,6 +257,7 @@ void BangComponent::update()  {
 }
 
 void BangComponent::resized() {
+    gui.setSize(getWidth(), getHeight());
     bangButton.setBounds(getLocalBounds().reduced(6));
 }
 
@@ -271,11 +276,17 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGu
     };
     
     initColours();
+    
+    box->restrainer.setSizeLimits(40, 60, 200, 200);
 }
 
 
 void ToggleComponent::resized() {
+    gui.setSize(getWidth(), getHeight());
     toggleButton.setBounds(getLocalBounds().reduced(6));
+    
+        
+
 }
 
 
@@ -309,6 +320,7 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pd
     
     input.setMultiLine(true);
     
+    box->restrainer.setSizeLimits(100, 50, 500, 600);
 }
 
 
@@ -396,6 +408,10 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pdGu
         setValueOriginal(input.getText().getFloatValue());
         stopEdition();
     };
+    
+    
+    box->restrainer.setSizeLimits(100, 50, 500, 600);
+
 }
 
 void NumboxComponent::resized() {
@@ -447,6 +463,9 @@ ListComponent::ListComponent(pd::Gui gui, Box* parent) : GUIComponent(gui, paren
     };
     
     updateValue();
+    
+    box->restrainer.setSizeLimits(100, 50, 500, 600);
+    
     
 }
 
@@ -513,7 +532,6 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent) :
     
     slider.onValueChange = [this]()
     {
-        
         const float val = slider.getValue();
         if(gui.isLogScale())
         {
@@ -524,7 +542,6 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent) :
         {
             setValueScaled(val);
         }
-        
     };
     
     slider.onDragEnd = [this]() {
@@ -533,11 +550,14 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent) :
     
     initColours();
     
+    box->restrainer.setSizeLimits(100, 60, 500, 250);
 }
 
 
 void SliderComponent::resized() {
+    gui.setSize(getWidth() - 5, getHeight() - 10);
     slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 6.0, isVertical ? 6.0 : 0.0));
+    
 }
 
 
@@ -554,14 +574,21 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent) : G
     
     initColours();
     updateRange();
+    
+    box->restrainer.setSizeLimits(100, 40, 500, 600);
 }
 
 
 void RadioComponent::resized() {
+    gui.setSize(getWidth(), getHeight());
+    
     int numButtons = maximum - minimum;
     for(int i = 0; i < numButtons; i++) {
         radioButtons[i]->setBounds(isVertical ? getWidth() / 2 - 11 : i*20, isVertical ? (i*20) - 1 : -1, 21, 21);
     }
+    
+        
+
 }
 
 void RadioComponent::update() {
@@ -603,12 +630,15 @@ ArrayComponent::ArrayComponent(pd::Gui pdGui, Box* box) : GUIComponent(pdGui, bo
     array.setBounds(getLocalBounds());
     addAndMakeVisible(&array);
     
-    
+    box->restrainer.setSizeLimits(100, 40, 500, 600);
+
 }
 
 void ArrayComponent::resized()
 {
     array.setBounds(getLocalBounds());
+        
+
 }
 
 // Array graph
