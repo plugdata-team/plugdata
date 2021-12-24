@@ -463,9 +463,9 @@ void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback) {
 }
 
 void PlugDataPluginEditor::timerCallback() {
-    //pd.getCallbackLock()->enter();
     auto* cnv = getCurrentCanvas();
-    cnv->patch.setCurrent();
+    //cnv->patch.setCurrent();
+
     
     for(auto& box : cnv->boxes) {
         if(box->graphics && box->isShowing()) {
@@ -486,8 +486,9 @@ void PlugDataPluginEditor::updateUndoState() {
 
     
     if(getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {
-        
+        //auto* cs = pd.getCallbackLock();
         getCurrentCanvas()->patch.setCurrent();
+
         getCurrentCanvas()->hasChanged = true;
         
         toolbarButtons[3].setEnabled(pd.canUndo);

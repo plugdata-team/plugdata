@@ -71,8 +71,6 @@ struct Inspector    : public Component,
         // Load some data from an embedded XML file..
         loadData({});
         
-        
-
         // Create our table component and add it to this component..
         addAndMakeVisible (&table);
         table.setModel (this);
@@ -357,7 +355,7 @@ private:
         ColourComponent (Inspector& owner_, String* value, int rowIdx)
         : owner (owner_), currentColour(value), row(rowIdx)
         {
-            button.setButtonText(*value);
+            button.setButtonText(String("#") + (*value).substring(2));
             button.setConnectedEdges(12);
             button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             
@@ -366,7 +364,7 @@ private:
             
             button.onClick = [this]() {
                 
-                std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>();
+                std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
                 colourSelector->setName ("background");
                 colourSelector->setCurrentColour (findColour (TextButton::buttonColourId));
                 colourSelector->addChangeListener(this);
@@ -393,6 +391,8 @@ private:
             // make sure text is readable
             button.setColour(TextButton::textColourOffId, textColour);
             button.setColour(TextButton::textColourOnId, textColour);
+            
+            button.setButtonText(String("#") + (*currentColour).substring(2));
             
         }
         

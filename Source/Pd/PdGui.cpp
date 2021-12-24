@@ -167,7 +167,7 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
         
         if(static_cast<t_canvas*>(ptr)->gl_list)
         {
-            sys_lock();
+            //sys_lock();
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
             if(c && c->c_name && (std::string(c->c_name->s_name) == std::string("array")))
             {
@@ -179,7 +179,7 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
             else { // abstraction or subpatch
                 m_type = Type::Subpatch;
             }
-            sys_unlock();
+            //sys_unlock();
         }
         
         else if(m_type != Type::Array && static_cast<t_canvas*>(ptr)->gl_isgraph)

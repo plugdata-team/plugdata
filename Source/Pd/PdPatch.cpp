@@ -73,11 +73,37 @@ std::array<int, 4> Patch::getBounds() const noexcept
 
 void Patch::setCurrent() {
     
-    //sys_lock();
     m_instance->setThis();
-    canvas_setcurrent(getPointer());
+    
+    auto* lock = m_instance->getCallbackLock();
+    
+    bool entered = lock;
+    if(lock) entered = lock->tryEnter();
+    
+    // Meh kinda fix for thread safety issues
+    if(lock && entered) {
+        canvas_setcurrent(getPointer());
+        lock->exit();
+    }
+    else {
+        // TODO: this is not thread safe... but the alternatives seem worse
+        canvas_setcurrent(getPointer());
+        
+        /*
+        m_instance->enqueueFunction([this]() {
+            
+        });
+        
+        m_instance->waitForStateUpdate(); */
+    }
+    
     canvas_vis(getPointer(), 1.);
-    //sys_unlock();
+}
+
+t_canvas* Patch::getCurrent()
+{
+ 
+    return canvas_getcurrent();
 }
 
 std::vector<Object> Patch::getObjects(bool only_gui) noexcept

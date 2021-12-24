@@ -283,6 +283,18 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
         }
     }
     
+    // Run help files (without audio)
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        
+        for(int c = 0; c < editor->canvases.size(); c++) {
+            auto* cnv = editor->canvases[c];
+            if(cnv->aux_instance) {
+                cnv->aux_instance->enabled->store(0);
+                cnv->aux_instance->process(processingBuffer, midiMessages);
+            }
+        }
+    }
+    
     processingBuffer.setSize(2, buffer.getNumSamples());
     
     processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
@@ -290,14 +302,7 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     
     process(processingBuffer, midiMessages);
     
-    // Handle audio in help files
-    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        for(auto& cnv : editor->canvases) {
-            if(cnv->aux_instance) {
-                cnv->aux_instance->process(processingBuffer, midiMessages);
-            }
-        }
-    }
+
     
     buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
     if(totalNumOutputChannels == 2) {
@@ -649,14 +654,10 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     const CriticalSection* lock = getCallbackLock();
     
     lock->enter();
-    
     openPatch(patchFile.getParentDirectory().getFullPathName().toStdString(), patchFile.getFileName().toStdString());
-    
     lock->exit();
     
-    
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        
         auto* cnv = editor->canvases.add(new Canvas(*editor, false));
         cnv->title = "Untitled Patcher";
         

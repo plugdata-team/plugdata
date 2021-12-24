@@ -510,15 +510,14 @@ void Instance::dequeueMessages()
     }
     
     //sys_lock();
-    canUndo = libpd_can_undo(canvas_getcurrent());
-    canRedo = libpd_can_redo(canvas_getcurrent());
+    canUndo = libpd_can_undo(Patch::getCurrent());
+    canRedo = libpd_can_redo(Patch::getCurrent());
     //sys_unlock();
     
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
-
 
 
 void Instance::openPatch(std::string const& path, std::string const& name)
