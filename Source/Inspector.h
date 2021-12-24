@@ -110,6 +110,8 @@ struct Inspector    : public Component,
 
     ~Inspector()
     {
+        delete columnList;
+        delete dataList;
     }
 
     //==============================================================================

@@ -298,6 +298,8 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     setLookAndFeel(nullptr);
     startButton.setLookAndFeel(nullptr);
     hideButton.setLookAndFeel(nullptr);
+    lockButton.setLookAndFeel(nullptr);
+    connectionStyleButton.setLookAndFeel(nullptr);
     
     for(auto& button : toolbarButtons) {
         button.setLookAndFeel(nullptr);
