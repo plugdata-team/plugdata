@@ -23,6 +23,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
     
     tabbar = &parent.getTabbar();
     
+    // Add draggable border for setting graph position
     if(isGraphChild) {
         graphArea.reset(new GraphArea(this));
         addAndMakeVisible(graphArea.get());
@@ -30,9 +31,10 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
     
     setSize (600, 400);
     
+    // Apply zooming
     setTransform(parent.transform);
     
-    
+    // Add lasso component
     addAndMakeVisible(&lasso);
     lasso.setAlwaysOnTop(true);
     lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::ColourIds::thumbColourId).withAlpha((float)0.3));
@@ -42,7 +44,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
     setWantsKeyboardFocus(true);
     
     if(!isGraph) {
-     
+        // Layer to allow negative position
+        // TODO: this is a hack, we can fix this in a cleaner way
         transformLayer.addMouseListener(this, false);
         transformLayer.addKeyListener(this);
         transformLayer.addAndMakeVisible(this);
@@ -58,14 +61,14 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild) : main
 
 Canvas::~Canvas()
 {
-    
-   
     popupMenu.setLookAndFeel(nullptr);
     Component::removeAllChildren();
     removeKeyListener(this);
 }
 
 
+// Synchronise state with pure-data
+// Used for loading and for complicated actions like undo/redo
 void Canvas::synchronise() {
         main.stopTimer();
         setTransform(main.transform);
@@ -91,6 +94,7 @@ void Canvas::synchronise() {
             return true;
         };
         
+        // Clear deleted boxes
         for(int n = boxes.size() - 1; n >= 0; n--) {
             auto* box = boxes[n];
             if(isObjectDeprecated(box->pdObject.get())) {
@@ -154,6 +158,7 @@ void Canvas::synchronise() {
             }
         }
     
+    // Make sure objects have the same order
     std::sort(boxes.begin(), boxes.end(), [&objects](Box* first, Box* second) mutable {
         size_t idx1 = std::find(objects.begin(), objects.end(), *first->pdObject.get()) - objects.begin();
         size_t idx2 = std::find(objects.begin(), objects.end(), *second->pdObject.get()) - objects.begin();
@@ -166,6 +171,7 @@ void Canvas::synchronise() {
     
     auto* x = patch.getPointer();
     
+    // Get connections from pd
     linetraverser_start(&t, x);
     while ((oc = linetraverser_next(&t)))
     {
@@ -182,6 +188,7 @@ void Canvas::synchronise() {
     
     patch.deselectAll();
     
+    // Resize canvas to fit objects
     checkBounds();
     
     main.startTimer(guiUpdateMs);
@@ -196,8 +203,6 @@ void Canvas::createPatch() {
     
     auto* cs = pd->getCallbackLock();
     // Load the patch into libpd
-    // This way we don't have to parse the patch manually (which is complicated for arrays, subpatches, etc.)
-    // Instead we can load the patch and iterate through it to create the gui
     pd->openPatch(tempPatch.getParentDirectory().getFullPathName().toStdString(), tempPatch.getFileName().toStdString());
     
     patch = pd->getPatch();
@@ -207,10 +212,7 @@ void Canvas::createPatch() {
 }
 
 void Canvas::loadPatch(pd::Patch patch) {
-    
-    
     this->patch = patch;
-    
     
     synchronise();
 }
@@ -592,7 +594,11 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     
     patch.keyPress(key.getKeyCode(), key.getModifiers().isShiftDown());
     
-    if(pd->locked) return false;
+    // cmd-e
+    if(key.getModifiers().isCommandDown() && key.isKeyCode(69)) {
+        main.lockButton.triggerClick();
+        return true;
+    }
     
     // Zoom in
     if(key.isKeyCode(61) && key.getModifiers().isCommandDown()) {        
@@ -606,6 +612,9 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
         setTransform(main.transform);
         return true;
     }
+    
+    if(pd->locked) return false;
+    
     // Key shortcuts for creating objects
     if(key.getTextCharacter() == 'n') {
         boxes.add(new Box(this, "", lastMousePos));
@@ -615,12 +624,10 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
         for(auto* child : boxes) {
             dragger.setSelected(child, true);
         }
-        
         for(auto* child : connections) {
             child->isSelected = true;
             child->repaint();
         }
-        
         return true;
     }
     if(key.getTextCharacter() == 'b') {
@@ -664,28 +671,23 @@ bool Canvas::keyPressed(const KeyPress &key, Component *originatingComponent) {
     }
     // cmd-x
     if(key.getModifiers().isCommandDown() && key.isKeyCode(88)) {
-        
         copySelection();
         removeSelection();
-        
         return true;
     }
     // cmd-d
     if(key.getModifiers().isCommandDown() && key.isKeyCode(68)) {
-        
         duplicateSelection();
         return true;
     }
     
     // cmd-shift-z
     if(key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(90)) {
-        
         redo();
         return true;
     }
     // cmd-z
     if(key.getModifiers().isCommandDown() && key.isKeyCode(90)) {
-        
         undo();
         return true;
     }
@@ -804,8 +806,8 @@ void Canvas::checkBounds() {
     // Check new bounds
     int minX = 0;
     int minY = 0;
-    int maxX = getWidth() - getX();
-    int maxY = getHeight() - getY();
+    int maxX = std::max(getWidth() - getX(), viewport->getViewWidth());
+    int maxY = std::max(getHeight() - getY(), viewport->getViewHeight());
 
     for(auto obj : boxes) {
         maxX = std::max<int>(maxX, (int)obj->getX() + obj->getWidth());

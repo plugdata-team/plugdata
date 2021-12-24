@@ -38,6 +38,8 @@ GUIComponent::~GUIComponent()
 }
 
 void GUIComponent::initColours() {
+    if(!gui.isIEM()) return;
+    
     primaryColour = Colour(gui.getForegroundColor()).toString();
     secondaryColour = Colour(gui.getBackgroundColor()).toString();
     if(primaryColour == "ff000000") primaryColour = MainLook::highlightColour.toString();
@@ -359,9 +361,8 @@ void MessageComponent::updateValue()
                 }
             }
             if(numLines == 1) longestLine = std::max(longestLine, currentLineLength);
-            
-            
-            box->resized();
+    
+            box->changeListenerCallback(nullptr);
             
             lastMessage = v;
             

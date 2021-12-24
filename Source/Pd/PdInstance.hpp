@@ -96,9 +96,11 @@ public:
     
     void stringToAtom(String name, int& argc, t_atom& target);
     
-   
+    t_canvas* getCurrentCanvas();
 
     void waitForStateUpdate();
+    
+    virtual const CriticalSection* getCallbackLock() { return nullptr; };
     
            
     String getCanvasContent();

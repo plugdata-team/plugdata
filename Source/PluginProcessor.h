@@ -92,7 +92,7 @@ public:
     };
     
     
-    const CriticalSection* getCallbackLock() {
+    const CriticalSection* getCallbackLock() override {
         return audioLock;
     };
     

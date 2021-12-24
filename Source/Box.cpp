@@ -20,16 +20,21 @@ Box::Box(Canvas* parent, String name, Point<int> position) : textLabel(this, par
 {
     cnv = parent;
     
-    cnv->main.addChangeListener(this);
+
     
     initialise();
     setTopLeftPosition(position);
     setType(name);
     
+    // Add listener for lock/unlock messages
+    cnv->main.addChangeListener(this);
+    
+    // Open editor for undefined objects
     if(name.isEmpty()) {
         textLabel.showEditor();
     }
     
+    // Updates lock/unlock mode
     changeListenerCallback(nullptr);
 }
 
@@ -40,7 +45,10 @@ Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position) :
     setTopLeftPosition(position);
     setType(name, true);
     
+    // Add listener for lock/unlock messages
     cnv->main.addChangeListener(this);
+    
+    // Updates lock/unlock mode
     changeListenerCallback(nullptr);
 }
 
@@ -50,6 +58,9 @@ Box::~Box()
 }
 
 void Box::changeListenerCallback(ChangeBroadcaster* source) {
+    // Called when locking/unlocking
+    
+    // If the object has graphics, we hide the draggable name object
     if(graphics && !graphics->fakeGUI() && (cnv->pd->locked || cnv->isGraph)) {
         locked = true;
         textLabel.setVisible(false);
@@ -77,7 +88,8 @@ void Box::changeListenerCallback(ChangeBroadcaster* source) {
 }
 
 void Box::initialise() {
-    addMouseListener(cnv, true);
+
+    addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
     
     setSize (55, 31);
@@ -100,16 +112,19 @@ void Box::mouseMove(const MouseEvent& e) {
 
 void Box::setType (String newType, bool exists)
 {
+    // Change box type
+    
     textLabel.setText(newType, dontSendNotification);
     
     String arguments = newType.fromFirstOccurrenceOf(" ", false, false);
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
     
+    // Exists indicates that this object already exists in pd
+    // When setting exists to true, you need to have assigned an object to the pdObject variable already
     if(!exists) {
         auto* pd = &cnv->patch;
         
-        // Pd doesn't normally allow changing between gui and non-gui objects
-
+        // Pd doesn't normally allow changing between gui and non-gui objects so we force it
         if(pdObject && graphics) {
             pd->removeObject(pdObject.get());
             pdObject = pd->createObject(newType, getX(), getY());
@@ -125,12 +140,16 @@ void Box::setType (String newType, bool exists)
         pdObject = nullptr;
     }
     
-    
+    // Update inlets/outlets if it's not in a graph
     if(!cnv->isGraph) updatePorts();
     
+    // Get best width for text
     auto bestWidth = textLabel.getFont().getStringWidth(newType) + 25;
 
+    
     if(pdObject) {
+        
+        // Create graphics for the object if necessary
         graphics.reset(GUIComponent::createGui(type, this));
         
         if(graphics && graphics->getGUI().getType() == pd::Type::Comment) {
@@ -154,10 +173,12 @@ void Box::setType (String newType, bool exists)
         setSize (100, 31);
     }
     
+    // Hide "comment" in front of name
     if(newType.startsWith("comment ")) {
         textLabel.setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
     
+    // IEM objects can be resized
     if(graphics && graphics->getGUI().isIEM()) {
         resizer.reset(new ResizableBorderComponent(this, &restrainer));
         addAndMakeVisible(resizer.get());
@@ -197,14 +218,16 @@ void Box::paint (Graphics& g)
         outlineColour = MainLook::highlightColour;
     }
     
+    // Draw comment style
     if(graphics && graphics->getGUI().getType() == pd::Type::Comment) {
         g.setColour(outlineColour);
         g.drawRect(rect.toFloat(), 0.5f);
     }
+    // Draw for all other objects
     else {
         if(!hideLabel) {
             g.setColour(baseColour);
-            g.fillRoundedRectangle(rect.toFloat().withTrimmedBottom(getHeight() - 32), 2.0f);
+            g.fillRoundedRectangle(rect.toFloat().withTrimmedBottom(getHeight() - 31), 2.0f);
         }
 
         g.setColour(outlineColour);
@@ -216,6 +239,7 @@ void Box::paint (Graphics& g)
 
 void Box::moved()
 {
+    // Notify edges that we moved
     for(auto& edge : edges) {
         edge->sendMovedResizedMessages(true, true);
     }
@@ -240,7 +264,7 @@ void Box::resized()
             textLabel.setBounds(getLocalBounds().reduced(4));
         }
         else if(graphics)  {
-            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 30);
+            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
         }
     }
     
@@ -266,6 +290,7 @@ void Box::resized()
 
 
 void Box::updatePorts() {
+    // update inlets and outlets
     
     int oldnumInputs = 0;
     int oldnumOutputs = 0;
@@ -306,21 +331,9 @@ void Box::updatePorts() {
     
     for(int i = 0; i < numInputs + numOutputs; i++) {
         auto* edge = edges[i];
-        
         bool input = edge->isInput;
-        
         bool isSignal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
        
-        
-        /* this removes the connection if it's illegal
-         disabled because regular pd doesn't even do this!!
-         bool wasSignal = edge.getProperty(Identifiers::edgeSignal);
-         
-        if((!input && isSignal && !wasSignal) || (input && isSignal && !wasSignal)) {
-            removeChild(edge);
-            addChild(edge, i);
-        } */
-        
         //edge->isInput = input;
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;

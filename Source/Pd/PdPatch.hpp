@@ -79,11 +79,15 @@ public:
 
 
     void setCurrent();
+    static t_canvas* getCurrent();
     
     bool canConnect(Object* src, int nout, Object* sink, int nin);
     bool createConnection(Object* src, int nout, Object* sink, int nin);
     void removeConnection(Object* src, int nout, Object*sink, int nin);
     
+    inline static CriticalSection currentCanvasMutex;
+    
+
     
     t_canvas* getPointer() const {
         return static_cast<t_canvas*>(m_ptr);
