@@ -803,11 +803,20 @@ void Canvas::closeAllInstances()
 
 
 void Canvas::checkBounds() {
+    
+    int viewHeight = 0;
+    int viewWidth = 0;
+    if(viewport) {
+        viewWidth = viewport->getViewWidth();
+        viewHeight = viewport->getViewHeight();
+
+    }
+    
     // Check new bounds
     int minX = 0;
     int minY = 0;
-    int maxX = std::max(getWidth() - getX(), viewport->getViewWidth());
-    int maxY = std::max(getHeight() - getY(), viewport->getViewHeight());
+    int maxX = std::max(getWidth() - getX(), viewWidth);
+    int maxY = std::max(getHeight() - getY(), viewHeight);
 
     for(auto obj : boxes) {
         maxX = std::max<int>(maxX, (int)obj->getX() + obj->getWidth());
