@@ -643,8 +643,10 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     
     // Load from content or location
     File patchFile;
-    if(File(patch).existsAsFile() && patch.endsWith(".pd")) {
+    if(!patch.startsWith("#") && patch.endsWith(".pd") && File(patch).existsAsFile()) {
         patchFile = File(patch);
+        
+        
     }
     else {
         patchFile = File::createTempFile(".pd");

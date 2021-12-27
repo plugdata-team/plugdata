@@ -307,7 +307,6 @@ struct Inspector    : public Component,
         table.updateContent();
         repaint();
     }
-    
 
 private:
     TableListBox table;     // the table component itself
