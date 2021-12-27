@@ -12,14 +12,16 @@ PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. It c
 
 Possible thanks to:
 
-- Camomile by Pierre Guillot
-- Pure Data by Miller Puckette and others
-- libpd by the Peter Brinkmann, Dan Wilcox and others
-- ELSE by Alexandre Torres Porres
-- Juce by ROLI Ltd.
-- MoodyCamel by Cameron Desrochers
-- VST PlugIn Technology by Steinberg Media Technologies
-- Audio Unit PlugIn Technology by Apple
+### Credits
+- [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
+- [Pure Data](http://msp.ucsd.edu/software.html) by Miller Puckette and others
+- [libpd](http://libpd.cc) by the Peter Brinkmann, Dan Wilcox and others
+- [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
+- [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
+- [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
+- [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
+- [Audio Unit PlugIn Technology](https://developer.apple.com/documentation/audiounit) by Apple
+- [Juce LV2 interface](http://www.falktx.com) by Filipe Coelho
 
 What works:
 - Very close to full support for pd (including almost all GUI objects, undo/redo, copy/paste, saving, loading, console, setting object properties, Pd's drawing functions)
