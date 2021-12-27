@@ -64,6 +64,7 @@ public:
     
 private:
     
+    
     void initialise();
     
     void mouseMove(const MouseEvent& e) override;
