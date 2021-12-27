@@ -11,8 +11,6 @@ Pure Data as a plugin, with a new GUI
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. It can still use some stability fixes, especially for complicated patches. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
 Possible thanks to:
-
-### Credits
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [Pure Data](http://msp.ucsd.edu/software.html) by Miller Puckette and others
 - [libpd](http://libpd.cc) by the Peter Brinkmann, Dan Wilcox and others
