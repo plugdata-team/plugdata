@@ -34,7 +34,7 @@ m_accepts_midi(true),
 m_produces_midi(true),
 m_is_midi_effect(false),
 
-parameters (*this, nullptr, juce::Identifier ("APVTSTutorial"),
+parameters (*this, nullptr, juce::Identifier ("PlugData"),
                       {
                             std::make_unique<juce::AudioParameterFloat> ("volume", "Volume", 0.0f, 1.0f, 0.75f),
                             std::make_unique<juce::AudioParameterBool> ("enabled", "Enabled", true),
@@ -59,11 +59,6 @@ parameters (*this, nullptr, juce::Identifier ("APVTSTutorial"),
         lastParameters[n] = 0;
     }
       
-                          
-                        
-    
-    
-    
     if(!appDir.exists() || !abstractions.exists()) {
         appDir.createDirectory();
         
@@ -645,8 +640,6 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
     File patchFile;
     if(!patch.startsWith("#") && patch.endsWith(".pd") && File(patch).existsAsFile()) {
         patchFile = File(patch);
-        
-        
     }
     else {
         patchFile = File::createTempFile(".pd");

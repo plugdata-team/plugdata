@@ -214,9 +214,30 @@ struct PdGuiLook : public MainLook
     
     PdGuiLook() {
         setColour(TextButton::buttonOnColourId, highlightColour);
-        setColour(TextButton::buttonColourId, Colours::transparentBlack);
+        //setColour(TextButton::buttonColourId, Colours::transparentBlack);
         
+        setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
     }
+    
+    void drawTextEditorOutline (Graphics& g, int width, int height, TextEditor& textEditor) {
+        if (dynamic_cast<AlertWindow*> (textEditor.getParentComponent()) == nullptr)
+        {
+            if (textEditor.isEnabled())
+            {
+                if (textEditor.hasKeyboardFocus (true) && ! textEditor.isReadOnly())
+                {
+                    g.setColour (textEditor.findColour (TextEditor::focusedOutlineColourId));
+                    g.drawRect (0, 0, width, height, 2);
+                }
+                else
+                {
+                    g.setColour (textEditor.findColour (TextEditor::outlineColourId));
+                    g.drawRect (0, 0, width, height, 1);
+                }
+            }
+        }
+    }
+    
     void drawButtonBackground (Graphics& g, Button& button, const Colour& backgroundColour,  bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) {
         
         auto cornerSize = 6.0f;
@@ -339,8 +360,6 @@ struct StatusbarLook : public MainLook
         setColour(Slider::trackColourId, firstBackground);
         
         
-        
-        setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     }
     
     Font getTextButtonFont (TextButton&, int buttonHeight)

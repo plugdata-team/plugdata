@@ -119,9 +119,9 @@ void Canvas::synchronise() {
                 auto isGui = type != pd::Type::Undefined;
                 auto* pdObject = isGui ? new pd::Gui(object.getPointer(), &patch, pd) : new pd::Object(object);
 
-                if(object.getType() == pd::Type::Message)         name = "msg " + name;
-                else if(object.getType() == pd::Type::AtomNumber) name = "floatatom";
-                else if(object.getType() == pd::Type::AtomSymbol) name = "symbolatom";
+                if(type == pd::Type::Message) name = "msg";
+                else if(type == pd::Type::AtomNumber) name = "floatatom";
+                else if(type == pd::Type::AtomSymbol) name = "symbolatom";
                 
                 // Some of these GUI objects have a lot of extra symbols that we don't want to show
                 auto guiSimplify = [](String& target, const StringArray selectors) {

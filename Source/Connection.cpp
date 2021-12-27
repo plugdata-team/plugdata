@@ -126,6 +126,8 @@ void Connection::resized()
     
     curvetype *= !(fabs(pstart.x - pend.x) < 2 || fabs(pstart.y - pend.y) < 2);
     
+    if(pstart.getDistanceFrom(pend) < 35) curvedConnection = false;
+    
     if (curvetype == 1 && curvedConnection) // smooth vertical lines
         path.cubicTo(pstart.x, fabs(pstart.y - pend.y) * 0.5f, pend.x, fabs(pstart.y - pend.y) * 0.5f, pend.x, pend.y);
     else if (curvetype == 2 && curvedConnection) // smooth horizontal lines

@@ -20,8 +20,6 @@ Box::Box(Canvas* parent, String name, Point<int> position) : textLabel(this, par
 {
     cnv = parent;
     
-
-    
     initialise();
     setTopLeftPosition(position);
     setType(name);
@@ -69,8 +67,6 @@ void Box::changeListenerCallback(ChangeBroadcaster* source) {
         auto [w, h] = graphics->getBestSize();
         graphics->setSize(w, h);
         setSize(w + 8, h + 8);
-        
-        
     }
     else {
         locked = false;
@@ -80,10 +76,8 @@ void Box::changeListenerCallback(ChangeBroadcaster* source) {
         if(graphics && !graphics->fakeGUI()) {
             auto [w, h] = graphics->getBestSize();
             graphics->setSize(w, h);
-            setSize(w + 8, h + 30);
+            setSize(w + 8, h + 29);
         }
-        
-
     }
 }
 
@@ -146,9 +140,7 @@ void Box::setType (String newType, bool exists)
     // Get best width for text
     auto bestWidth = textLabel.getFont().getStringWidth(newType) + 25;
 
-    
     if(pdObject) {
-        
         // Create graphics for the object if necessary
         graphics.reset(GUIComponent::createGui(type, this));
         
@@ -158,8 +150,9 @@ void Box::setType (String newType, bool exists)
         else if(graphics && !graphics->fakeGUI()) {
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
-            setSize(w + 8, h + 27);
+            setSize(w + 8, h + 29);
             graphics->toBack();
+            restrainer.checkComponentBounds(this);
         }
         else {
             setSize(bestWidth, 31);
@@ -249,6 +242,7 @@ void Box::moved()
 void Box::resized()
 {
     bool hideLabel = graphics && !graphics->fakeGUI() && locked;
+
     
     // Hidden header mode: gui objects become undraggable
     if(hideLabel) {
@@ -263,8 +257,8 @@ void Box::resized()
             setSize(bestWidth + 30, (num_lines * 17) + 14);
             textLabel.setBounds(getLocalBounds().reduced(4));
         }
-        else if(graphics)  {
-            graphics->setBounds(4, 28, getWidth() - 8, getHeight() - 32);
+        else if(graphics) {
+            graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
         }
     }
     
@@ -286,6 +280,8 @@ void Box::resized()
         
         index++;
     }
+    
+    
 }
 
 

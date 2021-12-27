@@ -317,7 +317,7 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent) : GUIComponent(pd
     
     input.onTextChange = [this]() {
         gui.setSymbol(input.getText().toStdString());
-        
+        box->changeListenerCallback(nullptr);
     };
     
     input.setMultiLine(true);
@@ -362,7 +362,6 @@ void MessageComponent::updateValue()
             }
             if(numLines == 1) longestLine = std::max(longestLine, currentLineLength);
     
-            box->changeListenerCallback(nullptr);
             
             lastMessage = v;
             
