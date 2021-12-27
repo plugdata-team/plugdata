@@ -152,8 +152,7 @@ struct BangComponent : public GUIComponent, public Timer
     
     std::pair<int, int> getBestSize() override {
         auto [x, y, w, h] = gui.getBounds();
-        float mult = std::min(h, w) > 20.0f ? 1.0f : 2.0f;
-        return {w * mult, h * mult};
+        return {w, h};
     };
     
     
@@ -185,13 +184,8 @@ struct ToggleComponent : public GUIComponent
     
     std::pair<int, int> getBestSize() override {
         auto [x, y, w, h] = gui.getBounds();
-        float mult = std::min(h, w) > 20.0f ? 1.0f : 2.0f;
-        return {w * mult, h * mult};
-        
+        return {w, h};
     };
-    
-
-    
 
     void resized() override;
     
@@ -211,11 +205,12 @@ struct MessageComponent : public GUIComponent
     MessageComponent(pd::Gui gui, Box* parent);
     
     std::pair<int, int> getBestSize() override {
-        auto [x, y, w, h] = gui.getBounds();
-        int offset = bangButton.isVisible() ? 60 : 60;
-        int stringLength = input.getFont().getStringWidth(input.getText());
-        return {stringLength + offset, numLines * 25};
+        updateValue(); // make sure text is loaded
         
+        auto [x, y, w, h] = gui.getBounds();
+        int offset = bangButton.isVisible() ? 50 : 50;
+        int stringLength = std::max(10, input.getFont().getStringWidth(input.getText()));
+        return {stringLength + offset, numLines * 21};
     };
     
     
@@ -238,9 +233,7 @@ struct NumboxComponent : public GUIComponent
     
     NumboxComponent(pd::Gui gui, Box* parent);
     
-    std::pair<int, int> getBestSize() override {return {60, 26}; };
-    
-    
+    std::pair<int, int> getBestSize() override {return {60, 22}; };
     
     void mouseDrag(const MouseEvent & e) override {
         startEdition();
