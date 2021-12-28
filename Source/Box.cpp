@@ -138,7 +138,7 @@ void Box::setType (String newType, bool exists)
     if(!cnv->isGraph) updatePorts();
     
     // Get best width for text
-    auto bestWidth = textLabel.getFont().getStringWidth(newType) + 25;
+    auto bestWidth = std::max(45, textLabel.getFont().getStringWidth(newType) + 25);
 
     if(pdObject) {
         // Create graphics for the object if necessary
