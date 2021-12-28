@@ -96,6 +96,9 @@ public:
         return audioLock;
     };
     
+    void initialiseFilesystem();
+    void saveSettings();
+    void updateSearchPaths();
     
     void messageEnqueued() override {
         dequeueMessages();
@@ -120,13 +123,14 @@ public:
     int numout;
     int sampsperblock = 512;
     
-    ValueTree mainTree = ValueTree("Main");
+    ValueTree settingsTree = ValueTree("PlugDataSettings");
 
     pd::Library objectLibrary;
     
     static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
     static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
     
+    static inline File settingsFile = appDir.getChildFile("Settings.xml");
     static inline File abstractions = appDir.getChildFile("Abstractions");
     
     bool locked = false;

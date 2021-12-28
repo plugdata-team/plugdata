@@ -88,7 +88,6 @@ struct MainLook : public LookAndFeel_V4
     
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override {
         auto& button_bar = button.getTabbedButtonBar();
-       
         return button_bar.getWidth() / button_bar.getNumTabs();
     }
     

@@ -184,19 +184,19 @@ struct Inspector    : public Component,
         
         switch (type) {
             case tString:
-                return new EditableComponent<String>(*this, (String*)ptr,rowNumber);
+                return new EditableComponent<String>(callback, (String*)ptr, rowNumber);
                 break;
             case tFloat:
-                return new EditableComponent<float>(*this, (float*)ptr, rowNumber);
+                return new EditableComponent<float>(callback, (float*)ptr, rowNumber);
                 break;
             case tInt:
-                return new EditableComponent<int>(*this, (int*)ptr, rowNumber);
+                return new EditableComponent<int>(callback, (int*)ptr, rowNumber);
                 break;
             case tColour:
-                return new ColourComponent(*this, (String*)ptr, rowNumber);
+                return new ColourComponent(callback, (String*)ptr, rowNumber);
                 break;
             case tBool:
-                return new ToggleComponent(*this, (bool*)ptr, rowNumber);
+                return new ToggleComponent(callback, (bool*)ptr, rowNumber);
                 break;
         }
         
@@ -308,7 +308,7 @@ struct Inspector    : public Component,
         repaint();
     }
 
-private:
+
     TableListBox table;     // the table component itself
     Font font;
 
@@ -319,10 +319,9 @@ private:
     int numRows;            // The number of rows of data we've got
 
 
-    struct ToggleComponent    : public Component
+    struct ToggleComponent : public Component
     {
-        
-        ToggleComponent(Inspector& owner_, bool* value, int rowIdx)  : row(rowIdx), owner(owner_) {
+        ToggleComponent(std::function<void(int)> cb, bool* value, int rowIdx) : callback(cb), row(rowIdx) {
             toggleButton.setClickingTogglesState(true);
             
             toggleButton.setToggleState(*value, sendNotification);
@@ -334,7 +333,7 @@ private:
             toggleButton.onClick = [this, value](){
                 *value = toggleButton.getToggleState();
                 toggleButton.setButtonText((*value) ? "true" : "false");
-                owner.callback(row);
+                callback(row);
             };
         }
         
@@ -344,7 +343,7 @@ private:
             toggleButton.setBounds(getLocalBounds());
         }
     private:
-        Inspector& owner;
+        std::function<void(int)> callback;
         int row;
         TextButton toggleButton;
         
@@ -353,8 +352,8 @@ private:
     struct ColourComponent    : public Component, public ChangeListener
     {
         
-        ColourComponent (Inspector& owner_, String* value, int rowIdx)
-        : owner (owner_), currentColour(value), row(rowIdx)
+        ColourComponent (std::function<void(int)> cb, String* value, int rowIdx)
+        : callback(cb), currentColour(value), row(rowIdx)
         {
             button.setButtonText(String("#") + (*value).substring(2));
             button.setConnectedEdges(12);
@@ -405,7 +404,7 @@ private:
             *currentColour = colour.toString();
             
             updateColour();
-            owner.callback(row);
+            callback(row);
         }
 
         ~ColourComponent()
@@ -420,7 +419,7 @@ private:
 
 
     private:
-        Inspector& owner;
+        std::function<void(int)> callback;
         TextButton button;
         String* currentColour;
         
@@ -430,8 +429,8 @@ private:
     template<typename T>
     struct EditableComponent : public Label
     {
-        EditableComponent (Inspector& owner_, T* value, int rowIdx)
-            : owner (owner_), row(rowIdx)
+        EditableComponent (std::function<void(int)> cb, T* value, int rowIdx)
+            : callback(cb), row(rowIdx)
         {
             setEditable(false, true);
             
@@ -439,8 +438,6 @@ private:
             
             
             onTextChange = [this, value]() {
-                
-                
                 
                 if constexpr (std::is_floating_point<T>::value) {
                     *value = getText().getFloatValue();
@@ -453,7 +450,7 @@ private:
                 }
                 
                 
-                owner.callback(row);
+                callback(row);
                 
             };
             
@@ -479,12 +476,12 @@ private:
 
 
     private:
-        Inspector& owner;
+        std::function<void(int)> callback;
 
         int row;
     };
 
-
+private:
 
     // (a utility method to search our XML for the attribute that matches a column ID)
     const String getAttributeNameForColumnId (const int columnId) const
