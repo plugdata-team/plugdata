@@ -91,7 +91,7 @@ struct SettingsComponent : public Component
     }
 
     void paint(Graphics& g);
-        
+    
     void resized();
 
     AudioDeviceManager* deviceManager = nullptr;
@@ -109,28 +109,35 @@ struct SettingsComponent : public Component
 };
 
 
-struct SettingsDialog : public DocumentWindow
+struct SettingsDialog : public Component
 {
     MainLook mainLook;
     SettingsComponent settingsComponent;
-   
+    ComponentDragger dragger;
     
-    SettingsDialog(AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : DocumentWindow("Settings",
-                                      Colour(50, 50, 50),
-                                      DocumentWindow::allButtons), settingsComponent(manager, settingsTree, updatePaths) {
+    ComponentBoundsConstrainer constrainer;
+    
+    SettingsDialog(AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : settingsComponent(manager, settingsTree, updatePaths) {
         
-        setUsingNativeTitleBar (true);
+        setLookAndFeel(&mainLook);
+        closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
         
         setCentrePosition(400, 400);
         setSize(600, 400);
         
         setVisible (false);
         
-        setResizable(false, false);
+        addAndMakeVisible(&settingsComponent);
+        addAndMakeVisible(closeButton.get());
         
-        setContentOwned (&settingsComponent, false);
-
-        setLookAndFeel(&mainLook);
+        settingsComponent.addMouseListener(this, false);
+        
+        closeButton->onClick = [this](){
+            setVisible(false);
+        };
+        
+        constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
+        
     }
     
     ~SettingsDialog() {
@@ -138,9 +145,31 @@ struct SettingsDialog : public DocumentWindow
 
     }
     
-    void resized() {
-        settingsComponent.setBounds(getLocalBounds());
+    void mouseDown(const MouseEvent& e) {
+        if(e.getPosition().getY() < 30) {
+            dragger.startDraggingComponent(this, e);
+        }
+    }
     
+    void mouseDrag(const MouseEvent& e) {
+        if(e.getPosition().getY() < 30) {
+            dragger.dragComponent(this, e, &constrainer);
+        }
+    }
+    
+    void resized() {
+        closeButton->setBounds(getWidth() - 30, 0, 30, 30);
+        settingsComponent.setBounds(getLocalBounds());
+    }
+    
+    void paint(Graphics& g) {
+        g.fillAll(MainLook::firstBackground);
+    }
+    
+    void paintOverChildren(Graphics& g) {
+        g.setColour(Colours::white);
+        g.drawText("Settings", 0, 0, getWidth(), 30, Justification::centred,
+                   true);
     }
     
     
@@ -149,4 +178,5 @@ struct SettingsDialog : public DocumentWindow
         setVisible(false);
     }
     
+    std::unique_ptr<Button> closeButton;
 };
