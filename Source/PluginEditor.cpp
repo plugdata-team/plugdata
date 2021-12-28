@@ -12,6 +12,8 @@
 #include "Pd/x_libpd_mod_utils.h"
 #include "Dialogs.h"
 
+#include "juce_audio_plugin_client/Standalone/juce_StandaloneFilterWindow.h"
+
 //==============================================================================
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters)
@@ -77,7 +79,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     connectionStyleButton.setConnectedEdges(12);
     connectionStyleButton.setLookAndFeel(&statusbarLook);
     connectionStyleButton.onClick = [this](){
-        pd.mainTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
+        pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
         for(auto* connection : getCurrentCanvas()->connections) connection->resized();
     };
     
@@ -255,19 +257,46 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent (toolbarButtons[5]), ModalCallbackFunction::create(callback));
     };
     
+    if(pd.wrapperType == AudioPluginInstance::wrapperType_Standalone)
+    {
+        auto pluginHolder = StandalonePluginHolder::getInstance();
+        settingsDialog.reset(new SettingsDialog(&pluginHolder->deviceManager, pd.settingsTree, [this]() {
+            pd.updateSearchPaths();
+        }));
+    }
+    else {
+        settingsDialog.reset(new SettingsDialog(nullptr, pd.settingsTree, [this]() {
+            pd.updateSearchPaths();
+        }));
+    }
+    
+    
+    toolbarButtons[6].onClick = [this]() {
+       
+        
+        settingsDialog->addToDesktop();
+        settingsDialog->setVisible(true);
+        settingsDialog->toFront(true);
+    };
+    
     hideButton.setLookAndFeel(&toolbarLook);
     hideButton.setClickingTogglesState(true);
     hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     hideButton.setConnectedEdges(12);
     
+    toolbarButtons[8].setClickingTogglesState(true);
+    toolbarButtons[9].setClickingTogglesState(true);
+    toolbarButtons[8].setRadioGroupId(101);
+    toolbarButtons[9].setRadioGroupId(101);
+    
     //  Open console
-    toolbarButtons[7].onClick = [this]() {
+    toolbarButtons[8].onClick = [this]() {
         console->setVisible(true);
         inspector.setVisible(false);
     };
     
     // Open inspector
-    toolbarButtons[8].onClick = [this]() {
+    toolbarButtons[9].onClick = [this]() {
         console->setVisible(false);
         inspector.setVisible(true);
     };
@@ -276,8 +305,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         sidebarHidden = hideButton.getToggleState();
         hideButton.setButtonText(sidebarHidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
         
-        toolbarButtons[7].setVisible(!sidebarHidden);
         toolbarButtons[8].setVisible(!sidebarHidden);
+        toolbarButtons[9].setVisible(!sidebarHidden);
         
         repaint();
         resized();
@@ -367,7 +396,7 @@ void PlugDataPluginEditor::resized()
     int jumpPositions[2] = {3, 5};
     int idx = 0;
     int toolbarPosition = 0;
-    for(int b = 0; b < 7; b++) {
+    for(int b = 0; b < 8; b++) {
         auto& button = toolbarButtons[b];
         int spacing = (25 * (idx >= jumpPositions[0])) +  (25 * (idx >= jumpPositions[1])) + 10;
         button.setBounds(toolbarPosition + spacing, 0, 70, toolbarHeight);
@@ -376,8 +405,8 @@ void PlugDataPluginEditor::resized()
     }
     
     hideButton.setBounds(std::min(getWidth() - sWidth, getWidth() - 80), 0, 70, toolbarHeight);
-    toolbarButtons[7].setBounds(std::min(getWidth() - sWidth + 90, getWidth() - 80), 0, 70, toolbarHeight);
-    toolbarButtons[8].setBounds(std::min(getWidth() - sWidth + 160, getWidth() - 80), 0, 70, toolbarHeight);
+    toolbarButtons[8].setBounds(std::min(getWidth() - sWidth + 90, getWidth() - 80), 0, 70, toolbarHeight);
+    toolbarButtons[9].setBounds(std::min(getWidth() - sWidth + 160, getWidth() - 80), 0, 70, toolbarHeight);
     
     lockButton.setBounds(8, getHeight() - 27, 27, 27);
     connectionStyleButton.setBounds(38, getHeight() - 27, 27, 27);
@@ -484,7 +513,7 @@ void PlugDataPluginEditor::updateUndoState() {
     
     pd.setThis();
     
-    toolbarButtons[5].setEnabled(!pd.locked);
+    toolbarButtons[6].setEnabled(!pd.locked);
 
     
     if(getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {

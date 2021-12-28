@@ -119,7 +119,7 @@ void Connection::resized()
 
     bool curvedConnection = true;
     if(auto* main = findParentComponentOfClass<PlugDataPluginEditor>()) {
-        curvedConnection = !main->pd.mainTree.getProperty(Identifiers::connectionStyle);
+        curvedConnection = !main->pd.settingsTree.getProperty(Identifiers::connectionStyle);
     }
 
     int curvetype = fabs(pstart.x - pend.x) < (fabs(pstart.y - pend.y) * 5.0f) ? 1 : 2;

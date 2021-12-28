@@ -59,16 +59,9 @@ parameters (*this, nullptr, juce::Identifier ("PlugData"),
         lastParameters[n] = 0;
     }
       
-    if(!appDir.exists() || !abstractions.exists()) {
-        appDir.createDirectory();
-        
-        MemoryInputStream binaryAbstractions(BinaryData::Abstractions_zip, BinaryData::Abstractions_zipSize, false);
-        auto file = ZipFile(binaryAbstractions);
-        file.uncompressTo(appDir);
-    }
-    
-    libpd_add_to_search_path(abstractions.getFullPathName().toRawUTF8());
-    
+    initialiseFilesystem();
+    updateSearchPaths();
+
     objectLibrary.initialiseLibrary();
     
     m_midi_buffer_in.ensureSize(2048);
@@ -95,12 +88,58 @@ parameters (*this, nullptr, juce::Identifier ("PlugData"),
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
+    saveSettings();
+    
     if(ownsConsole) {
         delete console;
     }
     //LookAndFeel::setDefaultLookAndFeel(nullptr);
 }
 
+void PlugDataAudioProcessor::initialiseFilesystem() {
+    if(!appDir.exists() || !abstractions.exists()) {
+        appDir.createDirectory();
+        
+        MemoryInputStream binaryAbstractions(BinaryData::Abstractions_zip, BinaryData::Abstractions_zipSize, false);
+        auto file = ZipFile(binaryAbstractions);
+        file.uncompressTo(appDir);
+    }
+    
+    if(!settingsFile.existsAsFile()) {
+        settingsFile.create();
+        
+        // Add default settings
+        settingsTree.setProperty("ConnectionStyle", false, nullptr);
+            
+        auto pathTree = ValueTree("Paths");
+        
+        auto defaultPath = ValueTree("Path");
+        defaultPath.setProperty("Path", abstractions.getFullPathName(), nullptr);
+        
+        pathTree.appendChild(defaultPath, nullptr);
+        settingsTree.appendChild(pathTree, nullptr);
+        
+        saveSettings();
+    }
+    else {
+        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+    }
+}
+
+void PlugDataAudioProcessor::saveSettings() {
+    auto xml = settingsTree.toXmlString();
+    settingsFile.replaceWithText(xml);
+}
+
+void PlugDataAudioProcessor::updateSearchPaths() {
+    
+    libpd_clear_search_path();
+    for(auto child : settingsTree.getChildWithName("Paths"))
+    {
+        auto path = child.getProperty("Path").toString();
+        libpd_add_to_search_path(path.toRawUTF8());
+    }
+}
 //==============================================================================
 const String PlugDataAudioProcessor::getName() const
 {

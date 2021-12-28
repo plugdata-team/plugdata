@@ -76,3 +76,77 @@ public:
     ~ArrayDialog();
 
 };
+
+
+
+struct SettingsComponent : public Component
+{
+        
+
+    SettingsComponent(AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
+    
+    ~SettingsComponent(){
+        for(auto& button : toolbarButtons)
+            button->setLookAndFeel(nullptr);
+    }
+
+    void paint(Graphics& g);
+        
+    void resized();
+
+    AudioDeviceManager* deviceManager = nullptr;
+    std::unique_ptr<AudioDeviceSelectorComponent> audioSetupComp;
+    
+    std::unique_ptr<Component> libraryPanel;
+    
+
+    int toolbarHeight = 50;
+    
+    ToolbarLook lnf = ToolbarLook(true);
+    
+    OwnedArray<TextButton> toolbarButtons = {new TextButton(CharPointer_UTF8("\xef\x80\xa8")), new TextButton(CharPointer_UTF8 ("\xef\x80\x82"))};
+    
+};
+
+
+struct SettingsDialog : public DocumentWindow
+{
+    MainLook mainLook;
+    SettingsComponent settingsComponent;
+   
+    
+    SettingsDialog(AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : DocumentWindow("Settings",
+                                      Colour(50, 50, 50),
+                                      DocumentWindow::allButtons), settingsComponent(manager, settingsTree, updatePaths) {
+        
+        setUsingNativeTitleBar (true);
+        
+        setCentrePosition(400, 400);
+        setSize(600, 400);
+        
+        setVisible (false);
+        
+        setResizable(false, false);
+        
+        setContentOwned (&settingsComponent, false);
+
+        setLookAndFeel(&mainLook);
+    }
+    
+    ~SettingsDialog() {
+        setLookAndFeel(nullptr);
+
+    }
+    
+    void resized() {
+        settingsComponent.setBounds(getLocalBounds());
+    
+    }
+    
+    
+    void closeButtonPressed()
+    {
+        setVisible(false);
+    }
+    
+};
