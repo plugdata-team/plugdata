@@ -364,8 +364,8 @@ SettingsComponent::SettingsComponent(AudioDeviceManager* manager, ValueTree sett
         toolbarButtons[0]->setVisible(false);
     }
     
-    
-    toolbarButtons[0]->setToggleState(true, dontSendNotification);
+    bool hasAudioSettings = audioSetupComp.get();
+    toolbarButtons[!hasAudioSettings]->setToggleState(true, dontSendNotification);
     
     toolbarButtons[0]->onClick = [this](){
         if(audioSetupComp) audioSetupComp->setVisible(true);
@@ -392,6 +392,7 @@ void SettingsComponent::paint(Graphics& g) {
     auto highlight_colour = Colour (0xff42a2c8).darker(0.2);
     
     g.fillAll(MainLook::firstBackground);
+
     
     // Toolbar background
     g.setColour(base_colour);
@@ -399,7 +400,9 @@ void SettingsComponent::paint(Graphics& g) {
     
     g.setColour(highlight_colour);
     g.fillRect(0, 42, getWidth(), 4);
+    
 }
+
 
 void SettingsComponent::resized() {
     int toolbar_position = audioSetupComp ? 0 : -70;

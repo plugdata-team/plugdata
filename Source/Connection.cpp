@@ -53,15 +53,19 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
     
     setInterceptsMouseClicks(false, false);
     
+    cnv->addAndMakeVisible(this);
+    
     setSize (600, 400);
     
     componentMovedOrResized(*start, true, true);
     componentMovedOrResized(*end, true, true);
     
+
+    
     resized();
     repaint();
     
-    cnv->addAndMakeVisible(this);
+   
 }
 
 Connection::~Connection()
@@ -118,9 +122,7 @@ void Connection::resized()
     path.startNewSubPath(pstart.x, pstart.y);
 
     bool curvedConnection = true;
-    if(auto* main = findParentComponentOfClass<PlugDataPluginEditor>()) {
-        curvedConnection = !main->pd.settingsTree.getProperty(Identifiers::connectionStyle);
-    }
+    curvedConnection = !cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
 
     int curvetype = fabs(pstart.x - pend.x) < (fabs(pstart.y - pend.y) * 5.0f) ? 1 : 2;
     
