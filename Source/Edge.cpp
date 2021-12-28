@@ -8,30 +8,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-struct _outlet {
-    t_object* o_owner;
-    struct _outlet* o_next;
-    t_outconnect* o_connections;
-    t_symbol* o_sym;
-};
-
-union inletunion {
-    t_symbol* iu_symto;
-    t_gpointer* iu_pointerslot;
-    t_float* iu_floatslot;
-    t_symbol** iu_symslot;
-    t_float iu_floatsignalvalue;
-};
-
-struct _inlet {
-    t_pd i_pd;
-    struct _inlet* i_next;
-    t_object* i_owner;
-    t_pd* i_dest;
-    t_symbol* i_symfrom;
-    union inletunion i_un;
-};
-
 //==============================================================================
 Edge::Edge(Box* parent, bool input)
     : box(parent)
@@ -54,6 +30,7 @@ Edge::~Edge()
 
 bool Edge::hasConnection()
 {
+    // Check if it has any connections
     for (auto* connection : box->cnv->connections) {
         if (connection->start == this || connection->end == this) {
             return true;
@@ -65,6 +42,7 @@ bool Edge::hasConnection()
 
 Rectangle<int> Edge::getCanvasBounds()
 {
+    // Get bounds relative to canvas, used for positioning connections
     auto bounds = getBounds();
     if (auto* box = dynamic_cast<Box*>(getParentComponent())) {
         bounds += box->getPosition();
@@ -88,8 +66,8 @@ void Edge::paint(Graphics& g)
 
     Path path;
 
+    // Visual change if it has a connection
     if (hasConnection()) {
-        // path.addArc(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), 0, MathConstants<float>::pi);
         if (isInput) {
             path.addPieSegment(bounds, MathConstants<float>::pi + MathConstants<float>::halfPi, MathConstants<float>::halfPi, 0.3f);
         } else {
@@ -112,11 +90,11 @@ void Edge::resized()
 
 void Edge::mouseDrag(const MouseEvent& e)
 {
-    // For dragging to create new connections
-
+    // Ignore when locked
     if (box->cnv->pd->locked)
         return;
 
+    // For dragging to create new connections
     TextButton::mouseDrag(e);
     if (!Edge::connectingEdge && e.getLengthOfMousePress() > 300) {
         Edge::connectingEdge = this;

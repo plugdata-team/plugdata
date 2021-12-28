@@ -37,7 +37,7 @@ GUIComponent::~GUIComponent()
     setLookAndFeel(nullptr);
 }
 
-void GUIComponent::initColours()
+void GUIComponent::initParameters()
 {
     if (!gui.isIEM())
         return;
@@ -243,8 +243,7 @@ BangComponent::BangComponent(pd::Gui pdGui, Box* parent)
         stopEdition();
     };
 
-    initColours();
-
+    initParameters();
     box->restrainer.setSizeLimits(40, 60, 200, 200);
 }
 
@@ -276,7 +275,7 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
         stopEdition();
     };
 
-    initColours();
+    initParameters();
 
     box->restrainer.setSizeLimits(40, 60, 200, 200);
 }
@@ -525,7 +524,7 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
         stopEdition();
     };
 
-    initColours();
+    initParameters();
 
     if (isVertical) {
         box->restrainer.setSizeLimits(40, 100, 250, 500);
@@ -551,7 +550,7 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
 {
     isVertical = is_vertical;
 
-    initColours();
+    initParameters();
     updateRange();
 
     if (isVertical) {
