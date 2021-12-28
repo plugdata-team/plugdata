@@ -365,7 +365,7 @@ SettingsComponent::SettingsComponent(AudioDeviceManager* manager, ValueTree sett
     }
     
     bool hasAudioSettings = audioSetupComp.get();
-    toolbarButtons[!hasAudioSettings]->setToggleState(true, dontSendNotification);
+
     
     toolbarButtons[0]->onClick = [this](){
         if(audioSetupComp) audioSetupComp->setVisible(true);
@@ -384,6 +384,7 @@ SettingsComponent::SettingsComponent(AudioDeviceManager* manager, ValueTree sett
     
     addChildComponent(libraryPanel.get());
     
+    toolbarButtons[!hasAudioSettings]->setToggleState(true, sendNotification);
     
 }
 
