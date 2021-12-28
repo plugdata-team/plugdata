@@ -4,72 +4,65 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
-
 #pragma once
 
 #include "MultiComponentDragger.h"
 
-#include "GUIObjects.h"
 #include "BoxEditor.h"
 #include "Edge.h"
+#include "GUIObjects.h"
 
-#include <m_pd.h>
 #include <JuceHeader.h>
-
-
-
+#include <m_pd.h>
 
 class Canvas;
-class Box  : public Component, public ChangeListener
-{
-    
+class Box : public Component, public ChangeListener {
+
 public:
     //==============================================================================
-    Box(Canvas* parent, String name = "", Point<int> position = {100, 100});
-    
-    Box(pd::Object* object, Canvas* parent, String name = "", Point<int> position = {100, 100});
+    Box(Canvas* parent, String name = "", Point<int> position = { 100, 100 });
+
+    Box(pd::Object* object, Canvas* parent, String name = "", Point<int> position = { 100, 100 });
 
     ~Box() override;
-    
+
     void changeListenerCallback(ChangeBroadcaster* source) override;
-    
+
     //==============================================================================
-    void paint (Graphics&) override;
+    void paint(Graphics&) override;
     void resized() override;
     void moved() override;
-    
+
     void setLimits(std::tuple<int, int, int, int> limits);
-    
+
     void updatePorts();
-    
+
     std::unique_ptr<pd::Object> pdObject = nullptr;
-    
+
     int numInputs = 0;
     int numOutputs = 0;
-    
+
     ClickLabel textLabel;
 
     Canvas* cnv;
-    
+
     std::unique_ptr<GUIComponent> graphics = nullptr;
-    
+
     MultiComponentDragger<Box>& dragger;
-    
+
     OwnedArray<Edge> edges;
-    
+
     std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
     ComponentBoundsConstrainer restrainer;
-    
+
     void setType(String newType, bool exists = false);
-    
+
 private:
-    
-    
     void initialise();
-    
+
     void mouseMove(const MouseEvent& e) override;
-    
+
     bool locked = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Box)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

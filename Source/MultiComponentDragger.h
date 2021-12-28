@@ -11,7 +11,6 @@
 #ifndef JCF_MULTI_SELECTION_H_INCLUDED
 #define JCF_MULTI_SELECTION_H_INCLUDED
 
-
 #include <JuceHeader.h>
 
 class Canvas;
@@ -37,29 +36,25 @@ class Canvas;
  * @TODO: Add 'grid' support.
  */
 
-struct MultiComponentDraggerListener
-{
+struct MultiComponentDraggerListener {
     virtual void dragCallback(int dx, int dy) = 0;
-    
-    
 };
 
-template<typename T>
-class MultiComponentDragger : public LassoSource<T*>
-{
+template <typename T>
+class MultiComponentDragger : public LassoSource<T*> {
 public:
-    
     Canvas* canvas;
     OwnedArray<T>* selectable;
-    
-    MultiComponentDragger(Canvas* parent, OwnedArray<T>* selectableObjects) {
+
+    MultiComponentDragger(Canvas* parent, OwnedArray<T>* selectableObjects)
+    {
         canvas = parent;
         selectable = selectableObjects;
     }
-    virtual ~MultiComponentDragger() {}
+    virtual ~MultiComponentDragger() { }
 
     void setConstrainBoundsToParent(bool shouldConstrainToParentSize,
-                                    BorderSize<int> amountPermittedOffscreen_)
+        BorderSize<int> amountPermittedOffscreen_)
     {
         constrainToParent = shouldConstrainToParentSize;
         amountPermittedOffscreen = amountPermittedOffscreen_;
@@ -84,13 +79,13 @@ public:
         jassert(selectedComponents.getNumSelected() == 0 || component->getParentComponent() == selectedComponents.getSelectedItem(0)->getParentComponent());
 
         bool isAlreadySelected = isSelected(component);
-        
-        if (! isAlreadySelected && shouldNowBeSelected) {
+
+        if (!isAlreadySelected && shouldNowBeSelected) {
             selectedComponents.addToSelection(component);
             component->repaint();
         }
-        
-        if (isAlreadySelected && ! shouldNowBeSelected) {
+
+        if (isAlreadySelected && !shouldNowBeSelected) {
             removeSelectedComponent(component);
             component->repaint();
         }
@@ -99,92 +94,88 @@ public:
     /** Toggles the selected status of a particular component. */
     void toggleSelection(T* component)
     {
-        setSelected(component, ! isSelected(component));
+        setSelected(component, !isSelected(component));
     }
-    
-    /** 
+
+    /**
      You should call this when the user clicks on the background of the
      parent component.
      */
     void deselectAll()
     {
-        for (auto c: selectedComponents)
+        for (auto c : selectedComponents)
             if (c)
                 c->repaint();
-        
+
         selectedComponents.deselectAll();
     }
-    
+
     /**
      Find out if a component is marked as selected.
      */
     bool isSelected(T* component) const
     {
         return std::find(selectedComponents.begin(),
-                         selectedComponents.end(),
-                         component) != selectedComponents.end();
+                   selectedComponents.end(),
+                   component)
+            != selectedComponents.end();
     }
-    
-    
-    
-    /** 
+
+    /**
      Call this from your components mouseDown event.
      */
-    void handleMouseDown (T* component, const MouseEvent & e)
+    void handleMouseDown(T* component, const MouseEvent& e)
     {
-        jassert (component != nullptr);
+        jassert(component != nullptr);
 
-        if (! isSelected(component))
-        {
-            if (! (e.mods.isShiftDown() || e.mods.isCommandDown()))
+        if (!isSelected(component)) {
+            if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))
                 deselectAll();
-            
+
             setSelected(component, true);
             didJustSelect = true;
         }
-        
+
         if (component != nullptr)
-            mouseDownWithinTarget = e.getEventRelativeTo (component).getMouseDownPosition();
+            mouseDownWithinTarget = e.getEventRelativeTo(component).getMouseDownPosition();
 
         componentBeingDragged = component;
 
-        totalDragDelta = {0, 0};
+        totalDragDelta = { 0, 0 };
 
         constrainedDirection = noConstraint;
-        
+
         component->repaint();
     }
-    
+
     /**
      Call this from your components mouseUp event.
      */
-    void handleMouseUp (T* component, const MouseEvent & e)
+    void handleMouseUp(T* component, const MouseEvent& e)
     {
-        if(didStartDragging) {
+        if (didStartDragging) {
             static_cast<MultiComponentDraggerListener*>(canvas)->dragCallback(totalDragDelta.x, totalDragDelta.y);
         }
-        
+
         if (didStartDragging)
             didStartDragging = false;
         /* uncomment to deselect when clicking a selected component
         else
             if (!didJustSelect && isSelected(component))
                 setSelected(component, false); */
-        
+
         didJustSelect = false;
-        
+
         component->repaint();
-        
-    
     }
 
     /**
      Call this from your components mouseDrag event.
      */
-    void handleMouseDrag (const MouseEvent& e)
+    void handleMouseDrag(const MouseEvent& e)
     {
 
-        jassert (e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!
+        jassert(e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!
 
         /** Ensure tiny movements don't start a drag. */
         if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
@@ -192,10 +183,9 @@ public:
 
         didStartDragging = true;
 
-        Point<int> delta = e.getEventRelativeTo (componentBeingDragged).getPosition() - mouseDownWithinTarget;
+        Point<int> delta = e.getEventRelativeTo(componentBeingDragged).getPosition() - mouseDownWithinTarget;
 
-        if (constrainToParent)
-        {
+        if (constrainToParent) {
             auto targetArea = getAreaOfSelectedComponents() + delta;
             auto limit = componentBeingDragged->getParentComponent()->getBounds();
 
@@ -216,15 +206,13 @@ public:
 
         applyDirectionConstraints(e, delta);
 
-        for (auto comp: selectedComponents)
-        {
-            if (comp != nullptr)
-            {
-                Rectangle<int> bounds (comp->getBounds());
+        for (auto comp : selectedComponents) {
+            if (comp != nullptr) {
+                Rectangle<int> bounds(comp->getBounds());
 
                 bounds += delta;
 
-                comp->setBounds (bounds);
+                comp->setBounds(bounds);
             }
         }
         totalDragDelta += delta;
@@ -233,38 +221,35 @@ public:
     SelectedItemSet<T*>& getLassoSelection()
     {
         rawPointers.deselectAll();
-        
-        for(auto& selected : selectedComponents) {
-            if(selected) {
+
+        for (auto& selected : selectedComponents) {
+            if (selected) {
                 rawPointers.addToSelection(selected);
             }
         }
-        
+
         return rawPointers;
     }
-    
+
     Rectangle<int> getAreaOfSelectedComponents()
     {
         if (selectedComponents.getNumSelected() == 0)
             return Rectangle<int>(0, 0, 0, 0);
-        
-        
+
         Rectangle<int> a = selectedComponents.getSelectedItem(0)->getBounds();
-        
-        for (auto comp: selectedComponents)
+
+        for (auto comp : selectedComponents)
             if (comp)
                 a = a.getUnion(comp->getBounds());
-        
+
         return a;
     }
-    
-private:
 
-    void applyDirectionConstraints(const MouseEvent &e, Point<int> &delta)
+private:
+    void applyDirectionConstraints(const MouseEvent& e, Point<int>& delta)
     {
-        
-        if (shiftConstrainsDirection && e.mods.isShiftDown())
-        {
+
+        if (shiftConstrainsDirection && e.mods.isShiftDown()) {
             /* xy > 0 == movement mainly X direction, xy < 0 == movement mainly Y direction. */
             int xy = abs(totalDragDelta.x + delta.x) - abs(totalDragDelta.y + delta.y);
 
@@ -277,28 +262,18 @@ private:
                 constrainedDirection = yAxisOnly;
 
             if ((xy > 0 && constrainedDirection != yAxisOnly)
-                ||
-                (constrainedDirection == xAxisOnly))
-            {
+                || (constrainedDirection == xAxisOnly)) {
                 delta.y = -totalDragDelta.y; /* move X direction only. */
                 constrainedDirection = xAxisOnly;
-            }
-            else if ((xy <= 0 && constrainedDirection != xAxisOnly)
-                     ||
-                     constrainedDirection == yAxisOnly)
-            {
+            } else if ((xy <= 0 && constrainedDirection != xAxisOnly)
+                || constrainedDirection == yAxisOnly) {
                 delta.x = -totalDragDelta.x; /* move Y direction only. */
                 constrainedDirection = yAxisOnly;
+            } else {
+                delta = { 0, 0 };
             }
-            else
-            {
-                delta = {0, 0};
-            }
-        }
-        else
-        {
+        } else {
             constrainedDirection = noConstraint;
-
         }
     }
 
@@ -306,26 +281,20 @@ private:
     {
         selectedComponents.deselect(component);
     }
-    
-    
-    void findLassoItemsInArea (Array<T*> & itemsFound, const Rectangle<int>& area)
+
+    void findLassoItemsInArea(Array<T*>& itemsFound, const Rectangle<int>& area)
     {
-        for(auto* element : *selectable)
-        {
-            if (area.intersects(element->getBounds()))
-            {
+        for (auto* element : *selectable) {
+            if (area.intersects(element->getBounds())) {
                 itemsFound.add(element);
                 setSelected(element, true);
-            }
-            else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
-            {
+            } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
                 setSelected(element, false);
             }
         }
     }
-    
-    enum
-    {
+
+    enum {
         noConstraint,
         xAxisOnly,
         yAxisOnly
@@ -333,25 +302,23 @@ private:
 
     const int minimumMovementToStartDrag = 10;
 
-    bool constrainToParent {false};
-    bool shiftConstrainsDirection {false};
+    bool constrainToParent { false };
+    bool shiftConstrainsDirection { false };
 
-    bool didJustSelect {false};
-    bool didStartDragging {false};
+    bool didJustSelect { false };
+    bool didStartDragging { false };
 
     Point<int> mouseDownWithinTarget;
     Point<int> totalDragDelta;
 
     Array<T*> tempSelection;
-    
+
     SelectedItemSet<Component::SafePointer<T>> selectedComponents;
     SelectedItemSet<T*> rawPointers;
-    
+
     T* componentBeingDragged { nullptr };
-    
+
     BorderSize<int> amountPermittedOffscreen;
 };
 
-
-
-#endif  // JCF_MULTI_SELECTION_H_INCLUDED
+#endif // JCF_MULTI_SELECTION_H_INCLUDED
