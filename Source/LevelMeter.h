@@ -2,6 +2,8 @@
 #include <JuceHeader.h>
 #include <ff_meters/ff_meters.h>
 
+// Widget that shows a Foleys level meter and a volume slider
+
 struct LevelMeter : public Component {
     LevelMeter(AudioProcessorValueTreeState& state, foleys::LevelMeterSource& source)
     {

@@ -255,6 +255,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]), ModalCallbackFunction::create(callback));
     };
 
+    // Initialise settings dialog for DAW and standalone
     if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone) {
         auto pluginHolder = StandalonePluginHolder::getInstance();
         settingsDialog.reset(new SettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
@@ -267,6 +268,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     }
 
     addChildComponent(settingsDialog.get());
+    
+    // Show settings
     toolbarButtons[6].onClick = [this]() {
         settingsDialog->setVisible(true);
         settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 400));
@@ -274,11 +277,24 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         settingsDialog->resized();
     };
 
+    // Hide sidebar
     hideButton.setLookAndFeel(&toolbarLook);
     hideButton.setClickingTogglesState(true);
     hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     hideButton.setConnectedEdges(12);
+    hideButton.onClick = [this]() {
+        sidebarHidden = hideButton.getToggleState();
+        hideButton.setButtonText(sidebarHidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
 
+        toolbarButtons[8].setVisible(!sidebarHidden);
+        toolbarButtons[9].setVisible(!sidebarHidden);
+
+        repaint();
+        resized();
+    };
+    
+
+    // Sidebar selectors (inspector or console)
     toolbarButtons[8].setClickingTogglesState(true);
     toolbarButtons[9].setClickingTogglesState(true);
     toolbarButtons[8].setRadioGroupId(101);
@@ -296,20 +312,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         inspector.setVisible(true);
     };
 
-    hideButton.onClick = [this]() {
-        sidebarHidden = hideButton.getToggleState();
-        hideButton.setButtonText(sidebarHidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
-
-        toolbarButtons[8].setVisible(!sidebarHidden);
-        toolbarButtons[9].setVisible(!sidebarHidden);
-
-        repaint();
-        resized();
-    };
-
     addAndMakeVisible(hideButton);
 
-    restrainer.setSizeLimits(150, 150, 2000, 2000);
+    // window size limits
+    restrainer.setSizeLimits(400, 600, 2000, 2000);
     resizer.reset(new ResizableCornerComponent(this, &restrainer));
     addAndMakeVisible(resizer.get());
 

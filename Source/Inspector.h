@@ -42,6 +42,10 @@ using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<v
     This class shows how to implement a TableListBoxModel to show in a TableListBox.
 */
 
+
+// TODO: this currently uses XML for no reason other then me being too lazy to change the example
+// fix in the future
+
 struct Inspector : public Component,
                    public TableListBoxModel {
     //==============================================================================
@@ -77,6 +81,8 @@ struct Inspector : public Component,
 
         table.setOutlineThickness(1);
 
+        
+        
         // Add some columns to the table header, based on the column list in our database..
         forEachXmlChildElement(*columnList, columnXml)
         {
