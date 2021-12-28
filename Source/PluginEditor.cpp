@@ -263,12 +263,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     if(pd.wrapperType == AudioPluginInstance::wrapperType_Standalone)
     {
         auto pluginHolder = StandalonePluginHolder::getInstance();
-        settingsDialog.reset(new SettingsDialog(&pluginHolder->deviceManager, pd.settingsTree, [this]() {
+        settingsDialog.reset(new SettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
             pd.updateSearchPaths();
         }));
     }
     else {
-        settingsDialog.reset(new SettingsDialog(nullptr, pd.settingsTree, [this]() {
+        settingsDialog.reset(new SettingsDialog(pd, nullptr, pd.settingsTree, [this]() {
             pd.updateSearchPaths();
         }));
     }
@@ -278,6 +278,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         settingsDialog->setVisible(true);
         settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 400));
         settingsDialog->toFront(false);
+        settingsDialog->resized();
     };
     
     hideButton.setLookAndFeel(&toolbarLook);

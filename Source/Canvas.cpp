@@ -69,7 +69,7 @@ Canvas::~Canvas()
 
 // Synchronise state with pure-data
 // Used for loading and for complicated actions like undo/redo
-void Canvas::synchronise() {
+void Canvas::synchronise(bool updatePosition) {
         main.stopTimer();
         setTransform(main.transform);
         
@@ -146,7 +146,10 @@ void Canvas::synchronise() {
                 auto* box = *it;
                 auto [x, y, h, w] = object.getBounds();
                 
-                box->setTopLeftPosition(x, y);
+                if(updatePosition && box->getPosition().getDistanceFrom(Point<int>(x, y)) > 8) {
+                    box->setTopLeftPosition(x, y);
+                }
+                
                 box->toBack();
                 
                 if(box->graphics) {
@@ -710,7 +713,7 @@ void Canvas::copySelection() {
 
 void Canvas::pasteSelection() {
     patch.paste();
-    synchronise();
+    synchronise(false);
 }
 
 void Canvas::duplicateSelection() {
@@ -725,7 +728,7 @@ void Canvas::duplicateSelection() {
     patch.duplicate();
     patch.deselectAll();
     
-    synchronise();
+    synchronise(false);
 }
 
 void Canvas::removeSelection() {
@@ -755,7 +758,7 @@ void Canvas::removeSelection() {
     
     dragger.deselectAll();    
     
-    synchronise();
+    synchronise(false);
     
     main.startTimer(guiUpdateMs);
     main.updateUndoState();

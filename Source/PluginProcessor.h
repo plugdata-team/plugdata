@@ -18,7 +18,7 @@
 */
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor  : public AudioProcessor, public pd::Instance
+class PlugDataAudioProcessor  : public AudioProcessor, public pd::Instance, public HighResolutionTimer
 {
     
 public:
@@ -35,6 +35,7 @@ public:
     bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
    #endif
 
+    void processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
     void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
 
     //==============================================================================
@@ -48,6 +49,8 @@ public:
     bool producesMidi() const override;
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
+    
+    void hiResTimerCallback() override;
 
     //==============================================================================
     int getNumPrograms() override;

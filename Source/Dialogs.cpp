@@ -341,7 +341,7 @@ private:
 };
 
 
-SettingsComponent::SettingsComponent(AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) {
+SettingsComponent::SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) {
     
     for(auto& button : toolbarButtons) {
         button->setClickingTogglesState(true);
@@ -356,26 +356,22 @@ SettingsComponent::SettingsComponent(AudioDeviceManager* manager, ValueTree sett
     
     if(manager) {
         audioSetupComp.reset(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
-        
-        addAndMakeVisible(audioSetupComp.get());
     }
     else {
-        audioSetupComp.reset(nullptr);
-        toolbarButtons[0]->setVisible(false);
+        audioSetupComp.reset(new DAWAudioSettings(processor));
     }
     
-    bool hasAudioSettings = audioSetupComp.get();
-
+    addAndMakeVisible(audioSetupComp.get());
     
     toolbarButtons[0]->onClick = [this](){
-        if(audioSetupComp) audioSetupComp->setVisible(true);
+        audioSetupComp->setVisible(true);
         libraryPanel->setVisible(false);
         resized();
     };
     
     toolbarButtons[1]->onClick = [this]()
     {
-        if(audioSetupComp) audioSetupComp->setVisible(false);
+        audioSetupComp->setVisible(false);
         libraryPanel->setVisible(true);
         // make other panel visible
         resized();
@@ -384,7 +380,7 @@ SettingsComponent::SettingsComponent(AudioDeviceManager* manager, ValueTree sett
     
     addChildComponent(libraryPanel.get());
     
-    toolbarButtons[!hasAudioSettings]->setToggleState(true, sendNotification);
+    toolbarButtons[0]->setToggleState(true, sendNotification);
     
 }
 
@@ -394,7 +390,6 @@ void SettingsComponent::paint(Graphics& g) {
     
     g.fillAll(MainLook::firstBackground);
 
-    
     // Toolbar background
     g.setColour(base_colour);
     g.fillRect(0, 0, getWidth(), toolbarHeight);
@@ -406,15 +401,13 @@ void SettingsComponent::paint(Graphics& g) {
 
 
 void SettingsComponent::resized() {
-    int toolbar_position = audioSetupComp ? 0 : -70;
+    int toolbar_position = 0;
     for(auto& button : toolbarButtons) {
         button->setBounds(toolbar_position, 0, 70, toolbarHeight);
         toolbar_position += 70;
     }
     
-    if(audioSetupComp) {
-        audioSetupComp->setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight);
-    }
+    audioSetupComp->setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight);
     
     libraryPanel->setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight);
     

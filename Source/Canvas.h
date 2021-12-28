@@ -58,7 +58,7 @@ public:
     void createPatch();
     void loadPatch(pd::Patch patch);
     
-    void synchronise();
+    void synchronise(bool updatePosition = true);
 
     bool keyPressed(const KeyPress &key, Component *originatingComponent) override;
     
