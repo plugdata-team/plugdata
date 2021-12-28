@@ -78,12 +78,46 @@ public:
 };
 
 
+struct DAWAudioSettings : public Component
+{
+
+    DAWAudioSettings(AudioProcessor& p) : processor(p) {
+        
+        addAndMakeVisible(latencySlider);
+        latencySlider.setRange (0, 88200, 1);
+        latencySlider.setTextValueSuffix (" Samples");
+        latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
+        
+        latencySlider.onValueChange = [this](){
+            processor.setLatencySamples(latencySlider.getValue());
+        };
+        
+        addAndMakeVisible (latencyLabel);
+        latencyLabel.setText ("Latency", dontSendNotification);
+        latencyLabel.attachToComponent(&latencySlider, true);
+    }
+    
+    
+    void resized() override {
+        latencySlider.setBounds(90, 5, getWidth() - 130, 20);
+    }
+    
+    
+    void visibilityChanged() override {
+        latencySlider.setValue(processor.getLatencySamples());
+    }
+    
+    AudioProcessor& processor;
+    Label  latencyLabel;
+    Slider latencySlider;
+    
+};
 
 struct SettingsComponent : public Component
 {
         
 
-    SettingsComponent(AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
+    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
     
     ~SettingsComponent(){
         for(auto& button : toolbarButtons)
@@ -95,7 +129,7 @@ struct SettingsComponent : public Component
     void resized();
 
     AudioDeviceManager* deviceManager = nullptr;
-    std::unique_ptr<AudioDeviceSelectorComponent> audioSetupComp;
+    std::unique_ptr<Component> audioSetupComp;
     
     std::unique_ptr<Component> libraryPanel;
     
@@ -117,7 +151,7 @@ struct SettingsDialog : public Component
     
     ComponentBoundsConstrainer constrainer;
     
-    SettingsDialog(AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : settingsComponent(manager, settingsTree, updatePaths) {
+    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : settingsComponent(processor, manager, settingsTree, updatePaths) {
         
         setLookAndFeel(&mainLook);
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));

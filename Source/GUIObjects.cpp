@@ -550,7 +550,13 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent) :
     
     initColours();
     
-    box->restrainer.setSizeLimits(100, 60, 500, 250);
+    if(isVertical) {
+        box->restrainer.setSizeLimits(40, 100, 250, 500);
+    }
+    else {
+        box->restrainer.setSizeLimits(100, 60, 500, 250);
+    }
+
 }
 
 
@@ -575,7 +581,12 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent) : G
     initColours();
     updateRange();
     
-    box->restrainer.setSizeLimits(100, 40, 500, 600);
+    if(isVertical) {
+        box->restrainer.setSizeLimits(40, 100, 250, 500);
+    }
+    else {
+        box->restrainer.setSizeLimits(100, 60, 500, 250);
+    }
 }
 
 
