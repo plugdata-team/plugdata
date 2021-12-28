@@ -318,7 +318,6 @@ void Box::updatePorts()
         bool input = edge->isInput;
         bool isSignal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
 
-        // edge->isInput = input;
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;
 

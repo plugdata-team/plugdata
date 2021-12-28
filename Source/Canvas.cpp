@@ -3,9 +3,9 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
-
-#include <m_imp.h>
 #include <m_pd.h>
+#include <m_imp.h>
+
 
 #include "Box.h"
 #include "Canvas.h"
@@ -130,6 +130,7 @@ void Canvas::synchronise(bool updatePosition)
                 }
             };
 
+            // These objects have extra info (like size and colours) in their names that we want to hide
             guiSimplify(name, { "bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad" });
 
             auto* newBox = boxes.add(new Box(pdObject, this, name, { (int)x, (int)y }));
@@ -142,14 +143,17 @@ void Canvas::synchronise(bool updatePosition)
             auto* box = *it;
             auto [x, y, h, w] = object.getBounds();
 
+            // Only update positions if we need to and there is a significant difference
+            // There may be rounding errors when scaling the gui, this makes the experience smoother
             if (updatePosition && box->getPosition().getDistanceFrom(Point<int>(x, y)) > 8) {
                 box->setTopLeftPosition(x, y);
             }
 
             box->toBack();
 
+            // Reload colour information for
             if (box->graphics) {
-                box->graphics->initColours();
+                box->graphics->initParameters();
             }
 
             // Don't show non-patchable (internal) objects
@@ -211,12 +215,13 @@ void Canvas::createPatch()
 void Canvas::loadPatch(pd::Patch patch)
 {
     this->patch = patch;
-
     synchronise();
 }
 
 bool Canvas::hitTest(int x, int y)
 {
+    // This is hacky... I like to keep object positions relative to canvas, so to support negative positions we need to allow drawing off canvas
+    // Canvas should be at least the size of viewport so this shouldn't feel to glitchy
     if (x < 0 || y < 0) {
         transformLayer.repaint();
         return transformLayer.hitTest(x + getX(), y + getY());
@@ -227,30 +232,35 @@ bool Canvas::hitTest(int x, int y)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
+    // Ignore if locked
     if (pd->locked)
         return;
 
     auto* source = e.originalComponent;
 
+    // Select parent box when clicking on graphs
     if (isGraph) {
         auto* box = findParentComponentOfClass<Box>();
         box->dragger.setSelected(box, true);
         return;
     }
 
+    // transformlayer receives clicks with negative x or y values
     if (source == &transformLayer) {
         source = this;
     }
 
+    // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         main.inspector.deselect();
 
         dragStartPosition = e.getMouseDownPosition();
 
+        // Drag lasso
         if (dynamic_cast<Connection*>(source)) {
             lasso.beginLasso(e.getEventRelativeTo(this), &dragger);
         }
-
+        // Connecting objects by dragging
         if (source == this || source == graphArea.get()) {
             Edge::connectingEdge = nullptr;
             lasso.beginLasso(e.getEventRelativeTo(this), &dragger);
@@ -261,15 +271,18 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
         }
 
+    // Right click
     } else {
+        // Info about selection status
         auto& lassoSelection = dragger.getLassoSelection();
         bool hasSelection = lassoSelection.getNumSelected();
         bool multiple = lassoSelection.getNumSelected() > 1;
 
         bool isSubpatch = hasSelection && (lassoSelection.getSelectedItem(0)->graphics && (lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::GraphOnParent || lassoSelection.getSelectedItem(0)->graphics->getGUI().getType() == pd::Type::Subpatch));
 
+        // Create popup menu
         popupMenu.clear();
-        popupMenu.addItem(1, "Open", !multiple && isSubpatch);
+        popupMenu.addItem(1, "Open", !multiple && isSubpatch); // for opening subpatches
         popupMenu.addSeparator();
         popupMenu.addItem(4, "Cut", hasSelection);
         popupMenu.addItem(5, "Copy", hasSelection);
@@ -278,7 +291,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addSeparator();
         popupMenu.addItem(8, "To Front", hasSelection);
         popupMenu.addSeparator();
-        popupMenu.addItem(9, "Help", hasSelection);
+        popupMenu.addItem(9, "Help", hasSelection); // Experimental: opening help files
         popupMenu.setLookAndFeel(&getLookAndFeel());
 
         auto callback = [this, &lassoSelection](int result) {
@@ -286,7 +299,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 return;
 
             switch (result) {
-            case 1: {
+            case 1: { // Open subpatch
                 auto* subpatch = lassoSelection.getSelectedItem(0)->graphics.get()->getPatch();
 
                 for (int n = 0; n < tabbar->getNumTabs(); n++) {
@@ -312,26 +325,26 @@ void Canvas::mouseDown(const MouseEvent& e)
                 newCanvas->checkBounds();
                 break;
             }
-            case 4:
+            case 4: // Cut
                 copySelection();
                 removeSelection();
                 break;
-            case 5:
+            case 5: // Copy
                 copySelection();
                 break;
-            case 6: {
+            case 6: { // Duplicate
                 duplicateSelection();
                 break;
             }
-            case 7:
+            case 7: // Remove
                 removeSelection();
                 break;
 
-            case 8:
+            case 8: // To Front
                 lassoSelection.getSelectedItem(0)->toFront(false);
                 break;
 
-            case 9:
+            case 9: // Open help
 
                 // Find name of help file
                 std::string helpName = lassoSelection.getSelectedItem(0)->pdObject->getHelp();
@@ -348,7 +361,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 lock->enter();
 
                 auto* new_cnv = main.canvases.add(new Canvas(main));
-                new_cnv->aux_instance.reset(ownedProcessor);
+                new_cnv->aux_instance.reset(ownedProcessor); // Help files need their own instance
                 new_cnv->pd = ownedProcessor;
 
                 ownedProcessor->loadPatch(helpName);
@@ -359,12 +372,10 @@ void Canvas::mouseDown(const MouseEvent& e)
 
                 lock->exit();
 
-                // new_cnv->loadPatch();
-
                 break;
             }
         };
-
+        // Open popupmenu with different positions for these origins
         if (auto* box = dynamic_cast<ClickLabel*>(e.originalComponent)) {
             if (!box->getCurrentTextEditor()) {
                 popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(box), ModalCallbackFunction::create(callback));
@@ -384,11 +395,13 @@ void Canvas::mouseDown(const MouseEvent& e)
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
+    // Ignore on graphs or when locked
     if (isGraph || pd->locked)
         return;
 
     auto* source = e.originalComponent;
 
+    // Drag lasso
     if (dynamic_cast<Connection*>(source)) {
         lasso.dragLasso(e.getEventRelativeTo(this));
     } else if (source == this) {
@@ -432,6 +445,7 @@ void Canvas::paint(Graphics&)
 
 void Canvas::mouseUp(const MouseEvent& e)
 {
+    // Releasing a connect by drag action
     if (connectingWithDrag) {
         auto pos = e.getEventRelativeTo(this).getPosition();
 
@@ -479,6 +493,7 @@ void Canvas::mouseUp(const MouseEvent& e)
 
 void Canvas::dragCallback(int dx, int dy)
 {
+    // Ignore when locked
     if (pd->locked)
         return;
 
@@ -490,16 +505,26 @@ void Canvas::dragCallback(int dx, int dy)
         }
     }
 
+    // When done dragging objects, update positions to pd
     patch.moveObjects(objects, dx, dy);
 
+    // Check if canvas is large enough
     checkBounds();
+    
+    // Update undo state
     main.updateUndoState();
 }
 
 void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
 {
+    
+    // Find all drawables (from objects like drawpolygon, filledcurve, etc.)
+    // Pd draws this over all siblings, even when drawn inside a graph!
+    // To mimic this we find the drawables from the top-level canvas and paint it over everything
+    
     int n = 0;
     for (auto* gobj = cnv->gl_list; gobj; gobj = gobj->g_next) {
+        // Recurse for graphs
         if (gobj->g_pd == canvas_class) {
             if (boxes[n]->graphics && boxes[n]->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
                 auto* canvas = boxes[n]->graphics->getCanvas();
@@ -514,6 +539,7 @@ void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
                 g.restoreState();
             }
         }
+        // Scalar found!
         if (gobj->g_pd == scalar_class) {
             t_scalar* x = (t_scalar*)gobj;
             t_template* templ = template_findbyname(x->sc_template);
@@ -529,6 +555,8 @@ void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
                 const t_parentwidgetbehavior* wb = pd_getparentwidget(&y->g_pd);
                 if (!wb)
                     continue;
+                
+                // This function is a work-in-progress conversion from pd's drawing to JUCE drawing
                 TemplateDraw::paintOnCanvas(g, this, x, y, basex, basey);
             }
         }
@@ -546,6 +574,7 @@ void Canvas::paintOverChildren(Graphics& g)
         findDrawables(g, patch.getPointer());
     }
 
+    // Draw connections in the making over everything else
     if (Edge::connectingEdge && Edge::connectingEdge->box->cnv == this) {
         Point<float> mousePos = getMouseXYRelative().toFloat();
         Point<int> edgePos = Edge::connectingEdge->getCanvasBounds().getPosition();
@@ -686,44 +715,52 @@ bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
 
 void Canvas::copySelection()
 {
-
+    // Tell pd to select all objects that are currently selected
     for (auto* sel : dragger.getLassoSelection()) {
         if (auto* box = dynamic_cast<Box*>(sel)) {
             patch.selectObject(box->pdObject.get());
         }
     }
 
+    // Tell pd to copy
     patch.copy();
     patch.deselectAll();
 }
 
 void Canvas::pasteSelection()
 {
+    // Tell pd to paste
     patch.paste();
+    
+    // Load state from pd, don't update positions
     synchronise(false);
 }
 
 void Canvas::duplicateSelection()
 {
 
+    // Tell pd to select all objects that are currently selected
     for (auto* sel : dragger.getLassoSelection()) {
         if (auto* box = dynamic_cast<Box*>(sel)) {
             patch.selectObject(box->pdObject.get());
         }
     }
 
+    // Tell pd to duplicate
     patch.duplicate();
     patch.deselectAll();
 
+    // Load state from pd, don't update positions
     synchronise(false);
 }
 
 void Canvas::removeSelection()
 {
-
+    // Make sure object isn't selected and stop updating gui
     main.inspector.deselect();
     main.stopTimer();
 
+    // Find selected objects and make them selected in pd
     Array<pd::Object*> objects;
     for (auto* sel : dragger.getLassoSelection()) {
         if (auto* box = dynamic_cast<Box*>(sel)) {
@@ -734,8 +771,10 @@ void Canvas::removeSelection()
         }
     }
 
+    // remove selection
     patch.removeSelection();
 
+    // Remove connection afterwards and make sure they aren't already deleted
     for (auto& con : connections) {
         if (con->isSelected) {
             if (!(objects.contains(con->outObj->get()) || objects.contains(con->inObj->get()))) {
@@ -744,24 +783,33 @@ void Canvas::removeSelection()
         }
     }
 
+
     dragger.deselectAll();
 
+    // Load state from pd, don't update positions
     synchronise(false);
 
+    // Restart gui updating
     main.startTimer(guiUpdateMs);
     main.updateUndoState();
 }
 
 void Canvas::undo()
 {
+    // Tell pd to undo the last action
     patch.undo();
+    
+    // Load state from pd
     synchronise();
     main.updateUndoState();
 }
 
 void Canvas::redo()
 {
+    // Tell pd to undo the last action
     patch.redo();
+    
+    // Load state from pd
     synchronise();
     main.updateUndoState();
 }
@@ -791,9 +839,9 @@ void Canvas::closeAllInstances()
 
 void Canvas::checkBounds()
 {
-
     int viewHeight = 0;
     int viewWidth = 0;
+    
     if (viewport) {
         viewWidth = viewport->getWidth();
         viewHeight = viewport->getHeight();
@@ -813,7 +861,8 @@ void Canvas::checkBounds()
     }
 
     if (!isGraph) {
-        // setTransform(AffineTransform::translation(-minX, -minY)); both options work, not sure which is cleaner
+        // both of these options work, not sure which is cleaner:
+        // setTransform(AffineTransform::translation(-minX, -minY));
         setTopLeftPosition(-minX, -minY);
         setSize(maxX - minX, maxY - minY);
     }

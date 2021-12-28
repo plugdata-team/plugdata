@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <m_pd.h>
+#include <g_all_guis.h>
+
 #include "LookAndFeel.h"
 #include "Pd/PdGui.hpp"
 #include "Pd/PdPatch.hpp"
@@ -28,7 +31,7 @@ struct GUIComponent : public Component {
     virtual void updateValue();
     virtual void update() {};
 
-    void initColours();
+    virtual void initParameters();
 
     void paint(Graphics& g) override
     {
@@ -154,8 +157,15 @@ struct BangComponent : public GUIComponent, public Timer {
         return { {
                      { "Interrupt", tInt, (void*)&bangInterrupt },
                  },
-            [this](int) {} };
+            [this](int) {
+                ((t_bng*)gui.getPointer())->x_flashtime_hold = bangInterrupt;
+            } };
     }
+    
+    void initParameters() override {
+        GUIComponent::initParameters();
+        bangInterrupt = ((t_bng*)gui.getPointer())->x_flashtime_hold;
+    };
 
     void update() override;
 

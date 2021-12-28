@@ -54,16 +54,23 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
     volume = parameters.getRawParameterValue("volume");
     enabled = parameters.getRawParameterValue("enabled");
 
+    
+    // 8 general purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < 8; n++) {
         parameterValues[n] = parameters.getRawParameterValue("param" + String(n + 1));
         lastParameters[n] = 0;
     }
 
+    // On first startup, initialise abstractions and settings
     initialiseFilesystem();
+    
+    // Update pd search paths for abstractions
     updateSearchPaths();
 
+    // Initialise library for text autocompletion
     objectLibrary.initialiseLibrary(settingsTree.getChildWithName("Paths"));
 
+    // Set up midi buffers
     m_midi_buffer_in.ensureSize(2048);
     m_midi_buffer_out.ensureSize(2048);
     m_midi_buffer_temp.ensureSize(2048);
@@ -89,16 +96,18 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
+    // Save current settings before quitting
     saveSettings();
 
+    // Delete console if we own it
     if (ownsConsole) {
         delete console;
     }
-    // LookAndFeel::setDefaultLookAndFeel(nullptr);
 }
 
 void PlugDataAudioProcessor::initialiseFilesystem()
 {
+    // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!appDir.exists() || !abstractions.exists()) {
         appDir.createDirectory();
 
@@ -107,6 +116,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         file.uncompressTo(appDir);
     }
 
+    // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
 
@@ -123,18 +133,21 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         saveSettings();
     } else {
+        // Or load the settings when they exist already
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
     }
 }
 
 void PlugDataAudioProcessor::saveSettings()
 {
+    // Save settings to file
     auto xml = settingsTree.toXmlString();
     settingsFile.replaceWithText(xml);
 }
 
 void PlugDataAudioProcessor::updateSearchPaths()
 {
+    // Reload pd search paths from settings
     auto pathTree = settingsTree.getChildWithName("Paths");
 
     libpd_clear_search_path();
@@ -650,6 +663,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     MemoryOutputStream ostream(destData, false);
 
     ostream.writeString(getCanvasContent());
+    ostream.writeInt(getLatencySamples());
     ostream.writeInt(xmlBlock.getSize());
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
 }
@@ -659,6 +673,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
+    int latency = istream.readInt();
     int xmlSize = istream.readInt();
 
     void* xmlData = (void*)new char[xmlSize];
@@ -671,6 +686,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 
     loadPatch(state);
+    setLatencySamples(latency);
 }
 
 void PlugDataAudioProcessor::loadPatch(String patch)

@@ -16,8 +16,10 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
 {
     cnv = parent;
 
+    // Receive mouse events on canvas
     addMouseListener(cnv, true);
 
+    // Make sure it's not 2x the same edge
     if (!start || !end) {
         start = nullptr;
         end = nullptr;
@@ -25,6 +27,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
         return;
     }
 
+    // check which is the input
     if (start->isInput) {
         inIdx = start->edgeIdx;
         outIdx = end->edgeIdx;
@@ -37,6 +40,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
         outObj = &start->box->pdObject;
     }
 
+    // If it doesn't already exist in pd, create connection in pd
     if (!exists) {
         bool canConnect = parent->patch.createConnection(outObj->get(), outIdx, inObj->get(), inIdx);
 
@@ -47,16 +51,19 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
             return;
         }
     }
-
+    
+    // Listen to changes at edges
     start->addComponentListener(this);
     end->addComponentListener(this);
 
+    // Don't need mouse clicks
     setInterceptsMouseClicks(false, false);
 
     cnv->addAndMakeVisible(this);
 
     setSize(600, 400);
 
+    // Update position
     componentMovedOrResized(*start, true, true);
     componentMovedOrResized(*end, true, true);
 
@@ -111,18 +118,22 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
 void Connection::resized()
 {
+    // Get start and end point
     Point<float> pstart = start->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
     Point<float> pend = end->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
+    
     path.clear();
     path.startNewSubPath(pstart.x, pstart.y);
 
-    bool curvedConnection = true;
-    curvedConnection = !cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
+    // Check cureved connection setting
+    bool curvedConnection = !cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
 
+    // Calculate optimal curve type
     int curvetype = fabs(pstart.x - pend.x) < (fabs(pstart.y - pend.y) * 5.0f) ? 1 : 2;
 
     curvetype *= !(fabs(pstart.x - pend.x) < 2 || fabs(pstart.y - pend.y) < 2);
 
+    // Don't curve if it's very short
     if (pstart.getDistanceFrom(pend) < 35)
         curvedConnection = false;
 
