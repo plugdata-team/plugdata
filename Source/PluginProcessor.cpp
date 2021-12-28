@@ -84,6 +84,8 @@ parameters (*this, nullptr, juce::Identifier ("PlugData"),
     
     dequeueMessages();
     processMessages();
+    
+    startTimer(80);
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -279,8 +281,50 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported (const BusesLayout& layouts)
 }
 #endif
 
+void PlugDataAudioProcessor::hiResTimerCallback() {
+    // Hack to make sure DAW will keep dequeuing messages from pd to the gui when bypassed
+    // Should only start running when audio is bypassed
+    ScopedLock lock(*getCallbackLock());
+     
+    bool oldEnabled = enabled;
+    enabled->store(0);
+    dequeueMessages();
+    enabled->store(oldEnabled);
+}
+
+void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+{
+    ScopedNoDenormals noDenormals;
+    auto totalNumInputChannels  = getTotalNumInputChannels();
+    auto totalNumOutputChannels = getTotalNumOutputChannels();
+
+    // Run help files (without audio)
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        
+        for(int c = 0; c < editor->canvases.size(); c++) {
+            auto* cnv = editor->canvases[c];
+            if(cnv->aux_instance) {
+                cnv->aux_instance->enabled->store(0);
+                cnv->aux_instance->process(processingBuffer, midiMessages);
+            }
+        }
+    }
+    
+    processingBuffer.setSize(2, buffer.getNumSamples());
+    
+    processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
+    processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
+    
+    bool oldEnabled = enabled;
+    enabled->store(0);
+    dequeueMessages();
+    enabled->store(oldEnabled);
+    
+}
+
 void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
+    
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels  = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -338,9 +382,7 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
     
     process(processingBuffer, midiMessages);
-    
-
-    
+        
     buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
     if(totalNumOutputChannels == 2) {
         buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
@@ -352,8 +394,6 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     }
     avg /= numout;
     
-    
-    
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         editor->levelmeter.level = avg;
         
@@ -362,13 +402,12 @@ void PlugDataAudioProcessor::processBlock (AudioBuffer<float>& buffer, MidiBuffe
     
     buffer.applyGain(getParameters()[0]->getValue());
     
-    
-    // ..do something to the data...
 }
 
 void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    //ScopedNoDenormals noDenormals;
+    stopTimer();
+    
     const int blocksize = Instance::getBlockSize();
     const int nsamples  = buffer.getNumSamples();
     const int adv       = m_audio_advancement >= 64 ? 0 : m_audio_advancement;
@@ -510,6 +549,11 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
             m_audio_advancement = remaining;
         }
     }
+    
+    // Start timer:
+    // if we don't start bypassing, this timer will be stopped before it calls
+    // If we do start bypassing, this will ensure gui messages will still be processed
+    startTimer(150);
 }
 
 void PlugDataAudioProcessor::processInternal()
