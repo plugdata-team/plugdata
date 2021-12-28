@@ -42,7 +42,9 @@ source_group("Source" FILES ${PlugDataMidiGlobalSources})
 
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
-    ${SOURCES_DIRECTORY}/*.cpp)
+    ${SOURCES_DIRECTORY}/*.cpp
+    Libraries/JUCE/modules/ff_meters/*.cpp
+    Libraries/JUCE/modules/ff_meters/*.h)
 source_group("Source" FILES ${PlugDataSources})
 
 file(GLOB_RECURSE PlugDataPdSources
