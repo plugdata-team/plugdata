@@ -75,6 +75,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
     addAndMakeVisible(lockButton);
     
+
     connectionStyleButton.setClickingTogglesState(true);
     connectionStyleButton.setConnectedEdges(12);
     connectionStyleButton.setLookAndFeel(&statusbarLook);
@@ -82,6 +83,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
         for(auto* connection : getCurrentCanvas()->connections) connection->resized();
     };
+    connectionStyleButton.setToggleState((bool)pd.settingsTree.getProperty(Identifiers::connectionStyle), dontSendNotification);
+    
     
     addAndMakeVisible(connectionStyleButton);
 
@@ -270,13 +273,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         }));
     }
     
-    
+    addChildComponent(settingsDialog.get());
     toolbarButtons[6].onClick = [this]() {
-       
-        
-        settingsDialog->addToDesktop();
         settingsDialog->setVisible(true);
-        settingsDialog->toFront(true);
+        settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 400));
+        settingsDialog->toFront(false);
     };
     
     hideButton.setLookAndFeel(&toolbarLook);

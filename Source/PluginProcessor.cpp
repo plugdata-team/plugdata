@@ -62,7 +62,7 @@ parameters (*this, nullptr, juce::Identifier ("PlugData"),
     initialiseFilesystem();
     updateSearchPaths();
 
-    objectLibrary.initialiseLibrary();
+    objectLibrary.initialiseLibrary(settingsTree.getChildWithName("Paths"));
     
     m_midi_buffer_in.ensureSize(2048);
     m_midi_buffer_out.ensureSize(2048);
@@ -132,13 +132,16 @@ void PlugDataAudioProcessor::saveSettings() {
 }
 
 void PlugDataAudioProcessor::updateSearchPaths() {
+    auto pathTree = settingsTree.getChildWithName("Paths");
     
     libpd_clear_search_path();
-    for(auto child : settingsTree.getChildWithName("Paths"))
+    for(auto child : pathTree)
     {
         auto path = child.getProperty("Path").toString();
         libpd_add_to_search_path(path.toRawUTF8());
     }
+    
+    objectLibrary.initialiseLibrary(pathTree);
 }
 //==============================================================================
 const String PlugDataAudioProcessor::getName() const

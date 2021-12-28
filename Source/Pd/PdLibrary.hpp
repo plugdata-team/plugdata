@@ -31,7 +31,7 @@ struct Library
 {
     Library();
     
-    void initialiseLibrary();
+    void initialiseLibrary(ValueTree pathTree);
     
     std::vector<std::string> autocomplete(std::string query);
     
