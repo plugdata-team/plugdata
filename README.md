@@ -35,7 +35,6 @@ Known issues:
 Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more.
 
 Future plans:
-- Add settings dialog for things like external search paths
 - Support for GEM
 - More GUI conveniences
 
