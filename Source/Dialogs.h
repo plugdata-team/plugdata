@@ -12,6 +12,8 @@
 class SaveDialog : public Component {
 
     MainLook mainLook;
+    
+    DropShadower shadower = DropShadower(MainLook::shadow);
 
     Label savelabel = Label("savelabel", "Save Changes?");
 
@@ -37,6 +39,8 @@ class ArrayDialog : public Component {
 
     MainLook mainLook;
 
+    DropShadower shadower = DropShadower(MainLook::shadow);
+    
     Label label = Label("savelabel", "Array Properties");
 
     Label nameLabel = Label("namelabel", "Name:");
@@ -127,6 +131,8 @@ struct SettingsDialog : public Component {
     MainLook mainLook;
     SettingsComponent settingsComponent;
     ComponentDragger dragger;
+    
+    DropShadower shadower = DropShadower(MainLook::shadow);
 
     ComponentBoundsConstrainer constrainer;
 
@@ -134,6 +140,7 @@ struct SettingsDialog : public Component {
         : settingsComponent(processor, manager, settingsTree, updatePaths)
     {
 
+        shadower.setOwner(this);
         setLookAndFeel(&mainLook);
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
 
@@ -184,9 +191,14 @@ struct SettingsDialog : public Component {
 
     void paintOverChildren(Graphics& g)
     {
+        // Draw window title
         g.setColour(Colours::white);
         g.drawText("Settings", 0, 0, getWidth(), 30, Justification::centred,
             true);
+        
+        
+        g.setColour(findColour(ComboBox::outlineColourId).darker());
+        g.drawRect(getLocalBounds());
     }
 
     void closeButtonPressed()

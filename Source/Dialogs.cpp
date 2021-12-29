@@ -10,6 +10,8 @@
 
 SaveDialog::SaveDialog()
 {
+    
+    
     setLookAndFeel(&mainLook);
     setSize(400, 200);
     addAndMakeVisible(savelabel);
@@ -32,12 +34,12 @@ SaveDialog::SaveDialog()
     dontsave.changeWidthToFitText();
     save.changeWidthToFitText();
     setOpaque(false);
-    addToDesktop(ComponentPeer::windowHasDropShadow);
+    
+    shadower.setOwner(this);
 }
 
 SaveDialog::~SaveDialog()
 {
-    removeFromDesktop();
     setLookAndFeel(nullptr);
 }
 
@@ -51,14 +53,11 @@ void SaveDialog::resized()
 
 void SaveDialog::paint(Graphics& g)
 {
-    g.setColour(Colour(60, 60, 60));
-    g.drawRect(getLocalBounds());
-
-    g.setColour(MainLook::secondBackground);
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), 3.0f);
-
-    g.setColour(findColour(ComboBox::outlineColourId));
-    g.drawRoundedRectangle(getLocalBounds().toFloat(), 3.0f, 1.0f);
+    g.setColour(MainLook::firstBackground);
+    g.fillRect(getLocalBounds().reduced(1).toFloat());
+    
+    g.setColour(findColour(ComboBox::outlineColourId).darker());
+    g.drawRect(getLocalBounds().reduced(1), 1.0f);
 }
 
 void SaveDialog::show(Component* centre, std::function<void(int)> callback)
@@ -74,6 +73,8 @@ void SaveDialog::show(Component* centre, std::function<void(int)> callback)
 
 ArrayDialog::ArrayDialog()
 {
+
+    
     setLookAndFeel(&mainLook);
     setSize(400, 200);
 
@@ -102,7 +103,7 @@ ArrayDialog::ArrayDialog()
     addAndMakeVisible(sizeEditor);
 
     setOpaque(false);
-    addToDesktop(ComponentPeer::windowHasDropShadow);
+    shadower.setOwner(this);
 }
 
 ArrayDialog::~ArrayDialog()
@@ -118,7 +119,7 @@ void ArrayDialog::show(Component* centre, std::function<void(int, String, String
 
     centre->addAndMakeVisible(dialog);
 
-    dialog->setBounds((centre->getWidth() / 2.) - 200., 40, 300, 180);
+    dialog->setBounds((centre->getWidth() / 2.) - 200., 37, 300, 180);
 }
 
 void ArrayDialog::resized()
@@ -135,14 +136,15 @@ void ArrayDialog::resized()
 
 void ArrayDialog::paint(Graphics& g)
 {
-    g.setColour(Colour(60, 60, 60));
-    g.drawRect(getLocalBounds());
+    
 
-    g.setColour(MainLook::secondBackground);
-    g.fillRoundedRectangle(getLocalBounds().toFloat(), 3.0f);
+    g.setColour(MainLook::firstBackground);
+    g.fillRect(getLocalBounds().reduced(1).toFloat());
+    
+    g.setColour(findColour(ComboBox::outlineColourId).darker());
+    g.drawRect(getLocalBounds().reduced(1), 1.0f);
 
-    g.setColour(findColour(ComboBox::outlineColourId));
-    g.drawRoundedRectangle(getLocalBounds().toFloat(), 3.0f, 1.0f);
+    
 }
 
 class LibraryComponent : public Component, public TableListBoxModel {
