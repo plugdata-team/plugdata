@@ -10,6 +10,8 @@
 
 struct MainLook : public LookAndFeel_V4 {
 
+    inline static DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
+    
     inline static Colour highlightColour = Colour(0xff42a2c8);
     inline static Colour firstBackground = Colour(23, 23, 23);
     inline static Colour secondBackground = Colour(32, 32, 32);

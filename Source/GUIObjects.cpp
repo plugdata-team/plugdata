@@ -117,7 +117,7 @@ GUIComponent* GUIComponent::createGui(String name, Box* parent)
         return new Subpatch(gui, parent);
     }
     if (gui.getType() == pd::Type::VuMeter) {
-        return nullptr;
+        return new VUMeter(gui, parent);
     }
     if (gui.getType() == pd::Type::Comment) {
         return new CommentComponent(gui, parent);
@@ -948,6 +948,10 @@ MouseComponent::MouseComponent(pd::Gui gui, Box* box)
     : GUIComponent(gui, box)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
+}
+
+MouseComponent::~MouseComponent() {
+    Desktop::getInstance().removeGlobalMouseListener(this);
 }
 
 void MouseComponent::updateValue()

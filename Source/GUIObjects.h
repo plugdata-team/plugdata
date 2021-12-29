@@ -9,6 +9,8 @@
 #include <m_pd.h>
 #include <g_all_guis.h>
 
+#include <ff_meters/ff_meters.h>
+
 #include "LookAndFeel.h"
 #include "Pd/PdGui.hpp"
 #include "Pd/PdPatch.hpp"
@@ -502,6 +504,63 @@ struct CommentComponent : public GUIComponent {
     }
 };
 
+struct VUMeter : public GUIComponent {
+    
+    VUMeter(pd::Gui gui, Box* box) : GUIComponent(gui, box) {
+        lnf.setColour(foleys::LevelMeter::lmTextColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextClipColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextDeactiveColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTicksColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmOutlineColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, juce::Colours::darkgrey);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
+
+        
+        meter.setLookAndFeel(&lnf);
+        addAndMakeVisible(meter);
+        
+        meter.setSelectedChannel(0);
+        
+        source.resize(1, 3);
+        meter.setMeterSource(&source);
+    }
+    
+    ~VUMeter(){
+        meter.setLookAndFeel(nullptr);
+    }
+    
+    void resized() override {
+        meter.setBounds(getLocalBounds().removeFromTop(getHeight() - 20));
+    }
+    
+    void paint(Graphics& g) override {
+        
+        g.setColour(Colours::white);
+        
+        auto rms = gui.getValue();
+        g.drawFittedText(String(rms, 2) + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+    }
+
+    void updateValue() override {
+        auto rms = gui.getValue();
+        auto peak = gui.getPeak();
+        
+        source.pushRMS(0, Decibels::decibelsToGain(rms), Decibels::decibelsToGain(peak));
+    };
+
+    std::pair<int, int> getBestSize() override { return { 60, 120}; };
+    
+    foleys::LevelMeter meter = foleys::LevelMeter(foleys::LevelMeter::Minimal);
+    foleys::LevelMeterSource source;
+    foleys::LevelMeterLookAndFeel lnf;
+};
+
 // ELSE mousepad
 struct MousePad : public GUIComponent {
 
@@ -556,6 +615,8 @@ struct MouseComponent : public GUIComponent {
     } t_mouse;
 
     MouseComponent(pd::Gui gui, Box* box);
+    
+    ~MouseComponent();
 
     std::pair<int, int> getBestSize() override { return { 0, 3 }; };
 

@@ -79,6 +79,7 @@ namespace pd
         std::string getReceiveSymbol() noexcept;
         
         float getValue() const noexcept;
+        float getPeak() const noexcept;
         
         void setValue(float value) noexcept;
         

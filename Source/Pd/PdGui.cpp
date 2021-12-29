@@ -408,13 +408,23 @@ float Gui::getValue() const noexcept
     }
     else if(m_type == Type::VuMeter)
     {
-        return 0;
+        // Return RMS
+        return static_cast<t_vu*>(m_ptr)->x_fp;
     }
     else if(m_type == Type::AtomNumber)
     {
         return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(m_ptr)));
     }
     return 0.f;
+}
+
+float Gui::getPeak() const noexcept {
+    if(m_type == Type::VuMeter)
+    {
+        return static_cast<t_vu*>(m_ptr)->x_fr;
+    }
+    
+    return 0;
 }
 
 void Gui::setValue(float value) noexcept
