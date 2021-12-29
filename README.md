@@ -29,7 +29,7 @@ What works:
 Known issues:
 - There may still be some bugs
 - Can be slow for very large patches
-- No VU meter, no cnv object (the one that's just a filled block), possibly a few missing GUI objects from ELSE
+- No cnv object (the one that's just a filled block), possibly a few missing GUI objects from ELSE
 
 Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more.
 
