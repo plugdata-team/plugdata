@@ -162,22 +162,18 @@ struct GraphArea : public Component, public ComponentDragger {
 
     void mouseUp(const MouseEvent& e) override
     {
-        t_canvas* cnv = canvas->patch.getPointer();
-        // Lock first?
-        if (cnv) {
-            cnv->gl_pixwidth = getWidth();
-            cnv->gl_pixheight = getHeight();
-
-            cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;
-            cnv->gl_ymargin = (getY() - 4) / pd::Patch::zoom;
-        }
-
+        updatePosition();
         repaint();
     }
 
     void resized() override
     {
-
+        updatePosition();
+        resizer.setBounds(getLocalBounds());
+        repaint();
+    }
+    
+    void updatePosition() {
         t_canvas* cnv = canvas->patch.getPointer();
         // Lock first?
         if (cnv) {
@@ -186,8 +182,5 @@ struct GraphArea : public Component, public ComponentDragger {
             cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;
             cnv->gl_ymargin = (getY() - 4) / pd::Patch::zoom;
         }
-
-        resizer.setBounds(getLocalBounds());
-        repaint();
     }
 };
