@@ -154,7 +154,7 @@ public:
     void handleMouseUp(T* component, const MouseEvent& e)
     {
         if (didStartDragging) {
-            static_cast<MultiComponentDraggerListener*>(canvas)->dragCallback(totalDragDelta.x, totalDragDelta.y);
+            dynamic_cast<MultiComponentDraggerListener*>(canvas)->dragCallback(totalDragDelta.x, totalDragDelta.y);
         }
 
         if (didStartDragging)

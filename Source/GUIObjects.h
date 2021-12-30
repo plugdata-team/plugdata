@@ -624,8 +624,6 @@ struct MousePad : public GUIComponent {
         auto [x, y, w, h] = gui.getBounds();
         return { w, h };
     };
-
-    t_template* t_template;
 };
 
 // Else "mouse" component
