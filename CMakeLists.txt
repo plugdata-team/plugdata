@@ -1,13 +1,18 @@
 cmake_minimum_required(VERSION 3.12)
 
-list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64/include" "C:/msys64/mingw64/x86_64-w64-mingw32/include")
-list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64/lib" "C:/msys64/mingw64/x86_64-w64-mingw32/lib")
+if(MSVC)
+set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/dll/x64/pthreads/pthreadsVC2.dll CACHE PATH "")
+set(PTHREADS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/dll/x64/pthreads/pthreadsVC2.dll CACHE PATH "")
+endif()
 
-
+if(APPLE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+endif()
+
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
+
 
 project(PlugData VERSION 0.1 LANGUAGES C CXX)
 
@@ -38,9 +43,11 @@ file(GLOB PlugDataFxGlobalSources
     ${CMAKE_CACHEFILE_DIR}/PlugDataFx_artefacts/JuceLibraryCode/JuceHeader.h)
 source_group("Source" FILES ${PlugDataFxGlobalSources})
 
+if(APPLE)
 file(GLOB PlugDataMidiGlobalSources
     ${CMAKE_CACHEFILE_DIR}/PlugDataMidi_artefacts/JuceLibraryCode/JuceHeader.h)
 source_group("Source" FILES ${PlugDataMidiGlobalSources})
+endif()
 
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
@@ -109,6 +116,7 @@ juce_add_plugin(PlugDataFx
     VST3_COPY_DIR               ${PLUGDATA_PLUGINS_LOCATION}
     AU_COPY_DIR                 ${PLUGDATA_PLUGINS_LOCATION})
 
+if(APPLE)
 juce_add_plugin(PlugDataMidi
     VERSION                     ${PLUGDATA_VERSION}
     COMPANY_NAME                ${PLUGDATA_COMPANY_NAME}
@@ -128,6 +136,7 @@ juce_add_plugin(PlugDataMidi
     PRODUCT_NAME                "PlugDataMidi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor
     AU_COPY_DIR                 ${PLUGDATA_PLUGINS_LOCATION})
+endif()
 
 juce_generate_juce_header(PlugData)
 set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
@@ -137,9 +146,11 @@ juce_generate_juce_header(PlugDataFx)
 set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 20)
 target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources})
 
+if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
 set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
 target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources})
+endif()
 
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
 target_link_libraries(PlugData_LV2 PRIVATE PlugDataFx)
@@ -168,14 +179,18 @@ endif()
 
 target_compile_definitions(PlugData PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataFx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
+if(APPLE) 
+target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS}) 
+endif()
 target_compile_definitions(PlugData_LV2 PRIVATE "JucePlugin_Build_LV2=1")
 
 list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/pure-data/src")
 list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/libpd_wrapper")
 target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
 target_include_directories(PlugDataFx PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
-target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
+if(APPLE) 
+target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>") 
+endif()
 
 file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/forkawesome-webfont.ttf
@@ -187,21 +202,33 @@ file(GLOB PlugDataBinaryDataSources
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+if(MSVC)
+target_link_libraries(PlugData PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib)
+target_link_libraries(PlugDataFx PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib)
+target_link_libraries(PlugData_LV2 PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib)
+else()
 target_link_libraries(PlugData PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
 target_link_libraries(PlugDataFx PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-target_link_libraries(PlugDataMidi PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+if(APPLE) 
+target_link_libraries(PlugDataMidi PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client) 
+endif()
 target_link_libraries(PlugData_LV2 PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+endif()
 
 add_executable(lv2_file_generator ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/main.c)
 target_link_libraries(lv2_file_generator ${CMAKE_DL_LIBS})
 
 set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugDataFx PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+if(APPLE) 
+set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}) 
+endif()
 
 set_target_properties(PlugData PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugDataFx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+if(APPLE) 
+set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}) 
+endif()
 
 set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
 set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
