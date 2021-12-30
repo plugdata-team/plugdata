@@ -322,6 +322,9 @@ struct StatusbarLook : public MainLook {
     float scalar;
     Font icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::fontaudio_ttf, BinaryData::fontaudio_ttfSize));
 
+    
+    Font extra_icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::forkawesomewebfont_ttf, BinaryData::forkawesomewebfont_ttfSize));
+
     bool font_choice;
 
     StatusbarLook(bool font = true, float button_scalar = 1.0f)
@@ -340,7 +343,7 @@ struct StatusbarLook : public MainLook {
 
     Font getTextButtonFont(TextButton&, int buttonHeight)
     {
-        auto font = font_choice ? icon_font.withHeight(buttonHeight / (3.2 / scalar)) : icon_font.withHeight(buttonHeight / (3.8 / scalar));
+        auto font = font_choice ? icon_font.withHeight(buttonHeight / (3.2 / scalar)) : extra_icon_font.withHeight(buttonHeight / (3.8 / scalar));
         return font;
     }
 
