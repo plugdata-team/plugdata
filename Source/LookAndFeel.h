@@ -276,7 +276,7 @@ struct PdGuiLook : public MainLook {
 
 struct ToolbarLook : public MainLook {
 
-    inline static Font icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::forkawesomewebfont_ttf, BinaryData::forkawesomewebfont_ttfSize));
+    Font icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::forkawesomewebfont_ttf, BinaryData::forkawesomewebfont_ttfSize));
 
     bool icons;
 
@@ -320,7 +320,7 @@ struct ToolbarLook : public MainLook {
 
 struct StatusbarLook : public MainLook {
     float scalar;
-    inline static Font icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::fontaudio_ttf, BinaryData::fontaudio_ttfSize));
+    Font icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::fontaudio_ttf, BinaryData::fontaudio_ttfSize));
 
     bool font_choice;
 
