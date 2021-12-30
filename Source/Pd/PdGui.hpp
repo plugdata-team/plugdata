@@ -31,10 +31,10 @@ namespace pd
         Gui() noexcept = default;
         
         //! @brief The copy constructor.
-        Gui(const Gui& other) noexcept = default;
+        //Gui(const Gui& other) noexcept = default;
         
         //! @brief The copy operator.
-        Gui& operator=(Gui const& other) noexcept = default;
+        //Gui& operator=(Gui const& other) noexcept = default;
         
         //! @brief The destructor.
         ~Gui() noexcept = default;
