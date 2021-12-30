@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
 if(MSVC)
-set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/dll/x64/pthreads/pthreadsVC2.dll CACHE PATH "")
-set(PTHREADS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/dll/x64/pthreads/pthreadsVC2.dll CACHE PATH "")
+set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreads/pthreadsVC2.lib CACHE PATH "")
+set(PTHREADS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/include CACHE PATH "")
 endif()
 
 if(APPLE)
