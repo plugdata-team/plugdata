@@ -670,7 +670,9 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
 
 void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
-
+    if(sizeInBytes == 0) return;
+    
+    // TODO: is this a problem on Linux??
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
     int latency = istream.readInt();
