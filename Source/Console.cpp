@@ -23,16 +23,12 @@ SOFTWARE.
 */
 
 #include "Console.h"
-
-#include <fcntl.h> //
 #include <stdio.h> //
 #include <stdlib.h> //
 #include <string.h> //
-#include <sys/stat.h> //
-#include <sys/types.h> //
-#include <sys/wait.h> //
-//#include  <termios.h>                            //
-#include <unistd.h>
+#include <algorithm> //
+#include <cmath> //
+
 #ifdef JUCE_WINDOWS
 #include <fcntl.h>
 #include <io.h>
@@ -43,6 +39,15 @@ SOFTWARE.
 #define dup2 _dup2
 #define read _read
 #define close _close
+#else
+#include <fcntl.h> //
+
+#include <sys/stat.h> //
+#include <sys/types.h> //
+#include <sys/wait.h> //
+#include  <termios.h>                            //
+#include <unistd.h>
+
 #endif
 
 Console::Console(bool captureStdErrImmediately, bool captureStdOutImmediately)
@@ -205,7 +210,7 @@ void Console::resized()
         totalHeight += height;
     }
     logContainer.totalheight = totalHeight;
-    logContainer.setBounds(0, 0, getWidth(), std::max(totalHeight, getHeight() - 30));
+    logContainer.setBounds(0, 0, getWidth(), std::max<int>(totalHeight, getHeight() - 30));
 
     viewport.setBounds(0, 0, getWidth(), getHeight() - 30);
     clearButton.setBounds(getWidth() - 50, getHeight() - 30, 30, 30);

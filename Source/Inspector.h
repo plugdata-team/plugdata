@@ -168,6 +168,14 @@ struct Inspector : public Component,
         }
     }
 
+    void* toPointer(String text) {
+#if _MSC_VER
+
+#else
+
+#endif
+
+    }
     // This is overloaded from TableListBoxModel, and must update any custom components that we're using
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
         Component* existingComponentToUpdate)
@@ -180,7 +188,7 @@ struct Inspector : public Component,
 
         auto type = dataList->getChildElement(rowNumber)->getIntAttribute("Type");
         auto value = dataList->getChildElement(rowNumber)->getStringAttribute("Value");
-        auto* ptr = (void*)dataList->getChildElement(rowNumber)->getStringAttribute("Pointer").getLargeIntValue();
+        auto* ptr = data[rowNumber];
 
         switch (type) {
         case tString:
@@ -272,12 +280,14 @@ struct Inspector : public Component,
 
         callback = cb;
 
+        data.clear();
+
         for (auto& [name, type, ptr] : parameters) {
 
             auto* dataElement = new XmlElement("DATA");
             dataElement->setAttribute("Name", name);
             dataElement->setAttribute("Type", type);
-            dataElement->setAttribute("Pointer", String((long)ptr));
+            data.push_back(ptr);
 
             switch (type) {
             case tColour:
@@ -309,6 +319,8 @@ struct Inspector : public Component,
 
     XmlElement* columnList;
     XmlElement* dataList;
+
+    std::vector<void*> data;
     std::function<void(int)> callback;
 
     int numRows; // The number of rows of data we've got
@@ -351,7 +363,9 @@ struct Inspector : public Component,
             , currentColour(value)
             , row(rowIdx)
         {
-            button.setButtonText(String("#") + (*value).substring(2));
+            if (value && value->length() > 2) {
+                button.setButtonText(String("#") + (*value).substring(2));
+            }
             button.setConnectedEdges(12);
             button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
 

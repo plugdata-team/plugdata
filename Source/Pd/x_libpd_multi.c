@@ -644,7 +644,9 @@ void libpd_multi_init(void)
         decay2_tilde_setup();
         del_tilde_setup();
         detect_tilde_setup();
+        #ifndef _MSC_VER 
         dir_setup();
+        #endif  
         dollsym_setup();
         downsample_tilde_setup();
         drive_tilde_setup();
