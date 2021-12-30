@@ -340,7 +340,7 @@ struct StatusbarLook : public MainLook {
 
     Font getTextButtonFont(TextButton&, int buttonHeight)
     {
-        auto font = font_choice ? icon_font.withHeight(buttonHeight / (3.2 / scalar)) : ToolbarLook::icon_font.withHeight(buttonHeight / (3.8 / scalar));
+        auto font = font_choice ? icon_font.withHeight(buttonHeight / (3.2 / scalar)) : icon_font.withHeight(buttonHeight / (3.8 / scalar));
         return font;
     }
 
