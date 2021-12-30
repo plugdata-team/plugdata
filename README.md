@@ -1,8 +1,6 @@
 # PlugData
 Pure Data as a plugin, with a new GUI
 
-
-
 <img width="1024" alt="Screenshot 2021-12-28 at 18 50 02" src="https://user-images.githubusercontent.com/44585538/147593480-34daed21-3f6b-4a11-b1f1-db1d5edb756c.png">
 <img width="1024" alt="Screenshot 2021-12-28 at 18 51 48" src="https://user-images.githubusercontent.com/44585538/147593486-8dbae995-bdc7-4ccd-ae6d-2dc4919f2b0d.png">
 
@@ -14,6 +12,7 @@ Possible thanks to:
 - [Pure Data](http://msp.ucsd.edu/software.html) by Miller Puckette and others
 - [libpd](http://libpd.cc) by the Peter Brinkmann, Dan Wilcox and others
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
+- [ff_meters](https://github.com/ffAudio/ff_meters) by Foleys Finest Audio
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
 - [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
 - [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
@@ -27,9 +26,9 @@ What works:
 
 
 Known issues:
-- There may still be some bugs
+- GraphOnParents sometimes load as subpatchers when loading a state quickly after startup
+- There may still be some more bugs
 - Can be slow for very large patches
-- No cnv object (the one that's just a filled block), possibly a few missing GUI objects from ELSE
 
 Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more.
 
