@@ -75,6 +75,7 @@ Console::Console(bool captureStdErrImmediately, bool captureStdOutImmediately)
     if (captureStdOutImmediately)
         captureStdOut();
 
+    clearButton.setTooltip("Clear Console");
     clearButton.setButtonText(CharPointer_UTF8("\xef\x80\x8d"));
     clearButton.setConnectedEdges(12);
     clearButton.setLookAndFeel(&statusbarLook);

@@ -43,15 +43,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
     setWantsKeyboardFocus(true);
 
     if (!isGraph) {
-        // Layer to allow negative position
-        // TODO: this is a hack, we can fix this in a cleaner way
-        transformLayer.addMouseListener(this, false);
-        transformLayer.addKeyListener(this);
-        transformLayer.addAndMakeVisible(this);
-
         viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
-        viewport->setViewedComponent(&transformLayer, false);
-        setPaintingIsUnclipped(true);
+        viewport->setViewedComponent(this, false);
     }
 
     main.startTimer(guiUpdateMs);
@@ -129,9 +122,12 @@ void Canvas::synchronise(bool updatePosition)
                     }
                 }
             };
+            
+            x += zeroPosition.x;
+            y += zeroPosition.y;
 
             // These objects have extra info (like size and colours) in their names that we want to hide
-            guiSimplify(name, { "bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad" });
+            guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
             auto* newBox = boxes.add(new Box(pdObject, this, name, { (int)x, (int)y }));
             newBox->toBack();
@@ -142,6 +138,9 @@ void Canvas::synchronise(bool updatePosition)
         } else {
             auto* box = *it;
             auto [x, y, h, w] = object.getBounds();
+            
+            x += zeroPosition.x;
+            y += zeroPosition.y;
 
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
@@ -218,17 +217,6 @@ void Canvas::loadPatch(pd::Patch patch)
     synchronise();
 }
 
-bool Canvas::hitTest(int x, int y)
-{
-    // This is hacky... I like to keep object positions relative to canvas, so to support negative positions we need to allow drawing off canvas
-    // Canvas should be at least the size of viewport so this shouldn't feel to glitchy
-    if (x < 0 || y < 0) {
-        transformLayer.repaint();
-        return transformLayer.hitTest(x + getX(), y + getY());
-    }
-
-    return x < getWidth() && y < getHeight();
-}
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
@@ -243,11 +231,6 @@ void Canvas::mouseDown(const MouseEvent& e)
         auto* box = findParentComponentOfClass<Box>();
         box->dragger.setSelected(box, true);
         return;
-    }
-
-    // transformlayer receives clicks with negative x or y values
-    if (source == &transformLayer) {
-        source = this;
     }
 
     // Left-click
@@ -395,6 +378,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
+    repaint();
     // Ignore on graphs or when locked
     if (isGraph || pd->locked)
         return;
@@ -435,12 +419,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
     if (connectingWithDrag)
         repaint();
-    transformLayer.repaint();
-}
-
-void Canvas::paint(Graphics&)
-{
-    transformLayer.repaint();
 }
 
 void Canvas::mouseUp(const MouseEvent& e)
@@ -599,7 +577,6 @@ void Canvas::mouseMove(const MouseEvent& e)
 
 void Canvas::resized()
 {
-    transformLayer.setBounds(getLocalBounds());
 }
 
 bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
@@ -848,8 +825,8 @@ void Canvas::checkBounds()
     }
 
     // Check new bounds
-    int minX = 0;
-    int minY = 0;
+    int minX = zeroPosition.x;
+    int minY = zeroPosition.y;
     int maxX = std::max(getWidth() - getX(), viewWidth);
     int maxY = std::max(getHeight() - getY(), viewHeight);
 
@@ -861,9 +838,14 @@ void Canvas::checkBounds()
     }
 
     if (!isGraph) {
-        // both of these options work, not sure which is cleaner:
-        // setTransform(AffineTransform::translation(-minX, -minY));
-        setTopLeftPosition(-minX, -minY);
+        
+        for(auto& box : boxes) {
+            box->setBounds(box->getBounds().translated(-minX, -minY));
+        }
+        
+        
+        zeroPosition -= {minX, minY};
+        
         setSize(maxX - minX, maxY - minY);
     }
 

@@ -60,10 +60,19 @@ public:
     void pasteSelection();
     void duplicateSelection();
 
-    void paint(Graphics&) override;
-    bool hitTest(int x, int y) override;
-
     void checkBounds();
+    
+    void paint(Graphics& g) override{
+        g.fillAll(MainLook::firstBackground);
+        
+        g.setColour(MainLook::secondBackground);
+        g.fillRect(zeroPosition.x, zeroPosition.y, getWidth(), getHeight());
+        
+        // draw origin
+        g.setColour(Colour(100, 100, 100));
+        g.drawLine(zeroPosition.x - 1, zeroPosition.y, zeroPosition.x - 1, getHeight());
+        g.drawLine(zeroPosition.x, zeroPosition.y - 1, getWidth(), zeroPosition.y - 1);
+    }
 
     void undo();
     void redo();
@@ -99,9 +108,8 @@ public:
     MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this, &boxes);
 
     std::unique_ptr<GraphArea> graphArea;
-
-    // Layer to help us draw negative object positions
-    Component transformLayer;
+    
+    Point<int> zeroPosition = {0, 0};
 
 private:
     SafePointer<TabbedComponent> tabbar;

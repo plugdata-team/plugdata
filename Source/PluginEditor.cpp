@@ -57,17 +57,24 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
         timerCallback();
     };
-
-    startButton.setClickingTogglesState(true);
-    startButton.setConnectedEdges(12);
-    startButton.setLookAndFeel(&statusbarLook);
-    addAndMakeVisible(startButton);
-
+    
     addAndMakeVisible(tabbar);
     addAndMakeVisible(console);
-
     addChildComponent(inspector);
 
+    bypassButton.setTooltip("Bypass");
+    bypassButton.setClickingTogglesState(true);
+    bypassButton.setConnectedEdges(12);
+    bypassButton.setLookAndFeel(&statusbarLook);
+    addAndMakeVisible(bypassButton);
+    bypassButton.onClick = [this]() {
+        pd.setBypass(!bypassButton.getToggleState());
+    };
+
+    bypassButton.setToggleState(true, dontSendNotification);
+    
+
+    lockButton.setTooltip("Lock");
     lockButton.setClickingTogglesState(true);
     lockButton.setConnectedEdges(12);
     lockButton.setLookAndFeel(&statusbarLook2);
@@ -80,6 +87,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
     addAndMakeVisible(lockButton);
 
+    connectionStyleButton.setTooltip("Curve connections");
     connectionStyleButton.setClickingTogglesState(true);
     connectionStyleButton.setConnectedEdges(12);
     connectionStyleButton.setLookAndFeel(&statusbarLook);
@@ -92,12 +100,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     addAndMakeVisible(connectionStyleButton);
 
-    startButton.onClick = [this]() {
-        pd.setBypass(!startButton.getToggleState());
-    };
-
-    startButton.setToggleState(true, dontSendNotification);
-
     for (auto& button : toolbarButtons) {
         button.setLookAndFeel(&toolbarLook);
         button.setConnectedEdges(12);
@@ -105,6 +107,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     }
 
     // New button
+    toolbarButtons[0].setTooltip("New Project");
     toolbarButtons[0].onClick = [this]() {
         auto createFunc = [this]() {
             tabbar.clearTabs();
@@ -132,31 +135,37 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
 
     // Open button
+    toolbarButtons[1].setTooltip("Open Project");
     toolbarButtons[1].onClick = [this]() {
         openProject();
     };
 
     // Save button
+    toolbarButtons[2].setTooltip("Open Project");
     toolbarButtons[2].onClick = [this]() {
         saveProject();
     };
 
     //  Undo button
+    toolbarButtons[3].setTooltip("Undo");
     toolbarButtons[3].onClick = [this]() {
         getCurrentCanvas()->undo();
     };
 
     // Redo button
+    toolbarButtons[4].setTooltip("Redo");
     toolbarButtons[4].onClick = [this]() {
         getCurrentCanvas()->redo();
     };
 
     // New object button
+    toolbarButtons[5].setTooltip("Create Object");
     toolbarButtons[5].onClick = [this]() {
         PopupMenu menu;
-        menu.addItem(15, "Empty Object");
+        menu.addItem(16, "Empty Object");
         menu.addSeparator();
-
+        
+        
         menu.addItem(1, "Numbox");
         menu.addItem(2, "Message");
         menu.addItem(3, "Bang");
@@ -168,15 +177,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
         menu.addSeparator();
 
-        menu.addItem(11, "Float Atom");
-        menu.addItem(12, "Symbol Atom");
+        menu.addItem(9, "Float Atom"); // 11
+        menu.addItem(10, "Symbol Atom"); // 12
 
         menu.addSeparator();
 
-        menu.addItem(9, "Array");
-        menu.addItem(13, "GraphOnParent");
-        menu.addItem(14, "Comment");
-        menu.addItem(10, "Canvas");
+        menu.addItem(11, "Array"); // 9
+        menu.addItem(12, "GraphOnParent"); // 13
+        menu.addItem(13, "Comment"); // 14
+        menu.addItem(14, "Panel"); // 10
+        menu.addSeparator();
+        menu.addItem(15, "Keyboard");
+       
 
         auto callback = [this](int choice) {
             if (choice < 1)
@@ -216,8 +228,15 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             case 8:
                 boxName = "vradio";
                 break;
+            case 9:
+                boxName = "floatatom";
+                break;
 
-            case 9: {
+            case 10:
+                boxName = "symbolatom";
+                break;
+                    
+            case 11: {
                 ArrayDialog::show(this, [this](int result, String name, String size) {
                     if (result) {
                         auto* cnv = getCurrentCanvas();
@@ -227,25 +246,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 });
                 return;
             }
-
-            case 10:
-                boxName = "canvas";
-                break;
-
-            case 11:
-                boxName = "floatatom";
-                break;
-
             case 12:
-                boxName = "symbolatom";
-                break;
-
-            case 13:
                 boxName = "graph";
                 break;
 
-            case 14:
+            case 13:
                 boxName = "comment";
+                break;
+            case 14:
+                boxName = "cnv";
+                break;
+            case 15:
+                boxName = "keyboard";
                 break;
             }
             auto* cnv = getCurrentCanvas();
@@ -270,6 +282,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addChildComponent(settingsDialog.get());
     
     // Show settings
+    toolbarButtons[6].setTooltip("Settings");
     toolbarButtons[6].onClick = [this]() {
         settingsDialog->setVisible(true);
         settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 400));
@@ -278,6 +291,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
 
     // Hide sidebar
+    hideButton.setTooltip("Hide Sidebar");
     hideButton.setLookAndFeel(&toolbarLook);
     hideButton.setClickingTogglesState(true);
     hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
@@ -292,12 +306,14 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         repaint();
         resized();
     };
-    
 
     // Sidebar selectors (inspector or console)
+    toolbarButtons[8].setTooltip("Show Console");
     toolbarButtons[8].setClickingTogglesState(true);
-    toolbarButtons[9].setClickingTogglesState(true);
     toolbarButtons[8].setRadioGroupId(101);
+    
+    toolbarButtons[8].setTooltip("Show Inspector");
+    toolbarButtons[9].setClickingTogglesState(true);
     toolbarButtons[9].setRadioGroupId(101);
 
     //  Open console
@@ -315,7 +331,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addAndMakeVisible(hideButton);
 
     // window size limits
-    restrainer.setSizeLimits(400, 600, 2000, 2000);
+    restrainer.setSizeLimits(600, 300, 4000, 4000);
     resizer.reset(new ResizableCornerComponent(this, &restrainer));
     addAndMakeVisible(resizer.get());
 
@@ -325,7 +341,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
     setLookAndFeel(nullptr);
-    startButton.setLookAndFeel(nullptr);
+    bypassButton.setLookAndFeel(nullptr);
     hideButton.setLookAndFeel(nullptr);
     lockButton.setLookAndFeel(nullptr);
     connectionStyleButton.setLookAndFeel(nullptr);
@@ -387,7 +403,7 @@ void PlugDataPluginEditor::resized()
     tabbar.setBounds(0, sbarY, getWidth() - sWidth, getHeight() - sbarY - statusbarHeight);
     tabbar.toFront(false);
 
-    startButton.setBounds(getWidth() - sWidth - 40, getHeight() - 27, 27, 27);
+    bypassButton.setBounds(getWidth() - sWidth - 40, getHeight() - 27, 27, 27);
 
     int jumpPositions[2] = { 3, 5 };
     int idx = 0;
@@ -500,7 +516,6 @@ void PlugDataPluginEditor::timerCallback()
 
     updateUndoState();
 
-    // pd.getCallbackLock()->exit();
 }
 
 void PlugDataPluginEditor::updateUndoState()
@@ -511,7 +526,6 @@ void PlugDataPluginEditor::updateUndoState()
     toolbarButtons[6].setEnabled(!pd.locked);
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {
-        // auto* cs = pd.getCallbackLock();
         getCurrentCanvas()->patch.setCurrent();
 
         getCurrentCanvas()->hasChanged = true;
@@ -527,7 +541,7 @@ void PlugDataPluginEditor::updateUndoState()
 Canvas* PlugDataPluginEditor::getCurrentCanvas()
 {
     if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
-        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()->getChildComponent(0))) {
+        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
             return cnv;
         }
     }
@@ -542,7 +556,7 @@ Canvas* PlugDataPluginEditor::getMainCanvas()
 Canvas* PlugDataPluginEditor::getCanvas(int idx)
 {
     if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
-        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()->getChildComponent(0))) {
+        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
             return cnv;
         }
     }

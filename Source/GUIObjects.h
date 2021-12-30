@@ -554,11 +554,40 @@ struct VUMeter : public GUIComponent {
         source.pushRMS(0, Decibels::decibelsToGain(rms), Decibels::decibelsToGain(peak));
     };
 
-    std::pair<int, int> getBestSize() override { return { 60, 120}; };
+    std::pair<int, int> getBestSize() override
+    {
+        auto [x, y, w, h] = gui.getBounds();
+        return { w, h };
+    };
     
     foleys::LevelMeter meter = foleys::LevelMeter(foleys::LevelMeter::Minimal);
     foleys::LevelMeterSource source;
     foleys::LevelMeterLookAndFeel lnf;
+};
+
+struct PanelComponent : public GUIComponent {
+    
+    PanelComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box) {
+        initParameters();
+    }
+    
+    void paint(Graphics& g) override {
+        g.fillAll(Colour::fromString(secondaryColour));
+    }
+    
+    void resized() override {
+        gui.setSize(getWidth(), getHeight());
+    }
+
+    void updateValue() override {};
+    
+    std::pair<int, int> getBestSize() override
+    {
+        auto [x, y, w, h] = gui.getBounds();
+        return { w, h };
+    };
+    
+    
 };
 
 // ELSE mousepad

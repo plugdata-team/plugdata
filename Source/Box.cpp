@@ -122,15 +122,16 @@ void Box::setType(String newType, bool exists)
     // When setting exists to true, you need to have assigned an object to the pdObject variable already
     if (!exists) {
         auto* pd = &cnv->patch;
+        
 
         // Pd doesn't normally allow changing between gui and non-gui objects so we force it
         if (pdObject && graphics) {
             pd->removeObject(pdObject.get());
-            pdObject = pd->createObject(newType, getX(), getY());
+            pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
         } else if (pdObject) {
             pdObject = pd->renameObject(pdObject.get(), newType);
         } else {
-            pdObject = pd->createObject(newType, getX(), getY());
+            pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
         }
     } else if (!exists) {
         pdObject = nullptr;
