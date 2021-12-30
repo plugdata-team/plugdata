@@ -537,7 +537,8 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     // Start timer:
     // if we don't start bypassing, this timer will be stopped before it calls
     // If we do start bypassing, this will ensure gui messages will still be processed
-    startTimer(150);
+    // TODO: this is bad: it constantly restarts the thread!!
+    //startTimer(150);
 }
 
 void PlugDataAudioProcessor::processInternal()
