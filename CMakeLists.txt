@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
+list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64/include" "C:/msys64/mingw64/x86_64-w64-mingw32/include")
+list(APPEND CMAKE_PREFIX_PATH "C:/msys64/mingw64/lib" "C:/msys64/mingw64/x86_64-w64-mingw32/lib")
 
 
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum OS X deployment version")
