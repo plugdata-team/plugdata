@@ -119,6 +119,9 @@ GUIComponent* GUIComponent::createGui(String name, Box* parent)
     if (gui.getType() == pd::Type::VuMeter) {
         return new VUMeter(gui, parent);
     }
+    if (gui.getType() == pd::Type::Panel) {
+        return new PanelComponent(gui, parent);
+    }
     if (gui.getType() == pd::Type::Comment) {
         return new CommentComponent(gui, parent);
     }

@@ -448,6 +448,14 @@ void Instance::waitForStateUpdate() {
         });
         update_wait.wait(); */
     }
+    // Should ensure that patches are loaded correctly when audio hasn't started yet
+    else {
+        std::function<void(void)> callback;
+        while(m_function_queue.try_dequeue(callback))
+        {
+            callback();
+        }
+    }
 }
 
 
