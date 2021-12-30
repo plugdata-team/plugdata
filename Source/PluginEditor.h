@@ -82,7 +82,7 @@ public:
 
     LevelMeter levelmeter;
 
-    TextButton startButton = TextButton(CharPointer_UTF8("\xef\x85\xab"));
+    TextButton bypassButton = TextButton(CharPointer_UTF8("\xef\x85\xab"));
     TextButton lockButton = TextButton(CharPointer_UTF8("\xef\x82\x9c"));
     TextButton connectionStyleButton = TextButton(CharPointer_UTF8("\xef\x85\xb2"));
 
@@ -118,6 +118,8 @@ private:
 
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;
+    
+    SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };

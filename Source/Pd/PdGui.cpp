@@ -167,7 +167,6 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
         
         if(static_cast<t_canvas*>(ptr)->gl_list)
         {
-            //sys_lock();
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
             if(c && c->c_name && (std::string(c->c_name->s_name) == std::string("array")))
             {
@@ -179,14 +178,11 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
             else { // abstraction or subpatch
                 m_type = Type::Subpatch;
             }
-            //sys_unlock();
         }
         
         else if(m_type != Type::Array && static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
             m_type = Type::GraphOnParent;
-            // Maybe not?
-            //canvas_vis(static_cast<t_canvas*>(ptr), 1.f);
         }
         else {
             m_type = Type::Subpatch;
@@ -648,8 +644,11 @@ std::array<int, 4> Gui::getBounds() const noexcept
 }
 
 void Gui::setSize(int w, int h) noexcept {
-    // Only works for IEM objects right now...
-    if(isIEM()) {
+    if(m_type == Type::Panel) {
+        static_cast<t_my_canvas*>(m_ptr)->x_vis_w = w - 1;
+        static_cast<t_my_canvas*>(m_ptr)->x_vis_h = h - 1;
+    }
+    else if(isIEM()) {
         auto* iemgui = static_cast<t_iemgui*>(m_ptr);
         iemgui->x_w = w;
         iemgui->x_h = h;
