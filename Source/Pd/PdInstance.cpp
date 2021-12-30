@@ -490,19 +490,19 @@ void Instance::dequeueMessages()
             }
             else if (!mess.selector.empty()) {
                 int argc = mess.list.size();
-                t_atom argv[argc];
-                
+                auto argv = std::vector<t_atom>(argc);
+
                 for(int i = 0; i < argc; i++) {
                     if(mess.list[i].isFloat()) {
-                        SETFLOAT(argv + i, mess.list[i].getFloat());
+                        SETFLOAT(argv.data() + i, mess.list[i].getFloat());
                     }
                     else if (mess.list[i].isSymbol()) {
-                        SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().c_str()));
+                        SETSYMBOL(argv.data() + i, gensym(mess.list[i].getSymbol().c_str()));
                     }
                 }
                 
                 sys_lock();
-                pd_typedmess(static_cast<t_pd *>(mess.object), gensym(mess.selector.c_str()), argc, argv);
+                pd_typedmess(static_cast<t_pd *>(mess.object), gensym(mess.selector.c_str()), argc, argv.data());
                 sys_unlock();
             }
             else {
