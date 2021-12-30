@@ -26,11 +26,12 @@ What works:
 
 
 Known issues:
+- Deadlocks on linux, untested on windows
 - GraphOnParents sometimes load as subpatchers when loading a state quickly after startup
 - There may still be some more bugs
 - Can be slow for very large patches
 
-Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more.
+Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more, and also works on all platforms.
 
 Future plans:
 - Support for GEM
