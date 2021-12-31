@@ -24,100 +24,153 @@ namespace pd
 {
 
 
-// Returns new trie node (initialized to NULLs)
-static TrieNode *getNode(void)
+// Iterative function to insert a key into a Trie
+void Trie::insert(std::string key)
 {
-    struct TrieNode *pNode = new TrieNode;
-    pNode->isWordEnd = false;
-    
-    for (int i = 0; i < ALPHABET_SIZE; i++)
-        pNode->children[i] = NULL;
-    
-    return pNode;
-}
-
-// If not present, inserts key into trie.  If the
-// key is prefix of trie node, just marks leaf node
-static void insert(struct TrieNode *root,  const std::string key)
-{
-    struct TrieNode *pCrawl = root;
-    
-    for (int level = 0; level < key.length(); level++)
+    // start from the root node
+    Trie* curr = this;
+    for (int i = 0; i < key.length(); i++)
     {
-        int index = CHAR_TO_INDEX(key[level]);
-        if (!pCrawl->children[index])
-            pCrawl->children[index] = getNode();
-        
-        pCrawl = pCrawl->children[index];
+        // create a new node if the path doesn't exist
+        if (curr->character[key[i]] == nullptr) {
+            curr->character[key[i]] = new Trie();
+        }
+ 
+        // go to the next node
+        curr = curr->character[key[i]];
     }
-    
-    // mark last node as leaf
-    pCrawl->isWordEnd = true;
+ 
+    // mark the current node as a leaf
+    curr->isLeaf = true;
 }
-
-// Returns true if key presents in trie, else false
-static bool search(struct TrieNode *root, const std::string key)
+ 
+// Iterative function to search a key in a Trie. It returns true
+// if the key is found in the Trie; otherwise, it returns false
+bool Trie::search(std::string key)
 {
-    int length = key.length();
-    struct TrieNode *pCrawl = root;
-    for (int level = 0; level < length; level++)
+
+    Trie* curr = this;
+    for (int i = 0; i < key.length(); i++)
     {
-        int index = CHAR_TO_INDEX(key[level]);
-        
-        if (!pCrawl->children[index])
+        // go to the next node
+        curr = curr->character[key[i]];
+ 
+        // if the string is invalid (reached end of a path in the Trie)
+        if (curr == nullptr) {
             return false;
-        
-        pCrawl = pCrawl->children[index];
+        }
     }
-    
-    return (pCrawl != NULL && pCrawl->isWordEnd);
+ 
+    // return true if the current node is a leaf and the
+    // end of the string is reached
+    return curr->isLeaf;
 }
-
-// Returns 0 if current node has a child
-// If all children are NULL, return 1.
-static bool isLastNode(struct TrieNode* root)
+ 
+// Returns true if a given node has any children
+bool Trie::hasChildren()
 {
-    for (int i = 0; i < ALPHABET_SIZE; i++)
-        if (root->children[i])
-            return 0;
-    return 1;
+    for (int i = 0; i < CHAR_SIZE; i++)
+    {
+        if (character[i]) {
+            return true;    // child found
+        }
+    }
+ 
+    return false;
+}
+ 
+// Recursive function to delete a key in the Trie
+bool Trie::deletion(Trie*& curr, std::string key)
+{
+    // return if Trie is empty
+    if (curr == nullptr) {
+        return false;
+    }
+ 
+    // if the end of the key is not reached
+    if (key.length())
+    {
+        // recur for the node corresponding to the next character in the key
+        // and if it returns true, delete the current node (if it is non-leaf)
+ 
+        if (curr != nullptr &&
+            curr->character[key[0]] != nullptr &&
+            deletion(curr->character[key[0]], key.substr(1)) &&
+            curr->isLeaf == false)
+        {
+            if (!curr->hasChildren())
+            {
+                delete curr;
+                curr = nullptr;
+                return true;
+            }
+            else {
+                return false;
+            }
+        }
+    }
+ 
+    // if the end of the key is reached
+    if (key.length() == 0 && curr->isLeaf)
+    {
+        // if the current node is a leaf node and doesn't have any children
+        if (!curr->hasChildren())
+        {
+            // delete the current node
+            delete curr;
+            curr = nullptr;
+ 
+            // delete the non-leaf parent nodes
+            return true;
+        }
+ 
+        // if the current node is a leaf node and has children
+        else {
+            // mark the current node as a non-leaf node (DON'T DELETE IT)
+            curr->isLeaf = false;
+ 
+            // don't delete its parent nodes
+            return false;
+        }
+    }
+ 
+    return false;
 }
 
-// Recursive function to print auto-suggestions for given
-// node.
-static void suggestionsRec(struct TrieNode* root, std::string currPrefix, std::vector<std::string>& result)
+
+
+void Trie::suggestionsRec(std::string currPrefix, std::vector<std::string>& result)
 {
     // found aString in Trie with the given prefix
-    if (root->isWordEnd)
+    if (isLeaf)
     {
         result.push_back(currPrefix);
     }
     
     // All children struct node pointers are NULL
-    if (isLastNode(root))
+    if (!hasChildren())
         return;
     
-    for (int i = 0; i < ALPHABET_SIZE; i++)
+    for (int i = 0; i < CHAR_SIZE; i++)
     {
-        if (root->children[i])
+        if (character[i])
         {
             // append current character to currPrefixString
             currPrefix.push_back(i);
             
             // recur over the rest
-            suggestionsRec(root->children[i], currPrefix, result);
+            character[i]->suggestionsRec(currPrefix, result);
+
             // remove last character
             currPrefix.pop_back();
         }
     }
 }
-
-
-
+ 
 // print suggestions for given query prefix.
-static int autocomplete(TrieNode* root, std::string query, std::vector<std::string>& result)
+int Trie::autocomplete(std::string query, std::vector<std::string>& result)
 {
-    struct TrieNode* pCrawl = root;
+    auto* pCrawl = this;
     
     // Check if prefix is present and find the
     // the node (of last level) with last character
@@ -129,18 +182,18 @@ static int autocomplete(TrieNode* root, std::string query, std::vector<std::stri
         int index = CHAR_TO_INDEX(query[level]);
         
         // noString in the Trie has this prefix
-        if (!pCrawl->children[index])
+        if (!pCrawl->character[index])
             return 0;
         
-        pCrawl = pCrawl->children[index];
+        pCrawl = pCrawl->character[index];
     }
     
     // If prefix is present as a word.
-    bool isWord = (pCrawl->isWordEnd == true);
+    bool isWord = (pCrawl->isLeaf == true);
     
     // If prefix is last node of tree (has no
     // children)
-    bool isLast = isLastNode(pCrawl);
+    bool isLast = !pCrawl->hasChildren();
     
     // If prefix is present as a word, but
     // there is no subtree below the last
@@ -156,16 +209,14 @@ static int autocomplete(TrieNode* root, std::string query, std::vector<std::stri
     if (!isLast)
     {
         std::string prefix = query;
-        suggestionsRec(pCrawl, prefix, result);
+        pCrawl->suggestionsRec(prefix, result);
         return 1;
     }
     return 0;
     
 }
 
-
 Library::Library() {
-    tree = getNode();
 }
 
 void Library::initialiseLibrary(ValueTree pathTree)
@@ -184,10 +235,10 @@ void Library::initialiseLibrary(ValueTree pathTree)
     
     for (i = o->c_nmethod, m = mlist; i--; m++) {
         String name(m->me_name->s_name);
-        insert(tree, m->me_name->s_name);
+        searchTree.insert(m->me_name->s_name);
     }
     
-    insert(tree, "graph");
+    searchTree.insert("graph");
     
     for(auto path : pathTree) {
         auto filePath = File(path.getProperty("Path").toString());
@@ -195,7 +246,7 @@ void Library::initialiseLibrary(ValueTree pathTree)
         for(auto& iter : RangedDirectoryIterator(filePath, false)) {
             auto file = iter.getFile();
             if(file.getFileExtension() == ".pd")
-                insert(tree, file.getFileNameWithoutExtension().toStdString());
+                searchTree.insert(file.getFileNameWithoutExtension().toStdString());
 
         }
     }
@@ -205,7 +256,7 @@ void Library::initialiseLibrary(ValueTree pathTree)
 
 std::vector<std::string> Library::autocomplete(std::string query) {
     std::vector<std::string> result;
-    pd::autocomplete(tree, query, result);
+    searchTree.autocomplete(query, result);
     return result;
 }
 
