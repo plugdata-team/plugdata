@@ -12,21 +12,36 @@
 namespace pd
 {
 
-
-// ASCII size
-#define ALPHABET_SIZE 128
+// Define the character size
+#define CHAR_SIZE 128
 #define CHAR_TO_INDEX(c) ((int)c - (int)'\0')
-    
-// trie node
-struct TrieNode
+ 
+// A class to store a Trie node
+class Trie
 {
-    struct TrieNode *children[ALPHABET_SIZE];
-  
-    // isWordEnd is true if the node represents
-    // end of a word
-    bool isWordEnd;
+public:
+    bool isLeaf;
+    Trie* character[CHAR_SIZE];
+ 
+    // Constructor
+    Trie()
+    {
+        this->isLeaf = false;
+ 
+        for (int i = 0; i < CHAR_SIZE; i++) {
+            this->character[i] = nullptr;
+        }
+    }
+ 
+    void insert(std::string);
+    bool deletion(Trie*&, std::string);
+    bool search(std::string);
+    bool hasChildren();
+    
+    void suggestionsRec(std::string currPrefix, std::vector<std::string>& result);
+    int autocomplete(std::string query, std::vector<std::string>& result);
 };
-
+ 
 struct Library
 {
     Library();
@@ -36,7 +51,7 @@ struct Library
     std::vector<std::string> autocomplete(std::string query);
     
     
-    TrieNode* tree;
+    Trie searchTree;
     
 };
 
