@@ -1,6 +1,6 @@
 [submodule "Libraries/libpd"]
 	path = Libraries/libpd
-	url = https://github.com/libpd/libpd.git
+	url = https://github.com/timothyschoen/libpd.git
 [submodule "Libraries/JUCE"]
 	path = Libraries/JUCE
 	url = https://github.com/timothyschoen/JUCE.git
