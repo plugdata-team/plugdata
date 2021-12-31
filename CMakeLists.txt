@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.12)
 
 if(MSVC)
-set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreads/pthreadsVC2.lib CACHE PATH "")
-set(PTHREADS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/include CACHE PATH "")
+set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib CACHE PATH "")
+set(PTHREADS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/include/ CACHE PATH "")
 endif()
 
 if(APPLE)
@@ -21,9 +21,16 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-Bsymbolic")
 endif()
 
+if(MSVC)
+add_compile_definitions(PTW32_STATIC_LIB)
+add_subdirectory(Libraries/pthread-win32)
+endif()
+
+
 SET(PD_MULTI ON CACHE BOOL "Compile with multiple instance support")
 add_subdirectory(Libraries/libpd)
 add_subdirectory(Libraries/JUCE)
+
 
 set(PLUGDATA_VERSION                    "0.1")
 set(PLUGDATA_COMPANY_NAME               "Octagon")
@@ -203,9 +210,9 @@ juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(MSVC)
-target_link_libraries(PlugData PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib)
-target_link_libraries(PlugDataFx PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib)
-target_link_libraries(PlugData_LV2 PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib)
+target_link_libraries(PlugData PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
+target_link_libraries(PlugDataFx PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
+target_link_libraries(PlugData_LV2 PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
 else()
 target_link_libraries(PlugData PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
 target_link_libraries(PlugDataFx PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
@@ -229,6 +236,7 @@ set_target_properties(PlugDataFx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_
 if(APPLE) 
 set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}) 
 endif()
+
 
 set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
 set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})

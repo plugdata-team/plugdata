@@ -1072,8 +1072,6 @@ static t_float fielddesc_getfloat(t_fielddesc* f, t_template* templ,
         else
             return (f->fd_un.fd_float);
     } else {
-        if (loud)
-            error("symbolic data field used as number");
         return (0);
     }
 }
