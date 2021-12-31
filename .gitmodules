@@ -4,3 +4,6 @@
 [submodule "Libraries/JUCE"]
 	path = Libraries/JUCE
 	url = https://github.com/timothyschoen/JUCE.git
+[submodule "Libraries/pthread-win32"]
+	path = Libraries/pthread-win32
+	url = https://github.com/GerHobbelt/pthread-win32.git
