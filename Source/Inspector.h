@@ -34,6 +34,7 @@ enum ParameterType {
     tBool
 };
 
+
 using ObjectParameter = std::tuple<String, ParameterType, void*>; // name, type and pointer to value
 using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<void(int)>>;
 
@@ -49,24 +50,8 @@ using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<v
 struct Inspector : public Component,
                    public TableListBoxModel {
     //==============================================================================
-    Inspector()
-        : font(14.0f)
+    Inspector() : font(14.0f)
     {
-        auto* nameColumn = new XmlElement("COLUMN");
-        nameColumn->setAttribute("columnId", "1");
-        nameColumn->setAttribute("name", "Name");
-        nameColumn->setAttribute("width", "50");
-
-        auto* valueColumn = new XmlElement("COLUMN");
-        valueColumn->setAttribute("columnId", "2");
-        valueColumn->setAttribute("name", "Value");
-        valueColumn->setAttribute("width", "80");
-
-        columnList = new XmlElement("HEADERS");
-        columnList->addChildElement(nameColumn);
-        columnList->addChildElement(valueColumn);
-
-        dataList = new XmlElement("DATA");
 
         // Load some data from an embedded XML file..
         loadData({});
@@ -82,24 +67,17 @@ struct Inspector : public Component,
         table.setOutlineThickness(1);
 
         
+        table.getHeader().addColumn("Name", 1, 50, TableHeaderComponent::notSortable);
+        table.getHeader().addColumn("Value", 2, 80, TableHeaderComponent::notSortable);
         
-        // Add some columns to the table header, based on the column list in our database..
-        forEachXmlChildElement(*columnList, columnXml)
-        {
-            table.getHeader().addColumn(columnXml->getStringAttribute("name"),
-                columnXml->getIntAttribute("columnId"),
-                columnXml->getIntAttribute("width"),
-                50, 400,
-                TableHeaderComponent::defaultFlags);
-        }
 
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
         // setColour(ListBox::outlineColourId, Colours::white);
 
         // we could now change some initial settings..
-        table.getHeader().setSortColumnId(1, true); // sort forwards by the ID column
-        table.getHeader().setColumnVisible(7, false); // hide the "length" column until the user shows it
+        //table.getHeader().setSortColumnId(1, true); // sort forwards by the ID column
+        //table.getHeader().setColumnVisible(7, false); // hide the "length" column until the user shows it
 
         // un-comment this line to have a go of stretch-to-fit mode
         table.getHeader().setStretchToFitActive(true);
@@ -112,8 +90,6 @@ struct Inspector : public Component,
 
     ~Inspector()
     {
-        delete columnList;
-        delete dataList;
     }
 
     //==============================================================================
@@ -144,38 +120,20 @@ struct Inspector : public Component,
         g.setColour(Colours::white);
         g.setFont(font);
 
-        const XmlElement* rowElement = dataList->getChildElement(rowNumber);
-
-        if (rowElement != 0) {
-            const String text(rowElement->getStringAttribute(getAttributeNameForColumnId(columnId)));
-
-            g.drawText(text, 2, 0, width - 4, height, Justification::centredLeft, true);
+        if (rowNumber < items.size()) {
+            const auto [name, type, ptr] = items[rowNumber];
+            g.drawText(name, 2, 0, width - 4, height, Justification::centredLeft, true);
         }
 
         g.setColour(Colours::black.withAlpha(0.2f));
         g.fillRect(width - 1, 0, 1, height);
     }
 
-    // This is overloaded from TableListBoxModel, and tells us that the user has clicked a table header
-    // to change the sort order.
+    // Sorting is disabled
     void sortOrderChanged(int newSortColumnId, bool isForwards)
     {
-        if (newSortColumnId != 0) {
-            DataSorter sorter(getAttributeNameForColumnId(newSortColumnId), isForwards);
-            dataList->sortChildElements(sorter);
-
-            table.updateContent();
-        }
     }
 
-    void* toPointer(String text) {
-#if _MSC_VER
-
-#else
-
-#endif
-
-    }
     // This is overloaded from TableListBoxModel, and must update any custom components that we're using
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
         Component* existingComponentToUpdate)
@@ -186,9 +144,7 @@ struct Inspector : public Component,
         if (columnId == 1)
             return 0;
 
-        auto type = dataList->getChildElement(rowNumber)->getIntAttribute("Type");
-        auto value = dataList->getChildElement(rowNumber)->getStringAttribute("Value");
-        auto* ptr = data[rowNumber];
+        auto [name, type, ptr] = items[rowNumber];
 
         switch (type) {
         case tString:
@@ -217,48 +173,14 @@ struct Inspector : public Component,
     // column.
     int getColumnAutoSizeWidth(int columnId)
     {
-        if (columnId == 5)
-            return 100; // (this is the ratings column, containing a custom component)
-
-        int widest = 32;
-
-        // find the widest bit of text in this column..
-        for (int i = getNumRows(); --i >= 0;) {
-            const XmlElement* rowElement = dataList->getChildElement(i);
-
-            if (rowElement != 0) {
-                const String text(rowElement->getStringAttribute(getAttributeNameForColumnId(columnId)));
-
-                widest = jmax(widest, font.getStringWidth(text));
-            }
+        if (columnId == 1) {
+            return getWidth() / 3.0f; // Name column
         }
+       else {
+           getWidth() * (2.0f / 3.0f); // Value column
+       }
 
-        return widest + 8;
     }
-
-    struct DataSorter {
-        DataSorter(const juce::String& attributeToSortBy, bool forwards)
-            : attributeToSort(attributeToSortBy)
-            , direction(forwards ? 1 : -1)
-        {
-        }
-
-        int compareElements(juce::XmlElement* first, juce::XmlElement* second) const
-        {
-            auto result = first->getStringAttribute(attributeToSort)
-                              .compareNatural(second->getStringAttribute(attributeToSort)); // [1]
-
-            if (result == 0)
-                result = first->getStringAttribute("ID")
-                             .compareNatural(second->getStringAttribute("ID")); // [2]
-
-            return direction * result; // [3]
-        }
-
-    private:
-        String attributeToSort;
-        int direction;
-    };
 
     //==============================================================================
     void resized()
@@ -274,42 +196,12 @@ struct Inspector : public Component,
 
     void loadData(ObjectParameters params)
     {
-        dataList->deleteAllChildElements();
-
         auto& [parameters, cb] = params;
 
         callback = cb;
+        items = parameters;
 
-        data.clear();
-
-        for (auto& [name, type, ptr] : parameters) {
-
-            auto* dataElement = new XmlElement("DATA");
-            dataElement->setAttribute("Name", name);
-            dataElement->setAttribute("Type", type);
-            data.push_back(ptr);
-
-            switch (type) {
-            case tColour:
-                dataElement->setAttribute("Value", *(String*)ptr);
-                break;
-            case tFloat:
-                dataElement->setAttribute("Value", *((float*)ptr));
-                break;
-            case tInt:
-                dataElement->setAttribute("Value", *((int*)ptr));
-                break;
-            case tString:
-                dataElement->setAttribute("Value", *(String*)ptr);
-                break;
-            case tBool:
-                dataElement->setAttribute("Value", *(bool*)ptr);
-            }
-
-            dataList->addChildElement(dataElement);
-        }
-
-        numRows = dataList->getNumChildElements();
+        numRows = items.size();
         table.updateContent();
         repaint();
     }
@@ -317,11 +209,8 @@ struct Inspector : public Component,
     TableListBox table; // the table component itself
     Font font;
 
-    XmlElement* columnList;
-    XmlElement* dataList;
-
-    std::vector<void*> data;
-    std::function<void(int)> callback;
+    std::vector<ObjectParameter> items; // Currently loaded items in inspector
+    std::function<void(int)> callback; // Callback when param changes, with int argument
 
     int numRows; // The number of rows of data we've got
 
@@ -481,13 +370,13 @@ private:
     // (a utility method to search our XML for the attribute that matches a column ID)
     const String getAttributeNameForColumnId(const int columnId) const
     {
-        forEachXmlChildElement(*columnList, columnXml)
-        {
-            if (columnXml->getIntAttribute("columnId") == columnId)
-                return columnXml->getStringAttribute("name");
+        if(columnId == 1) {
+            return String("Name");
         }
-
-        return String();
+        else if (columnId == 2) {
+            return String("Value");
+        }
+        
     }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Inspector)
