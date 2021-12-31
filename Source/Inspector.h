@@ -38,22 +38,11 @@ enum ParameterType {
 using ObjectParameter = std::tuple<String, ParameterType, void*>; // name, type and pointer to value
 using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<void(int)>>;
 
-//==============================================================================
-/**
-    This class shows how to implement a TableListBoxModel to show in a TableListBox.
-*/
-
-
-// TODO: this currently uses XML for no reason other then me being too lazy to change the example
-// fix in the future
-
 struct Inspector : public Component,
                    public TableListBoxModel {
     //==============================================================================
     Inspector() : font(14.0f)
     {
-
-        // Load some data from an embedded XML file..
         loadData({});
 
         // Create our table component and add it to this component..
@@ -367,7 +356,7 @@ struct Inspector : public Component,
     };
 
 private:
-    // (a utility method to search our XML for the attribute that matches a column ID)
+
     const String getAttributeNameForColumnId(const int columnId) const
     {
         if(columnId == 1) {
