@@ -1,6 +1,7 @@
 [submodule "Libraries/libpd"]
 	path = Libraries/libpd
 	url = https://github.com/timothyschoen/libpd.git
+        branch = plugdata
 [submodule "Libraries/JUCE"]
 	path = Libraries/JUCE
 	url = https://github.com/timothyschoen/JUCE.git
