@@ -82,12 +82,18 @@ t_pd* libpd_newest(t_canvas* cnv)
     // Regular pd_newest won't work because it doesn't get assigned for some gui components
     t_gobj* y;
     
+    
+    
     // Get to the last object
     for(y = cnv->gl_list; y && y->g_next; y = y->g_next)
     {
     }
     
-    return y;
+    if(y) {
+        return &y->g_pd;
+    }
+    
+    return 0;
 }
 
 
