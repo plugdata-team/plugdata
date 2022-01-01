@@ -2,7 +2,7 @@
 
 #include <m_pd.h>
 #include <g_canvas.h>
-//#include <unistd.h>
+#include <unistd.h>
 #include <string.h>
 
 #ifdef _MSC_VER
@@ -229,7 +229,7 @@ static void pic_draw(t_pic* x, struct _glist *glist, t_floatarg vis){
     }
     sys_vgui(".x%lx.c bind %lx_picture <ButtonRelease> {pdsend [concat %s _mouserelease \\;]}\n", cv, x, x->x_x->s_name);
     pic_draw_io_let(x);
-         
+
 }
 
 static void pic_erase(t_pic* x, struct _glist *glist){
@@ -503,7 +503,7 @@ static void *pic_new(t_symbol *s, int ac, t_atom *av){
     int loaded = x->x_rcv_set = x->x_snd_set = x->x_def_img = x->x_init = x->x_latch = 0;
     x->x_outline = x->x_size = 0;
     x->x_fullname = NULL;
-    
+
     if(ac && av->a_type == A_FLOAT){ // 1ST outline
         x->x_outline = (int)(av->a_w.w_float != 0);
         ac--; av++;
