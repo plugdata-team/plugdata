@@ -82,8 +82,6 @@ t_pd* libpd_newest(t_canvas* cnv)
     // Regular pd_newest won't work because it doesn't get assigned for some gui components
     t_gobj* y;
     
-    
-    
     // Get to the last object
     for(y = cnv->gl_list; y && y->g_next; y = y->g_next)
     {
@@ -487,7 +485,9 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
     
     pd_this->pd_islocked = 1; // To silence globallock warning from pd...
     
+    sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
+    sys_unlock();
     
     // Needed here but not for graphs??
     canvas_undo_add(cnv, UNDO_CREATE, "create",
