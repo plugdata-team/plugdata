@@ -2,7 +2,9 @@
 
 #include <m_pd.h>
 #include <g_canvas.h>
+#ifndef _MSC_VER
 #include <unistd.h>
+#endif
 #include <string.h>
 
 #ifdef _MSC_VER
