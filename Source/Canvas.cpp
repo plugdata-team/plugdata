@@ -220,6 +220,8 @@ void Canvas::loadPatch(pd::Patch patch)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
+    dragger.deselectAll();
+    
     // Ignore if locked
     if (pd->locked)
         return;
