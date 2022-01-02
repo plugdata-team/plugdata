@@ -26,7 +26,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
                          .withOutput("Output", AudioChannelSet::stereo(), true)
 #endif
             )
-    , pd::Instance("PlugData")
+    , pd::Instance("PlugData"), Thread("PlugDataBackground")
     ,
 #endif
     numin(2)
@@ -91,7 +91,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
     dequeueMessages();
     processMessages();
 
-    //startTimer(80);
+    startThread();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -293,16 +293,26 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 }
 #endif
 
-void PlugDataAudioProcessor::hiResTimerCallback()
+void PlugDataAudioProcessor::run()
 {
     // Hack to make sure DAW will keep dequeuing messages from pd to the gui when bypassed
     // Should only start running when audio is bypassed
     // ScopedLock lock(*getCallbackLock());
+    if(timeSinceProcess < 5) {
+        timeSinceProcess = timeSinceProcess + 1;
+        Time::waitForMillisecondCounter(150);
+    }
+    else {
+        Time::waitForMillisecondCounter(1);
+        
+        bool oldEnabled = enabled;
+        enabled->store(0);
+        dequeueMessages();
+        enabled->store(oldEnabled);
+    }
+    
 
-    bool oldEnabled = enabled;
-    enabled->store(0);
-    dequeueMessages();
-    enabled->store(oldEnabled);
+
 }
 
 void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
@@ -411,7 +421,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
 void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    stopTimer();
+    timeSinceProcess = 0;
 
     const int blocksize = Instance::getBlockSize();
     const int nsamples = buffer.getNumSamples();
@@ -533,12 +543,6 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
             m_audio_advancement = remaining;
         }
     }
-
-    // Start timer:
-    // if we don't start bypassing, this timer will be stopped before it calls
-    // If we do start bypassing, this will ensure gui messages will still be processed
-    // TODO: this is bad: it constantly restarts the thread!!
-    //startTimer(150);
 }
 
 void PlugDataAudioProcessor::processInternal()
