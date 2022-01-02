@@ -10,8 +10,8 @@ PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. It c
 ## Compilation
 
 ```
-git clone --recursive https://github.com/pierreguillot/Camomile.git
-cd Camomile
+git clone --recursive https://github.com/timohyschoen/PlugData.git
+cd PlugData
 mkdir build && cd build
 cmake .. (the generator can be specified using -G"Unix Makefiles", -G"XCode" or -G"Visual Studio 16 2019" -A x64)
 cmake --build .
