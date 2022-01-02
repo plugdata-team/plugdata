@@ -102,6 +102,7 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
 
     // Delete console if we own it
     if (ownsConsole) {
+        LookAndFeel::setDefaultLookAndFeel(nullptr);
         delete console;
     }
 }
