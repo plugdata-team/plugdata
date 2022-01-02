@@ -18,7 +18,7 @@
  */
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public HighResolutionTimer {
+class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread {
 
 public:
     //==============================================================================
@@ -48,7 +48,10 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
 
-    void hiResTimerCallback() override;
+    // pure-data run loop when DAW isn't calling process block
+    
+    std::atomic<float> timeSinceProcess;
+    void run() override;
 
     //==============================================================================
     int getNumPrograms() override;
