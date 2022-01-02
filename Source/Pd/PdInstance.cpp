@@ -469,12 +469,8 @@ void Instance::dequeueMessages()
     
     while(m_function_queue.try_dequeue(callback))
     {
-        //sys_lock();
-        // Dont know if we should lock here!!
-        // If can cause a deadlock when combined with undo/redo, and I believe that Pd only uses the audio thread?
         callback();
         audio_started = true;
-        //sys_unlock();
     }
     
     
