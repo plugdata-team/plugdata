@@ -58,7 +58,7 @@
 #include <X11/Xlib.h>
 #define JUCE_GUI_BASICS_INCLUDE_XHEADERS 1
 
-#include <juce_audio_plugin_client/utility/juce_FakeMouseMoveGenerator.h>
+//#include <juce_audio_plugin_client/utility/juce_FakeMouseMoveGenerator.h>
 #include <juce_audio_plugin_client/utility/juce_WindowsHooks.h>
 #undef KeyPress
 #endif
