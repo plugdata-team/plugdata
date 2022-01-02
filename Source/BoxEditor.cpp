@@ -204,7 +204,7 @@ void SuggestionBox::resized()
 bool SuggestionBox::keyPressed(const KeyPress& key, Component* originatingComponent)
 {
     if (key == KeyPress::upKey || key == KeyPress::downKey) {
-        move(key == KeyPress::upKey  ? 1 : -1);
+        move(key == KeyPress::downKey  ? 1 : -1);
         return true;
     }
     return false;
