@@ -91,7 +91,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
     dequeueMessages();
     processMessages();
 
-    startTimer(80);
+    //startTimer(80);
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
