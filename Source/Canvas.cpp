@@ -220,7 +220,7 @@ void Canvas::loadPatch(pd::Patch patch)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
-    dragger.deselectAll();
+   
     
     // Ignore if locked
     if (pd->locked)
@@ -238,6 +238,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         main.inspector.deselect();
+        if(source == this) dragger.deselectAll();
 
         dragStartPosition = e.getMouseDownPosition();
 
