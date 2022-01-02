@@ -91,6 +91,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
     dequeueMessages();
     processMessages();
 
+
     startThread();
 }
 
@@ -297,7 +298,6 @@ void PlugDataAudioProcessor::run()
 {
     // Hack to make sure DAW will keep dequeuing messages from pd to the gui when bypassed
     // Should only start running when audio is bypassed
-    // ScopedLock lock(*getCallbackLock());
     if(timeSinceProcess < 5) {
         timeSinceProcess = timeSinceProcess + 1;
         Time::waitForMillisecondCounter(150);
