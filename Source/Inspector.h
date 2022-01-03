@@ -37,19 +37,12 @@ struct Inspector : public Component,
         table.setOutlineThickness(1);
 
         
-        table.getHeader().addColumn("Name", 1, 50, TableHeaderComponent::notSortable);
-        table.getHeader().addColumn("Value", 2, 80, TableHeaderComponent::notSortable);
+        table.getHeader().addColumn("Name", 1, 50, 30, -1, TableHeaderComponent::notSortable);
+        table.getHeader().addColumn("Value", 2, 80, 30, -1, TableHeaderComponent::notSortable);
         
-
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
-        // setColour(ListBox::outlineColourId, Colours::white);
 
-        // we could now change some initial settings..
-        //table.getHeader().setSortColumnId(1, true); // sort forwards by the ID column
-        //table.getHeader().setColumnVisible(7, false); // hide the "length" column until the user shows it
-
-        // un-comment this line to have a go of stretch-to-fit mode
         table.getHeader().setStretchToFitActive(true);
 
         table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
