@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021 Timothy Schoen
+ // Copyright (c) 2021-2022 Timothy Schoen
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
@@ -21,11 +21,10 @@ struct MainLook : public LookAndFeel_V4 {
     
     MainLook()
     {
-        setColour(PopupMenu::backgroundColourId, firstBackground);
         setColour(ResizableWindow::backgroundColourId, secondBackground);
         setColour(TextButton::buttonColourId, firstBackground);
         setColour(TextButton::buttonOnColourId, highlightColour);
-        setColour(juce::TextEditor::backgroundColourId, Colour(45, 45, 45));
+        setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
         setColour(SidePanel::backgroundColour, Colour(50, 50, 50));
         setColour(ComboBox::backgroundColourId, firstBackground);
         setColour(ListBox::backgroundColourId, firstBackground);
@@ -36,10 +35,12 @@ struct MainLook : public LookAndFeel_V4 {
         setColour(TextEditor::textColourId, Colours::white);
         setColour(TooltipWindow::backgroundColourId, firstBackground.withAlpha(float(0.8)));
 
-        setColour(PopupMenu::backgroundColourId, secondBackground);
+        setColour(PopupMenu::backgroundColourId, firstBackground.withAlpha(0.95f));
         setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
 
         setColour(CodeEditorComponent::lineNumberBackgroundId, Colour(41, 41, 41));
+        
+        //setColour(PopupMenu::backgroundColourId, firstBackground.withAlpha(0.95f));
         
         setDefaultSansSerifTypeface(typeface);
     }
@@ -213,6 +214,22 @@ struct MainLook : public LookAndFeel_V4 {
         
         return Font(buttonHeight / 2.0f);
     }
+    
+    
+    void drawPopupMenuBackground (Graphics& g, int width, int height) override
+    {
+        // Add a bit of alpha to disable the opaque flag
+        auto background = findColour (PopupMenu::backgroundColourId);
+        g.setColour(background);
+        
+        auto bounds = Rectangle<float>(0, 0, width, height);
+        g.fillRoundedRectangle(bounds, 5.0f);
+
+        g.setColour (findColour (PopupMenu::textColourId).withAlpha (0.2f));
+        g.drawRoundedRectangle(bounds, 5.0f, 1.0f);
+
+    }
+    
 };
 
 struct PdGuiLook : public MainLook {
@@ -439,5 +456,10 @@ public:
         }
 
         g.fillRect(buttonArea.toFloat());
+    }
+    
+    Font getTextButtonFont(TextButton&, int buttonHeight)
+    {
+        return Font(buttonHeight / 1.65f);
     }
 };
