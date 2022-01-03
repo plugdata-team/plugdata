@@ -12,6 +12,8 @@
 #include "LevelMeter.h"
 #include "LookAndFeel.h"
 
+#include "../Libraries/JUCE/modules/juce_audio_plugin_client/Standalone/juce_StandaloneFilterWindow.h"
+
 #include <JuceHeader.h>
 
 //==============================================================================
@@ -37,7 +39,7 @@ struct TabComponent : public TabbedComponent {
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public Timer, public ChangeBroadcaster {
+class PlugDataPluginEditor : public AudioProcessorEditor, public Timer, public ChangeBroadcaster, public FileOpener {
 public:
     //==============================================================================
     PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
@@ -57,6 +59,8 @@ public:
     void saveProject(std::function<void()> nestedCallback = []() {});
 
     void addTab(Canvas* cnv);
+    
+    void openFile(String path) override;
 
     Canvas* getCurrentCanvas();
     Canvas* getMainCanvas();
