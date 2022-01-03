@@ -319,6 +319,8 @@ struct SliderComponent : public GUIComponent {
                 gui.setMaximum(max);
             } else if (changedParameter == 3) {
                 gui.setLogScale(isLogarithmic);
+                min = gui.getMinimum();
+                max = gui.getMaximum();
             }
         };
 
