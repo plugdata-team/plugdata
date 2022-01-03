@@ -241,7 +241,7 @@ void Box::resized()
     if (hideLabel) {
         graphics->setBounds(4, 4, getWidth() - 8, getHeight() - 8);
     } else {
-        textLabel.setBounds(4, 4, getWidth() - 8, 22);
+        textLabel.setBounds(4, 5, getWidth() - 8, 22);
         auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
 
         if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
