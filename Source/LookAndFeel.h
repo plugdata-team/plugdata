@@ -222,6 +222,15 @@ struct MainLook : public LookAndFeel_V4 {
         auto background = findColour (PopupMenu::backgroundColourId);
         g.setColour(background);
         
+        if(!Desktop::canUseSemiTransparentWindows())  {
+            auto bounds = Rectangle<float>(0, 0, width, height);
+            g.fillRect(bounds);
+
+            g.setColour (findColour (PopupMenu::textColourId).withAlpha (0.2f));
+            g.drawRect(bounds, 1.0f);
+        }
+
+        
         auto bounds = Rectangle<float>(0, 0, width, height);
         g.fillRoundedRectangle(bounds, 5.0f);
 
