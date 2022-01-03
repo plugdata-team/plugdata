@@ -41,6 +41,7 @@ Known issues:
 - GraphOnParents sometimes load as subpatchers when loading a state quickly after startup
 - There may still be some more bugs
 - Can be slow for very large patches
+- AU Midi effect plugin doesn't work properly yet
 
 Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more, and also works on all platforms.
 
