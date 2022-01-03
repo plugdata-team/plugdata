@@ -1,3 +1,9 @@
+/*
+ // Copyright (c) 2015-2021-2022 Timothy Schoen.
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #include "LookAndFeel.h"
 #include <JuceHeader.h>
 #include <ff_meters/ff_meters.h>
