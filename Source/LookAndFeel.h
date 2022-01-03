@@ -15,6 +15,36 @@ struct MainLook : public LookAndFeel_V4 {
     inline static Colour highlightColour = Colour(0xff42a2c8);
     inline static Colour firstBackground = Colour(23, 23, 23);
     inline static Colour secondBackground = Colour(32, 32, 32);
+    
+    Typeface::Ptr typeface = Typeface::createSystemTypefaceFor(BinaryData::OpenSans_ttf, BinaryData::OpenSans_ttfSize);
+    Font defaultFont = Font(typeface);
+    
+    
+    MainLook()
+    {
+        setColour(PopupMenu::backgroundColourId, firstBackground);
+        setColour(ResizableWindow::backgroundColourId, secondBackground);
+        setColour(TextButton::buttonColourId, firstBackground);
+        setColour(TextButton::buttonOnColourId, highlightColour);
+        setColour(juce::TextEditor::backgroundColourId, Colour(45, 45, 45));
+        setColour(SidePanel::backgroundColour, Colour(50, 50, 50));
+        setColour(ComboBox::backgroundColourId, firstBackground);
+        setColour(ListBox::backgroundColourId, firstBackground);
+        setColour(Slider::backgroundColourId, Colour(60, 60, 60));
+        setColour(Slider::trackColourId, Colour(50, 50, 50));
+        setColour(CodeEditorComponent::backgroundColourId, Colour(50, 50, 50));
+        setColour(CodeEditorComponent::defaultTextColourId, Colours::white);
+        setColour(TextEditor::textColourId, Colours::white);
+        setColour(TooltipWindow::backgroundColourId, firstBackground.withAlpha(float(0.8)));
+
+        setColour(PopupMenu::backgroundColourId, secondBackground);
+        setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
+
+        setColour(CodeEditorComponent::lineNumberBackgroundId, Colour(41, 41, 41));
+        
+        setDefaultSansSerifTypeface(typeface);
+    }
+    
 
     class PlugData_DocumentWindowButton : public Button {
     public:
@@ -24,7 +54,10 @@ struct MainLook : public LookAndFeel_V4 {
             , normalShape(normal)
             , toggledShape(toggled)
         {
+        
         }
+        
+        
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
@@ -60,28 +93,6 @@ struct MainLook : public LookAndFeel_V4 {
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugData_DocumentWindowButton)
     };
 
-    MainLook()
-    {
-        setColour(PopupMenu::backgroundColourId, firstBackground);
-        setColour(ResizableWindow::backgroundColourId, secondBackground);
-        setColour(TextButton::buttonColourId, firstBackground);
-        setColour(TextButton::buttonOnColourId, highlightColour);
-        setColour(juce::TextEditor::backgroundColourId, Colour(45, 45, 45));
-        setColour(SidePanel::backgroundColour, Colour(50, 50, 50));
-        setColour(ComboBox::backgroundColourId, firstBackground);
-        setColour(ListBox::backgroundColourId, firstBackground);
-        setColour(Slider::backgroundColourId, Colour(60, 60, 60));
-        setColour(Slider::trackColourId, Colour(50, 50, 50));
-        setColour(CodeEditorComponent::backgroundColourId, Colour(50, 50, 50));
-        setColour(CodeEditorComponent::defaultTextColourId, Colours::white);
-        setColour(TextEditor::textColourId, Colours::white);
-        setColour(TooltipWindow::backgroundColourId, firstBackground.withAlpha(float(0.8)));
-
-        setColour(PopupMenu::backgroundColourId, secondBackground);
-        setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
-
-        setColour(CodeEditorComponent::lineNumberBackgroundId, Colour(41, 41, 41));
-    }
 
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
     {
@@ -196,6 +207,12 @@ struct MainLook : public LookAndFeel_V4 {
     Font getTabButtonFont(TabBarButton&, float height) override
     {
         return { height * 0.4f };
+    }
+    
+    Font getTextButtonFont(TextButton&, int buttonHeight)
+    {
+        
+        return Font(buttonHeight / 2.0f);
     }
 };
 
