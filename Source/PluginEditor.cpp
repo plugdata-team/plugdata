@@ -267,23 +267,28 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]), ModalCallbackFunction::create(callback));
     };
 
-    // Initialise settings dialog for DAW and standalone
-    if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone) {
-        auto pluginHolder = StandalonePluginHolder::getInstance();
-        settingsDialog.reset(new SettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
-            pd.updateSearchPaths();
-        }));
-    } else {
-        settingsDialog.reset(new SettingsDialog(pd, nullptr, pd.settingsTree, [this]() {
-            pd.updateSearchPaths();
-        }));
-    }
 
-    addChildComponent(settingsDialog.get());
-    
     // Show settings
     toolbarButtons[6].setTooltip("Settings");
     toolbarButtons[6].onClick = [this]() {
+        // By initialising after the first click we prevent it possibly hanging because audio hasn't started yet
+        if(!settingsDialog) {
+            // Initialise settings dialog for DAW and standalone
+            if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone) {
+                auto pluginHolder = StandalonePluginHolder::getInstance();
+                settingsDialog.reset(new SettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
+                    pd.updateSearchPaths();
+                }));
+            } else {
+                settingsDialog.reset(new SettingsDialog(pd, nullptr, pd.settingsTree, [this]() {
+                    pd.updateSearchPaths();
+                }));
+            }
+        }
+
+        addChildComponent(settingsDialog.get());
+        
+        
         settingsDialog->setVisible(true);
         settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 400));
         settingsDialog->toFront(false);
