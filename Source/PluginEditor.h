@@ -40,6 +40,12 @@ struct TabComponent : public TabbedComponent {
 class Canvas;
 class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Timer, public ChangeBroadcaster, public FileOpener {
+    
+    ToolbarLook toolbarLook;
+    StatusbarLook statusbarLook = StatusbarLook(true, 1.4);
+    StatusbarLook statusbarLook2 = StatusbarLook(false, 1.4);
+    MainLook mainLook;
+    
 public:
     //==============================================================================
     PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
@@ -112,11 +118,6 @@ private:
     bool draggingSidebar = false;
 
     Array<TextButton> sidebarSelectors = {};
-
-    ToolbarLook toolbarLook;
-    StatusbarLook statusbarLook = StatusbarLook(true, 1.4);
-    StatusbarLook statusbarLook2 = StatusbarLook(false, 1.4);
-    MainLook mainLook;
 
     TabComponent tabbar;
 
