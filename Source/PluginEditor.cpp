@@ -464,8 +464,7 @@ void PlugDataPluginEditor::openProject()
         File openedFile = f.getResult();
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-            tabbar.clearTabs();
-            pd.loadPatch(openedFile.getFullPathName());
+            openFile(openedFile.getFullPathName());
         }
     };
 
@@ -483,6 +482,12 @@ void PlugDataPluginEditor::openProject()
     } else {
         openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
     }
+}
+
+
+void PlugDataPluginEditor::openFile(String path) {
+    tabbar.clearTabs();
+    pd.loadPatch(path);
 }
 
 void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback)
@@ -517,6 +522,7 @@ void PlugDataPluginEditor::timerCallback()
     updateUndoState();
 
 }
+
 
 void PlugDataPluginEditor::updateUndoState()
 {
