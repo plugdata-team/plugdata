@@ -228,6 +228,7 @@ struct MainLook : public LookAndFeel_V4 {
 
             g.setColour (findColour (PopupMenu::textColourId).withAlpha (0.2f));
             g.drawRect(bounds, 1.0f);
+            return;
         }
 
         
