@@ -91,8 +91,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
     dequeueMessages();
     processMessages();
 
-
+#if !JUCE_STANDALONE_APPLICATION
     startThread();
+#endif
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
