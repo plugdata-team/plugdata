@@ -523,7 +523,7 @@ void PlugDataPluginEditor::updateUndoState()
 
     pd.setThis();
 
-    toolbarButtons[6].setEnabled(!pd.locked);
+    toolbarButtons[5].setEnabled(!pd.locked);
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {
         getCurrentCanvas()->patch.setCurrent();

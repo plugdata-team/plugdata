@@ -19,7 +19,6 @@ struct MainLook : public LookAndFeel_V4 {
     Typeface::Ptr typeface = Typeface::createSystemTypefaceFor(BinaryData::OpenSans_ttf, BinaryData::OpenSans_ttfSize);
     Font defaultFont = Font(typeface);
     
-    
     MainLook()
     {
         setColour(PopupMenu::backgroundColourId, firstBackground);
