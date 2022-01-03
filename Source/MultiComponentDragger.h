@@ -1,12 +1,9 @@
 /*
-  ==============================================================================
-
-    jcf_multi_selection.h
-    Created: 25 Feb 2016 9:00:28am
-    Author:  Jim Credland
-
-  ==============================================================================
+ // Copyright (c) 2015-2021 Jim Credland
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
+
 
 #ifndef JCF_MULTI_SELECTION_H_INCLUDED
 #define JCF_MULTI_SELECTION_H_INCLUDED
