@@ -16,7 +16,7 @@ struct MainLook : public LookAndFeel_V4 {
     inline static Colour firstBackground = Colour(23, 23, 23);
     inline static Colour secondBackground = Colour(32, 32, 32);
     
-    Typeface::Ptr typeface = Typeface::createSystemTypefaceFor(BinaryData::OpenSans_ttf, BinaryData::OpenSans_ttfSize);
+    Typeface::Ptr typeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
     Font defaultFont = Font(typeface);
     
     MainLook()
