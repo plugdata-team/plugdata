@@ -89,8 +89,6 @@ void Patch::setCurrent() {
     else {
         canvas_setcurrent(getPointer());
         canvas_vis(getPointer(), 1.);
-        
-        m_instance->waitForStateUpdate();
     }
     
     
