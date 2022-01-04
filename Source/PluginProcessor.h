@@ -174,6 +174,8 @@ private:
 
     const CriticalSection* audioLock;
     double samplerate;
+    
+    std::atomic<bool> isDequeueing = false;
 
     MainLook mainLook;
 
