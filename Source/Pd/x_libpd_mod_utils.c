@@ -482,9 +482,7 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
 }
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
-    
-    pd_this->pd_islocked = 1; // To silence globallock warning from pd...
-    
+        
     sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     sys_unlock();
@@ -515,12 +513,14 @@ void libpd_removeobj(t_canvas* cnv, t_gobj* obj)
 
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 {
-    pd_this->pd_islocked = 1; // To silence globallock warning from pd...
+ 
     glist_noselect(cnv);
     glist_select(cnv, obj);
+    
+    sys_lock();
     canvas_stowconnections(cnv); // for restoring connections when possible!
     text_setto((t_text *)obj, cnv, buf, bufsize);
-    
+    sys_unlock();
     
     
     glist_noselect(cnv);
