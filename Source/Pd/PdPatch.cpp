@@ -83,21 +83,17 @@ void Patch::setCurrent() {
     // Meh kinda fix for thread safety issues
     if(lock && entered) {
         canvas_setcurrent(getPointer());
+        canvas_vis(getPointer(), 1.);
         lock->exit();
     }
     else {
-        // TODO: this is not thread safe... but the alternatives seem worse
         canvas_setcurrent(getPointer());
+        canvas_vis(getPointer(), 1.);
         
-        /*
-        m_instance->enqueueFunction([this]() {
-            
-        });
-        
-        m_instance->waitForStateUpdate(); */
+        m_instance->waitForStateUpdate();
     }
     
-    canvas_vis(getPointer(), 1.);
+    
 }
 
 t_canvas* Patch::getCurrent()
