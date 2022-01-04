@@ -18,9 +18,9 @@ jobs:
     runs-on: ubuntu-latest
 
     - name: Checkout repository
-      uses: actions/checkout@v2
+    uses: actions/checkout@v2
     - name: Checkout submodules
-      run: git submodule update --init --recursive
+    run: git submodule update --init --recursive
     
     - name: Configure CMake
       # Configure CMake in a 'build' subdirectory. `CMAKE_BUILD_TYPE` is only required if you are using a single-configuration generator such as make.
