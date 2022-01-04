@@ -112,7 +112,7 @@ private:
 
     TextButton& hideButton = toolbarButtons[7];
 
-    std::unique_ptr<SettingsDialog> settingsDialog;
+    std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;
