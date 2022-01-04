@@ -7,15 +7,19 @@ Pure Data as a plugin, with a new GUI
 
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. It can still use some stability fixes, especially for complicated patches. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
-## Compilation
-
 ```
-git clone --recursive https://github.com/timothyschoen/PlugData.git
-cd PlugData
+git clone --recursive https://github.com/pierreguillot/Camomile.git
+cd Camomile
 mkdir build && cd build
 cmake .. (the generator can be specified using -G"Unix Makefiles", -G"XCode" or -G"Visual Studio 16 2019" -A x64)
 cmake --build .
 ```
+
+**Important:**
+- Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the Camomile repository .
+- On Linux OS, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
+- The CMake build system have been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
+- Tested with Clang and MSVC
 
 ## Credits
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
