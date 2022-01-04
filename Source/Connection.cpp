@@ -11,8 +11,7 @@
 
 //==============================================================================
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
-    : start(s)
-    , end(e)
+    : start(s), end(e)
 {
     cnv = parent;
 

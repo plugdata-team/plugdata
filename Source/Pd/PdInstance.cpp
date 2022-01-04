@@ -442,11 +442,7 @@ void Instance::waitForStateUpdate() {
         });
         update_wait.wait();
         
-        /*
-        m_function_queue.enqueue([this](){
-            update_wait.signal();
-        });
-        update_wait.wait(); */
+        
     }
     // Should ensure that patches are loaded correctly when audio hasn't started yet
     else {
