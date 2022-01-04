@@ -414,21 +414,30 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     processingBuffer.setSize(2, buffer.getNumSamples());
 
-    processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
-    processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
+    // If we're a logic MIDI processor!
+    if(buffer.getNumChannels() == 0) {
+        processingBuffer.clear();
+    }
+    else {
+        processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
+        processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
+
+    }
 
     process(processingBuffer, midiMessages);
 
-    buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
+    if(buffer.getNumChannels() != 0) {
+        buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
+    }
     if (totalNumOutputChannels == 2) {
         buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
     }
 
     float avg = 0.0f;
-    for (int ch = 0; ch < numout; ch++) {
+    for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
         avg += buffer.getRMSLevel(ch, 0, buffer.getNumSamples());
     }
-    avg /= numout;
+    avg /= buffer.getNumChannels();
 
     buffer.applyGain(getParameters()[0]->getValue());
 
