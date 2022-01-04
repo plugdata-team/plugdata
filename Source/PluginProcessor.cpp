@@ -91,9 +91,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
     dequeueMessages();
     processMessages();
 
-#if !JUCE_STANDALONE_APPLICATION
+
     startThread();
-#endif
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -106,6 +105,8 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
         LookAndFeel::setDefaultLookAndFeel(nullptr);
         delete console;
     }
+    
+    stopThread(-1);
 }
 
 void PlugDataAudioProcessor::initialiseFilesystem()
@@ -298,22 +299,35 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 
 void PlugDataAudioProcessor::run()
 {
+    
     // Hack to make sure DAW will keep dequeuing messages from pd to the gui when bypassed
     // Should only start running when audio is bypassed
-    if(timeSinceProcess < 5) {
-        timeSinceProcess = timeSinceProcess + 1;
-        Time::waitForMillisecondCounter(150);
-    }
-    else {
-        Time::waitForMillisecondCounter(1);
+    while(!threadShouldExit()) {
+                
+        if(timeSinceProcess < 5) {
+            timeSinceProcess = timeSinceProcess + 1;
+        }
+        // Try to lock the audio thread if we can,
+        // This is the ideal way to dequeue messages, but sometimes this remains locked when there is
+        // no audio playback happening
         
-        bool oldEnabled = enabled;
-        enabled->store(0);
-        dequeueMessages();
-        enabled->store(oldEnabled);
+        else if(getCallbackLock()->tryEnter()) {
+            dequeueMessages();
+            getCallbackLock()->exit();
+        }
+        // If we can't aquire the lock, start to increment the time faster
+        else if(!isDequeueing) {
+            timeSinceProcess = timeSinceProcess + 1;
+        }
+        
+        // If the gui has been unresponsive for too long, force it to dequeue...
+        // This is really all terrible, there should eventually be a better way to do this...
+        if(timeSinceProcess > 20 && !isDequeueing) {
+            dequeueMessages();
+        }
+        
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 50);
     }
-    
-
 
 }
 
@@ -423,7 +437,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
 void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    timeSinceProcess = 0;
+    
 
     const int blocksize = Instance::getBlockSize();
     const int nsamples = buffer.getNumSamples();
@@ -552,7 +566,12 @@ void PlugDataAudioProcessor::processInternal()
     //////////////////////////////////////////////////////////////////////////////////////////
     //                                     DEQUEUE MESSAGES                                 //
     //////////////////////////////////////////////////////////////////////////////////////////
+    timeSinceProcess = 0;
+    
+    isDequeueing = true;
     dequeueMessages();
+    isDequeueing = false;
+    
     processMessages();
     processPrints();
     processMidi();
