@@ -73,7 +73,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     bypassButton.setToggleState(true, dontSendNotification);
     
-
     lockButton.setTooltip("Lock");
     lockButton.setClickingTogglesState(true);
     lockButton.setConnectedEdges(12);
@@ -81,11 +80,14 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     lockButton.onClick = [this]() {
         pd.locked = lockButton.getToggleState();
 
-        lockButton.setButtonText(lockButton.getToggleState() ? CharPointer_UTF8("\xef\x80\xa3") : CharPointer_UTF8("\xef\x82\x9c"));
+        lockButton.setButtonText(pd.locked ? CharPointer_UTF8("\xef\x80\xa3") : CharPointer_UTF8("\xef\x82\x9c"));
 
         sendChangeMessage();
     };
     addAndMakeVisible(lockButton);
+    
+    lockButton.setButtonText(pd.locked ? CharPointer_UTF8("\xef\x80\xa3") : CharPointer_UTF8("\xef\x82\x9c"));
+    lockButton.setToggleState(pd.locked, dontSendNotification);
 
     connectionStyleButton.setTooltip("Curve connections");
     connectionStyleButton.setClickingTogglesState(true);

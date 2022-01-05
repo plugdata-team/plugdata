@@ -310,7 +310,6 @@ void PlugDataAudioProcessor::run()
         // Try to lock the audio thread if we can,
         // This is the ideal way to dequeue messages, but sometimes this remains locked when there is
         // no audio playback happening
-        
         else if(getCallbackLock()->tryEnter() && !isSuspended()) {
             dequeueMessages();
             getCallbackLock()->exit();
@@ -322,11 +321,13 @@ void PlugDataAudioProcessor::run()
         
         // If the gui has been unresponsive for too long, force it to dequeue...
         // This is really all terrible, there should eventually be a better way to do this...
-        if(timeSinceProcess > 20 && !isDequeueing && !isSuspended()) {
+        if(timeSinceProcess > 10 && !isDequeueing && !isSuspended()) {
+            canvasLock.lock();
             dequeueMessages();
+            canvasLock.unlock();
         }
         
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 50);
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 40);
     }
 
 }

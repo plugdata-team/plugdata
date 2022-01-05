@@ -22,7 +22,7 @@ typedef struct _libpd_multi_receiver
     t_object    x_obj;
     t_symbol*   x_sym;
     void*       x_ptr;
-    
+
     t_libpd_multi_banghook      x_hook_bang;
     t_libpd_multi_floathook     x_hook_float;
     t_libpd_multi_symbolhook    x_hook_symbol;
@@ -85,7 +85,7 @@ void* libpd_multi_receiver_new(void* ptr, char const *s,
                                t_libpd_multi_listhook hook_list,
                                t_libpd_multi_messagehook hook_message)
 {
-    
+
     t_libpd_multi_receiver *x = (t_libpd_multi_receiver *)pd_new(libpd_multi_receiver_class);
     if(x)
     {
@@ -114,7 +114,7 @@ typedef struct _libpd_multi_midi
 {
     t_object    x_obj;
     void*       x_ptr;
-    
+
     t_libpd_multi_noteonhook            x_hook_noteon;
     t_libpd_multi_controlchangehook     x_hook_controlchange;
     t_libpd_multi_programchangehook     x_hook_programchange;
@@ -209,7 +209,7 @@ void* libpd_multi_midi_new(void* ptr,
                            t_libpd_multi_polyaftertouchhook hook_polyaftertouch,
                            t_libpd_multi_midibytehook hook_midibyte)
 {
-    
+
     t_libpd_multi_midi *x = (t_libpd_multi_midi *)pd_new(libpd_multi_midi_class);
     if(x)
     {
@@ -262,7 +262,7 @@ static void libpd_multi_print_setup(void)
 
 void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print)
 {
-    
+
     t_libpd_multi_print *x = (t_libpd_multi_print *)pd_new(libpd_multi_print_class);
     if(x)
     {
@@ -460,7 +460,6 @@ void parabolic_tilde_setup(void);
 void peak_tilde_setup(void);
 void setup_pgm0x2ein(void);
 void setup_pgm0x2eout(void);
-void pic_setup(void);
 void pimp_tilde_setup(void);
 void pinknoise_tilde_setup(void);
 void pluck_tilde_setup(void);
@@ -572,7 +571,7 @@ void libpd_multi_init(void)
         libpd_set_polyaftertouchhook(libpd_multi_polyaftertouch);
         libpd_set_midibytehook(libpd_multi_midibyte);
         libpd_set_printhook(libpd_multi_print);
-        
+
         libpd_set_verbose(0);
         libpd_init();
         libpd_multi_receiver_setup();
@@ -580,9 +579,9 @@ void libpd_multi_init(void)
         libpd_multi_print_setup();
         libpd_defaultfont_init();
         libpd_set_verbose(4);
-        
+
         socket_init();
-        
+
         // else objects initialization
         above_tilde_setup();
         add_tilde_setup();
@@ -644,9 +643,9 @@ void libpd_multi_init(void)
         decay2_tilde_setup();
         del_tilde_setup();
         detect_tilde_setup();
-        #ifndef _MSC_VER 
+        #ifndef _MSC_VER
         dir_setup();
-        #endif  
+        #endif
         dollsym_setup();
         downsample_tilde_setup();
         drive_tilde_setup();
@@ -738,7 +737,6 @@ void libpd_multi_init(void)
         peak_tilde_setup();
         setup_pgm0x2ein();
         setup_pgm0x2eout();
-        pic_setup();
         pimp_tilde_setup();
         pinknoise_tilde_setup();
         pluck_tilde_setup();
@@ -835,7 +833,7 @@ void libpd_multi_init(void)
         xselect2_tilde_setup();
         zerocross_tilde_setup();
         // end else objects initialization
-        
+
         initialized = 1;
     }
 }
