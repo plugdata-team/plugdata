@@ -8,8 +8,8 @@ Pure Data as a plugin, with a new GUI
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. It can still use some stability fixes, especially for complicated patches. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
 ```
-git clone --recursive https://github.com/pierreguillot/Camomile.git
-cd Camomile
+git clone --recursive https://github.com/timothyschoen/PlugData.git
+cd PlugData
 mkdir build && cd build
 cmake .. (the generator can be specified using -G"Unix Makefiles", -G"XCode" or -G"Visual Studio 16 2019" -A x64)
 cmake --build .
