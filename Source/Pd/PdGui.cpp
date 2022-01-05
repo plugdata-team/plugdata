@@ -167,7 +167,7 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
         // This is not nice!
         // But it can take pd a bit of time before it has set the "gl_isgraph" flag...
         // This does fix the issue, but it's not nice
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 50);
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 30);
         
         if(static_cast<t_canvas*>(ptr)->gl_list)
         {

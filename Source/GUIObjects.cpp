@@ -822,7 +822,7 @@ void GraphOnParent::updateCanvas()
         box->resized();
 
         // Make sure that the graph doesn't become the current canvas
-        box->cnv->main.getCurrentCanvas()->patch.setCurrent();
+        box->cnv->patch.setCurrent();
         box->cnv->main.updateUndoState();
     } /*
 
