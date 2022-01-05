@@ -5,8 +5,11 @@ cmake_minimum_required(VERSION 3.1)
 #------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C)
 
+
 if (MSVC)
+    add_compile_definitions(PTW32_STATIC_LIB)
     add_subdirectory(pthread-win32)
+    include_directories(pthread-win32)
 endif()
 
 add_subdirectory(JUCE)
@@ -340,16 +343,6 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAG On)
 set(CMAKE_THREAD_PREFER_PTHREAD True)
 
-if(MSVC)
-    link_directories(${PROJECT_SOURCE_DIR}/pure-data)
-    if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-      target_link_libraries(libpdshared PRIVATE pthreadVC3)
-    endif()
-    if(LIBPD_INCLUDE_STATIC_LIBRARY)
-      target_link_libraries(libpdstatic PRIVATE pthreadVC3)
-    endif()
-endif()
-
 #------------------------------------------------------------------------------#
 # OUTPUT NAME
 #------------------------------------------------------------------------------#
@@ -395,6 +388,4 @@ else()
     endif()
 endif()
 
-if(MSVC)
-set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-endif()
+
