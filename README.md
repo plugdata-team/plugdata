@@ -43,12 +43,12 @@ What works:
 
 
 Known issues:
+- GUI objects don't always hold their value when closing GUI from DAW
 - Needs more testing on different systems and DAWs
-- GraphOnParents sometimes load as subpatchers when loading a state quickly after startup
-- There may still be some more bugs
+- There may still be some bugs
 - Can be slow for very large patches
 
-Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more, and also works on all platforms.
+Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more.
 
 Future plans:
 - Support for GEM
