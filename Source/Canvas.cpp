@@ -831,8 +831,8 @@ void Canvas::checkBounds()
     // Check new bounds
     int minX = zeroPosition.x;
     int minY = zeroPosition.y;
-    int maxX = std::max(getWidth() - getX(), viewWidth);
-    int maxY = std::max(getHeight() - getY(), viewHeight);
+    int maxX = std::max(getWidth() - minX, viewWidth);
+    int maxY = std::max(getHeight() - minY, viewHeight);
 
     for (auto obj : boxes) {
         maxX = std::max<int>(maxX, (int)obj->getX() + obj->getWidth());
@@ -846,7 +846,6 @@ void Canvas::checkBounds()
         for(auto& box : boxes) {
             box->setBounds(box->getBounds().translated(-minX, -minY));
         }
-        
         
         zeroPosition -= {minX, minY};
         
