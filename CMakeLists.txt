@@ -1,10 +1,5 @@
 cmake_minimum_required(VERSION 3.12)
 
-if(MSVC)
-set(CMAKE_THREAD_LIBS_INIT ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/lib/x64/pthreadVC2.lib CACHE PATH "")
-set(PTHREADS_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pthreads/include/ CACHE PATH "")
-endif()
-
 if(APPLE)
 set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING "Minimum OS X deployment version")
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
@@ -13,7 +8,6 @@ endif()
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-
 project(PlugData VERSION 0.1 LANGUAGES C CXX)
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
@@ -21,16 +15,7 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-Bsymbolic")
 endif()
 
-if(MSVC)
-add_compile_definitions(PTW32_STATIC_LIB)
-add_subdirectory(Libraries/pthread-win32)
-endif()
-
-
-SET(PD_MULTI ON CACHE BOOL "Compile with multiple instance support")
-add_subdirectory(Libraries/libpd)
-add_subdirectory(Libraries/JUCE)
-
+add_subdirectory(Libraries/)
 
 set(PLUGDATA_VERSION                    "0.1")
 set(PLUGDATA_COMPANY_NAME               "Octagon")
@@ -147,16 +132,16 @@ endif()
 
 juce_generate_juce_header(PlugData)
 set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
-target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataPdSources})
+target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
 
 juce_generate_juce_header(PlugDataFx)
 set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 20)
-target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources})
+target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
 
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
 set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
-target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources})
+target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
 endif()
 
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
@@ -186,8 +171,8 @@ endif()
 
 target_compile_definitions(PlugData PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataFx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-if(APPLE) 
-target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS}) 
+if(APPLE)
+target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 endif()
 target_compile_definitions(PlugData_LV2 PRIVATE "JucePlugin_Build_LV2=1")
 
@@ -195,8 +180,9 @@ list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd
 list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/libpd_wrapper")
 target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
 target_include_directories(PlugDataFx PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
-if(APPLE) 
-target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>") 
+
+if(APPLE)
+target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
 endif()
 
 file(GLOB PlugDataBinaryDataSources
@@ -211,16 +197,16 @@ juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(MSVC)
-target_link_libraries(PlugData PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-target_link_libraries(PlugDataFx PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-target_link_libraries(PlugData_LV2 PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
+target_link_libraries(PlugData PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
+target_link_libraries(PlugDataFx PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
+target_link_libraries(PlugData_LV2 PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
 else()
-target_link_libraries(PlugData PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-target_link_libraries(PlugDataFx PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-if(APPLE) 
-target_link_libraries(PlugDataMidi PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client) 
+target_link_libraries(PlugData PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+target_link_libraries(PlugDataFx PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+if(APPLE)
+target_link_libraries(PlugDataMidi PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
 endif()
-target_link_libraries(PlugData_LV2 PRIVATE libpd_static PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+target_link_libraries(PlugData_LV2 PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
 endif()
 
 add_executable(lv2_file_generator ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/main.c)
@@ -228,16 +214,15 @@ target_link_libraries(lv2_file_generator ${CMAKE_DL_LIBS})
 
 set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugDataFx PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-if(APPLE) 
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}) 
+if(APPLE)
+set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 endif()
 
 set_target_properties(PlugData PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugDataFx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-if(APPLE) 
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION}) 
+if(APPLE)
+set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 endif()
-
 
 set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
 set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
@@ -248,9 +233,3 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
       set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PLUGDATA_LV2_LOCATION})
       set_target_properties(PlugData_LV2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PLUGDATA_LV2_LOCATION})
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
-
-set_target_properties(libpd PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-
-if(MSVC)
-set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-endif()
