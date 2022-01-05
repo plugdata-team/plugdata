@@ -204,10 +204,14 @@ void Canvas::createPatch()
     tempPatch.replaceWithText(main.defaultPatch);
 
     auto* cs = pd->getCallbackLock();
+    
+    cs->enter();
     // Load the patch into libpd
     pd->openPatch(tempPatch.getParentDirectory().getFullPathName().toStdString(), tempPatch.getFileName().toStdString());
 
     patch = pd->getPatch();
+    
+    cs->exit();
 
     synchronise();
 }

@@ -268,7 +268,7 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 
 void PlugDataAudioProcessor::releaseResources()
 {
-    audio_started = false;
+    audioStarted = false;
 }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -311,7 +311,7 @@ void PlugDataAudioProcessor::run()
         // This is the ideal way to dequeue messages, but sometimes this remains locked when there is
         // no audio playback happening
         
-        else if(getCallbackLock()->tryEnter()) {
+        else if(getCallbackLock()->tryEnter() && !isSuspended()) {
             dequeueMessages();
             getCallbackLock()->exit();
         }
@@ -322,7 +322,7 @@ void PlugDataAudioProcessor::run()
         
         // If the gui has been unresponsive for too long, force it to dequeue...
         // This is really all terrible, there should eventually be a better way to do this...
-        if(timeSinceProcess > 20 && !isDequeueing) {
+        if(timeSinceProcess > 20 && !isDequeueing && !isSuspended()) {
             dequeueMessages();
         }
         
@@ -402,10 +402,11 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     // Run help files (without audio)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-
+        
+        // TODO: fix data race when deleting canvases!
         for (int c = 0; c < editor->canvases.size(); c++) {
             auto* cnv = editor->canvases[c];
-            if (cnv->aux_instance) {
+            if (cnv && cnv->aux_instance) {
                 cnv->aux_instance->enabled->store(0);
                 cnv->aux_instance->process(processingBuffer, midiMessages);
             }
@@ -635,13 +636,17 @@ void PlugDataAudioProcessor::processInternal()
         // Copy circuitlab's output to Pure data to Pd input channels
         std::copy_n(m_audio_buffer_out.data() + (2 * 64), (numout - 2) * 64, m_audio_buffer_in.data() + (2 * 64));
 
+        Instance::canvasLock.lock();
         performDSP(m_audio_buffer_in.data(), m_audio_buffer_out.data());
+        Instance::canvasLock.unlock();
     }
 
     else {
         std::fill(m_audio_buffer_in.begin(), m_audio_buffer_in.end(), 0.f);
 
+        Instance::canvasLock.lock();
         performDSP(m_audio_buffer_in.data(), m_audio_buffer_out.data());
+        Instance::canvasLock.unlock();
 
         std::fill(m_audio_buffer_out.begin(), m_audio_buffer_out.end(), 0.f);
     }

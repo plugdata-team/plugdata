@@ -1137,11 +1137,13 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
              interspersed with it.  Only show up to 100 points so we don't
              have to allocate memory here. */
             for (i = 0, f = x->x_vec; i < n; i++, f += 2) {
-                glist->gl_havewindow = canvas->isGraphChild;
-                glist->gl_isgraph = canvas->isGraph;
+                //glist->gl_havewindow = canvas->isGraphChild;
+                //glist->gl_isgraph = canvas->isGraph;
+                canvas->pd->canvasLock.lock();
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
-
+                canvas->pd->canvasLock.unlock();
+                
                 pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;
             }

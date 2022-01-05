@@ -87,7 +87,7 @@ public:
     Canvas* mainCanvas = nullptr;
     AffineTransform transform;
 
-    OwnedArray<Canvas> canvases;
+    OwnedArray<Canvas, CriticalSection> canvases;
     Inspector inspector;
 
     LevelMeter levelmeter;

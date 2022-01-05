@@ -164,6 +164,10 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
     
     else if(name == "canvas" || name == "graph")
     {
+        // This is not nice!
+        // But it can take pd a bit of time before it has set the "gl_isgraph" flag...
+        // This does fix the issue, but it's not nice
+        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 50);
         
         if(static_cast<t_canvas*>(ptr)->gl_list)
         {
@@ -179,7 +183,6 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
                 m_type = Type::Subpatch;
             }
         }
-        
         else if(m_type != Type::Array && static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
             m_type = Type::GraphOnParent;
@@ -364,7 +367,7 @@ void Gui::setMaximum(float value) noexcept
 float Gui::getValue() const noexcept
 {
     
-    ScopedLock lock();
+    //const ScopedLock lock(*m_instance->getCallbackLock());
 
     if(!m_ptr)
         return 0.f;

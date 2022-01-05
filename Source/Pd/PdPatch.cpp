@@ -75,29 +75,22 @@ void Patch::setCurrent() {
     
     m_instance->setThis();
     
-    auto* lock = m_instance->getCallbackLock();
     
-    bool entered = lock;
-    if(lock) entered = lock->tryEnter();
-    
-    // Meh kinda fix for thread safety issues
-    if(lock && entered) {
-        canvas_setcurrent(getPointer());
-        canvas_vis(getPointer(), 1.);
-        lock->exit();
-    }
-    else {
-        canvas_setcurrent(getPointer());
-        canvas_vis(getPointer(), 1.);
-    }
+    m_instance->canvasLock.lock();
+    canvas_setcurrent(getPointer());
+    canvas_vis(getPointer(), 1.);
+    m_instance->canvasLock.unlock();
     
     
 }
 
 t_canvas* Patch::getCurrent()
 {
- 
-    return canvas_getcurrent();
+       
+    Instance::canvasLock.lock();
+    auto* current = canvas_getcurrent();
+    Instance::canvasLock.unlock();
+    return current;
 }
 
 std::vector<Object> Patch::getObjects(bool only_gui) noexcept
