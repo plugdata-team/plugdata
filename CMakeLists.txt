@@ -145,7 +145,7 @@ target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${EL
 endif()
 
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
-target_link_libraries(PlugData_LV2 PRIVATE PlugDataFx)
+target_link_libraries(PlugData_LV2 PRIVATE PlugDataFx libpdstatic)
 set_target_properties(PlugData_LV2 PROPERTIES PREFIX "")
 
 set(PLUGDATA_COMPILE_DEFINITIONS
