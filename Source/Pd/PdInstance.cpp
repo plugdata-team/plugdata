@@ -122,7 +122,10 @@ namespace pd
 Instance::Instance(std::string const& symbol)
 {
     libpd_multi_init();
+    
+    canvasLock.lock();
     m_instance = libpd_new_instance();
+    canvasLock.unlock();
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     m_midi_receiver = libpd_multi_midi_new(this,
                                            reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon),
@@ -434,7 +437,7 @@ void Instance::enqueueDirectMessages(void* object, const float msg)
 
 void Instance::waitForStateUpdate() {
     // Need to wait twice to ensure that pd has processed all changes
-    if(audio_started) {
+    if(audioStarted) {
         // Append signal to resume thread at the end of the queue
         // This will make sure that any actions we performed are definitely finished now
         m_function_queue.enqueue([this](){
@@ -464,7 +467,7 @@ void Instance::dequeueMessages()
     while(m_function_queue.try_dequeue(callback))
     {
         callback();
-        audio_started = true;
+        audioStarted = true;
     }
     
     
@@ -507,10 +510,8 @@ void Instance::dequeueMessages()
         }
     }
     
-    //sys_lock();
     canUndo = libpd_can_undo(Patch::getCurrent());
     canRedo = libpd_can_redo(Patch::getCurrent());
-    //sys_unlock();
     
 }
 
@@ -522,8 +523,10 @@ void Instance::openPatch(std::string const& path, std::string const& name)
 {
     closePatch();
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
+    canvasLock.lock();
     m_patch = libpd_create_canvas(name.c_str(), path.c_str());
     canvas_setcurrent(static_cast<t_canvas*>(m_patch));
+    canvasLock.unlock();
     setThis();
     
 }

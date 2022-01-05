@@ -114,9 +114,10 @@ public:
     
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
     
-    std::atomic<bool> audio_started = false;
+    std::atomic<bool> audioStarted = false;
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
+    static inline std::recursive_mutex canvasLock;
     
     private:
     struct Message
@@ -158,6 +159,7 @@ public:
     moodycamel::ConcurrentQueue<Message> m_message_queue = moodycamel::ConcurrentQueue<Message>(4096);
     moodycamel::ConcurrentQueue<midievent> m_midi_queue = moodycamel::ConcurrentQueue<midievent>(4096);
     moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
+
 
     
     WaitableEvent update_wait;

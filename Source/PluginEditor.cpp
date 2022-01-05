@@ -111,7 +111,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     toolbarButtons[0].onClick = [this]() {
         auto createFunc = [this]() {
             tabbar.clearTabs();
-            canvases.clear();
+            
+            canvases.clear(); // TODO: causes data race
             auto* cnv = canvases.add(new Canvas(*this, false));
             cnv->title = "Untitled Patcher";
             mainCanvas = cnv;
@@ -518,10 +519,13 @@ void PlugDataPluginEditor::timerCallback()
     auto* cnv = getCurrentCanvas();
     // cnv->patch.setCurrent();
 
-    for (auto& box : cnv->boxes) {
-        if (box->graphics && box->isShowing()) {
-            box->graphics->updateValue();
+    if(pd.getCallbackLock()->tryEnter()) {
+        for (auto& box : cnv->boxes) {
+            if (box->graphics && box->isShowing()) {
+                box->graphics->updateValue();
+            }
         }
+        pd.getCallbackLock()->exit();
     }
 
     updateUndoState();
