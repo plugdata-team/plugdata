@@ -16,7 +16,7 @@ cmake --build .
 ```
 
 **Important:**
-- Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the Camomile repository .
+- Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the PlugData repository .
 - On Linux OS, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
 - The CMake build system have been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
 - Tested with Clang and MSVC
