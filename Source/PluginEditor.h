@@ -87,6 +87,7 @@ public:
     Canvas* mainCanvas = nullptr;
     AffineTransform transform;
 
+    TabComponent tabbar;
     OwnedArray<Canvas, CriticalSection> canvases;
     Inspector inspector;
 
@@ -119,7 +120,6 @@ private:
 
     Array<TextButton> sidebarSelectors = {};
 
-    TabComponent tabbar;
 
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;
