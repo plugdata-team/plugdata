@@ -411,6 +411,8 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
             }
         }
     }
+    
+    
 
     processingBuffer.setSize(2, buffer.getNumSamples());
 
@@ -576,6 +578,7 @@ void PlugDataAudioProcessor::processInternal()
     //                                     DEQUEUE MESSAGES                                 //
     //////////////////////////////////////////////////////////////////////////////////////////
     timeSinceProcess = 0;
+    setThis();
     
     isDequeueing = true;
     dequeueMessages();

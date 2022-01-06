@@ -521,14 +521,14 @@ void PlugDataPluginEditor::timerCallback()
     auto* cnv = getCurrentCanvas();
     // cnv->patch.setCurrent();
 
-    if(pd.getCallbackLock()->tryEnter()) {
+    //if(pd.getCallbackLock()->tryEnter()) {
         for (auto& box : cnv->boxes) {
-            if (box->graphics && box->isShowing()) {
+            if (box->graphics) {
                 box->graphics->updateValue();
             }
         }
-        pd.getCallbackLock()->exit();
-    }
+        //pd.getCallbackLock()->exit();
+    //}
 
     updateUndoState();
 
