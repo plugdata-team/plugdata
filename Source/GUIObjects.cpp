@@ -296,7 +296,8 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
     addAndMakeVisible(toggleButton);
-
+    toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
+    
     toggleButton.onClick = [this]() {
         startEdition();
         auto new_value = 1.f - getValueOriginal();
@@ -307,7 +308,7 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
 
     initParameters();
     
-    toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
+    
 
     box->restrainer.setSizeLimits(40, 60, 200, 200);
 }
@@ -413,6 +414,8 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
 
      }; */
 
+    input.setText(String(getValueOriginal(), 3));
+    
     input.onTextChange = [this]() {
         startEdition();
         float value = input.getText().getFloatValue();
@@ -429,7 +432,7 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
         stopEdition();
     };
     
-    input.setText(String(getValueOriginal(), 3));
+    
 
     box->restrainer.setSizeLimits(100, 50, 500, 600);
 }
@@ -540,6 +543,8 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
     slider.setRange(0., 1., 0.001);
     slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
 
+    slider.setValue(getValueScaled());
+    
     slider.onDragStart = [this]() {
         startEdition();
     };
@@ -554,7 +559,7 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
         }
     };
     
-    slider.setValue(getValueScaled());
+
 
     slider.onDragEnd = [this]() {
         stopEdition();
@@ -588,15 +593,15 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
 
     initParameters();
     updateRange();
+    
+    int selected = gui.getValue();
+    radioButtons[selected]->setToggleState(true, dontSendNotification);
 
     if (isVertical) {
         box->restrainer.setSizeLimits(40, 100, 250, 500);
     } else {
         box->restrainer.setSizeLimits(100, 60, 500, 250);
     }
-    
-    int selected = gui.getValue();
-    radioButtons[selected]->setToggleState(true, dontSendNotification);
 }
 
 void RadioComponent::resized()
