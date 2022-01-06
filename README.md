@@ -43,7 +43,7 @@ What works:
 
 
 Known issues:
-- GUI objects don't always hold their value when closing GUI from DAW
+- GraphOnParent won't open if loaded before audio starts
 - Needs more testing on different systems and DAWs
 - There may still be some bugs
 - Can be slow for very large patches
