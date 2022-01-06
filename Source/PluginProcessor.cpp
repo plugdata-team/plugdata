@@ -403,8 +403,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     // Run help files (without audio)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        
-        // TODO: fix data race when deleting canvases!
         for (int c = 0; c < editor->canvases.size(); c++) {
             auto* cnv = editor->canvases[c];
             if (cnv && cnv->aux_instance) {
@@ -713,7 +711,6 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 {
     if(sizeInBytes == 0) return;
     
-    // TODO: is this a problem on Linux??
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
     int latency = istream.readInt();
