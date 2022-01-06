@@ -140,7 +140,7 @@ struct Inspector : public Component,
             return getWidth() / 3.0f; // Name column
         }
        else {
-           getWidth() * (2.0f / 3.0f); // Value column
+           return getWidth() * (2.0f / 3.0f); // Value column
        }
 
     }
@@ -270,7 +270,7 @@ struct Inspector : public Component,
         {
         }
 
-        void resized()
+        void resized() override
         {
             button.setBounds(getLocalBounds());
         }

@@ -279,6 +279,8 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
     };
 
     initParameters();
+    
+    toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
 
     box->restrainer.setSizeLimits(40, 60, 200, 200);
 }
@@ -399,6 +401,8 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
         setValueOriginal(input.getText().getFloatValue());
         stopEdition();
     };
+    
+    input.setText(String(getValueOriginal(), 3));
 
     box->restrainer.setSizeLimits(100, 50, 500, 600);
 }
@@ -522,6 +526,8 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
             setValueScaled(val);
         }
     };
+    
+    slider.setValue(getValueScaled());
 
     slider.onDragEnd = [this]() {
         stopEdition();
@@ -561,6 +567,9 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
     } else {
         box->restrainer.setSizeLimits(100, 60, 500, 250);
     }
+    
+    int selected = gui.getValue();
+    radioButtons[selected]->setToggleState(true, dontSendNotification);
 }
 
 void RadioComponent::resized()

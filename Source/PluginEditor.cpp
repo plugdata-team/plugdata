@@ -114,7 +114,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         auto createFunc = [this]() {
             tabbar.clearTabs();
             
-            canvases.clear(); // TODO: causes data race
+            canvases.clear();
             auto* cnv = canvases.add(new Canvas(*this, false));
             cnv->title = "Untitled Patcher";
             mainCanvas = cnv;
