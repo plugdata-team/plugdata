@@ -23,7 +23,7 @@ cmake --build .
 
 ## Credits
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
-- [ELSE](https://github.com/porres/pd-else) by Alexandre Porres and Esteban Viveros
+- [ELSE](https://github.com/porres/pd-else) by Alexandre Porres
 - [Pure Data](http://msp.ucsd.edu/software.html) by Miller Puckette and others
 - [libpd](http://libpd.cc) by the Peter Brinkmann, Dan Wilcox and others
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
