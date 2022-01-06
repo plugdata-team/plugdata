@@ -155,7 +155,6 @@ struct BangComponent : public GUIComponent, public Timer {
 
     ObjectParameters defineParamters() override
     {
-
         return { {
                      { "Interrupt", tInt, (void*)&bangInterrupt },
                  },
@@ -291,7 +290,6 @@ struct SliderComponent : public GUIComponent {
     bool isLogarithmic;
 
     Slider slider;
-    String trackColour = "ff323232";
 
     SliderComponent(bool vertical, pd::Gui gui, Box* parent);
 
@@ -311,24 +309,19 @@ struct SliderComponent : public GUIComponent {
 
         auto callback = [this](int changedParameter) {
             if (changedParameter == 0) {
-                getLookAndFeel().setColour(Slider::trackColourId, Colour::fromString(trackColour));
-                repaint();
-            } else if (changedParameter == 1) {
                 gui.setMinimum(min);
-            } else if (changedParameter == 2) {
+            } else if (changedParameter == 1) {
                 gui.setMaximum(max);
-            } else if (changedParameter == 3) {
+            } else if (changedParameter == 2) {
                 gui.setLogScale(isLogarithmic);
                 min = gui.getMinimum();
                 max = gui.getMaximum();
             }
         };
 
-        return { {
-                     { "Track", tColour, (void*)&trackColour },
-                     { "Minimum", tFloat, (void*)&min },
-                     { "Maximum", tFloat, (void*)&max },
-                     { "Logarithmic", tBool, (void*)&isLogarithmic },
+        return { {{ "Minimum",     tFloat, (void*)&min },
+                  { "Maximum",     tFloat, (void*)&max },
+                  { "Logarithmic", tBool,  (void*)&isLogarithmic },
                  },
             callback };
     }

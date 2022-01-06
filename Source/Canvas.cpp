@@ -301,11 +301,11 @@ void Canvas::mouseDown(const MouseEvent& e)
                     }
                 }
                 bool isGraphChild = lassoSelection.getSelectedItem(0)->graphics.get()->getGUI().getType() == pd::Type::GraphOnParent;
-                auto* newCanvas = new Canvas(main, false, isGraphChild);
+                auto* newCanvas = main.canvases.add(new Canvas(main, false, isGraphChild));
                 newCanvas->title = lassoSelection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false);
                 auto patchCopy = *subpatch;
                 newCanvas->loadPatch(patchCopy);
-
+                
                 auto [x, y, w, h] = patchCopy.getBounds();
 
                 if (isGraphChild) {
