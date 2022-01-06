@@ -43,7 +43,8 @@ What works:
 
 
 Known issues:
-- GraphOnParent won't open if loaded before audio starts
+- MIDI output doesn't work when triggered from GUI objects, only when triggered from pd's scheduler. (probably fixed by pulling latest Camomile changes)
+- GraphOnParent won't open if loaded before audio starts (maybe fixed by pulling latest Camomile changes)
 - Needs more testing on different systems and DAWs
 - There may still be some bugs
 - Can be slow for very large patches
