@@ -231,6 +231,33 @@ pd::Gui GUIComponent::getGUI()
     return gui;
 }
 
+// Called in destructor of subpatch and graph class
+// Makes sure that any tabs refering to the now deleted patch will be closed
+void GUIComponent::closeOpenedSubpatchers() {
+    auto* cnv = box->cnv;
+    auto& main = box->cnv->main;
+    auto* tabbar = &main.getTabbar();
+    
+    if (!tabbar)
+        return;
+    
+    for (int n = 0; n < tabbar->getNumTabs(); n++) {
+        auto* cnv = main.getCanvas(n);
+        if (cnv && cnv->patch ==  *getPatch()) {
+            tabbar->removeTab(n);
+            main.canvases.removeObject(cnv);
+        }
+    }
+
+    if (tabbar->getNumTabs() > 1) {
+        tabbar->getTabbedButtonBar().setVisible(true);
+        tabbar->setTabBarDepth(30);
+    } else {
+        tabbar->getTabbedButtonBar().setVisible(false);
+        tabbar->setTabBarDepth(1);
+    }
+}
+
 // BangComponent
 
 BangComponent::BangComponent(pd::Gui pdGui, Box* parent)
@@ -880,6 +907,7 @@ Subpatch::Subpatch(pd::Gui pdGui, Box* box)
 
 Subpatch::~Subpatch()
 {
+    closeOpenedSubpatchers();
 }
 
 // Comment

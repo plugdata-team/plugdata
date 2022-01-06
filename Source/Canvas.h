@@ -79,8 +79,6 @@ public:
 
     void dragCallback(int dx, int dy) override;
 
-    void closeAllInstances();
-
     bool changed()
     {
         return hasChanged && boxes.size();
