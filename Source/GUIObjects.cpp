@@ -821,9 +821,7 @@ GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box)
 
 GraphOnParent::~GraphOnParent()
 {
-    if (canvas && box) {
-        canvas->closeAllInstances();
-    }
+    closeOpenedSubpatchers();
 }
 
 void GraphOnParent::resized()
