@@ -799,29 +799,6 @@ void Canvas::redo()
     main.updateUndoState();
 }
 
-// Called from subpatcher objects to close all tabs that refer to that subpatcher
-void Canvas::closeAllInstances()
-{
-    if (!tabbar)
-        return;
-
-    for (int n = 0; n < tabbar->getNumTabs(); n++) {
-        auto* cnv = main.getCanvas(n);
-        if (cnv && cnv->patch == patch && &cnv->main == &main) {
-            tabbar->removeTab(n);
-            main.canvases.removeObject(cnv);
-        }
-    }
-
-    if (tabbar->getNumTabs() > 1) {
-        tabbar->getTabbedButtonBar().setVisible(true);
-        tabbar->setTabBarDepth(30);
-    } else {
-        tabbar->getTabbedButtonBar().setVisible(false);
-        tabbar->setTabBarDepth(1);
-    }
-}
-
 void Canvas::checkBounds()
 {
     int viewHeight = 0;

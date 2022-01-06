@@ -46,6 +46,8 @@ struct GUIComponent : public Component {
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawLine(0, 0, getWidth(), 0);
     }
+    
+    void closeOpenedSubpatchers();
 
     static GUIComponent* createGui(String name, Box* parent);
 
