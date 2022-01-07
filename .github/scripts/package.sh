@@ -1,0 +1,20 @@
+#!/bin/bash
+
+rm -f PlugData-$1.zip
+cp -r Plugins PlugData
+
+mkdir Plugins/LV2/PlugData.lv2
+./Plugins/LV2/lv2_file_generator Plugins/LV2/PlugData_LV2.dylib PlugData
+cp Plugins/LV2/PlugData_LV2.dylib Plugins/LV2/PlugData.lv2/PlugData.dylib
+mv manifest.ttl Plugins/LV2/PlugData.lv2/manifest.ttl
+mv presets.ttl Plugins/LV2/PlugData.lv2/presets.ttl
+mv PlugData.ttl Plugins/LV2/PlugData.lv2/PlugData.ttl
+
+mkdir Plugins/LV2/Extra
+mv Plugins/LV2/lv2_file_generator Plugins/LV2/Extra/lv2_file_generator
+mv Plugins/LV2/PlugData_LV2.dylib Plugins/LV2/Extra/PlugData.dylib
+
+cp README.md PlugData/README.md
+cp LICENSE PlugData/LICENSE.txt
+zip -r -q PlugData-$1.zip PlugData
+rm -r PlugData
