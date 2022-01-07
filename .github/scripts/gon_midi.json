@@ -1,0 +1,11 @@
+{
+    "source" : ["./Plugins/AU/PlugDataMidi.component/Contents/MacOS/PlugDataMidi"],
+    "bundle_id" : "com.Octagon.PlugDataMidi",
+    "apple_id": {
+            "username" : "timschoen123@gmail.com",
+            "password":  "@env:AC_PASSWORD"
+        },
+    "sign" :{
+        "application_identity" : "CA4517E22F3EC0BDC527A7616FC60959C59E7A9B"
+    },
+}
