@@ -32,6 +32,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
 
     // Apply zooming
     setTransform(parent.transform);
+    
 
     // Add lasso component
     addAndMakeVisible(&lasso);
@@ -369,17 +370,17 @@ void Canvas::mouseDown(const MouseEvent& e)
         // Open popupmenu with different positions for these origins
         if (auto* box = dynamic_cast<ClickLabel*>(e.originalComponent)) {
             if (!box->getCurrentTextEditor()) {
-                popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(box), ModalCallbackFunction::create(callback));
+                popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(box).withParentComponent(&main), ModalCallbackFunction::create(callback));
             }
         } else if (auto* box = dynamic_cast<Box*>(e.originalComponent)) {
             if (!box->textLabel.getCurrentTextEditor()) {
-                popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel), ModalCallbackFunction::create(callback));
+                popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel).withParentComponent(&main), ModalCallbackFunction::create(callback));
             }
         } else if (auto* gui = dynamic_cast<GUIComponent*>(e.originalComponent)) {
             auto* box = gui->box;
-            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel), ModalCallbackFunction::create(callback));
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel).withParentComponent(&main), ModalCallbackFunction::create(callback));
         } else if (auto* gui = dynamic_cast<Canvas*>(e.originalComponent)) {
-            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetScreenArea({ e.getScreenX(), e.getScreenY(), 10, 10 }), ModalCallbackFunction::create(callback));
+            popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetScreenArea({ e.getScreenX(), e.getScreenY(), 10, 10 }).withParentComponent(&main), ModalCallbackFunction::create(callback));
         }
     }
 }

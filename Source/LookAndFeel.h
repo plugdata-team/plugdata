@@ -213,7 +213,7 @@ struct MainLook : public LookAndFeel_V4 {
     Font getTextButtonFont(TextButton&, int buttonHeight) override
     {
         
-        return Font(buttonHeight / 2.0f);
+        return Font(buttonHeight / 1.7f);
     }
     
     
