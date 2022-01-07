@@ -1,10 +1,10 @@
 @echo off
-del PlugData-%1.zip \Q
-xcopy Plugins PlugData \E \I
+del PlugData-%1.zip /Q
+xcopy Plugins PlugData /E /I
 
 md PlugData\LV2\PlugData.lv2
-PlugData\LV2\lv2_file_generator.exe PlugData\LV2\PlugData_LV2.dylib PlugData
-copy PlugData\LV2\PlugData_LV2.dylib PlugData\LV2\PlugData.lv2\PlugData.dylib
+start PlugData\LV2\lv2_file_generator.exe PlugData\LV2\PlugData_LV2.dll PlugData
+copy PlugData\LV2\PlugData_LV2.dylib PlugData\LV2\PlugData.lv2\PlugData.dll
 move manifest.ttl PlugData\LV2\PlugData.lv2\manifest.ttl
 move presets.ttl PlugData\LV2\PlugData.lv2\presets.ttl
 move PlugData.ttl PlugData\LV2\PlugData.lv2\PlugData.ttl
