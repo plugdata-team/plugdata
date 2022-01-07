@@ -1,0 +1,11 @@
+{
+    "source" : ["./Plugins/VST3/PlugDataFx.vst3/Contents/MacOS/PlugDataFx", "./Plugins/AU/PlugDataFx.component/Contents/MacOS/PlugDataFx", "./Plugins/LV2/PlugData_LV2.dylib"],
+    "bundle_id" : "com.Octagon.PlugDataFx",
+    "apple_id": {
+            "username" : "timschoen123@gmail.com",
+            "password":  "@env:AC_PASSWORD"
+        },
+    "sign" :{
+        "application_identity" : "CA4517E22F3EC0BDC527A7616FC60959C59E7A9B"
+    },
+}
