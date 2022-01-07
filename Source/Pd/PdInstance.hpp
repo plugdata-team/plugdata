@@ -79,7 +79,7 @@ public:
     
     virtual void messageEnqueued() {};
     
-    void dequeueMessages();
+    void sendMessagesFromQueue();
     void processMessages();
     void processPrints();
     void processMidi();
@@ -162,7 +162,7 @@ public:
 
 
     
-    WaitableEvent update_wait;
+    WaitableEvent updateWait;
     
     struct internal;
     

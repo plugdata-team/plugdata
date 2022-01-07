@@ -471,7 +471,7 @@ struct Subpatch : public GUIComponent {
     std::pair<int, int> getBestSize() override { return { 0, 3 }; };
 
     void resized() override {};
-    void updateValue() override {};
+    void updateValue() override;
 
     pd::Patch* getPatch() override
     {

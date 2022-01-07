@@ -79,15 +79,13 @@ static t_atom *fake_gatom_getatom(t_fake_gatom *x)
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
-
-
 Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept :
 Object(ptr, patch, instance), m_type(Type::Undefined)
 {
-    m_type = getType(ptr, getText());
+    m_type = getType(ptr);
 }
 
-Type Gui::getType(void* ptr, std::string obj_text) noexcept
+Type Gui::getType(void* ptr) noexcept
 {
     Type m_type = Type::Undefined;
     
@@ -164,11 +162,6 @@ Type Gui::getType(void* ptr, std::string obj_text) noexcept
     
     else if(name == "canvas" || name == "graph")
     {
-        // This is not nice!
-        // But it can take pd a bit of time before it has set the "gl_isgraph" flag...
-        // This does fix the issue, but it's not nice
-        Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 30);
-        
         if(static_cast<t_canvas*>(ptr)->gl_list)
         {
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
@@ -669,11 +662,8 @@ Array Gui::getArray() const noexcept
 
 Patch Gui::getPatch() const noexcept
 {
-    if(m_type == Type::GraphOnParent)
+    if(m_type == Type::GraphOnParent || m_type == Type::Subpatch)
     {
-        return Patch(m_ptr, m_instance);
-    }
-    if(m_type == Type::Subpatch) {
         return Patch(m_ptr, m_instance);
     }
     
