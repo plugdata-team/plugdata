@@ -112,7 +112,6 @@ void Box::mouseMove(const MouseEvent& e)
 void Box::setType(String newType, bool exists)
 {
     // Change box type
-
     textLabel.setText(newType, dontSendNotification);
 
     String arguments = newType.fromFirstOccurrenceOf(" ", false, false);
@@ -122,8 +121,6 @@ void Box::setType(String newType, bool exists)
     // When setting exists to true, you need to have assigned an object to the pdObject variable already
     if (!exists) {
         auto* pd = &cnv->patch;
-        
-
         // Pd doesn't normally allow changing between gui and non-gui objects so we force it
         if (pdObject && graphics) {
             pd->removeObject(pdObject.get());
@@ -133,8 +130,16 @@ void Box::setType(String newType, bool exists)
         } else {
             pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
         }
-    } else if (!exists) {
-        pdObject = nullptr;
+    }
+    else {
+        auto* ptr = pdObject->getPointer();
+        // Reload GUI if it already exists
+        if(pd::Gui::getType(ptr) != pd::Type::Undefined) {
+            pdObject.reset(new pd::Gui(ptr, &cnv->patch, cnv->pd));
+        }
+        else {
+            pdObject.reset(new pd::Object(ptr, &cnv->patch, cnv->pd));
+        }
     }
 
     // Update inlets/outlets if it's not in a graph

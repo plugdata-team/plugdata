@@ -8,6 +8,7 @@
 
 #include <JuceHeader.h>
 
+struct Canvas;
 struct MainLook : public LookAndFeel_V4 {
 
     inline static DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
@@ -222,7 +223,8 @@ struct MainLook : public LookAndFeel_V4 {
         auto background = findColour (PopupMenu::backgroundColourId);
         g.setColour(background);
         
-        if(!Desktop::canUseSemiTransparentWindows())  {
+        
+        if(!Desktop::canUseSemiTransparentWindows() && JUCEApplicationBase::isStandaloneApp())  {
             auto bounds = Rectangle<float>(0, 0, width, height);
             g.fillRect(bounds);
 

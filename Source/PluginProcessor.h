@@ -106,11 +106,10 @@ public:
     void saveSettings();
     void updateSearchPaths();
 
-    void messageEnqueued() override
-    {
-        dequeueMessages();
-        processMessages();
-    }
+    void sendMidiBuffer();
+    
+    void messageEnqueued() override;
+    
     void loadPatch(String patch);
 
     Console* console;
@@ -119,8 +118,6 @@ public:
 
     AudioBuffer<float> processingBuffer;
 
-    std::vector<const float*> bufferin;
-    std::vector<float*> bufferout;
 
     std::atomic<float>* volume;
 

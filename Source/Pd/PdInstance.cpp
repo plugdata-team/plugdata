@@ -146,7 +146,7 @@ Instance::Instance(std::string const& symbol)
                                                      reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
     
-
+    
     libpd_set_verbose(0);
     
     
@@ -408,7 +408,8 @@ void Instance::enqueueFunction(std::function<void(void)> fn) {
     
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
-    m_function_queue.try_enqueue(fn);
+    m_function_queue.enqueue(fn);
+    messageEnqueued();
 }
 
 void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
@@ -425,13 +426,13 @@ void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list
 
 void Instance::enqueueDirectMessages(void* object, const std::string& msg)
 {
-    m_send_queue.try_enqueue(dmessage{object, std::string(), std::string(), std::vector<Atom>(1, msg)});
+    m_send_queue.try_enqueue(dmessage{object, std::string(), "s", std::vector<Atom>(1, msg)});
     messageEnqueued();
 }
 
 void Instance::enqueueDirectMessages(void* object, const float msg)
 {
-    m_send_queue.try_enqueue(dmessage{object, std::string(), std::string(), std::vector<Atom>(1, msg)});
+    m_send_queue.try_enqueue(dmessage{object, std::string(), "float", std::vector<Atom>(1, msg)});
     messageEnqueued();
 }
 
@@ -440,10 +441,11 @@ void Instance::waitForStateUpdate() {
     if(audioStarted) {
         // Append signal to resume thread at the end of the queue
         // This will make sure that any actions we performed are definitely finished now
-        m_function_queue.enqueue([this](){
-            update_wait.signal();
+        enqueueFunction([this](){
+            updateWait.signal();
         });
-        update_wait.wait(); 
+        
+        updateWait.wait();
     }
     // Should ensure that patches are loaded correctly when audio hasn't started yet
     else {
@@ -456,49 +458,51 @@ void Instance::waitForStateUpdate() {
 }
 
 
-void Instance::dequeueMessages()
+void Instance::sendMessagesFromQueue()
 {
     
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
-    dmessage mess;
     
     std::function<void(void)> callback;
-    
     while(m_function_queue.try_dequeue(callback))
     {
         callback();
         audioStarted = true;
     }
     
-    
+    dmessage mess;
     while(m_send_queue.try_dequeue(mess))
     {
         if(mess.object && !mess.list.empty())
         {
-            if(mess.list[0].isFloat())
+            if(mess.selector == "list")
+            {
+                t_atom* argv = static_cast<t_atom*>(m_atoms);
+                for(size_t i = 0; i < mess.list.size(); ++i)
+                {
+                    if(mess.list[i].isFloat())
+                        SETFLOAT(argv+i, mess.list[i].getFloat());
+                    else if(mess.list[i].isSymbol())
+                    {
+                        sys_lock();
+                        SETSYMBOL(argv+i, gensym(mess.list[i].getSymbol().data()));
+                        sys_unlock();
+                    }
+                    else
+                        SETFLOAT(argv+i, 0.0);
+                }
+                sys_lock();
+                pd_list(static_cast<t_pd *>(mess.object), gensym("list"), static_cast<int>(mess.list.size()), argv);
+                sys_unlock();
+            }
+            else if(mess.selector == "float" && mess.list[0].isFloat())
             {
                 sys_lock();
                 pd_float(static_cast<t_pd *>(mess.object), mess.list[0].getFloat());
                 sys_unlock();
             }
-            else if (!mess.selector.empty()) {
-                int argc = mess.list.size();
-                auto argv = std::vector<t_atom>(argc);
-
-                for(int i = 0; i < argc; i++) {
-                    if(mess.list[i].isFloat()) {
-                        SETFLOAT(argv.data() + i, mess.list[i].getFloat());
-                    }
-                    else if (mess.list[i].isSymbol()) {
-                        SETSYMBOL(argv.data() + i, gensym(mess.list[i].getSymbol().c_str()));
-                    }
-                }
-                
-                sys_lock();
-                pd_typedmess(static_cast<t_pd *>(mess.object), gensym(mess.selector.c_str()), argc, argv.data());
-                sys_unlock();
-            }
-            else {
+            else if(mess.selector == "symbol")
+            {
                 sys_lock();
                 pd_symbol(static_cast<t_pd *>(mess.object), gensym(mess.list[0].getSymbol().c_str()));
                 sys_unlock();
@@ -572,7 +576,7 @@ void Instance::stringToAtom(String name, int& argc, t_atom& target)
 String Instance::getCanvasContent() {
     
     if(!m_patch) return String();
-        
+    
     char* buf;
     int bufsize;
     
