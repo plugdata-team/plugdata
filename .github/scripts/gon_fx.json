@@ -8,4 +8,22 @@
     "sign" :{
         "application_identity" : "CA4517E22F3EC0BDC527A7616FC60959C59E7A9B"
     },
+
+    "notarize": [
+      {
+      "path": "./Plugins/VST3/PlugDataFx.vst3/Contents/MacOS/PlugDataFx",
+      "bundle_id": "com.Octagon.PlugDataFx",
+      "staple": true
+      },
+      {
+      "path": "./Plugins/AU/PlugDataFx.component/Contents/MacOS/PlugDataFx",
+      "bundle_id": "com.Octagon.PlugDataFx",
+      "staple": true
+      },
+      {
+      "path": "./Plugins/LV2/PlugData_LV2.dylib",
+      "bundle_id": "com.Octagon.PlugDataFx",
+      "staple": true
+      }
+    ]
 }

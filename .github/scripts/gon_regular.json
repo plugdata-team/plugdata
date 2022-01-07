@@ -1,11 +1,29 @@
 {
-    "source" : ["./Plugins/VST3/PlugData.vst3/Contents/MacOS/PlugData", "./Plugins/AU/PlugData.component/Contents/MacOS/PlugData", "./Plugins/Standalone/PlugData.app"],
+    "source" : ["./Plugins/VST3/PlugData.vst3/Contents/MacOS/PlugData", "./Plugins/AU/PlugData.component/Contents/MacOS/PlugData", "./Plugins/Standalone/PlugData.app/Contents/MacOS/PlugData"],
     "bundle_id" : "com.Octagon.PlugData",
     "apple_id": {
             "username" : "timschoen123@gmail.com",
             "password":  "@env:AC_PASSWORD"
-        },
-    "sign" :{
+    },
+    "sign" : {
         "application_identity" : "CA4517E22F3EC0BDC527A7616FC60959C59E7A9B"
     },
+
+    "notarize": [
+      {
+      "path": "./Plugins/VST3/PlugData.vst3/Contents/MacOS/PlugData",
+      "bundle_id": "com.Octagon.PlugData",
+      "staple": true
+      },
+      {
+      "path": "./Plugins/AU/PlugData.component/Contents/MacOS/PlugData",
+      "bundle_id": "com.Octagon.PlugData",
+      "staple": true
+      },
+      {
+      "path": "./Plugins/Standalone/PlugData.app/Contents/MacOS/PlugData",
+      "bundle_id": "com.Octagon.PlugData",
+      "staple": true
+      }
+    ]
 }
