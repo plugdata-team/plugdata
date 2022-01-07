@@ -165,6 +165,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     toolbarButtons[5].setTooltip("Create Object");
     toolbarButtons[5].onClick = [this]() {
         PopupMenu menu;
+        
         menu.addItem(16, "Empty Object");
         menu.addSeparator();
         
@@ -267,7 +268,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             cnv->boxes.add(new Box(cnv, boxName));
         };
 
-        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]), ModalCallbackFunction::create(callback));
+        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]).withParentComponent(this), ModalCallbackFunction::create(callback));
     };
 
 
