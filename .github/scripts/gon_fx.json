@@ -6,7 +6,7 @@
             "password":  "@env:AC_PASSWORD"
         },
     "sign" :{
-        "application_identity" : "CA4517E22F3EC0BDC527A7616FC60959C59E7A9B"
+        "application_identity" : "56F3651ED4A313CA72A1755E92EC4EA68FCCE14F"
     },
 
     "notarize": [
