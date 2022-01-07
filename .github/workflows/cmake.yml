@@ -117,9 +117,10 @@ jobs:
         # The password used to import the PKCS12 file.
         p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
         
-    - name: Install Codesign Dependencies
-      run: brew tap mitchellh/gon
-           brew install mitchellh/gon/gon
+    - name: Install gon via HomeBrew for code signing and app notarization
+      run: |
+        brew tap mitchellh/gon
+        brew install mitchellh/gon/gon
 
     - name: Build
       working-directory: ${{github.workspace}}/build
