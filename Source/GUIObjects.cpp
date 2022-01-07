@@ -600,7 +600,7 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
     if (isVertical) {
         box->restrainer.setSizeLimits(30, 100, 250, 500);
     } else {
-        box->restrainer.setSizeLimits(100, 60, 500, 250);
+        box->restrainer.setSizeLimits(100, 45, 500, 250);
     }
 }
 
