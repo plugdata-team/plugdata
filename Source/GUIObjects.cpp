@@ -598,7 +598,7 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
     radioButtons[selected]->setToggleState(true, dontSendNotification);
 
     if (isVertical) {
-        box->restrainer.setSizeLimits(40, 100, 250, 500);
+        box->restrainer.setSizeLimits(30, 100, 250, 500);
     } else {
         box->restrainer.setSizeLimits(100, 60, 500, 250);
     }
@@ -608,10 +608,27 @@ void RadioComponent::resized()
 {
     gui.setSize(getWidth(), getHeight());
 
+    /*
     int numButtons = maximum - minimum;
     for (int i = 0; i < numButtons; i++) {
-        radioButtons[i]->setBounds(isVertical ? getWidth() / 2 - 11 : i * 20, isVertical ? (i * 20) - 1 : -1, 21, 21);
+        float buttonSize = isVertical ? getWidth() : getHeight();
+        radioButtons[i]->setBounds(isVertical ? getWidth() / 2 - 11 : i * 20, isVertical ? (i * 20) - 1 : -1, buttonSize, buttonSize);
+    } */
+    
+    FlexBox fb;
+    fb.flexWrap = FlexBox::Wrap::noWrap;
+    fb.justifyContent = FlexBox::JustifyContent::flexStart;
+    fb.alignContent = FlexBox::AlignContent::flexStart;
+    fb.flexDirection = isVertical ? FlexBox::Direction::column : FlexBox::Direction::row;
+    
+    for (auto* b : radioButtons) {
+        auto item = FlexItem (*b).withMinWidth (8.0f).withMinHeight (8.0f);
+        item.flexGrow = 1.0f;
+        item.flexShrink = 1.0f;
+        fb.items.add (item);
     }
+    
+    fb.performLayout (getLocalBounds().toFloat());
 }
 
 void RadioComponent::update()
