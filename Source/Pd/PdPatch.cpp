@@ -124,8 +124,6 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
 
 
 std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y) {
-    
-    
     t_pd* pdobject = nullptr;
     m_instance->enqueueFunction([this, x, y, &pdobject]() mutable {
         m_instance->setThis();
@@ -214,17 +212,15 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
         pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
     });
     
-    
-    
     while(!pdobject) {
         m_instance->waitForStateUpdate();
     }
     
     assert(pdobject);
     
-    bool is_gui = Gui::getType(pdobject, name.toStdString()) != Type::Undefined;
+    bool isGui = Gui::getType(pdobject) != Type::Undefined;
     
-    if(is_gui) {
+    if(isGui) {
         return std::make_unique<Gui>(pdobject, this, m_instance);
     }
     else {

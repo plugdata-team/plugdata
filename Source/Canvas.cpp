@@ -103,7 +103,7 @@ void Canvas::synchronise(bool updatePosition)
             auto [x, y, w, h] = object.getBounds();
             auto name = String(object.getText());
 
-            auto type = pd::Gui::getType(object.getPointer(), name.toStdString());
+            auto type = pd::Gui::getType(object.getPointer());
             auto isGui = type != pd::Type::Undefined;
             auto* pdObject = isGui ? new pd::Gui(object.getPointer(), &patch, pd) : new pd::Object(object);
 

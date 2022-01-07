@@ -803,6 +803,8 @@ void keyboard_setup(void){
     class_addmethod(keyboard_class, (t_method)keyboard_low_c, gensym("lowc"), A_DEFFLOAT, 0);
     class_addmethod(keyboard_class, (t_method)keyboard_toggle, gensym("toggle"), A_DEFFLOAT, 0);
     class_addmethod(keyboard_class, (t_method)keyboard_norm, gensym("norm"), A_DEFFLOAT, 0);
+    class_addmethod(keyboard_class, (t_method)keyboard_note_on, gensym("noteon"), A_DEFFLOAT, 0);
+    class_addmethod(keyboard_class, (t_method)keyboard_note_off, gensym("noteoff"), A_DEFFLOAT, 0);
     class_addmethod(keyboard_class, (t_method)keyboard_flush, gensym("flush"), 0);
     class_addmethod(keyboard_class, (t_method)keyboard_send, gensym("send"), A_DEFSYMBOL, 0);
     class_addmethod(keyboard_class, (t_method)keyboard_receive, gensym("receive"), A_DEFSYMBOL, 0);

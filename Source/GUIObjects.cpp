@@ -908,6 +908,17 @@ Subpatch::Subpatch(pd::Gui pdGui, Box* box)
     subpatch = gui.getPatch();
 }
 
+void Subpatch::updateValue() {
+    bool isGui = false;
+    
+    // Pd sometimes sets the isgraph flag too late...
+    // In that case we tell the box to create the gui
+    if(static_cast<t_canvas*>(gui.getPointer())->gl_isgraph) {
+        box->setType(box->textLabel.getText(), true);
+    }
+    
+};
+
 Subpatch::~Subpatch()
 {
     closeOpenedSubpatchers();
@@ -1058,20 +1069,18 @@ void KeyboardComponent::updateValue() {
 void KeyboardComponent::handleNoteOn(MidiKeyboardState* source,
     int midiChannel, int note, float velocity)
 {
-
     auto* x = (t_keyboard*)gui.getPointer();
 
-    int i = note - x->x_first_c;
-    t_canvas* cv = glist_getcanvas(x->x_glist);
-    short key = note % 12, black = (key == 1 || key == 3 || key == 6 || key == 8 || key == 10);
-    // sys_vgui(".x%lx.c itemconfigure %xrrk%d -fill %s\n", cv, x, i, black ? BLACK_ON : WHITE_ON);
-    int ac = 2;
-    t_atom at[2];
-    SETFLOAT(at, note);
-    SETFLOAT(at + 1, x->x_velocity);
-    outlet_list(x->x_out, &s_list, ac, at);
-    if (x->x_send != &s_ && x->x_send->s_thing)
-        pd_list(x->x_send->s_thing, &s_list, ac, at);
+    box->cnv->pd->enqueueFunction([x, note, velocity]() mutable {
+        int ac = 2;
+        t_atom at[2];
+        SETFLOAT(at, note);
+        SETFLOAT(at + 1, velocity * 127);
+        
+        outlet_list(x->x_out, &s_list, ac, at);
+        if (x->x_send != &s_ && x->x_send->s_thing)
+            pd_list(x->x_send->s_thing, &s_list, ac, at);
+    });
 }
 
 void KeyboardComponent::handleNoteOff(MidiKeyboardState* source,
@@ -1079,19 +1088,17 @@ void KeyboardComponent::handleNoteOff(MidiKeyboardState* source,
 {
 
     auto* x = (t_keyboard*)gui.getPointer();
-
-    if (x->x_tgl_notes[note] == 0) {
-        t_canvas* cv = glist_getcanvas(x->x_glist);
-        short key = note % 12, c4 = (note == 60), black = (key == 1 || key == 3 || key == 6 || key == 8 || key == 10);
-        // sys_vgui(".x%lx.c itemconfigure %xrrk%d -fill %s\n", cv, x, i, black ? BLACK_OFF : c4 ? MIDDLE_C : WHITE_OFF);
-    }
-    int ac = 2;
-    t_atom at[2];
-    SETFLOAT(at, note);
-    SETFLOAT(at + 1, 0);
-    outlet_list(x->x_out, &s_list, ac, at);
-    if (x->x_send != &s_ && x->x_send->s_thing)
-        pd_list(x->x_send->s_thing, &s_list, ac, at);
+    
+    box->cnv->pd->enqueueFunction([x, note, velocity]() mutable {
+        int ac = 2;
+        t_atom at[2];
+        SETFLOAT(at, note);
+        SETFLOAT(at + 1, 0);
+        
+        outlet_list(x->x_out, &s_list, ac, at);
+        if (x->x_send != &s_ && x->x_send->s_thing)
+            pd_list(x->x_send->s_thing, &s_list, ac, at);
+    });
 };
 
 #define CLOSED 1 /* polygon */
