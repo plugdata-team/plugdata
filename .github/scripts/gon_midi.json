@@ -2,6 +2,7 @@
     "source" : ["./Plugins/AU/PlugDataMidi.component/Contents/MacOS/PlugDataMidi"],
     "bundle_id" : "com.Octagon.PlugDataMidi",
     "apple_id": {
+            "username" : "timschoen123@gmail.com",
             "password":  "@env:AC_PASSWORD"
         },
     "sign" :{

@@ -7,20 +7,18 @@ mkdir Plugins/LV2/PlugData.lv2
 
 if [[ "$OSTYPE" == "linux-gnu"* ]]; then
 ./Plugins/LV2/lv2_file_generator Plugins/LV2/PlugData_LV2.so PlugData
-cp Plugins/LV2/PlugData_LV2.so Plugins/LV2/PlugData.lv2/PlugData.so
+mv Plugins/LV2/PlugData_LV2.so Plugins/LV2/PlugData.lv2/PlugData.so
 
 elif [[ "$OSTYPE" == "darwin"* ]]; then
 ./Plugins/LV2/lv2_file_generator Plugins/LV2/PlugData_LV2.dylib PlugData
-cp Plugins/LV2/PlugData_LV2.dylib Plugins/LV2/PlugData.lv2/PlugData.dylib
+mv Plugins/LV2/PlugData_LV2.dylib Plugins/LV2/PlugData.lv2/PlugData.dylib
 fi
 
 mv manifest.ttl Plugins/LV2/PlugData.lv2/manifest.ttl
 mv presets.ttl Plugins/LV2/PlugData.lv2/presets.ttl
 mv PlugData.ttl Plugins/LV2/PlugData.lv2/PlugData.ttl
 
-mkdir Plugins/LV2/Extra
-mv Plugins/LV2/lv2_file_generator Plugins/LV2/Extra/lv2_file_generator
-mv Plugins/LV2/PlugData_LV2.dylib Plugins/LV2/Extra/PlugData.dylib
+rm  Plugins/LV2/Extra/lv2_file_generator
 
 cp README.md PlugData/README.md
 cp LICENSE PlugData/LICENSE.txt
