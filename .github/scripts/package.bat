@@ -9,13 +9,21 @@ move manifest.ttl PlugData\LV2\PlugData.lv2\manifest.ttl
 move presets.ttl PlugData\LV2\PlugData.lv2\presets.ttl
 move PlugData.ttl PlugData\LV2\PlugData.lv2\PlugData.ttl
 
-move PlugData\VST3\PlugData.vst3\Contents\*\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
+move PlugData\VST3\PlugData.vst3\Contents\x86_64-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
 rd PlugData\VST3\PlugData.vst3\ /S /Q
 move PlugData\VST3\PlugData_temp.vst3 PlugData\VST3\PlugData.vst3
 
-move PlugData\VST3\PlugDataFx.vst3\Contents\*\PlugDataFx.vst3 PlugData\VST3\PlugData_temp.vst3
+move PlugData\VST3\PlugDataFx.vst3\Contents\x86_64-win\PlugDataFx.vst3 PlugData\VST3\PlugData_temp.vst3
 rd PlugData\VST3\PlugDataFx.vst3\ /S /Q
 move PlugData\VST3\PlugData_temp.vst3 PlugData\VST3\PlugDataFx.vst3
+
+move PlugData\VST3\PlugData.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
+rd PlugData\VST3\PlugData.vst3\ /S /Q
+move PlugData\VST3\PlugData_temp.vst3 PlugData\VST3\PlugData.vst3
+
+move PlugData\VST3\PlugData.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
+rd PlugData\VST3\PlugData.vst3\ /S /Q
+move PlugData\VST3\PlugData_temp.vst3 PlugData\VST3\PlugData.vst3
 
 del PlugData\LV2\lv2_file_generator.exe /F
 
