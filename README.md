@@ -1,5 +1,5 @@
 # PlugData
-Pure Data as a plugin, with a new GUI
+Plugin wrapper around PureData to allow patching in a wide selection of DAWs.
 
 <img width="1024" alt="Screenshot 2021-12-28 at 18 50 02" src="https://user-images.githubusercontent.com/44585538/147593480-34daed21-3f6b-4a11-b1f1-db1d5edb756c.png">
 <img width="1024" alt="Screenshot 2021-12-28 at 18 51 48" src="https://user-images.githubusercontent.com/44585538/147593486-8dbae995-bdc7-4ccd-ae6d-2dc4919f2b0d.png">
