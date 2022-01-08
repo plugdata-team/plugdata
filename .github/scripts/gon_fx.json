@@ -5,25 +5,7 @@
             "username" : "timschoen123@gmail.com",
             "password":  "@env:AC_PASSWORD"
         },
-    "sign" :{
+    "sign" : {
         "application_identity" : "56F3651ED4A313CA72A1755E92EC4EA68FCCE14F"
-    },
-
-    "notarize": [
-      {
-      "path": "./Plugins/VST3/PlugDataFx.vst3/Contents/MacOS/PlugDataFx",
-      "bundle_id": "com.Octagon.PlugDataFx",
-      "staple": true
-      },
-      {
-      "path": "./Plugins/AU/PlugDataFx.component/Contents/MacOS/PlugDataFx",
-      "bundle_id": "com.Octagon.PlugDataFx",
-      "staple": true
-      },
-      {
-      "path": "./Plugins/LV2/PlugData_LV2.dylib",
-      "bundle_id": "com.Octagon.PlugDataFx",
-      "staple": true
-      }
-    ]
+    }
 }
