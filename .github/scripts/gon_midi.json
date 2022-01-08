@@ -2,18 +2,9 @@
     "source" : ["./Plugins/AU/PlugDataMidi.component/Contents/MacOS/PlugDataMidi"],
     "bundle_id" : "com.Octagon.PlugDataMidi",
     "apple_id": {
-            "username" : "timschoen123@gmail.com",
             "password":  "@env:AC_PASSWORD"
         },
     "sign" :{
         "application_identity" : "56F3651ED4A313CA72A1755E92EC4EA68FCCE14F"
-    },
-
-    "notarize": [
-      {
-      "path": "./Plugins/AU/PlugDataMidi.component/Contents/MacOS/PlugDataMidi",
-      "bundle_id": "com.Octagon.PlugDataMidi",
-      "staple": true
-      }
-    ]
+    }
 }

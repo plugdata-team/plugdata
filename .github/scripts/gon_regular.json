@@ -7,23 +7,5 @@
     },
     "sign" : {
         "application_identity" : "56F3651ED4A313CA72A1755E92EC4EA68FCCE14F"
-    },
-
-    "notarize": [
-      {
-      "path": "./Plugins/VST3/PlugData.vst3/Contents/MacOS/PlugData",
-      "bundle_id": "com.Octagon.PlugData",
-      "staple": true
-      },
-      {
-      "path": "./Plugins/AU/PlugData.component/Contents/MacOS/PlugData",
-      "bundle_id": "com.Octagon.PlugData",
-      "staple": true
-      },
-      {
-      "path": "./Plugins/Standalone/PlugData.app/Contents/MacOS/PlugData",
-      "bundle_id": "com.Octagon.PlugData",
-      "staple": true
-      }
-    ]
+    }
 }
