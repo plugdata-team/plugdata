@@ -21,9 +21,9 @@ move PlugData\VST3\PlugData.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\Pl
 rd PlugData\VST3\PlugData.vst3\ /S /Q
 move PlugData\VST3\PlugData_temp.vst3 PlugData\VST3\PlugData.vst3
 
-move PlugData\VST3\PlugData.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
-rd PlugData\VST3\PlugData.vst3\ /S /Q
-move PlugData\VST3\PlugData_temp.vst3 PlugData\VST3\PlugData.vst3
+move PlugData\VST3\PlugDataFx.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\PlugDataFx_temp.vst3
+rd PlugData\VST3\PlugDataFx.vst3\ /S /Q
+move PlugData\VST3\PlugDataFx_temp.vst3 PlugData\VST3\PlugDataFx.vst3
 
 del PlugData\LV2\lv2_file_generator.exe /F
 
