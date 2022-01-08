@@ -5,7 +5,7 @@
       },
     "notarize": [
       {
-      "path": "./Plugins.zip",
+      "path": "./PlugData.zip",
       "bundle_id": "com.Octagon.PlugData",
       "staple": false
       }
