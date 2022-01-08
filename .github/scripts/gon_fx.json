@@ -1,5 +1,5 @@
 {
-    "source" : ["./Plugins/VST3/PlugDataFx.vst3/Contents/MacOS/PlugDataFx", "./Plugins/AU/PlugDataFx.component/Contents/MacOS/PlugDataFx", "./Plugins/LV2/PlugData_LV2.dylib"],
+    "source" : ["./Plugins/VST3/PlugDataFx.vst3/Contents/MacOS/PlugDataFx", "./Plugins/AU/PlugDataFx.component/Contents/MacOS/PlugDataFx", "./Plugins/LV2/PlugData.lv2/PlugData.dylib"],
     "bundle_id" : "com.Octagon.PlugDataFx",
     "apple_id": {
             "username" : "timschoen123@gmail.com",
