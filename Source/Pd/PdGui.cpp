@@ -621,20 +621,25 @@ std::array<int, 4> Gui::getBounds() const noexcept
 {
     if(m_type == Type::Panel)
     {
-        std::array<int, 4> const bounds = Object::getBounds();
+        auto const bounds = Object::getBounds();
         return {bounds[0], bounds[1],
             static_cast<t_my_canvas*>(m_ptr)->x_vis_w + 1,
             static_cast<t_my_canvas*>(m_ptr)->x_vis_h + 1};
     }
     else if(m_type == Type::AtomNumber || m_type == Type::AtomSymbol)
     {
-        std::array<int, 4> const bounds = Object::getBounds();
+        auto const bounds = Object::getBounds();
         return {bounds[0], bounds[1], bounds[2], bounds[3] - 2};
     }
     else if(m_type == Type::Comment)
     {
-        std::array<int, 4> const bounds = Object::getBounds();
+        auto const bounds = Object::getBounds();
         return {bounds[0] + 2, bounds[1] + 2, bounds[2], bounds[3] - 2};
+    }
+    else if(isIEM()) {
+        auto* iemgui = static_cast<t_iemgui*>(m_ptr);
+        auto const bounds = Object::getBounds();
+        return {bounds[0], bounds[1], iemgui->x_w, iemgui->x_h};
     }
     return Object::getBounds();
 }

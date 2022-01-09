@@ -297,13 +297,8 @@ struct SliderComponent : public GUIComponent {
 
     std::pair<int, int> getBestSize() override
     {
-        /*
-         if(isVertical) return {35, 130};
-
-         return {130, 35}; */
-
         auto [x, y, w, h] = gui.getBounds();
-        return { isVertical ? w + 10 : w, isVertical ? h : h + 10 };
+        return {w, h};
     };
 
     ObjectParameters defineParamters() override
@@ -346,12 +341,8 @@ struct RadioComponent : public GUIComponent {
 
     std::pair<int, int> getBestSize() override
     {
-        int numButtons = maximum - minimum;
-
-        if (isVertical)
-            return { 24, 20 * numButtons };
-
-        return { 20 * numButtons, 23 };
+        auto [x, y, w, h] = gui.getBounds();
+        return {w, h};
     };
 
     ObjectParameters defineParamters() override
