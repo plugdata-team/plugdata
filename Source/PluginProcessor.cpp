@@ -653,6 +653,7 @@ void PlugDataAudioProcessor::processInternal()
     
     sendMidiBuffer();
     processMessages();
+    processPrints();
 
     //////////////////////////////////////////////////////////////////////////////////////////
     //                                          AUDIO                                       //

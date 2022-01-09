@@ -126,6 +126,20 @@ void Console::logMessage(const String& message)
     triggerAsyncUpdate();
 }
 
+/** Posts an error directly to the Console */
+void Console::logError(const String& message)
+{
+    {
+        const ScopedLock scopedLock(linesLock);
+        lines.add(message + "\n");
+        lineColours.add(logMessageColour);
+        ++numNewLinesSinceUpdate;
+        ++numLinesStored;
+    }
+    triggerAsyncUpdate();
+}
+
+
 void Console::setNewLogMessageColour(const Colour& newLogMessageColour)
 {
     logMessageColour = newLogMessageColour;
