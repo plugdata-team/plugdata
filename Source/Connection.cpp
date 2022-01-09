@@ -57,7 +57,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     end->addComponentListener(this);
 
     // Don't need mouse clicks
-    setInterceptsMouseClicks(false, false);
+    setInterceptsMouseClicks(true, false);
 
     cnv->addAndMakeVisible(this);
 
@@ -81,6 +81,19 @@ Connection::~Connection()
     }
 }
 
+bool Connection::hitTest(int x, int y) {
+    Point<float> position = Point<float>(x, y);
+    
+    Point<float> nearestPoint;
+    path.getNearestPoint(position, nearestPoint);
+    
+    if(nearestPoint.getDistanceFrom(position) < 5) {
+        return true;
+    }
+    
+    return false;
+}
+
 //==============================================================================
 void Connection::paint(Graphics& g)
 {
@@ -99,9 +112,7 @@ void Connection::paint(Graphics& g)
 
 void Connection::mouseDown(const MouseEvent& e)
 {
-    if (path.contains(e.getPosition().toFloat())) {
-        isSelected = !isSelected;
-    }
+    isSelected = !isSelected;
 }
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
