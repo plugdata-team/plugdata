@@ -144,7 +144,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
 
     // Save button
-    toolbarButtons[2].setTooltip("Open Project");
+    toolbarButtons[2].setTooltip("Save Project");
     toolbarButtons[2].onClick = [this]() {
         saveProject();
     };

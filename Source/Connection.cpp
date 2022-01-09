@@ -19,7 +19,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     addMouseListener(cnv, true);
 
     // Make sure it's not 2x the same edge
-    if (!start || !end) {
+    if (!start || !end || start->isInput == end->isInput) {
         start = nullptr;
         end = nullptr;
         parent->connections.removeObject(this);
@@ -42,7 +42,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     // If it doesn't already exist in pd, create connection in pd
     if (!exists) {
         bool canConnect = parent->patch.createConnection(outObj->get(), outIdx, inObj->get(), inIdx);
-
+        
+        
         if (!canConnect) {
             start = nullptr;
             end = nullptr;

@@ -276,6 +276,7 @@ void Box::resized()
 
         index++;
     }
+    
 }
 
 void Box::updatePorts()
