@@ -92,7 +92,7 @@ public:
     void logMessage(const String& message) override;
     
     /** Posts an error directly to the Console */
-    void logError(const String& message) override;
+    void logError(const String& message);
 
     /** Sets a new colour for all stdout prints. Default is blue */
     void setNewLogMessageColour(const Colour& newColour);
