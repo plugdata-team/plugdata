@@ -74,8 +74,35 @@ public:
 
     void receivePrint(const std::string& message) override
     {
+        if(!message.empty())
+           {
+               if(!message.compare(0, 6, "error:"))
+               {
+                   std::string const temp(message.begin()+7, message.end());
+                   //add(ConsoleLevel::Error, temp);
+               }
+               else if(!message.compare(0, 11, "verbose(4):"))
+               {
+                   std::string const temp(message.begin()+12, message.end());
+                   //add(ConsoleLevel::Error, temp);
+               }
+               else if(!message.compare(0, 5, "tried"))
+               {
+                   //add(ConsoleLevel::Log, message);
+               }
+               else if(!message.compare(0, 16, "input channels ="))
+               {
+                   //add(ConsoleLevel::Log, message);
+               }
+               else
+               {
+                   //add(ConsoleLevel::Normal, message);
+               }
+           }
+        
         if (console) {
             console->logMessage(message);
+            
         }
     };
 

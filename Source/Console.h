@@ -90,6 +90,9 @@ public:
 
     /** Posts a message directly to the Console, is also called if this is set as the current juce logger */
     void logMessage(const String& message) override;
+    
+    /** Posts an error directly to the Console */
+    void logError(const String& message) override;
 
     /** Sets a new colour for all stdout prints. Default is blue */
     void setNewLogMessageColour(const Colour& newColour);

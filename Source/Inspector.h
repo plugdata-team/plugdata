@@ -15,9 +15,9 @@ enum ParameterType {
     tBool
 };
 
-
 using ObjectParameter = std::tuple<String, ParameterType, void*>; // name, type and pointer to value
-using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<void(int)>>;
+
+using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<void(int)>>; // List of elements and update function
 
 struct Inspector : public Component,
                    public TableListBoxModel {
