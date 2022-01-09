@@ -3,10 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
-
-
-#ifndef JCF_MULTI_SELECTION_H_INCLUDED
-#define JCF_MULTI_SELECTION_H_INCLUDED
+#pragma once
 
 #include <JuceHeader.h>
 
@@ -318,4 +315,3 @@ private:
     BorderSize<int> amountPermittedOffscreen;
 };
 
-#endif // JCF_MULTI_SELECTION_H_INCLUDED
