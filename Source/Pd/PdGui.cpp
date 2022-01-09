@@ -9,6 +9,9 @@
 #include <limits>
 #include <cmath>
 
+#define SLMARGIN 5
+
+
 extern "C"
 {
 #include <z_libpd.h>
@@ -651,8 +654,11 @@ void Gui::setSize(int w, int h) noexcept {
     }
     else if(isIEM()) {
         auto* iemgui = static_cast<t_iemgui*>(m_ptr);
+        
         iemgui->x_w = w;
         iemgui->x_h = h;
+        
+        
     }
 }
 
