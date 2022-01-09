@@ -275,6 +275,7 @@ BangComponent::BangComponent(pd::Gui pdGui, Box* parent)
 
     initParameters();
     box->restrainer.setSizeLimits(40, 60, 200, 200);
+    box->restrainer.checkComponentBounds(box);
 }
 
 void BangComponent::update()
@@ -297,6 +298,7 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
 {
     addAndMakeVisible(toggleButton);
     toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
+    toggleButton.setConnectedEdges(12);
     
     toggleButton.onClick = [this]() {
         startEdition();
@@ -308,15 +310,16 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
 
     initParameters();
     
-    
-
     box->restrainer.setSizeLimits(40, 60, 200, 200);
+    box->restrainer.checkComponentBounds(box);
 }
 
 void ToggleComponent::resized()
 {
+    
     gui.setSize(getWidth(), getHeight());
-    toggleButton.setBounds(getLocalBounds().reduced(6));
+    toggleButton.setBounds(getLocalBounds().reduced(8));
+   
 }
 
 void ToggleComponent::update()
@@ -351,6 +354,8 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
     input.setMultiLine(true);
 
     box->restrainer.setSizeLimits(100, 50, 500, 600);
+    box->restrainer.checkComponentBounds(box);
+    
 }
 
 void MessageComponent::resized()
@@ -435,6 +440,7 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     
 
     box->restrainer.setSizeLimits(100, 50, 500, 600);
+    box->restrainer.checkComponentBounds(box);
 }
 
 void NumboxComponent::resized()
@@ -486,6 +492,7 @@ ListComponent::ListComponent(pd::Gui gui, Box* parent)
     updateValue();
 
     box->restrainer.setSizeLimits(100, 50, 500, 600);
+    box->restrainer.checkComponentBounds(box);
 }
 
 void ListComponent::paint(juce::Graphics& g)
@@ -529,15 +536,15 @@ void ListComponent::update()
 }
 
 // SliderComponent
-SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
+SliderComponent::SliderComponent(bool vertical, pd::Gui pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
-    isVertical = is_vertical;
+    isVertical = vertical;
     addAndMakeVisible(slider);
 
     isLogarithmic = gui.isLogScale();
 
-    if (is_vertical)
+    if (vertical)
         slider.setSliderStyle(Slider::LinearVertical);
 
     slider.setRange(0., 1., 0.001);
@@ -569,8 +576,10 @@ SliderComponent::SliderComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
 
     if (isVertical) {
         box->restrainer.setSizeLimits(40, 100, 250, 500);
+        box->restrainer.checkComponentBounds(box);
     } else {
         box->restrainer.setSizeLimits(100, 60, 500, 250);
+        box->restrainer.checkComponentBounds(box);
     }
 }
 
@@ -586,10 +595,10 @@ void SliderComponent::update()
 }
 
 // RadioComponent
-RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
+RadioComponent::RadioComponent(bool vertical, pd::Gui pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
-    isVertical = is_vertical;
+    isVertical = vertical;
 
     initParameters();
     updateRange();
@@ -599,21 +608,16 @@ RadioComponent::RadioComponent(bool is_vertical, pd::Gui pdGui, Box* parent)
 
     if (isVertical) {
         box->restrainer.setSizeLimits(30, 100, 250, 500);
+        box->restrainer.checkComponentBounds(box);
     } else {
         box->restrainer.setSizeLimits(100, 45, 500, 250);
+        box->restrainer.checkComponentBounds(box);
     }
 }
 
 void RadioComponent::resized()
 {
     gui.setSize(getWidth(), getHeight());
-
-    /*
-    int numButtons = maximum - minimum;
-    for (int i = 0; i < numButtons; i++) {
-        float buttonSize = isVertical ? getWidth() : getHeight();
-        radioButtons[i]->setBounds(isVertical ? getWidth() / 2 - 11 : i * 20, isVertical ? (i * 20) - 1 : -1, buttonSize, buttonSize);
-    } */
     
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
@@ -629,6 +633,7 @@ void RadioComponent::resized()
     }
     
     fb.performLayout (getLocalBounds().toFloat());
+    
 }
 
 void RadioComponent::update()
