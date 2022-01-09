@@ -78,32 +78,27 @@ public:
            {
                if(!message.compare(0, 6, "error:"))
                {
-                   std::string const temp(message.begin()+7, message.end());
-                   //add(ConsoleLevel::Error, temp);
+                   const auto temp = String(message);
+                   if (console) console->logError(temp.substring(7));
                }
                else if(!message.compare(0, 11, "verbose(4):"))
                {
-                   std::string const temp(message.begin()+12, message.end());
-                   //add(ConsoleLevel::Error, temp);
+                   const auto temp = String(message);
+                   if (console) console->logError(temp.substring(12));
                }
                else if(!message.compare(0, 5, "tried"))
                {
-                   //add(ConsoleLevel::Log, message);
+                   if(console) console->logMessage(message);
                }
                else if(!message.compare(0, 16, "input channels ="))
                {
-                   //add(ConsoleLevel::Log, message);
+                   if(console) console->logMessage(message);
                }
                else
                {
-                   //add(ConsoleLevel::Normal, message);
+                   if(console) console->logMessage(message);
                }
            }
-        
-        if (console) {
-            console->logMessage(message);
-            
-        }
     };
 
     void process(AudioSampleBuffer&, MidiBuffer&);
