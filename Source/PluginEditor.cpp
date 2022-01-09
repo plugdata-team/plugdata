@@ -535,10 +535,8 @@ void PlugDataPluginEditor::timerCallback()
 
 }
 
-
 void PlugDataPluginEditor::updateUndoState()
 {
-
     pd.setThis();
 
     toolbarButtons[5].setEnabled(!pd.locked);
@@ -599,7 +597,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
 
     auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
 
-    auto* closeButton = new TextButton("x");
+    auto* closeButton = new TextButton(CharPointer_UTF8("\xef\x80\x8d"));
 
     closeButton->onClick = [this, tabButton]() mutable {
         // We cant use the index from earlier because it might change!
@@ -630,6 +628,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
         }
     };
 
+    closeButton->setLookAndFeel(&statusbarLook2);
     closeButton->setColour(TextButton::buttonColourId, Colour());
     closeButton->setColour(TextButton::buttonOnColourId, Colour());
     closeButton->setColour(ComboBox::outlineColourId, Colour());
@@ -644,5 +643,4 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
     tabbar.repaint();
 
     cnv->setVisible(true);
-    // cnv->setBounds(0, 0, 1000, 700);
 }
