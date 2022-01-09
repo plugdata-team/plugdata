@@ -132,7 +132,7 @@ void Console::logError(const String& message)
     {
         const ScopedLock scopedLock(linesLock);
         lines.add(message + "\n");
-        lineColours.add(logMessageColour);
+        lineColours.add(stdErrColour);
         ++numNewLinesSinceUpdate;
         ++numLinesStored;
     }
