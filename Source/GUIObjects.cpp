@@ -585,7 +585,7 @@ SliderComponent::SliderComponent(bool vertical, pd::Gui pdGui, Box* parent)
 
 void SliderComponent::resized()
 {
-    gui.setSize(getWidth() - 5, getHeight() - 10);
+    gui.setSize(getWidth(), getHeight());
     slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 6.0, isVertical ? 6.0 : 0.0));
 }
 
