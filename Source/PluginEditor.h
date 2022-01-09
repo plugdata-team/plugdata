@@ -78,8 +78,6 @@ public:
 
     TabComponent& getTabbar() { return tabbar; };
 
-    // This reference is provided as a quick way for your editor to
-    // access the processor object that created it.
     PlugDataAudioProcessor& pd;
 
     const std::string defaultPatch = "#N canvas 827 239 527 327 12;";
