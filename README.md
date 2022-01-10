@@ -5,7 +5,7 @@ Plugin wrapper around PureData to allow patching in a wide selection of DAWs.
 <img width="1024" alt="Screenshot 2021-12-28 at 18 51 48" src="https://user-images.githubusercontent.com/44585538/147593486-8dbae995-bdc7-4ccd-ae6d-2dc4919f2b0d.png">
 
 
-PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. It can still use some stability fixes, especially for complicated patches. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
+PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
 ```
 git clone --recursive https://github.com/timothyschoen/PlugData.git
@@ -18,7 +18,7 @@ cmake --build .
 **Important:**
 - Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the PlugData repository .
 - On Linux OS, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
-- The CMake build system have been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
+- The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
 
 ## Credits
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
@@ -40,7 +40,7 @@ What works:
 - Very close to full support for pd (including all GUI objects, undo/redo, copy/paste, saving, loading, console, object properties, drawing functions, audio and MIDI I/O, help files)
 - Most ELSE library objects work
 - LV2, AU and VST3 formats available, tested on Windows (x64), Mac (ARM/x64) and Linux (ARM/x64), also works as AU MIDI processor for Logic
-- Receive 8 DAW parameters by using "receive param1"
+- Receive 8 DAW parameters using "receive param1"
 
 
 Known issues:
