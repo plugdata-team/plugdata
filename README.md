@@ -24,7 +24,7 @@ cmake --build .
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres
 - [Pure Data](http://msp.ucsd.edu/software.html) by Miller Puckette and others
-- [libpd](http://libpd.cc) by the Peter Brinkmann, Dan Wilcox and others
+- [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
 - [ff_meters](https://github.com/ffAudio/ff_meters) by Foleys Finest Audio
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
