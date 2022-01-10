@@ -7,3 +7,6 @@
 [submodule "libpd"]
 	path = Libraries/libpd
 	url = https://github.com/libpd/libpd.git
+[submodule "JUCE"]
+	path = Libraries/JUCE
+	url = https://github.com/juce-framework/JUCE.git

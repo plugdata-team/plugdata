@@ -9,7 +9,7 @@
 #include <m_pd.h>
 #include <g_all_guis.h>
 
-#include <ff_meters/ff_meters.h>
+#include "../Libraries/ff_meters/ff_meters.h"
 
 #include "LookAndFeel.h"
 #include "Pd/PdGui.hpp"

@@ -12,7 +12,7 @@
 #include "LevelMeter.h"
 #include "LookAndFeel.h"
 
-#include "juce_audio_plugin_client/Standalone/juce_StandaloneFilterWindow.h"
+#include "Standalone/PlugDataWindow.h"
 
 #include <JuceHeader.h>
 

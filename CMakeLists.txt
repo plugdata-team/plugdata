@@ -43,12 +43,13 @@ endif()
 
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
-    ${SOURCES_DIRECTORY}/*.cpp
-    ${SOURCES_DIRECTORY}/Standalone/*.cpp
-    ${SOURCES_DIRECTORY}/Standalone/*.h
-    Libraries/ff_meters/*.cpp
-    Libraries/ff_meters/*.h)
+    ${SOURCES_DIRECTORY}/*.cpp)
 source_group("Source" FILES ${PlugDataSources})
+
+file(GLOB PlugDataStandaloneSources
+    ${SOURCES_DIRECTORY}/Standalone/*.cpp
+    ${SOURCES_DIRECTORY}/Standalone/*.h)
+source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
 
 file(GLOB_RECURSE PlugDataPdSources
     ${SOURCES_DIRECTORY}/Pd/*.c
@@ -100,7 +101,7 @@ juce_add_plugin(PlugDataFx
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    OCTA
-    PLUGIN_CODE                 PlDt
+    PLUGIN_CODE                 PlDf
     FORMATS                     AU VST3 # AAX Unity AUv3
     PRODUCT_NAME                "PlugDataFx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
@@ -125,7 +126,7 @@ juce_add_plugin(PlugDataMidi
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     FALSE
     PLUGIN_MANUFACTURER_CODE    OCTA
-    PLUGIN_CODE                 PlDt
+    PLUGIN_CODE                 PlDm
     FORMATS                     AU
     PRODUCT_NAME                "PlugDataMidi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor
@@ -134,7 +135,7 @@ endif()
 
 juce_generate_juce_header(PlugData)
 set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
-target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
+target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${PlugDataStandaloneSources} ${ELSESources})
 
 juce_generate_juce_header(PlugDataFx)
 set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 20)
@@ -143,7 +144,7 @@ target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSE
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
 set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
-target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
+target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ffMeterSources} ${ELSESources})
 endif()
 
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
@@ -200,16 +201,16 @@ juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 if(MSVC)
-  target_link_libraries(PlugData PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-  target_link_libraries(PlugDataFx PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-  target_link_libraries(PlugData_LV2 PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
+  target_link_libraries(PlugData PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ff_meters libpthreadVC3)
+  target_link_libraries(PlugDataFx PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ff_meters libpthreadVC3)
+  target_link_libraries(PlugData_LV2 PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ff_meters libpthreadVC3)
 else()
-  target_link_libraries(PlugData PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-  target_link_libraries(PlugDataFx PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+  target_link_libraries(PlugData PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ff_meters)
+  target_link_libraries(PlugDataFx PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ff_meters)
   if(APPLE)
-    target_link_libraries(PlugDataMidi PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+    target_link_libraries(PlugDataMidi PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ff_meters)
   endif()
-  target_link_libraries(PlugData_LV2 PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+  target_link_libraries(PlugData_LV2 PRIVATE libpdstatic PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client ff_meters)
 endif()
 
 add_executable(lv2_file_generator ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/main.c)
