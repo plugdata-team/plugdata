@@ -252,6 +252,8 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     processMessages();
     processPrints();
     processingBuffer.setSize(2, samplesPerBlock);
+    helpAudioBufferIn.setSize(2, samplesPerBlock);
+    helpAudioBufferOut.setSize(2, samplesPerBlock);
 
     meterSource.resize(numout, 50.0f * 0.001f * sampleRate / samplesPerBlock);
 }
@@ -334,7 +336,6 @@ void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, Mid
         for (int c = 0; c < editor->canvases.size(); c++) {
             auto* cnv = editor->canvases[c];
             if (cnv->aux_instance) {
-                cnv->aux_instance->enabled->store(0);
                 cnv->aux_instance->process(processingBuffer, midiMessages);
             }
         }
@@ -393,18 +394,12 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         }
     }
 
-    // Run help files (without audio)
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        for (int c = 0; c < editor->canvases.size(); c++) {
-            auto* cnv = editor->canvases[c];
-            if (cnv && cnv->aux_instance) {
-                cnv->aux_instance->enabled->store(0);
-                cnv->aux_instance->process(processingBuffer, midiMessages);
-            }
-        }
-    }
-    
     processingBuffer.setSize(2, buffer.getNumSamples());
+    
+    helpAudioBufferIn.setSize(2, buffer.getNumSamples());
+    helpAudioBufferOut.setSize(2, buffer.getNumSamples());
+    helpAudioBufferIn.clear();
+    helpAudioBufferOut.clear();
 
     // If we're a logic MIDI processor!
     if(buffer.getNumChannels() == 0) {
@@ -415,8 +410,29 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
 
     }
+    
+    // Run help files
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        for (int c = 0; c < editor->canvases.size(); c++) {
+            auto* cnv = editor->canvases[c];
+            
+            if (cnv && cnv->aux_instance && buffer.getNumChannels()) {
+                helpAudioBufferIn.makeCopyOf(processingBuffer);
+                
+                cnv->aux_instance->process(helpAudioBufferIn, midiMessages);
+                
+                helpAudioBufferOut.addFrom(0, 0, helpAudioBufferIn, 0, 0, buffer.getNumSamples());
+                helpAudioBufferOut.addFrom(1, 0, helpAudioBufferIn, 1, 0, buffer.getNumSamples());
+            }
+        }
+        
+    }
+    
 
     process(processingBuffer, midiMessages);
+    
+    processingBuffer.addFrom(0, 0, helpAudioBufferOut, 0, 0, buffer.getNumSamples());
+    processingBuffer.addFrom(1, 0, helpAudioBufferOut, 1, 0, buffer.getNumSamples());
 
     if(buffer.getNumChannels() != 0) {
         buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());

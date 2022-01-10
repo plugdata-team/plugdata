@@ -77,6 +77,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     lockButton.setLookAndFeel(&statusbarLook2);
     lockButton.onClick = [this]() {
         pd.locked = lockButton.getToggleState();
+        
+        for(auto& cnv : canvases) {
+            cnv->pd->locked = pd.locked;
+        }
 
         lockButton.setButtonText(pd.locked ? CharPointer_UTF8("\xef\x80\xa3") : CharPointer_UTF8("\xef\x82\x9c"));
 
@@ -292,7 +296,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         
         
         settingsDialog->setVisible(true);
-        settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 400));
+        settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 460));
         settingsDialog->toFront(false);
         settingsDialog->resized();
     };
@@ -523,7 +527,7 @@ void PlugDataPluginEditor::timerCallback()
 
     //if(pd.getCallbackLock()->tryEnter()) {
         for (auto& box : cnv->boxes) {
-            if (box->graphics) {
+            if (box->graphics && box->isShowing()) {
                 box->graphics->updateValue();
             }
         }
