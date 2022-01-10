@@ -26,3 +26,4 @@ mv PlugData PlugData-$1
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
   chmod 755 PlugData-$1/Standalone/PlugData.app/Contents/MacOS/PlugData
+fi
