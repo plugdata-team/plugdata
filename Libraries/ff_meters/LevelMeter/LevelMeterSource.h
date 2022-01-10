@@ -169,7 +169,9 @@ public:
     holdMSecs       (500),
     lastMeasurement (0),
     suspended       (false)
-    {}
+    {
+        newDataFlag = true;
+    }
 
     ~LevelMeterSource ()
     {
@@ -399,7 +401,7 @@ private:
 
     std::atomic<juce::int64> lastMeasurement;
 
-    std::atomic<bool> newDataFlag = true;
+    std::atomic<bool> newDataFlag;
 
     bool suspended;
 };
