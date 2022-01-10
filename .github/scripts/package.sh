@@ -23,4 +23,3 @@ rm  Plugins/LV2/lv2_file_generator
 cp README.md PlugData/README.md
 cp LICENSE PlugData/LICENSE.txt
 mv PlugData PlugData-$1
-rm -r PlugData
