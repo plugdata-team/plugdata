@@ -56,12 +56,14 @@ public:
 
     void setType(String newType, bool exists = false);
 
+    bool locked = false;
+    
 private:
     void initialise();
 
     void mouseMove(const MouseEvent& e) override;
 
-    bool locked = false;
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };
