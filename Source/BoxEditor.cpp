@@ -132,9 +132,14 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
     openedEditor = editor;
 
     // Should run after the input filter
-    editor->onTextChange = [this, editor]() {
+    editor->onTextChange = [this, editor, box]() {
         if (isCompleting && !editor->getText().containsChar(' ')) {
             editor->setHighlightedRegion({ highlightStart, highlightEnd });
+        }
+        auto width = editor->getTextWidth() + 10;
+        
+        if(width > box->getWidth()) {
+            box->setSize(width, box->getHeight());
         }
     };
 
