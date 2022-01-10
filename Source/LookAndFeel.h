@@ -30,7 +30,7 @@ struct MainLook : public LookAndFeel_V4 {
         setColour(ComboBox::backgroundColourId, firstBackground);
         setColour(ListBox::backgroundColourId, firstBackground);
         setColour(Slider::backgroundColourId, Colour(60, 60, 60));
-        setColour(Slider::trackColourId, Colour(50, 50, 50));
+        setColour(Slider::trackColourId, Colour(90, 90, 90));
         setColour(CodeEditorComponent::backgroundColourId, Colour(50, 50, 50));
         setColour(CodeEditorComponent::defaultTextColourId, Colours::white);
         setColour(TextEditor::textColourId, Colours::white);

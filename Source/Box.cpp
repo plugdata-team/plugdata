@@ -30,7 +30,9 @@ Box::Box(Canvas* parent, String name, Point<int> position)
     // Open editor for undefined objects
     if (name.isEmpty()) {
         textLabel.showEditor();
+        resized();
     }
+    
 
     // Updates lock/unlock mode
     changeListenerCallback(nullptr);
@@ -241,19 +243,19 @@ void Box::resized()
         textLabel.setBounds(4, 4, getWidth() - 8, 22);
         auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
 
-        if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
+        if (graphics && graphics->getGUI().getType() == pd::Type::Comment && !textLabel.isBeingEdited()) {
             int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
-            
-            if (textLabel.getText().isEmpty()) {
-                setSize(100, 31);
-            }
-            else {
-                setSize(bestWidth + 30, (num_lines * 17) + 14);
-            }
-            
+            setSize(bestWidth + 30, (num_lines * 17) + 14);
             textLabel.setBounds(getLocalBounds().reduced(4));
         } else if (graphics) {
             graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
+        }
+    }
+    
+    // Init size for empty objects
+    if(textLabel.isBeingEdited()) {
+        if(textLabel.getCurrentTextEditor()->getText().isEmpty()) {
+            setSize(100, 31);
         }
     }
 
