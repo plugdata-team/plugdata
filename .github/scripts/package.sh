@@ -25,7 +25,7 @@ cp LICENSE PlugData/LICENSE.txt
 
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  zip -r -q PlugData PlugData-$1
+  zip -r -q PlugData PlugData-$1.zip
 else
   mv PlugData PlugData-$1
 fi
