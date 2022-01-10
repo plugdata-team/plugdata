@@ -6,7 +6,7 @@
 
 #include "LookAndFeel.h"
 #include <JuceHeader.h>
-#include <ff_meters/ff_meters.h>
+#include "../Libraries/ff_meters/ff_meters.h"
 
 // Widget that shows a Foleys level meter and a volume slider
 

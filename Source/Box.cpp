@@ -230,14 +230,6 @@ void Box::paint(Graphics& g)
     }
 }
 
-void Box::moved()
-{
-    // Notify edges that we moved
-    for (auto& edge : edges) {
-        //edge->sendMovedResizedMessages(true, true);
-    }
-}
-
 void Box::resized()
 {
     bool hideLabel = graphics && !graphics->fakeGUI() && locked;

@@ -11,7 +11,6 @@
 #include "Pd/PdLibrary.hpp"
 #include "PluginEditor.h"
 #include <JuceHeader.h>
-#include <ff_meters/ff_meters.h>
 
 //==============================================================================
 /**
