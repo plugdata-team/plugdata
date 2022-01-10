@@ -19,7 +19,7 @@ Box::Box(Canvas* parent, String name, Point<int> position)
     , dragger(parent->dragger)
 {
     cnv = parent;
-
+    
     initialise();
     setTopLeftPosition(position);
     setType(name);
@@ -63,7 +63,8 @@ Box::~Box()
 void Box::changeListenerCallback(ChangeBroadcaster* source)
 {
     // Called when locking/unlocking
-
+    textLabel.setEditable(false, !cnv->pd->locked);
+    
     // If the object has graphics, we hide the draggable name object
     if (graphics && !graphics->fakeGUI() && (cnv->pd->locked || cnv->isGraph)) {
         locked = true;
