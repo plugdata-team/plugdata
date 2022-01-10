@@ -319,7 +319,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     toolbarButtons[8].setClickingTogglesState(true);
     toolbarButtons[8].setRadioGroupId(101);
     
-    toolbarButtons[8].setTooltip("Show Inspector");
+    toolbarButtons[9].setTooltip("Show Inspector");
     toolbarButtons[9].setClickingTogglesState(true);
     toolbarButtons[9].setRadioGroupId(101);
 
