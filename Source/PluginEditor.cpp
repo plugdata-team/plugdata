@@ -11,8 +11,6 @@
 #include "Edge.h"
 #include "Pd/x_libpd_mod_utils.h"
 
-#include "juce_audio_plugin_client/Standalone/juce_StandaloneFilterWindow.h"
-
 //==============================================================================
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole)
@@ -244,7 +242,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 ArrayDialog::show(this, [this](int result, String name, String size) {
                     if (result) {
                         auto* cnv = getCurrentCanvas();
-                        auto* box = new Box(cnv, "graph " + name + " " + size);
+                        auto* box = new Box(cnv, "graph " + name + " " + size, cnv->lastMousePos);
                         cnv->boxes.add(box);
                     }
                 });
@@ -265,7 +263,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 break;
             }
             auto* cnv = getCurrentCanvas();
-            cnv->boxes.add(new Box(cnv, boxName));
+            cnv->boxes.add(new Box(cnv, boxName, cnv->lastMousePos));
         };
 
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]).withParentComponent(this), ModalCallbackFunction::create(callback));
@@ -465,6 +463,7 @@ void PlugDataPluginEditor::mouseUp(const MouseEvent& e)
 {
     draggingSidebar = false;
 }
+
 
 void PlugDataPluginEditor::openProject()
 {
