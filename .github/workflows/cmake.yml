@@ -40,7 +40,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: PlugData-Ubuntu-20.04-x64
-        path: PlugData-Ubuntu-20.04-x64.zip
+        path: PlugData-Ubuntu-20.04-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -48,7 +48,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Ubuntu-20.04-x64.zip
+        files: PlugData-Ubuntu-20.04-x64
 
   ubuntu-18_04-build:
     runs-on: ubuntu-18.04
@@ -83,7 +83,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: PlugData-Ubuntu-18.04-x64
-        path: PlugData-Ubuntu-18.04-x64.zip
+        path: PlugData-Ubuntu-18.04-x64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -91,7 +91,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Ubuntu-18.04-x64.zip
+        files: PlugData-Ubuntu-18.04-x64
 
   macos-universal-build:
     runs-on: macos-latest
@@ -145,7 +145,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: PlugData-MacOS-Universal
-        path: PlugData-MacOS-Universal.zip
+        path: PlugData-MacOS-Universal
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -153,7 +153,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-MacOS-Universal.zip
+        files: PlugData-MacOS-Universal
 
   windows-64-build:
     runs-on: windows-latest
@@ -185,7 +185,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: PlugData-Win64
-        path: PlugData-Win64.zip
+        path: PlugData-Win64
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -193,7 +193,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Win64.zip
+        files: PlugData-Win64
 
   windows-32-build:
     runs-on: windows-latest
@@ -225,7 +225,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: PlugData-Win32
-        path: PlugData-Win32.zip
+        path: PlugData-Win32
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -233,4 +233,4 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-Win32.zip
+        files: PlugData-Win32

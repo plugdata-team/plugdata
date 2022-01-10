@@ -22,5 +22,5 @@ rm  Plugins/LV2/Extra/lv2_file_generator
 
 cp README.md PlugData/README.md
 cp LICENSE PlugData/LICENSE.txt
-zip -r -q PlugData-$1.zip PlugData
+mv PlugData PlugData-$1
 rm -r PlugData

@@ -182,6 +182,9 @@ private:
     MidiBuffer m_midi_buffer_in;
     MidiBuffer m_midi_buffer_out;
     MidiBuffer m_midi_buffer_temp;
+    
+    AudioSampleBuffer helpAudioBufferIn;
+    AudioSampleBuffer helpAudioBufferOut;
 
     bool m_midibyte_issysex = false;
     uint8 m_midibyte_buffer[512];
