@@ -14,6 +14,6 @@
 namespace ProjectInfo {
 const char* const projectName = "PlugData";
 const char* const companyName = "Octagon";
-const char* const versionString = "0.2";
+const char* const versionString = "0.2.1";
 const int versionNumber = 0x100;
 }
