@@ -230,11 +230,26 @@ struct MessageComponent : public GUIComponent {
 struct NumboxComponent : public GUIComponent {
 
     Label input;
-
+    
+    float last = 0.0f;
+    bool shift = false;
+    
     NumboxComponent(pd::Gui gui, Box* parent);
 
     std::pair<int, int> getBestSize() override { return { 60, 22 }; };
 
+    void mouseDown(const MouseEvent& event)
+    {
+        if(!input.isBeingEdited())
+        {
+            startEdition();
+            shift = event.mods.isShiftDown();
+            last  = getValueOriginal();
+            setValueOriginal(last);
+        }
+    }
+
+    
     void mouseDrag(const MouseEvent& e) override
     {
         startEdition();
@@ -246,6 +261,17 @@ struct NumboxComponent : public GUIComponent {
             input.setText(String(newval), sendNotification);
         }
         // onMouseDrag();
+        
+        if(!input.isBeingEdited())
+        {
+            auto const inc = static_cast<float>(-e.getDistanceFromDragStartY());
+            if(std::abs(inc) < 1.0f)
+            {
+                return;
+            }
+            setValueOriginal(last + inc * (shift ? 0.01f : 1.0f));
+            input.setText(String(getValueOriginal()), NotificationType::dontSendNotification);
+        }
     }
 
     ObjectParameters defineParamters() override

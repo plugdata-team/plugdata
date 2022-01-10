@@ -1,6 +1,6 @@
 #!/bin/bash
 
-rm -f PlugData-$1.zip
+rm -f PlugData-$1
 cp -r Plugins PlugData
 
 mkdir Plugins/LV2/PlugData.lv2
@@ -18,7 +18,7 @@ mv manifest.ttl Plugins/LV2/PlugData.lv2/manifest.ttl
 mv presets.ttl Plugins/LV2/PlugData.lv2/presets.ttl
 mv PlugData.ttl Plugins/LV2/PlugData.lv2/PlugData.ttl
 
-rm  Plugins/LV2/Extra/lv2_file_generator
+rm  Plugins/LV2/lv2_file_generator
 
 cp README.md PlugData/README.md
 cp LICENSE PlugData/LICENSE.txt
