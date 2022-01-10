@@ -44,6 +44,7 @@ What works:
 
 
 Known issues:
+- Tabs sometimes close when closing editor
 - Needs more testing on different systems and DAWs
 - There may still be some bugs
 - Can be slow for very large patches
