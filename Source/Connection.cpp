@@ -53,8 +53,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     }
     
     // Listen to changes at edges
-    start->addComponentListener(this);
-    end->addComponentListener(this);
+    start->box->addComponentListener(this);
+    end->box->addComponentListener(this);
 
     // Don't need mouse clicks
     setInterceptsMouseClicks(true, false);
@@ -73,11 +73,11 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
 
 Connection::~Connection()
 {
-    if (start) {
-        start->removeComponentListener(this);
+    if (start && start->box) {
+        start->box->removeComponentListener(this);
     }
-    if (end) {
-        end->removeComponentListener(this);
+    if (end && end->box) {
+        end->box->removeComponentListener(this);
     }
 }
 
