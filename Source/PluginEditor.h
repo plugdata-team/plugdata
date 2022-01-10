@@ -12,7 +12,7 @@
 #include "LevelMeter.h"
 #include "LookAndFeel.h"
 
-#include "../Libraries/JUCE/modules/juce_audio_plugin_client/Standalone/juce_StandaloneFilterWindow.h"
+#include "juce_audio_plugin_client/Standalone/juce_StandaloneFilterWindow.h"
 
 #include <JuceHeader.h>
 
@@ -94,6 +94,8 @@ public:
     TextButton bypassButton = TextButton(CharPointer_UTF8("\xef\x85\xab"));
     TextButton lockButton = TextButton(CharPointer_UTF8("\xef\x82\x9c"));
     TextButton connectionStyleButton = TextButton(CharPointer_UTF8("\xef\x85\xb2"));
+    
+    Point<int> lastMousePos;
 
 private:
     FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");

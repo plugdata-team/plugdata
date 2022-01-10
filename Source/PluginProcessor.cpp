@@ -328,7 +328,9 @@ void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, Mid
 
     // Run help files (without audio)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-
+        auto& cnvLock = editor->canvases.getLock();
+        cnvLock.enter();
+        
         for (int c = 0; c < editor->canvases.size(); c++) {
             auto* cnv = editor->canvases[c];
             if (cnv->aux_instance) {
@@ -336,6 +338,8 @@ void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, Mid
                 cnv->aux_instance->process(processingBuffer, midiMessages);
             }
         }
+        
+        cnvLock.exit();
     }
 
     processingBuffer.setSize(2, buffer.getNumSamples());

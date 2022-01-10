@@ -44,8 +44,10 @@ endif()
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
-    Libraries/JUCE/modules/ff_meters/*.cpp
-    Libraries/JUCE/modules/ff_meters/*.h)
+    ${SOURCES_DIRECTORY}/Standalone/*.cpp
+    ${SOURCES_DIRECTORY}/Standalone/*.h
+    Libraries/ff_meters/*.cpp
+    Libraries/ff_meters/*.h)
 source_group("Source" FILES ${PlugDataSources})
 
 file(GLOB_RECURSE PlugDataPdSources
@@ -159,6 +161,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_STRICT_REFCOUNTEDPOINTER=1
     JUCE_WEB_BROWSER=0
     JUCE_USE_CURL=0
+    JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP=1
     PDINSTANCE=1
     PDTHREADS=1
 )
