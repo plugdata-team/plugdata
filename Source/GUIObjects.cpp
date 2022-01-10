@@ -409,17 +409,24 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
 {
     input.addMouseListener(this, false);
 
-    input.setInputRestrictions(0, ".-0123456789");
-    input.setText("0.");
+    input.onEditorShow = [this]()
+        {
+            auto* editor = input.getCurrentTextEditor();
+            if(editor != nullptr)
+            {
+                
+                editor->setInputRestrictions(0, ".-0123456789");
+            }
+            
+            editor->onFocusLost = [this]() {
+                setValueOriginal(input.getText().getFloatValue());
+                stopEdition();
+            };
+        };
+    
     addAndMakeVisible(input);
-
-    /*
-     input.onFocusGained = [this]()
-     {
-
-     }; */
-
-    input.setText(String(getValueOriginal(), 3));
+    
+    input.setText(String(getValueOriginal(), 3), dontSendNotification);
     
     input.onTextChange = [this]() {
         startEdition();
@@ -431,15 +438,11 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
 
         setValueOriginal(value);
     };
-
-    input.onFocusLost = [this]() {
-        setValueOriginal(input.getText().getFloatValue());
-        stopEdition();
-    };
     
+    input.setEditable(true);
     
 
-    box->restrainer.setSizeLimits(100, 50, 500, 600);
+    box->restrainer.setSizeLimits(30, 50, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 

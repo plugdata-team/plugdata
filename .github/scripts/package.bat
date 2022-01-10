@@ -25,5 +25,5 @@ del PlugData\LV2\lv2_file_generator.exe /F
 copy README.md PlugData\README.md
 copy ChangeLog.md PlugData\ChangeLog.md
 copy LICENSE PlugData\LICENSE.txt
-7z a PlugData-%1.zip PlugData
+move PlugData PlugData-%1
 @echo on

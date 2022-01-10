@@ -229,7 +229,7 @@ struct MessageComponent : public GUIComponent {
 
 struct NumboxComponent : public GUIComponent {
 
-    TextEditor input;
+    Label input;
 
     NumboxComponent(pd::Gui gui, Box* parent);
 
@@ -243,14 +243,13 @@ struct NumboxComponent : public GUIComponent {
         int dist = -e.getDistanceFromDragStartY();
         if (abs(dist) > 2) {
             float newval = input.getText().getFloatValue() + ((float)dist / 100.);
-            input.setText(String(newval));
+            input.setText(String(newval), sendNotification);
         }
         // onMouseDrag();
     }
 
     ObjectParameters defineParamters() override
     {
-
         auto callback = [this](int changedParameter) {
             if (changedParameter == 0) {
                 gui.setMinimum(min);
@@ -263,6 +262,10 @@ struct NumboxComponent : public GUIComponent {
         return { { { "Minimum", tFloat, (void*)&min },
                      { "Maximum", tFloat, (void*)&max } },
             callback };
+    }
+    
+    void paint(Graphics& g) override {
+        g.fillAll(findColour(TextEditor::backgroundColourId));
     }
 
     void resized() override;

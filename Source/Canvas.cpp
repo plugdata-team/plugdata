@@ -351,11 +351,13 @@ void Canvas::mouseDown(const MouseEvent& e)
                 auto* lock = pd->getCallbackLock();
 
                 lock->enter();
-
+                    
+                    
+                    
                 auto* new_cnv = main.canvases.add(new Canvas(main));
                 new_cnv->aux_instance.reset(ownedProcessor); // Help files need their own instance
                 new_cnv->pd = ownedProcessor;
-                    
+                new_cnv->title = String(helpName).fromLastOccurrenceOf("/", false, false);
                 
                 new_cnv->pd->prepareToPlay(pd->getSampleRate(), pd->AudioProcessor::getBlockSize());
 
