@@ -92,7 +92,7 @@ void Box::initialise()
     addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
 
-    setSize(55, 31);
+    setSize(90, 31);
 
     addAndMakeVisible(&textLabel);
 
@@ -148,7 +148,7 @@ void Box::setType(String newType, bool exists)
 
     // Get best width for text
     auto bestWidth = std::max(45, textLabel.getFont().getStringWidth(newType) + 25);
-
+    
     if (pdObject) {
         // Create graphics for the object if necessary
         graphics.reset(GUIComponent::createGui(type, this));
@@ -234,7 +234,7 @@ void Box::moved()
 {
     // Notify edges that we moved
     for (auto& edge : edges) {
-        edge->sendMovedResizedMessages(true, true);
+        //edge->sendMovedResizedMessages(true, true);
     }
 }
 
@@ -251,7 +251,14 @@ void Box::resized()
 
         if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
             int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
-            setSize(bestWidth + 30, (num_lines * 17) + 14);
+            
+            if (textLabel.getText().isEmpty()) {
+                setSize(100, 31);
+            }
+            else {
+                setSize(bestWidth + 30, (num_lines * 17) + 14);
+            }
+            
             textLabel.setBounds(getLocalBounds().reduced(4));
         } else if (graphics) {
             graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);

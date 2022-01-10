@@ -108,12 +108,13 @@ public:
     std::unique_ptr<GraphArea> graphArea;
     
     Point<int> zeroPosition = {0, 0};
-
+    Point<int> lastMousePos;
+    
 private:
     SafePointer<TabbedComponent> tabbar;
 
     Point<int> dragStartPosition;
-    Point<int> lastMousePos;
+
 
     LassoComponent<Box*> lasso;
     PopupMenu popupMenu;
