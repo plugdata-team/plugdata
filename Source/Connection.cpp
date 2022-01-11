@@ -86,6 +86,14 @@ bool Connection::hitTest(int x, int y) {
     
     Point<float> nearestPoint;
     path.getNearestPoint(position, nearestPoint);
+
+    // Get start and end point
+    Point<float> pstart = start->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
+    Point<float> pend = end->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
+    
+    
+    if(pstart.getDistanceFrom(position) < 10.0f) return false;
+    if(pend.getDistanceFrom(position)   < 10.0f) return false;
     
     if(nearestPoint.getDistanceFrom(position) < 5) {
         return true;
