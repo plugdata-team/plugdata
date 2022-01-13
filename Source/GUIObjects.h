@@ -585,9 +585,7 @@ struct VUMeter : public GUIComponent {
 
 struct PanelComponent : public GUIComponent {
     
-    PanelComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box) {
-        initParameters();
-    }
+    PanelComponent(pd::Gui gui, Box* box);
     
     void paint(Graphics& g) override {
         g.fillAll(Colour::fromString(secondaryColour));

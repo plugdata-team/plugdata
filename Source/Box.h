@@ -70,6 +70,7 @@ private:
     void mouseExit(const MouseEvent& e) override;
 
 
+    Colour outline = MainLook::highlightColour;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };
