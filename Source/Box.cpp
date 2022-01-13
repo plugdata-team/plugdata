@@ -21,13 +21,13 @@ Box::Box(Canvas* parent, String name, Point<int> position)
     cnv = parent;
     
     initialise();
+    setType(name);
     
     if(graphics) {
         position.addXY(0, -22);
     }
     
     setTopLeftPosition(position);
-    setType(name);
     
     // Open editor for undefined objects
     if (name.isEmpty()) {
@@ -44,12 +44,14 @@ Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
     cnv = parent;
     initialise();
     
+    setType(name, true);
+    
     if(graphics) {
         position.addXY(0, -22);
     }
     
     setTopLeftPosition(position);
-    setType(name, true);
+    
 }
 
 Box::~Box()
@@ -59,21 +61,20 @@ Box::~Box()
 
 void Box::changeListenerCallback(ChangeBroadcaster* source)
 {
+    
+    locked = cnv->pd->locked;
     // Called when locking/unlocking
-    textLabel.setEditable(false, !cnv->pd->locked);
+    textLabel.setEditable(false, !locked);
     
     // If the object has graphics, we hide the draggable name object
-    if (graphics && !graphics->fakeGUI() && (cnv->pd->locked || cnv->isGraph)) {
-        locked = true;
+    if (graphics && !graphics->fakeGUI() && (locked || cnv->isGraph)) {
         textLabel.setVisible(false);
         if (resizer)
             resizer->setVisible(false);
     } else {
-        locked = false;
         if (resizer)
             resizer->setVisible(true);
     }
-    
     
     resized();
     repaint();
