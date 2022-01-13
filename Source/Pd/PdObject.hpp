@@ -47,6 +47,7 @@ enum class Type : size_t
     Mousepad,
     Mouse,
     Keyboard,
+    Invalid
 };
 
 class Object

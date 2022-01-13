@@ -191,7 +191,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         menu.addItem(11, "Array"); // 9
         menu.addItem(12, "GraphOnParent"); // 13
         menu.addItem(13, "Comment"); // 14
-        menu.addItem(14, "Panel"); // 10
+        menu.addItem(14, "Canvas"); // 10
         menu.addSeparator();
         menu.addItem(15, "Keyboard");
        
@@ -267,7 +267,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 break;
             }
             auto* cnv = getCurrentCanvas();
-            cnv->boxes.add(new Box(cnv, boxName, cnv->lastMousePos));
+           
+            cnv->boxes.add(new Box(cnv, boxName,  cnv->viewport->getViewArea().getCentre()));
         };
 
         menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]).withParentComponent(this), ModalCallbackFunction::create(callback));

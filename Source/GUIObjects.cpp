@@ -74,7 +74,7 @@ void GUIComponent::setBackground(Colour colour)
 {
     getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
     getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-    getLookAndFeel().setColour(Slider::backgroundColourId, colour);
+    getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
 
     libpd_iemgui_set_background_color(gui.getPointer(), colour.toString().toRawUTF8());
 }
@@ -933,6 +933,13 @@ void GraphOnParent::updateValue()
             box->graphics->updateValue();
         }
     }
+}
+
+PanelComponent::PanelComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box) {
+    box->restrainer.setSizeLimits(50, 50, 2000, 2000);
+    box->restrainer.checkComponentBounds(box);
+    
+    initParameters();
 }
 
 // Subpatch, phony GUI object

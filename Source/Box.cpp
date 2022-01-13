@@ -21,6 +21,8 @@ Box::Box(Canvas* parent, String name, Point<int> position)
     cnv = parent;
     
     initialise();
+    setTopLeftPosition(position);
+    
     setType(name);
     
     if(graphics) {
@@ -43,6 +45,8 @@ Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
 {
     cnv = parent;
     initialise();
+    setTopLeftPosition(position);
+    
     
     setType(name, true);
     
@@ -61,7 +65,6 @@ Box::~Box()
 
 void Box::changeListenerCallback(ChangeBroadcaster* source)
 {
-    
     locked = cnv->pd->locked;
     // Called when locking/unlocking
     textLabel.setEditable(false, !locked);
@@ -171,6 +174,7 @@ void Box::setType(String newType, bool exists)
         }
     }
 
+
     // Update inlets/outlets if it's not in a graph
     if (!cnv->isGraph)
         updatePorts();
@@ -228,6 +232,7 @@ void Box::paint(Graphics& g)
 
     auto baseColour = findColour(TextButton::buttonColourId);
     auto outlineColour = findColour(ComboBox::outlineColourId);
+    
 
     bool isOver = getLocalBounds().contains(getMouseXYRelative());
     bool isDown = textLabel.isDown;
@@ -237,10 +242,13 @@ void Box::paint(Graphics& g)
     bool hideLabel =  graphics && !graphics->fakeGUI() && (locked || !textLabel.isVisible());
     if(hideLabel) rect.removeFromTop(21);
     
-    if (isDown || isOver || selected) {
+    if(pdObject && pdObject->getType() == pd::Type::Invalid && !textLabel.isBeingEdited()) {
+        outlineColour = Colours::red;
+    }
+    else if (isDown || isOver) {
         baseColour = baseColour.contrasting(isDown ? 0.2f : 0.05f);
     }
-    if (selected) {
+    else if (selected) {
         outlineColour = MainLook::highlightColour;
     }
 

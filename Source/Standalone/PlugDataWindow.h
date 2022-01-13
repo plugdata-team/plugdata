@@ -112,7 +112,9 @@ public:
     void init (bool enableAudioInput, const String& preferredDefaultDeviceName)
     {
         setupAudioDevices (enableAudioInput, preferredDefaultDeviceName, options.get());
+#if JUCE_DEBUG
         reloadPluginState();
+#endif
         startPlaying();
 
        if (autoOpenMidiDevices)

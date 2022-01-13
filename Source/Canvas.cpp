@@ -147,6 +147,7 @@ void Canvas::synchronise(bool updatePosition)
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
             if (updatePosition && box->getPosition().getDistanceFrom(Point<int>(x, y)) > 8) {
+                //if(box->graphics && !box->graphics->fakeGUI()) y -= 22;
                 box->setTopLeftPosition(x, y);
             }
 
@@ -190,7 +191,7 @@ void Canvas::synchronise(bool updatePosition)
         }
     }
 
-    patch.deselectAll();
+    //patch.deselectAll();
 
     // Resize canvas to fit objects
     checkBounds();
@@ -725,6 +726,14 @@ void Canvas::pasteSelection()
     
     // Load state from pd, don't update positions
     synchronise(false);
+    
+    for(auto* box : boxes) {
+        if(glist_isselected(patch.getPointer(), (t_gobj*)box->pdObject->getPointer())) {
+            dragger.setSelected(box, true);
+        }
+    }
+    
+    patch.deselectAll();
 }
 
 void Canvas::duplicateSelection()
@@ -739,10 +748,18 @@ void Canvas::duplicateSelection()
 
     // Tell pd to duplicate
     patch.duplicate();
-    patch.deselectAll();
-
+    
     // Load state from pd, don't update positions
     synchronise(false);
+    
+    // Select the newly duplicated objects
+    for(auto* box : boxes) {
+        if(glist_isselected(patch.getPointer(), (t_gobj*)box->pdObject->getPointer())) {
+            dragger.setSelected(box, true);
+        }
+    }
+    
+    patch.deselectAll();
 }
 
 void Canvas::removeSelection()
@@ -779,6 +796,8 @@ void Canvas::removeSelection()
 
     // Load state from pd, don't update positions
     synchronise(false);
+    
+    patch.deselectAll();
 
     // Restart gui updating
     main.startTimer(guiUpdateMs);
@@ -792,6 +811,9 @@ void Canvas::undo()
     
     // Load state from pd
     synchronise();
+    
+    patch.deselectAll();
+    
     main.updateUndoState();
 }
 
@@ -802,6 +824,8 @@ void Canvas::redo()
     
     // Load state from pd
     synchronise();
+    
+    patch.deselectAll();
     main.updateUndoState();
 }
 

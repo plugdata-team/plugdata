@@ -131,7 +131,14 @@ Type Gui::getType(void* ptr) noexcept
     }
     else if(name == "text")
     {
-        m_type = Type::Comment;
+        auto* textObj = (t_text*)ptr;
+        if(textObj->te_type == T_OBJECT) {
+            m_type = Type::Invalid;
+        }
+        else {
+            m_type = Type::Comment;
+        }
+       
     }
     else if(name == "message")
     {
