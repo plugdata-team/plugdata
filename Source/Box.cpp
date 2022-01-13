@@ -21,21 +21,19 @@ Box::Box(Canvas* parent, String name, Point<int> position)
     cnv = parent;
     
     initialise();
+    
+    if(graphics) {
+        position.addXY(0, -22);
+    }
+    
     setTopLeftPosition(position);
     setType(name);
-
-    // Add listener for lock/unlock messages
-    cnv->main.addChangeListener(this);
-
+    
     // Open editor for undefined objects
     if (name.isEmpty()) {
         textLabel.showEditor();
         resized();
     }
-    
-
-    // Updates lock/unlock mode
-    changeListenerCallback(nullptr);
 }
 
 Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
@@ -45,14 +43,13 @@ Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
 {
     cnv = parent;
     initialise();
+    
+    if(graphics) {
+        position.addXY(0, -22);
+    }
+    
     setTopLeftPosition(position);
     setType(name, true);
-
-    // Add listener for lock/unlock messages
-    cnv->main.addChangeListener(this);
-
-    // Updates lock/unlock mode
-    changeListenerCallback(nullptr);
 }
 
 Box::~Box()
@@ -71,27 +68,20 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
         textLabel.setVisible(false);
         if (resizer)
             resizer->setVisible(false);
-
-        auto [w, h] = graphics->getBestSize();
-        graphics->setSize(w, h);
-        setSize(w + 8, h + 8);
     } else {
         locked = false;
-        textLabel.setVisible(true);
         if (resizer)
             resizer->setVisible(true);
-
-        if (graphics && !graphics->fakeGUI()) {
-            auto [w, h] = graphics->getBestSize();
-            graphics->setSize(w, h);
-            setSize(w + 8, h + 29);
-        }
     }
+    
+    
+    resized();
+    repaint();
 }
 
 void Box::initialise()
 {
-
+    addMouseListener(this, true);
     addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
 
@@ -105,11 +95,46 @@ void Box::initialise()
         String newText = textLabel.getText();
         setType(newText);
     };
+    
+    // Add listener for lock/unlock messages
+    cnv->main.addChangeListener(this);
+
+    // Updates lock/unlock mode
+    changeListenerCallback(nullptr);
+}
+
+bool Box::hitTest(int x, int y) {
+    if(graphics && !graphics->fakeGUI()) {
+        bool overGraphics = graphics->getBounds().expanded(4).contains(x, y);
+        bool overText = textLabel.isVisible() && textLabel.getBounds().expanded(4).contains(x, y);
+        return overGraphics || overText;
+    }
+    else {
+        return textLabel.getBounds().expanded(4).contains(x, y);
+    }
 }
 
 void Box::mouseMove(const MouseEvent& e)
 {
     findParentComponentOfClass<Canvas>()->repaint();
+}
+
+void Box::mouseEnter(const MouseEvent& e) {
+
+    if(graphics && !graphics->fakeGUI() && !locked) {
+        textLabel.setVisible(true);
+        resized();
+        repaint();
+    }
+    
+}
+
+void Box::mouseExit(const MouseEvent& e)  {
+    if(graphics && !graphics->fakeGUI() && !textLabel.isBeingEdited()) {
+        textLabel.setVisible(false);
+        resized();
+        repaint();
+    }
 }
 
 void Box::setType(String newType, bool exists)
@@ -164,6 +189,7 @@ void Box::setType(String newType, bool exists)
             setSize(w + 8, h + 29);
             graphics->toBack();
             restrainer.checkComponentBounds(this);
+            textLabel.setVisible(false);
         } else {
             setSize(bestWidth, 31);
         }
@@ -207,8 +233,9 @@ void Box::paint(Graphics& g)
 
     bool selected = dragger.isSelected(this);
 
-    bool hideLabel = graphics && !graphics->fakeGUI() && locked;
-
+    bool hideLabel =  graphics && !graphics->fakeGUI() && (locked || !textLabel.isVisible());
+    if(hideLabel) rect.removeFromTop(21);
+    
     if (isDown || isOver || selected) {
         baseColour = baseColour.contrasting(isDown ? 0.2f : 0.05f);
     }
@@ -235,22 +262,22 @@ void Box::paint(Graphics& g)
 
 void Box::resized()
 {
-    bool hideLabel = graphics && !graphics->fakeGUI() && locked;
-
+    bool hideLabel = graphics && !graphics->fakeGUI() && (locked || !textLabel.isVisible());
+    
+    if(graphics) graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
     // Hidden header mode: gui objects become undraggable
-    if (hideLabel) {
-        graphics->setBounds(4, 4, getWidth() - 8, getHeight() - 8);
-    } else {
+    if(!hideLabel) {
         textLabel.setBounds(4, 4, getWidth() - 8, 22);
         auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
 
+        /*
         if (graphics && graphics->getGUI().getType() == pd::Type::Comment && !textLabel.isBeingEdited()) {
             int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
             setSize(bestWidth + 30, (num_lines * 17) + 14);
             textLabel.setBounds(getLocalBounds().reduced(4));
         } else if (graphics) {
             graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
-        }
+        } */
     }
     
     // Init size for empty objects
@@ -269,10 +296,11 @@ void Box::resized()
         bool isInput = edge->isInput;
         int position = index < numInputs ? index : index - numInputs;
         int total = isInput ? numInputs : numOutputs;
-
+        
         float newY = isInput ? 4 : getHeight() - 4;
         float newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
 
+        if(isInput && graphics && !graphics->fakeGUI()) newY += 22;
         edge->setCentrePosition(newX, newY);
         edge->setSize(8, 8);
 
@@ -301,23 +329,10 @@ void Box::updatePorts()
     }
 
     // TODO: Make sure that this logic is exactly the same as PD
-    while (numInputs < oldnumInputs) {
-        edges.remove(oldnumInputs - 1);
-        oldnumInputs--;
-    }
-    while (numInputs > oldnumInputs) {
-        edges.insert(oldnumInputs, new Edge(this, true));
-        oldnumInputs++;
-    }
-
-    while (numOutputs < oldnumOutputs) {
-        edges.remove(oldnumOutputs - 1);
-        oldnumOutputs--;
-    }
-    while (numOutputs > oldnumOutputs) {
-        edges.insert(numInputs + oldnumOutputs, new Edge(this, false));
-        oldnumOutputs++;
-    }
+    while (numInputs < oldnumInputs) edges.remove(--oldnumInputs);
+    while (numInputs > oldnumInputs) edges.insert(oldnumInputs++, new Edge(this, true));
+    while (numOutputs < oldnumOutputs) edges.remove(numInputs + (--oldnumOutputs));
+    while (numOutputs > oldnumOutputs) edges.insert(numInputs + (++oldnumOutputs), new Edge(this, false));
 
     int numIn = 0;
     int numOut = 0;
