@@ -114,10 +114,10 @@ namespace pd
         void setList(std::vector<Atom> const& value) noexcept;
         
         Gui(void* ptr, Patch* patch, Instance* instance) noexcept;
+        
+        inline static StringArray allGUIs = {"bng", "hsl", "vsl", "tgl", "nbx", "vradio", "hradio", "cnv", "vu", "text", "message", "pad", "mouse", "keyboard", "vslider", "hslider", "msg", "gatom", "floatatom", "symbolatom"};
     private:
         
-        
-
         std::string last_symbol;
     
         Type m_type = Type::Undefined;
