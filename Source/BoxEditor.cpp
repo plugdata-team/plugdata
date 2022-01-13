@@ -58,8 +58,13 @@ TextEditor* ClickLabel::createEditorComponent()
     auto* editor = Label::createEditorComponent();
 
     editor->setAlwaysOnTop(true);
-    editor->setMultiLine(false, false);
-
+    
+    bool multiLine = box->pdObject && box->pdObject->getType() == pd::Type::Comment;
+    
+    // Allow multiline for comment objects
+    editor->setMultiLine(multiLine, false);
+    editor->setReturnKeyStartsNewLine(multiLine);
+    
     editor->setInputFilter(&suggestor, false);
     editor->addKeyListener(&suggestor);
 
@@ -103,10 +108,13 @@ SuggestionBox::SuggestionBox()
 
         // Colour pattern
         but->setColour(TextButton::buttonColourId, colours[i % 2]);
+       
+        /*
         but->onStateChange = [this, i, but]() mutable {
             if (but->getToggleState())
                 move(0, i);
-        };
+        }; */
+        
     }
 
     // select the first button
@@ -135,6 +143,7 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
     currentBox = box;
     openedEditor = editor;
 
+    
     // Should run after the input filter
     editor->onTextChange = [this, editor, box]() {
         if (isCompleting && !editor->getText().containsChar(' ')) {
@@ -149,8 +158,9 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
 
     for (int i = 0; i < buttons.size(); i++) {
         TextButton* but = buttons[i];
-        but->onClick = [this, i]() mutable {
-            currentidx = i;
+        but->onClick = [this, i, box]() mutable {
+            move(0, i);
+            //box->textLabel.showEditor();
         };
     }
 

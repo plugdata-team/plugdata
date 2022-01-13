@@ -151,19 +151,16 @@ void Box::setType(String newType, bool exists)
 
     // Exists indicates that this object already exists in pd
     // When setting exists to true, you need to have assigned an object to the pdObject variable already
-    if (!exists) {
+    if (!exists && newType.isNotEmpty()) {
         auto* pd = &cnv->patch;
         // Pd doesn't normally allow changing between gui and non-gui objects so we force it
-        if (pdObject && graphics) {
-            pd->removeObject(pdObject.get());
-            pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
-        } else if (pdObject) {
+        if (pdObject) {
             pdObject = pd->renameObject(pdObject.get(), newType);
         } else {
             pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
         }
     }
-    else {
+    else if (newType.isNotEmpty()) {
         auto* ptr = pdObject->getPointer();
         // Reload GUI if it already exists
         if(pd::Gui::getType(ptr) != pd::Type::Undefined) {
@@ -254,7 +251,9 @@ void Box::paint(Graphics& g)
 
     // Draw comment style
     if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
-        g.setColour(outlineColour);
+        if(locked || (!isOver && !isDown)) g.setColour(Colours::transparentBlack);
+        else g.setColour(findColour(ComboBox::outlineColourId));
+        
         g.drawRect(rect.toFloat(), 0.5f);
     }
     // Draw for all other objects
@@ -276,17 +275,14 @@ void Box::resized()
     if(graphics) graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
     // Hidden header mode: gui objects become undraggable
     if(!hideLabel) {
-        textLabel.setBounds(4, 4, getWidth() - 8, 22);
+        textLabel.setBounds(4, 4, getWidth() - 8, 23);
         auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
 
-        /*
         if (graphics && graphics->getGUI().getType() == pd::Type::Comment && !textLabel.isBeingEdited()) {
             int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
             setSize(bestWidth + 30, (num_lines * 17) + 14);
             textLabel.setBounds(getLocalBounds().reduced(4));
-        } else if (graphics) {
-            graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
-        } */
+        }
     }
     
     // Init size for empty objects

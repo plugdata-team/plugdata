@@ -147,7 +147,7 @@ void Canvas::synchronise(bool updatePosition)
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
             if (updatePosition && box->getPosition().getDistanceFrom(Point<int>(x, y)) > 8) {
-                //if(box->graphics && !box->graphics->fakeGUI()) y -= 22;
+                if(box->graphics && !box->graphics->fakeGUI()) y -= 22;
                 box->setTopLeftPosition(x, y);
             }
 
@@ -628,6 +628,10 @@ bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
     // Key shortcuts for creating objects
     if (key.getTextCharacter() == 'n') {
         boxes.add(new Box(this, "", lastMousePos));
+        return true;
+    }
+    if (key.getTextCharacter() == 'c' && !key.getModifiers().isCommandDown()) {
+        boxes.add(new Box(this, "comment", lastMousePos));
         return true;
     }
     if (key.isKeyCode(65) && key.getModifiers().isCommandDown()) {

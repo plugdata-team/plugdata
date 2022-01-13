@@ -339,13 +339,12 @@ void ToggleComponent::update()
 MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
-
     bangButton.setConnectedEdges(12);
 
     addAndMakeVisible(input);
 
     if (gui.getType() != pd::Type::AtomSymbol) {
-        addAndMakeVisible(bangButton);
+        box->textLabel.addAndMakeVisible(bangButton);
     }
 
     bangButton.onClick = [this]() {
@@ -368,10 +367,8 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
 
 void MessageComponent::resized()
 {
-    int button_width = gui.getType() == pd::Type::AtomSymbol ? 0 : 28;
-
-    input.setBounds(0, 0, getWidth() - button_width, getHeight());
-    bangButton.setBounds(getWidth() - (button_width + 1), 0, (button_width + 1), getHeight());
+    input.setBounds(0, 0, getWidth(), getHeight());
+    bangButton.setBounds(getWidth() - 23, 0, 23, 22);
 }
 
 void MessageComponent::update()

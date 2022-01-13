@@ -228,6 +228,37 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
     }
 }
 
+std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
+    if(!obj || !m_ptr) return nullptr;
+        
+    // Cant use the queue for this...
+    setCurrent();
+    
+    // Don't rename when going to or from a gui object, remove and recreate instead
+    // TODO: sometimes this makes undo screw up
+    if(Gui::allGUIs.contains(name) || obj->getType() == Type::Undefined) {
+        auto [x, y, w, h] = obj->getBounds();
+        removeObject(obj);
+        return createObject(name, x, y);
+    }
+
+    libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
+    
+    setCurrent();
+    // This only works if pd always recreats the object
+    // TODO: find out if thats always the case
+    
+    auto gui = Gui(libpd_newest(getPointer()), this, m_instance);
+    if(gui.getType() == Type::Undefined) {
+        return std::make_unique<Object>(libpd_newest(getPointer()), this, m_instance);
+    }
+    else {
+        return std::make_unique<Gui>(gui);
+    }
+}
+
+
+
 
 void Patch::copy() {
     m_instance->enqueueFunction([this]() {
@@ -325,29 +356,7 @@ void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
 }
 
 
-std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
-    if(!obj || !m_ptr) return nullptr;
-    
-    // Cant use the queue for this...
-    
-    setCurrent();
-    
-    libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
-    
-    setCurrent();
-    // This only works if pd always recreats the object
-    // TODO: find out if thats always the case
-    
-    auto gui = Gui(libpd_newest(getPointer()), this, m_instance);
-    if(gui.getType() == Type::Undefined) {
-        return std::make_unique<Object>(libpd_newest(getPointer()), this, m_instance);
-    }
-    else {
-        return std::make_unique<Gui>(gui);
-    }
-    
-   
-}
+
 
 void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
     //if(!obj || !m_ptr) return;

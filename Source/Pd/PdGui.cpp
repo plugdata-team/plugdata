@@ -92,6 +92,7 @@ Type Gui::getType(void* ptr) noexcept
 {
     Type m_type = Type::Undefined;
     
+    
     const std::string name = libpd_get_object_class_name(ptr);
     if(name == "bng")
     {
