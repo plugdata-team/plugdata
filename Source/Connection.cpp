@@ -87,7 +87,7 @@ Connection::~Connection()
 
 bool Connection::hitTest(int x, int y) {
     
-    if(start->box->locked) return;
+    if(start->box->locked || end->box->locked) return false;
     
     Point<float> position = Point<float>(x, y);
     
