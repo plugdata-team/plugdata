@@ -291,7 +291,8 @@ struct NumboxComponent : public GUIComponent {
     }
     
     void paint(Graphics& g) override {
-        g.fillAll(findColour(TextEditor::backgroundColourId));
+        g.setColour(findColour(TextEditor::backgroundColourId));
+        g.fillRect(getLocalBounds().reduced(1));
     }
 
     void resized() override;

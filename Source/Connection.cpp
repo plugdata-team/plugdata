@@ -55,6 +55,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     // Listen to changes at edges
     start->box->addComponentListener(this);
     end->box->addComponentListener(this);
+    start->addComponentListener(this);
+    end->addComponentListener(this);
 
     // Don't need mouse clicks
     setInterceptsMouseClicks(true, false);
@@ -75,13 +77,18 @@ Connection::~Connection()
 {
     if (start && start->box) {
         start->box->removeComponentListener(this);
+        start->removeComponentListener(this);
     }
     if (end && end->box) {
         end->box->removeComponentListener(this);
+        end->removeComponentListener(this);
     }
 }
 
 bool Connection::hitTest(int x, int y) {
+    
+    if(start->box->locked) return;
+    
     Point<float> position = Point<float>(x, y);
     
     Point<float> nearestPoint;
@@ -91,7 +98,7 @@ bool Connection::hitTest(int x, int y) {
     Point<float> pstart = start->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
     Point<float> pend = end->getCanvasBounds().getCentre().toFloat() - getPosition().toFloat();
     
-    
+    // If we click too close to the end, don't register the click on the connection
     if(pstart.getDistanceFrom(position) < 10.0f) return false;
     if(pend.getDistanceFrom(position)   < 10.0f) return false;
     
