@@ -39,6 +39,12 @@ GUIComponent::~GUIComponent()
 
 void GUIComponent::initParameters()
 {
+    if(gui.getType() == pd::Type::Number) {
+        auto color = Colour::fromString(secondaryColour).brighter(0.2f);
+        secondaryColour = color.toString();
+        setBackground(color);
+    }
+    
     if (!gui.isIEM())
         return;
 
@@ -50,11 +56,12 @@ void GUIComponent::initParameters()
         secondaryColour = MainLook::firstBackground.toString();
     setForeground(Colour::fromString(primaryColour));
     setBackground(Colour::fromString(secondaryColour));
+    
+
 }
 
 void GUIComponent::setForeground(Colour colour)
 {
-
     getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
     getLookAndFeel().setColour(Slider::thumbColourId, colour);
 
@@ -65,6 +72,7 @@ void GUIComponent::setForeground(Colour colour)
 
 void GUIComponent::setBackground(Colour colour)
 {
+    getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
     getLookAndFeel().setColour(TextButton::buttonColourId, colour);
     getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
@@ -439,9 +447,9 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
         setValueOriginal(value);
     };
     
-    input.setEditable(true);
+    initParameters();
+    input.setEditable(false, true);
     
-
     box->restrainer.setSizeLimits(30, 50, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
@@ -454,7 +462,8 @@ void NumboxComponent::resized()
 void NumboxComponent::update()
 {
     float value = getValueOriginal();
-
+    
+    
     input.setText(String(value, 3), dontSendNotification);
 }
 

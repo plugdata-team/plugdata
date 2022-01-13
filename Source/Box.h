@@ -35,6 +35,8 @@ public:
     void setLimits(std::tuple<int, int, int, int> limits);
 
     void updatePorts();
+    
+   
 
     std::unique_ptr<pd::Object> pdObject = nullptr;
 
@@ -61,7 +63,11 @@ public:
 private:
     void initialise();
 
+    bool hitTest(int x, int y) override;
+    
     void mouseMove(const MouseEvent& e) override;
+    void mouseEnter(const MouseEvent& e) override;
+    void mouseExit(const MouseEvent& e) override;
 
 
 

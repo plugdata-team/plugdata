@@ -16,7 +16,7 @@ ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger)
 {
     setEditable(false, box->locked);
     setJustificationType(Justification::centred);
-    setLookAndFeel(&clook);
+    //setLookAndFeel(&clook);
 };
 
 void ClickLabel::mouseDown(const MouseEvent& e)
@@ -82,6 +82,11 @@ void ClickLabel::editorAboutToBeHidden(TextEditor* editor)
 
     // Clear overridden lambda
     editor->onTextChange = []() {};
+    
+    if(box->graphics && !box->graphics->fakeGUI()) {
+        setVisible(false);
+        box->resized();
+    }
 
     suggestor.openedEditor = nullptr;
     suggestor.currentBox = nullptr;
@@ -113,7 +118,7 @@ SuggestionBox::SuggestionBox()
     port->setViewedComponent(buttonholder.get(), false);
     addAndMakeVisible(port.get());
 
-    setLookAndFeel(&buttonlook);
+    //setLookAndFeel(&buttonlook);
     setInterceptsMouseClicks(true, true);
     setAlwaysOnTop(true);
     setVisible(true);

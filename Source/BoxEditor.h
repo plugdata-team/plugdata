@@ -102,7 +102,6 @@ private:
     Array<Colour> colours = { MainLook::firstBackground, MainLook::secondBackground };
 
     Colour bordercolor = Colour(142, 152, 155);
-    MainLook buttonlook;
 
     int highlightStart = 0;
     int highlightEnd = 0;
@@ -125,8 +124,6 @@ public:
     void mouseDrag(const MouseEvent& e) override;
     TextEditor* createEditorComponent() override;
     void editorAboutToBeHidden(TextEditor*) override;
-
-    MainLook clook;
 
     Box* box;
 
