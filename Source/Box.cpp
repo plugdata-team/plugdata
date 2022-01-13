@@ -251,7 +251,7 @@ void Box::paint(Graphics& g)
 
     // Draw comment style
     if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
-        if(locked || (!isOver && !isDown)) g.setColour(Colours::transparentBlack);
+        if(locked || (!isOver && !isDown && !selected)) g.setColour(Colours::transparentBlack);
         else g.setColour(findColour(ComboBox::outlineColourId));
         
         g.drawRect(rect.toFloat(), 0.5f);
