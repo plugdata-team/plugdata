@@ -109,12 +109,6 @@ SuggestionBox::SuggestionBox()
         // Colour pattern
         but->setColour(TextButton::buttonColourId, colours[i % 2]);
        
-        /*
-        but->onStateChange = [this, i, but]() mutable {
-            if (but->getToggleState())
-                move(0, i);
-        }; */
-        
     }
 
     // select the first button
