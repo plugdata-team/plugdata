@@ -423,6 +423,7 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
+            startEdition();
             
             if(!gui.isAtom()) {
                 editor->setBorder({0, 10, 0, 0});
@@ -433,12 +434,12 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
                 
                 editor->setInputRestrictions(0, ".-0123456789");
             }
-            
-            editor->onFocusLost = [this]() {
-                setValueOriginal(input.getText().getFloatValue());
-                stopEdition();
-            };
         };
+    
+    input.onEditorHide = [this]() {
+        setValueOriginal(input.getText().getFloatValue());
+        stopEdition();
+    };
     
     if(!gui.isAtom()) {
         input.setBorderSize({1, 15, 1, 1});
