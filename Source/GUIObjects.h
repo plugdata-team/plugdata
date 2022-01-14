@@ -255,12 +255,6 @@ struct NumboxComponent : public GUIComponent {
         startEdition();
 
         input.mouseDrag(e);
-        int dist = -e.getDistanceFromDragStartY();
-        if (abs(dist) > 2) {
-            float newval = input.getText().getFloatValue() + ((float)dist / 100.);
-            input.setText(String(newval), sendNotification);
-        }
-        // onMouseDrag();
         
         if(!input.isBeingEdited())
         {
@@ -269,8 +263,17 @@ struct NumboxComponent : public GUIComponent {
             {
                 return;
             }
-            setValueOriginal(last + inc * (shift ? 0.01f : 1.0f));
-            input.setText(String(getValueOriginal()), NotificationType::dontSendNotification);
+            
+            int xPosition = gui.isAtom() ? e.getPosition().x - 2: e.getPosition().x - 13;
+            int precision = xPosition / -10;
+            float multiplier = pow(10, precision);
+            
+            if(shift) multiplier = 1.0f;
+            
+            auto newValue = String(last + inc * multiplier, -precision);
+            
+            setValueOriginal(newValue.getFloatValue());
+            input.setText(newValue, NotificationType::dontSendNotification);
         }
     }
 
@@ -294,7 +297,18 @@ struct NumboxComponent : public GUIComponent {
         g.setColour(findColour(TextEditor::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(1));
     }
-
+    
+    void paintOverChildren(Graphics& g) override {
+        if(!gui.isAtom()) {
+            g.setColour(MainLook::highlightColour);
+            
+            Path triangle;
+            triangle.addTriangle({0.0f, 0.0f}, {10, getHeight() / 2.0f}, {0.0f, (float)getHeight()});
+            
+            g.fillPath(triangle);
+        }
+        
+    }
     void resized() override;
 
     void update() override;
