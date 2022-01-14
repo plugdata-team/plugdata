@@ -238,7 +238,7 @@ struct NumboxComponent : public GUIComponent {
 
     std::pair<int, int> getBestSize() override { return { 60, 22 }; };
 
-    void mouseDown(const MouseEvent& event)
+    void mouseDown(const MouseEvent& event) override
     {
         if(!input.isBeingEdited())
         {
@@ -246,6 +246,13 @@ struct NumboxComponent : public GUIComponent {
             shift = event.mods.isShiftDown();
             last  = getValueOriginal();
             setValueOriginal(last);
+        }
+    }
+    
+    void mouseUp(const MouseEvent& event) override
+    {
+        if(!input.isBeingEdited()){
+            stopEdition();
         }
     }
 
@@ -263,17 +270,53 @@ struct NumboxComponent : public GUIComponent {
             {
                 return;
             }
+            /*
+
             
-            int xPosition = gui.isAtom() ? e.getPosition().x - 2: e.getPosition().x - 13;
-            int precision = xPosition / -10;
-            float multiplier = pow(10, precision);
             
-            if(shift) multiplier = 1.0f;
+
+           
+            else {
+                precision -= 1;
+            }*/
             
-            auto newValue = String(last + inc * multiplier, -precision);
             
+            
+        
+            
+            auto currentValue = input.getText();
+            if(!currentValue.containsChar('.')) currentValue += '.';
+            if(currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
+            currentValue += "00000";
+
+            
+            Array<int> glyphs;
+            Array<float> xOffsets;
+            input.getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
+            
+            int offset = (input.getText().indexOfChar('.') - 1);
+            float position = gui.isAtom() ? e.getMouseDownX() - 2 : e.getMouseDownX() - 15;
+            int precision = std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin();
+            
+            if(precision <= currentValue.indexOfChar('.')) {
+                precision = 0;
+            }
+            else {
+                precision -= 2;
+            }
+            
+            if(shift) precision = 0;
+            
+            float multiplier = pow(10, -precision);
+            
+            auto newValue = String(last + inc * multiplier, precision);
+
+            if(precision == 0) newValue = String(newValue.getIntValue());
+            
+            startEdition();
             setValueOriginal(newValue.getFloatValue());
             input.setText(newValue, NotificationType::dontSendNotification);
+            
         }
     }
 
@@ -299,6 +342,8 @@ struct NumboxComponent : public GUIComponent {
     }
     
     void paintOverChildren(Graphics& g) override {
+        GUIComponent::paintOverChildren(g);
+        
         if(!gui.isAtom()) {
             g.setColour(MainLook::highlightColour);
             
