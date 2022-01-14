@@ -425,7 +425,7 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
             auto* editor = input.getCurrentTextEditor();
             
             if(!gui.isAtom()) {
-                editor->setBorder({1, 15, 1, 1});
+                editor->setBorder({0, 10, 0, 0});
             }
             
             if(editor != nullptr)
@@ -446,6 +446,9 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     addAndMakeVisible(input);
     
     input.setText(String(getValueOriginal(), 3), dontSendNotification);
+    
+    
+
     
     input.onTextChange = [this]() {
         startEdition();
@@ -575,9 +578,12 @@ SliderComponent::SliderComponent(bool vertical, pd::Gui pdGui, Box* parent)
 
     slider.setValue(getValueScaled());
     
+    slider.setWantsKeyboardFocus(true);
+    
     slider.onDragStart = [this]() {
         startEdition();
     };
+    
 
     slider.onValueChange = [this]() {
         const float val = slider.getValue();
