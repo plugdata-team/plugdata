@@ -40,7 +40,7 @@ GUIComponent::~GUIComponent()
 void GUIComponent::initParameters()
 {
     if(gui.getType() == pd::Type::Number) {
-        auto color = Colour::fromString(secondaryColour).brighter(0.2f);
+        auto color = Colour::fromString(secondaryColour).brighter(0.1f);
         secondaryColour = color.toString();
         setBackground(color);
     }
@@ -357,6 +357,12 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
         gui.setSymbol(input.getText().toStdString());
         box->changeListenerCallback(nullptr);
     };
+    
+    if(gui.isAtom()) {
+        input.onReturnKey = [this](){
+            bangButton.triggerClick();
+        };
+    }
 
     input.setMultiLine(true);
 
@@ -417,6 +423,11 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
+            
+            if(!gui.isAtom()) {
+                editor->setBorder({1, 15, 1, 1});
+            }
+            
             if(editor != nullptr)
             {
                 
@@ -429,6 +440,9 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
             };
         };
     
+    if(!gui.isAtom()) {
+        input.setBorderSize({1, 15, 1, 1});
+    }
     addAndMakeVisible(input);
     
     input.setText(String(getValueOriginal(), 3), dontSendNotification);
