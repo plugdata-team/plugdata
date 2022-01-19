@@ -29,6 +29,8 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)
     sendSymbol = gui.getSendSymbol();
     receiveSymbol = gui.getReceiveSymbol();
 
+    setWantsKeyboardFocus(true);
+    
     setLookAndFeel(&guiLook);
 }
 
@@ -59,6 +61,7 @@ void GUIComponent::initParameters()
     
 
 }
+
 
 void GUIComponent::setForeground(Colour colour)
 {
@@ -633,10 +636,9 @@ SliderComponent::SliderComponent(bool vertical, pd::Gui pdGui, Box* parent)
 
     slider.setRange(0., 1., 0.001);
     slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
-
-    slider.setValue(getValueScaled());
+    slider.setScrollWheelEnabled(false);
     
-    slider.setWantsKeyboardFocus(true);
+    slider.setValue(getValueScaled());
     
     slider.onDragStart = [this]() {
         startEdition();
@@ -1168,6 +1170,8 @@ KeyboardComponent::KeyboardComponent(pd::Gui gui, Box* box)
     : GUIComponent(gui, box)
     , keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
 {
+    keyboard.setAvailableRange(36, 83);
+    keyboard.setScrollButtonsVisible(false);
 
     state.addListener(this);
     addAndMakeVisible(keyboard);

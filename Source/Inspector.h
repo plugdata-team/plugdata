@@ -47,6 +47,7 @@ struct Inspector : public Component,
 
         table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
         table.getHeader().setColour(TableHeaderComponent::backgroundColourId, MainLook::highlightColour);
+        
 
         table.setMultipleSelectionEnabled(true);
     }
@@ -148,8 +149,7 @@ struct Inspector : public Component,
     //==============================================================================
     void resized()
     {
-        // position our table with a gap around its edge
-        table.setBounds(getLocalBounds().expanded(2));
+        table.setBounds(getLocalBounds().withWidth(getWidth() + 2));
     }
 
     void deselect()
@@ -330,17 +330,6 @@ struct Inspector : public Component,
     };
 
 private:
-
-    const String getAttributeNameForColumnId(const int columnId) const
-    {
-        if(columnId == 1) {
-            return String("Name");
-        }
-        else if (columnId == 2) {
-            return String("Value");
-        }
-        
-    }
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Inspector)
 };

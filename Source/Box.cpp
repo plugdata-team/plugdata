@@ -124,6 +124,7 @@ bool Box::hitTest(int x, int y) {
 
 void Box::mouseMove(const MouseEvent& e)
 {
+    // Do we need to do this?
     findParentComponentOfClass<Canvas>()->repaint();
 }
 
