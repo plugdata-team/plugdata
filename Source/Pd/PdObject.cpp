@@ -133,8 +133,6 @@ std::string Object::getHelp() const
     return std::string();
 }
 
-
-
 bool Object::operator==(Object const& other) const noexcept
 {
     return m_ptr == other.m_ptr;

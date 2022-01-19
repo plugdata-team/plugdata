@@ -472,6 +472,6 @@ public:
     
     Font getTextButtonFont(TextButton&, int buttonHeight)
     {
-        return Font(buttonHeight / 1.65f);
+        return Font(buttonHeight / 1.9f);
     }
 };

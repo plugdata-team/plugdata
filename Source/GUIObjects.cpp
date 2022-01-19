@@ -346,7 +346,14 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
     if (gui.getType() != pd::Type::AtomSymbol) {
         box->textLabel.addAndMakeVisible(bangButton);
     }
-
+    
+    box->cnv->main.addChangeListener(this);
+    isLocked = box->cnv->pd->locked;
+    
+    if(!gui.isAtom()) {
+        input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+    }
+    
     bangButton.onClick = [this]() {
         startEdition();
         gui.click();
@@ -354,21 +361,45 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
     };
 
     input.onTextChange = [this]() {
+        
+        auto width = input.getFont().getStringWidth(input.getText()) + 25;
+        
+        
+        if(width > box->getWidth()) {
+            box->setSize(width, box->getHeight());
+        }
+        
         gui.setSymbol(input.getText().toStdString());
-        box->changeListenerCallback(nullptr);
     };
+    
+    input.onFocusLost = [this](){
+        
+        auto width = input.getFont().getStringWidth(input.getText()) + 25;
+        if(width < box->getWidth()) {
+            box->setSize(width, box->getHeight());
+            box->restrainer.checkComponentBounds(box);
+        }
+    };
+    
+    
     
     if(gui.isAtom()) {
         input.onReturnKey = [this](){
-            bangButton.triggerClick();
+            gui.setSymbol(input.getText().toStdString());
         };
     }
 
     input.setMultiLine(true);
+    
 
-    box->restrainer.setSizeLimits(100, 50, 500, 600);
+    box->restrainer.setSizeLimits(60, 50, 500, 600);
     box->restrainer.checkComponentBounds(box);
     
+}
+
+MessageComponent::~MessageComponent()
+{
+    box->cnv->main.removeChangeListener(this);
 }
 
 void MessageComponent::resized()
@@ -380,7 +411,33 @@ void MessageComponent::resized()
 void MessageComponent::update()
 {
 
-    input.setText(String(gui.getSymbol()), NotificationType::dontSendNotification);
+    input.setText(String(gui.getSymbol()), NotificationType::sendNotification);
+}
+
+void MessageComponent::paint(Graphics& g) {
+    // Draw message style
+    if (!getGUI().isAtom()) {
+        auto baseColour = isDown ? Colour(90, 90, 90) : Colour(60, 60, 60);
+        
+        auto rect = getLocalBounds().toFloat();
+        g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(0.9f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
+        
+        g.fillRoundedRectangle(rect.withTrimmedBottom(getHeight() - 31), 2.0f);
+    }
+}
+
+
+void MessageComponent::changeListenerCallback(ChangeBroadcaster* source)  {
+    isLocked = box->cnv->pd->locked;
+    
+    if(isLocked && !gui.isAtom()) {
+        input.setInterceptsMouseClicks(false, false);
+        input.setEnabled(false);
+    }
+    else {
+        input.setInterceptsMouseClicks(true, true);
+        input.setEnabled(true);
+    }
 }
 
 void MessageComponent::updateValue()

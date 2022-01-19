@@ -7,6 +7,7 @@
 #pragma once
 
 #include "Box.h"
+#include "BoxEditor.h"
 #include "Pd/PdPatch.hpp"
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
@@ -22,6 +23,8 @@ struct Identifiers {
     inline static Identifier hideHeaders = Identifier("HideHeaders");
     inline static Identifier connectionStyle = Identifier("ConnectionStyle");
 };
+
+
 
 struct GraphArea;
 class Edge;
@@ -61,7 +64,7 @@ public:
     void duplicateSelection();
 
     void checkBounds();
-    
+
     void paint(Graphics& g) override{
         g.fillAll(MainLook::firstBackground);
         
@@ -110,6 +113,8 @@ public:
     Point<int> zeroPosition = {0, 0};
     Point<int> lastMousePos;
     
+    SuggestionBox suggestor;
+    
 private:
     SafePointer<TabbedComponent> tabbar;
 
@@ -118,6 +123,9 @@ private:
 
     LassoComponent<Box*> lasso;
     PopupMenu popupMenu;
+    
+    
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
