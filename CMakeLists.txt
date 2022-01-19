@@ -190,8 +190,7 @@ target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUD
 endif()
 
 file(GLOB PlugDataBinaryDataSources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/forkawesome-webfont.ttf
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/fontaudio.ttf
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/PlugDataFont.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterRegular.otf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugd_logo.png
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Abstractions.zip

@@ -42,8 +42,7 @@ class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Timer, public ChangeBroadcaster, public FileOpener {
     
     ToolbarLook toolbarLook;
-    StatusbarLook statusbarLook = StatusbarLook(true, 1.4);
-    StatusbarLook statusbarLook2 = StatusbarLook(false, 1.4);
+    StatusbarLook statusbarLook = StatusbarLook(1.4);
     MainLook mainLook;
     
 public:
@@ -91,9 +90,9 @@ public:
 
     LevelMeter levelmeter;
 
-    TextButton bypassButton = TextButton(CharPointer_UTF8("\xef\x85\xab"));
-    TextButton lockButton = TextButton(CharPointer_UTF8("\xef\x82\x9c"));
-    TextButton connectionStyleButton = TextButton(CharPointer_UTF8("\xef\x85\xb2"));
+    TextButton bypassButton = TextButton(Icons::Power);
+    TextButton lockButton = TextButton(Icons::Lock);
+    TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
     
     Point<int> lastMousePos;
 
@@ -108,8 +107,9 @@ private:
 
     bool sidebarHidden = false;
 
-    std::array<TextButton, 10> toolbarButtons = { TextButton(CharPointer_UTF8("\xef\x85\x9b")), TextButton(CharPointer_UTF8("\xef\x81\xbb")), TextButton(CharPointer_UTF8("\xef\x80\x99")), TextButton(CharPointer_UTF8("\xef\x83\xa2")), TextButton(CharPointer_UTF8("\xef\x80\x9e")), TextButton(CharPointer_UTF8("\xef\x81\xa7")), TextButton(CharPointer_UTF8("\xef\x80\x93")), TextButton(CharPointer_UTF8("\xef\x81\x94")),
-        TextButton(CharPointer_UTF8("\xef\x84\xa0")), TextButton(CharPointer_UTF8("\xef\x87\x9e")) };
+    std::array<TextButton, 10> toolbarButtons = {
+        TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide),
+        TextButton(Icons::Console), TextButton(Icons::Inspector) };
 
     TextButton& hideButton = toolbarButtons[7];
 
