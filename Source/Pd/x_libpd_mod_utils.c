@@ -510,20 +510,66 @@ void libpd_removeobj(t_canvas* cnv, t_gobj* obj)
     glist_noselect(cnv);
 }
 
+/* recursively deselect everything in a gobj "g", if it happens to be
+   a glist, in preparation for deselecting g itself in glist_dselect() */
+static void glist_checkanddeselectall(t_glist *gl, t_gobj *g)
+{
+t_glist *gl2;
+t_gobj *g2;
+if (pd_class(&g->g_pd) != canvas_class)
+    return;
+gl2 = (t_glist *)g;
+for (g2 = gl2->gl_list; g2; g2 = g2->g_next)
+    glist_checkanddeselectall(gl2, g2);
+glist_noselect(gl2);
+}
+
+
+struct _rtext
+{
+    char *x_buf;    /*-- raw byte string, assumed UTF-8 encoded (moo) --*/
+    int x_bufsize;  /*-- byte length --*/
+    int x_selstart; /*-- byte offset --*/
+    int x_selend;   /*-- byte offset --*/
+    int x_active;
+    int x_dragfrom;
+    int x_height;
+    int x_drawnwidth;
+    int x_drawnheight;
+    t_text *x_text;
+    t_glist *x_glist;
+    char x_tag[50];
+    struct _rtext *x_next;
+};
 
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 {
- 
+    sys_lock();
+    canvas_editmode(cnv, 1);
+    
     glist_noselect(cnv);
     glist_select(cnv, obj);
     
-    sys_lock();
-    canvas_stowconnections(cnv); // for restoring connections when possible!
-    text_setto((t_text *)obj, cnv, buf, bufsize);
+    canvas_create_editor(cnv);
+    
+    t_rtext *fuddy = glist_findrtext(cnv, (t_text *)obj);
+    cnv->gl_editor->e_textedfor = fuddy;
+    
+    cnv->gl_editor->e_rtext->x_buf = strdup(buf);
+    cnv->gl_editor->e_rtext->x_bufsize = bufsize + 1;
+    
+    cnv->gl_editor->e_textdirty = 1;
+    
+    glist_deselect(cnv, &((t_text *)obj)->te_g);
+    
+    cnv->gl_editor->e_textedfor = 0;
+    cnv->gl_editor->e_textdirty = 0;
+    
+    canvas_destroy_editor(cnv);
+    
+    canvas_editmode(cnv, 0);
     sys_unlock();
-    
-    
-    glist_noselect(cnv);
+
 }
 
 

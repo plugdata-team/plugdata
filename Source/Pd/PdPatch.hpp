@@ -110,7 +110,7 @@ public:
     
     void keyPress(int keycode, int shift);
     
-    static inline float zoom = 1.7f;
+    static inline float zoom = 1.5f;
     
 private:
 

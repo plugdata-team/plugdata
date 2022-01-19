@@ -17,13 +17,13 @@ class SuggestionComponent : public TextButton {
     int type = -1;
     Array<Colour> colours = { findColour(ScrollBar::thumbColourId), Colours::yellow };
 
-    Array<String> letters = { "PD", "~" };
+    Array<String> letters = { "pd", "~" };
 
 public:
     SuggestionComponent()
     {
         setText("");
-        setWantsKeyboardFocus(false);
+        setWantsKeyboardFocus(true);
         setConnectedEdges(12);
         setClickingTogglesState(true);
         setRadioGroupId(1001);
@@ -53,8 +53,8 @@ public:
             return;
 
         g.setColour(colours[type].withAlpha(float(0.8)));
-        Rectangle<int> iconbound = getLocalBounds().reduced(3);
-        iconbound.setWidth(getHeight() - 6);
+        Rectangle<int> iconbound = getLocalBounds().reduced(4);
+        iconbound.setWidth(getHeight() - 8);
         iconbound.translate(3, 0);
         g.fillRect(iconbound);
 
@@ -83,6 +83,7 @@ public:
     Box* currentBox;
 
     void resized() override;
+    
 
 private:
     void paintOverChildren(Graphics& g) override;
@@ -94,7 +95,7 @@ private:
     bool running = false;
     int numOptions = 0;
     int currentidx = 0;
-
+    
     std::unique_ptr<Viewport> port;
     std::unique_ptr<Component> buttonholder;
     OwnedArray<SuggestionComponent> buttons;
@@ -110,7 +111,11 @@ private:
 };
 
 // Label that shows the box name and can be double clicked to change the text
-class ClickLabel : public Label {
+class ClickLabel : public Component,
+                   public SettableTooltipClient,
+                    public Value::Listener,
+                   protected TextEditor::Listener
+{
 public:
     ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger);
 
@@ -122,13 +127,89 @@ public:
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-    TextEditor* createEditorComponent() override;
-    void editorAboutToBeHidden(TextEditor*) override;
+    
+    TextEditor* createEditorComponent();
+    void editorAboutToBeHidden(TextEditor*);
+    
+    void inputAttemptWhenModal() override;
 
+    void valueChanged (Value& v) override
+    {
+        if (lastTextValue != textValue.toString())
+            setText (textValue.toString(), sendNotification);
+    }
+    
     Box* box;
-
-    SuggestionBox suggestor;
 
     bool isDown = false;
     MultiComponentDragger<Box>& dragger;
+    
+    
+    
+    void setText (const String& newText,
+                  NotificationType notification);
+
+
+    String getText (bool returnActiveEditorContents = false) const;
+
+    
+    Font getFont() { return font; }
+    
+    void setEditable(bool editable);
+    
+// Simplified version of JUCE label class, because we need to modify the behaviour for the suggestions box
+    void showEditor();
+
+    /** Hides the editor if it was being shown.
+
+        @param discardCurrentEditorContents     if true, the label's text will be
+                                                reset to whatever it was before the editor
+                                                was shown; if false, the current contents of the
+                                                editor will be used to set the label's text
+                                                before it is hidden.
+    */
+    void hideEditor (bool discardCurrentEditorContents);
+
+    /** Returns true if the editor is currently focused and active. */
+    bool isBeingEdited() const noexcept;
+
+    /** Returns the currently-visible text editor, or nullptr if none is open. */
+    TextEditor* getCurrentTextEditor() const noexcept;
+    
+    void setBorderSize (BorderSize<int> newBorder)
+    {
+        if (border != newBorder)
+        {
+            border = newBorder;
+            repaint();
+        }
+    }
+    
+    void textEditorReturnKeyPressed (TextEditor& ed) override;
+    
+    std::function<void()> onEditorShow, onEditorHide, onTextChange;
+
+protected:
+
+    /** Called when the text editor has just appeared, due to a user click or other focus change. */
+    virtual void editorShown (TextEditor*);
+
+    void paint (Graphics&) override;
+    void resized() override;
+    void mouseDoubleClick (const MouseEvent&) override;
+    
+
+    
+    //==============================================================================
+    Value textValue;
+    String lastTextValue;
+    Font font { 15.0f };
+    Justification justification = Justification::centred;
+    std::unique_ptr<TextEditor> editor;
+    BorderSize<int> border { 1, 5, 1, 5 };
+    float minimumHorizontalScale = 0;
+    TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
+    bool editDoubleClick = false;
+
+    bool updateFromTextEditorContents (TextEditor&);
 };

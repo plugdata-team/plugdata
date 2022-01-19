@@ -97,8 +97,14 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     connectionStyleButton.setLookAndFeel(&statusbarLook);
     connectionStyleButton.onClick = [this]() {
         pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
-        for (auto* connection : getCurrentCanvas()->connections)
-            connection->resized();
+        
+        for(auto& cnv : canvases) {
+            cnv->pd->settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
+            
+            for (auto* connection : cnv->connections)
+                connection->resized();
+        }
+
     };
     connectionStyleButton.setToggleState((bool)pd.settingsTree.getProperty(Identifiers::connectionStyle), dontSendNotification);
 

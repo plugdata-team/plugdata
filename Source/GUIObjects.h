@@ -198,30 +198,52 @@ struct ToggleComponent : public GUIComponent {
     void update() override;
 };
 
-struct MessageComponent : public GUIComponent {
+struct MessageComponent : public GUIComponent, public ChangeListener {
 
+    
+    bool isDown = false;
+    bool isLocked = false;
+    
     TextEditor input;
     TextButton bangButton;
 
     std::string lastMessage = "";
 
     MessageComponent(pd::Gui gui, Box* parent);
+    
+    ~MessageComponent();
 
     std::pair<int, int> getBestSize() override
     {
         updateValue(); // make sure text is loaded
 
         auto [x, y, w, h] = gui.getBounds();
-        int offset = bangButton.isVisible() ? 50 : 50;
         int stringLength = std::max(10, input.getFont().getStringWidth(input.getText()));
-        return { stringLength + offset, numLines * 21 };
+        return { stringLength + 20, numLines * 21 };
     };
+    
+    void changeListenerCallback(ChangeBroadcaster* source) override;
+    
+    void mouseDown(const MouseEvent& e) override {
+        if(!gui.isAtom()) {
+            isDown = true;
+        }
+        
+        startEdition();
+        gui.click();
+        stopEdition();
+    }
+    
+    void mouseUp(const MouseEvent& e) override {
+        isDown = false;
+    }
 
     void updateValue() override;
 
     void resized() override;
 
     void update() override;
+    void paint(Graphics& g) override;
 
     int numLines = 1;
     int longestLine = 7;

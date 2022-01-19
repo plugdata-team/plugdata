@@ -14,10 +14,35 @@ ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger)
     : box(parent)
     , dragger(multiDragger)
 {
-    setEditable(false, box->locked);
-    setJustificationType(Justification::centred);
+    //setEditable(false, box->locked);
+    //setJustificationType(Justification::centred);
     //setLookAndFeel(&clook);
 };
+
+//==============================================================================
+void ClickLabel::setText (const String& newText, NotificationType notification)
+{
+    hideEditor (true);
+
+    if (lastTextValue != newText)
+    {
+        lastTextValue = newText;
+        textValue = newText;
+        repaint();
+
+        if (notification != dontSendNotification && onTextChange != nullptr)
+            onTextChange();
+            
+    }
+}
+
+String ClickLabel::getText (bool returnActiveEditorContents) const
+{
+    return (returnActiveEditorContents && isBeingEdited())
+                ? editor->getText()
+                : textValue.toString();
+}
+
 
 void ClickLabel::mouseDown(const MouseEvent& e)
 {
@@ -38,6 +63,7 @@ void ClickLabel::mouseUp(const MouseEvent& e)
     isDown = false;
     dragger.handleMouseUp(box, e);
 
+    
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600) {
         Edge::connectingEdge = nullptr;
     }
@@ -52,25 +78,52 @@ void ClickLabel::mouseDrag(const MouseEvent& e)
     dragger.handleMouseDrag(e);
 }
 
+void ClickLabel::inputAttemptWhenModal()
+{
+    if (editor)
+    {
+        textEditorReturnKeyPressed (*getCurrentTextEditor());
+    }
+}
+
+static void copyColourIfSpecified (ClickLabel& l, TextEditor& ed, int colourID, int targetColourID)
+{
+    if (l.isColourSpecified (colourID) || l.getLookAndFeel().isColourSpecified (colourID))
+        ed.setColour (targetColourID, l.findColour (colourID));
+}
+
 TextEditor* ClickLabel::createEditorComponent()
 {
+    
+    auto* editor = new TextEditor (getName());
+    editor->applyFontToAllText(font);
+    copyAllExplicitColoursTo (*editor);
 
-    auto* editor = Label::createEditorComponent();
+    copyColourIfSpecified (*this, *editor, Label::textWhenEditingColourId, TextEditor::textColourId);
+    copyColourIfSpecified (*this, *editor, Label::backgroundWhenEditingColourId, TextEditor::backgroundColourId);
+    copyColourIfSpecified (*this, *editor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId);
 
     editor->setAlwaysOnTop(true);
     
     bool multiLine = box->pdObject && box->pdObject->getType() == pd::Type::Comment;
     
+    auto& suggestor = box->cnv->suggestor;
     // Allow multiline for comment objects
     editor->setMultiLine(multiLine, false);
     editor->setReturnKeyStartsNewLine(multiLine);
     
     editor->setInputFilter(&suggestor, false);
     editor->addKeyListener(&suggestor);
+    
+    editor->onFocusLost = [this](){
+        if(!box->cnv->suggestor.hasKeyboardFocus(true)) {
+            hideEditor(false);
+        }
+        
+    };
 
     suggestor.createCalloutBox(box, editor);
-
-    box->cnv->addChildComponent(suggestor);
+    
     auto boundsInParent = getBounds() + box->getPosition();
 
     suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 200);
@@ -79,22 +132,180 @@ TextEditor* ClickLabel::createEditorComponent()
     return editor;
 }
 
-void ClickLabel::editorAboutToBeHidden(TextEditor* editor)
-{
-    suggestor.setVisible(false);
 
-    editor->setInputFilter(nullptr, false);
+void ClickLabel::editorShown (TextEditor* textEditor)
+{
+
+    if (onEditorShow != nullptr)
+        onEditorShow();
+}
+
+void ClickLabel::editorAboutToBeHidden (TextEditor* textEditor)
+{
+    if (auto* peer = getPeer())
+        peer->dismissPendingTextInput();
+
+    if (onEditorHide != nullptr)
+        onEditorHide();
+    
+    box->cnv->suggestor.setVisible(false);
+
+    textEditor->setInputFilter(nullptr, false);
 
     // Clear overridden lambda
-    editor->onTextChange = []() {};
+    textEditor->onTextChange = []() {};
     
     if(box->graphics && !box->graphics->fakeGUI()) {
         setVisible(false);
         box->resized();
     }
+    
+    box->cnv->suggestor.openedEditor = nullptr;
+    box->cnv->suggestor.currentBox = nullptr;
+}
 
-    suggestor.openedEditor = nullptr;
-    suggestor.currentBox = nullptr;
+void ClickLabel::showEditor()
+{
+    if (editor == nullptr)
+    {
+        editor.reset (createEditorComponent());
+        editor->setSize (10, 10);
+        addAndMakeVisible (editor.get());
+        editor->setText (getText(), false);
+        editor->setKeyboardType (keyboardType);
+        editor->addListener (this);
+        editor->grabKeyboardFocus();
+
+        if (editor == nullptr) // may be deleted by a callback
+            return;
+
+        editor->setHighlightedRegion (Range<int> (0, textValue.toString().length()));
+
+        resized();
+        repaint();
+
+        editorShown (editor.get());
+
+        //enterModalState (false);
+        
+        editor->grabKeyboardFocus();
+    }
+}
+
+bool ClickLabel::updateFromTextEditorContents (TextEditor& ed)
+{
+    auto newText = ed.getText();
+
+    if (textValue.toString() != newText)
+    {
+        lastTextValue = newText;
+        textValue = newText;
+        repaint();
+
+        return true;
+    }
+
+    return false;
+}
+
+void ClickLabel::hideEditor (bool discardCurrentEditorContents)
+{
+    if (editor != nullptr)
+    {
+        WeakReference<Component> deletionChecker (this);
+        std::unique_ptr<TextEditor> outgoingEditor;
+        std::swap (outgoingEditor, editor);
+
+        editorAboutToBeHidden (outgoingEditor.get());
+
+        const bool changed = updateFromTextEditorContents (*outgoingEditor);
+        
+        outgoingEditor.reset();
+
+        repaint();
+
+        if (onTextChange != nullptr)
+            onTextChange();
+    }
+}
+
+void ClickLabel::textEditorReturnKeyPressed (TextEditor& ed)
+{
+    if (editor != nullptr)
+    {
+        editor->giveAwayKeyboardFocus();
+    }
+}
+
+bool ClickLabel::isBeingEdited() const noexcept
+{
+    return editor != nullptr;
+}
+
+static void copyColourIfSpecified (Label& l, TextEditor& ed, int colourID, int targetColourID)
+{
+    if (l.isColourSpecified (colourID) || l.getLookAndFeel().isColourSpecified (colourID))
+        ed.setColour (targetColourID, l.findColour (colourID));
+}
+
+TextEditor* ClickLabel::getCurrentTextEditor() const noexcept
+{
+    return editor.get();
+}
+
+//==============================================================================
+void ClickLabel::paint (Graphics& g)
+{
+    g.fillAll (findColour (Label::backgroundColourId));
+
+    if (!isBeingEdited())
+    {
+        auto alpha = isEnabled() ? 1.0f : 0.5f;
+
+        g.setColour (findColour (Label::textColourId).withMultipliedAlpha (alpha));
+        g.setFont (font);
+        
+        auto textArea = border.subtractedFrom(getLocalBounds());
+
+        g.drawFittedText (getText(), textArea, justification,
+                          jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
+                          minimumHorizontalScale);
+
+        g.setColour (findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
+    }
+    else if (isEnabled())
+    {
+        g.setColour (findColour (Label::outlineColourId));
+    }
+
+    g.drawRect (getLocalBounds());
+}
+
+void ClickLabel::mouseDoubleClick (const MouseEvent& e)
+{
+    if (editDoubleClick
+         && isEnabled()
+         && ! e.mods.isPopupMenu())
+    {
+        showEditor();
+    }
+}
+
+void ClickLabel::resized()
+{
+    if (editor != nullptr)
+        editor->setBounds (getLocalBounds());
+}
+
+
+void ClickLabel::setEditable(bool editable)
+{
+    editDoubleClick = editable;
+
+    setWantsKeyboardFocus (editDoubleClick);
+    setFocusContainerType (editDoubleClick ? FocusContainerType::keyboardFocusContainer
+                                              : FocusContainerType::none);
+    invalidateAccessibilityHandler();
 }
 
 SuggestionBox::SuggestionBox()
@@ -108,7 +319,6 @@ SuggestionBox::SuggestionBox()
 
         // Colour pattern
         but->setColour(TextButton::buttonColourId, colours[i % 2]);
-       
     }
 
     // select the first button
@@ -118,6 +328,7 @@ SuggestionBox::SuggestionBox()
     port = std::make_unique<Viewport>();
     port->setScrollBarsShown(true, false);
     port->setViewedComponent(buttonholder.get(), false);
+    port->setInterceptsMouseClicks(true, true);
     addAndMakeVisible(port.get());
 
     //setLookAndFeel(&buttonlook);
@@ -146,15 +357,19 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
         auto width = editor->getTextWidth() + 10;
         
         if(width > box->getWidth()) {
+            
             box->setSize(width, box->getHeight());
         }
     };
 
     for (int i = 0; i < buttons.size(); i++) {
-        TextButton* but = buttons[i];
-        but->onClick = [this, i, box]() mutable {
+        auto* but = buttons[i];
+        but->setAlwaysOnTop(true);
+        but->setWantsKeyboardFocus(false);
+        but->addMouseListener(this, false);
+        but->onClick = [this, i, box, editor]() mutable {
             move(0, i);
-            //box->textLabel.showEditor();
+            editor->grabKeyboardFocus();
         };
     }
 
@@ -162,6 +377,7 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
     setVisible(true);
     repaint();
 }
+
 
 void SuggestionBox::move(int offset, int setto)
 {
@@ -202,7 +418,7 @@ void SuggestionBox::move(int offset, int setto)
 void SuggestionBox::paintOverChildren(Graphics& g)
 {
     g.setColour(bordercolor);
-    g.drawRect(port->getBounds());
+    g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), 3.0f, 2.5f);
 }
 
 void SuggestionBox::resized()
@@ -211,7 +427,7 @@ void SuggestionBox::resized()
     buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 20);
 
     for (int i = 0; i < buttons.size(); i++)
-        buttons[i]->setBounds(0, i * 20, getWidth(), 20);
+        buttons[i]->setBounds(2, (i * 20) + 2, getWidth() - 2, 23);
 }
 
 bool SuggestionBox::keyPressed(const KeyPress& key, Component* originatingComponent)

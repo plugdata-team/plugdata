@@ -15,6 +15,7 @@ extern "C"
 #include <m_pd.h>
 #include <g_canvas.h>
 #include "x_libpd_multi.h"
+#include "g_undo.h"
 
 }
 
@@ -212,9 +213,7 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
         pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
     });
     
-    while(!pdobject) {
-        m_instance->waitForStateUpdate();
-    }
+    m_instance->waitForStateUpdate();
     
     assert(pdobject);
     
@@ -228,6 +227,17 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
     }
 }
 
+static int glist_getindex(t_glist *x, t_gobj *y)
+{
+    t_gobj *y2;
+    int indx;
+
+    for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next)
+        indx++;
+    return (indx);
+}
+
+
 std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     if(!obj || !m_ptr) return nullptr;
         
@@ -236,13 +246,30 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     
     // Don't rename when going to or from a gui object, remove and recreate instead
     // TODO: sometimes this makes undo screw up
-    if(Gui::allGUIs.contains(name) || obj->getType() == Type::Undefined) {
+    if(Gui::allGUIs.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() != Type::Undefined) {
         auto [x, y, w, h] = obj->getBounds();
-        removeObject(obj);
-        return createObject(name, x, y);
+        
+        m_instance->enqueueFunction([this, obj](){
+            m_instance->setThis();
+            
+            int pos = glist_getindex(getPointer(), (t_gobj*)obj);
+            
+            glist_noselect(getPointer());
+            glist_select(getPointer(), (t_gobj*)obj->getPointer());
+            libpd_removeselection(getPointer());
+            glist_noselect(getPointer());
+        });
+        
+        auto obj = createObject(name, x, y);
+        
+        return obj;
     }
 
-    libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
+    m_instance->enqueueFunction([this, obj, name]() mutable {
+        libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
+    });
+    
+    m_instance->waitForStateUpdate();
     
     setCurrent();
     // This only works if pd always recreats the object
@@ -350,9 +377,6 @@ void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
         
         libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
-    
-    
-    
 }
 
 
