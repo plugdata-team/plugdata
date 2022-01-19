@@ -37,6 +37,7 @@ public:
         setLookAndFeel(nullptr);
     }
 
+
     void setText(String name)
     {
         setButtonText(name);
@@ -66,7 +67,8 @@ public:
 // Box with suggestions for object names
 class Box;
 class ClickLabel;
-class SuggestionBox : public Component, public KeyListener, public TextEditor::InputFilter {
+class SuggestionBox : public Component, public KeyListener, public TextEditor::InputFilter
+{
 
 public:
     bool selecting = false;
@@ -83,9 +85,10 @@ public:
     Box* currentBox;
 
     void resized() override;
-    
 
+    
 private:
+    void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
 
     bool keyPressed(const KeyPress& key, Component* originatingComponent) override;

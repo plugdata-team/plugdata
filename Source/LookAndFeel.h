@@ -438,7 +438,7 @@ public:
         auto yIndent = jmin(4, button.proportionOfHeight(0.3f));
         auto cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
         auto fontHeight = roundToInt(font.getHeight() * 0.6f);
-        auto leftIndent = 25;
+        auto leftIndent = 28;
         auto rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
         auto textWidth = button.getWidth() - leftIndent - rightIndent;
         
@@ -491,4 +491,9 @@ struct Icons
     inline static const CharPointer_UTF8 Power = CharPointer_UTF8("\xee\xa1\xa2");
     inline static const CharPointer_UTF8 Audio = CharPointer_UTF8("\xef\x80\xa8");
     inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
+    
+    inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
+    inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
+    inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
+    inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
 };

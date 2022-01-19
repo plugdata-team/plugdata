@@ -8,13 +8,6 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 
-// Print std::cout and std::cerr to console when in debug mode
-#if JUCE_DEBUG
-#define LOG_STDOUT true
-#else
-#define LOG_STDOUT false
-#endif
-
 //==============================================================================
 PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
 #ifndef JucePlugin_PreferredChannelConfigurations
