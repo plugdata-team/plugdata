@@ -310,7 +310,7 @@ public:
             return editor;
         }
 
-        TextButton deleteButton = TextButton(CharPointer_UTF8("\xef\x80\x8d"));
+        TextButton deleteButton = TextButton(Icons::Clear);
 
     private:
         StatusbarLook look = StatusbarLook(false);

@@ -123,8 +123,8 @@ struct SettingsComponent : public Component {
     int toolbarHeight = 50;
 
     ToolbarLook lnf = ToolbarLook(true);
-
-    OwnedArray<TextButton> toolbarButtons = { new TextButton(CharPointer_UTF8("\xef\x80\xa8")), new TextButton(CharPointer_UTF8("\xef\x80\x82")) };
+    
+    OwnedArray<TextButton> toolbarButtons = { new TextButton(Icons::Audio), new TextButton(Icons::Search)};
 };
 
 struct SettingsDialog : public Component {

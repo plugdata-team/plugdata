@@ -74,7 +74,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     lockButton.setTooltip("Lock");
     lockButton.setClickingTogglesState(true);
     lockButton.setConnectedEdges(12);
-    lockButton.setLookAndFeel(&statusbarLook2);
+    lockButton.setLookAndFeel(&statusbarLook);
     lockButton.onClick = [this]() {
         pd.locked = lockButton.getToggleState();
         
@@ -82,13 +82,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             cnv->pd->locked = pd.locked;
         }
 
-        lockButton.setButtonText(pd.locked ? CharPointer_UTF8("\xef\x80\xa3") : CharPointer_UTF8("\xef\x82\x9c"));
+        lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
 
         sendChangeMessage();
     };
     addAndMakeVisible(lockButton);
     
-    lockButton.setButtonText(pd.locked ? CharPointer_UTF8("\xef\x80\xa3") : CharPointer_UTF8("\xef\x82\x9c"));
+    lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
     lockButton.setToggleState(pd.locked, dontSendNotification);
 
     connectionStyleButton.setTooltip("Curve connections");
@@ -316,7 +316,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     hideButton.setConnectedEdges(12);
     hideButton.onClick = [this]() {
         sidebarHidden = hideButton.getToggleState();
-        hideButton.setButtonText(sidebarHidden ? CharPointer_UTF8("\xef\x81\x93") : CharPointer_UTF8("\xef\x81\x94"));
+        hideButton.setButtonText(sidebarHidden ? Icons::Show : Icons::Hide);
 
         toolbarButtons[8].setVisible(!sidebarHidden);
         toolbarButtons[9].setVisible(!sidebarHidden);
@@ -607,7 +607,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
 
     auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
 
-    auto* closeButton = new TextButton(CharPointer_UTF8("\xef\x80\x8d"));
+    auto* closeButton = new TextButton(Icons::Clear);
 
     closeButton->onClick = [this, tabButton]() mutable {
         // We cant use the index from earlier because it might change!
@@ -638,7 +638,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
         }
     };
 
-    closeButton->setLookAndFeel(&statusbarLook2);
+    closeButton->setLookAndFeel(&statusbarLook);
     closeButton->setColour(TextButton::buttonColourId, Colour());
     closeButton->setColour(TextButton::buttonOnColourId, Colour());
     closeButton->setColour(ComboBox::outlineColourId, Colour());
