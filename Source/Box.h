@@ -36,13 +36,12 @@ public:
 
     void updatePorts();
     
-   
-
     std::unique_ptr<pd::Object> pdObject = nullptr;
 
     int numInputs = 0;
     int numOutputs = 0;
-
+    bool locked = false;
+    
     ClickLabel textLabel;
 
     Canvas* cnv;
@@ -58,7 +57,7 @@ public:
 
     void setType(String newType, bool exists = false);
 
-    bool locked = false;
+
     
 private:
     void initialise();

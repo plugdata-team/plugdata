@@ -107,8 +107,6 @@ int libpd_array_get_style(char const* name)
 }
 
 
-
-
 static unsigned int convert_from_iem_color(int const color)
 {
     unsigned int const c = (unsigned int)(color << 8 | 0xFF);

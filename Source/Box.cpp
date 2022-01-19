@@ -15,7 +15,9 @@
 
 //==============================================================================
 Box::Box(Canvas* parent, String name, Point<int> position)
-    : textLabel(this, parent->dragger)
+    :
+      locked(parent->pd->locked)
+    , textLabel(this, parent->dragger)
     , dragger(parent->dragger)
 {
     cnv = parent;
@@ -40,6 +42,7 @@ Box::Box(Canvas* parent, String name, Point<int> position)
 
 Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
     : pdObject(object)
+    , locked(parent->pd->locked)
     , textLabel(this, parent->dragger)
     , dragger(parent->dragger)
 {
@@ -67,7 +70,7 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
 {
     locked = cnv->pd->locked;
     // Called when locking/unlocking
-    textLabel.setEditable(false, !locked);
+    textLabel.setEditable(!locked);
     
     // If the object has graphics, we hide the draggable name object
     if (graphics && !graphics->fakeGUI() && (locked || cnv->isGraph)) {
@@ -99,6 +102,7 @@ void Box::initialise()
         String newText = textLabel.getText();
         setType(newText);
     };
+    
     
     // Add listener for lock/unlock messages
     cnv->main.addChangeListener(this);
@@ -151,26 +155,26 @@ void Box::setType(String newType, bool exists)
 
     // Exists indicates that this object already exists in pd
     // When setting exists to true, you need to have assigned an object to the pdObject variable already
-    if (!exists && newType.isNotEmpty()) {
+    if (!exists) {
         auto* pd = &cnv->patch;
         // Pd doesn't normally allow changing between gui and non-gui objects so we force it
         if (pdObject) {
             pdObject = pd->renameObject(pdObject.get(), newType);
+            //cnv->synchronise();
         } else {
             pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
         }
     }
-    else if (newType.isNotEmpty()) {
+    else {
         auto* ptr = pdObject->getPointer();
         // Reload GUI if it already exists
-        if(pd::Gui::getType(ptr) != pd::Type::Undefined) {
+        if(pd::Gui::getType(ptr) != pd::Type::Undefined && pd::Gui::getType(ptr) != pd::Type::Invalid) {
             pdObject.reset(new pd::Gui(ptr, &cnv->patch, cnv->pd));
         }
         else {
             pdObject.reset(new pd::Object(ptr, &cnv->patch, cnv->pd));
         }
     }
-
 
     // Update inlets/outlets if it's not in a graph
     if (!cnv->isGraph)
@@ -185,6 +189,7 @@ void Box::setType(String newType, bool exists)
 
         if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
             setSize(bestWidth, 31);
+            textLabel.setVisible(true);
         } else if (graphics && !graphics->fakeGUI()) {
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
@@ -193,9 +198,11 @@ void Box::setType(String newType, bool exists)
             restrainer.checkComponentBounds(this);
             textLabel.setVisible(false);
         } else {
+            textLabel.setVisible(true);
             setSize(bestWidth, 31);
         }
     } else {
+        textLabel.setVisible(true);
         setSize(bestWidth, 31);
     }
 
@@ -282,6 +289,13 @@ void Box::resized()
             int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
             setSize(bestWidth + 30, (num_lines * 17) + 14);
             textLabel.setBounds(getLocalBounds().reduced(4));
+        }
+        
+        if(graphics && graphics->getGUI().getType() == pd::Type::Message && !graphics->getGUI().isAtom()) {
+            textLabel.setBorderSize({2, 2, 2, 22});
+        }
+        else {
+            textLabel.setBorderSize({2, 2, 2, 2});
         }
     }
     

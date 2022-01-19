@@ -123,7 +123,9 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile()) {
         settingsFile.create();
-
+        
+        
+        
         // Add default settings
         settingsTree.setProperty("ConnectionStyle", false, nullptr);
 

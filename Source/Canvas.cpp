@@ -12,6 +12,7 @@
 #include "Connection.h"
 #include "PluginProcessor.h"
 
+
 //==============================================================================
 Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
     : main(parent)
@@ -49,6 +50,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
     }
 
     main.startTimer(guiUpdateMs);
+    
+    addChildComponent(suggestor);
     
 }
 
@@ -89,7 +92,7 @@ void Canvas::synchronise(bool updatePosition)
     // Clear deleted boxes
     for (int n = boxes.size() - 1; n >= 0; n--) {
         auto* box = boxes[n];
-        if (isObjectDeprecated(box->pdObject.get())) {
+        if (box->pdObject && isObjectDeprecated(box->pdObject.get())) {
             boxes.remove(n);
         }
     }
@@ -165,6 +168,7 @@ void Canvas::synchronise(bool updatePosition)
     }
 
     // Make sure objects have the same order
+    
     std::sort(boxes.begin(), boxes.end(), [&objects](Box* first, Box* second) mutable {
         size_t idx1 = std::find(objects.begin(), objects.end(), *first->pdObject.get()) - objects.begin();
         size_t idx2 = std::find(objects.begin(), objects.end(), *second->pdObject.get()) - objects.begin();
@@ -228,6 +232,10 @@ void Canvas::loadPatch(pd::Patch patch)
 void Canvas::mouseDown(const MouseEvent& e)
 {
    
+    if(suggestor.openedEditor) {
+        suggestor.currentBox->textLabel.hideEditor(false);
+        return;
+    }
     
     // Ignore if locked
     if (pd->locked)
@@ -863,7 +871,6 @@ void Canvas::checkBounds()
         }
         
         zeroPosition -= {minX, minY};
-        
         setSize(maxX - minX, maxY - minY);
     }
 
