@@ -10,7 +10,6 @@
 #include "PdLibrary.hpp"
 
 
-
 struct _canvasenvironment
 {
     t_symbol *ce_dir;      /* directory patch lives in */

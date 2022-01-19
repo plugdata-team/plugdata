@@ -256,11 +256,16 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
             
             glist_noselect(getPointer());
             glist_select(getPointer(), (t_gobj*)obj->getPointer());
+            canvas_stowconnections(getPointer());
             libpd_removeselection(getPointer());
             glist_noselect(getPointer());
         });
         
         auto obj = createObject(name, x, y);
+        
+        m_instance->enqueueFunction([this](){
+            canvas_restoreconnections(getPointer());
+        });
         
         return obj;
     }

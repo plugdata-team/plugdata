@@ -46,7 +46,7 @@ struct GUIComponent : public Component {
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawLine(0, 0, getWidth(), 0);
     }
-    
+
     void closeOpenedSubpatchers();
 
     static GUIComponent* createGui(String name, Box* parent);
@@ -292,19 +292,6 @@ struct NumboxComponent : public GUIComponent {
             {
                 return;
             }
-            /*
-
-            
-            
-
-           
-            else {
-                precision -= 1;
-            }*/
-            
-            
-            
-        
             
             auto currentValue = input.getText();
             if(!currentValue.containsChar('.')) currentValue += '.';
@@ -819,7 +806,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
-        return { w, h };
+        return { w - 28, h };
     };
 
     MidiKeyboardState state;

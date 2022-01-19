@@ -126,7 +126,7 @@ TextEditor* ClickLabel::createEditorComponent()
     
     auto boundsInParent = getBounds() + box->getPosition();
 
-    suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 200);
+    suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 300);
     suggestor.resized();
 
     return editor;
@@ -317,18 +317,22 @@ SuggestionBox::SuggestionBox()
         SuggestionComponent* but = buttons.add(new SuggestionComponent);
         buttonholder->addAndMakeVisible(buttons[i]);
 
+        but->setClickingTogglesState(true);
+        but->setRadioGroupId(110);
+        
         // Colour pattern
         but->setColour(TextButton::buttonColourId, colours[i % 2]);
     }
 
     // select the first button
-    buttons[0]->setToggleState(true, sendNotification);
+    //buttons[0]->setToggleState(true, sendNotification);
 
     // Set up viewport
     port = std::make_unique<Viewport>();
     port->setScrollBarsShown(true, false);
     port->setViewedComponent(buttonholder.get(), false);
     port->setInterceptsMouseClicks(true, true);
+    port->setViewportIgnoreDragFlag(true);
     addAndMakeVisible(port.get());
 
     //setLookAndFeel(&buttonlook);
@@ -365,16 +369,16 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
     for (int i = 0; i < buttons.size(); i++) {
         auto* but = buttons[i];
         but->setAlwaysOnTop(true);
-        but->setWantsKeyboardFocus(false);
-        but->addMouseListener(this, false);
+        
         but->onClick = [this, i, box, editor]() mutable {
             move(0, i);
+            if(!editor->isVisible()) editor->setVisible(true);
             editor->grabKeyboardFocus();
         };
     }
 
-    buttons[0]->setToggleState(true, sendNotification);
-    setVisible(true);
+    //buttons[0]->setToggleState(true, sendNotification);
+    setVisible(editor->getText().isNotEmpty());
     repaint();
 }
 
@@ -397,8 +401,10 @@ void SuggestionBox::move(int offset, int setto)
     int numButtons = std::min(20, numOptions);
     currentidx = (currentidx + numButtons) % numButtons;
 
-    TextButton* but = buttons[currentidx];
-    but->setToggleState(true, dontSendNotification);
+    auto* but = buttons[currentidx];
+    
+    // If we use setto, the toggle state should already be set
+    if (setto == -1) but->setToggleState(true, dontSendNotification);
 
     if (openedEditor) {
         String newText = buttons[currentidx]->getButtonText();
@@ -414,7 +420,12 @@ void SuggestionBox::move(int offset, int setto)
         port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
     }
 }
-
+    
+void SuggestionBox::paint(Graphics& g) {
+    g.setColour(MainLook::firstBackground);
+    g.fillRect(port->getBounds());
+}
+    
 void SuggestionBox::paintOverChildren(Graphics& g)
 {
     g.setColour(bordercolor);
@@ -423,11 +434,11 @@ void SuggestionBox::paintOverChildren(Graphics& g)
 
 void SuggestionBox::resized()
 {
-    port->setBounds(0, 0, getWidth(), std::min(5, numOptions) * 20);
-    buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 20);
+    port->setBounds(0, 0, getWidth(), std::min(5, numOptions) * 23);
+    buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 23);
 
     for (int i = 0; i < buttons.size(); i++)
-        buttons[i]->setBounds(2, (i * 20) + 2, getWidth() - 2, 23);
+        buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
 }
 
 bool SuggestionBox::keyPressed(const KeyPress& key, Component* originatingComponent)
@@ -453,10 +464,8 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput)
     String typedText = e.getText().substring(0, start) + mutableInput;
     highlightStart = typedText.length();
 
-    if (typedText.length() > 0)
-        setVisible(true);
-    else
-        setVisible(false);
+
+    
 
     // Update suggestions
     auto found = currentBox->cnv->main.pd.objectLibrary.autocomplete(typedText.toStdString());
@@ -468,6 +477,9 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput)
         buttons[i]->setText("     ");
 
     numOptions = found.size();
+    
+    setVisible(typedText.isNotEmpty() && numOptions);
+    
     resized();
 
     // Get length of user-typed text
