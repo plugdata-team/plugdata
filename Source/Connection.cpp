@@ -13,6 +13,10 @@
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     : start(s), end(e)
 {
+    
+    // Should improve performance
+    setBufferedToImage(true);
+    
     cnv = parent;
 
     // Receive mouse events on canvas
@@ -70,7 +74,6 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     componentMovedOrResized(*end, true, true);
 
     resized();
-    repaint();
 }
 
 Connection::~Connection()
@@ -128,6 +131,7 @@ void Connection::paint(Graphics& g)
 void Connection::mouseDown(const MouseEvent& e)
 {
     isSelected = !isSelected;
+    repaint();
 }
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
@@ -139,7 +143,6 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
     setBounds(left, top, right - left, bottom - top);
     resized();
-    repaint();
 }
 
 void Connection::resized()

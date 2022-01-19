@@ -84,7 +84,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
         ownsConsole = false;
     } else {
         LookAndFeel::setDefaultLookAndFeel(&mainLook);
-        console = new Console(LOG_STDOUT, LOG_STDOUT);
+        console = new Console;
         ownsConsole = true;
     }
 

@@ -1,177 +1,234 @@
-
-
-/*
- MIT License
-
- Copyright (c) 2018 Janos Buttgereit
-
- Permission is hereby granted, free of charge, to any person obtaining a copy
- of this software and associated documentation files (the "Software"), to deal
- in the Software without restriction, including without limitation the rights
- to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- copies of the Software, and to permit persons to whom the Software is
- furnished to do so, subject to the following conditions:
-
- The above copyright notice and this permission notice shall be included in all
- copies or substantial portions of the Software.
-
- THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- SOFTWARE.
- */
-
-/*
- ==============================================================================
-
- BEGIN_JUCE_MODULE_DECLARATION
-
- ID:            log_component
- vendor:        ntlab
- version:       1.0.0
- name:          Console
- description:   Displays stdout, stderr and custom logging messages on the GUI
- dependencies:  juce_gui_basics
- website:       git.fh-muenster.de/NTLab/CodeReUse/Console4JUCE
- license:       MIT
-
- END_JUCE_MODULE_DECLARATION
-
- ==============================================================================
- */
-
 #pragma once
-
-#include "LookAndFeel.h"
 #include <JuceHeader.h>
-#include <thread>
+#include "LookAndFeel.h"
+/* Copyright (c) 2021 Jojo and others. */
 
-/**
- * A component that takes over stdout and stderr and displays it inside
- */
+/* < https://opensource.org/licenses/BSD-3-Clause > */
 
-struct LogContainer : public Component {
-    int totalheight = 0;
-    int colourCount = 0;
-    std::vector<Colour> colours;
 
-    LogContainer(std::vector<Colour> colourscheme)
-        : colours(colourscheme)
+class Console : public Logger, public Component, public ListBoxModel, private AsyncUpdater
+{
+
+public:
+    explicit Console ()
+    {
+        listBox.setModel (this);
+        
+        const int h = 22;
+        listBox.setMultipleSelectionEnabled (false);
+        listBox.setClickingTogglesRowSelection (true);
+        listBox.setRowHeight (h);
+        listBox.getViewport()->setScrollBarsShown (false, false, true, true);
+        
+        update(messages, false);
+        addAndMakeVisible (listBox);
+ 
+        setOpaque (true);
+        setSize (600, 300);
+    }
+    
+    ~Console() override
     {
     }
 
-    void paint(Graphics& g) override
-    {
-
-        for (int i = totalheight; i < getHeight(); i += 24) {
-            colourCount = !colourCount;
-            g.setColour(colours[colourCount]);
-            g.fillRect(0, i, getWidth(), 24);
-        }
-    };
-};
-
-class Console : public Component, public Logger, private AsyncUpdater {
-
 public:
-    /**
-     * Creates a new log component. By default, stderr and stdout are captured immediately after
-     * construction
-     */
-    Console(bool captureStdErrImmediately = false, bool captureStdOutImmediately = false);
-
-    ~Console();
-
-    /** Clears the log */
-    void clear();
-
-    /** Posts a message directly to the Console, is also called if this is set as the current juce logger */
-    void logMessage(const String& message) override;
+    void update()
+    {
+       update(messages, true);
+        
+        /*
+        if (getButtonState (Icons::autoscroll)) {
+        //
+        const int i = static_cast<int> (messages.size()) - 1;
+        
+        listBox.scrollToEnsureRowIsOnscreen (jmax (i, 0));
+        //
+        } */
+    }
     
-    /** Posts an error directly to the Console */
-    void logError(const String& message);
 
-    /** Sets a new colour for all stdout prints. Default is blue */
-    void setNewLogMessageColour(const Colour& newColour);
+    template <class T>
+    void update (T& c, bool updateRows)
+    {
+        int size = c.size();
+        
+        if (updateRows) {
+            listBox.updateContent();
+            listBox.deselectAllRows();
+            listBox.repaint();
+        }
+        
+        const bool show = (listBox.getNumRowsOnScreen() < size) ||
+                          (size > 0 && listBox.getRowContainingPosition (0, 0) >= size);
+        
+        listBox.getViewport()->setScrollBarsShown (show, show, true, true);
+    }
+    
+    void handleAsyncUpdate() override
+    {
+        update();
+    }
+    
+    void logMessage (const String& m)
+    {
+        removeMessagesIfRequired (messages);
+        removeMessagesIfRequired (history);
+        
+        history.push_back({m, 0});
+        
+        logMessageProceed ({{m, 0}});
+    }
+                                
+    void logError (const String& m)
+    {
+        removeMessagesIfRequired (messages);
+        removeMessagesIfRequired (history);
+        
+        history.push_back({m, 1});
+        logMessageProceed ({{m, 1}});
+    }
 
-    /** Sets a new colour for all stdout prints. Default is black */
-    void setNewStdOutColour(const Colour& newStdOutColour);
+    void clear()
+    {
+        messages.clear();
+        triggerAsyncUpdate();
+    }
+    
+    void parse()
+    {
+        parseMessages (messages, true, true);
+        
+        triggerAsyncUpdate();
+    }
 
-    /** Sets a new colour for all stderr prints. Default is red */
-    void setNewStdErrColour(const Colour& newStdErrColour);
+    void restore()
+    {
+        std::vector<std::pair<String, int>> m (history.cbegin(), history.cend());
+        
+        messages.clear();
+        logMessageProceed (m);
+    }
 
-    /** Redirects stdout to this component. Call releaseStdOut to restore the prior state */
-    bool captureStdOut();
-
-    /** Redirects stderr to this component. Call releaseStdErr to restore the prior state */
-    bool captureStdErr();
-
-    /** Restores the original stdout */
-    void releaseStdOut(bool printRestoreMessage = true);
-
-    /** Restores the original stderr */
-    void releaseStdErr(bool printRestoreMessage = true);
-
-    void resized() override;
 
 private:
-    Viewport viewport;
+    void logMessageProceed (std::vector<std::pair<String, int>> m)
+    {
+        // TODO: message and error selectors
+        parseMessages (m, true, true);
+        
+        messages.insert (messages.cend(), m.cbegin(), m.cend());
+        
+        triggerAsyncUpdate();
+    }
 
-    int totalHeight = 0;
-    int colourCount = 1;
 
-    // filedescriptors to restore the standard console output streams
-    static int originalStdout, originalStderr;
+public:
+    int getNumRows() override
+    {
+        return jmax (32, static_cast<int> (messages.size()));
+    }
 
-    // pipes to redirect the streams to this component
-    static int logStdOutputPipe[2];
-    static int logErrOutputPipe[2];
+    void paintListBoxItem (int row, Graphics& g, int width, int height, bool isSelected) override
+    {
+        if (row % 2) { g.fillAll (MainLook::secondBackground); }
+        
+        if (isPositiveAndBelow (row, messages.size())) {
+        //
+        const Rectangle<int> r (width, height);
+        const auto& e = messages[row];
+        
+        g.setColour (isSelected ? MainLook::highlightColour
+                                : colourWithType (e.second));
+        
+        //g.setFont (Spaghettis()->getLookAndFeel().getConsoleFont());
+        g.drawText (e.first, r.reduced (4, 0), Justification::centredLeft, true);
+        //
+        }
+    }
+    
+    void listBoxItemClicked (int row, const MouseEvent &) override
+    {
+        if (isPositiveAndBelow (row, messages.size()) == false) { triggerAsyncUpdate(); }
+    }
+    
+public:
+    void paint (Graphics& g) override
+    {
+        g.fillAll (MainLook::firstBackground);
+    }
+    
+    void resized() override
+    {
+        listBox.setBounds (getLocalBounds());
+        
+        update(messages, false);
+    }
 
-    static std::unique_ptr<std::thread> stdOutReaderThread;
-    static std::unique_ptr<std::thread> stdErrReaderThread;
+    void listWasScrolled() override
+    {
+        update(messages, false);
+    }
+    
 
-    // indicates if it is the current stdout
-    static Console* currentStdOutTarget;
-    static Console* currentStdErrTarget;
+private:
+    static Colour colourWithType (int type)
+    {
+        auto c = Colours::red;
+        
+        if (type == 0)       { c = Colours::white; }
+        else if (type == 1)  { c = Colours::orange;  }
+        else if (type == 2) { c = Colours::red; }
+        
+        return c;
+    }
 
-    static const int tmpBufLen = 512;
-
-    std::vector<Colour> colours = { MainLook::secondBackground, MainLook::firstBackground };
-
-    LogContainer logContainer;
-
-    StatusbarLook statusbarLook = StatusbarLook(false, 1.4);
+    static void removeMessagesIfRequired (std::deque<std::pair<String, int>>& messages)
+    {
+        const int maximum_ = 2048;
+        const int removed_ = 64;
+        
+        int size = static_cast<int> (messages.size());
+        
+        if (size >= maximum_) {
+        const int n = nextPowerOfTwo (size - maximum_ + removed_);
+        
+        jassert (n < size);
+        
+        messages.erase (messages.cbegin(), messages.cbegin() + n);
+        }
+    }
+    
+    template <class T>
+    static void parseMessages (T& m, bool showMessages, bool showErrors)
+    {
+        if (showMessages == false || showErrors == false) {
+        auto f = [showMessages, showErrors] (const std::pair<String, bool>& e)
+        {
+            bool t = e.second;
+            
+            if (!t && showMessages == false)    { return true; }
+            else if (t && showErrors == false) { return true; }
+            else {
+                return false;
+            }
+        };
+        
+          m.erase (std::remove_if (m.begin(), m.end(), f), m.end());
+        }
+    }
+    
+private:
+    ListBox listBox;
+    std::deque<std::pair<String, int>> messages;
+    std::deque<std::pair<String, int>> history;
+    
+    TextButton logMessages;
+    TextButton logErrors;
     TextButton clearButton;
+    TextButton restoreButton;
+    TextButton autoscrollButton;
 
-    Colour stdOutColour = Colours::white;
-    Colour stdErrColour = Colours::orange;
-    Colour logMessageColour = Colours::lightblue;
-    Colour backgroundColour = Colours::white;
-
-    // this is where the text is stored
-    int numLinesToStore = 90;
-    int numLinesToRemoveWhenFull = 20;
-    int numLinesStored = 0;
-    int numNewLinesSinceUpdate = 0;
-
-    OwnedArray<Label> items;
-    StringArray lines;
-    Array<Colour> lineColours;
-    CriticalSection linesLock;
-
-    static bool createAndAssignPipe(int* pipeIDs, FILE* stream);
-    static void deletePipeAndEndThread(int original, FILE* stream, std::unique_ptr<std::thread>& thread);
-
-    static void readStdOut();
-
-    static void readStdErr();
-
-    void paint(Graphics& g) override;
-
-    void addFromStd(char* stringBufferToAdd, size_t bufferSize, Colour colourOfString);
-
-    void handleAsyncUpdate() override;
+private:
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Console)
 };
+

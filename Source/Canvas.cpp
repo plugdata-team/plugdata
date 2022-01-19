@@ -595,7 +595,7 @@ void Canvas::mouseMove(const MouseEvent& e)
 {
     // For deciding where to place a new object
     lastMousePos = e.getPosition();
-    repaint();
+    //repaint();
 }
 
 void Canvas::resized()
