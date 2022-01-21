@@ -426,7 +426,7 @@ void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list
 
 void Instance::enqueueDirectMessages(void* object, const std::string& msg)
 {
-    m_send_queue.try_enqueue(dmessage{object, std::string(), "s", std::vector<Atom>(1, msg)});
+    m_send_queue.try_enqueue(dmessage{object, std::string(), "symbol", std::vector<Atom>(1, msg)});
     messageEnqueued();
 }
 

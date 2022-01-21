@@ -1,0 +1,84 @@
+#N canvas 47 22 568 493 10;
+#X obj 4 439 cnv 15 550 20 empty \$0-pddp.cnv.footer empty 20 12 0
+14 -228856 -66577 0;
+#X obj 4 -17 cnv 15 550 40 empty \$0-pddp.cnv.header alternate 3 12
+0 18 -204280 -1 0;
+#X obj 3 239 cnv 3 550 3 empty \$0-pddp.cnv.inlets inlet 15 12 0 13
+-228856 -1 0;
+#N canvas 779 22 498 348 META 0;
+#X text 12 65 TEMPLATE template-help.pd v0.1;
+#X text 12 85 PLATFORM windows macosx gnulinux;
+#X text 12 25 KEYWORDS control alternate;
+#X text 12 45 LICENSE GPLv2 or later;
+#X text 12 105 DATATYPE any message;
+#X text 12 125 LIBRARY markex;
+#X restore 504 441 pd META;
+#X obj 3 299 cnv 3 550 3 empty \$0-pddp.cnv.outlets outlets 15 12 0
+13 -228856 -1 0;
+#X obj 3 389 cnv 3 550 3 empty \$0-pddp.cnv.argument argument 15 12
+0 13 -228856 -1 0;
+#N canvas 309 454 609 478 guts 0;
+#X obj 117 95 textfile;
+#X msg 116 24 symbol template-HCS.pd;
+#X msg 116 54 read \$1 \, rewind \, bang;
+#X obj 117 141 trigger bang anything;
+#X obj 58 117 bang;
+#X obj 240 162 route #X;
+#X obj 240 183 route text;
+#X obj 240 250 route DESCRIPTION;
+#X obj 239 276 print;
+#X obj 140 277 print TEXT;
+#X connect 0 0 3 0;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 3 0 4 0;
+#X connect 3 1 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 6 0;
+#X connect 7 0 8 0;
+#X restore 453 441 pd guts;
+#X obj 488 -14 alternate;
+#X obj 437 5 pddp/pddplink http://pdpedia.org/en/markex/alternate -text
+pdpedia: alternate;
+#X text 15 6 description: alternates messages between its two outlets
+;
+#X obj 74 351 cnv 17 3 25 empty \$0-pddp.cnv.let.0 1 5 9 0 16 -228856
+-162280 0;
+#X obj 74 321 cnv 17 3 25 empty \$0-pddp.cnv.let.0 0 5 9 0 16 -228856
+-162280 0;
+#X obj 315 152 cnv 10 57 16 empty \$0-pddp.cnv.highlight empty 20 12
+0 14 -262126 -66577 0;
+#X obj 63 115 cnv 10 57 16 empty \$0-pddp.cnv.highlight empty 20 12
+0 14 -262126 -66577 0;
+#X msg 309 56 1;
+#X obj 315 152 alternate;
+#X msg 262 55 bang;
+#X msg 349 123 reset;
+#X msg 342 56 symbol blah;
+#X obj 366 174 pddp/print;
+#X obj 315 201 pddp/print;
+#X obj 63 115 alternate;
+#X obj 63 143 bng 25 250 50 0 empty empty empty 0 -6 0 10 -262144 -1
+-1;
+#X obj 114 143 bng 25 250 50 0 empty empty empty 0 -6 0 10 -262144
+-1 -1;
+#X obj 63 80 bng 25 250 50 0 empty empty empty 0 -6 0 10 -204786 -1
+-1;
+#X msg 352 83 1 2 3 4;
+#X text 105 257 any message can be send to [alternate] \, it will just
+pass it through to the outlets;
+#X text 102 407 [alternate] ignores all arguments;
+#X text 105 317 first message that was received on the inlet \, and
+all following messages that are numbered odd in the sequence;
+#X text 105 348 second message that was received on the inlet \, and
+all following messages that are numbered even in the sequence;
+#X connect 14 0 15 0;
+#X connect 15 0 20 0;
+#X connect 15 1 19 0;
+#X connect 16 0 15 0;
+#X connect 17 0 15 0;
+#X connect 18 0 15 0;
+#X connect 21 0 22 0;
+#X connect 21 1 23 0;
+#X connect 24 0 21 0;
+#X connect 25 0 15 0;

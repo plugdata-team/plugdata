@@ -73,15 +73,20 @@ public:
     void update()
     {
         update(messages, true);
-        if (buttons[4].getToggleState()) {
+        
+        setSize(viewport.getWidth(), std::max<int>(totalHeight + 5, viewport.getHeight()));
+        
+        if (buttons[4].getToggleState() && totalHeight + 5 >= viewport.getHeight()) {
             const int i = static_cast<int> (messages.size()) - 1;
             
-            //listBox.scrollToEnsureRowIsOnscreen (jmax (i, 0));
+            
+            viewport.setViewPosition (viewport.getViewPositionX(), getHeight());
         }
         
-        setSize(viewport.getWidth(), std::max<int>((messages.size() + 1) * 24, viewport.getHeight()));
+       
         repaint();
     }
+    
     
     
     template <class T>
@@ -173,7 +178,9 @@ public:
         g.setFont(MainLook::defaultFont.withHeight(13));
         g.fillAll (MainLook::firstBackground);
         
-        int position = 0;
+        totalHeight = 0;
+        
+        int numEmpty = 0;
         
         for(int row = 0; row < getNumRows(); row++) {
             int height = 24;
@@ -199,7 +206,7 @@ public:
                 }
             }
             
-            const Rectangle<int> r (0, position, getWidth(), height);
+            const Rectangle<int> r (0, totalHeight, getWidth(), height);
             
             if (row % 2) {
                 g.setColour (MainLook::secondBackground);
@@ -213,9 +220,14 @@ public:
                              : colourWithType (e.second));
                 g.drawFittedText (e.first, r.reduced (4, 0), Justification::centredLeft, num_lines, 1.0f);
             }
+            else {
+                numEmpty++;
+            }
             
-            position += height;
+            totalHeight += height;
         }
+        
+        totalHeight -= numEmpty * 24;
     }
     
     void resized() override
@@ -233,7 +245,7 @@ public:
             fb.items.add (item);
         }
         
-        fb.performLayout (getLocalBounds().removeFromBottom(33).toFloat());
+        fb.performLayout (viewport.getLocalBounds().removeFromBottom(33).toFloat());
         
         update(messages, false);
         
@@ -300,6 +312,7 @@ private:
     
     std::vector<bool> is_selected;
 
+    int totalHeight = 0;
     
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Console)

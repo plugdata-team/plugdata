@@ -1,0 +1,11 @@
+#N canvas 257 232 450 300 10;
+#X obj 140 147 ^;
+#X floatatom 140 179 5 0 0 0 - - -;
+#X msg 155 118 3;
+#X msg 120 118 2;
+#X text 37 48 ^ is the symbol in the C programming language for bitwise
+XOR (exclusive OR). It is also often used for "to the power of" \,
+but not in this object.;
+#X connect 0 0 1 0;
+#X connect 2 0 0 1;
+#X connect 3 0 0 0;

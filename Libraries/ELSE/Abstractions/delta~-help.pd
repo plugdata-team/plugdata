@@ -1,0 +1,20 @@
+#N canvas 611 272 450 300 10;
+#X text 88 22 sample difference;
+#X obj 67 202 env~;
+#X floatatom 67 230 5 0 0 0 - - -;
+#X floatatom 67 124 5 0 0 0 - - -;
+#X obj 67 147 osc~ 0.11;
+#X text 34 62 outputs the difference between current input and the
+;
+#X text 35 73 previous sample \, i.e. (3 \, 1 \, 0 -> 3 \, 2 \, -1):
+;
+#X text 35 300 cyclone is (c) Miller Puckette and others;
+#X text 34 316 docs based on the MAX/MSP reference (c) cycling'74;
+#X text 33 330 ___________________________________________________
+;
+#X obj 20 21 delta~;
+#X obj 68 175 delta~;
+#X connect 1 0 2 0;
+#X connect 3 0 4 0;
+#X connect 4 0 11 0;
+#X connect 11 0 1 0;

@@ -1,0 +1,10 @@
+#N canvas 141 276 450 300 10;
+#X obj 165 115 inv;
+#X floatatom 165 164 5 0 0 0 - - -;
+#X text 41 32 perform 1/x using float from inlet;
+#X obj 166 77 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -262144
+-1 -1 1500 1;
+#X msg 126 77 5;
+#X connect 0 0 1 0;
+#X connect 3 0 0 0;
+#X connect 4 0 0 0;

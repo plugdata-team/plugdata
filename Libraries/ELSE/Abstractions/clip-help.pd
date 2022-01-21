@@ -1,0 +1,106 @@
+#N canvas 3 22 569 590 10;
+#X obj 114 540 pddp/pddplink http://puredata.info/dev/pddp -text pddp;
+#X obj 8 3 cnv 15 90 578 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 38 36 INLETS:;
+#X text 38 51 - LEFT:;
+#X text 32 230 - RIGHT:;
+#X text 29 346 OUTLETS:;
+#X text 13 281 ARGUMENTS:;
+#X text 20 392 EXAMPLES:;
+#X text 20 488 SEE ALSO:;
+#N canvas 58 22 423 272 Related_Objects 0;
+#X text 25 11 Native Pd Objects;
+#X text 23 92 Externals and other object libraries;
+#X obj 45 54 int;
+#X obj 85 53 f;
+#X obj 123 53 min;
+#X obj 166 53 max;
+#X obj 206 53 clip~;
+#X obj 260 53 min~;
+#X obj 308 53 max~;
+#X text 44 125 - none that I am aware of;
+#X restore 114 488 pd Related_Objects;
+#N canvas 57 22 651 632 More_Info 0;
+#X text 40 187 LOW AND HIGH VALUES;
+#X text 304 34 Consider the following:;
+#X floatatom 101 66 5 0 0 0 - - -;
+#X floatatom 83 147 5 0 0 0 - - -;
+#X obj 83 121 min 50;
+#X obj 83 95 max -50;
+#X text 170 106 same as;
+#X obj 271 104 clip -50 50;
+#X floatatom 271 133 5 0 0 0 - - -;
+#X text 43 18 [clip] is a tool which combines the functionality of
+[min] and [max] into a single object.;
+#X text 56 208 [clip] always assumes that the first argument (second
+inlet) is the low extreme of the range and the second argument (third
+inlet) is the high extreme. However \, strange behaviour should be
+expected if you mix these arguments up.;
+#X obj 64 331 clip -50 50;
+#X obj 190 325 clip 72 -104;
+#X floatatom 64 298 5 0 0 0 - - -;
+#X floatatom 64 360 5 0 0 0 - - -;
+#X floatatom 190 357 5 0 0 0 - - -;
+#X text 195 284 Numbers below 72 are clipped to 72;
+#X text 195 304 Numbers above -104 are clipped to -104;
+#X text 72 405 This could be used effectively to toggle between two
+numbers.;
+#X floatatom 401 383 5 0 0 0 - - -;
+#X obj 370 360 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 0
+1;
+#X obj 402 352 clip 1 -1024;
+#X connect 2 0 5 0;
+#X connect 2 0 7 0;
+#X connect 4 0 3 0;
+#X connect 5 0 4 0;
+#X connect 7 0 8 0;
+#X connect 11 0 14 0;
+#X connect 12 0 15 0;
+#X connect 13 0 11 0;
+#X connect 13 0 12 0;
+#X connect 20 0 21 0;
+#X connect 21 0 19 0;
+#X restore 114 514 pd More_Info;
+#X obj 57 11 clip;
+#X text 105 51 Float - A float at the left inlet will be clipped to
+the low and high values stored in the object.;
+#X text 105 82 List - A list at the left inlet will be truncated to
+include only the first three elements. The first element in the list
+is the number which will be clipped. The second element will update
+the value stored at the second inlet. The third element will update
+the value stored at the third inlet.;
+#X text 25 180 - CENTER:;
+#X text 105 180 Float - A float at the second inlet is stored for later
+use. It will be used as either the low or high value at which to clip
+incoming floats at that left inlet.;
+#X text 105 231 Float - A float at the third inlet is stored for later
+use. It will be used as either the low or high value at which to clip
+incoming floats at that left inlet.;
+#X text 104 281 Two - [float] accepts two floats as creation arguments
+which initializes the first values to be stored in the object and duplicate
+the functions of the second and third inlet.;
+#X text 108 12 - FORCE A NUMBER INTO A RANGE;
+#X obj 122 428 clip -50 50;
+#X floatatom 122 455 5 0 0 0 - - -;
+#X floatatom 122 404 5 0 0 0 - - -;
+#X text 181 405 creation arguments;
+#X obj 411 466 clip;
+#X floatatom 410 437 5 0 0 0 - - -;
+#X floatatom 460 437 5 0 0 0 - - -;
+#X floatatom 510 437 5 0 0 0 - - -;
+#X floatatom 411 492 5 0 0 0 - - -;
+#X text 464 468 no arguments;
+#X text 450 405 list;
+#X text 158 541 - Dave Sabine \, April 25 \, 2003;
+#X msg 373 405 42 100 500;
+#X text 344 565 updated for Pd version 0.38-2;
+#X text 102 346 One - outputs a float which is limited to a range within
+the high and low values of the second and third inlet.;
+#X connect 19 0 20 0;
+#X connect 21 0 19 0;
+#X connect 23 0 27 0;
+#X connect 24 0 23 0;
+#X connect 25 0 23 1;
+#X connect 26 0 23 2;
+#X connect 31 0 23 0;

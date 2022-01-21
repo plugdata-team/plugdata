@@ -353,28 +353,38 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
     box->cnv->main.addChangeListener(this);
     isLocked = box->cnv->pd->locked;
     
+    // message box behaviour
     if(!gui.isAtom()) {
         input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
+        
+        input.onTextChange = [this]() {
+            
+            auto width = input.getFont().getStringWidth(input.getText()) + 25;
+            
+            
+            if(width > box->getWidth()) {
+                box->setSize(width, box->getHeight());
+            }
+            
+            gui.setSymbol(input.getText().toStdString());
+        };
+        
+        bangButton.onClick = [this]() {
+            startEdition();
+            gui.click();
+            stopEdition();
+        };
     }
-    
-    bangButton.onClick = [this]() {
-        startEdition();
-        gui.click();
-        stopEdition();
-    };
+    // symbolatom box behaviour
+    else {
+        input.onReturnKey = [this](){
+            startEdition();
+            gui.setSymbol(input.getText().toStdString());
+            stopEdition();
+            input.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+        };
+    }
 
-    input.onTextChange = [this]() {
-        
-        auto width = input.getFont().getStringWidth(input.getText()) + 25;
-        
-        
-        if(width > box->getWidth()) {
-            box->setSize(width, box->getHeight());
-        }
-        
-        gui.setSymbol(input.getText().toStdString());
-    };
-    
     input.onFocusLost = [this](){
         
         auto width = input.getFont().getStringWidth(input.getText()) + 25;
@@ -384,17 +394,8 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
         }
     };
     
-    
-    
-    if(gui.isAtom()) {
-        input.onReturnKey = [this](){
-            gui.setSymbol(input.getText().toStdString());
-        };
-    }
-
     input.setMultiLine(true);
     
-
     box->restrainer.setSizeLimits(60, 50, 500, 600);
     box->restrainer.checkComponentBounds(box);
     
@@ -491,7 +492,6 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
             
             if(editor != nullptr)
             {
-                
                 editor->setInputRestrictions(0, ".-0123456789");
             }
         };
@@ -507,9 +507,6 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     addAndMakeVisible(input);
     
     input.setText(String(getValueOriginal(), 3), dontSendNotification);
-    
-    
-
     
     input.onTextChange = [this]() {
         startEdition();

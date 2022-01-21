@@ -705,6 +705,9 @@ void Gui::setSendSymbol(const std::string& symbol) const noexcept {
         
         iemgui_verify_snd_ne_rcv(iemgui);
     }
+    if(m_ptr && isAtom()) {
+        ((t_fake_gatom*)m_ptr)->a_symto = gensym(symbol.c_str());
+    }
 }
 
 
@@ -742,6 +745,9 @@ void Gui::setReceiveSymbol(const std::string& symbol) const noexcept {
         
         iemgui->x_rcv = gensym(symbol.c_str());
         iemgui_verify_snd_ne_rcv(iemgui);
+    }
+    else if(isAtom()) {
+        ((t_fake_gatom*)m_ptr)->a_symfrom = gensym(symbol.c_str());
     }
 }
 

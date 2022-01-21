@@ -1,0 +1,36 @@
+#N canvas 231 172 401 466 10;
+#X obj 66 326 print;
+#X msg 66 133 1;
+#X obj 301 113 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X obj 66 112 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X msg 66 197 11 22;
+#X msg 66 153 symbol foo;
+#X msg 66 175 set;
+#X msg 66 218 list aaa 123;
+#X msg 66 241 jkl 555 uuu;
+#X obj 66 272 once;
+#X text 13 7 once;
+#X text 69 6 only the first message passes through;
+#X text 48 86 message in;
+#X text 80 292 message out (only once);
+#X text 239 92 anything to init once;
+#X text 115 408 IEM KUG;
+#X text 99 396 musil;
+#X text 129 396 @;
+#X text 135 396 iem.at;
+#X text 50 385 (c) Thomas Musil 2000 - 2005;
+#X text 98 418 Graz \, Austria;
+#X text 122 372 @;
+#X text 128 372 iem.at;
+#X text 50 372 (c) zmoelnig;
+#X connect 1 0 9 0;
+#X connect 2 0 9 1;
+#X connect 3 0 9 0;
+#X connect 4 0 9 0;
+#X connect 5 0 9 0;
+#X connect 6 0 9 0;
+#X connect 7 0 9 0;
+#X connect 8 0 9 0;
+#X connect 9 0 0 0;
