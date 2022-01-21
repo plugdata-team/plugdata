@@ -304,6 +304,7 @@ struct NumboxComponent : public GUIComponent {
             input.getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
             
             int offset = (input.getText().indexOfChar('.') - 1);
+            
             float position = gui.isAtom() ? e.getMouseDownX() - 2 : e.getMouseDownX() - 15;
             int precision = std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin();
             
@@ -316,7 +317,7 @@ struct NumboxComponent : public GUIComponent {
             
             if(shift) precision = 0;
             
-            float multiplier = pow(10, -precision);
+            float multiplier = pow(10, offset - precision);
             
             auto newValue = String(last + inc * multiplier, precision);
 

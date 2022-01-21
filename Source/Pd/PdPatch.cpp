@@ -174,7 +174,7 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
     
     t_symbol* typesymbol = gensym("obj");
     
-    if(tokens[0] == "msg") {
+    if(tokens[0] == "msg" || tokens[0] == "message") {
         typesymbol = gensym("msg");
         tokens.remove(0);
     }
@@ -244,9 +244,10 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     // Cant use the queue for this...
     setCurrent();
     
+    
     // Don't rename when going to or from a gui object, remove and recreate instead
     // TODO: sometimes this makes undo screw up
-    if(Gui::allGUIs.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() != Type::Undefined) {
+    if(Gui::specialGUIs.contains(name.upToFirstOccurrenceOf(" ", false, false)) ||  Gui::specialGUIs.contains(obj->getName())) {
         auto [x, y, w, h] = obj->getBounds();
         
         m_instance->enqueueFunction([this, obj](){
@@ -406,10 +407,17 @@ void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
     });
 }
 
+void Patch::finishRemove() {
+    m_instance->enqueueFunction([this]() mutable {
+        setCurrent();
+        libpd_finishremove(getPointer());
+    });
+}
 
 void Patch::removeSelection() {
     m_instance->enqueueFunction([this]() mutable {
         setCurrent();
+        
         libpd_removeselection(getPointer());
     });
     

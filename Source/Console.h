@@ -6,7 +6,7 @@
 /* < https://opensource.org/licenses/BSD-3-Clause > */
 
 
-class Console : public Component, private AsyncUpdater
+class Console : public Component, private AsyncUpdater, public ComponentListener
 {
     
     StatusbarLook statusbarlook;
@@ -15,11 +15,15 @@ public:
     explicit Console ()
     {
 
+        viewport.addComponentListener(this);
+  
         update(messages, false);
         
         setOpaque (true);
-        setSize (600, 300);
         
+        viewport.setViewedComponent(this, false);
+        viewport.setScrollBarsShown(true, false);
+        setVisible(true);
         
         std::vector<String> tooltips = {
             "Clear logs", "Restore logs", "Show errors", "Show messages", "Locate sender", "Enable autoscroll"
@@ -38,7 +42,7 @@ public:
         int i = 0;
         for(auto& button : buttons) {
             button.setConnectedEdges(12);
-            addAndMakeVisible(button);
+            viewport.addAndMakeVisible(button);
             button.setLookAndFeel(&statusbarlook);
             
             button.onClick = callbacks[i];
@@ -61,6 +65,10 @@ public:
         for(auto& button : buttons) button.setLookAndFeel(nullptr);
     }
     
+    void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) override {
+        update();
+    }
+    
 public:
     void update()
     {
@@ -71,6 +79,7 @@ public:
             //listBox.scrollToEnsureRowIsOnscreen (jmax (i, 0));
         }
         
+        setSize(viewport.getWidth(), std::max<int>((messages.size() + 1) * 24, viewport.getHeight()));
         repaint();
     }
     
@@ -141,7 +150,6 @@ public:
     }
     
     
-private:
     void logMessageProceed (std::vector<std::pair<String, int>> m)
     {
         parseMessages (m, buttons[2].getToggleState(), buttons[3].getToggleState());
@@ -153,8 +161,6 @@ private:
         triggerAsyncUpdate();
     }
     
-    
-public:
     int getNumRows()
     {
         return jmax (32, static_cast<int> (messages.size()));
@@ -188,13 +194,9 @@ public:
                         for(int j = i + 1; j < xOffsets.size(); j++) {
                             xOffsets.getReference(j) -= xOffsets[i];
                         }
-                        
                         num_lines++;
                     }
-                    
                 }
-                
-                
             }
             
             const Rectangle<int> r (0, position, getWidth(), height);
@@ -216,10 +218,6 @@ public:
         }
     }
     
-    
-public:
-    
-    
     void resized() override
     {
         FlexBox fb;
@@ -238,14 +236,12 @@ public:
         fb.performLayout (getLocalBounds().removeFromBottom(33).toFloat());
         
         update(messages, false);
+        
+        
     }
     
-    void listWasScrolled()
-    {
-        update(messages, false);
-    }
-    
-    
+    Viewport viewport;
+
 private:
     static Colour colourWithType (int type)
     {
@@ -293,8 +289,9 @@ private:
         }
     }
     
-private:
-    //ListBox listBox;
+
+    
+
     std::deque<std::pair<String, int>> messages;
     std::deque<std::pair<String, int>> history;
     
@@ -302,7 +299,7 @@ private:
     
     
     std::vector<bool> is_selected;
-    std::unique_ptr<Viewport> viewport;
+
     
 private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Console)
