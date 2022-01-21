@@ -1,0 +1,9 @@
+#N canvas 0 0 704 342 10;
+#X obj 180 148 log10;
+#X floatatom 180 128 5 0 0 0 - - -;
+#X floatatom 180 173 5 0 0 0 - - -;
+#X text 65 71 log10 returns the base 10 logarithm of its input. Input
+has to be positive.;
+#X text 107 221 log10(n) == ln(n)/ln(10);
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;

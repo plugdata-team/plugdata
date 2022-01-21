@@ -1,0 +1,17 @@
+#N canvas 0 0 624 300 12;
+#X obj 72 196 moses 10;
+#X floatatom 72 164 4 0 0;
+#X floatatom 139 167 4 0 0;
+#X floatatom 72 229 4 0 0;
+#X floatatom 139 230 4 0 0;
+#X obj 63 24 moses;
+#X text 118 23 - part a stream of numbers;
+#X text 303 235 updated for Pd version 0.33;
+#X text 24 64 Moses takes numbers and outputs them at left if they're
+less than a control value \, and at right if they're greater or equal
+to it. The creation argument initializes the control value (10 in this
+example) and the right inlet changes it.;
+#X connect 0 0 3 0;
+#X connect 0 1 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 0 1;

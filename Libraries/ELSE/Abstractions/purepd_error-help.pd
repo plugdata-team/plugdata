@@ -1,0 +1,4 @@
+#N canvas 118 57 454 304 10;
+#X msg 136 95 this is my error message;
+#X obj 135 143 purepd_error my_object_name;
+#X connect 0 0 1 0;
