@@ -1,0 +1,27 @@
+#N canvas 554 317 506 356 10;
+#X obj 214 233 outlet;
+#X text 40 248 If the argument is not equal to 0 \, use it. Pd init
+arguments to 0 so unused arguments will be 0;
+#X obj 63 116 select 0;
+#X text 39 285 This is useful to have internals inited \, but not reset
+if there is no argument specified.;
+#X obj 63 190 select 0;
+#X obj 63 169 float \$2;
+#X obj 63 96 float \$1;
+#X text 211 191 if 2nd arg \, then use as default value;
+#X obj 63 14 inlet;
+#X obj 211 138 purepd_error float_argument;
+#X obj 211 92 bang;
+#X obj 64 49 route bang float;
+#X msg 211 114 wrong data type on inlet;
+#X connect 2 0 5 0;
+#X connect 2 1 0 0;
+#X connect 4 1 0 0;
+#X connect 5 0 4 0;
+#X connect 6 0 2 0;
+#X connect 8 0 11 0;
+#X connect 10 0 12 0;
+#X connect 11 0 6 0;
+#X connect 11 1 0 0;
+#X connect 11 2 10 0;
+#X connect 12 0 9 0;

@@ -1,0 +1,52 @@
+#N canvas 187 55 517 466 10;
+#X msg 49 73 bang;
+#X msg 51 189 bang;
+#X obj 50 246 print blank;
+#X msg 36 326 bang;
+#X msg 241 326 bang;
+#X msg 204 187 bang;
+#X obj 203 244 print blank;
+#X obj 32 245 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X obj 185 245 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X floatatom 48 126 6 0 0 1 float - -;
+#X floatatom 36 389 10 0 0 0 - - -;
+#X msg 202 72 bang;
+#X floatatom 202 124 15 0 0 1 float - -;
+#X msg 362 187 bang;
+#X obj 361 244 print blank;
+#X obj 343 245 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X text 24 153 If the first argument is blank or 0 \, there is no output
+(Pd initializes all variables to 0):;
+#X floatatom 241 391 10 0 0 0 - - -;
+#X text 32 275 If you set a second argument \, it will be used as the
+default when the first argument is blank. Also if the first argument
+is numeric \, the default will be used.;
+#X obj 51 221 float_argument;
+#X obj 362 219 float_argument 0;
+#X obj 204 219 float_argument \$1;
+#X text 25 21 This object can takes a numeric atom as an argument and
+outputs a float message.;
+#X obj 202 98 float_argument 255;
+#X obj 49 99 float_argument -1.34;
+#X obj 36 362 float_argument \$1 10;
+#X obj 242 362 float_argument 44 10;
+#X connect 0 0 24 0;
+#X connect 1 0 19 0;
+#X connect 3 0 25 0;
+#X connect 4 0 26 0;
+#X connect 5 0 21 0;
+#X connect 11 0 23 0;
+#X connect 13 0 20 0;
+#X connect 19 0 2 0;
+#X connect 19 0 7 0;
+#X connect 20 0 14 0;
+#X connect 20 0 15 0;
+#X connect 21 0 6 0;
+#X connect 21 0 8 0;
+#X connect 23 0 12 0;
+#X connect 24 0 9 0;
+#X connect 25 0 10 0;
+#X connect 26 0 17 0;

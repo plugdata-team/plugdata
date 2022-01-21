@@ -1,0 +1,16 @@
+#N canvas 233 201 475 294 10;
+#X obj 149 40 inlet;
+#X obj 221 176 outlet;
+#X text 10 7 [oneshot];
+#X text 249 98 reset;
+#X obj 149 75 route clear;
+#X text 271 175 whatever;
+#X text 40 215 (c) 2006 IOhannes m zmoelnig \, licensed under GnuGPL
+v2.0;
+#X text 44 238 original abstraction (c) 2005 Hans Christoph Steiner
+;
+#X obj 221 113 once;
+#X connect 0 0 4 0;
+#X connect 4 0 8 1;
+#X connect 4 1 8 0;
+#X connect 8 0 1 0;

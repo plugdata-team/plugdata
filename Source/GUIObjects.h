@@ -24,50 +24,50 @@
 class Canvas;
 class Box;
 struct GUIComponent : public Component {
-
+    
     GUIComponent(pd::Gui gui, Box* parent);
-
+    
     virtual ~GUIComponent();
     virtual std::pair<int, int> getBestSize() = 0;
-
+    
     virtual void updateValue();
     virtual void update() {};
-
+    
     virtual void initParameters();
-
+    
     void paint(Graphics& g) override
     {
         g.setColour(findColour(TextButton::buttonColourId));
         g.fillRect(getLocalBounds().reduced(2));
     }
-
+    
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawLine(0, 0, getWidth(), 0);
     }
-
+    
     void closeOpenedSubpatchers();
-
+    
     static GUIComponent* createGui(String name, Box* parent);
-
+    
     void setForeground(Colour colour);
     void setBackground(Colour colour);
-
+    
     virtual ObjectParameters defineParamters() { return {}; };
-
+    
     ObjectParameters getParameters()
     {
         ObjectParameters params = defineParamters();
-
+        
         auto& [parameters, callback] = params;
-
+        
         if (gui.isIEM()) {
             parameters.insert(parameters.begin(), { "Foreground", tColour, (void*)&primaryColour });
             parameters.insert(parameters.begin() + 1, { "Background", tColour, (void*)&secondaryColour });
             parameters.insert(parameters.begin() + 2, { "Send Symbol", tString, (void*)&sendSymbol });
             parameters.insert(parameters.begin() + 3, { "Receive Symbol", tString, (void*)&receiveSymbol });
-
+            
             auto oldCallback = callback;
             callback = [this, oldCallback](int changedParameter) {
                 if (changedParameter == 0) {
@@ -77,7 +77,7 @@ struct GUIComponent : public Component {
                     setBackground(Colour::fromString(secondaryColour));
                     repaint();
                 }
-
+                
                 else if (changedParameter == 2) {
                     gui.setSendSymbol(sendSymbol.toStdString());
                     repaint();
@@ -89,77 +89,101 @@ struct GUIComponent : public Component {
                 }
             };
         }
-
+        else if (gui.isAtom()) {
+            auto& [parameters, callback] = params;
+            
+            parameters.insert(parameters.begin(), { "Width", tInt, (void*)&width });
+            parameters.insert(parameters.begin() + 1, { "Send Symbol", tString, (void*)&sendSymbol });
+            parameters.insert(parameters.begin() + 2, { "Receive Symbol", tString, (void*)&receiveSymbol });
+            
+            auto oldCallback = callback;
+            callback = [this, oldCallback](int changedParameter) {
+                if (changedParameter == 0) {
+                    // Width
+                }
+                else if (changedParameter == 1) {
+                    gui.setSendSymbol(sendSymbol.toStdString());
+                    repaint();
+                } else if (changedParameter == 2) {
+                    gui.setReceiveSymbol(receiveSymbol.toStdString());
+                    repaint();
+                } else {
+                    oldCallback(changedParameter - 3);
+                }
+            };
+        }
         return params;
+        
     }
-
+    
     virtual pd::Patch* getPatch()
     {
         return nullptr;
     }
-
+    
     virtual Canvas* getCanvas()
     {
         return nullptr;
     }
-
+    
     virtual bool fakeGUI()
     {
         return false;
     }
-
+    
     std::unique_ptr<Label> getLabel();
     pd::Gui getGUI();
-
+    
     float getValueOriginal() const noexcept;
     void setValueOriginal(float v, bool sendNotification = true);
     float getValueScaled() const noexcept;
     void setValueScaled(float v);
-
+    
     void startEdition() noexcept;
     void stopEdition() noexcept;
-
+    
     Box* box;
-
+    
 protected:
     const std::string stringGui = std::string("gui");
     const std::string stringMouse = std::string("mouse");
-
+    
     PlugDataAudioProcessor& processor;
     pd::Gui gui;
     std::atomic<bool> edited;
     float value = 0;
     float min = 0;
     float max = 0;
-
+    int width = 6;
+    
     String sendSymbol;
     String receiveSymbol;
-
+    
     String primaryColour = MainLook::highlightColour.toString();
     String secondaryColour = MainLook::firstBackground.toString();
-
+    
     PdGuiLook guiLook;
 };
 
 struct BangComponent : public GUIComponent, public Timer {
-
+    
     int bangInterrupt = 40;
-
+    
     TextButton bangButton;
-
+    
     BangComponent(pd::Gui gui, Box* parent);
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return { w, h };
     };
-
+    
     ObjectParameters defineParamters() override
     {
         return { {
-                     { "Interrupt", tInt, (void*)&bangInterrupt },
-                 },
+            { "Interrupt", tInt, (void*)&bangInterrupt },
+        },
             [this](int) {
                 ((t_bng*)gui.getPointer())->x_flashtime_hold = bangInterrupt;
             } };
@@ -169,11 +193,11 @@ struct BangComponent : public GUIComponent, public Timer {
         GUIComponent::initParameters();
         bangInterrupt = ((t_bng*)gui.getPointer())->x_flashtime_hold;
     };
-
+    
     void update() override;
-
+    
     void resized() override;
-
+    
     void timerCallback() override
     {
         bangButton.setToggleState(false, dontSendNotification);
@@ -182,41 +206,41 @@ struct BangComponent : public GUIComponent, public Timer {
 };
 
 struct ToggleComponent : public GUIComponent {
-
+    
     TextButton toggleButton;
-
+    
     ToggleComponent(pd::Gui gui, Box* parent);
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return { w, h };
     };
-
+    
     void resized() override;
-
+    
     void update() override;
 };
 
 struct MessageComponent : public GUIComponent, public ChangeListener {
-
+    
     
     bool isDown = false;
     bool isLocked = false;
     
     TextEditor input;
     TextButton bangButton;
-
+    
     std::string lastMessage = "";
-
+    
     MessageComponent(pd::Gui gui, Box* parent);
     
     ~MessageComponent();
-
+    
     std::pair<int, int> getBestSize() override
     {
         updateValue(); // make sure text is loaded
-
+        
         auto [x, y, w, h] = gui.getBounds();
         int stringLength = std::max(10, input.getFont().getStringWidth(input.getText()));
         return { stringLength + 20, numLines * 21 };
@@ -234,32 +258,33 @@ struct MessageComponent : public GUIComponent, public ChangeListener {
         stopEdition();
     }
     
+    
     void mouseUp(const MouseEvent& e) override {
         isDown = false;
     }
-
+    
     void updateValue() override;
-
+    
     void resized() override;
-
+    
     void update() override;
     void paint(Graphics& g) override;
-
+    
     int numLines = 1;
     int longestLine = 7;
 };
 
 struct NumboxComponent : public GUIComponent {
-
+    
     Label input;
     
     float last = 0.0f;
     bool shift = false;
     
     NumboxComponent(pd::Gui gui, Box* parent);
-
+    
     std::pair<int, int> getBestSize() override { return { 60, 22 }; };
-
+    
     void mouseDown(const MouseEvent& event) override
     {
         if(!input.isBeingEdited())
@@ -277,12 +302,11 @@ struct NumboxComponent : public GUIComponent {
             stopEdition();
         }
     }
-
     
     void mouseDrag(const MouseEvent& e) override
     {
         startEdition();
-
+        
         input.mouseDrag(e);
         
         if(!input.isBeingEdited())
@@ -297,7 +321,7 @@ struct NumboxComponent : public GUIComponent {
             if(!currentValue.containsChar('.')) currentValue += '.';
             if(currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
             currentValue += "00000";
-
+            
             
             Array<int> glyphs;
             Array<float> xOffsets;
@@ -319,9 +343,9 @@ struct NumboxComponent : public GUIComponent {
             
             float multiplier = pow(10, offset - precision);
             
-            auto newValue = String(last + inc * multiplier, precision);
-
-            if(precision == 0) newValue = String(newValue.getIntValue());
+            auto newValue = String(std::clamp(last + inc * multiplier, min, max), precision);
+            
+            if(precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", false, false);
             
             startEdition();
             setValueOriginal(newValue.getFloatValue());
@@ -329,7 +353,7 @@ struct NumboxComponent : public GUIComponent {
             
         }
     }
-
+    
     ObjectParameters defineParamters() override
     {
         auto callback = [this](int changedParameter) {
@@ -365,44 +389,44 @@ struct NumboxComponent : public GUIComponent {
         
     }
     void resized() override;
-
+    
     void update() override;
 };
 
 struct ListComponent : public GUIComponent {
-
+    
     ListComponent(pd::Gui gui, Box* parent);
     void paint(juce::Graphics& g) override;
     void update() override;
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return { w, h };
     };
-
+    
 private:
     Label label;
 };
 
 struct SliderComponent : public GUIComponent {
-
+    
     bool isVertical;
     bool isLogarithmic;
-
+    
     Slider slider;
-
+    
     SliderComponent(bool vertical, pd::Gui gui, Box* parent);
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return {w, h};
     };
-
+    
     ObjectParameters defineParamters() override
     {
-
+        
         auto callback = [this](int changedParameter) {
             if (changedParameter == 0) {
                 gui.setMinimum(min);
@@ -414,39 +438,39 @@ struct SliderComponent : public GUIComponent {
                 max = gui.getMaximum();
             }
         };
-
+        
         return { {{ "Minimum",     tFloat, (void*)&min },
-                  { "Maximum",     tFloat, (void*)&max },
-                  { "Logarithmic", tBool,  (void*)&isLogarithmic },
-                 },
+            { "Maximum",     tFloat, (void*)&max },
+            { "Logarithmic", tBool,  (void*)&isLogarithmic },
+        },
             callback };
     }
-
+    
     void resized() override;
-
+    
     void update() override;
 };
 
 struct RadioComponent : public GUIComponent {
-
+    
     int last_state = 0;
-
+    
     int minimum = 0, maximum = 8;
-
+    
     bool isVertical;
     RadioComponent(bool vertical, pd::Gui gui, Box* parent);
-
+    
     OwnedArray<TextButton> radioButtons;
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return {w, h};
     };
-
+    
     ObjectParameters defineParamters() override
     {
-
+        
         auto callback = [this](int changedParameter) {
             if (changedParameter == 0) {
                 gui.setMinimum(minimum);
@@ -456,18 +480,18 @@ struct RadioComponent : public GUIComponent {
                 updateRange();
             }
         };
-
+        
         return { {
-                     { "Minimum", tInt, (void*)&minimum },
-                     { "Maximum", tInt, (void*)&maximum },
-                 },
+            { "Minimum", tInt, (void*)&minimum },
+            { "Maximum", tInt, (void*)&maximum },
+        },
             callback };
     }
-
+    
     void resized() override;
-
+    
     void update() override;
-
+    
     void updateRange();
 };
 
@@ -479,23 +503,23 @@ public:
     void mouseDrag(const MouseEvent& event) override;
     void mouseUp(const MouseEvent& event) override;
     size_t getArraySize() const noexcept;
-
+    
 private:
     void timerCallback() override;
-
+    
     template <typename T>
     T clip(const T& n, const T& lower, const T& upper)
     {
         return std::max(std::min(n, upper), lower);
     }
-
+    
     pd::Array array;
     std::vector<float> vec;
     std::vector<float> temp;
     std::atomic<bool> edited;
     bool error = false;
     const std::string stringArray = std::string("array");
-
+    
     PlugDataAudioProcessor* pd;
 };
 
@@ -505,13 +529,13 @@ public:
     void paint(Graphics&) override { }
     void resized() override;
     void updateValue() override { }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return { w, h };
     };
-
+    
 private:
     pd::Array graph;
     GraphicalArray array;
@@ -521,58 +545,58 @@ struct GraphOnParent : public GUIComponent {
 public:
     GraphOnParent(pd::Gui gui, Box* box);
     ~GraphOnParent();
-
+    
     void paint(Graphics& g) override;
     void resized() override;
     void updateValue() override;
-
+    
     int bestW = 410;
     int bestH = 270;
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return { w, h };
     };
-
+    
     pd::Patch* getPatch() override
     {
         return &subpatch;
     }
-
+    
     Canvas* getCanvas() override
     {
         return canvas.get();
     }
-
+    
     void updateCanvas();
-
+    
 private:
     pd::Patch subpatch;
     std::unique_ptr<Canvas> canvas;
 };
 
 struct Subpatch : public GUIComponent {
-
+    
     Subpatch(pd::Gui gui, Box* box);
-
+    
     ~Subpatch();
-
+    
     std::pair<int, int> getBestSize() override { return { 0, 3 }; };
-
+    
     void resized() override {};
     void updateValue() override;
-
+    
     pd::Patch* getPatch() override
     {
         return &subpatch;
     }
-
+    
     bool fakeGUI() override
     {
         return true;
     }
-
+    
 private:
     pd::Patch subpatch;
 };
@@ -580,11 +604,11 @@ private:
 struct CommentComponent : public GUIComponent {
     CommentComponent(pd::Gui gui, Box* box);
     void paint(Graphics& g) override;
-
+    
     void updateValue() override {};
-
+    
     std::pair<int, int> getBestSize() override { return { 120, 4 }; };
-
+    
     bool fakeGUI() override
     {
         return true;
@@ -607,7 +631,7 @@ struct VUMeter : public GUIComponent {
         lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, MainLook::highlightColour);
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
-
+        
         
         meter.setLookAndFeel(&lnf);
         addAndMakeVisible(meter);
@@ -633,14 +657,14 @@ struct VUMeter : public GUIComponent {
         auto rms = gui.getValue();
         g.drawFittedText(String(rms, 2) + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
     }
-
+    
     void updateValue() override {
         auto rms = gui.getValue();
         auto peak = gui.getPeak();
         
         source.pushRMS(0, Decibels::decibelsToGain(rms), Decibels::decibelsToGain(peak));
     };
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
@@ -663,7 +687,7 @@ struct PanelComponent : public GUIComponent {
     void resized() override {
         gui.setSize(getWidth(), getHeight());
     }
-
+    
     void updateValue() override {};
     
     std::pair<int, int> getBestSize() override
@@ -677,7 +701,7 @@ struct PanelComponent : public GUIComponent {
 
 // ELSE mousepad
 struct MousePad : public GUIComponent {
-
+    
     typedef struct _pad {
         t_object x_obj;
         t_glist* x_glist;
@@ -692,18 +716,18 @@ struct MousePad : public GUIComponent {
         int x_edit;
         unsigned char x_color[3];
     } t_pad;
-
+    
     MousePad(pd::Gui gui, Box* box);
-
+    
     void paint(Graphics& g) override;
-
+    
     void updateValue() override;
-
+    
     void mouseDown(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
@@ -713,7 +737,7 @@ struct MousePad : public GUIComponent {
 
 // Else "mouse" component
 struct MouseComponent : public GUIComponent {
-
+    
     typedef struct _mouse {
         t_object x_obj;
         int x_hzero;
@@ -725,21 +749,21 @@ struct MouseComponent : public GUIComponent {
         t_outlet* x_horizontal;
         t_outlet* x_vertical;
     } t_mouse;
-
+    
     MouseComponent(pd::Gui gui, Box* box);
     
     ~MouseComponent();
-
+    
     std::pair<int, int> getBestSize() override { return { 0, 3 }; };
-
+    
     void resized() override {};
     void updateValue() override;
-
+    
     bool fakeGUI() override
     {
         return true;
     }
-
+    
     void mouseDown(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
@@ -748,14 +772,14 @@ struct MouseComponent : public GUIComponent {
 
 // ELSE keyboard
 struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener {
-
+    
     typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
         t_clock* p_clock;
         struct _keyboard* p_cnv;
     } t_edit_proxy;
-
+    
     typedef struct _keyboard {
         t_object x_obj;
         t_glist* x_glist;
@@ -789,27 +813,27 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_symbol* x_bindsym;
         t_outlet* x_out;
     } t_keyboard;
-
+    
     KeyboardComponent(pd::Gui gui, Box* box);
-
+    
     void paint(Graphics& g) override {};
-
+    
     void updateValue() override;
-
+    
     void resized() override;
-
+    
     void handleNoteOn(MidiKeyboardState* source,
-        int midiChannel, int midiNoteNumber, float velocity) override;
-
+                      int midiChannel, int midiNoteNumber, float velocity) override;
+    
     void handleNoteOff(MidiKeyboardState* source,
-        int midiChannel, int midiNoteNumber, float velocity) override;
-
+                       int midiChannel, int midiNoteNumber, float velocity) override;
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
         return { w - 28, h };
     };
-
+    
     MidiKeyboardState state;
     MidiKeyboardComponent keyboard;
 };
@@ -842,6 +866,6 @@ struct TemplateDraw {
         t_fielddesc* x_vec;
         t_canvas* x_canvas;
     };
-
+    
     static void paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, t_gobj* obj, int baseX, int baseY);
 };

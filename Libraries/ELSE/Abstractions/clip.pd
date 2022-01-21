@@ -1,0 +1,14 @@
+#N canvas 671 295 508 363 10;
+#X obj 24 13 inlet;
+#X obj 204 10 inlet;
+#X obj 358 14 inlet;
+#X text 177 10 min;
+#X text 329 13 max;
+#X obj 24 306 outlet;
+#X obj 24 226 max \$1;
+#X obj 24 257 min \$2;
+#X connect 0 0 6 0;
+#X connect 1 0 6 1;
+#X connect 2 0 7 1;
+#X connect 6 0 7 0;
+#X connect 7 0 5 0;

@@ -1,0 +1,64 @@
+#N canvas 373 226 558 485 10;
+#X msg 195 93 bang;
+#X msg 49 93 bang;
+#X msg 51 209 bang;
+#X obj 50 266 print blank;
+#X msg 46 345 bang;
+#X msg 241 346 bang;
+#X obj 49 119 any_argument word;
+#X obj 51 241 any_argument;
+#X obj 195 119 any_argument 5;
+#X obj 46 381 any_argument \$1 default;
+#X obj 241 382 any_argument \$1 256;
+#X msg 204 207 bang;
+#X obj 203 264 print blank;
+#X obj 204 239 any_argument \$1;
+#X text 15 12 [any_argument];
+#X obj 32 265 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X obj 185 265 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X floatatom 194 145 5 0 0 1 float - -;
+#X symbolatom 48 146 6 0 0 1 symbol - -;
+#X text 26 37 This object can take any kind of argument and outputs
+either a symbol or a float \, depending on whether the argument is
+numeric or not.;
+#X text 32 295 If you set a second argument \, it will be used as the
+default when the argument is blank. An argument of 0 is also ignored.
+;
+#X floatatom 241 412 5 0 0 0 - - -;
+#X msg 386 346 bang;
+#X floatatom 386 412 5 0 0 0 - - -;
+#X obj 386 382 any_argument 0 256;
+#X symbolatom 46 408 10 0 0 0 - - -;
+#X msg 322 92 bang;
+#X obj 322 118 any_argument 255.255.255.255;
+#X symbolatom 322 144 15 0 0 1 symbol - -;
+#X msg 362 207 bang;
+#X obj 361 264 print blank;
+#X obj 343 265 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X obj 362 239 any_argument 0;
+#X text 24 173 If the first argument is blank or 0 \, there is no output
+(Pd initializes all variables to 0):;
+#X connect 0 0 8 0;
+#X connect 1 0 6 0;
+#X connect 2 0 7 0;
+#X connect 4 0 9 0;
+#X connect 5 0 10 0;
+#X connect 6 0 18 0;
+#X connect 7 0 3 0;
+#X connect 7 0 15 0;
+#X connect 8 0 17 0;
+#X connect 9 0 25 0;
+#X connect 10 0 21 0;
+#X connect 11 0 13 0;
+#X connect 13 0 12 0;
+#X connect 13 0 16 0;
+#X connect 22 0 24 0;
+#X connect 24 0 23 0;
+#X connect 26 0 27 0;
+#X connect 27 0 28 0;
+#X connect 29 0 32 0;
+#X connect 32 0 30 0;
+#X connect 32 0 31 0;

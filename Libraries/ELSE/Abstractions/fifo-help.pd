@@ -1,0 +1,25 @@
+#N canvas 285 373 458 308 10;
+#X msg 29 108 bang;
+#X obj 81 261 print;
+#X msg 106 166 1;
+#X msg 166 166 3;
+#X msg 136 166 two;
+#X msg 284 166 5;
+#X msg 314 166 six;
+#X text 26 25 A First-In-First-Out ringbuffer for floats and symbols.
+The argument and cold inlet specify out many elements to store in the
+fifo.;
+#X text 65 108 bang to output oldest element;
+#X text 64 142 floats \, symbols \, and symbolic atoms are stored;
+#X msg 196 166 symbol four;
+#X obj 135 261 pddp/print;
+#X obj 115 207 purepd/fifo 5;
+#X connect 0 0 12 0;
+#X connect 2 0 12 0;
+#X connect 3 0 12 0;
+#X connect 4 0 12 0;
+#X connect 5 0 12 0;
+#X connect 6 0 12 0;
+#X connect 10 0 12 0;
+#X connect 12 0 1 0;
+#X connect 12 0 11 0;

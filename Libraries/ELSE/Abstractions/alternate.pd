@@ -1,0 +1,34 @@
+#N canvas 317 502 458 438 10;
+#X obj 86 10 inlet;
+#X obj 158 244 outlet;
+#X obj 285 244 outlet;
+#X obj 158 217 spigot;
+#X obj 285 217 spigot;
+#X obj 158 57 trigger anything bang;
+#X obj 86 34 route reset;
+#X msg 86 75 0;
+#X obj 86 54 bang;
+#X obj 300 108 i;
+#X obj 300 130 == 0;
+#X obj 300 150 t f f f;
+#X text 40 295 (c) 2006 IOhannes m zmoelnig \, licensed under GnuGPL
+v2.0;
+#X text 44 318 original abstraction (c) 2005 Hans Christoph Steiner
+;
+#X obj 322 181 == 0;
+#X connect 0 0 6 0;
+#X connect 3 0 1 0;
+#X connect 4 0 2 0;
+#X connect 5 0 3 0;
+#X connect 5 0 4 0;
+#X connect 5 1 9 0;
+#X connect 6 0 8 0;
+#X connect 6 1 5 0;
+#X connect 7 0 9 1;
+#X connect 8 0 7 0;
+#X connect 9 0 10 0;
+#X connect 10 0 11 0;
+#X connect 11 0 3 1;
+#X connect 11 1 14 0;
+#X connect 11 2 9 1;
+#X connect 14 0 4 1;
