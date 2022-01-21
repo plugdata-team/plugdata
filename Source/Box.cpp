@@ -124,8 +124,10 @@ bool Box::hitTest(int x, int y) {
 
 void Box::mouseMove(const MouseEvent& e)
 {
-    // Do we need to do this?
-    findParentComponentOfClass<Canvas>()->repaint();
+    
+    if(e.mouseWasDraggedSinceMouseDown()) {
+        repaint();
+    }
 }
 
 void Box::mouseEnter(const MouseEvent& e) {
@@ -161,7 +163,7 @@ void Box::setType(String newType, bool exists)
         // Pd doesn't normally allow changing between gui and non-gui objects so we force it
         if (pdObject) {
             pdObject = pd->renameObject(pdObject.get(), newType);
-            //cnv->synchronise();
+            cnv->synchronise();
         } else {
             pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
         }
