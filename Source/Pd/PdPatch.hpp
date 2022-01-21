@@ -57,6 +57,7 @@ public:
    
     void moveObjects (std::vector<Object*>, int x, int y);
     
+    void finishRemove();
     void removeSelection();
     
     void selectObject(Object*);

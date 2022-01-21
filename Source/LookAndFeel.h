@@ -375,7 +375,7 @@ struct StatusbarLook : public MainLook {
         
         setColour(TextButton::textColourOnId, highlightColour);
         setColour(TextButton::textColourOffId, Colours::white);
-        setColour(TextButton::buttonOnColourId, Colour(10, 10, 10));
+        setColour(TextButton::buttonOnColourId, findColour(TextButton::buttonColourId));
         
         setColour(Slider::trackColourId, firstBackground);
     }
@@ -385,6 +385,13 @@ struct StatusbarLook : public MainLook {
         auto font = icon_font.withHeight(buttonHeight / (3.2 / scalar));
         return font;
     }
+    
+    void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+    {
+        g.setColour(backgroundColour);
+        g.fillRect(button.getLocalBounds());
+    }
+    
     
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
                           float sliderPos,

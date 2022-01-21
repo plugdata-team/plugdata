@@ -151,6 +151,11 @@ restore:
     canvas_dirty(x, 1);
 }
 
+void libpd_finishremove(t_canvas* x)
+{
+    canvas_undo_add(x, UNDO_SEQUENCE_END, "clear", 0);
+    
+}
 void libpd_removeselection(t_canvas* x)
 {
     canvas_undo_add(x, UNDO_SEQUENCE_START, "clear", 0);
@@ -159,8 +164,6 @@ void libpd_removeselection(t_canvas* x)
                     canvas_undo_set_cut(x, 2));
     
     libpd_canvas_doclear(x);
-    
-    canvas_undo_add(x, UNDO_SEQUENCE_END, "clear", 0);
 }
 
 void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
@@ -556,7 +559,7 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
     cnv->gl_editor->e_textedfor = fuddy;
     
     cnv->gl_editor->e_rtext->x_buf = strdup(buf);
-    cnv->gl_editor->e_rtext->x_bufsize = bufsize + 1;
+    cnv->gl_editor->e_rtext->x_bufsize = bufsize;
     
     cnv->gl_editor->e_textdirty = 1;
     

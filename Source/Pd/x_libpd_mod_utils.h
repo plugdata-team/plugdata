@@ -25,6 +25,7 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv);
 t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y);
 t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y);
 
+void libpd_finishremove(t_canvas* x);
 void libpd_removeobj(t_canvas* cnv, t_gobj* obj);
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize);
 void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y);

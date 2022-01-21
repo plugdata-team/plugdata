@@ -135,7 +135,7 @@ void Canvas::synchronise(bool updatePosition)
             guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
             auto* newBox = boxes.add(new Box(pdObject, this, name, { (int)x, (int)y }));
-            newBox->toBack();
+            newBox->toFront(false);
 
             // Don't show non-patchable (internal) objects
             if (!patch.checkObject(&object))
@@ -154,7 +154,7 @@ void Canvas::synchronise(bool updatePosition)
                 box->setTopLeftPosition(x, y);
             }
 
-            box->toBack();
+            box->toFront(false);
 
             // Reload colour information for
             if (box->graphics) {
@@ -401,12 +401,15 @@ void Canvas::mouseDown(const MouseEvent& e)
 
 void Canvas::mouseDrag(const MouseEvent& e)
 {
-    repaint();
+    
+    
     // Ignore on graphs or when locked
     if (isGraph || pd->locked)
         return;
 
     auto* source = e.originalComponent;
+    
+    //if(source != this) repaint();
 
     // Drag lasso
     if (dynamic_cast<Connection*>(source)) {
@@ -414,6 +417,8 @@ void Canvas::mouseDrag(const MouseEvent& e)
     } else if (source == this) {
         Edge::connectingEdge = nullptr;
         lasso.dragLasso(e);
+        
+    
 
         for (auto& con : connections) {
             if (!con->start || !con->end) {
@@ -477,6 +482,8 @@ void Canvas::mouseUp(const MouseEvent& e)
 
         Edge::connectingEdge = nullptr;
         connectingWithDrag = false;
+        
+        repaint();
     }
 
     auto& lassoSelection = dragger.getLassoSelection();
@@ -595,7 +602,10 @@ void Canvas::mouseMove(const MouseEvent& e)
 {
     // For deciding where to place a new object
     lastMousePos = e.getPosition();
-    //repaint();
+    
+    if(Edge::connectingEdge) {
+        repaint();
+    }
 }
 
 void Canvas::resized()
@@ -779,6 +789,7 @@ void Canvas::removeSelection()
     // Make sure object isn't selected and stop updating gui
     main.inspector.deselect();
     main.stopTimer();
+    
 
     // Find selected objects and make them selected in pd
     Array<pd::Object*> objects;
@@ -802,6 +813,8 @@ void Canvas::removeSelection()
             }
         }
     }
+    
+    patch.finishRemove();  // Makes sure that the extra removed connections will be grouped in the same undo action
 
 
     dragger.deselectAll();

@@ -434,8 +434,8 @@ void SuggestionBox::paintOverChildren(Graphics& g)
 
 void SuggestionBox::resized()
 {
-    port->setBounds(0, 0, getWidth(), std::min(5, numOptions) * 23);
-    buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 23);
+    port->setBounds(0, 0, getWidth(), std::min(std::min(5, numOptions) * 23, getHeight()));
+    buttonholder->setBounds(0, 0, getWidth(), std::min((numOptions + 1), 20) * 22 + 2);
 
     for (int i = 0; i < buttons.size(); i++)
         buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);

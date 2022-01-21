@@ -19,6 +19,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     , levelmeter(p.parameters, p.meterSource)
 {
     console = debugConsole;
+    
 
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::firstBackground);
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::firstBackground);
@@ -57,7 +58,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
     
     addAndMakeVisible(tabbar);
-    addAndMakeVisible(console);
+    addAndMakeVisible(console->viewport);
     addChildComponent(inspector);
 
     bypassButton.setTooltip("Bypass");
@@ -336,13 +337,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     //  Open console
     toolbarButtons[8].onClick = [this]() {
-        console->setVisible(true);
+        console->viewport.setVisible(true);
         inspector.setVisible(false);
     };
 
     // Open inspector
     toolbarButtons[9].onClick = [this]() {
-        console->setVisible(false);
+        console->viewport.setVisible(false);
         inspector.setVisible(true);
     };
 
@@ -412,8 +413,8 @@ void PlugDataPluginEditor::resized()
 
     int sbarY = toolbarHeight - 4;
 
-    console->setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
-    console->toFront(false);
+    console->viewport.setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
+    console->viewport.toFront(false);
 
     inspector.setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
     inspector.toFront(false);
