@@ -76,7 +76,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
         console = externalConsole;
         ownsConsole = false;
     } else {
-        LookAndFeel::setDefaultLookAndFeel(&mainLook);
         console = new Console;
         ownsConsole = true;
     }
@@ -95,7 +94,6 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
 
     // Delete console if we own it
     if (ownsConsole) {
-        LookAndFeel::setDefaultLookAndFeel(nullptr);
         delete console;
     }
     

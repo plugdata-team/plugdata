@@ -20,6 +20,8 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)
     , processor(parent->cnv->main.pd)
     , gui(pdGui)
     , edited(false)
+    , guiLook(box->cnv->main.resources.get())
+      
 {
     // if(!box->pdObject) return;
     value = gui.getValue();

@@ -11,7 +11,7 @@
 
 class SaveDialog : public Component {
 
-    MainLook mainLook;
+    //MainLook mainLook;
     
     DropShadower shadower = DropShadower(MainLook::shadow);
 
@@ -37,7 +37,7 @@ public:
 
 class ArrayDialog : public Component {
 
-    MainLook mainLook;
+    //MainLook mainLook;
 
     DropShadower shadower = DropShadower(MainLook::shadow);
     
@@ -103,7 +103,7 @@ struct DAWAudioSettings : public Component {
 
 struct SettingsComponent : public Component {
 
-    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
+    SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
 
     ~SettingsComponent()
     {
@@ -122,7 +122,7 @@ struct SettingsComponent : public Component {
 
     int toolbarHeight = 50;
 
-    ToolbarLook lnf = ToolbarLook(true);
+    ToolbarLook lnf;
     
     OwnedArray<TextButton> toolbarButtons = { new TextButton(Icons::Audio), new TextButton(Icons::Search)};
 };
@@ -136,8 +136,8 @@ struct SettingsDialog : public Component {
 
     ComponentBoundsConstrainer constrainer;
 
-    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
-        : settingsComponent(processor, manager, settingsTree, updatePaths)
+    SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
+        : settingsComponent(r, processor, manager, settingsTree, updatePaths), mainLook(r)
     {
 
         shadower.setOwner(this);

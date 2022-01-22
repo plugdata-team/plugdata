@@ -198,8 +198,6 @@ private:
     
     std::atomic<bool> isDequeueing = false;
 
-    MainLook mainLook;
-
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

@@ -13,7 +13,6 @@
 struct LevelMeter : public Component {
     LevelMeter(AudioProcessorValueTreeState& state, foleys::LevelMeterSource& source)
     {
-        setLookAndFeel(&sbarlook);
 
         meter.setMeterSource(&source);
 
@@ -58,7 +57,6 @@ struct LevelMeter : public Component {
     foleys::LevelMeter meter = foleys::LevelMeter(foleys::LevelMeter::Horizontal | foleys::LevelMeter::Minimal);
     foleys::LevelMeterLookAndFeel lnf;
 
-    StatusbarLook sbarlook;
     Slider volumeSlider;
 
     std::unique_ptr<SliderParameterAttachment> attachment;

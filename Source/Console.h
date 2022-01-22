@@ -9,7 +9,6 @@
 class Console : public Component, private AsyncUpdater, public ComponentListener
 {
     
-    StatusbarLook statusbarlook;
     
 public:
     explicit Console ()
@@ -26,7 +25,7 @@ public:
         setVisible(true);
         
         std::vector<String> tooltips = {
-            "Clear logs", "Restore logs", "Show errors", "Show messages", "Locate sender", "Enable autoscroll"
+            "Clear logs", "Restore logs", "Show errors", "Show messages", "Enable autoscroll"
         };
         
         
@@ -43,7 +42,6 @@ public:
         for(auto& button : buttons) {
             button.setConnectedEdges(12);
             viewport.addAndMakeVisible(button);
-            button.setLookAndFeel(&statusbarlook);
             
             button.onClick = callbacks[i];
             button.setTooltip(tooltips[i]);
@@ -174,8 +172,8 @@ public:
     void paint (Graphics& g) override
     {
         
-        auto font = MainLook::defaultFont.withHeight(13);
-        g.setFont(MainLook::defaultFont.withHeight(13));
+        auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
+        g.setFont(font);
         g.fillAll (MainLook::firstBackground);
         
         totalHeight = 0;
@@ -239,7 +237,7 @@ public:
         fb.flexDirection = FlexBox::Direction::row;
         
         for (auto& b : buttons) {
-            auto item = FlexItem(b).withMinWidth(8.0f).withMinHeight(8.0f);
+            auto item = FlexItem(b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
             item.flexGrow = 1.0f;
             item.flexShrink = 1.0f;
             fb.items.add (item);

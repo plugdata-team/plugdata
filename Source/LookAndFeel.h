@@ -8,6 +8,44 @@
 
 #include <JuceHeader.h>
 
+
+struct Resources
+{
+    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
+    
+    Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
+    
+};
+
+struct Icons
+{
+    inline static const CharPointer_UTF8 New = CharPointer_UTF8("\xef\x85\x9b");
+    inline static const CharPointer_UTF8 Open = CharPointer_UTF8("\xef\x81\xbb");
+    inline static const CharPointer_UTF8 Save = CharPointer_UTF8("\xef\x80\x99");
+    inline static const CharPointer_UTF8 Undo = CharPointer_UTF8("\xef\x83\xa2");
+    inline static const CharPointer_UTF8 Redo = CharPointer_UTF8("\xef\x80\x9e");
+    inline static const CharPointer_UTF8 Add = CharPointer_UTF8("\xef\x81\xa7");
+    inline static const CharPointer_UTF8 Settings = CharPointer_UTF8("\xef\x80\x93");
+    inline static const CharPointer_UTF8 Hide = CharPointer_UTF8("\xef\x81\x94");
+    inline static const CharPointer_UTF8 Show = CharPointer_UTF8("\xef\x81\x93");
+    inline static const CharPointer_UTF8 Inspector = CharPointer_UTF8("\xef\x87\x9e");
+    inline static const CharPointer_UTF8 Console = CharPointer_UTF8("\xef\x84\xa0");
+    inline static const CharPointer_UTF8 Clear = CharPointer_UTF8("\xef\x80\x8d");
+    inline static const CharPointer_UTF8 Lock = CharPointer_UTF8("\xef\x80\xa3");
+    inline static const CharPointer_UTF8 Unlock = CharPointer_UTF8("\xef\x82\x9c");
+    inline static const CharPointer_UTF8 ConnectionStyle = CharPointer_UTF8("\xee\xa1\xbc");
+    inline static const CharPointer_UTF8 Power = CharPointer_UTF8("\xef\x80\x91");
+    inline static const CharPointer_UTF8 Audio = CharPointer_UTF8("\xef\x80\xa8");
+    inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
+    
+    inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
+    inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
+    inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
+    inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
+};
+
+
+
 struct Canvas;
 struct MainLook : public LookAndFeel_V4 {
     
@@ -16,11 +54,9 @@ struct MainLook : public LookAndFeel_V4 {
     inline static Colour highlightColour = Colour(0xff42a2c8);
     inline static Colour firstBackground = Colour(23, 23, 23);
     inline static Colour secondBackground = Colour(32, 32, 32);
+    Font defaultFont;
     
-    inline static Typeface::Ptr typeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
-    inline static Font defaultFont = Font(typeface);
-    
-    MainLook()
+    MainLook(Resources& r) : defaultFont(r.defaultTypeface)
     {
         setColour(ResizableWindow::backgroundColourId, secondBackground);
         setColour(TextButton::buttonColourId, firstBackground);
@@ -43,7 +79,7 @@ struct MainLook : public LookAndFeel_V4 {
         
         //setColour(PopupMenu::backgroundColourId, firstBackground.withAlpha(0.95f));
         
-        setDefaultSansSerifTypeface(typeface);
+        setDefaultSansSerifTypeface(r.defaultTypeface);
     }
     
     
@@ -246,11 +282,9 @@ struct MainLook : public LookAndFeel_V4 {
 
 struct PdGuiLook : public MainLook {
     
-    PdGuiLook()
+    PdGuiLook(Resources& r) : MainLook(r)
     {
         setColour(TextButton::buttonOnColourId, highlightColour);
-        // setColour(TextButton::buttonColourId, Colours::transparentBlack);
-        
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
     }
     
@@ -321,13 +355,12 @@ struct PdGuiLook : public MainLook {
 
 struct ToolbarLook : public MainLook {
     
-    Font icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize));
+    Font iconFont = Font(Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize));
     
     bool icons;
     
-    ToolbarLook(bool use_icons = true)
+    ToolbarLook(Resources& r) : MainLook(r), iconFont(r.iconTypeface)
     {
-        icons = use_icons;
     }
     
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -358,16 +391,14 @@ struct ToolbarLook : public MainLook {
     
     Font getTextButtonFont(TextButton&, int buttonHeight)
     {
-        icon_font.setHeight(buttonHeight / 3.6);
-        return icons ? icon_font : Font(jmin(15.0f, (float)buttonHeight * 0.6f));
+        return iconFont.withHeight(buttonHeight / 3.6);
     }
 };
 
 struct StatusbarLook : public MainLook {
     float scalar;
-    Font icon_font = Font(Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize));
-    
-    StatusbarLook(float button_scalar = 1.0f)
+    Font iconFont;
+    StatusbarLook(Resources& r, float button_scalar = 1.0f) : MainLook(r), iconFont(r.iconTypeface)
     {
         scalar = button_scalar;
         
@@ -382,8 +413,7 @@ struct StatusbarLook : public MainLook {
     
     Font getTextButtonFont(TextButton&, int buttonHeight)
     {
-        auto font = icon_font.withHeight(buttonHeight / (3.2 / scalar));
-        return font;
+        return iconFont.withHeight(buttonHeight / (3.2 / scalar));
     }
     
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -432,7 +462,10 @@ struct StatusbarLook : public MainLook {
 
 class BoxEditorLook : public MainLook {
 public:
-    // BoxEditorLook();
+     BoxEditorLook(Resources& r) : MainLook(r)
+     {
+     
+     }
     
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown)
     {
@@ -477,30 +510,3 @@ public:
     }
 };
 
-
-struct Icons
-{
-    inline static const CharPointer_UTF8 New = CharPointer_UTF8("\xef\x85\x9b");
-    inline static const CharPointer_UTF8 Open = CharPointer_UTF8("\xef\x81\xbb");
-    inline static const CharPointer_UTF8 Save = CharPointer_UTF8("\xef\x80\x99");
-    inline static const CharPointer_UTF8 Undo = CharPointer_UTF8("\xef\x83\xa2");
-    inline static const CharPointer_UTF8 Redo = CharPointer_UTF8("\xef\x80\x9e");
-    inline static const CharPointer_UTF8 Add = CharPointer_UTF8("\xef\x81\xa7");
-    inline static const CharPointer_UTF8 Settings = CharPointer_UTF8("\xef\x80\x93");
-    inline static const CharPointer_UTF8 Hide = CharPointer_UTF8("\xef\x81\x94");
-    inline static const CharPointer_UTF8 Show = CharPointer_UTF8("\xef\x81\x93");
-    inline static const CharPointer_UTF8 Inspector = CharPointer_UTF8("\xef\x87\x9e");
-    inline static const CharPointer_UTF8 Console = CharPointer_UTF8("\xef\x84\xa0");
-    inline static const CharPointer_UTF8 Clear = CharPointer_UTF8("\xef\x80\x8d");
-    inline static const CharPointer_UTF8 Lock = CharPointer_UTF8("\xef\x80\xa3");
-    inline static const CharPointer_UTF8 Unlock = CharPointer_UTF8("\xef\x82\x9c");
-    inline static const CharPointer_UTF8 ConnectionStyle = CharPointer_UTF8("\xee\xa1\xbc");
-    inline static const CharPointer_UTF8 Power = CharPointer_UTF8("\xee\xa1\xa2");
-    inline static const CharPointer_UTF8 Audio = CharPointer_UTF8("\xef\x80\xa8");
-    inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
-    
-    inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
-    inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
-    inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
-    inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
-};
