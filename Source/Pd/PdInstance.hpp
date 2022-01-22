@@ -60,9 +60,7 @@ public:
     void sendList(const char* receiver, const std::vector<Atom>& list) const;
     void sendMessage(const char* receiver, const char* msg, const std::vector<Atom>& list) const;
     
-    virtual void receivePrint(const std::string& message) {
-        
-    };
+    virtual void receivePrint(const std::string& message) {};
     
     virtual void receiveBang(const std::string& dest) {}
     virtual void receiveFloat(const std::string& dest, float num) {}

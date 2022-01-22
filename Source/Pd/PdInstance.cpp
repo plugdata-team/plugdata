@@ -390,7 +390,12 @@ void Instance::processPrints()
                 print.pop_back();
             }
             temp += print;
-            receivePrint(temp);
+            
+            MessageManager::callAsync([this, temp]() mutable {
+                receivePrint(temp);
+            });
+            
+            
             temp.clear();
         }
         else

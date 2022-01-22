@@ -207,6 +207,7 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
             SETSYMBOL(argv.data() + i + 2, gensym(tokens[i].toRawUTF8()));
         }
     }
+    
     t_pd* pdobject = nullptr;
     m_instance->enqueueFunction([this, argc, argv, typesymbol, &pdobject]() mutable {
         m_instance->setThis();
