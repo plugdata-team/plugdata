@@ -509,6 +509,7 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     input.setText(String(getValueOriginal(), 3), dontSendNotification);
     
     input.onTextChange = [this]() {
+        /*
         startEdition();
         float value = input.getText().getFloatValue();
         if (min < max) {
@@ -516,7 +517,7 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
             input.setText(String(value, 3), dontSendNotification);
         }
 
-        setValueOriginal(value);
+        setValueOriginal(value); */
     };
     
     initParameters();
