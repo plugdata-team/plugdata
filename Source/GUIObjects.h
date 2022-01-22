@@ -291,8 +291,8 @@ struct NumboxComponent : public GUIComponent {
         {
             startEdition();
             shift = event.mods.isShiftDown();
-            last  = getValueOriginal();
-            setValueOriginal(last);
+            last  = input.getText().getFloatValue();
+            //setValueOriginal(last);
         }
     }
     
@@ -305,49 +305,47 @@ struct NumboxComponent : public GUIComponent {
     
     void mouseDrag(const MouseEvent& e) override
     {
-        startEdition();
         
         input.mouseDrag(e);
         
         if(!input.isBeingEdited())
         {
-            auto const inc = static_cast<float>(-e.getDistanceFromDragStartY());
-            if(std::abs(inc) < 1.0f)
-            {
-                return;
-            }
-            
+            auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
+            if(std::abs(inc) < 1.0f) return;
+
+            // Logic for dragging, where the x position decides the precision
             auto currentValue = input.getText();
             if(!currentValue.containsChar('.')) currentValue += '.';
             if(currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
             currentValue += "00000";
             
-            
+            // Get position of all numbers
             Array<int> glyphs;
             Array<float> xOffsets;
             input.getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
             
-            int offset = (input.getText().indexOfChar('.') - 1);
-            
-            float position = gui.isAtom() ? e.getMouseDownX() - 2 : e.getMouseDownX() - 15;
+            // Find the number closest to the mouse down
+            float position = gui.isAtom() ? e.getMouseDownX() - 4 : e.getMouseDownX() - 15;
             int precision = std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin();
+            precision -= currentValue.indexOfChar('.');
             
-            if(precision <= currentValue.indexOfChar('.')) {
+            // I case of integer dragging
+            if(shift || precision <= 0) {
                 precision = 0;
             }
             else {
-                precision -= 2;
+                // Offset for the decimal point character
+                precision -= 1;
             }
             
-            if(shift) precision = 0;
+            // Calculate increment multiplier
+            float multiplier = pow(10, -precision);
             
-            float multiplier = pow(10, offset - precision);
-            
+            // Calculate new value as string
             auto newValue = String(std::clamp(last + inc * multiplier, min, max), precision);
             
-            if(precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", false, false);
+            if(precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
             
-            startEdition();
             setValueOriginal(newValue.getFloatValue());
             input.setText(newValue, NotificationType::dontSendNotification);
             
@@ -359,9 +357,11 @@ struct NumboxComponent : public GUIComponent {
         auto callback = [this](int changedParameter) {
             if (changedParameter == 0) {
                 gui.setMinimum(min);
+                updateValue();
             }
             if (changedParameter == 1) {
-                gui.setMaximum(min);
+                gui.setMaximum(max);
+                updateValue();
             }
         };
 
@@ -379,7 +379,8 @@ struct NumboxComponent : public GUIComponent {
         GUIComponent::paintOverChildren(g);
         
         if(!gui.isAtom()) {
-            g.setColour(MainLook::highlightColour);
+
+            g.setColour(Colour(gui.getForegroundColor()));
             
             Path triangle;
             triangle.addTriangle({0.0f, 0.0f}, {10, getHeight() / 2.0f}, {0.0f, (float)getHeight()});
