@@ -76,6 +76,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
         console = externalConsole;
         ownsConsole = false;
     } else {
+        const MessageManagerLock lock;
         console = new Console;
         ownsConsole = true;
     }
