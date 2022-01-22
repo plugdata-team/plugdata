@@ -16,7 +16,8 @@
 //==============================================================================
 Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
     : main(parent)
-    , pd(&parent.pd)
+    , pd(&parent.pd),
+      suggestor(parent.resources.get())
 {
     isGraph = graph;
     isGraphChild = graphChild;
