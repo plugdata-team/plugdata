@@ -18,9 +18,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     , pd(p)
     , levelmeter(p.parameters, p.meterSource)
 {
-    console = debugConsole;
     
-
+    LookAndFeel::setDefaultLookAndFeel(&mainLook);
+    
+    console = debugConsole;
+    console->viewport.setLookAndFeel(&statusbarLook);
+    levelmeter.setLookAndFeel(&statusbarLook);
+    
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::firstBackground);
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::firstBackground);
     tabbar.setColour(TabbedComponent::outlineColourId, MainLook::firstBackground);
@@ -290,11 +294,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             // Initialise settings dialog for DAW and standalone
             if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone) {
                 auto pluginHolder = StandalonePluginHolder::getInstance();
-                settingsDialog.reset(new SettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
+                settingsDialog.reset(new SettingsDialog(resources.get(), pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
                     pd.updateSearchPaths();
                 }));
             } else {
-                settingsDialog.reset(new SettingsDialog(pd, nullptr, pd.settingsTree, [this]() {
+                settingsDialog.reset(new SettingsDialog(resources.get(), pd, nullptr, pd.settingsTree, [this]() {
                     pd.updateSearchPaths();
                 }));
             }
@@ -359,11 +363,14 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
+    LookAndFeel::setDefaultLookAndFeel(nullptr);
+    console->viewport.setLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
     bypassButton.setLookAndFeel(nullptr);
     hideButton.setLookAndFeel(nullptr);
     lockButton.setLookAndFeel(nullptr);
     connectionStyleButton.setLookAndFeel(nullptr);
+    levelmeter.setLookAndFeel(nullptr);
 
     for (auto& button : toolbarButtons) {
         button.setLookAndFeel(nullptr);

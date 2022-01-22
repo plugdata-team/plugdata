@@ -308,7 +308,7 @@ void ClickLabel::setEditable(bool editable)
     invalidateAccessibilityHandler();
 }
 
-SuggestionBox::SuggestionBox()
+SuggestionBox::SuggestionBox(Resources& r) : editorLook(r)
 {
     // Set up the button list that contains our suggestions
     buttonholder = std::make_unique<Component>();
@@ -335,7 +335,7 @@ SuggestionBox::SuggestionBox()
     port->setViewportIgnoreDragFlag(true);
     addAndMakeVisible(port.get());
 
-    //setLookAndFeel(&buttonlook);
+    setLookAndFeel(&editorLook);
     setInterceptsMouseClicks(true, true);
     setAlwaysOnTop(true);
     setVisible(true);

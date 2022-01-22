@@ -12,7 +12,6 @@
 
 // Text element in suggestion box
 class SuggestionComponent : public TextButton {
-    BoxEditorLook editorLook;
 
     int type = -1;
     Array<Colour> colours = { findColour(ScrollBar::thumbColourId), Colours::yellow };
@@ -28,13 +27,10 @@ public:
         setClickingTogglesState(true);
         setRadioGroupId(1001);
         setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
-
-        setLookAndFeel(&editorLook);
     }
 
     ~SuggestionComponent()
     {
-        setLookAndFeel(nullptr);
     }
 
 
@@ -73,7 +69,7 @@ class SuggestionBox : public Component, public KeyListener, public TextEditor::I
 public:
     bool selecting = false;
 
-    SuggestionBox();
+    SuggestionBox(Resources& r);
 
     ~SuggestionBox();
 
@@ -106,6 +102,8 @@ private:
     Array<Colour> colours = { MainLook::firstBackground, MainLook::secondBackground };
 
     Colour bordercolor = Colour(142, 152, 155);
+    
+    BoxEditorLook editorLook;
 
     int highlightStart = 0;
     int highlightEnd = 0;

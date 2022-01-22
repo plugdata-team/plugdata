@@ -41,11 +41,15 @@ class Canvas;
 class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Timer, public ChangeBroadcaster, public FileOpener {
     
-    ToolbarLook toolbarLook;
-    StatusbarLook statusbarLook = StatusbarLook(1.4);
-    MainLook mainLook;
-    
 public:
+    
+    SharedResourcePointer<Resources> resources;
+    
+    ToolbarLook toolbarLook = ToolbarLook(resources.get());
+    StatusbarLook statusbarLook = StatusbarLook(resources.get(), 1.4f);
+    MainLook mainLook = MainLook(resources.get());
+    
+
     //==============================================================================
     PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
     ~PlugDataPluginEditor() override;

@@ -12,7 +12,7 @@ SaveDialog::SaveDialog()
 {
     
     
-    setLookAndFeel(&mainLook);
+    //setLookAndFeel(&mainLook);
     setSize(400, 200);
     addAndMakeVisible(savelabel);
     addAndMakeVisible(cancel);
@@ -40,7 +40,7 @@ SaveDialog::SaveDialog()
 
 SaveDialog::~SaveDialog()
 {
-    setLookAndFeel(nullptr);
+    //setLookAndFeel(nullptr);
 }
 
 void SaveDialog::resized()
@@ -75,7 +75,7 @@ ArrayDialog::ArrayDialog()
 {
 
     
-    setLookAndFeel(&mainLook);
+    //setLookAndFeel(&mainLook);
     setSize(400, 200);
 
     addAndMakeVisible(label);
@@ -108,7 +108,7 @@ ArrayDialog::ArrayDialog()
 
 ArrayDialog::~ArrayDialog()
 {
-    setLookAndFeel(nullptr);
+    //setLookAndFeel(nullptr);
 }
 
 void ArrayDialog::show(Component* centre, std::function<void(int, String, String)> callback)
@@ -284,7 +284,7 @@ public:
             addAndMakeVisible(deleteButton);
             deleteButton.toFront(true);
             deleteButton.setConnectedEdges(12);
-            deleteButton.setLookAndFeel(&look);
+            //deleteButton.setLookAndFeel(&look);
 
             onTextChange = [this, value]() {
                 *value = getText();
@@ -294,7 +294,7 @@ public:
 
         ~FileComponent()
         {
-            deleteButton.setLookAndFeel(nullptr);
+            //deleteButton.setLookAndFeel(nullptr);
         }
 
         void resized() override
@@ -310,10 +310,10 @@ public:
             return editor;
         }
 
-        TextButton deleteButton = TextButton(Icons::Clear);
+        TextButton deleteButton = TextButton("x");
 
     private:
-        StatusbarLook look = StatusbarLook(false);
+
         std::function<void(int)> callback;
 
         int row;
@@ -331,7 +331,7 @@ private:
     StringArray items;
 };
 
-SettingsComponent::SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
+SettingsComponent::SettingsComponent(Resources& r ,AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : lnf(r)
 {
 
     for (auto& button : toolbarButtons) {
