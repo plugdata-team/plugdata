@@ -7,7 +7,7 @@
 #pragma once
 
 #include "Edge.h"
-#include "Pd/PdObject.hpp"
+#include "Pd/PdObject.h"
 #include <JuceHeader.h>
 #include <m_pd.h>
 //==============================================================================

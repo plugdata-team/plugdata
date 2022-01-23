@@ -20,7 +20,7 @@ juce_add_module(./ff_meters ALIAS_NAMESPACE ff_meters)
 set(CMAKE_MACOSX_RPATH ON)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(PD_PATH "libpd/pure-data")
+set(PD_PATH "pure-data/")
 set(LIBPD_PATH "libpd/")
 set(LIBPD_OUTPUT_DIRECTORY "./..")
 
@@ -117,7 +117,6 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/m_sched.c
     ${PD_PATH}/src/s_audio.c
     ${PD_PATH}/src/s_audio_dummy.c
-    ${PD_PATH}/src/s_inter.c
     ${PD_PATH}/src/s_loader.c
     ${PD_PATH}/src/s_main.c
 		${PD_PATH}/src/s_net.c
@@ -144,12 +143,6 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/x_vexp.c
     ${PD_PATH}/src/x_vexp_fun.c
     ${PD_PATH}/src/x_vexp_if.c
-    ${PD_PATH}/src/z_print_util.c
-    ${PD_PATH}/src/z_print_util.h
-    ${PD_PATH}/src/z_queued.c
-    ${PD_PATH}/src/z_queued.h
-    ${PD_PATH}/src/z_ringbuffer.c
-    ${PD_PATH}/src/z_ringbuffer.h
 )
 include_directories(${PD_PATH}/src)
 source_group(pd FILES ${PD_SOURCES})
@@ -179,21 +172,24 @@ endif()
 # LIBPD SOURCES
 #------------------------------------------------------------------------------#
 set(LIBPD_SOURCES
-    ${LIBPD_PATH}/libpd_wrapper/s_libpdmidi.c
-    ${LIBPD_PATH}/libpd_wrapper/x_libpdreceive.c
-    ${LIBPD_PATH}/libpd_wrapper/x_libpdreceive.h
-    ${LIBPD_PATH}/libpd_wrapper/z_hooks.c
-    ${LIBPD_PATH}/libpd_wrapper/z_hooks.h
-    ${LIBPD_PATH}/libpd_wrapper/z_libpd.c
-    ${LIBPD_PATH}/libpd_wrapper/util/ringbuffer.c
-    ${LIBPD_PATH}/libpd_wrapper/util/ringbuffer.h
-    ${LIBPD_PATH}/libpd_wrapper/util/z_print_util.c
-    ${LIBPD_PATH}/libpd_wrapper/util/z_print_util.h
-    ${LIBPD_PATH}/libpd_wrapper/util/z_queued.c
-    ${LIBPD_PATH}/libpd_wrapper/util/z_queued.h
+    ${LIBPD_PATH}/s_libpdmidi.c
+    ${LIBPD_PATH}/x_libpdreceive.c
+    ${LIBPD_PATH}/x_libpdreceive.h
+    ${LIBPD_PATH}/z_hooks.c
+    ${LIBPD_PATH}/z_hooks.h
+    ${LIBPD_PATH}/z_libpd.c
+    ${LIBPD_PATH}/x_libpd_extra_utils.c
+    ${LIBPD_PATH}/x_libpd_extra_utils.h
+    ${LIBPD_PATH}/x_libpd_mod_utils.c
+    ${LIBPD_PATH}/x_libpd_mod_utils.h
+    ${LIBPD_PATH}/x_libpd_multi.c
+    ${LIBPD_PATH}/x_libpd_multi.h
+    ${LIBPD_PATH}/s_libpd_inter.c
+    ${LIBPD_PATH}/s_libpd_inter.h
+
 )
 
-include_directories(${LIBPD_PATH}/libpd_wrapper)
+include_directories(${LIBPD_PATH})
 source_group(libpd FILES ${LIBPD_SOURCES})
 list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 

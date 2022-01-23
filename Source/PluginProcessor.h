@@ -7,8 +7,8 @@
 #pragma once
 
 #include "Console.h"
-#include "Pd/PdInstance.hpp"
-#include "Pd/PdLibrary.hpp"
+#include "Pd/PdInstance.h"
+#include "Pd/PdLibrary.h"
 #include "PluginEditor.h"
 #include <JuceHeader.h>
 
@@ -49,7 +49,6 @@ public:
 
     // pure-data run loop when DAW isn't calling process block
     
-    std::atomic<float> timeSinceProcess;
     void run() override;
 
     //==============================================================================
@@ -71,6 +70,8 @@ public:
     void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
     void receiveMidiByte(const int port, const int byte) override;
 
+    void receiveGuiUpdate(int type) override;
+    
     void receivePrint(const std::string& message) override
     {
         if(!message.empty())
@@ -122,6 +123,8 @@ public:
     {
         return audioLock;
     };
+    
+    int64 lastAudioCallback;
 
     void initialiseFilesystem();
     void saveSettings();

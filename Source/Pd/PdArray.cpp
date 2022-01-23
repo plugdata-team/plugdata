@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "PdArray.hpp"
+#include "PdArray.h"
 
 extern "C"
 {

@@ -52,10 +52,8 @@ file(GLOB PlugDataStandaloneSources
 source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
 
 file(GLOB_RECURSE PlugDataPdSources
-    ${SOURCES_DIRECTORY}/Pd/*.c
-    ${SOURCES_DIRECTORY}/Pd/*.h
     ${SOURCES_DIRECTORY}/Pd/*.cpp
-    ${SOURCES_DIRECTORY}/Pd/*.hpp)
+    ${SOURCES_DIRECTORY}/Pd/*.h)
 source_group("Source\\Pd" FILES ${PlugDataPdSources})
 
 file(GLOB_RECURSE PlugDataLV2Sources
@@ -180,8 +178,8 @@ target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 endif()
 target_compile_definitions(PlugData_LV2 PRIVATE "JucePlugin_Build_LV2=1")
 
-list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/pure-data/src")
-list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/libpd_wrapper")
+list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
+list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
 target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
 target_include_directories(PlugDataFx PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
 

@@ -39,7 +39,7 @@ struct TabComponent : public TabbedComponent {
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public Timer, public ChangeBroadcaster, public FileOpener {
+class PlugDataPluginEditor : public AudioProcessorEditor,  public ChangeBroadcaster, public FileOpener {
     
 public:
     
@@ -75,7 +75,7 @@ public:
     Canvas* getMainCanvas();
     Canvas* getCanvas(int idx);
 
-    void timerCallback() override;
+    void updateValues();
 
     void updateUndoState();
 

@@ -7,16 +7,19 @@
 
 #include <algorithm>
 
+
+
 extern "C"
 {
 #include <g_undo.h>
 #include "x_libpd_multi.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_mod_utils.h"
+#include "s_libpd_inter.h"
 }
 
-#include "PdInstance.hpp"
-#include "PdPatch.hpp"
+#include "PdInstance.h"
+#include "PdPatch.h"
 
 
 extern "C"
@@ -119,6 +122,8 @@ namespace pd
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
 
+
+
 Instance::Instance(std::string const& symbol)
 {
     libpd_multi_init();
@@ -146,12 +151,21 @@ Instance::Instance(std::string const& symbol)
                                                      reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
     
+    // Register callback when pd's gui changes
+    // Needs to be done on pd's thread
     
+    register_gui_trigger(static_cast<t_pdinstance *>(m_instance), this, [](void* instance, int type){
+        
+        static_cast<Instance*>(instance)->receiveGuiUpdate(type);
+    });
+
+
     libpd_set_verbose(0);
     
     
     setThis();
 }
+
 
 Instance::~Instance()
 {
@@ -169,6 +183,9 @@ Instance::~Instance()
 }
 
 
+Instance* Instance::getCurrent() {
+    
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -215,6 +232,8 @@ void Instance::performDSP(float const* inputs, float* outputs)
 {
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     libpd_process_raw(inputs, outputs);
+    
+
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////

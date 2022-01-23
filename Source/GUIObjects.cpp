@@ -205,7 +205,7 @@ void GUIComponent::updateValue()
 {
     if (edited == false) {
         float const v = gui.getValue();
-        if (v != value || gui.getType() == pd::Type::Message) {
+        if (v != value) {
             value = v;
             update();
             // repaint();
@@ -508,7 +508,7 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     }
     addAndMakeVisible(input);
     
-    input.setText(String(getValueOriginal(), 3), dontSendNotification);
+    input.setText(String(getValueOriginal()), dontSendNotification);
     
     input.onTextChange = [this]() {
         /*
@@ -539,7 +539,7 @@ void NumboxComponent::update()
     float value = getValueOriginal();
     
     
-    input.setText(String(value, 3), dontSendNotification);
+    input.setText(String(value), dontSendNotification);
 }
 
 ListComponent::ListComponent(pd::Gui gui, Box* parent)
@@ -1026,9 +1026,7 @@ Subpatch::Subpatch(pd::Gui pdGui, Box* box)
     subpatch = gui.getPatch();
 }
 
-void Subpatch::updateValue() {
-    bool isGui = false;
-    
+void Subpatch::updateValue() {    
     // Pd sometimes sets the isgraph flag too late...
     // In that case we tell the box to create the gui
     if(static_cast<t_canvas*>(gui.getPointer())->gl_isgraph) {

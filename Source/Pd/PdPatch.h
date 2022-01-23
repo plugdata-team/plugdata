@@ -5,7 +5,7 @@
  */
 #pragma once
 
-#include "PdGui.hpp"
+#include "PdGui.h"
 #include "x_libpd_mod_utils.h"
 #include <array>
 #include <vector>
