@@ -4,8 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "PdObject.hpp"
-#include "PdInstance.hpp"
+#include "PdObject.h"
+#include "PdInstance.h"
 extern "C"
 {
 #include <z_libpd.h>

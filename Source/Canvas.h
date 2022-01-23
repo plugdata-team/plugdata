@@ -8,7 +8,7 @@
 
 #include "Box.h"
 #include "BoxEditor.h"
-#include "Pd/PdPatch.hpp"
+#include "Pd/PdPatch.h"
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
 //==============================================================================

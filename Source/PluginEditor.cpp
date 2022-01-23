@@ -9,7 +9,7 @@
 #include "Connection.h"
 #include "Dialogs.h"
 #include "Edge.h"
-#include "Pd/x_libpd_mod_utils.h"
+#include "x_libpd_mod_utils.h"
 
 //==============================================================================
 
@@ -58,7 +58,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
         cnv->checkBounds();
 
-        timerCallback();
+        updateValues();
     };
     
     addAndMakeVisible(tabbar);
@@ -86,6 +86,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         for(auto& cnv : canvases) {
             cnv->pd->locked = pd.locked;
         }
+        
+        getCurrentCanvas()->dragger.deselectAll();
 
         lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
 
@@ -535,19 +537,15 @@ void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback)
     getCurrentCanvas()->hasChanged = false;
 }
 
-void PlugDataPluginEditor::timerCallback()
+void PlugDataPluginEditor::updateValues()
 {
     auto* cnv = getCurrentCanvas();
-    // cnv->patch.setCurrent();
-
-    //if(pd.getCallbackLock()->tryEnter()) {
-        for (auto& box : cnv->boxes) {
-            if (box->graphics && box->isShowing()) {
-                box->graphics->updateValue();
-            }
+    
+    for (auto& box : cnv->boxes) {
+        if (box->graphics && box->isShowing()) {
+            box->graphics->updateValue();
         }
-        //pd.getCallbackLock()->exit();
-    //}
+    }
 
     updateUndoState();
 

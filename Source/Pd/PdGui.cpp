@@ -4,8 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "PdGui.hpp"
-#include "PdInstance.hpp"
+#include "PdGui.h"
+#include "PdInstance.h"
 #include <limits>
 #include <cmath>
 

@@ -10,8 +10,8 @@
 #include <JuceHeader.h>
 #include <map>
 #include <utility>
-#include "PdPatch.hpp"
-#include "PdAtom.hpp"
+#include "PdPatch.h"
+#include "PdAtom.h"
 
 #include "concurrentqueue.h"
 
@@ -53,6 +53,8 @@ public:
     virtual void receiveAftertouch(const int channel, const int value) {}
     virtual void receivePolyAftertouch(const int channel, const int pitch, const int value) {}
     virtual void receiveMidiByte(const int port, const int byte) {}
+    
+    virtual void receiveGuiUpdate(int type) {};
     
     void sendBang(const char* receiver) const;
     void sendFloat(const char* receiver, float const value) const;
@@ -97,7 +99,9 @@ public:
     void stringToAtom(String name, int& argc, t_atom& target);
     
     t_canvas* getCurrentCanvas();
-
+    
+    static Instance* getCurrent();
+    
     void waitForStateUpdate();
     
     virtual const CriticalSection* getCallbackLock() { return nullptr; };
@@ -118,6 +122,7 @@ public:
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
     static inline std::recursive_mutex canvasLock;
+    
     
     private:
     struct Message
@@ -165,6 +170,8 @@ public:
     WaitableEvent updateWait;
     
     struct internal;
+    
+
     
 
 };

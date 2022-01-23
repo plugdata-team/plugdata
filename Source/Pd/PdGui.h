@@ -5,9 +5,9 @@
  */
 #pragma once
 
-#include "PdObject.hpp"
-#include "PdArray.hpp"
-#include "PdAtom.hpp"
+#include "PdObject.h"
+#include "PdArray.h"
+#include "PdAtom.h"
 #include <JuceHeader.h>
 
 namespace pd

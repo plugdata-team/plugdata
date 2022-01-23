@@ -4,10 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "PdPatch.hpp"
-#include "PdObject.hpp"
-#include "PdGui.hpp"
-#include "PdInstance.hpp"
+#include "PdPatch.h"
+#include "PdObject.h"
+#include "PdGui.h"
+#include "PdInstance.h"
 
 extern "C"
 {
@@ -52,10 +52,12 @@ namespace pd
 Patch::Patch(void* ptr, Instance* instance) noexcept :
 m_ptr(ptr), m_instance(instance)
 {
-    if(ptr) {
+    if(auto* cnv = getPointer()) {
         setZoom(1);
+        cnv->gl_mapped = 1; // this will allow us to receive pd gui updates on every canvas
     }
     
+
 }
 
 std::array<int, 4> Patch::getBounds() const noexcept
@@ -76,13 +78,10 @@ void Patch::setCurrent() {
     
     m_instance->setThis();
     
-    
     m_instance->canvasLock.lock();
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
     m_instance->canvasLock.unlock();
-    
-    
 }
 
 t_canvas* Patch::getCurrent()

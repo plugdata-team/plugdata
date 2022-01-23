@@ -12,9 +12,9 @@
 #include "../Libraries/ff_meters/ff_meters.h"
 
 #include "LookAndFeel.h"
-#include "Pd/PdGui.hpp"
-#include "Pd/PdPatch.hpp"
-#include "Pd/x_libpd_extra_utils.h"
+#include "Pd/PdGui.h"
+#include "Pd/PdPatch.h"
+#include "x_libpd_extra_utils.h"
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
 #include <m_pd.h>
