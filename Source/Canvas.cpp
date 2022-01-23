@@ -21,6 +21,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
 {
     isGraph = graph;
     isGraphChild = graphChild;
+    
+    parent.sendChangeMessage();
 
     tabbar = &parent.getTabbar();
 
@@ -49,8 +51,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
         viewport = new Viewport; // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
     }
-
-    main.startTimer(guiUpdateMs);
     
     addChildComponent(suggestor);
     
@@ -67,7 +67,6 @@ Canvas::~Canvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::synchronise(bool updatePosition)
 {
-    main.stopTimer();
     setTransform(main.transform);
 
     main.inspector.deselect();
@@ -136,7 +135,7 @@ void Canvas::synchronise(bool updatePosition)
             guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
             auto* newBox = boxes.add(new Box(pdObject, this, name, { (int)x, (int)y }));
-            newBox->toFront(false);
+            //newBox->toFront(false);
 
             // Don't show non-patchable (internal) objects
             if (!patch.checkObject(&object))
@@ -155,7 +154,7 @@ void Canvas::synchronise(bool updatePosition)
                 box->setTopLeftPosition(x, y);
             }
 
-            box->toFront(false);
+            //box->toFront(false);
 
             // Reload colour information for
             if (box->graphics) {
@@ -200,8 +199,6 @@ void Canvas::synchronise(bool updatePosition)
 
     // Resize canvas to fit objects
     checkBounds();
-
-    main.startTimer(guiUpdateMs);
 }
 
 void Canvas::createPatch()
@@ -537,7 +534,7 @@ void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
         if (gobj->g_pd == canvas_class) {
             if (boxes[n]->graphics && boxes[n]->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
                 auto* canvas = boxes[n]->graphics->getCanvas();
-
+                
                 g.saveState();
                 auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
                 auto bounds = canvas->getParentComponent()->getLocalBounds().withPosition(pos);
@@ -789,7 +786,7 @@ void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
     main.inspector.deselect();
-    main.stopTimer();
+    //main.stopTimer();
     
 
     // Find selected objects and make them selected in pd
@@ -825,8 +822,8 @@ void Canvas::removeSelection()
     
     patch.deselectAll();
 
-    // Restart gui updating
-    main.startTimer(guiUpdateMs);
+    // Update GUI
+    main.updateValues();
     main.updateUndoState();
 }
 

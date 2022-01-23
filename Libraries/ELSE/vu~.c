@@ -43,8 +43,8 @@ static void vu_set(t_sigvu *x, t_floatarg f1, t_floatarg f2){
     if(hop < x->x_block)
         hop = x->x_block;
     
-    if(!(buf = getbytes(sizeof(t_sample) * (size + INITVSTAKEN))))
-        error("[vu~]: couldn't allocate buffer");
+    //if(!(buf = getbytes(sizeof(t_sample) * (size + INITVSTAKEN))))
+    //    error("[vu~]: couldn't allocate buffer");
     
     x->x_buf = buf;
     x->x_phase = 0;
@@ -76,7 +76,7 @@ static void *vu_tilde_new(t_floatarg fnpoints, t_floatarg fperiod){
     if(period < npoints / MAXOVERLAP + 1)
         period = npoints / MAXOVERLAP + 1;
     if(!(buf = getbytes(sizeof(t_sample) * (npoints + INITVSTAKEN)))){
-        error("[vu~]: couldn't allocate buffer");
+    //    error("[vu~]: couldn't allocate buffer");
         return (0);
     }
     x = (t_sigvu *)pd_new(vu_tilde_class);
@@ -149,7 +149,7 @@ static void vu_tilde_dsp(t_sigvu *x, t_signal **sp){
             (x->x_npoints + sp[0]->s_n) * sizeof(t_sample));
         if (!xx)
             {
-            error("vu~: out of memory");
+            //error("vu~: out of memory");
             return;
             }
         x->x_buf = (t_sample *)xx;

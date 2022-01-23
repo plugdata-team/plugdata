@@ -39,6 +39,8 @@ public:
         PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
 
         PropertiesFile::Options options;
+        
+        
 
         options.applicationName     = getApplicationName();
         options.filenameSuffix      = ".settings";

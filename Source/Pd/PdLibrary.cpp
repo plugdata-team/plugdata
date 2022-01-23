@@ -7,7 +7,7 @@
 
 #include <JuceHeader.h>
 
-#include "PdLibrary.hpp"
+#include "PdLibrary.h"
 
 
 struct _canvasenvironment

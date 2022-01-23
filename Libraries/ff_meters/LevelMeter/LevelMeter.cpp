@@ -138,7 +138,7 @@ void LevelMeter::visibilityChanged ()
 
 void LevelMeter::timerCallback ()
 {
-    if ((source && source->checkNewDataFlag()) || backgroundNeedsRepaint)
+    if ((source && source->checkNewDataFlag()))
     {
         if (source)
             source->resetNewDataFlag();

@@ -209,14 +209,18 @@ public:
             const int         numSamples  = buffer.getNumSamples ();
 
             for (int channel=0; channel < std::min (numChannels, int (levels.size())); ++channel) {
-                levels [size_t (channel)].setLevels (lastMeasurement,
-                                                     buffer.getMagnitude (channel, 0, numSamples),
-                                                     buffer.getRMSLevel  (channel, 0, numSamples),
+                auto& level = levels[size_t (channel)];
+                
+                level.setLevels (lastMeasurement, buffer.getMagnitude (channel, 0, numSamples), buffer.getRMSLevel  (channel, 0, numSamples),
                                                      holdMSecs);
+                
+                auto newValue = levels.at(size_t (channel)).getAvgRMS();
+                newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.5f;
+                lastShownValue = newValue;
             }
         }
 
-        newDataFlag = true;
+
     }
     
     void pushRMS(int channel, float rms, float peak) {
@@ -225,7 +229,9 @@ public:
         
         levels [size_t (channel)].setLevels (lastMeasurement, rms, peak, holdMSecs);
         
-        newDataFlag = true;
+        auto newValue = levels.at(size_t (channel)).getAvgRMS();
+        newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.5f;
+        lastShownValue = newValue;
     }
 
     /**
@@ -243,9 +249,11 @@ public:
         {
             levels [channel].setLevels (lastMeasurement, 0.0f, 0.0f, holdMSecs);
             levels [channel].reduction = 1.0f;
+            
+            auto newValue = levels.at(size_t (channel)).getAvgRMS();
+            newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.5f;
+            lastShownValue = newValue;
         }
-
-        newDataFlag = true;
     }
 
     /**
@@ -402,6 +410,7 @@ private:
     std::atomic<juce::int64> lastMeasurement;
 
     std::atomic<bool> newDataFlag;
+    std::atomic<float> lastShownValue;
 
     bool suspended;
 };

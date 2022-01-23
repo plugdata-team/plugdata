@@ -1,12 +1,9 @@
-[submodule "Libraries/libpd"]
-	path = Libraries/libpd
-	url = https://github.com/libpd/libpd.git
 [submodule "Libraries/pthread-win32"]
 	path = Libraries/pthread-win32
 	url = https://github.com/GerHobbelt/pthread-win32.git
-[submodule "libpd"]
-	path = Libraries/libpd
-	url = https://github.com/libpd/libpd.git
 [submodule "JUCE"]
 	path = Libraries/JUCE
 	url = https://github.com/juce-framework/JUCE.git
+[submodule "Libraries/pure-data"]
+	path = Libraries/pure-data
+	url = https://github.com/pure-data/pure-data.git

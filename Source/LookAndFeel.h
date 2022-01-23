@@ -21,7 +21,9 @@ struct Icons
 {
     inline static const CharPointer_UTF8 New = CharPointer_UTF8("\xef\x85\x9b");
     inline static const CharPointer_UTF8 Open = CharPointer_UTF8("\xef\x81\xbb");
-    inline static const CharPointer_UTF8 Save = CharPointer_UTF8("\xef\x80\x99");
+    inline static const CharPointer_UTF8 Save = CharPointer_UTF8("\xef\x83\x87");
+    inline static const CharPointer_UTF8 SaveAs = CharPointer_UTF8("\xef\x80\x99");
+   
     inline static const CharPointer_UTF8 Undo = CharPointer_UTF8("\xef\x83\xa2");
     inline static const CharPointer_UTF8 Redo = CharPointer_UTF8("\xef\x80\x9e");
     inline static const CharPointer_UTF8 Add = CharPointer_UTF8("\xef\x81\xa7");
@@ -149,45 +151,16 @@ struct MainLook : public LookAndFeel_V4 {
         if (w * h == 0)
             return;
         
-        auto isActive = window.isActiveWindow();
-        
         g.setColour(firstBackground);
         g.fillAll();
         
         Font font((float)h * 0.65f, Font::plain);
         g.setFont(font);
         
-        auto textW = font.getStringWidth(window.getName());
-        auto iconW = 0;
-        auto iconH = 0;
-        
-        if (icon != nullptr) {
-            iconH = static_cast<int>(font.getHeight());
-            iconW = icon->getWidth() * iconH / icon->getHeight() + 4;
-        }
-        
-        textW = jmin(titleSpaceW, textW + iconW);
-        auto textX = drawTitleTextOnLeft ? titleSpaceX : jmax(titleSpaceX, (w - textW) / 2);
-        
-        if (textX + textW > titleSpaceX + titleSpaceW)
-            textX = titleSpaceX + titleSpaceW - textW;
-        
-        if (icon != nullptr) {
-            g.setOpacity(isActive ? 1.0f : 0.6f);
-            g.drawImageWithin(*icon, textX, (h - iconH) / 2, iconW, iconH,
-                              RectanglePlacement::centred, false);
-            textX += iconW;
-            textW -= iconW;
-        }
-        
-        if (window.isColourSpecified(DocumentWindow::textColourId) || isColourSpecified(DocumentWindow::textColourId))
-            g.setColour(window.findColour(DocumentWindow::textColourId));
-        else
-            g.setColour(
-                        getCurrentColourScheme().getUIColour(ColourScheme::defaultText));
+        g.setColour(getCurrentColourScheme().getUIColour(ColourScheme::defaultText));
         
         g.setColour(Colours::white);
-        g.drawText(window.getName(), textX, 0, textW, h, Justification::centredLeft,
+        g.drawText(window.getName(), 0, 0, w, h, Justification::centred,
                    true);
     }
     

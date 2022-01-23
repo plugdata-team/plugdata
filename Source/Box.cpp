@@ -10,8 +10,8 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
-#include "Pd/x_libpd_extra_utils.h"
-#include "Pd/x_libpd_mod_utils.h"
+#include "x_libpd_extra_utils.h"
+#include "x_libpd_mod_utils.h"
 
 //==============================================================================
 Box::Box(Canvas* parent, String name, Point<int> position)
@@ -72,12 +72,17 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
     // Called when locking/unlocking
     textLabel.setEditable(!locked);
     
+    bool hideForGraph = !graphics || graphics->getGUI().getType() == pd::Type::Message || (graphics->fakeGUI() && graphics->getGUI().getType() != pd::Type::Comment);
+    
+    setVisible(!(cnv->isGraph && hideForGraph));
+    
     // If the object has graphics, we hide the draggable name object
     if (graphics && !graphics->fakeGUI() && (locked || cnv->isGraph)) {
         textLabel.setVisible(false);
         if (resizer)
             resizer->setVisible(false);
-    } else {
+    }
+    else {
         if (resizer)
             resizer->setVisible(true);
     }
