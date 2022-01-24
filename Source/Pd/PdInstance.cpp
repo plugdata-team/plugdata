@@ -12,6 +12,7 @@
 extern "C"
 {
 #include <g_undo.h>
+#include <m_imp.h>
 #include "x_libpd_multi.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_mod_utils.h"
@@ -154,9 +155,17 @@ Instance::Instance(std::string const& symbol)
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
     
-    register_gui_trigger(static_cast<t_pdinstance *>(m_instance), this, [](void* instance, int type){
+    register_gui_trigger(static_cast<t_pdinstance *>(m_instance), this, [](void* instance, void* target){
         
-        static_cast<Instance*>(instance)->receiveGuiUpdate(type);
+        auto* pd = static_cast<t_pd*>(target);
+        
+        // redraw scalar
+        if(pd && !strcmp((*pd)->c_name->s_name, "scalar")) {
+            static_cast<Instance*>(instance)->receiveGuiUpdate(2);
+        }
+        else {
+            static_cast<Instance*>(instance)->receiveGuiUpdate(1);
+        }       
     });
 
 
