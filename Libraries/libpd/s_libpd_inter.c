@@ -143,12 +143,10 @@ void register_gui_trigger(t_pdinstance* instance, void* target, pd_gui_callback 
     instance->pd_inter->callback_target = target;
 }
 
-void update_gui(int type) {
-    
-    
+void update_gui(void* obj_target) {
     if(pd_this->pd_inter->gui_callback) {
         
-        pd_this->pd_inter->gui_callback(pd_this->pd_inter->callback_target, type);
+        pd_this->pd_inter->gui_callback(pd_this->pd_inter->callback_target, obj_target);
     }
 }
 
@@ -752,12 +750,12 @@ void sys_vgui(const char *fmt, ...)
     if(strncmp(fmt, "pdtk_canvas_raise", strlen("pdtk_canvas_raise")) == 0) {
         return;
     }
-    update_gui(1);
+    update_gui(NULL);
 }
 
 void sys_gui(const char *s)
 {
-    update_gui(1);
+    update_gui(NULL);
 }
 
 static int sys_flushtogui(void)
@@ -852,7 +850,7 @@ static int sys_poll_togui(void) /* returns 1 if did anything */
 
         /* check for queued updates */
     if (sys_flushqueue()) {
-        //update_gui(2);
+        //
         return (1);
     }
 
@@ -868,6 +866,8 @@ void sys_pretendguibytes(int n)
 
 void sys_queuegui(void *client, t_glist *glist, t_guicallbackfn f)
 {
+    update_gui(client);
+    /*
     t_guiqueue **gqnextptr, *gq;
     if (!pd_this->pd_inter->i_guiqueuehead)
         gqnextptr = &pd_this->pd_inter->i_guiqueuehead;
@@ -887,7 +887,7 @@ void sys_queuegui(void *client, t_glist *glist, t_guicallbackfn f)
     gq->gq_glist = glist;
     gq->gq_fn = f;
     gq->gq_next = 0;
-    *gqnextptr = gq;
+    *gqnextptr = gq; */
 }
 
 void sys_unqueuegui(void *client)
