@@ -46,7 +46,7 @@ public:
     SharedResourcePointer<Resources> resources;
     
     ToolbarLook toolbarLook = ToolbarLook(resources.get());
-    StatusbarLook statusbarLook = StatusbarLook(resources.get(), 1.4f);
+    StatusbarLook statusbarLook = StatusbarLook(resources.get(), 1.35f);
     MainLook mainLook = MainLook(resources.get());
     
 

@@ -316,7 +316,6 @@ struct Console : public Component
     }
     
     ~Console() {
-        for(auto& button : buttons) button.setLookAndFeel(nullptr);
     }
     
     void logMessage (const String& m)
