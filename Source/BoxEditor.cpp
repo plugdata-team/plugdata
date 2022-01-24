@@ -51,7 +51,7 @@ void ClickLabel::mouseDown(const MouseEvent& e)
         return;
 
     isDown = true;
-    dragger.handleMouseDown(box, e);
+    canvas->handleMouseDown(box, e);
 }
 
 void ClickLabel::mouseUp(const MouseEvent& e)
@@ -75,7 +75,7 @@ void ClickLabel::mouseDrag(const MouseEvent& e)
     if (canvas->isGraph || canvas->pd->locked)
         return;
 
-    dragger.handleMouseDrag(e);
+    canvas->handleMouseDrag(e);
 }
 
 void ClickLabel::inputAttemptWhenModal()
@@ -126,7 +126,7 @@ TextEditor* ClickLabel::createEditorComponent()
     
     auto boundsInParent = getBounds() + box->getPosition();
 
-    suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 300);
+    suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 115);
     suggestor.resized();
 
     return editor;
@@ -439,6 +439,8 @@ void SuggestionBox::resized()
 
     for (int i = 0; i < buttons.size(); i++)
         buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
+    
+    repaint();
 }
 
 bool SuggestionBox::keyPressed(const KeyPress& key, Component* originatingComponent)

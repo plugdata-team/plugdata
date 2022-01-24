@@ -30,7 +30,7 @@ struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
-class Canvas : public Component, public KeyListener, public MultiComponentDraggerListener {
+class Canvas : public Component, public KeyListener, public MultiComponentDragger<Box> {
 public:
     static inline constexpr int guiUpdateMs = 25;
 
@@ -105,8 +105,6 @@ public:
     bool isGraphChild = false;
 
     String title = "Untitled Patcher";
-
-    MultiComponentDragger<Box> dragger = MultiComponentDragger<Box>(this, &boxes);
 
     std::unique_ptr<GraphArea> graphArea;
     

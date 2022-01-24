@@ -30,9 +30,6 @@ class Canvas;
  * @TODO: Add 'grid' support.
  */
 
-struct MultiComponentDraggerListener {
-    virtual void dragCallback(int dx, int dy) = 0;
-};
 
 template <typename T>
 class MultiComponentDragger : public LassoSource<T*> {
@@ -53,6 +50,8 @@ public:
         constrainToParent = shouldConstrainToParentSize;
         amountPermittedOffscreen = amountPermittedOffscreen_;
     }
+    
+    virtual void dragCallback(int dx, int dy) = 0;
 
     /**
      If this flag is set then the dragging behaviour when shift
@@ -148,7 +147,7 @@ public:
     void handleMouseUp(T* component, const MouseEvent& e)
     {
         if (didStartDragging) {
-            ((MultiComponentDraggerListener*)canvas)->dragCallback(totalDragDelta.x, totalDragDelta.y);
+            dragCallback(totalDragDelta.x, totalDragDelta.y);
         }
 
         if (didStartDragging)

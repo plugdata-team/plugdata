@@ -852,7 +852,7 @@ static int sys_poll_togui(void) /* returns 1 if did anything */
 
         /* check for queued updates */
     if (sys_flushqueue()) {
-        update_gui(2);
+        //update_gui(2);
         return (1);
     }
 

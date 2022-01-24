@@ -8,6 +8,7 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 
+
 //==============================================================================
 PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -857,15 +858,30 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
     }
 }
 
-void PlugDataAudioProcessor::receiveGuiUpdate(int type)  {
+
+void PlugDataAudioProcessor::timerCallback() {
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        if(type == 1) {
-            MessageManager::callAsync([editor](){ editor->updateValues(); });
+        if(!callbackType) return;
+        
+        if(callbackType == 3) {
+            editor->updateValues();
         }
-        else if (type == 2) {
-            MessageManager::callAsync([editor](){ editor->getCurrentCanvas()->repaint(); });
-        }
+        
+        callbackType == 1 ? editor->updateValues() : editor->getCurrentCanvas()->repaint();
+        
+        callbackType = 0;
     }
+}
+
+void PlugDataAudioProcessor::receiveGuiUpdate(int type)  {
+        if(callbackType != 0 && callbackType != type) {
+            callbackType = 3;
+        }
+        else {
+            callbackType = type;
+        }
+        
+        startTimer(15);
 }
 
 //==============================================================================

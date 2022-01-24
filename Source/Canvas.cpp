@@ -15,7 +15,8 @@
 
 //==============================================================================
 Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
-    : main(parent)
+    : MultiComponentDragger<Box>(this, &boxes)
+    , main(parent)
     , pd(&parent.pd),
       suggestor(parent.resources.get())
 {
@@ -72,7 +73,7 @@ void Canvas::synchronise(bool updatePosition)
     main.inspector.deselect();
 
     pd->waitForStateUpdate();
-    dragger.deselectAll();
+    deselectAll();
 
     patch.setCurrent();
 
@@ -244,36 +245,42 @@ void Canvas::mouseDown(const MouseEvent& e)
     // Select parent box when clicking on graphs
     if (isGraph) {
         auto* box = findParentComponentOfClass<Box>();
-        box->dragger.setSelected(box, true);
+        box->cnv->setSelected(box, true);
         return;
     }
 
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
         main.inspector.deselect();
-        if(source == this) dragger.deselectAll();
+        if(source == this) deselectAll();
 
         dragStartPosition = e.getMouseDownPosition();
 
         // Drag lasso
         if (dynamic_cast<Connection*>(source)) {
-            lasso.beginLasso(e.getEventRelativeTo(this), &dragger);
+            lasso.beginLasso(e.getEventRelativeTo(this), this);
         }
         // Connecting objects by dragging
         if (source == this || source == graphArea.get()) {
-            Edge::connectingEdge = nullptr;
-            lasso.beginLasso(e.getEventRelativeTo(this), &dragger);
+            if(Edge::connectingEdge) {
+                Edge::connectingEdge = nullptr;
+                repaint();
+            }
+            
+            lasso.beginLasso(e.getEventRelativeTo(this), this);
 
             for (auto& con : connections) {
-                con->isSelected = false;
-                con->repaint();
+                if(con->isSelected && !!ModifierKeys::getCurrentModifiers().isShiftDown()) {
+                    con->isSelected = false;
+                    con->repaint();
+                }
             }
         }
 
     // Right click
     } else {
         // Info about selection status
-        auto& lassoSelection = dragger.getLassoSelection();
+        auto& lassoSelection = getLassoSelection();
         bool hasSelection = lassoSelection.getNumSelected();
         bool multiple = lassoSelection.getNumSelected() > 1;
 
@@ -484,7 +491,7 @@ void Canvas::mouseUp(const MouseEvent& e)
         repaint();
     }
 
-    auto& lassoSelection = dragger.getLassoSelection();
+    auto& lassoSelection = getLassoSelection();
 
     // Pass parameters of selected box to inspector
     if (lassoSelection.getNumSelected() == 1) {
@@ -505,7 +512,7 @@ void Canvas::dragCallback(int dx, int dy)
 
     auto objects = std::vector<pd::Object*>();
 
-    for (auto* box : dragger.getLassoSelection()) {
+    for (auto* box : getLassoSelection()) {
         if (box->pdObject) {
             objects.push_back(box->pdObject.get());
         }
@@ -619,116 +626,13 @@ bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
 
     patch.keyPress(key.getKeyCode(), key.getModifiers().isShiftDown());
 
-    // cmd-e
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(69)) {
-        main.lockButton.triggerClick();
-        return true;
-    }
-
-    // Zoom in
-    if (key.isKeyCode(61) && key.getModifiers().isCommandDown()) {
-        main.transform = main.transform.scaled(1.25f);
-        setTransform(main.transform);
-        return true;
-    }
-    // Zoom out
-    if (key.isKeyCode(45) && key.getModifiers().isCommandDown()) {
-        main.transform = main.transform.scaled(0.8f);
-        setTransform(main.transform);
-        return true;
-    }
-
-    if (pd->locked)
-        return false;
-
-    // Key shortcuts for creating objects
-    if (key.getTextCharacter() == 'n') {
-        boxes.add(new Box(this, "", lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 'c' && !key.getModifiers().isCommandDown()) {
-        boxes.add(new Box(this, "comment", lastMousePos));
-        return true;
-    }
-    if (key.isKeyCode(65) && key.getModifiers().isCommandDown()) {
-        for (auto* child : boxes) {
-            dragger.setSelected(child, true);
-        }
-        for (auto* child : connections) {
-            child->isSelected = true;
-            child->repaint();
-        }
-        return true;
-    }
-    if (key.getTextCharacter() == 'b') {
-        boxes.add(new Box(this, "bng", lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 'm') {
-        boxes.add(new Box(this, "msg", lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 'i') {
-        boxes.add(new Box(this, "nbx", lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 'f') {
-        boxes.add(new Box(this, "floatatom", lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 't') {
-        boxes.add(new Box(this, "tgl", lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 's') {
-        boxes.add(new Box(this, "vsl", lastMousePos));
-        return true;
-    }
-
-    if (key.getKeyCode() == KeyPress::backspaceKey) {
-        removeSelection();
-        return true;
-    }
-    // cmd-c
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(67)) {
-        copySelection();
-        return true;
-    }
-    // cmd-v
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(86)) {
-        pasteSelection();
-        return true;
-    }
-    // cmd-x
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(88)) {
-        copySelection();
-        removeSelection();
-        return true;
-    }
-    // cmd-d
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(68)) {
-        duplicateSelection();
-        return true;
-    }
-
-    // cmd-shift-z
-    if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(90)) {
-        redo();
-        return true;
-    }
-    // cmd-z
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(90)) {
-        undo();
-        return true;
-    }
-
-    return false;
+    
 }
 
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto* sel : dragger.getLassoSelection()) {
+    for (auto* sel : getLassoSelection()) {
         if (auto* box = dynamic_cast<Box*>(sel)) {
             patch.selectObject(box->pdObject.get());
         }
@@ -749,7 +653,7 @@ void Canvas::pasteSelection()
     
     for(auto* box : boxes) {
         if(glist_isselected(patch.getPointer(), (t_gobj*)box->pdObject->getPointer())) {
-            dragger.setSelected(box, true);
+            setSelected(box, true);
         }
     }
     
@@ -760,7 +664,7 @@ void Canvas::duplicateSelection()
 {
 
     // Tell pd to select all objects that are currently selected
-    for (auto* sel : dragger.getLassoSelection()) {
+    for (auto* sel : getLassoSelection()) {
         if (auto* box = dynamic_cast<Box*>(sel)) {
             patch.selectObject(box->pdObject.get());
         }
@@ -775,7 +679,7 @@ void Canvas::duplicateSelection()
     // Select the newly duplicated objects
     for(auto* box : boxes) {
         if(glist_isselected(patch.getPointer(), (t_gobj*)box->pdObject->getPointer())) {
-            dragger.setSelected(box, true);
+            setSelected(box, true);
         }
     }
     
@@ -791,7 +695,7 @@ void Canvas::removeSelection()
 
     // Find selected objects and make them selected in pd
     Array<pd::Object*> objects;
-    for (auto* sel : dragger.getLassoSelection()) {
+    for (auto* sel : getLassoSelection()) {
         if (auto* box = dynamic_cast<Box*>(sel)) {
             if (box->pdObject) {
                 patch.selectObject(box->pdObject.get());
@@ -815,7 +719,7 @@ void Canvas::removeSelection()
     patch.finishRemove();  // Makes sure that the extra removed connections will be grouped in the same undo action
 
 
-    dragger.deselectAll();
+    deselectAll();
 
     // Load state from pd, don't update positions
     synchronise(false);

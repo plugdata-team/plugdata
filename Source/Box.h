@@ -48,8 +48,6 @@ public:
 
     std::unique_ptr<GUIComponent> graphics = nullptr;
 
-    MultiComponentDragger<Box>& dragger;
-
     OwnedArray<Edge> edges;
 
     std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
