@@ -39,7 +39,7 @@ struct TabComponent : public TabbedComponent {
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor,  public ChangeBroadcaster, public FileOpener {
+class PlugDataPluginEditor : public AudioProcessorEditor,  public ChangeBroadcaster, public FileOpener, public KeyListener  {
     
 public:
     
@@ -55,18 +55,25 @@ public:
     ~PlugDataPluginEditor() override;
 
     Component::SafePointer<Console> console;
+    
+    
+    void showNewObjectMenu();
 
     //==============================================================================
     void paint(Graphics&) override;
     void resized() override;
+    
+    bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
+
 
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
 
     void openProject();
-    void saveProject(std::function<void()> nestedCallback = []() {});
-
+    void saveProject();
+    void saveProjectAs(std::function<void()> nestedCallback = [](){});
+    
     void addTab(Canvas* cnv);
     
     void openFile(String path) override;
@@ -97,25 +104,23 @@ public:
     TextButton bypassButton = TextButton(Icons::Power);
     TextButton lockButton = TextButton(Icons::Lock);
     TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
-    
-    Point<int> lastMousePos;
 
 private:
     FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
     FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
 
-    int toolbarHeight = 45;
-    int statusbarHeight = 27;
-    int sidebarWidth = 300;
-    int dragbarWidth = 10;
+    static constexpr int toolbarHeight = 40;
+    static constexpr int statusbarHeight = 24;
+    static constexpr int dragbarWidth = 10;
+    int sidebarWidth = 275;
 
     bool sidebarHidden = false;
 
-    std::array<TextButton, 10> toolbarButtons = {
-        TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide),
+    std::array<TextButton, 11> toolbarButtons = {
+        TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide),
         TextButton(Icons::Console), TextButton(Icons::Inspector) };
 
-    TextButton& hideButton = toolbarButtons[7];
+    TextButton& hideButton = toolbarButtons[8];
 
     std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
 
@@ -129,6 +134,8 @@ private:
     std::unique_ptr<ResizableCornerComponent> resizer;
     
     SharedResourcePointer<TooltipWindow> tooltipWindow;
+    
+    Component seperators[2];
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };

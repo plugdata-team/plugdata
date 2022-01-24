@@ -6,68 +6,34 @@
 /* < https://opensource.org/licenses/BSD-3-Clause > */
 
 
-class Console : public Component, private AsyncUpdater, public ComponentListener
+class ConsoleComponent : public Component, private AsyncUpdater, public ComponentListener
 {
     
+    std::array<TextButton, 5>& buttons;
+    Viewport& viewport;
     
 public:
-    explicit Console ()
+    ConsoleComponent(std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v)
     {
-
-        viewport.addComponentListener(this);
-  
+        
         update(messages, false);
         
-        setOpaque (true);
+        //setOpaque (true);
         
-        viewport.setViewedComponent(this, false);
-        viewport.setScrollBarsShown(true, false);
-        setVisible(true);
-        
-        std::vector<String> tooltips = {
-            "Clear logs", "Restore logs", "Show errors", "Show messages", "Enable autoscroll"
-        };
-        
-        
-        std::vector<std::function<void()>> callbacks = {
-            [this](){ clear(); },
-            [this](){ restore(); },
-            [this](){ if (buttons[2].getState()) restore(); else parse(); },
-            [this](){ if (buttons[3].getState()) restore(); else parse(); },
-            [this](){ if (buttons[4].getState()) { update(); } },
-            
-        };
-        
-        int i = 0;
-        for(auto& button : buttons) {
-            button.setConnectedEdges(12);
-            viewport.addAndMakeVisible(button);
-            
-            button.onClick = callbacks[i];
-            button.setTooltip(tooltips[i]);
-            
-            i++;
-        }
-        
-        buttons[2].setClickingTogglesState(true);
-        buttons[3].setClickingTogglesState(true);
-        buttons[4].setClickingTogglesState(true);
-        
-        buttons[2].setToggleState(true, sendNotification);
-        buttons[3].setToggleState(true, sendNotification);
-        buttons[4].setToggleState(true, sendNotification);
     }
     
-    ~Console() override
+    ~ConsoleComponent()
     {
-        for(auto& button : buttons) button.setLookAndFeel(nullptr);
     }
     
     void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) override {
+        setSize(viewport.getWidth(), getHeight());
         update();
     }
     
 public:
+    
+    
     void update()
     {
         update(messages, true);
@@ -81,7 +47,7 @@ public:
             viewport.setViewPosition (viewport.getViewPositionX(), getHeight());
         }
         
-       
+        
         repaint();
     }
     
@@ -99,8 +65,8 @@ public:
         }
         
         /*
-        const bool show = (listBox.getNumRowsOnScreen() < size) ||
-        (size > 0 && listBox.getRowContainingPosition (0, 0) >= size);
+         const bool show = (listBox.getNumRowsOnScreen() < size) ||
+         (size > 0 && listBox.getRowContainingPosition (0, 0) >= size);
          */
         //listBox.getViewport()->setScrollBarsShown (show, show, true, true);
         repaint();
@@ -230,28 +196,12 @@ public:
     
     void resized() override
     {
-        FlexBox fb;
-        fb.flexWrap = FlexBox::Wrap::noWrap;
-        fb.justifyContent = FlexBox::JustifyContent::flexStart;
-        fb.alignContent = FlexBox::AlignContent::flexStart;
-        fb.flexDirection = FlexBox::Direction::row;
-        
-        for (auto& b : buttons) {
-            auto item = FlexItem(b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add (item);
-        }
-        
-        fb.performLayout (viewport.getLocalBounds().removeFromBottom(33).toFloat());
-        
+
         update(messages, false);
         
         
     }
     
-    Viewport viewport;
-
 private:
     static Colour colourWithType (int type)
     {
@@ -299,20 +249,109 @@ private:
         }
     }
     
-
-    
-
     std::deque<std::pair<String, int>> messages;
     std::deque<std::pair<String, int>> history;
     
-    std::array<TextButton, 5> buttons = {TextButton(Icons::Clear), TextButton(Icons::Restore),  TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll)};
-    
-    
     std::vector<bool> is_selected;
-
+    
     int totalHeight = 0;
     
 private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Console)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (ConsoleComponent)
 };
 
+
+struct Console : public Component
+{
+    
+    Console() {
+
+        // Viewport takes ownership
+        console = new ConsoleComponent(buttons, viewport);
+        
+        addComponentListener(console);
+        
+        viewport.setViewedComponent(console);
+        viewport.setScrollBarsShown(true, false);
+        console->setVisible(true);
+        
+        
+        addAndMakeVisible(viewport);
+        
+        std::vector<String> tooltips = {
+            "Clear logs", "Restore logs", "Show errors", "Show messages", "Enable autoscroll"
+        };
+        
+        
+        std::vector<std::function<void()>> callbacks = {
+            [this](){ console->clear(); },
+            [this](){ console->restore(); },
+            [this](){ if (buttons[2].getState()) console->restore(); else console->parse(); },
+            [this](){ if (buttons[3].getState()) console->restore(); else console->parse(); },
+            [this](){ if (buttons[4].getState()) { console->update(); } },
+            
+        };
+        
+        int i = 0;
+        for(auto& button : buttons) {
+            button.setConnectedEdges(12);
+            addAndMakeVisible(button);
+            
+            button.onClick = callbacks[i];
+            button.setTooltip(tooltips[i]);
+            
+            i++;
+        }
+        
+        buttons[2].setClickingTogglesState(true);
+        buttons[3].setClickingTogglesState(true);
+        buttons[4].setClickingTogglesState(true);
+        
+        buttons[2].setToggleState(true, sendNotification);
+        buttons[3].setToggleState(true, sendNotification);
+        buttons[4].setToggleState(true, sendNotification);
+        
+
+        resized();
+    }
+    
+    ~Console() {
+        for(auto& button : buttons) button.setLookAndFeel(nullptr);
+    }
+    
+    void logMessage (const String& m)
+    {
+        console->logMessage(m);
+    }
+    
+    void logError (const String& m)
+    {
+        console->logError(m);
+    }
+    
+    void resized() {
+        
+        FlexBox fb;
+        fb.flexWrap = FlexBox::Wrap::noWrap;
+        fb.justifyContent = FlexBox::JustifyContent::flexStart;
+        fb.alignContent = FlexBox::AlignContent::flexStart;
+        fb.flexDirection = FlexBox::Direction::row;
+        
+        for (auto& b : buttons) {
+            auto item = FlexItem(b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
+            item.flexGrow = 1.0f;
+            item.flexShrink = 1.0f;
+            fb.items.add (item);
+        }
+        
+        auto bounds = getLocalBounds().toFloat();
+        
+        fb.performLayout (bounds.removeFromBottom(27));
+        viewport.setBounds(bounds.toNearestInt());
+    }
+    
+    ConsoleComponent* console;
+    Viewport viewport;
+    
+    std::array<TextButton, 5> buttons = {TextButton(Icons::Clear), TextButton(Icons::Restore),  TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll)};
+};
