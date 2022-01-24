@@ -17,7 +17,7 @@
  */
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread {
+class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer {
 
 public:
     //==============================================================================
@@ -46,6 +46,9 @@ public:
     bool producesMidi() const override;
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
+    
+    int callbackType = 0;
+    void timerCallback() override;
 
     // pure-data run loop when DAW isn't calling process block
     
@@ -138,7 +141,7 @@ public:
 
     Console* console;
 
-    int lastUIWidth = 900, lastUIHeight = 600;
+    int lastUIWidth = 1000, lastUIHeight = 650;
 
     AudioBuffer<float> processingBuffer;
 

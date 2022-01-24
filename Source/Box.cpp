@@ -17,8 +17,7 @@
 Box::Box(Canvas* parent, String name, Point<int> position)
     :
       locked(parent->pd->locked)
-    , textLabel(this, parent->dragger)
-    , dragger(parent->dragger)
+    , textLabel(this, *parent)
 {
     cnv = parent;
     
@@ -43,8 +42,7 @@ Box::Box(Canvas* parent, String name, Point<int> position)
 Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
     : pdObject(object)
     , locked(parent->pd->locked)
-    , textLabel(this, parent->dragger)
-    , dragger(parent->dragger)
+    , textLabel(this, *parent)
 {
     cnv = parent;
     initialise();
@@ -249,7 +247,7 @@ void Box::paint(Graphics& g)
     bool isOver = getLocalBounds().contains(getMouseXYRelative());
     bool isDown = textLabel.isDown;
 
-    bool selected = dragger.isSelected(this);
+    bool selected = cnv->isSelected(this);
 
     bool hideLabel =  graphics && !graphics->fakeGUI() && (locked || !textLabel.isVisible());
     if(hideLabel) rect.removeFromTop(21);

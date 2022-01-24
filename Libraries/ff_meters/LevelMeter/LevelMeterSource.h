@@ -215,8 +215,10 @@ public:
                                                      holdMSecs);
                 
                 auto newValue = levels.at(size_t (channel)).getAvgRMS();
-                newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.5f;
-                lastShownValue = newValue;
+                newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.05f;
+                if(newDataFlag) {
+                    lastShownValue = newValue;
+                }
             }
         }
 
@@ -230,8 +232,12 @@ public:
         levels [size_t (channel)].setLevels (lastMeasurement, rms, peak, holdMSecs);
         
         auto newValue = levels.at(size_t (channel)).getAvgRMS();
-        newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.5f;
-        lastShownValue = newValue;
+        newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.05f;
+        
+        if(newDataFlag) {
+            lastShownValue = newValue;
+        }
+        
     }
 
     /**
@@ -251,7 +257,7 @@ public:
             levels [channel].reduction = 1.0f;
             
             auto newValue = levels.at(size_t (channel)).getAvgRMS();
-            newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.5f;
+            newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.05f;
             lastShownValue = newValue;
         }
     }

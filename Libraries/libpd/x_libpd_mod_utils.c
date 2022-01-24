@@ -630,6 +630,12 @@ typedef struct _undo_connect
 
 void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
+    
+    if(!canvas_isconnected(cnv, src, nout, sink, nin)) {
+        error("consistency check failed: non-existent connection");
+        return;
+    }
+    
     obj_disconnect(src, nout, sink, nin);
     
     int dest_i = canvas_getindex(cnv, &(sink->te_g));

@@ -22,6 +22,8 @@ Edge::Edge(Box* parent, bool input)
             return;
         createConnection();
     };
+    
+    setBufferedToImage(true);
 }
 
 Edge::~Edge()
@@ -105,7 +107,6 @@ void Edge::mouseDrag(const MouseEvent& e)
 
 void Edge::mouseMove(const MouseEvent& e)
 {
-    findParentComponentOfClass<Canvas>()->repaint();
 }
 
 void Edge::createConnection()
