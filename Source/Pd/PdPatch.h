@@ -88,8 +88,6 @@ public:
     
     inline static CriticalSection currentCanvasMutex;
     
-
-    
     t_canvas* getPointer() const {
         return static_cast<t_canvas*>(m_ptr);
     }
@@ -100,10 +98,7 @@ public:
     String getCanvasContent() {
         char* buf;
         int bufsize;
-        
         libpd_getcontent(static_cast<t_canvas*>(m_ptr), &buf, &bufsize);
-        
-        
         return String(buf, bufsize);
     }
 
@@ -114,7 +109,6 @@ public:
     static inline float zoom = 1.5f;
     
 private:
-
     
     void*     m_ptr      = nullptr;
     Instance* m_instance = nullptr;

@@ -665,10 +665,11 @@ void PlugDataPluginEditor::openProject()
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
             openFile(openedFile.getFullPathName());
+            getCurrentCanvas()->knownLocation = true;
         }
     };
 
-    if (getMainCanvas()->changed()) {
+    if (getCurrentCanvas()->changed()) {
 
         SaveDialog::show(this, [this, openFunc](int result) {
             if (result == 2) {
@@ -692,7 +693,7 @@ void PlugDataPluginEditor::openFile(String path) {
 
 void PlugDataPluginEditor::saveProjectAs(std::function<void()> nestedCallback)
 {
-    auto to_save = pd.getCanvasContent();
+    auto to_save = getCurrentCanvas()->patch.getCanvasContent();
 
     saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, nestedCallback](const FileChooser& f) mutable {
         File result = saveChooser.getResult();
@@ -705,18 +706,23 @@ void PlugDataPluginEditor::saveProjectAs(std::function<void()> nestedCallback)
         nestedCallback();
     });
 
+    getCurrentCanvas()->knownLocation = true;
     getCurrentCanvas()->hasChanged = false;
 }
 
 void PlugDataPluginEditor::saveProject()
 {
-    // TODO: check if temp patch
-    auto to_save = pd.getCanvasContent();
+    if(getCurrentCanvas()->knownLocation) {
+        auto to_save = getCurrentCanvas()->patch.getCanvasContent();
 
-    FileOutputStream ostream(File(String(pd.getPatchPath())));
-    ostream.writeString(to_save);
-    
-    getCurrentCanvas()->hasChanged = false;
+        FileOutputStream ostream(File(String(pd.getPatchPath())));
+        ostream.writeString(to_save);
+        
+        getCurrentCanvas()->hasChanged = false;
+    }
+    else {
+        saveProjectAs();
+    }
 }
 
 

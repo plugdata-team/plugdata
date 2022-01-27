@@ -422,8 +422,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
     } else if (source == this) {
         Edge::connectingEdge = nullptr;
         lasso.dragLasso(e);
-        
-    
 
         for (auto& con : connections) {
             if (!con->start || !con->end) {
