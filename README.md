@@ -3,9 +3,9 @@ Plugin wrapper around PureData to allow patching in a wide selection of DAWs.
 
 <img width="1048" alt="Screenshot 2022-01-27 at 11 51 33" src="https://user-images.githubusercontent.com/44585538/151344732-983df431-d355-474f-9652-0aeab5e3baae.png">
 
-<img width="1048" alt="Screenshot 2022-01-27 at 11 42 49" src="https://user-images.githubusercontent.com/44585538/151343690-8e397bf2-adbe-4c7a-aafd-8bf170ebd9c5.png">
+<img width="1048" alt="151343690-8e397bf2-adbe-4c7a-aafd-8bf170ebd9c5" src="https://user-images.githubusercontent.com/44585538/151345013-6d67abb6-ddb8-4b46-896e-642b40c58012.png">
 
-<img width="1048" alt="Screenshot 2022-01-27 at 11 37 03" src="https://user-images.githubusercontent.com/44585538/151343023-b6f88c21-cb24-47c4-b94d-86c1102aa040.png">
+<img width="1048" alt="151343023-b6f88c21-cb24-47c4-b94d-86c1102aa040" src="https://user-images.githubusercontent.com/44585538/151345026-7b8aec32-ce7e-4a70-a707-a0d025984f17.png">
 
 
 
