@@ -741,7 +741,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     // Store pure-data state
     MemoryOutputStream ostream(destData, false);
     
-    ostream.writeString(getCanvasContent());
+    ostream.writeString(getPatch().getCanvasContent());
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(xmlBlock.getSize());
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());

@@ -601,19 +601,4 @@ void Instance::stringToAtom(String name, int& argc, t_atom& target)
 
 
 
-String Instance::getCanvasContent() {
-    
-    if(!m_patch) return String();
-    
-    char* buf;
-    int bufsize;
-    
-    sys_lock();
-    libpd_getcontent(static_cast<t_canvas*>(m_patch), &buf, &bufsize);
-    sys_unlock();
-    
-    return String(buf, bufsize);
-    
-}
-
 }
