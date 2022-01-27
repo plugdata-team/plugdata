@@ -130,8 +130,9 @@ std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y) {
         pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr), x, y);
     });
     
-    m_instance->waitForStateUpdate();
-    
+    while(!pdobject) {
+        m_instance->waitForStateUpdate();
+    }
     
     assert(pdobject);
     
@@ -146,7 +147,9 @@ std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
         pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size, x, y);
     });
     
-    m_instance->waitForStateUpdate();
+    while(!pdobject) {
+        m_instance->waitForStateUpdate();
+    }
     
     assert(pdobject);
     
@@ -213,7 +216,9 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
         pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
     });
     
-    m_instance->waitForStateUpdate();
+    while(!pdobject) {
+        m_instance->waitForStateUpdate();
+    }
     
     assert(pdobject);
     

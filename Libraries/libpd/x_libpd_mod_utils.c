@@ -469,8 +469,8 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
     
     // Set position
     SETFLOAT(argv + 1, size);
-    SETFLOAT(argv + 2, x);
-    SETFLOAT(argv + 3, y);
+    SETFLOAT(argv + 2, 0);
+    SETFLOAT(argv + 3, 0);
     
     
     pd_typedmess((t_pd*)cnv, gensym("arraydialog"), argc, argv);

@@ -10,16 +10,16 @@
 #include "Pd/PdObject.h"
 #include <JuceHeader.h>
 #include <m_pd.h>
-//==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
+
+using PathPlan = std::vector<Point<int>>;
+
 class Canvas;
 class Connection : public Component, public ComponentListener {
 public:
+    
     SafePointer<Edge> start, end;
     Path path;
+    Path roundedPath;
 
     Canvas* cnv;
 
@@ -44,6 +44,15 @@ public:
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 
+    void applyBestPath();
+    
+    // Pathfinding
+    int findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altPaths, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
+
+    Path findPath(Point<int> start, Point<int> end);
+        
+    bool straightLineIntersectsObject(Line<int> first);
 private:
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
