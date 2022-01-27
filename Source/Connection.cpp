@@ -75,6 +75,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
     componentMovedOrResized(*end, true, true);
     
     resized();
+    repaint();
 }
 
 Connection::~Connection()
