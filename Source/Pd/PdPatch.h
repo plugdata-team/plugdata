@@ -96,10 +96,16 @@ public:
     std::vector<Object> getObjects(bool only_gui = false) noexcept;
     
     String getCanvasContent() {
+        if(!m_ptr) return String();
         char* buf;
         int bufsize;
         libpd_getcontent(static_cast<t_canvas*>(m_ptr), &buf, &bufsize);
         return String(buf, bufsize);
+    }
+    
+    
+    String getPatchPath() {
+        return String(canvas_getdir(getPointer())->s_name);
     }
 
     t_object* checkObject(Object* obj) const noexcept;

@@ -116,11 +116,15 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         for(auto& cnv : canvases) {
             cnv->pd->settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
             
-            for (auto* connection : cnv->connections)
+            for (auto* connection : cnv->connections) {
                 connection->resized();
+                connection->repaint();
+            }
+            
         }
 
     };
+    connectionStyleButton.setToggleState((bool)pd.settingsTree.getProperty(Identifiers::connectionStyle), sendNotification);
     addAndMakeVisible(connectionStyleButton);
     
     connectionPathfind.setTooltip("Find best connection path");
@@ -715,7 +719,8 @@ void PlugDataPluginEditor::saveProject()
     if(getCurrentCanvas()->knownLocation) {
         auto to_save = getCurrentCanvas()->patch.getCanvasContent();
 
-        FileOutputStream ostream(File(String(pd.getPatchPath())));
+        
+        FileOutputStream ostream(File(pd.getPatch().getPatchPath()));
         ostream.writeString(to_save);
         
         getCurrentCanvas()->hasChanged = false;

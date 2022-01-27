@@ -672,7 +672,6 @@ void PlugDataAudioProcessor::processInternal()
     //////////////////////////////////////////////////////////////////////////////////////////
     
     if (enabled->load()) {
-        // Copy circuitlab's output to Pure data to Pd input channels
         std::copy_n(m_audio_buffer_out.data() + (2 * 64), (numout - 2) * 64, m_audio_buffer_in.data() + (2 * 64));
         
         Instance::canvasLock.lock();
@@ -745,6 +744,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(xmlBlock.getSize());
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
+    ostream.writeString(getPatch().getPatchPath());
 }
 
 void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
@@ -764,6 +764,15 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
     if (xmlState.get() != nullptr)
         if (xmlState->hasTagName(parameters.state.getType()))
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+    
+    if(!istream.isExhausted()) {
+        auto location = istream.readString();
+        
+        if(File(location).exists()) {
+            // Add patch path to search path to make sure it finds the externals!
+            libpd_add_to_search_path(location.toRawUTF8());
+        }
+    }
     
     loadPatch(state);
     setLatencySamples(latency);
