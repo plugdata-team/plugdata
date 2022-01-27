@@ -11,11 +11,6 @@
 #include "Pd/PdPatch.h"
 #include "PluginProcessor.h"
 #include <JuceHeader.h>
-//==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
 
 extern juce::JUCEApplicationBase* juce_CreateApplication();
 

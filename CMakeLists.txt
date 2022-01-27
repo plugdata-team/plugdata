@@ -44,7 +44,8 @@ endif()
 
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
-    ${SOURCES_DIRECTORY}/*.cpp)
+    ${SOURCES_DIRECTORY}/*.cpp
+)
 source_group("Source" FILES ${PlugDataSources})
 
 file(GLOB PlugDataStandaloneSources
@@ -143,7 +144,7 @@ target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSE
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
 set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
-target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ffMeterSources} ${ELSESources})
+target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
 endif()
 
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})

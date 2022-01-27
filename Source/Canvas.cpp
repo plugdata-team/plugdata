@@ -136,7 +136,7 @@ void Canvas::synchronise(bool updatePosition)
             guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
             auto* newBox = boxes.add(new Box(pdObject, this, name, { (int)x, (int)y }));
-            //newBox->toFront(false);
+            newBox->toBack();
 
             // Don't show non-patchable (internal) objects
             if (!patch.checkObject(&object))
@@ -155,7 +155,7 @@ void Canvas::synchronise(bool updatePosition)
                 box->setTopLeftPosition(x, y);
             }
 
-            //box->toFront(false);
+            box->toBack();
 
             // Reload colour information for
             if (box->graphics) {
@@ -431,11 +431,10 @@ void Canvas::mouseDrag(const MouseEvent& e)
                 continue;
             }
 
-            Line<int> path(con->start->getCanvasBounds().getCentre(), con->end->getCanvasBounds().getCentre());
-
+            
             bool intersect = false;
             for (float i = 0; i < 1; i += 0.005) {
-                if (lasso.getBounds().contains(path.getPointAlongLineProportionally(i))) {
+                if (lasso.getBounds().contains(con->path.getPointAlongPath(i * con->path.getLength()).toInt() + con->getPosition())) {
                     intersect = true;
                 }
             }

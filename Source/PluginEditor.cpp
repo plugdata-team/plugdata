@@ -121,9 +121,20 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         }
 
     };
-    connectionStyleButton.setToggleState((bool)pd.settingsTree.getProperty(Identifiers::connectionStyle), dontSendNotification);
-
     addAndMakeVisible(connectionStyleButton);
+    
+    connectionPathfind.setTooltip("Find best connection path");
+    connectionPathfind.setConnectedEdges(12);
+    connectionPathfind.setLookAndFeel(&statusbarLook);
+    connectionPathfind.onClick = [this]() {
+        for(auto& c : getCurrentCanvas()->connections) {
+            if(c->isSelected) {
+                c->applyBestPath();
+            }
+        }
+    };
+    //addAndMakeVisible(connectionPathfind);
+
 
     for (auto& button : toolbarButtons) {
         button.setLookAndFeel(&toolbarLook);
@@ -282,6 +293,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     hideButton.setLookAndFeel(nullptr);
     lockButton.setLookAndFeel(nullptr);
     connectionStyleButton.setLookAndFeel(nullptr);
+    connectionPathfind.setLookAndFeel(nullptr);
     levelmeter.setLookAndFeel(nullptr);
 
     for (auto& button : toolbarButtons) {
@@ -465,7 +477,7 @@ void PlugDataPluginEditor::resized()
     for (int b = 0; b < 9; b++) {
         auto& button = toolbarButtons[b];
         
-        auto item = FlexItem(button).withMinWidth(70.0f).withMinHeight(8.0f).withMaxWidth(160.0f);
+        auto item = FlexItem(button).withMinWidth(55.0f).withMinHeight(8.0f).withMaxWidth(160.0f);
         item.flexGrow = 1.0f;
         item.flexShrink = 1.0f;
         
@@ -497,6 +509,7 @@ void PlugDataPluginEditor::resized()
 
     lockButton.setBounds(8, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     connectionStyleButton.setBounds(38, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
+    connectionPathfind.setBounds(65, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     bypassButton.setBounds(getWidth() - sWidth - 40, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     
     levelmeter.setBounds(getWidth() - sWidth - 150, getHeight() - statusbarHeight, 100, statusbarHeight);
