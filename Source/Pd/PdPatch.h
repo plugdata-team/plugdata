@@ -105,6 +105,8 @@ public:
     
     
     String getPatchPath() {
+        if(!m_ptr) return String();
+        
         return String(canvas_getdir(getPointer())->s_name);
     }
 
