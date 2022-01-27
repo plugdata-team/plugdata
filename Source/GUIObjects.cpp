@@ -1126,7 +1126,13 @@ MouseComponent::~MouseComponent() {
 
 void MouseComponent::updateValue()
 {
+};
 
+void MouseComponent::mouseDown(const MouseEvent& e)
+{
+}
+void MouseComponent::mouseMove(const MouseEvent& e)
+{
     auto pos = Desktop::getInstance().getMousePosition();
 
     if (Desktop::getInstance().getMouseSource(0)->isDragging()) {
@@ -1147,13 +1153,6 @@ void MouseComponent::updateValue()
     SETFLOAT(args + 1, pos.y);
 
     pd_typedmess((t_pd*)gui.getPointer(), gensym("_getscreen"), 2, args);
-};
-
-void MouseComponent::mouseDown(const MouseEvent& e)
-{
-}
-void MouseComponent::mouseMove(const MouseEvent& e)
-{
 }
 
 void MouseComponent::mouseUp(const MouseEvent& e)

@@ -16,11 +16,6 @@
 
 #include <JuceHeader.h>
 
-//==============================================================================
-/*
-    This component lives inside our window, and this is where you should put all
-    your controls and content.
-*/
 
 struct TabComponent : public TabbedComponent {
 
@@ -104,6 +99,7 @@ public:
     TextButton bypassButton = TextButton(Icons::Power);
     TextButton lockButton = TextButton(Icons::Lock);
     TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
+    TextButton connectionPathfind = TextButton(Icons::Wand);
 
 private:
     FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");

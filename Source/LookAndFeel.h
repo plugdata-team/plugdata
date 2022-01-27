@@ -39,11 +39,15 @@ struct Icons
     inline static const CharPointer_UTF8 Power = CharPointer_UTF8("\xef\x80\x91");
     inline static const CharPointer_UTF8 Audio = CharPointer_UTF8("\xef\x80\xa8");
     inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
+    inline static const CharPointer_UTF8 Wand = CharPointer_UTF8("\xef\x83\x90");
     
     inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
     inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
     inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
     inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
+    
+    
+    
 };
 
 
