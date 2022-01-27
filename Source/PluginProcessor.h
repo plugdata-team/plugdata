@@ -106,12 +106,6 @@ public:
 
     void process(AudioSampleBuffer&, MidiBuffer&);
 
-    // PD ENVIRONMENT VARIABLES
-    static inline std::string getPatchPath() { return "/Users/timschoen/Documents/CircuitLab/.work/"; }
-
-    //! @brief Gets the name of the Pd patch.
-    static std::string getPatchName() { return "patch"; }
-
     void setBypass(bool bypass)
     {
         *enabled = !bypass;

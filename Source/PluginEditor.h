@@ -102,8 +102,8 @@ public:
     TextButton connectionPathfind = TextButton(Icons::Wand);
 
 private:
-    FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
-    FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("Cerite").getChildFile("Saves"), "*.pd");
+    FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
+    FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
 
     static constexpr int toolbarHeight = 40;
     static constexpr int statusbarHeight = 24;

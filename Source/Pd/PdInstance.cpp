@@ -557,6 +557,8 @@ void Instance::openPatch(std::string const& path, std::string const& name)
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     canvasLock.lock();
     m_patch = libpd_create_canvas(name.c_str(), path.c_str());
+    
+
     canvas_setcurrent(static_cast<t_canvas*>(m_patch));
     canvasLock.unlock();
     setThis();
