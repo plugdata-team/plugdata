@@ -129,8 +129,67 @@ void Connection::paint(Graphics& g)
     g.strokePath(roundedPath, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 }
 
+void Connection::mouseMove(const MouseEvent& e)
+{
+    bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
+    if(curvedConnection) {
+        for(int n = 2; n < lastPlan.size() - 1; n++) {
+            auto line = Line<int>(lastPlan[n - 1], lastPlan[n]);
+            Point<int> nearest;
+            if(line.getDistanceFromPoint(e.getPosition(), nearest) < 3) {
+                
+                setMouseCursor(line.isVertical() ? MouseCursor::LeftRightResizeCursor : MouseCursor::UpDownResizeCursor);
+            }
+        }
+    }
+}
+
+
+void Connection::mouseDrag(const MouseEvent& e)
+{
+    /* WIP: disabled for now
+    auto& first = start->isInput ? start : end;
+    auto& last = start->isInput ? end : start;
+    
+    Point<int> pstart = first->getCanvasBounds().getCentre() - getPosition();
+    Point<int> pend = last->getCanvasBounds().getCentre() - getPosition();
+    
+    bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
+    if(curvedConnection) {
+        for(int n = 2; n < lastPlan.size() - 1; n++) {
+            auto line = Line<int>(lastPlan[n - 1], lastPlan[n]);
+            Point<int> nearest;
+            
+            if(line.getDistanceFromPoint(e.getPosition(), nearest) < 5) {
+                auto delta = e.getPosition() - mouseDownWithinTarget;
+                
+                if(line.isVertical()) {
+                    lastPlan[n - 1].x += delta.x;
+                    lastPlan[n].x += delta.x;
+                }
+                else {
+                    lastPlan[n - 1].y += delta.y;
+                    lastPlan[n].y += delta.y;
+                }
+                
+                applyPlan(lastPlan, pstart, pend);
+                roundedPath = path.createPathWithRoundedCorners(8.0f);
+                repaint();
+            }
+        }
+    } */
+    
+}
+
+void Connection::mouseUp(const MouseEvent& e)
+{
+    isDragging = false;
+}
+
 void Connection::mouseDown(const MouseEvent& e)
 {
+    mouseDownWithinTarget = e.getMouseDownPosition();
+    
     isSelected = !isSelected;
     repaint();
 }
@@ -161,40 +220,6 @@ void Connection::resized()
     
     auto point = path.getPointAlongPath(0.0f);
 
-    /*
-    if(curvedConnection) {
-        bool reusePath = false;
-        
-        // Check if scaling the current path is fine
-        auto scale = path.getTransformToScaleToFit(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), false);
-        
-        
-            
-            // Get start and end point
-            
-            if(std::isfinite(scale.mat00)
-               && std::isfinite(scale.mat01)
-               && std::isfinite(scale.mat02)
-               && std::isfinite(scale.mat10)
-               && std::isfinite(scale.mat11)) {
-                
-                reusePath = true;
-                
-                path.applyTransform(scale);
-                roundedPath = path.createPathWithRoundedCorners(8.0f);
-                
-                PathFlatteningIterator i (path, AffineTransform(), 1.0f);
-                while (i.next() && reusePath) {
-                    auto line = Line<int>(i.x1, i.y1, i.x2, i.y2);
-                    if(straightLineIntersectsObject(line)) {
-                        reusePath = false;
-                        break;
-                    }
-                }
-            }
-        }
-    } */
-    
     if(!curvedConnection) {
         path.clear();
         path.startNewSubPath(pstart.toFloat());
@@ -256,49 +281,90 @@ void Connection::applyBestPath() {
     
     path.clear();
     
-    path = findPath(pstart, pend);
+    findPath(pstart, pend);
     roundedPath = path.createPathWithRoundedCorners(8.0f);
     repaint();
 }
 
-
-bool Connection::straightLineIntersectsObject(Line<int> toCheck) {
-    bool result = false;
-    for(const auto& box : cnv->boxes) {
-        
-        auto bounds = box->getBounds().reduced(3) - getPosition();
-        
-        if(box->graphics) bounds = box->graphics->getBounds() + box->getPosition() - getPosition();
-        
-        if(box == start->box || box == end->box || !bounds.intersects(getLocalBounds())) continue;
-        
-        auto intersectV = [](Line<int>& first, Line<int> second) {
-            return first.getStartX() > second.getStartX() && first.getStartX() < second.getEndX();
-        };
-        
-        auto intersectH = [](Line<int>& first, Line<int> second) {
+void Connection::applyPlan(PathPlan plan, Point<int> start, Point<int> end) {
+    
+    // Function for snapping coordinates to a grid
+    auto snap = [](int& coord1, const int& coord2, int diff){
+        if(abs(coord1 - coord2) <= (diff * 0.75f)) coord1 = coord2;
+    };
+    
+    // Create path with start point
+    Path connectionPath;
+    connectionPath.startNewSubPath(start.toFloat());
+    
+    // Add points inbetween if we've found a path
+    if(!plan.empty()) {
+        for(int n = 1; n < plan.size(); n++) {
+            int incrX = std::max(abs(plan[n].x - plan[n - 1].x), 1);
+            int incrY = std::max(abs(plan[n].y - plan[n - 1].y), 1);
             
-            return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY();
-        };
-        
-        if(toCheck.isVertical() &&
-           (intersectV(toCheck, Line<int>(bounds.getTopLeft(), bounds.getTopRight())) ||
-            intersectV(toCheck, Line<int>(bounds.getBottomRight(), bounds.getBottomLeft())))) {
-            result = true;
-            break;
-        }
-        else if(toCheck.isHorizontal() &&
-                (intersectH(toCheck, Line<int>(bounds.getTopRight(), bounds.getBottomRight())) ||
-                 intersectH(toCheck, Line<int>(bounds.getTopLeft(), bounds.getBottomLeft()))))
-        {
-            result = true;
-            break;
+            if(connectionPath.contains(plan[n].toFloat())) continue;
+            snap(plan[n].x, start.x, incrX);
+            snap(plan[n].x, end.x, incrX);
+            snap(plan[n].y, start.y, incrY);
+            snap(plan[n].y, end.y, incrY);
+            
+            connectionPath.lineTo(plan[n].toFloat());
         }
     }
     
-    return result;
+    // End point
+    connectionPath.lineTo(end.toFloat());
+    
+    path = connectionPath;
+    lastPlan = plan;
 }
 
+void Connection::findPath(Point<int> start, Point<int> end){
+    std::vector<PathPlan> alternativePaths;
+    PathPlan pathStack;
+    PathPlan bestPath;
+    
+    pathStack.reserve(8);
+    
+    int numFound = 0;
+    int resolution = 3;
+    
+    int incrementX, incrementY;
+    
+    // Look for paths at an increasing resolution
+    while(!numFound && resolution < 7) {
+        // Find paths on an resolution*resolution lattice grid
+        incrementX = std::max(abs(start.x - end.x) / resolution, resolution);
+        incrementY = std::max(abs(start.y - end.y) / resolution, resolution);
+        
+        numFound = findLatticePaths(bestPath, alternativePaths, pathStack, start, end, {incrementX, incrementY});
+        resolution++;
+        pathStack.clear();
+    }
+
+    // Check if we've found an optimal path, otherwise use an alternative
+    if(bestPath.empty() && !alternativePaths.empty()) {
+        bestPath = alternativePaths[0];
+    }
+    
+    PathPlan simplifiedPath = {bestPath[0]};
+    
+    bool lastDirection = Line<int>(bestPath[0], bestPath[1]).isVertical();
+    for(int n = 2; n < bestPath.size(); n++) {
+        auto line = Line<int>(bestPath[n - 1], bestPath[n]);
+        
+        if(line.isVertical() != lastDirection) {
+            simplifiedPath.push_back(bestPath[n - 2]);
+            simplifiedPath.push_back(bestPath[n - 1]);
+            lastDirection = line.isVertical();
+        }
+    }
+    
+    simplifiedPath.push_back(bestPath.back());
+    
+    applyPlan(simplifiedPath, start, end);
+}
 
 int Connection::findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altPaths, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment){
     
@@ -311,35 +377,19 @@ int Connection::findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altP
     // Add point to path
     pathStack.push_back(start);
     
-    bool endVertically = pathStack[0].y > end.y;
-    
     // Check if it intersects any box
     if(pathStack.size() > 1 && straightLineIntersectsObject(Line<int>(pathStack.back(), *(pathStack.end() - 2)))) {
         return 0;
     }
     
+    bool endVertically = pathStack[0].y > end.y;
+    
+
+    
     // Check if we've reached the destination
     if(abs(start.x - end.x) < (increment.x * 0.5) && abs(start.y - end.y) < (increment.y * 0.5)) {
-        
-        bool niceLine = true;
-        for(int n = 1; n < pathStack.size(); n++) {
-            auto line = Line<int>(pathStack[n - 1], pathStack[n]);
-  
-            if((n == 1 || n == pathStack.size() - 1) && ((endVertically && !line.isVertical()) || (!endVertically && !line.isHorizontal()))) {
-                // not an optimal path, but save it as a backup
-                niceLine = false;
-            }
-        }
-        
-        if(niceLine) {
-            // optimal path found
-            bestPath = pathStack;
-            return 1;
-        }
-        else {
-            altPaths.push_back(pathStack);
-            return 0;
-        }
+        bestPath = pathStack;
+        return 1;
     }
     
     // Count the number of found paths
@@ -364,7 +414,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altP
     // If we're halfway on the axis, change preferred direction by inverting search order
     // This will make it do a staircase effect
     if(endVertically) {
-        if(abs(start.y - end.y) > abs(pathStack[0].y - end.y)) {
+        if(abs(start.y - end.y) >= abs(pathStack[0].y - end.y) * 0.5) {
             followLine(start, end, false);
             followLine(start, end, true);
         }
@@ -374,7 +424,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altP
         }
     }
     else {
-        if(abs(start.x - end.x) > abs(pathStack[0].x - end.x)) {
+        if(abs(start.x - end.x) >= abs(pathStack[0].x - end.x) * 0.5) {
             followLine(start, end, true);
             followLine(start, end, false);
         }
@@ -384,71 +434,52 @@ int Connection::findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altP
         }
     }
 
-    
-    
     return count;
 }
 
 
-Path Connection::findPath(Point<int> start, Point<int> end){
-    std::vector<PathPlan> alternativePaths;
-    PathPlan pathStack;
-    PathPlan bestPath;
-    
-    pathStack.reserve(8);
-    
-    int numFound = 0;
-    int resolution = 4;
-    
-    int incrementX, incrementY;
-    
-    // Look for paths at an increasing resolution
-    while(!numFound && resolution < 7) {
-        // Find paths on an resolution*resolution lattice grid
-        incrementX = std::max(abs(start.x - end.x) / resolution, resolution);
-        incrementY = std::max(abs(start.y - end.y) / resolution, resolution);
+bool Connection::straightLineIntersectsObject(Line<int> toCheck) {
+    bool result = false;
+    for(const auto& box : cnv->boxes) {
         
-        numFound = findLatticePaths(bestPath, alternativePaths, pathStack, start, end, {incrementX, incrementY});
-        resolution++;
-        pathStack.clear();
-    }
-    
-    std::cout << resolution << std::endl;
-    
-
-    
-    // Check if we've found an optimal path, otherwise use an alternative
-    if(bestPath.empty() && !alternativePaths.empty()) {
-        bestPath = alternativePaths[0];
-    }
-    
-    // Function for snapping coordinates to a grid
-    auto snap = [&resolution](int& coord1, const int& coord2, int diff){
-        if(abs(coord1 - coord2) <= (diff * 0.75f)) coord1 = coord2;
-    };
-    
-    // Create path with start point
-    Path connectionPath;
-    connectionPath.startNewSubPath(start.toFloat());
-    
-    // Add points inbetween if we've found a path
-    if(!bestPath.empty()) {
-        for(int n = 1; n < bestPath.size(); n++) {
-            if(connectionPath.contains(bestPath[n].toFloat())) continue;
-            snap(bestPath[n].x, start.x, incrementX);
-            snap(bestPath[n].x, end.x, incrementX);
-            snap(bestPath[n].y, start.y, incrementY);
-            snap(bestPath[n].y, end.y, incrementY);
+        auto bounds = box->getBounds().expanded(3) - getPosition();
+        
+        if(box->graphics)
+            bounds.removeFromTop(25);
+        
+        if(box == start->box || box == end->box) continue;
+        
+        auto intersectV = [](Line<int> first, Line<int> second) {
+            if(first.getStartY() > first.getEndY()) {
+                first = {first.getEnd(), first.getStart()};
+            }
             
-            connectionPath.lineTo(bestPath[n].toFloat());
+            return first.getStartX() > second.getStartX() && first.getStartX() < second.getEndX() && second.getStartY() > first.getStartY() && second.getStartY() < first.getEndY();
+        };
+        
+        auto intersectH = [](Line<int> first, Line<int> second) {
+            if(first.getStartX() > first.getEndX()) {
+                first = {first.getEnd(), first.getStart()};
+            }
+            
+            return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY() && second.getStartX() > first.getStartX() && second.getStartX() < first.getEndX();
+        };
+        
+        
+        if(toCheck.isVertical() &&
+           (intersectV(toCheck, Line<int>(bounds.getTopLeft(), bounds.getTopRight())) ||
+            intersectV(toCheck, Line<int>(bounds.getBottomRight(), bounds.getBottomLeft())))) {
+            result = true;
+            break;
+        }
+        else if(toCheck.isHorizontal() &&
+                (intersectH(toCheck, Line<int>(bounds.getTopRight(), bounds.getBottomRight())) ||
+                 intersectH(toCheck, Line<int>(bounds.getTopLeft(), bounds.getBottomLeft()))))
+        {
+            result = true;
+            break;
         }
     }
     
-    // Add points inbetween if we've found a path
-    
-    // End point
-    connectionPath.lineTo(end.toFloat());
-    
-    
-    return connectionPath;
+    return result;
 }

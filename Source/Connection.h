@@ -20,8 +20,12 @@ public:
     SafePointer<Edge> start, end;
     Path path;
     Path roundedPath;
+    PathPlan lastPlan;
 
     Canvas* cnv;
+    
+    Point<int> mouseDownWithinTarget;
+    bool isDragging = false;
 
     int inIdx;
     int outIdx;
@@ -41,6 +45,9 @@ public:
     bool hitTest(int x, int y) override;
 
     void mouseDown(const MouseEvent& e) override;
+    void mouseMove(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 
@@ -49,8 +56,9 @@ public:
     // Pathfinding
     int findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altPaths, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
 
-    Path findPath(Point<int> start, Point<int> end);
-        
+    void findPath(Point<int> start, Point<int> end);
+    void applyPlan(PathPlan plan, Point<int> start, Point<int> end);
+    
     bool straightLineIntersectsObject(Line<int> first);
 private:
     
