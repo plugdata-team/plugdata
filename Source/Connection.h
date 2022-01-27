@@ -24,15 +24,17 @@ public:
 
     Canvas* cnv;
     
-    Point<int> mouseDownWithinTarget;
-    bool isDragging = false;
+    int dragIdx = -1;
 
     int inIdx;
     int outIdx;
     std::unique_ptr<pd::Object>* inObj;
     std::unique_ptr<pd::Object>* outObj;
+    
+    int incrementX, incrementY;
 
     bool isSelected = false;
+    int mouseDownPosition = 0;
 
     //==============================================================================
     Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);
@@ -54,10 +56,10 @@ public:
     void applyBestPath();
     
     // Pathfinding
-    int findLatticePaths(PathPlan& bestPath, std::vector<PathPlan>& altPaths, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
+    int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
 
     void findPath(Point<int> start, Point<int> end);
-    void applyPlan(PathPlan plan, Point<int> start, Point<int> end);
+    void applyPlan(PathPlan plan, Point<int> start, Point<int> end, bool shouldSnap = true);
     
     bool straightLineIntersectsObject(Line<int> first);
 private:

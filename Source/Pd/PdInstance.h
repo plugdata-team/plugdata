@@ -106,9 +106,6 @@ public:
     
     virtual const CriticalSection* getCallbackLock() { return nullptr; };
     
-           
-    String getCanvasContent();
-    
     void* m_instance                         = nullptr;
     void* m_patch                            = nullptr;
     void* m_atoms                            = nullptr;

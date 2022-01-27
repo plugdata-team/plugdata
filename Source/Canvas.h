@@ -98,6 +98,9 @@ public:
 
     bool isGraph = false;
     bool isGraphChild = false;
+    bool knownLocation = false;
+    
+
 
     String title = "Untitled Patcher";
 
