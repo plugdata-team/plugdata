@@ -25,6 +25,8 @@ cmake --build .
 - The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
 
 ## Credits
+Supported by [Deskew Technologies](https://gigperformer.com)
+
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres
 - [Pure Data](https://puredata.info) by Miller Puckette and others
