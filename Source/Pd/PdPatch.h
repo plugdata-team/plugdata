@@ -88,7 +88,6 @@ public:
     bool createConnection(Object* src, int nout, Object* sink, int nin);
     void removeConnection(Object* src, int nout, Object*sink, int nin);
     
-    
     Connections getConnections();
     
     inline static CriticalSection currentCanvasMutex;
