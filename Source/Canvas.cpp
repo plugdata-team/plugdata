@@ -511,7 +511,7 @@ void Canvas::mouseUp(const MouseEvent& e)
             deselectAll();
         }
         
-        if(!isGraph) {
+        if(!isGraph && box->getParentComponent() == this) {
             setSelected(box, true);
         }
     }
