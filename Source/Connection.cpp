@@ -330,7 +330,7 @@ void Connection::resized()
 
 PathPlan Connection::scalePath(const PathPlan& plan) {
 
-    if(!start || !end) return plan;
+    if(!start || !end || !plan.size()) return plan;
     
     auto& s = start->isInput ? start : end;
     auto& e = start->isInput ? end : start;

@@ -62,7 +62,6 @@ public:
     void anotherInstanceStarted (const String &commandLine) override {
         auto file = File(commandLine);
         if(file.existsAsFile()) {
-            
             auto* pluginEditor = dynamic_cast<FileOpener*>(mainWindow->getContentComponent()->getChildComponent(0));
             
             if(pluginEditor) {

@@ -106,12 +106,14 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
     lockButton.setToggleState(pd.locked, dontSendNotification);
 
-    connectionStyleButton.setTooltip("Curve connections");
+    connectionStyleButton.setTooltip("Enable segmented connections");
     connectionStyleButton.setClickingTogglesState(true);
     connectionStyleButton.setConnectedEdges(12);
     connectionStyleButton.setLookAndFeel(&statusbarLook);
     connectionStyleButton.onClick = [this]() {
         pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
+        
+        connectionPathfind.setEnabled(connectionStyleButton.getToggleState());
         
         for(auto& cnv : canvases) {
             cnv->pd->settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
@@ -124,7 +126,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         }
 
     };
-    connectionStyleButton.setToggleState((bool)pd.settingsTree.getProperty(Identifiers::connectionStyle), sendNotification);
+    
+    bool defaultConnectionStyle = (bool)pd.settingsTree.getProperty(Identifiers::connectionStyle);
+    connectionStyleButton.setToggleState(defaultConnectionStyle, sendNotification);
     addAndMakeVisible(connectionStyleButton);
     
     connectionPathfind.setTooltip("Find best connection path");
@@ -137,6 +141,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             }
         }
     };
+    connectionPathfind.setEnabled(defaultConnectionStyle);
     addAndMakeVisible(connectionPathfind);
 
 
@@ -521,14 +526,14 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
 
     // Zoom in
     if (key.isKeyCode(61) && key.getModifiers().isCommandDown()) {
-        transform = transform.scaled(1.25f);
-        setTransform(transform);
+        transform = transform.scaled(1.1f);
+        for(auto& cnv : canvases) cnv->setTransform(transform);
         return true;
     }
     // Zoom out
     if (key.isKeyCode(45) && key.getModifiers().isCommandDown()) {
-        transform = transform.scaled(0.8f);
-        setTransform(transform);
+        transform = transform.scaled(1.0f / 1.1f);
+        for(auto& cnv : canvases) cnv->setTransform(transform);
         return true;
     }
 
