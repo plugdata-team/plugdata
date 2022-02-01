@@ -741,7 +741,6 @@ public:
     }
     
     void maximiseButtonPressed() override {
-        //setFullScreen(!isFullScreen()); this doesn't work on mac anymore, because we don't use a native titlebar
         if(!maximised) {
             nonMaximisedBounds = getContentComponent()->getBounds().withPosition(getPosition());
             auto size = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
@@ -755,8 +754,6 @@ public:
             setTopLeftPosition(nonMaximisedBounds.getPosition());
             maximised = false;
         }
-        
-        
     }
 
     void resized() override
