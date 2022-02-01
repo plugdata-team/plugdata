@@ -41,6 +41,10 @@ struct Icons
     inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
     inline static const CharPointer_UTF8 Wand = CharPointer_UTF8("\xef\x83\x90");
     
+    inline static const CharPointer_UTF8 ZoomIn = CharPointer_UTF8("\xef\x80\x8e");
+    inline static const CharPointer_UTF8 ZoomOut = CharPointer_UTF8 ("\xef\x80\x90");
+    
+    
     inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
     inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
     inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
@@ -373,12 +377,9 @@ struct ToolbarLook : public MainLook {
 };
 
 struct StatusbarLook : public MainLook {
-    float scalar;
     Font iconFont;
-    StatusbarLook(Resources& r, float button_scalar = 1.0f) : MainLook(r), iconFont(r.iconTypeface)
+    StatusbarLook(Resources& r) : MainLook(r), iconFont(r.iconTypeface)
     {
-        scalar = button_scalar;
-        
         setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
         
         setColour(TextButton::textColourOnId, highlightColour);
@@ -390,7 +391,7 @@ struct StatusbarLook : public MainLook {
     
     Font getTextButtonFont(TextButton&, int buttonHeight)
     {
-        return iconFont.withHeight(buttonHeight / (3.2 / scalar));
+        return iconFont.withHeight(buttonHeight / 2.25);
     }
     
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)

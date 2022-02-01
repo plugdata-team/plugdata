@@ -284,7 +284,6 @@ void Box::paint(Graphics& g)
         baseColour = baseColour.contrasting(0.05f);
     }
 
-
     // Draw comment style
     if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
         if(locked || (!isOver && !selected)) g.setColour(Colours::transparentBlack);
@@ -328,6 +327,8 @@ void Box::resized()
         textLabel.setBorderSize({2, 2, 2, 2});
         textLabel.setBounds(4, 4, getWidth() - 8, 23);
     }
+    
+    
  
     // Init size for empty objects
     if(textLabel.isBeingEdited()) {

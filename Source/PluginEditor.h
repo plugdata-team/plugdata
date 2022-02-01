@@ -41,7 +41,7 @@ public:
     SharedResourcePointer<Resources> resources;
     
     ToolbarLook toolbarLook = ToolbarLook(resources.get());
-    StatusbarLook statusbarLook = StatusbarLook(resources.get(), 1.35f);
+    StatusbarLook statusbarLook = StatusbarLook(resources.get());
     MainLook mainLook = MainLook(resources.get());
     
 
@@ -80,6 +80,8 @@ public:
     void updateValues();
 
     void updateUndoState();
+    
+    void zoom(bool zoomIn);
 
     TabComponent& getTabbar() { return tabbar; };
 
@@ -100,6 +102,10 @@ public:
     TextButton lockButton = TextButton(Icons::Lock);
     TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
     TextButton connectionPathfind = TextButton(Icons::Wand);
+    
+    TextButton zoomIn = TextButton(Icons::ZoomIn);
+    TextButton zoomOut = TextButton(Icons::ZoomOut);
+    Label zoomLabel;
 
 private:
     FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");

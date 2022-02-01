@@ -990,10 +990,11 @@ void GraphOnParent::updateCanvas()
 
         bestW = w;
         bestH = h;
-
-        // This must be called but is pretty inefficient for how often this gets called!
-        // TODO: optimise this
-        box->resized();
+        
+        auto parentBounds = box->getBounds();
+        if(parentBounds.getWidth() != w - 8 || parentBounds.getHeight() != h - 29) {
+            box->setSize(w + 8, h + 29);
+        }
     }
 }
 
