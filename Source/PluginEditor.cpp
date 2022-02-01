@@ -483,12 +483,12 @@ void PlugDataPluginEditor::resized()
     for (int b = 0; b < 9; b++) {
         auto& button = toolbarButtons[b];
         
-        auto item = FlexItem(button).withMinWidth(55.0f).withMinHeight(8.0f).withMaxWidth(160.0f);
-        item.flexGrow = 1.0f;
-        item.flexShrink = 1.0f;
+        auto item = FlexItem(button).withMinWidth(50.0f).withMinHeight(8.0f).withMaxWidth(80.0f);
+            item.flexGrow = 1.0f;
+            item.flexShrink = 1.0f;
         
         if(b == 4 || b == 6) {
-            auto item = FlexItem(seperators[b == 4]).withMinWidth(4.0f).withMaxWidth(300.0f);
+            auto item = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(50.0f);
             item.flexGrow = 1.0f;
             item.flexShrink = 1.0f;
             fb.items.add (item);
@@ -503,11 +503,12 @@ void PlugDataPluginEditor::resized()
     
     fb.performLayout(toolbarBounds);
     
-    if(!sidebarHidden) {
-        for (int b = 0; b < 8; b++) {
-            toolbarButtons[b].setVisible(toolbarButtons[b].getRight() < getWidth() - sidebarWidth);
-        }
+
+    // hide when they fall off the screen
+    for (int b = 0; b < 8; b++) {
+        toolbarButtons[b].setVisible((toolbarButtons[b].getBounds().getCentreX()) < getWidth() - sidebarWidth);
     }
+
 
     hideButton.setBounds(std::min(getWidth() - sWidth, getWidth() - 80), 0, 70, toolbarHeight);
 

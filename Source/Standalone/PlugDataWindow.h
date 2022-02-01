@@ -743,8 +743,14 @@ public:
     void maximiseButtonPressed() override {
         if(!maximised) {
             nonMaximisedBounds = getContentComponent()->getBounds().withPosition(getPosition());
-            auto size = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
-            getContentComponent()->setBounds(0, 0, size.getWidth(), size.getHeight());
+            
+            
+            auto bounds = Desktop::getInstance().getDisplays().getDisplayForRect(this->getParentMonitorArea())->userArea;
+            
+            
+                                                                               
+            //auto size = Desktop::getInstance().getDisplays().getTotalBounds(true);
+            getContentComponent()->setBounds(0, 0, bounds.getWidth(), bounds.getHeight());
             setTopLeftPosition(0, 0);
             maximised = true;
         }
