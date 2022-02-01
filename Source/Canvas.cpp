@@ -511,7 +511,9 @@ void Canvas::mouseUp(const MouseEvent& e)
             deselectAll();
         }
         
-        setSelected(box, true);
+        if(!isGraph) {
+            setSelected(box, true);
+        }
     }
     
     // Releasing a connect by drag action

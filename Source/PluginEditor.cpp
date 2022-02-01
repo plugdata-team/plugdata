@@ -145,6 +145,27 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addAndMakeVisible(connectionPathfind);
 
 
+    addAndMakeVisible(zoomLabel);
+    zoomLabel.setText("100%", dontSendNotification);
+    zoomLabel.setFont(Font(11));
+    
+    zoomIn.setTooltip("Zoom In");
+    zoomIn.setConnectedEdges(12);
+    zoomIn.setLookAndFeel(&statusbarLook);
+    zoomIn.onClick = [this]() {
+        zoom(true);
+    };
+    addAndMakeVisible(zoomIn);
+    
+    
+    zoomOut.setTooltip("Zoom Out");
+    zoomOut.setConnectedEdges(12);
+    zoomOut.setLookAndFeel(&statusbarLook);
+    zoomOut.onClick = [this]() {
+        zoom(false);
+    };
+    addAndMakeVisible(zoomOut);
+    
     for (auto& button : toolbarButtons) {
         button.setLookAndFeel(&toolbarLook);
         button.setConnectedEdges(12);
@@ -494,6 +515,11 @@ void PlugDataPluginEditor::resized()
     
     connectionStyleButton.setBounds(43, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     connectionPathfind.setBounds(70, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
+    
+    zoomLabel.setBounds(110, getHeight() - statusbarHeight + 1, statusbarHeight * 2, statusbarHeight);
+    zoomIn.setBounds(150, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
+    zoomOut.setBounds(178, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
+    
     bypassButton.setBounds(getWidth() - sWidth - 40, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     
     levelmeter.setBounds(getWidth() - sWidth - 150, getHeight() - statusbarHeight, 100, statusbarHeight);
@@ -526,14 +552,13 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
 
     // Zoom in
     if (key.isKeyCode(61) && key.getModifiers().isCommandDown()) {
-        transform = transform.scaled(1.1f);
-        for(auto& cnv : canvases) cnv->setTransform(transform);
+        zoom(true);
+        
         return true;
     }
     // Zoom out
     if (key.isKeyCode(45) && key.getModifiers().isCommandDown()) {
-        transform = transform.scaled(1.0f / 1.1f);
-        for(auto& cnv : canvases) cnv->setTransform(transform);
+        zoom(false);
         return true;
     }
 
@@ -646,7 +671,11 @@ void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
 
 void PlugDataPluginEditor::mouseUp(const MouseEvent& e)
 {
-    draggingSidebar = false;
+    if(draggingSidebar) {
+        getCurrentCanvas()->checkBounds();
+        draggingSidebar = false;
+    }
+    
 }
 
 
@@ -779,6 +808,7 @@ Canvas* PlugDataPluginEditor::getMainCanvas()
     return mainCanvas;
 }
 
+
 Canvas* PlugDataPluginEditor::getCanvas(int idx)
 {
     if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
@@ -853,4 +883,14 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
     tabbar.repaint();
 
     cnv->setVisible(true);
+}
+
+void PlugDataPluginEditor::zoom(bool zoomIn)
+{
+    transform = transform.scaled(zoomIn ? 1.1f : 1.0f / 1.1f);
+    for(auto& cnv : canvases) cnv->setTransform(transform);
+    
+    int scale = ((std::abs (transform.mat00) + std::abs (transform.mat11)) / 2.0f) * 100.0f;
+    zoomLabel.setText(String(scale) + "%", dontSendNotification);
+    getCurrentCanvas()->checkBounds();
 }
