@@ -94,7 +94,7 @@ public:
      You should call this when the user clicks on the background of the
      parent component.
      */
-    void deselectAll()
+    virtual void deselectAll()
     {
         for (auto c : selectedComponents)
             if (c)

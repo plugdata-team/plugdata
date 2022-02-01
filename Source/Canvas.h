@@ -71,6 +71,8 @@ public:
         g.drawLine(zeroPosition.x - 1, zeroPosition.y, zeroPosition.x - 1, getHeight());
         g.drawLine(zeroPosition.x, zeroPosition.y - 1, getWidth(), zeroPosition.y - 1);
     }
+    
+    void deselectAll() override;
 
     void undo();
     void redo();
