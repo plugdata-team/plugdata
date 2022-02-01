@@ -70,7 +70,10 @@ void Canvas::synchronise(bool updatePosition)
 {
     setTransform(main.transform);
 
+    // TODO: do we need to do this here?
     main.inspector.deselect();
+    main.inspector.setVisible(false);
+    main.console->setVisible(true);
 
     pd->waitForStateUpdate();
     deselectAll();
@@ -305,15 +308,10 @@ void Canvas::mouseDown(const MouseEvent& e)
 
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
-        main.inspector.deselect();
         if(source == this) deselectAll();
 
         dragStartPosition = e.getMouseDownPosition();
 
-        // Drag lasso
-        if (dynamic_cast<Connection*>(source)) {
-            lasso.beginLasso(e.getEventRelativeTo(this), this);
-        }
         // Connecting objects by dragging
         if (source == this || source == graphArea.get()) {
             if(Edge::connectingEdge) {
@@ -554,7 +552,19 @@ void Canvas::mouseUp(const MouseEvent& e)
         auto* box = lassoSelection.getSelectedItem(0);
         if (box->graphics) {
             main.inspector.loadData(box->graphics->getParameters());
+            main.inspector.setVisible(true);
+            main.console->setVisible(false);
         }
+        else {
+            main.inspector.deselect();
+            main.inspector.setVisible(false);
+            main.console->setVisible(true);
+        }
+    }
+    else {
+        main.inspector.deselect();
+        main.inspector.setVisible(false);
+        main.console->setVisible(true);
     }
 
     lasso.endLasso();
@@ -688,6 +698,7 @@ bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
     patch.keyPress(key.getKeyCode(), key.getModifiers().isShiftDown());
 
     
+    return false;
 }
 
 void Canvas::copySelection()
@@ -751,6 +762,8 @@ void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
     main.inspector.deselect();
+    main.inspector.setVisible(false);
+    main.console->setVisible(true);
     //main.stopTimer();
     
 
