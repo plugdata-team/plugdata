@@ -308,19 +308,8 @@ void Canvas::mouseDown(const MouseEvent& e)
 
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown()) {
-        if(source == this) deselectAll();
 
         dragStartPosition = e.getMouseDownPosition();
-        
-        if(auto* box = dynamic_cast<Box*>(source->getParentComponent())) {
-            
-            if(!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
-                
-                for(auto* b : boxes) if(b != box) setSelected(b, false);
-            }
-            
-            setSelected(box, true);
-        }
 
         // Connecting objects by dragging
         if (source == this || source == graphArea.get()) {
@@ -331,12 +320,10 @@ void Canvas::mouseDown(const MouseEvent& e)
             
             lasso.beginLasso(e.getEventRelativeTo(this), this);
 
-            for (auto& con : connections) {
-                if(con->isSelected && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
-                    con->isSelected = false;
-                    con->repaint();
+
+                if(!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
+                    deselectAll();
                 }
-            }
         }
 
     // Right click
@@ -515,6 +502,18 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
 void Canvas::mouseUp(const MouseEvent& e)
 {
+    
+    
+    if(auto* box = dynamic_cast<Box*>(e.originalComponent->getParentComponent())) {
+        
+        if(!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2) {
+            
+            deselectAll();
+        }
+        
+        setSelected(box, true);
+    }
+    
     // Releasing a connect by drag action
     if (connectingWithDrag) {
         auto pos = e.getEventRelativeTo(this).getPosition();
@@ -704,6 +703,20 @@ bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
 
     
     return false;
+}
+
+void Canvas::deselectAll()
+{
+    // Deselects boxes
+    MultiComponentDragger::deselectAll();
+    
+    // Deselect connections
+    for(auto& connection : connections) {
+        if(connection->isSelected) {
+            connection->isSelected = false;
+            connection->repaint();
+        }
+    }
 }
 
 void Canvas::copySelection()
