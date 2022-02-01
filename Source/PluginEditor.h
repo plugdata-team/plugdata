@@ -112,9 +112,8 @@ private:
 
     bool sidebarHidden = false;
 
-    std::array<TextButton, 11> toolbarButtons = {
-        TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide),
-        TextButton(Icons::Console), TextButton(Icons::Inspector) };
+    std::array<TextButton, 9> toolbarButtons = {
+        TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide)};
 
     TextButton& hideButton = toolbarButtons[8];
 
