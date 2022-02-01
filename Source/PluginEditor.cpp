@@ -250,9 +250,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         sidebarHidden = hideButton.getToggleState();
         hideButton.setButtonText(sidebarHidden ? Icons::Show : Icons::Hide);
 
-        toolbarButtons[9].setVisible(!sidebarHidden);
-        toolbarButtons[10].setVisible(!sidebarHidden);
-
         repaint();
         resized();
     };
