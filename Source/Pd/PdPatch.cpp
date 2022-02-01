@@ -609,7 +609,7 @@ MemoryBlock Patch::getExtraInfo(String ID) {
     
     MemoryBlock block;
     
-    const auto info = (const String)child.getProperty("Info");
+    const auto info = static_cast<const String>(child.getProperty("Info"));
     
     block.fromBase64Encoding(info);
     

@@ -398,7 +398,7 @@ MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
     
     input.setMultiLine(true);
     
-    box->restrainer.setSizeLimits(60, 50, 500, 600);
+    box->restrainer.setSizeLimits(70, 50, 500, 600);
     box->restrainer.checkComponentBounds(box);
     
 }
