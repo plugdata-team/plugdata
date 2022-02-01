@@ -332,7 +332,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             lasso.beginLasso(e.getEventRelativeTo(this), this);
 
             for (auto& con : connections) {
-                if(con->isSelected && !!ModifierKeys::getCurrentModifiers().isShiftDown()) {
+                if(con->isSelected && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
                     con->isSelected = false;
                     con->repaint();
                 }
@@ -484,17 +484,12 @@ void Canvas::mouseDrag(const MouseEvent& e)
     } else if (source == this) {
         Edge::connectingEdge = nullptr;
         lasso.dragLasso(e);
+        
+        if(e.getDistanceFromDragStart() < 5) return;
 
         for (auto& con : connections) {
-            if (!con->start || !con->end) {
-                connections.removeObject(con);
-                continue;
-            }
-
-            
             bool intersect = false;
             for (float i = 0; i < 1; i += 0.005) {
-               
                 auto point = con->toDraw.getPointAlongPath(i * con->toDraw.getLength());
                 
                 if(!point.isFinite()) continue;

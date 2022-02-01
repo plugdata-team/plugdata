@@ -217,7 +217,20 @@ void Connection::mouseDown(const MouseEvent& e)
         }
     }
 
-    isSelected = !isSelected;
+    // Deselect all other connection if shift or command is not down
+    if(!ModifierKeys::getCurrentModifiers().isCommandDown() && !ModifierKeys::getCurrentModifiers().isShiftDown()) {
+        for(auto* connection : cnv->connections) {
+            if(connection != this && connection->isSelected) {
+                connection->isSelected = false;
+                connection->repaint();
+            }
+      
+        }
+    }
+
+        
+        isSelected = true;
+    
     repaint();
 }
 
