@@ -128,13 +128,6 @@ bool Box::hitTest(int x, int y) {
     }
 }
 
-void Box::mouseMove(const MouseEvent& e)
-{
-    if(e.mouseWasDraggedSinceMouseDown()) {
-        repaint();
-    }
-}
-
 void Box::mouseEnter(const MouseEvent& e) {
 
     if(graphics && !graphics->fakeGUI() && !locked) {
@@ -248,8 +241,10 @@ void Box::setType(String newType, bool exists)
     else {
         // Only allow resize on right, otherwise we have to edit the position
         resizer->setBorderThickness({0, 0, 0, 5});
-        restrainer.setSizeLimits(25, getHeight(), 350, getHeight());
     }
+    
+    // graphical objects manage their own size limits
+    if(!graphics) restrainer.setSizeLimits(25, getHeight(), 350, getHeight());
     
 
     restrainer.checkComponentBounds(this);
@@ -307,8 +302,6 @@ void Box::paint(Graphics& g)
 
 void Box::resized()
 {
-    bool hideLabel = graphics && !graphics->fakeGUI() && (locked || !textLabel.isVisible());
-    
     if(graphics)  {
         graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
     }
@@ -316,28 +309,22 @@ void Box::resized()
     if(pdObject && (!graphics || !graphics->getGUI().isIEM())) {
         pdObject->setWidth(getWidth() - 8);
     }
-    // Hidden header mode: gui objects become undraggable
-    if(!hideLabel) {
 
-        auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
+    auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
 
-        if (graphics && graphics->getGUI().getType() == pd::Type::Comment && !textLabel.isBeingEdited()) {
-            int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
-            setSize(bestWidth + 30, (num_lines * 17) + 14);
-            textLabel.setBounds(getLocalBounds().reduced(4));
-        }
-        
-        if(graphics && graphics->getGUI().getType() == pd::Type::Message && !graphics->getGUI().isAtom()) {
-            textLabel.setBorderSize({2, 2, 2, 22});
-        }
-        else {
-            textLabel.setBorderSize({2, 2, 2, 2});
-            
-        }
-        
+    if (graphics && graphics->getGUI().getType() == pd::Type::Comment && !textLabel.isBeingEdited()) {
+        int num_lines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
+        setSize(bestWidth + 30, (num_lines * 17) + 14);
+        textLabel.setBounds(getLocalBounds().reduced(4));
+    }
+    else if(graphics && graphics->getGUI().getType() == pd::Type::Message && !graphics->getGUI().isAtom()) {
+        textLabel.setBorderSize({2, 2, 2, 22});
+    }
+    else {
+        textLabel.setBorderSize({2, 2, 2, 2});
         textLabel.setBounds(4, 4, getWidth() - 8, 23);
     }
-    
+ 
     // Init size for empty objects
     if(textLabel.isBeingEdited()) {
         if(textLabel.getCurrentTextEditor()->getText().isEmpty()) {

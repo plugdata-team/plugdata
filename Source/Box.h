@@ -62,7 +62,6 @@ private:
 
     bool hitTest(int x, int y) override;
     
-    void mouseMove(const MouseEvent& e) override;
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
 
