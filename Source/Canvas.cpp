@@ -502,7 +502,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
             if (!con->isSelected && intersect) {
                 con->isSelected = true;
                 con->repaint();
-            } else if (con->isSelected && !intersect) {
+            } else if (con->isSelected && !intersect && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
                 con->isSelected = false;
                 con->repaint();
             }
