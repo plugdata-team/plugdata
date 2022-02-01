@@ -128,20 +128,23 @@ bool Box::hitTest(int x, int y) {
     }
 }
 
+
 void Box::mouseEnter(const MouseEvent& e) {
 
     if(graphics && !graphics->fakeGUI() && !locked) {
         textLabel.setVisible(true);
-        repaint();
     }
+    
+    repaint();
     
 }
 
 void Box::mouseExit(const MouseEvent& e)  {
     if(graphics && !graphics->fakeGUI() && !textLabel.isBeingEdited()) {
         textLabel.setVisible(false);
-        repaint();
     }
+    
+    repaint();
 }
 
 void Box::setType(String newType, bool exists)
@@ -264,7 +267,6 @@ void Box::paint(Graphics& g)
     
 
     bool isOver = getLocalBounds().contains(getMouseXYRelative());
-    bool isDown = textLabel.isDown;
 
     bool selected = cnv->isSelected(this);
 
@@ -274,16 +276,18 @@ void Box::paint(Graphics& g)
     if(pdObject && pdObject->getType() == pd::Type::Invalid && !textLabel.isBeingEdited()) {
         outlineColour = Colours::red;
     }
-    else if (isDown || isOver) {
-        baseColour = baseColour.contrasting(isDown ? 0.2f : 0.05f);
-    }
     else if (selected) {
         outlineColour = MainLook::highlightColour;
     }
+    
+    if (isOver) {
+        baseColour = baseColour.contrasting(0.05f);
+    }
+
 
     // Draw comment style
     if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
-        if(locked || (!isOver && !isDown && !selected)) g.setColour(Colours::transparentBlack);
+        if(locked || (!isOver && !selected)) g.setColour(Colours::transparentBlack);
         else g.setColour(findColour(ComboBox::outlineColourId));
         
         g.drawRect(rect.toFloat(), 0.5f);

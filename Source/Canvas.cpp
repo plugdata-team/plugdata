@@ -311,6 +311,16 @@ void Canvas::mouseDown(const MouseEvent& e)
         if(source == this) deselectAll();
 
         dragStartPosition = e.getMouseDownPosition();
+        
+        if(auto* box = dynamic_cast<Box*>(source->getParentComponent())) {
+            
+            if(!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
+                
+                for(auto* b : boxes) if(b != box) setSelected(b, false);
+            }
+            
+            setSelected(box, true);
+        }
 
         // Connecting objects by dragging
         if (source == this || source == graphArea.get()) {
