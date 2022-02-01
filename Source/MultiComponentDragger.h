@@ -281,6 +281,7 @@ private:
             if (area.intersects(element->getBounds())) {
                 itemsFound.add(element);
                 setSelected(element, true);
+                element->repaint();
             } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
                 setSelected(element, false);
             }

@@ -484,15 +484,16 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
     return libpd_newest(cnv);
 }
 
-t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
+t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int undoable) {
         
     sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     sys_unlock();
     
-    // Needed here but not for graphs??
-    canvas_undo_add(cnv, UNDO_CREATE, "create",
-                    (void *)canvas_undo_set_create(cnv));
+    if(undoable) {
+        canvas_undo_add(cnv, UNDO_CREATE, "create",
+                        (void *)canvas_undo_set_create(cnv));
+    }
     
     glist_noselect(cnv);
     
@@ -563,7 +564,7 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
     
     cnv->gl_editor->e_textdirty = 1;
     
-    glist_deselect(cnv, &((t_text *)obj)->te_g);
+    glist_deselect(cnv, obj);
     
     cnv->gl_editor->e_textedfor = 0;
     cnv->gl_editor->e_textdirty = 0;

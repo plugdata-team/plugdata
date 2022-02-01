@@ -37,6 +37,9 @@ Box::Box(Canvas* parent, String name, Point<int> position)
         textLabel.showEditor();
         resized();
     }
+    
+    // Updates lock/unlock mode
+    changeListenerCallback(nullptr);
 }
 
 Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
@@ -56,6 +59,9 @@ Box::Box(pd::Object* object, Canvas* parent, String name, Point<int> position)
     }
     
     setTopLeftPosition(position);
+    
+    // Updates lock/unlock mode
+    changeListenerCallback(nullptr);
     
 }
 
@@ -79,6 +85,7 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
         textLabel.setVisible(false);
         if (resizer)
             resizer->setVisible(false);
+            
     }
     else {
         if (resizer)
@@ -95,7 +102,7 @@ void Box::initialise()
     addMouseListener(cnv, true); // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
 
-    setSize(90, 31);
+    //setSize(90, 31);
 
     addAndMakeVisible(&textLabel);
 
@@ -106,12 +113,8 @@ void Box::initialise()
         setType(newText);
     };
     
-    
     // Add listener for lock/unlock messages
     cnv->main.addChangeListener(this);
-
-    // Updates lock/unlock mode
-    changeListenerCallback(nullptr);
 }
 
 bool Box::hitTest(int x, int y) {
@@ -127,7 +130,6 @@ bool Box::hitTest(int x, int y) {
 
 void Box::mouseMove(const MouseEvent& e)
 {
-    
     if(e.mouseWasDraggedSinceMouseDown()) {
         repaint();
     }
@@ -137,7 +139,6 @@ void Box::mouseEnter(const MouseEvent& e) {
 
     if(graphics && !graphics->fakeGUI() && !locked) {
         textLabel.setVisible(true);
-        resized();
         repaint();
     }
     
@@ -146,7 +147,6 @@ void Box::mouseEnter(const MouseEvent& e) {
 void Box::mouseExit(const MouseEvent& e)  {
     if(graphics && !graphics->fakeGUI() && !textLabel.isBeingEdited()) {
         textLabel.setVisible(false);
-        resized();
         repaint();
     }
 }
@@ -158,6 +158,9 @@ void Box::setType(String newType, bool exists)
 
     String arguments = newType.fromFirstOccurrenceOf(" ", false, false);
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
+    
+    bool wasInvalid = pdObject && pdObject->getType() == pd::Type::Invalid;
+
 
     // Exists indicates that this object already exists in pd
     // When setting exists to true, you need to have assigned an object to the pdObject variable already
@@ -182,54 +185,75 @@ void Box::setType(String newType, bool exists)
         }
     }
 
+    int width;
+    if(exists) {
+        width = pdObject->getWidth();
+        if(width == 0) {
+            width = textLabel.getFont().getStringWidth(newType) + 25;
+        }
+        else {
+            width += 8;
+        }
+    }
+    else {
+        width = textLabel.getFont().getStringWidth(newType) + 25;
+    }
+    
     // Update inlets/outlets if it's not in a graph
     if (!cnv->isGraph)
         updatePorts();
-
-    // Get best width for text
-    auto bestWidth = std::max(45, textLabel.getFont().getStringWidth(newType) + 25);
     
     if (pdObject) {
         // Create graphics for the object if necessary
         graphics.reset(GUIComponent::createGui(type, this));
 
         if (graphics && graphics->getGUI().getType() == pd::Type::Comment) {
-            setSize(bestWidth, 31);
+            setSize(width, 31);
             textLabel.setVisible(true);
         } else if (graphics && !graphics->fakeGUI()) {
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
             setSize(w + 8, h + 29);
             graphics->toBack();
-            restrainer.checkComponentBounds(this);
             textLabel.setVisible(false);
         } else {
             textLabel.setVisible(true);
-            setSize(bestWidth, 31);
+            setSize(width, 31);
         }
     } else {
         textLabel.setVisible(true);
-        setSize(bestWidth, 31);
+        setSize(width, 31);
     }
 
     if (type.isEmpty()) {
         setSize(100, 31);
     }
+    
+
 
     // Hide "comment" in front of name
     if (newType.startsWith("comment ")) {
         textLabel.setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
-
-    // IEM objects can be resized
-    if (graphics && graphics->getGUI().isIEM()) {
+    
+    if(!resizer) {
         resizer.reset(new ResizableBorderComponent(this, &restrainer));
         addAndMakeVisible(resizer.get());
         resizer->toBack(); // make sure it's behind the edges
-    } else {
-        resizer.reset(nullptr);
     }
+    
+    if (graphics && graphics->getGUI().isIEM()) {
+        resizer->setBorderThickness({5, 5, 5, 5});
+    }
+    else {
+        // Only allow resize on right, otherwise we have to edit the position
+        resizer->setBorderThickness({0, 0, 0, 5});
+        restrainer.setSizeLimits(25, getHeight(), 350, getHeight());
+    }
+    
 
+    restrainer.checkComponentBounds(this);
+    
     cnv->main.updateUndoState();
 
     resized();
@@ -285,10 +309,16 @@ void Box::resized()
 {
     bool hideLabel = graphics && !graphics->fakeGUI() && (locked || !textLabel.isVisible());
     
-    if(graphics) graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
+    if(graphics)  {
+        graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
+    }
+    
+    if(pdObject && (!graphics || !graphics->getGUI().isIEM())) {
+        pdObject->setWidth(getWidth() - 8);
+    }
     // Hidden header mode: gui objects become undraggable
     if(!hideLabel) {
-        textLabel.setBounds(4, 4, getWidth() - 8, 23);
+
         auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
 
         if (graphics && graphics->getGUI().getType() == pd::Type::Comment && !textLabel.isBeingEdited()) {
@@ -302,7 +332,10 @@ void Box::resized()
         }
         else {
             textLabel.setBorderSize({2, 2, 2, 2});
+            
         }
+        
+        textLabel.setBounds(4, 4, getWidth() - 8, 23);
     }
     
     // Init size for empty objects

@@ -608,6 +608,10 @@ struct CommentComponent : public GUIComponent {
     
     void updateValue() override {};
     
+    void resized() override {
+        gui.setSize(getWidth(), getHeight());
+    }
+    
     std::pair<int, int> getBestSize() override { return { 120, 4 }; };
     
     bool fakeGUI() override

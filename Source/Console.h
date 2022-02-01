@@ -316,6 +316,7 @@ struct Console : public Component
     }
     
     ~Console() {
+        removeComponentListener(console);
     }
     
     void logMessage (const String& m)

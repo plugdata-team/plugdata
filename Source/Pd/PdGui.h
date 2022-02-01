@@ -115,7 +115,6 @@ namespace pd
         
         Gui(void* ptr, Patch* patch, Instance* instance) noexcept;
         
-        inline static StringArray specialGUIs = {"text", "msg", "message", "gatom", "floatatom", "symbolatom"};
     private:
         
         std::string last_symbol;

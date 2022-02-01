@@ -399,6 +399,33 @@ struct StatusbarLook : public MainLook {
         g.fillRect(button.getLocalBounds());
     }
     
+    void drawButtonText (Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+    {
+        Font font (getTextButtonFont (button, button.getHeight()));
+        g.setFont (font);
+        
+        auto colour = button.findColour((button.getToggleState() || shouldDrawButtonAsHighlighted)? TextButton::textColourOnId : TextButton::textColourOffId);
+        
+        g.setColour ((shouldDrawButtonAsHighlighted && !button.getToggleState()) ? colour.brighter(0.8f) : colour);
+        
+        if(!button.isEnabled()) {
+            g.setColour(Colours::grey);
+        }
+        
+        const int yIndent = jmin (4, button.proportionOfHeight (0.3f));
+        const int cornerSize = jmin (button.getHeight(), button.getWidth()) / 2;
+
+        const int fontHeight = roundToInt (font.getHeight() * 0.6f);
+        const int leftIndent  = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnLeft() ? 4 : 2));
+        const int rightIndent = jmin (fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
+        const int textWidth = button.getWidth() - leftIndent - rightIndent;
+
+        if (textWidth > 0)
+            g.drawFittedText (button.getButtonText(),
+                              leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2,
+                              Justification::centred, 2);
+    }
+    
     
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height,
                           float sliderPos,

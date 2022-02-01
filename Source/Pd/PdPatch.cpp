@@ -15,6 +15,7 @@ extern "C"
 #include <m_pd.h>
 #include <g_canvas.h>
 #include "x_libpd_multi.h"
+#include "x_libpd_extra_utils.h"
 #include "g_undo.h"
 
 }
@@ -93,6 +94,48 @@ t_canvas* Patch::getCurrent()
     return current;
 }
 
+
+int Patch::getIndex(void* obj) {
+
+    int i = 0;
+    auto* cnv = getPointer();
+    
+    for(t_gobj *y = cnv->gl_list; y; y = y->g_next)
+    {
+        
+        Object object(static_cast<void*>(y), this, m_instance);
+        
+        if(String(object.getText()).startsWith("plugdatainfo")) continue;
+        
+        if(obj == y) {
+            return i;
+        }
+        
+        i++;
+    }
+}
+
+Connections Patch::getConnections()
+{
+    Connections connections;
+    
+    t_linetraverser t;
+    t_outconnect* oc;
+
+    auto* x = getPointer();
+
+
+    // Get connections from pd
+    linetraverser_start(&t, x);
+    
+    while((oc = linetraverser_next(&t))) {
+        
+        connections.push_back({t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2});
+    }
+    
+    return connections;
+}
+
 std::vector<Object> Patch::getObjects(bool only_gui) noexcept
 {
     if(m_ptr)
@@ -102,7 +145,10 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
         
         for(t_gobj *y = cnv->gl_list; y; y = y->g_next)
         {
+            
             Object object(static_cast<void*>(y), this, m_instance);
+            
+            if(String(object.getText()).startsWith("plugdatainfo")) continue;
             
             if(only_gui) {
                 Gui gui(static_cast<void*>(y), this, m_instance);
@@ -156,7 +202,7 @@ std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
     return std::make_unique<Gui>(pdobject, this, m_instance);
 }
 
-std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
+std::unique_ptr<Object> Patch::createObject(String name, int x, int y, bool undoable)
 {
     
     if(!m_ptr) return nullptr;
@@ -211,9 +257,9 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y)
     }
     
     t_pd* pdobject = nullptr;
-    m_instance->enqueueFunction([this, argc, argv, typesymbol, &pdobject]() mutable {
+    m_instance->enqueueFunction([this, argc, argv, undoable, typesymbol, &pdobject]() mutable {
         m_instance->setThis();
-        pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data());
+        pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data(), undoable);
     });
     
     while(!pdobject) {
@@ -249,10 +295,11 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     // Cant use the queue for this...
     setCurrent();
     
+    StringArray notRenamable = {"msg", "message", "gatom", "floatatom", "symbolatom"};
     
     // Don't rename when going to or from a gui object, remove and recreate instead
     // TODO: sometimes this makes undo screw up
-    if(Gui::specialGUIs.contains(name.upToFirstOccurrenceOf(" ", false, false)) ||  Gui::specialGUIs.contains(obj->getName())) {
+    if(notRenamable.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() == Type::Message || obj->getType() == Type::AtomNumber || obj->getType() == Type::AtomSymbol) {
         auto [x, y, w, h] = obj->getBounds();
         
         m_instance->enqueueFunction([this, obj](){
@@ -477,7 +524,116 @@ void Patch::keyPress(int keycode, int shift)
     
 }
 
-               
+void Patch::updateExtraInfo() {
+    
+    auto* info = getInfoObject();
+    
+    if(!info) return;
+    
+    char* text;
+    int size = 0;
+    libpd_get_object_text(info, &text, &size);
+    
+    MemoryOutputStream ostream;
+    Base64::convertFromBase64(ostream, String(CharPointer_UTF8(text), size).fromFirstOccurrenceOf("plugdatainfo ", false, false));
+    
+    MemoryInputStream istream(ostream.getMemoryBlock());
+    
+    auto tree = ValueTree::fromXml(istream.readString());
+    if(tree.isValid()) {
+        extraInfo = tree;
+        return;
+    }
+}
+
+t_gobj* Patch::getInfoObject() {
+    
+    for(t_gobj* y = getPointer()->gl_list; y; y = y->g_next)
+    {
+        if(strcmp(libpd_get_object_class_name(y), "text")) continue;
+        
+        char* text = nullptr;
+        int size = 0;
+        m_instance->setThis();
+        libpd_get_object_text(y, &text, &size);
+        if(text && size)
+        {
+            if(String(CharPointer_UTF8(text), size).startsWith("plugdatainfo")) {
+                return y;
+            }
+        }
+    }
+    
+    return nullptr;
+    
+}
+void Patch::setExtraInfoID(String oldID, String newID) {
+    auto child = extraInfo.getChildWithProperty("ID", oldID);
+    
+    if(child.isValid()) {
+        child.setProperty("ID", newID, nullptr);
+    }
+    
+    t_gobj* info = getInfoObject();
+    
+    storeExtraInfo(false);
+}
+
+void Patch::storeExtraInfo(bool undoable) {
+    
+    String infoString = Base64::toBase64(extraInfo.toXmlString());
+    
+    t_gobj* info = getInfoObject();
+    
+    String newname = "plugdatainfo " + infoString;
+    
+    if(!info) {
+        auto newObject = createObject("comment plugdatainfo", 0, 0, false);
+        info = (t_gobj*)newObject->getPointer();
+    }
+    
+    if(undoable) {
+        m_instance->enqueueFunction([this, info, newname]() mutable {
+            libpd_renameobj(getPointer(), info, newname.toRawUTF8(), newname.length());
+        });
+    }
+    else {
+        binbuf_text(((t_text *)info)->te_binbuf, newname.toRawUTF8(), newname.length());
+    }
+
+    deselectAll();
+}
+
+MemoryBlock Patch::getExtraInfo(String ID) {
+    auto child = extraInfo.getChildWithProperty("ID", ID);
+    
+    MemoryBlock block;
+    
+    block.fromBase64Encoding((String)child.getProperty("Info"));
+    
+    return block;
+}
+
+void Patch::setExtraInfo(String ID, MemoryBlock& info) {
+    
+    auto tree = ValueTree("Connection");
+    
+    auto existingInfo = extraInfo.getChildWithProperty("ID", ID);
+    if(existingInfo.isValid()) {
+        tree = existingInfo;
+    }
+
+    tree.setProperty("ID", ID, nullptr);
+    tree.setProperty("Info", info.toBase64Encoding(), nullptr);
+    
+    if(!existingInfo.isValid()) {
+        extraInfo.appendChild(tree, nullptr);
+    }
+    
+    storeExtraInfo(false);
+
+}
+
 }
 
 

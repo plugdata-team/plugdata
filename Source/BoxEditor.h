@@ -190,13 +190,15 @@ public:
     
     std::function<void()> onEditorShow, onEditorHide, onTextChange;
 
+    void resized() override;
+    
 protected:
 
     /** Called when the text editor has just appeared, due to a user click or other focus change. */
     virtual void editorShown (TextEditor*);
 
     void paint (Graphics&) override;
-    void resized() override;
+
     void mouseDoubleClick (const MouseEvent&) override;
     
 
