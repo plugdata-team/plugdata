@@ -31,10 +31,10 @@ public:
     Patch(void* ptr, Instance* instance) noexcept;
     
     //! @brief The default constructor.
-    Patch() noexcept = default;
+    Patch() = default;
     
     //! @brief The copy constructor.
-    Patch(const Patch&) noexcept = default;
+    Patch(const Patch&) = default;
     
     //! @brief The compare equal operator.
     bool operator==(Patch const& other) const noexcept {
@@ -42,7 +42,7 @@ public:
     }
     
     //! @brief The copy operator.
-    Patch& operator=(const Patch& other) noexcept = default;
+    Patch& operator=(const Patch& other) = default;
     
     //! @brief The destructor.
     ~Patch() noexcept = default;
