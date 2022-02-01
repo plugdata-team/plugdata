@@ -175,7 +175,9 @@ struct SettingsDialog : public Component {
 
     void mouseDrag(const MouseEvent& e)
     {
-        dragger.dragComponent(this, e, &constrainer);
+        if (e.getMouseDownPosition().getY() < 30) {
+            dragger.dragComponent(this, e, &constrainer);
+        }
     }
 
     void resized()
