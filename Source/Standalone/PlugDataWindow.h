@@ -113,7 +113,7 @@ public:
     {
         setupAudioDevices (enableAudioInput, preferredDefaultDeviceName, options.get());
 #if JUCE_DEBUG
-        //reloadPluginState();
+        reloadPluginState();
 #endif
         startPlaying();
 
@@ -741,7 +741,22 @@ public:
     }
     
     void maximiseButtonPressed() override {
-        setFullScreen(!isFullScreen());
+        //setFullScreen(!isFullScreen()); this doesn't work on mac anymore, because we don't use a native titlebar
+        if(!maximised) {
+            nonMaximisedBounds = getContentComponent()->getBounds().withPosition(getPosition());
+            auto size = Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea;
+            getContentComponent()->setBounds(0, 0, size.getWidth(), size.getHeight());
+            setTopLeftPosition(0, 0);
+            maximised = true;
+        }
+        else {
+            
+            getContentComponent()->setBounds(nonMaximisedBounds);
+            setTopLeftPosition(nonMaximisedBounds.getPosition());
+            maximised = false;
+        }
+        
+        
     }
 
     void resized() override
@@ -752,9 +767,12 @@ public:
     virtual StandalonePluginHolder* getPluginHolder()    { return pluginHolder.get(); }
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
-
+    
 private:
 
+    bool maximised = false;
+    Rectangle<int> nonMaximisedBounds;
+    
     //==============================================================================
     class MainContentComponent  : public Component,
                                   private ComponentListener
@@ -830,6 +848,8 @@ private:
         std::unique_ptr<AudioProcessorEditor> editor;
         Value inputMutedValue;
         bool preventResizingEditor = false;
+
+        
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (MainContentComponent)
     };

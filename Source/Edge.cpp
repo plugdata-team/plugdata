@@ -55,8 +55,8 @@ void Edge::paint(Graphics& g)
 
     auto backgroundColour = isSignal ? Colours::yellow : MainLook::highlightColour;
 
-    auto baseColour = backgroundColour.withMultipliedSaturation(hasKeyboardFocus(true) ? 1.3f : 0.9f)
-                          .withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f);
+    
+    auto baseColour = backgroundColour.darker(isOver() ? 0.15f : 0.0f);
 
     if (isDown() || isOver())
         baseColour = baseColour.contrasting(isDown() ? 0.2f : 0.05f);
@@ -112,8 +112,9 @@ void Edge::createConnection()
         // Check type for input and output
         bool startSignal = isInput ? connectingEdge->isSignal : isSignal;
         bool endSignal = !isInput ? connectingEdge->isSignal : isSignal;
+        bool sameDirection = isInput == connectingEdge->isInput;
 
-        bool connectionAllowed = connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv;
+        bool connectionAllowed = connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv && !sameDirection;
 
         // Dont create if this is the same edge
         if (Edge::connectingEdge == this) {
