@@ -257,27 +257,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         resized();
     };
 
-    // Sidebar selectors (inspector or console)
-    toolbarButtons[9].setTooltip("Show Console");
-    toolbarButtons[9].setClickingTogglesState(true);
-    toolbarButtons[9].setRadioGroupId(101);
-    
-    toolbarButtons[10].setTooltip("Show Inspector");
-    toolbarButtons[10].setClickingTogglesState(true);
-    toolbarButtons[10].setRadioGroupId(101);
-
-    //  Open console
-    toolbarButtons[9].onClick = [this]() {
-        console->setVisible(true);
-        inspector.setVisible(false);
-    };
-
-    // Open inspector
-    toolbarButtons[10].onClick = [this]() {
-        console->setVisible(false);
-        inspector.setVisible(true);
-    };
-
     addAndMakeVisible(hideButton);
 
     // window size limits
@@ -508,12 +487,11 @@ void PlugDataPluginEditor::resized()
     }
 
     hideButton.setBounds(std::min(getWidth() - sWidth, getWidth() - 80), 0, 70, toolbarHeight);
-    toolbarButtons[9].setBounds(std::min(getWidth() - sWidth + 90, getWidth() - 80), 0, 70, toolbarHeight);
-    toolbarButtons[10].setBounds(std::min(getWidth() - sWidth + 160, getWidth() - 80), 0, 70, toolbarHeight);
 
     lockButton.setBounds(8, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-    connectionStyleButton.setBounds(38, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-    connectionPathfind.setBounds(65, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
+    
+    connectionStyleButton.setBounds(43, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
+    connectionPathfind.setBounds(70, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     bypassButton.setBounds(getWidth() - sWidth - 40, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     
     levelmeter.setBounds(getWidth() - sWidth - 150, getHeight() - statusbarHeight, 100, statusbarHeight);

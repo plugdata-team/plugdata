@@ -233,7 +233,6 @@ void Connection::mouseDrag(const MouseEvent& e)
     
     bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
     if(curvedConnection && dragIdx != -1) {
-        cnv->mouseUp(e); // prevent lasso
         auto n = dragIdx;
         auto delta = e.getPosition() - e.getMouseDownPosition();
         auto line = Line<int>(currentPlan[n - 1], currentPlan[n]);
@@ -324,7 +323,7 @@ void Connection::resized()
 
 PathPlan Connection::scalePath(const PathPlan& plan) {
 
-    if(!start || !end) return;
+    if(!start || !end) return plan;
     
     auto& s = start->isInput ? start : end;
     auto& e = start->isInput ? end : start;
@@ -396,7 +395,7 @@ void Connection::applyPath(PathPlan plan, bool updateState) {
 
 PathPlan Connection::findPath(){
     
-    if(!start || !end) return;
+    if(!start || !end) return PathPlan();
     
     auto& s = start->isInput ? start : end;
     auto& e = start->isInput ? end : start;
