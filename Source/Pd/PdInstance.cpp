@@ -565,6 +565,23 @@ void Instance::openPatch(std::string const& path, std::string const& name)
     
 }
 
+void Instance::setFilename(std::string const& path, std::string const& name)
+{
+    libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
+    canvasLock.lock();
+    
+    glob_setfilename(NULL, gensym(path.c_str()), gensym(name.c_str()));
+    
+    canvasLock.unlock();
+    setThis();
+}
+
+bool Instance::isDirty() {
+    if(!m_patch) return false;
+        
+    return getPatch().getPointer()->gl_dirty;
+}
+
 void Instance::closePatch()
 {
     if(m_patch)

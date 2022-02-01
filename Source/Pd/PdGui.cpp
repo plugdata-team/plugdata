@@ -665,8 +665,9 @@ void Gui::setSize(int w, int h) noexcept {
         
         iemgui->x_w = w;
         iemgui->x_h = h;
-        
-        
+    }
+    else {
+        Object::setWidth(w);
     }
 }
 

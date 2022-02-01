@@ -14,9 +14,6 @@ ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger)
     : box(parent)
     , dragger(multiDragger)
 {
-    //setEditable(false, box->locked);
-    //setJustificationType(Justification::centred);
-    //setLookAndFeel(&clook);
 };
 
 //==============================================================================

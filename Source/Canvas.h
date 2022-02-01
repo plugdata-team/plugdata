@@ -77,14 +77,7 @@ public:
 
     void dragCallback(int dx, int dy) override;
 
-    bool changed()
-    {
-        return hasChanged && boxes.size();
-    }
-
     void findDrawables(Graphics& g, t_canvas* cnv);
-
-    bool hasChanged = false;
 
     Viewport* viewport = nullptr;
 

@@ -43,6 +43,16 @@ m_ptr(ptr), m_patch(patch), m_instance(instance)
     
 }
 
+bool Object::operator==(Object const& other) const noexcept
+{
+    return m_ptr == other.m_ptr;
+}
+
+bool Object::operator!=(Object const& other) const noexcept
+{
+    return m_ptr != other.m_ptr;
+}
+
 std::string Object::getText()
 {
     if(m_ptr && m_patch->checkObject(this))
@@ -80,6 +90,7 @@ std::array<int, 4> Object::getBounds() const noexcept
     {
         int x = 0, y = 0, w = 0, h = 0;
         m_instance->setThis();
+        m_patch->setCurrent();
         
         libpd_get_object_bounds(m_patch->getPointer(), m_ptr, &x, &y, &w, &h);
         
@@ -133,14 +144,14 @@ std::string Object::getHelp() const
     return std::string();
 }
 
-bool Object::operator==(Object const& other) const noexcept
-{
-    return m_ptr == other.m_ptr;
+
+
+void Object::setWidth(int width) {
+    ((t_text*)getPointer())->te_width = std::max<int>(3, round((float)width / sys_fontwidth(18)));
 }
 
-bool Object::operator!=(Object const& other) const noexcept
-{
-    return m_ptr != other.m_ptr;
+int Object::getWidth() const {
+    return ((t_text*)getPointer())->te_width * sys_fontwidth(18);
 }
 
 int Object::getNumInlets() noexcept {

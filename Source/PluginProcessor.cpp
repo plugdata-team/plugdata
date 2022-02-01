@@ -45,6 +45,8 @@ parameters(*this, nullptr, juce::Identifier("PlugData"),
     std::make_unique<juce::AudioParameterFloat>("param8", "Parameter 8", 0.0f, 1.0f, 0.0f) })
 {
     
+    lastAudioCallback = Time::getCurrentTime().toMilliseconds();
+    
     volume = parameters.getRawParameterValue("volume");
     enabled = parameters.getRawParameterValue("enabled");
     
@@ -225,6 +227,8 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     samplerate = sampleRate;
     sampsperblock = samplesPerBlock;
     
+    lastAudioCallback = Time::getCurrentTime().toMilliseconds();
+    
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate);
     //sendCurrentBusesLayoutInformation();
     m_audio_advancement = 0;
@@ -251,6 +255,8 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     helpAudioBufferOut.setSize(2, samplesPerBlock);
     
     meterSource.resize(numout, 50.0f * 0.001f * sampleRate / samplesPerBlock);
+    
+    audioStarted = true;
 }
 
 void PlugDataAudioProcessor::releaseResources()
@@ -291,13 +297,13 @@ void PlugDataAudioProcessor::run()
     while(!threadShouldExit()) {
         
         auto now = Time::getCurrentTime().toMilliseconds();
-        if(now - lastAudioCallback > 200 && getCallbackLock()->tryEnter() && !isSuspended() ) {
+        if(now - lastAudioCallback > 200 && getCallbackLock()->tryEnter() && !isSuspended() && audioStarted) {
             sendMessagesFromQueue();
             getCallbackLock()->exit();
             
             Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 40);
         }
-        else if(now - lastAudioCallback > 500) {
+        else if(now - lastAudioCallback > 500 && audioStarted) {
             canvasLock.lock();
             sendMessagesFromQueue();
             canvasLock.unlock();
@@ -602,6 +608,7 @@ void PlugDataAudioProcessor::messageEnqueued()
     }
     else
     {
+        
         const CriticalSection* cs = getCallbackLock();
         if(cs->tryEnter())
         {

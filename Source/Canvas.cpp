@@ -76,11 +76,11 @@ void Canvas::synchronise(bool updatePosition)
     deselectAll();
 
     patch.setCurrent();
+    patch.updateExtraInfo();
 
-    connections.clear();
-
+    //connections.clear();
+    
     auto objects = patch.getObjects();
-
     auto isObjectDeprecated = [&](pd::Object* obj) {
         for (auto& pdobj : objects) {
             if (pdobj == *obj) {
@@ -89,6 +89,26 @@ void Canvas::synchronise(bool updatePosition)
         }
         return true;
     };
+    
+    if(!isGraph) {
+        // Remove deprecated connections
+        for (int n = connections.size() - 1; n >= 0; n--) {
+            auto connection = connections[n];
+            
+            if(isObjectDeprecated(connection->start->box->pdObject.get()) || isObjectDeprecated(connection->end->box->pdObject.get())) {
+                connections.remove(n);
+            }
+            else
+            {
+                auto* start = (t_text*)connection->start->box->pdObject->getPointer();
+                auto* end = (t_text*)connection->end->box->pdObject->getPointer();
+                
+                if(!canvas_isconnected(patch.getPointer(), start, connection->outIdx, end, connection->inIdx)) {
+                    connections.remove(n);
+                }
+            }
+        }
+    }
 
     // Clear deleted boxes
     for (int n = boxes.size() - 1; n >= 0; n--) {
@@ -151,7 +171,7 @@ void Canvas::synchronise(bool updatePosition)
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
             if (updatePosition && box->getPosition().getDistanceFrom(Point<int>(x, y)) > 8) {
-                if(box->graphics && !box->graphics->fakeGUI()) y -= 22;
+                if(box->graphics && (!box->graphics->fakeGUI() || box->graphics->getGUI().getType() == pd::Type::Comment)) y -= 22;
                 box->setTopLeftPosition(x, y);
             }
 
@@ -169,7 +189,6 @@ void Canvas::synchronise(bool updatePosition)
     }
 
     // Make sure objects have the same order
-    
     std::sort(boxes.begin(), boxes.end(), [&objects](Box* first, Box* second) mutable {
         size_t idx1 = std::find(objects.begin(), objects.end(), *first->pdObject.get()) - objects.begin();
         size_t idx2 = std::find(objects.begin(), objects.end(), *second->pdObject.get()) - objects.begin();
@@ -177,22 +196,57 @@ void Canvas::synchronise(bool updatePosition)
         return idx1 < idx2;
     });
 
-    t_linetraverser t;
-    t_outconnect* oc;
-
     auto* x = patch.getPointer();
 
-    // Get connections from pd
-    linetraverser_start(&t, x);
-    while ((oc = linetraverser_next(&t))) {
-        int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
-        int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
+    auto pd_connections = patch.getConnections();
+    
+    if(!isGraph) {
+        
+        for(auto& connection : pd_connections) {
+            
+            auto& [inno, inobj, outno, outobj] = connection;
+            
+            int srcno = patch.getIndex(&inobj->te_g);
+            int sinkno = patch.getIndex(&outobj->te_g);
+            
+            auto& srcEdges = boxes[srcno]->edges;
+            auto& sinkEdges = boxes[sinkno]->edges;
+            
+            // TEMP: remove when we're sure this works
+            if(srcno >= boxes.size() || sinkno >= boxes.size() || outno >= srcEdges.size() || inno >= sinkEdges.size()) {
+                jassertfalse;
+            }
+            
+            auto it = std::find_if(connections.begin(), connections.end(), [this, &connection, &srcno, &sinkno](Connection* c) {
+            
+                auto& [inno, inobj, outno, outobj] = connection;
+                
+                if(!c->start || !c->end) return false;
+                
+                bool sameStart = c->start->box == boxes[srcno];
+                bool sameEnd = c->end->box == boxes[sinkno];
 
-        auto& srcEdges = boxes[srcno]->edges;
-        auto& sinkEdges = boxes[sinkno]->edges;
+                return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
 
-        if (srcno < boxes.size() && sinkno < boxes.size()) {
-            connections.add(new Connection(this, srcEdges[boxes[srcno]->numInputs + t.tr_outno], sinkEdges[t.tr_inno], true));
+            });
+            
+            if (it == connections.end()) {
+                connections.add(new Connection(this, srcEdges[boxes[srcno]->numInputs + outno], sinkEdges[inno], true));
+            }
+            else {
+                auto& connection = *(*it);
+                
+                auto currentID = connection.getID();
+                if(connection.lastID.isNotEmpty() && connection.lastID != currentID) {
+                    patch.setExtraInfoID(connection.lastID, currentID);
+                    connection.lastID = currentID;
+                }
+                
+                auto info = patch.getExtraInfo(currentID);
+                if(info.getSize()) connection.setState(info);
+                connection.repaint();
+            }
+            
         }
     }
 
@@ -432,7 +486,12 @@ void Canvas::mouseDrag(const MouseEvent& e)
             
             bool intersect = false;
             for (float i = 0; i < 1; i += 0.005) {
-                if (lasso.getBounds().contains(con->path.getPointAlongPath(i * con->path.getLength()).toInt() + con->getPosition())) {
+               
+                auto point = con->toDraw.getPointAlongPath(i * con->toDraw.getLength());
+                
+                if(!point.isFinite()) continue;
+                
+                if (lasso.getBounds().contains(point.toInt() + con->getPosition())) {
                     intersect = true;
                 }
             }
@@ -532,8 +591,12 @@ void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
     // Pd draws this over all siblings, even when drawn inside a graph!
     // To mimic this we find the drawables from the top-level canvas and paint it over everything
     
+    auto objects = patch.getObjects();
+    
     int n = 0;
-    for (auto* gobj = cnv->gl_list; gobj; gobj = gobj->g_next) {
+    for(auto& obj : objects) {
+        auto* gobj = (t_gobj*)obj.getPointer();
+        
         // Recurse for graphs
         if (gobj->g_pd == canvas_class) {
             if (boxes[n]->graphics && boxes[n]->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
@@ -572,6 +635,7 @@ void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
         }
         n++;
     }
+
 }
 
 //==============================================================================

@@ -87,6 +87,9 @@ public:
     void processMidi();
     
     void openPatch(std::string const& path, std::string const& name);
+    void setFilename(std::string const& path, std::string const& name);
+    
+    bool isDirty();
     
     void closePatch();
     Patch getPatch();

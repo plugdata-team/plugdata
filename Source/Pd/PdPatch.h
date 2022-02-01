@@ -13,6 +13,8 @@
 
 namespace pd
 {
+
+using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
 class Instance;
 // ==================================================================================== //
 //                                          PATCHER                                     //
@@ -51,7 +53,7 @@ public:
     std::unique_ptr<Object> createGraph(String name, int size, int x, int y);
     std::unique_ptr<Object> createGraphOnParent(int x, int y);
     
-    std::unique_ptr<Object> createObject(String name, int x, int y);
+    std::unique_ptr<Object> createObject(String name, int x, int y, bool undoable = true);
     void removeObject(Object* obj);
     std::unique_ptr<Object> renameObject(Object* obj, String name);
    
@@ -86,6 +88,9 @@ public:
     bool createConnection(Object* src, int nout, Object* sink, int nin);
     void removeConnection(Object* src, int nout, Object*sink, int nin);
     
+    
+    Connections getConnections();
+    
     inline static CriticalSection currentCanvasMutex;
     
     t_canvas* getPointer() const {
@@ -104,10 +109,31 @@ public:
     }
     
     
+    
+    int getIndex(void* obj);
+    
+    t_gobj* getInfoObject();
+    void setExtraInfoID(String oldID, String newID);
+    
+    void storeExtraInfo(bool undoable = true);
+    
+    void updateExtraInfo();
+    MemoryBlock getExtraInfo(String ID);
+    void setExtraInfo(String ID, MemoryBlock& info);
+    
+    ValueTree extraInfo = ValueTree("PlugDataInfo");
+    
     String getPatchPath() {
         if(!m_ptr) return String();
         
         return String(canvas_getdir(getPointer())->s_name);
+    }
+    
+    File getPatchFile() {
+        if(!m_ptr) return String();
+        
+        setCurrent();
+        return File(String(THISGUI->i_newdirectory->s_name) + "/" + String(THISGUI->i_newfilename->s_name));
     }
 
     t_object* checkObject(Object* obj) const noexcept;
