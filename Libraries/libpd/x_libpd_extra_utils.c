@@ -33,6 +33,7 @@ void* libpd_create_canvas(const char* name, const char* path)
     if(cnv)
     {
         canvas_vis(cnv, 1.f);
+        glob_setfilename(NULL, gensym(name), gensym(path));
     }
     return cnv;
 }
@@ -58,6 +59,7 @@ void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int
     *x = 0; *y = 0; *w = 0; *h = 0;
     
     gobj_getrect((t_gobj *)ptr, cnv, x, y, w, h);
+    
     *w -= *x;
     *h -= *y;
 }

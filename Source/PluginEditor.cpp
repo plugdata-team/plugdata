@@ -133,11 +133,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     connectionPathfind.onClick = [this]() {
         for(auto& c : getCurrentCanvas()->connections) {
             if(c->isSelected) {
-                c->applyBestPath();
+                c->applyPath(c->findPath());
             }
         }
     };
-    //addAndMakeVisible(connectionPathfind);
+    addAndMakeVisible(connectionPathfind);
 
 
     for (auto& button : toolbarButtons) {
@@ -159,8 +159,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             mainCanvas->createPatch();
             addTab(cnv);
         };
-
-        if (getMainCanvas()->changed()) {
+        
+        if (pd.isDirty()) {
             SaveDialog::show(this, [this, createFunc](int result) {
                 if (result == 2) {
                     saveProjectAs([this, createFunc]() mutable {
@@ -184,13 +184,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     // Save button
     toolbarButtons[2].setTooltip("Save Project");
     toolbarButtons[2].onClick = [this]() {
-        
+        saveProject();
     };
     
     // Save Ad button
     toolbarButtons[3].setTooltip("Save Project as");
     toolbarButtons[3].onClick = [this]() {
-        saveProject();
+        saveProjectAs();
     };
 
 
@@ -486,7 +486,7 @@ void PlugDataPluginEditor::resized()
         item.flexShrink = 1.0f;
         
         if(b == 4 || b == 6) {
-            auto item = FlexItem(seperators[b == 4]).withMinWidth(8.0f).withMaxWidth(400.0f);
+            auto item = FlexItem(seperators[b == 4]).withMinWidth(4.0f).withMaxWidth(300.0f);
             item.flexGrow = 1.0f;
             item.flexShrink = 1.0f;
             fb.items.add (item);
@@ -532,6 +532,15 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
     // cmd-e
     if (key.getModifiers().isCommandDown() && key.isKeyCode(69)) {
         lockButton.triggerClick();
+        return true;
+    }
+    
+    if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(89)) {
+        for(auto& connection : cnv->connections) {
+            if(connection->isSelected) {
+                connection->applyPath(connection->findPath());
+            }
+        }
         return true;
     }
 
@@ -673,7 +682,7 @@ void PlugDataPluginEditor::openProject()
         }
     };
 
-    if (getCurrentCanvas()->changed()) {
+    if (pd.isDirty()) {
 
         SaveDialog::show(this, [this, openFunc](int result) {
             if (result == 2) {
@@ -702,28 +711,41 @@ void PlugDataPluginEditor::saveProjectAs(std::function<void()> nestedCallback)
     saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, nestedCallback](const FileChooser& f) mutable {
         File result = saveChooser.getResult();
 
+        result.deleteFile();
+        
         FileOutputStream ostream(result);
         ostream.writeString(to_save);
 
         getCurrentCanvas()->title = result.getFileName();
+        
+        if(getCurrentCanvas() == getMainCanvas()) {
+            pd.setFilename(result.getParentDirectory().getFullPathName().toStdString(), result.getFileName().toStdString());
+        }
+
 
         nestedCallback();
     });
-
-    getCurrentCanvas()->knownLocation = true;
-    getCurrentCanvas()->hasChanged = false;
+    
+    if(getCurrentCanvas() == getMainCanvas()) {
+        getCurrentCanvas()->knownLocation = true;
+    }
+    
 }
 
 void PlugDataPluginEditor::saveProject()
 {
-    if(getCurrentCanvas()->knownLocation) {
-        auto to_save = getCurrentCanvas()->patch.getCanvasContent();
+    if(getMainCanvas()->knownLocation) {
+        auto to_save = getMainCanvas()->patch.getCanvasContent();
 
+        auto file = pd.getPatch().getPatchFile();
         
-        FileOutputStream ostream(File(pd.getPatch().getPatchPath()));
+        if(file.exists()) file.deleteFile();
+        
+        
+        FileOutputStream ostream(file);
+        
         ostream.writeString(to_save);
         
-        getCurrentCanvas()->hasChanged = false;
     }
     else {
         saveProjectAs();
@@ -753,8 +775,6 @@ void PlugDataPluginEditor::updateUndoState()
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {
         getCurrentCanvas()->patch.setCurrent();
-
-        getCurrentCanvas()->hasChanged = true;
 
         toolbarButtons[4].setEnabled(pd.canUndo);
         toolbarButtons[5].setEnabled(pd.canRedo);

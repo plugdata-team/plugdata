@@ -17,21 +17,21 @@ class Canvas;
 class Connection : public Component, public ComponentListener {
 public:
     
-    SafePointer<Edge> start, end;
-    Path path;
-    Path roundedPath;
-    PathPlan lastPlan;
-
-    Canvas* cnv;
-    
-    int dragIdx = -1;
-
     int inIdx;
     int outIdx;
     std::unique_ptr<pd::Object>* inObj;
     std::unique_ptr<pd::Object>* outObj;
     
-    int incrementX, incrementY;
+    SafePointer<Edge> start, end;
+    
+    PathPlan currentPlan;
+    Path toDraw;
+    
+    Canvas* cnv;
+    
+    String lastID;
+    
+    int dragIdx = -1;
 
     bool isSelected = false;
     int mouseDownPosition = 0;
@@ -50,16 +50,21 @@ public:
     void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
+    
+    String getID();
+    MemoryBlock getState();
+    void setState(MemoryBlock& block);
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
-
-    void applyBestPath();
     
     // Pathfinding
     int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
 
-    void findPath(Point<int> start, Point<int> end);
-    void applyPlan(PathPlan plan, Point<int> start, Point<int> end, bool shouldSnap = true);
+    void applyPath(PathPlan plan, bool updateState = true);
+    
+    PathPlan findPath();
+    
+    PathPlan scalePath(const PathPlan& plan);
     
     bool straightLineIntersectsObject(Line<int> first);
 private:

@@ -81,6 +81,10 @@ public:
     //! @brief The name of the help file
     std::string getHelp() const;
     
+    void setWidth(int width);
+    
+    int getWidth() const;
+    
     virtual inline Type getType() const noexcept {
         return Type::Undefined;
     }
