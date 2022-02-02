@@ -44,7 +44,7 @@ GUIComponent::~GUIComponent()
 void GUIComponent::initParameters()
 {
     if(gui.getType() == pd::Type::Number) {
-        auto color = Colour::fromString(secondaryColour).brighter(0.1f);
+        auto color = Colour::fromString(secondaryColour);
         secondaryColour = color.toString();
         setBackground(color);
     }
