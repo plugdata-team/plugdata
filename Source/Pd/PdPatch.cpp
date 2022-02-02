@@ -61,6 +61,26 @@ m_ptr(ptr), m_instance(instance)
 
 }
 
+void Patch::saveToFile(File location) {
+
+}
+
+void Patch::save() {
+    
+}
+
+struct fake_canvasenvironment
+{
+    t_symbol *ce_dir;      /* directory patch lives in */
+    int ce_argc;           /* number of "$" arguments */
+    t_atom *ce_argv;       /* array of "$" arguments */
+    int ce_dollarzero;     /* value of "$0" */
+    void* ce_path;   /* search path */
+};
+
+
+
+
 std::array<int, 4> Patch::getBounds() const noexcept
 {
     if(m_ptr)
@@ -615,6 +635,7 @@ MemoryBlock Patch::getExtraInfo(String ID) {
     
     return block;
 }
+
 
 void Patch::setExtraInfo(String ID, MemoryBlock& info) {
     

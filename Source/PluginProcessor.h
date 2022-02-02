@@ -17,7 +17,7 @@
  */
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer {
+class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer, public PatchLoader {
 
 public:
     //==============================================================================
@@ -50,8 +50,7 @@ public:
     int callbackType = 0;
     void timerCallback() override;
 
-    // pure-data run loop when DAW isn't calling process block
-    
+    // Run loop when DAW isn't calling process block
     void run() override;
 
     //==============================================================================
@@ -131,7 +130,8 @@ public:
     
     void messageEnqueued() override;
     
-    void loadPatch(String patch);
+    void loadPatch(String patch) override;
+    void loadPatch(File patch) override;
 
     Console* console;
 

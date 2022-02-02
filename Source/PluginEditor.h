@@ -34,7 +34,7 @@ struct TabComponent : public TabbedComponent {
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor,  public ChangeBroadcaster, public FileOpener, public KeyListener  {
+class PlugDataPluginEditor : public AudioProcessorEditor,  public ChangeBroadcaster, public KeyListener  {
     
 public:
     
@@ -66,12 +66,11 @@ public:
     void mouseUp(const MouseEvent& e) override;
 
     void openProject();
-    void saveProject();
+    void saveProject(std::function<void()> nestedCallback = [](){});
     void saveProjectAs(std::function<void()> nestedCallback = [](){});
     
     void addTab(Canvas* cnv);
     
-    void openFile(String path) override;
 
     Canvas* getCurrentCanvas();
     Canvas* getMainCanvas();
@@ -86,8 +85,6 @@ public:
     TabComponent& getTabbar() { return tabbar; };
 
     PlugDataAudioProcessor& pd;
-
-    const std::string defaultPatch = "#N canvas 827 239 527 327 12;";
 
     Canvas* mainCanvas = nullptr;
     AffineTransform transform;

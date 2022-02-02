@@ -957,10 +957,9 @@ void GraphOnParent::updateCanvas()
     //  But it's also kinda weird
     if (!canvas) {
 
-        canvas.reset(new Canvas(box->cnv->main, true));
+        canvas.reset(new Canvas(box->cnv->main, subpatch, true));
         canvas->title = "Subpatcher";
         addAndMakeVisible(canvas.get());
-        canvas->loadPatch(subpatch);
 
         auto [x, y, w, h] = getPatch()->getBounds();
 

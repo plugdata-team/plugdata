@@ -43,9 +43,10 @@ namespace juce
     @tags{Audio}
 */
 
-struct FileOpener
+struct PatchLoader
 {
-    virtual void openFile(String path) = 0;
+    virtual void loadPatch(File file) = 0;
+    virtual void loadPatch(String content) = 0;
 };
 
 class StandalonePluginHolder    : private AudioIODeviceCallback,
