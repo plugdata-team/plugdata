@@ -553,7 +553,8 @@ void Instance::sendMessagesFromQueue()
 
 Patch Instance::openPatch(File toOpen)
 {
-    auto* dir = toOpen.getParentDirectory().getFullPathName().toRawUTF8();
+    String dirname = toOpen.getParentDirectory().getFullPathName();
+    auto* dir = dirname.toRawUTF8();
     
     
     String filename = toOpen.getFileName();
@@ -577,8 +578,11 @@ Patch Instance::openPatch(File toOpen)
 
 void Instance::savePatch(File location)
 {
-    auto* dir = gensym(location.getParentDirectory().getFullPathName().toRawUTF8());
-    auto* file = gensym(location.getFileName().toRawUTF8());
+    String fullPathname = location.getParentDirectory().getFullPathName();
+    String filename = location.getFileName();
+    
+    auto* dir = gensym(fullPathname.toRawUTF8());
+    auto* file = gensym(filename.toRawUTF8());
     libpd_savetofile(getPatch().getPointer(), file, dir);
     
     canvas_dirty(getPatch().getPointer(), 0);
@@ -587,9 +591,12 @@ void Instance::savePatch(File location)
 
 void Instance::savePatch()
 {
+    String fullPathname = currentFile.getParentDirectory().getFullPathName();
+    String filename = currentFile.getFileName();
     
-    auto* dir = gensym(currentFile.getParentDirectory().getFullPathName().toRawUTF8());
-    auto* file = gensym(currentFile.getFileName().toRawUTF8());
+    auto* dir = gensym(fullPathname.toRawUTF8());
+    auto* file = gensym(filename.toRawUTF8());
+
     libpd_savetofile(getPatch().getPointer(), file, dir);
     
     canvas_dirty(getPatch().getPointer(), 0);

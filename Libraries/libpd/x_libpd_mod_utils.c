@@ -515,7 +515,6 @@ void libpd_savetofile(t_canvas *x, t_symbol *filename, t_symbol *dir)
     t_binbuf *b = binbuf_new();
     libpd_savetemplatesto(x, b, 1);
     libpd_canvas_saveto(x, b);
-    int errno = 0;
     if (binbuf_write(b, filename->s_name, dir->s_name, 0)) {
         //post("%s/%s: %s", dir->s_name, filename->s_name,
         //     (errno ? strerror(errno) : "write failed"));

@@ -118,7 +118,9 @@ std::string Object::getHelp() const
 
     char realname[MAXPDSTRING], dirbuf[MAXPDSTRING];
         /* make up a silly "dir" if none is supplied */
-    const char *usedir = (*dir ? dir :  helpDir.getFullPathName().toRawUTF8());
+    
+    String fullPath = helpDir.getFullPathName();
+    const char *usedir = (*dir ? dir :  fullPath.toRawUTF8());
 
         /* 1. "objectname-help.pd" */
     strncpy(realname, name, MAXPDSTRING-10);
