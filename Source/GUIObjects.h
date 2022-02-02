@@ -727,7 +727,7 @@ struct MousePad : public GUIComponent {
     } t_pad;
     
     MousePad(pd::Gui gui, Box* box);
-    
+    ~MousePad();
     void paint(Graphics& g) override;
     
     void updateValue() override;

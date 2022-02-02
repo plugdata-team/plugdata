@@ -1076,6 +1076,10 @@ MousePad::MousePad(pd::Gui gui, Box* box)
     // setInterceptsMouseClicks(false, true);
 }
 
+MousePad::~MousePad() {
+    Desktop::getInstance().removeGlobalMouseListener(this);
+}
+
 void MousePad::paint(Graphics& g) {
 
 };
