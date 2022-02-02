@@ -136,7 +136,7 @@ void impseq_showimpseq(t_impseq *x, t_floatarg p){
         
     }
     else {
-        error("no pattern stored at location %d",location);
+        pd_error(x, "no pattern stored at location %d",location);
     }
 }
 
@@ -157,7 +157,7 @@ void impseq_recall(t_impseq *x, t_floatarg p)
             x->phase = 0;
         }
     } else {
-        error("no pattern stored at location %d",location);
+        pd_error(x, "no pattern stored at location %d",location);
     }
 }
 
@@ -171,11 +171,11 @@ void impseq_playonce(t_impseq *x, t_floatarg pnum){
 void impseq_sequence(t_impseq *x, t_symbol *msg, short argc, t_atom *argv){
     int i;
 	if(argc > MAXSEQ){
-		error("%d exceeds possible length for a sequence",argc);
+		pd_error(x, "%d exceeds possible length for a sequence",argc);
 		return;
 	}
 	if(argc < 1){
-		error("you must sequence at least 1 impseq");
+		pd_error(x, "you must sequence at least 1 impseq");
 		return;
 	}
 	for(i = 0; i < argc; i++){
@@ -198,16 +198,16 @@ void impseq_addimpseq(t_impseq *x, t_symbol *msg, short argc, t_atom *argv){
     int location;
     int i;
     if(argc < 2){
-        error("must specify location and impseq");
+        pd_error(x, "must specify location and impseq");
         return;
     }
     if(argc > MAXLEN){
-        error("impseq is limited to length %d",MAXLEN);
+        pd_error(x, "impseq is limited to length %d",MAXLEN);
         return;
     }
     location = atom_getintarg(0,argc,argv);
     if(location < 0 || location > MAXimpseqS - 1){
-        error("illegal location");
+        pd_error(x, "illegal location");
         return;
     }
     if(x->impseqs[location].pat == NULL){

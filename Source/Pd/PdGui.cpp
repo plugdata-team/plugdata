@@ -805,7 +805,8 @@ Label Gui::getLabel() const noexcept
     }
     else if(isAtom())
     {
-        t_symbol const* sym = canvas_realizedollar(static_cast<t_fake_gatom*>(m_ptr)->a_glist, static_cast<t_fake_gatom*>(m_ptr)->a_label);
+        auto* gatom = static_cast<t_fake_gatom*>(m_ptr);
+        t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
         if(sym)
         {
             auto const text         = std::string(sym->s_name);

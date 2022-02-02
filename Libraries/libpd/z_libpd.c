@@ -24,8 +24,6 @@
 #include "m_imp.h"
 #include "g_all_guis.h"
 
-#include "s_libpd_inter.h"
-
 #if PD_MINOR_VERSION < 46
 # define HAVE_SCHED_TICK_ARG
 #endif
@@ -90,7 +88,6 @@ int libpd_init(void) {
   STUFF->st_schedblocksize = DEFDACBLKSIZE;
   sys_init_fdpoll();
   libpdreceive_setup();
-  sys_set_audio_api(API_DUMMY);
   STUFF->st_searchpath = NULL;
   sys_libdir = gensym("");
   post("pd %d.%d.%d%s", PD_MAJOR_VERSION, PD_MINOR_VERSION,
@@ -156,14 +153,18 @@ int libpd_blocksize(void) {
 }
 
 int libpd_init_audio(int inChannels, int outChannels, int sampleRate) {
-  int indev[MAXAUDIOINDEV], inch[MAXAUDIOINDEV],
-       outdev[MAXAUDIOOUTDEV], outch[MAXAUDIOOUTDEV];
-  indev[0] = outdev[0] = DEFAULTAUDIODEV;
-  inch[0] = inChannels;
-  outch[0] = outChannels;
+  t_audiosettings as;
+  as.a_indevvec[0] = as.a_outdevvec[0] = DEFAULTAUDIODEV;
+  as.a_nindev = as.a_noutdev = as.a_nchindev = as.a_nchoutdev = 1;
+  as.a_chindevvec[0] = inChannels;
+  as.a_choutdevvec[0] = outChannels;
+  as.a_srate = sampleRate;
+  as.a_blocksize = DEFDACBLKSIZE;
+  as.a_callback = 0;
+  as.a_advance = -1;
+  as.a_api = API_DUMMY;
   sys_lock();
-  sys_set_audio_settings(1, indev, 1, inch,
-         1, outdev, 1, outch, sampleRate, -1, 1, DEFDACBLKSIZE);
+  sys_set_audio_settings(&as);
   sched_set_using_audio(SCHED_AUDIO_CALLBACK);
   sys_reopen_audio();
   sys_unlock();
@@ -604,7 +605,6 @@ int libpd_poll_gui(void) {
   sys_unlock();
   return (retval);
 }
-
 
 t_pdinstance *libpd_new_instance(void) {
 #ifdef PDINSTANCE
