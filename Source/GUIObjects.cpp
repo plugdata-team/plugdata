@@ -27,6 +27,10 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
+    
+    initialiseLabel();
+    
+    
 
     sendSymbol = gui.getSendSymbol();
     receiveSymbol = gui.getReceiveSymbol();
@@ -72,7 +76,8 @@ void GUIComponent::setForeground(Colour colour)
 
     // TODO: these functions aren't working correctly yet...
 
-    libpd_iemgui_set_foreground_color(gui.getPointer(), colour.toString().toRawUTF8());
+    String colourStr = colour.toString();
+    libpd_iemgui_set_foreground_color(gui.getPointer(), colourStr.toRawUTF8());
 }
 
 void GUIComponent::setBackground(Colour colour)
@@ -81,7 +86,8 @@ void GUIComponent::setBackground(Colour colour)
     getLookAndFeel().setColour(TextButton::buttonColourId, colour);
     getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
 
-    libpd_iemgui_set_background_color(gui.getPointer(), colour.toString().toRawUTF8());
+    String colourStr = colour.toString();
+    libpd_iemgui_set_background_color(gui.getPointer(), colourStr.toRawUTF8());
 }
 
 GUIComponent* GUIComponent::createGui(String name, Box* parent)
@@ -213,12 +219,12 @@ void GUIComponent::updateValue()
     }
 }
 
-std::unique_ptr<Label> GUIComponent::getLabel()
+void GUIComponent::initialiseLabel()
 {
     pd::Label const lbl = gui.getLabel();
     const String text = String(lbl.getText());
     if (text.isNotEmpty()) {
-        auto label = std::make_unique<Label>();
+        label = std::make_unique<Label>();
         if (label == nullptr) {
             return nullptr;
         }
@@ -234,6 +240,8 @@ std::unique_ptr<Label> GUIComponent::getLabel()
         label->setEditable(false, false);
         label->setInterceptsMouseClicks(false, false);
         label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColor())));
+        box->cnv->addAndMakeVisible(label.get());
+        
         return label;
     }
     return nullptr;

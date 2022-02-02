@@ -387,7 +387,8 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
             
             parameterAtom[0] = { pd::Atom(lastParameters[n]) };
             
-            sendList(("param" + String(n + 1)).toRawUTF8(), parameterAtom);
+            String toSend = ("param" + String(n + 1));
+            sendList(toSend.toRawUTF8(), parameterAtom);
         }
     }
     
@@ -799,8 +800,10 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
         location = istream.readString();
         if(location.exists()) {
             setCurrentFile(location);
+            
+            String parentPath = location.getParentDirectory().getFullPathName();
             // Add patch path to search path to make sure it finds the externals!
-            libpd_add_to_search_path(location.getParentDirectory().getFullPathName().toRawUTF8());
+            libpd_add_to_search_path(parentPath.toRawUTF8());
         }
     }
     
