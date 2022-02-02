@@ -58,15 +58,17 @@ public:
     void checkBounds();
 
     void paint(Graphics& g) override{
-        g.fillAll(MainLook::firstBackground);
-        
-        g.setColour(MainLook::secondBackground);
-        g.fillRect(zeroPosition.x, zeroPosition.y, getWidth(), getHeight());
-        
-        // draw origin
-        g.setColour(Colour(100, 100, 100));
-        g.drawLine(zeroPosition.x - 1, zeroPosition.y, zeroPosition.x - 1, getHeight());
-        g.drawLine(zeroPosition.x, zeroPosition.y - 1, getWidth(), zeroPosition.y - 1);
+        if(!isGraph) {
+            g.fillAll(MainLook::firstBackground);
+            
+            g.setColour(MainLook::secondBackground);
+            g.fillRect(zeroPosition.x, zeroPosition.y, getWidth(), getHeight());
+            
+            // draw origin
+            g.setColour(Colour(100, 100, 100));
+            g.drawLine(zeroPosition.x - 1, zeroPosition.y, zeroPosition.x - 1, getHeight());
+            g.drawLine(zeroPosition.x, zeroPosition.y - 1, getWidth(), zeroPosition.y - 1);
+        }
     }
     
     void deselectAll() override;
@@ -133,6 +135,7 @@ struct GraphArea : public Component, public ComponentDragger {
 
     void paint(Graphics& g) override
     {
+        
         g.setColour(MainLook::highlightColour);
         g.drawRect(getLocalBounds());
 

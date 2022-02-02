@@ -1072,6 +1072,7 @@ void CommentComponent::paint(Graphics& g)
 MousePad::MousePad(pd::Gui gui, Box* box)
     : GUIComponent(gui, box)
 {
+    Desktop::getInstance().addGlobalMouseListener(this);
     // setInterceptsMouseClicks(false, true);
 }
 
@@ -1085,6 +1086,8 @@ void MousePad::updateValue() {
 
 void MousePad::mouseDown(const MouseEvent& e)
 {
+    
+    if(!getScreenBounds().contains(e.getScreenPosition())) return;
 
     auto* glist = gui.getPatch().getPointer();
     auto* x = static_cast<t_pad*>(gui.getPointer());
@@ -1103,11 +1106,14 @@ void MousePad::mouseDown(const MouseEvent& e)
 
 void MousePad::mouseDrag(const MouseEvent& e)
 {
+    
     mouseMove(e);
 }
 
 void MousePad::mouseMove(const MouseEvent& e)
 {
+    if(!getScreenBounds().contains(e.getScreenPosition())) return;
+           
     auto* glist = gui.getPatch().getPointer();
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
@@ -1125,6 +1131,8 @@ void MousePad::mouseMove(const MouseEvent& e)
 
 void MousePad::mouseUp(const MouseEvent& e)
 {
+    if(!getScreenBounds().contains(e.getScreenPosition())) return;
+       
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[1];
     SETFLOAT(at, 0);
