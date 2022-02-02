@@ -139,7 +139,7 @@ Type Gui::getType(void* ptr) noexcept
         else {
             m_type = Type::Comment;
         }
-       
+        
     }
     else if(name == "message")
     {
@@ -372,7 +372,7 @@ float Gui::getValue() const noexcept
 {
     
     //const ScopedLock lock(*m_instance->getCallbackLock());
-
+    
     if(!m_ptr)
         return 0.f;
     if(m_type == Type::HorizontalSlider)
@@ -717,10 +717,10 @@ void Gui::setReceiveSymbol(const std::string& symbol) const noexcept {
         auto* iemgui = static_cast<t_iemgui*>(m_ptr);
         
         int rcvable = 1, oldsndrcvable = 0;
-
+        
         if(iemgui->x_fsf.x_rcv_able)
             oldsndrcvable += IEM_GUI_OLD_RCV_FLAG;
-
+        
         if(symbol == "empty") rcvable = 0;
         
         //iemgui_all_raute2dollar(srl);
@@ -741,7 +741,7 @@ void Gui::setReceiveSymbol(const std::string& symbol) const noexcept {
             pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
             iemgui->x_rcv = gensym(symbol.c_str());
         }
-
+        
         iemgui->x_fsf.x_rcv_able = rcvable;
         
         iemgui->x_rcv = gensym(symbol.c_str());
@@ -780,6 +780,64 @@ std::string Gui::getReceiveSymbol() noexcept {
 // ==================================================================================== //
 //                                      LABEL                                           //
 // ==================================================================================== //
+
+
+Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
+{
+    m_instance->setThis();
+    
+    auto const fontheight = 17;
+    
+    
+    
+    if(isIEM())
+    {
+        t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(m_ptr)->x_glist, static_cast<t_iemgui*>(m_ptr)->x_lab);
+        if(sym) {
+            auto const* iemgui  = static_cast<t_iemgui*>(m_ptr);
+            int const posx = bounds.getX() + iemgui->x_ldx;
+            int const posy = bounds.getY() + iemgui->x_ldy;
+            return {posx, posy};
+        }
+    }
+    else if(isAtom())
+    {
+        auto* gatom = static_cast<t_fake_gatom*>(m_ptr);
+        
+        t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
+        if(sym)
+        {
+            auto const text = std::string(sym->s_name);
+            
+            if (gatom->a_wherelabel == 0) // Left
+            {
+                auto const nchars   = static_cast<int>(text.size());
+                auto const fwidth   = glist_fontwidth(static_cast<t_fake_gatom*>(m_ptr)->a_glist);
+                auto const posx     = bounds.getX() - 4 - nchars * fwidth;
+                auto const posy     = bounds.getY() + 2 + fontheight / 2;
+                return {posx, posy};
+            }
+            else if (gatom->a_wherelabel == 1) // Right
+            {
+                auto const posx     = bounds.getX() + bounds.getWidth() + 2;
+                auto const posy     = bounds.getY() + 2 + fontheight / 2;
+                return {posx, posy};
+            }
+            else if (gatom->a_wherelabel == 2) // Up
+            {
+                auto const posx     = bounds.getX() - 1;
+                auto const posy     = bounds.getY() - 1 - fontheight / 2;
+                return {posx, posy};
+            }
+            auto const posx     = bounds.getX() - 1;
+            auto const posy     = bounds.getY() + bounds.getHeight() + 2 + fontheight / 2;
+            return {posx, posy}; // Down
+        }
+    }
+    return {bounds.getX(), bounds.getY()};
+    
+    
+}
 
 Label Gui::getLabel() const noexcept
 {

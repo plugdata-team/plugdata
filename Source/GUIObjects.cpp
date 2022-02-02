@@ -28,7 +28,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)
     min = gui.getMinimum();
     max = gui.getMaximum();
     
-    initialiseLabel();
+    updateLabel();
     
     
 
@@ -42,6 +42,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)
 
 GUIComponent::~GUIComponent()
 {
+    box->removeComponentListener(this);
     setLookAndFeel(nullptr);
 }
 
@@ -219,7 +220,17 @@ void GUIComponent::updateValue()
     }
 }
 
-void GUIComponent::initialiseLabel()
+void GUIComponent::componentMovedOrResized(Component& component, bool moved, bool resized) {
+    if(label) {
+        Point<int> position = gui.getLabelPosition(component.getBounds());
+  
+        const int width = 100;
+        const int height = 50;
+        label->setBounds(position.x, position.y, width, height);
+    }
+}
+
+void GUIComponent::updateLabel()
 {
     pd::Label const lbl = gui.getLabel();
     const String text = String(lbl.getText());
@@ -241,10 +252,8 @@ void GUIComponent::initialiseLabel()
         label->setInterceptsMouseClicks(false, false);
         label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColor())));
         box->cnv->addAndMakeVisible(label.get());
-        
-        return label;
+        box->addComponentListener(this);
     }
-    return nullptr;
 }
 
 pd::Gui GUIComponent::getGUI()

@@ -114,7 +114,7 @@ public:
     {
         setupAudioDevices (enableAudioInput, preferredDefaultDeviceName, options.get());
 #if JUCE_DEBUG
-        reloadPluginState();
+        //reloadPluginState();
 #endif
         startPlaying();
 

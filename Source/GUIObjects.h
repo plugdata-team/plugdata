@@ -23,7 +23,7 @@
 
 class Canvas;
 class Box;
-struct GUIComponent : public Component {
+struct GUIComponent : public Component, public ComponentListener {
     
     GUIComponent(pd::Gui gui, Box* parent);
     
@@ -34,6 +34,8 @@ struct GUIComponent : public Component {
     virtual void update() {};
     
     virtual void initParameters();
+    
+    void componentMovedOrResized(Component& component, bool moved, bool resized) override;
     
     void paint(Graphics& g) override
     {
@@ -133,7 +135,7 @@ struct GUIComponent : public Component {
     
     std::unique_ptr<Label> label;
     
-    void initialiseLabel();
+    void updateLabel();
     pd::Gui getGUI();
     
     float getValueOriginal() const noexcept;

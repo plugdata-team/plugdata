@@ -163,7 +163,9 @@ void Canvas::synchronise(bool updatePosition)
             guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
             auto* newBox = boxes.add(new Box(pdObject, this, name, { (int)x, (int)y }));
-            newBox->toBack();
+            newBox->toFront(false);
+            
+            if(newBox->graphics && newBox->graphics->label) newBox->graphics->label->toFront(false);
 
             // Don't show non-patchable (internal) objects
             if (!patch.checkObject(&object))
@@ -182,7 +184,8 @@ void Canvas::synchronise(bool updatePosition)
                 box->setTopLeftPosition(x, y);
             }
 
-            box->toBack();
+            box->toFront(false);
+            if(box->graphics && box->graphics->label) box->graphics->label->toFront(false);
 
             // Reload colour information for
             if (box->graphics) {

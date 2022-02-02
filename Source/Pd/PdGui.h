@@ -106,7 +106,8 @@ namespace pd
         Array getArray() const noexcept;
         
         Label getLabel() const noexcept;
-            
+        Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
+        
         Patch getPatch() const noexcept;
         
         std::vector<Atom> getList() const noexcept;
@@ -145,6 +146,8 @@ namespace pd
         std::string getFontName() const;
     private:
         Label(Gui const& gui) noexcept;
+        
+        void* m_ptr;
         std::string const        m_text;
         unsigned int const       m_color;
         std::array<int, 2> const m_position;
