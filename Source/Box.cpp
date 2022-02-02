@@ -293,7 +293,7 @@ void Box::paint(Graphics& g)
     }
     // Draw for all other objects
     else {
-        if (!hideLabel) {
+        if (!hideLabel && !(graphics && graphics->getGUI().getType() == pd::Type::GraphOnParent)) {
             g.setColour(baseColour);
             g.fillRoundedRectangle(rect.toFloat().withTrimmedBottom(getHeight() - 31), 2.0f);
         }
