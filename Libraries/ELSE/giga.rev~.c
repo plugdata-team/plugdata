@@ -275,7 +275,7 @@ static inline void gverb_spread(t_gverb *x, t_floatarg f){
     x->x_ldifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
     x->x_ldifs[3] = diffuser_make((int)(diffscale*e), 0.625);
     if(!x->x_ldifs[0] || !x->x_ldifs[1] || !x->x_ldifs[2] || !x->x_ldifs[3]){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return;
     }
 // Right
@@ -291,7 +291,7 @@ static inline void gverb_spread(t_gverb *x, t_floatarg f){
     x->x_rdifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
     x->x_rdifs[3] = diffuser_make((int)(diffscale*e), 0.625);
     if(!x->x_rdifs[0] || !x->x_rdifs[1] || !x->x_rdifs[2] || !x->x_rdifs[3]){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return;
     }
 }
@@ -529,31 +529,31 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
 // FDN section
     x->x_fdndels = (t_fixeddelay **)t_getbytes(4*sizeof(t_fixeddelay *));
     if(!x->x_fdndels){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
     for(i = 0; i < 4; i++){
         x->x_fdndels[i] = fixeddelay_make((int)x->x_maxdelay+1000);
         if(!x->x_fdndels[i]){
-            error("[giga.rev~]: out of memory");
+            pd_error(x, "[giga.rev~]: out of memory");
             return (NULL);
         }
     }
     x->x_fdngains = (float *)t_getbytes(4*sizeof(float));
     x->x_fdnlens = (int *)t_getbytes(4*sizeof(int));
     if(!x->x_fdngains || !x->x_fdnlens){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
     x->x_fdndamps = (t_damper **)t_getbytes(4*sizeof(t_damper *));
     if(!x->x_fdndamps){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
     for(i = 0; i < 4; i++){
         x->x_fdndamps[i] = damper_make(x->x_fdndamp);
         if(!x->x_fdndamps[i]){
-            error("[giga.rev~]: out of memory");
+            pd_error(x, "[giga.rev~]: out of memory");
             return (NULL);
         }
     }
@@ -575,7 +575,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
     x->x_u = (float *)t_getbytes(4*sizeof(float));
     x->x_f = (float *)t_getbytes(4*sizeof(float));
     if(!x->x_d || !x->x_u || !x->x_f){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
 // Diffuser section
@@ -594,7 +594,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
     e = 1341-d;
     x->x_ldifs = (t_diffuser **)t_getbytes(4*sizeof(t_diffuser *));
     if(!x->x_ldifs){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
     x->x_ldifs[0] = diffuser_make((int)(diffscale*b), 0.75);
@@ -602,7 +602,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
     x->x_ldifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
     x->x_ldifs[3] = diffuser_make((int)(diffscale*e), 0.625);
     if(!x->x_ldifs[0] || !x->x_ldifs[1] || !x->x_ldifs[2] || !x->x_ldifs[3]){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
     b = 210;
@@ -617,7 +617,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
     e = 1341-d;
     x->x_rdifs = (t_diffuser **)t_getbytes(4*sizeof(t_diffuser *));
     if(!x->x_rdifs){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
     x->x_rdifs[0] = diffuser_make((int)(diffscale*b), 0.75);
@@ -625,7 +625,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
     x->x_rdifs[2] = diffuser_make((int)(diffscale*dd), 0.625);
     x->x_rdifs[3] = diffuser_make((int)(diffscale*e), 0.625);
     if(!x->x_rdifs[0] || !x->x_rdifs[1] || !x->x_rdifs[2] || !x->x_rdifs[3]){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
 // Tapped delay section
@@ -633,7 +633,7 @@ t_gverb *gverb_new(t_symbol *s, short ac, t_atom *av){
     x->x_taps = (int *)t_getbytes(4*sizeof(int));
     x->x_tapgains = (float *)t_getbytes(4*sizeof(float));
     if(!x->x_tapdelay || !x->x_taps || !x->x_tapgains){
-        error("[giga.rev~]: out of memory");
+        pd_error(x, "[giga.rev~]: out of memory");
         return (NULL);
     }
     x->x_taps[0] = 5+0.410*x->x_largestdelay;

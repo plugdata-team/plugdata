@@ -154,7 +154,7 @@ void retrieve_setup(void){
         pd_bind(&c, s);
         bindlist_class = *s->s_thing;
         if(!s->s_thing || !bindlist_class || bindlist_class->c_name != gensym("bindlist"))
-            error("[retrieve]: failure to initialize remote taking feature");
+            bug("[retrieve]: failure to initialize remote taking feature");
         pd_unbind(&c, s);
         pd_unbind(&retrieve_class, s);
     }

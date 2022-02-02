@@ -752,7 +752,7 @@ void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink
 {
     
     if(!canvas_isconnected(cnv, src, nout, sink, nin)) {
-        error("consistency check failed: non-existent connection");
+        bug("non-existent connection");
         return;
     }
     
