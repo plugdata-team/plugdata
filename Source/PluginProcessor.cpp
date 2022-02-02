@@ -773,7 +773,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(xmlBlock.getSize());
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-    ostream.writeString(getCurrentFile().getFullPathName());
+    _errno    ostream.writeString(getCurrentFile().getFullPathName());
 }
 
 void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes)

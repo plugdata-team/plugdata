@@ -517,8 +517,8 @@ void libpd_savetofile(t_canvas *x, t_symbol *filename, t_symbol *dir)
     libpd_canvas_saveto(x, b);
     int errno = 0;
     if (binbuf_write(b, filename->s_name, dir->s_name, 0)) {
-        post("%s/%s: %s", dir->s_name, filename->s_name,
-             (errno ? strerror(errno) : "write failed"));
+        //post("%s/%s: %s", dir->s_name, filename->s_name,
+        //     (errno ? strerror(errno) : "write failed"));
     }
     else
     {
