@@ -131,7 +131,9 @@ struct GUIComponent : public Component {
         return false;
     }
     
-    std::unique_ptr<Label> getLabel();
+    std::unique_ptr<Label> label;
+    
+    void initialiseLabel();
     pd::Gui getGUI();
     
     float getValueOriginal() const noexcept;
