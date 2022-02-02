@@ -47,6 +47,7 @@ void libpd_createconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink
 void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);
 
 void libpd_getcontent(t_canvas* cnv, char** buf, int* bufsize);
+void libpd_savetofile(t_canvas *x, t_symbol *filename, t_symbol *dir);
 
 int libpd_type_exists(const char* type);
 

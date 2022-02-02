@@ -107,6 +107,8 @@ public:
         return String(buf, bufsize);
     }
     
+    void saveToFile(File location);
+    void save();
     
     
     int getIndex(void* obj);
@@ -121,19 +123,6 @@ public:
     void setExtraInfo(String ID, MemoryBlock& info);
     
     ValueTree extraInfo = ValueTree("PlugDataInfo");
-    
-    String getPatchPath() {
-        if(!m_ptr) return String();
-        
-        return String(canvas_getdir(getPointer())->s_name);
-    }
-    
-    File getPatchFile() {
-        if(!m_ptr) return String();
-        
-        setCurrent();
-        return File(String(THISGUI->i_newdirectory->s_name) + "/" + String(THISGUI->i_newfilename->s_name));
-    }
 
     t_object* checkObject(Object* obj) const noexcept;
     

@@ -30,7 +30,7 @@ public:
     static inline constexpr int guiUpdateMs = 25;
 
     //==============================================================================
-    Canvas(PlugDataPluginEditor& parent, bool isGraph = false, bool isGraphChild = false);
+    Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool isGraph = false, bool isGraphChild = false);
 
     ~Canvas();
 
@@ -45,9 +45,6 @@ public:
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseMove(const MouseEvent& e) override;
-
-    void createPatch();
-    void loadPatch(pd::Patch patch);
 
     void synchronise(bool updatePosition = true);
 
@@ -93,9 +90,6 @@ public:
 
     bool isGraph = false;
     bool isGraphChild = false;
-    bool knownLocation = false;
-    
-
 
     String title = "Untitled Patcher";
 

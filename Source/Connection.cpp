@@ -9,12 +9,10 @@
 #include "Canvas.h"
 #include "Edge.h"
 
-
 //==============================================================================
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
 : start(s), end(e)
 {
-    
     // Should improve performance
     setBufferedToImage(true);
     
