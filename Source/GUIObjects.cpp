@@ -237,7 +237,7 @@ void GUIComponent::updateLabel()
     if (text.isNotEmpty()) {
         label = std::make_unique<Label>();
         if (label == nullptr) {
-            return nullptr;
+            return;
         }
         const int width = 100; // ft.getStringWidth(text) + 1;
         const int height = 100; // ft.getHeight();
