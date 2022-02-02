@@ -27,8 +27,9 @@ typedef struct _sr{
 
 static void audio_settings(int *pnaudioindev, int *paudioindev, int *pchindev, int *pnaudiooutdev,
     int *paudiooutdev, int *pchoutdev, int *prate, int *padvance, int *pcallback, int *psr){
-        sys_get_audio_params(pnaudioindev , paudioindev , pchindev, pnaudiooutdev,
-            paudiooutdev, pchoutdev, prate, padvance, pcallback, psr);
+        
+    //sys_get_audio_params(pnaudioindev , paudioindev , pchindev, pnaudiooutdev,
+    //        paudiooutdev, pchoutdev, prate, padvance, pcallback, psr);
 }
 
 static void sr_apply(t_sr *x){
