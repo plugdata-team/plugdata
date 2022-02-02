@@ -34,6 +34,7 @@ void* libpd_create_canvas(const char* name, const char* path)
     {
         canvas_vis(cnv, 1.f);
         glob_setfilename(NULL, gensym(name), gensym(path));
+        canvas_rename(cnv, gensym(name), gensym(path));
     }
     return cnv;
 }

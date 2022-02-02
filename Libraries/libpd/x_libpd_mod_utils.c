@@ -61,7 +61,7 @@ void libpd_moveselection(t_canvas *x, int dx, int dy)
     }
     for (y = x->gl_editor->e_selection; y; y = y->sel_next)
     {
-
+        
         t_class *cl = pd_class(&y->sel_what->g_pd);
         gobj_displace(y->sel_what, x, dx, dy);
         if (cl == vinlet_class) resortin = 1;
@@ -100,7 +100,7 @@ t_pd* libpd_newest(t_canvas* cnv)
 void libpd_canvas_doclear(t_canvas *x)
 {
     
-
+    
     
     t_gobj *y, *y2;
     int dspstate;
@@ -108,15 +108,15 @@ void libpd_canvas_doclear(t_canvas *x)
     dspstate = canvas_suspend_dsp();
     
     /* don't clear connections, call removeconnection instead
-    if (x->gl_editor && x->gl_editor->e_selectedline)
-    {
-        canvas_disconnect(x,
-                          x->gl_editor->e_selectline_index1,
-                          x->gl_editor->e_selectline_outno,
-                          x->gl_editor->e_selectline_index2,
-                          x->gl_editor->e_selectline_inno);
-        x->gl_editor->e_selectedline=0;
-    } */
+     if (x->gl_editor && x->gl_editor->e_selectedline)
+     {
+     canvas_disconnect(x,
+     x->gl_editor->e_selectline_index1,
+     x->gl_editor->e_selectline_outno,
+     x->gl_editor->e_selectline_index2,
+     x->gl_editor->e_selectline_inno);
+     x->gl_editor->e_selectedline=0;
+     } */
     
     /* if text is selected, deselecting it might remake the
      object. So we deselect it and hunt for a "new" object on
@@ -419,6 +419,126 @@ void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
     }
 }
 
+extern void canvas_doaddtemplate(t_symbol *templatesym,
+                                 int *p_ntemplates, t_symbol ***p_templatevec);
+
+static void canvas_addtemplatesforscalar(t_symbol *templatesym,
+    t_word *w, int *p_ntemplates, t_symbol ***p_templatevec)
+{
+    t_dataslot *ds;
+    int i;
+    t_template *template = template_findbyname(templatesym);
+    canvas_doaddtemplate(templatesym, p_ntemplates, p_templatevec);
+    if (!template)
+        bug("canvas_addtemplatesforscalar");
+    else for (ds = template->t_vec, i = template->t_n; i--; ds++, w++)
+    {
+        if (ds->ds_type == DT_ARRAY)
+        {
+            int j;
+            t_array *a = w->w_array;
+            int elemsize = a->a_elemsize, nitems = a->a_n;
+            t_symbol *arraytemplatesym = ds->ds_arraytemplate;
+            canvas_doaddtemplate(arraytemplatesym, p_ntemplates, p_templatevec);
+            for (j = 0; j < nitems; j++)
+                canvas_addtemplatesforscalar(arraytemplatesym,
+                    (t_word *)(((char *)a->a_vec) + elemsize * j),
+                        p_ntemplates, p_templatevec);
+        }
+    }
+}
+
+/* call this recursively to collect all the template names for
+ a canvas or for the selection. */
+static void canvas_collecttemplatesfor(t_canvas *x, int *ntemplatesp,
+                                       t_symbol ***templatevecp, int wholething)
+{
+    t_gobj *y;
+    
+    for (y = x->gl_list; y; y = y->g_next)
+    {
+        if ((pd_class(&y->g_pd) == scalar_class) &&
+            (wholething || glist_isselected(x, y)))
+            canvas_addtemplatesforscalar(((t_scalar *)y)->sc_template,
+                                         ((t_scalar *)y)->sc_vec,  ntemplatesp, templatevecp);
+        else if ((pd_class(&y->g_pd) == canvas_class) &&
+                 (wholething || glist_isselected(x, y)))
+            canvas_collecttemplatesfor((t_canvas *)y,
+                                       ntemplatesp, templatevecp, 1);
+    }
+}
+
+/* save the templates needed by a canvas to a binbuf. */
+static void libpd_savetemplatesto(t_canvas *x, t_binbuf *b, int wholething)
+{
+    t_symbol **templatevec = getbytes(0);
+    int i, ntemplates = 0;
+    canvas_collecttemplatesfor(x, &ntemplates, &templatevec, wholething);
+    for (i = 0; i < ntemplates; i++)
+    {
+        t_template *template = template_findbyname(templatevec[i]);
+        int j, m;
+        if (!template)
+        {
+            bug("canvas_savetemplatesto");
+            continue;
+        }
+        m = template->t_n;
+        /* drop "pd-" prefix from template symbol to print */
+        binbuf_addv(b, "sss", &s__N, gensym("struct"),
+                    gensym(templatevec[i]->s_name + 3));
+        for (j = 0; j < m; j++)
+        {
+            t_symbol *type;
+            switch (template->t_vec[j].ds_type)
+            {
+                case DT_FLOAT: type = &s_float; break;
+                case DT_SYMBOL: type = &s_symbol; break;
+                case DT_ARRAY: type = gensym("array"); break;
+                case DT_TEXT: type = gensym("text"); break;
+                default: type = &s_float; bug("canvas_write");
+            }
+            if (template->t_vec[j].ds_type == DT_ARRAY)
+                binbuf_addv(b, "sss", type, template->t_vec[j].ds_name,
+                            gensym(template->t_vec[j].ds_arraytemplate->s_name + 3));
+            else binbuf_addv(b, "ss", type, template->t_vec[j].ds_name);
+        }
+        binbuf_addsemi(b);
+    }
+    freebytes(templatevec, ntemplates * sizeof(*templatevec));
+}
+
+/* save a "root" canvas to a file; cf. canvas_saveto() which saves the
+ body (and which is called recursively.) */
+void libpd_savetofile(t_canvas *x, t_symbol *filename, t_symbol *dir)
+{
+    t_binbuf *b = binbuf_new();
+    libpd_savetemplatesto(x, b, 1);
+    libpd_canvas_saveto(x, b);
+    int errno = 0;
+    if (binbuf_write(b, filename->s_name, dir->s_name, 0)) {
+        post("%s/%s: %s", dir->s_name, filename->s_name,
+             (errno ? strerror(errno) : "write failed"));
+    }
+    else
+    {
+        /* if not an abstraction, reset title bar and directory */
+        if (!x->gl_owner)
+        {
+            canvas_rename(x, filename, dir);
+            /* update window list in case Save As changed the window name */
+            canvas_updatewindowlist();
+        }
+        post("saved to: %s/%s", dir->s_name, filename->s_name);
+        canvas_dirty(x, 0);
+        
+        // TODO: do something here?
+        //canvas_reload(filename, dir, x);
+    }
+    binbuf_free(b);
+    
+    glob_setfilename(NULL, filename, dir);
+}
 
 
 t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y) {
@@ -485,7 +605,7 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
 }
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int undoable) {
-        
+    
     sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     sys_unlock();
@@ -515,17 +635,17 @@ void libpd_removeobj(t_canvas* cnv, t_gobj* obj)
 }
 
 /* recursively deselect everything in a gobj "g", if it happens to be
-   a glist, in preparation for deselecting g itself in glist_dselect() */
+ a glist, in preparation for deselecting g itself in glist_dselect() */
 static void glist_checkanddeselectall(t_glist *gl, t_gobj *g)
 {
-t_glist *gl2;
-t_gobj *g2;
-if (pd_class(&g->g_pd) != canvas_class)
-    return;
-gl2 = (t_glist *)g;
-for (g2 = gl2->gl_list; g2; g2 = g2->g_next)
-    glist_checkanddeselectall(gl2, g2);
-glist_noselect(gl2);
+    t_glist *gl2;
+    t_gobj *g2;
+    if (pd_class(&g->g_pd) != canvas_class)
+        return;
+    gl2 = (t_glist *)g;
+    for (g2 = gl2->gl_list; g2; g2 = g2->g_next)
+        glist_checkanddeselectall(gl2, g2);
+    glist_noselect(gl2);
 }
 
 
@@ -573,7 +693,7 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
     
     canvas_editmode(cnv, 0);
     sys_unlock();
-
+    
 }
 
 
@@ -598,7 +718,7 @@ int libpd_can_redo(t_canvas* cnv) {
     return 0;
 }
 
-    
+
 void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
 {
     glist_noselect(cnv);

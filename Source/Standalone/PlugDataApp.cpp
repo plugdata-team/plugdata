@@ -62,10 +62,16 @@ public:
     void anotherInstanceStarted (const String &commandLine) override {
         auto file = File(commandLine);
         if(file.existsAsFile()) {
-            auto* pluginEditor = dynamic_cast<FileOpener*>(mainWindow->getContentComponent()->getChildComponent(0));
+            auto* pd = dynamic_cast<PatchLoader*>(mainWindow->getAudioProcessor());
             
-            if(pluginEditor) {
-                pluginEditor->openFile(commandLine.upToFirstOccurrenceOf(" ", false, false));
+            if(pd) {
+                auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
+                if(file.existsAsFile()) {
+                    pd->loadPatch(file);
+                    // TODO: REENABLE THIS
+                    //pluginEditor->openFile(file);
+                }
+               
             }
         }
     }

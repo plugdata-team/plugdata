@@ -551,29 +551,48 @@ void Instance::sendMessagesFromQueue()
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-void Instance::openPatch(std::string const& path, std::string const& name)
+Patch Instance::openPatch(File toOpen)
 {
+    auto* dir = toOpen.getParentDirectory().getFullPathName().toRawUTF8();
+    
+    
+    String filename = toOpen.getFileName();
+    auto* file = filename.toRawUTF8();
+    
     closePatch();
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
-    canvasLock.lock();
-    m_patch = libpd_create_canvas(name.c_str(), path.c_str());
     
-
+    canvasLock.lock();
+    
+    m_patch = libpd_create_canvas(file, dir);
+    
     canvas_setcurrent(static_cast<t_canvas*>(m_patch));
     canvasLock.unlock();
     setThis();
     
+    currentFile = toOpen;
+ 
+    return getPatch();
 }
 
-void Instance::setFilename(std::string const& path, std::string const& name)
+void Instance::savePatch(File location)
 {
-    libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
-    canvasLock.lock();
+    auto* dir = gensym(location.getParentDirectory().getFullPathName().toRawUTF8());
+    auto* file = gensym(location.getFileName().toRawUTF8());
+    libpd_savetofile(getPatch().getPointer(), file, dir);
     
-    glob_setfilename(NULL, gensym(path.c_str()), gensym(name.c_str()));
+    canvas_dirty(getPatch().getPointer(), 0);
+    currentFile = location;
+}
+
+void Instance::savePatch()
+{
     
-    canvasLock.unlock();
-    setThis();
+    auto* dir = gensym(currentFile.getParentDirectory().getFullPathName().toRawUTF8());
+    auto* file = gensym(currentFile.getFileName().toRawUTF8());
+    libpd_savetofile(getPatch().getPointer(), file, dir);
+    
+    canvas_dirty(getPatch().getPointer(), 0);
 }
 
 bool Instance::isDirty() {

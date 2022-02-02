@@ -14,11 +14,12 @@
 
 
 //==============================================================================
-Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool graphChild)
     : MultiComponentDragger<Box>(this, &boxes)
     , main(parent)
-    , pd(&parent.pd),
-      suggestor(parent.resources.get())
+    , pd(&parent.pd)
+    , patch(patch)
+    , suggestor(parent.resources.get())
 {
     isGraph = graph;
     isGraphChild = graphChild;
@@ -55,6 +56,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, bool graph, bool graphChild)
     
     addChildComponent(suggestor);
     
+    synchronise();
+    
 }
 
 Canvas::~Canvas()
@@ -77,6 +80,7 @@ void Canvas::synchronise(bool updatePosition)
 
     pd->waitForStateUpdate();
     deselectAll();
+    
 
     patch.setCurrent();
     patch.updateExtraInfo();
@@ -259,30 +263,6 @@ void Canvas::synchronise(bool updatePosition)
     checkBounds();
 }
 
-void Canvas::createPatch()
-{
-    // Create the pd save file
-    auto tempPatch = File::createTempFile(".pd");
-    tempPatch.replaceWithText(main.defaultPatch);
-
-    auto* cs = pd->getCallbackLock();
-    
-    //cs->enter();
-    // Load the patch into libpd
-    pd->openPatch(tempPatch.getParentDirectory().getFullPathName().toStdString(), tempPatch.getFileName().toStdString());
-
-    patch = pd->getPatch();
-    
-    //cs->exit();
-
-    synchronise();
-}
-
-void Canvas::loadPatch(pd::Patch patch)
-{
-    this->patch = patch;
-    synchronise();
-}
 
 
 void Canvas::mouseDown(const MouseEvent& e)
@@ -365,12 +345,11 @@ void Canvas::mouseDown(const MouseEvent& e)
                     }
                 }
                 bool isGraphChild = lassoSelection.getSelectedItem(0)->graphics.get()->getGUI().getType() == pd::Type::GraphOnParent;
-                auto* newCanvas = main.canvases.add(new Canvas(main, false, isGraphChild));
+                auto* newCanvas = main.canvases.add(new Canvas(main, *subpatch, false, isGraphChild));
                 newCanvas->title = lassoSelection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false);
-                auto patchCopy = *subpatch;
-                newCanvas->loadPatch(patchCopy);
+
                 
-                auto [x, y, w, h] = patchCopy.getBounds();
+                auto [x, y, w, h] = subpatch->getBounds();
 
                 if (isGraphChild) {
                     newCanvas->graphArea->setBounds(x, y, std::max(w, 60), std::max(h, 60));
@@ -415,18 +394,14 @@ void Canvas::mouseDown(const MouseEvent& e)
 
                 lock->enter();
                     
+                ownedProcessor->loadPatch(File(helpName));
                     
-                    
-                auto* new_cnv = main.canvases.add(new Canvas(main));
+                
+                auto* new_cnv = main.canvases.add(new Canvas(main, ownedProcessor->getPatch()));
                 new_cnv->aux_instance.reset(ownedProcessor); // Help files need their own instance
                 new_cnv->pd = ownedProcessor;
                 new_cnv->title = String(helpName).fromLastOccurrenceOf("/", false, false);
                 
-                new_cnv->pd->prepareToPlay(pd->getSampleRate(), pd->AudioProcessor::getBlockSize());
-
-                ownedProcessor->loadPatch(helpName);
-                new_cnv->loadPatch(ownedProcessor->getPatch());
-
                 ownedProcessor->prepareToPlay(pd->getSampleRate(), pd->AudioProcessor::getBlockSize());
                 main.addTab(new_cnv);
 
@@ -607,16 +582,15 @@ void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
     // Pd draws this over all siblings, even when drawn inside a graph!
     // To mimic this we find the drawables from the top-level canvas and paint it over everything
     
-    auto objects = patch.getObjects();
-    
-    int n = 0;
-    for(auto& obj : objects) {
-        auto* gobj = (t_gobj*)obj.getPointer();
+    for(auto& box : boxes) {
+        if(!box->pdObject) continue;
+        
+        auto* gobj = (t_gobj*)box->pdObject.get()->getPointer();
         
         // Recurse for graphs
         if (gobj->g_pd == canvas_class) {
-            if (boxes[n]->graphics && boxes[n]->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
-                auto* canvas = boxes[n]->graphics->getCanvas();
+            if (box->graphics && box->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
+                auto* canvas = box->graphics->getCanvas();
                 
                 g.saveState();
                 auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
@@ -649,7 +623,6 @@ void Canvas::findDrawables(Graphics& g, t_canvas* cnv)
                 TemplateDraw::paintOnCanvas(g, this, x, y, basex, basey);
             }
         }
-        n++;
     }
 
 }

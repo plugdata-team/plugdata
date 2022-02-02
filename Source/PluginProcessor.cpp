@@ -719,18 +719,40 @@ bool PlugDataAudioProcessor::hasEditor() const
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
     auto* editor = new PlugDataPluginEditor(*this, console);
-    auto* cnv = editor->canvases.add(new Canvas(*editor, false));
-    cnv->title = "Untitled Patcher";
-    editor->mainCanvas = cnv;
-
+    
     auto patch = getPatch();
     if (!patch.getPointer()) {
-        editor->mainCanvas->createPatch();
-    } else {
-        editor->getMainCanvas()->loadPatch(patch);
+        auto patchFile = File::createTempFile(".pd");
+        patchFile.replaceWithText(defaultPatch);
+        
+        openPatch(patchFile);
+   
+        auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
+        cnv->title = "Untitled Patcher";
+        
+        editor->mainCanvas = cnv;
+        editor->addTab(cnv);
+        
+        // Set to unknown file when loading temp patch
+        setCurrentFile(File());
+        
     }
+    else {
+        auto* cnv = editor->canvases.add(new Canvas(*editor, patch, false));
+        editor->addTab(cnv);
+        cnv->title = "Untitled Patcher";
+        editor->mainCanvas = cnv;
+        
+    }
+        
+
+
+   
     
-    editor->addTab(cnv);
+
+
+
+    
     
     return editor;
 }
@@ -751,7 +773,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     ostream.writeInt(getLatencySamples());
     ostream.writeInt(xmlBlock.getSize());
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
-    ostream.writeString(getPatch().getPatchPath());
+    ostream.writeString(getCurrentFile().getFullPathName());
 }
 
 void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
@@ -772,48 +794,54 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
         if (xmlState->hasTagName(parameters.state.getType()))
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
     
+    File location;
     if(!istream.isExhausted()) {
-        auto location = istream.readString();
-        
-        if(File(location).exists()) {
+        location = istream.readString();
+        if(location.exists()) {
+            setCurrentFile(location);
             // Add patch path to search path to make sure it finds the externals!
-            libpd_add_to_search_path(location.toRawUTF8());
+            libpd_add_to_search_path(location.getParentDirectory().getFullPathName().toRawUTF8());
         }
     }
     
     loadPatch(state);
     setLatencySamples(latency);
+    
+}
+
+void PlugDataAudioProcessor::loadPatch(File patch)
+{
+    const CriticalSection* lock = getCallbackLock();
+    openPatch(patch);
+    
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
+        cnv->title = "Untitled Patcher";
+        
+        editor->mainCanvas = cnv;
+        cnv->synchronise();
+        editor->addTab(cnv);
+    }
 }
 
 void PlugDataAudioProcessor::loadPatch(String patch)
 {
+    auto patchFile = File::createTempFile(".pd");
     
-    // String extra_info = patch.fromFirstOccurrenceOf("#X text plugdata_info:",false, false).upToFirstOccurrenceOf(";", false, false);
+    patchFile.replaceWithText(patch);
     
-    // Load from content or location
-    File patchFile;
-    if (!patch.startsWith("#") && patch.endsWith(".pd") && File(patch).existsAsFile()) {
-        patchFile = File(patch);
-    } else {
-        patchFile = File::createTempFile(".pd");
-        patchFile.replaceWithText(patch);
-    }
-    
-    const CriticalSection* lock = getCallbackLock();
-    
-    lock->enter();
-    openPatch(patchFile.getParentDirectory().getFullPathName().toStdString(), patchFile.getFileName().toStdString());
-    lock->exit();
+    openPatch(patchFile);
     
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        auto* cnv = editor->canvases.add(new Canvas(*editor, false));
+        auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
         cnv->title = "Untitled Patcher";
         
         editor->mainCanvas = cnv;
-        cnv->patch = getPatch();
-        cnv->synchronise();
         editor->addTab(cnv);
     }
+    
+    // Set to unknown file when loading temp patch
+    setCurrentFile(File());
 }
 
 void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)

@@ -179,17 +179,19 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             tabbar.clearTabs();
             
             canvases.clear();
-            auto* cnv = canvases.add(new Canvas(*this, false));
+            
+            
+            pd.loadPatch(pd.defaultPatch);
+            
+            auto* cnv = canvases.getFirst();
             cnv->title = "Untitled Patcher";
             mainCanvas = cnv;
-            mainCanvas->createPatch();
-            addTab(cnv);
         };
         
         if (pd.isDirty()) {
             SaveDialog::show(this, [this, createFunc](int result) {
                 if (result == 2) {
-                    saveProjectAs([this, createFunc]() mutable {
+                    saveProject([this, createFunc]() mutable {
                         createFunc();
                     });
                 } else if (result == 1) {
@@ -687,8 +689,8 @@ void PlugDataPluginEditor::openProject()
         File openedFile = f.getResult();
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
-            openFile(openedFile.getFullPathName());
-            getCurrentCanvas()->knownLocation = true;
+            tabbar.clearTabs();
+            pd.loadPatch(openedFile);
         }
     };
 
@@ -696,8 +698,9 @@ void PlugDataPluginEditor::openProject()
 
         SaveDialog::show(this, [this, openFunc](int result) {
             if (result == 2) {
-                saveProjectAs([this, openFunc]() mutable {
+                saveProject([this, openFunc]() mutable {
                     openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+                    
                 });
             } else if (result != 0) {
                 openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
@@ -709,56 +712,32 @@ void PlugDataPluginEditor::openProject()
 }
 
 
-void PlugDataPluginEditor::openFile(String path) {
-    tabbar.clearTabs();
-    pd.loadPatch(path);
-}
-
 void PlugDataPluginEditor::saveProjectAs(std::function<void()> nestedCallback)
 {
-    auto to_save = getCurrentCanvas()->patch.getCanvasContent();
-
-    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, to_save, nestedCallback](const FileChooser& f) mutable {
+    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, nestedCallback](const FileChooser& f) mutable {
+        
         File result = saveChooser.getResult();
 
-        result.deleteFile();
+        if(result.getFullPathName().isNotEmpty()) {
+            result.deleteFile();
         
-        FileOutputStream ostream(result);
-        ostream.writeString(to_save);
-
-        getCurrentCanvas()->title = result.getFileName();
-        
-        if(getCurrentCanvas() == getMainCanvas()) {
-            pd.setFilename(result.getParentDirectory().getFullPathName().toStdString(), result.getFileName().toStdString());
+            pd.savePatch(result);
+            
+            getCurrentCanvas()->title = result.getFileName();
         }
-
 
         nestedCallback();
     });
-    
-    if(getCurrentCanvas() == getMainCanvas()) {
-        getCurrentCanvas()->knownLocation = true;
-    }
-    
 }
 
-void PlugDataPluginEditor::saveProject()
+void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback)
 {
-    if(getMainCanvas()->knownLocation) {
-        auto to_save = getMainCanvas()->patch.getCanvasContent();
-
-        auto file = pd.getPatch().getPatchFile();
-        
-        if(file.exists()) file.deleteFile();
-        
-        
-        FileOutputStream ostream(file);
-        
-        ostream.writeString(to_save);
-        
+    if(pd.getCurrentFile().existsAsFile()) {
+        getCurrentCanvas()->pd->savePatch();
+        nestedCallback();
     }
     else {
-        saveProjectAs();
+        saveProjectAs(nestedCallback);
     }
 }
 
@@ -766,6 +745,8 @@ void PlugDataPluginEditor::saveProject()
 void PlugDataPluginEditor::updateValues()
 {
     auto* cnv = getCurrentCanvas();
+    
+    if(!cnv) return;
     
     for (auto& box : cnv->boxes) {
         if (box->graphics && box->isShowing()) {

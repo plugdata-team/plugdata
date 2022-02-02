@@ -86,8 +86,14 @@ public:
     void processPrints();
     void processMidi();
     
-    void openPatch(std::string const& path, std::string const& name);
-    void setFilename(std::string const& path, std::string const& name);
+
+    Patch openPatch(File toOpen);
+    
+    void savePatch(File location);
+    void savePatch();
+    
+    File getCurrentFile() { return currentFile; }
+    void setCurrentFile(File newFile) { currentFile = newFile; }
     
     bool isDirty();
     
@@ -100,8 +106,6 @@ public:
     bool checkState(String pdstate);
     
     void stringToAtom(String name, int& argc, t_atom& target);
-    
-    t_canvas* getCurrentCanvas();
     
     static Instance* getCurrent();
     
@@ -123,6 +127,7 @@ public:
     std::atomic<bool> canRedo = false;
     static inline std::recursive_mutex canvasLock;
     
+    inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
     
     private:
     struct Message
@@ -165,6 +170,8 @@ public:
     moodycamel::ConcurrentQueue<midievent> m_midi_queue = moodycamel::ConcurrentQueue<midievent>(4096);
     moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
 
+    
+    File currentFile;
 
     
     WaitableEvent updateWait;
