@@ -48,7 +48,6 @@ What works:
 - LV2, AU and VST3 formats available, tested on Windows (x64), Mac (ARM/x64) and Linux (ARM/x64), also works as AU MIDI processor for Logic
 - Receive 8 DAW parameters using "receive param1"
 
-
 Known issues:
 - Tabs sometimes close when closing editor
 - Needs more testing on different systems and DAWs
@@ -58,7 +57,7 @@ Known issues:
   - text define
 - There may still be some more bugs
 
-Roadmap:
+## Roadmap
 v0.3: Coming very soon!
 
 v0.3.1:
