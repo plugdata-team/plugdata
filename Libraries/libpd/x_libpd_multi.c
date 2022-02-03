@@ -557,6 +557,9 @@ void xselect2_tilde_setup(void);
 void zerocross_tilde_setup(void);
 // end else objects functions declaration
 
+void midiparse_setup();
+void midiformat_setup();
+void midiflush_setup();
 
 void libpd_multi_init(void)
 {
@@ -582,6 +585,11 @@ void libpd_multi_init(void)
         libpd_set_verbose(4);
 
         socket_init();
+        
+        // cyclone objects
+        midiparse_setup();
+        midiformat_setup();
+        midiflush_setup();
 
         // else objects initialization
         above_tilde_setup();

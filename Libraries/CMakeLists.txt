@@ -202,6 +202,18 @@ include_directories(ELSE/)
 source_group(ELSE FILES ${ELSE_SOURCES})
 list(APPEND SOURCE_FILES ${ELSE_SOURCES})
 
+file(GLOB_RECURSE CYCLONE_SOURCES
+    ./cyclone/cyclone_lib.c
+    ./cyclone/audio/*.c
+    ./cyclone/control/*.c
+    ./cyclone/shared/*.c
+)
+
+include_directories(cyclone/)
+include_directories(cyclone/shared/)
+source_group(cyclene FILES ${CYCLONE_SOURCES})
+list(APPEND SOURCE_FILES ${CYCLONE_SOURCES})
+
 #------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
 #------------------------------------------------------------------------------#
