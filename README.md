@@ -58,10 +58,44 @@ Known issues:
   - text define
 - There may still be some more bugs
 
-Currently PlugData is feature-frozen until all bugs are fixed and the code is cleaned up more.
+Roadmap:
+v0.3: Coming very soon!
+
+v0.3.1:
+- Fix any bugs found in v0.3
+- Fix all warnings
+- Clean up:
+    - Box class, reduce resize calls
+    - Better patch management (opening/closing patches, tab behaviour, remembering tabs when closing plugin editor)
+    - Move sidebar features to separate file
+    - Consistent naming of inlets/outlets
+    - LookAndFeel classes
+- MIDI Blinker
+- Allow modifying labels
+- Ensure all object properties are supported
+- Consistent GUI sizes
+- Openpanel/savepanel, text define support
+- Allow click on subpatch to open
+- Make msg, symbolatom and floatation look less similar
+- Create document and system for object descriptions and inlet/outlet hover messages
+- More flexible connection manipulation
+- Update to latest ELSE externals
+- Enable more cyclone externals
+- Do a lot more testing
+
+v0.4
+- Final GUI changes before stable release
+   - Improved connection path manipulation
+   - Add option to disable hovering in favour of traditional Max/Pd lock behaviour
+   - Possibly more
+- Finished document with object descriptions and inlet/outlet hover messages
+- Ensure that all externals fully work
+- Create manual
+- Improve code documentation
+
+After that, fixing and testing to get to a stable release!
 
 Future plans:
 - Support for GEM
-- More GUI conveniences
 
-Please contact me if you wish to contribute, I could use some help!
+Please contact me if you wish to contribute, I could use some help! Bug reports are also appricated, they help me to get to a stable version much faster.
