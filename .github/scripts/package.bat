@@ -5,7 +5,7 @@ xcopy Plugins PlugData /S /H /E /I
 
 cd PlugData\LV2
 md PlugData.lv2
-start lv2_file_generator.exe PlugData_LV2.dll PlugData
+call lv2_file_generator.exe PlugData_LV2.dll PlugData
 
 move PlugData_LV2.dll PlugData.lv2\PlugData.dll
 xcopy manifest.ttl PlugData.lv2\manifest.ttl
