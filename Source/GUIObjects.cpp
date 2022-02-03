@@ -1048,6 +1048,9 @@ void Subpatch::updateValue() {
     // In that case we tell the box to create the gui
     if(static_cast<t_canvas*>(gui.getPointer())->gl_isgraph) {
         box->setType(box->textLabel.getText(), true);
+        
+        // Makes sure it has the correct size
+        box->graphics->updateValue();
     }
     
 };
@@ -1096,9 +1099,13 @@ void MousePad::mouseDown(const MouseEvent& e)
     auto* glist = gui.getPatch().getPointer();
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
+
+    auto relativeEvent = e.getEventRelativeTo(this);
+    
     // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
-    x->x_x = e.getPosition().x / getWidth();
-    x->x_y = getHeight() - (e.getPosition().y / getWidth());
+    x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
+    x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
+
 
     SETFLOAT(at, 1.0f);
     sys_lock();
@@ -1121,9 +1128,12 @@ void MousePad::mouseMove(const MouseEvent& e)
     auto* glist = gui.getPatch().getPointer();
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
+    
+    auto relativeEvent = e.getEventRelativeTo(this);
+    
     // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
-    x->x_x = (e.getPosition().x / (float)getWidth()) * 127.0f;
-    x->x_y = (e.getPosition().y / (float)getHeight()) * 127.0f;
+    x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
+    x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
 
     SETFLOAT(at, x->x_x);
     SETFLOAT(at + 1, x->x_y);

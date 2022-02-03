@@ -387,7 +387,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 std::string helpName = lassoSelection.getSelectedItem(0)->pdObject->getHelp();
 
                 if (!helpName.length()) {
-                    main.console->logMessage(helpName);
+                    main.console->logMessage("Couldn't find help file");
                     return;
                 }
 
