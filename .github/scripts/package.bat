@@ -5,9 +5,9 @@ xcopy Plugins PlugData /S /H /E /I
 md PlugData\LV2\PlugData.lv2
 start PlugData\LV2\lv2_file_generator.exe PlugData\LV2\PlugData_LV2.dll PlugData
 move PlugData\LV2\PlugData_LV2.dll PlugData\LV2\PlugData.lv2\PlugData.dll
-move manifest.ttl PlugData\LV2\PlugData.lv2\manifest.ttl
-move presets.ttl PlugData\LV2\PlugData.lv2\presets.ttl
-move PlugData.ttl PlugData\LV2\PlugData.lv2\PlugData.ttl
+xcopy manifest.ttl PlugData\LV2\PlugData.lv2\manifest.ttl
+xcopy presets.ttl PlugData\LV2\PlugData.lv2\presets.ttl
+xcopy PlugData.ttl PlugData\LV2\PlugData.lv2\PlugData.ttl
 
 move PlugData\VST3\PlugData.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
 move PlugData\VST3\PlugData.vst3\Contents\x86_64-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
