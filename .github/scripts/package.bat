@@ -8,14 +8,13 @@ md PlugData.lv2
 call lv2_file_generator.exe PlugData_LV2.dll PlugData
 
 move PlugData_LV2.dll PlugData.lv2\PlugData.dll
-xcopy manifest.ttl PlugData.lv2\manifest.ttl
-xcopy presets.ttl PlugData.lv2\presets.ttl
-xcopy PlugData.ttl PlugData.lv2\PlugData.ttl
+move manifest.ttl PlugData.lv2\manifest.ttl
+move presets.ttl PlugData.lv2\presets.ttl
+move PlugData.ttl PlugData.lv2\PlugData.ttl
 
 del lv2_file_generator.exe /F
 
-cd ..
-cd ..
+cd ..\..
 
 move PlugData\VST3\PlugData.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
 move PlugData\VST3\PlugData.vst3\Contents\x86_64-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3
