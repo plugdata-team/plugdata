@@ -17,7 +17,7 @@
 
 GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)
     : box(parent)
-    , processor(parent->cnv->main.pd)
+    , processor(*parent->cnv->pd)
     , gui(pdGui)
     , edited(false)
     , guiLook(box->cnv->main.resources.get())
@@ -171,7 +171,7 @@ float GUIComponent::getValueOriginal() const noexcept
 
 void GUIComponent::setValueOriginal(float v, bool sendNotification)
 {
-    ScopedLock lock(*box->cnv->main.pd.getCallbackLock());
+    //ScopedLock lock(*box->cnv->pd->getCallbackLock());
 
     value = (min < max) ? std::max(std::min(v, max), min) : std::max(std::min(v, min), max);
     if (sendNotification)
@@ -186,7 +186,7 @@ float GUIComponent::getValueScaled() const noexcept
 
 void GUIComponent::setValueScaled(float v)
 {
-    ScopedLock lock(*box->cnv->main.pd.getCallbackLock());
+    //ScopedLock lock(*box->cnv->pd->getCallbackLock());
 
     value = (min < max) ? std::max(std::min(v, 1.f), 0.f) * (max - min) + min
                         : (1.f - std::max(std::min(v, 1.f), 0.f)) * (min - max) + max;
@@ -198,7 +198,7 @@ void GUIComponent::startEdition() noexcept
     edited = true;
     processor.enqueueMessages(stringGui, stringMouse, { 1.f });
 
-    ScopedLock lock(*box->cnv->main.pd.getCallbackLock());
+    //ScopedLock lock(*box->cnv->pd->getCallbackLock());
     value = gui.getValue();
 }
 
@@ -264,7 +264,6 @@ pd::Gui GUIComponent::getGUI()
 // Called in destructor of subpatch and graph class
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void GUIComponent::closeOpenedSubpatchers() {
-    auto* cnv = box->cnv;
     auto& main = box->cnv->main;
     auto* tabbar = &main.getTabbar();
     
@@ -778,7 +777,7 @@ void RadioComponent::updateRange()
 ArrayComponent::ArrayComponent(pd::Gui pdGui, Box* box)
     : GUIComponent(pdGui, box)
     , graph(gui.getArray())
-    , array(&box->cnv->main.pd, graph)
+    , array(box->cnv->pd, graph)
 {
     setInterceptsMouseClicks(false, true);
     array.setBounds(getLocalBounds());
@@ -975,7 +974,6 @@ void GraphOnParent::updateCanvas()
     if (!canvas) {
 
         canvas.reset(new Canvas(box->cnv->main, subpatch, true));
-        canvas->title = "Subpatcher";
         addAndMakeVisible(canvas.get());
 
         auto [x, y, w, h] = getPatch()->getBounds();
@@ -1096,7 +1094,6 @@ void MousePad::mouseDown(const MouseEvent& e)
     
     if(!getScreenBounds().contains(e.getScreenPosition())) return;
 
-    auto* glist = gui.getPatch().getPointer();
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
 
@@ -1125,7 +1122,6 @@ void MousePad::mouseMove(const MouseEvent& e)
 {
     if(!getScreenBounds().contains(e.getScreenPosition())) return;
            
-    auto* glist = gui.getPatch().getPointer();
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
     

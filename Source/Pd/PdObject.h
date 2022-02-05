@@ -79,7 +79,7 @@ public:
     std::string getName() const;
     
     //! @brief The name of the help file
-    std::string getHelp() const;
+    Patch getHelp() const;
     
     void setWidth(int width);
     

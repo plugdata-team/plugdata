@@ -16,7 +16,7 @@ public:
     ConsoleComponent(std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v)
     {
         
-        update(messages, false);
+        update();
         
         //setOpaque (true);
         
@@ -28,48 +28,19 @@ public:
     
     void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) override {
         setSize(viewport.getWidth(), getHeight());
-        update();
+        repaint();
     }
     
 public:
     
-    
     void update()
     {
-        update(messages, true);
-        
-        setSize(viewport.getWidth(), std::max<int>(totalHeight + 5, viewport.getHeight()));
-        
-        if (buttons[4].getToggleState() && totalHeight + 5 >= viewport.getHeight()) {
-            const int i = static_cast<int> (messages.size()) - 1;
-            
-            
-            viewport.setViewPosition (viewport.getViewPositionX(), getHeight());
-        }
-        
-        
         repaint();
-    }
-    
-    
-    
-    template <class T>
-    void update (T& c, bool updateRows)
-    {
-        int size = c.size();
+        setSize(viewport.getWidth(), std::max<int>(totalHeight + 25, viewport.getHeight()));
         
-        if (updateRows) {
-            //listBox.updateContent();
-            //listBox.deselectAllRows();
-            //listBox.repaint();
+        if (buttons[4].getToggleState()) {
+            viewport.setViewPositionProportionately(0.0f, 1.0f);
         }
-        
-        /*
-         const bool show = (listBox.getNumRowsOnScreen() < size) ||
-         (size > 0 && listBox.getRowContainingPosition (0, 0) >= size);
-         */
-        //listBox.getViewport()->setScrollBarsShown (show, show, true, true);
-        repaint();
     }
     
     void handleAsyncUpdate() override
@@ -129,12 +100,7 @@ public:
         
         triggerAsyncUpdate();
     }
-    
-    int getNumRows()
-    {
-        return jmax (32, static_cast<int> (messages.size()));
-    }
-    
+
     void paint (Graphics& g) override
     {
         
@@ -146,7 +112,7 @@ public:
         
         int numEmpty = 0;
         
-        for(int row = 0; row < getNumRows(); row++) {
+        for(int row = 0; row < jmax(32, static_cast<int>(messages.size())); row++) {
             int height = 24;
             int num_lines = 1;
             
@@ -192,12 +158,13 @@ public:
         }
         
         totalHeight -= numEmpty * 24;
+        
     }
     
     void resized() override
     {
 
-        update(messages, false);
+        repaint();
         
         
     }

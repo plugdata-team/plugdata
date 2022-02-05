@@ -107,7 +107,7 @@ std::array<int, 4> Object::getBounds() const noexcept
 }
 
 //! @brief The name of the help file
-std::string Object::getHelp() const
+Patch Object::getHelp() const
 {
     static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
     static File helpDir = appDir.getChildFile("Documentation/5.reference/");
@@ -120,7 +120,7 @@ std::string Object::getHelp() const
         /* make up a silly "dir" if none is supplied */
     
     String fullPath = helpDir.getFullPathName();
-    const char *usedir = (*dir ? dir :  fullPath.toRawUTF8());
+    const char *usedir = (*dir ? dir : fullPath.toRawUTF8());
 
         /* 1. "objectname-help.pd" */
     strncpy(realname, name, MAXPDSTRING-10);
@@ -130,7 +130,10 @@ std::string Object::getHelp() const
     strcat(realname, "-help.pd");
     
     if(File(usedir).getChildFile(realname).existsAsFile()) {
-        return File(usedir).getChildFile(realname).getFullPathName().toStdString();
+        sys_lock();
+        auto patch = Patch(glob_evalfile(0, gensym(realname), gensym(usedir)), m_instance);
+        sys_unlock();
+        return patch;
     }
 
         /* 2. "help-objectname.pd" */
@@ -139,11 +142,13 @@ std::string Object::getHelp() const
     realname[MAXPDSTRING-1] = 0;
     
     if(File(dir).getChildFile(realname).existsAsFile()) {
-        
-        return File(dir).getChildFile(realname).getFullPathName().toStdString();
+        sys_lock();
+        auto patch = Patch(glob_evalfile(0, gensym(realname), gensym(usedir)), m_instance);
+        sys_unlock();
+        return patch;
     }
     
-    return std::string();
+    return Patch();
 }
 
 

@@ -82,7 +82,6 @@ public:
 
 
     void setCurrent();
-    static t_canvas* getCurrent();
     
     bool canConnect(Object* src, int nout, Object* sink, int nin);
     bool createConnection(Object* src, int nout, Object* sink, int nin);
@@ -127,6 +126,9 @@ public:
     t_object* checkObject(Object* obj) const noexcept;
     
     void keyPress(int keycode, int shift);
+    
+    String getTitle();
+    void setTitle(String title);
     
     static inline float zoom = 1.5f;
     
