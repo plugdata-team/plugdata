@@ -229,8 +229,6 @@ void Instance::performDSP(float const* inputs, float* outputs)
 {
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     libpd_process_raw(inputs, outputs);
-    
-
 }
 
 

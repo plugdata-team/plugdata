@@ -208,14 +208,15 @@ void GUIComponent::stopEdition() noexcept
 
 void GUIComponent::updateValue()
 {
+    box->cnv->pd->canvasLock.lock();
     if (edited == false) {
         float const v = gui.getValue();
         if (v != value) {
             value = v;
             update();
-            // repaint();
         }
     }
+    box->cnv->pd->canvasLock.unlock();
 }
 
 void GUIComponent::componentMovedOrResized(Component& component, bool moved, bool resized) {
