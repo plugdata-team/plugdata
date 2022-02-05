@@ -5,6 +5,8 @@
 */
 
 #include "PluginEditor.h"
+
+#include <memory>
 #include "Canvas.h"
 #include "Connection.h"
 #include "Dialogs.h"
@@ -36,19 +38,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addAndMakeVisible(levelmeter);
 
     tabbar.onTabChange = [this](int idx) {
-        Edge::connectingEdge = nullptr;
-
         if (idx == -1)
             return;
 
         // update GraphOnParent when changing tabs
         for (auto* box : getCurrentCanvas()->boxes) {
-            if (box->graphics && box->graphics->getGUI().getType() == pd::Type::GraphOnParent) {
-                auto* cnv = box->graphics.get()->getCanvas();
+            if (box->graphics && box->graphics->getGui().getType() == pd::Type::GraphOnParent) {
+                auto* cnv = box->graphics->getCanvas();
                 if (cnv)
                     cnv->synchronise();
             }
-            if (box->graphics && (box->graphics->getGUI().getType() == pd::Type::Subpatch || box->graphics->getGUI().getType() == pd::Type::GraphOnParent)) {
+            if (box->graphics && (box->graphics->getGui().getType() == pd::Type::Subpatch ||
+                    box->graphics->getGui().getType() == pd::Type::GraphOnParent)) {
                 box->updatePorts();
             }
         }
@@ -110,7 +111,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     connectionStyleButton.setLookAndFeel(&statusbarLook);
     connectionStyleButton.onClick = [this]() {
         pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
-        
+
         connectionPathfind.setEnabled(connectionStyleButton.getToggleState());
         
         for(auto& cnv : canvases) {
@@ -120,8 +121,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             }
         }
     };
-    
-    bool defaultConnectionStyle = (bool)pd.settingsTree.getProperty(Identifiers::connectionStyle);
+
+    auto defaultConnectionStyle = static_cast<bool>(pd.settingsTree.getProperty(Identifiers::connectionStyle));
     connectionStyleButton.setToggleState(defaultConnectionStyle, sendNotification);
     addAndMakeVisible(connectionStyleButton);
     
@@ -172,18 +173,15 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             tabbar.clearTabs();
             
             canvases.clear();
-            
-            pd.loadPatch(pd.defaultPatch);
+
+            pd.loadPatch(pd::Instance::defaultPatch);
             pd.getPatch().setTitle("Untitled Patcher");
-            
-            auto* cnv = canvases.getFirst();
-            mainCanvas = cnv;
         };
         
         if (pd.isDirty()) {
             SaveDialog::show(this, [this, createFunc](int result) {
                 if (result == 2) {
-                    saveProject([this, createFunc]() mutable {
+                    saveProject([createFunc]() mutable {
                         createFunc();
                     });
                 } else if (result == 1) {
@@ -241,13 +239,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             // Initialise settings dialog for DAW and standalone
             if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone) {
                 auto pluginHolder = StandalonePluginHolder::getInstance();
-                settingsDialog.reset(new SettingsDialog(resources.get(), pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
+                settingsDialog = std::make_unique<SettingsDialog>(resources.get(), pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() {
                     pd.updateSearchPaths();
-                }));
+                });
             } else {
-                settingsDialog.reset(new SettingsDialog(resources.get(), pd, nullptr, pd.settingsTree, [this]() {
+                settingsDialog = std::make_unique<SettingsDialog>(resources.get(), pd, nullptr, pd.settingsTree, [this]() {
                     pd.updateSearchPaths();
-                }));
+                });
             }
         }
 
@@ -278,7 +276,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     // window size limits
     restrainer.setSizeLimits(600, 300, 4000, 4000);
-    resizer.reset(new ResizableCornerComponent(this, &restrainer));
+    resizer = std::make_unique<ResizableCornerComponent>(this, &restrainer);
     addAndMakeVisible(resizer.get());
 
     setSize(pd.lastUIWidth, pd.lastUIHeight);
@@ -381,7 +379,7 @@ void PlugDataPluginEditor::showNewObjectMenu()
             break;
                 
         case 11: {
-            ArrayDialog::show(this, [this](int result, String name, String size) {
+            ArrayDialog::show(this, [this](int result, const String& name, const String& size) {
                 if (result) {
                     auto* cnv = getCurrentCanvas();
                     auto* box = new Box(cnv, "graph " + name + " " + size, cnv->lastMousePos);
@@ -403,7 +401,10 @@ void PlugDataPluginEditor::showNewObjectMenu()
         case 15:
             boxName = "keyboard";
             break;
+        default:
+            break;
         }
+
         auto* cnv = getCurrentCanvas();
        
         cnv->boxes.add(new Box(cnv, boxName,  cnv->viewport->getViewArea().getCentre()));
@@ -432,7 +433,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.fillRect(0, 0, getWidth(), toolbarHeight - 4);
 
     g.setColour(highlightColour);
-    g.drawRoundedRectangle({ -4.0f, toolbarHeight - 6.0f, (float)getWidth() + 9, 20.0f }, 12.0, 4.0);
+    g.drawRoundedRectangle({ -4.0f, toolbarHeight - 6.0f, static_cast<float>(getWidth() + 9), 20.0f }, 12.0, 4.0);
 
     // Make sure we cant see the bottom half of the rounded rectangle
     g.setColour(baseColour);
@@ -464,10 +465,6 @@ void PlugDataPluginEditor::resized()
     tabbar.setBounds(0, sbarY, getWidth() - sWidth, getHeight() - sbarY - statusbarHeight);
     tabbar.toFront(false);
 
-    
-    int idx = 0;
-    int toolbarPosition = 0;
-    
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
     fb.justifyContent = FlexBox::JustifyContent::flexStart;
@@ -482,17 +479,17 @@ void PlugDataPluginEditor::resized()
             item.flexShrink = 1.0f;
         
         if(b == 4 || b == 6) {
-            auto item = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(50.0f);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add (item);
+            auto separator = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(50.0f);
+            separator.flexGrow = 1.0f;
+            separator.flexShrink = 1.0f;
+            fb.items.add (separator);
         }
         
         fb.items.add (item);
     }
     
    
-    Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sWidth + 60.0f, (float)toolbarHeight};
+    Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sWidth + 60.0f, static_cast<float>(toolbarHeight)};
     if(sidebarHidden) toolbarBounds.setWidth(getWidth() - 50.0f);
     
     fb.performLayout(toolbarBounds);
@@ -646,8 +643,8 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
 
 void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
-    Rectangle<int> drag_bar(getWidth() - sidebarWidth, dragbarWidth, sidebarWidth, getHeight() - toolbarHeight);
-    if (drag_bar.contains(e.getPosition()) && !sidebarHidden) {
+    Rectangle<int> dragBar(getWidth() - sidebarWidth, dragbarWidth, sidebarWidth, getHeight() - toolbarHeight);
+    if (dragBar.contains(e.getPosition()) && !sidebarHidden) {
         draggingSidebar = true;
         dragStartWidth = sidebarWidth;
     } else {
@@ -704,7 +701,7 @@ void PlugDataPluginEditor::openProject()
 }
 
 
-void PlugDataPluginEditor::saveProjectAs(std::function<void()> nestedCallback)
+void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
     saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, nestedCallback](const FileChooser& f) mutable {
         
@@ -720,7 +717,7 @@ void PlugDataPluginEditor::saveProjectAs(std::function<void()> nestedCallback)
     });
 }
 
-void PlugDataPluginEditor::saveProject(std::function<void()> nestedCallback)
+void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
 {
     if(pd.getCurrentFile().existsAsFile()) {
         getCurrentCanvas()->pd->savePatch();
@@ -782,12 +779,6 @@ Canvas* PlugDataPluginEditor::getCurrentCanvas()
     }
     return nullptr;
 }
-
-Canvas* PlugDataPluginEditor::getMainCanvas()
-{
-    return mainCanvas;
-}
-
 
 Canvas* PlugDataPluginEditor::getCanvas(int idx)
 {
@@ -865,9 +856,9 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
     cnv->setVisible(true);
 }
 
-void PlugDataPluginEditor::zoom(bool zoomIn)
+void PlugDataPluginEditor::zoom(bool zoomingIn)
 {
-    transform = transform.scaled(zoomIn ? 1.1f : 1.0f / 1.1f);
+    transform = transform.scaled(zoomingIn ? 1.1f : 1.0f / 1.1f);
     for(auto& cnv : canvases) cnv->setTransform(transform);
     
     int scale = ((std::abs (transform.mat00) + std::abs (transform.mat11)) / 2.0f) * 100.0f;

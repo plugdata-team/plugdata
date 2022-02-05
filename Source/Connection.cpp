@@ -56,7 +56,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists)
         }
     }
     else {
-        auto info = cnv->patch.getExtraInfo(getID());
+        auto info = cnv->patch.getExtraInfo(getId());
         if(!info.isEmpty()) setState(info);
     }
     
@@ -92,7 +92,7 @@ MemoryBlock Connection::getState() {
 
 void Connection::setState(MemoryBlock& block) {
  
-    auto info = MemoryInputStream(cnv->patch.getExtraInfo(getID()));
+    auto info = MemoryInputStream(cnv->patch.getExtraInfo(getId()));
     
     auto pathAsString = info.readString();
     
@@ -104,13 +104,13 @@ void Connection::setState(MemoryBlock& block) {
         auto x = point.upToFirstOccurrenceOf("*", false, false).getIntValue();
         auto y = point.fromFirstOccurrenceOf("*", false, false).getIntValue();
         
-        plan.push_back({x, y});
+        plan.emplace_back(x, y);
     }
     
     applyPath(plan, false);
 }
 
-String Connection::getID() {
+String Connection::getId() const {
     
     int idx1 = cnv->patch.getIndex(inObj->get()->getPointer());
     int idx2 = cnv->patch.getIndex(outObj->get()->getPointer());
@@ -135,7 +135,7 @@ bool Connection::hitTest(int x, int y) {
     
     if(start->box->locked || end->box->locked) return false;
     
-    Point<float> position = Point<float>(x, y);
+    Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
     
     Point<float> nearestPoint;
     toDraw.getNearestPoint(position, nearestPoint);
@@ -242,8 +242,8 @@ void Connection::mouseDrag(const MouseEvent& e)
         auto delta = e.getPosition() - e.getMouseDownPosition();
         auto line = Line<int>(currentPlan[n - 1], currentPlan[n]);
 
-        float scaleX = (float)abs(pstart.x - pend.x) / abs(currentPlan.front().x - currentPlan.back().x);
-        float scaleY = (float)abs(pstart.y - pend.y) / abs(currentPlan.front().y - currentPlan.back().y);
+        auto scaleX = static_cast<float>(abs(pstart.x - pend.x)) / static_cast<float>(abs(currentPlan.front().x - currentPlan.back().x));
+        auto scaleY = static_cast<float>(abs(pstart.y - pend.y)) / static_cast<float>(abs(currentPlan.front().y - currentPlan.back().y));
         
         if(line.isVertical()) {
             currentPlan[n - 1].x = std::clamp<int>(mouseDownPosition + delta.x / scaleX, 0, getWidth() / scaleX);
@@ -264,8 +264,8 @@ void Connection::mouseUp(const MouseEvent& e)
 {
     if(dragIdx != -1){
         auto state = getState();
-        lastID = getID();
-        cnv->patch.setExtraInfo(lastID, state);
+        lastId = getId();
+        cnv->patch.setExtraInfo(lastId, state);
         dragIdx = -1;
     }
     
@@ -292,8 +292,7 @@ void Connection::resized()
     
     Point<int> pstart = s->getCanvasBounds().getCentre() - getPosition();
     Point<int> pend = e->getCanvasBounds().getCentre() - getPosition();
-    
-    Rectangle<int> bounds(pstart, pend);
+
     bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
 
     if(!curvedConnection) {
@@ -328,7 +327,7 @@ void Connection::resized()
 
 PathPlan Connection::scalePath(const PathPlan& plan) {
 
-    if(!start || !end || !plan.size()) return plan;
+    if(!start || !end || plan.empty()) return plan;
     
     auto& s = start->isInput ? start : end;
     auto& e = start->isInput ? end : start;
@@ -341,8 +340,8 @@ PathPlan Connection::scalePath(const PathPlan& plan) {
     float lastWidth = std::max<float>(abs(plan.front().x - plan.back().x), 1.0f);
     float lastHeight = std::max<float>(abs(plan.front().y - plan.back().y), 1.0f);
     
-    float scaleX = (float)abs(pstart.x - pend.x) / lastWidth;
-    float scaleY = (float)abs(pstart.y - pend.y) / lastHeight;
+    float scaleX = static_cast<float>(abs(pstart.x - pend.x)) / lastWidth;
+    float scaleY = static_cast<float>(abs(pstart.y - pend.y)) / lastHeight;
     
     auto planDistance = plan.front() - plan.back();
     auto currentDistance = pstart - pend;
@@ -386,13 +385,13 @@ PathPlan Connection::scalePath(const PathPlan& plan) {
     return newPlan;
 }
 
-void Connection::applyPath(PathPlan plan, bool updateState) {
+void Connection::applyPath(const PathPlan& plan, bool updateState) {
     currentPlan = plan;
     
     if(updateState) {
         auto state = getState();
-        lastID = getID();
-        cnv->patch.setExtraInfo(lastID, state);
+        lastId = getId();
+        cnv->patch.setExtraInfo(lastId, state);
     }
 
     resized();
@@ -400,7 +399,7 @@ void Connection::applyPath(PathPlan plan, bool updateState) {
 
 PathPlan Connection::findPath(){
     
-    if(!start || !end) return PathPlan();
+    if(!start || !end) return {};
     
     auto& s = start->isInput ? start : end;
     auto& e = start->isInput ? end : start;
@@ -433,8 +432,8 @@ PathPlan Connection::findPath(){
     
     PathPlan simplifiedPath;
     
-    bool direction = false;
-    if(bestPath.size()) {
+    bool direction;
+    if(!bestPath.empty()) {
         
         simplifiedPath.push_back(bestPath.front());
         
@@ -443,11 +442,7 @@ PathPlan Connection::findPath(){
         if(!direction) simplifiedPath.push_back(bestPath.front());
         
         for(int n = 1; n < bestPath.size(); n++) {
-            if(bestPath[n].x != bestPath[n - 1].x && direction) {
-                simplifiedPath.push_back(bestPath[n - 1]);
-                direction = !direction;
-            }
-            else if(bestPath[n].y != bestPath[n - 1].y && !direction) {
+            if((bestPath[n].x != bestPath[n - 1].x && direction) || (bestPath[n].y != bestPath[n - 1].y && !direction)) {
                 simplifiedPath.push_back(bestPath[n - 1]);
                 direction = !direction;
             }
@@ -479,24 +474,24 @@ PathPlan Connection::findPath(){
 }
 
     
-int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment){
+int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment){
     
     // Stop after we've found a path
     if(!bestPath.empty())
         return 0;
     
     // Add point to path
-    pathStack.push_back(start);
+    pathStack.push_back(pstart);
     
     // Check if it intersects any box
     if(pathStack.size() > 1 && straightLineIntersectsObject(Line<int>(pathStack.back(), *(pathStack.end() - 2)))) {
         return 0;
     }
     
-    bool endVertically = pathStack[0].y > end.y;
+    bool endVertically = pathStack[0].y > pend.y;
 
     // Check if we've reached the destination
-    if(abs(start.x - end.x) < (increment.x * 0.5) && abs(start.y - end.y) < (increment.y * 0.5)) {
+    if(abs(pstart.x - pend.x) < (increment.x * 0.5) && abs(pstart.y - pend.y) < (increment.y * 0.5)) {
         bestPath = pathStack;
         return 1;
     }
@@ -523,23 +518,23 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // If we're halfway on the axis, change preferred direction by inverting search order
     // This will make it do a staircase effect
     if(endVertically) {
-        if(abs(start.y - end.y) >= abs(pathStack[0].y - end.y) * 0.5) {
-            followLine(start, end, false);
-            followLine(start, end, true);
+        if(abs(pstart.y - pend.y) >= abs(pathStack[0].y - pend.y) * 0.5) {
+            followLine(pstart, pend, false);
+            followLine(pstart, pend, true);
         }
         else {
-            followLine(start, end, true);
-            followLine(start, end, false);
+            followLine(pstart, pend, true);
+            followLine(pstart, pend, false);
         }
     }
     else {
-        if(abs(start.x - end.x) >= abs(pathStack[0].x - end.x) * 0.5) {
-            followLine(start, end, true);
-            followLine(start, end, false);
+        if(abs(pstart.x - pend.x) >= abs(pathStack[0].x - pend.x) * 0.5) {
+            followLine(pstart, pend, true);
+            followLine(pstart, pend, false);
         }
         else {
-            followLine(start, end, false);
-            followLine(start, end, true);
+            followLine(pstart, pend, false);
+            followLine(pstart, pend, true);
         }
     }
 
@@ -571,17 +566,15 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck) {
             
             return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY() && second.getStartX() > first.getStartX() && second.getStartX() < first.getEndX();
         };
-        
-        
-        if(toCheck.isVertical() &&
-           (intersectV(toCheck, Line<int>(bounds.getTopLeft(), bounds.getTopRight())) ||
-            intersectV(toCheck, Line<int>(bounds.getBottomRight(), bounds.getBottomLeft())))) {
-            return true;
-        }
-        else if(toCheck.isHorizontal() &&
-                (intersectH(toCheck, Line<int>(bounds.getTopRight(), bounds.getBottomRight())) ||
-                 intersectH(toCheck, Line<int>(bounds.getTopLeft(), bounds.getBottomLeft()))))
-        {
+
+        bool intersectsV = toCheck.isVertical() &&
+                           (intersectV(toCheck, Line<int>(bounds.getTopLeft(), bounds.getTopRight())) ||
+                            intersectV(toCheck, Line<int>(bounds.getBottomRight(), bounds.getBottomLeft())));
+
+        bool intersectsH = toCheck.isHorizontal() &&
+                           (intersectH(toCheck, Line<int>(bounds.getTopRight(), bounds.getBottomRight())) ||
+                            intersectH(toCheck, Line<int>(bounds.getTopLeft(), bounds.getBottomLeft())));
+        if(intersectsV || intersectsH) {
             return true;
         }
     }

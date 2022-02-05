@@ -22,11 +22,10 @@ using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<v
 struct Inspector : public Component,
                    public TableListBoxModel {
     //==============================================================================
-    Inspector() : font(14.0f)
-    {
+    Inspector() : font(14.0f), numRows(0) {
         loadData({});
 
-        // Create our table component and add it to this component..
+        // Create our table component and add it to this component.
         addAndMakeVisible(&table);
         table.setModel(this);
 
@@ -36,10 +35,10 @@ struct Inspector : public Component,
 
         table.setOutlineThickness(1);
 
-        
+
         table.getHeader().addColumn("Name", 1, 50, 30, -1, TableHeaderComponent::notSortable);
         table.getHeader().addColumn("Value", 2, 80, 30, -1, TableHeaderComponent::notSortable);
-        
+
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
 
@@ -47,24 +46,20 @@ struct Inspector : public Component,
 
         table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
         table.getHeader().setColour(TableHeaderComponent::backgroundColourId, MainLook::highlightColour);
-        
+
 
         table.setMultipleSelectionEnabled(true);
     }
 
-    ~Inspector()
-    {
-    }
-
     //==============================================================================
     // This is overloaded from TableListBoxModel, and must return the total number of rows in our table
-    int getNumRows()
+    int getNumRows() override
     {
         return numRows;
     }
 
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
-    void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected)
+    void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
     {
         if (rowIsSelected) {
             g.fillAll(MainLook::highlightColour);
@@ -79,7 +74,7 @@ struct Inspector : public Component,
         int rowNumber,
         int columnId,
         int width, int height,
-        bool /*rowIsSelected*/)
+        bool /*rowIsSelected*/) override
     {
         g.setColour(Colours::white);
         g.setFont(font);
@@ -94,60 +89,55 @@ struct Inspector : public Component,
     }
 
     // Sorting is disabled
-    void sortOrderChanged(int newSortColumnId, bool isForwards)
+    void sortOrderChanged(int newSortColumnId, bool isForwards) override
     {
     }
 
     // This is overloaded from TableListBoxModel, and must update any custom components that we're using
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/,
-        Component* existingComponentToUpdate)
+        Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
 
         // Draw names regularly
         if (columnId == 1)
-            return 0;
+            return nullptr;
 
         auto [name, type, ptr] = items[rowNumber];
 
         switch (type) {
         case tString:
-            return new EditableComponent<String>(callback, (String*)ptr, rowNumber);
-            break;
+            return new EditableComponent<String>(callback, static_cast<String*>(ptr), rowNumber);
         case tFloat:
-            return new EditableComponent<float>(callback, (float*)ptr, rowNumber);
-            break;
+            return new EditableComponent<float>(callback, static_cast<float*>(ptr), rowNumber);
         case tInt:
-            return new EditableComponent<int>(callback, (int*)ptr, rowNumber);
-            break;
+            return new EditableComponent<int>(callback, static_cast<int*>(ptr), rowNumber);
         case tColour:
-            return new ColourComponent(callback, (String*)ptr, rowNumber);
-            break;
+            return new ColourComponent(callback, static_cast<String*>(ptr), rowNumber);
         case tBool:
-            return new ToggleComponent(callback, (bool*)ptr, rowNumber);
-            break;
+            return new ToggleComponent(callback, static_cast<bool*>(ptr), rowNumber);
         }
 
         // for any other column, just return 0, as we'll be painting these columns directly.
-        jassert(existingComponentToUpdate == 0);
-        return 0;
+        jassert(existingComponentToUpdate == nullptr);
+        return nullptr;
     }
 
     // This is overloaded from TableListBoxModel, and should choose the best width for the specified
     // column.
-    int getColumnAutoSizeWidth(int columnId)
+    int getColumnAutoSizeWidth(int columnId) override
     {
         if (columnId == 1) {
-            return getWidth() / 3.0f; // Name column
+            return getWidth() / 3; // Name column
         }
-       else {
-           return getWidth() * (2.0f / 3.0f); // Value column
-       }
+        else {
+           return static_cast<int>(getWidth() * 1.5f); // Value column
+        }
 
     }
 
     //==============================================================================
-    void resized()
+    void resized() override
     {
         table.setBounds(getLocalBounds().withWidth(getWidth() + 2));
     }
@@ -157,14 +147,14 @@ struct Inspector : public Component,
         loadData({});
     }
 
-    void loadData(ObjectParameters params)
+    void loadData(const ObjectParameters& params)
     {
         auto& [parameters, cb] = params;
 
         callback = cb;
         items = parameters;
 
-        numRows = items.size();
+        numRows = static_cast<int>(items.size());
         table.updateContent();
         repaint();
     }
@@ -179,7 +169,7 @@ struct Inspector : public Component,
 
     struct ToggleComponent : public Component {
         ToggleComponent(std::function<void(int)> cb, bool* value, int rowIdx)
-            : callback(cb)
+            : callback(std::move(cb))
             , row(rowIdx)
         {
             toggleButton.setClickingTogglesState(true);
@@ -197,7 +187,7 @@ struct Inspector : public Component,
             };
         }
 
-        void resized()
+        void resized() override
         {
             toggleButton.setBounds(getLocalBounds());
         }
@@ -211,7 +201,7 @@ struct Inspector : public Component,
     struct ColourComponent : public Component, public ChangeListener {
 
         ColourComponent(std::function<void(int)> cb, String* value, int rowIdx)
-            : callback(cb)
+            : callback(std::move(cb))
             , currentColour(value)
             , row(rowIdx)
         {
@@ -257,7 +247,7 @@ struct Inspector : public Component,
 
         void changeListenerCallback(ChangeBroadcaster* source) override
         {
-            ColourSelector* cs = dynamic_cast<ColourSelector*>(source);
+            auto* cs = dynamic_cast<ColourSelector*>(source);
 
             auto colour = cs->getCurrentColour();
             *currentColour = colour.toString();
@@ -266,9 +256,7 @@ struct Inspector : public Component,
             callback(row);
         }
 
-        ~ColourComponent()
-        {
-        }
+        ~ColourComponent() override = default;
 
         void resized() override
         {
@@ -286,9 +274,8 @@ struct Inspector : public Component,
     template <typename T>
     struct EditableComponent : public Label {
         EditableComponent(std::function<void(int)> cb, T* value, int rowIdx)
-            : callback(cb)
-            , row(rowIdx)
-        {
+            : callback(std::move(cb))
+            , row(rowIdx) {
             setEditable(false, true);
 
             setText(String(*value), dontSendNotification);
@@ -304,10 +291,6 @@ struct Inspector : public Component,
 
                 callback(row);
             };
-        }
-
-        ~EditableComponent()
-        {
         }
 
         TextEditor* createEditorComponent() override

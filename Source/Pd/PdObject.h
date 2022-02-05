@@ -76,24 +76,24 @@ public:
     std::string getText();
     
     //! @brief The name of the Object.
-    std::string getName() const;
+    [[nodiscard]] std::string getName() const;
     
     //! @brief The name of the help file
-    Patch getHelp() const;
+    [[nodiscard]] Patch getHelp() const;
     
     void setWidth(int width);
-    
-    int getWidth() const;
-    
-    virtual inline Type getType() const noexcept {
+
+    [[nodiscard]] int getWidth() const;
+
+    [[nodiscard]] virtual inline Type getType() const noexcept {
         return Type::Undefined;
     }
     
     //! @brief The bounds of the Object.
-    virtual std::array<int, 4> getBounds() const noexcept;
-    
-    void* getPointer() const noexcept{
-        return m_ptr;
+    [[nodiscard]] virtual std::array<int, 4> getBounds() const noexcept;
+
+    [[nodiscard]] void* getPointer() const noexcept{
+        return ptr;
     }
     
     int getNumInlets() noexcept;
@@ -105,9 +105,9 @@ public:
     Object(void* ptr, Patch* patch, Instance* instance) noexcept;
     
 protected:
-    void*   m_ptr   = nullptr;
-    Patch*   m_patch = nullptr;
-    Instance* m_instance = nullptr ;
+    void*   ptr   = nullptr;
+    Patch*   patch = nullptr;
+    Instance* instance = nullptr ;
     
     friend class Patch;
 };

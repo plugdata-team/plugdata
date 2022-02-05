@@ -29,12 +29,8 @@ public:
         setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
     }
 
-    ~SuggestionComponent()
-    {
-    }
 
-
-    void setText(String name)
+    void setText(const String& name)
     {
         setButtonText(name);
         type = name.contains("~") ? 1 : 0;
@@ -69,9 +65,9 @@ class SuggestionBox : public Component, public KeyListener, public TextEditor::I
 public:
     bool selecting = false;
 
-    SuggestionBox(Resources& r);
+    explicit SuggestionBox(Resources& r);
 
-    ~SuggestionBox();
+    ~SuggestionBox() override;
 
     void createCalloutBox(Box* box, TextEditor* editor);
 
@@ -111,7 +107,7 @@ private:
     bool isCompleting = false;
 };
 
-// Label that shows the box name and can be double clicked to change the text
+// Label that shows the box name and can be double-clicked to change the text
 class ClickLabel : public Component,
                    public SettableTooltipClient,
                     public Value::Listener,
@@ -120,7 +116,7 @@ class ClickLabel : public Component,
 public:
     ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger);
 
-    ~ClickLabel()
+    ~ClickLabel() override
     {
         setLookAndFeel(nullptr);
     }
@@ -151,7 +147,7 @@ public:
                   NotificationType notification);
 
 
-    String getText (bool returnActiveEditorContents = false) const;
+    [[nodiscard]] String getText (bool returnActiveEditorContents = false) const;
 
     
     Font getFont() { return font; }
@@ -169,13 +165,13 @@ public:
                                                 editor will be used to set the label's text
                                                 before it is hidden.
     */
-    void hideEditor (bool discardCurrentEditorContents);
+    void hideEditor ();
 
     /** Returns true if the editor is currently focused and active. */
-    bool isBeingEdited() const noexcept;
+    [[nodiscard]] bool isBeingEdited() const noexcept;
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
-    TextEditor* getCurrentTextEditor() const noexcept;
+    [[nodiscard]] TextEditor* getCurrentTextEditor() const noexcept;
     
     void setBorderSize (BorderSize<int> newBorder)
     {

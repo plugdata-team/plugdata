@@ -42,26 +42,9 @@ public:
         canvas = parent;
         selectable = selectableObjects;
     }
-    virtual ~MultiComponentDragger() { }
-
-    void setConstrainBoundsToParent(bool shouldConstrainToParentSize,
-        BorderSize<int> amountPermittedOffscreen_)
-    {
-        constrainToParent = shouldConstrainToParentSize;
-        amountPermittedOffscreen = amountPermittedOffscreen_;
-    }
+    virtual ~MultiComponentDragger() = default;
     
     virtual void dragCallback(int dx, int dy) = 0;
-
-    /**
-     If this flag is set then the dragging behaviour when shift
-     is held down will be constrained to the vertical or horizontal
-     direction.  This the the behaviour of Microsoft PowerPoint.
-     */
-    void setShiftConstrainsDirection(bool constrainDirection)
-    {
-        shiftConstrainsDirection = constrainDirection;
-    }
 
     /**
      * Adds a specified component as being selected.
@@ -82,12 +65,6 @@ public:
             removeSelectedComponent(component);
             component->repaint();
         }
-    }
-
-    /** Toggles the selected status of a particular component. */
-    void toggleSelection(T* component)
-    {
-        setSelected(component, !isSelected(component));
     }
 
     /**
@@ -126,7 +103,6 @@ public:
                 deselectAll();
 
             setSelected(component, true);
-            didJustSelect = true;
         }
 
         if (component != nullptr)
@@ -135,8 +111,6 @@ public:
         componentBeingDragged = component;
 
         totalDragDelta = { 0, 0 };
-
-        constrainedDirection = noConstraint;
 
         component->repaint();
     }
@@ -152,12 +126,6 @@ public:
 
         if (didStartDragging)
             didStartDragging = false;
-        /* uncomment to deselect when clicking a selected component
-        else
-            if (!didJustSelect && isSelected(component))
-                setSelected(component, false); */
-
-        didJustSelect = false;
 
         component->repaint();
     }
@@ -177,27 +145,6 @@ public:
         didStartDragging = true;
 
         Point<int> delta = e.getEventRelativeTo(componentBeingDragged).getPosition() - mouseDownWithinTarget;
-
-        if (constrainToParent) {
-            auto targetArea = getAreaOfSelectedComponents() + delta;
-            auto limit = componentBeingDragged->getParentComponent()->getBounds();
-
-            amountPermittedOffscreen.subtractFrom(targetArea);
-
-            if (targetArea.getX() < 0)
-                delta.x -= targetArea.getX();
-
-            if (targetArea.getY() < 0)
-                delta.y -= targetArea.getY();
-
-            if (targetArea.getBottom() > limit.getBottom())
-                delta.y -= targetArea.getBottom() - limit.getBottom();
-
-            if (targetArea.getRight() > limit.getRight())
-                delta.x -= targetArea.getRight() - limit.getRight();
-        }
-
-        applyDirectionConstraints(e, delta);
 
         for (auto comp : selectedComponents) {
             if (comp != nullptr) {
@@ -224,51 +171,7 @@ public:
         return rawPointers;
     }
 
-    Rectangle<int> getAreaOfSelectedComponents()
-    {
-        if (selectedComponents.getNumSelected() == 0)
-            return Rectangle<int>(0, 0, 0, 0);
-
-        Rectangle<int> a = selectedComponents.getSelectedItem(0)->getBounds();
-
-        for (auto comp : selectedComponents)
-            if (comp)
-                a = a.getUnion(comp->getBounds());
-
-        return a;
-    }
-
 private:
-    void applyDirectionConstraints(const MouseEvent& e, Point<int>& delta)
-    {
-
-        if (shiftConstrainsDirection && e.mods.isShiftDown()) {
-            /* xy > 0 == movement mainly X direction, xy < 0 == movement mainly Y direction. */
-            int xy = abs(totalDragDelta.x + delta.x) - abs(totalDragDelta.y + delta.y);
-
-            /* big movements remove the lock to a particular axis */
-
-            if (xy > minimumMovementToStartDrag)
-                constrainedDirection = xAxisOnly;
-
-            if (xy < -minimumMovementToStartDrag)
-                constrainedDirection = yAxisOnly;
-
-            if ((xy > 0 && constrainedDirection != yAxisOnly)
-                || (constrainedDirection == xAxisOnly)) {
-                delta.y = -totalDragDelta.y; /* move X direction only. */
-                constrainedDirection = xAxisOnly;
-            } else if ((xy <= 0 && constrainedDirection != xAxisOnly)
-                || constrainedDirection == yAxisOnly) {
-                delta.x = -totalDragDelta.x; /* move Y direction only. */
-                constrainedDirection = yAxisOnly;
-            } else {
-                delta = { 0, 0 };
-            }
-        } else {
-            constrainedDirection = noConstraint;
-        }
-    }
 
     void removeSelectedComponent(T* component)
     {
@@ -288,30 +191,16 @@ private:
         }
     }
 
-    enum {
-        noConstraint,
-        xAxisOnly,
-        yAxisOnly
-    } constrainedDirection;
-
     const int minimumMovementToStartDrag = 10;
 
-    bool constrainToParent { false };
-    bool shiftConstrainsDirection { false };
-
-    bool didJustSelect { false };
     bool didStartDragging { false };
 
     Point<int> mouseDownWithinTarget;
     Point<int> totalDragDelta;
 
-    Array<T*> tempSelection;
-
     SelectedItemSet<Component::SafePointer<T>> selectedComponents;
     SelectedItemSet<T*> rawPointers;
 
     T* componentBeingDragged { nullptr };
-
-    BorderSize<int> amountPermittedOffscreen;
 };
 

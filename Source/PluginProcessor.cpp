@@ -10,7 +10,7 @@
 
 
 //==============================================================================
-PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
+PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
 : AudioProcessor(BusesProperties()
 #if !JucePlugin_IsMidiEffect
@@ -21,16 +21,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
 #endif
                  )
 , pd::Instance(Uuid().toString().toStdString()), Thread("PlugDataBackground")
-,
 #endif
-numin(2)
-, numout(2)
-, m_name("PlugData")
-, m_accepts_midi(true)
-, m_produces_midi(true)
-, m_is_midi_effect(false)
+, lastAudioCallback(Time::getCurrentTime().toMilliseconds())
 ,
-
 parameters(*this, nullptr, juce::Identifier("PlugData"),
            { std::make_unique<juce::AudioParameterFloat>("volume", "Volume", 0.0f, 1.0f, 0.75f),
     std::make_unique<juce::AudioParameterBool>("enabled", "Enabled", true),
@@ -44,13 +37,9 @@ parameters(*this, nullptr, juce::Identifier("PlugData"),
     std::make_unique<juce::AudioParameterFloat>("param7", "Parameter 7", 0.0f, 1.0f, 0.0f),
     std::make_unique<juce::AudioParameterFloat>("param8", "Parameter 8", 0.0f, 1.0f, 0.0f) })
 {
-    
-    lastAudioCallback = Time::getCurrentTime().toMilliseconds();
-    
     volume = parameters.getRawParameterValue("volume");
     enabled = parameters.getRawParameterValue("enabled");
-    
-    
+
     // 8 general purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < 8; n++) {
         parameterValues[n] = parameters.getRawParameterValue("param" + String(n + 1));
@@ -67,26 +56,14 @@ parameters(*this, nullptr, juce::Identifier("PlugData"),
     objectLibrary.initialiseLibrary(settingsTree.getChildWithName("Paths"));
     
     // Set up midi buffers
-    m_midi_buffer_in.ensureSize(2048);
-    m_midi_buffer_out.ensureSize(2048);
-    m_midi_buffer_temp.ensureSize(2048);
+    midiBufferIn.ensureSize(2048);
+    midiBufferOut.ensureSize(2048);
+    midiBufferTemp.ensureSize(2048);
     
     setCallbackLock(&AudioProcessor::getCallbackLock());
     
-    // Help patches have to run on their own instance, but not have their own console
-    // This is a woraround that could be solved in a nicer way
-    if (externalConsole) {
-        console = externalConsole;
-        ownsConsole = false;
-    } else {
-        const MessageManagerLock lock;
-        console = new Console;
-        ownsConsole = true;
-    }
-    
     sendMessagesFromQueue();
     processMessages();
-    
     
     startThread();
 }
@@ -95,12 +72,6 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
     // Save current settings before quitting
     saveSettings();
-    
-    // Delete console if we own it
-    if (ownsConsole) {
-        delete console;
-    }
-    
     stopThread(-1);
 }
 
@@ -224,37 +195,32 @@ void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
 //==============================================================================
 void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    samplerate = sampleRate;
-    sampsperblock = samplesPerBlock;
-    
     lastAudioCallback = Time::getCurrentTime().toMilliseconds();
     
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate);
     //sendCurrentBusesLayoutInformation();
-    m_audio_advancement = 0;
-    const size_t blksize = static_cast<size_t>(Instance::getBlockSize());
-    const size_t nins = std::max(static_cast<size_t>(getTotalNumInputChannels()), static_cast<size_t>(2));
-    const size_t nouts = std::max(static_cast<size_t>(getTotalNumOutputChannels()), static_cast<size_t>(2));
-    m_audio_buffer_in.resize(nins * blksize);
-    m_audio_buffer_out.resize(nouts * blksize);
-    std::fill(m_audio_buffer_out.begin(), m_audio_buffer_out.end(), 0.f);
-    std::fill(m_audio_buffer_in.begin(), m_audio_buffer_in.end(), 0.f);
-    m_midi_buffer_in.clear();
-    m_midi_buffer_out.clear();
-    m_midi_buffer_temp.clear();
-    
-    m_midibyte_index = 0;
-    m_midibyte_buffer[0] = 0;
-    m_midibyte_buffer[1] = 0;
-    m_midibyte_buffer[2] = 0;
+    audioAdvancement = 0;
+    const auto blksize = static_cast<size_t>(Instance::getBlockSize());
+    const auto numIn = std::max(static_cast<size_t>(getTotalNumInputChannels()), static_cast<size_t>(2));
+    const auto nouts = std::max(static_cast<size_t>(getTotalNumOutputChannels()), static_cast<size_t>(2));
+    audioBufferIn.resize(numIn * blksize);
+    audioBufferOut.resize(nouts * blksize);
+    std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
+    std::fill(audioBufferIn.begin(), audioBufferIn.end(), 0.f);
+    midiBufferIn.clear();
+    midiBufferOut.clear();
+    midiBufferTemp.clear();
+
+    midiByteIndex = 0;
+    midiByteBuffer[0] = 0;
+    midiByteBuffer[1] = 0;
+    midiByteBuffer[2] = 0;
     startDSP();
     processMessages();
     processPrints();
     processingBuffer.setSize(2, samplesPerBlock);
-    helpAudioBufferIn.setSize(2, samplesPerBlock);
-    helpAudioBufferOut.setSize(2, samplesPerBlock);
     
-    meterSource.resize(numout, 50.0f * 0.001f * sampleRate / samplesPerBlock);
+    meterSource.resize(minOut, static_cast<int>(50.0f * 0.001f * sampleRate / samplesPerBlock));
     
     audioStarted = true;
 }
@@ -351,19 +317,10 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear(i, 0, buffer.getNumSamples());
     
-    auto const maxOuts = std::max(numout, buffer.getNumChannels());
-    for (int i = numin; i < maxOuts; ++i) {
+    auto const maxOuts = std::max(minOut, buffer.getNumChannels());
+    for (int i = minIn; i < maxOuts; ++i) {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
-    
-    // This is the place where you'd normally do the guts of your plugin's
-    // audio processing...
-    // Make sure to reset the state if your inner loop is processing
-    // the samples and the outer loop is handling the channels.
-    // Alternatively, you can process the samples with the channels
-    // interleaved by keeping the same state.
-    
-    // midiCollector.removeNextBlockOfMessages(midiMessages, 512);
     
     for (int n = 0; n < 8; n++) {
         if (parameterValues[n]->load() != lastParameters[n]) {
@@ -378,11 +335,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     
     processingBuffer.setSize(2, buffer.getNumSamples());
     
-    helpAudioBufferIn.setSize(2, buffer.getNumSamples());
-    helpAudioBufferOut.setSize(2, buffer.getNumSamples());
-    helpAudioBufferIn.clear();
-    helpAudioBufferOut.clear();
-    
     // If we're an AU MIDI processor!
     if(buffer.getNumChannels() == 0) {
         processingBuffer.clear();
@@ -390,13 +342,9 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     else {
         processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
         processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
-        
     }
     
     process(processingBuffer, midiMessages);
-    
-    processingBuffer.addFrom(0, 0, helpAudioBufferOut, 0, 0, buffer.getNumSamples());
-    processingBuffer.addFrom(1, 0, helpAudioBufferOut, 1, 0, buffer.getNumSamples());
     
     if(buffer.getNumChannels() != 0) {
         buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
@@ -415,145 +363,137 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     lastAudioCallback = Time::getCurrentTime().toMilliseconds();
     
     ScopedNoDenormals noDenormals;
-    const int blocksize = Instance::getBlockSize();
-    const int nsamples  = buffer.getNumSamples();
-    const int adv       = m_audio_advancement >= 64 ? 0 : m_audio_advancement;
-    const int nleft     = blocksize - adv;
-    const int nins      = getTotalNumInputChannels();
-    const int nouts     = getTotalNumOutputChannels();
-    const float **bufferin = buffer.getArrayOfReadPointers();
-    float **bufferout = buffer.getArrayOfWritePointers();
-    const bool midi_consume = m_accepts_midi;
-    const bool midi_produce = m_produces_midi;
+    const int blockSize = Instance::getBlockSize();
+    const int numSamples  = buffer.getNumSamples();
+    const int adv       = audioAdvancement >= 64 ? 0 : audioAdvancement;
+    const int numLeft     = blockSize - adv;
+    const int numIn      = getTotalNumInputChannels();
+    const int numOut     = getTotalNumOutputChannels();
+    const float **bufferIn = buffer.getArrayOfReadPointers();
+    float **bufferOut = buffer.getArrayOfWritePointers();
+    const bool midiConsume = acceptsMidi();
+    const bool midiProduce = producesMidi();
     
-    auto const maxOuts = std::max(nouts, buffer.getNumChannels());
-    for(int i = nins; i < maxOuts; ++i)
+    auto const maxOuts = std::max(numOut, buffer.getNumChannels());
+    for(int i = numIn; i < maxOuts; ++i)
     {
-        buffer.clear(i, 0, nsamples);
+        buffer.clear(i, 0, numSamples);
     }
-    
-    //////////////////////////////////////////////////////////////////////////////////////////
-    
+
     // If the current number of samples in this block
     // is inferior to the number of samples required
-    if(nsamples < nleft)
+    if(numSamples < numLeft)
     {
         // we save the input samples and we output
         // the missing samples of the previous tick.
-        for(int j = 0; j < nins; ++j)
+        for(int j = 0; j < numIn; ++j)
         {
-            const int index = j*blocksize+adv;
-            std::copy_n(bufferin[j], nsamples, m_audio_buffer_in.data()+index);
+            const int index = j*blockSize+adv;
+            std::copy_n(bufferIn[j], numSamples, audioBufferIn.data() + index);
         }
-        for(int j = 0; j < nouts; ++j)
+        for(int j = 0; j < numOut; ++j)
         {
-            const int index = j*blocksize+adv;
-            std::copy_n(m_audio_buffer_out.data()+index, nsamples, bufferout[j]);
+            const int index = j*blockSize+adv;
+            std::copy_n(audioBufferOut.data() + index, numSamples, bufferOut[j]);
         }
-        if(midi_consume)
+        if(midiConsume)
         {
-            m_midi_buffer_in.addEvents(midiMessages, 0, nsamples, adv);
+            midiBufferIn.addEvents(midiMessages, 0, numSamples, adv);
         }
-        if(midi_produce)
+        if(midiProduce)
         {
             midiMessages.clear();
-            midiMessages.addEvents(m_midi_buffer_out, adv, nsamples, -adv);
+            midiMessages.addEvents(midiBufferOut, adv, numSamples, -adv);
         }
-        m_audio_advancement += nsamples;
+        audioAdvancement += numSamples;
     }
     // If the current number of samples in this block
     // is superior to the number of samples required
     else
     {
-        //////////////////////////////////////////////////////////////////////////////////////
-        
         // we save the missing input samples, we output
         // the missing samples of the previous tick and
         // we call DSP perform method.
-        MidiBuffer const& midiin = midi_produce ? m_midi_buffer_temp : midiMessages;
-        if(midi_produce)
+        MidiBuffer const& midiin = midiProduce ? midiBufferTemp : midiMessages;
+        if(midiProduce)
         {
-            m_midi_buffer_temp.swapWith(midiMessages);
+            midiBufferTemp.swapWith(midiMessages);
             midiMessages.clear();
         }
         
-        for(int j = 0; j < nins; ++j)
+        for(int j = 0; j < numIn; ++j)
         {
-            const int index = j*blocksize+adv;
-            std::copy_n(bufferin[j], nleft, m_audio_buffer_in.data()+index);
+            const int index = j*blockSize+adv;
+            std::copy_n(bufferIn[j], numLeft, audioBufferIn.data() + index);
         }
-        for(int j = 0; j < nouts; ++j)
+        for(int j = 0; j < numOut; ++j)
         {
-            const int index = j*blocksize+adv;
-            std::copy_n(m_audio_buffer_out.data()+index, nleft, bufferout[j]);
+            const int index = j*blockSize+adv;
+            std::copy_n(audioBufferOut.data() + index, numLeft, bufferOut[j]);
         }
-        if(midi_consume)
+        if(midiConsume)
         {
-            m_midi_buffer_in.addEvents(midiin, 0, nleft, adv);
+            midiBufferIn.addEvents(midiin, 0, numLeft, adv);
         }
-        if(midi_produce)
+        if(midiProduce)
         {
-            midiMessages.addEvents(m_midi_buffer_out, adv, nleft, -adv);
+            midiMessages.addEvents(midiBufferOut, adv, numLeft, -adv);
         }
-        m_audio_advancement = 0;
+        audioAdvancement = 0;
         processInternal();
-        
-        //////////////////////////////////////////////////////////////////////////////////////
-        
+
         // If there are other DSP ticks that can be
         // performed, then we do it now.
-        int pos = nleft;
-        while((pos + blocksize) <= nsamples)
+        int pos = numLeft;
+        while((pos + blockSize) <= numSamples)
         {
-            for(int j = 0; j < nins; ++j)
+            for(int j = 0; j < numIn; ++j)
             {
-                const int index = j*blocksize;
-                std::copy_n(bufferin[j]+pos, blocksize, m_audio_buffer_in.data()+index);
+                const int index = j*blockSize;
+                std::copy_n(bufferIn[j]+pos, blockSize, audioBufferIn.data() + index);
             }
-            for(int j = 0; j < nouts; ++j)
+            for(int j = 0; j < numOut; ++j)
             {
-                const int index = j*blocksize;
-                std::copy_n(m_audio_buffer_out.data()+index, blocksize, bufferout[j]+pos);
+                const int index = j*blockSize;
+                std::copy_n(audioBufferOut.data() + index, blockSize, bufferOut[j] + pos);
             }
-            if(midi_consume)
+            if(midiConsume)
             {
-                m_midi_buffer_in.addEvents(midiin, pos, blocksize, 0);
+                midiBufferIn.addEvents(midiin, pos, blockSize, 0);
             }
-            if(midi_produce)
+            if(midiProduce)
             {
-                midiMessages.addEvents(m_midi_buffer_out, 0, blocksize, pos);
+                midiMessages.addEvents(midiBufferOut, 0, blockSize, pos);
             }
             processInternal();
-            pos += blocksize;
+            pos += blockSize;
         }
-        
-        //////////////////////////////////////////////////////////////////////////////////////
-        
+
         // If there are samples that can't be
         // processed, then save them for later
         // and outputs the remaining samples
-        const int remaining = nsamples - pos;
+        const int remaining = numSamples - pos;
         if(remaining > 0)
         {
-            for(int j = 0; j < nins; ++j)
+            for(int j = 0; j < numIn; ++j)
             {
-                const int index = j*blocksize;
-                std::copy_n(bufferin[j]+pos, remaining, m_audio_buffer_in.data()+index);
+                const int index = j*blockSize;
+                std::copy_n(bufferIn[j]+pos, remaining, audioBufferIn.data() + index);
             }
-            for(int j = 0; j < nouts; ++j)
+            for(int j = 0; j < numOut; ++j)
             {
-                const int index = j*blocksize;
-                std::copy_n(m_audio_buffer_out.data()+index, remaining, bufferout[j]+pos);
+                const int index = j*blockSize;
+                std::copy_n(audioBufferOut.data() + index, remaining, bufferOut[j] + pos);
             }
-            if(midi_consume)
+            if(midiConsume)
             {
-                m_midi_buffer_in.addEvents(midiin, pos, remaining, 0);
+                midiBufferIn.addEvents(midiin, pos, remaining, 0);
             }
-            if(midi_produce)
+            if(midiProduce)
             {
-                midiMessages.addEvents(m_midi_buffer_out, 0, remaining, pos);
+                midiMessages.addEvents(midiBufferOut, 0, remaining, pos);
             }
-            m_audio_advancement = remaining;
+            audioAdvancement = remaining;
         }
     }
 }
@@ -580,10 +520,10 @@ void PlugDataAudioProcessor::messageEnqueued()
 
 void PlugDataAudioProcessor::sendMidiBuffer()
 {
-    if(m_accepts_midi)
+    if(acceptsMidi())
     {
-        for(auto it = m_midi_buffer_in.cbegin(); it != m_midi_buffer_in.cend(); ++it) {
-            auto const message = (*it).getMessage();
+        for(const auto& event : midiBufferIn) {
+            auto const message = event.getMessage();
             if(message.isNoteOn()) {
                 sendNoteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity()); }
             else if(message.isNoteOff()) {
@@ -614,57 +554,49 @@ void PlugDataAudioProcessor::sendMidiBuffer()
                 sendMidiByte(0, static_cast<int>(message.getRawData()[i]));
             }
         }
-        m_midi_buffer_in.clear();
+        midiBufferIn.clear();
     }
 }
 
 void PlugDataAudioProcessor::processInternal()
 {
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //                                     DEQUEUE MESSAGES                                 //
-    //////////////////////////////////////////////////////////////////////////////////////////
+    // Dequeue messages
     setThis();
-    
-    isDequeueing = true;
+
     sendMessagesFromQueue();
-    isDequeueing = false;
     
     sendMidiBuffer();
     processMessages();
     processPrints();
+
+    // Process audio
     
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //                                          AUDIO                                       //
-    //////////////////////////////////////////////////////////////////////////////////////////
-    
-    if (enabled->load()) {
-        std::copy_n(m_audio_buffer_out.data() + (2 * 64), (numout - 2) * 64, m_audio_buffer_in.data() + (2 * 64));
+    if (static_cast<bool>(enabled->load())) {
+        std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
         
         Instance::canvasLock.lock();
-        performDSP(m_audio_buffer_in.data(), m_audio_buffer_out.data());
+        performDSP(audioBufferIn.data(), audioBufferOut.data());
         Instance::canvasLock.unlock();
     }
     
     else {
-        std::fill(m_audio_buffer_in.begin(), m_audio_buffer_in.end(), 0.f);
+        std::fill(audioBufferIn.begin(), audioBufferIn.end(), 0.f);
         
         Instance::canvasLock.lock();
-        performDSP(m_audio_buffer_in.data(), m_audio_buffer_out.data());
+        performDSP(audioBufferIn.data(), audioBufferOut.data());
         Instance::canvasLock.unlock();
         
-        std::fill(m_audio_buffer_out.begin(), m_audio_buffer_out.end(), 0.f);
+        std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
     }
     
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //                                          MIDI OUT                                    //
-    //////////////////////////////////////////////////////////////////////////////////////////
+    // Midi out
     
-    if (m_produces_midi) {
-        m_midibyte_index = 0;
-        m_midibyte_buffer[0] = 0;
-        m_midibyte_buffer[1] = 0;
-        m_midibyte_buffer[2] = 0;
-        m_midi_buffer_out.clear();
+    if (producesMidi()) {
+        midiByteIndex = 0;
+        midiByteBuffer[0] = 0;
+        midiByteBuffer[1] = 0;
+        midiByteBuffer[2] = 0;
+        midiBufferOut.clear();
         processMidi();
     }
 }
@@ -677,7 +609,7 @@ bool PlugDataAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
-    auto* editor = new PlugDataPluginEditor(*this, console);
+    auto* editor = new PlugDataPluginEditor(*this, &console);
     
     auto patch = getPatch();
     if (!patch.getPointer()) {
@@ -689,7 +621,6 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
         
         getPatch().setTitle("Untitled Patcher");
-        editor->mainCanvas = cnv;
         editor->addTab(cnv);
         
         // Set to unknown file when loading temp patch
@@ -699,8 +630,6 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     else {
         auto* cnv = editor->canvases.add(new Canvas(*editor, patch, false));
         editor->addTab(cnv);
-        editor->mainCanvas = cnv;
-        
     }
         
 
@@ -729,7 +658,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     
     ostream.writeString(getPatch().getCanvasContent());
     ostream.writeInt(getLatencySamples());
-    ostream.writeInt(xmlBlock.getSize());
+    ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
     ostream.writeString(getCurrentFile().getFullPathName());
 }
@@ -740,15 +669,15 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
     
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
-    int latency = istream.readInt();
-    int xmlSize = istream.readInt();
-    
-    void* xmlData = (void*)new char[xmlSize];
+    auto latency = istream.readInt();
+    auto xmlSize = istream.readInt();
+
+    void* xmlData = static_cast<void*>(new char[xmlSize]);
     istream.read(xmlData, xmlSize);
     
     std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
     
-    if (xmlState.get() != nullptr)
+    if (xmlState)
         if (xmlState->hasTagName(parameters.state.getType()))
             parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
     
@@ -775,8 +704,6 @@ void PlugDataAudioProcessor::loadPatch(File patch)
     
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
-        
-        editor->mainCanvas = cnv;
         cnv->synchronise();
         editor->addTab(cnv);
     }
@@ -792,8 +719,6 @@ void PlugDataAudioProcessor::loadPatch(String patch)
     
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
-        
-        editor->mainCanvas = cnv;
         editor->addTab(cnv);
     }
     
@@ -804,57 +729,57 @@ void PlugDataAudioProcessor::loadPatch(String patch)
 void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)
 {
     if (velocity == 0) {
-        m_midi_buffer_out.addEvent(MidiMessage::noteOff(channel, pitch, uint8(0)), m_audio_advancement);
+        midiBufferOut.addEvent(MidiMessage::noteOff(channel, pitch, uint8(0)), audioAdvancement);
     } else {
-        m_midi_buffer_out.addEvent(MidiMessage::noteOn(channel, pitch, static_cast<uint8>(velocity)), m_audio_advancement);
+        midiBufferOut.addEvent(MidiMessage::noteOn(channel, pitch, static_cast<uint8>(velocity)), audioAdvancement);
     }
 }
 
 void PlugDataAudioProcessor::receiveControlChange(const int channel, const int controller, const int value)
 {
-    m_midi_buffer_out.addEvent(MidiMessage::controllerEvent(channel, controller, value), m_audio_advancement);
+    midiBufferOut.addEvent(MidiMessage::controllerEvent(channel, controller, value), audioAdvancement);
 }
 
 void PlugDataAudioProcessor::receiveProgramChange(const int channel, const int value)
 {
-    m_midi_buffer_out.addEvent(MidiMessage::programChange(channel, value), m_audio_advancement);
+    midiBufferOut.addEvent(MidiMessage::programChange(channel, value), audioAdvancement);
 }
 
 void PlugDataAudioProcessor::receivePitchBend(const int channel, const int value)
 {
-    m_midi_buffer_out.addEvent(MidiMessage::pitchWheel(channel, value + 8192), m_audio_advancement);
+    midiBufferOut.addEvent(MidiMessage::pitchWheel(channel, value + 8192), audioAdvancement);
 }
 
 void PlugDataAudioProcessor::receiveAftertouch(const int channel, const int value)
 {
-    m_midi_buffer_out.addEvent(MidiMessage::channelPressureChange(channel, value), m_audio_advancement);
+    midiBufferOut.addEvent(MidiMessage::channelPressureChange(channel, value), audioAdvancement);
 }
 
 void PlugDataAudioProcessor::receivePolyAftertouch(const int channel, const int pitch, const int value)
 {
-    m_midi_buffer_out.addEvent(MidiMessage::aftertouchChange(channel, pitch, value), m_audio_advancement);
+    midiBufferOut.addEvent(MidiMessage::aftertouchChange(channel, pitch, value), audioAdvancement);
 }
 
 void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
 {
-    if (m_midibyte_issysex) {
+    if (midiByteIsSysex) {
         if (byte == 0xf7) {
-            m_midi_buffer_out.addEvent(MidiMessage::createSysExMessage(m_midibyte_buffer, static_cast<int>(m_midibyte_index)), m_audio_advancement);
-            m_midibyte_index = 0;
-            m_midibyte_issysex = false;
+            midiBufferOut.addEvent(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), audioAdvancement);
+            midiByteIndex = 0;
+            midiByteIsSysex = false;
         } else {
-            m_midibyte_buffer[m_midibyte_index++] = static_cast<uint8>(byte);
-            if (m_midibyte_index == 512) {
-                m_midibyte_index = 511;
+            midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
+            if (midiByteIndex == 512) {
+                midiByteIndex = 511;
             }
         }
-    } else if (m_midibyte_index == 0 && byte == 0xf0) {
-        m_midibyte_issysex = true;
+    } else if (midiByteIndex == 0 && byte == 0xf0) {
+        midiByteIsSysex = true;
     } else {
-        m_midibyte_buffer[m_midibyte_index++] = static_cast<uint8>(byte);
-        if (m_midibyte_index >= 3) {
-            m_midi_buffer_out.addEvent(MidiMessage(m_midibyte_buffer, 3), m_audio_advancement);
-            m_midibyte_index = 0;
+        midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
+        if (midiByteIndex >= 3) {
+            midiBufferOut.addEvent(MidiMessage(midiByteBuffer, 3), audioAdvancement);
+            midiByteIndex = 0;
         }
     }
 }

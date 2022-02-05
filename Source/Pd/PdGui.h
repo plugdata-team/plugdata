@@ -26,48 +26,38 @@ namespace pd
     {
     public:
 
-        
         //! @brief The default constructor
         Gui() noexcept = default;
-        
-        //! @brief The copy constructor.
-        //Gui(const Gui& other) noexcept = default;
-        
-        //! @brief The copy operator.
-        //Gui& operator=(Gui const& other) noexcept = default;
-        
-        //! @brief The destructor.
-        ~Gui() noexcept = default;
-        
+
         
         //! @brief The type of the GUI.
-        inline Type getType() const noexcept override
+        [[nodiscard]] inline Type getType() const noexcept override
         {
-            return m_type;
+            return type;
         }
         
         static Type getType(void* ptr) noexcept;
         
         //! @brief If the GUI is an IEM's GUI.
-        bool isIEM() const noexcept
+        [[nodiscard]] bool isIEM() const noexcept
         {
-            return (m_type != Type::Undefined) && (m_type < Type::Comment);
+            return (type != Type::Undefined) && (type < Type::Comment);
         }
         
         //! @brief If the GUI is an Atom GUI (AtomNumber or AtomSymbol).
-        bool isAtom() const noexcept
+        [[nodiscard]] bool isAtom() const noexcept
         {
-            return (m_type == Type::AtomNumber) || (m_type == Type::AtomSymbol);
+            return (type == Type::AtomNumber) || (type == Type::AtomSymbol);
         }
         
         //! @brief Get the font height.
-        float getFontHeight() const noexcept;
+        [[nodiscard]] float getFontHeight() const noexcept;
             
         //! @brief Get the font name.
-        std::string getFontName() const;
-        
-        float getMinimum() const noexcept;
-        float getMaximum() const noexcept;
+        [[nodiscard]] std::string getFontName() const;
+
+        [[nodiscard]] float getMinimum() const noexcept;
+        [[nodiscard]] float getMaximum() const noexcept;
         
         void setMinimum(float value) noexcept;
         void setMaximum(float value) noexcept;
@@ -77,50 +67,48 @@ namespace pd
         
         std::string getSendSymbol() noexcept;
         std::string getReceiveSymbol() noexcept;
-        
-        float getValue() const noexcept;
-        float getPeak() const noexcept;
+
+        [[nodiscard]] float getValue() const noexcept;
+        [[nodiscard]] float getPeak() const noexcept;
         
         void setValue(float value) noexcept;
-        
-        size_t getNumberOfSteps() const noexcept;
-        
-        unsigned int getBackgroundColor() const noexcept;
-        
-        unsigned int getForegroundColor() const noexcept;
-        
-        std::string getSymbol() const noexcept;
+
+        [[nodiscard]] size_t getNumberOfSteps() const noexcept;
+
+        [[nodiscard]] unsigned int getBackgroundColor() const noexcept;
+
+        [[nodiscard]] unsigned int getForegroundColor() const noexcept;
+
+        [[nodiscard]] std::string getSymbol() const noexcept;
         
         void setSymbol(std::string const& value) noexcept;
         
         void click() noexcept;
-        
-        std::array<int, 4> getBounds() const noexcept override;
+
+        [[nodiscard]]  std::array<int, 4> getBounds() const noexcept override;
         void setSize(int w, int h) noexcept;
-        
-        bool jumpOnClick() const noexcept;
-        
-        bool isLogScale() const noexcept;
+
+        [[nodiscard]] bool jumpOnClick() const noexcept;
+
+        [[nodiscard]] bool isLogScale() const noexcept;
         void setLogScale(bool log) noexcept;
-        
-        Array getArray() const noexcept;
-        
-        Label getLabel() const noexcept;
-        Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
-        
-        Patch getPatch() const noexcept;
-        
-        std::vector<Atom> getList() const noexcept;
+
+        [[nodiscard]] Array getArray() const noexcept;
+
+        [[nodiscard]] Label getLabel() const noexcept;
+        [[nodiscard]] Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
+
+        [[nodiscard]] Patch getPatch() const noexcept;
+
+        [[nodiscard]] std::vector<Atom> getList() const noexcept;
         
         void setList(std::vector<Atom> const& value) noexcept;
         
         Gui(void* ptr, Patch* patch, Instance* instance) noexcept;
         
     private:
-        
-        std::string last_symbol;
-    
-        Type m_type = Type::Undefined;
+
+        Type type = Type::Undefined;
         friend class Patch;
     };
     
@@ -133,21 +121,20 @@ namespace pd
     public:
         Label() noexcept;
         Label(Label const& other) noexcept;
-        Label(std::string const& text, unsigned int color, int x, int y, std::string const& fontname, float fontheight) noexcept;
-        
-        std::string getText() const noexcept { return m_text; }
-        unsigned int getColor() const noexcept { return m_color; }
-        std::array<int, 2> getPosition() const noexcept { return m_position; }
+        Label(std::string text, unsigned int color, int x, int y, std::string fontname, float fontheight) noexcept;
+
+        [[nodiscard]] std::string getText() const noexcept { return m_text; }
+        [[nodiscard]] unsigned int getColor() const noexcept { return m_color; }
+        [[nodiscard]] std::array<int, 2> getPosition() const noexcept { return m_position; }
         
         //! @brief Get the font height.
-        float getFontHeight() const noexcept;
+        [[nodiscard]] float getFontHeight() const noexcept;
         
         //! @brief Get the font name.
-        std::string getFontName() const;
+        [[nodiscard]] std::string getFontName() const;
     private:
-        Label(Gui const& gui) noexcept;
         
-        void* m_ptr;
+        void* ptr;
         std::string const        m_text;
         unsigned int const       m_color;
         std::array<int, 2> const m_position;

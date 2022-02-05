@@ -29,7 +29,7 @@ public:
     
     Canvas* cnv;
     
-    String lastID;
+    String lastId;
     
     int dragIdx = -1;
 
@@ -50,8 +50,9 @@ public:
     void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
-    
-    String getID();
+
+    [[nodiscard]] String getId() const;
+
     MemoryBlock getState();
     void setState(MemoryBlock& block);
 
@@ -60,7 +61,7 @@ public:
     // Pathfinding
     int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
 
-    void applyPath(PathPlan plan, bool updateState = true);
+    void applyPath(const PathPlan& plan, bool updateState = true);
     
     PathPlan findPath();
     

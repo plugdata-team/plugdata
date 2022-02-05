@@ -30,6 +30,8 @@ public:
     
     Patch(void* ptr, Instance* instance) noexcept;
     
+    Patch(const File& toOpen, Instance* instance) noexcept;
+    
     //! @brief The default constructor.
     Patch() = default;
     
@@ -48,16 +50,16 @@ public:
     ~Patch() noexcept = default;
     
     //! @brief Gets the bounds of the patch.
-    std::array<int, 4> getBounds() const noexcept;
+    [[nodiscard]] std::array<int, 4> getBounds() const noexcept;
     
-    std::unique_ptr<Object> createGraph(String name, int size, int x, int y);
+    std::unique_ptr<Object> createGraph(const String& name, int size, int x, int y);
     std::unique_ptr<Object> createGraphOnParent(int x, int y);
     
-    std::unique_ptr<Object> createObject(String name, int x, int y, bool undoable = true);
+    std::unique_ptr<Object> createObject(const String& name, int x, int y, bool undoable = true);
     void removeObject(Object* obj);
-    std::unique_ptr<Object> renameObject(Object* obj, String name);
+    std::unique_ptr<Object> renameObject(Object* obj, const String& name);
    
-    void moveObjects (std::vector<Object*>, int x, int y);
+    void moveObjects (const std::vector<Object*>&, int x, int y);
     
     void finishRemove();
     void removeSelection();
@@ -87,55 +89,49 @@ public:
     bool createConnection(Object* src, int nout, Object* sink, int nin);
     void removeConnection(Object* src, int nout, Object*sink, int nin);
     
-    Connections getConnections();
-    
-    inline static CriticalSection currentCanvasMutex;
-    
-    t_canvas* getPointer() const {
-        return static_cast<t_canvas*>(m_ptr);
+    [[nodiscard]] Connections getConnections() const;
+
+    [[nodiscard]] t_canvas* getPointer() const {
+        return static_cast<t_canvas*>(ptr);
     }
     
     //! @brief Gets the objects of the patch.
-    std::vector<Object> getObjects(bool only_gui = false) noexcept;
+    std::vector<Object> getObjects(bool onlyGui = false) noexcept;
     
     String getCanvasContent() {
-        if(!m_ptr) return String();
+        if(!ptr) return {};
         char* buf;
         int bufsize;
-        libpd_getcontent(static_cast<t_canvas*>(m_ptr), &buf, &bufsize);
-        return String(buf, bufsize);
+        libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
+        return {buf, static_cast<size_t>(bufsize)};
     }
-    
-    void saveToFile(File location);
-    void save();
-    
     
     int getIndex(void* obj);
     
     t_gobj* getInfoObject();
-    void setExtraInfoID(String oldID, String newID);
+    void setExtraInfoId(const String& oldId, const String& newId);
     
     void storeExtraInfo(bool undoable = true);
     
     void updateExtraInfo();
-    MemoryBlock getExtraInfo(String ID);
-    void setExtraInfo(String ID, MemoryBlock& info);
+    [[nodiscard]] MemoryBlock getExtraInfo(const String& id) const;
+    void setExtraInfo(const String& id, MemoryBlock& info);
     
     ValueTree extraInfo = ValueTree("PlugDataInfo");
 
-    t_object* checkObject(Object* obj) const noexcept;
+    static t_object* checkObject(Object* obj) noexcept;
     
     void keyPress(int keycode, int shift);
-    
-    String getTitle();
-    void setTitle(String title);
+
+    [[nodiscard]] String getTitle() const;
+    void setTitle(const String& title);
     
     static inline float zoom = 1.5f;
     
 private:
     
-    void*     m_ptr      = nullptr;
-    Instance* m_instance = nullptr;
+    void*     ptr      = nullptr;
+    Instance* instance = nullptr;
     
     friend class Instance;
     friend class Gui;

@@ -15,8 +15,7 @@
 extern juce::JUCEApplicationBase* juce_CreateApplication();
 
 struct Identifiers {
-    inline static Identifier hideHeaders = Identifier("HideHeaders");
-    inline static Identifier connectionStyle = Identifier("ConnectionStyle");
+    static inline const Identifier connectionStyle = Identifier("ConnectionStyle");
 };
 
 
@@ -27,12 +26,11 @@ class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
 class Canvas : public Component, public KeyListener, public MultiComponentDragger<Box> {
 public:
-    static inline constexpr int guiUpdateMs = 25;
 
     //==============================================================================
-    Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool isGraph = false, bool isGraphChild = false);
+    Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
 
-    ~Canvas();
+    ~Canvas() override;
 
     PlugDataPluginEditor& main;
     PlugDataAudioProcessor* pd;
@@ -78,11 +76,12 @@ public:
 
     void dragCallback(int dx, int dy) override;
 
-    void findDrawables(Graphics& g, t_canvas* cnv);
+    void findDrawables(Graphics& g);
 
     Viewport* viewport = nullptr;
 
     bool connectingWithDrag = false;
+    SafePointer<Edge> connectingEdge;
 
     pd::Patch patch;
 
@@ -102,8 +101,6 @@ public:
 private:
     SafePointer<TabbedComponent> tabbar;
 
-    Point<int> dragStartPosition;
-
     LassoComponent<Box*> lasso;
     PopupMenu popupMenu;
 
@@ -118,7 +115,7 @@ struct GraphArea : public Component, public ComponentDragger {
 
     Rectangle<int> startRect;
 
-    GraphArea(Canvas* parent)
+    explicit GraphArea(Canvas* parent)
         : resizer(this, nullptr)
         , canvas(parent)
     {

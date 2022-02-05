@@ -21,7 +21,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
 public:
     //==============================================================================
-    PlugDataAudioProcessor(Console* console = nullptr);
+    PlugDataAudioProcessor();
     ~PlugDataAudioProcessor() override;
 
     //==============================================================================
@@ -81,24 +81,16 @@ public:
                if(!message.compare(0, 6, "error:"))
                {
                    const auto temp = String(message);
-                   if (console) console->logError(temp.substring(7));
+                   console.logError(temp.substring(7));
                }
                else if(!message.compare(0, 11, "verbose(4):"))
                {
                    const auto temp = String(message);
-                   if (console) console->logError(temp.substring(12));
-               }
-               else if(!message.compare(0, 5, "tried"))
-               {
-                   if(console) console->logMessage(message);
-               }
-               else if(!message.compare(0, 16, "input channels ="))
-               {
-                   if(console) console->logMessage(message);
+                   console.logError(temp.substring(12));
                }
                else
                {
-                   if(console) console->logMessage(message);
+                   console.logMessage(message);
                }
            }
     };
@@ -133,30 +125,25 @@ public:
     void loadPatch(String patch) override;
     void loadPatch(File patch) override;
 
-    Console* console;
+    Console console;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
     AudioBuffer<float> processingBuffer;
 
-
     std::atomic<float>* volume;
 
     std::vector<pd::Atom> parameterAtom = std::vector<pd::Atom>(1);
-
-    int numin;
-    int numout;
-    int sampsperblock = 512;
 
     ValueTree settingsTree = ValueTree("PlugDataSettings");
 
     pd::Library objectLibrary;
 
-    static inline File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
-    static inline File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
+    File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
-    static inline File settingsFile = appDir.getChildFile("Settings.xml");
-    static inline File abstractions = appDir.getChildFile("Abstractions");
+    File settingsFile = appDir.getChildFile("Settings.xml");
+    File abstractions = appDir.getChildFile("Abstractions");
 
     bool locked = false;
 
@@ -167,36 +154,27 @@ public:
 private:
     void processInternal();
 
-    bool ownsConsole;
-
-    String const m_name = String("PlugData");
-    bool const m_accepts_midi = true;
-    bool const m_produces_midi = true;
-    bool const m_is_midi_effect = false;
     std::atomic<float>* enabled;
 
-    int m_audio_advancement;
-    std::vector<float> m_audio_buffer_in;
-    std::vector<float> m_audio_buffer_out;
+    int audioAdvancement = 0;
+    std::vector<float> audioBufferIn;
+    std::vector<float> audioBufferOut;
 
-    MidiBuffer m_midi_buffer_in;
-    MidiBuffer m_midi_buffer_out;
-    MidiBuffer m_midi_buffer_temp;
-    
-    AudioSampleBuffer helpAudioBufferIn;
-    AudioSampleBuffer helpAudioBufferOut;
+    MidiBuffer midiBufferIn;
+    MidiBuffer midiBufferOut;
+    MidiBuffer midiBufferTemp;
 
-    bool m_midibyte_issysex = false;
-    uint8 m_midibyte_buffer[512];
-    size_t m_midibyte_index = 0;
+    bool midiByteIsSysex = false;
+    uint8 midiByteBuffer[512] = {0};
+    size_t midiByteIndex = 0;
 
-    std::array<std::atomic<float>*, 8> parameterValues;
-    std::array<float, 8> lastParameters;
+    std::array<std::atomic<float>*, 8> parameterValues = {nullptr};
+    std::array<float, 8> lastParameters = {0};
+
+    int minIn = 2;
+    int minOut = 2;
 
     const CriticalSection* audioLock;
-    double samplerate;
-    
-    std::atomic<bool> isDequeueing = false;
 
     //==============================================================================
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)

@@ -6,6 +6,8 @@
 
 #include "LookAndFeel.h"
 #include <JuceHeader.h>
+
+#include <memory>
 #include "../Libraries/ff_meters/ff_meters.h"
 
 // Widget that shows a Foleys level meter and a volume slider
@@ -13,6 +15,7 @@
 struct LevelMeter : public Component {
     LevelMeter(AudioProcessorValueTreeState& state, foleys::LevelMeterSource& source)
     {
+        
 
         meter.setMeterSource(&source);
 
@@ -38,11 +41,9 @@ struct LevelMeter : public Component {
 
         volumeSlider.setValue(0.75);
         volumeSlider.setRange(0.0f, 1.0f);
-
-        attachment.reset(new SliderParameterAttachment(*state.getParameter("volume"), volumeSlider, nullptr));
     }
 
-    ~LevelMeter()
+    ~LevelMeter() override
     {
         meter.setLookAndFeel(nullptr);
         setLookAndFeel(nullptr);
@@ -58,8 +59,6 @@ struct LevelMeter : public Component {
     foleys::LevelMeterLookAndFeel lnf;
 
     Slider volumeSlider;
-
-    std::unique_ptr<SliderParameterAttachment> attachment;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
