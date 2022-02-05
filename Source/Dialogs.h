@@ -10,7 +10,8 @@
 
 #include "LookAndFeel.h"
 
-class SaveDialog : public Component {
+class SaveDialog : public Component
+{
   // MainLook mainLook;
 
   DropShadower shadower = DropShadower(MainLook::shadow);
@@ -33,7 +34,8 @@ class SaveDialog : public Component {
   SaveDialog();
 };
 
-class ArrayDialog : public Component {
+class ArrayDialog : public Component
+{
   // MainLook mainLook;
 
   DropShadower shadower = DropShadower(MainLook::shadow);
@@ -61,8 +63,10 @@ class ArrayDialog : public Component {
   ArrayDialog();
 };
 
-struct DAWAudioSettings : public Component {
-  explicit DAWAudioSettings(AudioProcessor& p) : processor(p) {
+struct DAWAudioSettings : public Component
+{
+  explicit DAWAudioSettings(AudioProcessor& p) : processor(p)
+  {
     addAndMakeVisible(latencySlider);
     latencySlider.setRange(0, 88200, 1);
     latencySlider.setTextValueSuffix(" Samples");
@@ -84,10 +88,12 @@ struct DAWAudioSettings : public Component {
   Slider latencySlider;
 };
 
-struct SettingsComponent : public Component {
+struct SettingsComponent : public Component
+{
   SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
 
-  ~SettingsComponent() override {
+  ~SettingsComponent() override
+  {
     for (auto& button : toolbarButtons) button->setLookAndFeel(nullptr);
   }
 
@@ -107,7 +113,8 @@ struct SettingsComponent : public Component {
   OwnedArray<TextButton> toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search)};
 };
 
-struct SettingsDialog : public Component {
+struct SettingsDialog : public Component
+{
   MainLook mainLook;
   SettingsComponent settingsComponent;
   ComponentDragger dragger;
@@ -116,7 +123,8 @@ struct SettingsDialog : public Component {
 
   ComponentBoundsConstrainer constrainer;
 
-  SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : settingsComponent(r, processor, manager, std::move(settingsTree), std::move(updatePaths)), mainLook(r) {
+  SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : settingsComponent(r, processor, manager, std::move(settingsTree), std::move(updatePaths)), mainLook(r)
+  {
     shadower.setOwner(this);
     setLookAndFeel(&mainLook);
     closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
@@ -138,26 +146,32 @@ struct SettingsDialog : public Component {
 
   ~SettingsDialog() override { setLookAndFeel(nullptr); }
 
-  void mouseDown(const MouseEvent& e) override {
-    if (e.getPosition().getY() < 30) {
+  void mouseDown(const MouseEvent& e) override
+  {
+    if (e.getPosition().getY() < 30)
+    {
       dragger.startDraggingComponent(this, e);
     }
   }
 
-  void mouseDrag(const MouseEvent& e) override {
-    if (e.getMouseDownPosition().getY() < 30) {
+  void mouseDrag(const MouseEvent& e) override
+  {
+    if (e.getMouseDownPosition().getY() < 30)
+    {
       dragger.dragComponent(this, e, &constrainer);
     }
   }
 
-  void resized() override {
+  void resized() override
+  {
     closeButton->setBounds(getWidth() - 30, 0, 30, 30);
     settingsComponent.setBounds(getLocalBounds());
   }
 
   void paint(Graphics& g) override { g.fillAll(MainLook::firstBackground); }
 
-  void paintOverChildren(Graphics& g) override {
+  void paintOverChildren(Graphics& g) override
+  {
     // Draw window title
     g.setColour(Colours::white);
     g.drawText("Settings", 0, 0, getWidth(), 30, Justification::centred, true);

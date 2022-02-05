@@ -6,7 +6,8 @@
 
 #pragma once
 
-namespace pd {
+namespace pd
+{
 // ==================================================================================== //
 //                                      ATOM                                            //
 // ==================================================================================== //
@@ -14,7 +15,8 @@ namespace pd {
 //! @brief The Pd atom.
 //! @details The class is a copy of the Pd atom.
 //! @see Instance, Gui
-class Atom {
+class Atom
+{
  public:
   //! @brief The default constructor.
   inline Atom() : type(FLOAT), value(0), symbol() {}
@@ -41,16 +43,24 @@ class Atom {
   [[nodiscard]] inline std::string const& getSymbol() const noexcept { return symbol; }
 
   //! @brief Compare two atoms.
-  inline bool operator==(Atom const& other) const noexcept {
-    if (type == SYMBOL) {
+  inline bool operator==(Atom const& other) const noexcept
+  {
+    if (type == SYMBOL)
+    {
       return other.type == SYMBOL && symbol == other.symbol;
-    } else {
+    }
+    else
+    {
       return other.type == FLOAT && value == other.value;
     }
   }
 
  private:
-  enum Type { FLOAT, SYMBOL };
+  enum Type
+  {
+    FLOAT,
+    SYMBOL
+  };
   Type type = FLOAT;
   float value = 0;
   std::string symbol;

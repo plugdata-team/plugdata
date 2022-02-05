@@ -12,14 +12,16 @@
 #include "MultiComponentDragger.h"
 
 // Text element in suggestion box
-class SuggestionComponent : public TextButton {
+class SuggestionComponent : public TextButton
+{
   int type = -1;
   Array<Colour> colours = {findColour(ScrollBar::thumbColourId), Colours::yellow};
 
   Array<String> letters = {"pd", "~"};
 
  public:
-  SuggestionComponent() {
+  SuggestionComponent()
+  {
     setText("");
     setWantsKeyboardFocus(true);
     setConnectedEdges(12);
@@ -28,14 +30,16 @@ class SuggestionComponent : public TextButton {
     setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
   }
 
-  void setText(const String& name) {
+  void setText(const String& name)
+  {
     setButtonText(name);
     type = name.contains("~") ? 1 : 0;
 
     repaint();
   }
 
-  void paint(Graphics& g) override {
+  void paint(Graphics& g) override
+  {
     TextButton::paint(g);
 
     if (type == -1) return;
@@ -54,7 +58,8 @@ class SuggestionComponent : public TextButton {
 // Box with suggestions for object names
 class Box;
 class ClickLabel;
-class SuggestionBox : public Component, public KeyListener, public TextEditor::InputFilter {
+class SuggestionBox : public Component, public KeyListener, public TextEditor::InputFilter
+{
  public:
   bool selecting = false;
 
@@ -100,7 +105,8 @@ class SuggestionBox : public Component, public KeyListener, public TextEditor::I
 };
 
 // Label that shows the box name and can be double-clicked to change the text
-class ClickLabel : public Component, public SettableTooltipClient, public Value::Listener, protected TextEditor::Listener {
+class ClickLabel : public Component, public SettableTooltipClient, public Value::Listener, protected TextEditor::Listener
+{
  public:
   ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger);
 
@@ -115,7 +121,8 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
 
   void inputAttemptWhenModal() override;
 
-  void valueChanged(Value& v) override {
+  void valueChanged(Value& v) override
+  {
     if (lastTextValue != textValue.toString()) setText(textValue.toString(), sendNotification);
   }
 
@@ -151,8 +158,10 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
   /** Returns the currently-visible text editor, or nullptr if none is open. */
   [[nodiscard]] TextEditor* getCurrentTextEditor() const noexcept;
 
-  void setBorderSize(BorderSize<int> newBorder) {
-    if (border != newBorder) {
+  void setBorderSize(BorderSize<int> newBorder)
+  {
+    if (border != newBorder)
+    {
       border = newBorder;
       repaint();
     }

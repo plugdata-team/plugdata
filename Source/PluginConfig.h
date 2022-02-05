@@ -10,7 +10,8 @@
 
 #define JucePlugin_LV2URI (juce::String("urn:PlugData:") + juce::String("PlugData")).toUTF8()
 
-namespace ProjectInfo {
+namespace ProjectInfo
+{
 const char* const companyName = "Octagon";
 const char* const versionString = "0.3";
 }  // namespace ProjectInfo
