@@ -171,7 +171,6 @@ void ClickLabel::showEditor()
         editor->setText (getText(), false);
         editor->setKeyboardType (keyboardType);
         editor->addListener (this);
-        editor->grabKeyboardFocus();
 
         if (editor == nullptr) // may be deleted by a callback
             return;
@@ -215,7 +214,7 @@ void ClickLabel::hideEditor (bool discardCurrentEditorContents)
 
         editorAboutToBeHidden (outgoingEditor.get());
 
-        const bool changed = updateFromTextEditorContents (*outgoingEditor);
+        updateFromTextEditorContents (*outgoingEditor);
         
         outgoingEditor.reset();
 
@@ -467,7 +466,7 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput)
     
 
     // Update suggestions
-    auto found = currentBox->cnv->main.pd.objectLibrary.autocomplete(typedText.toStdString());
+    auto found = currentBox->cnv->pd->objectLibrary.autocomplete(typedText.toStdString());
 
     for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
         buttons[i]->setText(found[i]);

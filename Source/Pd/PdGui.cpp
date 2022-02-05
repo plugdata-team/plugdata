@@ -694,17 +694,16 @@ void Gui::setSendSymbol(const std::string& symbol) const noexcept {
     if(m_ptr && isIEM()) {
         auto* iemgui = static_cast<t_iemgui*>(m_ptr);
         
-        int sndable = 1, oldsndrcvable = 0;
+        if(symbol == "empty")  {
+            iemgui->x_fsf.x_snd_able = false;
+        }
+        else {
+            iemgui->x_snd = gensym(symbol.c_str());
+            iemgui->x_fsf.x_snd_able = true;
+            iemgui_verify_snd_ne_rcv(iemgui);
+        }
         
-        if(iemgui->x_fsf.x_snd_able)
-            oldsndrcvable += IEM_GUI_OLD_SND_FLAG;
-        
-        if(symbol == "empty") sndable = 0;
-        
-        iemgui->x_snd = gensym(symbol.c_str());
-        iemgui->x_fsf.x_snd_able = true;
-        
-        iemgui_verify_snd_ne_rcv(iemgui);
+
     }
     if(m_ptr && isAtom()) {
         ((t_fake_gatom*)m_ptr)->a_symto = gensym(symbol.c_str());
@@ -716,12 +715,12 @@ void Gui::setReceiveSymbol(const std::string& symbol) const noexcept {
     if(m_ptr && isIEM()) {
         auto* iemgui = static_cast<t_iemgui*>(m_ptr);
         
-        int rcvable = 1, oldsndrcvable = 0;
+        bool rcvable = true;
         
-        if(iemgui->x_fsf.x_rcv_able)
-            oldsndrcvable += IEM_GUI_OLD_RCV_FLAG;
         
-        if(symbol == "empty") rcvable = 0;
+        if(symbol == "empty")  {
+            rcvable = false;
+        }
         
         //iemgui_all_raute2dollar(srl);
         //iemgui_all_dollararg2sym(iemgui, srl);
@@ -747,7 +746,7 @@ void Gui::setReceiveSymbol(const std::string& symbol) const noexcept {
         iemgui->x_rcv = gensym(symbol.c_str());
         iemgui_verify_snd_ne_rcv(iemgui);
     }
-    else if(isAtom()) {
+    else if(m_ptr && isAtom()) {
         ((t_fake_gatom*)m_ptr)->a_symfrom = gensym(symbol.c_str());
     }
 }

@@ -268,7 +268,7 @@ public:
     {
         table.setBounds(getLocalBounds());
 
-        auto b = table.getHeader().getBounds().removeFromRight(25);
+        //auto b = table.getHeader().getBounds().removeFromRight(25);
         addButton.setBounds(getWidth() - 30, 0, 30, 30);
     }
 

@@ -542,8 +542,8 @@ void Instance::sendMessagesFromQueue()
         }
     }
     
-    canUndo = libpd_can_undo(Patch::getCurrent());
-    canRedo = libpd_can_redo(Patch::getCurrent());
+    //canUndo = libpd_can_undo(Patch::getCurrent());
+    //canRedo = libpd_can_redo(Patch::getCurrent());
     
 }
 
@@ -567,7 +567,7 @@ Patch Instance::openPatch(File toOpen)
     
     m_patch = libpd_create_canvas(file, dir);
     
-    canvas_setcurrent(static_cast<t_canvas*>(m_patch));
+    //canvas_setcurrent(static_cast<t_canvas*>(m_patch));
     canvasLock.unlock();
     setThis();
     

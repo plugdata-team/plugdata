@@ -86,9 +86,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         pd.locked = lockButton.getToggleState();
         
         for(auto& cnv : canvases) {
-            cnv->pd->locked = pd.locked;
             cnv->deselectAll();
-            
             for(auto& connection : cnv->connections) {
                 if(connection->isSelected) {
                     connection->isSelected = false;
@@ -116,15 +114,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         connectionPathfind.setEnabled(connectionStyleButton.getToggleState());
         
         for(auto& cnv : canvases) {
-            cnv->pd->settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
-            
             for (auto* connection : cnv->connections) {
                 connection->resized();
                 connection->repaint();
             }
-            
         }
-
     };
     
     bool defaultConnectionStyle = (bool)pd.settingsTree.getProperty(Identifiers::connectionStyle);
@@ -143,7 +137,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
     connectionPathfind.setEnabled(defaultConnectionStyle);
     addAndMakeVisible(connectionPathfind);
-
 
     addAndMakeVisible(zoomLabel);
     zoomLabel.setText("100%", dontSendNotification);
@@ -180,11 +173,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             
             canvases.clear();
             
-            
             pd.loadPatch(pd.defaultPatch);
+            pd.getPatch().setTitle("Untitled Patcher");
             
             auto* cnv = canvases.getFirst();
-            cnv->title = "Untitled Patcher";
             mainCanvas = cnv;
         };
         
@@ -722,8 +714,6 @@ void PlugDataPluginEditor::saveProjectAs(std::function<void()> nestedCallback)
             result.deleteFile();
         
             pd.savePatch(result);
-            
-            getCurrentCanvas()->title = result.getFileName();
         }
 
         nestedCallback();
@@ -767,8 +757,16 @@ void PlugDataPluginEditor::updateUndoState()
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {
         getCurrentCanvas()->patch.setCurrent();
 
-        toolbarButtons[4].setEnabled(pd.canUndo);
-        toolbarButtons[5].setEnabled(pd.canRedo);
+        auto* cnv = getCurrentCanvas()->patch.getPointer();
+        
+        pd.canvasLock.lock();
+        bool canUndo = libpd_can_undo(cnv);
+        bool canRedo = libpd_can_redo(cnv);
+        pd.canvasLock.unlock();
+        
+        toolbarButtons[4].setEnabled(canUndo);
+        toolbarButtons[5].setEnabled(canRedo);
+        
     } else {
         toolbarButtons[4].setEnabled(false);
         toolbarButtons[5].setEnabled(false);
@@ -804,7 +802,7 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx)
 
 void PlugDataPluginEditor::addTab(Canvas* cnv)
 {
-    tabbar.addTab(cnv->title, findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
+    tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
     int tabIdx = tabbar.getNumTabs() - 1;
     tabbar.setCurrentTabIndex(tabIdx);

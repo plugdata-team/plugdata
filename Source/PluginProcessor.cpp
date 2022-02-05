@@ -20,7 +20,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor(Console* externalConsole)
                  .withOutput("Output", AudioChannelSet::stereo(), true)
 #endif
                  )
-, pd::Instance("PlugData"), Thread("PlugDataBackground")
+, pd::Instance(Uuid().toString().toStdString()), Thread("PlugDataBackground")
 ,
 #endif
 numin(2)
@@ -323,22 +323,6 @@ void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, Mid
 {
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
-    auto totalNumOutputChannels = getTotalNumOutputChannels();
-    
-    // Run help files (without audio)
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        auto& cnvLock = editor->canvases.getLock();
-        cnvLock.enter();
-        
-        for (int c = 0; c < editor->canvases.size(); c++) {
-            auto* cnv = editor->canvases[c];
-            if (cnv->aux_instance) {
-                cnv->aux_instance->process(processingBuffer, midiMessages);
-            }
-        }
-        
-        cnvLock.exit();
-    }
     
     processingBuffer.setSize(2, buffer.getNumSamples());
     
@@ -399,7 +383,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     helpAudioBufferIn.clear();
     helpAudioBufferOut.clear();
     
-    // If we're a logic MIDI processor!
+    // If we're an AU MIDI processor!
     if(buffer.getNumChannels() == 0) {
         processingBuffer.clear();
     }
@@ -408,26 +392,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
         
     }
-    
-    // Run help files
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        const ScopedLock helpLock(editor->canvases.getLock());
-        
-        for (int c = 0; c < editor->canvases.size(); c++) {
-            auto* cnv = editor->canvases[c];
-            
-            if (cnv && cnv->aux_instance && buffer.getNumChannels()) {
-                helpAudioBufferIn.makeCopyOf(processingBuffer);
-                
-                cnv->aux_instance->process(helpAudioBufferIn, midiMessages);
-                
-                helpAudioBufferOut.addFrom(0, 0, helpAudioBufferIn, 0, 0, buffer.getNumSamples());
-                helpAudioBufferOut.addFrom(1, 0, helpAudioBufferIn, 1, 0, buffer.getNumSamples());
-            }
-        }
-        
-    }
-    
     
     process(processingBuffer, midiMessages);
     
@@ -440,12 +404,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     if (totalNumOutputChannels == 2) {
         buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
     }
-    
-    float avg = 0.0f;
-    for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
-        avg += buffer.getRMSLevel(ch, 0, buffer.getNumSamples());
-    }
-    avg /= buffer.getNumChannels();
     
     buffer.applyGain(getParameters()[0]->getValue());
     
@@ -729,8 +687,8 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
         openPatch(patchFile);
    
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
-        cnv->title = "Untitled Patcher";
         
+        getPatch().setTitle("Untitled Patcher");
         editor->mainCanvas = cnv;
         editor->addTab(cnv);
         
@@ -741,7 +699,6 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     else {
         auto* cnv = editor->canvases.add(new Canvas(*editor, patch, false));
         editor->addTab(cnv);
-        cnv->title = "Untitled Patcher";
         editor->mainCanvas = cnv;
         
     }
@@ -814,12 +771,10 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
 void PlugDataAudioProcessor::loadPatch(File patch)
 {
-    const CriticalSection* lock = getCallbackLock();
     openPatch(patch);
     
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
-        cnv->title = "Untitled Patcher";
         
         editor->mainCanvas = cnv;
         cnv->synchronise();
@@ -837,7 +792,6 @@ void PlugDataAudioProcessor::loadPatch(String patch)
     
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
-        cnv->title = "Untitled Patcher";
         
         editor->mainCanvas = cnv;
         editor->addTab(cnv);

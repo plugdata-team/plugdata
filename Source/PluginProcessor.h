@@ -120,7 +120,7 @@ public:
         return audioLock;
     };
     
-    int64 lastAudioCallback;
+    std::atomic<uint64> lastAudioCallback;
 
     void initialiseFilesystem();
     void saveSettings();
