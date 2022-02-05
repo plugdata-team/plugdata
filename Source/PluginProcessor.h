@@ -47,7 +47,7 @@ public:
     bool isMidiEffect() const override;
     double getTailLengthSeconds() const override;
     
-    int callbackType = 0;
+    std::atomic<int> callbackType = 0;
     void timerCallback() override;
 
     // Run loop when DAW isn't calling process block
