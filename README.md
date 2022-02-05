@@ -58,10 +58,21 @@ Known issues:
 - There may still be some more bugs
 
 ## Roadmap
-v0.3: Coming very soon!
-
 v0.3.1:
-- Fix any bugs found in v0.3
+- Fix array crash when name is empty
+- Fix helpfiles and issues with multiple instances
+- Last console line not visible
+- Fix graph on parent resizing
+- Keyboard GUI resize behaviour
+- Fix broken objects: openpanel/savepanel, play.file~, text define
+- Allow click on subpatch to open
+- Make symbolatom and floatatom look less similar
+- Fix levelmeter redrawing
+- Bigger hitboxes and clearer hover colour for inlets/outlets
+- Ditch the mouse-over idea in favour of regular Pd/Max patching behaviour
+- Increase number of automatable parameters
+
+v0.3.2:
 - Fix all warnings
 - Clean up:
     - Box class, reduce resize calls
@@ -71,11 +82,8 @@ v0.3.1:
     - LookAndFeel classes
 - MIDI Blinker
 - Allow modifying labels
-- Ensure all object properties are supported
-- Consistent GUI sizes
-- Openpanel/savepanel, text define support
-- Allow click on subpatch to open
-- Make msg, symbolatom and floatation look less similar
+- Ensure all object properties are supported, including height/width where applicable
+- Consistent GUI size logic
 - Create document and system for object descriptions and inlet/outlet hover messages
 - More flexible connection manipulation
 - Update to latest ELSE externals
@@ -83,16 +91,13 @@ v0.3.1:
 - Do a lot more testing
 
 v0.4
+- Smart patching behaviour: shift to drop object between connection or create multiple connections at once
 - Final GUI changes before stable release
-   - Improved connection path manipulation
-   - Add option to disable hovering in favour of traditional Max/Pd lock behaviour
-   - Possibly more
 - Finished document with object descriptions and inlet/outlet hover messages
 - Ensure that all externals fully work
 - Create manual
 - Improve code documentation
 
-After that, fixing and testing to get to a stable release!
 
 Future plans:
 - Support for GEM
