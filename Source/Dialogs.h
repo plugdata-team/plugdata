@@ -31,8 +31,6 @@ public:
     static void show(Component* centre, std::function<void(int)> callback);
 
     SaveDialog();
-
-    ~SaveDialog();
 };
 
 class ArrayDialog : public Component {
@@ -62,13 +60,11 @@ public:
     static void show(Component* centre, std::function<void(int, String, String)> callback);
 
     ArrayDialog();
-
-    ~ArrayDialog();
 };
 
 struct DAWAudioSettings : public Component {
 
-    DAWAudioSettings(AudioProcessor& p)
+    explicit DAWAudioSettings(AudioProcessor& p)
         : processor(p)
     {
 
@@ -105,15 +101,15 @@ struct SettingsComponent : public Component {
 
     SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
 
-    ~SettingsComponent()
+    ~SettingsComponent() override
     {
         for (auto& button : toolbarButtons)
             button->setLookAndFeel(nullptr);
     }
 
-    void paint(Graphics& g);
+    void paint(Graphics& g) override;
 
-    void resized();
+    void resized() override;
 
     AudioDeviceManager* deviceManager = nullptr;
     std::unique_ptr<Component> audioSetupComp;
@@ -137,7 +133,7 @@ struct SettingsDialog : public Component {
     ComponentBoundsConstrainer constrainer;
 
     SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
-        : settingsComponent(r, processor, manager, settingsTree, updatePaths), mainLook(r)
+        : settingsComponent(r, processor, manager, std::move(settingsTree), std::move(updatePaths)), mainLook(r)
     {
 
         shadower.setOwner(this);
@@ -161,37 +157,37 @@ struct SettingsDialog : public Component {
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
     }
 
-    ~SettingsDialog()
+    ~SettingsDialog() override
     {
         setLookAndFeel(nullptr);
     }
 
-    void mouseDown(const MouseEvent& e)
+    void mouseDown(const MouseEvent& e) override
     {
         if (e.getPosition().getY() < 30) {
             dragger.startDraggingComponent(this, e);
         }
     }
 
-    void mouseDrag(const MouseEvent& e)
+    void mouseDrag(const MouseEvent& e) override
     {
         if (e.getMouseDownPosition().getY() < 30) {
             dragger.dragComponent(this, e, &constrainer);
         }
     }
 
-    void resized()
+    void resized() override
     {
         closeButton->setBounds(getWidth() - 30, 0, 30, 30);
         settingsComponent.setBounds(getLocalBounds());
     }
 
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
         g.fillAll(MainLook::firstBackground);
     }
 
-    void paintOverChildren(Graphics& g)
+    void paintOverChildren(Graphics& g) override
     {
         // Draw window title
         g.setColour(Colours::white);

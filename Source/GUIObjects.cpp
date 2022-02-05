@@ -15,7 +15,7 @@
 #include <m_imp.h>
 #include <m_pd.h>
 
-GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent)
+GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent)
     : box(parent)
     , processor(*parent->cnv->pd)
     , gui(pdGui)
@@ -75,8 +75,6 @@ void GUIComponent::setForeground(Colour colour)
     getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
     getLookAndFeel().setColour(Slider::thumbColourId, colour);
 
-    // TODO: these functions aren't working correctly yet...
-
     String colourStr = colour.toString();
     libpd_iemgui_set_foreground_color(gui.getPointer(), colourStr.toRawUTF8());
 }
@@ -91,14 +89,14 @@ void GUIComponent::setBackground(Colour colour)
     libpd_iemgui_set_background_color(gui.getPointer(), colourStr.toRawUTF8());
 }
 
-GUIComponent* GUIComponent::createGui(String name, Box* parent)
+GUIComponent* GUIComponent::createGui(const String& name, Box* parent)
 {
-    auto* gui_ptr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
+    auto* guiPtr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
 
-    if (!gui_ptr)
+    if (!guiPtr)
         return nullptr;
 
-    auto& gui = *gui_ptr;
+    auto& gui = *guiPtr;
 
     if (gui.getType() == pd::Type::Bang) {
         return new BangComponent(gui, parent);
@@ -256,7 +254,7 @@ void GUIComponent::updateLabel()
     }
 }
 
-pd::Gui GUIComponent::getGUI()
+pd::Gui GUIComponent::getGui()
 {
     return gui;
 }
@@ -289,7 +287,7 @@ void GUIComponent::closeOpenedSubpatchers() {
 
 // BangComponent
 
-BangComponent::BangComponent(pd::Gui pdGui, Box* parent)
+BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
     addAndMakeVisible(bangButton);
@@ -302,7 +300,7 @@ BangComponent::BangComponent(pd::Gui pdGui, Box* parent)
         stopEdition();
     };
 
-    initParameters();
+    initParameters(); // !! FIXME: virtual call from constructor!!
     box->restrainer.setSizeLimits(40, 60, 200, 200);
     box->restrainer.checkComponentBounds(box);
 }
@@ -322,7 +320,7 @@ void BangComponent::resized()
 }
 
 // ToggleComponent
-ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
+ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
     addAndMakeVisible(toggleButton);
@@ -331,9 +329,9 @@ ToggleComponent::ToggleComponent(pd::Gui pdGui, Box* parent)
     
     toggleButton.onClick = [this]() {
         startEdition();
-        auto new_value = 1.f - getValueOriginal();
-        setValueOriginal(new_value);
-        toggleButton.setToggleState(new_value, dontSendNotification);
+        auto newValue = 1.f - getValueOriginal();
+        setValueOriginal(newValue);
+        toggleButton.setToggleState(newValue, dontSendNotification);
         stopEdition();
     };
 
@@ -357,7 +355,7 @@ void ToggleComponent::update()
 }
 
 // MessageComponent
-MessageComponent::MessageComponent(pd::Gui pdGui, Box* parent)
+MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
     bangButton.setConnectedEdges(12);
@@ -438,7 +436,7 @@ void MessageComponent::update()
 
 void MessageComponent::paint(Graphics& g) {
     // Draw message style
-    if (!getGUI().isAtom()) {
+    if (!getGui().isAtom()) {
         auto baseColour = isDown ? Colour(90, 90, 90) : Colour(60, 60, 60);
         
         auto rect = getLocalBounds().toFloat();
@@ -464,7 +462,7 @@ void MessageComponent::changeListenerCallback(ChangeBroadcaster* source)  {
 
 void MessageComponent::updateValue()
 {
-    if (edited == false) {
+    if (!edited) {
         std::string const v = gui.getSymbol();
 
         if (lastMessage != v && !String(v).startsWith("click")) {
@@ -494,7 +492,7 @@ void MessageComponent::updateValue()
 
 // NumboxComponent
 
-NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
+NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
     input.addMouseListener(this, false);
@@ -526,18 +524,6 @@ NumboxComponent::NumboxComponent(pd::Gui pdGui, Box* parent)
     
     input.setText(String(getValueOriginal()), dontSendNotification);
     
-    input.onTextChange = [this]() {
-        /*
-        startEdition();
-        float value = input.getText().getFloatValue();
-        if (min < max) {
-            value = std::clamp(value, min, max);
-            input.setText(String(value, 3), dontSendNotification);
-        }
-
-        setValueOriginal(value); */
-    };
-    
     initParameters();
     input.setEditable(false, true);
     
@@ -558,7 +544,7 @@ void NumboxComponent::update()
     input.setText(String(value), dontSendNotification);
 }
 
-ListComponent::ListComponent(pd::Gui gui, Box* parent)
+ListComponent::ListComponent(const pd::Gui& gui, Box* parent)
     : GUIComponent(gui, parent)
 {
     static const int border = 1;
@@ -639,7 +625,7 @@ void ListComponent::update()
 }
 
 // SliderComponent
-SliderComponent::SliderComponent(bool vertical, pd::Gui pdGui, Box* parent)
+SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
     isVertical = vertical;
@@ -700,7 +686,7 @@ void SliderComponent::update()
 }
 
 // RadioComponent
-RadioComponent::RadioComponent(bool vertical, pd::Gui pdGui, Box* parent)
+RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
     : GUIComponent(pdGui, parent)
 {
     isVertical = vertical;
@@ -764,7 +750,7 @@ void RadioComponent::updateRange()
         addAndMakeVisible(radioButtons[i]);
 
         radioButtons[i]->onClick = [this, i]() mutable {
-            last_state = i;
+            lastState = i;
             setValueOriginal(i);
         };
     }
@@ -774,7 +760,7 @@ void RadioComponent::updateRange()
 }
 
 // Array component
-ArrayComponent::ArrayComponent(pd::Gui pdGui, Box* box)
+ArrayComponent::ArrayComponent(const pd::Gui& pdGui, Box* box)
     : GUIComponent(pdGui, box)
     , graph(gui.getArray())
     , array(box->cnv->pd, graph)
@@ -932,7 +918,7 @@ size_t GraphicalArray::getArraySize() const noexcept
 }
 
 // Graph On Parent
-GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box)
+GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box)
     : GUIComponent(pdGui, box)
 {
 
@@ -940,12 +926,6 @@ GraphOnParent::GraphOnParent(pd::Gui pdGui, Box* box)
 
     subpatch = gui.getPatch();
     updateCanvas();
-
-    // subpatch.getPointer()->gl_pixwidth = 140;
-    // subpatch.getPointer()->gl_pixheight = 140;
-
-    bestH = subpatch.getPointer()->gl_pixheight;
-    bestW = subpatch.getPointer()->gl_pixwidth;
 
     box->resized();
     resized();
@@ -980,9 +960,6 @@ void GraphOnParent::updateCanvas()
 
         canvas->setBounds(-x, -y, w + x, h + y);
 
-        bestH = w;
-        bestW = h;
-
         box->resized();
 
         // Make sure that the graph doesn't become the current canvas
@@ -1002,9 +979,6 @@ void GraphOnParent::updateCanvas()
         canvas->checkBounds();
         canvas->setBounds(-x, -y, w + x, h + y);
 
-        bestW = w;
-        bestH = h;
-        
         auto parentBounds = box->getBounds();
         if(parentBounds.getWidth() != w - 8 || parentBounds.getHeight() != h - 29) {
             box->setSize(w + 8, h + 29);
@@ -1027,7 +1001,7 @@ void GraphOnParent::updateValue()
     }
 }
 
-PanelComponent::PanelComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box) {
+PanelComponent::PanelComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box) {
     box->restrainer.setSizeLimits(50, 50, 2000, 2000);
     box->restrainer.checkComponentBounds(box);
     
@@ -1035,7 +1009,7 @@ PanelComponent::PanelComponent(pd::Gui gui, Box* box) : GUIComponent(gui, box) {
 }
 
 // Subpatch, phony GUI object
-Subpatch::Subpatch(pd::Gui pdGui, Box* box)
+Subpatch::Subpatch(const pd::Gui& pdGui, Box* box)
     : GUIComponent(pdGui, box)
 {
     subpatch = gui.getPatch();
@@ -1059,7 +1033,7 @@ Subpatch::~Subpatch()
 }
 
 // Comment
-CommentComponent::CommentComponent(pd::Gui pdGui, Box* box)
+CommentComponent::CommentComponent(const pd::Gui& pdGui, Box* box)
     : GUIComponent(pdGui, box)
 {
     setInterceptsMouseClicks(false, false);
@@ -1070,7 +1044,7 @@ void CommentComponent::paint(Graphics& g)
 {
 }
 
-MousePad::MousePad(pd::Gui gui, Box* box)
+MousePad::MousePad(const pd::Gui& gui, Box* box)
     : GUIComponent(gui, box)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
@@ -1149,7 +1123,7 @@ void MousePad::mouseUp(const MouseEvent& e)
     outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
 }
 
-MouseComponent::MouseComponent(pd::Gui gui, Box* box)
+MouseComponent::MouseComponent(const pd::Gui& gui, Box* box)
     : GUIComponent(gui, box)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
@@ -1198,7 +1172,7 @@ void MouseComponent::mouseDrag(const MouseEvent& e)
 {
 }
 
-KeyboardComponent::KeyboardComponent(pd::Gui gui, Box* box)
+KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box)
     : GUIComponent(gui, box)
     , keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
 {
@@ -1326,7 +1300,6 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
             int flags = x->x_flags, closed = (flags & CLOSED);
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
 
-            // TODO: use width to fix!
             char outline[20], fill[20];
             int pix[200];
             if (n > 100)

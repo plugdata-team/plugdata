@@ -14,7 +14,7 @@ namespace pd
 
 // Define the character size
 #define CHAR_SIZE 128
-#define CHAR_TO_INDEX(c) ((int)c - (int)'\0')
+#define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
  
 // A class to store a Trie node
 class Trie
@@ -33,9 +33,9 @@ public:
         }
     }
  
-    void insert(std::string);
+    void insert(const std::string& key);
     bool deletion(Trie*&, std::string);
-    bool search(std::string);
+    bool search(const std::string&);
     bool hasChildren();
     
     void suggestionsRec(std::string currPrefix, std::vector<std::string>& result);
@@ -44,8 +44,6 @@ public:
  
 struct Library
 {
-    Library();
-    
     void initialiseLibrary(ValueTree pathTree);
     
     std::vector<std::string> autocomplete(std::string query);

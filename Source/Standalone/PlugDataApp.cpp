@@ -42,7 +42,7 @@ public:
         
         
 
-        options.applicationName     = getApplicationName();
+        options.applicationName     = "PlugData";
         options.filenameSuffix      = ".settings";
         options.osxLibrarySubFolder = "Application Support";
        #if JUCE_LINUX || JUCE_BSD
@@ -60,18 +60,14 @@ public:
     
     // For opening files with PlugData standalone
     void anotherInstanceStarted (const String &commandLine) override {
-        auto file = File(commandLine);
+        auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
         if(file.existsAsFile()) {
             auto* pd = dynamic_cast<PatchLoader*>(mainWindow->getAudioProcessor());
             
             if(pd) {
-                auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
                 if(file.existsAsFile()) {
                     pd->loadPatch(file);
-                    // TODO: REENABLE THIS
-                    //pluginEditor->openFile(file);
                 }
-               
             }
         }
     }
@@ -118,7 +114,7 @@ public:
     //==============================================================================
     void systemRequestedQuit() override
     {
-        if (mainWindow.get() != nullptr)
+        if (mainWindow)
             mainWindow->pluginHolder->savePluginState();
 
         if (ModalComponentManager::getInstance()->cancelAllModalComponents())

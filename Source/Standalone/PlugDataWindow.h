@@ -28,6 +28,8 @@
 
  #include <juce_audio_plugin_client/utility/juce_CreatePluginFilter.h>
 
+#include <memory>
+
 
 namespace juce
 {
@@ -98,7 +100,7 @@ public:
                                                            : processor->getMainBusNumInputChannels());
 
         if (preferredSetupOptions != nullptr)
-            options.reset (new AudioDeviceManager::AudioDeviceSetup (*preferredSetupOptions));
+            options = std::make_unique<AudioDeviceManager::AudioDeviceSetup> (*preferredSetupOptions);
 
         auto audioInputRequired = (inChannels > 0);
 
@@ -175,7 +177,7 @@ public:
     //==============================================================================
     Value& getMuteInputValue()                           { return shouldMuteInput; }
     bool getProcessorHasPotentialFeedbackLoop() const    { return processorHasPotentialFeedbackLoop; }
-    void valueChanged (Value& value) override            { muteInput = (bool) value.getValue(); }
+    void valueChanged (Value& value) override            { muteInput = static_cast<bool>(value.getValue()); }
 
     //==============================================================================
     File getLastFile() const
@@ -243,7 +245,7 @@ public:
             MemoryBlock data;
 
             if (fc.getResult().loadFileAsData (data))
-                processor->setStateInformation (data.getData(), (int) data.getSize());
+                processor->setStateInformation (data.getData(), static_cast<int>(data.getSize()));
             else
                 AlertWindow::showMessageBoxAsync (AlertWindow::WarningIcon,
                                                   TRANS("Error whilst loading"),
@@ -280,7 +282,7 @@ public:
             settings->setValue ("audioSetup", xml.get());
 
            #if ! (JUCE_IOS || JUCE_ANDROID)
-            settings->setValue ("shouldMuteInput", (bool) shouldMuteInput.getValue());
+            settings->setValue ("shouldMuteInput", static_cast<bool>(shouldMuteInput.getValue()));
            #endif
         }
     }
@@ -336,7 +338,7 @@ public:
             MemoryBlock data;
 
             if (data.fromBase64Encoding (settings->getValue ("filterState")) && data.getSize() > 0)
-                processor->setStateInformation (data.getData(), (int) data.getSize());
+                processor->setStateInformation (data.getData(), static_cast<int>(data.getSize()));
         }
     }
 
@@ -395,8 +397,8 @@ private:
         void audioDeviceAboutToStart (AudioIODevice* device) override
         {
             maximumSize = device->getCurrentBufferSizeSamples();
-            storedInputChannels .resize ((size_t) device->getActiveInputChannels() .countNumberOfSetBits());
-            storedOutputChannels.resize ((size_t) device->getActiveOutputChannels().countNumberOfSetBits());
+            storedInputChannels .resize (static_cast<size_t>(device->getActiveInputChannels() .countNumberOfSetBits()));
+            storedOutputChannels.resize (static_cast<size_t>(device->getActiveOutputChannels().countNumberOfSetBits()));
 
             inner.audioDeviceAboutToStart (device);
         }
@@ -407,8 +409,9 @@ private:
                                     int numOutputChannels,
                                     int numSamples) override
         {
-            jassertquiet ((int) storedInputChannels.size()  == numInputChannels);
-            jassertquiet ((int) storedOutputChannels.size() == numOutputChannels);
+
+            jassertquiet (static_cast<int>(storedInputChannels.size()) == numInputChannels);
+            jassertquiet (static_cast<int>(storedOutputChannels.size()) == numOutputChannels);
 
             int position = 0;
 
@@ -420,9 +423,9 @@ private:
                 initChannelPointers (outputChannelData, storedOutputChannels, position);
 
                 inner.audioDeviceIOCallback (storedInputChannels.data(),
-                                             (int) storedInputChannels.size(),
+                                             static_cast<int>(storedInputChannels.size()),
                                              storedOutputChannels.data(),
-                                             (int) storedOutputChannels.size(),
+                                             static_cast<int>(storedOutputChannels.size()),
                                              blockLength);
 
                 position += blockLength;
@@ -470,7 +473,7 @@ private:
                               0, maxAudioInputChannels,
                               0, maxAudioOutputChannels,
                               true,
-                              (pluginHolder.processor.get() != nullptr && pluginHolder.processor->producesMidi()),
+                              (pluginHolder.processor && pluginHolder.processor->producesMidi()),
                               true, false),
               shouldMuteLabel  ("Feedback Loop:", "Feedback Loop:"),
               shouldMuteButton ("Mute audio input")
@@ -663,9 +666,9 @@ public:
         
         setTitleBarButtonsRequired (DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
-        pluginHolder.reset (new StandalonePluginHolder (settingsToUse, takeOwnershipOfSettings,
+        pluginHolder = std::make_unique<StandalonePluginHolder> (settingsToUse, takeOwnershipOfSettings,
                                                         preferredDefaultDeviceName, preferredSetupOptions,
-                                                        constrainToConfiguration, autoOpenMidiDevices));
+                                                        constrainToConfiguration, autoOpenMidiDevices);
 
         setContentOwned (new MainContentComponent (*this), true);
 

@@ -26,10 +26,6 @@ Edge::Edge(Box* parent, bool input)
     setBufferedToImage(true);
 }
 
-Edge::~Edge()
-{
-}
-
 bool Edge::hasConnection()
 {
     // Check if it has any connections
@@ -91,10 +87,12 @@ void Edge::mouseDrag(const MouseEvent& e)
     if (box->cnv->pd->locked)
         return;
 
+    
+    
     // For dragging to create new connections
     TextButton::mouseDrag(e);
-    if (!Edge::connectingEdge && e.getLengthOfMousePress() > 300) {
-        Edge::connectingEdge = this;
+    if (!box->cnv->connectingEdge && e.getLengthOfMousePress() > 300) {
+        box->cnv->connectingEdge = this;
         auto* cnv = findParentComponentOfClass<Canvas>();
         cnv->connectingWithDrag = true;
     }
@@ -107,26 +105,26 @@ void Edge::mouseMove(const MouseEvent& e)
 void Edge::createConnection()
 {
     // Check if this is the start or end action of connecting
-    if (Edge::connectingEdge) {
+    if (box->cnv->connectingEdge) {
 
         // Check type for input and output
-        bool sameDirection = isInput == connectingEdge->isInput;
+        bool sameDirection = isInput == box->cnv->connectingEdge->isInput;
 
-        bool connectionAllowed = connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv && !sameDirection;
+        bool connectionAllowed = box->cnv->connectingEdge->getParentComponent() != getParentComponent() && !sameDirection;
 
-        // Dont create if this is the same edge
-        if (Edge::connectingEdge == this) {
-            Edge::connectingEdge = nullptr;
+        // Don't create if this is the same edge
+        if (box->cnv->connectingEdge == this) {
+            box->cnv->connectingEdge = nullptr;
         }
         // Create new connection if allowed
         else if (connectionAllowed) {
-            Canvas* cnv = findParentComponentOfClass<Canvas>();
-            cnv->connections.add(new Connection(cnv, connectingEdge, this));
-            Edge::connectingEdge = nullptr;
+            auto* cnv = findParentComponentOfClass<Canvas>();
+            cnv->connections.add(new Connection(cnv, box->cnv->connectingEdge, this));
+            box->cnv->connectingEdge = nullptr;
         }
     }
     // Else set this edge as start of a connection
     else {
-        Edge::connectingEdge = this;
+        box->cnv->connectingEdge = this;
     }
 }

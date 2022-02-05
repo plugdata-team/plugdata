@@ -17,7 +17,6 @@ public:
     Box* box;
 
     Edge(Box* parent, bool isInput);
-    ~Edge() override;
 
     //==============================================================================
     void paint(Graphics&) override;
@@ -31,8 +30,6 @@ public:
     bool hasConnection();
 
     Rectangle<int> getCanvasBounds();
-
-    static inline SafePointer<Edge> connectingEdge = nullptr;
 
     int edgeIdx;
     bool isInput;

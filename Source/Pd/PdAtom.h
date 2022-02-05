@@ -25,22 +25,22 @@ public:
     inline Atom(const float val) : type(FLOAT), value(val), symbol() {}
     
     //! @brief The string constructor.
-    inline Atom(const std::string& sym) : type(SYMBOL), value(0), symbol(sym) {}
+    inline Atom(std::string sym) : type(SYMBOL), value(0), symbol(std::move(sym)) {}
     
     //! @brief The c-string constructor.
     inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym) {}
     
     //! @brief Check if the atom is a float.
-    inline bool isFloat() const noexcept { return type == FLOAT; }
+    [[nodiscard]] inline bool isFloat() const noexcept { return type == FLOAT; }
     
     //! @brief Check if the atom is a string.
-    inline bool isSymbol() const noexcept { return type == SYMBOL; }
+    [[nodiscard]] inline bool isSymbol() const noexcept { return type == SYMBOL; }
     
     //! @brief Get the float value.
-    inline float getFloat() const noexcept { return value; }
+    [[nodiscard]] inline float getFloat() const noexcept { return value; }
     
     //! @brief Get the string.
-    inline std::string const& getSymbol() const noexcept { return symbol; }
+    [[nodiscard]] inline std::string const& getSymbol() const noexcept { return symbol; }
     
     //! @brief Compare two atoms.
     inline bool operator==(Atom const& other) const noexcept

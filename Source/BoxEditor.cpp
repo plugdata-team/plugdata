@@ -7,19 +7,18 @@
 #include "BoxEditor.h"
 #include "Box.h"
 #include "Canvas.h"
-#include "Edge.h"
 #include <JuceHeader.h>
 
 ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger)
     : box(parent)
     , dragger(multiDragger)
 {
-};
+}
 
 //==============================================================================
 void ClickLabel::setText (const String& newText, NotificationType notification)
 {
-    hideEditor (true);
+    hideEditor();
 
     if (lastTextValue != newText)
     {
@@ -43,7 +42,7 @@ String ClickLabel::getText (bool returnActiveEditorContents) const
 
 void ClickLabel::mouseDown(const MouseEvent& e)
 {
-    Canvas* canvas = findParentComponentOfClass<Canvas>();
+    auto* canvas = findParentComponentOfClass<Canvas>();
     if (canvas->isGraph || canvas->pd->locked)
         return;
 
@@ -53,7 +52,7 @@ void ClickLabel::mouseDown(const MouseEvent& e)
 
 void ClickLabel::mouseUp(const MouseEvent& e)
 {
-    Canvas* canvas = findParentComponentOfClass<Canvas>();
+    auto* canvas = findParentComponentOfClass<Canvas>();
     if (canvas->isGraph || canvas->pd->locked)
         return;
 
@@ -62,13 +61,13 @@ void ClickLabel::mouseUp(const MouseEvent& e)
 
     
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600) {
-        Edge::connectingEdge = nullptr;
+        canvas->connectingEdge = nullptr;
     }
 }
 
 void ClickLabel::mouseDrag(const MouseEvent& e)
 {
-    Canvas* canvas = findParentComponentOfClass<Canvas>();
+    auto* canvas = findParentComponentOfClass<Canvas>();
     if (canvas->isGraph || canvas->pd->locked)
         return;
 
@@ -83,50 +82,50 @@ void ClickLabel::inputAttemptWhenModal()
     }
 }
 
-static void copyColourIfSpecified (ClickLabel& l, TextEditor& ed, int colourID, int targetColourID)
+static void copyColourIfSpecified (ClickLabel& l, TextEditor& ed, int colourId, int targetColourId)
 {
-    if (l.isColourSpecified (colourID) || l.getLookAndFeel().isColourSpecified (colourID))
-        ed.setColour (targetColourID, l.findColour (colourID));
+    if (l.isColourSpecified (colourId) || l.getLookAndFeel().isColourSpecified (colourId))
+        ed.setColour (targetColourId, l.findColour (colourId));
 }
 
 TextEditor* ClickLabel::createEditorComponent()
 {
     
-    auto* editor = new TextEditor (getName());
-    editor->applyFontToAllText(font);
-    copyAllExplicitColoursTo (*editor);
+    auto* newEditor = new TextEditor (getName());
+    newEditor->applyFontToAllText(font);
+    copyAllExplicitColoursTo (*newEditor);
 
-    copyColourIfSpecified (*this, *editor, Label::textWhenEditingColourId, TextEditor::textColourId);
-    copyColourIfSpecified (*this, *editor, Label::backgroundWhenEditingColourId, TextEditor::backgroundColourId);
-    copyColourIfSpecified (*this, *editor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId);
+    copyColourIfSpecified (*this, *newEditor, Label::textWhenEditingColourId, TextEditor::textColourId);
+    copyColourIfSpecified (*this, *newEditor, Label::backgroundWhenEditingColourId, TextEditor::backgroundColourId);
+    copyColourIfSpecified (*this, *newEditor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId);
 
-    editor->setAlwaysOnTop(true);
+    newEditor->setAlwaysOnTop(true);
     
     bool multiLine = box->pdObject && box->pdObject->getType() == pd::Type::Comment;
     
     auto& suggestor = box->cnv->suggestor;
     // Allow multiline for comment objects
-    editor->setMultiLine(multiLine, false);
-    editor->setReturnKeyStartsNewLine(multiLine);
+    newEditor->setMultiLine(multiLine, false);
+    newEditor->setReturnKeyStartsNewLine(multiLine);
     
-    editor->setInputFilter(&suggestor, false);
-    editor->addKeyListener(&suggestor);
+    newEditor->setInputFilter(&suggestor, false);
+    newEditor->addKeyListener(&suggestor);
     
-    editor->onFocusLost = [this](){
+    newEditor->onFocusLost = [this](){
         if(!box->cnv->suggestor.hasKeyboardFocus(true)) {
-            hideEditor(false);
+            hideEditor();
         }
         
     };
 
-    suggestor.createCalloutBox(box, editor);
+    suggestor.createCalloutBox(box, newEditor);
     
     auto boundsInParent = getBounds() + box->getPosition();
 
     suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 115);
     suggestor.resized();
 
-    return editor;
+    return newEditor;
 }
 
 
@@ -152,7 +151,7 @@ void ClickLabel::editorAboutToBeHidden (TextEditor* textEditor)
     // Clear overridden lambda
     textEditor->onTextChange = []() {};
     
-    if(box->graphics && !box->graphics->fakeGUI()) {
+    if(box->graphics && !box->graphics->fakeGui()) {
         setVisible(false);
         box->resized();
     }
@@ -204,7 +203,7 @@ bool ClickLabel::updateFromTextEditorContents (TextEditor& ed)
     return false;
 }
 
-void ClickLabel::hideEditor (bool discardCurrentEditorContents)
+void ClickLabel::hideEditor ()
 {
     if (editor != nullptr)
     {
@@ -238,11 +237,6 @@ bool ClickLabel::isBeingEdited() const noexcept
     return editor != nullptr;
 }
 
-static void copyColourIfSpecified (Label& l, TextEditor& ed, int colourID, int targetColourID)
-{
-    if (l.isColourSpecified (colourID) || l.getLookAndFeel().isColourSpecified (colourID))
-        ed.setColour (targetColourID, l.findColour (colourID));
-}
 
 TextEditor* ClickLabel::getCurrentTextEditor() const noexcept
 {
@@ -264,7 +258,7 @@ void ClickLabel::paint (Graphics& g)
         auto textArea = border.subtractedFrom(getLocalBounds());
 
         g.drawFittedText (getText(), textArea, justification,
-                          jmax (1, (int) ((float) textArea.getHeight() / font.getHeight())),
+                          jmax (1, static_cast<int>((static_cast<float>(textArea.getHeight()) / font.getHeight()))),
                           minimumHorizontalScale);
 
         g.setColour (findColour (Label::outlineColourId).withMultipliedAlpha (alpha));
@@ -366,7 +360,7 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
         auto* but = buttons[i];
         but->setAlwaysOnTop(true);
         
-        but->onClick = [this, i, box, editor]() mutable {
+        but->onClick = [this, i, editor]() mutable {
             move(0, i);
             if(!editor->isVisible()) editor->setVisible(true);
             editor->grabKeyboardFocus();
