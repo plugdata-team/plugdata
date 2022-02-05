@@ -15,7 +15,8 @@
 using PathPlan = std::vector<Point<int>>;
 
 class Canvas;
-class Connection : public Component, public ComponentListener {
+class Connection : public Component, public ComponentListener
+{
  public:
   int inIdx;
   int outIdx;

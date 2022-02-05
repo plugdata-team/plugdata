@@ -11,7 +11,8 @@
 #include "PdAtom.h"
 #include "PdObject.h"
 
-namespace pd {
+namespace pd
+{
 class Label;
 
 // ==================================================================================== //
@@ -22,7 +23,8 @@ class Label;
 //! @details The Instance is a wrapper for the Pd native GUI. The lifetime of the internal\n
 //! GUI is not guaranteed by the class.
 //! @see Instance, Patch, Object
-class Gui : public Object {
+class Gui : public Object
+{
  public:
   //! @brief The default constructor
   Gui() noexcept = default;
@@ -103,7 +105,8 @@ class Gui : public Object {
 //                                      LABEL                                           //
 // ==================================================================================== //
 
-class Label {
+class Label
+{
  public:
   Label() noexcept;
   Label(Label const& other) noexcept;

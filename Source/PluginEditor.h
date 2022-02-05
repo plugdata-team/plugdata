@@ -15,7 +15,8 @@
 #include "LookAndFeel.h"
 #include "Standalone/PlugDataWindow.h"
 
-struct TabComponent : public TabbedComponent {
+struct TabComponent : public TabbedComponent
+{
   std::function<void(int)> onTabChange = [](int) {};
 
   TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop) {}
@@ -25,7 +26,8 @@ struct TabComponent : public TabbedComponent {
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener {
+class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener
+{
  public:
   SharedResourcePointer<Resources> resources;
 

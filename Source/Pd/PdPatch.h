@@ -13,7 +13,8 @@
 #include "PdGui.h"
 #include "x_libpd_mod_utils.h"
 
-namespace pd {
+namespace pd
+{
 
 using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
 class Instance;
@@ -25,7 +26,8 @@ class Instance;
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
 //! is not guaranteed by the class.
 //! @see Instance, Object, Gui
-class Patch {
+class Patch
+{
  public:
   Patch(void* ptr, Instance* instance) noexcept;
 
@@ -73,7 +75,11 @@ class Patch {
   void undo();
   void redo();
 
-  enum GroupUndoType { Remove = 0, Move };
+  enum GroupUndoType
+  {
+    Remove = 0,
+    Move
+  };
 
   void setCurrent();
 
@@ -88,7 +94,8 @@ class Patch {
   //! @brief Gets the objects of the patch.
   std::vector<Object> getObjects(bool onlyGui = false) noexcept;
 
-  String getCanvasContent() {
+  String getCanvasContent()
+  {
     if (!ptr) return {};
     char* buf;
     int bufsize;

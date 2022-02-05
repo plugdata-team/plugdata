@@ -15,7 +15,8 @@
 #include "MultiComponentDragger.h"
 
 class Canvas;
-class Box : public Component, public ChangeListener {
+class Box : public Component, public ChangeListener
+{
  public:
   //==============================================================================
   explicit Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});

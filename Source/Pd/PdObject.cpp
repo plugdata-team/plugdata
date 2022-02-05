@@ -7,7 +7,8 @@
 #include "PdObject.h"
 
 #include "PdInstance.h"
-extern "C" {
+extern "C"
+{
 #include <g_canvas.h>
 #include <m_imp.h>
 #include <m_pd.h>
@@ -16,19 +17,22 @@ extern "C" {
 #include "x_libpd_extra_utils.h"
 }
 
-struct _outconnect {
+struct _outconnect
+{
   struct _outconnect* oc_next;
   t_pd* oc_to;
 };
 
-struct _outlet {
+struct _outlet
+{
   t_object* o_owner;
   struct _outlet* o_next;
   t_outconnect* o_connections;
   t_symbol* o_sym;
 };
 
-namespace pd {
+namespace pd
+{
 // ==================================================================================== //
 //                                      OBJECT                                          //
 // ==================================================================================== //
@@ -39,13 +43,16 @@ bool Object::operator==(Object const& other) const noexcept { return ptr == othe
 
 bool Object::operator!=(Object const& other) const noexcept { return ptr != other.ptr; }
 
-std::string Object::getText() {
-  if (ptr && patch->checkObject(this)) {
+std::string Object::getText()
+{
+  if (ptr && patch->checkObject(this))
+  {
     char* text = nullptr;
     int size = 0;
     instance->setThis();
     libpd_get_object_text(ptr, &text, &size);
-    if (text && size) {
+    if (text && size)
+    {
       std::string txt(text, size);
       freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
       return txt;
@@ -54,18 +61,23 @@ std::string Object::getText() {
   return {};
 }
 
-std::string Object::getName() const {
-  if (ptr) {
+std::string Object::getName() const
+{
+  if (ptr)
+  {
     char const* name = libpd_get_object_class_name(ptr);
-    if (name) {
+    if (name)
+    {
       return {name};
     }
   }
   return {};
 }
 
-std::array<int, 4> Object::getBounds() const noexcept {
-  if (ptr) {
+std::array<int, 4> Object::getBounds() const noexcept
+{
+  if (ptr)
+  {
     int x = 0, y = 0, w = 0, h = 0;
     instance->setThis();
     patch->setCurrent();
@@ -73,7 +85,8 @@ std::array<int, 4> Object::getBounds() const noexcept {
     libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
 
     t_canvas const* cnv = patch->getPointer();
-    if (cnv != nullptr) {
+    if (cnv != nullptr)
+    {
       // x -= cnv->gl_xmargin;
       // y -= cnv->gl_ymargin;
     }
@@ -84,7 +97,8 @@ std::array<int, 4> Object::getBounds() const noexcept {
 }
 
 //! @brief The name of the help file
-Patch Object::getHelp() const {
+Patch Object::getHelp() const
+{
   static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
   static File helpDir = appDir.getChildFile("Documentation/5.reference/");
 
@@ -104,7 +118,8 @@ Patch Object::getHelp() const {
   if (strlen(realname) > 3 && !strcmp(realname + strlen(realname) - 3, ".pd")) realname[strlen(realname) - 3] = 0;
   strcat(realname, "-help.pd");
 
-  if (File(usedir).getChildFile(realname).existsAsFile()) {
+  if (File(usedir).getChildFile(realname).existsAsFile())
+  {
     sys_lock();
     auto p = Patch(glob_evalfile(nullptr, gensym(realname), gensym(usedir)), instance);
     sys_unlock();
@@ -116,7 +131,8 @@ Patch Object::getHelp() const {
   strncat(realname, name, MAXPDSTRING - 10);
   realname[MAXPDSTRING - 1] = 0;
 
-  if (File(dir).getChildFile(realname).existsAsFile()) {
+  if (File(dir).getChildFile(realname).existsAsFile())
+  {
     sys_lock();
     auto p = Patch(glob_evalfile(nullptr, gensym(realname), gensym(usedir)), instance);
     sys_unlock();
@@ -130,30 +146,38 @@ void Object::setWidth(int width) { static_cast<t_text*>(ptr)->te_width = std::ma
 
 int Object::getWidth() const { return static_cast<t_text*>(ptr)->te_width * sys_fontwidth(18); }
 
-int Object::getNumInlets() noexcept {
-  if (auto* checked = patch->checkObject(this)) {
+int Object::getNumInlets() noexcept
+{
+  if (auto* checked = patch->checkObject(this))
+  {
     return libpd_ninlets(checked);
   }
 
   return 0;
 }
-int Object::getNumOutlets() noexcept {
-  if (auto* checked = patch->checkObject(this)) {
+int Object::getNumOutlets() noexcept
+{
+  if (auto* checked = patch->checkObject(this))
+  {
     return libpd_noutlets(checked);
   }
 
   return 0;
 }
 
-bool Object::isSignalInlet(int idx) noexcept {
-  if (auto* checked = patch->checkObject(this)) {
+bool Object::isSignalInlet(int idx) noexcept
+{
+  if (auto* checked = patch->checkObject(this))
+  {
     return libpd_issignalinlet(checked, idx);
   }
 
   return false;
 }
-bool Object::isSignalOutlet(int idx) noexcept {
-  if (auto* checked = patch->checkObject(this)) {
+bool Object::isSignalOutlet(int idx) noexcept
+{
+  if (auto* checked = patch->checkObject(this))
+  {
     return libpd_issignaloutlet(checked, idx);
   }
 

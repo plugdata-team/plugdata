@@ -18,7 +18,8 @@
  */
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer, public PatchLoader {
+class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer, public PatchLoader
+{
  public:
   //==============================================================================
   PlugDataAudioProcessor();
@@ -74,15 +75,22 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
   void receiveGuiUpdate(int type) override;
 
-  void receivePrint(const std::string& message) override {
-    if (!message.empty()) {
-      if (!message.compare(0, 6, "error:")) {
+  void receivePrint(const std::string& message) override
+  {
+    if (!message.empty())
+    {
+      if (!message.compare(0, 6, "error:"))
+      {
         const auto temp = String(message);
         console.logError(temp.substring(7));
-      } else if (!message.compare(0, 11, "verbose(4):")) {
+      }
+      else if (!message.compare(0, 11, "verbose(4):"))
+      {
         const auto temp = String(message);
         console.logError(temp.substring(12));
-      } else {
+      }
+      else
+      {
         console.logMessage(message);
       }
     }

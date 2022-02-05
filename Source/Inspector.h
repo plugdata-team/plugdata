@@ -8,15 +8,24 @@
 
 #include "LookAndFeel.h"
 
-enum ParameterType { tString, tInt, tFloat, tColour, tBool };
+enum ParameterType
+{
+  tString,
+  tInt,
+  tFloat,
+  tColour,
+  tBool
+};
 
 using ObjectParameter = std::tuple<String, ParameterType, void*>;  // name, type and pointer to value
 
 using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<void(int)>>;  // List of elements and update function
 
-struct Inspector : public Component, public TableListBoxModel {
+struct Inspector : public Component, public TableListBoxModel
+{
   //==============================================================================
-  Inspector() : font(14.0f), numRows(0) {
+  Inspector() : font(14.0f), numRows(0)
+  {
     loadData({});
 
     // Create our table component and add it to this component.
@@ -48,21 +57,27 @@ struct Inspector : public Component, public TableListBoxModel {
   int getNumRows() override { return numRows; }
 
   // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
-  void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override {
-    if (rowIsSelected) {
+  void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
+  {
+    if (rowIsSelected)
+    {
       g.fillAll(MainLook::highlightColour);
-    } else {
+    }
+    else
+    {
       g.fillAll((row % 2) ? MainLook::firstBackground : MainLook::secondBackground);
     }
   }
 
   // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
   // components.
-  void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) override {
+  void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) override
+  {
     g.setColour(Colours::white);
     g.setFont(font);
 
-    if (rowNumber < items.size()) {
+    if (rowNumber < items.size())
+    {
       const auto [name, type, ptr] = items[rowNumber];
       g.drawText(name, 2, 0, width - 4, height, Justification::centredLeft, true);
     }
@@ -75,7 +90,8 @@ struct Inspector : public Component, public TableListBoxModel {
   void sortOrderChanged(int newSortColumnId, bool isForwards) override {}
 
   // This is overloaded from TableListBoxModel, and must update any custom components that we're using
-  Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override {
+  Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
+  {
     delete existingComponentToUpdate;
 
     // Draw names regularly
@@ -83,7 +99,8 @@ struct Inspector : public Component, public TableListBoxModel {
 
     auto [name, type, ptr] = items[rowNumber];
 
-    switch (type) {
+    switch (type)
+    {
       case tString:
         return new EditableComponent<String>(callback, static_cast<String*>(ptr), rowNumber);
       case tFloat:
@@ -103,10 +120,14 @@ struct Inspector : public Component, public TableListBoxModel {
 
   // This is overloaded from TableListBoxModel, and should choose the best width for the specified
   // column.
-  int getColumnAutoSizeWidth(int columnId) override {
-    if (columnId == 1) {
+  int getColumnAutoSizeWidth(int columnId) override
+  {
+    if (columnId == 1)
+    {
       return getWidth() / 3;  // Name column
-    } else {
+    }
+    else
+    {
       return static_cast<int>(getWidth() * 1.5f);  // Value column
     }
   }
@@ -116,7 +137,8 @@ struct Inspector : public Component, public TableListBoxModel {
 
   void deselect() { loadData({}); }
 
-  void loadData(const ObjectParameters& params) {
+  void loadData(const ObjectParameters& params)
+  {
     auto& [parameters, cb] = params;
 
     callback = cb;
@@ -135,8 +157,10 @@ struct Inspector : public Component, public TableListBoxModel {
 
   int numRows;  // The number of rows of data we've got
 
-  struct ToggleComponent : public Component {
-    ToggleComponent(std::function<void(int)> cb, bool* value, int rowIdx) : callback(std::move(cb)), row(rowIdx) {
+  struct ToggleComponent : public Component
+  {
+    ToggleComponent(std::function<void(int)> cb, bool* value, int rowIdx) : callback(std::move(cb)), row(rowIdx)
+    {
       toggleButton.setClickingTogglesState(true);
 
       toggleButton.setToggleState(*value, sendNotification);
@@ -145,7 +169,8 @@ struct Inspector : public Component, public TableListBoxModel {
 
       addAndMakeVisible(toggleButton);
 
-      toggleButton.onClick = [this, value]() {
+      toggleButton.onClick = [this, value]()
+      {
         *value = toggleButton.getToggleState();
         toggleButton.setButtonText((*value) ? "true" : "false");
         callback(row);
@@ -160,9 +185,12 @@ struct Inspector : public Component, public TableListBoxModel {
     TextButton toggleButton;
   };
 
-  struct ColourComponent : public Component, public ChangeListener {
-    ColourComponent(std::function<void(int)> cb, String* value, int rowIdx) : callback(std::move(cb)), currentColour(value), row(rowIdx) {
-      if (value && value->length() > 2) {
+  struct ColourComponent : public Component, public ChangeListener
+  {
+    ColourComponent(std::function<void(int)> cb, String* value, int rowIdx) : callback(std::move(cb)), currentColour(value), row(rowIdx)
+    {
+      if (value && value->length() > 2)
+      {
         button.setButtonText(String("#") + (*value).substring(2));
       }
       button.setConnectedEdges(12);
@@ -171,7 +199,8 @@ struct Inspector : public Component, public TableListBoxModel {
       addAndMakeVisible(button);
       updateColour();
 
-      button.onClick = [this]() {
+      button.onClick = [this]()
+      {
         std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
         colourSelector->setName("background");
         colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
@@ -185,7 +214,8 @@ struct Inspector : public Component, public TableListBoxModel {
       };
     }
 
-    void updateColour() {
+    void updateColour()
+    {
       auto colour = Colour::fromString(*currentColour);
 
       button.setColour(TextButton::buttonColourId, colour);
@@ -200,7 +230,8 @@ struct Inspector : public Component, public TableListBoxModel {
       button.setButtonText(String("#") + (*currentColour).substring(2));
     }
 
-    void changeListenerCallback(ChangeBroadcaster* source) override {
+    void changeListenerCallback(ChangeBroadcaster* source) override
+    {
       auto* cs = dynamic_cast<ColourSelector*>(source);
 
       auto colour = cs->getCurrentColour();
@@ -223,18 +254,26 @@ struct Inspector : public Component, public TableListBoxModel {
   };
 
   template <typename T>
-  struct EditableComponent : public Label {
-    EditableComponent(std::function<void(int)> cb, T* value, int rowIdx) : callback(std::move(cb)), row(rowIdx) {
+  struct EditableComponent : public Label
+  {
+    EditableComponent(std::function<void(int)> cb, T* value, int rowIdx) : callback(std::move(cb)), row(rowIdx)
+    {
       setEditable(false, true);
 
       setText(String(*value), dontSendNotification);
 
-      onTextChange = [this, value]() {
-        if constexpr (std::is_floating_point<T>::value) {
+      onTextChange = [this, value]()
+      {
+        if constexpr (std::is_floating_point<T>::value)
+        {
           *value = getText().getFloatValue();
-        } else if constexpr (std::is_integral<T>::value) {
+        }
+        else if constexpr (std::is_integral<T>::value)
+        {
           *value = getText().getIntValue();
-        } else {
+        }
+        else
+        {
           *value = getText();
         }
 
@@ -242,12 +281,16 @@ struct Inspector : public Component, public TableListBoxModel {
       };
     }
 
-    TextEditor* createEditorComponent() override {
+    TextEditor* createEditorComponent() override
+    {
       auto* editor = Label::createEditorComponent();
 
-      if constexpr (std::is_floating_point<T>::value) {
+      if constexpr (std::is_floating_point<T>::value)
+      {
         editor->setInputRestrictions(0, "0123456789.-");
-      } else if constexpr (std::is_integral<T>::value) {
+      }
+      else if constexpr (std::is_integral<T>::value)
+      {
         editor->setInputRestrictions(0, "0123456789");
       }
 

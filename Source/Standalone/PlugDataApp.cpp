@@ -30,9 +30,11 @@
 #include "PlugDataWindow.h"
 
 //==============================================================================
-class PlugDataApp : public JUCEApplication {
+class PlugDataApp : public JUCEApplication
+{
  public:
-  PlugDataApp() {
+  PlugDataApp()
+  {
     PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
 
     PropertiesFile::Options options;
@@ -54,20 +56,25 @@ class PlugDataApp : public JUCEApplication {
   bool moreThanOneInstanceAllowed() override { return true; }
 
   // For opening files with PlugData standalone
-  void anotherInstanceStarted(const String& commandLine) override {
+  void anotherInstanceStarted(const String& commandLine) override
+  {
     auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
-    if (file.existsAsFile()) {
+    if (file.existsAsFile())
+    {
       auto* pd = dynamic_cast<PatchLoader*>(mainWindow->getAudioProcessor());
 
-      if (pd) {
-        if (file.existsAsFile()) {
+      if (pd)
+      {
+        if (file.existsAsFile())
+        {
           pd->loadPatch(file);
         }
       }
     }
   }
 
-  virtual PlugDataWindow* createWindow() {
+  virtual PlugDataWindow* createWindow()
+  {
 #ifdef JucePlugin_PreferredChannelConfigurations
     StandalonePluginHolder::PluginInOuts channels[] = {JucePlugin_PreferredChannelConfigurations};
 #endif
@@ -88,27 +95,35 @@ class PlugDataApp : public JUCEApplication {
   }
 
   //==============================================================================
-  void initialise(const String&) override {
+  void initialise(const String&) override
+  {
     LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colour(20, 20, 20));
     mainWindow.reset(createWindow());
 
     mainWindow->setVisible(true);
   }
 
-  void shutdown() override {
+  void shutdown() override
+  {
     mainWindow = nullptr;
     appProperties.saveIfNeeded();
   }
 
   //==============================================================================
-  void systemRequestedQuit() override {
+  void systemRequestedQuit() override
+  {
     if (mainWindow) mainWindow->pluginHolder->savePluginState();
 
-    if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
-      Timer::callAfterDelay(100, []() {
-        if (auto app = JUCEApplicationBase::getInstance()) app->systemRequestedQuit();
-      });
-    } else {
+    if (ModalComponentManager::getInstance()->cancelAllModalComponents())
+    {
+      Timer::callAfterDelay(100,
+                            []()
+                            {
+                              if (auto app = JUCEApplicationBase::getInstance()) app->systemRequestedQuit();
+                            });
+    }
+    else
+    {
       quit();
     }
   }

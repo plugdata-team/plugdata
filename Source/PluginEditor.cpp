@@ -16,7 +16,8 @@
 
 //==============================================================================
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters, p.meterSource) {
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters, p.meterSource)
+{
   addKeyListener(this);
   setWantsKeyboardFocus(true);
 
@@ -34,22 +35,27 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
   addAndMakeVisible(levelmeter);
 
-  tabbar.onTabChange = [this](int idx) {
+  tabbar.onTabChange = [this](int idx)
+  {
     if (idx == -1) return;
 
     // update GraphOnParent when changing tabs
-    for (auto* box : getCurrentCanvas()->boxes) {
-      if (box->graphics && box->graphics->getGui().getType() == pd::Type::GraphOnParent) {
+    for (auto* box : getCurrentCanvas()->boxes)
+    {
+      if (box->graphics && box->graphics->getGui().getType() == pd::Type::GraphOnParent)
+      {
         auto* cnv = box->graphics->getCanvas();
         if (cnv) cnv->synchronise();
       }
-      if (box->graphics && (box->graphics->getGui().getType() == pd::Type::Subpatch || box->graphics->getGui().getType() == pd::Type::GraphOnParent)) {
+      if (box->graphics && (box->graphics->getGui().getType() == pd::Type::Subpatch || box->graphics->getGui().getType() == pd::Type::GraphOnParent))
+      {
         box->updatePorts();
       }
     }
 
     auto* cnv = getCurrentCanvas();
-    if (cnv->patch.getPointer()) {
+    if (cnv->patch.getPointer())
+    {
       cnv->patch.setCurrent();
     }
 
@@ -75,13 +81,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
   lockButton.setClickingTogglesState(true);
   lockButton.setConnectedEdges(12);
   lockButton.setLookAndFeel(&statusbarLook);
-  lockButton.onClick = [this]() {
+  lockButton.onClick = [this]()
+  {
     pd.locked = lockButton.getToggleState();
 
-    for (auto& cnv : canvases) {
+    for (auto& cnv : canvases)
+    {
       cnv->deselectAll();
-      for (auto& connection : cnv->connections) {
-        if (connection->isSelected) {
+      for (auto& connection : cnv->connections)
+      {
+        if (connection->isSelected)
+        {
           connection->isSelected = false;
           connection->repaint();
         }
@@ -101,13 +111,16 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
   connectionStyleButton.setClickingTogglesState(true);
   connectionStyleButton.setConnectedEdges(12);
   connectionStyleButton.setLookAndFeel(&statusbarLook);
-  connectionStyleButton.onClick = [this]() {
+  connectionStyleButton.onClick = [this]()
+  {
     pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
 
     connectionPathfind.setEnabled(connectionStyleButton.getToggleState());
 
-    for (auto& cnv : canvases) {
-      for (auto* connection : cnv->connections) {
+    for (auto& cnv : canvases)
+    {
+      for (auto* connection : cnv->connections)
+      {
         connection->resized();
         connection->repaint();
       }
@@ -121,9 +134,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
   connectionPathfind.setTooltip("Find best connection path");
   connectionPathfind.setConnectedEdges(12);
   connectionPathfind.setLookAndFeel(&statusbarLook);
-  connectionPathfind.onClick = [this]() {
-    for (auto& c : getCurrentCanvas()->connections) {
-      if (c->isSelected) {
+  connectionPathfind.onClick = [this]()
+  {
+    for (auto& c : getCurrentCanvas()->connections)
+    {
+      if (c->isSelected)
+      {
         c->applyPath(c->findPath());
       }
     }
@@ -147,7 +163,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
   zoomOut.onClick = [this]() { zoom(false); };
   addAndMakeVisible(zoomOut);
 
-  for (auto& button : toolbarButtons) {
+  for (auto& button : toolbarButtons)
+  {
     button.setLookAndFeel(&toolbarLook);
     button.setConnectedEdges(12);
     addAndMakeVisible(button);
@@ -155,8 +172,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
   // New button
   toolbarButtons[0].setTooltip("New Project");
-  toolbarButtons[0].onClick = [this]() {
-    auto createFunc = [this]() {
+  toolbarButtons[0].onClick = [this]()
+  {
+    auto createFunc = [this]()
+    {
       tabbar.clearTabs();
 
       canvases.clear();
@@ -165,15 +184,23 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
       pd.getPatch().setTitle("Untitled Patcher");
     };
 
-    if (pd.isDirty()) {
-      SaveDialog::show(this, [this, createFunc](int result) {
-        if (result == 2) {
-          saveProject([createFunc]() mutable { createFunc(); });
-        } else if (result == 1) {
-          createFunc();
-        }
-      });
-    } else {
+    if (pd.isDirty())
+    {
+      SaveDialog::show(this,
+                       [this, createFunc](int result)
+                       {
+                         if (result == 2)
+                         {
+                           saveProject([createFunc]() mutable { createFunc(); });
+                         }
+                         else if (result == 1)
+                         {
+                           createFunc();
+                         }
+                       });
+    }
+    else
+    {
       createFunc();
     }
   };
@@ -204,14 +231,19 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
   // Show settings
   toolbarButtons[7].setTooltip("Settings");
-  toolbarButtons[7].onClick = [this]() {
+  toolbarButtons[7].onClick = [this]()
+  {
     // By initialising after the first click we prevent it possibly hanging because audio hasn't started yet
-    if (!settingsDialog) {
+    if (!settingsDialog)
+    {
       // Initialise settings dialog for DAW and standalone
-      if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone) {
+      if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone)
+      {
         auto pluginHolder = StandalonePluginHolder::getInstance();
         settingsDialog = std::make_unique<SettingsDialog>(resources.get(), pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
-      } else {
+      }
+      else
+      {
         settingsDialog = std::make_unique<SettingsDialog>(resources.get(), pd, nullptr, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
       }
     }
@@ -230,7 +262,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
   hideButton.setClickingTogglesState(true);
   hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
   hideButton.setConnectedEdges(12);
-  hideButton.onClick = [this]() {
+  hideButton.onClick = [this]()
+  {
     sidebarHidden = hideButton.getToggleState();
     hideButton.setButtonText(sidebarHidden ? Icons::Show : Icons::Hide);
 
@@ -248,7 +281,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
   setSize(pd.lastUIWidth, pd.lastUIHeight);
 }
 
-PlugDataPluginEditor::~PlugDataPluginEditor() {
+PlugDataPluginEditor::~PlugDataPluginEditor()
+{
   LookAndFeel::setDefaultLookAndFeel(nullptr);
   console->setLookAndFeel(nullptr);
   setLookAndFeel(nullptr);
@@ -259,12 +293,14 @@ PlugDataPluginEditor::~PlugDataPluginEditor() {
   connectionPathfind.setLookAndFeel(nullptr);
   levelmeter.setLookAndFeel(nullptr);
 
-  for (auto& button : toolbarButtons) {
+  for (auto& button : toolbarButtons)
+  {
     button.setLookAndFeel(nullptr);
   }
 }
 
-void PlugDataPluginEditor::showNewObjectMenu() {
+void PlugDataPluginEditor::showNewObjectMenu()
+{
   PopupMenu menu;
 
   menu.addItem(16, "Empty Object");
@@ -293,12 +329,14 @@ void PlugDataPluginEditor::showNewObjectMenu() {
   menu.addSeparator();
   menu.addItem(15, "Keyboard");
 
-  auto callback = [this](int choice) {
+  auto callback = [this](int choice)
+  {
     if (choice < 1) return;
 
     String boxName;
 
-    switch (choice) {
+    switch (choice)
+    {
       case 1:
         boxName = "nbx";
         break;
@@ -338,14 +376,18 @@ void PlugDataPluginEditor::showNewObjectMenu() {
         boxName = "symbolatom";
         break;
 
-      case 11: {
-        ArrayDialog::show(this, [this](int result, const String& name, const String& size) {
-          if (result) {
-            auto* cnv = getCurrentCanvas();
-            auto* box = new Box(cnv, "graph " + name + " " + size, cnv->lastMousePos);
-            cnv->boxes.add(box);
-          }
-        });
+      case 11:
+      {
+        ArrayDialog::show(this,
+                          [this](int result, const String& name, const String& size)
+                          {
+                            if (result)
+                            {
+                              auto* cnv = getCurrentCanvas();
+                              auto* box = new Box(cnv, "graph " + name + " " + size, cnv->lastMousePos);
+                              cnv->boxes.add(box);
+                            }
+                          });
         return;
       }
       case 12:
@@ -374,7 +416,8 @@ void PlugDataPluginEditor::showNewObjectMenu() {
 }
 
 //==============================================================================
-void PlugDataPluginEditor::paint(Graphics& g) {
+void PlugDataPluginEditor::paint(Graphics& g)
+{
   // (Our component is opaque, so we must completely fill the background with a solid colour)
   g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
 
@@ -407,7 +450,8 @@ void PlugDataPluginEditor::paint(Graphics& g) {
   g.fillRect(getWidth() - sWidth, dragbarWidth, statusbarHeight, getHeight() - (toolbarHeight - statusbarHeight));
 }
 
-void PlugDataPluginEditor::resized() {
+void PlugDataPluginEditor::resized()
+{
   int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
 
   int sContentWidth = sWidth - dragbarWidth;
@@ -429,14 +473,16 @@ void PlugDataPluginEditor::resized() {
   fb.alignContent = FlexBox::AlignContent::flexStart;
   fb.flexDirection = FlexBox::Direction::row;
 
-  for (int b = 0; b < 9; b++) {
+  for (int b = 0; b < 9; b++)
+  {
     auto& button = toolbarButtons[b];
 
     auto item = FlexItem(button).withMinWidth(50.0f).withMinHeight(8.0f).withMaxWidth(80.0f);
     item.flexGrow = 1.0f;
     item.flexShrink = 1.0f;
 
-    if (b == 4 || b == 6) {
+    if (b == 4 || b == 6)
+    {
       auto separator = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(50.0f);
       separator.flexGrow = 1.0f;
       separator.flexShrink = 1.0f;
@@ -452,7 +498,8 @@ void PlugDataPluginEditor::resized() {
   fb.performLayout(toolbarBounds);
 
   // hide when they fall off the screen
-  for (int b = 0; b < 8; b++) {
+  for (int b = 0; b < 8; b++)
+  {
     toolbarButtons[b].setVisible((toolbarButtons[b].getBounds().getCentreX()) < getWidth() - sidebarWidth);
   }
 
@@ -478,18 +525,23 @@ void PlugDataPluginEditor::resized() {
   pd.lastUIHeight = getHeight();
 }
 
-bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatingComponent) {
+bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatingComponent)
+{
   auto* cnv = getCurrentCanvas();
 
   // cmd-e
-  if (key.getModifiers().isCommandDown() && key.isKeyCode(69)) {
+  if (key.getModifiers().isCommandDown() && key.isKeyCode(69))
+  {
     lockButton.triggerClick();
     return true;
   }
 
-  if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(89)) {
-    for (auto& connection : cnv->connections) {
-      if (connection->isSelected) {
+  if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(89))
+  {
+    for (auto& connection : cnv->connections)
+    {
+      if (connection->isSelected)
+      {
         connection->applyPath(connection->findPath());
       }
     }
@@ -497,13 +549,15 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
   }
 
   // Zoom in
-  if (key.isKeyCode(61) && key.getModifiers().isCommandDown()) {
+  if (key.isKeyCode(61) && key.getModifiers().isCommandDown())
+  {
     zoom(true);
 
     return true;
   }
   // Zoom out
-  if (key.isKeyCode(45) && key.getModifiers().isCommandDown()) {
+  if (key.isKeyCode(45) && key.getModifiers().isCommandDown())
+  {
     zoom(false);
     return true;
   }
@@ -511,82 +565,100 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
   if (pd.locked) return false;
 
   // Key shortcuts for creating objects
-  if (key.getTextCharacter() == 'n') {
+  if (key.getTextCharacter() == 'n')
+  {
     cnv->boxes.add(new Box(cnv, "", cnv->lastMousePos));
     return true;
   }
-  if (key.getTextCharacter() == 'c' && !key.getModifiers().isCommandDown()) {
+  if (key.getTextCharacter() == 'c' && !key.getModifiers().isCommandDown())
+  {
     cnv->boxes.add(new Box(cnv, "comment", cnv->lastMousePos));
     return true;
   }
-  if (key.isKeyCode(65) && key.getModifiers().isCommandDown()) {
-    for (auto* child : cnv->boxes) {
+  if (key.isKeyCode(65) && key.getModifiers().isCommandDown())
+  {
+    for (auto* child : cnv->boxes)
+    {
       cnv->setSelected(child, true);
     }
-    for (auto* child : cnv->connections) {
+    for (auto* child : cnv->connections)
+    {
       child->isSelected = true;
       child->repaint();
     }
     return true;
   }
-  if (key.getTextCharacter() == 'b') {
+  if (key.getTextCharacter() == 'b')
+  {
     cnv->boxes.add(new Box(cnv, "bng", cnv->lastMousePos));
     return true;
   }
-  if (key.getTextCharacter() == 'm') {
+  if (key.getTextCharacter() == 'm')
+  {
     cnv->boxes.add(new Box(cnv, "msg", cnv->lastMousePos));
     return true;
   }
-  if (key.getTextCharacter() == 'i') {
+  if (key.getTextCharacter() == 'i')
+  {
     cnv->boxes.add(new Box(cnv, "nbx", cnv->lastMousePos));
     return true;
   }
-  if (key.getTextCharacter() == 'f') {
+  if (key.getTextCharacter() == 'f')
+  {
     cnv->boxes.add(new Box(cnv, "floatatom", cnv->lastMousePos));
     return true;
   }
-  if (key.getTextCharacter() == 't') {
+  if (key.getTextCharacter() == 't')
+  {
     cnv->boxes.add(new Box(cnv, "tgl", cnv->lastMousePos));
     return true;
   }
-  if (key.getTextCharacter() == 's') {
+  if (key.getTextCharacter() == 's')
+  {
     cnv->boxes.add(new Box(cnv, "vsl", cnv->lastMousePos));
     return true;
   }
 
-  if (key.getKeyCode() == KeyPress::backspaceKey) {
+  if (key.getKeyCode() == KeyPress::backspaceKey)
+  {
     cnv->removeSelection();
     return true;
   }
   // cmd-c
-  if (key.getModifiers().isCommandDown() && key.isKeyCode(67)) {
+  if (key.getModifiers().isCommandDown() && key.isKeyCode(67))
+  {
     cnv->copySelection();
     return true;
   }
   // cmd-v
-  if (key.getModifiers().isCommandDown() && key.isKeyCode(86)) {
+  if (key.getModifiers().isCommandDown() && key.isKeyCode(86))
+  {
     cnv->pasteSelection();
     return true;
   }
   // cmd-x
-  if (key.getModifiers().isCommandDown() && key.isKeyCode(88)) {
+  if (key.getModifiers().isCommandDown() && key.isKeyCode(88))
+  {
     cnv->copySelection();
     cnv->removeSelection();
     return true;
   }
   // cmd-d
-  if (key.getModifiers().isCommandDown() && key.isKeyCode(68)) {
+  if (key.getModifiers().isCommandDown() && key.isKeyCode(68))
+  {
     cnv->duplicateSelection();
     return true;
   }
 
   // cmd-shift-z
-  if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(90)) {
+  if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(90))
+  {
     cnv->redo();
     return true;
   }
   // cmd-z
-  if (key.getModifiers().isCommandDown() && key.isKeyCode(90)) {
+  if (key.getModifiers().isCommandDown() && key.isKeyCode(90))
+  {
     cnv->undo();
     return true;
   }
@@ -594,86 +666,114 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
   return false;
 }
 
-void PlugDataPluginEditor::mouseDown(const MouseEvent& e) {
+void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
+{
   Rectangle<int> dragBar(getWidth() - sidebarWidth, dragbarWidth, sidebarWidth, getHeight() - toolbarHeight);
-  if (dragBar.contains(e.getPosition()) && !sidebarHidden) {
+  if (dragBar.contains(e.getPosition()) && !sidebarHidden)
+  {
     draggingSidebar = true;
     dragStartWidth = sidebarWidth;
-  } else {
+  }
+  else
+  {
     draggingSidebar = false;
   }
 }
 
-void PlugDataPluginEditor::mouseDrag(const MouseEvent& e) {
-  if (draggingSidebar) {
+void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
+{
+  if (draggingSidebar)
+  {
     sidebarWidth = dragStartWidth - e.getDistanceFromDragStartX();
     repaint();
     resized();
   }
 }
 
-void PlugDataPluginEditor::mouseUp(const MouseEvent& e) {
-  if (draggingSidebar) {
+void PlugDataPluginEditor::mouseUp(const MouseEvent& e)
+{
+  if (draggingSidebar)
+  {
     getCurrentCanvas()->checkBounds();
     draggingSidebar = false;
   }
 }
 
-void PlugDataPluginEditor::openProject() {
-  auto openFunc = [this](const FileChooser& f) {
+void PlugDataPluginEditor::openProject()
+{
+  auto openFunc = [this](const FileChooser& f)
+  {
     File openedFile = f.getResult();
 
-    if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd")) {
+    if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd"))
+    {
       tabbar.clearTabs();
       pd.loadPatch(openedFile);
     }
   };
 
-  if (pd.isDirty()) {
-    SaveDialog::show(this, [this, openFunc](int result) {
-      if (result == 2) {
-        saveProject([this, openFunc]() mutable {
-          openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
-        });
-      } else if (result != 0) {
-        openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
-      }
-    });
-  } else {
+  if (pd.isDirty())
+  {
+    SaveDialog::show(this,
+                     [this, openFunc](int result)
+                     {
+                       if (result == 2)
+                       {
+                         saveProject([this, openFunc]() mutable { openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
+                       }
+                       else if (result != 0)
+                       {
+                         openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+                       }
+                     });
+  }
+  else
+  {
     openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
   }
 }
 
-void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback) {
-  saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting, [this, nestedCallback](const FileChooser& f) mutable {
-    File result = saveChooser.getResult();
+void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
+{
+  saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+                          [this, nestedCallback](const FileChooser& f) mutable
+                          {
+                            File result = saveChooser.getResult();
 
-    if (result.getFullPathName().isNotEmpty()) {
-      result.deleteFile();
+                            if (result.getFullPathName().isNotEmpty())
+                            {
+                              result.deleteFile();
 
-      pd.savePatch(result);
-    }
+                              pd.savePatch(result);
+                            }
 
-    nestedCallback();
-  });
+                            nestedCallback();
+                          });
 }
 
-void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback) {
-  if (pd.getCurrentFile().existsAsFile()) {
+void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
+{
+  if (pd.getCurrentFile().existsAsFile())
+  {
     getCurrentCanvas()->pd->savePatch();
     nestedCallback();
-  } else {
+  }
+  else
+  {
     saveProjectAs(nestedCallback);
   }
 }
 
-void PlugDataPluginEditor::updateValues() {
+void PlugDataPluginEditor::updateValues()
+{
   auto* cnv = getCurrentCanvas();
 
   if (!cnv) return;
 
-  for (auto& box : cnv->boxes) {
-    if (box->graphics && box->isShowing()) {
+  for (auto& box : cnv->boxes)
+  {
+    if (box->graphics && box->isShowing())
+    {
       box->graphics->updateValue();
     }
   }
@@ -681,12 +781,14 @@ void PlugDataPluginEditor::updateValues() {
   updateUndoState();
 }
 
-void PlugDataPluginEditor::updateUndoState() {
+void PlugDataPluginEditor::updateUndoState()
+{
   pd.setThis();
 
   toolbarButtons[6].setEnabled(!pd.locked);
 
-  if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked) {
+  if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked)
+  {
     getCurrentCanvas()->patch.setCurrent();
 
     auto* cnv = getCurrentCanvas()->patch.getPointer();
@@ -698,25 +800,32 @@ void PlugDataPluginEditor::updateUndoState() {
 
     toolbarButtons[4].setEnabled(canUndo);
     toolbarButtons[5].setEnabled(canRedo);
-
-  } else {
+  }
+  else
+  {
     toolbarButtons[4].setEnabled(false);
     toolbarButtons[5].setEnabled(false);
   }
 }
 
-Canvas* PlugDataPluginEditor::getCurrentCanvas() {
-  if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent())) {
-    if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+Canvas* PlugDataPluginEditor::getCurrentCanvas()
+{
+  if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent()))
+  {
+    if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()))
+    {
       return cnv;
     }
   }
   return nullptr;
 }
 
-Canvas* PlugDataPluginEditor::getCanvas(int idx) {
-  if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx))) {
-    if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent())) {
+Canvas* PlugDataPluginEditor::getCanvas(int idx)
+{
+  if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx)))
+  {
+    if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()))
+    {
       return cnv;
     }
   }
@@ -724,16 +833,20 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx) {
   return nullptr;
 }
 
-void PlugDataPluginEditor::addTab(Canvas* cnv) {
+void PlugDataPluginEditor::addTab(Canvas* cnv)
+{
   tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
   int tabIdx = tabbar.getNumTabs() - 1;
   tabbar.setCurrentTabIndex(tabIdx);
 
-  if (tabbar.getNumTabs() > 1) {
+  if (tabbar.getNumTabs() > 1)
+  {
     tabbar.getTabbedButtonBar().setVisible(true);
     tabbar.setTabBarDepth(30);
-  } else {
+  }
+  else
+  {
     tabbar.getTabbedButtonBar().setVisible(false);
     tabbar.setTabBarDepth(1);
   }
@@ -742,11 +855,14 @@ void PlugDataPluginEditor::addTab(Canvas* cnv) {
 
   auto* closeButton = new TextButton(Icons::Clear);
 
-  closeButton->onClick = [this, tabButton]() mutable {
+  closeButton->onClick = [this, tabButton]() mutable
+  {
     // We cant use the index from earlier because it might change!
     int idx = -1;
-    for (int i = 0; i < tabbar.getNumTabs(); i++) {
-      if (tabbar.getTabbedButtonBar().getTabButton(i) == tabButton) {
+    for (int i = 0; i < tabbar.getNumTabs(); i++)
+    {
+      if (tabbar.getTabbedButtonBar().getTabButton(i) == tabButton)
+      {
         idx = i;
         break;
       }
@@ -754,7 +870,8 @@ void PlugDataPluginEditor::addTab(Canvas* cnv) {
 
     if (idx == -1) return;
 
-    if (tabbar.getCurrentTabIndex() == idx) {
+    if (tabbar.getCurrentTabIndex() == idx)
+    {
       tabbar.setCurrentTabIndex(0, false);
     }
 
@@ -764,7 +881,8 @@ void PlugDataPluginEditor::addTab(Canvas* cnv) {
 
     tabbar.setCurrentTabIndex(0, true);
 
-    if (tabbar.getNumTabs() == 1) {
+    if (tabbar.getNumTabs() == 1)
+    {
       tabbar.getTabbedButtonBar().setVisible(false);
       tabbar.setTabBarDepth(1);
     }
@@ -787,7 +905,8 @@ void PlugDataPluginEditor::addTab(Canvas* cnv) {
   cnv->setVisible(true);
 }
 
-void PlugDataPluginEditor::zoom(bool zoomingIn) {
+void PlugDataPluginEditor::zoom(bool zoomingIn)
+{
   transform = transform.scaled(zoomingIn ? 1.1f : 1.0f / 1.1f);
   for (auto& cnv : canvases) cnv->setTransform(transform);
 

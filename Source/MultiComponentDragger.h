@@ -31,12 +31,14 @@ class Canvas;
  */
 
 template <typename T>
-class MultiComponentDragger : public LassoSource<T*> {
+class MultiComponentDragger : public LassoSource<T*>
+{
  public:
   Canvas* canvas;
   OwnedArray<T>* selectable;
 
-  MultiComponentDragger(Canvas* parent, OwnedArray<T>* selectableObjects) {
+  MultiComponentDragger(Canvas* parent, OwnedArray<T>* selectableObjects)
+  {
     canvas = parent;
     selectable = selectableObjects;
   }
@@ -47,18 +49,21 @@ class MultiComponentDragger : public LassoSource<T*> {
   /**
    * Adds a specified component as being selected.
    */
-  void setSelected(T* component, bool shouldNowBeSelected) {
+  void setSelected(T* component, bool shouldNowBeSelected)
+  {
     /* Asserts here? This class is only designed to work for components that have a common parent. */
     jassert(selectedComponents.getNumSelected() == 0 || component->getParentComponent() == selectedComponents.getSelectedItem(0)->getParentComponent());
 
     bool isAlreadySelected = isSelected(component);
 
-    if (!isAlreadySelected && shouldNowBeSelected) {
+    if (!isAlreadySelected && shouldNowBeSelected)
+    {
       selectedComponents.addToSelection(component);
       component->repaint();
     }
 
-    if (isAlreadySelected && !shouldNowBeSelected) {
+    if (isAlreadySelected && !shouldNowBeSelected)
+    {
       removeSelectedComponent(component);
       component->repaint();
     }
@@ -68,7 +73,8 @@ class MultiComponentDragger : public LassoSource<T*> {
    You should call this when the user clicks on the background of the
    parent component.
    */
-  virtual void deselectAll() {
+  virtual void deselectAll()
+  {
     for (auto c : selectedComponents)
       if (c) c->repaint();
 
@@ -83,10 +89,12 @@ class MultiComponentDragger : public LassoSource<T*> {
   /**
    Call this from your components mouseDown event.
    */
-  void handleMouseDown(T* component, const MouseEvent& e) {
+  void handleMouseDown(T* component, const MouseEvent& e)
+  {
     jassert(component != nullptr);
 
-    if (!isSelected(component)) {
+    if (!isSelected(component))
+    {
       if (!(e.mods.isShiftDown() || e.mods.isCommandDown())) deselectAll();
 
       setSelected(component, true);
@@ -104,8 +112,10 @@ class MultiComponentDragger : public LassoSource<T*> {
   /**
    Call this from your components mouseUp event.
    */
-  void handleMouseUp(T* component, const MouseEvent& e) {
-    if (didStartDragging) {
+  void handleMouseUp(T* component, const MouseEvent& e)
+  {
+    if (didStartDragging)
+    {
       dragCallback(totalDragDelta.x, totalDragDelta.y);
     }
 
@@ -117,7 +127,8 @@ class MultiComponentDragger : public LassoSource<T*> {
   /**
    Call this from your components mouseDrag event.
    */
-  void handleMouseDrag(const MouseEvent& e) {
+  void handleMouseDrag(const MouseEvent& e)
+  {
     jassert(e.mods.isAnyMouseButtonDown());  // The event has to be a drag event!
 
     /** Ensure tiny movements don't start a drag. */
@@ -127,8 +138,10 @@ class MultiComponentDragger : public LassoSource<T*> {
 
     Point<int> delta = e.getEventRelativeTo(componentBeingDragged).getPosition() - mouseDownWithinTarget;
 
-    for (auto comp : selectedComponents) {
-      if (comp != nullptr) {
+    for (auto comp : selectedComponents)
+    {
+      if (comp != nullptr)
+      {
         Rectangle<int> bounds(comp->getBounds());
 
         bounds += delta;
@@ -139,11 +152,14 @@ class MultiComponentDragger : public LassoSource<T*> {
     totalDragDelta += delta;
   }
 
-  SelectedItemSet<T*>& getLassoSelection() {
+  SelectedItemSet<T*>& getLassoSelection()
+  {
     rawPointers.deselectAll();
 
-    for (auto& selected : selectedComponents) {
-      if (selected) {
+    for (auto& selected : selectedComponents)
+    {
+      if (selected)
+      {
         rawPointers.addToSelection(selected);
       }
     }
@@ -154,13 +170,18 @@ class MultiComponentDragger : public LassoSource<T*> {
  private:
   void removeSelectedComponent(T* component) { selectedComponents.deselect(component); }
 
-  void findLassoItemsInArea(Array<T*>& itemsFound, const Rectangle<int>& area) {
-    for (auto* element : *selectable) {
-      if (area.intersects(element->getBounds())) {
+  void findLassoItemsInArea(Array<T*>& itemsFound, const Rectangle<int>& area)
+  {
+    for (auto* element : *selectable)
+    {
+      if (area.intersects(element->getBounds()))
+      {
         itemsFound.add(element);
         setSelected(element, true);
         element->repaint();
-      } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+      }
+      else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
+      {
         setSelected(element, false);
       }
     }

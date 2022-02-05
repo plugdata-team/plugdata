@@ -9,7 +9,8 @@
 #include <cstddef>
 #include <string>
 
-namespace pd {
+namespace pd
+{
 class Patch;
 class Instance;
 // ==================================================================================== //
@@ -22,9 +23,34 @@ class Instance;
 //! @see Instance, Patch, Gui
 
 //!         //! @brief The type of GUI.
-enum class Type : size_t { Undefined = 0, HorizontalSlider, VerticalSlider, Toggle, Number, HorizontalRadio, VerticalRadio, Bang, Panel, VuMeter, Comment, AtomNumber, AtomSymbol, AtomList, Array, GraphOnParent, Message, Subpatch, Mousepad, Mouse, Keyboard, Invalid };
+enum class Type : size_t
+{
+  Undefined = 0,
+  HorizontalSlider,
+  VerticalSlider,
+  Toggle,
+  Number,
+  HorizontalRadio,
+  VerticalRadio,
+  Bang,
+  Panel,
+  VuMeter,
+  Comment,
+  AtomNumber,
+  AtomSymbol,
+  AtomList,
+  Array,
+  GraphOnParent,
+  Message,
+  Subpatch,
+  Mousepad,
+  Mouse,
+  Keyboard,
+  Invalid
+};
 
-class Object {
+class Object
+{
  public:
   //! @brief The default constructor.
   Object() noexcept = default;

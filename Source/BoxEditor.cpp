@@ -14,10 +14,12 @@
 ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : box(parent), dragger(multiDragger) {}
 
 //==============================================================================
-void ClickLabel::setText(const String& newText, NotificationType notification) {
+void ClickLabel::setText(const String& newText, NotificationType notification)
+{
   hideEditor();
 
-  if (lastTextValue != newText) {
+  if (lastTextValue != newText)
+  {
     lastTextValue = newText;
     textValue = newText;
     repaint();
@@ -28,7 +30,8 @@ void ClickLabel::setText(const String& newText, NotificationType notification) {
 
 String ClickLabel::getText(bool returnActiveEditorContents) const { return (returnActiveEditorContents && isBeingEdited()) ? editor->getText() : textValue.toString(); }
 
-void ClickLabel::mouseDown(const MouseEvent& e) {
+void ClickLabel::mouseDown(const MouseEvent& e)
+{
   auto* canvas = findParentComponentOfClass<Canvas>();
   if (canvas->isGraph || canvas->pd->locked) return;
 
@@ -36,36 +39,43 @@ void ClickLabel::mouseDown(const MouseEvent& e) {
   canvas->handleMouseDown(box, e);
 }
 
-void ClickLabel::mouseUp(const MouseEvent& e) {
+void ClickLabel::mouseUp(const MouseEvent& e)
+{
   auto* canvas = findParentComponentOfClass<Canvas>();
   if (canvas->isGraph || canvas->pd->locked) return;
 
   isDown = false;
   dragger.handleMouseUp(box, e);
 
-  if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600) {
+  if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
+  {
     canvas->connectingEdge = nullptr;
   }
 }
 
-void ClickLabel::mouseDrag(const MouseEvent& e) {
+void ClickLabel::mouseDrag(const MouseEvent& e)
+{
   auto* canvas = findParentComponentOfClass<Canvas>();
   if (canvas->isGraph || canvas->pd->locked) return;
 
   canvas->handleMouseDrag(e);
 }
 
-void ClickLabel::inputAttemptWhenModal() {
-  if (editor) {
+void ClickLabel::inputAttemptWhenModal()
+{
+  if (editor)
+  {
     textEditorReturnKeyPressed(*getCurrentTextEditor());
   }
 }
 
-static void copyColourIfSpecified(ClickLabel& l, TextEditor& ed, int colourId, int targetColourId) {
+static void copyColourIfSpecified(ClickLabel& l, TextEditor& ed, int colourId, int targetColourId)
+{
   if (l.isColourSpecified(colourId) || l.getLookAndFeel().isColourSpecified(colourId)) ed.setColour(targetColourId, l.findColour(colourId));
 }
 
-TextEditor* ClickLabel::createEditorComponent() {
+TextEditor* ClickLabel::createEditorComponent()
+{
   auto* newEditor = new TextEditor(getName());
   newEditor->applyFontToAllText(font);
   copyAllExplicitColoursTo(*newEditor);
@@ -86,8 +96,10 @@ TextEditor* ClickLabel::createEditorComponent() {
   newEditor->setInputFilter(&suggestor, false);
   newEditor->addKeyListener(&suggestor);
 
-  newEditor->onFocusLost = [this]() {
-    if (!box->cnv->suggestor.hasKeyboardFocus(true)) {
+  newEditor->onFocusLost = [this]()
+  {
+    if (!box->cnv->suggestor.hasKeyboardFocus(true))
+    {
       hideEditor();
     }
   };
@@ -102,11 +114,13 @@ TextEditor* ClickLabel::createEditorComponent() {
   return newEditor;
 }
 
-void ClickLabel::editorShown(TextEditor* textEditor) {
+void ClickLabel::editorShown(TextEditor* textEditor)
+{
   if (onEditorShow != nullptr) onEditorShow();
 }
 
-void ClickLabel::editorAboutToBeHidden(TextEditor* textEditor) {
+void ClickLabel::editorAboutToBeHidden(TextEditor* textEditor)
+{
   if (auto* peer = getPeer()) peer->dismissPendingTextInput();
 
   if (onEditorHide != nullptr) onEditorHide();
@@ -118,7 +132,8 @@ void ClickLabel::editorAboutToBeHidden(TextEditor* textEditor) {
   // Clear overridden lambda
   textEditor->onTextChange = []() {};
 
-  if (box->graphics && !box->graphics->fakeGui()) {
+  if (box->graphics && !box->graphics->fakeGui())
+  {
     setVisible(false);
     box->resized();
   }
@@ -127,8 +142,10 @@ void ClickLabel::editorAboutToBeHidden(TextEditor* textEditor) {
   box->cnv->suggestor.currentBox = nullptr;
 }
 
-void ClickLabel::showEditor() {
-  if (editor == nullptr) {
+void ClickLabel::showEditor()
+{
+  if (editor == nullptr)
+  {
     editor.reset(createEditorComponent());
     editor->setSize(10, 10);
     addAndMakeVisible(editor.get());
@@ -152,10 +169,12 @@ void ClickLabel::showEditor() {
   }
 }
 
-bool ClickLabel::updateFromTextEditorContents(TextEditor& ed) {
+bool ClickLabel::updateFromTextEditorContents(TextEditor& ed)
+{
   auto newText = ed.getText();
 
-  if (textValue.toString() != newText) {
+  if (textValue.toString() != newText)
+  {
     lastTextValue = newText;
     textValue = newText;
     repaint();
@@ -166,8 +185,10 @@ bool ClickLabel::updateFromTextEditorContents(TextEditor& ed) {
   return false;
 }
 
-void ClickLabel::hideEditor() {
-  if (editor != nullptr) {
+void ClickLabel::hideEditor()
+{
+  if (editor != nullptr)
+  {
     WeakReference<Component> deletionChecker(this);
     std::unique_ptr<TextEditor> outgoingEditor;
     std::swap(outgoingEditor, editor);
@@ -184,8 +205,10 @@ void ClickLabel::hideEditor() {
   }
 }
 
-void ClickLabel::textEditorReturnKeyPressed(TextEditor& ed) {
-  if (editor != nullptr) {
+void ClickLabel::textEditorReturnKeyPressed(TextEditor& ed)
+{
+  if (editor != nullptr)
+  {
     editor->giveAwayKeyboardFocus();
   }
 }
@@ -195,10 +218,12 @@ bool ClickLabel::isBeingEdited() const noexcept { return editor != nullptr; }
 TextEditor* ClickLabel::getCurrentTextEditor() const noexcept { return editor.get(); }
 
 //==============================================================================
-void ClickLabel::paint(Graphics& g) {
+void ClickLabel::paint(Graphics& g)
+{
   g.fillAll(findColour(Label::backgroundColourId));
 
-  if (!isBeingEdited()) {
+  if (!isBeingEdited())
+  {
     auto alpha = isEnabled() ? 1.0f : 0.5f;
 
     g.setColour(findColour(Label::textColourId).withMultipliedAlpha(alpha));
@@ -209,24 +234,30 @@ void ClickLabel::paint(Graphics& g) {
     g.drawFittedText(getText(), textArea, justification, jmax(1, static_cast<int>((static_cast<float>(textArea.getHeight()) / font.getHeight()))), minimumHorizontalScale);
 
     g.setColour(findColour(Label::outlineColourId).withMultipliedAlpha(alpha));
-  } else if (isEnabled()) {
+  }
+  else if (isEnabled())
+  {
     g.setColour(findColour(Label::outlineColourId));
   }
 
   g.drawRect(getLocalBounds());
 }
 
-void ClickLabel::mouseDoubleClick(const MouseEvent& e) {
-  if (editDoubleClick && isEnabled() && !e.mods.isPopupMenu()) {
+void ClickLabel::mouseDoubleClick(const MouseEvent& e)
+{
+  if (editDoubleClick && isEnabled() && !e.mods.isPopupMenu())
+  {
     showEditor();
   }
 }
 
-void ClickLabel::resized() {
+void ClickLabel::resized()
+{
   if (editor != nullptr) editor->setBounds(getLocalBounds());
 }
 
-void ClickLabel::setEditable(bool editable) {
+void ClickLabel::setEditable(bool editable)
+{
   editDoubleClick = editable;
 
   setWantsKeyboardFocus(editDoubleClick);
@@ -234,11 +265,13 @@ void ClickLabel::setEditable(bool editable) {
   invalidateAccessibilityHandler();
 }
 
-SuggestionBox::SuggestionBox(Resources& r) : editorLook(r) {
+SuggestionBox::SuggestionBox(Resources& r) : editorLook(r)
+{
   // Set up the button list that contains our suggestions
   buttonholder = std::make_unique<Component>();
 
-  for (int i = 0; i < 20; i++) {
+  for (int i = 0; i < 20; i++)
+  {
     SuggestionComponent* but = buttons.add(new SuggestionComponent);
     buttonholder->addAndMakeVisible(buttons[i]);
 
@@ -266,32 +299,39 @@ SuggestionBox::SuggestionBox(Resources& r) : editorLook(r) {
   setVisible(true);
 }
 
-SuggestionBox::~SuggestionBox() {
+SuggestionBox::~SuggestionBox()
+{
   buttons.clear();
   setLookAndFeel(nullptr);
 }
 
-void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor) {
+void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)
+{
   currentBox = box;
   openedEditor = editor;
 
   // Should run after the input filter
-  editor->onTextChange = [this, editor, box]() {
-    if (isCompleting && !editor->getText().containsChar(' ')) {
+  editor->onTextChange = [this, editor, box]()
+  {
+    if (isCompleting && !editor->getText().containsChar(' '))
+    {
       editor->setHighlightedRegion({highlightStart, highlightEnd});
     }
     auto width = editor->getTextWidth() + 10;
 
-    if (width > box->getWidth()) {
+    if (width > box->getWidth())
+    {
       box->setSize(width, box->getHeight());
     }
   };
 
-  for (int i = 0; i < buttons.size(); i++) {
+  for (int i = 0; i < buttons.size(); i++)
+  {
     auto* but = buttons[i];
     but->setAlwaysOnTop(true);
 
-    but->onClick = [this, i, editor]() mutable {
+    but->onClick = [this, i, editor]() mutable
+    {
       move(0, i);
       if (!editor->isVisible()) editor->setVisible(true);
       editor->grabKeyboardFocus();
@@ -303,7 +343,8 @@ void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor) {
   repaint();
 }
 
-void SuggestionBox::move(int offset, int setto) {
+void SuggestionBox::move(int offset, int setto)
+{
   if (!openedEditor) return;
 
   // Calculate new selected index
@@ -323,7 +364,8 @@ void SuggestionBox::move(int offset, int setto) {
   // If we use setto, the toggle state should already be set
   if (setto == -1) but->setToggleState(true, dontSendNotification);
 
-  if (openedEditor) {
+  if (openedEditor)
+  {
     String newText = buttons[currentidx]->getButtonText();
     openedEditor->setText(newText, dontSendNotification);
     highlightEnd = newText.length();
@@ -331,24 +373,30 @@ void SuggestionBox::move(int offset, int setto) {
   }
 
   // Auto-scroll item into viewport bounds
-  if (port->getViewPositionY() > but->getY()) {
+  if (port->getViewPositionY() > but->getY())
+  {
     port->setViewPosition(0, but->getY());
-  } else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight()) {
+  }
+  else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight())
+  {
     port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
   }
 }
 
-void SuggestionBox::paint(Graphics& g) {
+void SuggestionBox::paint(Graphics& g)
+{
   g.setColour(MainLook::firstBackground);
   g.fillRect(port->getBounds());
 }
 
-void SuggestionBox::paintOverChildren(Graphics& g) {
+void SuggestionBox::paintOverChildren(Graphics& g)
+{
   g.setColour(bordercolor);
   g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), 3.0f, 2.5f);
 }
 
-void SuggestionBox::resized() {
+void SuggestionBox::resized()
+{
   port->setBounds(0, 0, getWidth(), std::min(std::min(5, numOptions) * 23, getHeight()));
   buttonholder->setBounds(0, 0, getWidth(), std::min((numOptions + 1), 20) * 22 + 2);
 
@@ -357,15 +405,18 @@ void SuggestionBox::resized() {
   repaint();
 }
 
-bool SuggestionBox::keyPressed(const KeyPress& key, Component* originatingComponent) {
-  if (key == KeyPress::upKey || key == KeyPress::downKey) {
+bool SuggestionBox::keyPressed(const KeyPress& key, Component* originatingComponent)
+{
+  if (key == KeyPress::upKey || key == KeyPress::downKey)
+  {
     move(key == KeyPress::downKey ? 1 : -1);
     return true;
   }
   return false;
 }
 
-String SuggestionBox::filterNewText(TextEditor& e, const String& newInput) {
+String SuggestionBox::filterNewText(TextEditor& e, const String& newInput)
+{
   String mutableInput = newInput;
   // onChange(mutableInput);
 
@@ -395,7 +446,8 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput) {
   int textlen = e.getText().substring(0, start).length();
 
   // Retrieve best suggestion
-  if (currentidx >= found.size() || textlen == 0) {
+  if (currentidx >= found.size() || textlen == 0)
+  {
     highlightEnd = 0;
     return mutableInput;
   }
@@ -404,7 +456,8 @@ String SuggestionBox::filterNewText(TextEditor& e, const String& newInput) {
 
   highlightEnd = fullName.length();
 
-  if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" ")) {
+  if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" "))
+  {
     isCompleting = false;
     return mutableInput;
   }
