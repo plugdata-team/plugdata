@@ -6,11 +6,12 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "Console.h"
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
 #include "PluginEditor.h"
-#include <JuceHeader.h>
 
 //==============================================================================
 /**
@@ -18,164 +19,147 @@
 
 class PlugDataPluginEditor;
 class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer, public PatchLoader {
+ public:
+  //==============================================================================
+  PlugDataAudioProcessor();
+  ~PlugDataAudioProcessor() override;
 
-public:
-    //==============================================================================
-    PlugDataAudioProcessor();
-    ~PlugDataAudioProcessor() override;
-
-    //==============================================================================
-    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
-    void releaseResources() override;
+  //==============================================================================
+  void prepareToPlay(double sampleRate, int samplesPerBlock) override;
+  void releaseResources() override;
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
+  bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 #endif
 
-    void processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
-    void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
+  void processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
+  void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
 
-    //==============================================================================
-    AudioProcessorEditor* createEditor() override;
-    bool hasEditor() const override;
+  //==============================================================================
+  AudioProcessorEditor* createEditor() override;
+  bool hasEditor() const override;
 
-    //==============================================================================
-    const String getName() const override;
+  //==============================================================================
+  const String getName() const override;
 
-    bool acceptsMidi() const override;
-    bool producesMidi() const override;
-    bool isMidiEffect() const override;
-    double getTailLengthSeconds() const override;
-    
-    std::atomic<int> callbackType = 0;
-    void timerCallback() override;
+  bool acceptsMidi() const override;
+  bool producesMidi() const override;
+  bool isMidiEffect() const override;
+  double getTailLengthSeconds() const override;
 
-    // Run loop when DAW isn't calling process block
-    void run() override;
+  std::atomic<int> callbackType = 0;
+  void timerCallback() override;
 
-    //==============================================================================
-    int getNumPrograms() override;
-    int getCurrentProgram() override;
-    void setCurrentProgram(int index) override;
-    const String getProgramName(int index) override;
-    void changeProgramName(int index, const String& newName) override;
+  // Run loop when DAW isn't calling process block
+  void run() override;
 
-    //==============================================================================
-    void getStateInformation(MemoryBlock& destData) override;
-    void setStateInformation(const void* data, int sizeInBytes) override;
+  //==============================================================================
+  int getNumPrograms() override;
+  int getCurrentProgram() override;
+  void setCurrentProgram(int index) override;
+  const String getProgramName(int index) override;
+  void changeProgramName(int index, const String& newName) override;
 
-    void receiveNoteOn(const int channel, const int pitch, const int velocity) override;
-    void receiveControlChange(const int channel, const int controller, const int value) override;
-    void receiveProgramChange(const int channel, const int value) override;
-    void receivePitchBend(const int channel, const int value) override;
-    void receiveAftertouch(const int channel, const int value) override;
-    void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
-    void receiveMidiByte(const int port, const int byte) override;
+  //==============================================================================
+  void getStateInformation(MemoryBlock& destData) override;
+  void setStateInformation(const void* data, int sizeInBytes) override;
 
-    void receiveGuiUpdate(int type) override;
-    
-    void receivePrint(const std::string& message) override
-    {
-        if(!message.empty())
-           {
-               if(!message.compare(0, 6, "error:"))
-               {
-                   const auto temp = String(message);
-                   console.logError(temp.substring(7));
-               }
-               else if(!message.compare(0, 11, "verbose(4):"))
-               {
-                   const auto temp = String(message);
-                   console.logError(temp.substring(12));
-               }
-               else
-               {
-                   console.logMessage(message);
-               }
-           }
-    };
+  void receiveNoteOn(const int channel, const int pitch, const int velocity) override;
+  void receiveControlChange(const int channel, const int controller, const int value) override;
+  void receiveProgramChange(const int channel, const int value) override;
+  void receivePitchBend(const int channel, const int value) override;
+  void receiveAftertouch(const int channel, const int value) override;
+  void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
+  void receiveMidiByte(const int port, const int byte) override;
 
-    void process(AudioSampleBuffer&, MidiBuffer&);
+  void receiveGuiUpdate(int type) override;
 
-    void setBypass(bool bypass)
-    {
-        *enabled = !bypass;
+  void receivePrint(const std::string& message) override {
+    if (!message.empty()) {
+      if (!message.compare(0, 6, "error:")) {
+        const auto temp = String(message);
+        console.logError(temp.substring(7));
+      } else if (!message.compare(0, 11, "verbose(4):")) {
+        const auto temp = String(message);
+        console.logError(temp.substring(12));
+      } else {
+        console.logMessage(message);
+      }
     }
+  };
 
-    void setCallbackLock(const CriticalSection* lock)
-    {
-        audioLock = lock;
-    };
+  void process(AudioSampleBuffer&, MidiBuffer&);
 
-    const CriticalSection* getCallbackLock() override
-    {
-        return audioLock;
-    };
-    
-    std::atomic<uint64> lastAudioCallback;
+  void setBypass(bool bypass) { *enabled = !bypass; }
 
-    void initialiseFilesystem();
-    void saveSettings();
-    void updateSearchPaths();
+  void setCallbackLock(const CriticalSection* lock) { audioLock = lock; };
 
-    void sendMidiBuffer();
-    
-    void messageEnqueued() override;
-    
-    void loadPatch(String patch) override;
-    void loadPatch(File patch) override;
+  const CriticalSection* getCallbackLock() override { return audioLock; };
 
-    Console console;
+  std::atomic<uint64> lastAudioCallback;
 
-    int lastUIWidth = 1000, lastUIHeight = 650;
+  void initialiseFilesystem();
+  void saveSettings();
+  void updateSearchPaths();
 
-    AudioBuffer<float> processingBuffer;
+  void sendMidiBuffer();
 
-    std::atomic<float>* volume;
+  void messageEnqueued() override;
 
-    std::vector<pd::Atom> parameterAtom = std::vector<pd::Atom>(1);
+  void loadPatch(String patch) override;
+  void loadPatch(File patch) override;
 
-    ValueTree settingsTree = ValueTree("PlugDataSettings");
+  Console console;
 
-    pd::Library objectLibrary;
+  int lastUIWidth = 1000, lastUIHeight = 650;
 
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
-    File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+  AudioBuffer<float> processingBuffer;
 
-    File settingsFile = appDir.getChildFile("Settings.xml");
-    File abstractions = appDir.getChildFile("Abstractions");
+  std::atomic<float>* volume;
 
-    bool locked = false;
+  std::vector<pd::Atom> parameterAtom = std::vector<pd::Atom>(1);
 
-    AudioProcessorValueTreeState parameters;
+  ValueTree settingsTree = ValueTree("PlugDataSettings");
 
-    foleys::LevelMeterSource meterSource;
+  pd::Library objectLibrary;
 
-private:
-    void processInternal();
+  File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
+  File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
-    std::atomic<float>* enabled;
+  File settingsFile = appDir.getChildFile("Settings.xml");
+  File abstractions = appDir.getChildFile("Abstractions");
 
-    int audioAdvancement = 0;
-    std::vector<float> audioBufferIn;
-    std::vector<float> audioBufferOut;
+  bool locked = false;
 
-    MidiBuffer midiBufferIn;
-    MidiBuffer midiBufferOut;
-    MidiBuffer midiBufferTemp;
+  AudioProcessorValueTreeState parameters;
 
-    bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = {0};
-    size_t midiByteIndex = 0;
+  foleys::LevelMeterSource meterSource;
 
-    std::array<std::atomic<float>*, 8> parameterValues = {nullptr};
-    std::array<float, 8> lastParameters = {0};
+ private:
+  void processInternal();
 
-    int minIn = 2;
-    int minOut = 2;
+  std::atomic<float>* enabled;
 
-    const CriticalSection* audioLock;
+  int audioAdvancement = 0;
+  std::vector<float> audioBufferIn;
+  std::vector<float> audioBufferOut;
 
-    //==============================================================================
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
+  MidiBuffer midiBufferIn;
+  MidiBuffer midiBufferOut;
+  MidiBuffer midiBufferTemp;
+
+  bool midiByteIsSysex = false;
+  uint8 midiByteBuffer[512] = {0};
+  size_t midiByteIndex = 0;
+
+  std::array<std::atomic<float>*, 8> parameterValues = {nullptr};
+  std::array<float, 8> lastParameters = {0};
+
+  int minIn = 2;
+  int minOut = 2;
+
+  const CriticalSection* audioLock;
+
+  //==============================================================================
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

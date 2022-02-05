@@ -8,33 +8,31 @@
 
 #include <JuceHeader.h>
 
-
 class Connection;
 class Box;
 class Edge : public TextButton {
+ public:
+  Box* box;
 
-public:
-    Box* box;
+  Edge(Box* parent, bool isInput);
 
-    Edge(Box* parent, bool isInput);
+  //==============================================================================
+  void paint(Graphics&) override;
+  void resized() override;
 
-    //==============================================================================
-    void paint(Graphics&) override;
-    void resized() override;
+  void mouseMove(const MouseEvent& e) override;
+  void mouseDrag(const MouseEvent& e) override;
 
-    void mouseMove(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
+  void createConnection();
 
-    void createConnection();
+  bool hasConnection();
 
-    bool hasConnection();
+  Rectangle<int> getCanvasBounds();
 
-    Rectangle<int> getCanvasBounds();
+  int edgeIdx;
+  bool isInput;
+  bool isSignal;
 
-    int edgeIdx;
-    bool isInput;
-    bool isSignal;
-
-private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Edge)
+ private:
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Edge)
 };

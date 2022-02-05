@@ -6,8 +6,7 @@
 
 #pragma once
 
-namespace pd
-{
+namespace pd {
 // ==================================================================================== //
 //                                      ATOM                                            //
 // ==================================================================================== //
@@ -15,47 +14,45 @@ namespace pd
 //! @brief The Pd atom.
 //! @details The class is a copy of the Pd atom.
 //! @see Instance, Gui
-class Atom
-{
-public:
-    //! @brief The default constructor.
-    inline Atom() : type(FLOAT), value(0), symbol() {}
-    
-    //! @brief The float constructor.
-    inline Atom(const float val) : type(FLOAT), value(val), symbol() {}
-    
-    //! @brief The string constructor.
-    inline Atom(std::string sym) : type(SYMBOL), value(0), symbol(std::move(sym)) {}
-    
-    //! @brief The c-string constructor.
-    inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym) {}
-    
-    //! @brief Check if the atom is a float.
-    [[nodiscard]] inline bool isFloat() const noexcept { return type == FLOAT; }
-    
-    //! @brief Check if the atom is a string.
-    [[nodiscard]] inline bool isSymbol() const noexcept { return type == SYMBOL; }
-    
-    //! @brief Get the float value.
-    [[nodiscard]] inline float getFloat() const noexcept { return value; }
-    
-    //! @brief Get the string.
-    [[nodiscard]] inline std::string const& getSymbol() const noexcept { return symbol; }
-    
-    //! @brief Compare two atoms.
-    inline bool operator==(Atom const& other) const noexcept
-    {
-        if(type == SYMBOL) { return other.type == SYMBOL && symbol == other.symbol; }
-        else { return other.type == FLOAT && value == other.value; }
+class Atom {
+ public:
+  //! @brief The default constructor.
+  inline Atom() : type(FLOAT), value(0), symbol() {}
+
+  //! @brief The float constructor.
+  inline Atom(const float val) : type(FLOAT), value(val), symbol() {}
+
+  //! @brief The string constructor.
+  inline Atom(std::string sym) : type(SYMBOL), value(0), symbol(std::move(sym)) {}
+
+  //! @brief The c-string constructor.
+  inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym) {}
+
+  //! @brief Check if the atom is a float.
+  [[nodiscard]] inline bool isFloat() const noexcept { return type == FLOAT; }
+
+  //! @brief Check if the atom is a string.
+  [[nodiscard]] inline bool isSymbol() const noexcept { return type == SYMBOL; }
+
+  //! @brief Get the float value.
+  [[nodiscard]] inline float getFloat() const noexcept { return value; }
+
+  //! @brief Get the string.
+  [[nodiscard]] inline std::string const& getSymbol() const noexcept { return symbol; }
+
+  //! @brief Compare two atoms.
+  inline bool operator==(Atom const& other) const noexcept {
+    if (type == SYMBOL) {
+      return other.type == SYMBOL && symbol == other.symbol;
+    } else {
+      return other.type == FLOAT && value == other.value;
     }
-private:
-    enum Type
-    {
-        FLOAT,
-        SYMBOL
-    };
-    Type        type = FLOAT;
-    float       value = 0;
-    std::string symbol;
+  }
+
+ private:
+  enum Type { FLOAT, SYMBOL };
+  Type type = FLOAT;
+  float value = 0;
+  std::string symbol;
 };
-}
+}  // namespace pd

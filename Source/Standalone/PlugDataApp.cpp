@@ -29,114 +29,95 @@
 
 #include "PlugDataWindow.h"
 
-
 //==============================================================================
-class PlugDataApp  : public JUCEApplication
-{
-public:
-    PlugDataApp()
-    {
-        PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
+class PlugDataApp : public JUCEApplication {
+ public:
+  PlugDataApp() {
+    PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
 
-        PropertiesFile::Options options;
-        
-        
+    PropertiesFile::Options options;
 
-        options.applicationName     = "PlugData";
-        options.filenameSuffix      = ".settings";
-        options.osxLibrarySubFolder = "Application Support";
-       #if JUCE_LINUX || JUCE_BSD
-        options.folderName          = "~/.config";
-       #else
-        options.folderName          = "";
-       #endif
+    options.applicationName = "PlugData";
+    options.filenameSuffix = ".settings";
+    options.osxLibrarySubFolder = "Application Support";
+#if JUCE_LINUX || JUCE_BSD
+    options.folderName = "~/.config";
+#else
+    options.folderName = "";
+#endif
 
-        appProperties.setStorageParameters (options);
-    }
+    appProperties.setStorageParameters(options);
+  }
 
-    const String getApplicationName() override              { return CharPointer_UTF8 (JucePlugin_Name); }
-    const String getApplicationVersion() override           { return JucePlugin_VersionString; }
-    bool moreThanOneInstanceAllowed() override              { return true; }
-    
-    // For opening files with PlugData standalone
-    void anotherInstanceStarted (const String &commandLine) override {
-        auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
-        if(file.existsAsFile()) {
-            auto* pd = dynamic_cast<PatchLoader*>(mainWindow->getAudioProcessor());
-            
-            if(pd) {
-                if(file.existsAsFile()) {
-                    pd->loadPatch(file);
-                }
-            }
+  const String getApplicationName() override { return CharPointer_UTF8(JucePlugin_Name); }
+  const String getApplicationVersion() override { return JucePlugin_VersionString; }
+  bool moreThanOneInstanceAllowed() override { return true; }
+
+  // For opening files with PlugData standalone
+  void anotherInstanceStarted(const String& commandLine) override {
+    auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
+    if (file.existsAsFile()) {
+      auto* pd = dynamic_cast<PatchLoader*>(mainWindow->getAudioProcessor());
+
+      if (pd) {
+        if (file.existsAsFile()) {
+          pd->loadPatch(file);
         }
+      }
     }
+  }
 
+  virtual PlugDataWindow* createWindow() {
+#ifdef JucePlugin_PreferredChannelConfigurations
+    StandalonePluginHolder::PluginInOuts channels[] = {JucePlugin_PreferredChannelConfigurations};
+#endif
 
-    virtual PlugDataWindow* createWindow()
-    {
-       #ifdef JucePlugin_PreferredChannelConfigurations
-        StandalonePluginHolder::PluginInOuts channels[] = { JucePlugin_PreferredChannelConfigurations };
-       #endif
+    return new PlugDataWindow(getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr
+#ifdef JucePlugin_PreferredChannelConfigurations
+                              ,
+                              juce::Array<StandalonePluginHolder::PluginInOuts>(channels, juce::numElementsInArray(channels))
+#else
+                              ,
+                              {}
+#endif
+#if JUCE_DONT_AUTO_OPEN_MIDI_DEVICES_ON_MOBILE
+                                  ,
+                              false
+#endif
+    );
+  }
 
-        return new PlugDataWindow (getApplicationName(),
-                                           LookAndFeel::getDefaultLookAndFeel().findColour (ResizableWindow::backgroundColourId),
-                                           appProperties.getUserSettings(),
-                                           false, {}, nullptr
-                                          #ifdef JucePlugin_PreferredChannelConfigurations
-                                           , juce::Array<StandalonePluginHolder::PluginInOuts> (channels, juce::numElementsInArray (channels))
-                                          #else
-                                           , {}
-                                          #endif
-                                          #if JUCE_DONT_AUTO_OPEN_MIDI_DEVICES_ON_MOBILE
-                                           , false
-                                          #endif
-                                           );
+  //==============================================================================
+  void initialise(const String&) override {
+    LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colour(20, 20, 20));
+    mainWindow.reset(createWindow());
+
+    mainWindow->setVisible(true);
+  }
+
+  void shutdown() override {
+    mainWindow = nullptr;
+    appProperties.saveIfNeeded();
+  }
+
+  //==============================================================================
+  void systemRequestedQuit() override {
+    if (mainWindow) mainWindow->pluginHolder->savePluginState();
+
+    if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
+      Timer::callAfterDelay(100, []() {
+        if (auto app = JUCEApplicationBase::getInstance()) app->systemRequestedQuit();
+      });
+    } else {
+      quit();
     }
+  }
 
-    //==============================================================================
-    void initialise (const String&) override
-    {
-        LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colour(20, 20, 20));
-        mainWindow.reset (createWindow());
-
-        mainWindow->setVisible (true);
-    }
-    
-
-
-    void shutdown() override
-    {
-        mainWindow = nullptr;
-        appProperties.saveIfNeeded();
-    }
-
-    //==============================================================================
-    void systemRequestedQuit() override
-    {
-        if (mainWindow)
-            mainWindow->pluginHolder->savePluginState();
-
-        if (ModalComponentManager::getInstance()->cancelAllModalComponents())
-        {
-            Timer::callAfterDelay (100, []()
-            {
-                if (auto app = JUCEApplicationBase::getInstance())
-                    app->systemRequestedQuit();
-            });
-        }
-        else
-        {
-            quit();
-        }
-    }
-
-protected:
-    ApplicationProperties appProperties;
-    std::unique_ptr<PlugDataWindow> mainWindow;
+ protected:
+  ApplicationProperties appProperties;
+  std::unique_ptr<PlugDataWindow> mainWindow;
 };
 
 JUCE_CREATE_APPLICATION_DEFINE(PlugDataApp);
-
 
 #endif
