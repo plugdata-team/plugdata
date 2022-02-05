@@ -30,12 +30,14 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
                   std::make_unique<juce::AudioParameterFloat>("param1", "Parameter 1", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param2", "Parameter 2", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param3", "Parameter 3", 0.0f, 1.0f, 0.0f),
                   std::make_unique<juce::AudioParameterFloat>("param4", "Parameter 4", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param5", "Parameter 5", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param6", "Parameter 6", 0.0f, 1.0f, 0.0f),
-                  std::make_unique<juce::AudioParameterFloat>("param7", "Parameter 7", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param8", "Parameter 8", 0.0f, 1.0f, 0.0f)}) {
+                  std::make_unique<juce::AudioParameterFloat>("param7", "Parameter 7", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param8", "Parameter 8", 0.0f, 1.0f, 0.0f)})
+{
   volume = parameters.getRawParameterValue("volume");
   enabled = parameters.getRawParameterValue("enabled");
 
   // 8 general purpose automation parameters you can get by using "receive param1" etc.
-  for (int n = 0; n < 8; n++) {
+  for (int n = 0; n < 8; n++)
+  {
     parameterValues[n] = parameters.getRawParameterValue("param" + String(n + 1));
     lastParameters[n] = 0;
   }
@@ -62,15 +64,18 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
   startThread();
 }
 
-PlugDataAudioProcessor::~PlugDataAudioProcessor() {
+PlugDataAudioProcessor::~PlugDataAudioProcessor()
+{
   // Save current settings before quitting
   saveSettings();
   stopThread(-1);
 }
 
-void PlugDataAudioProcessor::initialiseFilesystem() {
+void PlugDataAudioProcessor::initialiseFilesystem()
+{
   // Check if the abstractions directory exists, if not, unzip it from binaryData
-  if (!appDir.exists() || !abstractions.exists()) {
+  if (!appDir.exists() || !abstractions.exists())
+  {
     appDir.createDirectory();
 
     MemoryInputStream binaryAbstractions(BinaryData::Abstractions_zip, BinaryData::Abstractions_zipSize, false);
@@ -79,7 +84,8 @@ void PlugDataAudioProcessor::initialiseFilesystem() {
   }
 
   // Check if settings file exists, if not, create the default
-  if (!settingsFile.existsAsFile()) {
+  if (!settingsFile.existsAsFile())
+  {
     settingsFile.create();
 
     // Add default settings
@@ -94,24 +100,29 @@ void PlugDataAudioProcessor::initialiseFilesystem() {
     settingsTree.appendChild(pathTree, nullptr);
 
     saveSettings();
-  } else {
+  }
+  else
+  {
     // Or load the settings when they exist already
     settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
   }
 }
 
-void PlugDataAudioProcessor::saveSettings() {
+void PlugDataAudioProcessor::saveSettings()
+{
   // Save settings to file
   auto xml = settingsTree.toXmlString();
   settingsFile.replaceWithText(xml);
 }
 
-void PlugDataAudioProcessor::updateSearchPaths() {
+void PlugDataAudioProcessor::updateSearchPaths()
+{
   // Reload pd search paths from settings
   auto pathTree = settingsTree.getChildWithName("Paths");
 
   libpd_clear_search_path();
-  for (auto child : pathTree) {
+  for (auto child : pathTree)
+  {
     auto path = child.getProperty("Path").toString();
     libpd_add_to_search_path(path.toRawUTF8());
   }
@@ -121,7 +132,8 @@ void PlugDataAudioProcessor::updateSearchPaths() {
 //==============================================================================
 const String PlugDataAudioProcessor::getName() const { return JucePlugin_Name; }
 
-bool PlugDataAudioProcessor::acceptsMidi() const {
+bool PlugDataAudioProcessor::acceptsMidi() const
+{
 #if JucePlugin_WantsMidiInput
   return true;
 #else
@@ -129,7 +141,8 @@ bool PlugDataAudioProcessor::acceptsMidi() const {
 #endif
 }
 
-bool PlugDataAudioProcessor::producesMidi() const {
+bool PlugDataAudioProcessor::producesMidi() const
+{
 #if JucePlugin_ProducesMidiOutput
   return true;
 #else
@@ -137,7 +150,8 @@ bool PlugDataAudioProcessor::producesMidi() const {
 #endif
 }
 
-bool PlugDataAudioProcessor::isMidiEffect() const {
+bool PlugDataAudioProcessor::isMidiEffect() const
+{
 #if JucePlugin_IsMidiEffect
   return true;
 #else
@@ -147,7 +161,8 @@ bool PlugDataAudioProcessor::isMidiEffect() const {
 
 double PlugDataAudioProcessor::getTailLengthSeconds() const { return 0.0; }
 
-int PlugDataAudioProcessor::getNumPrograms() {
+int PlugDataAudioProcessor::getNumPrograms()
+{
   return 1;  // NB: some hosts don't cope very well if you tell them there are 0 programs,
              // so this should be at least 1, even if you're not really implementing programs.
 }
@@ -161,7 +176,8 @@ const String PlugDataAudioProcessor::getProgramName(int index) { return {}; }
 void PlugDataAudioProcessor::changeProgramName(int index, const String& newName) {}
 
 //==============================================================================
-void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock) {
+void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
+{
   lastAudioCallback = Time::getCurrentTime().toMilliseconds();
 
   prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate);
@@ -195,7 +211,8 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 void PlugDataAudioProcessor::releaseResources() { audioStarted = false; }
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const {
+bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
+{
 #if JucePlugin_IsMidiEffect
   ignoreUnused(layouts);
   return true;
@@ -216,17 +233,22 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 }
 #endif
 
-void PlugDataAudioProcessor::run() {
+void PlugDataAudioProcessor::run()
+{
   // Hack to make sure DAW will keep dequeuing messages from pd to the gui when bypassed
   // Should only start running when audio is bypassed
-  while (!threadShouldExit()) {
+  while (!threadShouldExit())
+  {
     auto now = Time::getCurrentTime().toMilliseconds();
-    if (now - lastAudioCallback > 200 && getCallbackLock()->tryEnter() && !isSuspended() && audioStarted) {
+    if (now - lastAudioCallback > 200 && getCallbackLock()->tryEnter() && !isSuspended() && audioStarted)
+    {
       sendMessagesFromQueue();
       getCallbackLock()->exit();
 
       Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 40);
-    } else if (now - lastAudioCallback > 500 && audioStarted) {
+    }
+    else if (now - lastAudioCallback > 500 && audioStarted)
+    {
       canvasLock.lock();
       sendMessagesFromQueue();
       canvasLock.unlock();
@@ -234,13 +256,16 @@ void PlugDataAudioProcessor::run() {
       Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 40);
 
       continue;
-    } else {
+    }
+    else
+    {
       Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 200);
     }
   }
 }
 
-void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) {
+void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+{
   ScopedNoDenormals noDenormals;
   auto totalNumInputChannels = getTotalNumInputChannels();
 
@@ -255,7 +280,8 @@ void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, Mid
   enabled->store(oldEnabled);
 }
 
-void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages) {
+void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
+{
   ScopedNoDenormals noDenormals;
   auto totalNumInputChannels = getTotalNumInputChannels();
   auto totalNumOutputChannels = getTotalNumOutputChannels();
@@ -269,12 +295,15 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
   for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) buffer.clear(i, 0, buffer.getNumSamples());
 
   auto const maxOuts = std::max(minOut, buffer.getNumChannels());
-  for (int i = minIn; i < maxOuts; ++i) {
+  for (int i = minIn; i < maxOuts; ++i)
+  {
     buffer.clear(i, 0, buffer.getNumSamples());
   }
 
-  for (int n = 0; n < 8; n++) {
-    if (parameterValues[n]->load() != lastParameters[n]) {
+  for (int n = 0; n < 8; n++)
+  {
+    if (parameterValues[n]->load() != lastParameters[n])
+    {
       lastParameters[n] = parameterValues[n]->load();
 
       parameterAtom[0] = {pd::Atom(lastParameters[n])};
@@ -287,19 +316,24 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
   processingBuffer.setSize(2, buffer.getNumSamples());
 
   // If we're an AU MIDI processor!
-  if (buffer.getNumChannels() == 0) {
+  if (buffer.getNumChannels() == 0)
+  {
     processingBuffer.clear();
-  } else {
+  }
+  else
+  {
     processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
     processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
   }
 
   process(processingBuffer, midiMessages);
 
-  if (buffer.getNumChannels() != 0) {
+  if (buffer.getNumChannels() != 0)
+  {
     buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
   }
-  if (totalNumOutputChannels == 2) {
+  if (totalNumOutputChannels == 2)
+  {
     buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
   }
 
@@ -308,7 +342,8 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
   meterSource.measureBlock(buffer);
 }
 
-void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) {
+void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+{
   lastAudioCallback = Time::getCurrentTime().toMilliseconds();
 
   ScopedNoDenormals noDenormals;
@@ -324,27 +359,33 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
   const bool midiProduce = producesMidi();
 
   auto const maxOuts = std::max(numOut, buffer.getNumChannels());
-  for (int i = numIn; i < maxOuts; ++i) {
+  for (int i = numIn; i < maxOuts; ++i)
+  {
     buffer.clear(i, 0, numSamples);
   }
 
   // If the current number of samples in this block
   // is inferior to the number of samples required
-  if (numSamples < numLeft) {
+  if (numSamples < numLeft)
+  {
     // we save the input samples and we output
     // the missing samples of the previous tick.
-    for (int j = 0; j < numIn; ++j) {
+    for (int j = 0; j < numIn; ++j)
+    {
       const int index = j * blockSize + adv;
       std::copy_n(bufferIn[j], numSamples, audioBufferIn.data() + index);
     }
-    for (int j = 0; j < numOut; ++j) {
+    for (int j = 0; j < numOut; ++j)
+    {
       const int index = j * blockSize + adv;
       std::copy_n(audioBufferOut.data() + index, numSamples, bufferOut[j]);
     }
-    if (midiConsume) {
+    if (midiConsume)
+    {
       midiBufferIn.addEvents(midiMessages, 0, numSamples, adv);
     }
-    if (midiProduce) {
+    if (midiProduce)
+    {
       midiMessages.clear();
       midiMessages.addEvents(midiBufferOut, adv, numSamples, -adv);
     }
@@ -352,28 +393,34 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
   }
   // If the current number of samples in this block
   // is superior to the number of samples required
-  else {
+  else
+  {
     // we save the missing input samples, we output
     // the missing samples of the previous tick and
     // we call DSP perform method.
     MidiBuffer const& midiin = midiProduce ? midiBufferTemp : midiMessages;
-    if (midiProduce) {
+    if (midiProduce)
+    {
       midiBufferTemp.swapWith(midiMessages);
       midiMessages.clear();
     }
 
-    for (int j = 0; j < numIn; ++j) {
+    for (int j = 0; j < numIn; ++j)
+    {
       const int index = j * blockSize + adv;
       std::copy_n(bufferIn[j], numLeft, audioBufferIn.data() + index);
     }
-    for (int j = 0; j < numOut; ++j) {
+    for (int j = 0; j < numOut; ++j)
+    {
       const int index = j * blockSize + adv;
       std::copy_n(audioBufferOut.data() + index, numLeft, bufferOut[j]);
     }
-    if (midiConsume) {
+    if (midiConsume)
+    {
       midiBufferIn.addEvents(midiin, 0, numLeft, adv);
     }
-    if (midiProduce) {
+    if (midiProduce)
+    {
       midiMessages.addEvents(midiBufferOut, adv, numLeft, -adv);
     }
     audioAdvancement = 0;
@@ -382,19 +429,24 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     // If there are other DSP ticks that can be
     // performed, then we do it now.
     int pos = numLeft;
-    while ((pos + blockSize) <= numSamples) {
-      for (int j = 0; j < numIn; ++j) {
+    while ((pos + blockSize) <= numSamples)
+    {
+      for (int j = 0; j < numIn; ++j)
+      {
         const int index = j * blockSize;
         std::copy_n(bufferIn[j] + pos, blockSize, audioBufferIn.data() + index);
       }
-      for (int j = 0; j < numOut; ++j) {
+      for (int j = 0; j < numOut; ++j)
+      {
         const int index = j * blockSize;
         std::copy_n(audioBufferOut.data() + index, blockSize, bufferOut[j] + pos);
       }
-      if (midiConsume) {
+      if (midiConsume)
+      {
         midiBufferIn.addEvents(midiin, pos, blockSize, 0);
       }
-      if (midiProduce) {
+      if (midiProduce)
+      {
         midiMessages.addEvents(midiBufferOut, 0, blockSize, pos);
       }
       processInternal();
@@ -405,19 +457,24 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     // processed, then save them for later
     // and outputs the remaining samples
     const int remaining = numSamples - pos;
-    if (remaining > 0) {
-      for (int j = 0; j < numIn; ++j) {
+    if (remaining > 0)
+    {
+      for (int j = 0; j < numIn; ++j)
+      {
         const int index = j * blockSize;
         std::copy_n(bufferIn[j] + pos, remaining, audioBufferIn.data() + index);
       }
-      for (int j = 0; j < numOut; ++j) {
+      for (int j = 0; j < numOut; ++j)
+      {
         const int index = j * blockSize;
         std::copy_n(audioBufferOut.data() + index, remaining, bufferOut[j] + pos);
       }
-      if (midiConsume) {
+      if (midiConsume)
+      {
         midiBufferIn.addEvents(midiin, pos, remaining, 0);
       }
-      if (midiProduce) {
+      if (midiProduce)
+      {
         midiMessages.addEvents(midiBufferOut, 0, remaining, pos);
       }
       audioAdvancement = remaining;
@@ -425,13 +482,18 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
   }
 }
 
-void PlugDataAudioProcessor::messageEnqueued() {
-  if (isNonRealtime() || isSuspended()) {
+void PlugDataAudioProcessor::messageEnqueued()
+{
+  if (isNonRealtime() || isSuspended())
+  {
     sendMessagesFromQueue();
     processMessages();
-  } else {
+  }
+  else
+  {
     const CriticalSection* cs = getCallbackLock();
-    if (cs->tryEnter()) {
+    if (cs->tryEnter())
+    {
       sendMessagesFromQueue();
       processMessages();
       cs->exit();
@@ -439,35 +501,58 @@ void PlugDataAudioProcessor::messageEnqueued() {
   }
 }
 
-void PlugDataAudioProcessor::sendMidiBuffer() {
-  if (acceptsMidi()) {
-    for (const auto& event : midiBufferIn) {
+void PlugDataAudioProcessor::sendMidiBuffer()
+{
+  if (acceptsMidi())
+  {
+    for (const auto& event : midiBufferIn)
+    {
       auto const message = event.getMessage();
-      if (message.isNoteOn()) {
+      if (message.isNoteOn())
+      {
         sendNoteOn(message.getChannel(), message.getNoteNumber(), message.getVelocity());
-      } else if (message.isNoteOff()) {
+      }
+      else if (message.isNoteOff())
+      {
         sendNoteOn(message.getChannel(), message.getNoteNumber(), 0);
-      } else if (message.isController()) {
+      }
+      else if (message.isController())
+      {
         sendControlChange(message.getChannel(), message.getControllerNumber(), message.getControllerValue());
-      } else if (message.isPitchWheel()) {
+      }
+      else if (message.isPitchWheel())
+      {
         sendPitchBend(message.getChannel(), message.getPitchWheelValue() - 8192);
-      } else if (message.isChannelPressure()) {
+      }
+      else if (message.isChannelPressure())
+      {
         sendAfterTouch(message.getChannel(), message.getChannelPressureValue());
-      } else if (message.isAftertouch()) {
+      }
+      else if (message.isAftertouch())
+      {
         sendPolyAfterTouch(message.getChannel(), message.getNoteNumber(), message.getAfterTouchValue());
-      } else if (message.isProgramChange()) {
+      }
+      else if (message.isProgramChange())
+      {
         sendProgramChange(message.getChannel(), message.getProgramChangeNumber());
-      } else if (message.isSysEx()) {
-        for (int i = 0; i < message.getSysExDataSize(); ++i) {
+      }
+      else if (message.isSysEx())
+      {
+        for (int i = 0; i < message.getSysExDataSize(); ++i)
+        {
           sendSysEx(0, static_cast<int>(message.getSysExData()[i]));
         }
-      } else if (message.isMidiClock() || message.isMidiStart() || message.isMidiStop() || message.isMidiContinue() || message.isActiveSense() || (message.getRawDataSize() == 1 && message.getRawData()[0] == 0xff)) {
-        for (int i = 0; i < message.getRawDataSize(); ++i) {
+      }
+      else if (message.isMidiClock() || message.isMidiStart() || message.isMidiStop() || message.isMidiContinue() || message.isActiveSense() || (message.getRawDataSize() == 1 && message.getRawData()[0] == 0xff))
+      {
+        for (int i = 0; i < message.getRawDataSize(); ++i)
+        {
           sendSysRealTime(0, static_cast<int>(message.getRawData()[i]));
         }
       }
 
-      for (int i = 0; i < message.getRawDataSize(); i++) {
+      for (int i = 0; i < message.getRawDataSize(); i++)
+      {
         sendMidiByte(0, static_cast<int>(message.getRawData()[i]));
       }
     }
@@ -475,7 +560,8 @@ void PlugDataAudioProcessor::sendMidiBuffer() {
   }
 }
 
-void PlugDataAudioProcessor::processInternal() {
+void PlugDataAudioProcessor::processInternal()
+{
   // Dequeue messages
   setThis();
 
@@ -487,7 +573,8 @@ void PlugDataAudioProcessor::processInternal() {
 
   // Process audio
 
-  if (static_cast<bool>(enabled->load())) {
+  if (static_cast<bool>(enabled->load()))
+  {
     std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
 
     Instance::canvasLock.lock();
@@ -495,7 +582,8 @@ void PlugDataAudioProcessor::processInternal() {
     Instance::canvasLock.unlock();
   }
 
-  else {
+  else
+  {
     std::fill(audioBufferIn.begin(), audioBufferIn.end(), 0.f);
 
     Instance::canvasLock.lock();
@@ -507,7 +595,8 @@ void PlugDataAudioProcessor::processInternal() {
 
   // Midi out
 
-  if (producesMidi()) {
+  if (producesMidi())
+  {
     midiByteIndex = 0;
     midiByteBuffer[0] = 0;
     midiByteBuffer[1] = 0;
@@ -518,15 +607,18 @@ void PlugDataAudioProcessor::processInternal() {
 }
 
 //==============================================================================
-bool PlugDataAudioProcessor::hasEditor() const {
+bool PlugDataAudioProcessor::hasEditor() const
+{
   return true;  // (change this to false if you choose to not supply an editor)
 }
 
-AudioProcessorEditor* PlugDataAudioProcessor::createEditor() {
+AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
+{
   auto* editor = new PlugDataPluginEditor(*this, &console);
 
   auto patch = getPatch();
-  if (!patch.getPointer()) {
+  if (!patch.getPointer())
+  {
     auto patchFile = File::createTempFile(".pd");
     patchFile.replaceWithText(defaultPatch);
 
@@ -539,8 +631,9 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor() {
 
     // Set to unknown file when loading temp patch
     setCurrentFile(File());
-
-  } else {
+  }
+  else
+  {
     auto* cnv = editor->canvases.add(new Canvas(*editor, patch, false));
     editor->addTab(cnv);
   }
@@ -549,7 +642,8 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor() {
 }
 
 //==============================================================================
-void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData) {
+void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
+{
   MemoryBlock xmlBlock;
 
   auto state = parameters.copyState();
@@ -566,7 +660,8 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData) {
   ostream.writeString(getCurrentFile().getFullPathName());
 }
 
-void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes) {
+void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
+{
   if (sizeInBytes == 0) return;
 
   MemoryInputStream istream(data, sizeInBytes, false);
@@ -583,9 +678,11 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
     if (xmlState->hasTagName(parameters.state.getType())) parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
 
   File location;
-  if (!istream.isExhausted()) {
+  if (!istream.isExhausted())
+  {
     location = istream.readString();
-    if (location.exists()) {
+    if (location.exists())
+    {
       setCurrentFile(location);
 
       String parentPath = location.getParentDirectory().getFullPathName();
@@ -598,24 +695,28 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
   setLatencySamples(latency);
 }
 
-void PlugDataAudioProcessor::loadPatch(File patch) {
+void PlugDataAudioProcessor::loadPatch(File patch)
+{
   openPatch(patch);
 
-  if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+  if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+  {
     auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
     cnv->synchronise();
     editor->addTab(cnv);
   }
 }
 
-void PlugDataAudioProcessor::loadPatch(String patch) {
+void PlugDataAudioProcessor::loadPatch(String patch)
+{
   auto patchFile = File::createTempFile(".pd");
 
   patchFile.replaceWithText(patch);
 
   openPatch(patchFile);
 
-  if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+  if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+  {
     auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
     editor->addTab(cnv);
   }
@@ -624,10 +725,14 @@ void PlugDataAudioProcessor::loadPatch(String patch) {
   setCurrentFile(File());
 }
 
-void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity) {
-  if (velocity == 0) {
+void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)
+{
+  if (velocity == 0)
+  {
     midiBufferOut.addEvent(MidiMessage::noteOff(channel, pitch, uint8(0)), audioAdvancement);
-  } else {
+  }
+  else
+  {
     midiBufferOut.addEvent(MidiMessage::noteOn(channel, pitch, static_cast<uint8>(velocity)), audioAdvancement);
   }
 }
@@ -642,34 +747,48 @@ void PlugDataAudioProcessor::receiveAftertouch(const int channel, const int valu
 
 void PlugDataAudioProcessor::receivePolyAftertouch(const int channel, const int pitch, const int value) { midiBufferOut.addEvent(MidiMessage::aftertouchChange(channel, pitch, value), audioAdvancement); }
 
-void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte) {
-  if (midiByteIsSysex) {
-    if (byte == 0xf7) {
+void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
+{
+  if (midiByteIsSysex)
+  {
+    if (byte == 0xf7)
+    {
       midiBufferOut.addEvent(MidiMessage::createSysExMessage(midiByteBuffer, static_cast<int>(midiByteIndex)), audioAdvancement);
       midiByteIndex = 0;
       midiByteIsSysex = false;
-    } else {
+    }
+    else
+    {
       midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
-      if (midiByteIndex == 512) {
+      if (midiByteIndex == 512)
+      {
         midiByteIndex = 511;
       }
     }
-  } else if (midiByteIndex == 0 && byte == 0xf0) {
+  }
+  else if (midiByteIndex == 0 && byte == 0xf0)
+  {
     midiByteIsSysex = true;
-  } else {
+  }
+  else
+  {
     midiByteBuffer[midiByteIndex++] = static_cast<uint8>(byte);
-    if (midiByteIndex >= 3) {
+    if (midiByteIndex >= 3)
+    {
       midiBufferOut.addEvent(MidiMessage(midiByteBuffer, 3), audioAdvancement);
       midiByteIndex = 0;
     }
   }
 }
 
-void PlugDataAudioProcessor::timerCallback() {
-  if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+void PlugDataAudioProcessor::timerCallback()
+{
+  if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+  {
     if (!callbackType) return;
 
-    if (callbackType == 3) {
+    if (callbackType == 3)
+    {
       editor->updateValues();
     }
 
@@ -679,10 +798,14 @@ void PlugDataAudioProcessor::timerCallback() {
   }
 }
 
-void PlugDataAudioProcessor::receiveGuiUpdate(int type) {
-  if (callbackType != 0 && callbackType != type) {
+void PlugDataAudioProcessor::receiveGuiUpdate(int type)
+{
+  if (callbackType != 0 && callbackType != type)
+  {
     callbackType = 3;
-  } else {
+  }
+  else
+  {
     callbackType = type;
   }
 

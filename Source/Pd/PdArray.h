@@ -10,7 +10,8 @@
 #include <string>
 #include <vector>
 
-namespace pd {
+namespace pd
+{
 class Instance;
 class Gui;
 // ==================================================================================== //
@@ -21,7 +22,8 @@ class Gui;
 //! @details The class is a wrapper around a Pd array. The lifetime of the internal array\n
 //! is not guaranteed by the class.
 //! @see Instance, Gui
-class Array {
+class Array
+{
  public:
   Array(std::string name, void* instance);
 

@@ -12,22 +12,26 @@
 
 #include "Inspector.h"
 
-SaveDialog::SaveDialog() {
+SaveDialog::SaveDialog()
+{
   // setLookAndFeel(&mainLook);
   setSize(400, 200);
   addAndMakeVisible(savelabel);
   addAndMakeVisible(cancel);
   addAndMakeVisible(dontsave);
   addAndMakeVisible(save);
-  cancel.onClick = [this] {
+  cancel.onClick = [this]
+  {
     cb(0);
     delete this;  // yikesss
   };
-  save.onClick = [this] {
+  save.onClick = [this]
+  {
     cb(2);
     delete this;  // yikesss
   };
-  dontsave.onClick = [this] {
+  dontsave.onClick = [this]
+  {
     cb(1);
     delete this;  // yikesss
   };
@@ -39,14 +43,16 @@ SaveDialog::SaveDialog() {
   shadower.setOwner(this);
 }
 
-void SaveDialog::resized() {
+void SaveDialog::resized()
+{
   savelabel.setBounds(20, 25, 200, 30);
   cancel.setBounds(20, 80, 80, 25);
   dontsave.setBounds(200, 80, 80, 25);
   save.setBounds(300, 80, 80, 25);
 }
 
-void SaveDialog::paint(Graphics& g) {
+void SaveDialog::paint(Graphics& g)
+{
   g.setColour(MainLook::firstBackground);
   g.fillRect(getLocalBounds().reduced(1).toFloat());
 
@@ -54,7 +60,8 @@ void SaveDialog::paint(Graphics& g) {
   g.drawRect(getLocalBounds().reduced(1), 1.0f);
 }
 
-void SaveDialog::show(Component* centre, std::function<void(int)> callback) {
+void SaveDialog::show(Component* centre, std::function<void(int)> callback)
+{
   auto* dialog = new SaveDialog;
   dialog->cb = std::move(callback);
 
@@ -63,7 +70,8 @@ void SaveDialog::show(Component* centre, std::function<void(int)> callback) {
   dialog->setBounds((centre->getWidth() / 2.) - 200., 40, 400, 130);
 }
 
-ArrayDialog::ArrayDialog() {
+ArrayDialog::ArrayDialog()
+{
   // setLookAndFeel(&mainLook);
   setSize(400, 200);
 
@@ -71,23 +79,28 @@ ArrayDialog::ArrayDialog() {
   addAndMakeVisible(cancel);
   addAndMakeVisible(ok);
 
-  cancel.onClick = [this] {
+  cancel.onClick = [this]
+  {
     cb(0, "", "");
     delete this;
   };
-  ok.onClick = [this] {
+  ok.onClick = [this]
+  {
     // Check if input is valid
-    if (nameEditor.isEmpty()) {
+    if (nameEditor.isEmpty())
+    {
       nameEditor.setColour(TextEditor::outlineColourId, Colours::red);
       nameEditor.giveAwayKeyboardFocus();
       nameEditor.repaint();
     }
-    if (sizeEditor.getText().getIntValue() < 0) {
+    if (sizeEditor.getText().getIntValue() < 0)
+    {
       sizeEditor.setColour(TextEditor::outlineColourId, Colours::red);
       sizeEditor.giveAwayKeyboardFocus();
       sizeEditor.repaint();
     }
-    if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0) {
+    if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0)
+    {
       cb(1, nameEditor.getText(), sizeEditor.getText());
       delete this;
     }
@@ -108,7 +121,8 @@ ArrayDialog::ArrayDialog() {
   shadower.setOwner(this);
 }
 
-void ArrayDialog::show(Component* centre, std::function<void(int, String, String)> callback) {
+void ArrayDialog::show(Component* centre, std::function<void(int, String, String)> callback)
+{
   auto* dialog = new ArrayDialog;
   dialog->cb = std::move(callback);
 
@@ -120,7 +134,8 @@ void ArrayDialog::show(Component* centre, std::function<void(int, String, String
   dialog->setBounds((centre->getWidth() / 2.) - 200., 37, 300, 180);
 }
 
-void ArrayDialog::resized() {
+void ArrayDialog::resized()
+{
   label.setBounds(20, 7, 200, 30);
   cancel.setBounds(30, getHeight() - 40, 80, 25);
   ok.setBounds(getWidth() - 110, getHeight() - 40, 80, 25);
@@ -131,7 +146,8 @@ void ArrayDialog::resized() {
   sizeLabel.setBounds(8, 85, 52, 25);
 }
 
-void ArrayDialog::paint(Graphics& g) {
+void ArrayDialog::paint(Graphics& g)
+{
   g.setColour(MainLook::firstBackground);
   g.fillRect(getLocalBounds().reduced(1).toFloat());
 
@@ -139,9 +155,11 @@ void ArrayDialog::paint(Graphics& g) {
   g.drawRect(getLocalBounds().reduced(1), 1.0f);
 }
 
-class LibraryComponent : public Component, public TableListBoxModel {
+class LibraryComponent : public Component, public TableListBoxModel
+{
  public:
-  LibraryComponent(ValueTree libraryTree, std::function<void()> updatePaths) : tree(std::move(libraryTree)), updateFunc(std::move(updatePaths)) {
+  LibraryComponent(ValueTree libraryTree, std::function<void()> updatePaths) : tree(std::move(libraryTree)), updateFunc(std::move(updatePaths))
+  {
     table.setModel(this);
     table.setColour(ListBox::backgroundColourId, Colour(25, 25, 25));
     table.setRowHeight(30);
@@ -170,18 +188,21 @@ class LibraryComponent : public Component, public TableListBoxModel {
 
     addButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
     addButton.setConnectedEdges(12);
-    addButton.onClick = [this]() {
-      openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories, [this](const FileChooser& f) {
-        auto result = f.getResult();
-        if (!result.exists()) return;
+    addButton.onClick = [this]()
+    {
+      openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                              [this](const FileChooser& f)
+                              {
+                                auto result = f.getResult();
+                                if (!result.exists()) return;
 
-        auto child = ValueTree("Path");
-        child.setProperty("Path", result.getFullPathName(), nullptr);
+                                auto child = ValueTree("Path");
+                                child.setProperty("Path", result.getFullPathName(), nullptr);
 
-        tree.appendChild(child, nullptr);
+                                tree.appendChild(child, nullptr);
 
-        loadData();
-      });
+                                loadData();
+                              });
     };
 
     addAndMakeVisible(table);
@@ -190,10 +211,12 @@ class LibraryComponent : public Component, public TableListBoxModel {
     loadData();
   }
 
-  void loadData() {
+  void loadData()
+  {
     items.clear();
 
-    for (auto child : tree) {
+    for (auto child : tree)
+    {
       items.add(child.getProperty("Path"));
       table.updateContent();
       table.selectRow(items.size() - 1);
@@ -207,7 +230,8 @@ class LibraryComponent : public Component, public TableListBoxModel {
 
   // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
   // components.
-  void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) override {
+  void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) override
+  {
     g.setColour(Colours::white);
     // g.setFont (font);
 
@@ -221,17 +245,20 @@ class LibraryComponent : public Component, public TableListBoxModel {
 
   int getNumRows() override { return items.size(); }
 
-  Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override {
+  Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
+  {
     delete existingComponentToUpdate;
 
     auto* rowComponent = new FileComponent(
-        [this](int row) {
+        [this](int row)
+        {
           tree.getChild(row).setProperty("Path", items[row], nullptr);
           updateFunc();
         },
         &items.getReference(rowNumber), rowNumber);
 
-    rowComponent->deleteButton.onClick = [this, rowNumber]() mutable {
+    rowComponent->deleteButton.onClick = [this, rowNumber]() mutable
+    {
       tree.removeChild(rowNumber, nullptr);
       loadData();
     };
@@ -239,15 +266,18 @@ class LibraryComponent : public Component, public TableListBoxModel {
     return rowComponent;
   }
 
-  void resized() override {
+  void resized() override
+  {
     table.setBounds(getLocalBounds());
 
     // auto b = table.getHeader().getBounds().removeFromRight(25);
     addButton.setBounds(getWidth() - 30, 0, 30, 30);
   }
 
-  struct FileComponent : public Label {
-    FileComponent(std::function<void(int)> cb, String* value, int rowIdx) : callback(std::move(cb)), row(rowIdx) {
+  struct FileComponent : public Label
+  {
+    FileComponent(std::function<void(int)> cb, String* value, int rowIdx) : callback(std::move(cb)), row(rowIdx)
+    {
       setEditable(false, true);
 
       setText(String(*value), dontSendNotification);
@@ -257,18 +287,21 @@ class LibraryComponent : public Component, public TableListBoxModel {
       deleteButton.setConnectedEdges(12);
       // deleteButton.setLookAndFeel(&look);
 
-      onTextChange = [this, value]() {
+      onTextChange = [this, value]()
+      {
         *value = getText();
         callback(row);
       };
     }
 
-    void resized() override {
+    void resized() override
+    {
       Label::resized();
       deleteButton.setBounds(getWidth() - 28, 0, 28, getHeight());
     }
 
-    TextEditor* createEditorComponent() override {
+    TextEditor* createEditorComponent() override
+    {
       auto* editor = Label::createEditorComponent();
 
       return editor;
@@ -294,8 +327,10 @@ class LibraryComponent : public Component, public TableListBoxModel {
   StringArray items;
 };
 
-SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : lnf(r) {
-  for (auto& button : toolbarButtons) {
+SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : lnf(r)
+{
+  for (auto& button : toolbarButtons)
+  {
     button->setClickingTogglesState(true);
     button->setRadioGroupId(0110);
     button->setLookAndFeel(&lnf);
@@ -306,21 +341,26 @@ SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, Au
   auto* libraryList = new LibraryComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths));
   libraryPanel.reset(libraryList);
 
-  if (manager) {
+  if (manager)
+  {
     audioSetupComp = std::make_unique<AudioDeviceSelectorComponent>(*manager, 1, 2, 1, 2, true, true, true, false);
-  } else {
+  }
+  else
+  {
     audioSetupComp = std::make_unique<DAWAudioSettings>(processor);
   }
 
   addAndMakeVisible(audioSetupComp.get());
 
-  toolbarButtons[0]->onClick = [this]() {
+  toolbarButtons[0]->onClick = [this]()
+  {
     audioSetupComp->setVisible(true);
     libraryPanel->setVisible(false);
     resized();
   };
 
-  toolbarButtons[1]->onClick = [this]() {
+  toolbarButtons[1]->onClick = [this]()
+  {
     audioSetupComp->setVisible(false);
     libraryPanel->setVisible(true);
     // make other panel visible
@@ -332,7 +372,8 @@ SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, Au
   toolbarButtons[0]->setToggleState(true, sendNotification);
 }
 
-void SettingsComponent::paint(Graphics& g) {
+void SettingsComponent::paint(Graphics& g)
+{
   auto baseColour = MainLook::firstBackground;
   auto highlightColour = Colour(0xff42a2c8).darker(0.2);
 
@@ -346,9 +387,11 @@ void SettingsComponent::paint(Graphics& g) {
   g.fillRect(0, 42, getWidth(), 4);
 }
 
-void SettingsComponent::resized() {
+void SettingsComponent::resized()
+{
   int toolbarPosition = 0;
-  for (auto& button : toolbarButtons) {
+  for (auto& button : toolbarButtons)
+  {
     button->setBounds(toolbarPosition, 0, 70, toolbarHeight);
     toolbarPosition += 70;
   }

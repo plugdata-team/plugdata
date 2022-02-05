@@ -9,7 +9,8 @@
 #include <utility>
 #include <vector>
 
-struct _canvasenvironment {
+struct _canvasenvironment
+{
   t_symbol* ce_dir;    /* directory patch lives in */
   int ce_argc;         /* number of "$" arguments */
   t_atom* ce_argv;     /* array of "$" arguments */
@@ -17,15 +18,19 @@ struct _canvasenvironment {
   t_namelist* ce_path; /* search path */
 };
 
-namespace pd {
+namespace pd
+{
 
 // Iterative function to insert a key into a Trie
-void Trie::insert(const std::string& key) {
+void Trie::insert(const std::string& key)
+{
   // start from the root node
   Trie* curr = this;
-  for (char i : key) {
+  for (char i : key)
+  {
     // create a new node if the path doesn't exist
-    if (curr->character[i] == nullptr) {
+    if (curr->character[i] == nullptr)
+    {
       curr->character[i] = new Trie();
     }
 
@@ -39,14 +44,17 @@ void Trie::insert(const std::string& key) {
 
 // Iterative function to search a key in a Trie. It returns true
 // if the key is found in the Trie; otherwise, it returns false
-bool Trie::search(const std::string& key) {
+bool Trie::search(const std::string& key)
+{
   Trie* curr = this;
-  for (char i : key) {
+  for (char i : key)
+  {
     // go to the next node
     curr = curr->character[i];
 
     // if the string is invalid (reached end of a path in the Trie)
-    if (curr == nullptr) {
+    if (curr == nullptr)
+    {
       return false;
     }
   }
@@ -57,9 +65,12 @@ bool Trie::search(const std::string& key) {
 }
 
 // Returns true if a given node has any children
-bool Trie::hasChildren() {
-  for (int i = 0; i < CHAR_SIZE; i++) {
-    if (character[i]) {
+bool Trie::hasChildren()
+{
+  for (int i = 0; i < CHAR_SIZE; i++)
+  {
+    if (character[i])
+    {
       return true;  // child found
     }
   }
@@ -68,32 +79,41 @@ bool Trie::hasChildren() {
 }
 
 // Recursive function to delete a key in the Trie
-bool Trie::deletion(Trie*& curr, std::string key) {
+bool Trie::deletion(Trie*& curr, std::string key)
+{
   // return if Trie is empty
-  if (curr == nullptr) {
+  if (curr == nullptr)
+  {
     return false;
   }
 
   // if the end of the key is not reached
-  if (key.length()) {
+  if (key.length())
+  {
     // recur for the node corresponding to the next character in the key
     // and if it returns true, delete the current node (if it is non-leaf)
 
-    if (curr != nullptr && curr->character[key[0]] != nullptr && deletion(curr->character[key[0]], key.substr(1)) && !curr->isLeaf) {
-      if (!curr->hasChildren()) {
+    if (curr != nullptr && curr->character[key[0]] != nullptr && deletion(curr->character[key[0]], key.substr(1)) && !curr->isLeaf)
+    {
+      if (!curr->hasChildren())
+      {
         delete curr;
         curr = nullptr;
         return true;
-      } else {
+      }
+      else
+      {
         return false;
       }
     }
   }
 
   // if the end of the key is reached
-  if (key.length() == 0 && curr->isLeaf) {
+  if (key.length() == 0 && curr->isLeaf)
+  {
     // if the current node is a leaf node and doesn't have any children
-    if (!curr->hasChildren()) {
+    if (!curr->hasChildren())
+    {
       // delete the current node
       delete curr;
       curr = nullptr;
@@ -103,7 +123,8 @@ bool Trie::deletion(Trie*& curr, std::string key) {
     }
 
     // if the current node is a leaf node and has children
-    else {
+    else
+    {
       // mark the current node as a non-leaf node (DON'T DELETE IT)
       curr->isLeaf = false;
 
@@ -115,17 +136,21 @@ bool Trie::deletion(Trie*& curr, std::string key) {
   return false;
 }
 
-void Trie::suggestionsRec(std::string currPrefix, std::vector<std::string>& result) {
+void Trie::suggestionsRec(std::string currPrefix, std::vector<std::string>& result)
+{
   // found aString in Trie with the given prefix
-  if (isLeaf) {
+  if (isLeaf)
+  {
     result.push_back(currPrefix);
   }
 
   // All children struct node pointers are NULL
   if (!hasChildren()) return;
 
-  for (int i = 0; i < CHAR_SIZE; i++) {
-    if (character[i]) {
+  for (int i = 0; i < CHAR_SIZE; i++)
+  {
+    if (character[i])
+    {
       // append current character to currPrefixString
       currPrefix.push_back(i);
 
@@ -139,7 +164,8 @@ void Trie::suggestionsRec(std::string currPrefix, std::vector<std::string>& resu
 }
 
 // print suggestions for given query prefix.
-int Trie::autocomplete(std::string query, std::vector<std::string>& result) {
+int Trie::autocomplete(std::string query, std::vector<std::string>& result)
+{
   auto* pCrawl = this;
 
   // Check if prefix is present and find the
@@ -147,7 +173,8 @@ int Trie::autocomplete(std::string query, std::vector<std::string>& result) {
   // of givenString.
   int level;
   int n = query.length();
-  for (level = 0; level < n; level++) {
+  for (level = 0; level < n; level++)
+  {
     int index = CHAR_TO_INDEX(query[level]);
 
     // noString in the Trie has this prefix
@@ -166,14 +193,16 @@ int Trie::autocomplete(std::string query, std::vector<std::string>& result) {
   // If prefix is present as a word, but
   // there is no subtree below the last
   // matching node.
-  if (isWord && isLast) {
+  if (isWord && isLast)
+  {
     result.push_back(query);
     return -1;
   }
 
   // If there are are nodes below last
   // matching character.
-  if (!isLast) {
+  if (!isLast)
+  {
     const std::string& prefix = query;
     pCrawl->suggestionsRec(prefix, result);
     return 1;
@@ -181,7 +210,8 @@ int Trie::autocomplete(std::string query, std::vector<std::string>& result) {
   return 0;
 }
 
-void Library::initialiseLibrary(ValueTree pathTree) {
+void Library::initialiseLibrary(ValueTree pathTree)
+{
   int i;
   t_class* o = pd_objectmaker;
 
@@ -193,24 +223,28 @@ void Library::initialiseLibrary(ValueTree pathTree) {
   mlist = o->c_methods;
 #endif
 
-  for (i = o->c_nmethod, m = mlist; i--; m++) {
+  for (i = o->c_nmethod, m = mlist; i--; m++)
+  {
     String name(m->me_name->s_name);
     searchTree.insert(m->me_name->s_name);
   }
 
   searchTree.insert("graph");
 
-  for (auto path : pathTree) {
+  for (auto path : pathTree)
+  {
     auto filePath = File(path.getProperty("Path").toString());
 
-    for (auto& iter : RangedDirectoryIterator(filePath, false)) {
+    for (auto& iter : RangedDirectoryIterator(filePath, false))
+    {
       auto file = iter.getFile();
       if (file.getFileExtension() == ".pd") searchTree.insert(file.getFileNameWithoutExtension().toStdString());
     }
   }
 }
 
-std::vector<std::string> Library::autocomplete(std::string query) {
+std::vector<std::string> Library::autocomplete(std::string query)
+{
   std::vector<std::string> result;
   searchTree.autocomplete(std::move(query), result);
   return result;

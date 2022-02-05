@@ -10,7 +10,8 @@
 
 class Connection;
 class Box;
-class Edge : public TextButton {
+class Edge : public TextButton
+{
  public:
   Box* box;
 

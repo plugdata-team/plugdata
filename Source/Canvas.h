@@ -15,7 +15,8 @@
 
 extern juce::JUCEApplicationBase* juce_CreateApplication();
 
-struct Identifiers {
+struct Identifiers
+{
   static inline const Identifier connectionStyle = Identifier("ConnectionStyle");
 };
 
@@ -23,7 +24,8 @@ struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
-class Canvas : public Component, public KeyListener, public MultiComponentDragger<Box> {
+class Canvas : public Component, public KeyListener, public MultiComponentDragger<Box>
+{
  public:
   //==============================================================================
   Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
@@ -53,8 +55,10 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
 
   void checkBounds();
 
-  void paint(Graphics& g) override {
-    if (!isGraph) {
+  void paint(Graphics& g) override
+  {
+    if (!isGraph)
+    {
       g.fillAll(MainLook::firstBackground);
 
       g.setColour(MainLook::secondBackground);
@@ -106,7 +110,8 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
 };
 
 // Graph bounds component
-struct GraphArea : public Component, public ComponentDragger {
+struct GraphArea : public Component, public ComponentDragger
+{
   ResizableBorderComponent resizer;
   Canvas* canvas;
 
@@ -114,7 +119,8 @@ struct GraphArea : public Component, public ComponentDragger {
 
   explicit GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent) { addAndMakeVisible(resizer); }
 
-  void paint(Graphics& g) override {
+  void paint(Graphics& g) override
+  {
     g.setColour(MainLook::highlightColour);
     g.drawRect(getLocalBounds());
 
@@ -130,21 +136,25 @@ struct GraphArea : public Component, public ComponentDragger {
 
   void mouseDrag(const MouseEvent& e) override { dragComponent(this, e, nullptr); }
 
-  void mouseUp(const MouseEvent& e) override {
+  void mouseUp(const MouseEvent& e) override
+  {
     updatePosition();
     repaint();
   }
 
-  void resized() override {
+  void resized() override
+  {
     updatePosition();
     resizer.setBounds(getLocalBounds());
     repaint();
   }
 
-  void updatePosition() {
+  void updatePosition()
+  {
     t_canvas* cnv = canvas->patch.getPointer();
     // Lock first?
-    if (cnv) {
+    if (cnv)
+    {
       cnv->gl_pixwidth = getWidth();
       cnv->gl_pixheight = getHeight();
       cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;

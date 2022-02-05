@@ -16,13 +16,15 @@
 #include "PdPatch.h"
 #include "concurrentqueue.h"
 
-namespace pd {
+namespace pd
+{
 class Patch;
 // ==================================================================================== //
 //                                      INSTANCE                                        //
 // ==================================================================================== //
 
-class Instance {
+class Instance
+{
  public:
   Instance(std::string const& symbol);
   Instance(Instance const& other) = delete;
@@ -125,21 +127,33 @@ class Instance {
   inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
  private:
-  struct Message {
+  struct Message
+  {
     std::string selector;
     std::string destination;
     std::vector<Atom> list;
   };
 
-  struct dmessage {
+  struct dmessage
+  {
     void* object;
     std::string destination;
     std::string selector;
     std::vector<Atom> list;
   };
 
-  typedef struct midievent {
-    enum { NOTEON, CONTROLCHANGE, PROGRAMCHANGE, PITCHBEND, AFTERTOUCH, POLYAFTERTOUCH, MIDIBYTE } type;
+  typedef struct midievent
+  {
+    enum
+    {
+      NOTEON,
+      CONTROLCHANGE,
+      PROGRAMCHANGE,
+      PITCHBEND,
+      AFTERTOUCH,
+      POLYAFTERTOUCH,
+      MIDIBYTE
+    } type;
     int midi1;
     int midi2;
     int midi3;

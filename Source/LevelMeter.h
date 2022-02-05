@@ -13,8 +13,10 @@
 
 // Widget that shows a Foleys level meter and a volume slider
 
-struct LevelMeter : public Component {
-  LevelMeter(AudioProcessorValueTreeState& state, foleys::LevelMeterSource& source) {
+struct LevelMeter : public Component
+{
+  LevelMeter(AudioProcessorValueTreeState& state, foleys::LevelMeterSource& source)
+  {
     meter.setMeterSource(&source);
 
     lnf.setColour(foleys::LevelMeter::lmTextColour, juce::Colours::transparentBlack);
@@ -41,12 +43,14 @@ struct LevelMeter : public Component {
     volumeSlider.setRange(0.0f, 1.0f);
   }
 
-  ~LevelMeter() override {
+  ~LevelMeter() override
+  {
     meter.setLookAndFeel(nullptr);
     setLookAndFeel(nullptr);
   }
 
-  void resized() override {
+  void resized() override
+  {
     meter.setBounds(getLocalBounds());
     volumeSlider.setBounds(getLocalBounds().expanded(5));
   }

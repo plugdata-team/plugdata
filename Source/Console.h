@@ -9,35 +9,41 @@
 
 #include "LookAndFeel.h"
 
-class ConsoleComponent : public Component, private AsyncUpdater, public ComponentListener {
+class ConsoleComponent : public Component, private AsyncUpdater, public ComponentListener
+{
   std::array<TextButton, 5>& buttons;
   Viewport& viewport;
 
  public:
-  ConsoleComponent(std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v) {
+  ConsoleComponent(std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v)
+  {
     update();
 
     // setOpaque (true);
   }
 
-  void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override {
+  void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override
+  {
     setSize(viewport.getWidth(), getHeight());
     repaint();
   }
 
  public:
-  void update() {
+  void update()
+  {
     repaint();
     setSize(viewport.getWidth(), std::max<int>(totalHeight + 25, viewport.getHeight()));
 
-    if (buttons[4].getToggleState()) {
+    if (buttons[4].getToggleState())
+    {
       viewport.setViewPositionProportionately(0.0f, 1.0f);
     }
   }
 
   void handleAsyncUpdate() override { update(); }
 
-  void logMessage(const String& m) {
+  void logMessage(const String& m)
+  {
     removeMessagesIfRequired(messages);
     removeMessagesIfRequired(history);
 
@@ -46,7 +52,8 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
     logMessageProceed({{m, 0}});
   }
 
-  void logError(const String& m) {
+  void logError(const String& m)
+  {
     removeMessagesIfRequired(messages);
     removeMessagesIfRequired(history);
 
@@ -54,25 +61,29 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
     logMessageProceed({{m, 1}});
   }
 
-  void clear() {
+  void clear()
+  {
     messages.clear();
     triggerAsyncUpdate();
   }
 
-  void parse() {
+  void parse()
+  {
     parseMessages(messages, buttons[2].getToggleState(), buttons[3].getToggleState());
 
     triggerAsyncUpdate();
   }
 
-  void restore() {
+  void restore()
+  {
     std::vector<std::pair<String, int>> m(history.cbegin(), history.cend());
 
     messages.clear();
     logMessageProceed(m);
   }
 
-  void logMessageProceed(std::vector<std::pair<String, int>> m) {
+  void logMessageProceed(std::vector<std::pair<String, int>> m)
+  {
     parseMessages(m, buttons[2].getToggleState(), buttons[3].getToggleState());
 
     messages.insert(messages.cend(), m.cbegin(), m.cend());
@@ -82,7 +93,8 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
     triggerAsyncUpdate();
   }
 
-  void paint(Graphics& g) override {
+  void paint(Graphics& g) override
+  {
     auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
     g.setFont(font);
     g.fillAll(MainLook::firstBackground);
@@ -91,22 +103,27 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
 
     int numEmpty = 0;
 
-    for (int row = 0; row < jmax(32, static_cast<int>(messages.size())); row++) {
+    for (int row = 0; row < jmax(32, static_cast<int>(messages.size())); row++)
+    {
       int height = 24;
       int numLines = 1;
 
-      if (isPositiveAndBelow(row, messages.size())) {
+      if (isPositiveAndBelow(row, messages.size()))
+      {
         auto& e = messages[row];
 
         Array<int> glyphs;
         Array<float> xOffsets;
         font.getGlyphPositions(e.first, glyphs, xOffsets);
 
-        for (int i = 0; i < xOffsets.size(); i++) {
-          if ((xOffsets[i] + 10) >= static_cast<float>(getWidth())) {
+        for (int i = 0; i < xOffsets.size(); i++)
+        {
+          if ((xOffsets[i] + 10) >= static_cast<float>(getWidth()))
+          {
             height += 22;
 
-            for (int j = i + 1; j < xOffsets.size(); j++) {
+            for (int j = i + 1; j < xOffsets.size(); j++)
+            {
               xOffsets.getReference(j) -= xOffsets[i];
             }
             numLines++;
@@ -116,17 +133,21 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
 
       const Rectangle<int> r(0, totalHeight, getWidth(), height);
 
-      if (row % 2) {
+      if (row % 2)
+      {
         g.setColour(MainLook::secondBackground);
         g.fillRect(r);
       }
 
-      if (isPositiveAndBelow(row, messages.size())) {
+      if (isPositiveAndBelow(row, messages.size()))
+      {
         const auto& e = messages[row];
 
         g.setColour(isSelected[row] ? MainLook::highlightColour : colourWithType(e.second));
         g.drawFittedText(e.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
-      } else {
+      }
+      else
+      {
         numEmpty++;
       }
 
@@ -139,27 +160,35 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
   void resized() override { repaint(); }
 
  private:
-  static Colour colourWithType(int type) {
+  static Colour colourWithType(int type)
+  {
     auto c = Colours::red;
 
-    if (type == 0) {
+    if (type == 0)
+    {
       c = Colours::white;
-    } else if (type == 1) {
+    }
+    else if (type == 1)
+    {
       c = Colours::orange;
-    } else if (type == 2) {
+    }
+    else if (type == 2)
+    {
       c = Colours::red;
     }
 
     return c;
   }
 
-  static void removeMessagesIfRequired(std::deque<std::pair<String, int>>& messages) {
+  static void removeMessagesIfRequired(std::deque<std::pair<String, int>>& messages)
+  {
     const int maximum = 2048;
     const int removed = 64;
 
     int size = static_cast<int>(messages.size());
 
-    if (size >= maximum) {
+    if (size >= maximum)
+    {
       const int n = nextPowerOfTwo(size - maximum + removed);
 
       jassert(n < size);
@@ -169,14 +198,20 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
   }
 
   template <class T>
-  static void parseMessages(T& m, bool showMessages, bool showErrors) {
-    if (!showMessages || !showErrors) {
-      auto f = [showMessages, showErrors](const std::pair<String, bool>& e) {
+  static void parseMessages(T& m, bool showMessages, bool showErrors)
+  {
+    if (!showMessages || !showErrors)
+    {
+      auto f = [showMessages, showErrors](const std::pair<String, bool>& e)
+      {
         bool t = e.second;
 
-        if ((t && !showMessages) || (!t && !showErrors)) {
+        if ((t && !showMessages) || (!t && !showErrors))
+        {
           return true;
-        } else {
+        }
+        else
+        {
           return false;
         }
       };
@@ -196,8 +231,10 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
 };
 
-struct Console : public Component {
-  Console() {
+struct Console : public Component
+{
+  Console()
+  {
     // Viewport takes ownership
     console = new ConsoleComponent(buttons, viewport);
 
@@ -214,20 +251,24 @@ struct Console : public Component {
     std::vector<std::function<void()>> callbacks = {
         [this]() { console->clear(); },
         [this]() { console->restore(); },
-        [this]() {
+        [this]()
+        {
           if (buttons[2].getState())
             console->restore();
           else
             console->parse();
         },
-        [this]() {
+        [this]()
+        {
           if (buttons[3].getState())
             console->restore();
           else
             console->parse();
         },
-        [this]() {
-          if (buttons[4].getState()) {
+        [this]()
+        {
+          if (buttons[4].getState())
+          {
             console->update();
           }
         },
@@ -235,7 +276,8 @@ struct Console : public Component {
     };
 
     int i = 0;
-    for (auto& button : buttons) {
+    for (auto& button : buttons)
+    {
       button.setConnectedEdges(12);
       addAndMakeVisible(button);
 
@@ -262,14 +304,16 @@ struct Console : public Component {
 
   void logError(const String& m) { console->logError(m); }
 
-  void resized() override {
+  void resized() override
+  {
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
     fb.justifyContent = FlexBox::JustifyContent::flexStart;
     fb.alignContent = FlexBox::AlignContent::flexStart;
     fb.flexDirection = FlexBox::Direction::row;
 
-    for (auto& b : buttons) {
+    for (auto& b : buttons)
+    {
       auto item = FlexItem(b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
       item.flexGrow = 1.0f;
       item.flexShrink = 1.0f;
