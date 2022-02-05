@@ -151,13 +151,8 @@ void Box::setType(String newType, bool exists)
 {
     // Change box type
     textLabel.setText(newType, dontSendNotification);
-
-    String arguments = newType.fromFirstOccurrenceOf(" ", false, false);
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
     
-    bool wasInvalid = pdObject && pdObject->getType() == pd::Type::Invalid;
-
-
     // Exists indicates that this object already exists in pd
     // When setting exists to true, you need to have assigned an object to the pdObject variable already
     if (!exists) {

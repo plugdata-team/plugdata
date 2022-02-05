@@ -206,8 +206,6 @@ void Canvas::synchronise(bool updatePosition)
         return idx1 < idx2;
     });
 
-    auto* x = patch.getPointer();
-
     auto pd_connections = patch.getConnections();
     
     if(!isGraph) {
@@ -302,15 +300,13 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
             
             lasso.beginLasso(e.getEventRelativeTo(this), this);
-
-
-                if(!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
-                    deselectAll();
-                }
+            if(!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown()) {
+                deselectAll();
+            }
         }
-
     // Right click
-    } else {
+    }
+    else {
         // Info about selection status
         auto& lassoSelection = getLassoSelection();
         bool hasSelection = lassoSelection.getNumSelected();
@@ -320,7 +316,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         // Create popup menu
         popupMenu.clear();
-        popupMenu.addItem(1, "Open", !multiple && isSubpatch); // for opening subpatches
+        popupMenu.addItem(1, "Open", hasSelection && !multiple && isSubpatch); // for opening subpatches
         popupMenu.addSeparator();
         popupMenu.addItem(4, "Cut", hasSelection);
         popupMenu.addItem(5, "Copy", hasSelection);
@@ -349,7 +345,6 @@ void Canvas::mouseDown(const MouseEvent& e)
                 }
                 bool isGraphChild = lassoSelection.getSelectedItem(0)->graphics.get()->getGUI().getType() == pd::Type::GraphOnParent;
                 auto* newCanvas = main.canvases.add(new Canvas(main, *subpatch, false, isGraphChild));
-                newCanvas->title = lassoSelection.getSelectedItem(0)->textLabel.getText().fromLastOccurrenceOf("pd ", false, false);
 
                 
                 auto [x, y, w, h] = subpatch->getBounds();
@@ -384,31 +379,17 @@ void Canvas::mouseDown(const MouseEvent& e)
             case 9: // Open help
 
                 // Find name of help file
-                std::string helpName = lassoSelection.getSelectedItem(0)->pdObject->getHelp();
+                auto helpPatch = lassoSelection.getSelectedItem(0)->pdObject->getHelp();
 
-                if (!helpName.length()) {
+                if (!helpPatch.getPointer()) {
                     main.console->logMessage("Couldn't find help file");
                     return;
                 }
 
-                auto* ownedProcessor = new PlugDataAudioProcessor(pd->console);
-
-                auto* lock = pd->getCallbackLock();
-
-                lock->enter();
-                    
-                ownedProcessor->loadPatch(File(helpName));
-                    
-                
-                auto* new_cnv = main.canvases.add(new Canvas(main, ownedProcessor->getPatch()));
-                new_cnv->aux_instance.reset(ownedProcessor); // Help files need their own instance
-                new_cnv->pd = ownedProcessor;
-                new_cnv->title = String(helpName).fromLastOccurrenceOf("/", false, false);
-                
-                ownedProcessor->prepareToPlay(pd->getSampleRate(), pd->AudioProcessor::getBlockSize());
+                auto* new_cnv = main.canvases.add(new Canvas(main, helpPatch));
                 main.addTab(new_cnv);
 
-                lock->exit();
+                //lock->exit();
 
                 break;
             }
@@ -480,8 +461,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
 void Canvas::mouseUp(const MouseEvent& e)
 {
-    
-    
     if(auto* box = dynamic_cast<Box*>(e.originalComponent->getParentComponent())) {
         
         if(!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2) {
@@ -794,7 +773,7 @@ void Canvas::removeSelection()
     // Load state from pd, don't update positions
     synchronise(false);
     
-    patch.deselectAll();
+    //patch.deselectAll();
 
     // Update GUI
     main.updateValues();

@@ -245,7 +245,7 @@ struct MessageComponent : public GUIComponent, public ChangeListener {
     {
         updateValue(); // make sure text is loaded
         
-        auto [x, y, w, h] = gui.getBounds();
+        //auto [x, y, w, h] = gui.getBounds();
         int stringLength = std::max(10, input.getFont().getStringWidth(input.getText()));
         return { stringLength + 20, numLines * 21 };
     };

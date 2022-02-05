@@ -110,8 +110,6 @@ void Edge::createConnection()
     if (Edge::connectingEdge) {
 
         // Check type for input and output
-        bool startSignal = isInput ? connectingEdge->isSignal : isSignal;
-        bool endSignal = !isInput ? connectingEdge->isSignal : isSignal;
         bool sameDirection = isInput == connectingEdge->isInput;
 
         bool connectionAllowed = connectingEdge->getParentComponent() != getParentComponent() && Edge::connectingEdge->box->cnv == box->cnv && !sameDirection;

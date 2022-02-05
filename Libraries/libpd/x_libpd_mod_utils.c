@@ -41,14 +41,14 @@ struct _instanceeditor
     unsigned int canvas_cursorwas;
 };
 
-extern void* canvas_undo_set_disconnect(t_canvas *x, int index1, int outno, int index2, int inno);
+extern void* canvas_undo_set_disconnect(t_canvas* cnv, int index1, int outno, int index2, int inno);
 extern int glist_getindex(t_glist *x, t_gobj *y);
 extern int glist_selectionindex(t_glist *x, t_gobj *y, int selected);
 extern void glist_deselectline(t_glist *x);
 
 
 /* displace the selection by (dx, dy) pixels */
-void libpd_moveselection(t_canvas *x, int dx, int dy)
+void libpd_moveselection(t_canvas* cnv, int dx, int dy)
 {
     EDITOR->canvas_undo_already_set_move = 0;
     
@@ -56,23 +56,23 @@ void libpd_moveselection(t_canvas *x, int dx, int dy)
     int resortin = 0, resortout = 0;
     if (!EDITOR->canvas_undo_already_set_move)
     {
-        canvas_undo_add(x, UNDO_MOTION, "motion", canvas_undo_set_move(x, 1));
+        canvas_undo_add(cnv, UNDO_MOTION, "motion", canvas_undo_set_move(cnv, 1));
         //EDITOR->canvas_undo_already_set_move = 1;
     }
-    for (y = x->gl_editor->e_selection; y; y = y->sel_next)
+    for (y = cnv->gl_editor->e_selection; y; y = y->sel_next)
     {
         
         t_class *cl = pd_class(&y->sel_what->g_pd);
-        gobj_displace(y->sel_what, x, dx, dy);
+        gobj_displace(y->sel_what, cnv, dx, dy);
         if (cl == vinlet_class) resortin = 1;
         else if (cl == voutlet_class) resortout = 1;
     }
-    if (resortin) canvas_resortinlets(x);
-    if (resortout) canvas_resortoutlets(x);
-    sys_vgui("pdtk_canvas_getscroll .x%lx.c\n", x);
+    if (resortin) canvas_resortinlets(cnv);
+    if (resortout) canvas_resortoutlets(cnv);
+    sys_vgui("pdtk_canvas_getscroll .x%lx.c\n", cnv);
     
-    if (x->gl_editor->e_selection)
-        canvas_dirty(x, 1);
+    if (cnv->gl_editor->e_selection)
+        canvas_dirty(cnv, 1);
     
 }
 
@@ -97,7 +97,7 @@ t_pd* libpd_newest(t_canvas* cnv)
 
 
 
-void libpd_canvas_doclear(t_canvas *x)
+void libpd_canvas_doclear(t_canvas* cnv)
 {
     
     
@@ -121,25 +121,25 @@ void libpd_canvas_doclear(t_canvas *x)
     /* if text is selected, deselecting it might remake the
      object. So we deselect it and hunt for a "new" object on
      the glist to reselect. */
-    if (x->gl_editor->e_textedfor)
+    if (cnv->gl_editor->e_textedfor)
     {
         //t_gobj *selwas = x->gl_editor->e_selection->sel_what;
         pd_this->pd_newest = 0;
-        glist_noselect(x);
+        glist_noselect(cnv);
         if (pd_this->pd_newest)
         {
-            for (y = x->gl_list; y; y = y->g_next)
-                if (&y->g_pd == pd_this->pd_newest) glist_select(x, y);
+            for (y = cnv->gl_list; y; y = y->g_next)
+                if (&y->g_pd == pd_this->pd_newest) glist_select(cnv, y);
         }
     }
     while (1)   /* this is pretty weird...  should rewrite it */
     {
-        for (y = x->gl_list; y; y = y2)
+        for (y = cnv->gl_list; y; y = y2)
         {
             y2 = y->g_next;
-            if (glist_isselected(x, y))
+            if (glist_isselected(cnv, y))
             {
-                glist_delete(x, y);
+                glist_delete(cnv, y);
                 goto next;
             }
         }
@@ -148,25 +148,25 @@ void libpd_canvas_doclear(t_canvas *x)
     }
 restore:
     canvas_resume_dsp(dspstate);
-    canvas_dirty(x, 1);
+    canvas_dirty(cnv, 1);
 }
 
-void libpd_finishremove(t_canvas* x)
+void libpd_finishremove(t_canvas* cnv)
 {
-    canvas_undo_add(x, UNDO_SEQUENCE_END, "clear", 0);
+    canvas_undo_add(cnv, UNDO_SEQUENCE_END, "clear", 0);
     
 }
-void libpd_removeselection(t_canvas* x)
+void libpd_removeselection(t_canvas* cnv)
 {
-    canvas_undo_add(x, UNDO_SEQUENCE_START, "clear", 0);
+    canvas_undo_add(cnv, UNDO_SEQUENCE_START, "clear", 0);
     
-    canvas_undo_add(x, UNDO_CUT, "clear",
-                    canvas_undo_set_cut(x, 2));
+    canvas_undo_add(cnv, UNDO_CUT, "clear",
+                    canvas_undo_set_cut(cnv, 2));
     
-    libpd_canvas_doclear(x);
+    libpd_canvas_doclear(cnv);
 }
 
-void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
+void canvas_savedeclarationsto(t_canvas* cnv, t_binbuf *b);
 
 
 static int binbuf_nextmess(int argc, const t_atom *argv)
@@ -183,32 +183,32 @@ static int binbuf_nextmess(int argc, const t_atom *argv)
     return i;
 }
 
-int libpd_canconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
+int libpd_canconnect(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
     if (!src || !sink || sink == src) /* do source and sink exist (and are not the same)?*/
         return 0;
     if (nin >= obj_ninlets(sink) || (nout >= obj_noutlets(src))) /* do the requested iolets exist? */
         return 0;
-    if (canvas_isconnected(x, src, nout, sink, nin)) /* are the objects already connected? */
+    if (canvas_isconnected(cnv, src, nout, sink, nin)) /* are the objects already connected? */
         return 0;
     return (!obj_issignaloutlet(src, nout) || /* are the iolets compatible? */
             obj_issignalinlet(sink, nin));
 }
 
-int libpd_tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
+int libpd_tryconnect(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
-    if(libpd_canconnect(x, src, nout, sink, nin))
+    if(libpd_canconnect(cnv, src, nout, sink, nin))
     {
         t_outconnect *oc = obj_connect(src, nout, sink, nin);
         if(oc)
         {
-            int iow = IOWIDTH * x->gl_zoom;
-            int iom = IOMIDDLE * x->gl_zoom;
+            int iow = IOWIDTH * cnv->gl_zoom;
+            int iom = IOMIDDLE * cnv->gl_zoom;
             int x11=0, x12=0, x21=0, x22=0;
             int y11=0, y12=0, y21=0, y22=0;
             int noutlets1, ninlets, lx1, ly1, lx2, ly2;
-            gobj_getrect(&src->ob_g, x, &x11, &y11, &x12, &y12);
-            gobj_getrect(&sink->ob_g, x, &x21, &y21, &x22, &y22);
+            gobj_getrect(&src->ob_g, cnv, &x11, &y11, &x12, &y12);
+            gobj_getrect(&sink->ob_g, cnv, &x21, &y21, &x22, &y22);
             
             noutlets1 = obj_noutlets(src);
             ninlets = obj_ninlets(sink);
@@ -223,15 +223,15 @@ int libpd_tryconnect(t_canvas*x, t_object*src, int nout, t_object*sink, int nin)
             ly2 = y21;
             sys_vgui(
                      ".x%lx.c create line %d %d %d %d -width %d -tags [list l%lx cord]\n",
-                     glist_getcanvas(x),
+                     glist_getcanvas(cnv),
                      lx1, ly1, lx2, ly2,
                      (obj_issignaloutlet(src, nout) ? 2 : 1) *
-                     x->gl_zoom,
+                     cnv->gl_zoom,
                      oc);
-            canvas_undo_add(x, UNDO_CONNECT, "connect", canvas_undo_set_connect(x,
-                                                                                canvas_getindex(x, &src->ob_g), nout,
-                                                                                canvas_getindex(x, &sink->ob_g), nin));
-            canvas_dirty(x, 1);
+            canvas_undo_add(cnv, UNDO_CONNECT, "connect", canvas_undo_set_connect(cnv,
+                                                                                canvas_getindex(cnv, &src->ob_g), nout,
+                                                                                canvas_getindex(cnv, &sink->ob_g), nin));
+            canvas_dirty(cnv, 1);
             return 1;
         }
     }
@@ -322,100 +322,99 @@ static int binbuf_getpos(t_binbuf*b, int *x0, int *y0, t_symbol**type)
 }
 
 
-void libpd_copy(t_canvas* x){
-    pd_typedmess((t_pd*)x, gensym("copy"), 0, NULL);
+void libpd_copy(t_canvas* cnv){
+    pd_typedmess((t_pd*)cnv, gensym("copy"), 0, NULL);
 }
 
-void libpd_paste(t_canvas* x) {
-    pd_typedmess((t_pd*)x, gensym("paste"), 0, NULL);
+void libpd_paste(t_canvas* cnv) {
+    pd_typedmess((t_pd*)cnv, gensym("paste"), 0, NULL);
 }
 
 
-void libpd_undo(t_canvas *x) {
-    pd_typedmess((t_pd*)x, gensym("undo"), 0, NULL);
+void libpd_undo(t_canvas* cnv) {
+    pd_typedmess((t_pd*)cnv, gensym("undo"), 0, NULL);
 }
 
-void libpd_redo(t_canvas *x) {
+void libpd_redo(t_canvas* cnv) {
     // Temporary fix... might cause us to miss a loadbang when recreating a canvas
     pd_this->pd_newest = 0;
-    if(!x->gl_editor) return;
+    if(!cnv->gl_editor) return;
     
-    pd_typedmess((t_pd*)x, gensym("redo"), 0, NULL);
+    pd_typedmess((t_pd*)cnv, gensym("redo"), 0, NULL);
 }
 
 
-void libpd_duplicate(t_canvas *x)
+void libpd_duplicate(t_canvas* cnv)
 {
-    pd_typedmess((t_pd*)x, gensym("duplicate"), 0, NULL);
+    pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, NULL);
 }
 
-
-void libpd_canvas_saveto(t_canvas *x, t_binbuf *b)
+void libpd_canvas_saveto(t_canvas* cnv, t_binbuf *b)
 {
     t_gobj *y;
     t_linetraverser t;
     t_outconnect *oc;
     
     // subpatch
-    if (x->gl_owner && !x->gl_env)
+    if (cnv->gl_owner && !cnv->gl_env)
     {
         // have to go to original binbuf to find out how we were named.
         t_binbuf *bz = binbuf_new();
         t_symbol *patchsym;
-        binbuf_addbinbuf(bz, x->gl_obj.ob_binbuf);
+        binbuf_addbinbuf(bz, cnv->gl_obj.ob_binbuf);
         patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
         binbuf_free(bz);
         binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
-                    (int)(x->gl_screenx1),
-                    (int)(x->gl_screeny1),
-                    (int)(x->gl_screenx2 - x->gl_screenx1),
-                    (int)(x->gl_screeny2 - x->gl_screeny1),
+                    (int)(cnv->gl_screenx1),
+                    (int)(cnv->gl_screeny1),
+                    (int)(cnv->gl_screenx2 - cnv->gl_screenx1),
+                    (int)(cnv->gl_screeny2 - cnv->gl_screeny1),
                     (patchsym != &s_ ? patchsym: gensym("(subpatch)")),
-                    x->gl_mapped);
+                    cnv->gl_mapped);
     }
     // root or abstraction
     else
     {
         binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
-                    (int)(x->gl_screenx1),
-                    (int)(x->gl_screeny1),
-                    (int)(x->gl_screenx2 - x->gl_screenx1),
-                    (int)(x->gl_screeny2 - x->gl_screeny1),
-                    (int)x->gl_font);
-        canvas_savedeclarationsto(x, b);
+                    (int)(cnv->gl_screenx1),
+                    (int)(cnv->gl_screeny1),
+                    (int)(cnv->gl_screenx2 - cnv->gl_screenx1),
+                    (int)(cnv->gl_screeny2 - cnv->gl_screeny1),
+                    (int)cnv->gl_font);
+        canvas_savedeclarationsto(cnv, b);
     }
-    for (y = x->gl_list; y; y = y->g_next)
+    for (y = cnv->gl_list; y; y = y->g_next)
         gobj_save(y, b);
     
-    linetraverser_start(&t, x);
+    linetraverser_start(&t, cnv);
     while ((oc = linetraverser_next(&t)))
     {
-        int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
-        int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
+        int srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
+        int sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
         binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
                     srcno, t.tr_outno, sinkno, t.tr_inno);
     }
     // unless everything is the default (as in ordinary subpatches)
     // print out a "coords" message to set up the coordinate systems
-    if (x->gl_isgraph || x->gl_x1 || x->gl_y1 ||
-        x->gl_x2 != 1 ||  x->gl_y2 != 1 || x->gl_pixwidth || x->gl_pixheight)
+    if (cnv->gl_isgraph || cnv->gl_x1 || cnv->gl_y1 ||
+        cnv->gl_x2 != 1 ||  cnv->gl_y2 != 1 || cnv->gl_pixwidth || cnv->gl_pixheight)
     {
-        if (x->gl_isgraph && x->gl_goprect)
+        if (cnv->gl_isgraph && cnv->gl_goprect)
             // if we have a graph-on-parent rectangle, we're new style.
             // The format is arranged so
             // that old versions of Pd can at least do something with it.
             binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
-                        x->gl_x1, x->gl_y1,
-                        x->gl_x2, x->gl_y2,
-                        (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                        (t_float)((x->gl_hidetext)?2.:1.),
-                        (t_float)x->gl_xmargin, (t_float)x->gl_ymargin);
+                        cnv->gl_x1, cnv->gl_y1,
+                        cnv->gl_x2, cnv->gl_y2,
+                        (t_float)cnv->gl_pixwidth, (t_float)cnv->gl_pixheight,
+                        (t_float)((cnv->gl_hidetext)?2.:1.),
+                        (t_float)cnv->gl_xmargin, (t_float)cnv->gl_ymargin);
         // otherwise write in 0.38-compatible form
         else binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
-                         x->gl_x1, x->gl_y1,
-                         x->gl_x2, x->gl_y2,
-                         (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
-                         (t_float)x->gl_isgraph);
+                         cnv->gl_x1, cnv->gl_y1,
+                         cnv->gl_x2, cnv->gl_y2,
+                         (t_float)cnv->gl_pixwidth, (t_float)cnv->gl_pixheight,
+                         (t_float)cnv->gl_isgraph);
     }
 }
 
@@ -450,30 +449,30 @@ static void canvas_addtemplatesforscalar(t_symbol *templatesym,
 
 /* call this recursively to collect all the template names for
  a canvas or for the selection. */
-static void canvas_collecttemplatesfor(t_canvas *x, int *ntemplatesp,
+static void canvas_collecttemplatesfor(t_canvas* cnv, int *ntemplatesp,
                                        t_symbol ***templatevecp, int wholething)
 {
     t_gobj *y;
     
-    for (y = x->gl_list; y; y = y->g_next)
+    for (y = cnv->gl_list; y; y = y->g_next)
     {
         if ((pd_class(&y->g_pd) == scalar_class) &&
-            (wholething || glist_isselected(x, y)))
+            (wholething || glist_isselected(cnv, y)))
             canvas_addtemplatesforscalar(((t_scalar *)y)->sc_template,
                                          ((t_scalar *)y)->sc_vec,  ntemplatesp, templatevecp);
         else if ((pd_class(&y->g_pd) == canvas_class) &&
-                 (wholething || glist_isselected(x, y)))
+                 (wholething || glist_isselected(cnv, y)))
             canvas_collecttemplatesfor((t_canvas *)y,
                                        ntemplatesp, templatevecp, 1);
     }
 }
 
 /* save the templates needed by a canvas to a binbuf. */
-static void libpd_savetemplatesto(t_canvas *x, t_binbuf *b, int wholething)
+static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf *b, int wholething)
 {
     t_symbol **templatevec = getbytes(0);
     int i, ntemplates = 0;
-    canvas_collecttemplatesfor(x, &ntemplates, &templatevec, wholething);
+    canvas_collecttemplatesfor(cnv, &ntemplates, &templatevec, wholething);
     for (i = 0; i < ntemplates; i++)
     {
         t_template *template = template_findbyname(templatevec[i]);
@@ -510,11 +509,11 @@ static void libpd_savetemplatesto(t_canvas *x, t_binbuf *b, int wholething)
 
 /* save a "root" canvas to a file; cf. canvas_saveto() which saves the
  body (and which is called recursively.) */
-void libpd_savetofile(t_canvas *x, t_symbol *filename, t_symbol *dir)
+void libpd_savetofile(t_canvas* cnv, t_symbol *filename, t_symbol *dir)
 {
     t_binbuf *b = binbuf_new();
-    libpd_savetemplatesto(x, b, 1);
-    libpd_canvas_saveto(x, b);
+    libpd_savetemplatesto(cnv, b, 1);
+    libpd_canvas_saveto(cnv, b);
     if (binbuf_write(b, filename->s_name, dir->s_name, 0)) {
         //post("%s/%s: %s", dir->s_name, filename->s_name,
         //     (errno ? strerror(errno) : "write failed"));
@@ -522,17 +521,17 @@ void libpd_savetofile(t_canvas *x, t_symbol *filename, t_symbol *dir)
     else
     {
         /* if not an abstraction, reset title bar and directory */
-        if (!x->gl_owner)
+        if (!cnv->gl_owner)
         {
-            canvas_rename(x, filename, dir);
+            canvas_rename(cnv, filename, dir);
             /* update window list in case Save As changed the window name */
             canvas_updatewindowlist();
         }
         post("saved to: %s/%s", dir->s_name, filename->s_name);
-        canvas_dirty(x, 0);
+        canvas_dirty(cnv, 0);
         
         // TODO: do something here?
-        //canvas_reload(filename, dir, x);
+        //canvas_reload(filename, dir, cnv);
     }
     binbuf_free(b);
     
@@ -697,6 +696,7 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 
 
 int libpd_can_undo(t_canvas* cnv) {
+    
     t_undo* udo = canvas_undo_get(cnv);
     
     if(udo && udo->u_last) {

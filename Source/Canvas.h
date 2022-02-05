@@ -85,15 +85,12 @@ public:
     bool connectingWithDrag = false;
 
     pd::Patch patch;
-    std::unique_ptr<PlugDataAudioProcessor> aux_instance;
 
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
 
     bool isGraph = false;
     bool isGraphChild = false;
-
-    String title = "Untitled Patcher";
 
     std::unique_ptr<GraphArea> graphArea;
     
@@ -107,12 +104,8 @@ private:
 
     Point<int> dragStartPosition;
 
-
     LassoComponent<Box*> lasso;
     PopupMenu popupMenu;
-    
-    
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

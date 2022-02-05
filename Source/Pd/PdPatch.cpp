@@ -69,17 +69,6 @@ void Patch::save() {
     
 }
 
-struct fake_canvasenvironment
-{
-    t_symbol *ce_dir;      /* directory patch lives in */
-    int ce_argc;           /* number of "$" arguments */
-    t_atom *ce_argv;       /* array of "$" arguments */
-    int ce_dollarzero;     /* value of "$0" */
-    void* ce_path;   /* search path */
-};
-
-
-
 
 std::array<int, 4> Patch::getBounds() const noexcept
 {
@@ -99,20 +88,12 @@ void Patch::setCurrent() {
     
     m_instance->setThis();
     
-    m_instance->canvasLock.lock();
-    canvas_setcurrent(getPointer());
+    //m_instance->canvasLock.lock();
+    //canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
-    m_instance->canvasLock.unlock();
+    //m_instance->canvasLock.unlock();
 }
 
-t_canvas* Patch::getCurrent()
-{
-       
-    Instance::canvasLock.lock();
-    auto* current = canvas_getcurrent();
-    Instance::canvasLock.unlock();
-    return current;
-}
 
 
 int Patch::getIndex(void* obj) {
@@ -140,15 +121,12 @@ Connections Patch::getConnections()
     Connections connections;
     
     t_linetraverser t;
-    t_outconnect* oc;
-
     auto* x = getPointer();
-
 
     // Get connections from pd
     linetraverser_start(&t, x);
     
-    while((oc = linetraverser_next(&t))) {
+    while(linetraverser_next(&t)) {
         
         connections.push_back({t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2});
     }
@@ -192,8 +170,8 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
 std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y) {
     t_pd* pdobject = nullptr;
     m_instance->enqueueFunction([this, x, y, &pdobject]() mutable {
-        m_instance->setThis();
-        pdobject = libpd_creategraphonparent(static_cast<t_canvas*>(m_ptr), x, y);
+        setCurrent();
+        pdobject = libpd_creategraphonparent(getPointer(), x, y);
     });
     
     while(!pdobject) {
@@ -209,8 +187,8 @@ std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
 {
     t_pd* pdobject = nullptr;
     m_instance->enqueueFunction([this, name, size, x, y, &pdobject]() mutable {
-        m_instance->setThis();
-        pdobject = libpd_creategraph(static_cast<t_canvas*>(m_ptr), name.toRawUTF8(), size, x, y);
+        setCurrent();
+        pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y);
     });
     
     while(!pdobject) {
@@ -224,7 +202,6 @@ std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
 
 std::unique_ptr<Object> Patch::createObject(String name, int x, int y, bool undoable)
 {
-    
     if(!m_ptr) return nullptr;
     
     x /= zoom;
@@ -278,8 +255,8 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y, bool undo
     
     t_pd* pdobject = nullptr;
     m_instance->enqueueFunction([this, argc, argv, undoable, typesymbol, &pdobject]() mutable {
-        m_instance->setThis();
-        pdobject = libpd_createobj(static_cast<t_canvas*>(m_ptr), typesymbol, argc, argv.data(), undoable);
+        setCurrent();
+        pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data(), undoable);
     });
     
     while(!pdobject) {
@@ -323,7 +300,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
         auto [x, y, w, h] = obj->getBounds();
         
         m_instance->enqueueFunction([this, obj](){
-            m_instance->setThis();
+            setCurrent();
             
             int pos = glist_getindex(getPointer(), (t_gobj*)obj);
             
@@ -403,7 +380,7 @@ void Patch::removeObject(Object* obj)
     if(!obj || !m_ptr) return;
     
     m_instance->enqueueFunction([this, obj](){
-        m_instance->setThis();
+        setCurrent();
         libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
     });
     
@@ -435,7 +412,7 @@ bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
         
         if(!can_connect) return;
         
-        m_instance->setThis();
+        setCurrent();
         
         libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
@@ -451,7 +428,7 @@ void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
     if(!src || !sink || !m_ptr) return;
     
     m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
-        m_instance->setThis();
+        setCurrent();
         
         libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
@@ -546,6 +523,7 @@ void Patch::keyPress(int keycode, int shift)
 
 void Patch::updateExtraInfo() {
     
+    
     auto* info = getInfoObject();
     
     if(!info) return;
@@ -574,7 +552,7 @@ t_gobj* Patch::getInfoObject() {
         
         char* text = nullptr;
         int size = 0;
-        m_instance->setThis();
+        setCurrent();
         libpd_get_object_text(y, &text, &size);
         if(text && size)
         {
@@ -593,8 +571,6 @@ void Patch::setExtraInfoID(String oldID, String newID) {
     if(child.isValid()) {
         child.setProperty("ID", newID, nullptr);
     }
-    
-    t_gobj* info = getInfoObject();
     
     storeExtraInfo(false);
 }
@@ -656,6 +632,17 @@ void Patch::setExtraInfo(String ID, MemoryBlock& info) {
     storeExtraInfo(false);
 
 }
+
+
+String Patch::getTitle() {
+    return String(getPointer()->gl_name->s_name);
+}
+
+void Patch::setTitle(String title) {
+    
+    getPointer()->gl_name = gensym(title.toRawUTF8());
+}
+
 
 }
 

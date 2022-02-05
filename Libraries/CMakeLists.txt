@@ -211,7 +211,7 @@ file(GLOB_RECURSE CYCLONE_SOURCES
 
 include_directories(cyclone/)
 include_directories(cyclone/shared/)
-source_group(cyclene FILES ${CYCLONE_SOURCES})
+source_group(cyclone FILES ${CYCLONE_SOURCES})
 list(APPEND SOURCE_FILES ${CYCLONE_SOURCES})
 
 #------------------------------------------------------------------------------#
