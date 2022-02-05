@@ -30,177 +30,151 @@ class Canvas;
  * @TODO: Add 'grid' support.
  */
 
-
 template <typename T>
 class MultiComponentDragger : public LassoSource<T*> {
-public:
-    Canvas* canvas;
-    OwnedArray<T>* selectable;
+ public:
+  Canvas* canvas;
+  OwnedArray<T>* selectable;
 
-    MultiComponentDragger(Canvas* parent, OwnedArray<T>* selectableObjects)
-    {
-        canvas = parent;
-        selectable = selectableObjects;
-    }
-    virtual ~MultiComponentDragger() = default;
-    
-    virtual void dragCallback(int dx, int dy) = 0;
+  MultiComponentDragger(Canvas* parent, OwnedArray<T>* selectableObjects) {
+    canvas = parent;
+    selectable = selectableObjects;
+  }
+  virtual ~MultiComponentDragger() = default;
 
-    /**
-     * Adds a specified component as being selected.
-     */
-    void setSelected(T* component, bool shouldNowBeSelected)
-    {
-        /* Asserts here? This class is only designed to work for components that have a common parent. */
-        jassert(selectedComponents.getNumSelected() == 0 || component->getParentComponent() == selectedComponents.getSelectedItem(0)->getParentComponent());
+  virtual void dragCallback(int dx, int dy) = 0;
 
-        bool isAlreadySelected = isSelected(component);
+  /**
+   * Adds a specified component as being selected.
+   */
+  void setSelected(T* component, bool shouldNowBeSelected) {
+    /* Asserts here? This class is only designed to work for components that have a common parent. */
+    jassert(selectedComponents.getNumSelected() == 0 || component->getParentComponent() == selectedComponents.getSelectedItem(0)->getParentComponent());
 
-        if (!isAlreadySelected && shouldNowBeSelected) {
-            selectedComponents.addToSelection(component);
-            component->repaint();
-        }
+    bool isAlreadySelected = isSelected(component);
 
-        if (isAlreadySelected && !shouldNowBeSelected) {
-            removeSelectedComponent(component);
-            component->repaint();
-        }
+    if (!isAlreadySelected && shouldNowBeSelected) {
+      selectedComponents.addToSelection(component);
+      component->repaint();
     }
 
-    /**
-     You should call this when the user clicks on the background of the
-     parent component.
-     */
-    virtual void deselectAll()
-    {
-        for (auto c : selectedComponents)
-            if (c)
-                c->repaint();
+    if (isAlreadySelected && !shouldNowBeSelected) {
+      removeSelectedComponent(component);
+      component->repaint();
+    }
+  }
 
-        selectedComponents.deselectAll();
+  /**
+   You should call this when the user clicks on the background of the
+   parent component.
+   */
+  virtual void deselectAll() {
+    for (auto c : selectedComponents)
+      if (c) c->repaint();
+
+    selectedComponents.deselectAll();
+  }
+
+  /**
+   Find out if a component is marked as selected.
+   */
+  bool isSelected(T* component) const { return std::find(selectedComponents.begin(), selectedComponents.end(), component) != selectedComponents.end(); }
+
+  /**
+   Call this from your components mouseDown event.
+   */
+  void handleMouseDown(T* component, const MouseEvent& e) {
+    jassert(component != nullptr);
+
+    if (!isSelected(component)) {
+      if (!(e.mods.isShiftDown() || e.mods.isCommandDown())) deselectAll();
+
+      setSelected(component, true);
     }
 
-    /**
-     Find out if a component is marked as selected.
-     */
-    bool isSelected(T* component) const
-    {
-        return std::find(selectedComponents.begin(),
-                   selectedComponents.end(),
-                   component)
-            != selectedComponents.end();
+    if (component != nullptr) mouseDownWithinTarget = e.getEventRelativeTo(component).getMouseDownPosition();
+
+    componentBeingDragged = component;
+
+    totalDragDelta = {0, 0};
+
+    component->repaint();
+  }
+
+  /**
+   Call this from your components mouseUp event.
+   */
+  void handleMouseUp(T* component, const MouseEvent& e) {
+    if (didStartDragging) {
+      dragCallback(totalDragDelta.x, totalDragDelta.y);
     }
 
-    /**
-     Call this from your components mouseDown event.
-     */
-    void handleMouseDown(T* component, const MouseEvent& e)
-    {
-        jassert(component != nullptr);
+    if (didStartDragging) didStartDragging = false;
 
-        if (!isSelected(component)) {
-            if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))
-                deselectAll();
+    component->repaint();
+  }
 
-            setSelected(component, true);
-        }
+  /**
+   Call this from your components mouseDrag event.
+   */
+  void handleMouseDrag(const MouseEvent& e) {
+    jassert(e.mods.isAnyMouseButtonDown());  // The event has to be a drag event!
 
-        if (component != nullptr)
-            mouseDownWithinTarget = e.getEventRelativeTo(component).getMouseDownPosition();
+    /** Ensure tiny movements don't start a drag. */
+    if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag) return;
 
-        componentBeingDragged = component;
+    didStartDragging = true;
 
-        totalDragDelta = { 0, 0 };
+    Point<int> delta = e.getEventRelativeTo(componentBeingDragged).getPosition() - mouseDownWithinTarget;
 
-        component->repaint();
+    for (auto comp : selectedComponents) {
+      if (comp != nullptr) {
+        Rectangle<int> bounds(comp->getBounds());
+
+        bounds += delta;
+
+        comp->setBounds(bounds);
+      }
+    }
+    totalDragDelta += delta;
+  }
+
+  SelectedItemSet<T*>& getLassoSelection() {
+    rawPointers.deselectAll();
+
+    for (auto& selected : selectedComponents) {
+      if (selected) {
+        rawPointers.addToSelection(selected);
+      }
     }
 
-    /**
-     Call this from your components mouseUp event.
-     */
-    void handleMouseUp(T* component, const MouseEvent& e)
-    {
-        if (didStartDragging) {
-            dragCallback(totalDragDelta.x, totalDragDelta.y);
-        }
+    return rawPointers;
+  }
 
-        if (didStartDragging)
-            didStartDragging = false;
+ private:
+  void removeSelectedComponent(T* component) { selectedComponents.deselect(component); }
 
-        component->repaint();
+  void findLassoItemsInArea(Array<T*>& itemsFound, const Rectangle<int>& area) {
+    for (auto* element : *selectable) {
+      if (area.intersects(element->getBounds())) {
+        itemsFound.add(element);
+        setSelected(element, true);
+        element->repaint();
+      } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+        setSelected(element, false);
+      }
     }
+  }
 
-    /**
-     Call this from your components mouseDrag event.
-     */
-    void handleMouseDrag(const MouseEvent& e)
-    {
+  const int minimumMovementToStartDrag = 10;
 
-        jassert(e.mods.isAnyMouseButtonDown()); // The event has to be a drag event!
+  bool didStartDragging{false};
 
-        /** Ensure tiny movements don't start a drag. */
-        if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag)
-            return;
+  Point<int> mouseDownWithinTarget;
+  Point<int> totalDragDelta;
 
-        didStartDragging = true;
+  SelectedItemSet<Component::SafePointer<T>> selectedComponents;
+  SelectedItemSet<T*> rawPointers;
 
-        Point<int> delta = e.getEventRelativeTo(componentBeingDragged).getPosition() - mouseDownWithinTarget;
-
-        for (auto comp : selectedComponents) {
-            if (comp != nullptr) {
-                Rectangle<int> bounds(comp->getBounds());
-
-                bounds += delta;
-
-                comp->setBounds(bounds);
-            }
-        }
-        totalDragDelta += delta;
-    }
-
-    SelectedItemSet<T*>& getLassoSelection()
-    {
-        rawPointers.deselectAll();
-
-        for (auto& selected : selectedComponents) {
-            if (selected) {
-                rawPointers.addToSelection(selected);
-            }
-        }
-
-        return rawPointers;
-    }
-
-private:
-
-    void removeSelectedComponent(T* component)
-    {
-        selectedComponents.deselect(component);
-    }
-
-    void findLassoItemsInArea(Array<T*>& itemsFound, const Rectangle<int>& area)
-    {
-        for (auto* element : *selectable) {
-            if (area.intersects(element->getBounds())) {
-                itemsFound.add(element);
-                setSelected(element, true);
-                element->repaint();
-            } else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
-                setSelected(element, false);
-            }
-        }
-    }
-
-    const int minimumMovementToStartDrag = 10;
-
-    bool didStartDragging { false };
-
-    Point<int> mouseDownWithinTarget;
-    Point<int> totalDragDelta;
-
-    SelectedItemSet<Component::SafePointer<T>> selectedComponents;
-    SelectedItemSet<T*> rawPointers;
-
-    T* componentBeingDragged { nullptr };
+  T* componentBeingDragged{nullptr};
 };
-
