@@ -35,7 +35,7 @@ struct pd::Instance::internal
     
     static void instance_multi_float(pd::Instance* ptr, const char *recv, float f)
     {
-        ptr->m_message_queue.try_enqueue({std::string("float"), std::string(recv), std::vector<Atom>(1, f)});
+        ptr->m_message_queue.try_enqueue({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})});
     }
     
     static void instance_multi_symbol(pd::Instance* ptr, const char *recv, const char *sym)
@@ -68,9 +68,7 @@ struct pd::Instance::internal
         }
         ptr->m_message_queue.try_enqueue(std::move(mess));
     }
-    
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////
+
     
     static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
     {
@@ -106,9 +104,7 @@ struct pd::Instance::internal
     {
         ptr->m_midi_queue.try_enqueue({midievent::MIDIBYTE, port, byte, 0});
     }
-    
-    //////////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////
+
     
     static void instance_multi_print(pd::Instance* ptr, char const* s)
     {
@@ -120,8 +116,6 @@ struct pd::Instance::internal
 
 namespace pd
 {
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
 
@@ -178,12 +172,13 @@ Instance::Instance(std::string const& symbol)
 
 Instance::~Instance()
 {
+
     closePatch();
-    for(int i = 0; i < m_message_receiver.size(); i++)
-        pd_free((t_pd *)m_message_receiver[i]);
+    for(auto& i : m_message_receiver)
+        pd_free(static_cast<t_pd*>(i));
     
-    pd_free((t_pd *)m_midi_receiver);
-    pd_free((t_pd *)m_print_receiver);
+    pd_free(static_cast<t_pd*>(m_midi_receiver));
+    pd_free(static_cast<t_pd*>(m_print_receiver));
     
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance *>(m_instance));
@@ -191,8 +186,6 @@ Instance::~Instance()
     
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
 
 int Instance::getBlockSize() const noexcept
 {
@@ -214,7 +207,7 @@ void Instance::addListener(const char* sym)
 void Instance::prepareDSP(const int nins, const int nouts, const double samplerate)
 {
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
-    libpd_init_audio(nins, nouts, (int)samplerate);
+    libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
 }
 
 void Instance::startDSP()
@@ -240,8 +233,6 @@ void Instance::performDSP(float const* inputs, float* outputs)
 
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
 
 void Instance::sendNoteOn(const int channel, const int pitch, const int velocity) const
 {
@@ -297,8 +288,6 @@ void Instance::sendMidiByte(const int port, const int byte) const
     libpd_midibyte(port, byte);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
 
 void Instance::sendBang(const char* receiver) const
 {
@@ -332,7 +321,7 @@ void Instance::sendList(const char* receiver, const std::vector<Atom>& list) con
     if(!static_cast<t_pdinstance *>(m_instance))
         return;
     
-    t_atom* argv = static_cast<t_atom*>(m_atoms);
+    auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     for(size_t i = 0; i < list.size(); ++i)
     {
@@ -341,7 +330,7 @@ void Instance::sendList(const char* receiver, const std::vector<Atom>& list) con
         else
             libpd_set_symbol(argv+i, list[i].getSymbol().c_str());
     }
-    libpd_list(receiver, (int)list.size(), argv);
+    libpd_list(receiver, static_cast<int>(list.size()), argv);
 }
 
 void Instance::sendMessage(const char* receiver, const char* msg, const std::vector<Atom>& list) const
@@ -349,7 +338,7 @@ void Instance::sendMessage(const char* receiver, const char* msg, const std::vec
     if(!static_cast<t_pdinstance *>(m_instance))
         return;
     
-    t_atom* argv = static_cast<t_atom*>(m_atoms);
+    auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
     for(size_t i = 0; i < list.size(); ++i)
     {
@@ -358,7 +347,7 @@ void Instance::sendMessage(const char* receiver, const char* msg, const std::vec
         else
             libpd_set_symbol(argv+i, list[i].getSymbol().c_str());
     }
-    libpd_message(receiver, msg, (int)list.size(), argv);
+    libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
 }
 
 void Instance::processMessages()
@@ -407,9 +396,9 @@ void Instance::processPrints()
     std::string print;
     while(m_print_queue.try_dequeue(print))
     {
-        if(print.size() && print.back() == '\n')
+        if(!print.empty() && print.back() == '\n')
         {
-            while(print.size() && (print.back() == '\n' || print.back() == ' ')) {
+            while(!print.empty() && (print.back() == '\n' || print.back() == ' ')) {
                 print.pop_back();
             }
             temp += print;
@@ -428,7 +417,7 @@ void Instance::processPrints()
     }
 }
 
-void Instance::enqueueFunction(std::function<void(void)> fn) {
+void Instance::enqueueFunction(const std::function<void(void)>& fn) {
     
     //sys_lock();
     //fn();
@@ -505,7 +494,7 @@ void Instance::sendMessagesFromQueue()
         {
             if(mess.selector == "list")
             {
-                t_atom* argv = static_cast<t_atom*>(m_atoms);
+                auto* argv = static_cast<t_atom*>(m_atoms);
                 for(size_t i = 0; i < mess.list.size(); ++i)
                 {
                     if(mess.list[i].isFloat())
@@ -547,11 +536,9 @@ void Instance::sendMessagesFromQueue()
     
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
 
 
-Patch Instance::openPatch(File toOpen)
+Patch Instance::openPatch(const File& toOpen)
 {
     String dirname = toOpen.getParentDirectory().getFullPathName();
     auto* dir = dirname.toRawUTF8();
@@ -567,7 +554,7 @@ Patch Instance::openPatch(File toOpen)
     
     m_patch = libpd_create_canvas(file, dir);
     
-    //canvas_setcurrent(static_cast<t_canvas*>(m_patch));
+    //canvas_setcurrent(static_cast<t_canvas*>(patch));
     canvasLock.unlock();
     setThis();
     
@@ -576,7 +563,7 @@ Patch Instance::openPatch(File toOpen)
     return getPatch();
 }
 
-void Instance::savePatch(File location)
+void Instance::savePatch(const File& location)
 {
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
@@ -623,25 +610,14 @@ Patch Instance::getPatch()
     return Patch(m_patch, this);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
-
 Array Instance::getArray(std::string const& name)
 {
-    return Array(name, m_instance);
+    return {name, m_instance};
 }
-
-//////////////////////////////////////////////////////////////////////////////////////////
-//////////////////////////////////////////////////////////////////////////////////////////
 
 void Instance::setThis()
 {
     libpd_set_instance(static_cast<t_pdinstance *>(m_instance));
-}
-
-void Instance::stringToAtom(String name, int& argc, t_atom& target)
-{
-    
 }
 
 

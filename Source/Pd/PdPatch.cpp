@@ -11,8 +11,8 @@
 
 extern "C"
 {
-#include <z_libpd.h>
 #include <m_pd.h>
+#include <m_imp.h>
 #include <g_canvas.h>
 #include "x_libpd_multi.h"
 #include "x_libpd_extra_utils.h"
@@ -50,29 +50,22 @@ namespace pd
 
 
 
-Patch::Patch(void* ptr, Instance* instance) noexcept :
-m_ptr(ptr), m_instance(instance)
+Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept :
+        ptr(patchPtr), instance(parentInstance)
 {
     if(auto* cnv = getPointer()) {
         setZoom(1);
         cnv->gl_mapped = 1; // this will allow us to receive pd gui updates on every canvas
     }
-    
-
 }
 
-void Patch::saveToFile(File location) {
-
+Patch::Patch(const File& toOpen, Instance* instance) noexcept
+{
 }
-
-void Patch::save() {
-    
-}
-
 
 std::array<int, 4> Patch::getBounds() const noexcept
 {
-    if(m_ptr)
+    if(ptr)
     {
         t_canvas const* cnv = getPointer();
         
@@ -86,12 +79,12 @@ std::array<int, 4> Patch::getBounds() const noexcept
 
 void Patch::setCurrent() {
     
-    m_instance->setThis();
+    instance->setThis();
     
-    //m_instance->canvasLock.lock();
+    //instance->canvasLock.lock();
     //canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
-    //m_instance->canvasLock.unlock();
+    //instance->canvasLock.unlock();
 }
 
 
@@ -104,7 +97,7 @@ int Patch::getIndex(void* obj) {
     for(t_gobj *y = cnv->gl_list; y; y = y->g_next)
     {
         
-        Object object(static_cast<void*>(y), this, m_instance);
+        Object object(static_cast<void*>(y), this, instance);
         
         if(String(object.getText()).startsWith("plugdatainfo")) continue;
         
@@ -114,9 +107,11 @@ int Patch::getIndex(void* obj) {
         
         i++;
     }
+
+    return -1;
 }
 
-Connections Patch::getConnections()
+Connections Patch::getConnections() const
 {
     Connections connections;
     
@@ -134,9 +129,9 @@ Connections Patch::getConnections()
     return connections;
 }
 
-std::vector<Object> Patch::getObjects(bool only_gui) noexcept
+std::vector<Object> Patch::getObjects(bool onlyGui) noexcept
 {
-    if(m_ptr)
+    if(ptr)
     {
         std::vector<Object> objects;
         t_canvas const* cnv = getPointer();
@@ -144,12 +139,12 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
         for(t_gobj *y = cnv->gl_list; y; y = y->g_next)
         {
             
-            Object object(static_cast<void*>(y), this, m_instance);
+            Object object(static_cast<void*>(y), this, instance);
             
             if(String(object.getText()).startsWith("plugdatainfo")) continue;
             
-            if(only_gui) {
-                Gui gui(static_cast<void*>(y), this, m_instance);
+            if(onlyGui) {
+                Gui gui(static_cast<void*>(y), this, instance);
                 if(gui.getType() != Type::Undefined)
                 {
                     objects.push_back(object);
@@ -163,46 +158,46 @@ std::vector<Object> Patch::getObjects(bool only_gui) noexcept
         }
         return objects;
     }
-    return std::vector<Object>();
+    return {};
 }
 
 
 std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y) {
     t_pd* pdobject = nullptr;
-    m_instance->enqueueFunction([this, x, y, &pdobject]() mutable {
+    instance->enqueueFunction([this, x, y, &pdobject]() mutable {
         setCurrent();
         pdobject = libpd_creategraphonparent(getPointer(), x, y);
     });
     
     while(!pdobject) {
-        m_instance->waitForStateUpdate();
+        instance->waitForStateUpdate();
     }
     
     assert(pdobject);
     
-    return std::make_unique<Gui>(pdobject, this, m_instance);
+    return std::make_unique<Gui>(pdobject, this, instance);
 }
 
-std::unique_ptr<Object> Patch::createGraph(String name, int size, int x, int y)
+std::unique_ptr<Object> Patch::createGraph(const String& name, int size, int x, int y)
 {
     t_pd* pdobject = nullptr;
-    m_instance->enqueueFunction([this, name, size, x, y, &pdobject]() mutable {
+    instance->enqueueFunction([this, name, size, x, y, &pdobject]() mutable {
         setCurrent();
         pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y);
     });
     
     while(!pdobject) {
-        m_instance->waitForStateUpdate();
+        instance->waitForStateUpdate();
     }
     
     assert(pdobject);
     
-    return std::make_unique<Gui>(pdobject, this, m_instance);
+    return std::make_unique<Gui>(pdobject, this, instance);
 }
 
-std::unique_ptr<Object> Patch::createObject(String name, int x, int y, bool undoable)
+std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bool undoable)
 {
-    if(!m_ptr) return nullptr;
+    if(!ptr) return nullptr;
     
     x /= zoom;
     y /= zoom;
@@ -241,8 +236,8 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y, bool undo
     auto argv = std::vector<t_atom>(argc);
     
     // Set position
-    SETFLOAT(argv.data(), (float)x);
-    SETFLOAT(argv.data() + 1, (float)y);
+    SETFLOAT(argv.data(), static_cast<float>(x));
+    SETFLOAT(argv.data() + 1, static_cast<float>(y));
     
     for(int i = 0; i < tokens.size(); i++) {
         if(tokens[i].containsOnly("0123456789.-") && tokens[i] != "-") {
@@ -254,13 +249,13 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y, bool undo
     }
     
     t_pd* pdobject = nullptr;
-    m_instance->enqueueFunction([this, argc, argv, undoable, typesymbol, &pdobject]() mutable {
+    instance->enqueueFunction([this, argc, argv, undoable, typesymbol, &pdobject]() mutable {
         setCurrent();
         pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data(), undoable);
     });
     
     while(!pdobject) {
-        m_instance->waitForStateUpdate();
+        instance->waitForStateUpdate();
     }
     
     assert(pdobject);
@@ -268,10 +263,10 @@ std::unique_ptr<Object> Patch::createObject(String name, int x, int y, bool undo
     bool isGui = Gui::getType(pdobject) != Type::Undefined;
     
     if(isGui) {
-        return std::make_unique<Gui>(pdobject, this, m_instance);
+        return std::make_unique<Gui>(pdobject, this, instance);
     }
     else {
-        return std::make_unique<Object>(pdobject, this, m_instance);
+        return std::make_unique<Object>(pdobject, this, instance);
     }
 }
 
@@ -286,8 +281,8 @@ static int glist_getindex(t_glist *x, t_gobj *y)
 }
 
 
-std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
-    if(!obj || !m_ptr) return nullptr;
+std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name) {
+    if(!obj || !ptr) return nullptr;
         
     // Cant use the queue for this...
     setCurrent();
@@ -295,44 +290,42 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
     StringArray notRenamable = {"msg", "message", "gatom", "floatatom", "symbolatom"};
     
     // Don't rename when going to or from a gui object, remove and recreate instead
-    // TODO: sometimes this makes undo screw up
     if(notRenamable.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() == Type::Message || obj->getType() == Type::AtomNumber || obj->getType() == Type::AtomSymbol) {
         auto [x, y, w, h] = obj->getBounds();
         
-        m_instance->enqueueFunction([this, obj](){
+        instance->enqueueFunction([this](){
             setCurrent();
-            
-            int pos = glist_getindex(getPointer(), (t_gobj*)obj);
-            
             glist_noselect(getPointer());
-            glist_select(getPointer(), (t_gobj*)obj->getPointer());
+            glist_select(getPointer(), static_cast<t_gobj*>(ptr));
             canvas_stowconnections(getPointer());
             libpd_removeselection(getPointer());
             glist_noselect(getPointer());
+
+
         });
         
         auto obj = createObject(name, x, y);
         
-        m_instance->enqueueFunction([this](){
+        instance->enqueueFunction([this](){
             canvas_restoreconnections(getPointer());
         });
         
         return obj;
     }
 
-    m_instance->enqueueFunction([this, obj, name]() mutable {
+    instance->enqueueFunction([this, obj, name]() mutable {
         libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length());
     });
     
-    m_instance->waitForStateUpdate();
+    instance->waitForStateUpdate();
     
     setCurrent();
-    // This only works if pd always recreats the object
+    // This only works if pd always recreates the object
     // TODO: find out if thats always the case
     
-    auto gui = Gui(libpd_newest(getPointer()), this, m_instance);
+    auto gui = Gui(libpd_newest(getPointer()), this, instance);
     if(gui.getType() == Type::Undefined) {
-        return std::make_unique<Object>(libpd_newest(getPointer()), this, m_instance);
+        return std::make_unique<Object>(libpd_newest(getPointer()), this, instance);
     }
     else {
         return std::make_unique<Gui>(gui);
@@ -343,19 +336,19 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, String name) {
 
 
 void Patch::copy() {
-    m_instance->enqueueFunction([this]() {
+    instance->enqueueFunction([this]() {
         libpd_copy(getPointer());
     });
 }
 
 void Patch::paste() {
-    m_instance->enqueueFunction([this]() {
+    instance->enqueueFunction([this]() {
         libpd_paste(getPointer());
     });
 }
 
 void Patch::duplicate() {
-    m_instance->enqueueFunction([this]() {
+    instance->enqueueFunction([this]() {
         setCurrent();
         libpd_duplicate(getPointer());
     });
@@ -363,13 +356,13 @@ void Patch::duplicate() {
 
 
 void Patch::selectObject(Object* obj)  {
-    m_instance->enqueueFunction([this, obj]() {
+    instance->enqueueFunction([this, obj]() {
         glist_select(getPointer(), &checkObject(obj)->te_g);
     });
 }
 
 void Patch::deselectAll() {
-    m_instance->enqueueFunction([this]() {
+    instance->enqueueFunction([this]() {
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
     });
@@ -377,9 +370,9 @@ void Patch::deselectAll() {
 
 void Patch::removeObject(Object* obj)
 {
-    if(!obj || !m_ptr) return;
+    if(!obj || !ptr) return;
     
-    m_instance->enqueueFunction([this, obj](){
+    instance->enqueueFunction([this, obj](){
         setCurrent();
         libpd_removeobj(getPointer(), &checkObject(obj)->te_g);
     });
@@ -388,46 +381,46 @@ void Patch::removeObject(Object* obj)
 
 bool Patch::canConnect(Object* src, int nout, Object* sink, int nin) {
     
-    bool can_connect = false;
+    bool canConnect = false;
     
-    m_instance->enqueueFunction([this, &can_connect, src, nout, sink, nin]() mutable {
-        
-        can_connect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
+
+        canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
                                 
-    m_instance->waitForStateUpdate();
+    instance->waitForStateUpdate();
 
-    return can_connect;
+    return canConnect;
 }
 
 bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
 {
-    if(!src || !sink || !m_ptr) return false;
+    if(!src || !sink || !ptr) return false;
     
-    bool can_connect = false;
+    bool canConnect = false;
     
-    m_instance->enqueueFunction([this, &can_connect, src, nout, sink, nin]() mutable {
+    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable {
+
+        canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
         
-        can_connect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-        
-        if(!can_connect) return;
+        if(!canConnect) return;
         
         setCurrent();
         
         libpd_createconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
     });
     
-    m_instance->waitForStateUpdate();
+    instance->waitForStateUpdate();
     
     
-    return can_connect;
+    return canConnect;
 }
 
 void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
 {
-    if(!src || !sink || !m_ptr) return;
+    if(!src || !sink || !ptr) return;
     
-    m_instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
+    instance->enqueueFunction([this, src, nout, sink, nin]() mutable {
         setCurrent();
         
         libpd_removeconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
@@ -437,10 +430,10 @@ void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
 
 
 
-void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
-    //if(!obj || !m_ptr) return;
+void Patch::moveObjects(const std::vector<Object*>& objects, int dx, int dy) {
+    //if(!obj || !ptr) return;
     
-    m_instance->enqueueFunction([this, objects, dx, dy]() mutable {
+    instance->enqueueFunction([this, objects, dx, dy]() mutable {
         setCurrent();
         
         for(auto* obj : objects) {
@@ -457,14 +450,14 @@ void Patch::moveObjects(std::vector<Object*> objects, int dx, int dy) {
 }
 
 void Patch::finishRemove() {
-    m_instance->enqueueFunction([this]() mutable {
+    instance->enqueueFunction([this]() mutable {
         setCurrent();
         libpd_finishremove(getPointer());
     });
 }
 
 void Patch::removeSelection() {
-    m_instance->enqueueFunction([this]() mutable {
+    instance->enqueueFunction([this]() mutable {
         setCurrent();
         
         libpd_removeselection(getPointer());
@@ -473,7 +466,7 @@ void Patch::removeSelection() {
 }
 
 void Patch::undo() {
-    m_instance->enqueueFunction([this]() {
+    instance->enqueueFunction([this]() {
         setCurrent();
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
@@ -487,7 +480,7 @@ void Patch::undo() {
 }
 
 void Patch::redo() {
-    m_instance->enqueueFunction([this]() {
+    instance->enqueueFunction([this]() {
         setCurrent();
         glist_noselect(getPointer());
         EDITOR->canvas_undo_already_set_move = 0;
@@ -498,14 +491,14 @@ void Patch::redo() {
     });
 }
 
-void Patch::setZoom(int zoom)
+void Patch::setZoom(int newZoom)
 {
     t_atom arg;
-    SETFLOAT(&arg, zoom);
-    pd_typedmess((t_pd*)getPointer(), gensym("zoom"), 2, &arg);
+    SETFLOAT(&arg, newZoom);
+    pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
-t_object* Patch::checkObject(Object* obj) const noexcept {
+t_object* Patch::checkObject(Object* obj) noexcept {
     return pd_checkobject(static_cast<t_pd*>(obj->getPointer()));
 }
 
@@ -516,8 +509,9 @@ void Patch::keyPress(int keycode, int shift)
     SETFLOAT(args, 1);
     SETFLOAT(args + 1, keycode);
     SETFLOAT(args + 2, shift);
-    
-    pd_typedmess((t_pd*)getPointer(), gensym("key"), 3, args);
+
+
+    pd_typedmess(static_cast<t_pd*>(ptr), gensym("key"), 3, args);
     
 }
 
@@ -548,7 +542,7 @@ t_gobj* Patch::getInfoObject() {
     
     for(t_gobj* y = getPointer()->gl_list; y; y = y->g_next)
     {
-        if(strcmp(libpd_get_object_class_name(y), "text")) continue;
+        if(strcmp(libpd_get_object_class_name(y), "text") != 0) continue;
         
         char* text = nullptr;
         int size = 0;
@@ -565,11 +559,11 @@ t_gobj* Patch::getInfoObject() {
     return nullptr;
     
 }
-void Patch::setExtraInfoID(String oldID, String newID) {
-    auto child = extraInfo.getChildWithProperty("ID", oldID);
+void Patch::setExtraInfoId(const String& oldId, const String& newId) {
+    auto child = extraInfo.getChildWithProperty("ID", oldId);
     
     if(child.isValid()) {
-        child.setProperty("ID", newID, nullptr);
+        child.setProperty("ID", newId, nullptr);
     }
     
     storeExtraInfo(false);
@@ -585,23 +579,23 @@ void Patch::storeExtraInfo(bool undoable) {
     
     if(!info) {
         auto newObject = createObject("comment plugdatainfo", 0, 0, false);
-        info = (t_gobj*)newObject->getPointer();
+        info = static_cast<t_gobj*>(newObject->getPointer());
     }
     
     if(undoable) {
-        m_instance->enqueueFunction([this, info, newname]() mutable {
+        instance->enqueueFunction([this, info, newname]() mutable {
             libpd_renameobj(getPointer(), info, newname.toRawUTF8(), newname.length());
         });
     }
     else {
-        binbuf_text(((t_text *)info)->te_binbuf, newname.toRawUTF8(), newname.length());
+        binbuf_text((reinterpret_cast<t_text*>(info))->te_binbuf, newname.toRawUTF8(), newname.length());
     }
 
     deselectAll();
 }
 
-MemoryBlock Patch::getExtraInfo(String ID) {
-    auto child = extraInfo.getChildWithProperty("ID", ID);
+MemoryBlock Patch::getExtraInfo(const String& id) const {
+    auto child = extraInfo.getChildWithProperty("ID", id);
     
     MemoryBlock block;
     
@@ -613,16 +607,16 @@ MemoryBlock Patch::getExtraInfo(String ID) {
 }
 
 
-void Patch::setExtraInfo(String ID, MemoryBlock& info) {
+void Patch::setExtraInfo(const String& id, MemoryBlock& info) {
     
     auto tree = ValueTree("Connection");
     
-    auto existingInfo = extraInfo.getChildWithProperty("ID", ID);
+    auto existingInfo = extraInfo.getChildWithProperty("ID", id);
     if(existingInfo.isValid()) {
         tree = existingInfo;
     }
 
-    tree.setProperty("ID", ID, nullptr);
+    tree.setProperty("ID", id, nullptr);
     tree.setProperty("Info", info.toBase64Encoding(), nullptr);
     
     if(!existingInfo.isValid()) {
@@ -634,11 +628,11 @@ void Patch::setExtraInfo(String ID, MemoryBlock& info) {
 }
 
 
-String Patch::getTitle() {
-    return String(getPointer()->gl_name->s_name);
+String Patch::getTitle() const {
+    return {getPointer()->gl_name->s_name};
 }
 
-void Patch::setTitle(String title) {
+void Patch::setTitle(const String& title) {
     
     getPointer()->gl_name = gensym(title.toRawUTF8());
 }

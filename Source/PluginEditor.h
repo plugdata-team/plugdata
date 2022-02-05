@@ -66,27 +66,25 @@ public:
     void mouseUp(const MouseEvent& e) override;
 
     void openProject();
-    void saveProject(std::function<void()> nestedCallback = [](){});
-    void saveProjectAs(std::function<void()> nestedCallback = [](){});
+    void saveProject(const std::function<void()>& nestedCallback = [](){});
+    void saveProjectAs(const std::function<void()>& nestedCallback = [](){});
     
     void addTab(Canvas* cnv);
     
 
     Canvas* getCurrentCanvas();
-    Canvas* getMainCanvas();
     Canvas* getCanvas(int idx);
 
     void updateValues();
 
     void updateUndoState();
     
-    void zoom(bool zoomIn);
+    void zoom(bool zoomingIn);
 
     TabComponent& getTabbar() { return tabbar; };
 
     PlugDataAudioProcessor& pd;
 
-    Canvas* mainCanvas = nullptr;
     AffineTransform transform;
 
     TabComponent tabbar;
@@ -124,9 +122,6 @@ private:
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;
-
-    Array<TextButton> sidebarSelectors = {};
-
 
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;

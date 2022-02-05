@@ -1,9 +1,13 @@
+/*
+ // Copyright (c) 2021-2022 Timothy Schoen
+ // For information on usage and redistribution, and for a DISCLAIMER OF ALL
+ // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
+*/
+
 #pragma once
 #include <JuceHeader.h>
 #include "LookAndFeel.h"
-/* Copyright (c) 2021 Jojo and others. */
 
-/* < https://opensource.org/licenses/BSD-3-Clause > */
 
 
 class ConsoleComponent : public Component, private AsyncUpdater, public ComponentListener
@@ -21,11 +25,7 @@ public:
         //setOpaque (true);
         
     }
-    
-    ~ConsoleComponent()
-    {
-    }
-    
+
     void componentMovedOrResized (Component &component, bool wasMoved, bool wasResized) override {
         setSize(viewport.getWidth(), getHeight());
         repaint();
@@ -53,7 +53,7 @@ public:
         removeMessagesIfRequired (messages);
         removeMessagesIfRequired (history);
         
-        history.push_back({m, 0});
+        history.emplace_back(m, 0);
         
         logMessageProceed ({{m, 0}});
     }
@@ -63,7 +63,7 @@ public:
         removeMessagesIfRequired (messages);
         removeMessagesIfRequired (history);
         
-        history.push_back({m, 1});
+        history.emplace_back(m, 1);
         logMessageProceed ({{m, 1}});
     }
     
@@ -96,7 +96,7 @@ public:
         
         messages.insert (messages.cend(), m.cbegin(), m.cend());
         
-        for(auto& item : m) is_selected.push_back(false);
+        for(auto& item : m) isSelected.push_back(false);
         
         triggerAsyncUpdate();
     }
@@ -114,7 +114,7 @@ public:
         
         for(int row = 0; row < jmax(32, static_cast<int>(messages.size())); row++) {
             int height = 24;
-            int num_lines = 1;
+            int numLines = 1;
             
             if (isPositiveAndBelow (row, messages.size())) {
                 auto& e = messages[row];
@@ -125,13 +125,13 @@ public:
                 
                 for(int i = 0; i < xOffsets.size(); i++) {
                     
-                    if((xOffsets[i] + 10) >= getWidth()) {
+                    if((xOffsets[i] + 10) >= static_cast<float>(getWidth())) {
                         height += 22;
                         
                         for(int j = i + 1; j < xOffsets.size(); j++) {
                             xOffsets.getReference(j) -= xOffsets[i];
                         }
-                        num_lines++;
+                        numLines++;
                     }
                 }
             }
@@ -146,9 +146,9 @@ public:
             if (isPositiveAndBelow (row, messages.size())) {
                 const auto& e = messages[row];
                 
-                g.setColour (is_selected[row] ? MainLook::highlightColour
-                             : colourWithType (e.second));
-                g.drawFittedText (e.first, r.reduced (4, 0), Justification::centredLeft, num_lines, 1.0f);
+                g.setColour (isSelected[row] ? MainLook::highlightColour
+                                             : colourWithType (e.second));
+                g.drawFittedText (e.first, r.reduced (4, 0), Justification::centredLeft, numLines, 1.0f);
             }
             else {
                 numEmpty++;
@@ -183,13 +183,13 @@ private:
     
     static void removeMessagesIfRequired (std::deque<std::pair<String, int>>& messages)
     {
-        const int maximum_ = 2048;
-        const int removed_ = 64;
+        const int maximum = 2048;
+        const int removed = 64;
         
         int size = static_cast<int> (messages.size());
         
-        if (size >= maximum_) {
-            const int n = nextPowerOfTwo (size - maximum_ + removed_);
+        if (size >= maximum) {
+            const int n = nextPowerOfTwo (size - maximum + removed);
             
             jassert (n < size);
             
@@ -200,13 +200,14 @@ private:
     template <class T>
     static void parseMessages (T& m, bool showMessages, bool showErrors)
     {
-        if (showMessages == false || showErrors == false) {
+        if (!showMessages || !showErrors) {
             auto f = [showMessages, showErrors] (const std::pair<String, bool>& e)
             {
                 bool t = e.second;
                 
-                if (t && showMessages == false)    { return true; }
-                else if (!t && showErrors == false) { return true; }
+                if ((t && !showMessages) || (!t && !showErrors)) {
+                    return true;
+                }
                 else {
                     return false;
                 }
@@ -219,7 +220,7 @@ private:
     std::deque<std::pair<String, int>> messages;
     std::deque<std::pair<String, int>> history;
     
-    std::vector<bool> is_selected;
+    std::vector<bool> isSelected;
     
     int totalHeight = 0;
     
@@ -282,7 +283,7 @@ struct Console : public Component
         resized();
     }
     
-    ~Console() {
+    ~Console() override {
         removeComponentListener(console);
     }
     
@@ -296,7 +297,7 @@ struct Console : public Component
         console->logError(m);
     }
     
-    void resized() {
+    void resized() override {
         
         FlexBox fb;
         fb.flexWrap = FlexBox::Wrap::noWrap;

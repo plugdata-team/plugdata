@@ -70,7 +70,7 @@ public:
     virtual void receiveList(const std::string& dest, const std::vector<Atom>& list) {}
     virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list) {}
     
-    void enqueueFunction(std::function<void(void)> fn);
+    void enqueueFunction(const std::function<void(void)>& fn);
     void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list);
     
     void enqueueDirectMessages(void* object, std::vector<Atom> const& list);
@@ -87,9 +87,9 @@ public:
     void processMidi();
     
 
-    Patch openPatch(File toOpen);
+    Patch openPatch(const File& toOpen);
     
-    void savePatch(File location);
+    void savePatch(const File& location);
     void savePatch();
     
     File getCurrentFile() { return currentFile; }
@@ -104,9 +104,7 @@ public:
     Array getArray(std::string const& name);
     
     bool checkState(String pdstate);
-    
-    void stringToAtom(String name, int& argc, t_atom& target);
-    
+
     static Instance* getCurrent();
     
     void waitForStateUpdate();
@@ -125,7 +123,7 @@ public:
     std::atomic<bool> audioStarted = false;
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
-    static inline std::recursive_mutex canvasLock;
+    std::recursive_mutex canvasLock;
     
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
     

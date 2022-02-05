@@ -20,9 +20,9 @@ class Box : public Component, public ChangeListener {
 
 public:
     //==============================================================================
-    Box(Canvas* parent, String name = "", Point<int> position = { 100, 100 });
+    explicit Box(Canvas* parent, const String& name = "", Point<int> position = { 100, 100 });
 
-    Box(pd::Object* object, Canvas* parent, String name = "", Point<int> position = { 100, 100 });
+    Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = { 100, 100 });
 
     ~Box() override;
 
@@ -31,8 +31,6 @@ public:
     //==============================================================================
     void paint(Graphics&) override;
     void resized() override;
-
-    void setLimits(std::tuple<int, int, int, int> limits);
 
     void updatePorts();
     
@@ -50,10 +48,10 @@ public:
 
     OwnedArray<Edge> edges;
 
-    std::unique_ptr<ResizableBorderComponent> resizer = nullptr;
     ComponentBoundsConstrainer restrainer;
+    ResizableBorderComponent resizer;
 
-    void setType(String newType, bool exists = false);
+    void setType(const String& newType, bool exists = false);
 
 
     

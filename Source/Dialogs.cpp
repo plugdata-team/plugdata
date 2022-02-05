@@ -8,10 +8,10 @@
 #include "Inspector.h"
 #include <JuceHeader.h>
 
+#include <memory>
+
 SaveDialog::SaveDialog()
 {
-    
-    
     //setLookAndFeel(&mainLook);
     setSize(400, 200);
     addAndMakeVisible(savelabel);
@@ -38,11 +38,6 @@ SaveDialog::SaveDialog()
     shadower.setOwner(this);
 }
 
-SaveDialog::~SaveDialog()
-{
-    //setLookAndFeel(nullptr);
-}
-
 void SaveDialog::resized()
 {
     savelabel.setBounds(20, 25, 200, 30);
@@ -63,8 +58,8 @@ void SaveDialog::paint(Graphics& g)
 void SaveDialog::show(Component* centre, std::function<void(int)> callback)
 {
 
-    SaveDialog* dialog = new SaveDialog;
-    dialog->cb = callback;
+    auto* dialog = new SaveDialog;
+    dialog->cb = std::move(callback);
 
     centre->addAndMakeVisible(dialog);
 
@@ -87,8 +82,21 @@ ArrayDialog::ArrayDialog()
         delete this;
     };
     ok.onClick = [this] {
-        cb(1, nameEditor.getText(), sizeEditor.getText());
-        delete this;
+        // Check if input is valid
+        if(nameEditor.isEmpty()) {
+            nameEditor.setColour(TextEditor::outlineColourId, Colours::red);
+            nameEditor.giveAwayKeyboardFocus();
+            nameEditor.repaint();
+        }
+        if(sizeEditor.getText().getIntValue() < 0) {
+            sizeEditor.setColour(TextEditor::outlineColourId, Colours::red);
+            sizeEditor.giveAwayKeyboardFocus();
+            sizeEditor.repaint();
+        }
+        if(nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0) {
+            cb(1, nameEditor.getText(), sizeEditor.getText());
+            delete this;
+        }
     };
 
     sizeEditor.setInputRestrictions(10, "0123456789");
@@ -106,16 +114,15 @@ ArrayDialog::ArrayDialog()
     shadower.setOwner(this);
 }
 
-ArrayDialog::~ArrayDialog()
-{
-    //setLookAndFeel(nullptr);
-}
 
 void ArrayDialog::show(Component* centre, std::function<void(int, String, String)> callback)
 {
 
-    ArrayDialog* dialog = new ArrayDialog;
-    dialog->cb = callback;
+    auto* dialog = new ArrayDialog;
+    dialog->cb = std::move(callback);
+    
+    dialog->nameEditor.setText("array1");
+    dialog->sizeEditor.setText("100");
 
     centre->addAndMakeVisible(dialog);
 
@@ -150,8 +157,8 @@ void ArrayDialog::paint(Graphics& g)
 class LibraryComponent : public Component, public TableListBoxModel {
 public:
     LibraryComponent(ValueTree libraryTree, std::function<void()> updatePaths)
-        : tree(libraryTree)
-        , updateFunc(updatePaths)
+        : tree(std::move(libraryTree))
+        , updateFunc(std::move(updatePaths))
     {
         table.setModel(this);
         table.setColour(ListBox::backgroundColourId, Colour(25, 25, 25));
@@ -247,8 +254,7 @@ public:
 
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
     {
-        if (existingComponentToUpdate)
-            delete existingComponentToUpdate;
+        delete existingComponentToUpdate;
 
         auto* rowComponent = new FileComponent([this](int row) {
             tree.getChild(row).setProperty("Path", items[row], nullptr);
@@ -274,7 +280,7 @@ public:
 
     struct FileComponent : public Label {
         FileComponent(std::function<void(int)> cb, String* value, int rowIdx)
-            : callback(cb)
+            : callback(std::move(cb))
             , row(rowIdx)
         {
             setEditable(false, true);
@@ -292,10 +298,6 @@ public:
             };
         }
 
-        ~FileComponent()
-        {
-            //deleteButton.setLookAndFeel(nullptr);
-        }
 
         void resized() override
         {
@@ -342,13 +344,13 @@ SettingsComponent::SettingsComponent(Resources& r ,AudioProcessor& processor, Au
         addAndMakeVisible(button);
     }
 
-    auto* libraryList = new LibraryComponent(settingsTree.getChildWithName("Paths"), updatePaths);
+    auto* libraryList = new LibraryComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths));
     libraryPanel.reset(libraryList);
 
     if (manager) {
-        audioSetupComp.reset(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
+        audioSetupComp = std::make_unique<AudioDeviceSelectorComponent>(*manager, 1, 2, 1, 2, true, true, true, false);
     } else {
-        audioSetupComp.reset(new DAWAudioSettings(processor));
+        audioSetupComp = std::make_unique<DAWAudioSettings>(processor);
     }
 
     addAndMakeVisible(audioSetupComp.get());
@@ -373,25 +375,25 @@ SettingsComponent::SettingsComponent(Resources& r ,AudioProcessor& processor, Au
 
 void SettingsComponent::paint(Graphics& g)
 {
-    auto base_colour = MainLook::firstBackground;
-    auto highlight_colour = Colour(0xff42a2c8).darker(0.2);
+    auto baseColour = MainLook::firstBackground;
+    auto highlightColour = Colour(0xff42a2c8).darker(0.2);
 
     g.fillAll(MainLook::firstBackground);
 
     // Toolbar background
-    g.setColour(base_colour);
+    g.setColour(baseColour);
     g.fillRect(0, 0, getWidth(), toolbarHeight);
 
-    g.setColour(highlight_colour);
+    g.setColour(highlightColour);
     g.fillRect(0, 42, getWidth(), 4);
 }
 
 void SettingsComponent::resized()
 {
-    int toolbar_position = 0;
+    int toolbarPosition = 0;
     for (auto& button : toolbarButtons) {
-        button->setBounds(toolbar_position, 0, 70, toolbarHeight);
-        toolbar_position += 70;
+        button->setBounds(toolbarPosition, 0, 70, toolbarHeight);
+        toolbarPosition += 70;
     }
 
     audioSetupComp->setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight);

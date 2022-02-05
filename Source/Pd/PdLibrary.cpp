@@ -1,5 +1,5 @@
+#include <utility>
 #include <vector>
-#include <string>
 #include <m_pd.h>
 #include <m_imp.h>
 #include <g_canvas.h>
@@ -24,19 +24,19 @@ namespace pd
 
 
 // Iterative function to insert a key into a Trie
-void Trie::insert(std::string key)
+void Trie::insert(const std::string& key)
 {
     // start from the root node
     Trie* curr = this;
-    for (int i = 0; i < key.length(); i++)
+    for (char i : key)
     {
         // create a new node if the path doesn't exist
-        if (curr->character[key[i]] == nullptr) {
-            curr->character[key[i]] = new Trie();
+        if (curr->character[i] == nullptr) {
+            curr->character[i] = new Trie();
         }
  
         // go to the next node
-        curr = curr->character[key[i]];
+        curr = curr->character[i];
     }
  
     // mark the current node as a leaf
@@ -45,14 +45,14 @@ void Trie::insert(std::string key)
  
 // Iterative function to search a key in a Trie. It returns true
 // if the key is found in the Trie; otherwise, it returns false
-bool Trie::search(std::string key)
+bool Trie::search(const std::string& key)
 {
 
     Trie* curr = this;
-    for (int i = 0; i < key.length(); i++)
+    for (char i : key)
     {
         // go to the next node
-        curr = curr->character[key[i]];
+        curr = curr->character[i];
  
         // if the string is invalid (reached end of a path in the Trie)
         if (curr == nullptr) {
@@ -95,7 +95,7 @@ bool Trie::deletion(Trie*& curr, std::string key)
         if (curr != nullptr &&
             curr->character[key[0]] != nullptr &&
             deletion(curr->character[key[0]], key.substr(1)) &&
-            curr->isLeaf == false)
+            !curr->isLeaf)
         {
             if (!curr->hasChildren())
             {
@@ -188,7 +188,7 @@ int Trie::autocomplete(std::string query, std::vector<std::string>& result)
     }
     
     // If prefix is present as a word.
-    bool isWord = (pCrawl->isLeaf == true);
+    bool isWord = pCrawl->isLeaf;
     
     // If prefix is last node of tree (has no
     // children)
@@ -207,7 +207,7 @@ int Trie::autocomplete(std::string query, std::vector<std::string>& result)
     // matching character.
     if (!isLast)
     {
-        std::string prefix = query;
+        const std::string& prefix = query;
         pCrawl->suggestionsRec(prefix, result);
         return 1;
     }
@@ -215,8 +215,6 @@ int Trie::autocomplete(std::string query, std::vector<std::string>& result)
     
 }
 
-Library::Library() {
-}
 
 void Library::initialiseLibrary(ValueTree pathTree)
 {
@@ -255,7 +253,7 @@ void Library::initialiseLibrary(ValueTree pathTree)
 
 std::vector<std::string> Library::autocomplete(std::string query) {
     std::vector<std::string> result;
-    searchTree.autocomplete(query, result);
+    searchTree.autocomplete(std::move(query), result);
     return result;
 }
 

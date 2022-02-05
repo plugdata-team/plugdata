@@ -26,7 +26,7 @@ class Array
 {
 public:
     
-    Array(std::string const& name, void* instance);
+    Array(std::string name, void* instance);
     
     //! @brief The default constructor.
     Array() = default;
@@ -38,19 +38,19 @@ public:
     ~Array() noexcept = default;
     
     //! @brief Gets the name of the array.
-    std::string getName() const noexcept;
+    [[nodiscard]] std::string getName() const noexcept;
     
     //! @brief Gets id it should be drawn as points.
-    bool isDrawingPoints() const noexcept;
+    [[nodiscard]] bool isDrawingPoints() const noexcept;
     
     //! @brief Gets id it should be drawn as lines.
-    bool isDrawingLine() const noexcept;
+    [[nodiscard]] bool isDrawingLine() const noexcept;
     
     //! @brief Gets id it should be drawn as curves.
-    bool isDrawingCurve() const noexcept;
+    [[nodiscard]] bool isDrawingCurve() const noexcept;
     
     //! @brief Gets the scale of the array.
-    std::array<float, 2> getScale() const noexcept;
+    [[nodiscard]] std::array<float, 2> getScale() const noexcept;
     
     //! @brief Gets the values of the array.
     void read(std::vector<float>& output) const;
@@ -62,8 +62,8 @@ public:
     void write(const size_t pos, float const input);
 private:
     
-    std::string m_name = std::string("");
-    void*   m_instance = nullptr;
+    std::string name = std::string("");
+    void*   instance = nullptr;
     
     friend class Instance;
     friend class Gui;
