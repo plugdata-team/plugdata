@@ -6,129 +6,113 @@
 
 #pragma once
 
+#include <JuceHeader.h>
+
 #include "Console.h"
 #include "Dialogs.h"
 #include "Inspector.h"
 #include "LevelMeter.h"
 #include "LookAndFeel.h"
-
 #include "Standalone/PlugDataWindow.h"
 
-#include <JuceHeader.h>
-
-
 struct TabComponent : public TabbedComponent {
+  std::function<void(int)> onTabChange = [](int) {};
 
-    std::function<void(int)> onTabChange = [](int) {};
+  TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop) {}
 
-    TabComponent()
-        : TabbedComponent(TabbedButtonBar::TabsAtTop)
-    {
-    }
-
-    void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
-    {
-        onTabChange(newCurrentTabIndex);
-    }
+  void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override { onTabChange(newCurrentTabIndex); }
 };
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor,  public ChangeBroadcaster, public KeyListener  {
-    
-public:
-    
-    SharedResourcePointer<Resources> resources;
-    
-    ToolbarLook toolbarLook = ToolbarLook(resources.get());
-    StatusbarLook statusbarLook = StatusbarLook(resources.get());
-    MainLook mainLook = MainLook(resources.get());
-    
+class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener {
+ public:
+  SharedResourcePointer<Resources> resources;
 
-    //==============================================================================
-    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
-    ~PlugDataPluginEditor() override;
+  ToolbarLook toolbarLook = ToolbarLook(resources.get());
+  StatusbarLook statusbarLook = StatusbarLook(resources.get());
+  MainLook mainLook = MainLook(resources.get());
 
-    Component::SafePointer<Console> console;
-    
-    
-    void showNewObjectMenu();
+  //==============================================================================
+  PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
+  ~PlugDataPluginEditor() override;
 
-    //==============================================================================
-    void paint(Graphics&) override;
-    void resized() override;
-    
-    bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
+  Component::SafePointer<Console> console;
 
+  void showNewObjectMenu();
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
+  //==============================================================================
+  void paint(Graphics&) override;
+  void resized() override;
 
-    void openProject();
-    void saveProject(const std::function<void()>& nestedCallback = [](){});
-    void saveProjectAs(const std::function<void()>& nestedCallback = [](){});
-    
-    void addTab(Canvas* cnv);
-    
+  bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
 
-    Canvas* getCurrentCanvas();
-    Canvas* getCanvas(int idx);
+  void mouseDown(const MouseEvent& e) override;
+  void mouseDrag(const MouseEvent& e) override;
+  void mouseUp(const MouseEvent& e) override;
 
-    void updateValues();
+  void openProject();
+  void saveProject(const std::function<void()>& nestedCallback = []() {});
+  void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
 
-    void updateUndoState();
-    
-    void zoom(bool zoomingIn);
+  void addTab(Canvas* cnv);
 
-    TabComponent& getTabbar() { return tabbar; };
+  Canvas* getCurrentCanvas();
+  Canvas* getCanvas(int idx);
 
-    PlugDataAudioProcessor& pd;
+  void updateValues();
 
-    AffineTransform transform;
+  void updateUndoState();
 
-    TabComponent tabbar;
-    OwnedArray<Canvas, CriticalSection> canvases;
-    Inspector inspector;
+  void zoom(bool zoomingIn);
 
-    LevelMeter levelmeter;
+  TabComponent& getTabbar() { return tabbar; };
 
-    TextButton bypassButton = TextButton(Icons::Power);
-    TextButton lockButton = TextButton(Icons::Lock);
-    TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
-    TextButton connectionPathfind = TextButton(Icons::Wand);
-    
-    TextButton zoomIn = TextButton(Icons::ZoomIn);
-    TextButton zoomOut = TextButton(Icons::ZoomOut);
-    Label zoomLabel;
+  PlugDataAudioProcessor& pd;
 
-private:
-    FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
-    FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
+  AffineTransform transform;
 
-    static constexpr int toolbarHeight = 40;
-    static constexpr int statusbarHeight = 24;
-    static constexpr int dragbarWidth = 10;
-    int sidebarWidth = 275;
+  TabComponent tabbar;
+  OwnedArray<Canvas, CriticalSection> canvases;
+  Inspector inspector;
 
-    bool sidebarHidden = false;
+  LevelMeter levelmeter;
 
-    std::array<TextButton, 9> toolbarButtons = {
-        TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide)};
+  TextButton bypassButton = TextButton(Icons::Power);
+  TextButton lockButton = TextButton(Icons::Lock);
+  TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
+  TextButton connectionPathfind = TextButton(Icons::Wand);
 
-    TextButton& hideButton = toolbarButtons[8];
+  TextButton zoomIn = TextButton(Icons::ZoomIn);
+  TextButton zoomOut = TextButton(Icons::ZoomOut);
+  Label zoomLabel;
 
-    std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
+ private:
+  FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
+  FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
 
-    int dragStartWidth = 0;
-    bool draggingSidebar = false;
+  static constexpr int toolbarHeight = 40;
+  static constexpr int statusbarHeight = 24;
+  static constexpr int dragbarWidth = 10;
+  int sidebarWidth = 275;
 
-    ComponentBoundsConstrainer restrainer;
-    std::unique_ptr<ResizableCornerComponent> resizer;
-    
-    SharedResourcePointer<TooltipWindow> tooltipWindow;
-    
-    Component seperators[2];
+  bool sidebarHidden = false;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
+  std::array<TextButton, 9> toolbarButtons = {TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide)};
+
+  TextButton& hideButton = toolbarButtons[8];
+
+  std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
+
+  int dragStartWidth = 0;
+  bool draggingSidebar = false;
+
+  ComponentBoundsConstrainer restrainer;
+  std::unique_ptr<ResizableCornerComponent> resizer;
+
+  SharedResourcePointer<TooltipWindow> tooltipWindow;
+
+  Component seperators[2];
+
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };

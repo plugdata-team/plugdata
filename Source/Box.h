@@ -6,65 +6,60 @@
 
 #pragma once
 
-#include "MultiComponentDragger.h"
+#include <JuceHeader.h>
+#include <m_pd.h>
 
 #include "BoxEditor.h"
 #include "Edge.h"
 #include "GUIObjects.h"
-
-#include <JuceHeader.h>
-#include <m_pd.h>
+#include "MultiComponentDragger.h"
 
 class Canvas;
 class Box : public Component, public ChangeListener {
+ public:
+  //==============================================================================
+  explicit Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
-public:
-    //==============================================================================
-    explicit Box(Canvas* parent, const String& name = "", Point<int> position = { 100, 100 });
+  Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
-    Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = { 100, 100 });
+  ~Box() override;
 
-    ~Box() override;
+  void changeListenerCallback(ChangeBroadcaster* source) override;
 
-    void changeListenerCallback(ChangeBroadcaster* source) override;
+  //==============================================================================
+  void paint(Graphics&) override;
+  void resized() override;
 
-    //==============================================================================
-    void paint(Graphics&) override;
-    void resized() override;
+  void updatePorts();
 
-    void updatePorts();
-    
-    std::unique_ptr<pd::Object> pdObject = nullptr;
+  std::unique_ptr<pd::Object> pdObject = nullptr;
 
-    int numInputs = 0;
-    int numOutputs = 0;
-    bool locked = false;
-    
-    ClickLabel textLabel;
+  int numInputs = 0;
+  int numOutputs = 0;
+  bool locked = false;
 
-    Canvas* cnv;
+  ClickLabel textLabel;
 
-    std::unique_ptr<GUIComponent> graphics = nullptr;
+  Canvas* cnv;
 
-    OwnedArray<Edge> edges;
+  std::unique_ptr<GUIComponent> graphics = nullptr;
 
-    ComponentBoundsConstrainer restrainer;
-    ResizableBorderComponent resizer;
+  OwnedArray<Edge> edges;
 
-    void setType(const String& newType, bool exists = false);
+  ComponentBoundsConstrainer restrainer;
+  ResizableBorderComponent resizer;
 
+  void setType(const String& newType, bool exists = false);
 
-    
-private:
-    void initialise();
+ private:
+  void initialise();
 
-    bool hitTest(int x, int y) override;
-    
-    void mouseEnter(const MouseEvent& e) override;
-    void mouseExit(const MouseEvent& e) override;
+  bool hitTest(int x, int y) override;
 
+  void mouseEnter(const MouseEvent& e) override;
+  void mouseExit(const MouseEvent& e) override;
 
-    Colour outline = MainLook::highlightColour;
+  Colour outline = MainLook::highlightColour;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
+  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };
