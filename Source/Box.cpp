@@ -123,7 +123,7 @@ bool Box::hitTest(int x, int y)
 
 void Box::mouseEnter(const MouseEvent& e)
 {
-  if (graphics && !graphics->fakeGui() && !locked)
+  if (graphics && !graphics->fakeGui() && !locked && !cnv->isGraph)
   {
     textLabel.setVisible(true);
   }
