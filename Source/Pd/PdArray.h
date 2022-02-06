@@ -37,19 +37,19 @@ class Array
   ~Array() noexcept = default;
 
   //! @brief Gets the name of the array.
-  [[nodiscard]] std::string getName() const noexcept;
+  std::string getName() const noexcept;
 
   //! @brief Gets id it should be drawn as points.
-  [[nodiscard]] bool isDrawingPoints() const noexcept;
+  bool isDrawingPoints() const noexcept;
 
   //! @brief Gets id it should be drawn as lines.
-  [[nodiscard]] bool isDrawingLine() const noexcept;
+  bool isDrawingLine() const noexcept;
 
   //! @brief Gets id it should be drawn as curves.
-  [[nodiscard]] bool isDrawingCurve() const noexcept;
+  bool isDrawingCurve() const noexcept;
 
   //! @brief Gets the scale of the array.
-  [[nodiscard]] std::array<float, 2> getScale() const noexcept;
+  std::array<float, 2> getScale() const noexcept;
 
   //! @brief Gets the values of the array.
   void read(std::vector<float>& output) const;

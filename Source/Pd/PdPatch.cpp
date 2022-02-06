@@ -653,4 +653,25 @@ String Patch::getTitle() const { return {getPointer()->gl_name->s_name}; }
 
 void Patch::setTitle(const String& title) { getPointer()->gl_name = gensym(title.toRawUTF8()); }
 
+
+
+std::vector<t_template*> Patch::getTemplates() const
+{
+    std::vector<t_template*> templates;
+    
+    t_symbol** templatevec = static_cast<t_symbol**>(getbytes(0));
+    int ntemplates = 0;
+    
+    libpd_collecttemplatesfor(getPointer(), &ntemplates, &templatevec);
+    
+    
+    for(int n = 0; n < ntemplates; n++) {
+        templates.push_back(template_findbyname(templatevec[n]));
+    }
+    
+    
+    return templates;
+}
+
+
 }  // namespace pd

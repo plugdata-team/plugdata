@@ -37,8 +37,6 @@ that didn't really belong anywhere. */
 #include <stdio.h>
 
 #ifdef __APPLE__
-#include <sys/types.h>
-#include <sys/stat.h>
 #include <glob.h>
 #else
 #include <stdlib.h>

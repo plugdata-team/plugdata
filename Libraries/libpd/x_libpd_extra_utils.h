@@ -4,8 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#ifndef __X_LIBPD_EXTRA_UTILS_H__
-#define __X_LIBPD_EXTRA_UTILS_H__
+#pragma once
 
 #ifdef __cplusplus
 
@@ -40,6 +39,4 @@ float libpd_get_canvas_font_height(t_canvas* cnv);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

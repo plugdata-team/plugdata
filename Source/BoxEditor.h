@@ -133,7 +133,7 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
 
   void setText(const String& newText, NotificationType notification);
 
-  [[nodiscard]] String getText(bool returnActiveEditorContents = false) const;
+  String getText(bool returnActiveEditorContents = false) const;
 
   Font getFont() { return font; }
 
@@ -153,10 +153,10 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
   void hideEditor();
 
   /** Returns true if the editor is currently focused and active. */
-  [[nodiscard]] bool isBeingEdited() const noexcept;
+  bool isBeingEdited() const noexcept;
 
   /** Returns the currently-visible text editor, or nullptr if none is open. */
-  [[nodiscard]] TextEditor* getCurrentTextEditor() const noexcept;
+  TextEditor* getCurrentTextEditor() const noexcept;
 
   void setBorderSize(BorderSize<int> newBorder)
   {

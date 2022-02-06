@@ -56,7 +56,7 @@ class Connection : public Component, public ComponentListener
   void mouseDrag(const MouseEvent& e) override;
   void mouseUp(const MouseEvent& e) override;
 
-  [[nodiscard]] String getId() const;
+  String getId() const;
 
   MemoryBlock getState();
   void setState(MemoryBlock& block);
