@@ -12,6 +12,10 @@
 #include <map>
 #include <utility>
 
+extern "C" {
+#include "s_libpd_inter.h"
+}
+
 #include "PdAtom.h"
 #include "PdPatch.h"
 #include "concurrentqueue.h"
@@ -54,7 +58,8 @@ class Instance
   virtual void receivePolyAftertouch(const int channel, const int pitch, const int value) {}
   virtual void receiveMidiByte(const int port, const int byte) {}
 
-  virtual void receiveGuiUpdate(int type){};
+  virtual void receiveGuiUpdate(int type) {};
+  virtual void createPanel(int type, const char* snd, const char* location);
 
   void sendBang(const char* receiver) const;
   void sendFloat(const char* receiver, float const value) const;
@@ -168,6 +173,9 @@ class Instance
   moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
 
   File currentFile;
+    
+  std::unique_ptr<FileChooser> saveChooser;
+  std::unique_ptr<FileChooser> openChooser;
 
   WaitableEvent updateWait;
 
