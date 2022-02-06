@@ -422,29 +422,42 @@ void Canvas::mouseDown(const MouseEvent& e)
           break;
       }
     };
+      
+      auto showMenu = [this, callback](Component* target, Rectangle<int> bounds = {0, 0, 0, 0}){
+          auto options = PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main);
+          
+          if(target) {
+              options = options.withTargetComponent(target);
+          }
+          else {
+              options = options.withTargetScreenArea(bounds);
+          }
+          
+          popupMenu.showMenuAsync(options, ModalCallbackFunction::create(callback));
+      };
     // Open popupmenu with different positions for these origins
     if (auto* box = dynamic_cast<ClickLabel*>(e.originalComponent))
     {
       if (!box->getCurrentTextEditor())
       {
-        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(box).withParentComponent(&main), ModalCallbackFunction::create(callback));
+          showMenu(box);
       }
     }
     else if (auto* box = dynamic_cast<Box*>(e.originalComponent))
     {
       if (!box->textLabel.getCurrentTextEditor())
       {
-        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel).withParentComponent(&main), ModalCallbackFunction::create(callback));
+          showMenu(&box->textLabel);
       }
     }
     else if (auto* gui = dynamic_cast<GUIComponent*>(e.originalComponent))
     {
       auto* box = gui->box;
-      popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&box->textLabel).withParentComponent(&main), ModalCallbackFunction::create(callback));
+      showMenu(&box->textLabel);
     }
     else if (dynamic_cast<Canvas*>(e.originalComponent))
     {
-      popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetScreenArea({e.getScreenX(), e.getScreenY(), 10, 10}).withParentComponent(&main), ModalCallbackFunction::create(callback));
+        showMenu(nullptr, {e.getScreenX(), e.getScreenY(), 10, 10});
     }
   }
 }

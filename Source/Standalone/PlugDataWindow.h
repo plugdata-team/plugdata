@@ -52,14 +52,14 @@ struct PatchLoader
 class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, private Value::Listener
 {
  public:
-  //==============================================================================
+
   /** Structure used for the number of inputs and outputs. */
   struct PluginInOuts
   {
     short numIns, numOuts;
   };
 
-  //==============================================================================
+
   /** Creates an instance of the default plugin.
 
       The settings object can be a PropertySet that the class should use to store its
@@ -122,7 +122,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     shutDownAudioDevices();
   }
 
-  //==============================================================================
+
   virtual void createPlugin()
   {
     processor.reset(createPluginFilterOfType(AudioProcessor::wrapperType_Standalone));
@@ -159,12 +159,12 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     return (fileSuffix.startsWithChar('.') ? "*" : "*.") + fileSuffix;
   }
 
-  //==============================================================================
+
   Value& getMuteInputValue() { return shouldMuteInput; }
   bool getProcessorHasPotentialFeedbackLoop() const { return processorHasPotentialFeedbackLoop; }
   void valueChanged(Value& value) override { muteInput = static_cast<bool>(value.getValue()); }
 
-  //==============================================================================
+
   File getLastFile() const
   {
     File f;
@@ -223,7 +223,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
                                   });
   }
 
-  //==============================================================================
+
   void startPlaying()
   {
     player.setProcessor(processor.get());
@@ -278,7 +278,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     deviceManager.initialise(enableAudioInput ? inputChannels : 0, outputChannels, savedState.get(), true, preferredDefaultDeviceName, preferredSetupOptions);
   }
 
-  //==============================================================================
+
   void savePluginState()
   {
     if (settings != nullptr && processor != nullptr)
@@ -306,7 +306,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
   static StandalonePluginHolder* getInstance();
 
-  //==============================================================================
+
   OptionalScopedPointer<PropertySet> settings;
   std::unique_ptr<AudioProcessor> processor;
   AudioDeviceManager deviceManager;
@@ -401,7 +401,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
   CallbackMaxSizeEnforcer maxSizeEnforcer{*this};
 
-  //==============================================================================
+
   class SettingsComponent : public Component
   {
    public:
@@ -469,18 +469,18 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     }
 
    private:
-    //==============================================================================
+  
     StandalonePluginHolder& owner;
     AudioDeviceSelectorComponent deviceSelector;
     Label shouldMuteLabel;
     ToggleButton shouldMuteButton;
     bool isResizing = false;
 
-    //==============================================================================
+  
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SettingsComponent)
   };
 
-  //==============================================================================
+
   void audioDeviceIOCallback(const float** inputChannelData, int numInputChannels, float** outputChannelData, int numOutputChannels, int numSamples) override
   {
     if (muteInput)
@@ -508,7 +508,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     emptyBuffer.setSize(0, 0);
   }
 
-  //==============================================================================
+
   void setupAudioDevices(bool enableAudioInput, const String& preferredDefaultDeviceName, const AudioDeviceManager::AudioDeviceSetup* preferredSetupOptions)
   {
     deviceManager.addAudioCallback(&maxSizeEnforcer);
@@ -557,10 +557,10 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 class PlugDataWindow : public DocumentWindow
 {
  public:
-  //==============================================================================
+
   typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
-  //==============================================================================
+
   /** Creates a window with a given title and colour.
       The settings object can be a PropertySet that the class should use to
       store its settings (it can also be null). If takeOwnershipOfSettings is
@@ -622,7 +622,7 @@ class PlugDataWindow : public DocumentWindow
     pluginHolder = nullptr;
   }
 
-  //==============================================================================
+
   AudioProcessor* getAudioProcessor() const noexcept { return pluginHolder->processor.get(); }
   AudioDeviceManager& getDeviceManager() const noexcept { return pluginHolder->deviceManager; }
 
@@ -640,7 +640,7 @@ class PlugDataWindow : public DocumentWindow
     pluginHolder->startPlaying();
   }
 
-  //==============================================================================
+
   void closeButtonPressed() override
   {
     pluginHolder->savePluginState();
@@ -679,7 +679,7 @@ class PlugDataWindow : public DocumentWindow
   bool maximised = false;
   Rectangle<int> nonMaximisedBounds;
 
-  //==============================================================================
+
   class MainContentComponent : public Component, private ComponentListener
   {
    public:
@@ -722,7 +722,7 @@ class PlugDataWindow : public DocumentWindow
     }
 
    private:
-    //==============================================================================
+  
     void componentMovedOrResized(Component&, bool, bool) override
     {
       const ScopedValueSetter<bool> scope(preventResizingEditor, true);
@@ -742,7 +742,7 @@ class PlugDataWindow : public DocumentWindow
       return {};
     }
 
-    //==============================================================================
+  
     PlugDataWindow& owner;
     std::unique_ptr<AudioProcessorEditor> editor;
     Value inputMutedValue;
@@ -751,7 +751,7 @@ class PlugDataWindow : public DocumentWindow
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
   };
 
-  //==============================================================================
+
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };

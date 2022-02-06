@@ -35,7 +35,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
   StatusbarLook statusbarLook = StatusbarLook(resources.get());
   MainLook mainLook = MainLook(resources.get());
 
-  //==============================================================================
+
   PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
   ~PlugDataPluginEditor() override;
 
@@ -43,7 +43,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
 
   void showNewObjectMenu();
 
-  //==============================================================================
+
   void paint(Graphics&) override;
   void resized() override;
 

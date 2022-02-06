@@ -17,7 +17,7 @@ class Edge : public TextButton
 
   Edge(Box* parent, bool isInput);
 
-  //==============================================================================
+
   void paint(Graphics&) override;
   void resized() override;
 
