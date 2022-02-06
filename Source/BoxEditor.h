@@ -181,7 +181,7 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
 
   void mouseDoubleClick(const MouseEvent&) override;
 
-  //==============================================================================
+
   Value textValue;
   String lastTextValue;
   Font font{15.0f};

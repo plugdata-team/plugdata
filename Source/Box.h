@@ -22,7 +22,7 @@ class Canvas;
 class Box : public Component, public ChangeListener
 {
  public:
-  //==============================================================================
+
   explicit Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
   Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = {100, 100});
@@ -31,7 +31,7 @@ class Box : public Component, public ChangeListener
 
   void changeListenerCallback(ChangeBroadcaster* source) override;
 
-  //==============================================================================
+
   void paint(Graphics&) override;
   void resized() override;
 

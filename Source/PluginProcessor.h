@@ -21,11 +21,11 @@ class PlugDataPluginEditor;
 class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer, public PatchLoader
 {
  public:
-  //==============================================================================
+
   PlugDataAudioProcessor();
   ~PlugDataAudioProcessor() override;
 
-  //==============================================================================
+
   void prepareToPlay(double sampleRate, int samplesPerBlock) override;
   void releaseResources() override;
 
@@ -36,11 +36,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
   void processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
   void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
 
-  //==============================================================================
+
   AudioProcessorEditor* createEditor() override;
   bool hasEditor() const override;
 
-  //==============================================================================
+
   const String getName() const override;
 
   bool acceptsMidi() const override;
@@ -54,14 +54,14 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
   // Run loop when DAW isn't calling process block
   void run() override;
 
-  //==============================================================================
+
   int getNumPrograms() override;
   int getCurrentProgram() override;
   void setCurrentProgram(int index) override;
   const String getProgramName(int index) override;
   void changeProgramName(int index, const String& newName) override;
 
-  //==============================================================================
+
   void getStateInformation(MemoryBlock& destData) override;
   void setStateInformation(const void* data, int sizeInBytes) override;
 
@@ -168,6 +168,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
   const CriticalSection* audioLock;
 
-  //==============================================================================
+
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };
