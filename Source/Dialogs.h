@@ -168,8 +168,6 @@ struct SettingsDialog : public Component
     settingsComponent.setBounds(getLocalBounds());
   }
 
-  void paint(Graphics& g) override { g.fillAll(MainLook::firstBackground); }
-
   void paintOverChildren(Graphics& g) override
   {
     // Draw window title
@@ -177,7 +175,7 @@ struct SettingsDialog : public Component
     g.drawText("Settings", 0, 0, getWidth(), 30, Justification::centred, true);
 
     g.setColour(findColour(ComboBox::outlineColourId).darker());
-    g.drawRect(getLocalBounds());
+    g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
   }
 
   void closeButtonPressed() { setVisible(false); }
