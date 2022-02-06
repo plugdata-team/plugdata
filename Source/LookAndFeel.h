@@ -216,13 +216,13 @@ struct MainLook : public LookAndFeel_V4
         auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
         g.fillRoundedRectangle(bounds, 3.0f);
         
-        g.setColour(findColour(PopupMenu::textColourId).withAlpha(0.2f));
-        g.drawRoundedRectangle(bounds, 3.0f, 2.0f);
+        g.setColour(findColour(PopupMenu::textColourId).withAlpha(0.3f));
+        g.drawRoundedRectangle(bounds, 3.0f, 1.5f);
     }
     
     
     int getPopupMenuBorderSize() override {
-        return 2;
+        return 5;
     };
 };
 
