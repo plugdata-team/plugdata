@@ -5,13 +5,6 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment ve
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 endif()
 
-set_property(GLOBAL PROPERTY CXX_STANDARD 17)
-set(CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-
-if(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wnoambiguous-reversed-operator")
-endif()
-
 
 
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
@@ -141,19 +134,27 @@ juce_add_plugin(PlugDataMidi
     AU_COPY_DIR                 ${PLUGDATA_PLUGINS_LOCATION})
 endif()
 
+if(APPLE)
+set_target_properties(PlugData PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+set_target_properties(PlugDataFx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
+endif()
+
 juce_generate_juce_header(PlugData)
-set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
+set_target_properties(PlugData PROPERTIES CXX_STANDARD 17)
 target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${PlugDataStandaloneSources} ${ELSESources})
 
 juce_generate_juce_header(PlugDataFx)
-set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 20)
+set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 17)
 target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
 
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
-set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
+set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 17)
+set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
 endif()
+
+
 
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
 target_link_libraries(PlugData_LV2 PRIVATE PlugDataFx libpdstatic)

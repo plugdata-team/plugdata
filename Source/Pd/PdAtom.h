@@ -31,16 +31,16 @@ class Atom
   inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym) {}
 
   //! @brief Check if the atom is a float.
-  [[nodiscard]] inline bool isFloat() const noexcept { return type == FLOAT; }
+  inline bool isFloat() const noexcept { return type == FLOAT; }
 
   //! @brief Check if the atom is a string.
-  [[nodiscard]] inline bool isSymbol() const noexcept { return type == SYMBOL; }
+  inline bool isSymbol() const noexcept { return type == SYMBOL; }
 
   //! @brief Get the float value.
-  [[nodiscard]] inline float getFloat() const noexcept { return value; }
+  inline float getFloat() const noexcept { return value; }
 
   //! @brief Get the string.
-  [[nodiscard]] inline std::string const& getSymbol() const noexcept { return symbol; }
+  inline std::string const& getSymbol() const noexcept { return symbol; }
 
   //! @brief Compare two atoms.
   inline bool operator==(Atom const& other) const noexcept

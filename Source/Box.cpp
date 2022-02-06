@@ -245,10 +245,13 @@ void Box::setType(const String& newType, bool exists)
   {
     resizer.setBorderThickness({5, 5, 5, 5});
   }
-  else
+  else if(graphics && graphics->getGui().getType() == pd::Type::GraphOnParent)
   {
     // Only allow resize on right, otherwise we have to edit the position
-    resizer.setBorderThickness({0, 0, 0, 5});
+    resizer.setBorderThickness({0, 0, 0, 0});
+  }
+  else {
+      resizer.setBorderThickness({0, 0, 0, 5});
   }
 
   // graphical objects manage their own size limits

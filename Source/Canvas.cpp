@@ -617,6 +617,7 @@ void Canvas::findDrawables(Graphics& g)
   // Pd draws this over all siblings, even when drawn inside a graph!
   // To mimic this we find the drawables from the top-level canvas and paint it over everything
 
+  
   for (auto& box : boxes)
   {
     if (!box->pdObject) continue;

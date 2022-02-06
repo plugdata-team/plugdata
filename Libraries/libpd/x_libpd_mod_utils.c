@@ -7,15 +7,9 @@
 #include <m_pd.h>
 #include <m_imp.h>
 #include <g_canvas.h>
-#include <g_all_guis.h>
 #include <g_undo.h>
 
-#include <stdlib.h>
-
 #include <string.h>
-
-#include "x_libpd_multi.h"
-#include "x_libpd_extra_utils.h"
 #include "x_libpd_mod_utils.h"
 
 struct _instanceeditor
@@ -41,10 +35,9 @@ struct _instanceeditor
     unsigned int canvas_cursorwas;
 };
 
-extern void* canvas_undo_set_disconnect(t_canvas* cnv, int index1, int outno, int index2, int inno);
-extern int glist_getindex(t_glist *x, t_gobj *y);
-extern int glist_selectionindex(t_glist *x, t_gobj *y, int selected);
-extern void glist_deselectline(t_glist *x);
+extern int glist_getindex(t_glist* cnv, t_gobj *y);
+extern int glist_selectionindex(t_glist* cnv, t_gobj *y, int selected);
+extern void glist_deselectline(t_glist* x);
 
 
 /* displace the selection by (dx, dy) pixels */
@@ -353,7 +346,6 @@ void libpd_canvas_saveto(t_canvas* cnv, t_binbuf *b)
 {
     t_gobj *y;
     t_linetraverser t;
-    t_outconnect *oc;
     
     // subpatch
     if (cnv->gl_owner && !cnv->gl_env)
@@ -387,7 +379,7 @@ void libpd_canvas_saveto(t_canvas* cnv, t_binbuf *b)
         gobj_save(y, b);
     
     linetraverser_start(&t, cnv);
-    while ((oc = linetraverser_next(&t)))
+    while (linetraverser_next(&t))
     {
         int srcno = canvas_getindex(cnv, &t.tr_ob->ob_g);
         int sinkno = canvas_getindex(cnv, &t.tr_ob2->ob_g);
@@ -449,30 +441,28 @@ static void canvas_addtemplatesforscalar(t_symbol *templatesym,
 
 /* call this recursively to collect all the template names for
  a canvas or for the selection. */
-static void canvas_collecttemplatesfor(t_canvas* cnv, int *ntemplatesp,
-                                       t_symbol ***templatevecp, int wholething)
+void libpd_collecttemplatesfor(t_canvas* cnv, int *ntemplatesp,
+                                       t_symbol ***templatevecp)
 {
     t_gobj *y;
     
     for (y = cnv->gl_list; y; y = y->g_next)
     {
-        if ((pd_class(&y->g_pd) == scalar_class) &&
-            (wholething || glist_isselected(cnv, y)))
+        if (pd_class(&y->g_pd) == scalar_class)
             canvas_addtemplatesforscalar(((t_scalar *)y)->sc_template,
                                          ((t_scalar *)y)->sc_vec,  ntemplatesp, templatevecp);
-        else if ((pd_class(&y->g_pd) == canvas_class) &&
-                 (wholething || glist_isselected(cnv, y)))
-            canvas_collecttemplatesfor((t_canvas *)y,
-                                       ntemplatesp, templatevecp, 1);
+        else if (pd_class(&y->g_pd) == canvas_class)
+            libpd_collecttemplatesfor((t_canvas *)y,
+                                       ntemplatesp, templatevecp);
     }
 }
 
 /* save the templates needed by a canvas to a binbuf. */
-static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf *b, int wholething)
+static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf *b)
 {
     t_symbol **templatevec = getbytes(0);
     int i, ntemplates = 0;
-    canvas_collecttemplatesfor(cnv, &ntemplates, &templatevec, wholething);
+    libpd_collecttemplatesfor(cnv, &ntemplates, &templatevec);
     for (i = 0; i < ntemplates; i++)
     {
         t_template *template = template_findbyname(templatevec[i]);
@@ -512,7 +502,7 @@ static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf *b, int wholething)
 void libpd_savetofile(t_canvas* cnv, t_symbol *filename, t_symbol *dir)
 {
     t_binbuf *b = binbuf_new();
-    libpd_savetemplatesto(cnv, b, 1);
+    libpd_savetemplatesto(cnv, b);
     libpd_canvas_saveto(cnv, b);
     if (binbuf_write(b, filename->s_name, dir->s_name, 0)) {
         //post("%s/%s: %s", dir->s_name, filename->s_name,
