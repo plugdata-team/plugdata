@@ -36,17 +36,10 @@ class Patch
   //! @brief The default constructor.
   Patch() = default;
 
-  //! @brief The copy constructor.
-  Patch(const Patch&) = default;
-
   //! @brief The compare equal operator.
   bool operator==(Patch const& other) const noexcept { return getPointer() == other.getPointer(); }
-
-  //! @brief The copy operator.
-  Patch& operator=(const Patch& other) = default;
-
-  //! @brief The destructor.
-  ~Patch() noexcept = default;
+    
+  void close();
 
   //! @brief Gets the bounds of the patch.
   std::array<int, 4> getBounds() const noexcept;
@@ -57,6 +50,7 @@ class Patch
   std::unique_ptr<Object> createObject(const String& name, int x, int y, bool undoable = true);
   void removeObject(Object* obj);
   std::unique_ptr<Object> renameObject(Object* obj, const String& name);
+    
 
   void moveObjects(const std::vector<Object*>&, int x, int y);
 

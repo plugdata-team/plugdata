@@ -411,7 +411,7 @@ void Canvas::mouseDown(const MouseEvent& e)
           }
 
           auto* newCnv = main.canvases.add(new Canvas(main, helpPatch));
-          main.addTab(newCnv);
+          main.addTab(newCnv, true);
 
           // lock->exit();
 

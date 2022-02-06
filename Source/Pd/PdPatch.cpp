@@ -59,7 +59,8 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
   }
 }
 
-Patch::Patch(const File& toOpen, Instance* instance) noexcept {}
+Patch::Patch(const File& toOpen, Instance* instance) noexcept {
+}
 
 std::array<int, 4> Patch::getBounds() const noexcept
 {
@@ -73,6 +74,10 @@ std::array<int, 4> Patch::getBounds() const noexcept
     }
   }
   return {0, 0, 0, 0};
+}
+
+void Patch::close() {
+    canvas_free(getPointer());
 }
 
 void Patch::setCurrent()

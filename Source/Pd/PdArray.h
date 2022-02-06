@@ -30,12 +30,6 @@ class Array
   //! @brief The default constructor.
   Array() = default;
 
-  //! @brief The copy operator.
-  Array(Array const& other) = default;
-
-  //! @brief The destructor.
-  ~Array() noexcept = default;
-
   //! @brief Gets the name of the array.
   std::string getName() const noexcept;
 
