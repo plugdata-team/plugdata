@@ -5,8 +5,11 @@
 */
 #include "Canvas.h"
 
-#include <m_imp.h>
+extern "C"
+{
 #include <m_pd.h>
+#include <m_imp.h>
+}
 
 #include <memory>
 
