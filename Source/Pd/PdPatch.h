@@ -28,105 +28,104 @@ class Instance;
 //! @see Instance, Object, Gui
 class Patch
 {
- public:
-  Patch(void* ptr, Instance* instance) noexcept;
+   public:
+    Patch(void* ptr, Instance* instance) noexcept;
 
-  Patch(const File& toOpen, Instance* instance) noexcept;
+    Patch(const File& toOpen, Instance* instance) noexcept;
 
-  //! @brief The default constructor.
-  Patch() = default;
+    //! @brief The default constructor.
+    Patch() = default;
 
-  //! @brief The compare equal operator.
-  bool operator==(Patch const& other) const noexcept { return getPointer() == other.getPointer(); }
-    
-  void close();
+    //! @brief The compare equal operator.
+    bool operator==(Patch const& other) const noexcept { return getPointer() == other.getPointer(); }
 
-  //! @brief Gets the bounds of the patch.
-  std::array<int, 4> getBounds() const noexcept;
+    void close();
 
-  std::unique_ptr<Object> createGraph(const String& name, int size, int x, int y);
-  std::unique_ptr<Object> createGraphOnParent(int x, int y);
+    //! @brief Gets the bounds of the patch.
+    std::array<int, 4> getBounds() const noexcept;
 
-  std::unique_ptr<Object> createObject(const String& name, int x, int y, bool undoable = true);
-  void removeObject(Object* obj);
-  std::unique_ptr<Object> renameObject(Object* obj, const String& name);
-    
+    std::unique_ptr<Object> createGraph(const String& name, int size, int x, int y);
+    std::unique_ptr<Object> createGraphOnParent(int x, int y);
 
-  void moveObjects(const std::vector<Object*>&, int x, int y);
+    std::unique_ptr<Object> createObject(const String& name, int x, int y, bool undoable = true);
+    void removeObject(Object* obj);
+    std::unique_ptr<Object> renameObject(Object* obj, const String& name);
 
-  void finishRemove();
-  void removeSelection();
+    void moveObjects(const std::vector<Object*>&, int x, int y);
 
-  void selectObject(Object*);
-  void deselectAll();
+    void finishRemove();
+    void removeSelection();
 
-  void setZoom(int zoom);
+    void selectObject(Object*);
+    void deselectAll();
 
-  void copy();
-  void paste();
-  void duplicate();
+    void setZoom(int zoom);
 
-  void undo();
-  void redo();
+    void copy();
+    void paste();
+    void duplicate();
 
-  enum GroupUndoType
-  {
-    Remove = 0,
-    Move
-  };
+    void undo();
+    void redo();
 
-  void setCurrent();
+    enum GroupUndoType
+    {
+        Remove = 0,
+        Move
+    };
 
-  bool canConnect(Object* src, int nout, Object* sink, int nin);
-  bool createConnection(Object* src, int nout, Object* sink, int nin);
-  void removeConnection(Object* src, int nout, Object* sink, int nin);
+    void setCurrent();
 
-  Connections getConnections() const;
+    bool canConnect(Object* src, int nout, Object* sink, int nin);
+    bool createConnection(Object* src, int nout, Object* sink, int nin);
+    void removeConnection(Object* src, int nout, Object* sink, int nin);
 
-  t_canvas* getPointer() const { return static_cast<t_canvas*>(ptr); }
+    Connections getConnections() const;
 
-  //! @brief Gets the objects of the patch.
-  std::vector<Object> getObjects(bool onlyGui = false) noexcept;
+    t_canvas* getPointer() const { return static_cast<t_canvas*>(ptr); }
 
-  String getCanvasContent()
-  {
-    if (!ptr) return {};
-    char* buf;
-    int bufsize;
-    libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
-    return {buf, static_cast<size_t>(bufsize)};
-  }
+    //! @brief Gets the objects of the patch.
+    std::vector<Object> getObjects(bool onlyGui = false) noexcept;
 
-  int getIndex(void* obj);
+    String getCanvasContent()
+    {
+        if (!ptr) return {};
+        char* buf;
+        int bufsize;
+        libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
+        return {buf, static_cast<size_t>(bufsize)};
+    }
 
-  t_gobj* getInfoObject();
-  void setExtraInfoId(const String& oldId, const String& newId);
+    int getIndex(void* obj);
 
-  void storeExtraInfo(bool undoable = true);
+    t_gobj* getInfoObject();
+    void setExtraInfoId(const String& oldId, const String& newId);
 
-  void updateExtraInfo();
-  MemoryBlock getExtraInfo(const String& id) const;
-  void setExtraInfo(const String& id, MemoryBlock& info);
+    void storeExtraInfo(bool undoable = true);
 
-  ValueTree extraInfo = ValueTree("PlugDataInfo");
+    void updateExtraInfo();
+    MemoryBlock getExtraInfo(const String& id) const;
+    void setExtraInfo(const String& id, MemoryBlock& info);
 
-  static t_object* checkObject(Object* obj) noexcept;
+    ValueTree extraInfo = ValueTree("PlugDataInfo");
 
-  void keyPress(int keycode, int shift);
+    static t_object* checkObject(Object* obj) noexcept;
 
-  String getTitle() const;
-  void setTitle(const String& title);
-    
+    void keyPress(int keycode, int shift);
+
+    String getTitle() const;
+    void setTitle(const String& title);
+
     std::vector<t_template*> getTemplates() const;
 
-  static inline float zoom = 1.5f;
+    static inline float zoom = 1.5f;
 
- private:
-  void* ptr = nullptr;
-  Instance* instance = nullptr;
+   private:
+    void* ptr = nullptr;
+    Instance* instance = nullptr;
 
-  friend class Instance;
-  friend class Gui;
-  friend class Object;
+    friend class Instance;
+    friend class Gui;
+    friend class Object;
 };
 }  // namespace pd

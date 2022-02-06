@@ -15,54 +15,54 @@
 
 struct LevelMeter : public Component
 {
-  LevelMeter(AudioProcessorValueTreeState& state, foleys::LevelMeterSource& source)
-  {
-    meter.setMeterSource(&source);
+    LevelMeter(AudioProcessorValueTreeState& state, foleys::LevelMeterSource& source)
+    {
+        meter.setMeterSource(&source);
 
-    lnf.setColour(foleys::LevelMeter::lmTextColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmTextClipColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmTextDeactiveColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmTicksColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmOutlineColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, MainLook::highlightColour);
-    lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, juce::Colours::transparentBlack);
-    lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, juce::Colours::darkgrey);
-    lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, MainLook::highlightColour);
-    lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
-    lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
+        lnf.setColour(foleys::LevelMeter::lmTextColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextClipColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextDeactiveColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTicksColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmOutlineColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, juce::Colours::darkgrey);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
 
-    meter.setLookAndFeel(&lnf);
-    addAndMakeVisible(meter);
+        meter.setLookAndFeel(&lnf);
+        addAndMakeVisible(meter);
 
-    addAndMakeVisible(volumeSlider);
-    volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        addAndMakeVisible(volumeSlider);
+        volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
 
-    volumeSlider.setValue(0.75);
-    volumeSlider.setRange(0.0f, 1.0f);
-      
-    attachment.reset(new SliderParameterAttachment(*state.getParameter("volume"), volumeSlider, nullptr));
-  }
+        volumeSlider.setValue(0.75);
+        volumeSlider.setRange(0.0f, 1.0f);
 
-  ~LevelMeter() override
-  {
-    meter.setLookAndFeel(nullptr);
-    setLookAndFeel(nullptr);
-  }
+        attachment.reset(new SliderParameterAttachment(*state.getParameter("volume"), volumeSlider, nullptr));
+    }
 
-  void resized() override
-  {
-    meter.setBounds(getLocalBounds());
-    volumeSlider.setBounds(getLocalBounds().expanded(5));
-  }
+    ~LevelMeter() override
+    {
+        meter.setLookAndFeel(nullptr);
+        setLookAndFeel(nullptr);
+    }
 
-  foleys::LevelMeter meter = foleys::LevelMeter(foleys::LevelMeter::Horizontal | foleys::LevelMeter::Minimal);
-  foleys::LevelMeterLookAndFeel lnf;
+    void resized() override
+    {
+        meter.setBounds(getLocalBounds());
+        volumeSlider.setBounds(getLocalBounds().expanded(5));
+    }
 
-  Slider volumeSlider;
-    
-  std::unique_ptr<SliderParameterAttachment> attachment;
+    foleys::LevelMeter meter = foleys::LevelMeter(foleys::LevelMeter::Horizontal | foleys::LevelMeter::Minimal);
+    foleys::LevelMeterLookAndFeel lnf;
 
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
+    Slider volumeSlider;
+
+    std::unique_ptr<SliderParameterAttachment> attachment;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };

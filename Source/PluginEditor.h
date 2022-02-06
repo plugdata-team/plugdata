@@ -17,102 +17,100 @@
 
 struct TabComponent : public TabbedComponent
 {
-  std::function<void(int)> onTabChange = [](int) {};
+    std::function<void(int)> onTabChange = [](int) {};
 
-  TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop) {}
+    TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop) {}
 
-  void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override { onTabChange(newCurrentTabIndex); }
+    void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override { onTabChange(newCurrentTabIndex); }
 };
 
 class Canvas;
 class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener
 {
- public:
-  SharedResourcePointer<Resources> resources;
+   public:
+    SharedResourcePointer<Resources> resources;
 
-  ToolbarLook toolbarLook = ToolbarLook(resources.get());
-  StatusbarLook statusbarLook = StatusbarLook(resources.get());
-  MainLook mainLook = MainLook(resources.get());
+    ToolbarLook toolbarLook = ToolbarLook(resources.get());
+    StatusbarLook statusbarLook = StatusbarLook(resources.get());
+    MainLook mainLook = MainLook(resources.get());
 
+    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
+    ~PlugDataPluginEditor() override;
 
-  PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
-  ~PlugDataPluginEditor() override;
+    Component::SafePointer<Console> console;
 
-  Component::SafePointer<Console> console;
+    void showNewObjectMenu();
 
-  void showNewObjectMenu();
+    void paint(Graphics&) override;
+    void resized() override;
 
+    bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
 
-  void paint(Graphics&) override;
-  void resized() override;
+    void mouseDown(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
 
-  bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
+    void openProject();
+    void saveProject(const std::function<void()>& nestedCallback = []() {});
+    void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
 
-  void mouseDown(const MouseEvent& e) override;
-  void mouseDrag(const MouseEvent& e) override;
-  void mouseUp(const MouseEvent& e) override;
+    void addTab(Canvas* cnv, bool deleteWhenClosed = false);
 
-  void openProject();
-  void saveProject(const std::function<void()>& nestedCallback = []() {});
-  void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
+    Canvas* getCurrentCanvas();
+    Canvas* getCanvas(int idx);
 
-  void addTab(Canvas* cnv, bool deleteWhenClosed = false);
+    void updateValues();
 
-  Canvas* getCurrentCanvas();
-  Canvas* getCanvas(int idx);
+    void updateUndoState();
 
-  void updateValues();
+    void zoom(bool zoomingIn);
 
-  void updateUndoState();
+    PlugDataAudioProcessor& pd;
 
-  void zoom(bool zoomingIn);
+    AffineTransform transform;
 
-  PlugDataAudioProcessor& pd;
+    TabComponent tabbar;
+    OwnedArray<Canvas, CriticalSection> canvases;
+    Inspector inspector;
 
-  AffineTransform transform;
+    LevelMeter levelmeter;
 
-  TabComponent tabbar;
-  OwnedArray<Canvas, CriticalSection> canvases;
-  Inspector inspector;
+    TextButton bypassButton = TextButton(Icons::Power);
+    TextButton lockButton = TextButton(Icons::Lock);
+    TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
+    TextButton connectionPathfind = TextButton(Icons::Wand);
 
-  LevelMeter levelmeter;
+    TextButton zoomIn = TextButton(Icons::ZoomIn);
+    TextButton zoomOut = TextButton(Icons::ZoomOut);
+    Label zoomLabel;
 
-  TextButton bypassButton = TextButton(Icons::Power);
-  TextButton lockButton = TextButton(Icons::Lock);
-  TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
-  TextButton connectionPathfind = TextButton(Icons::Wand);
+   private:
+    FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
+    FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
 
-  TextButton zoomIn = TextButton(Icons::ZoomIn);
-  TextButton zoomOut = TextButton(Icons::ZoomOut);
-  Label zoomLabel;
+    static constexpr int toolbarHeight = 40;
+    static constexpr int statusbarHeight = 25;
+    static constexpr int dragbarWidth = 10;
+    int sidebarWidth = 275;
 
- private:
-  FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
-  FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
+    bool sidebarHidden = false;
 
-  static constexpr int toolbarHeight = 40;
-  static constexpr int statusbarHeight = 25;
-  static constexpr int dragbarWidth = 10;
-  int sidebarWidth = 275;
+    std::array<TextButton, 9> toolbarButtons = {TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide)};
 
-  bool sidebarHidden = false;
+    TextButton& hideButton = toolbarButtons[8];
 
-  std::array<TextButton, 9> toolbarButtons = {TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide)};
+    std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
 
-  TextButton& hideButton = toolbarButtons[8];
+    int dragStartWidth = 0;
+    bool draggingSidebar = false;
 
-  std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
+    ComponentBoundsConstrainer restrainer;
+    std::unique_ptr<ResizableCornerComponent> resizer;
 
-  int dragStartWidth = 0;
-  bool draggingSidebar = false;
+    SharedResourcePointer<TooltipWindow> tooltipWindow;
 
-  ComponentBoundsConstrainer restrainer;
-  std::unique_ptr<ResizableCornerComponent> resizer;
+    Component seperators[2];
 
-  SharedResourcePointer<TooltipWindow> tooltipWindow;
-
-  Component seperators[2];
-
-  JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };

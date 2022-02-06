@@ -21,56 +21,56 @@ extern "C"
 
 extern "C"
 {
-struct pd::Instance::internal
-{
-    static void instance_multi_bang(pd::Instance* ptr, const char* recv) { ptr->m_message_queue.try_enqueue({std::string("bang"), std::string(recv)}); }
-    
-    static void instance_multi_float(pd::Instance* ptr, const char* recv, float f) { ptr->m_message_queue.try_enqueue({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})}); }
-    
-    static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym) { ptr->m_message_queue.try_enqueue({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))}); }
-    
-    static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
+    struct pd::Instance::internal
     {
-        Message mess{std::string("list"), std::string(recv), std::vector<Atom>(argc)};
-        for (int i = 0; i < argc; ++i)
+        static void instance_multi_bang(pd::Instance* ptr, const char* recv) { ptr->m_message_queue.try_enqueue({std::string("bang"), std::string(recv)}); }
+
+        static void instance_multi_float(pd::Instance* ptr, const char* recv, float f) { ptr->m_message_queue.try_enqueue({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})}); }
+
+        static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym) { ptr->m_message_queue.try_enqueue({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))}); }
+
+        static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
         {
-            if (argv[i].a_type == A_FLOAT)
-                mess.list[i] = Atom(atom_getfloat(argv + i));
-            else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
+            Message mess{std::string("list"), std::string(recv), std::vector<Atom>(argc)};
+            for (int i = 0; i < argc; ++i)
+            {
+                if (argv[i].a_type == A_FLOAT)
+                    mess.list[i] = Atom(atom_getfloat(argv + i));
+                else if (argv[i].a_type == A_SYMBOL)
+                    mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
+            }
+            ptr->m_message_queue.try_enqueue(std::move(mess));
         }
-        ptr->m_message_queue.try_enqueue(std::move(mess));
-    }
-    
-    static void instance_multi_message(pd::Instance* ptr, const char* recv, const char* msg, int argc, t_atom* argv)
-    {
-        Message mess{msg, std::string(recv), std::vector<Atom>(argc)};
-        for (int i = 0; i < argc; ++i)
+
+        static void instance_multi_message(pd::Instance* ptr, const char* recv, const char* msg, int argc, t_atom* argv)
         {
-            if (argv[i].a_type == A_FLOAT)
-                mess.list[i] = Atom(atom_getfloat(argv + i));
-            else if (argv[i].a_type == A_SYMBOL)
-                mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
+            Message mess{msg, std::string(recv), std::vector<Atom>(argc)};
+            for (int i = 0; i < argc; ++i)
+            {
+                if (argv[i].a_type == A_FLOAT)
+                    mess.list[i] = Atom(atom_getfloat(argv + i));
+                else if (argv[i].a_type == A_SYMBOL)
+                    mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
+            }
+            ptr->m_message_queue.try_enqueue(std::move(mess));
         }
-        ptr->m_message_queue.try_enqueue(std::move(mess));
-    }
-    
-    static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity) { ptr->m_midi_queue.try_enqueue({midievent::NOTEON, channel, pitch, velocity}); }
-    
-    static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value) { ptr->m_midi_queue.try_enqueue({midievent::CONTROLCHANGE, channel, controller, value}); }
-    
-    static void instance_multi_programchange(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::PROGRAMCHANGE, channel, value, 0}); }
-    
-    static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::PITCHBEND, channel, value, 0}); }
-    
-    static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::AFTERTOUCH, channel, value, 0}); }
-    
-    static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value) { ptr->m_midi_queue.try_enqueue({midievent::POLYAFTERTOUCH, channel, pitch, value}); }
-    
-    static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte) { ptr->m_midi_queue.try_enqueue({midievent::MIDIBYTE, port, byte, 0}); }
-    
-    static void instance_multi_print(pd::Instance* ptr, char const* s) { ptr->m_print_queue.try_enqueue(std::string(s)); }
-};
+
+        static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity) { ptr->m_midi_queue.try_enqueue({midievent::NOTEON, channel, pitch, velocity}); }
+
+        static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value) { ptr->m_midi_queue.try_enqueue({midievent::CONTROLCHANGE, channel, controller, value}); }
+
+        static void instance_multi_programchange(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::PROGRAMCHANGE, channel, value, 0}); }
+
+        static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::PITCHBEND, channel, value, 0}); }
+
+        static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::AFTERTOUCH, channel, value, 0}); }
+
+        static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value) { ptr->m_midi_queue.try_enqueue({midievent::POLYAFTERTOUCH, channel, pitch, value}); }
+
+        static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte) { ptr->m_midi_queue.try_enqueue({midievent::MIDIBYTE, port, byte, 0}); }
+
+        static void instance_multi_print(pd::Instance* ptr, char const* s) { ptr->m_print_queue.try_enqueue(std::string(s)); }
+    };
 }
 
 namespace pd
@@ -79,28 +79,28 @@ namespace pd
 Instance::Instance(std::string const& symbol)
 {
     libpd_multi_init();
-    
+
     canvasLock.lock();
     m_instance = libpd_new_instance();
     canvasLock.unlock();
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    m_midi_receiver = libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange),
-                                           reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange), reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch),
-                                           reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch), reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
+    m_midi_receiver =
+        libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
+                             reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
+                             reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
-    
+
     m_message_receiver[0] = libpd_multi_receiver_new(this, symbol.c_str(), reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                      reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
-    
+
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-    
-    
+
     auto gui_trigger = [](void* instance, void* target)
     {
         auto* pd = static_cast<t_pd*>(target);
-        
+
         // redraw scalar
         if (pd && !strcmp((*pd)->c_name->s_name, "scalar"))
         {
@@ -111,17 +111,13 @@ Instance::Instance(std::string const& symbol)
             static_cast<Instance*>(instance)->receiveGuiUpdate(1);
         }
     };
-    
-    auto panel_trigger = [](void* instance, int open, const char* snd, const char* location)
-    {
-        static_cast<Instance*>(instance)->createPanel(open, snd, location);
-    };
-    
-    
+
+    auto panel_trigger = [](void* instance, int open, const char* snd, const char* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
+
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger);
-    
+
     libpd_set_verbose(0);
-    
+
     setThis();
 }
 
@@ -129,10 +125,10 @@ Instance::~Instance()
 {
     closePatch();
     for (auto& i : m_message_receiver) pd_free(static_cast<t_pd*>(i));
-    
+
     pd_free(static_cast<t_pd*>(m_midi_receiver));
     pd_free(static_cast<t_pd*>(m_print_receiver));
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
 }
@@ -229,7 +225,7 @@ void Instance::sendMidiByte(const int port, const int byte) const
 void Instance::sendBang(const char* receiver) const
 {
     if (!m_instance) return;
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_bang(receiver);
 }
@@ -237,7 +233,7 @@ void Instance::sendBang(const char* receiver) const
 void Instance::sendFloat(const char* receiver, float const value) const
 {
     if (!m_instance) return;
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_float(receiver, value);
 }
@@ -245,7 +241,7 @@ void Instance::sendFloat(const char* receiver, float const value) const
 void Instance::sendSymbol(const char* receiver, const char* symbol) const
 {
     if (!m_instance) return;
-    
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_symbol(receiver, symbol);
 }
@@ -253,7 +249,7 @@ void Instance::sendSymbol(const char* receiver, const char* symbol) const
 void Instance::sendList(const char* receiver, const std::vector<Atom>& list) const
 {
     if (!static_cast<t_pdinstance*>(m_instance)) return;
-    
+
     auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     for (size_t i = 0; i < list.size(); ++i)
@@ -269,7 +265,7 @@ void Instance::sendList(const char* receiver, const std::vector<Atom>& list) con
 void Instance::sendMessage(const char* receiver, const char* msg, const std::vector<Atom>& list) const
 {
     if (!static_cast<t_pdinstance*>(m_instance)) return;
-    
+
     auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     for (size_t i = 0; i < list.size(); ++i)
@@ -335,9 +331,9 @@ void Instance::processPrints()
                 print.pop_back();
             }
             temp += print;
-            
+
             MessageManager::callAsync([this, temp]() mutable { receivePrint(temp); });
-            
+
             temp.clear();
         }
         else
@@ -352,7 +348,7 @@ void Instance::enqueueFunction(const std::function<void(void)>& fn)
     // sys_lock();
     // fn();
     // sys_unlock();
-    
+
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
     m_function_queue.enqueue(fn);
@@ -391,7 +387,7 @@ void Instance::waitForStateUpdate()
         // Append signal to resume thread at the end of the queue
         // This will make sure that any actions we performed are definitely finished now
         enqueueFunction([this]() { updateWait.signal(); });
-        
+
         updateWait.wait();
     }
     // Should ensure that patches are loaded correctly when audio hasn't started yet
@@ -408,14 +404,14 @@ void Instance::waitForStateUpdate()
 void Instance::sendMessagesFromQueue()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    
+
     std::function<void(void)> callback;
     while (m_function_queue.try_dequeue(callback))
     {
         callback();
         audioStarted = true;
     }
-    
+
     dmessage mess;
     while (m_send_queue.try_dequeue(mess))
     {
@@ -465,23 +461,23 @@ Patch Instance::openPatch(const File& toOpen)
 {
     String dirname = toOpen.getParentDirectory().getFullPathName();
     auto* dir = dirname.toRawUTF8();
-    
+
     String filename = toOpen.getFileName();
     auto* file = filename.toRawUTF8();
-    
+
     closePatch();
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    
+
     canvasLock.lock();
-    
+
     m_patch = libpd_create_canvas(file, dir);
-    
+
     // canvas_setcurrent(static_cast<t_canvas*>(patch));
     canvasLock.unlock();
     setThis();
-    
+
     currentFile = toOpen;
-    
+
     return getPatch();
 }
 
@@ -489,13 +485,13 @@ void Instance::savePatch(const File& location)
 {
     String fullPathname = location.getParentDirectory().getFullPathName();
     String filename = location.getFileName();
-    
+
     auto* dir = gensym(fullPathname.toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
     libpd_savetofile(getPatch().getPointer(), file, dir);
 
     getPatch().setTitle(filename);
-    
+
     canvas_dirty(getPatch().getPointer(), 0);
     currentFile = location;
 }
@@ -504,22 +500,21 @@ void Instance::savePatch()
 {
     String fullPathname = currentFile.getParentDirectory().getFullPathName();
     String filename = currentFile.getFileName();
-    
+
     auto* dir = gensym(fullPathname.toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
-    
-    
+
     libpd_savetofile(getPatch().getPointer(), file, dir);
-    
+
     getPatch().setTitle(filename);
-    
+
     canvas_dirty(getPatch().getPointer(), 0);
 }
 
 bool Instance::isDirty()
 {
     if (!m_patch) return false;
-    
+
     return getPatch().getPointer()->gl_dirty;
 }
 
@@ -533,62 +528,67 @@ void Instance::closePatch()
     }
 }
 
-Patch Instance::getPatch() { return Patch(m_patch, this);
-    
-}
+Patch Instance::getPatch() { return Patch(m_patch, this); }
 
-Array Instance::getArray(std::string const& name) {
-    return {name, m_instance};
-    
-}
+Array Instance::getArray(std::string const& name) { return {name, m_instance}; }
 
-void Instance::setThis() { libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    
-}
+void Instance::setThis() { libpd_set_instance(static_cast<t_pdinstance*>(m_instance)); }
 
-
-void Instance::createPanel(int type, const char* snd, const char* location) {
-    
+void Instance::createPanel(int type, const char* snd, const char* location)
+{
     setThis();
     auto* obj = gensym(snd)->s_thing;
-    
+
     auto defaultFile = File(location);
-    
-    if(type) {
-        MessageManager::callAsync([this, obj, defaultFile]() mutable {
-            auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
-            openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", true);
-            
-            openChooser->launchAsync(folderChooserFlags, [this, obj](FileChooser const& fileChooser) {
-                auto const file = fileChooser.getResult();
-                enqueueFunction([obj, file]() mutable {
-                    auto* path = file.getFullPathName().toRawUTF8();
-                    
-                    t_atom argv[1];
-                    libpd_set_symbol(argv, path);
-                    pd_typedmess(obj, gensym("callback"), 1, argv);
-                });
+
+    if (type)
+    {
+        MessageManager::callAsync(
+            [this, obj, defaultFile]() mutable
+            {
+                auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
+                openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", true);
+
+                openChooser->launchAsync(folderChooserFlags,
+                                         [this, obj](FileChooser const& fileChooser)
+                                         {
+                                             auto const file = fileChooser.getResult();
+                                             enqueueFunction(
+                                                 [obj, file]() mutable
+                                                 {
+                                                     auto* path = file.getFullPathName().toRawUTF8();
+
+                                                     t_atom argv[1];
+                                                     libpd_set_symbol(argv, path);
+                                                     pd_typedmess(obj, gensym("callback"), 1, argv);
+                                                 });
+                                         });
             });
-        });
     }
-    else {
-        MessageManager::callAsync([this, obj, defaultFile]() mutable {
-            auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::warnAboutOverwriting;
-            saveChooser = std::make_unique<FileChooser>("Save...", defaultFile, "", true);
-            
-            saveChooser->launchAsync(folderChooserFlags, [this, obj](FileChooser const& fileChooser) {
-                auto const file = fileChooser.getResult();
-                enqueueFunction([obj, file]() mutable {
-                    auto* path = file.getFullPathName().toRawUTF8();
-                    
-                    t_atom argv[1];
-                    libpd_set_symbol(argv, path);
-                    pd_typedmess(obj, gensym("callback"), 1, argv);
-                });
+    else
+    {
+        MessageManager::callAsync(
+            [this, obj, defaultFile]() mutable
+            {
+                auto constexpr folderChooserFlags = FileBrowserComponent::saveMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::warnAboutOverwriting;
+                saveChooser = std::make_unique<FileChooser>("Save...", defaultFile, "", true);
+
+                saveChooser->launchAsync(folderChooserFlags,
+                                         [this, obj](FileChooser const& fileChooser)
+                                         {
+                                             auto const file = fileChooser.getResult();
+                                             enqueueFunction(
+                                                 [obj, file]() mutable
+                                                 {
+                                                     auto* path = file.getFullPathName().toRawUTF8();
+
+                                                     t_atom argv[1];
+                                                     libpd_set_symbol(argv, path);
+                                                     pd_typedmess(obj, gensym("callback"), 1, argv);
+                                                 });
+                                         });
             });
-        });
     }
 }
-
 
 }  // namespace pd
