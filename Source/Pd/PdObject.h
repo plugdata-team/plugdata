@@ -25,73 +25,72 @@ class Instance;
 //!         //! @brief The type of GUI.
 enum class Type : size_t
 {
-  Undefined = 0,
-  HorizontalSlider,
-  VerticalSlider,
-  Toggle,
-  Number,
-  HorizontalRadio,
-  VerticalRadio,
-  Bang,
-  Panel,
-  VuMeter,
-  Comment,
-  AtomNumber,
-  AtomSymbol,
-  AtomList,
-  Array,
-  GraphOnParent,
-  Message,
-  Subpatch,
-  Mousepad,
-  Mouse,
-  Keyboard,
-  Invalid
+    Undefined = 0,
+    HorizontalSlider,
+    VerticalSlider,
+    Toggle,
+    Number,
+    HorizontalRadio,
+    VerticalRadio,
+    Bang,
+    Panel,
+    VuMeter,
+    Comment,
+    AtomNumber,
+    AtomSymbol,
+    AtomList,
+    Array,
+    GraphOnParent,
+    Message,
+    Subpatch,
+    Mousepad,
+    Mouse,
+    Keyboard,
+    Invalid
 };
 
 class Object
 {
- public:
+   public:
+    //! @brief The compare equal operator.
+    bool operator==(Object const& other) const noexcept;
 
-  //! @brief The compare equal operator.
-  bool operator==(Object const& other) const noexcept;
+    //! @brief The compare unequal operator.
+    bool operator!=(Object const& other) const noexcept;
 
-  //! @brief The compare unequal operator.
-  bool operator!=(Object const& other) const noexcept;
+    //! @brief The text of the Object.
+    std::string getText();
 
-  //! @brief The text of the Object.
-  std::string getText();
+    //! @brief The name of the Object.
+    std::string getName() const;
 
-  //! @brief The name of the Object.
-  std::string getName() const;
+    //! @brief The name of the help file
+    Patch getHelp() const;
 
-  //! @brief The name of the help file
-  Patch getHelp() const;
+    void setWidth(int width);
 
-  void setWidth(int width);
+    int getWidth() const;
 
-  int getWidth() const;
+    virtual inline Type getType() const noexcept { return Type::Undefined; }
 
-  virtual inline Type getType() const noexcept { return Type::Undefined; }
+    //! @brief The bounds of the Object.
+    virtual std::array<int, 4> getBounds() const noexcept;
 
-  //! @brief The bounds of the Object.
-  virtual std::array<int, 4> getBounds() const noexcept;
+    void* getPointer() const noexcept { return ptr; }
 
-  void* getPointer() const noexcept { return ptr; }
+    int getNumInlets() noexcept;
+    int getNumOutlets() noexcept;
 
-  int getNumInlets() noexcept;
-  int getNumOutlets() noexcept;
+    bool isSignalInlet(int idx) noexcept;
+    bool isSignalOutlet(int idx) noexcept;
 
-  bool isSignalInlet(int idx) noexcept;
-  bool isSignalOutlet(int idx) noexcept;
+    Object(void* ptr, Patch* patch, Instance* instance) noexcept;
 
-  Object(void* ptr, Patch* patch, Instance* instance) noexcept;
+   protected:
+    void* ptr = nullptr;
+    Patch* patch = nullptr;
+    Instance* instance = nullptr;
 
- protected:
-  void* ptr = nullptr;
-  Patch* patch = nullptr;
-  Instance* instance = nullptr;
-
-  friend class Patch;
+    friend class Patch;
 };
 }  // namespace pd
