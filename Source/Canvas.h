@@ -27,7 +27,7 @@ class PlugDataPluginProcessor;
 class Canvas : public Component, public KeyListener, public MultiComponentDragger<Box>
 {
  public:
-  //==============================================================================
+
   Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
 
   ~Canvas() override;
@@ -35,7 +35,6 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
   PlugDataPluginEditor& main;
   PlugDataAudioProcessor* pd;
 
-  //==============================================================================
   void paintOverChildren(Graphics&) override;
   void resized() override;
 

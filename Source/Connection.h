@@ -41,11 +41,9 @@ class Connection : public Component, public ComponentListener
   bool isSelected = false;
   int mouseDownPosition = 0;
 
-  //==============================================================================
   Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);
   ~Connection() override;
 
-  //==============================================================================
   void paint(Graphics&) override;
   void resized() override;
 

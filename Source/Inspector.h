@@ -23,7 +23,7 @@ using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<v
 
 struct Inspector : public Component, public TableListBoxModel
 {
-  //==============================================================================
+
   Inspector() : font(14.0f), numRows(0)
   {
     loadData({});
@@ -52,7 +52,7 @@ struct Inspector : public Component, public TableListBoxModel
     table.setMultipleSelectionEnabled(true);
   }
 
-  //==============================================================================
+
   // This is overloaded from TableListBoxModel, and must return the total number of rows in our table
   int getNumRows() override { return numRows; }
 
@@ -132,7 +132,7 @@ struct Inspector : public Component, public TableListBoxModel
     }
   }
 
-  //==============================================================================
+
   void resized() override { table.setBounds(getLocalBounds().withWidth(getWidth() + 2)); }
 
   void deselect() { loadData({}); }

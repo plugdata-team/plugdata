@@ -94,7 +94,7 @@ class PlugDataApp : public JUCEApplication
     );
   }
 
-  //==============================================================================
+
   void initialise(const String&) override
   {
     LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colour(20, 20, 20));
@@ -109,7 +109,7 @@ class PlugDataApp : public JUCEApplication
     appProperties.saveIfNeeded();
   }
 
-  //==============================================================================
+
   void systemRequestedQuit() override
   {
     if (mainWindow) mainWindow->pluginHolder->savePluginState();
