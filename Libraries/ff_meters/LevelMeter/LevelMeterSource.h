@@ -215,7 +215,7 @@ public:
                                                      holdMSecs);
                 
                 auto newValue = levels.at(size_t (channel)).getAvgRMS();
-                newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.05f;
+                newDataFlag = abs(newValue - lastShownValue) > 0.05f;
                 if(newDataFlag) {
                     lastShownValue = newValue;
                 }
@@ -232,7 +232,7 @@ public:
         levels [size_t (channel)].setLevels (lastMeasurement, rms, peak, holdMSecs);
         
         auto newValue = levels.at(size_t (channel)).getAvgRMS();
-        newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.05f;
+        newDataFlag = abs(newValue - lastShownValue) > 0.05f;
         
         if(newDataFlag) {
             lastShownValue = newValue;

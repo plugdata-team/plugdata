@@ -41,6 +41,8 @@ struct LevelMeter : public Component
 
     volumeSlider.setValue(0.75);
     volumeSlider.setRange(0.0f, 1.0f);
+      
+    attachment.reset(new SliderParameterAttachment(*state.getParameter("volume"), volumeSlider, nullptr));
   }
 
   ~LevelMeter() override
@@ -59,6 +61,8 @@ struct LevelMeter : public Component
   foleys::LevelMeterLookAndFeel lnf;
 
   Slider volumeSlider;
+    
+  std::unique_ptr<SliderParameterAttachment> attachment;
 
   JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
