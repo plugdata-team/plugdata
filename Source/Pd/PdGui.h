@@ -26,9 +26,7 @@ class Label;
 class Gui : public Object
 {
  public:
-  //! @brief The default constructor
-  Gui() noexcept = default;
-
+    
   //! @brief The type of the GUI.
   inline Type getType() const noexcept override { return type; }
 
