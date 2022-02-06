@@ -5,8 +5,12 @@
  */
 #pragma once
 
+
+
 #include <array>
 #include <vector>
+
+#include <JuceHeader.h>
 
 namespace pd
 {

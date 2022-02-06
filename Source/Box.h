@@ -7,7 +7,11 @@
 #pragma once
 
 #include <JuceHeader.h>
+
+extern "C"
+{
 #include <m_pd.h>
+}
 
 #include "BoxEditor.h"
 #include "Edge.h"

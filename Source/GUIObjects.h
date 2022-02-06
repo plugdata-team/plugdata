@@ -7,8 +7,12 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <g_all_guis.h>
+
+extern "C"
+{
 #include <m_pd.h>
+#include <g_all_guis.h>
+}
 
 #include <type_traits>
 #include <utility>

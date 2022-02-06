@@ -252,10 +252,9 @@ endif()
 
 # C FLAGS COMPILER OR GENERATOR
 #------------------------------------------------------------------------------#
-if(CMAKE_GENERATOR STREQUAL Xcode)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-unused-function")
-    set(CMAKE_C_FLAGS_RELEASE "-fomit-frame-pointer")
-elseif(MSVC)
+
+
+if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /wd4005 /wd4091 /wd4100 /wd4133 /wd4102 /wd4267 /wd4311 /wd4477 /wd4996")
     if(MSVC_STATIC_RUNTIME)
         foreach(RFLAG CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
@@ -264,15 +263,8 @@ elseif(MSVC)
             endif()
         endforeach()
     endif()
-
-elseif(CMAKE_C_COMPILER_ID STREQUAL GNU)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
-    if(NOT APPLE)
-        set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
-    endif()
-elseif(CMAKE_C_COMPILER_ID STREQUAL Clang)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast")
+else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value -Wno-format")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
     if(NOT APPLE)
         set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
