@@ -297,6 +297,16 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
   {
     button.setLookAndFeel(nullptr);
   }
+    
+    // TEMPORARY:
+    // Ideally, we store the tabs on pd::instance, so they don't get lost when the editor closes
+    // For now we have to close them to make sure help files are closed properly
+    for(int n = 0; n < tabbar.getNumTabs(); n++) {
+        auto* closeButton = static_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(n)->getExtraComponent());
+        
+        closeButton->triggerClick();
+    }
+
 }
 
 void PlugDataPluginEditor::showNewObjectMenu()

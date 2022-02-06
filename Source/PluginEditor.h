@@ -94,7 +94,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
   FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
 
   static constexpr int toolbarHeight = 40;
-  static constexpr int statusbarHeight = 24;
+  static constexpr int statusbarHeight = 25;
   static constexpr int dragbarWidth = 10;
   int sidebarWidth = 275;
 
