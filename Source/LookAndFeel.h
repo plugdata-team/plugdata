@@ -205,11 +205,10 @@ struct MainLook : public LookAndFeel_V4
         auto background = findColour(PopupMenu::backgroundColourId);
         g.setColour(background);
         
+        // Fill background if there's no support for transparent popupmenus
         if (!Desktop::canUseSemiTransparentWindows() && JUCEApplicationBase::isStandaloneApp())
         {
-
-          g.fillAll(MainLook::firstBackground);
-          return;
+          g.fillAll(MainLook::secondBackground);
         }
         
         
