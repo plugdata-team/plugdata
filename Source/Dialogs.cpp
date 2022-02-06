@@ -54,10 +54,7 @@ void SaveDialog::resized()
 void SaveDialog::paint(Graphics& g)
 {
   g.setColour(MainLook::firstBackground);
-  g.fillRect(getLocalBounds().reduced(1).toFloat());
-
-  g.setColour(findColour(ComboBox::outlineColourId).darker());
-  g.drawRect(getLocalBounds().reduced(1), 1.0f);
+  g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 }
 
 void SaveDialog::show(Component* centre, std::function<void(int)> callback)
@@ -149,10 +146,10 @@ void ArrayDialog::resized()
 void ArrayDialog::paint(Graphics& g)
 {
   g.setColour(MainLook::firstBackground);
-  g.fillRect(getLocalBounds().reduced(1).toFloat());
+  g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
   g.setColour(findColour(ComboBox::outlineColourId).darker());
-  g.drawRect(getLocalBounds().reduced(1), 1.0f);
+  g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
 }
 
 class LibraryComponent : public Component, public TableListBoxModel
@@ -374,14 +371,13 @@ SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, Au
 
 void SettingsComponent::paint(Graphics& g)
 {
-  auto baseColour = MainLook::firstBackground;
   auto highlightColour = Colour(0xff42a2c8).darker(0.2);
 
-  g.fillAll(MainLook::firstBackground);
+  g.setColour(MainLook::firstBackground);
+  g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
-  // Toolbar background
-  g.setColour(baseColour);
-  g.fillRect(0, 0, getWidth(), toolbarHeight);
+  g.setColour(findColour(ComboBox::outlineColourId).darker());
+  g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
 
   g.setColour(highlightColour);
   g.fillRect(0, 42, getWidth(), 4);
