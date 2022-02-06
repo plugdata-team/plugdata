@@ -74,21 +74,21 @@ class Object
   std::string getText();
 
   //! @brief The name of the Object.
-  [[nodiscard]] std::string getName() const;
+  std::string getName() const;
 
   //! @brief The name of the help file
-  [[nodiscard]] Patch getHelp() const;
+  Patch getHelp() const;
 
   void setWidth(int width);
 
-  [[nodiscard]] int getWidth() const;
+  int getWidth() const;
 
-  [[nodiscard]] virtual inline Type getType() const noexcept { return Type::Undefined; }
+  virtual inline Type getType() const noexcept { return Type::Undefined; }
 
   //! @brief The bounds of the Object.
-  [[nodiscard]] virtual std::array<int, 4> getBounds() const noexcept;
+  virtual std::array<int, 4> getBounds() const noexcept;
 
-  [[nodiscard]] void* getPointer() const noexcept { return ptr; }
+  void* getPointer() const noexcept { return ptr; }
 
   int getNumInlets() noexcept;
   int getNumOutlets() noexcept;

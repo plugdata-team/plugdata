@@ -49,7 +49,7 @@ class Patch
   ~Patch() noexcept = default;
 
   //! @brief Gets the bounds of the patch.
-  [[nodiscard]] std::array<int, 4> getBounds() const noexcept;
+  std::array<int, 4> getBounds() const noexcept;
 
   std::unique_ptr<Object> createGraph(const String& name, int size, int x, int y);
   std::unique_ptr<Object> createGraphOnParent(int x, int y);
@@ -87,9 +87,9 @@ class Patch
   bool createConnection(Object* src, int nout, Object* sink, int nin);
   void removeConnection(Object* src, int nout, Object* sink, int nin);
 
-  [[nodiscard]] Connections getConnections() const;
+  Connections getConnections() const;
 
-  [[nodiscard]] t_canvas* getPointer() const { return static_cast<t_canvas*>(ptr); }
+  t_canvas* getPointer() const { return static_cast<t_canvas*>(ptr); }
 
   //! @brief Gets the objects of the patch.
   std::vector<Object> getObjects(bool onlyGui = false) noexcept;
@@ -111,7 +111,7 @@ class Patch
   void storeExtraInfo(bool undoable = true);
 
   void updateExtraInfo();
-  [[nodiscard]] MemoryBlock getExtraInfo(const String& id) const;
+  MemoryBlock getExtraInfo(const String& id) const;
   void setExtraInfo(const String& id, MemoryBlock& info);
 
   ValueTree extraInfo = ValueTree("PlugDataInfo");
@@ -120,8 +120,10 @@ class Patch
 
   void keyPress(int keycode, int shift);
 
-  [[nodiscard]] String getTitle() const;
+  String getTitle() const;
   void setTitle(const String& title);
+    
+    std::vector<t_template*> getTemplates() const;
 
   static inline float zoom = 1.5f;
 

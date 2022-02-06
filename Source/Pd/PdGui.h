@@ -30,24 +30,24 @@ class Gui : public Object
   Gui() noexcept = default;
 
   //! @brief The type of the GUI.
-  [[nodiscard]] inline Type getType() const noexcept override { return type; }
+  inline Type getType() const noexcept override { return type; }
 
   static Type getType(void* ptr) noexcept;
 
   //! @brief If the GUI is an IEM's GUI.
-  [[nodiscard]] bool isIEM() const noexcept { return (type != Type::Undefined) && (type < Type::Comment); }
+  bool isIEM() const noexcept { return (type != Type::Undefined) && (type < Type::Comment); }
 
   //! @brief If the GUI is an Atom GUI (AtomNumber or AtomSymbol).
-  [[nodiscard]] bool isAtom() const noexcept { return (type == Type::AtomNumber) || (type == Type::AtomSymbol); }
+  bool isAtom() const noexcept { return (type == Type::AtomNumber) || (type == Type::AtomSymbol); }
 
   //! @brief Get the font height.
-  [[nodiscard]] float getFontHeight() const noexcept;
+  float getFontHeight() const noexcept;
 
   //! @brief Get the font name.
-  [[nodiscard]] std::string getFontName() const;
+  std::string getFontName() const;
 
-  [[nodiscard]] float getMinimum() const noexcept;
-  [[nodiscard]] float getMaximum() const noexcept;
+  float getMinimum() const noexcept;
+  float getMaximum() const noexcept;
 
   void setMinimum(float value) noexcept;
   void setMaximum(float value) noexcept;
@@ -58,39 +58,39 @@ class Gui : public Object
   std::string getSendSymbol() noexcept;
   std::string getReceiveSymbol() noexcept;
 
-  [[nodiscard]] float getValue() const noexcept;
-  [[nodiscard]] float getPeak() const noexcept;
+  float getValue() const noexcept;
+  float getPeak() const noexcept;
 
   void setValue(float value) noexcept;
 
-  [[nodiscard]] size_t getNumberOfSteps() const noexcept;
+  size_t getNumberOfSteps() const noexcept;
 
-  [[nodiscard]] unsigned int getBackgroundColor() const noexcept;
+  unsigned int getBackgroundColor() const noexcept;
 
-  [[nodiscard]] unsigned int getForegroundColor() const noexcept;
+  unsigned int getForegroundColor() const noexcept;
 
-  [[nodiscard]] std::string getSymbol() const noexcept;
+  std::string getSymbol() const noexcept;
 
   void setSymbol(std::string const& value) noexcept;
 
   void click() noexcept;
 
-  [[nodiscard]] std::array<int, 4> getBounds() const noexcept override;
+  std::array<int, 4> getBounds() const noexcept override;
   void setSize(int w, int h) noexcept;
 
-  [[nodiscard]] bool jumpOnClick() const noexcept;
+  bool jumpOnClick() const noexcept;
 
-  [[nodiscard]] bool isLogScale() const noexcept;
+  bool isLogScale() const noexcept;
   void setLogScale(bool log) noexcept;
 
-  [[nodiscard]] Array getArray() const noexcept;
+  Array getArray() const noexcept;
 
-  [[nodiscard]] Label getLabel() const noexcept;
-  [[nodiscard]] Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
+  Label getLabel() const noexcept;
+  Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
 
-  [[nodiscard]] Patch getPatch() const noexcept;
+  Patch getPatch() const noexcept;
 
-  [[nodiscard]] std::vector<Atom> getList() const noexcept;
+  std::vector<Atom> getList() const noexcept;
 
   void setList(std::vector<Atom> const& value) noexcept;
 
@@ -112,15 +112,15 @@ class Label
   Label(Label const& other) noexcept;
   Label(std::string text, unsigned int color, int x, int y, std::string fontname, float fontheight) noexcept;
 
-  [[nodiscard]] std::string getText() const noexcept { return m_text; }
-  [[nodiscard]] unsigned int getColor() const noexcept { return m_color; }
-  [[nodiscard]] std::array<int, 2> getPosition() const noexcept { return m_position; }
+  std::string getText() const noexcept { return m_text; }
+  unsigned int getColor() const noexcept { return m_color; }
+  std::array<int, 2> getPosition() const noexcept { return m_position; }
 
   //! @brief Get the font height.
-  [[nodiscard]] float getFontHeight() const noexcept;
+  float getFontHeight() const noexcept;
 
   //! @brief Get the font name.
-  [[nodiscard]] std::string getFontName() const;
+  std::string getFontName() const;
 
  private:
   void* ptr;
