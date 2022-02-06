@@ -14,45 +14,45 @@
 // Text element in suggestion box
 class SuggestionComponent : public TextButton
 {
-  int type = -1;
-  Array<Colour> colours = {findColour(ScrollBar::thumbColourId), Colours::yellow};
+    int type = -1;
+    Array<Colour> colours = {findColour(ScrollBar::thumbColourId), Colours::yellow};
 
-  Array<String> letters = {"pd", "~"};
+    Array<String> letters = {"pd", "~"};
 
- public:
-  SuggestionComponent()
-  {
-    setText("");
-    setWantsKeyboardFocus(true);
-    setConnectedEdges(12);
-    setClickingTogglesState(true);
-    setRadioGroupId(1001);
-    setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
-  }
+   public:
+    SuggestionComponent()
+    {
+        setText("");
+        setWantsKeyboardFocus(true);
+        setConnectedEdges(12);
+        setClickingTogglesState(true);
+        setRadioGroupId(1001);
+        setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
+    }
 
-  void setText(const String& name)
-  {
-    setButtonText(name);
-    type = name.contains("~") ? 1 : 0;
+    void setText(const String& name)
+    {
+        setButtonText(name);
+        type = name.contains("~") ? 1 : 0;
 
-    repaint();
-  }
+        repaint();
+    }
 
-  void paint(Graphics& g) override
-  {
-    TextButton::paint(g);
+    void paint(Graphics& g) override
+    {
+        TextButton::paint(g);
 
-    if (type == -1) return;
+        if (type == -1) return;
 
-    g.setColour(colours[type].withAlpha(float(0.8)));
-    Rectangle<int> iconbound = getLocalBounds().reduced(4);
-    iconbound.setWidth(getHeight() - 8);
-    iconbound.translate(3, 0);
-    g.fillRect(iconbound);
+        g.setColour(colours[type].withAlpha(float(0.8)));
+        Rectangle<int> iconbound = getLocalBounds().reduced(4);
+        iconbound.setWidth(getHeight() - 8);
+        iconbound.translate(3, 0);
+        g.fillRect(iconbound);
 
-    g.setColour(Colours::white);
-    g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
-  }
+        g.setColour(Colours::white);
+        g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
+    }
 };
 
 // Box with suggestions for object names
@@ -60,137 +60,136 @@ class Box;
 class ClickLabel;
 class SuggestionBox : public Component, public KeyListener, public TextEditor::InputFilter
 {
- public:
-  bool selecting = false;
+   public:
+    bool selecting = false;
 
-  explicit SuggestionBox(Resources& r);
+    explicit SuggestionBox(Resources& r);
 
-  ~SuggestionBox() override;
+    ~SuggestionBox() override;
 
-  void createCalloutBox(Box* box, TextEditor* editor);
+    void createCalloutBox(Box* box, TextEditor* editor);
 
-  void move(int step, int setto = -1);
+    void move(int step, int setto = -1);
 
-  TextEditor* openedEditor = nullptr;
-  Box* currentBox;
+    TextEditor* openedEditor = nullptr;
+    Box* currentBox;
 
-  void resized() override;
+    void resized() override;
 
- private:
-  void paint(Graphics& g) override;
-  void paintOverChildren(Graphics& g) override;
+   private:
+    void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
 
-  bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
+    bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
 
-  String filterNewText(TextEditor& e, const String& newInput) override;
+    String filterNewText(TextEditor& e, const String& newInput) override;
 
-  bool running = false;
-  int numOptions = 0;
-  int currentidx = 0;
+    bool running = false;
+    int numOptions = 0;
+    int currentidx = 0;
 
-  std::unique_ptr<Viewport> port;
-  std::unique_ptr<Component> buttonholder;
-  OwnedArray<SuggestionComponent> buttons;
+    std::unique_ptr<Viewport> port;
+    std::unique_ptr<Component> buttonholder;
+    OwnedArray<SuggestionComponent> buttons;
 
-  Array<Colour> colours = {MainLook::firstBackground, MainLook::secondBackground};
+    Array<Colour> colours = {MainLook::firstBackground, MainLook::secondBackground};
 
-  Colour bordercolor = Colour(142, 152, 155);
+    Colour bordercolor = Colour(142, 152, 155);
 
-  BoxEditorLook editorLook;
+    BoxEditorLook editorLook;
 
-  int highlightStart = 0;
-  int highlightEnd = 0;
+    int highlightStart = 0;
+    int highlightEnd = 0;
 
-  bool isCompleting = false;
+    bool isCompleting = false;
 };
 
 // Label that shows the box name and can be double-clicked to change the text
 class ClickLabel : public Component, public SettableTooltipClient, public Value::Listener, protected TextEditor::Listener
 {
- public:
-  ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger);
+   public:
+    ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger);
 
-  ~ClickLabel() override { setLookAndFeel(nullptr); }
+    ~ClickLabel() override { setLookAndFeel(nullptr); }
 
-  void mouseDown(const MouseEvent& e) override;
-  void mouseUp(const MouseEvent& e) override;
-  void mouseDrag(const MouseEvent& e) override;
+    void mouseDown(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
 
-  TextEditor* createEditorComponent();
-  void editorAboutToBeHidden(TextEditor*);
+    TextEditor* createEditorComponent();
+    void editorAboutToBeHidden(TextEditor*);
 
-  void inputAttemptWhenModal() override;
+    void inputAttemptWhenModal() override;
 
-  void valueChanged(Value& v) override
-  {
-    if (lastTextValue != textValue.toString()) setText(textValue.toString(), sendNotification);
-  }
-
-  Box* box;
-
-  bool isDown = false;
-  MultiComponentDragger<Box>& dragger;
-
-  void setText(const String& newText, NotificationType notification);
-
-  String getText(bool returnActiveEditorContents = false) const;
-
-  Font getFont() { return font; }
-
-  void setEditable(bool editable);
-
-  // Simplified version of JUCE label class, because we need to modify the behaviour for the suggestions box
-  void showEditor();
-
-  /** Hides the editor if it was being shown.
-
-      @param discardCurrentEditorContents     if true, the label's text will be
-                                              reset to whatever it was before the editor
-                                              was shown; if false, the current contents of the
-                                              editor will be used to set the label's text
-                                              before it is hidden.
-  */
-  void hideEditor();
-
-  /** Returns true if the editor is currently focused and active. */
-  bool isBeingEdited() const noexcept;
-
-  /** Returns the currently-visible text editor, or nullptr if none is open. */
-  TextEditor* getCurrentTextEditor() const noexcept;
-
-  void setBorderSize(BorderSize<int> newBorder)
-  {
-    if (border != newBorder)
+    void valueChanged(Value& v) override
     {
-      border = newBorder;
-      repaint();
+        if (lastTextValue != textValue.toString()) setText(textValue.toString(), sendNotification);
     }
-  }
 
-  void textEditorReturnKeyPressed(TextEditor& ed) override;
+    Box* box;
 
-  std::function<void()> onEditorShow, onEditorHide, onTextChange;
+    bool isDown = false;
+    MultiComponentDragger<Box>& dragger;
 
-  void resized() override;
+    void setText(const String& newText, NotificationType notification);
 
- protected:
-  /** Called when the text editor has just appeared, due to a user click or other focus change. */
-  virtual void editorShown(TextEditor*);
+    String getText(bool returnActiveEditorContents = false) const;
 
-  void paint(Graphics&) override;
+    Font getFont() { return font; }
 
-  void mouseDoubleClick(const MouseEvent&) override;
+    void setEditable(bool editable);
 
+    // Simplified version of JUCE label class, because we need to modify the behaviour for the suggestions box
+    void showEditor();
 
-  Value textValue;
-  String lastTextValue;
-  Font font{15.0f};
-  Justification justification = Justification::centred;
-  std::unique_ptr<TextEditor> editor;
-  BorderSize<int> border{1, 5, 1, 5};
-  float minimumHorizontalScale = 0;
-  TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
-  bool editDoubleClick = false;
+    /** Hides the editor if it was being shown.
 
-  bool updateFromTextEditorContents(TextEditor&);
+        @param discardCurrentEditorContents     if true, the label's text will be
+                            reset to whatever it was before the editor
+                            was shown; if false, the current contents of the
+                            editor will be used to set the label's text
+                            before it is hidden.
+    */
+    void hideEditor();
+
+    /** Returns true if the editor is currently focused and active. */
+    bool isBeingEdited() const noexcept;
+
+    /** Returns the currently-visible text editor, or nullptr if none is open. */
+    TextEditor* getCurrentTextEditor() const noexcept;
+
+    void setBorderSize(BorderSize<int> newBorder)
+    {
+        if (border != newBorder)
+        {
+            border = newBorder;
+            repaint();
+        }
+    }
+
+    void textEditorReturnKeyPressed(TextEditor& ed) override;
+
+    std::function<void()> onEditorShow, onEditorHide, onTextChange;
+
+    void resized() override;
+
+   protected:
+    /** Called when the text editor has just appeared, due to a user click or other focus change. */
+    virtual void editorShown(TextEditor*);
+
+    void paint(Graphics&) override;
+
+    void mouseDoubleClick(const MouseEvent&) override;
+
+    Value textValue;
+    String lastTextValue;
+    Font font{15.0f};
+    Justification justification = Justification::centred;
+    std::unique_ptr<TextEditor> editor;
+    BorderSize<int> border{1, 5, 1, 5};
+    float minimumHorizontalScale = 0;
+    TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
+    bool editDoubleClick = false;
+
+    bool updateFromTextEditorContents(TextEditor&);
 };

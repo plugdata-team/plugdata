@@ -5,12 +5,10 @@
  */
 #pragma once
 
-
+#include <JuceHeader.h>
 
 #include <array>
 #include <vector>
-
-#include <JuceHeader.h>
 
 namespace pd
 {
@@ -22,37 +20,37 @@ namespace pd
 // A class to store a Trie node
 class Trie
 {
- public:
-  bool isLeaf;
-  Trie* character[CHAR_SIZE];
+   public:
+    bool isLeaf;
+    Trie* character[CHAR_SIZE];
 
-  // Constructor
-  Trie()
-  {
-    this->isLeaf = false;
-
-    for (int i = 0; i < CHAR_SIZE; i++)
+    // Constructor
+    Trie()
     {
-      this->character[i] = nullptr;
+        this->isLeaf = false;
+
+        for (int i = 0; i < CHAR_SIZE; i++)
+        {
+            this->character[i] = nullptr;
+        }
     }
-  }
 
-  void insert(const std::string& key);
-  bool deletion(Trie*&, std::string);
-  bool search(const std::string&);
-  bool hasChildren();
+    void insert(const std::string& key);
+    bool deletion(Trie*&, std::string);
+    bool search(const std::string&);
+    bool hasChildren();
 
-  void suggestionsRec(std::string currPrefix, std::vector<std::string>& result);
-  int autocomplete(std::string query, std::vector<std::string>& result);
+    void suggestionsRec(std::string currPrefix, std::vector<std::string>& result);
+    int autocomplete(std::string query, std::vector<std::string>& result);
 };
 
 struct Library
 {
-  void initialiseLibrary(ValueTree pathTree);
+    void initialiseLibrary(ValueTree pathTree);
 
-  std::vector<std::string> autocomplete(std::string query);
+    std::vector<std::string> autocomplete(std::string query);
 
-  Trie searchTree;
+    Trie searchTree;
 };
 
 }  // namespace pd

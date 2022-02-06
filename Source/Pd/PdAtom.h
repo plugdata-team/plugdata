@@ -17,52 +17,52 @@ namespace pd
 //! @see Instance, Gui
 class Atom
 {
- public:
-  //! @brief The default constructor.
-  inline Atom() : type(FLOAT), value(0), symbol() {}
+   public:
+    //! @brief The default constructor.
+    inline Atom() : type(FLOAT), value(0), symbol() {}
 
-  //! @brief The float constructor.
-  inline Atom(const float val) : type(FLOAT), value(val), symbol() {}
+    //! @brief The float constructor.
+    inline Atom(const float val) : type(FLOAT), value(val), symbol() {}
 
-  //! @brief The string constructor.
-  inline Atom(std::string sym) : type(SYMBOL), value(0), symbol(std::move(sym)) {}
+    //! @brief The string constructor.
+    inline Atom(std::string sym) : type(SYMBOL), value(0), symbol(std::move(sym)) {}
 
-  //! @brief The c-string constructor.
-  inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym) {}
+    //! @brief The c-string constructor.
+    inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym) {}
 
-  //! @brief Check if the atom is a float.
-  inline bool isFloat() const noexcept { return type == FLOAT; }
+    //! @brief Check if the atom is a float.
+    inline bool isFloat() const noexcept { return type == FLOAT; }
 
-  //! @brief Check if the atom is a string.
-  inline bool isSymbol() const noexcept { return type == SYMBOL; }
+    //! @brief Check if the atom is a string.
+    inline bool isSymbol() const noexcept { return type == SYMBOL; }
 
-  //! @brief Get the float value.
-  inline float getFloat() const noexcept { return value; }
+    //! @brief Get the float value.
+    inline float getFloat() const noexcept { return value; }
 
-  //! @brief Get the string.
-  inline std::string const& getSymbol() const noexcept { return symbol; }
+    //! @brief Get the string.
+    inline std::string const& getSymbol() const noexcept { return symbol; }
 
-  //! @brief Compare two atoms.
-  inline bool operator==(Atom const& other) const noexcept
-  {
-    if (type == SYMBOL)
+    //! @brief Compare two atoms.
+    inline bool operator==(Atom const& other) const noexcept
     {
-      return other.type == SYMBOL && symbol == other.symbol;
+        if (type == SYMBOL)
+        {
+            return other.type == SYMBOL && symbol == other.symbol;
+        }
+        else
+        {
+            return other.type == FLOAT && value == other.value;
+        }
     }
-    else
-    {
-      return other.type == FLOAT && value == other.value;
-    }
-  }
 
- private:
-  enum Type
-  {
-    FLOAT,
-    SYMBOL
-  };
-  Type type = FLOAT;
-  float value = 0;
-  std::string symbol;
+   private:
+    enum Type
+    {
+        FLOAT,
+        SYMBOL
+    };
+    Type type = FLOAT;
+    float value = 0;
+    std::string symbol;
 };
 }  // namespace pd
