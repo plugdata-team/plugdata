@@ -132,19 +132,28 @@ struct _instanceinter
     unsigned char i_recvbuf[NET_MAXPACKETSIZE];
     
     pd_gui_callback gui_callback;
+    pd_panel_callback panel_callback;
     void* callback_target;
+    
+    
 };
 
-void register_gui_trigger(t_pdinstance* instance, void* target, pd_gui_callback callback) {
+void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback) {
     
-    instance->pd_inter->gui_callback = callback;
+    instance->pd_inter->gui_callback = gui_callback;
+    instance->pd_inter->panel_callback = panel_callback;
     instance->pd_inter->callback_target = target;
 }
 
 void update_gui(void* obj_target) {
     if(pd_this->pd_inter->gui_callback) {
-        
         pd_this->pd_inter->gui_callback(pd_this->pd_inter->callback_target, obj_target);
+    }
+}
+
+void create_panel(int openpanel, const char* path, const char* snd) {
+    if(pd_this->pd_inter->panel_callback) {
+        pd_this->pd_inter->panel_callback(pd_this->pd_inter->callback_target, openpanel, snd, path);
     }
 }
 
@@ -789,6 +798,30 @@ void sys_vgui(const char *fmt, ...)
     if(strncmp(fmt, "pdtk_canvas_raise", strlen("pdtk_canvas_raise")) == 0) {
         return;
     }
+    
+    if(strncmp(fmt, "pdtk_savepanel", strlen("pdtk_savepanel")) == 0) {
+        
+        
+        va_list args;
+        va_start(args, fmt);
+        
+        const char* symbol = va_arg(args, const char*);
+        const char* path = va_arg(args, const char*);
+        
+        create_panel(0, path, symbol);
+        
+    }
+    if(strncmp(fmt, "pdtk_openpanel", strlen("pdtk_openpanel")) == 0) {
+        va_list args;
+        va_start(args, fmt);
+        
+        const char* symbol = va_arg(args, const char*);
+        const char* path = va_arg(args, const char*);
+        
+        create_panel(1, path, symbol);
+        
+    }
+    
     update_gui(NULL);
 }
 
