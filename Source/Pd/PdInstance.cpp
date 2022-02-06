@@ -493,6 +493,8 @@ void Instance::savePatch(const File& location)
     auto* dir = gensym(fullPathname.toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
     libpd_savetofile(getPatch().getPointer(), file, dir);
+
+    getPatch().setTitle(filename);
     
     canvas_dirty(getPatch().getPointer(), 0);
     currentFile = location;
@@ -506,7 +508,10 @@ void Instance::savePatch()
     auto* dir = gensym(fullPathname.toRawUTF8());
     auto* file = gensym(filename.toRawUTF8());
     
+    
     libpd_savetofile(getPatch().getPointer(), file, dir);
+    
+    getPatch().setTitle(filename);
     
     canvas_dirty(getPatch().getPointer(), 0);
 }

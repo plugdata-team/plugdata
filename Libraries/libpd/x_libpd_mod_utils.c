@@ -501,6 +501,7 @@ static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf *b)
  body (and which is called recursively.) */
 void libpd_savetofile(t_canvas* cnv, t_symbol *filename, t_symbol *dir)
 {
+    /*
     t_binbuf *b = binbuf_new();
     libpd_savetemplatesto(cnv, b);
     libpd_canvas_saveto(cnv, b);
@@ -510,12 +511,10 @@ void libpd_savetofile(t_canvas* cnv, t_symbol *filename, t_symbol *dir)
     }
     else
     {
-        /* if not an abstraction, reset title bar and directory */
+        // if not an abstraction, reset title bar and directory
         if (!cnv->gl_owner)
         {
             canvas_rename(cnv, filename, dir);
-            /* update window list in case Save As changed the window name */
-            canvas_updatewindowlist();
         }
         post("saved to: %s/%s", dir->s_name, filename->s_name);
         canvas_dirty(cnv, 0);
@@ -525,7 +524,16 @@ void libpd_savetofile(t_canvas* cnv, t_symbol *filename, t_symbol *dir)
     }
     binbuf_free(b);
     
-    glob_setfilename(NULL, filename, dir);
+    glob_setfilename(NULL, filename, dir);*/
+    
+    t_atom argv[3];
+    
+    libpd_set_symbol(argv, filename->s_name);
+    libpd_set_symbol(argv + 1, dir->s_name);
+    libpd_set_float(argv + 2, 0);
+    
+    
+    pd_typedmess(cnv, gensym("savetofile"), 3, argv);
 }
 
 

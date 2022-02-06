@@ -74,6 +74,8 @@ class Instance
   virtual void receiveSymbol(const std::string& dest, const std::string& symbol) {}
   virtual void receiveList(const std::string& dest, const std::vector<Atom>& list) {}
   virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list) {}
+    
+  virtual void titleChanged() {};
 
   void enqueueFunction(const std::function<void(void)>& fn);
   void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list);
@@ -110,6 +112,7 @@ class Instance
   bool checkState(String pdstate);
 
   static Instance* getCurrent();
+    
 
   void waitForStateUpdate();
 

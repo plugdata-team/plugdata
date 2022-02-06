@@ -20,7 +20,7 @@ extern "C"
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
-}
+
 
 struct _instanceeditor
 {
@@ -44,6 +44,21 @@ struct _instanceeditor
   t_canvas* canvas_cursorcanvaswas;
   unsigned int canvas_cursorwas;
 };
+
+static void canvas_bind(t_canvas *x)
+{
+    if (strcmp(x->gl_name->s_name, "Pd"))
+        pd_bind(&x->gl_pd, canvas_makebindsym(x->gl_name));
+}
+
+static void canvas_unbind(t_canvas *x)
+{
+    if (strcmp(x->gl_name->s_name, "Pd"))
+        pd_unbind(&x->gl_pd, canvas_makebindsym(x->gl_name));
+}
+
+}
+
 namespace pd
 {
 // ==================================================================================== //
@@ -656,7 +671,13 @@ void Patch::setExtraInfo(const String& id, MemoryBlock& info)
 
 String Patch::getTitle() const { return {getPointer()->gl_name->s_name}; }
 
-void Patch::setTitle(const String& title) { getPointer()->gl_name = gensym(title.toRawUTF8()); }
+void Patch::setTitle(const String& title) {
+    
+    canvas_unbind(getPointer());
+    getPointer()->gl_name = gensym(title.toRawUTF8());
+    canvas_bind(getPointer());
+    instance->titleChanged();
+}
 
 
 

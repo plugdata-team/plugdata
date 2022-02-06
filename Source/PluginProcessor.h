@@ -116,6 +116,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
   void loadPatch(String patch) override;
   void loadPatch(File patch) override;
+    
+  void titleChanged() override;
 
   Console console;
 

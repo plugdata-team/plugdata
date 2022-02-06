@@ -51,6 +51,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
   // Initialise library for text autocompletion
   objectLibrary.initialiseLibrary(settingsTree.getChildWithName("Paths"));
 
+    
   // Set up midi buffers
   midiBufferIn.ensureSize(2048);
   midiBufferOut.ensureSize(2048);
@@ -208,7 +209,10 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
   audioStarted = true;
 }
 
-void PlugDataAudioProcessor::releaseResources() { audioStarted = false; }
+void PlugDataAudioProcessor::releaseResources() {
+    releaseDSP();
+    audioStarted = false;
+}
 
 #ifndef JucePlugin_PreferredChannelConfigurations
 bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
@@ -688,10 +692,19 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
       String parentPath = location.getParentDirectory().getFullPathName();
       // Add patch path to search path to make sure it finds the externals!
       libpd_add_to_search_path(parentPath.toRawUTF8());
+        
     }
   }
 
   loadPatch(state);
+
+  if((location.exists() && location.getParentDirectory() ==  File::getSpecialLocation(File::tempDirectory)) || !location.exists()) {
+      getPatch().setTitle("Untitled Patcher");
+   }
+  else {
+      getPatch().setTitle(location.getFileName());
+  }
+
   setLatencySamples(latency);
 }
 
@@ -810,6 +823,16 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
   }
 
   startTimer(15);
+}
+
+void PlugDataAudioProcessor::titleChanged()
+{
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        for(int n = 0; n < editor->tabbar.getNumTabs(); n++) {
+            editor->tabbar.setTabName(n, editor->getCanvas(n)->patch.getTitle());
+        }
+    }
+   
 }
 
 //==============================================================================
