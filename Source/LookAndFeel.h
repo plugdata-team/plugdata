@@ -205,21 +205,11 @@ struct MainLook : public LookAndFeel_V4
     auto background = findColour(PopupMenu::backgroundColourId);
     g.setColour(background);
 
-    if (!Desktop::canUseSemiTransparentWindows() && JUCEApplicationBase::isStandaloneApp())
-    {
-      auto bounds = Rectangle<float>(0, 0, width, height);
-      g.fillRect(bounds);
-
-      g.setColour(findColour(PopupMenu::textColourId).withAlpha(0.2f));
-      g.drawRect(bounds, 1.0f);
-      return;
-    }
-
-    auto bounds = Rectangle<float>(0, 0, width, height);
-    g.fillRoundedRectangle(bounds, 5.0f);
+    auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
+    g.fillRoundedRectangle(bounds, 3.0f);
 
     g.setColour(findColour(PopupMenu::textColourId).withAlpha(0.2f));
-    g.drawRoundedRectangle(bounds, 5.0f, 1.0f);
+    g.drawRoundedRectangle(bounds, 3.0f, 2.0f);
   }
 };
 
@@ -325,7 +315,7 @@ struct ToolbarLook : public MainLook
     g.fillRect(highlightRect);
   }
 
-  Font getTextButtonFont(TextButton&, int buttonHeight) override { return iconFont.withHeight(buttonHeight / 3.6); }
+  Font getTextButtonFont(TextButton&, int buttonHeight) override { return iconFont.withHeight(buttonHeight / 3.5); }
 };
 
 struct StatusbarLook : public MainLook
