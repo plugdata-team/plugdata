@@ -207,7 +207,9 @@ public:
         return totalHeight;
     }
     
-    void resized() override { repaint(); }
+    void resized() override {
+        update();
+    }
     
 private:
     static Colour colourWithType(int type)

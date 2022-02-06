@@ -376,16 +376,13 @@ void SettingsComponent::paint(Graphics& g)
   g.setColour(MainLook::firstBackground);
   g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
-  g.setColour(findColour(ComboBox::outlineColourId).darker());
-  g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
-
   g.setColour(highlightColour);
-  g.fillRect(0, 42, getWidth(), 4);
+  g.fillRect(2, 42, getWidth() - 4, 4);
 }
 
 void SettingsComponent::resized()
 {
-  int toolbarPosition = 0;
+  int toolbarPosition = 2;
   for (auto& button : toolbarButtons)
   {
     button->setBounds(toolbarPosition, 0, 70, toolbarHeight);
