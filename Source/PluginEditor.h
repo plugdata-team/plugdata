@@ -68,8 +68,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
 
   void zoom(bool zoomingIn);
 
-  TabComponent& getTabbar() { return tabbar; };
-
   PlugDataAudioProcessor& pd;
 
   AffineTransform transform;

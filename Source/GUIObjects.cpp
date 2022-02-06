@@ -271,7 +271,7 @@ pd::Gui GUIComponent::getGui() { return gui; }
 void GUIComponent::closeOpenedSubpatchers()
 {
   auto& main = box->cnv->main;
-  auto* tabbar = &main.getTabbar();
+  auto* tabbar = &main.tabbar;
 
   if (!tabbar) return;
 

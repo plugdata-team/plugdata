@@ -215,9 +215,12 @@ public:
                                                      holdMSecs);
                 
                 auto newValue = levels.at(size_t (channel)).getAvgRMS();
-                newDataFlag = abs(newValue - lastShownValue) > 0.05f;
+                
+                float diff = fabs(juce::Decibels::gainToDecibels(newValue) - lastShownValue[channel]);
+                
+                newDataFlag = newDataFlag || diff > 3.0f;
                 if(newDataFlag) {
-                    lastShownValue = newValue;
+                    lastShownValue[channel] = juce::Decibels::gainToDecibels(newValue);
                 }
             }
         }
@@ -232,10 +235,11 @@ public:
         levels [size_t (channel)].setLevels (lastMeasurement, rms, peak, holdMSecs);
         
         auto newValue = levels.at(size_t (channel)).getAvgRMS();
-        newDataFlag = abs(newValue - lastShownValue) > 0.05f;
         
+        float diff = fabs(juce::Decibels::gainToDecibels(newValue) - lastShownValue[channel]);
+        newDataFlag = newDataFlag || diff > 3.0f;
         if(newDataFlag) {
-            lastShownValue = newValue;
+            lastShownValue[channel] = juce::Decibels::gainToDecibels(newValue);
         }
         
     }
@@ -257,8 +261,13 @@ public:
             levels [channel].reduction = 1.0f;
             
             auto newValue = levels.at(size_t (channel)).getAvgRMS();
-            newDataFlag = newDataFlag || abs(newValue - lastShownValue) > 0.05f;
-            lastShownValue = newValue;
+            
+            float diff = fabs(juce::Decibels::gainToDecibels(newValue) - lastShownValue[channel]);
+            
+            newDataFlag = newDataFlag || diff > 3.0f;
+            if(newDataFlag) {
+                lastShownValue[channel] = juce::Decibels::gainToDecibels(newValue);
+            }
         }
     }
 
@@ -416,7 +425,7 @@ private:
     std::atomic<juce::int64> lastMeasurement;
 
     std::atomic<bool> newDataFlag;
-    std::atomic<float> lastShownValue;
+    std::atomic<float> lastShownValue[2];
 
     bool suspended;
 };

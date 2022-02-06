@@ -521,7 +521,7 @@ void PlugDataPluginEditor::resized()
   connectionStyleButton.setBounds(43, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
   connectionPathfind.setBounds(70, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
 
-  zoomLabel.setBounds(110, getHeight() - statusbarHeight + 1, statusbarHeight * 2, statusbarHeight);
+  zoomLabel.setBounds(110, getHeight() - statusbarHeight, statusbarHeight * 2, statusbarHeight);
   zoomIn.setBounds(150, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
   zoomOut.setBounds(178, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
 
