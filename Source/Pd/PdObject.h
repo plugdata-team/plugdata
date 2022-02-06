@@ -52,23 +52,12 @@ enum class Type : size_t
 class Object
 {
  public:
-  //! @brief The default constructor.
-  Object() noexcept = default;
-
-  //! @brief The copy constructor.
-  Object(Object const& other) noexcept = default;
-
-  //! @brief The copy operator.
-  Object& operator=(Object const& other) noexcept = default;
 
   //! @brief The compare equal operator.
   bool operator==(Object const& other) const noexcept;
 
   //! @brief The compare unequal operator.
   bool operator!=(Object const& other) const noexcept;
-
-  //! @brief The destructor.
-  virtual ~Object() noexcept = default;
 
   //! @brief The text of the Object.
   std::string getText();

@@ -833,7 +833,7 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx)
   return nullptr;
 }
 
-void PlugDataPluginEditor::addTab(Canvas* cnv)
+void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
   tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
@@ -855,7 +855,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
 
   auto* closeButton = new TextButton(Icons::Clear);
 
-  closeButton->onClick = [this, tabButton]() mutable
+  closeButton->onClick = [this, tabButton, deleteWhenClosed]() mutable
   {
     // We cant use the index from earlier because it might change!
     int idx = -1;
@@ -876,6 +876,10 @@ void PlugDataPluginEditor::addTab(Canvas* cnv)
     }
 
     auto* cnv = getCanvas(idx);
+      
+    if(deleteWhenClosed) {
+       cnv->patch.close();
+    }
     canvases.removeObject(cnv);
     tabbar.removeTab(idx);
 

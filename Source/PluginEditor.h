@@ -57,7 +57,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
   void saveProject(const std::function<void()>& nestedCallback = []() {});
   void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
 
-  void addTab(Canvas* cnv);
+  void addTab(Canvas* cnv, bool deleteWhenClosed = false);
 
   Canvas* getCurrentCanvas();
   Canvas* getCanvas(int idx);
