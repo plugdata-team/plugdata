@@ -709,8 +709,9 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
     updateRange();
 
     int selected = gui.getValue();
-    radioButtons[selected]->setToggleState(true, dontSendNotification);
-
+    if(selected < radioButtons.size()) {
+        radioButtons[selected]->setToggleState(true, dontSendNotification);
+    }
     if (isVertical)
     {
         box->restrainer.setSizeLimits(30, 100, 250, 500);

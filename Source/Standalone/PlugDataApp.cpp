@@ -51,7 +51,7 @@ class PlugDataApp : public JUCEApplication
         appProperties.setStorageParameters(options);
     }
 
-    const String getApplicationName() override { return CharPointer_UTF8(JucePlugin_Name); }
+    const String getApplicationName() override { return "PlugData"; }
     const String getApplicationVersion() override { return JucePlugin_VersionString; }
     bool moreThanOneInstanceAllowed() override { return true; }
 
