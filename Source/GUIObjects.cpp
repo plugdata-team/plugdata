@@ -747,7 +747,10 @@ void RadioComponent::resized()
 void RadioComponent::update()
 {
     int selected = gui.getValue();
-    radioButtons[selected]->setToggleState(true, dontSendNotification);
+    
+    if(selected < radioButtons.size()) {
+        radioButtons[selected]->setToggleState(true, dontSendNotification);
+    }
 }
 
 void RadioComponent::updateRange()

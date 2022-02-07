@@ -274,7 +274,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addAndMakeVisible(hideButton);
 
     // window size limits
-    restrainer.setSizeLimits(600, 300, 4000, 4000);
+    restrainer.setSizeLimits(700, 300, 4000, 4000);
     resizer = std::make_unique<ResizableCornerComponent>(this, &restrainer);
     addAndMakeVisible(resizer.get());
 
@@ -494,7 +494,7 @@ void PlugDataPluginEditor::resized()
 
         if (b == 4 || b == 6)
         {
-            auto separator = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(50.0f);
+            auto separator = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(12.0f);
             separator.flexGrow = 1.0f;
             separator.flexShrink = 1.0f;
             fb.items.add(separator);
