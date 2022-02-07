@@ -283,7 +283,7 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
-    if (suggestor.openedEditor)
+    if (suggestor.openedEditor && e.originalComponent != suggestor.openedEditor)
     {
         suggestor.currentBox->textLabel.hideEditor();
         return;

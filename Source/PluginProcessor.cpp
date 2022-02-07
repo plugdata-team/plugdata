@@ -711,6 +711,12 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
 void PlugDataAudioProcessor::loadPatch(File patch)
 {
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    {
+        editor->tabbar.clearTabs();
+        editor->canvases.clear();
+    }
+    
     openPatch(patch);
 
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
