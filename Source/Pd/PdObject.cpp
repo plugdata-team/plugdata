@@ -142,7 +142,11 @@ Patch Object::getHelp() const
     return {};
 }
 
-void Object::setWidth(int width) { static_cast<t_text*>(ptr)->te_width = std::max<short>(3, round(static_cast<float>(width) / sys_fontwidth(18))); }
+void Object::setWidth(int width) {
+    auto* textObj = static_cast<t_text*>(ptr);
+    textObj->te_width = std::max<short>(3, round(static_cast<float>(width) / sys_fontwidth(18)));
+    
+}
 
 int Object::getWidth() const { return static_cast<t_text*>(ptr)->te_width * sys_fontwidth(18); }
 

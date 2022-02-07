@@ -164,7 +164,7 @@ struct SettingsDialog : public Component
 
     void resized() override
     {
-        closeButton->setBounds(getWidth() - 30, 2, 28, 28);
+        closeButton->setBounds(getWidth() - 31, 3, 28, 28);
         settingsComponent.setBounds(getLocalBounds());
     }
 
