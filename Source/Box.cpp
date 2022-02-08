@@ -26,6 +26,8 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(paren
         position.addXY(0, -22);
     }
 
+    addChildComponent(resizer);
+    
     setTopLeftPosition(position);
 
     // Open editor for undefined objects
@@ -167,7 +169,7 @@ void Box::setType(const String& newType, bool exists)
     {
         auto* ptr = pdObject->getPointer();
         // Reload GUI if it already exists
-        if (pd::Gui::getType(ptr) != pd::Type::Undefined && pd::Gui::getType(ptr) != pd::Type::Invalid)
+        if (pd::Gui::getType(ptr) != pd::Type::Undefined)
         {
             pdObject = std::make_unique<pd::Gui>(ptr, &cnv->patch, cnv->pd);
         }
@@ -241,9 +243,9 @@ void Box::setType(const String& newType, bool exists)
 
     resizer.toBack();
 
-    if (graphics && graphics->getGui().isIEM())
+    if (graphics && (graphics->getGui().isIEM() || graphics->getGui().getType() == pd::Type::Panel))
     {
-        resizer.setBorderThickness({5, 5, 5, 5});
+        resizer.setBorderThickness({0, 0, 5, 5});
     }
     else if (graphics && graphics->getGui().getType() == pd::Type::GraphOnParent)
     {

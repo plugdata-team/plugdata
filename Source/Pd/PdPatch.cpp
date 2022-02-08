@@ -321,11 +321,12 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
         auto [x, y, w, h] = obj->getBounds();
 
         instance->enqueueFunction(
-            [this]()
+            [this, obj]()
             {
+                
                 setCurrent();
                 glist_noselect(getPointer());
-                glist_select(getPointer(), static_cast<t_gobj*>(ptr));
+                glist_select(getPointer(), &checkObject(obj)->te_g);
                 canvas_stowconnections(getPointer());
                 libpd_removeselection(getPointer());
                 glist_noselect(getPointer());

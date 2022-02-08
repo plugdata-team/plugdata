@@ -276,6 +276,7 @@ struct MessageComponent : public GUIComponent, public ChangeListener
         if (!gui.isAtom())
         {
             isDown = true;
+            repaint();
         }
 
         startEdition();
@@ -283,7 +284,10 @@ struct MessageComponent : public GUIComponent, public ChangeListener
         stopEdition();
     }
 
-    void mouseUp(const MouseEvent& e) override { isDown = false; }
+    void mouseUp(const MouseEvent& e) override {
+        isDown = false;
+        repaint();
+    }
 
     void updateValue() override;
 
