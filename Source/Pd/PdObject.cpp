@@ -99,7 +99,7 @@ std::array<int, 4> Object::getBounds() const noexcept
             // y -= cnv->gl_ymargin;
         }
 
-        return {int(x * Patch::zoom), int(y * Patch::zoom), w, h};
+        return {static_cast<int>(x * Patch::zoom), static_cast<int>(y * Patch::zoom), static_cast<int>(w * Patch::zoom), static_cast<int>(h * Patch::zoom)};
     }
     return {0, 0, 0, 0};
 }

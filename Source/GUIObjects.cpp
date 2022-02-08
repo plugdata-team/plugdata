@@ -446,7 +446,7 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
     // input.setMultiLine(true);
 
     box->textLabel.addMouseListener(this, false);
-    box->restrainer.setSizeLimits(70, 28, 500, 600);
+    box->restrainer.setSizeLimits(50, 28, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -557,7 +557,7 @@ NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
     initParameters();
     input.setEditable(false, true);
 
-    box->restrainer.setSizeLimits(30, 28, 500, 600);
+    box->restrainer.setSizeLimits(50, 28, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -1003,26 +1003,25 @@ void GraphOnParent::resized()
 {
 }
 
-void GraphOnParent::lock(bool isLocked) {
+void GraphOnParent::lock(bool locked) {
+    isLocked = locked;
     setInterceptsMouseClicks(!box->locked, true);
 }
 
-
-
 void GraphOnParent::mouseDown(const MouseEvent& e) {
-    if(!box->locked) {
+    if(!isLocked) {
         box->textLabel.mouseDown(e.getEventRelativeTo(&box->textLabel));
     }
 }
 
 void GraphOnParent::mouseDrag(const MouseEvent& e) {
-    if(!box->locked) {
+    if(!isLocked) {
         box->textLabel.mouseDrag(e.getEventRelativeTo(&box->textLabel));
     }
 }
 
 void GraphOnParent::mouseUp(const MouseEvent& e) {
-    if(!box->locked) {
+    if(!isLocked) {
         box->textLabel.mouseUp(e.getEventRelativeTo(&box->textLabel));
     }
 }
