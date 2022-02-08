@@ -664,6 +664,7 @@ struct _rtext
 
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 {
+    
     sys_lock();
     canvas_editmode(cnv, 1);
     
@@ -675,11 +676,13 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
     t_rtext *fuddy = glist_findrtext(cnv, (t_text *)obj);
     cnv->gl_editor->e_textedfor = fuddy;
     
-    cnv->gl_editor->e_rtext->x_buf = strdup(buf);
-    cnv->gl_editor->e_rtext->x_bufsize = bufsize;
+    fuddy->x_buf = resizebytes(fuddy->x_buf, fuddy->x_bufsize, bufsize);
+    
+    strncpy(fuddy->x_buf, buf, bufsize);
+    fuddy->x_bufsize = bufsize;
     
     cnv->gl_editor->e_textdirty = 1;
-    
+
     glist_deselect(cnv, obj);
     
     cnv->gl_editor->e_textedfor = 0;
