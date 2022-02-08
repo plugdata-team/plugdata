@@ -336,7 +336,8 @@ struct NumboxComponent : public GUIComponent
 
     std::pair<int, int> getBestSize() override
     {
-        return {60, 22};
+        auto [x, y, w, h] = gui.getBounds();
+        return {w, h};
     };
 
     void mouseDown(const MouseEvent& event) override
@@ -628,6 +629,8 @@ struct ArrayComponent : public GUIComponent
 
 struct GraphOnParent : public GUIComponent
 {
+    bool isLocked = false;
+    
    public:
     GraphOnParent(const pd::Gui& gui, Box* box);
 

@@ -82,7 +82,7 @@ std::array<int, 4> Patch::getBounds() const noexcept
 
         if (cnv->gl_isgraph)
         {
-            return {int(cnv->gl_xmargin * pd::Patch::zoom) + 4, int(cnv->gl_ymargin * pd::Patch::zoom) + 4, cnv->gl_pixwidth, cnv->gl_pixheight};
+            return {int(cnv->gl_xmargin * Patch::zoom) + 4, int(cnv->gl_ymargin * Patch::zoom) + 4, cnv->gl_pixwidth, cnv->gl_pixheight};
         }
     }
     return {0, 0, 0, 0};
@@ -97,10 +97,16 @@ void Patch::setCurrent()
 {
     instance->setThis();
 
-    // instance->canvasLock.lock();
+    instance->canvasLock.lock();
+    if(auto* cnv = canvas_getcurrent()) {
+        canvas_unsetcurrent(cnv);
+    }
+    
     canvas_setcurrent(getPointer());
+    
+    instance->canvasLock.unlock();
     canvas_vis(getPointer(), 1.);
-    // instance->canvasLock.unlock();
+    //
 }
 
 int Patch::getIndex(void* obj)

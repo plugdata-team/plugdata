@@ -21,10 +21,6 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(paren
 
     setType(name);
 
-    if (graphics)
-    {
-        position.addXY(0, -22);
-    }
 
     addChildComponent(resizer);
 
@@ -48,11 +44,6 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
     setTopLeftPosition(position);
 
     setType(name, true);
-
-    if (graphics)
-    {
-        position.addXY(0, -22);
-    }
 
     setTopLeftPosition(position);
 
@@ -369,7 +360,7 @@ void Box::resized()
         float newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
 
         edge->setCentrePosition(newX, newY);
-        edge->setSize(8, 8);
+        edge->setSize(10, 10);
 
         index++;
     }
