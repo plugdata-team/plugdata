@@ -544,12 +544,12 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y) {
     
     t_float x1 = 0.0f;
     t_float y1 = 0.0f;
-    t_float x2 = x + 100.0f;
-    t_float y2 = y + 100.0f;
+    t_float x2 = 0;
+    t_float y2 = 0;
     t_float px1 = x;
     t_float py1 = y;
-    t_float px2 = 100.0f;
-    t_float py2 = 100.0f;
+    t_float px2 = x + 200.0f;
+    t_float py2 = y + 140.0f;
     
     t_symbol* sym = gensym("graph");
     
@@ -583,7 +583,6 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
     
     SETSYMBOL(argv, gensym(name));
     
-    // Set position
     SETFLOAT(argv + 1, size);
     SETFLOAT(argv + 2, 0);
     SETFLOAT(argv + 3, 0);

@@ -37,11 +37,19 @@ namespace pd
 //                                      OBJECT                                          //
 // ==================================================================================== //
 
-Object::Object(void* objectPtr, Patch* parentPatch, Instance* parentInstance) noexcept : ptr(objectPtr), patch(parentPatch), instance(parentInstance) {}
+Object::Object(void* objectPtr, Patch* parentPatch, Instance* parentInstance) noexcept : ptr(objectPtr), patch(parentPatch), instance(parentInstance)
+{
+}
 
-bool Object::operator==(Object const& other) const noexcept { return ptr == other.ptr; }
+bool Object::operator==(Object const& other) const noexcept
+{
+    return ptr == other.ptr;
+}
 
-bool Object::operator!=(Object const& other) const noexcept { return ptr != other.ptr; }
+bool Object::operator!=(Object const& other) const noexcept
+{
+    return ptr != other.ptr;
+}
 
 std::string Object::getText()
 {
@@ -142,13 +150,16 @@ Patch Object::getHelp() const
     return {};
 }
 
-void Object::setWidth(int width) {
+void Object::setWidth(int width)
+{
     auto* textObj = static_cast<t_text*>(ptr);
     textObj->te_width = std::max<short>(3, round(static_cast<float>(width) / sys_fontwidth(18)));
-    
 }
 
-int Object::getWidth() const { return static_cast<t_text*>(ptr)->te_width * sys_fontwidth(18); }
+int Object::getWidth() const
+{
+    return static_cast<t_text*>(ptr)->te_width * sys_fontwidth(18);
+}
 
 int Object::getNumInlets() noexcept
 {

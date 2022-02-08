@@ -156,9 +156,18 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         return (fileSuffix.startsWithChar('.') ? "*" : "*.") + fileSuffix;
     }
 
-    Value& getMuteInputValue() { return shouldMuteInput; }
-    bool getProcessorHasPotentialFeedbackLoop() const { return processorHasPotentialFeedbackLoop; }
-    void valueChanged(Value& value) override { muteInput = static_cast<bool>(value.getValue()); }
+    Value& getMuteInputValue()
+    {
+        return shouldMuteInput;
+    }
+    bool getProcessorHasPotentialFeedbackLoop() const
+    {
+        return processorHasPotentialFeedbackLoop;
+    }
+    void valueChanged(Value& value) override
+    {
+        muteInput = static_cast<bool>(value.getValue());
+    }
 
     File getLastFile() const
     {
@@ -231,7 +240,10 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 #endif
     }
 
-    void stopPlaying() { player.setProcessor(nullptr); }
+    void stopPlaying()
+    {
+        player.setProcessor(nullptr);
+    }
 
     void saveAudioDeviceState()
     {
@@ -293,9 +305,15 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         }
     }
 
-    bool isInterAppAudioConnected() { return false; }
+    bool isInterAppAudioConnected()
+    {
+        return false;
+    }
 
-    Image getIAAHostIcon(int size) { return {}; }
+    Image getIAAHostIcon(int size)
+    {
+        return {};
+    }
 
     static StandalonePluginHolder* getInstance();
 
@@ -334,7 +352,9 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     class CallbackMaxSizeEnforcer : public AudioIODeviceCallback
     {
        public:
-        explicit CallbackMaxSizeEnforcer(AudioIODeviceCallback& callbackIn) : inner(callbackIn) {}
+        explicit CallbackMaxSizeEnforcer(AudioIODeviceCallback& callbackIn) : inner(callbackIn)
+        {
+        }
 
         void audioDeviceAboutToStart(AudioIODevice* device) override
         {
@@ -365,7 +385,10 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             }
         }
 
-        void audioDeviceStopped() override { inner.audioDeviceStopped(); }
+        void audioDeviceStopped() override
+        {
+            inner.audioDeviceStopped();
+        }
 
        private:
         struct GetChannelWithOffset
@@ -418,7 +441,10 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             }
         }
 
-        void paint(Graphics& g) override { g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId)); }
+        void paint(Graphics& g) override
+        {
+            g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+        }
 
         void resized() override
         {
@@ -607,8 +633,14 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
 
-    AudioProcessor* getAudioProcessor() const noexcept { return pluginHolder->processor.get(); }
-    AudioDeviceManager& getDeviceManager() const noexcept { return pluginHolder->deviceManager; }
+    AudioProcessor* getAudioProcessor() const noexcept
+    {
+        return pluginHolder->processor.get();
+    }
+    AudioDeviceManager& getDeviceManager() const noexcept
+    {
+        return pluginHolder->deviceManager;
+    }
 
     /** Deletes and re-creates the plugin, resetting it to its default state. */
     void resetToDefaultState()
@@ -652,9 +684,15 @@ class PlugDataWindow : public DocumentWindow
         }
     }
 
-    void resized() override { DocumentWindow::resized(); }
+    void resized() override
+    {
+        DocumentWindow::resized();
+    }
 
-    virtual StandalonePluginHolder* getPluginHolder() { return pluginHolder.get(); }
+    virtual StandalonePluginHolder* getPluginHolder()
+    {
+        return pluginHolder.get();
+    }
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
 

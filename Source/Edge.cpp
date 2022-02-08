@@ -82,7 +82,9 @@ void Edge::paint(Graphics& g)
     g.strokePath(path, PathStrokeType(1.f));
 }
 
-void Edge::resized() {}
+void Edge::resized()
+{
+}
 
 void Edge::mouseDrag(const MouseEvent& e)
 {
@@ -99,7 +101,9 @@ void Edge::mouseDrag(const MouseEvent& e)
     }
 }
 
-void Edge::mouseMove(const MouseEvent& e) {}
+void Edge::mouseMove(const MouseEvent& e)
+{
+}
 
 void Edge::createConnection()
 {

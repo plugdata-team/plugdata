@@ -115,7 +115,10 @@ struct GraphArea : public Component, public ComponentDragger
 
     Rectangle<int> startRect;
 
-    explicit GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent) { addAndMakeVisible(resizer); }
+    explicit GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent)
+    {
+        addAndMakeVisible(resizer);
+    }
 
     void paint(Graphics& g) override
     {
@@ -126,13 +129,25 @@ struct GraphArea : public Component, public ComponentDragger
         g.drawRect(getLocalBounds().reduced(6));
     }
 
-    bool hitTest(int x, int y) override { return !getLocalBounds().reduced(8).contains(Point<int>{x, y}); }
+    bool hitTest(int x, int y) override
+    {
+        return !getLocalBounds().reduced(8).contains(Point<int>{x, y});
+    }
 
-    void mouseMove(const MouseEvent& e) override { setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor); }
+    void mouseMove(const MouseEvent& e) override
+    {
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+    }
 
-    void mouseDown(const MouseEvent& e) override { startDraggingComponent(this, e); }
+    void mouseDown(const MouseEvent& e) override
+    {
+        startDraggingComponent(this, e);
+    }
 
-    void mouseDrag(const MouseEvent& e) override { dragComponent(this, e, nullptr); }
+    void mouseDrag(const MouseEvent& e) override
+    {
+        dragComponent(this, e, nullptr);
+    }
 
     void mouseUp(const MouseEvent& e) override
     {

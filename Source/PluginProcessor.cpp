@@ -130,7 +130,10 @@ void PlugDataAudioProcessor::updateSearchPaths()
     objectLibrary.initialiseLibrary(pathTree);
 }
 //==============================================================================
-const String PlugDataAudioProcessor::getName() const { return JucePlugin_Name; }
+const String PlugDataAudioProcessor::getName() const
+{
+    return JucePlugin_Name;
+}
 
 bool PlugDataAudioProcessor::acceptsMidi() const
 {
@@ -159,7 +162,10 @@ bool PlugDataAudioProcessor::isMidiEffect() const
 #endif
 }
 
-double PlugDataAudioProcessor::getTailLengthSeconds() const { return 0.0; }
+double PlugDataAudioProcessor::getTailLengthSeconds() const
+{
+    return 0.0;
+}
 
 int PlugDataAudioProcessor::getNumPrograms()
 {
@@ -167,13 +173,23 @@ int PlugDataAudioProcessor::getNumPrograms()
                // so this should be at least 1, even if you're not really implementing programs.
 }
 
-int PlugDataAudioProcessor::getCurrentProgram() { return 0; }
+int PlugDataAudioProcessor::getCurrentProgram()
+{
+    return 0;
+}
 
-void PlugDataAudioProcessor::setCurrentProgram(int index) {}
+void PlugDataAudioProcessor::setCurrentProgram(int index)
+{
+}
 
-const String PlugDataAudioProcessor::getProgramName(int index) { return {}; }
+const String PlugDataAudioProcessor::getProgramName(int index)
+{
+    return {};
+}
 
-void PlugDataAudioProcessor::changeProgramName(int index, const String& newName) {}
+void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
+{
+}
 
 //==============================================================================
 void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
@@ -716,7 +732,7 @@ void PlugDataAudioProcessor::loadPatch(File patch)
         editor->tabbar.clearTabs();
         editor->canvases.clear();
     }
-    
+
     openPatch(patch);
 
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
@@ -757,15 +773,30 @@ void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, c
     }
 }
 
-void PlugDataAudioProcessor::receiveControlChange(const int channel, const int controller, const int value) { midiBufferOut.addEvent(MidiMessage::controllerEvent(channel, controller, value), audioAdvancement); }
+void PlugDataAudioProcessor::receiveControlChange(const int channel, const int controller, const int value)
+{
+    midiBufferOut.addEvent(MidiMessage::controllerEvent(channel, controller, value), audioAdvancement);
+}
 
-void PlugDataAudioProcessor::receiveProgramChange(const int channel, const int value) { midiBufferOut.addEvent(MidiMessage::programChange(channel, value), audioAdvancement); }
+void PlugDataAudioProcessor::receiveProgramChange(const int channel, const int value)
+{
+    midiBufferOut.addEvent(MidiMessage::programChange(channel, value), audioAdvancement);
+}
 
-void PlugDataAudioProcessor::receivePitchBend(const int channel, const int value) { midiBufferOut.addEvent(MidiMessage::pitchWheel(channel, value + 8192), audioAdvancement); }
+void PlugDataAudioProcessor::receivePitchBend(const int channel, const int value)
+{
+    midiBufferOut.addEvent(MidiMessage::pitchWheel(channel, value + 8192), audioAdvancement);
+}
 
-void PlugDataAudioProcessor::receiveAftertouch(const int channel, const int value) { midiBufferOut.addEvent(MidiMessage::channelPressureChange(channel, value), audioAdvancement); }
+void PlugDataAudioProcessor::receiveAftertouch(const int channel, const int value)
+{
+    midiBufferOut.addEvent(MidiMessage::channelPressureChange(channel, value), audioAdvancement);
+}
 
-void PlugDataAudioProcessor::receivePolyAftertouch(const int channel, const int pitch, const int value) { midiBufferOut.addEvent(MidiMessage::aftertouchChange(channel, pitch, value), audioAdvancement); }
+void PlugDataAudioProcessor::receivePolyAftertouch(const int channel, const int pitch, const int value)
+{
+    midiBufferOut.addEvent(MidiMessage::aftertouchChange(channel, pitch, value), audioAdvancement);
+}
 
 void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
 {
@@ -845,4 +876,7 @@ void PlugDataAudioProcessor::titleChanged()
 
 //==============================================================================
 // This creates new instances of the plugin..
-AudioProcessor* JUCE_CALLTYPE createPluginFilter() { return new PlugDataAudioProcessor(); }
+AudioProcessor* JUCE_CALLTYPE createPluginFilter()
+{
+    return new PlugDataAudioProcessor();
+}

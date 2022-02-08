@@ -11,7 +11,6 @@ extern "C"
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
-
 }
 
 #include "Box.h"
@@ -42,6 +41,11 @@ GUIComponent::~GUIComponent()
 {
     box->removeComponentListener(this);
     setLookAndFeel(nullptr);
+}
+
+void GUIComponent::lock(bool isLocked)
+{
+    setInterceptsMouseClicks(isLocked, isLocked);
 }
 
 void GUIComponent::initParameters()
@@ -174,7 +178,10 @@ GUIComponent* GUIComponent::createGui(const String& name, Box* parent)
     return nullptr;
 }
 
-float GUIComponent::getValueOriginal() const noexcept { return value; }
+float GUIComponent::getValueOriginal() const noexcept
+{
+    return value;
+}
 
 void GUIComponent::setValueOriginal(float v, bool sendNotification)
 {
@@ -184,7 +191,10 @@ void GUIComponent::setValueOriginal(float v, bool sendNotification)
     if (sendNotification) gui.setValue(value);
 }
 
-float GUIComponent::getValueScaled() const noexcept { return (min < max) ? (value - min) / (max - min) : 1.f - (value - max) / (min - max); }
+float GUIComponent::getValueScaled() const noexcept
+{
+    return (min < max) ? (value - min) / (max - min) : 1.f - (value - max) / (min - max);
+}
 
 void GUIComponent::setValueScaled(float v)
 {
@@ -264,7 +274,10 @@ void GUIComponent::updateLabel()
     }
 }
 
-pd::Gui GUIComponent::getGui() { return gui; }
+pd::Gui GUIComponent::getGui()
+{
+    return gui;
+}
 
 // Called in destructor of subpatch and graph class
 // Makes sure that any tabs refering to the now deleted patch will be closed
@@ -313,7 +326,7 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(p
     };
 
     initParameters();  // !! FIXME: virtual call from constructor!!
-    box->restrainer.setSizeLimits(40, 60, 200, 200);
+    box->restrainer.setSizeLimits(40, 40, 200, 200);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -350,7 +363,7 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
 
     initParameters();
 
-    box->restrainer.setSizeLimits(40, 60, 200, 200);
+    box->restrainer.setSizeLimits(40, 40, 200, 200);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -360,22 +373,17 @@ void ToggleComponent::resized()
     toggleButton.setBounds(getLocalBounds().reduced(8));
 }
 
-void ToggleComponent::update() { toggleButton.setToggleState((getValueOriginal() > std::numeric_limits<float>::epsilon()), dontSendNotification); }
+void ToggleComponent::update()
+{
+    toggleButton.setToggleState((getValueOriginal() > std::numeric_limits<float>::epsilon()), dontSendNotification);
+}
 
 // MessageComponent
 MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
-    bangButton.setConnectedEdges(12);
-
     addAndMakeVisible(input);
-
-    if (gui.getType() != pd::Type::AtomSymbol)
-    {
-        box->textLabel.addAndMakeVisible(bangButton);
-    }
-
-    box->cnv->main.addChangeListener(this);
-    isLocked = box->cnv->pd->locked;
+    
+    input.setInterceptsMouseClicks(false, false);
 
     // message box behaviour
     if (!gui.isAtom())
@@ -394,50 +402,69 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
             gui.setSymbol(input.getText().toStdString());
         };
 
-        bangButton.onClick = [this]()
+        input.onEditorShow = [this]()
         {
-            startEdition();
-            gui.click();
-            stopEdition();
+            auto* editor = input.getCurrentTextEditor();
+
+            editor->onFocusLost = [this]()
+            {
+                auto width = input.getFont().getStringWidth(input.getText()) + 25;
+                if (width < box->getWidth())
+                {
+                    box->setSize(width, box->getHeight());
+                    box->restrainer.checkComponentBounds(box);
+                }
+            };
         };
     }
     // symbolatom box behaviour
     else
     {
-        input.onReturnKey = [this]()
+        input.onEditorShow = [this]()
         {
-            startEdition();
-            gui.setSymbol(input.getText().toStdString());
-            stopEdition();
-            input.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+            auto* editor = input.getCurrentTextEditor();
+            editor->onReturnKey = [this, editor]()
+            {
+                startEdition();
+                gui.setSymbol(editor->getText().toStdString());
+                stopEdition();
+                //input.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+            };
+
+            editor->onFocusLost = [this]()
+            {
+                auto width = input.getFont().getStringWidth(input.getText()) + 25;
+                if (width < box->getWidth())
+                {
+                    box->setSize(width, box->getHeight());
+                    box->restrainer.checkComponentBounds(box);
+                }
+            };
         };
     }
 
-    input.onFocusLost = [this]()
-    {
-        auto width = input.getFont().getStringWidth(input.getText()) + 25;
-        if (width < box->getWidth())
-        {
-            box->setSize(width, box->getHeight());
-            box->restrainer.checkComponentBounds(box);
-        }
-    };
+    // input.setMultiLine(true);
 
-    input.setMultiLine(true);
-
-    box->restrainer.setSizeLimits(70, 50, 500, 600);
+    box->textLabel.addMouseListener(this, false);
+    box->restrainer.setSizeLimits(70, 28, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
-MessageComponent::~MessageComponent() { box->cnv->main.removeChangeListener(this); }
+void MessageComponent::lock(bool locked)
+{
+    isLocked = locked;
+    setInterceptsMouseClicks(isLocked, isLocked);
+}
 
 void MessageComponent::resized()
 {
     input.setBounds(0, 0, getWidth(), getHeight());
-    bangButton.setBounds(getWidth() - 23, 0, 23, 22);
 }
 
-void MessageComponent::update() { input.setText(String(gui.getSymbol()), NotificationType::sendNotification); }
+void MessageComponent::update()
+{
+    input.setText(String(gui.getSymbol()), NotificationType::sendNotification);
+}
 
 void MessageComponent::paint(Graphics& g)
 {
@@ -449,23 +476,10 @@ void MessageComponent::paint(Graphics& g)
         auto rect = getLocalBounds().toFloat();
         g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(0.9f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
 
-        g.fillRoundedRectangle(rect.withTrimmedBottom(getHeight() - 31), 2.0f);
+        g.fillRoundedRectangle(rect.withTrimmedBottom(getHeight() - 28), 2.0f);
     }
-}
-
-void MessageComponent::changeListenerCallback(ChangeBroadcaster* source)
-{
-    isLocked = box->cnv->pd->locked;
-
-    if (isLocked && !gui.isAtom())
-    {
-        input.setInterceptsMouseClicks(false, false);
-        input.setEnabled(false);
-    }
-    else
-    {
-        input.setInterceptsMouseClicks(true, true);
-        input.setEnabled(true);
+    else {
+        g.fillAll(MainLook::firstBackground);
     }
 }
 
@@ -543,11 +557,14 @@ NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
     initParameters();
     input.setEditable(false, true);
 
-    box->restrainer.setSizeLimits(30, 50, 500, 600);
+    box->restrainer.setSizeLimits(30, 28, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
-void NumboxComponent::resized() { input.setBounds(getLocalBounds()); }
+void NumboxComponent::resized()
+{
+    input.setBounds(getLocalBounds());
+}
 
 void NumboxComponent::update()
 {
@@ -595,7 +612,7 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent) : GUIComponent(gui
 
     updateValue();
 
-    box->restrainer.setSizeLimits(100, 50, 500, 600);
+    box->restrainer.setSizeLimits(100, 28, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -658,6 +675,8 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
     slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
     slider.setScrollWheelEnabled(false);
 
+    slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
+
     slider.setValue(getValueScaled());
 
     slider.onDragStart = [this]() { startEdition(); };
@@ -682,12 +701,12 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
 
     if (isVertical)
     {
-        box->restrainer.setSizeLimits(40, 100, 250, 500);
+        box->restrainer.setSizeLimits(40, 77, 250, 500);
         box->restrainer.checkComponentBounds(box);
     }
     else
     {
-        box->restrainer.setSizeLimits(100, 60, 500, 250);
+        box->restrainer.setSizeLimits(100, 35, 500, 250);
         box->restrainer.checkComponentBounds(box);
     }
 }
@@ -695,10 +714,13 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
 void SliderComponent::resized()
 {
     gui.setSize(getWidth(), getHeight());
-    slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 6.0, isVertical ? 6.0 : 0.0));
+    slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 3.0, isVertical ? 3.0 : 0.0));
 }
 
-void SliderComponent::update() { slider.setValue(getValueScaled(), dontSendNotification); }
+void SliderComponent::update()
+{
+    slider.setValue(getValueScaled(), dontSendNotification);
+}
 
 // RadioComponent
 RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
@@ -709,17 +731,18 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
     updateRange();
 
     int selected = gui.getValue();
-    if(selected < radioButtons.size()) {
+    if (selected < radioButtons.size())
+    {
         radioButtons[selected]->setToggleState(true, dontSendNotification);
     }
     if (isVertical)
     {
-        box->restrainer.setSizeLimits(30, 100, 250, 500);
+        box->restrainer.setSizeLimits(30, 77, 250, 500);
         box->restrainer.checkComponentBounds(box);
     }
     else
     {
-        box->restrainer.setSizeLimits(100, 45, 500, 250);
+        box->restrainer.setSizeLimits(100, 22, 500, 250);
         box->restrainer.checkComponentBounds(box);
     }
 }
@@ -748,8 +771,9 @@ void RadioComponent::resized()
 void RadioComponent::update()
 {
     int selected = gui.getValue();
-    
-    if(selected < radioButtons.size()) {
+
+    if (selected < radioButtons.size())
+    {
         radioButtons[selected]->setToggleState(true, dontSendNotification);
     }
 }
@@ -789,10 +813,13 @@ ArrayComponent::ArrayComponent(const pd::Gui& pdGui, Box* box) : GUIComponent(pd
     array.setBounds(getLocalBounds());
     addAndMakeVisible(&array);
 
-    box->restrainer.setSizeLimits(100, 40, 500, 600);
+    box->restrainer.setSizeLimits(100, 17, 500, 600);
 }
 
-void ArrayComponent::resized() { array.setBounds(getLocalBounds()); }
+void ArrayComponent::resized()
+{
+    array.setBounds(getLocalBounds());
+}
 
 // Array graph
 GraphicalArray::GraphicalArray(PlugDataAudioProcessor* instance, pd::Array& graph) : array(graph), edited(false), pd(instance)
@@ -944,23 +971,61 @@ void GraphicalArray::timerCallback()
     }
 }
 
-size_t GraphicalArray::getArraySize() const noexcept { return vec.size(); }
+size_t GraphicalArray::getArraySize() const noexcept
+{
+    return vec.size();
+}
 
 // Graph On Parent
 GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box)
 {
-    setInterceptsMouseClicks(false, true);
+    setInterceptsMouseClicks(!box->locked, true);
 
     subpatch = gui.getPatch();
     updateCanvas();
 
     box->resized();
+    box->textLabel.setVisible(false);
+    
+    addMouseListener(this, true);
+    
     resized();
 }
 
-GraphOnParent::~GraphOnParent() { closeOpenedSubpatchers(); }
+GraphOnParent::~GraphOnParent()
+{
+    box->textLabel.setVisible(true);
+    removeMouseListener(&box->textLabel);
+    closeOpenedSubpatchers();
+}
 
-void GraphOnParent::resized() {}
+void GraphOnParent::resized()
+{
+}
+
+void GraphOnParent::lock(bool isLocked) {
+    setInterceptsMouseClicks(!box->locked, true);
+}
+
+
+
+void GraphOnParent::mouseDown(const MouseEvent& e) {
+    if(!box->locked) {
+        box->textLabel.mouseDown(e.getEventRelativeTo(&box->textLabel));
+    }
+}
+
+void GraphOnParent::mouseDrag(const MouseEvent& e) {
+    if(!box->locked) {
+        box->textLabel.mouseDrag(e.getEventRelativeTo(&box->textLabel));
+    }
+}
+
+void GraphOnParent::mouseUp(const MouseEvent& e) {
+    if(!box->locked) {
+        box->textLabel.mouseUp(e.getEventRelativeTo(&box->textLabel));
+    }
+}
 
 void GraphOnParent::paint(Graphics& g)
 {
@@ -1027,14 +1092,17 @@ void GraphOnParent::updateValue()
 
 PanelComponent::PanelComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
 {
-    box->restrainer.setSizeLimits(50, 50, 2000, 2000);
+    box->restrainer.setSizeLimits(40, 40, 2000, 2000);
     box->restrainer.checkComponentBounds(box);
 
     initParameters();
 }
 
 // Subpatch, phony GUI object
-Subpatch::Subpatch(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box) { subpatch = gui.getPatch(); }
+Subpatch::Subpatch(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box)
+{
+    subpatch = gui.getPatch();
+}
 
 void Subpatch::updateValue()
 {
@@ -1049,7 +1117,10 @@ void Subpatch::updateValue()
     }
 };
 
-Subpatch::~Subpatch() { closeOpenedSubpatchers(); }
+Subpatch::~Subpatch()
+{
+    closeOpenedSubpatchers();
+}
 
 // Comment
 CommentComponent::CommentComponent(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box)
@@ -1058,7 +1129,9 @@ CommentComponent::CommentComponent(const pd::Gui& pdGui, Box* box) : GUIComponen
     setVisible(false);
 }
 
-void CommentComponent::paint(Graphics& g) {}
+void CommentComponent::paint(Graphics& g)
+{
+}
 
 MousePad::MousePad(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
 {
@@ -1066,7 +1139,10 @@ MousePad::MousePad(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
     // setInterceptsMouseClicks(false, true);
 }
 
-MousePad::~MousePad() { Desktop::getInstance().removeGlobalMouseListener(this); }
+MousePad::~MousePad()
+{
+    Desktop::getInstance().removeGlobalMouseListener(this);
+}
 
 void MousePad::paint(Graphics& g){
 
@@ -1097,7 +1173,10 @@ void MousePad::mouseDown(const MouseEvent& e)
     // glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
 }
 
-void MousePad::mouseDrag(const MouseEvent& e) { mouseMove(e); }
+void MousePad::mouseDrag(const MouseEvent& e)
+{
+    mouseMove(e);
+}
 
 void MousePad::mouseMove(const MouseEvent& e)
 {
@@ -1130,13 +1209,21 @@ void MousePad::mouseUp(const MouseEvent& e)
     outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
 }
 
-MouseComponent::MouseComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box) { Desktop::getInstance().addGlobalMouseListener(this); }
+MouseComponent::MouseComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
+{
+    Desktop::getInstance().addGlobalMouseListener(this);
+}
 
-MouseComponent::~MouseComponent() { Desktop::getInstance().removeGlobalMouseListener(this); }
+MouseComponent::~MouseComponent()
+{
+    Desktop::getInstance().removeGlobalMouseListener(this);
+}
 
 void MouseComponent::updateValue(){};
 
-void MouseComponent::mouseDown(const MouseEvent& e) {}
+void MouseComponent::mouseDown(const MouseEvent& e)
+{
+}
 void MouseComponent::mouseMove(const MouseEvent& e)
 {
     auto pos = Desktop::getInstance().getMousePosition();
@@ -1163,9 +1250,13 @@ void MouseComponent::mouseMove(const MouseEvent& e)
     pd_typedmess((t_pd*)gui.getPointer(), gensym("_getscreen"), 2, args);
 }
 
-void MouseComponent::mouseUp(const MouseEvent& e) {}
+void MouseComponent::mouseUp(const MouseEvent& e)
+{
+}
 
-void MouseComponent::mouseDrag(const MouseEvent& e) {}
+void MouseComponent::mouseDrag(const MouseEvent& e)
+{
+}
 
 KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
 {
@@ -1176,7 +1267,10 @@ KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box) : GUIComponen
     addAndMakeVisible(keyboard);
 }
 
-void KeyboardComponent::resized() { keyboard.setBounds(getLocalBounds()); }
+void KeyboardComponent::resized()
+{
+    keyboard.setBounds(getLocalBounds());
+}
 
 void KeyboardComponent::updateValue(){
 

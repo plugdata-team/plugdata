@@ -81,7 +81,10 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
-Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, patch, instance), type(Type::Undefined) { type = getType(ptr); }
+Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, patch, instance), type(Type::Undefined)
+{
+    type = getType(ptr);
+}
 
 Type Gui::getType(void* ptr) noexcept
 {
@@ -518,7 +521,10 @@ std::string Gui::getSymbol() const noexcept
     return {};
 }
 
-void Gui::click() noexcept { instance->enqueueDirectMessages(ptr, 0); }
+void Gui::click() noexcept
+{
+    instance->enqueueDirectMessages(ptr, 0);
+}
 
 void Gui::setSymbol(std::string const& value) noexcept
 {
@@ -870,13 +876,25 @@ Label Gui::getLabel() const noexcept
     return {};
 }
 
-Label::Label() noexcept : m_color(0xff000000), m_position({0, 0}) {}
+Label::Label() noexcept : m_color(0xff000000), m_position({0, 0})
+{
+}
 
-Label::Label(Label const& other) noexcept : m_text(other.m_text), m_color(other.m_color), m_position(other.m_position) {}
+Label::Label(Label const& other) noexcept : m_text(other.m_text), m_color(other.m_color), m_position(other.m_position)
+{
+}
 
-Label::Label(std::string text, unsigned int color, int x, int y, std::string fontname, float fontheight) noexcept : m_text(std::move(text)), m_color(color), m_position({x, y}), m_font_name(std::move(fontname)), m_font_height(fontheight) {}
+Label::Label(std::string text, unsigned int color, int x, int y, std::string fontname, float fontheight) noexcept : m_text(std::move(text)), m_color(color), m_position({x, y}), m_font_name(std::move(fontname)), m_font_height(fontheight)
+{
+}
 
-float Label::getFontHeight() const noexcept { return m_font_height; }
+float Label::getFontHeight() const noexcept
+{
+    return m_font_height;
+}
 
-std::string Label::getFontName() const { return m_font_name; }
+std::string Label::getFontName() const
+{
+    return m_font_name;
+}
 }  // namespace pd
