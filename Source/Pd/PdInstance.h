@@ -51,13 +51,27 @@ class Instance
     void sendSysRealTime(const int port, const int byte) const;
     void sendMidiByte(const int port, const int byte) const;
 
-    virtual void receiveNoteOn(const int channel, const int pitch, const int velocity) {}
-    virtual void receiveControlChange(const int channel, const int controller, const int value) {}
-    virtual void receiveProgramChange(const int channel, const int value) {}
-    virtual void receivePitchBend(const int channel, const int value) {}
-    virtual void receiveAftertouch(const int channel, const int value) {}
-    virtual void receivePolyAftertouch(const int channel, const int pitch, const int value) {}
-    virtual void receiveMidiByte(const int port, const int byte) {}
+    virtual void receiveNoteOn(const int channel, const int pitch, const int velocity)
+    {
+    }
+    virtual void receiveControlChange(const int channel, const int controller, const int value)
+    {
+    }
+    virtual void receiveProgramChange(const int channel, const int value)
+    {
+    }
+    virtual void receivePitchBend(const int channel, const int value)
+    {
+    }
+    virtual void receiveAftertouch(const int channel, const int value)
+    {
+    }
+    virtual void receivePolyAftertouch(const int channel, const int pitch, const int value)
+    {
+    }
+    virtual void receiveMidiByte(const int port, const int byte)
+    {
+    }
 
     virtual void receiveGuiUpdate(int type){};
     virtual void createPanel(int type, const char* snd, const char* location);
@@ -70,11 +84,21 @@ class Instance
 
     virtual void receivePrint(const std::string& message){};
 
-    virtual void receiveBang(const std::string& dest) {}
-    virtual void receiveFloat(const std::string& dest, float num) {}
-    virtual void receiveSymbol(const std::string& dest, const std::string& symbol) {}
-    virtual void receiveList(const std::string& dest, const std::vector<Atom>& list) {}
-    virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list) {}
+    virtual void receiveBang(const std::string& dest)
+    {
+    }
+    virtual void receiveFloat(const std::string& dest, float num)
+    {
+    }
+    virtual void receiveSymbol(const std::string& dest, const std::string& symbol)
+    {
+    }
+    virtual void receiveList(const std::string& dest, const std::vector<Atom>& list)
+    {
+    }
+    virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list)
+    {
+    }
 
     virtual void titleChanged(){};
 
@@ -99,8 +123,14 @@ class Instance
     void savePatch(const File& location);
     void savePatch();
 
-    File getCurrentFile() { return currentFile; }
-    void setCurrentFile(File newFile) { currentFile = newFile; }
+    File getCurrentFile()
+    {
+        return currentFile;
+    }
+    void setCurrentFile(File newFile)
+    {
+        currentFile = newFile;
+    }
 
     bool isDirty();
 
@@ -116,7 +146,10 @@ class Instance
 
     void waitForStateUpdate();
 
-    virtual const CriticalSection* getCallbackLock() { return nullptr; };
+    virtual const CriticalSection* getCallbackLock()
+    {
+        return nullptr;
+    };
 
     void* m_instance = nullptr;
     void* m_patch = nullptr;

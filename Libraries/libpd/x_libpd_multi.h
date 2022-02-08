@@ -4,8 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#ifndef __X_LIBPD_MULI_H__
-#define __X_LIBPD_MULI_H__
+#pragma once
 
 #ifdef __cplusplus
 extern "C"
@@ -53,6 +52,4 @@ void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print);
 
 #ifdef __cplusplus
 }
-#endif
-
 #endif

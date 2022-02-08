@@ -40,7 +40,10 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
         }
     }
 
-    void handleAsyncUpdate() override { update(); }
+    void handleAsyncUpdate() override
+    {
+        update();
+    }
 
     void logMessage(const String& m)
     {
@@ -207,7 +210,10 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
         return totalHeight;
     }
 
-    void resized() override { update(); }
+    void resized() override
+    {
+        update();
+    }
 
    private:
     static Colour colourWithType(int type)
@@ -346,11 +352,20 @@ struct Console : public Component
         resized();
     }
 
-    ~Console() override { removeComponentListener(console); }
+    ~Console() override
+    {
+        removeComponentListener(console);
+    }
 
-    void logMessage(const String& m) { console->logMessage(m); }
+    void logMessage(const String& m)
+    {
+        console->logMessage(m);
+    }
 
-    void logError(const String& m) { console->logError(m); }
+    void logError(const String& m)
+    {
+        console->logError(m);
+    }
 
     void resized() override
     {

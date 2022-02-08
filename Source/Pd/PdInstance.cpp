@@ -23,11 +23,20 @@ extern "C"
 {
     struct pd::Instance::internal
     {
-        static void instance_multi_bang(pd::Instance* ptr, const char* recv) { ptr->m_message_queue.try_enqueue({std::string("bang"), std::string(recv)}); }
+        static void instance_multi_bang(pd::Instance* ptr, const char* recv)
+        {
+            ptr->m_message_queue.try_enqueue({std::string("bang"), std::string(recv)});
+        }
 
-        static void instance_multi_float(pd::Instance* ptr, const char* recv, float f) { ptr->m_message_queue.try_enqueue({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})}); }
+        static void instance_multi_float(pd::Instance* ptr, const char* recv, float f)
+        {
+            ptr->m_message_queue.try_enqueue({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})});
+        }
 
-        static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym) { ptr->m_message_queue.try_enqueue({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))}); }
+        static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym)
+        {
+            ptr->m_message_queue.try_enqueue({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))});
+        }
 
         static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
         {
@@ -55,21 +64,45 @@ extern "C"
             ptr->m_message_queue.try_enqueue(std::move(mess));
         }
 
-        static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity) { ptr->m_midi_queue.try_enqueue({midievent::NOTEON, channel, pitch, velocity}); }
+        static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
+        {
+            ptr->m_midi_queue.try_enqueue({midievent::NOTEON, channel, pitch, velocity});
+        }
 
-        static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value) { ptr->m_midi_queue.try_enqueue({midievent::CONTROLCHANGE, channel, controller, value}); }
+        static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
+        {
+            ptr->m_midi_queue.try_enqueue({midievent::CONTROLCHANGE, channel, controller, value});
+        }
 
-        static void instance_multi_programchange(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::PROGRAMCHANGE, channel, value, 0}); }
+        static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
+        {
+            ptr->m_midi_queue.try_enqueue({midievent::PROGRAMCHANGE, channel, value, 0});
+        }
 
-        static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::PITCHBEND, channel, value, 0}); }
+        static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
+        {
+            ptr->m_midi_queue.try_enqueue({midievent::PITCHBEND, channel, value, 0});
+        }
 
-        static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value) { ptr->m_midi_queue.try_enqueue({midievent::AFTERTOUCH, channel, value, 0}); }
+        static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
+        {
+            ptr->m_midi_queue.try_enqueue({midievent::AFTERTOUCH, channel, value, 0});
+        }
 
-        static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value) { ptr->m_midi_queue.try_enqueue({midievent::POLYAFTERTOUCH, channel, pitch, value}); }
+        static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
+        {
+            ptr->m_midi_queue.try_enqueue({midievent::POLYAFTERTOUCH, channel, pitch, value});
+        }
 
-        static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte) { ptr->m_midi_queue.try_enqueue({midievent::MIDIBYTE, port, byte, 0}); }
+        static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
+        {
+            ptr->m_midi_queue.try_enqueue({midievent::MIDIBYTE, port, byte, 0});
+        }
 
-        static void instance_multi_print(pd::Instance* ptr, char const* s) { ptr->m_print_queue.try_enqueue(std::string(s)); }
+        static void instance_multi_print(pd::Instance* ptr, char const* s)
+        {
+            ptr->m_print_queue.try_enqueue(std::string(s));
+        }
     };
 }
 
@@ -133,7 +166,10 @@ Instance::~Instance()
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-int Instance::getBlockSize() const noexcept { return libpd_blocksize(); }
+int Instance::getBlockSize() const noexcept
+{
+    return libpd_blocksize();
+}
 
 void Instance::addListener(const char* sym)
 {
@@ -528,11 +564,20 @@ void Instance::closePatch()
     }
 }
 
-Patch Instance::getPatch() { return Patch(m_patch, this); }
+Patch Instance::getPatch()
+{
+    return Patch(m_patch, this);
+}
 
-Array Instance::getArray(std::string const& name) { return {name, m_instance}; }
+Array Instance::getArray(std::string const& name)
+{
+    return {name, m_instance};
+}
 
-void Instance::setThis() { libpd_set_instance(static_cast<t_pdinstance*>(m_instance)); }
+void Instance::setThis()
+{
+    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+}
 
 void Instance::createPanel(int type, const char* snd, const char* location)
 {

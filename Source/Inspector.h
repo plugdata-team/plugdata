@@ -52,7 +52,10 @@ struct Inspector : public Component, public TableListBoxModel
     }
 
     // This is overloaded from TableListBoxModel, and must return the total number of rows in our table
-    int getNumRows() override { return numRows; }
+    int getNumRows() override
+    {
+        return numRows;
+    }
 
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
     void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
@@ -85,7 +88,9 @@ struct Inspector : public Component, public TableListBoxModel
     }
 
     // Sorting is disabled
-    void sortOrderChanged(int newSortColumnId, bool isForwards) override {}
+    void sortOrderChanged(int newSortColumnId, bool isForwards) override
+    {
+    }
 
     // This is overloaded from TableListBoxModel, and must update any custom components that we're using
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
@@ -130,9 +135,15 @@ struct Inspector : public Component, public TableListBoxModel
         }
     }
 
-    void resized() override { table.setBounds(getLocalBounds().withWidth(getWidth() + 2)); }
+    void resized() override
+    {
+        table.setBounds(getLocalBounds().withWidth(getWidth() + 2));
+    }
 
-    void deselect() { loadData({}); }
+    void deselect()
+    {
+        loadData({});
+    }
 
     void loadData(const ObjectParameters& params)
     {
@@ -174,7 +185,10 @@ struct Inspector : public Component, public TableListBoxModel
             };
         }
 
-        void resized() override { toggleButton.setBounds(getLocalBounds()); }
+        void resized() override
+        {
+            toggleButton.setBounds(getLocalBounds());
+        }
 
        private:
         std::function<void(int)> callback;
@@ -240,7 +254,10 @@ struct Inspector : public Component, public TableListBoxModel
 
         ~ColourComponent() override = default;
 
-        void resized() override { button.setBounds(getLocalBounds()); }
+        void resized() override
+        {
+            button.setBounds(getLocalBounds());
+        }
 
        private:
         std::function<void(int)> callback;

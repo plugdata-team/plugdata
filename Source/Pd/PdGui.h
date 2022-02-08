@@ -27,15 +27,24 @@ class Gui : public Object
 {
    public:
     //! @brief The type of the GUI.
-    inline Type getType() const noexcept override { return type; }
+    inline Type getType() const noexcept override
+    {
+        return type;
+    }
 
     static Type getType(void* ptr) noexcept;
 
     //! @brief If the GUI is an IEM's GUI.
-    bool isIEM() const noexcept { return (type != Type::Undefined) && (type < Type::Comment); }
+    bool isIEM() const noexcept
+    {
+        return (type != Type::Undefined) && (type < Type::Comment);
+    }
 
     //! @brief If the GUI is an Atom GUI (AtomNumber or AtomSymbol).
-    bool isAtom() const noexcept { return (type == Type::AtomNumber) || (type == Type::AtomSymbol); }
+    bool isAtom() const noexcept
+    {
+        return (type == Type::AtomNumber) || (type == Type::AtomSymbol);
+    }
 
     //! @brief Get the font height.
     float getFontHeight() const noexcept;
@@ -109,9 +118,18 @@ class Label
     Label(Label const& other) noexcept;
     Label(std::string text, unsigned int color, int x, int y, std::string fontname, float fontheight) noexcept;
 
-    std::string getText() const noexcept { return m_text; }
-    unsigned int getColor() const noexcept { return m_color; }
-    std::array<int, 2> getPosition() const noexcept { return m_position; }
+    std::string getText() const noexcept
+    {
+        return m_text;
+    }
+    unsigned int getColor() const noexcept
+    {
+        return m_color;
+    }
+    std::array<int, 2> getPosition() const noexcept
+    {
+        return m_position;
+    }
 
     //! @brief Get the font height.
     float getFontHeight() const noexcept;

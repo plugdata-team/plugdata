@@ -37,7 +37,10 @@ class Patch
     Patch() = default;
 
     //! @brief The compare equal operator.
-    bool operator==(Patch const& other) const noexcept { return getPointer() == other.getPointer(); }
+    bool operator==(Patch const& other) const noexcept
+    {
+        return getPointer() == other.getPointer();
+    }
 
     void close();
 
@@ -82,7 +85,10 @@ class Patch
 
     Connections getConnections() const;
 
-    t_canvas* getPointer() const { return static_cast<t_canvas*>(ptr); }
+    t_canvas* getPointer() const
+    {
+        return static_cast<t_canvas*>(ptr);
+    }
 
     //! @brief Gets the objects of the patch.
     std::vector<Object> getObjects(bool onlyGui = false) noexcept;

@@ -17,9 +17,14 @@ namespace pd
 //                                      GRAPH                                           //
 // ==================================================================================== //
 
-Array::Array(std::string arrayName, void* arrayInstance) : name(std::move(arrayName)), instance(arrayInstance) {}
+Array::Array(std::string arrayName, void* arrayInstance) : name(std::move(arrayName)), instance(arrayInstance)
+{
+}
 
-std::string Array::getName() const noexcept { return name; }
+std::string Array::getName() const noexcept
+{
+    return name;
+}
 
 bool Array::isDrawingPoints() const noexcept
 {

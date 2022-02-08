@@ -71,12 +71,18 @@ class Object
 
     int getWidth() const;
 
-    virtual inline Type getType() const noexcept { return Type::Undefined; }
+    virtual inline Type getType() const noexcept
+    {
+        return Type::Undefined;
+    }
 
     //! @brief The bounds of the Object.
     virtual std::array<int, 4> getBounds() const noexcept;
 
-    void* getPointer() const noexcept { return ptr; }
+    void* getPointer() const noexcept
+    {
+        return ptr;
+    }
 
     int getNumInlets() noexcept;
     int getNumOutlets() noexcept;

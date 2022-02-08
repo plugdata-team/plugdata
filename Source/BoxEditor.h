@@ -110,7 +110,10 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
    public:
     ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger);
 
-    ~ClickLabel() override { setLookAndFeel(nullptr); }
+    ~ClickLabel() override
+    {
+        setLookAndFeel(nullptr);
+    }
 
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
@@ -135,7 +138,10 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
 
     String getText(bool returnActiveEditorContents = false) const;
 
-    Font getFont() { return font; }
+    Font getFont()
+    {
+        return font;
+    }
 
     void setEditable(bool editable);
 

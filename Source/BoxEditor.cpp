@@ -11,7 +11,9 @@
 #include "Box.h"
 #include "Canvas.h"
 
-ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : box(parent), dragger(multiDragger) {}
+ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : box(parent), dragger(multiDragger)
+{
+}
 
 //==============================================================================
 void ClickLabel::setText(const String& newText, NotificationType notification)
@@ -28,7 +30,10 @@ void ClickLabel::setText(const String& newText, NotificationType notification)
     }
 }
 
-String ClickLabel::getText(bool returnActiveEditorContents) const { return (returnActiveEditorContents && isBeingEdited()) ? editor->getText() : textValue.toString(); }
+String ClickLabel::getText(bool returnActiveEditorContents) const
+{
+    return (returnActiveEditorContents && isBeingEdited()) ? editor->getText() : textValue.toString();
+}
 
 void ClickLabel::mouseDown(const MouseEvent& e)
 {
@@ -195,13 +200,13 @@ void ClickLabel::hideEditor()
 
         editorAboutToBeHidden(outgoingEditor.get());
 
-        updateFromTextEditorContents(*outgoingEditor);
+        bool changed = updateFromTextEditorContents(*outgoingEditor);
 
         outgoingEditor.reset();
 
         repaint();
 
-        if (onTextChange != nullptr) onTextChange();
+        if (changed && onTextChange != nullptr) onTextChange();
     }
 }
 
@@ -213,9 +218,15 @@ void ClickLabel::textEditorReturnKeyPressed(TextEditor& ed)
     }
 }
 
-bool ClickLabel::isBeingEdited() const noexcept { return editor != nullptr; }
+bool ClickLabel::isBeingEdited() const noexcept
+{
+    return editor != nullptr;
+}
 
-TextEditor* ClickLabel::getCurrentTextEditor() const noexcept { return editor.get(); }
+TextEditor* ClickLabel::getCurrentTextEditor() const noexcept
+{
+    return editor.get();
+}
 
 //==============================================================================
 void ClickLabel::paint(Graphics& g)

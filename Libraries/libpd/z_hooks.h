@@ -9,8 +9,7 @@
  *
  */
 
-#ifndef __Z_HOOKS_H__
-#define __Z_HOOKS_H__
+#pragma once
 
 #include "z_libpd.h"
 
@@ -31,5 +30,3 @@ extern t_libpd_pitchbendhook libpd_pitchbendhook;
 extern t_libpd_aftertouchhook libpd_aftertouchhook;
 extern t_libpd_polyaftertouchhook libpd_polyaftertouchhook;
 extern t_libpd_midibytehook libpd_midibytehook;
-
-#endif

@@ -27,7 +27,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(paren
     }
 
     addChildComponent(resizer);
-    
+
     setTopLeftPosition(position);
 
     // Open editor for undefined objects
@@ -60,22 +60,30 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
     changeListenerCallback(nullptr);
 }
 
-Box::~Box() { cnv->main.removeChangeListener(this); }
+Box::~Box()
+{
+    cnv->main.removeChangeListener(this);
+}
 
 void Box::changeListenerCallback(ChangeBroadcaster* source)
 {
     locked = cnv->pd->locked;
+
     // Called when locking/unlocking
-    textLabel.setEditable(!locked);
+    // textLabel.setEditable(!locked);
 
     bool hideForGraph = !graphics || graphics->getGui().getType() == pd::Type::Message || (graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment);
 
     setVisible(!(cnv->isGraph && hideForGraph));
 
+    if (graphics)
+    {
+        graphics->lock(locked || cnv->pd->commandLocked);
+    }
     // If the object has graphics, we hide the draggable name object
     if (graphics && !graphics->fakeGui() && (locked || cnv->isGraph))
     {
-        textLabel.setVisible(false);
+        // textLabel.setVisible(false);
         resizer.setVisible(false);
     }
     else
@@ -92,8 +100,6 @@ void Box::initialise()
     addMouseListener(this, true);
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
-
-    // setSize(90, 31);
 
     addAndMakeVisible(&textLabel);
 
@@ -125,21 +131,11 @@ bool Box::hitTest(int x, int y)
 
 void Box::mouseEnter(const MouseEvent& e)
 {
-    if (graphics && !graphics->fakeGui() && !locked && !cnv->isGraph)
-    {
-        textLabel.setVisible(true);
-    }
-
     repaint();
 }
 
 void Box::mouseExit(const MouseEvent& e)
 {
-    if (graphics && !graphics->fakeGui() && !textLabel.isBeingEdited())
-    {
-        textLabel.setVisible(false);
-    }
-
     repaint();
 }
 
@@ -205,28 +201,30 @@ void Box::setType(const String& newType, bool exists)
         // Create graphics for the object if necessary
         graphics.reset(GUIComponent::createGui(type, this));
 
+        if (graphics) graphics->lock(locked);
+
         if (graphics && graphics->getGui().getType() == pd::Type::Comment)
         {
             setSize(width, 31);
-            textLabel.setVisible(true);
+            textLabel.setEditable(true);
         }
         else if (graphics && !graphics->fakeGui())
         {
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
-            setSize(w + 8, h + 29);
+            setSize(w, h);
             graphics->toBack();
-            textLabel.setVisible(false);
+            textLabel.toBack();
+            textLabel.setEditable(false);
         }
         else
         {
-            textLabel.setVisible(true);
+            textLabel.setEditable(true);
             setSize(width, 31);
         }
     }
     else
     {
-        textLabel.setVisible(true);
         setSize(width, 31);
     }
 
@@ -240,8 +238,6 @@ void Box::setType(const String& newType, bool exists)
     {
         textLabel.setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
-
-    resizer.toBack();
 
     if (graphics && (graphics->getGui().isIEM() || graphics->getGui().getType() == pd::Type::Panel))
     {
@@ -280,7 +276,6 @@ void Box::paint(Graphics& g)
     bool selected = cnv->isSelected(this);
 
     bool hideLabel = graphics && !graphics->fakeGui() && (locked || !textLabel.isVisible());
-    if (hideLabel) rect.removeFromTop(21);
 
     if (pdObject && pdObject->getType() == pd::Type::Invalid && !textLabel.isBeingEdited())
     {
@@ -324,7 +319,7 @@ void Box::resized()
 {
     if (graphics)
     {
-        graphics->setBounds(4, 25, getWidth() - 8, getHeight() - 29);
+        graphics->setBounds(getLocalBounds().reduced(4));
     }
 
     if (pdObject && (!graphics || !graphics->getGui().isIEM()))
@@ -350,6 +345,8 @@ void Box::resized()
         textLabel.setBounds(4, 4, getWidth() - 8, 23);
     }
 
+    textLabel.setBounds(getLocalBounds().reduced(4));
+
     // Init size for empty objects
     if (textLabel.isBeingEdited())
     {
@@ -371,12 +368,13 @@ void Box::resized()
         float newY = isInput ? 4 : getHeight() - 4;
         float newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
 
-        if (isInput && graphics && !graphics->fakeGui()) newY += 22;
         edge->setCentrePosition(newX, newY);
         edge->setSize(8, 8);
 
         index++;
     }
+
+    resizer.toBack();
 }
 
 void Box::updatePorts()

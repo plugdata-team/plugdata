@@ -79,9 +79,15 @@ struct DAWAudioSettings : public Component
         latencyLabel.attachToComponent(&latencySlider, true);
     }
 
-    void resized() override { latencySlider.setBounds(90, 5, getWidth() - 130, 20); }
+    void resized() override
+    {
+        latencySlider.setBounds(90, 5, getWidth() - 130, 20);
+    }
 
-    void visibilityChanged() override { latencySlider.setValue(processor.getLatencySamples()); }
+    void visibilityChanged() override
+    {
+        latencySlider.setValue(processor.getLatencySamples());
+    }
 
     AudioProcessor& processor;
     Label latencyLabel;
@@ -144,7 +150,10 @@ struct SettingsDialog : public Component
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
     }
 
-    ~SettingsDialog() override { setLookAndFeel(nullptr); }
+    ~SettingsDialog() override
+    {
+        setLookAndFeel(nullptr);
+    }
 
     void mouseDown(const MouseEvent& e) override
     {
@@ -178,7 +187,10 @@ struct SettingsDialog : public Component
         g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
     }
 
-    void closeButtonPressed() { setVisible(false); }
+    void closeButtonPressed()
+    {
+        setVisible(false);
+    }
 
     std::unique_ptr<Button> closeButton;
 };

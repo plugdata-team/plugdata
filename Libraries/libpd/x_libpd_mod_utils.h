@@ -4,8 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#ifndef __X_LIBPD_MOD_UTILS_H__
-#define __X_LIBPD_MOD_UTILS_H__
+#pragma once
 
 #ifdef __cplusplus
 
@@ -14,8 +13,8 @@ extern "C"
 {
 #endif
 
-#include <z_libpd.h>
 #include <m_pd.h>
+#include <z_libpd.h>
 #include <g_canvas.h>
 
 
@@ -78,4 +77,3 @@ void libpd_collecttemplatesfor(t_canvas* cnv, int *ntemplatesp,
 }
 #endif
 
-#endif

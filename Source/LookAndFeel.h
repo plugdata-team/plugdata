@@ -85,7 +85,9 @@ struct MainLook : public LookAndFeel_V4
     class PlugData_DocumentWindowButton : public Button
     {
        public:
-        PlugData_DocumentWindowButton(const String& name, Colour c, Path normal, Path toggled) : Button(name), colour(c), normalShape(std::move(normal)), toggledShape(std::move(toggled)) {}
+        PlugData_DocumentWindowButton(const String& name, Colour c, Path normal, Path toggled) : Button(name), colour(c), normalShape(std::move(normal)), toggledShape(std::move(toggled))
+        {
+        }
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
@@ -124,7 +126,9 @@ struct MainLook : public LookAndFeel_V4
         return buttonBar.getWidth() / buttonBar.getNumTabs();
     }
 
-    void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border) override {}
+    void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border) override
+    {
+    }
 
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
     {
@@ -195,9 +199,15 @@ struct MainLook : public LookAndFeel_V4
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
 
-    Font getTabButtonFont(TabBarButton&, float height) override { return {height * 0.4f}; }
+    Font getTabButtonFont(TabBarButton&, float height) override
+    {
+        return {height * 0.4f};
+    }
 
-    Font getTextButtonFont(TextButton&, int buttonHeight) override { return {buttonHeight / 1.7f}; }
+    Font getTextButtonFont(TextButton&, int buttonHeight) override
+    {
+        return {buttonHeight / 1.7f};
+    }
 
     void drawPopupMenuBackground(Graphics& g, int width, int height) override
     {
@@ -218,7 +228,10 @@ struct MainLook : public LookAndFeel_V4
         g.drawRoundedRectangle(bounds, 3.0f, 1.5f);
     }
 
-    int getPopupMenuBorderSize() override { return 5; };
+    int getPopupMenuBorderSize() override
+    {
+        return 5;
+    };
 };
 
 struct PdGuiLook : public MainLook
@@ -297,7 +310,9 @@ struct ToolbarLook : public MainLook
 {
     Font iconFont = Font(Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize));
 
-    explicit ToolbarLook(Resources& r) : MainLook(r), iconFont(r.iconTypeface) {}
+    explicit ToolbarLook(Resources& r) : MainLook(r), iconFont(r.iconTypeface)
+    {
+    }
 
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
@@ -323,7 +338,10 @@ struct ToolbarLook : public MainLook
         g.fillRect(highlightRect);
     }
 
-    Font getTextButtonFont(TextButton&, int buttonHeight) override { return iconFont.withHeight(buttonHeight / 3.5); }
+    Font getTextButtonFont(TextButton&, int buttonHeight) override
+    {
+        return iconFont.withHeight(buttonHeight / 3.5);
+    }
 };
 
 struct StatusbarLook : public MainLook
@@ -340,7 +358,10 @@ struct StatusbarLook : public MainLook
         setColour(Slider::trackColourId, firstBackground);
     }
 
-    Font getTextButtonFont(TextButton&, int buttonHeight) override { return iconFont.withHeight(buttonHeight / 2.25); }
+    Font getTextButtonFont(TextButton&, int buttonHeight) override
+    {
+        return iconFont.withHeight(buttonHeight / 2.25);
+    }
 
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
@@ -398,13 +419,18 @@ struct StatusbarLook : public MainLook
         g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));
     }
 
-    int getSliderThumbRadius(Slider&) override { return 6; }
+    int getSliderThumbRadius(Slider&) override
+    {
+        return 6;
+    }
 };
 
 class BoxEditorLook : public MainLook
 {
    public:
-    explicit BoxEditorLook(Resources& r) : MainLook(r) {}
+    explicit BoxEditorLook(Resources& r) : MainLook(r)
+    {
+    }
 
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
@@ -441,5 +467,8 @@ class BoxEditorLook : public MainLook
         g.fillRect(buttonArea.toFloat());
     }
 
-    Font getTextButtonFont(TextButton&, int buttonHeight) override { return {buttonHeight / 1.9f}; }
+    Font getTextButtonFont(TextButton&, int buttonHeight) override
+    {
+        return {buttonHeight / 1.9f};
+    }
 };
