@@ -52,8 +52,18 @@ struct GUIComponent : public Component, public ComponentListener
 
     void paintOverChildren(Graphics& g) override
     {
+        if(gui.isAtom()) {
+            
+            g.setColour(MainLook::highlightColour);
+            Path triangle;
+            triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+            
+            g.fillPath(triangle);
+        }
+
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawLine(0, 0, static_cast<float>(getWidth()), 0);
+        
     }
 
     void closeOpenedSubpatchers();
