@@ -92,11 +92,20 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void process(AudioSampleBuffer&, MidiBuffer&);
 
-    void setBypass(bool bypass) { *enabled = !bypass; }
+    void setBypass(bool bypass)
+    {
+        *enabled = !bypass;
+    }
 
-    void setCallbackLock(const CriticalSection* lock) { audioLock = lock; };
+    void setCallbackLock(const CriticalSection* lock)
+    {
+        audioLock = lock;
+    };
 
-    const CriticalSection* getCallbackLock() override { return audioLock; };
+    const CriticalSection* getCallbackLock() override
+    {
+        return audioLock;
+    };
 
     std::atomic<uint64> lastAudioCallback;
 
@@ -134,6 +143,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     File abstractions = appDir.getChildFile("Abstractions");
 
     bool locked = false;
+    bool commandLocked = false;
 
     AudioProcessorValueTreeState parameters;
 

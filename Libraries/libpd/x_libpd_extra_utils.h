@@ -12,9 +12,9 @@
 extern "C"
 {
 #endif
-
-#include <z_libpd.h>
 #include <m_pd.h>
+#include <z_libpd.h>
+
 
 
 void* libpd_create_canvas(const char* name, const char* path);

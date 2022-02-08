@@ -84,7 +84,10 @@ class MultiComponentDragger : public LassoSource<T*>
     /**
      Find out if a component is marked as selected.
      */
-    bool isSelected(T* component) const { return std::find(selectedComponents.begin(), selectedComponents.end(), component) != selectedComponents.end(); }
+    bool isSelected(T* component) const
+    {
+        return std::find(selectedComponents.begin(), selectedComponents.end(), component) != selectedComponents.end();
+    }
 
     /**
      Call this from your components mouseDown event.
@@ -168,7 +171,10 @@ class MultiComponentDragger : public LassoSource<T*>
     }
 
    private:
-    void removeSelectedComponent(T* component) { selectedComponents.deselect(component); }
+    void removeSelectedComponent(T* component)
+    {
+        selectedComponents.deselect(component);
+    }
 
     void findLassoItemsInArea(Array<T*>& itemsFound, const Rectangle<int>& area)
     {

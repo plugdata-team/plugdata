@@ -51,9 +51,18 @@ class PlugDataApp : public JUCEApplication
         appProperties.setStorageParameters(options);
     }
 
-    const String getApplicationName() override { return "PlugData"; }
-    const String getApplicationVersion() override { return JucePlugin_VersionString; }
-    bool moreThanOneInstanceAllowed() override { return true; }
+    const String getApplicationName() override
+    {
+        return "PlugData";
+    }
+    const String getApplicationVersion() override
+    {
+        return JucePlugin_VersionString;
+    }
+    bool moreThanOneInstanceAllowed() override
+    {
+        return true;
+    }
 
     // For opening files with PlugData standalone
     void anotherInstanceStarted(const String& commandLine) override

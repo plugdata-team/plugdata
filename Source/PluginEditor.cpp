@@ -536,6 +536,25 @@ void PlugDataPluginEditor::resized()
     pd.lastUIHeight = getHeight();
 }
 
+bool PlugDataPluginEditor::keyStateChanged(bool isKeyDown, Component* originatingComponent)
+{
+    // Lock when command is down
+    auto mod = ComponentPeer::getCurrentModifiersRealtime();
+    if (isKeyDown && mod.isCommandDown() && !lockButton.getToggleState())
+    {
+        pd.commandLocked = true;
+        sendChangeMessage();
+    }
+
+    if (!mod.isCommandDown() && pd.commandLocked)
+    {
+        pd.commandLocked = false;
+        sendChangeMessage();
+    }
+
+    return false;  //  Never claim this event!
+}
+
 bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatingComponent)
 {
     auto* cnv = getCurrentCanvas();

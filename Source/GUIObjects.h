@@ -42,6 +42,10 @@ struct GUIComponent : public Component, public ComponentListener
 
     virtual void initParameters();
 
+    // Most objects ignore mouseclicks when locked
+    // Objects can override this to do custom locking behaviour
+    virtual void lock(bool isLocked);
+
     void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
     void paint(Graphics& g) override
@@ -52,18 +56,14 @@ struct GUIComponent : public Component, public ComponentListener
 
     void paintOverChildren(Graphics& g) override
     {
-        if(gui.isAtom()) {
-            
+        if (gui.isAtom())
+        {
             g.setColour(MainLook::highlightColour);
             Path triangle;
             triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-            
+
             g.fillPath(triangle);
         }
-
-        g.setColour(findColour(ComboBox::outlineColourId));
-        g.drawLine(0, 0, static_cast<float>(getWidth()), 0);
-        
     }
 
     void closeOpenedSubpatchers();
@@ -74,7 +74,10 @@ struct GUIComponent : public Component, public ComponentListener
 
     void setBackground(Colour colour);
 
-    virtual ObjectParameters defineParamters() { return {}; };
+    virtual ObjectParameters defineParamters()
+    {
+        return {};
+    };
 
     virtual ObjectParameters getParameters()
     {
@@ -152,11 +155,20 @@ struct GUIComponent : public Component, public ComponentListener
         return params;
     }
 
-    virtual pd::Patch* getPatch() { return nullptr; }
+    virtual pd::Patch* getPatch()
+    {
+        return nullptr;
+    }
 
-    virtual Canvas* getCanvas() { return nullptr; }
+    virtual Canvas* getCanvas()
+    {
+        return nullptr;
+    }
 
-    virtual bool fakeGui() { return false; }
+    virtual bool fakeGui()
+    {
+        return false;
+    }
 
     std::unique_ptr<Label> label;
 
@@ -256,19 +268,16 @@ struct ToggleComponent : public GUIComponent
     void update() override;
 };
 
-struct MessageComponent : public GUIComponent, public ChangeListener
+struct MessageComponent : public GUIComponent
 {
     bool isDown = false;
     bool isLocked = false;
 
-    TextEditor input;
-    TextButton bangButton;
+    Label input;
 
     std::string lastMessage;
 
     MessageComponent(const pd::Gui& gui, Box* parent);
-
-    ~MessageComponent() override;
 
     std::pair<int, int> getBestSize() override
     {
@@ -279,10 +288,14 @@ struct MessageComponent : public GUIComponent, public ChangeListener
         return {stringLength + 20, numLines * 21};
     };
 
-    void changeListenerCallback(ChangeBroadcaster* source) override;
+    void lock(bool isLocked) override;
 
     void mouseDown(const MouseEvent& e) override
     {
+        if(e.getNumberOfClicks() == 2 && !isLocked) {
+            input.showEditor();
+        }
+        
         if (!gui.isAtom())
         {
             isDown = true;
@@ -294,7 +307,8 @@ struct MessageComponent : public GUIComponent, public ChangeListener
         stopEdition();
     }
 
-    void mouseUp(const MouseEvent& e) override {
+    void mouseUp(const MouseEvent& e) override
+    {
         isDown = false;
         repaint();
     }
@@ -320,7 +334,10 @@ struct NumboxComponent : public GUIComponent
 
     NumboxComponent(const pd::Gui& gui, Box* parent);
 
-    std::pair<int, int> getBestSize() override { return {60, 22}; };
+    std::pair<int, int> getBestSize() override
+    {
+        return {60, 22};
+    };
 
     void mouseDown(const MouseEvent& event) override
     {
@@ -588,11 +605,15 @@ struct ArrayComponent : public GUIComponent
    public:
     ArrayComponent(const pd::Gui& gui, Box* box);
 
-    void paint(Graphics&) override {}
+    void paint(Graphics&) override
+    {
+    }
 
     void resized() override;
 
-    void updateValue() override {}
+    void updateValue() override
+    {
+    }
 
     std::pair<int, int> getBestSize() override
     {
@@ -615,6 +636,13 @@ struct GraphOnParent : public GUIComponent
     void paint(Graphics& g) override;
 
     void resized() override;
+    
+    void lock(bool isLocked) override;
+    
+    
+    void mouseDown(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
 
     void updateValue() override;
 
@@ -624,9 +652,15 @@ struct GraphOnParent : public GUIComponent
         return {w, h};
     };
 
-    pd::Patch* getPatch() override { return &subpatch; }
+    pd::Patch* getPatch() override
+    {
+        return &subpatch;
+    }
 
-    Canvas* getCanvas() override { return canvas.get(); }
+    Canvas* getCanvas() override
+    {
+        return canvas.get();
+    }
 
     void updateCanvas();
 
@@ -641,15 +675,24 @@ struct Subpatch : public GUIComponent
 
     ~Subpatch() override;
 
-    std::pair<int, int> getBestSize() override { return {0, 3}; };
+    std::pair<int, int> getBestSize() override
+    {
+        return {0, 3};
+    };
 
     void resized() override{};
 
     void updateValue() override;
 
-    pd::Patch* getPatch() override { return &subpatch; }
+    pd::Patch* getPatch() override
+    {
+        return &subpatch;
+    }
 
-    bool fakeGui() override { return true; }
+    bool fakeGui() override
+    {
+        return true;
+    }
 
    private:
     pd::Patch subpatch;
@@ -663,11 +706,20 @@ struct CommentComponent : public GUIComponent
 
     void updateValue() override{};
 
-    void resized() override { gui.setSize(getWidth(), getHeight()); }
+    void resized() override
+    {
+        gui.setSize(getWidth(), getHeight());
+    }
 
-    std::pair<int, int> getBestSize() override { return {120, 4}; };
+    std::pair<int, int> getBestSize() override
+    {
+        return {120, 4};
+    };
 
-    bool fakeGui() override { return true; }
+    bool fakeGui() override
+    {
+        return true;
+    }
 };
 
 struct VUMeter : public GUIComponent
@@ -697,9 +749,15 @@ struct VUMeter : public GUIComponent
         meter.setMeterSource(&source);
     }
 
-    ~VUMeter() override { meter.setLookAndFeel(nullptr); }
+    ~VUMeter() override
+    {
+        meter.setLookAndFeel(nullptr);
+    }
 
-    void resized() override { meter.setBounds(getLocalBounds().removeFromTop(getHeight() - 20)); }
+    void resized() override
+    {
+        meter.setBounds(getLocalBounds().removeFromTop(getHeight() - 20));
+    }
 
     void paint(Graphics& g) override
     {
@@ -732,9 +790,15 @@ struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box);
 
-    void paint(Graphics& g) override { g.fillAll(Colour::fromString(secondaryColour)); }
+    void paint(Graphics& g) override
+    {
+        g.fillAll(Colour::fromString(secondaryColour));
+    }
 
-    void resized() override { gui.setSize(getWidth(), getHeight()); }
+    void resized() override
+    {
+        gui.setSize(getWidth(), getHeight());
+    }
 
     void updateValue() override{};
 
@@ -839,13 +903,19 @@ struct MouseComponent : public GUIComponent
 
     ~MouseComponent() override;
 
-    std::pair<int, int> getBestSize() override { return {0, 3}; };
+    std::pair<int, int> getBestSize() override
+    {
+        return {0, 3};
+    };
 
     void resized() override{};
 
     void updateValue() override;
 
-    bool fakeGui() override { return true; }
+    bool fakeGui() override
+    {
+        return true;
+    }
 
     void mouseDown(const MouseEvent& e) override;
 

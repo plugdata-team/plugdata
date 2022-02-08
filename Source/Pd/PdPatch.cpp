@@ -16,6 +16,7 @@ extern "C"
 #include <g_canvas.h>
 #include <m_imp.h>
 
+
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
@@ -69,7 +70,9 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
     }
 }
 
-Patch::Patch(const File& toOpen, Instance* instance) noexcept {}
+Patch::Patch(const File& toOpen, Instance* instance) noexcept
+{
+}
 
 std::array<int, 4> Patch::getBounds() const noexcept
 {
@@ -85,14 +88,17 @@ std::array<int, 4> Patch::getBounds() const noexcept
     return {0, 0, 0, 0};
 }
 
-void Patch::close() { canvas_free(getPointer()); }
+void Patch::close()
+{
+    canvas_free(getPointer());
+}
 
 void Patch::setCurrent()
 {
     instance->setThis();
 
     // instance->canvasLock.lock();
-    // canvas_setcurrent(getPointer());
+    canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
     // instance->canvasLock.unlock();
 }
@@ -323,7 +329,6 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
         instance->enqueueFunction(
             [this, obj]()
             {
-                
                 setCurrent();
                 glist_noselect(getPointer());
                 glist_select(getPointer(), &checkObject(obj)->te_g);
@@ -533,7 +538,10 @@ void Patch::setZoom(int newZoom)
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
-t_object* Patch::checkObject(Object* obj) noexcept { return pd_checkobject(static_cast<t_pd*>(obj->getPointer())); }
+t_object* Patch::checkObject(Object* obj) noexcept
+{
+    return pd_checkobject(static_cast<t_pd*>(obj->getPointer()));
+}
 
 void Patch::keyPress(int keycode, int shift)
 {
@@ -662,7 +670,10 @@ void Patch::setExtraInfo(const String& id, MemoryBlock& info)
     storeExtraInfo(false);
 }
 
-String Patch::getTitle() const { return {getPointer()->gl_name->s_name}; }
+String Patch::getTitle() const
+{
+    return {getPointer()->gl_name->s_name};
+}
 
 void Patch::setTitle(const String& title)
 {

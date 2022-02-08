@@ -223,7 +223,10 @@ class LibraryComponent : public Component, public TableListBoxModel
     }
 
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
-    void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override { g.fillAll((row % 2) ? MainLook::firstBackground : MainLook::secondBackground); }
+    void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
+    {
+        g.fillAll((row % 2) ? MainLook::firstBackground : MainLook::secondBackground);
+    }
 
     // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
     // components.
@@ -240,7 +243,10 @@ class LibraryComponent : public Component, public TableListBoxModel
         g.fillRect(width - 1, 0, 1, height);
     }
 
-    int getNumRows() override { return items.size(); }
+    int getNumRows() override
+    {
+        return items.size();
+    }
 
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
     {

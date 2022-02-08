@@ -192,7 +192,6 @@ void Canvas::synchronise(bool updatePosition)
             // There may be rounding errors when scaling the gui, this makes the experience smoother
             if (updatePosition && box->getPosition().getDistanceFrom(Point<int>(x, y)) > 8)
             {
-                if (box->graphics && (!box->graphics->fakeGui() || box->graphics->getGui().getType() == pd::Type::Comment)) y -= 22;
                 box->setTopLeftPosition(x, y);
             }
 
@@ -380,9 +379,12 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         bool isSubpatch = hasSelection && (lassoSelection.getSelectedItem(0)->graphics && (lassoSelection.getSelectedItem(0)->graphics->getGui().getType() == pd::Type::GraphOnParent || lassoSelection.getSelectedItem(0)->graphics->getGui().getType() == pd::Type::Subpatch));
 
+        bool isGui = hasSelection && !multiple && lassoSelection.getSelectedItem(0)->graphics && !lassoSelection.getSelectedItem(0)->graphics->fakeGui();
+
         // Create popup menu
         popupMenu.clear();
         popupMenu.addItem(1, "Open", hasSelection && !multiple && isSubpatch);  // for opening subpatches
+        // popupMenu.addItem(10, "Edit", isGui);
         popupMenu.addSeparator();
         popupMenu.addItem(4, "Cut", hasSelection);
         popupMenu.addItem(5, "Copy", hasSelection);
@@ -745,7 +747,9 @@ void Canvas::mouseMove(const MouseEvent& e)
     }
 }
 
-void Canvas::resized() {}
+void Canvas::resized()
+{
+}
 
 bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
 {
