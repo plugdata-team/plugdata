@@ -51,7 +51,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     void resized() override;
 
     bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
-    bool keyStateChanged(bool isKeyDown, Component* originatingComponent);
+    bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override;
 
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;

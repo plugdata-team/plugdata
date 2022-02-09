@@ -200,6 +200,8 @@ void Instance::releaseDSP()
 
 void Instance::performDSP(float const* inputs, float* outputs)
 {
+    lastCallbackTime = Time::getCurrentTime().currentTimeMillis();
+    
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_process_raw(inputs, outputs);
 }
@@ -417,6 +419,13 @@ void Instance::enqueueDirectMessages(void* object, const float msg)
 
 void Instance::waitForStateUpdate()
 {
+    // No action needed
+    if(m_function_queue.size_approx() == 0) {
+        return;
+    }
+    
+    
+    
     // Need to wait twice to ensure that pd has processed all changes
     if (audioStarted)
     {

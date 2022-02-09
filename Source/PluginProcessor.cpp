@@ -61,7 +61,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     sendMessagesFromQueue();
     processMessages();
 
-    startThread();
+    //startThread();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
