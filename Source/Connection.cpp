@@ -46,6 +46,9 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
         inObj = &end->box->pdObject;
         outObj = &start->box->pdObject;
     }
+    
+    start->repaint();
+    end->repaint();
 
     // If it doesn't already exist in pd, create connection in pd
     if (!exists)
