@@ -51,8 +51,8 @@ void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
     
-    if(isHovered) {
-        bounds = bounds.reduced(2);
+    if(!isHovered) {
+        bounds = bounds.reduced(1);
     }
 
     auto backgroundColour = isSignal ? Colours::yellow : MainLook::highlightColour;
@@ -64,7 +64,7 @@ void Edge::paint(Graphics& g)
     Path path;
 
     // Visual change if it has a connection
-    if (hasConnection())
+    if (hasConnection() && !isHovered)
     {
         if (isInput)
         {
