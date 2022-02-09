@@ -107,16 +107,7 @@ void Box::initialise()
 
 bool Box::hitTest(int x, int y)
 {
-    if (graphics && !graphics->fakeGui())
-    {
-        bool overGraphics = graphics->getBounds().expanded(4).contains(x, y);
-        bool overText = textLabel.isVisible() && textLabel.getBounds().expanded(4).contains(x, y);
-        return overGraphics || overText;
-    }
-    else
-    {
-        return textLabel.getBounds().expanded(4).contains(x, y);
-    }
+    return getLocalBounds().reduced(2).contains(x, y);
 }
 
 void Box::mouseEnter(const MouseEvent& e)
@@ -324,7 +315,7 @@ void Box::resized()
         }
     }
 
-    resizer.setBounds(getLocalBounds().reduced(4));
+    resizer.setBounds(getLocalBounds().reduced(2));
 
     int index = 0;
     for (auto& edge : edges)
