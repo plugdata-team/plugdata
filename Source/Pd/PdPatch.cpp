@@ -16,7 +16,6 @@ extern "C"
 #include <g_canvas.h>
 #include <m_imp.h>
 
-
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
@@ -98,12 +97,13 @@ void Patch::setCurrent()
     instance->setThis();
 
     instance->canvasLock.lock();
-    if(auto* cnv = canvas_getcurrent()) {
+    if (auto* cnv = canvas_getcurrent())
+    {
         canvas_unsetcurrent(cnv);
     }
-    
+
     canvas_setcurrent(getPointer());
-    
+
     instance->canvasLock.unlock();
     canvas_vis(getPointer(), 1.);
     //

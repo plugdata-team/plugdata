@@ -21,7 +21,6 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(paren
 
     setType(name);
 
-
     addChildComponent(resizer);
 
     setTopLeftPosition(position);
