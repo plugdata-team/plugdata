@@ -34,6 +34,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
         addAndMakeVisible(graphArea.get());
     }
 
+
+    
     setSize(600, 400);
 
     // Apply zooming
@@ -52,6 +54,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
+        viewport->setBufferedToImage(true);
     }
 
     addChildComponent(suggestor);
@@ -369,8 +372,8 @@ void Canvas::mouseDown(const MouseEvent& e)
                 deselectAll();
             }
         }
-        // Right click
     }
+    // Right click
     else
     {
         // Info about selection status
@@ -724,9 +727,7 @@ void Canvas::paintOverChildren(Graphics& g)
     if (connectingEdge)
     {
         Point<float> mousePos = getMouseXYRelative().toFloat();
-        Point<int> edgePos = connectingEdge->getCanvasBounds().getPosition();
-
-        edgePos += Point<int>(4, 4);
+        Point<int> edgePos = connectingEdge->getCanvasBounds().getCentre();
 
         Path path;
         path.startNewSubPath(edgePos.toFloat());
