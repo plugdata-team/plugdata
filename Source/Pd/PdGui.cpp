@@ -353,8 +353,7 @@ void Gui::setMaximum(float value) noexcept
 
 float Gui::getValue() const noexcept
 {
-    // const ScopedLock lock(*instance->getCallbackLock());
-
+    
     if (!ptr) return 0.f;
     if (type == Type::HorizontalSlider)
     {

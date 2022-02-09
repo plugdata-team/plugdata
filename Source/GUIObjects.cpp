@@ -23,9 +23,13 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), pro
 
 {
     // if(!box->pdObject) return;
+    const CriticalSection* cs = box->cnv->pd->getCallbackLock();
+    
+    cs->enter();
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
+    cs->exit();
 
     updateLabel();
 
@@ -183,12 +187,11 @@ float GUIComponent::getValueOriginal() const noexcept
     return value;
 }
 
-void GUIComponent::setValueOriginal(float v, bool sendNotification)
+void GUIComponent::setValueOriginal(float v)
 {
-    // ScopedLock lock(*box->cnv->pd->getCallbackLock());
-
     value = (min < max) ? std::max(std::min(v, max), min) : std::max(std::min(v, min), max);
-    if (sendNotification) gui.setValue(value);
+    
+    gui.setValue(value);
 }
 
 float GUIComponent::getValueScaled() const noexcept
@@ -198,8 +201,6 @@ float GUIComponent::getValueScaled() const noexcept
 
 void GUIComponent::setValueScaled(float v)
 {
-    // ScopedLock lock(*box->cnv->pd->getCallbackLock());
-
     value = (min < max) ? std::max(std::min(v, 1.f), 0.f) * (max - min) + min : (1.f - std::max(std::min(v, 1.f), 0.f)) * (min - max) + max;
     gui.setValue(value);
 }
@@ -209,7 +210,6 @@ void GUIComponent::startEdition() noexcept
     edited = true;
     processor.enqueueMessages(stringGui, stringMouse, {1.f});
 
-    // ScopedLock lock(*box->cnv->pd->getCallbackLock());
     value = gui.getValue();
 }
 
@@ -221,17 +221,20 @@ void GUIComponent::stopEdition() noexcept
 
 void GUIComponent::updateValue()
 {
-    box->cnv->pd->canvasLock.lock();
     if (edited == false)
     {
-        float const v = gui.getValue();
-        if (v != value)
-        {
-            value = v;
-            update();
-        }
+        box->cnv->pd->enqueueFunction([this](){
+            float const v = gui.getValue();
+            
+            MessageManager::callAsync([this, v]() mutable {
+                if (v != value)
+                {
+                    value = v;
+                    update();
+                }
+            });
+        });
     }
-    box->cnv->pd->canvasLock.unlock();
 }
 
 void GUIComponent::componentMovedOrResized(Component& component, bool moved, bool resized)
@@ -738,7 +741,8 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
     initParameters();
     updateRange();
 
-    int selected = gui.getValue();
+    int selected = getValueOriginal();
+    
     if (selected < radioButtons.size())
     {
         radioButtons[selected]->setToggleState(true, dontSendNotification);
@@ -778,7 +782,7 @@ void RadioComponent::resized()
 
 void RadioComponent::update()
 {
-    int selected = gui.getValue();
+    int selected = getValueOriginal();
 
     if (selected < radioButtons.size())
     {
@@ -1064,7 +1068,7 @@ void GraphOnParent::updateCanvas()
         box->resized();
 
         // Make sure that the graph doesn't become the current canvas
-        box->cnv->patch.setCurrent();
+        box->cnv->patch.setCurrent(true);
         box->cnv->main.updateUndoState();
     } /*
 
@@ -1240,6 +1244,7 @@ void MouseComponent::mouseDown(const MouseEvent& e)
 }
 void MouseComponent::mouseMove(const MouseEvent& e)
 {
+    // Do this with a mouselistener?
     auto pos = Desktop::getInstance().getMousePosition();
 
     if (Desktop::getInstance().getMouseSource(0)->isDragging())
@@ -1410,10 +1415,10 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
             {
                 // glist->gl_havewindow = canvas->isGraphChild;
                 // glist->gl_isgraph = canvas->isGraph;
-                canvas->pd->canvasLock.lock();
+                canvas->pd->getCallbackLock()->enter();
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
-                canvas->pd->canvasLock.unlock();
+                canvas->pd->getCallbackLock()->exit();
 
                 pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;

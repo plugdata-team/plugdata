@@ -178,7 +178,7 @@ struct GUIComponent : public Component, public ComponentListener
 
     float getValueOriginal() const noexcept;
 
-    void setValueOriginal(float v, bool sendNotification = true);
+    void setValueOriginal(float v);
 
     float getValueScaled() const noexcept;
 

@@ -117,8 +117,6 @@ class Instance
     void processMessages();
     void processPrints();
     void processMidi();
-    
-    std::atomic<uint64> lastCallbackTime;
 
     Patch openPatch(const File& toOpen);
 
@@ -165,7 +163,6 @@ class Instance
     std::atomic<bool> audioStarted = false;
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
-    std::recursive_mutex canvasLock;
 
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
