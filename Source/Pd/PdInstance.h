@@ -117,6 +117,8 @@ class Instance
     void processMessages();
     void processPrints();
     void processMidi();
+    
+    std::atomic<uint64> lastCallbackTime;
 
     Patch openPatch(const File& toOpen);
 

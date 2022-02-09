@@ -112,7 +112,8 @@ void Edge::mouseMove(const MouseEvent& e)
 
 void Edge::mouseEnter(const MouseEvent& e)
 {
-    isHovered = true;
+    // Only show when not locked
+    isHovered = !box->locked;
     repaint();
 }
 
