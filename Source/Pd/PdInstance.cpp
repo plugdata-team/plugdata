@@ -113,9 +113,8 @@ Instance::Instance(std::string const& symbol)
 {
     libpd_multi_init();
 
-    canvasLock.lock();
     m_instance = libpd_new_instance();
-    canvasLock.unlock();
+
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     m_midi_receiver =
         libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
@@ -200,8 +199,6 @@ void Instance::releaseDSP()
 
 void Instance::performDSP(float const* inputs, float* outputs)
 {
-    lastCallbackTime = Time::getCurrentTime().currentTimeMillis();
-    
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_process_raw(inputs, outputs);
 }
@@ -383,10 +380,6 @@ void Instance::processPrints()
 
 void Instance::enqueueFunction(const std::function<void(void)>& fn)
 {
-    // sys_lock();
-    // fn();
-    // sys_unlock();
-
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
     m_function_queue.enqueue(fn);
@@ -513,12 +506,8 @@ Patch Instance::openPatch(const File& toOpen)
     closePatch();
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
-    canvasLock.lock();
-
     m_patch = libpd_create_canvas(file, dir);
 
-    // canvas_setcurrent(static_cast<t_canvas*>(patch));
-    canvasLock.unlock();
     setThis();
 
     currentFile = toOpen;

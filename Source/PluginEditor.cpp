@@ -819,17 +819,21 @@ void PlugDataPluginEditor::updateUndoState()
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked)
     {
-        getCurrentCanvas()->patch.setCurrent();
-
         auto* cnv = getCurrentCanvas()->patch.getPointer();
-
-        pd.canvasLock.lock();
-        bool canUndo = libpd_can_undo(cnv);
-        bool canRedo = libpd_can_redo(cnv);
-        pd.canvasLock.unlock();
-
-        toolbarButtons[4].setEnabled(canUndo);
-        toolbarButtons[5].setEnabled(canRedo);
+        
+        pd.enqueueFunction([this, cnv](){
+            
+            getCurrentCanvas()->patch.setCurrent();
+            // Check undo state on pd's thread
+            bool canUndo = libpd_can_undo(cnv);
+            bool canRedo = libpd_can_redo(cnv);
+            
+            // Apply to buttons on message thread
+            MessageManager::callAsync([this, canUndo, canRedo]() mutable {
+                toolbarButtons[4].setEnabled(canUndo);
+                toolbarButtons[5].setEnabled(canRedo);
+            });
+        });
     }
     else
     {

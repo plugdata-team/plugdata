@@ -64,8 +64,20 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
 {
     if (auto* cnv = getPointer())
     {
+        //instance->enqueueFunction([this, cnv](){
+        
+        instance->getCallbackLock()->enter();
         setZoom(1);
         cnv->gl_mapped = 1;  // this will allow us to receive pd gui updates on every canvas
+        
+        instance->getCallbackLock()->exit();
+        
+        infoObject = getInfoObject();
+        
+        
+        
+        //});
+
     }
 }
 
@@ -92,21 +104,21 @@ void Patch::close()
     canvas_free(getPointer());
 }
 
-void Patch::setCurrent()
+void Patch::setCurrent(bool lock)
 {
     instance->setThis();
 
-    instance->canvasLock.lock();
+    if(lock) instance->getCallbackLock()->enter();
+
     if (auto* cnv = canvas_getcurrent())
     {
         canvas_unsetcurrent(cnv);
     }
 
     canvas_setcurrent(getPointer());
-
-    instance->canvasLock.unlock();
     canvas_vis(getPointer(), 1.);
-    //
+    
+    if(lock) instance->getCallbackLock()->exit();
 }
 
 int Patch::getIndex(void* obj)
@@ -159,7 +171,8 @@ std::vector<Object> Patch::getObjects(bool onlyGui) noexcept
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
         {
             Object object(static_cast<void*>(y), this, instance);
-
+            
+            
             if (String(object.getText()).startsWith("plugdatainfo")) continue;
 
             if (onlyGui)
@@ -323,7 +336,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
     if (!obj || !ptr) return nullptr;
 
     // Cant use the queue for this...
-    setCurrent();
+    setCurrent(true);
 
     StringArray notRenamable = {"msg", "message", "gatom", "floatatom", "symbolatom"};
 
@@ -354,7 +367,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
 
     instance->waitForStateUpdate();
 
-    setCurrent();
+    setCurrent(true);
     // This only works if pd always recreates the object
     // TODO: find out if thats always the case
 
@@ -585,24 +598,33 @@ void Patch::updateExtraInfo()
 
 t_gobj* Patch::getInfoObject()
 {
+    if(infoObject) {
+        return infoObject;
+    }
+    
+    instance->getCallbackLock()->enter();
+    
     for (t_gobj* y = getPointer()->gl_list; y; y = y->g_next)
     {
         if (strcmp(libpd_get_object_class_name(y), "text") != 0) continue;
 
         char* text = nullptr;
         int size = 0;
-        setCurrent();
+        setCurrent(true);
         libpd_get_object_text(y, &text, &size);
         if (text && size)
         {
             if (String(CharPointer_UTF8(text), size).startsWith("plugdatainfo"))
             {
+                instance->getCallbackLock()->exit();
                 return y;
             }
         }
     }
-
-    return nullptr;
+    instance->getCallbackLock()->exit();
+    
+    auto newObject = createObject("comment plugdatainfo", 0, 0, false);
+    return static_cast<t_gobj*>(newObject->getPointer());
 }
 void Patch::setExtraInfoId(const String& oldId, const String& newId)
 {
@@ -613,10 +635,10 @@ void Patch::setExtraInfoId(const String& oldId, const String& newId)
         child.setProperty("ID", newId, nullptr);
     }
 
-    storeExtraInfo(false);
+    storeExtraInfo();
 }
 
-void Patch::storeExtraInfo(bool undoable)
+void Patch::storeExtraInfo()
 {
     String infoString = Base64::toBase64(extraInfo.toXmlString());
 
@@ -624,20 +646,8 @@ void Patch::storeExtraInfo(bool undoable)
 
     String newname = "plugdatainfo " + infoString;
 
-    if (!info)
-    {
-        auto newObject = createObject("comment plugdatainfo", 0, 0, false);
-        info = static_cast<t_gobj*>(newObject->getPointer());
-    }
-
-    if (undoable)
-    {
-        instance->enqueueFunction([this, info, newname]() mutable { libpd_renameobj(getPointer(), info, newname.toRawUTF8(), newname.length()); });
-    }
-    else
-    {
-        binbuf_text((reinterpret_cast<t_text*>(info))->te_binbuf, newname.toRawUTF8(), newname.length());
-    }
+    // This is likely thread safe because nothing else should access this object
+    binbuf_text((reinterpret_cast<t_text*>(info))->te_binbuf, newname.toRawUTF8(), newname.length());
 
     deselectAll();
 }
@@ -673,7 +683,7 @@ void Patch::setExtraInfo(const String& id, MemoryBlock& info)
         extraInfo.appendChild(tree, nullptr);
     }
 
-    storeExtraInfo(false);
+    storeExtraInfo();
 }
 
 String Patch::getTitle() const

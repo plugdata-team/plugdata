@@ -18,7 +18,7 @@
  */
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Thread, public Timer, public PatchLoader
+class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer, public PatchLoader
 {
    public:
     PlugDataAudioProcessor();
@@ -46,9 +46,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     std::atomic<int> callbackType = 0;
     void timerCallback() override;
-
-    // Run loop when DAW isn't calling process block
-    void run() override;
 
     int getNumPrograms() override;
     int getCurrentProgram() override;
