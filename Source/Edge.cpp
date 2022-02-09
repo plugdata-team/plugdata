@@ -56,11 +56,14 @@ void Edge::paint(Graphics& g)
         bounds = bounds.reduced(1);
     }
 
+    bool down = isDown() && !box->locked;
+    bool over = isOver() && !box->locked;
+    
     auto backgroundColour = isSignal ? Colours::yellow : MainLook::highlightColour;
 
-    auto baseColour = backgroundColour.darker(isOver() ? 0.15f : 0.0f);
+    auto baseColour = backgroundColour.darker(over ? 0.15f : 0.0f);
 
-    if (isDown() || isOver()) baseColour = baseColour.contrasting(isDown() ? 0.2f : 0.05f);
+    if (down || over) baseColour = baseColour.contrasting(down ? 0.2f : 0.05f);
 
     Path path;
 
