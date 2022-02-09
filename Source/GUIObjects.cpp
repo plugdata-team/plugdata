@@ -382,7 +382,7 @@ void ToggleComponent::update()
 MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
 {
     addAndMakeVisible(input);
-    
+
     input.setInterceptsMouseClicks(false, false);
 
     // message box behaviour
@@ -428,7 +428,7 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
                 startEdition();
                 gui.setSymbol(editor->getText().toStdString());
                 stopEdition();
-                //input.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+                // input.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
             };
 
             editor->onFocusLost = [this]()
@@ -478,7 +478,8 @@ void MessageComponent::paint(Graphics& g)
 
         g.fillRoundedRectangle(rect.withTrimmedBottom(getHeight() - 28), 2.0f);
     }
-    else {
+    else
+    {
         g.fillAll(MainLook::firstBackground);
     }
 }
@@ -986,9 +987,9 @@ GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGu
 
     box->resized();
     box->textLabel.setVisible(false);
-    
+
     addMouseListener(this, true);
-    
+
     resized();
 }
 
@@ -1003,25 +1004,32 @@ void GraphOnParent::resized()
 {
 }
 
-void GraphOnParent::lock(bool locked) {
+void GraphOnParent::lock(bool locked)
+{
     isLocked = locked;
     setInterceptsMouseClicks(!box->locked, true);
 }
 
-void GraphOnParent::mouseDown(const MouseEvent& e) {
-    if(!isLocked) {
+void GraphOnParent::mouseDown(const MouseEvent& e)
+{
+    if (!isLocked)
+    {
         box->textLabel.mouseDown(e.getEventRelativeTo(&box->textLabel));
     }
 }
 
-void GraphOnParent::mouseDrag(const MouseEvent& e) {
-    if(!isLocked) {
+void GraphOnParent::mouseDrag(const MouseEvent& e)
+{
+    if (!isLocked)
+    {
         box->textLabel.mouseDrag(e.getEventRelativeTo(&box->textLabel));
     }
 }
 
-void GraphOnParent::mouseUp(const MouseEvent& e) {
-    if(!isLocked) {
+void GraphOnParent::mouseUp(const MouseEvent& e)
+{
+    if (!isLocked)
+    {
         box->textLabel.mouseUp(e.getEventRelativeTo(&box->textLabel));
     }
 }

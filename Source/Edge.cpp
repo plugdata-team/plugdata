@@ -50,8 +50,9 @@ Rectangle<int> Edge::getCanvasBounds()
 void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
-    
-    if(!isHovered) {
+
+    if (!isHovered)
+    {
         bounds = bounds.reduced(1);
     }
 
@@ -88,7 +89,6 @@ void Edge::paint(Graphics& g)
 
 void Edge::resized()
 {
-    
 }
 
 void Edge::mouseDrag(const MouseEvent& e)
@@ -110,12 +110,14 @@ void Edge::mouseMove(const MouseEvent& e)
 {
 }
 
-void Edge::mouseEnter(const MouseEvent& e) {
+void Edge::mouseEnter(const MouseEvent& e)
+{
     isHovered = true;
     repaint();
 }
 
-void Edge::mouseExit(const MouseEvent& e) {
+void Edge::mouseExit(const MouseEvent& e)
+{
     isHovered = false;
     repaint();
 }

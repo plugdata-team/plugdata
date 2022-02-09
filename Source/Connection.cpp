@@ -213,7 +213,7 @@ void Connection::mouseMove(const MouseEvent& e)
 void Connection::mouseDown(const MouseEvent& e)
 {
     const auto scaledPlan = scalePath(currentPlan);
-    
+
     if (scaledPlan.size() <= 2) return;
 
     for (int n = 1; n < scaledPlan.size(); n++)
@@ -233,7 +233,7 @@ void Connection::mouseDown(const MouseEvent& e)
             }
 
             dragIdx = n;
-            
+
             break;
         }
     }
@@ -259,15 +259,13 @@ void Connection::mouseDrag(const MouseEvent& e)
 
     auto planDistance = currentPlan.front() - currentPlan.back();
     auto currentDistance = pstart - pend;
-    
-    
+
     float lastWidth = std::max<float>(abs(currentPlan.front().x - currentPlan.back().x), 1.0f);
     float lastHeight = std::max<float>(abs(currentPlan.front().y - currentPlan.back().y), 1.0f);
-    
 
     bool flippedX = planDistance.x * currentDistance.x < 0;
     bool flippedY = planDistance.y * currentDistance.y < 0;
-    
+
     bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
     if (curvedConnection && dragIdx != -1)
     {
@@ -278,9 +276,9 @@ void Connection::mouseDrag(const MouseEvent& e)
         auto scaleX = static_cast<float>(abs(pstart.x - pend.x)) / static_cast<float>(abs(currentPlan.front().x - currentPlan.back().x));
         auto scaleY = static_cast<float>(abs(pstart.y - pend.y)) / static_cast<float>(abs(currentPlan.front().y - currentPlan.back().y));
 
-        if(flippedX) scaleX *= -1.0f;
-        if(flippedY) scaleY *= -1.0f;
-        
+        if (flippedX) scaleX *= -1.0f;
+        if (flippedY) scaleY *= -1.0f;
+
         if (line.isVertical())
         {
             currentPlan[n - 1].x = std::clamp<int>(mouseDownPosition + delta.x / scaleX, 0, getWidth() / abs(scaleX));

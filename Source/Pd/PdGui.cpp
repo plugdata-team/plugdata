@@ -621,22 +621,23 @@ std::array<int, 4> Gui::getBounds() const noexcept
         auto const bounds = Object::getBounds();
         result = {bounds[0], bounds[1], iemgui->x_w, iemgui->x_h};
     }
-    
-    if(result[2] == 0 && result[3] == 0) {
+
+    if (result[2] == 0 && result[3] == 0)
+    {
         return Object::getBounds();
     }
-    else {
-        for(auto& coord : result) coord *= Patch::zoom;
+    else
+    {
+        for (auto& coord : result) coord *= Patch::zoom;
         return result;
     }
 }
 
 void Gui::setSize(int w, int h) noexcept
 {
-    
     w /= Patch::zoom;
     h /= Patch::zoom;
-    
+
     if (type == Type::Panel)
     {
         static_cast<t_my_canvas*>(ptr)->x_vis_w = w - 1;

@@ -22,7 +22,7 @@ class Edge : public TextButton
 
     void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-    
+
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
 
@@ -35,7 +35,7 @@ class Edge : public TextButton
     int edgeIdx;
     bool isInput;
     bool isSignal;
-    
+
     bool isHovered = false;
 
    private:
