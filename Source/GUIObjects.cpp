@@ -568,7 +568,7 @@ NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
     initParameters();
     input.setEditable(false, true);
 
-    box->restrainer.setSizeLimits(50, 30, 500, 600);
+    box->restrainer.setSizeLimits(50, 30, 500, 30);
     box->restrainer.checkComponentBounds(box);
 }
 
