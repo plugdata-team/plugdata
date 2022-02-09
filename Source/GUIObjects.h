@@ -292,10 +292,11 @@ struct MessageComponent : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
-        if(e.getNumberOfClicks() == 2 && !isLocked) {
+        if (e.getNumberOfClicks() == 2 && !isLocked)
+        {
             input.showEditor();
         }
-        
+
         if (!gui.isAtom())
         {
             isDown = true;
@@ -630,7 +631,7 @@ struct ArrayComponent : public GUIComponent
 struct GraphOnParent : public GUIComponent
 {
     bool isLocked = false;
-    
+
    public:
     GraphOnParent(const pd::Gui& gui, Box* box);
 
@@ -639,10 +640,9 @@ struct GraphOnParent : public GUIComponent
     void paint(Graphics& g) override;
 
     void resized() override;
-    
+
     void lock(bool isLocked) override;
-    
-    
+
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
