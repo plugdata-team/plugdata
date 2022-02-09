@@ -599,7 +599,7 @@ unsigned int Gui::getForegroundColor() const noexcept
 
 std::array<int, 4> Gui::getBounds() const noexcept
 {
-    std::array<int, 4> result;
+    std::array<int, 4> result = {0, 0, 0, 0};
     if (type == Type::Panel)
     {
         auto const bounds = Object::getBounds();

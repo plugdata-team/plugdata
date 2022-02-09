@@ -51,7 +51,7 @@ struct GUIComponent : public Component, public ComponentListener
     void paint(Graphics& g) override
     {
         g.setColour(findColour(TextButton::buttonColourId));
-        g.fillRect(getLocalBounds().reduced(2));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -292,8 +292,13 @@ struct MessageComponent : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
-        if (e.getNumberOfClicks() == 2 && !isLocked)
+        // Edit messages when unlocked
+        if (e.getNumberOfClicks() == 2 && !isLocked && !gui.isAtom())
         {
+            input.showEditor();
+        }
+        // Edit atoms when locked
+        else if(e.getNumberOfClicks() == 2 && isLocked && gui.isAtom()) {
             input.showEditor();
         }
 
@@ -301,11 +306,11 @@ struct MessageComponent : public GUIComponent
         {
             isDown = true;
             repaint();
+            
+            startEdition();
+            gui.click();
+            stopEdition();
         }
-
-        startEdition();
-        gui.click();
-        stopEdition();
     }
 
     void mouseUp(const MouseEvent& e) override
@@ -321,6 +326,8 @@ struct MessageComponent : public GUIComponent
     void update() override;
 
     void paint(Graphics& g) override;
+    
+    void paintOverChildren(Graphics& g) override;
 
     int numLines = 1;
     int longestLine = 7;

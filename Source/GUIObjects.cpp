@@ -241,7 +241,7 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
         Point<int> position = gui.getLabelPosition(component.getBounds());
 
         const int width = 100;
-        const int height = 50;
+        const int height = 23; // ??
         label->setBounds(position.x, position.y, width, height);
     }
 }
@@ -326,7 +326,7 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(p
     };
 
     initParameters();  // !! FIXME: virtual call from constructor!!
-    box->restrainer.setSizeLimits(40, 40, 200, 200);
+    box->restrainer.setSizeLimits(38, 38, 200, 200);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -342,7 +342,7 @@ void BangComponent::update()
 void BangComponent::resized()
 {
     gui.setSize(getWidth(), getHeight());
-    bangButton.setBounds(getLocalBounds().reduced(6));
+    bangButton.setBounds(getLocalBounds().reduced(5));
 }
 
 // ToggleComponent
@@ -363,14 +363,14 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
 
     initParameters();
 
-    box->restrainer.setSizeLimits(40, 40, 200, 200);
+    box->restrainer.setSizeLimits(38, 38, 200, 200);
     box->restrainer.checkComponentBounds(box);
 }
 
 void ToggleComponent::resized()
 {
     gui.setSize(getWidth(), getHeight());
-    toggleButton.setBounds(getLocalBounds().reduced(8));
+    toggleButton.setBounds(getLocalBounds().reduced(6));
 }
 
 void ToggleComponent::update()
@@ -390,21 +390,21 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
     {
         input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
-        input.onTextChange = [this]()
-        {
-            auto width = input.getFont().getStringWidth(input.getText()) + 25;
-
-            if (width > box->getWidth())
-            {
-                box->setSize(width, box->getHeight());
-            }
-
-            gui.setSymbol(input.getText().toStdString());
-        };
-
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
+
+            editor->onTextChange = [this, editor]()
+            {
+                auto width = input.getFont().getStringWidth(editor->getText()) + 25;
+
+                if (width > box->getWidth())
+                {
+                    box->setSize(width, box->getHeight());
+                }
+
+                gui.setSymbol(input.getText().toStdString());
+            };
 
             editor->onFocusLost = [this]()
             {
@@ -446,7 +446,7 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
     // input.setMultiLine(true);
 
     box->textLabel.addMouseListener(this, false);
-    box->restrainer.setSizeLimits(50, 28, 500, 600);
+    box->restrainer.setSizeLimits(50, 30, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -458,7 +458,7 @@ void MessageComponent::lock(bool locked)
 
 void MessageComponent::resized()
 {
-    input.setBounds(0, 0, getWidth(), getHeight());
+    input.setBounds(getLocalBounds());
 }
 
 void MessageComponent::update()
@@ -471,17 +471,24 @@ void MessageComponent::paint(Graphics& g)
     // Draw message style
     if (!getGui().isAtom())
     {
-        auto baseColour = isDown ? Colour(90, 90, 90) : Colour(60, 60, 60);
+        auto baseColour = isDown ? Colour(90, 90, 90) : Colour(70, 70, 70);
 
         auto rect = getLocalBounds().toFloat();
-        g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(0.9f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
+        g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(1.1f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
 
-        g.fillRoundedRectangle(rect.withTrimmedBottom(getHeight() - 28), 2.0f);
+        g.fillRoundedRectangle(rect, 2.0f);
     }
     else
     {
         g.fillAll(MainLook::firstBackground);
     }
+}
+
+
+void MessageComponent::paintOverChildren(Graphics& g) {
+    GUIComponent::paintOverChildren(g);
+    g.setColour(findColour(ComboBox::outlineColourId));
+    g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 1.5f);
 }
 
 void MessageComponent::updateValue()
@@ -558,7 +565,7 @@ NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
     initParameters();
     input.setEditable(false, true);
 
-    box->restrainer.setSizeLimits(50, 28, 500, 600);
+    box->restrainer.setSizeLimits(50, 30, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -613,7 +620,7 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent) : GUIComponent(gui
 
     updateValue();
 
-    box->restrainer.setSizeLimits(100, 28, 500, 600);
+    box->restrainer.setSizeLimits(100, 30, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -738,12 +745,12 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
     }
     if (isVertical)
     {
-        box->restrainer.setSizeLimits(30, 77, 250, 500);
+        box->restrainer.setSizeLimits(25, 90, 250, 500);
         box->restrainer.checkComponentBounds(box);
     }
     else
     {
-        box->restrainer.setSizeLimits(100, 22, 500, 250);
+        box->restrainer.setSizeLimits(100, 25, 500, 250);
         box->restrainer.checkComponentBounds(box);
     }
 }
@@ -814,7 +821,7 @@ ArrayComponent::ArrayComponent(const pd::Gui& pdGui, Box* box) : GUIComponent(pd
     array.setBounds(getLocalBounds());
     addAndMakeVisible(&array);
 
-    box->restrainer.setSizeLimits(100, 17, 500, 600);
+    box->restrainer.setSizeLimits(100, 40, 500, 600);
 }
 
 void ArrayComponent::resized()

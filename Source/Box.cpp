@@ -324,7 +324,7 @@ void Box::resized()
         }
     }
 
-    resizer.setBounds(getLocalBounds().reduced(5));
+    resizer.setBounds(getLocalBounds().reduced(4));
 
     int index = 0;
     for (auto& edge : edges)

@@ -236,7 +236,8 @@ void Canvas::synchronise(bool updatePosition)
             // TEMP: remove when we're sure this works
             if (srcno >= boxes.size() || sinkno >= boxes.size() || outno >= srcEdges.size() || inno >= sinkEdges.size())
             {
-                jassertfalse;
+                pd->console.logError("Error: impossible connection");
+                continue;
             }
 
             auto it = std::find_if(connections.begin(), connections.end(),
@@ -558,7 +559,7 @@ void Canvas::mouseUp(const MouseEvent& e)
             deselectAll();
         }
 
-        if (!isGraph && box->getParentComponent() == this)
+        if (!pd->locked && !isGraph && box->getParentComponent() == this)
         {
             setSelected(box, true);
         }
