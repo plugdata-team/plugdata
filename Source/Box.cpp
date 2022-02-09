@@ -266,8 +266,6 @@ void Box::paint(Graphics& g)
 
     bool selected = cnv->isSelected(this);
 
-    bool hideLabel = graphics && !graphics->fakeGui() && (locked || !textLabel.isVisible());
-
     if (pdObject && pdObject->getType() == pd::Type::Invalid && !textLabel.isBeingEdited())
     {
         outlineColour = Colours::red;
@@ -275,11 +273,6 @@ void Box::paint(Graphics& g)
     else if (selected)
     {
         outlineColour = MainLook::highlightColour;
-    }
-
-    if (isOver)
-    {
-        baseColour = baseColour.contrasting(0.05f);
     }
 
     // Draw comment style
@@ -295,12 +288,6 @@ void Box::paint(Graphics& g)
     // Draw for all other objects
     else
     {
-        if (!hideLabel && !(graphics && graphics->getGui().getType() == pd::Type::GraphOnParent))
-        {
-            g.setColour(baseColour);
-            g.fillRoundedRectangle(rect.toFloat().withTrimmedBottom(getHeight() - 31), 2.0f);
-        }
-
         g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
     }
@@ -326,15 +313,6 @@ void Box::resized()
         setSize(bestWidth + 30, (numLines * 17) + 14);
         textLabel.setBounds(getLocalBounds().reduced(5));
     }
-    else if (graphics && graphics->getGui().getType() == pd::Type::Message && !graphics->getGui().isAtom())
-    {
-        textLabel.setBorderSize({2, 2, 2, 22});
-    }
-    else
-    {
-        textLabel.setBorderSize({2, 2, 2, 2});
-        textLabel.setBounds(4, 4, getWidth() - 8, 23);
-    }
 
     textLabel.setBounds(getLocalBounds().reduced(5));
 
@@ -347,7 +325,7 @@ void Box::resized()
         }
     }
 
-    resizer.setBounds(getLocalBounds());
+    resizer.setBounds(getLocalBounds().reduced(5));
 
     int index = 0;
     for (auto& edge : edges)
