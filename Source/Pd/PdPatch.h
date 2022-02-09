@@ -77,7 +77,7 @@ class Patch
         Move
     };
 
-    void setCurrent();
+    void setCurrent(bool lock = false);
 
     bool canConnect(Object* src, int nout, Object* sink, int nin);
     bool createConnection(Object* src, int nout, Object* sink, int nin);
@@ -87,6 +87,7 @@ class Patch
 
     t_canvas* getPointer() const
     {
+        // TODO: some crash here????
         return static_cast<t_canvas*>(ptr);
     }
 
@@ -107,7 +108,7 @@ class Patch
     t_gobj* getInfoObject();
     void setExtraInfoId(const String& oldId, const String& newId);
 
-    void storeExtraInfo(bool undoable = true);
+    void storeExtraInfo();
 
     void updateExtraInfo();
     MemoryBlock getExtraInfo(const String& id) const;
@@ -129,6 +130,8 @@ class Patch
    private:
     void* ptr = nullptr;
     Instance* instance = nullptr;
+    
+    t_gobj* infoObject = nullptr;
 
     friend class Instance;
     friend class Gui;

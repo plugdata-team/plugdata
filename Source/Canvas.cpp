@@ -83,7 +83,7 @@ void Canvas::synchronise(bool updatePosition)
     pd->waitForStateUpdate();
     deselectAll();
 
-    patch.setCurrent();
+    patch.setCurrent(true);
     patch.updateExtraInfo();
 
     // connections.clear();

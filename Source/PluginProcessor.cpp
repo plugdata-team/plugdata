@@ -20,11 +20,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
                          .withOutput("Output", AudioChannelSet::stereo(), true)
 #endif
                          ),
-      pd::Instance(Uuid().toString().toStdString()),
-      Thread("PlugDataBackground")
+      pd::Instance(Uuid().toString().toStdString())
 #endif
       ,
-      lastAudioCallback(Time::getCurrentTime().toMilliseconds()),
       parameters(*this, nullptr, juce::Identifier("PlugData"),
                  {std::make_unique<juce::AudioParameterFloat>("volume", "Volume", 0.0f, 1.0f, 0.75f), std::make_unique<juce::AudioParameterBool>("enabled", "Enabled", true),
 
@@ -60,15 +58,12 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     sendMessagesFromQueue();
     processMessages();
-
-    //startThread();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
     // Save current settings before quitting
     saveSettings();
-    stopThread(-1);
 }
 
 void PlugDataAudioProcessor::initialiseFilesystem()
@@ -194,8 +189,6 @@ void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
 //==============================================================================
 void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    lastAudioCallback = Time::getCurrentTime().toMilliseconds();
-
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate);
     // sendCurrentBusesLayoutInformation();
     audioAdvancement = 0;
@@ -252,37 +245,6 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 #endif
 }
 #endif
-
-void PlugDataAudioProcessor::run()
-{
-    // Hack to make sure DAW will keep dequeuing messages from pd to the gui when bypassed
-    // Should only start running when audio is bypassed
-    while (!threadShouldExit())
-    {
-        auto now = Time::getCurrentTime().toMilliseconds();
-        if (now - lastAudioCallback > 200 && getCallbackLock()->tryEnter() && !isSuspended() && audioStarted)
-        {
-            sendMessagesFromQueue();
-            getCallbackLock()->exit();
-
-            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 40);
-        }
-        else if (now - lastAudioCallback > 500 && audioStarted)
-        {
-            canvasLock.lock();
-            sendMessagesFromQueue();
-            canvasLock.unlock();
-
-            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 40);
-
-            continue;
-        }
-        else
-        {
-            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + 200);
-        }
-    }
-}
 
 void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
@@ -364,8 +326,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
 void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
-    lastAudioCallback = Time::getCurrentTime().toMilliseconds();
-
     ScopedNoDenormals noDenormals;
     const int blockSize = Instance::getBlockSize();
     const int numSamples = buffer.getNumSamples();
@@ -597,18 +557,14 @@ void PlugDataAudioProcessor::processInternal()
     {
         std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
 
-        Instance::canvasLock.lock();
         performDSP(audioBufferIn.data(), audioBufferOut.data());
-        Instance::canvasLock.unlock();
     }
 
     else
     {
         std::fill(audioBufferIn.begin(), audioBufferIn.end(), 0.f);
 
-        Instance::canvasLock.lock();
         performDSP(audioBufferIn.data(), audioBufferOut.data());
-        Instance::canvasLock.unlock();
 
         std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
     }
