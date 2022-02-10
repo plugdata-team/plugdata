@@ -2,7 +2,7 @@
 // based on SuperCollider's BrownNoise UGen
 
 #include "m_pd.h"
-#include "shared/random.h"
+#include "random.h"
 
 static t_class *brown_class;
 

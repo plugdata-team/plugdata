@@ -2,7 +2,7 @@
 // based on SuperCollider's PinkNoise UGen
 
 #include "m_pd.h"
-#include "shared/random.h"
+#include "random.h"
 
 #define PINK_DEF_HZ 40
 #define PINK_MAX_OCT 31

@@ -2,7 +2,7 @@
 
 #include "m_pd.h"
 #include "m_imp.h"
-#include "shared/buffer.h"
+#include "buffer.h"
 
 #define MAXBD           1E+32 // cheap higher bound for boundary points
 #define DRAW_PERIOD     500.  // draw period

@@ -79,6 +79,7 @@ typedef struct _autofade{
     double     x_phase;
     double     x_incr;
     t_float    x_gate_status;
+    t_float    x_gate_on;
     t_float    x_sr_khz;
     t_int      x_nleft;
     t_int      x_status_flag;
@@ -150,9 +151,10 @@ static t_int *autofade_perform(t_int *w){
 // get fade values
     fadevalues = gate; // needs to be initialized somehow
     for(j = 0; j < blocksize; ++j){
-        gate[j] = (fabsf(gate[j]) >= FLT_EPSILON); // gate on/off
-        if(gate[j] != gate_status){ // gate change / update
-            gate_status = gate[j];
+        if((gate[j] != 0) != gate_status){ // gate change / update
+            if(gate_status == 0)
+                x->x_gate_on = gate[j];
+            gate_status = (gate[j] != 0);
             incr = gate_status ? (double)(1 - phase) * x->x_coef : -(double)(phase * x->x_coef);
             nleft = x->x_n;
             x->x_status_flag = 0;
@@ -194,9 +196,9 @@ static t_int *autofade_perform(t_int *w){
     for(i = 0; i < channels; ++i){
         tempio = (t_sample *)(w[i+6+channels]);
         for(j = 0; j < blocksize; ++j)
-            *tempio++ = *temp++;
+            *tempio++ = *temp++ * x->x_gate_on;
     }
-    x->x_gate_status = (PD_BIGORSMALL(gate_status) ? 0. : gate_status);
+    x->x_gate_status = gate_status;
     x->x_incr = incr;
     x->x_nleft = nleft;
     x->x_phase = phase;
@@ -214,7 +216,7 @@ static void autofade_free(t_autofade *x){
 static void autofade_dsp(t_autofade *x, t_signal **sp){
     x->x_sr_khz = sp[0]->s_sr * 0.001;
     size_t vecsize;
-    t_int* vec;
+    t_int *vec;
 // Free memory if temp vector's been allocated
     autofade_free(x);
 // Allocate a C-like matrix (number of rows * number of columns)
@@ -224,7 +226,7 @@ static void autofade_dsp(t_autofade *x, t_signal **sp){
         vecsize = x->x_channels * 2 + 5;
         vec = (t_int *)getbytes(vecsize * sizeof(*vec));
         if(vec){
-            vec[0] = (t_int *)x;             // first is the object
+            vec[0] = (t_int)x;             // first is the object
             vec[1] = (t_int)x->x_channels;
             vec[2] = (t_int)sp[0]->s_n;
             vec[3] = (t_int)sp[0]->s_vec;

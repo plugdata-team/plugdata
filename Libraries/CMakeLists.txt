@@ -199,6 +199,7 @@ file(GLOB_RECURSE ELSE_SOURCES
     ./ELSE/*.c)
 
 include_directories(ELSE/)
+include_directories(ELSE/shared)
 source_group(ELSE FILES ${ELSE_SOURCES})
 list(APPEND SOURCE_FILES ${ELSE_SOURCES})
 
@@ -255,7 +256,7 @@ endif()
 
 
 if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /W3 /wd4005 /wd4091 /wd4100 /wd4133 /wd4102 /wd4267 /wd4311 /wd4477 /wd4996")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /Wn")
     if(MSVC_STATIC_RUNTIME)
         foreach(RFLAG CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
             if(${RFLAG} MATCHES "/MD")

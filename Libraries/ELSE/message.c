@@ -21,6 +21,7 @@ typedef struct _message{
     t_atom         *x_av;
     t_symbol       *x_s;
     t_symbol       *x_sel;
+    t_glist        *x_cv;
 }t_message;
 
 static void message_proxy_init(t_message_proxy * p, t_message *x){
@@ -39,8 +40,11 @@ static void message_proxy_anything(t_message_proxy *p, t_symbol *s, int ac, t_at
     else{
         x->x_ac = ac;
         x->x_av = x->x_atom = (t_atom *)getbytes(x->x_ac * sizeof(t_atom));
-        for(int i = 0; i < ac; i++)
+        for(int i = 0; i < ac; i++){
+            if(av[i].a_type == A_SYMBOL)
+                av[i].a_w.w_symbol = canvas_realizedollar(x->x_cv, av[i].a_w.w_symbol);
             x->x_av[i] = x->x_atom[i] = av[i];
+        }
     }
 }
 
@@ -183,8 +187,11 @@ static void message_any(t_message *x, t_symbol *s, int ac, t_atom *av){
     else{
         x->x_ac = ac;
         x->x_av = x->x_atom = (t_atom *)getbytes(x->x_ac * sizeof(t_atom));
-        for(int i = 0; i < ac; i++)
+        for(int i = 0; i < ac; i++){
+            if(av[i].a_type == A_SYMBOL)
+                av[i].a_w.w_symbol = canvas_realizedollar(x->x_cv, av[i].a_w.w_symbol);
             x->x_av[i] = x->x_atom[i] = av[i];
+        }
     }
     message_output(x);
 }
@@ -198,6 +205,7 @@ static void *message_new(t_symbol *s, int ac, t_atom *av){
     t_message *x = (t_message *)pd_new(message_class);
     x->x_first = 1;
     x->x_sel = s; // get rid of warning
+    x->x_cv = canvas_getcurrent();
     if(!ac){
         x->x_ac = 0;
         x->x_av = NULL;

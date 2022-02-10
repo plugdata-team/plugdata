@@ -1,7 +1,7 @@
 // porres 2017
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 
 typedef struct _glide2{
     t_object x_obj;
@@ -82,14 +82,14 @@ static t_int *glide2_perform(t_int *w){
                 x->x_nleft_up = x->x_n_up - 1;
                 float step = glide2_get_step(x, x->x_n_up, x->x_nleft_up);
                 float inc = step * x->x_delta;
-                *out++ = last_out = (last_in + inc);
+                *out++ = last_out = (last_out + inc);
                 last_in = in;
             }
             else{
                 x->x_nleft_down = x->x_n_down - 1;
                 float step = glide2_get_step(x, x->x_n_down, x->x_nleft_down);
                 float inc = step * x->x_delta;
-                *out++ = last_out = (last_in + inc);
+                *out++ = last_out = (last_out + inc);
                 last_in = in;
             }
         }

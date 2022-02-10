@@ -1,3 +1,4 @@
+// porres
 
 #include "m_pd.h"
 #include <math.h>
@@ -63,5 +64,5 @@ void range_tilde_setup(void){
         (t_newmethod)range_new, 0, sizeof(t_range), 0, 0);
     class_addmethod(range_class, nullfn, gensym("signal"), 0);
     class_addmethod(range_class, (t_method)range_dsp, gensym("dsp"), A_CANT, 0);
-    class_addmethod(range_class, (t_method)range_reset, gensym("reset"), 0);
+    class_addbang(range_class, range_reset);
 }

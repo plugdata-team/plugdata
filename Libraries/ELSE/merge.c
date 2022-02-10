@@ -151,11 +151,9 @@ static void *merge_new(t_symbol *s, int ac, t_atom* av){
     int i;
     int n = (int)numinlets;
     x->x_numinlets = n < 2 ? 2 : n > 512 ? 512 : n;
-    
     int * triggervals;
-    triggervals = (int *)calloc(x->x_numinlets + 1, sizeof(int));
+    triggervals = (int *)calloc(x->x_numinlets, sizeof(int));
     triggervals[0] = 1;
-    
     if(hot){
         for(i = 0; i < x->x_numinlets; i++)
             triggervals[i] = 1;

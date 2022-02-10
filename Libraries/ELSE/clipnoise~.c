@@ -2,7 +2,7 @@
 // based on SuperCollider's clipnoise UGen
 
 #include "m_pd.h"
-#include "shared/random.h"
+#include "random.h"
 
 static t_class *clipnoise_class;
 

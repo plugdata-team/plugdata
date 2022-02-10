@@ -1,8 +1,8 @@
 // Porres 2018
 
 #include "m_pd.h"
-#include "shared/magic.h"
-#include "shared/buffer.h"
+#include "magic.h"
+#include "buffer.h"
 #include <math.h>
 
 static t_class *wavetable_class;

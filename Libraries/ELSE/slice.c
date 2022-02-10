@@ -1,7 +1,7 @@
 // porres
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 
 typedef struct _slice{
     t_object    x_obj;
@@ -35,6 +35,16 @@ static void slice_list(t_slice *x, t_symbol *s, int ac, t_atom *av){
     }
 }
 
+static void slice_float(t_slice *x, t_floatarg f){
+    int n = (int)x->x_n;
+    (n >= 0) ? outlet_float(x->x_out1, f) : outlet_float(x->x_out2, f);
+}
+
+static void slice_symbol(t_slice *x, t_symbol *sym){
+    int n = (int)x->x_n;
+    (n >= 0) ? outlet_symbol(x->x_out1, sym) : outlet_symbol(x->x_out2, sym);
+}
+
 static void *slice_new(t_floatarg f){
     t_slice *x = (t_slice *)pd_new(slice_class);
     x->x_n = f;
@@ -48,4 +58,7 @@ void slice_setup(void){
     slice_class = class_new(gensym("slice"), (t_newmethod)slice_new,
         0, sizeof(t_slice), 0, A_DEFFLOAT, 0);
     class_addlist(slice_class, slice_list);
+    class_addfloat(slice_class, slice_float);
+    class_addsymbol(slice_class, slice_symbol);
+//    class_addanything(slice_class, slice_anything);
 }

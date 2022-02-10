@@ -1,6 +1,6 @@
 
 #include "m_pd.h"
-#include "shared/buffer.h"
+#include "buffer.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
