@@ -284,13 +284,13 @@ void Connection::mouseDrag(const MouseEvent& e)
 
         if (line.isVertical())
         {
-            currentPlan[n - 1].x = std::clamp<int>(mouseDownPosition + delta.x / scaleX, 0, getWidth() / abs(scaleX));
-            currentPlan[n].x = std::clamp<int>(mouseDownPosition + delta.x / scaleX, 0, getWidth() / abs(scaleX));
+            currentPlan[n - 1].x = std::clamp<int>(mouseDownPosition + delta.x / scaleX, 0, getWidth() / fabs(scaleX));
+            currentPlan[n].x = std::clamp<int>(mouseDownPosition + delta.x / scaleX, 0, getWidth() / fabs(scaleX));
         }
         else
         {
-            currentPlan[n - 1].y = std::clamp<int>(mouseDownPosition + delta.y / scaleY, 0, getHeight() / abs(scaleY));
-            currentPlan[n].y = std::clamp<int>(mouseDownPosition + delta.y / scaleY, 0, getHeight() / abs(scaleY));
+            currentPlan[n - 1].y = std::clamp<int>(mouseDownPosition + delta.y / scaleY, 0, getHeight() / fabs(scaleY));
+            currentPlan[n].y = std::clamp<int>(mouseDownPosition + delta.y / scaleY, 0, getHeight() / fabs(scaleY));
         }
 
         resized();
