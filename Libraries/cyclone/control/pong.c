@@ -8,12 +8,7 @@
 #include <stdlib.h>
 
 #ifndef HAVE_ALLOCA     /* can work without alloca() but we never need it */
-#if _MSC_VER
-#define HAVE_ALLOCA 0
-#else
 #define HAVE_ALLOCA 1
-#endif
-
 #endif
 #define TEXT_NGETBYTE 100 /* bigger that this we use alloc, not alloca */
 #if HAVE_ALLOCA
