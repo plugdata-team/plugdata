@@ -1,7 +1,7 @@
     // porres 2017
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 
 #define OFF      0
 #define RUNNING  1
@@ -64,14 +64,34 @@ static void loop_bang(t_loop *x){
     }
 }
 
-static void loop_set(t_loop *x, t_float f){
-    if(f < 1){
-        pd_error(x, "[loop]: number of iterations need to be >= 1");
+static void loop_set(t_loop *x, t_symbol *s, int ac, t_atom *av){
+    if(!ac)
+        return;
+    else if(ac == 1){
+        t_float f = atom_getfloat(av);
+        if(f < 1){
+            pd_error(x, "[loop]: number of iterations need to be >= 1");
+            return;
+        }
+        x->x_counter_start = 0;
+        x->x_target = (int)f - 1;
+        x->x_upwards = x->x_iter = 1;
         return;
     }
-    x->x_counter_start = 0;
-    x->x_target = (int)f - 1;
-    x->x_upwards = x->x_iter = 1;
+    else{
+        s = NULL;
+        x->x_counter_start = atom_getfloat(av);
+        x->x_target = atom_getfloat(av+1);
+        if(ac == 3){
+            float step = atom_getfloat(av+2);
+            if(step <= 0)
+                pd_error(x, "[loop]: step needs to be > 0");
+            else
+                x->x_step = step;
+        }
+        x->x_upwards = x->x_counter_start < x->x_target;
+        x->x_iter = 0;
+    }
 }
 
 static void loop_float(t_loop *x, t_float f){
@@ -219,5 +239,4 @@ void loop_setup(void){
     class_addmethod(loop_class, (t_method)loop_offset, gensym("offset"), A_DEFFLOAT, 0);
     class_addmethod(loop_class, (t_method)loop_step, gensym("step"), A_DEFFLOAT, 0);
     class_addmethod(loop_class, (t_method)loop_set, gensym("set"), A_DEFFLOAT, 0);
-//    post("hi");
 }

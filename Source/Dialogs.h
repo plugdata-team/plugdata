@@ -121,15 +121,18 @@ struct SettingsComponent : public Component
 
 struct SettingsDialog : public Component
 {
+    
+    AudioProcessor& audioProcessor;
+    
     MainLook mainLook;
-    SettingsComponent settingsComponent;
+    SettingsComponent settingsComponent; // does this need its own component?
     ComponentDragger dragger;
 
     DropShadower shadower = DropShadower(MainLook::shadow);
 
     ComponentBoundsConstrainer constrainer;
 
-    SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : settingsComponent(r, processor, manager, std::move(settingsTree), std::move(updatePaths)), mainLook(r)
+    SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : audioProcessor(processor), settingsComponent(r, processor, manager, std::move(settingsTree), std::move(updatePaths)), mainLook(r)
     {
         shadower.setOwner(this);
         setLookAndFeel(&mainLook);
@@ -144,6 +147,7 @@ struct SettingsDialog : public Component
         addAndMakeVisible(closeButton.get());
 
         settingsComponent.addMouseListener(this, false);
+    
 
         closeButton->onClick = [this]() { setVisible(false); };
 
@@ -152,6 +156,8 @@ struct SettingsDialog : public Component
 
     ~SettingsDialog() override
     {
+        settingsComponent.removeMouseListener(this);
+
         setLookAndFeel(nullptr);
     }
 

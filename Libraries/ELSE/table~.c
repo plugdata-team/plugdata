@@ -1,7 +1,7 @@
 // Porres 2018
 
 #include "m_pd.h"
-#include "shared/buffer.h"
+#include "buffer.h"
 #include <math.h>
 
 static t_class *table_class;

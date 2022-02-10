@@ -1,8 +1,8 @@
 // Porres 2016
 
 #include "m_pd.h"
-#include <math.h>
-#include "shared/magic.h"
+#include "math.h"
+#include "magic.h"
 
 
 static t_class *pulse_class;

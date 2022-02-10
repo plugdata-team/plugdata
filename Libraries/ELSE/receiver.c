@@ -50,6 +50,21 @@ static void receiver_proxy_symbol(t_receiver_proxy *p, t_symbol* s){
     }
 }
 
+static void receiver_proxy_bang(t_receiver_proxy *p){
+    t_receiver *x = p->p_owner;
+    if(x->x_sym_1 != &s_ || x->x_sym_2 != &s_){
+        if(x->x_sym_1 != &s_ && x->x_sym_2 == &s_){
+            outlet_symbol(x->x_obj.ob_outlet, x->x_sym_1);
+        }
+        else{
+            t_atom at[2];
+            SETSYMBOL(at, x->x_sym_1);
+            SETSYMBOL(at+1, x->x_sym_2);
+            outlet_list(x->x_obj.ob_outlet, &s_list, 2, at);
+        }
+    }
+}
+
 static void receiver_proxy_list(t_receiver_proxy *p, t_symbol* s, int ac, t_atom *av){
     t_receiver *x = p->p_owner;
     if(ac > 0){
@@ -184,7 +199,7 @@ static void receiver_free(t_receiver *x){
 
 void receiver_setup(void){
     receiver_class = class_new(gensym("receiver"), (t_newmethod)receiver_new,
-            (t_method)receiver_free, sizeof(t_receiver), CLASS_NOINLET, A_GIMME, 0);
+        (t_method)receiver_free, sizeof(t_receiver), CLASS_NOINLET, A_GIMME, 0);
     class_addbang(receiver_class, receiver_bang);
     class_addfloat(receiver_class, (t_method)receiver_float);
     class_addsymbol(receiver_class, receiver_symbol);
@@ -192,8 +207,9 @@ void receiver_setup(void){
     class_addlist(receiver_class, receiver_list);
     class_addanything(receiver_class, receiver_anything);
     receiver_proxy_class = (t_class *)class_new(gensym("receiver proxy"),
-            0, 0, sizeof(t_receiver_proxy), 0, 0);
+        0, 0, sizeof(t_receiver_proxy), 0, 0);
     class_addsymbol(receiver_proxy_class, receiver_proxy_symbol);
+    class_addbang(receiver_proxy_class, receiver_proxy_bang);
     class_addlist(receiver_proxy_class, receiver_proxy_list);
     class_addmethod(receiver_proxy_class, (t_method)receiver_proxy_clear, gensym("clear"), 0);
 }

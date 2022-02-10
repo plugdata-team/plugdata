@@ -15,7 +15,7 @@ typedef struct _match{
 
 static t_class *match_class;
 
-void match_list(t_match *x, t_symbol *s, int argc, t_atom *argv){
+void *match_list(t_match *x, t_symbol *s, int argc, t_atom *argv){
     s = NULL;
     for(int i = 0; i < argc || i < x->x_n_outlets - 1; i++)
         x->matches[i] = (double)atom_getfloatarg(i, argc, argv);

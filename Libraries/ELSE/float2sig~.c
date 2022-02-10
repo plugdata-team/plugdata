@@ -1,7 +1,7 @@
 // porres 2017
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 
 typedef struct _float2sig{
     t_object x_obj;

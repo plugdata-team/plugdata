@@ -2,7 +2,7 @@
 
 #include "m_pd.h"
 #include <math.h>
-#include "shared/magic.h"
+#include "magic.h"
 
 static t_class *imp_class;
 

@@ -1,7 +1,7 @@
 // porres 2018
 
 #include <m_pd.h>
-#include <math.h>
+#include "math.h"
 
 #define MAX_SIZE  1024
 

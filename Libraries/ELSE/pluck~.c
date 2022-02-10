@@ -1,7 +1,7 @@
 // Porres 2017
 
 #include "m_pd.h"
-#include "shared/random.h"
+#include "random.h"
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

@@ -899,7 +899,10 @@ static void *function_new(t_symbol *s, int ac, t_atom* av){
                                                                         }
                                                                         else{
                                                                             envset = 1;
-                                                                            function_set_beeakpoints(x, i, av);
+                                                                            if(x->x_init)
+                                                                                function_set_beeakpoints(x, i, av);
+                                                                            else
+                                                                                function_set_beeakpoints(x, 3, a);
                                                                         }
                                                                         av+=i, ac-=i;
                                                                     }

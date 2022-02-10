@@ -39,8 +39,9 @@ static void changed_bang(t_changed *x){
 
 static void changed_anything(t_changed *x, t_symbol *s, int ac, t_atom *av){
     int i;
-    x->x_sym = s;
-    if(x->x_c == ac){
+    if(x->x_sym != s || x->x_c != ac)
+        x->x_change = 1;
+    else if(x->x_c == ac){
         for(i = 0; i < ac; i++){
             if(x->x_a[i].a_type == A_FLOAT){
                 if(x->x_a[i].a_w.w_float != av[i].a_w.w_float){
@@ -56,12 +57,10 @@ static void changed_anything(t_changed *x, t_symbol *s, int ac, t_atom *av){
             }
         }
     }
-    else{
-        x->x_c = ac;
-        x->x_change = 1;
-    }
+    x->x_sym = s;
+    x->x_c = ac;
     if(x->x_change){
-        for (i = 0; i < ac; i++)
+        for(i = 0; i < ac; i++)
             x->x_a[i] = av[i];
         outlet_anything(x->x_obj.ob_outlet, s, ac, av);
         x->x_change = 0;
@@ -72,17 +71,16 @@ static void changed_anything(t_changed *x, t_symbol *s, int ac, t_atom *av){
 
 static void *changed_new(t_symbol *s, int ac, t_atom *av){
     t_changed *x = (t_changed *)pd_new(changed_class);
-    t_symbol *dummy = s;
-    dummy = NULL;
+    s = NULL;
     int i;
     if(ac == 0)
         x->x_sym = &s_;
     else if(ac == 1){
-        if ((av)->a_type == A_SYMBOL){
+        if((av)->a_type == A_SYMBOL){
             x->x_sym = atom_getsymbol(av);
             ac--;
         }
-        else if ((av)->a_type == A_FLOAT)
+        else if((av)->a_type == A_FLOAT)
                 x->x_sym = &s_float;
     }
     else{
@@ -94,7 +92,7 @@ static void *changed_new(t_symbol *s, int ac, t_atom *av){
             x->x_sym = &s_list;
     }
     x->x_c = ac;
-    for (i = 0; i < ac; i++)
+    for(i = 0; i < ac; i++)
         x->x_a[i] = av[i];
     x->x_change = 0;
     changed_proxy_init(&x->x_proxy, x);

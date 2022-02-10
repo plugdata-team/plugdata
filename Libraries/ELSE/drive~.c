@@ -13,7 +13,7 @@ typedef struct _drive{
 static t_class *drive_class;
 
 static void drive_mode(t_drive *x, t_floatarg f){
-    x->x_mode = f != 0;
+    x->x_mode = f < 0 ? 0 : f > 2 ? 2 : (int)f;
 }
 
 static t_int *drive_perform(t_int *w){
@@ -25,25 +25,31 @@ static t_int *drive_perform(t_int *w){
     t_float mode = x->x_mode;
     while(n--){
         float in = *in1++;
-        float drive = *in2++;
-        if(drive < 0)
-            drive = 0;
-        if(!mode)
-            *out++ = tanhf(in * drive);
-        else{
+        float f2 = *in2++;
+        if(f2 < 0)
+            f2 = 0;
+        if(mode == 0)
+            *out++ = tanhf(in * f2);
+        else if(mode == 1){
             if(in >= 1.)
                 *out++ = 1.;
             else if(in <= -1)
                 *out++ = -1.;
-            else if(drive < 1)
-                *out++ = in * drive;
+            else if(f2 < 1)
+                *out++ = f2 * in;
             else if(in > 0)
-                *out++ = 1. - powf(1. - in, drive);
+                *out++ = 1. - powf(1. - in, f2);
             else
-                *out++ = powf(1. + in, drive) - 1.;
+                *out++ = powf(1. + in, f2) - 1.;
+        }
+        else{
+            if(f2 > 1)
+                f2 = 1;
+            t_float abs_in = fabs(in);
+            *out++ = abs_in > f2 ? copysignf((1-(f2*(f2-2)+1) / (abs_in-2*f2+1)), in) : in;
         }
     }
-    return (w + 6);
+    return(w+6);
 }
 
 static void drive_dsp(t_drive *x, t_signal **sp){
