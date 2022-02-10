@@ -122,50 +122,13 @@ static void midi_panic(t_midi *x){
    default value (failure).
    Upon return *nrequested contains the actual number of elements:
    requested (success) or a given default value of 'inisize' (failure). */
+
+// defined in grow.c
 void *grow_nodata(int *nrequested, int *sizep, void *bufp,
-int inisize, void *bufini, size_t typesize){
-    int newsize = *sizep * 2;
-    while(newsize < *nrequested)
-        newsize *= 2;
-    if(bufp == bufini)
-        bufp = getbytes(newsize * typesize);
-    else
-        bufp = resizebytes(bufp, *sizep * typesize, newsize * typesize);
-    if(bufp){
-        *sizep = newsize;
-        return (bufp);
-    }
-    else{
-        *nrequested = *sizep = inisize;
-        return (bufini);
-    }
-}
+                  int inisize, void *bufini, size_t typesize);
 
 /* Like grow_nodata(), but preserving first *nexisting elements. */
-void *grow_withdata(int *nrequested, int *nexisting, int *sizep, void *bufp,
-int inisize, void *bufini, size_t typesize){
-    int newsize = *sizep * 2;
-    while(newsize < *nrequested)
-        newsize *= 2;
-    if(bufp == bufini){
-        if(!(bufp = getbytes(newsize * typesize))){
-            *nrequested = *sizep = inisize;
-            return (bufini);
-        }
-        *sizep = newsize;
-        memcpy(bufp, bufini, *nexisting * typesize);
-    }
-    else{
-//    int oldsize = *sizep;
-        if(!(bufp = resizebytes(bufp, *sizep * typesize, newsize * typesize))){
-            *nrequested = *sizep = inisize;
-            *nexisting = 0;
-            return (bufini);
-        }
-        *sizep = newsize;
-    }
-    return(bufp);
-}
+void *grow_withdata(int *nrequested, int *nexisting, int *sizep, void *bufp, int inisize, void *bufini, size_t typesize);
 
 static void midi_clear(t_midi *x){
     x->x_nevents = x->x_ntempi = 0;
