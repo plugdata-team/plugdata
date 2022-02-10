@@ -377,8 +377,8 @@ PathPlan Connection::scalePath(const PathPlan& plan)
 
     auto newPlan = plan;
 
-    float lastWidth = std::max<float>(abs(plan.front().x - plan.back().x), 1.0f);
-    float lastHeight = std::max<float>(abs(plan.front().y - plan.back().y), 1.0f);
+    auto lastWidth = std::max(abs(plan.front().x - plan.back().x), 1);
+    auto lastHeight = std::max(abs(plan.front().y - plan.back().y), 1);
 
     float scaleX = static_cast<float>(abs(pstart.x - pend.x)) / lastWidth;
     float scaleY = static_cast<float>(abs(pstart.y - pend.y)) / lastHeight;
