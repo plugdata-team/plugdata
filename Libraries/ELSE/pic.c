@@ -2,12 +2,14 @@
 
 #include <m_pd.h>
 #include <g_canvas.h>
-#include <unistd.h>
+
 #include <string.h>
 
 #ifdef _MSC_VER
 #pragma warning( disable : 4244 )
 #pragma warning( disable : 4305 )
+#else
+#include <unistd.h>
 #endif
 
 static t_class *pic_class, *edit_proxy_class;
