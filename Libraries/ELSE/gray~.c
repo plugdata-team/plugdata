@@ -2,7 +2,7 @@
 // based on SuperCollider's GrayNoise UGen
 
 #include "m_pd.h"
-#include "shared/random.h"
+#include "random.h"
 
 static t_class *gray_class;
 

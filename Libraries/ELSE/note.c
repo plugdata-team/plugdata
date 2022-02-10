@@ -2,7 +2,7 @@
 
  #include <string.h>
  #include <ctype.h>
- #include "shared/s_utf8.h"
+ #include "s_utf8.h"
  #include "m_pd.h"
  #include "g_canvas.h"
 
@@ -268,9 +268,11 @@ static void comment_erase(t_comment *x){
 }
 
 static void comment_redraw(t_comment *x){ // <= improve, not necessary for all cases
-    comment_erase(x);
-    comment_draw(x);
-    comment_update(x); // ???????
+     if(glist_isvisible(x->x_glist) && gobj_shouldvis((t_gobj *)x, x->x_glist)){
+         comment_erase(x);
+         comment_draw(x);
+         comment_update(x); // ???????
+     }
 }
 
 static void comment_grabbedkey(void *z, t_floatarg f){

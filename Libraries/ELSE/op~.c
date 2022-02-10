@@ -1,6 +1,7 @@
 // porrres 2019
 
 #include "m_pd.h"
+#include "math.h"
 
 static t_class  *op_class;
 
@@ -58,6 +59,12 @@ static t_int *op_perform(t_int *w){
             break;
         case 13: // bit shift right
             while(n--) *out++ = (t_float)(((int32_t)*in1++) >> ((int32_t)*in2++));
+            break;
+        case 14: // %s
+            while(n--){
+                t_float f1 = *in1++, f2 = *in2++;
+                *out++ = f2 == 0 ? 0. : fmod(f1, f2);
+            }
             break;
     }
     return(w+6);
@@ -120,6 +127,10 @@ static void op_bitshift_r(t_op *x){
     x->x_op = 13;
 }
 
+static void op_mod(t_op *x){
+    x->x_op = 14;
+}
+
 static void op_dsp(t_op *x, t_signal **sp){
     dsp_add(op_perform, 5, x, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[0]->s_n);
 }
@@ -160,6 +171,8 @@ static void *op_new(t_symbol *s, int ac, t_atom *av){
                 x->x_op = 12;
             else if(s == gensym(">>"))
                 x->x_op = 13;
+            else if(s == gensym("%"))
+                x->x_op = 14;
             else
                 goto errstate;
             v = atom_getfloatarg(1, ac, av);
@@ -192,4 +205,5 @@ void op_tilde_setup(void){
     class_addmethod(op_class, (t_method)op_bitxor, gensym("^"), 0);
     class_addmethod(op_class, (t_method)op_bitshift_l, gensym("<<"), 0);
     class_addmethod(op_class, (t_method)op_bitshift_r, gensym(">>"), 0);
+    class_addmethod(op_class, (t_method)op_mod, gensym("%"), 0);
 }

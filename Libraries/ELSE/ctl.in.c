@@ -8,6 +8,7 @@ typedef struct _ctlin{
     t_int          x_omni;
     t_float        x_ch;
     t_float        x_ch_in;
+    t_float        x_ctl_in;
     unsigned char  x_n;
     unsigned char  x_ready;
     unsigned char  x_control;
@@ -52,9 +53,17 @@ static void ctlin_float(t_ctlin *x, t_float f){
                     x->x_ready = 1;
                 }
                 else{
-                    outlet_float(x->x_n_out, x->x_n);
-                    outlet_float(((t_object *)x)->ob_outlet, val);
-                    x->x_control = x->x_ready = 0;
+                    if(x->x_ctl_in > 0){
+                        if(x->x_ctl_in == x->x_n){
+                            outlet_float(((t_object *)x)->ob_outlet, val);
+                            x->x_control = x->x_ready = 0;
+                        }
+                    }
+                    else{
+                        outlet_float(x->x_n_out, x->x_n);
+                        outlet_float(((t_object *)x)->ob_outlet, val);
+                        x->x_control = x->x_ready = 0;
+                    }
                 }
             }
         }
@@ -68,29 +77,31 @@ static void *ctlin_new(t_symbol *s, t_int ac, t_atom *av){
     t_symbol *curarg = NULL;
     curarg = s; // get rid of warning
     x->x_control = x->x_ready = x->x_n = 0;
-    t_float channel = 0;
-    while(ac > 0){
-        if(av->a_type == A_FLOAT){
+    t_float channel = 0, ctl = -1;
+    if(ac){
+        if(ac == 1)
             channel = (t_int)atom_getfloatarg(0, ac, av);
+        else{
+            ctl = (t_int)atom_getfloatarg(0, ac, av);
             ac--, av++;
+            channel = (t_int)atom_getfloatarg(0, ac, av);
         }
-        else
-            goto errstate;
     }
     if(channel < 0)
         channel = 0;
     if(channel > 16)
         channel = 16;
+    if(ctl > 127)
+        channel = 127;
     x->x_omni = (channel == 0);
     x->x_ch = x->x_ch_in = channel;
+    x->x_ctl_in = ctl;
+    floatinlet_new((t_object *)x, &x->x_ctl_in);
     floatinlet_new((t_object *)x, &x->x_ch_in);
     outlet_new((t_object *)x, &s_float);
     x->x_n_out = outlet_new((t_object *)x, &s_float);
     x->x_chanout = outlet_new((t_object *)x, &s_float);
     return(x);
-    errstate:
-        pd_error(x, "[ctlin]: improper args");
-        return NULL;
 }
 
 void setup_ctl0x2ein(void){

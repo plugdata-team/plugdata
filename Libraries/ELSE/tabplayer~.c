@@ -2,8 +2,8 @@
 
 #include <math.h>
 #include "m_pd.h"
-#include "shared/magic.h"
-#include "shared/buffer.h"
+#include "magic.h"
+#include "buffer.h"
 #include <stdlib.h>
 
 #define HALF_PI (3.14159265358979323846 * 0.5)
@@ -437,13 +437,9 @@ static void *tabplayer_new(t_symbol * s, int ac, t_atom *av){
             else
                 goto errstate;
         }
-        else{
-            if(nameset){
-                channels = atom_getfloatarg(0, ac, av);
-                ac--, av++;
-            }
-            else
-                goto errstate;
+        else{ // float
+            channels = atom_getfloatarg(0, ac, av);
+            ac--, av++;
         }
     };
     x->x_sr_ratio = x->x_array_sr_khz/x->x_sr_khz;

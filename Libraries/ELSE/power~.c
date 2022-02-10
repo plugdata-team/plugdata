@@ -1,7 +1,7 @@
 // porres 2021
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 
 static t_class *power_tilde_class;
 

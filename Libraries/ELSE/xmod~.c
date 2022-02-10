@@ -1,7 +1,7 @@
 // Porres 2017
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 #include "string.h"
 
 #define TWOPI (3.14159265358979323846 * 2)

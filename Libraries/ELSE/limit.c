@@ -78,8 +78,11 @@ static void limit_anything(t_limit *x, t_symbol *s, int ac, t_atom *av){
         x->x_natoms = ac;
         if(ac)
             memcpy(x->x_message, av, ac * sizeof(*x->x_message));
-        if(x->x_ignore)
+        if(x->x_ignore){
             limit_right_output(x, s, ac, av);
+            clock_unset(x->x_clock);
+            clock_delay(x->x_clock, x->x_delta);
+        }
     }
 }
 

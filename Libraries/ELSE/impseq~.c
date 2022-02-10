@@ -1,8 +1,7 @@
 // Porres 2017 from mask~
 
 #include "m_pd.h"
-#include <string.h>
-#include <stdlib.h> /* BSDs for example */
+#include <stdlib.h>
 
 static t_class *impseq_class;
 

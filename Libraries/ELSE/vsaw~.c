@@ -1,8 +1,8 @@
 // Porres 2017
 
 #include "m_pd.h"
-#include <math.h>
-#include "shared/magic.h"
+#include "math.h"
+#include "magic.h"
 
 static t_class *vsaw_class;
 

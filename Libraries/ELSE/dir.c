@@ -1,7 +1,5 @@
 // porres 2019-2020 - sort code from 'sort' class (based M. Barber's code)
 
-#ifndef _MSC_VER
-
 #include "m_pd.h"
 #include "g_canvas.h"
 #include <string.h>
@@ -291,4 +289,3 @@ void dir_setup(void){
     class_addmethod(dir_class, (t_method)dir_ext, gensym("ext"), A_DEFSYMBOL, 0);
     class_addmethod(dir_class, (t_method)dir_seek, gensym("seek"), A_DEFFLOAT, 0);
 }
-#endif

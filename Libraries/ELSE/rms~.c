@@ -2,7 +2,7 @@
 /* based on msp's rms~-object: outputs both linear and dBFS rms */
 
 #include "m_pd.h"
-#include <math.h>
+#include "math.h"
 #include  <string.h>
 
 #define MAXOVERLAP 32

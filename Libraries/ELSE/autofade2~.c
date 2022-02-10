@@ -81,6 +81,7 @@ typedef struct _autofade2{
     double     x_phase;
     double     x_incr;
     t_float    x_gate_status;
+    t_float    x_gate_on;
     t_float    x_sr_khz;
     t_int      x_left_n;
     t_int      x_status_flag;
@@ -159,9 +160,10 @@ static t_int *autofade2_perform(t_int *w){
 // get fade values
     fadevalues = gate; // needs to be initialized somehow
     for(j = 0; j < blocksize; ++j){
-        gate[j] = (fabsf(gate[j]) >= FLT_EPSILON); // gate on/off
-        if(gate[j] != gate_status){ // gate change / update
-            gate_status = gate[j];
+        if((gate[j] != 0) != gate_status){ // gate change / update
+            if(gate_status == 0)
+                x->x_gate_on = gate[j];
+            gate_status = (gate[j] != 0);
             if(gate_status){
                 incr = (double)(1 - phase) * x->x_coef_in;
                 n_left = x->x_n_in;
@@ -209,9 +211,9 @@ static t_int *autofade2_perform(t_int *w){
     for(i = 0; i < channels; ++i){
         tempio = (t_sample *)(w[i+6+channels]);
         for(j = 0; j < blocksize; ++j)
-            *tempio++ = *temp++;
+            *tempio++ = *temp++ * x->x_gate_on;
     }
-    x->x_gate_status = (PD_BIGORSMALL(gate_status) ? 0. : gate_status);
+    x->x_gate_status = gate_status;
     x->x_incr = incr;
     x->x_left_n = n_left;
     x->x_phase = phase;
@@ -228,7 +230,8 @@ static void autofade2_free(t_autofade2 *x){
 
 static void autofade2_dsp(t_autofade2 *x, t_signal **sp){
     x->x_sr_khz = sp[0]->s_sr * 0.001;
-    size_t i, vecsize;
+    size_t vecsize;
+    t_int i;
     t_int* vec;
 // Free memory if temp vector's been allocated
     autofade2_free(x);
@@ -239,7 +242,7 @@ static void autofade2_dsp(t_autofade2 *x, t_signal **sp){
         vecsize = x->x_channels * 2 + 5;
         vec = (t_int *)getbytes(vecsize * sizeof(*vec));
         if(vec){
-            vec[0] = (t_int *)x;             // first is the object
+            vec[0] = (t_int)x;             // first is the object
             vec[1] = (t_int)x->x_channels;
             vec[2] = (t_int)sp[0]->s_n;
             vec[3] = (t_int)sp[0]->s_vec;
@@ -259,6 +262,7 @@ static void autofade2_dsp(t_autofade2 *x, t_signal **sp){
 }
 
 static void *autofade2_new(t_symbol *s, int argc, t_atom *argv){
+    s = NULL;
     t_int i;
     t_autofade2 *x = (t_autofade2 *)pd_new(autofade2_class);
     if(x){

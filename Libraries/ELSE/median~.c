@@ -74,7 +74,7 @@ static t_int * median_perform(t_int *w){
 static void median_dsp(t_median *x, t_signal **sp){
     t_int block = (t_int)sp[0]->s_n;
     if(block != x->x_block_size){
-        x->x_block_size = (t_int)sp[0]->s_n;
+        x->x_block_size = block;
         x->x_temp = realloc(x->x_temp, sizeof(t_float)*x->x_block_size);
     }
     dsp_add(median_perform, 4, x, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
@@ -87,7 +87,7 @@ void median_free(t_median *x){
 void * median_new(t_floatarg f) {
     t_median *x = (t_median *) pd_new(median_class);
     x->x_samples = (f < 1) ? 1 : f;
-    x->x_block_size = 1;
+    x->x_block_size = 64;
     x->x_temp = (t_float *)malloc(x->x_block_size * sizeof(t_float));
     x->x_outlet = outlet_new(&x->x_obj, &s_signal); // outlet
     floatinlet_new(&x->x_obj, &x->x_samples);
