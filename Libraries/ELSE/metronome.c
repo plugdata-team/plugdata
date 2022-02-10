@@ -423,8 +423,7 @@ static void metronome_float(t_metronome *x, t_float f){
 
 static void metronome_start(t_metronome *x){
     if(x->x_s_name->s_thing){
-        t_atom at[0];
-        typedmess(x->x_s_name->s_thing, gensym("resync"), 0, at);
+        typedmess(x->x_s_name->s_thing, gensym("resync"), 0, NULL);
     }
     metronome_float(x, 1);
 }
