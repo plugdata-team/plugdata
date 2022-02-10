@@ -559,14 +559,15 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
 {
     auto* cnv = getCurrentCanvas();
 
+    
     // cmd-e
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(69))
+    if (key == KeyPress ('e', ModifierKeys::commandModifier, 0))
     {
         lockButton.triggerClick();
         return true;
     }
-
-    if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(89))
+    
+    if (key == KeyPress ('e', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
     {
         for (auto& connection : cnv->connections)
         {
@@ -593,19 +594,58 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
     }
 
     if (pd.locked) return false;
+    
+    
 
     // Key shortcuts for creating objects
-    if (key.getTextCharacter() == 'n')
+    if (key == KeyPress ('n', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "", cnv->lastMousePos));
         return true;
     }
-    if (key.getTextCharacter() == 'c' && !key.getModifiers().isCommandDown())
+    if (key == KeyPress ('c', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "comment", cnv->lastMousePos));
         return true;
     }
-    if (key.isKeyCode(65) && key.getModifiers().isCommandDown())
+    if (key == KeyPress ('b', ModifierKeys::noModifiers, 0))
+    {
+        cnv->boxes.add(new Box(cnv, "bng", cnv->lastMousePos));
+        return true;
+    }
+    if (key == KeyPress ('m', ModifierKeys::noModifiers, 0))
+    {
+        cnv->boxes.add(new Box(cnv, "msg", cnv->lastMousePos));
+        return true;
+    }
+    if (key == KeyPress ('i', ModifierKeys::noModifiers, 0))
+    {
+        cnv->boxes.add(new Box(cnv, "nbx", cnv->lastMousePos));
+        return true;
+    }
+    if (key == KeyPress ('f', ModifierKeys::noModifiers, 0))
+    {
+        cnv->boxes.add(new Box(cnv, "floatatom", cnv->lastMousePos));
+        return true;
+    }
+    if (key == KeyPress ('t', ModifierKeys::noModifiers, 0))
+    {
+        cnv->boxes.add(new Box(cnv, "tgl", cnv->lastMousePos));
+        return true;
+    }
+    if (key == KeyPress ('s', ModifierKeys::noModifiers, 0))
+    {
+        cnv->boxes.add(new Box(cnv, "vsl", cnv->lastMousePos));
+        return true;
+    }
+
+    if (key.getKeyCode() == KeyPress::backspaceKey)
+    {
+        cnv->removeSelection();
+        return true;
+    }
+    
+    if (key == KeyPress ('a', ModifierKeys::commandModifier, 0))
     {
         for (auto* child : cnv->boxes)
         {
@@ -618,76 +658,40 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
         }
         return true;
     }
-    if (key.getTextCharacter() == 'b')
-    {
-        cnv->boxes.add(new Box(cnv, "bng", cnv->lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 'm')
-    {
-        cnv->boxes.add(new Box(cnv, "msg", cnv->lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 'i')
-    {
-        cnv->boxes.add(new Box(cnv, "nbx", cnv->lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 'f')
-    {
-        cnv->boxes.add(new Box(cnv, "floatatom", cnv->lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 't')
-    {
-        cnv->boxes.add(new Box(cnv, "tgl", cnv->lastMousePos));
-        return true;
-    }
-    if (key.getTextCharacter() == 's')
-    {
-        cnv->boxes.add(new Box(cnv, "vsl", cnv->lastMousePos));
-        return true;
-    }
-
-    if (key.getKeyCode() == KeyPress::backspaceKey)
-    {
-        cnv->removeSelection();
-        return true;
-    }
     // cmd-c
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(67))
+    if (key == KeyPress ('c', ModifierKeys::commandModifier, 0))
     {
         cnv->copySelection();
         return true;
     }
     // cmd-v
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(86))
+    if (key == KeyPress ('v', ModifierKeys::commandModifier, 0))
     {
         cnv->pasteSelection();
         return true;
     }
     // cmd-x
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(88))
+    if (key == KeyPress ('x', ModifierKeys::commandModifier, 0))
     {
         cnv->copySelection();
         cnv->removeSelection();
         return true;
     }
     // cmd-d
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(68))
+    if (key == KeyPress ('d', ModifierKeys::commandModifier, 0))
     {
         cnv->duplicateSelection();
         return true;
     }
 
     // cmd-shift-z
-    if (key.getModifiers().isCommandDown() && key.getModifiers().isShiftDown() && key.isKeyCode(90))
+    if (key == KeyPress ('z', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
     {
         cnv->redo();
         return true;
     }
     // cmd-z
-    if (key.getModifiers().isCommandDown() && key.isKeyCode(90))
+    if (key == KeyPress ('z', ModifierKeys::commandModifier, 0))
     {
         cnv->undo();
         return true;
