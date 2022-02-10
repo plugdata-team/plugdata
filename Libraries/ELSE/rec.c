@@ -191,7 +191,7 @@ static void rec_track_list(t_rec_track *tp, t_symbol *s, int ac, t_atom *av){
         if(av->a_type == A_FLOAT)
             rec_track_doadd(tp, ac, av);
         else{
-           
+
             t_atom* at = (t_atom*)malloc(sizeof(t_atom) * (ac+1));
             SETSYMBOL(&at[0], s);
             for(int i = 0; i < ac; i++){

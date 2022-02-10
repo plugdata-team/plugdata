@@ -583,7 +583,6 @@ void hz2rad_tilde_setup(void);
 void ikeda_tilde_setup(void);
 void imp_tilde_setup(void);
 void imp2_tilde_setup(void);
-void impseq_tilde_setup(void);
 void impulse_tilde_setup(void);
 void impulse2_tilde_setup(void);
 void initmess_setup(void);
@@ -1054,7 +1053,6 @@ void libpd_multi_init(void)
         ikeda_tilde_setup();
         imp_tilde_setup();
         imp2_tilde_setup();
-        impseq_tilde_setup();
         impulse_tilde_setup();
         impulse2_tilde_setup();
         initmess_setup();

@@ -122,13 +122,11 @@ static void midi_panic(t_midi *x){
    default value (failure).
    Upon return *nrequested contains the actual number of elements:
    requested (success) or a given default value of 'inisize' (failure). */
-
-// defined in grow.c
 void *grow_nodata(int *nrequested, int *sizep, void *bufp,
                   int inisize, void *bufini, size_t typesize);
 
 /* Like grow_nodata(), but preserving first *nexisting elements. */
-void *grow_withdata(int *nrequested, int *nexisting, int *sizep, void *bufp, int inisize, void *bufini, size_t typesize);
+void *grow_withdata(int *nrequested, int *nexisting, int *sizep, void *bufp,int inisize, void *bufini, size_t typesize);
 
 static void midi_clear(t_midi *x){
     x->x_nevents = x->x_ntempi = 0;

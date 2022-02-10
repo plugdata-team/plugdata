@@ -27,7 +27,6 @@ typedef struct _sr{
 
 static void audio_settings(int *pnaudioindev, int *paudioindev, int *pchindev, int *pnaudiooutdev,
     int *paudiooutdev, int *pchoutdev, int *prate, int *padvance, int *pcallback, int *psr){
-    
     /*
         sys_get_audio_params(pnaudioindev , paudioindev , pchindev, pnaudiooutdev,
             paudiooutdev, pchoutdev, prate, padvance, pcallback, psr);
@@ -57,9 +56,10 @@ static void get_settings(t_settings *setts){
     int i = 0;
     memset(setts, 0, sizeof(t_settings));
     setts->callback = -1;
+    /*
     audio_settings(&setts->naudioindev,  setts->audioindev,  setts->chindev,
                &setts->naudiooutdev, setts->audiooutdev, setts->choutdev, &setts->rate,
-               &setts->advance, &setts->callback,    &setts->sr);
+               &setts->advance, &setts->callback,    &setts->sr); */
     for(i = setts->naudioindev; i < MAXAUDIOINDEV; i++){
         setts->audioindev[i] = 0;
         setts->chindev[i] = 0;
