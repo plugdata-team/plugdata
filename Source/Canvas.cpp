@@ -38,8 +38,10 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
     
     setSize(600, 400);
 
-    // Apply zooming
-    setTransform(parent.transform);
+    if(!isGraph) {
+        // Apply zooming
+        setTransform(parent.transform);
+    }
 
     // Add lasso component
     addAndMakeVisible(&lasso);
@@ -73,7 +75,9 @@ Canvas::~Canvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::synchronise(bool updatePosition)
 {
-    setTransform(main.transform);
+    if(!isGraph) {
+        setTransform(main.transform);
+    }
 
     main.inspector.deselect();
     main.inspector.setVisible(false);
@@ -328,7 +332,11 @@ void Canvas::mouseDown(const MouseEvent& e)
             if (auto* label = dynamic_cast<ClickLabel*>(source))
             {
                 auto* box = static_cast<Box*>(label->getParentComponent());
-                openSubpatch(box);
+                
+                if(box->graphics && box->graphics->getGui().getType() == pd::Type::Subpatch) {
+                    openSubpatch(box);
+                }
+                
             }
         }
         return;
