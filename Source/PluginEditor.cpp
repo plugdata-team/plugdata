@@ -97,6 +97,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 }
             }
         }
+        
+        updateUndoState();
 
         lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
 
@@ -827,8 +829,6 @@ void PlugDataPluginEditor::updateValues()
 void PlugDataPluginEditor::updateUndoState()
 {
     pd.setThis();
-
-    toolbarButtons[6].setEnabled(!pd.locked);
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked)
     {
