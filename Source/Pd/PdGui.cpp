@@ -602,7 +602,23 @@ std::array<int, 4> Gui::getBounds() const noexcept
     auto zoom = [](float val){
         return int(round(val * Patch::zoom));
     };
-    
+    if (type == Type::Keyboard)
+    {
+        int x = 0, y = 0, w = 0, h = 0;
+        instance->setThis();
+        patch->setCurrent(true);
+
+        libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
+
+        t_canvas const* cnv = patch->getPointer();
+        if (cnv != nullptr)
+        {
+            // x -= cnv->gl_xmargin;
+            // y -= cnv->gl_ymargin;
+        }
+
+        return {x, y, w, h};
+    }
     if (type == Type::Panel)
     {
         auto const bounds = Object::getBounds();
