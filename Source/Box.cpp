@@ -73,7 +73,6 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
     // If the object has graphics, we hide the draggable name object
     if (graphics && !graphics->fakeGui() && (locked || cnv->isGraph))
     {
-        // textLabel.setVisible(false);
         resizer.setVisible(false);
     }
     else
@@ -382,6 +381,7 @@ void Box::updatePorts()
 
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;
+        edge->setAlwaysOnTop(true);
 
         numIn += input;
         numOut += !input;

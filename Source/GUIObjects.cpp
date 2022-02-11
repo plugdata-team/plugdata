@@ -1009,7 +1009,6 @@ GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGu
 GraphOnParent::~GraphOnParent()
 {
     box->textLabel.setVisible(true);
-    removeMouseListener(&box->textLabel);
     closeOpenedSubpatchers();
 }
 
@@ -1020,7 +1019,7 @@ void GraphOnParent::resized()
 void GraphOnParent::lock(bool locked)
 {
     isLocked = locked;
-    setInterceptsMouseClicks(!box->locked, true);
+    setInterceptsMouseClicks(isLocked, true);
 }
 
 void GraphOnParent::mouseDown(const MouseEvent& e)
@@ -1150,13 +1149,17 @@ void CommentComponent::paint(Graphics& g)
 MousePad::MousePad(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
-    // setInterceptsMouseClicks(false, true);
     
+    //setInterceptsMouseClicks(box->locked, box->locked);
+    
+    addMouseListener(&box->textLabel, false);
     box->textLabel.setVisible(false);
+    
 }
 
 MousePad::~MousePad()
 {
+    removeMouseListener(&box->textLabel);
     box->textLabel.setVisible(true);
     Desktop::getInstance().removeGlobalMouseListener(this);
 }
