@@ -182,7 +182,11 @@ void Box::setType(const String& newType, bool exists)
         // Create graphics for the object if necessary
         graphics.reset(GUIComponent::createGui(type, this));
 
-        if (graphics) graphics->lock(locked);
+        if (graphics)  {
+            graphics->lock(locked);
+            graphics->updateValue();
+        }
+        
 
         if (graphics && graphics->getGui().getType() == pd::Type::Comment)
         {
@@ -265,6 +269,11 @@ void Box::paint(Graphics& g)
         outlineColour = MainLook::highlightColour;
     }
     
+    if(!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment)) {
+        g.setColour(MainLook::firstBackground);
+        g.fillRect(getLocalBounds().reduced(5));
+    }
+    
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {
@@ -278,9 +287,6 @@ void Box::paint(Graphics& g)
     // Draw for all other objects
     else
     {
-        g.setColour(MainLook::firstBackground);
-        g.fillRect(getLocalBounds().reduced(5));
-        
         g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
     }
@@ -336,7 +342,7 @@ void Box::resized()
         index++;
     }
 
-    resizer.toBack();
+    resizer.toFront(false);
 }
 
 void Box::updatePorts()

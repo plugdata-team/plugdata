@@ -125,30 +125,32 @@ struct GUIComponent : public Component, public ComponentListener
         {
             auto& [parameters, cb] = params;
 
-            parameters.insert(parameters.begin(), {"Width", tInt, static_cast<void*>(&width)});
-            parameters.insert(parameters.begin() + 1, {"Send Symbol", tString, static_cast<void*>(&sendSymbol)});
-            parameters.insert(parameters.begin() + 2, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol)});
+            //parameters.insert(parameters.begin(), {"Width", tInt, static_cast<void*>(&width)});
+            
+            parameters.insert(parameters.begin(), {"Send Symbol", tString, static_cast<void*>(&sendSymbol)});
+            parameters.insert(parameters.begin() + 1, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol)});
 
             auto oldCallback = cb;
             cb = [this, oldCallback](int changedParameter)
             {
+                /*
                 if (changedParameter == 0)
                 {
                     // Width
-                }
-                else if (changedParameter == 1)
+                } */
+                if (changedParameter == 0)
                 {
                     gui.setSendSymbol(sendSymbol.toStdString());
                     repaint();
                 }
-                else if (changedParameter == 2)
+                else if (changedParameter == 1)
                 {
                     gui.setReceiveSymbol(receiveSymbol.toStdString());
                     repaint();
                 }
                 else
                 {
-                    oldCallback(changedParameter - 3);
+                    oldCallback(changedParameter - 2);
                 }
             };
         }
@@ -854,6 +856,9 @@ struct PanelComponent : public GUIComponent
 // ELSE mousepad
 struct MousePad : public GUIComponent
 {
+    
+    bool isLocked = false;
+    
     typedef struct _pad
     {
         t_object x_obj;
@@ -875,6 +880,8 @@ struct MousePad : public GUIComponent
     ~MousePad() override;
 
     void paint(Graphics& g) override;
+    
+    void lock(bool isLocked) override;
 
     void updateValue() override;
 

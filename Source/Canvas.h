@@ -168,8 +168,8 @@ struct GraphArea : public Component, public ComponentDragger
         // Lock first?
         if (cnv)
         {
-            cnv->gl_pixwidth = getWidth();
-            cnv->gl_pixheight = getHeight();
+            cnv->gl_pixwidth = getWidth() / pd::Patch::zoom;
+            cnv->gl_pixheight = getHeight() / pd::Patch::zoom;
             cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;
             cnv->gl_ymargin = (getY() - 4) / pd::Patch::zoom;
         }
