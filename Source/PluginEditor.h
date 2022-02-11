@@ -31,7 +31,7 @@ struct TabComponent : public TabbedComponent
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener
+class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener, public ValueTree::Listener
 {
    public:
     SharedResourcePointer<Resources> resources;
@@ -71,6 +71,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     void updateUndoState();
 
     void zoom(bool zoomingIn);
+    
+    void valueTreePropertyChanged(ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
 
     PlugDataAudioProcessor& pd;
 
@@ -92,8 +94,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     Label zoomLabel;
 
    private:
-    FileChooser saveChooser = FileChooser("Select a save file", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
-    FileChooser openChooser = FileChooser("Choose file to open", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "*.pd");
+    std::unique_ptr<FileChooser> saveChooser;
+    std::unique_ptr<FileChooser> openChooser;
 
     static constexpr int toolbarHeight = 40;
     static constexpr int statusbarHeight = 25;
@@ -115,6 +117,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     std::unique_ptr<ResizableCornerComponent> resizer;
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
+    
+    std::unique_ptr<ButtonParameterAttachment> enableAttachment;
 
     Component seperators[2];
 
