@@ -330,6 +330,7 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(p
 
     initParameters();  // !! FIXME: virtual call from constructor!!
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
+    box->restrainer.setFixedAspectRatio(1.0f);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -344,7 +345,7 @@ void BangComponent::update()
 
 void BangComponent::resized()
 {
-    gui.setSize(getWidth(), getHeight());
+    gui.setSize(box->getWidth(), box->getHeight());
     bangButton.setBounds(getLocalBounds().reduced(5));
 }
 
@@ -367,12 +368,13 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
     initParameters();
 
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
+    box->restrainer.setFixedAspectRatio(1.0f);
     box->restrainer.checkComponentBounds(box);
 }
 
 void ToggleComponent::resized()
 {
-    gui.setSize(getWidth(), getHeight());
+    gui.setSize(box->getWidth(), box->getHeight());
     toggleButton.setBounds(getLocalBounds().reduced(6));
 }
 
@@ -447,8 +449,6 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
             };
         };
     }
-
-    // input.setMultiLine(true);
 
     box->textLabel.addMouseListener(this, false);
     box->restrainer.setSizeLimits(50, 30, 500, 600);
@@ -726,7 +726,7 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
 
 void SliderComponent::resized()
 {
-    gui.setSize(getWidth(), getHeight());
+    gui.setSize(box->getWidth(), box->getHeight());
     slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 3.0, isVertical ? 3.0 : 0.0));
 }
 
@@ -763,7 +763,7 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
 
 void RadioComponent::resized()
 {
-    gui.setSize(getWidth(), getHeight());
+    gui.setSize(box->getWidth(), box->getHeight());
 
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;

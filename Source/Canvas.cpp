@@ -75,7 +75,6 @@ void Canvas::synchronise(bool updatePosition)
 {
     setTransform(main.transform);
 
-    // TODO: do we need to do this here?
     main.inspector.deselect();
     main.inspector.setVisible(false);
     main.console->setVisible(true);
@@ -85,9 +84,7 @@ void Canvas::synchronise(bool updatePosition)
 
     patch.setCurrent(true);
     patch.updateExtraInfo();
-
-    // connections.clear();
-
+    
     auto objects = patch.getObjects();
     auto isObjectDeprecated = [&](pd::Object* obj)
     {
@@ -186,7 +183,7 @@ void Canvas::synchronise(bool updatePosition)
         else
         {
             auto* box = *it;
-            auto [x, y, h, w] = object.getBounds();
+            auto [x, y, w, h] = object.getBounds();
 
             x += zeroPosition.x;
             y += zeroPosition.y;

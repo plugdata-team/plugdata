@@ -598,38 +598,34 @@ unsigned int Gui::getForegroundColor() const noexcept
 
 std::array<int, 4> Gui::getBounds() const noexcept
 {
-    std::array<int, 4> result = {0, 0, 0, 0};
+    
+    auto zoom = [](float val){
+        return int(round(val * Patch::zoom));
+    };
+    
     if (type == Type::Panel)
     {
         auto const bounds = Object::getBounds();
-        result = {bounds[0], bounds[1], static_cast<t_my_canvas*>(ptr)->x_vis_w + 1, static_cast<t_my_canvas*>(ptr)->x_vis_h + 1};
+         return {zoom(bounds[0]), zoom(bounds[1]), zoom(static_cast<t_my_canvas*>(ptr)->x_vis_w) + 1, zoom(static_cast<t_my_canvas*>(ptr)->x_vis_h) + 1};
     }
     else if (type == Type::AtomNumber || type == Type::AtomSymbol)
     {
         auto const bounds = Object::getBounds();
-        result = {bounds[0], bounds[1], bounds[2], bounds[3] - 2};
+        return {zoom(bounds[0]), zoom(bounds[1]), zoom(bounds[2]), zoom(bounds[3]) - 2};
     }
     else if (type == Type::Comment)
     {
         auto const bounds = Object::getBounds();
-        result = {bounds[0] + 2, bounds[1] + 2, bounds[2], bounds[3] - 2};
+        return {zoom(bounds[0]) + 2, zoom(bounds[1]) + 2, zoom(bounds[2]), zoom(bounds[3]) - 2};
     }
     else if (isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         auto const bounds = Object::getBounds();
-        result = {bounds[0], bounds[1], iemgui->x_w, iemgui->x_h};
+        return {zoom(bounds[0]), zoom(bounds[1]), zoom(iemgui->x_w), zoom(iemgui->x_h)};
     }
 
-    if (result[2] == 0 && result[3] == 0)
-    {
-        return Object::getBounds();
-    }
-    else
-    {
-        for (auto& coord : result) coord *= Patch::zoom;
-        return result;
-    }
+    return Object::getBounds();
 }
 
 void Gui::setSize(int w, int h) noexcept
