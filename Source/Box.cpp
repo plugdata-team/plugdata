@@ -264,7 +264,7 @@ void Box::paint(Graphics& g)
     {
         outlineColour = MainLook::highlightColour;
     }
-
+    
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {
@@ -278,6 +278,9 @@ void Box::paint(Graphics& g)
     // Draw for all other objects
     else
     {
+        g.setColour(MainLook::firstBackground);
+        g.fillRect(getLocalBounds().reduced(5));
+        
         g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
     }

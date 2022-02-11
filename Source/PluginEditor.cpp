@@ -280,6 +280,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     setSize(pd.lastUIWidth, pd.lastUIHeight);
     console->console->update();
+    
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 }
 
 PlugDataPluginEditor::~PlugDataPluginEditor()
@@ -559,7 +562,6 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
 {
     auto* cnv = getCurrentCanvas();
 
-    
     // cmd-e
     if (key == KeyPress ('e', ModifierKeys::commandModifier, 0))
     {
@@ -741,6 +743,10 @@ void PlugDataPluginEditor::openProject()
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd"))
         {
+            
+            pd.settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
+            
+            
             tabbar.clearTabs();
             pd.loadPatch(openedFile);
         }
@@ -753,29 +759,32 @@ void PlugDataPluginEditor::openProject()
                          {
                              if (result == 2)
                              {
-                                 saveProject([this, openFunc]() mutable { openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
+                                 saveProject([this, openFunc]() mutable { openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
                              }
                              else if (result != 0)
                              {
-                                 openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+                                 openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
                              }
                          });
     }
     else
     {
-        openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+        openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
     }
 }
 
 void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
-    saveChooser.launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
+    saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
                             [this, nestedCallback](const FileChooser& f) mutable
                             {
-                                File result = saveChooser.getResult();
+                                File result = saveChooser->getResult();
 
                                 if (result.getFullPathName().isNotEmpty())
                                 {
+                                    
+                                    pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
+                                    
                                     result.deleteFile();
 
                                     pd.savePatch(result);
@@ -956,4 +965,10 @@ void PlugDataPluginEditor::zoom(bool zoomingIn)
     int scale = ((std::abs(transform.mat00) + std::abs(transform.mat11)) / 2.0f) * 100.0f;
     zoomLabel.setText(String(scale) + "%", dontSendNotification);
     getCurrentCanvas()->checkBounds();
+}
+
+void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree &treeWhosePropertyHasChanged, const Identifier &property) {
+    
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 }
