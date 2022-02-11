@@ -59,26 +59,23 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
 {
     locked = cnv->pd->locked;
 
-    // Called when locking/unlocking
-    // textLabel.setEditable(!locked);
+    // Hide certain objects in GOP
+    if(cnv->isGraph && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment)))) {
+        setVisible(false);
+    }
+    else {
+        setVisible(true);
+    }
 
-    bool hideForGraph = !graphics || graphics->getGui().getType() == pd::Type::Message || (graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment);
-
-    setVisible(!(cnv->isGraph && hideForGraph));
 
     if (graphics)
     {
         graphics->lock(locked || cnv->pd->commandLocked);
     }
-    // If the object has graphics, we hide the draggable name object
-    if (graphics && !graphics->fakeGui() && (locked || cnv->isGraph))
-    {
-        resizer.setVisible(false);
-    }
-    else
-    {
-        resizer.setVisible(true);
-    }
+    
+    
+    resizer.setVisible(!locked);
+
 
     resized();
     repaint();

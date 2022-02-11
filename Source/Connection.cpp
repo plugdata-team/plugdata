@@ -515,9 +515,12 @@ PathPlan Connection::findPath()
         if (pstart.y < pend.y)
         {
             int xHalfDistance = (pend.x - pstart.x) / 2;
+            
+            simplifiedPath.push_back(pstart); // double to make it draggable
             simplifiedPath.push_back(pstart);
             simplifiedPath.push_back({pstart.x + xHalfDistance, pstart.y});
             simplifiedPath.push_back({pstart.x + xHalfDistance, pend.y});
+            simplifiedPath.push_back(pend);
             simplifiedPath.push_back(pend);
         }
         else
