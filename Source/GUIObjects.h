@@ -858,6 +858,7 @@ struct MousePad : public GUIComponent
 {
     
     bool isLocked = false;
+    bool isPressed = false;
     
     typedef struct _pad
     {

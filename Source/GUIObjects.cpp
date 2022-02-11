@@ -1189,6 +1189,8 @@ void MousePad::mouseDown(const MouseEvent& e)
     sys_lock();
     outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
     sys_unlock();
+    
+    isPressed = true;
 
     // glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
 }
@@ -1221,7 +1223,7 @@ void MousePad::mouseMove(const MouseEvent& e)
 
 void MousePad::mouseUp(const MouseEvent& e)
 {
-    if (!getScreenBounds().contains(e.getScreenPosition())) return;
+    if (!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) return;
 
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[1];
