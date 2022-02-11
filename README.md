@@ -58,19 +58,6 @@ Known issues:
 - There may still be some more bugs
 
 ## Roadmap
-v0.3.1:
-- Fix array crash when name is empty
-- Fix helpfiles and issues with multiple instances
-- Last console line not visible
-- Fix graph on parent resizing
-- Keyboard GUI resize behaviour
-- Fix broken objects: openpanel/savepanel, play.file~, text define
-- Allow click on subpatch to open
-- Make symbolatom and floatatom look less similar
-- Fix levelmeter redrawing
-- Bigger hitboxes and clearer hover colour for inlets/outlets
-- Ditch the mouse-over idea in favour of regular Pd/Max patching behaviour
-- Increase number of automatable parameters
 
 v0.3.2:
 - Fix all warnings
@@ -88,6 +75,8 @@ v0.3.2:
 - More flexible connection manipulation
 - Update to latest ELSE externals
 - Enable more cyclone externals
+- Increase number of automatable parameters
+- Make sure most ELSE objects work properly, especially ones with GUI features
 - Do a lot more testing
 
 v0.4
