@@ -590,13 +590,18 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
     
     pd_typedmess((t_pd*)cnv, gensym("arraydialog"), argc, argv);
     
+    
+    
     //canvas_undo_add(cnv, UNDO_CREATE, "create",
     //                (void *)canvas_undo_set_create(cnv));
     
     glist_noselect(cnv);
     
+    t_pd* arr = libpd_newest(cnv);
     
-    return libpd_newest(cnv);
+    gobj_setposition(pd_checkobject(arr), cnv, x, y);
+    
+    return arr;
 }
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int undoable) {
@@ -691,9 +696,7 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
     
     canvas_editmode(cnv, 0);
     sys_unlock();
-    
 }
-
 
 int libpd_can_undo(t_canvas* cnv) {
     
@@ -893,3 +896,16 @@ int libpd_issignaloutlet(const t_object *x, int m)
     return (o2 && (o2->o_sym == &s_signal));
 }
 
+
+void gobj_setposition(t_gobj *x, t_glist *glist, int xpos, int ypos)
+{
+    if (x->g_pd->c_wb && x->g_pd->c_wb->w_getrectfn && x->g_pd->c_wb && x->g_pd->c_wb->w_displacefn) {
+        
+        int x1, y1, x2, y2;
+
+        (*x->g_pd->c_wb->w_getrectfn)(x, glist, &x1, &y1, &x2, &y2);
+        
+        (*x->g_pd->c_wb->w_displacefn)(x, glist, xpos - x1, ypos - y1);
+        
+    }
+}
