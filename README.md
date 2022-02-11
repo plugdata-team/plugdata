@@ -59,7 +59,7 @@ Known issues:
 
 ## Roadmap
 
-v0.3.2:
+v0.3.3:
 - Fix all warnings
 - Clean up:
     - Box class, reduce resize calls
@@ -70,11 +70,8 @@ v0.3.2:
 - MIDI Blinker
 - Allow modifying labels
 - Ensure all object properties are supported, including height/width where applicable
-- Consistent GUI size logic
 - Create document and system for object descriptions and inlet/outlet hover messages
 - More flexible connection manipulation
-- Update to latest ELSE externals
-- Enable more cyclone externals
 - Increase number of automatable parameters
 - Make sure most ELSE objects work properly, especially ones with GUI features
 - Do a lot more testing
