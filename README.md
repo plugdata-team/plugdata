@@ -29,7 +29,7 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres
-- [cyclone](https://github.com/porres/pd-cyclone) by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Torres Porres, Derek Kwan, Matt Barber and others (note: Cyclone is included to offer an easy entry point for Max users but ELSE contains more Max objects than cyclone. A document explaining the ELSE replacements for Max objects is in the making)
+- [cyclone](https://github.com/porres/pd-cyclone) by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Torres Porres, Derek Kwan, Matt Barber and others (note: Cyclone is included to offer an easy entry point for Max users but ELSE contains more Max objects than cyclone, see [this](https://github.com/porres/pd-else/wiki/Cyclone-alternatives))
 - [Pure Data](https://puredata.info) by Miller Puckette and others
 - [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
@@ -51,9 +51,7 @@ What works:
 Known issues:
 - Tabs sometimes close when closing editor
 - Needs more testing on different systems and DAWs
-- Unstable/broken objects:
-  - Openpanel/savepanel
-  - play.file~
+- Broken objects:
   - text define
 - There may still be some more bugs
 
