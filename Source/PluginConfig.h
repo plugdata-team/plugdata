@@ -13,5 +13,5 @@
 namespace ProjectInfo
 {
 const char* const companyName = "Octagon";
-const char* const versionString = "0.3";
+const char* const versionString = "0.3.1";
 }  // namespace ProjectInfo

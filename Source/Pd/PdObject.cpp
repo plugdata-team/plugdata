@@ -131,9 +131,9 @@ Patch Object::getHelp() const
     if (File(usedir).getChildFile(realname).existsAsFile())
     {
         sys_lock();
-        auto p = Patch(glob_evalfile(nullptr, gensym(realname), gensym(usedir)), instance);
+        auto* pdPatch = glob_evalfile(nullptr, gensym(realname), gensym(usedir));
         sys_unlock();
-        return p;
+        return {pdPatch, instance};
     }
 
     /* 2. "help-objectname.pd" */
@@ -144,9 +144,9 @@ Patch Object::getHelp() const
     if (File(dir).getChildFile(realname).existsAsFile())
     {
         sys_lock();
-        auto p = Patch(glob_evalfile(nullptr, gensym(realname), gensym(usedir)), instance);
+        auto* pdPatch = glob_evalfile(nullptr, gensym(realname), gensym(usedir));
         sys_unlock();
-        return p;
+        return {pdPatch, instance};
     }
 
     return {};

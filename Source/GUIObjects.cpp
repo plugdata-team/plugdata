@@ -329,7 +329,7 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(p
     };
 
     initParameters();  // !! FIXME: virtual call from constructor!!
-    box->restrainer.setSizeLimits(38, 38, 200, 200);
+    box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -366,7 +366,7 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
 
     initParameters();
 
-    box->restrainer.setSizeLimits(38, 38, 200, 200);
+    box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.checkComponentBounds(box);
 }
 
@@ -1088,10 +1088,7 @@ void GraphOnParent::updateCanvas()
         canvas->setBounds(-x, -y, w + x, h + y);
 
         auto parentBounds = box->getBounds();
-        if (parentBounds.getWidth() != w - 8 || parentBounds.getHeight() != h - 29)
-        {
-            box->setSize(w + 8, h + 29);
-        }
+        box->setSize(w, h);
     }
 }
 
@@ -1131,9 +1128,6 @@ void Subpatch::updateValue()
     if (static_cast<t_canvas*>(gui.getPointer())->gl_isgraph)
     {
         box->setType(box->textLabel.getText(), true);
-
-        // Makes sure it has the correct size
-        box->graphics->updateValue();
     }
 };
 
@@ -1157,10 +1151,13 @@ MousePad::MousePad(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
     // setInterceptsMouseClicks(false, true);
+    
+    box->textLabel.setVisible(false);
 }
 
 MousePad::~MousePad()
 {
+    box->textLabel.setVisible(true);
     Desktop::getInstance().removeGlobalMouseListener(this);
 }
 
@@ -1174,7 +1171,7 @@ void MousePad::updateValue(){
 
 void MousePad::mouseDown(const MouseEvent& e)
 {
-    if (!getScreenBounds().contains(e.getScreenPosition())) return;
+    if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
 
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
@@ -1200,7 +1197,7 @@ void MousePad::mouseDrag(const MouseEvent& e)
 
 void MousePad::mouseMove(const MouseEvent& e)
 {
-    if (!getScreenBounds().contains(e.getScreenPosition())) return;
+    if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
 
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
@@ -1227,6 +1224,10 @@ void MousePad::mouseUp(const MouseEvent& e)
     t_atom at[1];
     SETFLOAT(at, 0);
     outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
+}
+
+void MousePad::lock(bool locked) {
+    isLocked = locked;
 }
 
 MouseComponent::MouseComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
@@ -1286,6 +1287,8 @@ KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box) : GUIComponen
 
     state.addListener(this);
     addAndMakeVisible(keyboard);
+    
+    box->restrainer.setSizeLimits(50, 150, 1200, 1200);
 }
 
 void KeyboardComponent::resized()
