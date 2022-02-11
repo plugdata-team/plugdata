@@ -1293,7 +1293,7 @@ KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box) : GUIComponen
     state.addListener(this);
     addAndMakeVisible(keyboard);
     
-    box->restrainer.setSizeLimits(50, 150, 1200, 1200);
+    box->restrainer.setSizeLimits(50, 70, 1200, 1200);
 }
 
 void KeyboardComponent::resized()
