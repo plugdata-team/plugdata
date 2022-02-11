@@ -393,6 +393,10 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
     {
         input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
+        input.onTextChange = [this](){
+            gui.setSymbol(input.getText().toStdString());
+        };
+        
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
@@ -405,8 +409,6 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
                 {
                     box->setSize(width, box->getHeight());
                 }
-
-                gui.setSymbol(input.getText().toStdString());
             };
 
             editor->onFocusLost = [this]()
