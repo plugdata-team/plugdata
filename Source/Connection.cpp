@@ -81,6 +81,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
     setInterceptsMouseClicks(true, false);
 
     cnv->addAndMakeVisible(this);
+    
+    setAlwaysOnTop(true);
 
     // Update position
     componentMovedOrResized(*start, true, true);
