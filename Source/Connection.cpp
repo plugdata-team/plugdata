@@ -215,6 +215,9 @@ void Connection::mouseMove(const MouseEvent& e)
 
 void Connection::mouseDown(const MouseEvent& e)
 {
+    
+    if(currentPlan.empty()) return;
+    
     const auto scaledPlan = scalePath(currentPlan);
 
     if (scaledPlan.size() <= 2) return;
@@ -254,6 +257,8 @@ void Connection::mouseDown(const MouseEvent& e)
 
 void Connection::mouseDrag(const MouseEvent& e)
 {
+    if(currentPlan.empty()) return;
+    
     auto& first = start->isInput ? start : end;
     auto& last = start->isInput ? end : start;
 
