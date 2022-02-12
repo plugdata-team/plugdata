@@ -33,7 +33,6 @@ struct LevelMeter : public Component
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
 
-        meter.setLookAndFeel(&lnf);
         addAndMakeVisible(meter);
 
         addAndMakeVisible(volumeSlider);
@@ -41,14 +40,13 @@ struct LevelMeter : public Component
 
         volumeSlider.setValue(0.75);
         volumeSlider.setRange(0.0f, 1.0f);
+        volumeSlider.setName("statusbar:meter");
 
         attachment.reset(new SliderParameterAttachment(*state.getParameter("volume"), volumeSlider, nullptr));
     }
 
     ~LevelMeter() override
     {
-        meter.setLookAndFeel(nullptr);
-        setLookAndFeel(nullptr);
     }
 
     void resized() override

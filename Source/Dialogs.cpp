@@ -14,7 +14,6 @@
 
 SaveDialog::SaveDialog()
 {
-    // setLookAndFeel(&mainLook);
     setSize(400, 200);
     addAndMakeVisible(savelabel);
     addAndMakeVisible(cancel);
@@ -69,7 +68,6 @@ void SaveDialog::show(Component* centre, std::function<void(int)> callback)
 
 ArrayDialog::ArrayDialog()
 {
-    // setLookAndFeel(&mainLook);
     setSize(400, 200);
 
     addAndMakeVisible(label);
@@ -272,8 +270,6 @@ class LibraryComponent : public Component, public TableListBoxModel
     void resized() override
     {
         table.setBounds(getLocalBounds());
-
-        // auto b = table.getHeader().getBounds().removeFromRight(25);
         addButton.setBounds(getWidth() - 30, 0, 30, 30);
     }
 
@@ -288,7 +284,6 @@ class LibraryComponent : public Component, public TableListBoxModel
             addAndMakeVisible(deleteButton);
             deleteButton.toFront(true);
             deleteButton.setConnectedEdges(12);
-            // deleteButton.setLookAndFeel(&look);
 
             onTextChange = [this, value]()
             {
@@ -330,14 +325,14 @@ class LibraryComponent : public Component, public TableListBoxModel
     StringArray items;
 };
 
-SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : lnf(r)
+SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
 {
     for (auto& button : toolbarButtons)
     {
         button->setClickingTogglesState(true);
         button->setRadioGroupId(0110);
-        button->setLookAndFeel(&lnf);
         button->setConnectedEdges(12);
+        button->setName("toolbar:settings");
         addAndMakeVisible(button);
     }
 

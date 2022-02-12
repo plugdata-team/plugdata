@@ -93,14 +93,7 @@ std::array<int, 4> Object::getBounds() const noexcept
         patch->setCurrent(true);
 
         libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
-
-        t_canvas const* cnv = patch->getPointer();
-        if (cnv != nullptr)
-        {
-            // x -= cnv->gl_xmargin;
-            // y -= cnv->gl_ymargin;
-        }
-
+        
         return {static_cast<int>(x * Patch::zoom), static_cast<int>(y * Patch::zoom), static_cast<int>(w * Patch::zoom), static_cast<int>(h * Patch::zoom)};
     }
     return {0, 0, 0, 0};

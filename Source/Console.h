@@ -332,6 +332,7 @@ struct Console : public Component
         int i = 0;
         for (auto& button : buttons)
         {
+            button.setName("statusbar:console");
             button.setConnectedEdges(12);
             addAndMakeVisible(button);
 

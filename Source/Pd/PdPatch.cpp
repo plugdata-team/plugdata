@@ -64,8 +64,6 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
 {
     if (auto* cnv = getPointer())
     {
-        //instance->enqueueFunction([this, cnv](){
-        
         instance->getCallbackLock()->enter();
         setZoom(1);
         cnv->gl_mapped = 1;  // this will allow us to receive pd gui updates on every canvas
@@ -73,11 +71,6 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
         instance->getCallbackLock()->exit();
         
         infoObject = getInfoObject();
-        
-        
-        
-        //});
-
     }
 }
 
