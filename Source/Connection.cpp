@@ -46,7 +46,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
         inObj = &end->box->pdObject;
         outObj = &start->box->pdObject;
     }
-    
+
     start->repaint();
     end->repaint();
 
@@ -81,7 +81,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s)
     setInterceptsMouseClicks(true, false);
 
     cnv->addAndMakeVisible(this);
-    
+
     setAlwaysOnTop(true);
 
     // Update position
@@ -184,7 +184,7 @@ void Connection::paint(Graphics& g)
 
     if (isSelected)
     {
-        baseColour = start->isSignal ? Colours::yellow : MainLook::highlightColour;
+        baseColour = start->isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
     }
 
     g.setColour(baseColour.withAlpha(0.8f));
@@ -217,9 +217,8 @@ void Connection::mouseMove(const MouseEvent& e)
 
 void Connection::mouseDown(const MouseEvent& e)
 {
-    
-    if(currentPlan.empty()) return;
-    
+    if (currentPlan.empty()) return;
+
     const auto scaledPlan = scalePath(currentPlan);
 
     if (scaledPlan.size() <= 2) return;
@@ -259,8 +258,8 @@ void Connection::mouseDown(const MouseEvent& e)
 
 void Connection::mouseDrag(const MouseEvent& e)
 {
-    if(currentPlan.empty()) return;
-    
+    if (currentPlan.empty()) return;
+
     auto& first = start->isInput ? start : end;
     auto& last = start->isInput ? end : start;
 
@@ -515,8 +514,8 @@ PathPlan Connection::findPath()
         if (pstart.y < pend.y)
         {
             int xHalfDistance = (pend.x - pstart.x) / 2;
-            
-            simplifiedPath.push_back(pstart); // double to make it draggable
+
+            simplifiedPath.push_back(pstart);  // double to make it draggable
             simplifiedPath.push_back(pstart);
             simplifiedPath.push_back({pstart.x + xHalfDistance, pstart.y});
             simplifiedPath.push_back({pstart.x + xHalfDistance, pend.y});

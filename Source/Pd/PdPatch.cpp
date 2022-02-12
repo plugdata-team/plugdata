@@ -67,9 +67,9 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
         instance->getCallbackLock()->enter();
         setZoom(1);
         cnv->gl_mapped = 1;  // this will allow us to receive pd gui updates on every canvas
-        
+
         instance->getCallbackLock()->exit();
-        
+
         infoObject = getInfoObject();
     }
 }
@@ -101,7 +101,7 @@ void Patch::setCurrent(bool lock)
 {
     instance->setThis();
 
-    if(lock) instance->getCallbackLock()->enter();
+    if (lock) instance->getCallbackLock()->enter();
 
     if (auto* cnv = canvas_getcurrent())
     {
@@ -110,8 +110,8 @@ void Patch::setCurrent(bool lock)
 
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
-    
-    if(lock) instance->getCallbackLock()->exit();
+
+    if (lock) instance->getCallbackLock()->exit();
 }
 
 int Patch::getIndex(void* obj)
@@ -164,8 +164,7 @@ std::vector<Object> Patch::getObjects(bool onlyGui) noexcept
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
         {
             Object object(static_cast<void*>(y), this, instance);
-            
-            
+
             if (String(object.getText()).startsWith("plugdatainfo")) continue;
 
             if (onlyGui)
@@ -591,12 +590,13 @@ void Patch::updateExtraInfo()
 
 t_gobj* Patch::getInfoObject()
 {
-    if(infoObject) {
+    if (infoObject)
+    {
         return infoObject;
     }
-    
+
     instance->getCallbackLock()->enter();
-    
+
     for (t_gobj* y = getPointer()->gl_list; y; y = y->g_next)
     {
         if (strcmp(libpd_get_object_class_name(y), "text") != 0) continue;
@@ -615,7 +615,7 @@ t_gobj* Patch::getInfoObject()
         }
     }
     instance->getCallbackLock()->exit();
-    
+
     auto newObject = createObject("comment plugdatainfo", 0, 0, false);
     return static_cast<t_gobj*>(newObject->getPointer());
 }

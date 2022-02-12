@@ -276,7 +276,7 @@ void ClickLabel::setEditable(bool editable)
     invalidateAccessibilityHandler();
 }
 
-SuggestionBox::SuggestionBox(Resources& r)
+SuggestionBox::SuggestionBox()
 {
     // Set up the button list that contains our suggestions
     buttonholder = std::make_unique<Component>();
@@ -302,7 +302,6 @@ SuggestionBox::SuggestionBox(Resources& r)
     port->setViewportIgnoreDragFlag(true);
     addAndMakeVisible(port.get());
 
-    
     setInterceptsMouseClicks(true, true);
     setAlwaysOnTop(true);
     setVisible(true);
@@ -393,7 +392,7 @@ void SuggestionBox::move(int offset, int setto)
 
 void SuggestionBox::paint(Graphics& g)
 {
-    g.setColour(MainLook::firstBackground);
+    g.setColour(findColour(ComboBox::backgroundColourId));
     g.fillRect(port->getBounds());
 }
 

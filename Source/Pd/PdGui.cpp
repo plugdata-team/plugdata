@@ -353,7 +353,6 @@ void Gui::setMaximum(float value) noexcept
 
 float Gui::getValue() const noexcept
 {
-    
     if (!ptr) return 0.f;
     if (type == Type::HorizontalSlider)
     {
@@ -598,10 +597,7 @@ unsigned int Gui::getForegroundColor() const noexcept
 
 std::array<int, 4> Gui::getBounds() const noexcept
 {
-    
-    auto zoom = [](float val){
-        return int(round(val * Patch::zoom));
-    };
+    auto zoom = [](float val) { return int(round(val * Patch::zoom)); };
     if (type == Type::Keyboard)
     {
         int x = 0, y = 0, w = 0, h = 0;
@@ -622,7 +618,7 @@ std::array<int, 4> Gui::getBounds() const noexcept
     if (type == Type::Panel)
     {
         auto const bounds = Object::getBounds();
-         return {zoom(bounds[0]), zoom(bounds[1]), zoom(static_cast<t_my_canvas*>(ptr)->x_vis_w) + 1, zoom(static_cast<t_my_canvas*>(ptr)->x_vis_h) + 1};
+        return {zoom(bounds[0]), zoom(bounds[1]), zoom(static_cast<t_my_canvas*>(ptr)->x_vis_w) + 1, zoom(static_cast<t_my_canvas*>(ptr)->x_vis_h) + 1};
     }
     else if (type == Type::AtomNumber || type == Type::AtomSymbol)
     {

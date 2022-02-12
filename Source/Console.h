@@ -6,7 +6,6 @@
 
 #pragma once
 #include <JuceHeader.h>
-
 #include "LookAndFeel.h"
 
 class ConsoleComponent : public Component, private AsyncUpdater, public ComponentListener
@@ -100,7 +99,7 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
     {
         auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
         g.setFont(font);
-        g.fillAll(MainLook::firstBackground);
+        g.fillAll(findColour(ComboBox::backgroundColourId));
 
         int totalHeight = 0;
 
@@ -138,7 +137,7 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
 
             if (row % 2)
             {
-                g.setColour(MainLook::secondBackground);
+                g.setColour(findColour(ResizableWindow::backgroundColourId));
                 g.fillRect(r);
             }
 
@@ -146,7 +145,7 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
             {
                 const auto& e = messages[row];
 
-                g.setColour(isSelected[row] ? MainLook::highlightColour : colourWithType(e.second));
+                g.setColour(isSelected[row] ? findColour(Slider::thumbColourId) : colourWithType(e.second));
                 g.drawFittedText(e.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
             }
             else

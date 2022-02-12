@@ -18,7 +18,7 @@ extern "C"
 #include "PluginProcessor.h"
 
 //==============================================================================
-Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : MultiComponentDragger<Box>(this, &boxes), main(parent), pd(&parent.pd), patch(patch), suggestor(parent.resources.get())
+Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : MultiComponentDragger<Box>(this, &boxes), main(parent), pd(&parent.pd), patch(patch)
 {
     isGraph = graph;
     isGraphChild = graphChild;
@@ -34,11 +34,10 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
         addAndMakeVisible(graphArea.get());
     }
 
-
-    
     setSize(600, 400);
 
-    if(!isGraph) {
+    if (!isGraph)
+    {
         // Apply zooming
         setTransform(parent.transform);
     }
@@ -74,7 +73,8 @@ Canvas::~Canvas()
 // Used for loading and for complicated actions like undo/redo
 void Canvas::synchronise(bool updatePosition)
 {
-    if(!isGraph) {
+    if (!isGraph)
+    {
         setTransform(main.transform);
     }
 
@@ -87,7 +87,7 @@ void Canvas::synchronise(bool updatePosition)
 
     patch.setCurrent(true);
     patch.updateExtraInfo();
-    
+
     auto objects = patch.getObjects();
     auto isObjectDeprecated = [&](pd::Object* obj)
     {
@@ -331,11 +331,11 @@ void Canvas::mouseDown(const MouseEvent& e)
             if (auto* label = dynamic_cast<ClickLabel*>(source))
             {
                 auto* box = static_cast<Box*>(label->getParentComponent());
-                
-                if(box->graphics && box->graphics->getGui().getType() == pd::Type::Subpatch) {
+
+                if (box->graphics && box->graphics->getGui().getType() == pd::Type::Subpatch)
+                {
                     openSubpatch(box);
                 }
-                
             }
         }
         return;

@@ -8,6 +8,8 @@
 
 #include <memory>
 
+#include "LookAndFeel.h"
+
 #include "Canvas.h"
 #include "Connection.h"
 #include "Dialogs.h"
@@ -21,14 +23,15 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addKeyListener(this);
     setWantsKeyboardFocus(true);
 
-    LookAndFeel::setDefaultLookAndFeel(&mainLook);
+    lnf = std::make_unique<PlugDataDarkLook>();
+
+    LookAndFeel::setDefaultLookAndFeel(lnf.get());
 
     console = debugConsole;
 
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::firstBackground);
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::firstBackground);
-    tabbar.setColour(TabbedComponent::outlineColourId, MainLook::firstBackground);
-
+    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(ComboBox::backgroundColourId));
+    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(ComboBox::backgroundColourId));
+    tabbar.setColour(TabbedComponent::outlineColourId, findColour(ComboBox::backgroundColourId));
 
     addAndMakeVisible(levelmeter);
 
@@ -94,7 +97,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
                 }
             }
         }
-        
+
         updateUndoState();
 
         lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
@@ -239,11 +242,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
             if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone)
             {
                 auto pluginHolder = StandalonePluginHolder::getInstance();
-                settingsDialog = std::make_unique<SettingsDialog>(resources.get(), pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
+                settingsDialog = std::make_unique<SettingsDialog>(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
             }
             else
             {
-                settingsDialog = std::make_unique<SettingsDialog>(resources.get(), pd, nullptr, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
+                settingsDialog = std::make_unique<SettingsDialog>(pd, nullptr, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
             }
         }
 
@@ -279,7 +282,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     setSize(pd.lastUIWidth, pd.lastUIHeight);
     console->console->update();
-    
+
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 }
@@ -420,8 +423,8 @@ void PlugDataPluginEditor::paint(Graphics& g)
     // (Our component is opaque, so we must completely fill the background with a solid colour)
     g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
 
-    auto baseColour = MainLook::firstBackground;
-    auto highlightColour = MainLook::highlightColour;
+    auto baseColour = findColour(ComboBox::backgroundColourId);
+    auto highlightColour = findColour(Slider::thumbColourId);
 
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
 
@@ -548,13 +551,13 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
     auto* cnv = getCurrentCanvas();
 
     // cmd-e
-    if (key == KeyPress ('e', ModifierKeys::commandModifier, 0))
+    if (key == KeyPress('e', ModifierKeys::commandModifier, 0))
     {
         lockButton.triggerClick();
         return true;
     }
-    
-    if (key == KeyPress ('e', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
+
+    if (key == KeyPress('e', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
     {
         for (auto& connection : cnv->connections)
         {
@@ -581,46 +584,44 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
     }
 
     if (pd.locked) return false;
-    
-    
 
     // Key shortcuts for creating objects
-    if (key == KeyPress ('n', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('n', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "", cnv->lastMousePos));
         return true;
     }
-    if (key == KeyPress ('c', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('c', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "comment", cnv->lastMousePos));
         return true;
     }
-    if (key == KeyPress ('b', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('b', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "bng", cnv->lastMousePos));
         return true;
     }
-    if (key == KeyPress ('m', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('m', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "msg", cnv->lastMousePos));
         return true;
     }
-    if (key == KeyPress ('i', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('i', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "nbx", cnv->lastMousePos));
         return true;
     }
-    if (key == KeyPress ('f', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('f', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "floatatom", cnv->lastMousePos));
         return true;
     }
-    if (key == KeyPress ('t', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('t', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "tgl", cnv->lastMousePos));
         return true;
     }
-    if (key == KeyPress ('s', ModifierKeys::noModifiers, 0))
+    if (key == KeyPress('s', ModifierKeys::noModifiers, 0))
     {
         cnv->boxes.add(new Box(cnv, "vsl", cnv->lastMousePos));
         return true;
@@ -631,8 +632,8 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
         cnv->removeSelection();
         return true;
     }
-    
-    if (key == KeyPress ('a', ModifierKeys::commandModifier, 0))
+
+    if (key == KeyPress('a', ModifierKeys::commandModifier, 0))
     {
         for (auto* child : cnv->boxes)
         {
@@ -646,39 +647,39 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
         return true;
     }
     // cmd-c
-    if (key == KeyPress ('c', ModifierKeys::commandModifier, 0))
+    if (key == KeyPress('c', ModifierKeys::commandModifier, 0))
     {
         cnv->copySelection();
         return true;
     }
     // cmd-v
-    if (key == KeyPress ('v', ModifierKeys::commandModifier, 0))
+    if (key == KeyPress('v', ModifierKeys::commandModifier, 0))
     {
         cnv->pasteSelection();
         return true;
     }
     // cmd-x
-    if (key == KeyPress ('x', ModifierKeys::commandModifier, 0))
+    if (key == KeyPress('x', ModifierKeys::commandModifier, 0))
     {
         cnv->copySelection();
         cnv->removeSelection();
         return true;
     }
     // cmd-d
-    if (key == KeyPress ('d', ModifierKeys::commandModifier, 0))
+    if (key == KeyPress('d', ModifierKeys::commandModifier, 0))
     {
         cnv->duplicateSelection();
         return true;
     }
 
     // cmd-shift-z
-    if (key == KeyPress ('z', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
+    if (key == KeyPress('z', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
     {
         cnv->redo();
         return true;
     }
     // cmd-z
-    if (key == KeyPress ('z', ModifierKeys::commandModifier, 0))
+    if (key == KeyPress('z', ModifierKeys::commandModifier, 0))
     {
         cnv->undo();
         return true;
@@ -728,10 +729,8 @@ void PlugDataPluginEditor::openProject()
 
         if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd"))
         {
-            
             pd.settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
-            
-            
+
             tabbar.clearTabs();
             pd.loadPatch(openedFile);
         }
@@ -761,22 +760,21 @@ void PlugDataPluginEditor::openProject()
 void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
-                            [this, nestedCallback](const FileChooser& f) mutable
-                            {
-                                File result = saveChooser->getResult();
+                             [this, nestedCallback](const FileChooser& f) mutable
+                             {
+                                 File result = saveChooser->getResult();
 
-                                if (result.getFullPathName().isNotEmpty())
-                                {
-                                    
-                                    pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
-                                    
-                                    result.deleteFile();
+                                 if (result.getFullPathName().isNotEmpty())
+                                 {
+                                     pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
 
-                                    pd.savePatch(result);
-                                }
+                                     result.deleteFile();
 
-                                nestedCallback();
-                            });
+                                     pd.savePatch(result);
+                                 }
+
+                                 nestedCallback();
+                             });
 }
 
 void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
@@ -813,28 +811,29 @@ void PlugDataPluginEditor::updateValues()
 void PlugDataPluginEditor::updateUndoState()
 {
     pd.setThis();
-    
-    MessageManager::callAsync([this]() {
-        toolbarButtons[6].setEnabled(!pd.locked);
-    });
+
+    MessageManager::callAsync([this]() { toolbarButtons[6].setEnabled(!pd.locked); });
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked)
     {
         auto* cnv = getCurrentCanvas()->patch.getPointer();
-        
-        pd.enqueueFunction([this, cnv](){
-            
-            getCurrentCanvas()->patch.setCurrent();
-            // Check undo state on pd's thread
-            bool canUndo = libpd_can_undo(cnv);
-            bool canRedo = libpd_can_redo(cnv);
-            
-            // Apply to buttons on message thread
-            MessageManager::callAsync([this, canUndo, canRedo]() mutable {
-                toolbarButtons[4].setEnabled(canUndo);
-                toolbarButtons[5].setEnabled(canRedo);
+
+        pd.enqueueFunction(
+            [this, cnv]()
+            {
+                getCurrentCanvas()->patch.setCurrent();
+                // Check undo state on pd's thread
+                bool canUndo = libpd_can_undo(cnv);
+                bool canRedo = libpd_can_redo(cnv);
+
+                // Apply to buttons on message thread
+                MessageManager::callAsync(
+                    [this, canUndo, canRedo]() mutable
+                    {
+                        toolbarButtons[4].setEnabled(canUndo);
+                        toolbarButtons[5].setEnabled(canRedo);
+                    });
             });
-        });
     }
     else
     {
@@ -955,8 +954,8 @@ void PlugDataPluginEditor::zoom(bool zoomingIn)
     getCurrentCanvas()->checkBounds();
 }
 
-void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree &treeWhosePropertyHasChanged, const Identifier &property) {
-    
+void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
+{
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 }

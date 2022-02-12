@@ -413,12 +413,11 @@ void Instance::enqueueDirectMessages(void* object, const float msg)
 void Instance::waitForStateUpdate()
 {
     // No action needed
-    if(m_function_queue.size_approx() == 0) {
+    if (m_function_queue.size_approx() == 0)
+    {
         return;
     }
-    
-    
-    
+
     // Need to wait twice to ensure that pd has processed all changes
     if (audioStarted)
     {
