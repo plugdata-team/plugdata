@@ -57,9 +57,9 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
     {
         if (!isGraph)
         {
-            g.fillAll(MainLook::firstBackground);
+            g.fillAll(findColour(ComboBox::backgroundColourId));
 
-            g.setColour(MainLook::secondBackground);
+            g.setColour(findColour(ResizableWindow::backgroundColourId));
             g.fillRect(zeroPosition.x, zeroPosition.y, getWidth(), getHeight());
 
             // draw origin
@@ -122,10 +122,10 @@ struct GraphArea : public Component, public ComponentDragger
 
     void paint(Graphics& g) override
     {
-        g.setColour(MainLook::highlightColour);
+        g.setColour(findColour(Slider::thumbColourId));
         g.drawRect(getLocalBounds());
 
-        g.setColour(MainLook::highlightColour.darker(0.8f));
+        g.setColour(findColour(Slider::thumbColourId).darker(0.8f));
         g.drawRect(getLocalBounds().reduced(6));
     }
 

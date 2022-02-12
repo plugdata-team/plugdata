@@ -62,7 +62,7 @@ class Box : public Component, public ChangeListener
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
 
-    Colour outline = MainLook::highlightColour;
+    Colour outline = findColour(Slider::thumbColourId);
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

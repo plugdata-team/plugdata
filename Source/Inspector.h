@@ -6,8 +6,6 @@
 
 #include <JuceHeader.h>
 
-#include "LookAndFeel.h"
-
 enum ParameterType
 {
     tString,
@@ -46,7 +44,7 @@ struct Inspector : public Component, public TableListBoxModel
         table.getHeader().setStretchToFitActive(true);
 
         table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
-        table.getHeader().setColour(TableHeaderComponent::backgroundColourId, MainLook::highlightColour);
+        table.getHeader().setColour(TableHeaderComponent::backgroundColourId, findColour(Slider::thumbColourId));
 
         table.setMultipleSelectionEnabled(true);
     }
@@ -62,11 +60,11 @@ struct Inspector : public Component, public TableListBoxModel
     {
         if (rowIsSelected)
         {
-            g.fillAll(MainLook::highlightColour);
+            g.fillAll(findColour(Slider::thumbColourId));
         }
         else
         {
-            g.fillAll((row % 2) ? MainLook::firstBackground : MainLook::secondBackground);
+            g.fillAll((row % 2) ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId));
         }
     }
 
@@ -217,7 +215,7 @@ struct Inspector : public Component, public TableListBoxModel
                 colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
                 colourSelector->addChangeListener(this);
                 colourSelector->setSize(300, 400);
-                colourSelector->setColour(ColourSelector::backgroundColourId, MainLook::firstBackground);
+                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
 
                 colourSelector->setCurrentColour(Colour::fromString(*currentColour));
 

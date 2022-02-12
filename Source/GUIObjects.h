@@ -18,7 +18,6 @@ extern "C"
 #include <utility>
 
 #include "../Libraries/ff_meters/ff_meters.h"
-#include "LookAndFeel.h"
 #include "Pd/PdGui.h"
 #include "Pd/PdPatch.h"
 #include "PluginProcessor.h"
@@ -58,7 +57,7 @@ struct GUIComponent : public Component, public ComponentListener
     {
         if (gui.isAtom())
         {
-            g.setColour(MainLook::highlightColour);
+            g.setColour(findColour(Slider::thumbColourId));
             Path triangle;
             triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
 
@@ -125,8 +124,8 @@ struct GUIComponent : public Component, public ComponentListener
         {
             auto& [parameters, cb] = params;
 
-            //parameters.insert(parameters.begin(), {"Width", tInt, static_cast<void*>(&width)});
-            
+            // parameters.insert(parameters.begin(), {"Width", tInt, static_cast<void*>(&width)});
+
             parameters.insert(parameters.begin(), {"Send Symbol", tString, static_cast<void*>(&sendSymbol)});
             parameters.insert(parameters.begin() + 1, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol)});
 
@@ -207,8 +206,8 @@ struct GUIComponent : public Component, public ComponentListener
     String sendSymbol;
     String receiveSymbol;
 
-    String primaryColour = MainLook::highlightColour.toString();
-    String secondaryColour = MainLook::firstBackground.toString();
+    String primaryColour = findColour(Slider::thumbColourId).toString();
+    String secondaryColour = findColour(ComboBox::backgroundColourId).toString();
 };
 
 struct BangComponent : public GUIComponent, public Timer
@@ -298,7 +297,8 @@ struct MessageComponent : public GUIComponent
             input.showEditor();
         }
         // Edit atoms when locked
-        else if(e.getNumberOfClicks() == 2 && isLocked && gui.isAtom()) {
+        else if (e.getNumberOfClicks() == 2 && isLocked && gui.isAtom())
+        {
             input.showEditor();
         }
 
@@ -306,7 +306,7 @@ struct MessageComponent : public GUIComponent
         {
             isDown = true;
             repaint();
-            
+
             startEdition();
             gui.click();
             stopEdition();
@@ -326,7 +326,7 @@ struct MessageComponent : public GUIComponent
     void update() override;
 
     void paint(Graphics& g) override;
-    
+
     void paintOverChildren(Graphics& g) override;
 
     int numLines = 1;
@@ -741,11 +741,11 @@ struct VUMeter : public GUIComponent
         lnf.setColour(foleys::LevelMeter::lmOutlineColour, juce::Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, findColour(Slider::thumbColourId));
         lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, juce::Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, juce::Colours::darkgrey);
-        lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, MainLook::highlightColour);
-        lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, findColour(Slider::thumbColourId));
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, findColour(Slider::thumbColourId));
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
 
         addAndMakeVisible(meter);
@@ -850,10 +850,9 @@ struct PanelComponent : public GUIComponent
 // ELSE mousepad
 struct MousePad : public GUIComponent
 {
-    
     bool isLocked = false;
     bool isPressed = false;
-    
+
     typedef struct _pad
     {
         t_object x_obj;
@@ -875,7 +874,7 @@ struct MousePad : public GUIComponent
     ~MousePad() override;
 
     void paint(Graphics& g) override;
-    
+
     void lock(bool isLocked) override;
 
     void updateValue() override;

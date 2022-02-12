@@ -39,7 +39,6 @@ namespace pd
 
 Object::Object(void* objectPtr, Patch* parentPatch, Instance* parentInstance) noexcept : ptr(objectPtr), patch(parentPatch), instance(parentInstance)
 {
-    
 }
 
 bool Object::operator==(Object const& other) const noexcept
@@ -59,7 +58,7 @@ std::string Object::getText()
         char* text = nullptr;
         int size = 0;
         instance->setThis();
-        
+
         libpd_get_object_text(ptr, &text, &size);
         if (text && size)
         {
@@ -93,7 +92,7 @@ std::array<int, 4> Object::getBounds() const noexcept
         patch->setCurrent(true);
 
         libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
-        
+
         return {static_cast<int>(x * Patch::zoom), static_cast<int>(y * Patch::zoom), static_cast<int>(w * Patch::zoom), static_cast<int>(h * Patch::zoom)};
     }
     return {0, 0, 0, 0};

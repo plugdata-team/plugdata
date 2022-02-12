@@ -18,7 +18,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(paren
 
     initialise();
     setTopLeftPosition(position);
-    
+
     setBufferedToImage(true);
 
     setType(name);
@@ -62,22 +62,21 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
     locked = cnv->pd->locked;
 
     // Hide certain objects in GOP
-    if(cnv->isGraph && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment)))) {
+    if (cnv->isGraph && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
+    {
         setVisible(false);
     }
-    else {
+    else
+    {
         setVisible(true);
     }
-
 
     if (graphics)
     {
         graphics->lock(locked || cnv->pd->commandLocked);
     }
-    
-    
-    resizer.setVisible(!locked);
 
+    resizer.setVisible(!locked);
 
     resized();
     repaint();
@@ -180,11 +179,11 @@ void Box::setType(const String& newType, bool exists)
         // Create graphics for the object if necessary
         graphics.reset(GUIComponent::createGui(type, this));
 
-        if (graphics)  {
+        if (graphics)
+        {
             graphics->lock(locked);
             graphics->updateValue();
         }
-        
 
         if (graphics && graphics->getGui().getType() == pd::Type::Comment)
         {
@@ -264,14 +263,15 @@ void Box::paint(Graphics& g)
     }
     else if (selected)
     {
-        outlineColour = MainLook::highlightColour;
+        outlineColour = findColour(Slider::thumbColourId);
     }
-    
-    if(!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment)) {
-        g.setColour(MainLook::firstBackground);
+
+    if (!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
+    {
+        g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(5));
     }
-    
+
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {

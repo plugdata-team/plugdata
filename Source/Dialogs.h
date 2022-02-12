@@ -7,14 +7,12 @@
 #pragma once
 
 #include <JuceHeader.h>
-
 #include "LookAndFeel.h"
 
 class SaveDialog : public Component
 {
-    // MainLook mainLook;
-
-    DropShadower shadower = DropShadower(MainLook::shadow);
+    DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
+    DropShadower shadower = DropShadower(shadow);
 
     Label savelabel = Label("savelabel", "Save Changes?");
 
@@ -36,9 +34,8 @@ class SaveDialog : public Component
 
 class ArrayDialog : public Component
 {
-    // MainLook mainLook;
-
-    DropShadower shadower = DropShadower(MainLook::shadow);
+    DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
+    DropShadower shadower = DropShadower(shadow);
 
     Label label = Label("savelabel", "Array Properties");
 
@@ -96,8 +93,7 @@ struct DAWAudioSettings : public Component
 
 struct SettingsComponent : public Component
 {
-    SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
-
+    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
 
     void paint(Graphics& g) override;
 
@@ -110,24 +106,22 @@ struct SettingsComponent : public Component
 
     int toolbarHeight = 50;
 
-
     OwnedArray<TextButton> toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search)};
 };
 
 struct SettingsDialog : public Component
 {
-    
     AudioProcessor& audioProcessor;
-    
-    MainLook mainLook;
-    SettingsComponent settingsComponent; // does this need its own component?
+
+    SettingsComponent settingsComponent;  // does this need its own component?
     ComponentDragger dragger;
 
-    DropShadower shadower = DropShadower(MainLook::shadow);
+    DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
+    DropShadower shadower = DropShadower(shadow);
 
     ComponentBoundsConstrainer constrainer;
 
-    SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : audioProcessor(processor), settingsComponent(r, processor, manager, std::move(settingsTree), std::move(updatePaths)), mainLook(r)
+    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : audioProcessor(processor), settingsComponent(processor, manager, std::move(settingsTree), std::move(updatePaths))
     {
         shadower.setOwner(this);
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
@@ -141,7 +135,6 @@ struct SettingsDialog : public Component
         addAndMakeVisible(closeButton.get());
 
         settingsComponent.addMouseListener(this, false);
-    
 
         closeButton->onClick = [this]() { setVisible(false); };
 

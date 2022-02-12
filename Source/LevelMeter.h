@@ -9,7 +9,6 @@
 #include <memory>
 
 #include "../Libraries/ff_meters/ff_meters.h"
-#include "LookAndFeel.h"
 
 // Widget that shows a Foleys level meter and a volume slider
 
@@ -26,11 +25,11 @@ struct LevelMeter : public Component
         lnf.setColour(foleys::LevelMeter::lmOutlineColour, juce::Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, findColour(Slider::thumbColourId));
         lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, juce::Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, juce::Colours::darkgrey);
-        lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, MainLook::highlightColour);
-        lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, findColour(Slider::thumbColourId));
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, findColour(Slider::thumbColourId));
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
 
         addAndMakeVisible(meter);
