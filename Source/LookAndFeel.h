@@ -132,7 +132,7 @@ struct PlugDataLook : public LookAndFeel_V4
         return {buttonHeight / 1.7f};
     }
 
-    virtual void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider){};
+    virtual void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) = 0;
 
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
     {
@@ -517,6 +517,7 @@ struct PlugDataDarkLook : public PlugDataLook
         float trackWidth = 6.;
         Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
         Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
+        
         Path backgroundTrack;
         backgroundTrack.startNewSubPath(startPoint);
         backgroundTrack.lineTo(endPoint);
@@ -531,7 +532,7 @@ struct PlugDataDarkLook : public PlugDataLook
         auto thumbWidth = getSliderThumbRadius(slider);
         valueTrack.startNewSubPath(minPoint);
         valueTrack.lineTo(maxPoint);
-        g.setColour(slider.findColour(Slider::trackColourId));
+        g.setColour(slider.findColour(Slider::backgroundColourId));
         g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
         g.setColour(slider.findColour(Slider::thumbColourId));
         g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));
