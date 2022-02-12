@@ -1,12 +1,9 @@
 # PlugData
 Plugin wrapper around PureData to allow patching in a wide selection of DAWs.
 
-<img width="1048" alt="Screenshot 2022-01-27 at 11 51 33" src="https://user-images.githubusercontent.com/44585538/151344732-983df431-d355-474f-9652-0aeab5e3baae.png">
+<img width="1048" alt="Screenshot 2022-02-11 at 17 09 10" src="https://user-images.githubusercontent.com/44585538/153626710-933853e5-868b-4a4c-a47f-9e5ba1e0efe3.png">
 
-<img width="1048" alt="151343690-8e397bf2-adbe-4c7a-aafd-8bf170ebd9c5" src="https://user-images.githubusercontent.com/44585538/151345013-6d67abb6-ddb8-4b46-896e-642b40c58012.png">
-
-<img width="1048" alt="151343023-b6f88c21-cb24-47c4-b94d-86c1102aa040" src="https://user-images.githubusercontent.com/44585538/151345026-7b8aec32-ce7e-4a70-a707-a0d025984f17.png">
-
+<img width="1048" alt="Screenshot 2022-02-11 at 17 01 22" src="https://user-images.githubusercontent.com/44585538/153625492-dd83ac00-3da3-43a9-8fb5-882ac085acf5.png">
 
 
 PlugData a plugin wrapper for PureData, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
