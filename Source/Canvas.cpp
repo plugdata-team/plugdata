@@ -66,7 +66,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
 
 Canvas::~Canvas()
 {
-    popupMenu.setLookAndFeel(nullptr);
     Component::removeAllChildren();
     removeKeyListener(this);
 }
@@ -403,7 +402,6 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addItem(8, "To Front", hasSelection);
         popupMenu.addSeparator();
         popupMenu.addItem(9, "Help", hasSelection);  // Experimental: opening help files
-        popupMenu.setLookAndFeel(&getLookAndFeel());
 
         auto callback = [this, &lassoSelection, openSubpatch](int result)
         {
