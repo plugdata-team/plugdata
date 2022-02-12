@@ -321,7 +321,8 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(p
     addAndMakeVisible(bangButton);
 
     bangButton.setTriggeredOnMouseDown(true);
-
+    bangButton.setName("pd:bang");
+    
     bangButton.onClick = [this]()
     {
         startEdition();
@@ -356,6 +357,7 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
     addAndMakeVisible(toggleButton);
     toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
     toggleButton.setConnectedEdges(12);
+    toggleButton.setName("pd:toggle");
 
     toggleButton.onClick = [this]()
     {

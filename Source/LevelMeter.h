@@ -33,6 +33,7 @@ struct LevelMeter : public Component
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
 
         addAndMakeVisible(meter);
+        meter.setLookAndFeel(&lnf);
 
         addAndMakeVisible(volumeSlider);
         volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
@@ -46,6 +47,7 @@ struct LevelMeter : public Component
 
     ~LevelMeter() override
     {
+        meter.setLookAndFeel(nullptr);
     }
 
     void resized() override
