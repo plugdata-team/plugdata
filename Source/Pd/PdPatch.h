@@ -130,7 +130,7 @@ class Patch
    private:
     void* ptr = nullptr;
     Instance* instance = nullptr;
-    
+
     t_gobj* infoObject = nullptr;
 
     friend class Instance;

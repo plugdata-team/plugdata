@@ -13,6 +13,7 @@
 #include "Inspector.h"
 #include "LevelMeter.h"
 #include "LookAndFeel.h"
+
 #include "Standalone/PlugDataWindow.h"
 
 struct TabComponent : public TabbedComponent
@@ -34,9 +35,7 @@ class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener, public ValueTree::Listener
 {
    public:
-    SharedResourcePointer<Resources> resources;
-
-    MainLook mainLook = MainLook(resources.get());
+    std::unique_ptr<LookAndFeel> lnf;
 
     PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
     ~PlugDataPluginEditor() override;
@@ -69,8 +68,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     void updateUndoState();
 
     void zoom(bool zoomingIn);
-    
-    void valueTreePropertyChanged(ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override;
+
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
 
     PlugDataAudioProcessor& pd;
 
@@ -115,7 +114,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     std::unique_ptr<ResizableCornerComponent> resizer;
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
-    
+
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
 
     Component seperators[2];

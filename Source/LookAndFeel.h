@@ -8,13 +8,6 @@
 
 #include <JuceHeader.h>
 
-struct Resources
-{
-    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
-
-    Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
-};
-
 struct Icons
 {
     inline static const CharPointer_UTF8 New = CharPointer_UTF8("\xef\x85\x9b");
@@ -48,140 +41,149 @@ struct Icons
 
 struct PlugDataLook : public LookAndFeel_V4
 {
-    PlugDataLook() {
-        
+    PlugDataLook()
+    {
     }
-    
-    virtual ~PlugDataLook() {
-        
+
+    virtual ~PlugDataLook()
+    {
     }
-    
-    virtual void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)  {};
-    
-    virtual void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)  {};
-    
-    virtual void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)  {};
-    
-    virtual void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)  {};
-    
-    virtual void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)  {};
-    
-    
-    virtual void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)  {};
-    
-    virtual Font getToolbarFont(int buttonHeight)  {};
-    virtual Font getStatusbarFont(int buttonHeight)  {};
-    virtual Font getSuggestionFont(int buttonHeight) {};
-    
+
+    virtual void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
+
+    virtual void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
+
+    virtual void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
+
+    virtual void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
+
+    virtual void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
+
+    virtual void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
+
+    virtual Font getToolbarFont(int buttonHeight) = 0;
+    virtual Font getStatusbarFont(int buttonHeight) = 0;
+    virtual Font getSuggestionFont(int buttonHeight) = 0;
+
     int getSliderThumbRadius(Slider& s) override
     {
-        if(s.getName().startsWith("statusbar")) {
+        if (s.getName().startsWith("statusbar"))
+        {
             return 6;
         }
         return LookAndFeel_V4::getSliderThumbRadius(s);
     }
-    
+
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        if(button.getName().startsWith("toolbar")) {
+        if (button.getName().startsWith("toolbar"))
+        {
             drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if(button.getName().startsWith("statusbar")) {
+        else if (button.getName().startsWith("statusbar"))
+        {
             drawStatusbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if(button.getName().startsWith("suggestions")) {
+        else if (button.getName().startsWith("suggestions"))
+        {
             drawSuggestionButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if(button.getName().startsWith("pd")) {
+        else if (button.getName().startsWith("pd"))
+        {
             drawPdButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else {
+        else
+        {
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
     }
-    
+
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
-        if(button.getName().startsWith("suggestions")) {
+        if (button.getName().startsWith("suggestions"))
+        {
             drawSuggestionButtonText(g, button, isMouseOverButton, isButtonDown);
         }
-        else if(button.getName().startsWith("statusbar")) {
+        else if (button.getName().startsWith("statusbar"))
+        {
             drawStatusbarButtonText(g, button, isMouseOverButton, isButtonDown);
         }
-        else {
+        else
+        {
             LookAndFeel_V4::drawButtonText(g, button, isMouseOverButton, isButtonDown);
         }
-        
-       
     }
-    
+
     Font getTextButtonFont(TextButton& but, int buttonHeight) override
     {
-        if(but.getName().startsWith("toolbar")) {
+        if (but.getName().startsWith("toolbar"))
+        {
             return getToolbarFont(buttonHeight);
         }
-        if(but.getName().startsWith("statusbar")) {
+        if (but.getName().startsWith("statusbar"))
+        {
             return getStatusbarFont(buttonHeight);
         }
-        if(but.getName().startsWith("suggestions")) {
+        if (but.getName().startsWith("suggestions"))
+        {
             return getSuggestionFont(buttonHeight);
         }
-        
+
         return {buttonHeight / 1.7f};
     }
-    
-    virtual void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) {};
-    
+
+    virtual void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider){};
+
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
     {
-        if(slider.getName().startsWith("statusbar")) {
+        if (slider.getName().startsWith("statusbar"))
+        {
             drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
-        else {
+        else
+        {
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
     }
 };
 
-struct MainLook : public PlugDataLook
+// Make sure you only initialise one, or the fonts will be copied!
+struct PlugDataDarkLook : public PlugDataLook
 {
-    // For dialogs
-    inline static DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
+    Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
 
-    inline static Colour highlightColour = Colour(0xff42a2c8);
-    inline static Colour firstBackground = Colour(23, 23, 23);
-    inline static Colour secondBackground = Colour(32, 32, 32);
-    
+    Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
+
     Font defaultFont;
     Font iconFont;
 
-    MainLook(Resources& r) : defaultFont(r.defaultTypeface),  iconFont(r.iconTypeface)
+    PlugDataDarkLook() : defaultFont(defaultTypeface), iconFont(iconTypeface)
     {
-        setColour(ResizableWindow::backgroundColourId, secondBackground);
-        setColour(TextButton::buttonColourId, firstBackground);
-        setColour(TextButton::buttonOnColourId, highlightColour);
+        setColour(ResizableWindow::backgroundColourId, Colour(32, 32, 32));
+        setColour(TextButton::buttonColourId, Colour(23, 23, 23));
+        setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
         setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
-        
+
+        setColour(Slider::thumbColourId, Colour(0xff42a2c8));
+
         setColour(SidePanel::backgroundColour, Colour(50, 50, 50));
-        setColour(ComboBox::backgroundColourId, firstBackground);
-        setColour(ListBox::backgroundColourId, firstBackground);
+        setColour(ComboBox::backgroundColourId, Colour(23, 23, 23));
+        setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
         setColour(Slider::backgroundColourId, Colour(60, 60, 60));
         setColour(Slider::trackColourId, Colour(90, 90, 90));
         setColour(CodeEditorComponent::backgroundColourId, Colour(50, 50, 50));
         setColour(CodeEditorComponent::defaultTextColourId, Colours::white);
         setColour(TextEditor::textColourId, Colours::white);
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-        
-        setColour(TooltipWindow::backgroundColourId, firstBackground.withAlpha(float(0.8)));
 
-        setColour(PopupMenu::backgroundColourId, firstBackground.withAlpha(0.95f));
-        setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
+        setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.8f));
+
+        setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
+        setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
 
         setColour(CodeEditorComponent::lineNumberBackgroundId, Colour(41, 41, 41));
 
-        // setColour(PopupMenu::backgroundColourId, firstBackground.withAlpha(0.95f));
-
-        setDefaultSansSerifTypeface(r.defaultTypeface);
+        setDefaultSansSerifTypeface(defaultTypeface);
     }
 
     class PlugData_DocumentWindowButton : public Button
@@ -193,7 +195,7 @@ struct MainLook : public PlugDataLook
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
-            auto background = MainLook::firstBackground;
+            auto background = findColour(ComboBox::backgroundColourId);
 
             if (findParentComponentOfClass<ResizableWindow>())
             {
@@ -236,7 +238,7 @@ struct MainLook : public PlugDataLook
     {
         if (w * h == 0) return;
 
-        g.setColour(firstBackground);
+        g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillAll();
 
         Font font(h * 0.65f, Font::plain);
@@ -258,14 +260,14 @@ struct MainLook : public PlugDataLook
             shape.addLineSegment({0.0f, 0.0f, 1.0f, 1.0f}, crossThickness);
             shape.addLineSegment({1.0f, 0.0f, 0.0f, 1.0f}, crossThickness);
 
-            return new PlugData_DocumentWindowButton("close", highlightColour, shape, shape);
+            return new PlugData_DocumentWindowButton("close", findColour(Slider::thumbColourId), shape, shape);
         }
 
         if (buttonType == DocumentWindow::minimiseButton)
         {
             shape.addLineSegment({0.0f, 0.5f, 1.0f, 0.5f}, crossThickness);
 
-            return new PlugData_DocumentWindowButton("minimise", highlightColour, shape, shape);
+            return new PlugData_DocumentWindowButton("minimise", findColour(Slider::thumbColourId), shape, shape);
         }
 
         if (buttonType == DocumentWindow::maximiseButton)
@@ -282,7 +284,7 @@ struct MainLook : public PlugDataLook
             fullscreenShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
             PathStrokeType(30.0f).createStrokedPath(fullscreenShape, fullscreenShape);
 
-            return new PlugData_DocumentWindowButton("maximise", MainLook::highlightColour, shape, fullscreenShape);
+            return new PlugData_DocumentWindowButton("maximise", findColour(Slider::thumbColourId), shape, fullscreenShape);
         }
 
         jassertfalse;
@@ -305,23 +307,21 @@ struct MainLook : public PlugDataLook
     {
         return {height * 0.4f};
     }
-    
+
     Font getToolbarFont(int buttonHeight) override
     {
         return iconFont.withHeight(buttonHeight / 3.5);
     }
-    
-    
+
     Font getStatusbarFont(int buttonHeight) override
     {
         return iconFont.withHeight(buttonHeight / 2.25);
     }
-    
+
     Font getSuggestionFont(int buttonHeight) override
     {
         return {buttonHeight / 1.9f};
     }
-    
 
     void drawPopupMenuBackground(Graphics& g, int width, int height) override
     {
@@ -332,7 +332,7 @@ struct MainLook : public PlugDataLook
         // Fill background if there's no support for transparent popupmenus
         if (!Desktop::canUseSemiTransparentWindows() && JUCEApplicationBase::isStandaloneApp())
         {
-            g.fillAll(MainLook::secondBackground);
+            g.fillAll(findColour(ResizableWindow::backgroundColourId));
         }
 
         auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
@@ -346,8 +346,7 @@ struct MainLook : public PlugDataLook
     {
         return 5;
     };
-    
-    
+
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
         if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
@@ -367,13 +366,14 @@ struct MainLook : public PlugDataLook
             }
         }
     }
-    
-    void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override {
+
+    void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
         auto rect = button.getLocalBounds();
 
-        auto baseColour = firstBackground;
+        auto baseColour = findColour(ComboBox::backgroundColourId);
 
-        auto highlightColour = MainLook::highlightColour;
+        auto highlightColour = findColour(Slider::thumbColourId);
 
         if (shouldDrawButtonAsHighlighted || button.getToggleState()) highlightColour = highlightColour.brighter(0.4f);
 
@@ -390,15 +390,15 @@ struct MainLook : public PlugDataLook
         g.setColour(highlightColour);
         g.fillRect(highlightRect);
     }
-    
-    void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override {
-        
-        g.setColour(firstBackground);
+
+    void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
+        g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillRect(button.getLocalBounds());
     }
-    
-    void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override {
-        
+
+    void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
         auto buttonArea = button.getLocalBounds();
 
         if (shouldDrawButtonAsDown)
@@ -415,11 +415,10 @@ struct MainLook : public PlugDataLook
         }
 
         g.fillRect(buttonArea.toFloat());
-        
     }
-    
-    void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override {
-        
+
+    void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
         auto font = getTextButtonFont(button, button.getHeight());
         g.setFont(font);
         g.setColour(button.findColour(button.getToggleState() ? TextButton::textColourOnId : TextButton::textColourOffId).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f));
@@ -432,8 +431,9 @@ struct MainLook : public PlugDataLook
 
         if (textWidth > 0) g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::left, 2);
     }
-    
-    void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override {
+
+    void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
         Font font(getTextButtonFont(button, button.getHeight()));
         g.setFont(font);
 
@@ -441,16 +441,19 @@ struct MainLook : public PlugDataLook
         {
             g.setColour(Colours::grey);
         }
-        else if(button.getToggleState()) {
-            g.setColour(highlightColour);
+        else if (button.getToggleState())
+        {
+            g.setColour(findColour(Slider::thumbColourId));
         }
-        else if(shouldDrawButtonAsHighlighted) {
-            g.setColour(highlightColour.brighter(0.8f));
+        else if (shouldDrawButtonAsHighlighted)
+        {
+            g.setColour(findColour(Slider::thumbColourId).brighter(0.8f));
         }
-        else {
+        else
+        {
             g.setColour(Colours::white);
         }
-        
+
         const int yIndent = jmin(4, button.proportionOfHeight(0.3f));
         const int cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
 
@@ -461,8 +464,9 @@ struct MainLook : public PlugDataLook
 
         if (textWidth > 0) g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
     }
-    
-    void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override {
+
+    void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
         auto cornerSize = 6.0f;
         auto bounds = button.getLocalBounds().toFloat();
 
@@ -503,36 +507,33 @@ struct MainLook : public PlugDataLook
             g.drawEllipse(ellpiseBounds, 1.0f);
         }
     }
-    
-    
-    void drawStatusbarSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) {
-        
+
+    void drawStatusbarSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
+    {
     }
-    
-    void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override {
-        
-            float trackWidth = 6.;
-            Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
-            Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
-            Path backgroundTrack;
-            backgroundTrack.startNewSubPath(startPoint);
-            backgroundTrack.lineTo(endPoint);
-            g.setColour(slider.findColour(Slider::backgroundColourId));
-            g.strokePath(backgroundTrack, {trackWidth, PathStrokeType::mitered});
-            Path valueTrack;
-            Point<float> minPoint, maxPoint;
-            auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
-            auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
-            minPoint = startPoint;
-            maxPoint = {kx, ky};
-            auto thumbWidth = getSliderThumbRadius(slider);
-            valueTrack.startNewSubPath(minPoint);
-            valueTrack.lineTo(maxPoint);
-            g.setColour(slider.findColour(Slider::trackColourId));
-            g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
-            g.setColour(slider.findColour(Slider::thumbColourId));
-            g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));
-        
+
+    void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
+    {
+        float trackWidth = 6.;
+        Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
+        Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
+        Path backgroundTrack;
+        backgroundTrack.startNewSubPath(startPoint);
+        backgroundTrack.lineTo(endPoint);
+        g.setColour(slider.findColour(Slider::backgroundColourId));
+        g.strokePath(backgroundTrack, {trackWidth, PathStrokeType::mitered});
+        Path valueTrack;
+        Point<float> minPoint, maxPoint;
+        auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
+        auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
+        minPoint = startPoint;
+        maxPoint = {kx, ky};
+        auto thumbWidth = getSliderThumbRadius(slider);
+        valueTrack.startNewSubPath(minPoint);
+        valueTrack.lineTo(maxPoint);
+        g.setColour(slider.findColour(Slider::trackColourId));
+        g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
+        g.setColour(slider.findColour(Slider::thumbColourId));
+        g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));
     }
-    
 };

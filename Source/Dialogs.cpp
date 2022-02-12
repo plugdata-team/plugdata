@@ -52,7 +52,7 @@ void SaveDialog::resized()
 
 void SaveDialog::paint(Graphics& g)
 {
-    g.setColour(MainLook::firstBackground);
+    g.setColour(findColour(ComboBox::backgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 }
 
@@ -143,7 +143,7 @@ void ArrayDialog::resized()
 
 void ArrayDialog::paint(Graphics& g)
 {
-    g.setColour(MainLook::firstBackground);
+    g.setColour(findColour(ComboBox::backgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
     g.setColour(findColour(ComboBox::outlineColourId).darker());
@@ -177,7 +177,7 @@ class LibraryComponent : public Component, public TableListBoxModel
         table.getHeader().setStretchToFitActive(true);
 
         table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
-        table.getHeader().setColour(TableHeaderComponent::backgroundColourId, MainLook::highlightColour);
+        table.getHeader().setColour(TableHeaderComponent::backgroundColourId, findColour(Slider::thumbColourId));
 
         table.getHeader().addColumn("Library Path", 1, 800, 50, 800, TableHeaderComponent::defaultFlags);
 
@@ -223,7 +223,7 @@ class LibraryComponent : public Component, public TableListBoxModel
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
     void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
     {
-        g.fillAll((row % 2) ? MainLook::firstBackground : MainLook::secondBackground);
+        g.fillAll((row % 2) ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId));
     }
 
     // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
@@ -325,7 +325,7 @@ class LibraryComponent : public Component, public TableListBoxModel
     StringArray items;
 };
 
-SettingsComponent::SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
+SettingsComponent::SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
 {
     for (auto& button : toolbarButtons)
     {
@@ -374,7 +374,7 @@ void SettingsComponent::paint(Graphics& g)
 {
     auto highlightColour = Colour(0xff42a2c8).darker(0.2);
 
-    g.setColour(MainLook::firstBackground);
+    g.setColour(findColour(ComboBox::backgroundColourId));
     g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
     g.setColour(highlightColour);

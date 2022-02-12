@@ -101,7 +101,6 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         // Or load the settings when they exist already
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
     }
-
 }
 
 void PlugDataAudioProcessor::saveSettings()

@@ -8,7 +8,6 @@
 
 #include <JuceHeader.h>
 
-#include "LookAndFeel.h"
 #include "MultiComponentDragger.h"
 
 // Text element in suggestion box
@@ -63,7 +62,7 @@ class SuggestionBox : public Component, public KeyListener, public TextEditor::I
    public:
     bool selecting = false;
 
-    explicit SuggestionBox(Resources& r);
+    explicit SuggestionBox();
 
     ~SuggestionBox() override;
 
@@ -92,7 +91,7 @@ class SuggestionBox : public Component, public KeyListener, public TextEditor::I
     std::unique_ptr<Component> buttonholder;
     OwnedArray<SuggestionComponent> buttons;
 
-    Array<Colour> colours = {MainLook::firstBackground, MainLook::secondBackground};
+    Array<Colour> colours = {findColour(ComboBox::backgroundColourId), findColour(ResizableWindow::backgroundColourId)};
 
     Colour bordercolor = Colour(142, 152, 155);
 

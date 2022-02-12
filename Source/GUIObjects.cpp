@@ -24,7 +24,7 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), pro
 {
     // if(!box->pdObject) return;
     const CriticalSection* cs = box->cnv->pd->getCallbackLock();
-    
+
     cs->enter();
     value = gui.getValue();
     min = gui.getMinimum();
@@ -62,8 +62,8 @@ void GUIComponent::initParameters()
 
     primaryColour = Colour(gui.getForegroundColor()).toString();
     secondaryColour = Colour(gui.getBackgroundColor()).toString();
-    if (primaryColour == "ff000000") primaryColour = MainLook::highlightColour.toString();
-    if (secondaryColour == "fffcfcfc") secondaryColour = MainLook::firstBackground.toString();
+    if (primaryColour == "ff000000") primaryColour = findColour(Slider::thumbColourId).toString();
+    if (secondaryColour == "fffcfcfc") secondaryColour = findColour(ComboBox::backgroundColourId).toString();
     setForeground(Colour::fromString(primaryColour));
     setBackground(Colour::fromString(secondaryColour));
 }
@@ -187,7 +187,7 @@ float GUIComponent::getValueOriginal() const noexcept
 void GUIComponent::setValueOriginal(float v)
 {
     value = (min < max) ? std::max(std::min(v, max), min) : std::max(std::min(v, min), max);
-    
+
     gui.setValue(value);
 }
 
@@ -220,17 +220,21 @@ void GUIComponent::updateValue()
 {
     if (edited == false)
     {
-        box->cnv->pd->enqueueFunction([this](){
-            float const v = gui.getValue();
-            
-            MessageManager::callAsync([this, v]() mutable {
-                if (v != value)
-                {
-                    value = v;
-                    update();
-                }
+        box->cnv->pd->enqueueFunction(
+            [this]()
+            {
+                float const v = gui.getValue();
+
+                MessageManager::callAsync(
+                    [this, v]() mutable
+                    {
+                        if (v != value)
+                        {
+                            value = v;
+                            update();
+                        }
+                    });
             });
-        });
     }
 }
 
@@ -241,7 +245,7 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
         Point<int> position = gui.getLabelPosition(component.getBounds());
 
         const int width = 100;
-        const int height = 23; // ??
+        const int height = 23;  // ??
         label->setBounds(position.x, position.y, width, height);
     }
 }
@@ -392,10 +396,8 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
     {
         input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
-        input.onTextChange = [this](){
-            gui.setSymbol(input.getText().toStdString());
-        };
-        
+        input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
+
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
@@ -482,12 +484,12 @@ void MessageComponent::paint(Graphics& g)
     }
     else
     {
-        g.fillAll(MainLook::firstBackground);
+        g.fillAll(findColour(ComboBox::backgroundColourId));
     }
 }
 
-
-void MessageComponent::paintOverChildren(Graphics& g) {
+void MessageComponent::paintOverChildren(Graphics& g)
+{
     GUIComponent::paintOverChildren(g);
     g.setColour(findColour(ComboBox::outlineColourId));
     g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 1.5f);
@@ -741,7 +743,7 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent)
     updateRange();
 
     int selected = getValueOriginal();
-    
+
     if (selected < radioButtons.size())
     {
         radioButtons[selected]->setToggleState(true, dontSendNotification);
@@ -1043,7 +1045,6 @@ void GraphOnParent::mouseUp(const MouseEvent& e)
     }
 }
 
-
 void GraphOnParent::updateCanvas()
 {
     // if(isShowing() && !canvas) {
@@ -1139,12 +1140,11 @@ void CommentComponent::paint(Graphics& g)
 MousePad::MousePad(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
-    
-    //setInterceptsMouseClicks(box->locked, box->locked);
-    
+
+    // setInterceptsMouseClicks(box->locked, box->locked);
+
     addMouseListener(&box->textLabel, false);
     box->textLabel.setVisible(false);
-    
 }
 
 MousePad::~MousePad()
@@ -1179,7 +1179,7 @@ void MousePad::mouseDown(const MouseEvent& e)
     sys_lock();
     outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
     sys_unlock();
-    
+
     isPressed = true;
 
     // glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
@@ -1221,7 +1221,8 @@ void MousePad::mouseUp(const MouseEvent& e)
     outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
 }
 
-void MousePad::lock(bool locked) {
+void MousePad::lock(bool locked)
+{
     isLocked = locked;
 }
 
@@ -1282,7 +1283,7 @@ KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box) : GUIComponen
 
     state.addListener(this);
     addAndMakeVisible(keyboard);
-    
+
     box->restrainer.setSizeLimits(50, 70, 1200, 1200);
 }
 

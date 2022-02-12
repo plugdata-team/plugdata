@@ -58,8 +58,8 @@ void Edge::paint(Graphics& g)
 
     bool down = isDown() && !box->locked;
     bool over = isOver() && !box->locked;
-    
-    auto backgroundColour = isSignal ? Colours::yellow : MainLook::highlightColour;
+
+    auto backgroundColour = isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
 
     auto baseColour = backgroundColour.darker(over ? 0.15f : 0.0f);
 
