@@ -96,8 +96,6 @@ class SuggestionBox : public Component, public KeyListener, public TextEditor::I
 
     Colour bordercolor = Colour(142, 152, 155);
 
-    BoxEditorLook editorLook;
-
     int highlightStart = 0;
     int highlightEnd = 0;
 
@@ -112,7 +110,6 @@ class ClickLabel : public Component, public SettableTooltipClient, public Value:
 
     ~ClickLabel() override
     {
-        setLookAndFeel(nullptr);
     }
 
     void mouseDown(const MouseEvent& e) override;

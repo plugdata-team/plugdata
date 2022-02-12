@@ -19,7 +19,7 @@ extern "C"
 #include "Edge.h"
 #include "PluginEditor.h"
 
-GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), processor(*parent->cnv->pd), gui(pdGui), edited(false), guiLook(box->cnv->main.resources.get())
+GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), processor(*parent->cnv->pd), gui(pdGui), edited(false)
 
 {
     // if(!box->pdObject) return;
@@ -37,14 +37,11 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), pro
     receiveSymbol = gui.getReceiveSymbol();
 
     setWantsKeyboardFocus(true);
-
-    setLookAndFeel(&guiLook);
 }
 
 GUIComponent::~GUIComponent()
 {
     box->removeComponentListener(this);
-    setLookAndFeel(nullptr);
 }
 
 void GUIComponent::lock(bool isLocked)
@@ -1046,11 +1043,6 @@ void GraphOnParent::mouseUp(const MouseEvent& e)
     }
 }
 
-void GraphOnParent::paint(Graphics& g)
-{
-    // g.setColour(findColour(TextButton::buttonColourId));
-    // g.fillRect(getLocalBounds().reduced(1));
-}
 
 void GraphOnParent::updateCanvas()
 {
@@ -1081,8 +1073,6 @@ void GraphOnParent::updateCanvas()
     {
         auto [x, y, w, h] = getPatch()->getBounds();
 
-        // x /= 2.0f;
-        // y /= 2.0f;
         canvas->checkBounds();
         canvas->setBounds(-x, -y, w + x, h + y);
 
@@ -1401,7 +1391,6 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
     }
 
     // Reduce clip region
-    // g.saveState();
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
     auto bounds = canvas->getParentComponent()->getLocalBounds().withPosition(pos);
 

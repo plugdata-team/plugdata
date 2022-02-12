@@ -24,14 +24,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     LookAndFeel::setDefaultLookAndFeel(&mainLook);
 
     console = debugConsole;
-    console->setLookAndFeel(&statusbarLook);
-    levelmeter.setLookAndFeel(&statusbarLook);
 
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, MainLook::firstBackground);
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, MainLook::firstBackground);
     tabbar.setColour(TabbedComponent::outlineColourId, MainLook::firstBackground);
 
-    setLookAndFeel(&mainLook);
 
     addAndMakeVisible(levelmeter);
 
@@ -71,7 +68,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     bypassButton.setTooltip("Bypass");
     bypassButton.setClickingTogglesState(true);
     bypassButton.setConnectedEdges(12);
-    bypassButton.setLookAndFeel(&statusbarLook);
+    bypassButton.setName("statusbar:bypass");
     addAndMakeVisible(bypassButton);
     bypassButton.onClick = [this]() { pd.setBypass(!bypassButton.getToggleState()); };
 
@@ -80,7 +77,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     lockButton.setTooltip("Lock");
     lockButton.setClickingTogglesState(true);
     lockButton.setConnectedEdges(12);
-    lockButton.setLookAndFeel(&statusbarLook);
+    lockButton.setName("statusbar:lock");
     lockButton.onClick = [this]()
     {
         pd.locked = lockButton.getToggleState();
@@ -112,7 +109,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     connectionStyleButton.setTooltip("Enable segmented connections");
     connectionStyleButton.setClickingTogglesState(true);
     connectionStyleButton.setConnectedEdges(12);
-    connectionStyleButton.setLookAndFeel(&statusbarLook);
+    connectionStyleButton.setName("statusbar:connectionstyle");
     connectionStyleButton.onClick = [this]()
     {
         pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
@@ -135,7 +132,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     connectionPathfind.setTooltip("Find best connection path");
     connectionPathfind.setConnectedEdges(12);
-    connectionPathfind.setLookAndFeel(&statusbarLook);
+    connectionPathfind.setName("statusbar:findpath");
     connectionPathfind.onClick = [this]()
     {
         for (auto& c : getCurrentCanvas()->connections)
@@ -155,19 +152,19 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     zoomIn.setTooltip("Zoom In");
     zoomIn.setConnectedEdges(12);
-    zoomIn.setLookAndFeel(&statusbarLook);
+    zoomIn.setName("statusbar:zoomin");
     zoomIn.onClick = [this]() { zoom(true); };
     addAndMakeVisible(zoomIn);
 
     zoomOut.setTooltip("Zoom Out");
     zoomOut.setConnectedEdges(12);
-    zoomOut.setLookAndFeel(&statusbarLook);
+    zoomOut.setName("statusbar:zoomout");
     zoomOut.onClick = [this]() { zoom(false); };
     addAndMakeVisible(zoomOut);
 
     for (auto& button : toolbarButtons)
     {
-        button.setLookAndFeel(&toolbarLook);
+        button.setName("toolbar:button");
         button.setConnectedEdges(12);
         addAndMakeVisible(button);
     }
@@ -260,7 +257,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     // Hide sidebar
     hideButton.setTooltip("Hide Sidebar");
-    hideButton.setLookAndFeel(&toolbarLook);
+    hideButton.setName("toolbar:hide");
     hideButton.setClickingTogglesState(true);
     hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     hideButton.setConnectedEdges(12);
@@ -290,23 +287,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
     LookAndFeel::setDefaultLookAndFeel(nullptr);
-    console->setLookAndFeel(nullptr);
-    setLookAndFeel(nullptr);
-    bypassButton.setLookAndFeel(nullptr);
-    hideButton.setLookAndFeel(nullptr);
-    lockButton.setLookAndFeel(nullptr);
-    connectionStyleButton.setLookAndFeel(nullptr);
-    connectionPathfind.setLookAndFeel(nullptr);
-    levelmeter.setLookAndFeel(nullptr);
-
-    for (auto& button : toolbarButtons)
-    {
-        button.setLookAndFeel(nullptr);
-    }
 
     // TEMPORARY:
     // Ideally, we store the tabs on pd::instance, so they don't get lost when the editor closes
-
     for (int n = 0; n < tabbar.getNumTabs(); n++)
     {
         auto* closeButton = static_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(n)->getExtraComponent());
@@ -945,7 +928,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         }
     };
 
-    closeButton->setLookAndFeel(&statusbarLook);
+    closeButton->setName("statusbar:close");
     closeButton->setColour(TextButton::buttonColourId, Colour());
     closeButton->setColour(TextButton::buttonOnColourId, Colour());
     closeButton->setColour(ComboBox::outlineColourId, Colour());

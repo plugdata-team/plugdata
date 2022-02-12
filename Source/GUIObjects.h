@@ -209,8 +209,6 @@ struct GUIComponent : public Component, public ComponentListener
 
     String primaryColour = MainLook::highlightColour.toString();
     String secondaryColour = MainLook::firstBackground.toString();
-
-    PdGuiLook guiLook;
 };
 
 struct BangComponent : public GUIComponent, public Timer
@@ -646,8 +644,6 @@ struct GraphOnParent : public GUIComponent
 
     ~GraphOnParent() override;
 
-    void paint(Graphics& g) override;
-
     void resized() override;
 
     void lock(bool isLocked) override;
@@ -752,7 +748,6 @@ struct VUMeter : public GUIComponent
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, MainLook::highlightColour);
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
 
-        meter.setLookAndFeel(&lnf);
         addAndMakeVisible(meter);
 
         meter.setSelectedChannel(0);
@@ -763,7 +758,6 @@ struct VUMeter : public GUIComponent
 
     ~VUMeter() override
     {
-        meter.setLookAndFeel(nullptr);
     }
 
     void resized() override

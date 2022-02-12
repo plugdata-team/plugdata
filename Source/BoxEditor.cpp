@@ -276,7 +276,7 @@ void ClickLabel::setEditable(bool editable)
     invalidateAccessibilityHandler();
 }
 
-SuggestionBox::SuggestionBox(Resources& r) : editorLook(r)
+SuggestionBox::SuggestionBox(Resources& r)
 {
     // Set up the button list that contains our suggestions
     buttonholder = std::make_unique<Component>();
@@ -288,13 +288,11 @@ SuggestionBox::SuggestionBox(Resources& r) : editorLook(r)
 
         but->setClickingTogglesState(true);
         but->setRadioGroupId(110);
+        but->setName("suggestions:button");
 
         // Colour pattern
         but->setColour(TextButton::buttonColourId, colours[i % 2]);
     }
-
-    // select the first button
-    // buttons[0]->setToggleState(true, sendNotification);
 
     // Set up viewport
     port = std::make_unique<Viewport>();
@@ -304,7 +302,7 @@ SuggestionBox::SuggestionBox(Resources& r) : editorLook(r)
     port->setViewportIgnoreDragFlag(true);
     addAndMakeVisible(port.get());
 
-    setLookAndFeel(&editorLook);
+    
     setInterceptsMouseClicks(true, true);
     setAlwaysOnTop(true);
     setVisible(true);
@@ -313,7 +311,6 @@ SuggestionBox::SuggestionBox(Resources& r) : editorLook(r)
 SuggestionBox::~SuggestionBox()
 {
     buttons.clear();
-    setLookAndFeel(nullptr);
 }
 
 void SuggestionBox::createCalloutBox(Box* box, TextEditor* editor)

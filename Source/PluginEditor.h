@@ -36,8 +36,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
    public:
     SharedResourcePointer<Resources> resources;
 
-    ToolbarLook toolbarLook = ToolbarLook(resources.get());
-    StatusbarLook statusbarLook = StatusbarLook(resources.get());
     MainLook mainLook = MainLook(resources.get());
 
     PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);

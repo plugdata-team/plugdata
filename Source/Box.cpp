@@ -18,6 +18,8 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(paren
 
     initialise();
     setTopLeftPosition(position);
+    
+    setBufferedToImage(true);
 
     setType(name);
 

@@ -98,10 +98,6 @@ struct SettingsComponent : public Component
 {
     SettingsComponent(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths);
 
-    ~SettingsComponent() override
-    {
-        for (auto& button : toolbarButtons) button->setLookAndFeel(nullptr);
-    }
 
     void paint(Graphics& g) override;
 
@@ -114,7 +110,6 @@ struct SettingsComponent : public Component
 
     int toolbarHeight = 50;
 
-    ToolbarLook lnf;
 
     OwnedArray<TextButton> toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search)};
 };
@@ -135,7 +130,6 @@ struct SettingsDialog : public Component
     SettingsDialog(Resources& r, AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : audioProcessor(processor), settingsComponent(r, processor, manager, std::move(settingsTree), std::move(updatePaths)), mainLook(r)
     {
         shadower.setOwner(this);
-        setLookAndFeel(&mainLook);
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
 
         setCentrePosition(400, 400);
@@ -157,8 +151,6 @@ struct SettingsDialog : public Component
     ~SettingsDialog() override
     {
         settingsComponent.removeMouseListener(this);
-
-        setLookAndFeel(nullptr);
     }
 
     void mouseDown(const MouseEvent& e) override
