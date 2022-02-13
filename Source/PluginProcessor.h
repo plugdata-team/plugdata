@@ -170,6 +170,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
+    
+    SharedResourcePointer<PlugDataDarkLook> lnf;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

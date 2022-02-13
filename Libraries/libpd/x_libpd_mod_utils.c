@@ -325,7 +325,9 @@ void libpd_paste(t_canvas* cnv) {
 
 
 void libpd_undo(t_canvas* cnv) {
+    sys_lock();
     pd_typedmess((t_pd*)cnv, gensym("undo"), 0, NULL);
+    sys_unlock();
 }
 
 void libpd_redo(t_canvas* cnv) {
@@ -333,13 +335,17 @@ void libpd_redo(t_canvas* cnv) {
     pd_this->pd_newest = 0;
     if(!cnv->gl_editor) return;
     
+    sys_lock();
     pd_typedmess((t_pd*)cnv, gensym("redo"), 0, NULL);
+    sys_unlock();
 }
 
 
 void libpd_duplicate(t_canvas* cnv)
 {
+    sys_lock();
     pd_typedmess((t_pd*)cnv, gensym("duplicate"), 0, NULL);
+    sys_unlock();
 }
 
 void libpd_canvas_saveto(t_canvas* cnv, t_binbuf *b)
@@ -566,9 +572,9 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y) {
     SETFLOAT(argv + 8, py2);
     
     
-    
+    sys_lock();
     pd_typedmess((t_pd*)cnv, gensym("graph"), argc, argv);
-    
+    sys_unlock();
     
     glist_noselect(cnv);
     
@@ -587,10 +593,9 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
     SETFLOAT(argv + 2, 0);
     SETFLOAT(argv + 3, 0);
     
-    
+    sys_lock();
     pd_typedmess((t_pd*)cnv, gensym("arraydialog"), argc, argv);
-    
-    
+    sys_unlock();
     
     //canvas_undo_add(cnv, UNDO_CREATE, "create",
     //                (void *)canvas_undo_set_create(cnv));
@@ -604,7 +609,10 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
     return arr;
 }
 
+void canvas_obj(t_glist *gl, t_symbol *s, int argc, t_atom *argv);
+
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int undoable) {
+    
     
     sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
@@ -616,8 +624,6 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int un
     }
     
     glist_noselect(cnv);
-    
-    pd_this->pd_islocked = 0;
     
     return libpd_newest(cnv);
     
