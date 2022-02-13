@@ -35,7 +35,6 @@ class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener, public ValueTree::Listener
 {
    public:
-    std::unique_ptr<LookAndFeel> lnf;
 
     PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
     ~PlugDataPluginEditor() override;
