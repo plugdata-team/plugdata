@@ -57,7 +57,7 @@ std::string Object::getText()
     {
         char* text = nullptr;
         int size = 0;
-        instance->setThis();
+        //instance->setThis();
 
         libpd_get_object_text(ptr, &text, &size);
         if (text && size)
@@ -88,8 +88,8 @@ std::array<int, 4> Object::getBounds() const noexcept
     if (ptr)
     {
         int x = 0, y = 0, w = 0, h = 0;
-        instance->setThis();
-        patch->setCurrent(true);
+        //instance->setThis();
+        //patch->setCurrent(true);
 
         libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
 
