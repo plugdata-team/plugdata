@@ -60,7 +60,7 @@ struct PlugDataLook : public LookAndFeel_V4
     virtual void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
 
     virtual void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
-
+    
     virtual Font getToolbarFont(int buttonHeight) = 0;
     virtual Font getStatusbarFont(int buttonHeight) = 0;
     virtual Font getSuggestionFont(int buttonHeight) = 0;
@@ -78,6 +78,9 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
+        if (button.getName().startsWith("tab"))
+            return;
+            
         if (button.getName().startsWith("toolbar"))
         {
             drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
@@ -122,7 +125,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             return getToolbarFont(buttonHeight);
         }
-        if (but.getName().startsWith("statusbar"))
+        if (but.getName().startsWith("statusbar") || but.getName().startsWith("tab"))
         {
             return getStatusbarFont(buttonHeight);
         }
@@ -364,6 +367,34 @@ struct PlugDataDarkLook : public PlugDataLook
             }
         }
     }
+    
+    // TODO: fix text alignment
+    void drawTableHeaderColumn (Graphics& g, TableHeaderComponent& header, const String &columnName, int columnId, int width, int height, bool isMouseOver, bool isMouseDown, int columnFlags) override {
+        auto highlightColour = header.findColour (TableHeaderComponent::highlightColourId);
+
+        if (isMouseDown)
+            g.fillAll (highlightColour);
+        else if (isMouseOver)
+            g.fillAll (highlightColour.withMultipliedAlpha (0.625f));
+
+        Rectangle<int> area (width, height);
+        area.reduce (6, 0);
+
+        if ((columnFlags & (TableHeaderComponent::sortedForwards | TableHeaderComponent::sortedBackwards)) != 0)
+        {
+            Path sortArrow;
+            sortArrow.addTriangle (0.0f, 0.0f,
+                                   0.5f, (columnFlags & TableHeaderComponent::sortedForwards) != 0 ? -0.8f : 0.8f,
+                                   1.0f, 0.0f);
+
+            g.setColour (Colour (0x99000000));
+            g.fillPath (sortArrow, sortArrow.getTransformToScaleToFit (area.removeFromRight (height / 2).reduced (2).toFloat(), true));
+        }
+
+        g.setColour (header.findColour (TableHeaderComponent::textColourId));
+        g.setFont (Font ((float) height * 0.5f, Font::bold));
+        g.drawFittedText (columnName, area, Justification::centredLeft, 1);
+    }
 
     void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
@@ -504,10 +535,6 @@ struct PlugDataDarkLook : public PlugDataLook
             g.setColour(button.findColour(ComboBox::outlineColourId));
             g.drawEllipse(ellpiseBounds, 1.0f);
         }
-    }
-
-    void drawStatusbarSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider)
-    {
     }
 
     void drawVolumeSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override

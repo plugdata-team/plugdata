@@ -120,6 +120,9 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void titleChanged() override;
 
     Console console;
+    
+    // All opened patches
+    Array<pd::Patch> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
