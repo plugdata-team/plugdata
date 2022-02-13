@@ -118,6 +118,10 @@ void Patch::setCurrent(bool lock)
     canvas_vis(getPointer(), 1.);
     canvas_map(getPointer(), 1.);
     
+    t_atom argv[1];
+    SETFLOAT(argv, 1);
+    pd_typedmess((t_pd*)getPointer(), gensym("pop"), 1, argv);
+    
     if (lock) instance->getCallbackLock()->exit();
 }
 
