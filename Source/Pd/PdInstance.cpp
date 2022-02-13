@@ -440,7 +440,7 @@ void Instance::waitForStateUpdate()
 
 void Instance::sendMessagesFromQueue()
 {
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    //libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     std::function<void(void)> callback;
     while (m_function_queue.try_dequeue(callback))

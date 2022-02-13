@@ -806,8 +806,6 @@ void PlugDataPluginEditor::updateValues()
 // Called by the hook in pd_inter, on pd's thread!
 void PlugDataPluginEditor::updateUndoState()
 {
-    pd.setThis();
-
     MessageManager::callAsync([this]() { toolbarButtons[6].setEnabled(!pd.locked); });
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked)
@@ -817,7 +815,7 @@ void PlugDataPluginEditor::updateUndoState()
         pd.enqueueFunction(
             [this, cnv]()
             {
-                getCurrentCanvas()->patch.setCurrent();
+                //getCurrentCanvas()->patch.setCurrent();
                 // Check undo state on pd's thread
                 bool canUndo = libpd_can_undo(cnv);
                 bool canRedo = libpd_can_redo(cnv);
