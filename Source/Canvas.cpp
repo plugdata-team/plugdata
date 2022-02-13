@@ -48,6 +48,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
     lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::ColourIds::thumbColourId).withAlpha(0.3f));
 
     addKeyListener(this);
+    
+    
 
     setWantsKeyboardFocus(true);
 
@@ -65,6 +67,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
 
 Canvas::~Canvas()
 {
+   
     Component::removeAllChildren();
     removeKeyListener(this);
 }

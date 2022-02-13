@@ -70,6 +70,13 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
     }
 
     void deselectAll() override;
+    
+    void focusGained(FocusChangeType cause) override {
+        // This is necessary because in some cases, setting the canvas as current right before an action isn't enough
+        if(patch.getPointer()) {
+            patch.setCurrent(true);
+        }
+    }
 
     void undo();
     void redo();

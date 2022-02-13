@@ -503,11 +503,9 @@ Patch Instance::openPatch(const File& toOpen)
     auto* file = filename.toRawUTF8();
 
     closePatch();
-    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    setThis();
 
     m_patch = libpd_create_canvas(file, dir);
-
-    setThis();
 
     currentFile = toOpen;
 

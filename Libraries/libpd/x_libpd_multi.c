@@ -1191,6 +1191,7 @@ void libpd_multi_init(void)
         xselect2_tilde_setup();
         zerocross_tilde_setup();
         // end else objects initialization
+        
 
         initialized = 1;
     }

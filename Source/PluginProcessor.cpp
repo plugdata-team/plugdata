@@ -20,7 +20,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
                          .withOutput("Output", AudioChannelSet::stereo(), true)
 #endif
                          ),
-      pd::Instance(Uuid().toString().toStdString())
+      pd::Instance("PlugData")
 #endif
       ,
       parameters(*this, nullptr, juce::Identifier("PlugData"),
@@ -58,10 +58,14 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     sendMessagesFromQueue();
     processMessages();
+    
+    
+    LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
+    
     // Save current settings before quitting
     saveSettings();
 }

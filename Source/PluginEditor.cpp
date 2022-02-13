@@ -23,10 +23,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addKeyListener(this);
     setWantsKeyboardFocus(true);
 
-    lnf = std::make_unique<PlugDataDarkLook>();
-
-    LookAndFeel::setDefaultLookAndFeel(lnf.get());
-
     console = debugConsole;
 
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(ComboBox::backgroundColourId));
@@ -289,7 +285,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
-    LookAndFeel::setDefaultLookAndFeel(nullptr);
+
 
     // TEMPORARY:
     // Ideally, we store the tabs on pd::instance, so they don't get lost when the editor closes
