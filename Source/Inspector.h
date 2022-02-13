@@ -37,7 +37,8 @@ struct Inspector : public Component, public TableListBoxModel
 
         table.getHeader().addColumn("Name", 1, 50, 30, -1, TableHeaderComponent::notSortable);
         table.getHeader().addColumn("Value", 2, 80, 30, -1, TableHeaderComponent::notSortable);
-
+        table.setHeaderHeight(25);
+        
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
 
@@ -78,7 +79,7 @@ struct Inspector : public Component, public TableListBoxModel
         if (rowNumber < items.size())
         {
             const auto [name, type, ptr] = items[rowNumber];
-            g.drawText(name, 2, 0, width - 4, height, Justification::centredLeft, true);
+            g.drawText(name, 6, 0, width - 4, height, Justification::centredLeft, true);
         }
 
         g.setColour(Colours::black.withAlpha(0.2f));

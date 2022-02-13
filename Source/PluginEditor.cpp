@@ -293,6 +293,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     {
         auto* closeButton = static_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(n)->getExtraComponent());
 
+        
         closeButton->triggerClick();
     }
 }
@@ -863,6 +864,8 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx)
 
 void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
+    pd.patches.addIfNotAlreadyThere(cnv->patch);
+    
     tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
     int tabIdx = tabbar.getNumTabs() - 1;
@@ -902,8 +905,11 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         {
             tabbar.setCurrentTabIndex(0, false);
         }
-
+        
         auto* cnv = getCanvas(idx);
+        
+        
+        pd.patches.removeFirstMatchingValue(cnv->patch);
 
         if (deleteWhenClosed)
         {
@@ -921,7 +927,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         }
     };
 
-    closeButton->setName("statusbar:close");
+    closeButton->setName("tab:close");
     closeButton->setColour(TextButton::buttonColourId, Colour());
     closeButton->setColour(TextButton::buttonOnColourId, Colour());
     closeButton->setColour(ComboBox::outlineColourId, Colour());
