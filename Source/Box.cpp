@@ -132,7 +132,7 @@ void Box::setType(const String& newType, bool exists)
         if (pdObject)
         {
             pdObject = pd->renameObject(pdObject.get(), newType);
-            cnv->synchronise();
+            cnv->synchronise(false);
         }
         else
         {
@@ -159,7 +159,7 @@ void Box::setType(const String& newType, bool exists)
         width = pdObject->getWidth();
         if (width == 0)
         {
-            width = textLabel.getFont().getStringWidth(newType) + 25;
+            width = textLabel.getFont().getStringWidth(newType) + 28;
         }
         else
         {
@@ -168,7 +168,7 @@ void Box::setType(const String& newType, bool exists)
     }
     else
     {
-        width = textLabel.getFont().getStringWidth(newType) + 25;
+        width = textLabel.getFont().getStringWidth(newType) + 28;
     }
 
     // Update inlets/outlets if it's not in a graph
@@ -187,7 +187,7 @@ void Box::setType(const String& newType, bool exists)
 
         if (graphics && graphics->getGui().getType() == pd::Type::Comment)
         {
-            setSize(width, 32);
+            setSize(width, 34);
             textLabel.setEditable(true);
         }
         else if (graphics && !graphics->fakeGui())
@@ -202,17 +202,17 @@ void Box::setType(const String& newType, bool exists)
         else
         {
             textLabel.setEditable(true);
-            setSize(width, 32);
+            setSize(width, 34);
         }
     }
     else
     {
-        setSize(width, 32);
+        setSize(width, 34);
     }
 
     if (type.isEmpty())
     {
-        setSize(100, 32);
+        setSize(100, 34);
     }
 
     // Hide "comment" in front of name
@@ -248,7 +248,7 @@ void Box::setType(const String& newType, bool exists)
 //==============================================================================
 void Box::paint(Graphics& g)
 {
-    auto rect = getLocalBounds().reduced(5);
+    auto rect = getLocalBounds().reduced(6);
 
     auto baseColour = findColour(TextButton::buttonColourId);
     auto outlineColour = findColour(ComboBox::outlineColourId);
@@ -269,7 +269,7 @@ void Box::paint(Graphics& g)
     if (!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
     {
         g.setColour(findColour(ComboBox::backgroundColourId));
-        g.fillRect(getLocalBounds().reduced(5));
+        g.fillRect(getLocalBounds().reduced(6));
     }
 
     // Draw comment style
@@ -294,7 +294,7 @@ void Box::resized()
 {
     if (graphics)
     {
-        graphics->setBounds(getLocalBounds().reduced(5));
+        graphics->setBounds(getLocalBounds().reduced(6));
     }
 
     if (pdObject && (!graphics || !graphics->getGui().isIEM()))
@@ -302,27 +302,27 @@ void Box::resized()
         pdObject->setWidth(getWidth() - 8);
     }
 
-    auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 25;
+    auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 28;
 
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !textLabel.isBeingEdited())
     {
         int numLines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
         setSize(bestWidth + 30, (numLines * 17) + 14);
-        textLabel.setBounds(getLocalBounds().reduced(5));
+        textLabel.setBounds(getLocalBounds().reduced(6));
     }
 
-    textLabel.setBounds(getLocalBounds().reduced(5));
+    textLabel.setBounds(getLocalBounds().reduced(6));
 
     // Init size for empty objects
     if (textLabel.isBeingEdited())
     {
         if (textLabel.getCurrentTextEditor()->getText().isEmpty())
         {
-            setSize(100, 32);
+            setSize(100, 34);
         }
     }
 
-    resizer.setBounds(getLocalBounds().reduced(2));
+    resizer.setBounds(getLocalBounds().reduced(6));
 
     int index = 0;
     for (auto& edge : edges)
@@ -331,7 +331,7 @@ void Box::resized()
         int position = index < numInputs ? index : index - numInputs;
         int total = isInput ? numInputs : numOutputs;
 
-        float newY = isInput ? 5 : getHeight() - 5;
+        float newY = isInput ? 6 : getHeight() - 6;
         float newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
 
         edge->setCentrePosition(newX, newY);

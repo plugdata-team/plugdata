@@ -655,6 +655,9 @@ struct GraphOnParent : public GUIComponent
     void mouseUp(const MouseEvent& e) override;
 
     void updateValue() override;
+    
+    // override to make transparent
+    void paint(Graphics& g) override {}
 
     std::pair<int, int> getBestSize() override
     {

@@ -596,8 +596,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
     auto* editor = new PlugDataPluginEditor(*this, &console);
 
-    auto patch = getPatch();
-    if (!patch.getPointer())
+    if (patches.isEmpty())
     {
         auto patchFile = File::createTempFile(".pd");
         patchFile.replaceWithText(defaultPatch);
@@ -614,8 +613,10 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     }
     else
     {
-        auto* cnv = editor->canvases.add(new Canvas(*editor, patch, false));
-        editor->addTab(cnv);
+        for(auto& patch : patches) {
+            auto* cnv = editor->canvases.add(new Canvas(*editor, patch, false));
+            editor->addTab(cnv);
+        }
     }
 
     return editor;

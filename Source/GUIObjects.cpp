@@ -47,6 +47,7 @@ GUIComponent::~GUIComponent()
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
+    
 }
 
 void GUIComponent::lock(bool isLocked)
