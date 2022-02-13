@@ -424,7 +424,7 @@ std::vector<Atom> Gui::getList() const noexcept
     else
     {
         std::vector<Atom> array;
-        instance->setThis();
+        //instance->setThis();
 
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
@@ -501,7 +501,7 @@ std::string Gui::getSymbol() const noexcept
 {
     if (ptr && type == Type::Message)
     {
-        instance->setThis();
+        //instance->setThis();
 
         char* argv;
         int argc;
@@ -512,7 +512,7 @@ std::string Gui::getSymbol() const noexcept
     }
     else if (ptr && type == Type::AtomSymbol)
     {
-        instance->setThis();
+        //instance->setThis();
         return atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name;
     }
 
@@ -601,7 +601,7 @@ std::array<int, 4> Gui::getBounds() const noexcept
     if (type == Type::Keyboard)
     {
         int x = 0, y = 0, w = 0, h = 0;
-        instance->setThis();
+        //instance->setThis();
         patch->setCurrent(true);
 
         libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
@@ -781,7 +781,7 @@ std::string Gui::getReceiveSymbol() noexcept
 
 Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
 {
-    instance->setThis();
+    //instance->setThis();
 
     auto const fontheight = 17;
 
@@ -835,7 +835,7 @@ Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
 
 Label Gui::getLabel() const noexcept
 {
-    instance->setThis();
+    //instance->setThis();
     if (isIEM())
     {
         t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);

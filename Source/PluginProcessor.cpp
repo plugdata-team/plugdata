@@ -546,9 +546,10 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
-    // Dequeue messages
-    setThis();
 
+    //setThis();
+    
+    // Dequeue messages
     sendMessagesFromQueue();
 
     sendMidiBuffer();
@@ -556,7 +557,6 @@ void PlugDataAudioProcessor::processInternal()
     processPrints();
 
     // Process audio
-
     if (static_cast<bool>(enabled->load()))
     {
         std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));

@@ -102,11 +102,10 @@ void Patch::close()
 
 void Patch::setCurrent(bool lock)
 {
-    instance->setThis();
+    //instance->setThis();
 
     if (lock) instance->getCallbackLock()->enter();
 
-    
     auto* cnv = canvas_getcurrent();
     
     if (cnv)
