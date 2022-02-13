@@ -37,11 +37,16 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), pro
     receiveSymbol = gui.getReceiveSymbol();
 
     setWantsKeyboardFocus(true);
+    
+    setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
 }
 
 GUIComponent::~GUIComponent()
 {
     box->removeComponentListener(this);
+    auto* lnf = &getLookAndFeel();
+    setLookAndFeel(nullptr);
+    delete lnf;
 }
 
 void GUIComponent::lock(bool isLocked)

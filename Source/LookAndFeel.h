@@ -64,6 +64,8 @@ struct PlugDataLook : public LookAndFeel_V4
     virtual Font getToolbarFont(int buttonHeight) = 0;
     virtual Font getStatusbarFont(int buttonHeight) = 0;
     virtual Font getSuggestionFont(int buttonHeight) = 0;
+    
+    virtual LookAndFeel* getPdLook() = 0;
 
     int getSliderThumbRadius(Slider& s) override
     {
@@ -160,28 +162,24 @@ struct PlugDataDarkLook : public PlugDataLook
     PlugDataDarkLook() : defaultFont(defaultTypeface), iconFont(iconTypeface)
     {
         setColour(ResizableWindow::backgroundColourId, Colour(32, 32, 32));
+        
         setColour(TextButton::buttonColourId, Colour(23, 23, 23));
         setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
-        setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
 
-        setColour(Slider::thumbColourId, Colour(0xff42a2c8));
-
-        setColour(SidePanel::backgroundColour, Colour(50, 50, 50));
         setColour(ComboBox::backgroundColourId, Colour(23, 23, 23));
         setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
+        
+        setColour(Slider::thumbColourId, Colour(0xff42a2c8));
         setColour(Slider::backgroundColourId, Colour(60, 60, 60));
         setColour(Slider::trackColourId, Colour(90, 90, 90));
-        setColour(CodeEditorComponent::backgroundColourId, Colour(50, 50, 50));
-        setColour(CodeEditorComponent::defaultTextColourId, Colours::white);
+        
+        setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
         setColour(TextEditor::textColourId, Colours::white);
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-
+        
         setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.8f));
-
         setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
         setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
-
-        setColour(CodeEditorComponent::lineNumberBackgroundId, Colour(41, 41, 41));
 
         setDefaultSansSerifTypeface(defaultTypeface);
     }
@@ -537,4 +535,95 @@ struct PlugDataDarkLook : public PlugDataLook
         g.setColour(slider.findColour(Slider::thumbColourId));
         g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));
     }
+    
+    struct PdLook : public LookAndFeel_V4 {
+        
+        PdLook()
+        {
+            setColour(TextButton::buttonColourId, Colour(23, 23, 23));
+            setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
+
+            setColour(Slider::thumbColourId, Colour(0xff42a2c8));
+            setColour(ComboBox::backgroundColourId, Colour(23, 23, 23));
+            setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
+            setColour(Slider::backgroundColourId, Colour(60, 60, 60));
+            setColour(Slider::trackColourId, Colour(90, 90, 90));
+            
+            setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
+            setColour(TextEditor::textColourId, Colours::white);
+            setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
+        }
+        
+        void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor)
+        {
+            if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr) {
+                if (textEditor.isEnabled()) {
+                    if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly()) {
+                        g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
+                        g.drawRect(0, 0, width, height, 2);
+                    } else {
+                        g.setColour(textEditor.findColour(TextEditor::outlineColourId));
+                        g.drawRect(0, 0, width, height, 1);
+                    }
+                }
+            }
+        }
+        
+        void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+        {
+            
+            auto cornerSize = 6.0f;
+            auto bounds = button.getLocalBounds().toFloat(); //.reduced (0.5f, 0.5f);
+            
+            auto baseColour = findColour(TextButton::buttonColourId);
+            
+            auto highlightColour = findColour(TextButton::buttonOnColourId);
+            
+            if (shouldDrawButtonAsDown || button.getToggleState())
+                baseColour = highlightColour;
+            
+            baseColour = baseColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f)
+                .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
+            
+            g.setColour(baseColour);
+            
+            auto flatOnLeft = button.isConnectedOnLeft();
+            auto flatOnRight = button.isConnectedOnRight();
+            auto flatOnTop = button.isConnectedOnTop();
+            auto flatOnBottom = button.isConnectedOnBottom();
+            
+            if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
+                Path path;
+                path.addRoundedRectangle(bounds.getX(), bounds.getY(),
+                                         bounds.getWidth(), bounds.getHeight(),
+                                         cornerSize, cornerSize,
+                                         !(flatOnLeft || flatOnTop),
+                                         !(flatOnRight || flatOnTop),
+                                         !(flatOnLeft || flatOnBottom),
+                                         !(flatOnRight || flatOnBottom));
+                
+                g.fillPath(path);
+                
+                g.setColour(button.findColour(ComboBox::outlineColourId));
+                g.strokePath(path, PathStrokeType(1.0f));
+            } else {
+                int dimension = std::min(bounds.getHeight(), bounds.getWidth()) / 2.0f;
+                auto centre = bounds.getCentre();
+                auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
+                // g.fillRoundedRectangle (bounds, cornerSize);
+                g.fillEllipse(ellpiseBounds);
+                
+                g.setColour(button.findColour(ComboBox::outlineColourId));
+                g.drawEllipse(ellpiseBounds, 1.0f);
+            }
+        }
+    };
+    
+    
+    LookAndFeel* getPdLook() override {
+        return new PdLook;
+    }
+
+    
 };
+

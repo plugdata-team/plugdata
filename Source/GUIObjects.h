@@ -192,6 +192,8 @@ struct GUIComponent : public Component, public ComponentListener
     Box* box;
 
    protected:
+    
+    
     const std::string stringGui = std::string("gui");
     const std::string stringMouse = std::string("mouse");
 
