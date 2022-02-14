@@ -213,7 +213,7 @@ class Instance
     std::unique_ptr<FileChooser> openChooser;
 
     WaitableEvent updateWait;
-
+    
     struct internal;
 };
 }  // namespace pd
