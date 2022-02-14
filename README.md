@@ -87,11 +87,12 @@ v0.3.3:
 - Fix ctrl to temporarily enter lock mode on Linux (DONE)
 - Make sure pd patches always look correct (especially for compact UI's designed in pd)
 
-v0.4:
+v0.3.4 - v0.4:
+- Support grid
 - Smart patching behaviour: shift to drop object between connection or create multiple connections at once
 - Final GUI changes before stable release
 - Finished document with object descriptions and inlet/outlet hover messages
-- Ensure that all externals fully work
+- Ensure that all externals work
 - Create manual
 - Improve code documentation
 
