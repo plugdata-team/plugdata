@@ -32,7 +32,7 @@ struct TabComponent : public TabbedComponent
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener, public ValueTree::Listener
+class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener, public ValueTree::Listener, public Timer
 {
    public:
 
@@ -46,6 +46,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     void paint(Graphics&) override;
     void resized() override;
 
+    void timerCallback() override;
     bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
     bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override;
 

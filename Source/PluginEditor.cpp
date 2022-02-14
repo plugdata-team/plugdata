@@ -281,6 +281,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    
+#if JUCE_LINUX
+    startTimer(50);
+#endif
 }
 
 PlugDataPluginEditor::~PlugDataPluginEditor()
@@ -296,6 +300,10 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
         
         closeButton->triggerClick();
     }
+    
+#if JUCE_LINUX
+    stopTimer();
+#endif
 }
 
 void PlugDataPluginEditor::showNewObjectMenu()
@@ -522,6 +530,22 @@ void PlugDataPluginEditor::resized()
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
+}
+
+// We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...
+// This timer is only started on Linux
+void PlugDataPluginEditor::timerCallback() {
+    if (ModifierKeys::getCurrentModifiers().isCommandDown() && !lockButton.getToggleState())
+    {
+        pd.commandLocked = true;
+        sendChangeMessage();
+    }
+
+    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && pd.commandLocked)
+    {
+        pd.commandLocked = false;
+        sendChangeMessage();
+    }
 }
 
 bool PlugDataPluginEditor::keyStateChanged(bool isKeyDown, Component* originatingComponent)
