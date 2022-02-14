@@ -282,6 +282,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     
+    
 #if JUCE_LINUX
     startTimer(50);
 #endif
@@ -976,6 +977,7 @@ void PlugDataPluginEditor::zoom(bool zoomingIn)
     int scale = ((std::abs(transform.mat00) + std::abs(transform.mat11)) / 2.0f) * 100.0f;
     zoomLabel.setText(String(scale) + "%", dontSendNotification);
     getCurrentCanvas()->checkBounds();
+    
 }
 
 void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)

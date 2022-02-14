@@ -1072,12 +1072,7 @@ void GraphOnParent::updateCanvas()
         // Make sure that the graph doesn't become the current canvas
         box->cnv->patch.setCurrent(true);
         box->cnv->main.updateUndoState();
-    } /*
-
-       else if(!isShowing() && canvas) {
-       canvas.reset(nullptr);
-       } */
-
+    }
     if (canvas)
     {
         auto [x, y, w, h] = getPatch()->getBounds();
