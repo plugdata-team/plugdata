@@ -85,8 +85,9 @@ v0.3.3:
 - Fix mixed red/white outline bug
 - Add light theme for pd compatibility (to make black text in original pd patches readable)
 - Fix ctrl to temporarily enter lock mode on Linux (DONE)
+- Make sure pd patches always look correct (especially for compact UI's designed in pd)
 
-v0.4
+v0.4:
 - Smart patching behaviour: shift to drop object between connection or create multiple connections at once
 - Final GUI changes before stable release
 - Finished document with object descriptions and inlet/outlet hover messages
@@ -96,6 +97,6 @@ v0.4
 
 
 Future plans:
-- Support for GEM
+- Support for GEM or Ofelia
 
 Please contact me if you wish to contribute, I could use some help! Bug reports are also appricated, they help me to get to a stable version much faster.
