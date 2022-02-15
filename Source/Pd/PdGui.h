@@ -44,6 +44,7 @@ class Gui : public Object
 
     //! @brief Get the font height.
     float getFontHeight() const noexcept;
+    void setFontHeight(float newSize) noexcept;
 
     //! @brief Get the font name.
     std::string getFontName() const;

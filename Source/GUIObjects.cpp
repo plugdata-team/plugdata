@@ -34,6 +34,7 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
     if(gui.isIEM()) {
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
         labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
+        labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize;
     }
 
     updateLabel();
@@ -66,7 +67,6 @@ void GUIComponent::initParameters(bool newObject)
     {
         auto color = Colour::fromString(secondaryColour);
         secondaryColour = color.toString();
-        //setBackground(color);
     }
 
     if (!gui.isIEM()) return;
@@ -79,6 +79,8 @@ void GUIComponent::initParameters(bool newObject)
         gui.setForegroundColour(findColour(Slider::thumbColourId));
         gui.setBackgroundColour(findColour(ComboBox::backgroundColourId));
         gui.setLabelColour(Colours::white);
+        
+        labelHeight = gui.getFontHeight();
     }
     else {
         primaryColour = Colour(gui.getForegroundColor()).toString();
@@ -264,10 +266,10 @@ void GUIComponent::updateLabel()
         Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
         
         const int width = 100;
-        const int height = 23;  // ??
+        const int height = labelHeight;
         label->setBounds(position.x, position.y, width, height);
         
-        // label->setFont(ft);
+        label->setFont(Font(labelHeight));
         label->setJustificationType(Justification::left);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
