@@ -11,7 +11,6 @@
 #include "Canvas.h"
 #include "Edge.h"
 
-//==============================================================================
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s), end(e)
 {
     // Should improve performance
@@ -174,7 +173,7 @@ bool Connection::hitTest(int x, int y)
     return false;
 }
 
-//==============================================================================
+
 void Connection::paint(Graphics& g)
 {
     g.setColour(Colours::grey);

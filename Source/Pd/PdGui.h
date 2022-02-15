@@ -13,11 +13,7 @@
 
 namespace pd
 {
-class Label;
 
-// ==================================================================================== //
-//                                          GUI                                         //
-// ==================================================================================== //
 
 //! @brief The Pd GUI objects.
 //! @details The Instance is a wrapper for the Pd native GUI. The lifetime of the internal\n
@@ -71,10 +67,14 @@ class Gui : public Object
 
     size_t getNumberOfSteps() const noexcept;
 
-    unsigned int getBackgroundColor() const noexcept;
-
-    unsigned int getForegroundColor() const noexcept;
-
+    Colour getBackgroundColor() const noexcept;
+    Colour getForegroundColor() const noexcept;
+    Colour getLabelColour() const noexcept;
+    
+    void setLabelColour(Colour newColour) noexcept;
+    void setForegroundColour(Colour newColour) noexcept;
+    void setBackgroundColour(Colour newColour) noexcept;
+    
     std::string getSymbol() const noexcept;
 
     void setSymbol(std::string const& value) noexcept;
@@ -91,9 +91,15 @@ class Gui : public Object
 
     Array getArray() const noexcept;
 
-    Label getLabel() const noexcept;
+    String getLabelText() const noexcept;
     Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
-
+    
+    
+    void setLabelText(String newText) noexcept;
+    void setLabelPosition(Point<int> bounds) noexcept;
+    void setLabelPosition(int wherelabel) noexcept;
+    
+    
     Patch getPatch() const noexcept;
 
     std::vector<Atom> getList() const noexcept;
@@ -107,43 +113,4 @@ class Gui : public Object
     friend class Patch;
 };
 
-// ==================================================================================== //
-//                                      LABEL                                           //
-// ==================================================================================== //
-
-class Label
-{
-   public:
-    Label() noexcept;
-    Label(Label const& other) noexcept;
-    Label(std::string text, unsigned int color, int x, int y, std::string fontname, float fontheight) noexcept;
-
-    std::string getText() const noexcept
-    {
-        return m_text;
-    }
-    unsigned int getColor() const noexcept
-    {
-        return m_color;
-    }
-    std::array<int, 2> getPosition() const noexcept
-    {
-        return m_position;
-    }
-
-    //! @brief Get the font height.
-    float getFontHeight() const noexcept;
-
-    //! @brief Get the font name.
-    std::string getFontName() const;
-
-   private:
-    void* ptr;
-    std::string const m_text;
-    unsigned int const m_color;
-    std::array<int, 2> const m_position;
-    std::string m_font_name;
-    float m_font_height;
-    friend class Gui;
-};
-}  // namespace pd
+}

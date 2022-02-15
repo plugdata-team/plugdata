@@ -13,7 +13,7 @@
 #include "Pd/PdPatch.h"
 #include "PluginProcessor.h"
 
-extern juce::JUCEApplicationBase* juce_CreateApplication();
+extern JUCEApplicationBase* juce_CreateApplication();
 
 struct Identifiers
 {

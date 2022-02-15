@@ -9,7 +9,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-//==============================================================================
 Edge::Edge(Box* parent, bool input) : box(parent)
 {
     isInput = input;
@@ -46,7 +45,7 @@ Rectangle<int> Edge::getCanvasBounds()
     return getBounds() + getParentComponent()->getPosition();
 }
 
-//==============================================================================
+
 void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();

@@ -19,7 +19,7 @@ extern "C"
 #include "Edge.h"
 #include "PluginEditor.h"
 
-GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), processor(*parent->cnv->pd), gui(pdGui), edited(false)
+GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : box(parent), processor(*parent->cnv->pd), gui(pdGui), edited(false)
 
 {
     // if(!box->pdObject) return;
@@ -30,6 +30,11 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent) : box(parent), pro
     min = gui.getMinimum();
     max = gui.getMaximum();
     cs->exit();
+    
+    if(gui.isIEM()) {
+        labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
+        labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
+    }
 
     updateLabel();
 
@@ -55,45 +60,34 @@ void GUIComponent::lock(bool isLocked)
     setInterceptsMouseClicks(isLocked, isLocked);
 }
 
-void GUIComponent::initParameters()
+void GUIComponent::initParameters(bool newObject)
 {
     if (gui.getType() == pd::Type::Number)
     {
         auto color = Colour::fromString(secondaryColour);
         secondaryColour = color.toString();
-        setBackground(color);
+        //setBackground(color);
     }
 
     if (!gui.isIEM()) return;
-
-    primaryColour = Colour(gui.getForegroundColor()).toString();
-    secondaryColour = Colour(gui.getBackgroundColor()).toString();
-    if (primaryColour == "ff000000") primaryColour = findColour(Slider::thumbColourId).toString();
-    if (secondaryColour == "fffcfcfc") secondaryColour = findColour(ComboBox::backgroundColourId).toString();
-    setForeground(Colour::fromString(primaryColour));
-    setBackground(Colour::fromString(secondaryColour));
+    
+    if(newObject) {
+        primaryColour = findColour(Slider::thumbColourId).toString();
+        secondaryColour = findColour(ComboBox::backgroundColourId).toString();
+        labelColour = Colours::white.toString();
+        
+        gui.setForegroundColour(findColour(Slider::thumbColourId));
+        gui.setBackgroundColour(findColour(ComboBox::backgroundColourId));
+        gui.setLabelColour(Colours::white);
+    }
+    else {
+        primaryColour = Colour(gui.getForegroundColor()).toString();
+        secondaryColour = Colour(gui.getBackgroundColor()).toString();
+        if(gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
+    }
 }
 
-void GUIComponent::setForeground(Colour colour)
-{
-    getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
-    getLookAndFeel().setColour(Slider::thumbColourId, colour);
-
-    String colourStr = colour.toString();
-    libpd_iemgui_set_foreground_color(gui.getPointer(), colourStr.toRawUTF8());
-}
-
-void GUIComponent::setBackground(Colour colour)
-{
-    getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
-    getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-    getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
-
-    String colourStr = colour.toString();
-    libpd_iemgui_set_background_color(gui.getPointer(), colourStr.toRawUTF8());
-}
-
-GUIComponent* GUIComponent::createGui(const String& name, Box* parent)
+GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newObject)
 {
     auto* guiPtr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
 
@@ -103,83 +97,83 @@ GUIComponent* GUIComponent::createGui(const String& name, Box* parent)
 
     if (gui.getType() == pd::Type::Bang)
     {
-        return new BangComponent(gui, parent);
+        return new BangComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Toggle)
     {
-        return new ToggleComponent(gui, parent);
+        return new ToggleComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::HorizontalSlider)
     {
-        return new SliderComponent(false, gui, parent);
+        return new SliderComponent(false, gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::VerticalSlider)
     {
-        return new SliderComponent(true, gui, parent);
+        return new SliderComponent(true, gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::HorizontalRadio)
     {
-        return new RadioComponent(false, gui, parent);
+        return new RadioComponent(false, gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::VerticalRadio)
     {
-        return new RadioComponent(true, gui, parent);
+        return new RadioComponent(true, gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Message)
     {
-        return new MessageComponent(gui, parent);
+        return new MessageComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Number)
     {
-        return new NumboxComponent(gui, parent);
+        return new NumboxComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::AtomList)
     {
-        return new ListComponent(gui, parent);
+        return new ListComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Array)
     {
-        return new ArrayComponent(gui, parent);
+        return new ArrayComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::GraphOnParent)
     {
-        return new GraphOnParent(gui, parent);
+        return new GraphOnParent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Subpatch)
     {
-        return new Subpatch(gui, parent);
+        return new Subpatch(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::VuMeter)
     {
-        return new VUMeter(gui, parent);
+        return new VUMeter(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Panel)
     {
-        return new PanelComponent(gui, parent);
+        return new PanelComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Comment)
     {
-        return new CommentComponent(gui, parent);
+        return new CommentComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::AtomNumber)
     {
-        return new NumboxComponent(gui, parent);
+        return new NumboxComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::AtomSymbol)
     {
-        return new MessageComponent(gui, parent);
+        return new MessageComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Mousepad)
     {
-        return new MousePad(gui, parent);
+        return new MousePad(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Mouse)
     {
-        return new MouseComponent(gui, parent);
+        return new MouseComponent(gui, parent, newObject);
     }
     if (gui.getType() == pd::Type::Keyboard)
     {
-        return new KeyboardComponent(gui, parent);
+        return new KeyboardComponent(gui, parent, newObject);
     }
 
     return nullptr;
@@ -248,7 +242,7 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
 {
     if (label)
     {
-        Point<int> position = gui.getLabelPosition(component.getBounds());
+        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
 
         const int width = 100;
         const int height = 23;  // ??
@@ -258,8 +252,7 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
 
 void GUIComponent::updateLabel()
 {
-    pd::Label const lbl = gui.getLabel();
-    const String text = String(lbl.getText());
+    const String text = gui.getLabelText();
     if (text.isNotEmpty())
     {
         label = std::make_unique<Label>();
@@ -267,18 +260,22 @@ void GUIComponent::updateLabel()
         {
             return;
         }
-        const int width = 100;   // ft.getStringWidth(text) + 1;
-        const int height = 100;  // ft.getHeight();
-        const std::array<int, 2> position = lbl.getPosition();
-        label->setBounds(position[0], position[1] - height / 2, width, height);
+   
+        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
+        
+        const int width = 100;
+        const int height = 23;  // ??
+        label->setBounds(position.x, position.y, width, height);
+        
         // label->setFont(ft);
-        label->setJustificationType(Justification::centredLeft);
+        label->setJustificationType(Justification::left);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
-        label->setText(text, NotificationType::dontSendNotification);
+        label->setText(text, dontSendNotification);
         label->setEditable(false, false);
         label->setInterceptsMouseClicks(false, false);
-        label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColor())));
+        label->setColour(Label::textColourId, gui.getLabelColour());
+        //label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColor())));
         box->cnv->addAndMakeVisible(label.get());
         box->addComponentListener(this);
     }
@@ -304,7 +301,9 @@ void GUIComponent::closeOpenedSubpatchers()
         if (cnv && cnv->patch == *getPatch())
         {
             tabbar->removeTab(n);
+            main.pd.patches.removeFirstMatchingValue(cnv->patch);
             main.canvases.removeObject(cnv);
+            
         }
     }
 
@@ -322,7 +321,7 @@ void GUIComponent::closeOpenedSubpatchers()
 
 // BangComponent
 
-BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
+BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     addAndMakeVisible(bangButton);
 
@@ -334,9 +333,10 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(p
         startEdition();
         setValueOriginal(1);
         stopEdition();
+        update();
     };
 
-    initParameters();  // !! FIXME: virtual call from constructor!!
+    initParameters(newObject);
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.setFixedAspectRatio(1.0f);
     box->restrainer.checkComponentBounds(box);
@@ -347,8 +347,31 @@ void BangComponent::update()
     if (getValueOriginal() > std::numeric_limits<float>::epsilon())
     {
         bangButton.setToggleState(true, dontSendNotification);
-        startTimer(bangInterrupt);
+        
+        auto currentTime = Time::getCurrentTime().getMillisecondCounter();
+        auto timeSinceLast = currentTime - lastBang;
+        
+        int holdTime = bangHold;
+        
+        if (timeSinceLast < bangHold * 2) {
+            holdTime = timeSinceLast / 2;
+        }
+        if (holdTime < bangInterrupt) {
+            holdTime = bangInterrupt;
+        }
+        
+        lastBang = currentTime;
+        
+        Timer::callAfterDelay(holdTime, [this]()
+        {
+            bangButton.setToggleState(false, dontSendNotification);
+            if(bangButton.isDown()) {
+                bangButton.setState(Button::ButtonState::buttonNormal);
+            }
+        });
     }
+    
+
 }
 
 void BangComponent::resized()
@@ -358,7 +381,7 @@ void BangComponent::resized()
 }
 
 // ToggleComponent
-ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
+ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     addAndMakeVisible(toggleButton);
     toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
@@ -372,9 +395,11 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
         setValueOriginal(newValue);
         toggleButton.setToggleState(newValue, dontSendNotification);
         stopEdition();
+        
+        update();
     };
 
-    initParameters();
+    initParameters(newObject);
 
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.setFixedAspectRatio(1.0f);
@@ -393,7 +418,7 @@ void ToggleComponent::update()
 }
 
 // MessageComponent
-MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
+MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     addAndMakeVisible(input);
 
@@ -442,7 +467,7 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent) : GUICompo
                 startEdition();
                 gui.setSymbol(editor->getText().toStdString());
                 stopEdition();
-                // input.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+                // input.setText(String(gui.getSymbol()), dontSendNotification);
             };
 
             editor->onFocusLost = [this]()
@@ -475,7 +500,7 @@ void MessageComponent::resized()
 
 void MessageComponent::update()
 {
-    input.setText(String(gui.getSymbol()), NotificationType::sendNotification);
+    input.setText(String(gui.getSymbol()), sendNotification);
 }
 
 void MessageComponent::paint(Graphics& g)
@@ -540,7 +565,7 @@ void MessageComponent::updateValue()
 
 // NumboxComponent
 
-NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
+NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     input.addMouseListener(this, false);
 
@@ -574,7 +599,7 @@ NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent) : GUICompone
 
     input.setText(String(getValueOriginal()), dontSendNotification);
 
-    initParameters();
+    initParameters(newObject);
     input.setEditable(false, true);
 
     box->restrainer.setSizeLimits(50, 30, 500, 30);
@@ -593,7 +618,7 @@ void NumboxComponent::update()
     input.setText(String(value), dontSendNotification);
 }
 
-ListComponent::ListComponent(const pd::Gui& gui, Box* parent) : GUIComponent(gui, parent)
+ListComponent::ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : GUIComponent(gui, parent, newObject)
 {
     static const int border = 1;
 
@@ -601,10 +626,10 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent) : GUIComponent(gui
     label.setMinimumHorizontalScale(1.f);
     label.setJustificationType(Justification::centredLeft);
     label.setBorderSize(BorderSize<int>(border + 2, border, border, border));
-    label.setText(String(getValueOriginal()), NotificationType::dontSendNotification);
+    label.setText(String(getValueOriginal()), dontSendNotification);
     label.setEditable(false, false);
     label.setInterceptsMouseClicks(false, false);
-    label.setColour(Label::textColourId, Colour(static_cast<uint32>(gui.getForegroundColor())));
+    label.setColour(Label::textColourId, gui.getForegroundColor());
     setInterceptsMouseClicks(true, false);
     addAndMakeVisible(label);
 
@@ -616,7 +641,7 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent) : GUIComponent(gui
             startEdition();
             setValueOriginal(newValue);
             stopEdition();
-            label.setText(juce::String(getValueOriginal()), juce::NotificationType::dontSendNotification);
+            label.setText(String(getValueOriginal()), dontSendNotification);
         }
     };
 
@@ -626,7 +651,7 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent) : GUIComponent(gui
         if (editor != nullptr)
         {
             editor->setIndents(1, 2);
-            editor->setBorder(juce::BorderSize<int>(0));
+            editor->setBorder(BorderSize<int>(0));
         }
     };
 
@@ -636,13 +661,13 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent) : GUIComponent(gui
     box->restrainer.checkComponentBounds(box);
 }
 
-void ListComponent::paint(juce::Graphics& g)
+void ListComponent::paint(Graphics& g)
 {
     static auto const border = 1.0f;
     const float h = static_cast<float>(getHeight());
     const float w = static_cast<float>(getWidth());
     const float o = h * 0.25f;
-    juce::Path p;
+    Path p;
     p.startNewSubPath(0.5f, 0.5f);
     p.lineTo(0.5f, h - 0.5f);
     p.lineTo(w - o, h - 0.5f);
@@ -650,10 +675,10 @@ void ListComponent::paint(juce::Graphics& g)
     p.lineTo(w - 0.5f, o);
     p.lineTo(w - o, 0.5f);
     p.closeSubPath();
-    g.setColour(juce::Colour(static_cast<uint32>(gui.getBackgroundColor())));
+    g.setColour(gui.getBackgroundColor());
     g.fillPath(p);
-    g.setColour(juce::Colours::black);
-    g.strokePath(p, juce::PathStrokeType(border));
+    g.setColour(Colours::black);
+    g.strokePath(p, PathStrokeType(border));
 }
 
 void ListComponent::update()
@@ -661,7 +686,7 @@ void ListComponent::update()
     if (edited == false && !label.isBeingEdited())
     {
         auto const array = gui.getList();
-        juce::String message;
+        String message;
         for (auto const& atom : array)
         {
             if (message.isNotEmpty())
@@ -670,19 +695,19 @@ void ListComponent::update()
             }
             if (atom.isFloat())
             {
-                message += juce::String(atom.getFloat());
+                message += String(atom.getFloat());
             }
             else if (atom.isSymbol())
             {
-                message += juce::String(atom.getSymbol());
+                message += String(atom.getSymbol());
             }
         }
-        label.setText(message, juce::NotificationType::dontSendNotification);
+        label.setText(message, NotificationType::dontSendNotification);
     }
 }
 
 // SliderComponent
-SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
+SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     isVertical = vertical;
     addAndMakeVisible(slider);
@@ -717,7 +742,7 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
 
     slider.onDragEnd = [this]() { stopEdition(); };
 
-    initParameters();
+    initParameters(newObject);
 
     if (isVertical)
     {
@@ -743,11 +768,11 @@ void SliderComponent::update()
 }
 
 // RadioComponent
-RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent) : GUIComponent(pdGui, parent)
+RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     isVertical = vertical;
 
-    initParameters();
+    initParameters(newObject);
     updateRange();
 
     int selected = getValueOriginal();
@@ -828,7 +853,7 @@ void RadioComponent::updateRange()
 }
 
 // Array component
-ArrayComponent::ArrayComponent(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box), graph(gui.getArray()), array(box->cnv->pd, graph)
+ArrayComponent::ArrayComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), graph(gui.getArray()), array(box->cnv->pd, graph)
 {
     setInterceptsMouseClicks(false, true);
     array.setBounds(getLocalBounds());
@@ -869,7 +894,7 @@ void GraphicalArray::paint(Graphics& g)
     if (error)
     {
         // g.setFont(CamoLookAndFeel::getDefaultFont());
-        g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), juce::Justification::centred);
+        g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
     }
     else
     {
@@ -998,7 +1023,7 @@ size_t GraphicalArray::getArraySize() const noexcept
 }
 
 // Graph On Parent
-GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box)
+GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
 {
     setInterceptsMouseClicks(!box->locked, true);
 
@@ -1100,16 +1125,16 @@ void GraphOnParent::updateValue()
     }
 }
 
-PanelComponent::PanelComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
+PanelComponent::PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
 {
     box->restrainer.setSizeLimits(40, 40, 2000, 2000);
     box->restrainer.checkComponentBounds(box);
 
-    initParameters();
+    initParameters(newObject);
 }
 
 // Subpatch, phony GUI object
-Subpatch::Subpatch(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box)
+Subpatch::Subpatch(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
 {
     subpatch = gui.getPatch();
 }
@@ -1130,7 +1155,7 @@ Subpatch::~Subpatch()
 }
 
 // Comment
-CommentComponent::CommentComponent(const pd::Gui& pdGui, Box* box) : GUIComponent(pdGui, box)
+CommentComponent::CommentComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
 {
     setInterceptsMouseClicks(false, false);
     setVisible(false);
@@ -1140,7 +1165,7 @@ void CommentComponent::paint(Graphics& g)
 {
 }
 
-MousePad::MousePad(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
+MousePad::MousePad(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
 
@@ -1229,7 +1254,7 @@ void MousePad::lock(bool locked)
     isLocked = locked;
 }
 
-MouseComponent::MouseComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
+MouseComponent::MouseComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
 }
@@ -1279,7 +1304,7 @@ void MouseComponent::mouseDrag(const MouseEvent& e)
 {
 }
 
-KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box) : GUIComponent(gui, box), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
+KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
 {
     keyboard.setAvailableRange(36, 83);
     keyboard.setScrollButtonsVisible(false);

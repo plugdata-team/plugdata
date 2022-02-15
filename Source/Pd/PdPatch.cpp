@@ -58,9 +58,6 @@ extern "C"
 
 namespace pd
 {
-// ==================================================================================== //
-//                                          PATCHER                                     //
-// ==================================================================================== //
 
 Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr), instance(parentInstance)
 {
@@ -370,8 +367,6 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
     instance->waitForStateUpdate();
 
     setCurrent(true);
-    // This only works if pd always recreates the object
-    // TODO: find out if thats always the case
 
     auto gui = Gui(libpd_newest(getPointer()), this, instance);
     if (gui.getType() == Type::Undefined)

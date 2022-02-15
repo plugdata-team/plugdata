@@ -17,7 +17,7 @@ extern "C"
 #include "Connection.h"
 #include "PluginProcessor.h"
 
-//==============================================================================
+
 Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : MultiComponentDragger<Box>(this, &boxes), main(parent), pd(&parent.pd), patch(patch)
 {
     isGraph = graph;
@@ -207,7 +207,7 @@ void Canvas::synchronise(bool updatePosition)
             // Reload colour information for
             if (box->graphics)
             {
-                box->graphics->initParameters();
+                box->graphics->initParameters(false);
             }
 
             // Don't show non-patchable (internal) objects
@@ -440,6 +440,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 case 9:
                 {  // Open help
 
+                    pd->setThis();
                     // Find name of help file
                     auto helpPatch = lassoSelection.getSelectedItem(0)->pdObject->getHelp();
 
@@ -619,9 +620,17 @@ void Canvas::mouseUp(const MouseEvent& e)
         auto* box = lassoSelection.getSelectedItem(0);
         if (box->graphics)
         {
-            main.inspector.loadData(box->graphics->getParameters());
-            main.inspector.setVisible(true);
-            main.console->setVisible(false);
+            auto params = box->graphics->getParameters();
+            if(!params.first.empty()) {
+                main.inspector.loadData(params);
+                main.inspector.setVisible(true);
+                main.console->setVisible(false);
+            }
+            else {
+                main.inspector.deselect();
+                main.inspector.setVisible(false);
+                main.console->setVisible(true);
+            }
         }
         else
         {
@@ -718,7 +727,7 @@ void Canvas::findDrawables(Graphics& g)
     }
 }
 
-//==============================================================================
+
 void Canvas::paintOverChildren(Graphics& g)
 {
     // Pd Template drawing: not the most efficient implementation but it seems to work!

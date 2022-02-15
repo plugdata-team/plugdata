@@ -1,5 +1,4 @@
 /*
-  ==============================================================================
 
    This file is part of the JUCE library.
    Copyright (c) 2020 - Raw Material Software Limited
@@ -20,7 +19,6 @@
    EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
    DISCLAIMED.
 
-  ==============================================================================
 */
 
 #pragma once
@@ -32,7 +30,6 @@
 namespace juce
 {
 
-//==============================================================================
 /**
     An object that creates and plays a standalone instance of an AudioProcessor.
 
@@ -557,7 +554,6 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(StandalonePluginHolder)
 };
 
-//==============================================================================
 /**
     A class that can be used to run a simple standalone application containing your filter.
 

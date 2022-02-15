@@ -24,9 +24,6 @@ extern "C"
 
 namespace pd
 {
-// ==================================================================================== //
-//                                      GUI                                             //
-// ==================================================================================== //
 
 typedef struct _messresponder
 {
@@ -577,22 +574,46 @@ static unsigned int fromIemColors(int const color)
     return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
 }
 
-unsigned int Gui::getBackgroundColor() const noexcept
+Colour Gui::getBackgroundColor() const noexcept
 {
     if (ptr && isIEM())
     {
-        return libpd_iemgui_get_background_color(ptr);
+        return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(ptr)));
     }
-    return 0xffffffff;
+    return Colours::white;
 }
 
-unsigned int Gui::getForegroundColor() const noexcept
+Colour Gui::getForegroundColor() const noexcept
 {
     if (ptr && isIEM())
     {
-        return libpd_iemgui_get_foreground_color(ptr);
+        return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(ptr)));
     }
-    return 0xff000000;
+    return Colours::white;
+}
+
+Colour Gui::getLabelColour() const noexcept
+{
+    if (ptr && isIEM())
+    {
+        return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(ptr)));
+    }
+    return Colours::white;
+}
+
+void Gui::setBackgroundColour(Colour colour) noexcept {
+    String colourStr = colour.toString();
+    libpd_iemgui_set_background_color(getPointer(), colourStr.toRawUTF8());
+}
+
+void Gui::setForegroundColour(Colour colour) noexcept {
+    String colourStr = colour.toString();
+    libpd_iemgui_set_foreground_color(getPointer(), colourStr.toRawUTF8());
+}
+
+void Gui::setLabelColour(Colour colour) noexcept {
+    String colourStr = colour.toString();
+    libpd_iemgui_set_label_color(getPointer(), colourStr.toRawUTF8());
 }
 
 std::array<int, 4> Gui::getBounds() const noexcept
@@ -775,15 +796,12 @@ std::string Gui::getReceiveSymbol() noexcept
     return "";
 }
 
-// ==================================================================================== //
-//                                      LABEL                                           //
-// ==================================================================================== //
 
 Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
 {
     instance->setThis();
 
-    auto const fontheight = 17;
+    auto const fontheight = 23;
 
     if (isIEM())
     {
@@ -810,30 +828,31 @@ Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
                 auto const nchars = static_cast<int>(text.size());
                 auto const fwidth = glist_fontwidth(static_cast<t_fake_gatom*>(ptr)->a_glist);
                 auto const posx = bounds.getX() - 4 - nchars * fwidth;
-                auto const posy = bounds.getY() + 2 + fontheight / 2;
+                auto const posy = bounds.getY();
                 return {posx, posy};
             }
             else if (gatom->a_wherelabel == 1)  // Right
             {
-                auto const posx = bounds.getX() + bounds.getWidth() + 2;
-                auto const posy = bounds.getY() + 2 + fontheight / 2;
+                auto const posx = bounds.getX() + bounds.getWidth() + 1;
+                auto const posy = bounds.getY();
                 return {posx, posy};
             }
             else if (gatom->a_wherelabel == 2)  // Up
             {
-                auto const posx = bounds.getX() - 1;
-                auto const posy = bounds.getY() - 1 - fontheight / 2;
+                auto const posx = bounds.getX();
+                auto const posy = bounds.getY() - fontheight;
                 return {posx, posy};
             }
-            auto const posx = bounds.getX() - 1;
-            auto const posy = bounds.getY() + bounds.getHeight() + 2 + fontheight / 2;
+            auto const posx = bounds.getX();
+            auto const posy = bounds.getY() + bounds.getHeight();
             return {posx, posy};  // Down
         }
     }
     return {bounds.getX(), bounds.getY()};
 }
 
-Label Gui::getLabel() const noexcept
+
+String Gui::getLabelText() const noexcept
 {
     instance->setThis();
     if (isIEM())
@@ -841,17 +860,10 @@ Label Gui::getLabel() const noexcept
         t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
         if (sym)
         {
-            auto const text = std::string(sym->s_name);
-            if (!text.empty() && text != std::string("empty"))
+            auto const text = String(sym->s_name);
+            if (text.isNotEmpty() && text != "empty")
             {
-                auto const* iemgui = static_cast<t_iemgui*>(ptr);
-                auto const color = fromIemColors(iemgui->x_lcol);
-                auto const bounds = getBounds();
-                auto const posx = bounds[0] + iemgui->x_ldx;
-                auto const posy = bounds[1] + iemgui->x_ldy;
-                auto const fontname = getFontName();
-                auto const fontheight = getFontHeight();
-                return {text, color, posx, posy, fontname, fontheight};
+                return text;
             }
         }
     }
@@ -861,60 +873,52 @@ Label Gui::getLabel() const noexcept
         t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
         if (sym)
         {
-            auto const text = std::string(sym->s_name);
-            auto const bounds = getBounds();
-            auto const* gatom = static_cast<t_fake_gatom*>(ptr);
-            auto const color = 0xff000000;
-            auto const fontname = getFontName();
-            auto const fontheight = static_cast<float>(sys_hostfontsize(glist_getfont(patch->getPointer()), glist_getzoom(patch->getPointer())));
-
-            if (gatom->a_wherelabel == 0)  // Left
+            
+            auto const text = String(sym->s_name);
+            if (text.isNotEmpty() && text != "empty")
             {
-                auto const nchars = static_cast<int>(text.size());
-                auto const fwidth = glist_fontwidth(static_cast<t_fake_gatom*>(ptr)->a_glist);
-                auto const posx = static_cast<int>(bounds[0] - 4 - nchars * fwidth);
-                auto const posy = static_cast<int>(bounds[1] + 2 + fontheight / 2);
-                return {text, color, posx, posy, fontname, fontheight};
+                return text;
             }
-            else if (gatom->a_wherelabel == 1)  // Right
-            {
-                auto const posx = bounds[0] + bounds[2] + 2;
-                auto const posy = static_cast<int>(bounds[1] + 2 + fontheight / 2);
-                return {text, color, posx, posy, fontname, fontheight};
-            }
-            else if (gatom->a_wherelabel == 2)  // Up
-            {
-                auto const posx = bounds[0] - 1;
-                auto const posy = static_cast<int>(bounds[1] - 1 - fontheight / 2);
-                return {text, color, posx, posy, fontname, fontheight};
-            }
-            auto const posx = bounds[0] - 1;
-            auto const posy = static_cast<int>(bounds[1] + bounds[3] + 2 + fontheight / 2);
-            return {text, color, posx, posy, fontname, fontheight};  // Down
+            
+            
         }
     }
-    return {};
+           
+    return "";
 }
 
-Label::Label() noexcept : m_color(0xff000000), m_position({0, 0})
-{
+void Gui::setLabelText(String newText) noexcept {
+
+    if(isIEM()) {
+        static_cast<t_iemgui*>(ptr)->x_lab = gensym(newText.toRawUTF8());
+    }
+    if(isAtom()) {
+        static_cast<t_fake_gatom*>(ptr)->a_label = gensym(newText.toRawUTF8());
+    }
+    
 }
 
-Label::Label(Label const& other) noexcept : m_text(other.m_text), m_color(other.m_color), m_position(other.m_position)
-{
+void Gui::setLabelPosition(Point<int> position) noexcept {
+    
+    if(isIEM()) {
+        auto* iem = static_cast<t_iemgui*>(ptr);
+        iem->x_ldx = position.x;
+        iem->x_ldy = position.y;
+        return;
+    }
+    jassertfalse;
+    
 }
 
-Label::Label(std::string text, unsigned int color, int x, int y, std::string fontname, float fontheight) noexcept : m_text(std::move(text)), m_color(color), m_position({x, y}), m_font_name(std::move(fontname)), m_font_height(fontheight)
-{
+void Gui::setLabelPosition(int wherelabel) noexcept {
+    
+    if(isAtom()) {
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        gatom->a_wherelabel = wherelabel;
+        return;
+    }
+    jassertfalse;
 }
 
-float Label::getFontHeight() const noexcept
-{
-    return m_font_height;
-}
 
-std::string Label::getFontName() const
-{
-    return m_font_name;
-}
 }  // namespace pd

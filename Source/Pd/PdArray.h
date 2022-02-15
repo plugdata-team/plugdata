@@ -14,10 +14,6 @@ namespace pd
 {
 class Instance;
 class Gui;
-// ==================================================================================== //
-//                                          GRAPH                                       //
-// ==================================================================================== //
-
 //! @brief The Pd array.
 //! @details The class is a wrapper around a Pd array. The lifetime of the internal array\n
 //! is not guaranteed by the class.

@@ -368,7 +368,6 @@ struct PlugDataDarkLook : public PlugDataLook
         }
     }
     
-    // TODO: fix text alignment
     void drawTableHeaderColumn (Graphics& g, TableHeaderComponent& header, const String &columnName, int columnId, int width, int height, bool isMouseOver, bool isMouseDown, int columnFlags) override {
         auto highlightColour = header.findColour (TableHeaderComponent::highlightColourId);
 
@@ -418,6 +417,32 @@ struct PlugDataDarkLook : public PlugDataLook
 
         g.setColour(highlightColour);
         g.fillRect(highlightRect);
+    }
+    
+    void drawComboBox (Graphics& g, int width, int height, bool,
+                       int, int, int, int, ComboBox& box) override
+    {
+     
+        bool inspectorElement = box.getName().startsWith("inspector");
+        auto cornerSize = inspectorElement ? 0.0f : 3.0f;
+        Rectangle<int> boxBounds (0, 0, width, height);
+
+        g.setColour (box.findColour (ComboBox::backgroundColourId));
+        g.fillRoundedRectangle (boxBounds.toFloat(), cornerSize);
+
+        if(!inspectorElement)  {
+            g.setColour (box.findColour (ComboBox::outlineColourId));
+            g.drawRoundedRectangle (boxBounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
+        }
+
+        Rectangle<int> arrowZone (width - 20, 2, 14, height - 4);
+        Path path;
+        path.startNewSubPath ((float) arrowZone.getX() + 3.0f, (float) arrowZone.getCentreY() - 2.0f);
+        path.lineTo ((float) arrowZone.getCentreX(), (float) arrowZone.getCentreY() + 3.0f);
+        path.lineTo ((float) arrowZone.getRight() - 3.0f, (float) arrowZone.getCentreY() - 2.0f);
+        g.setColour (box.findColour (ComboBox::arrowColourId).withAlpha ((box.isEnabled() ? 0.9f : 0.2f)));
+        
+        g.strokePath (path, PathStrokeType (2.0f));
     }
 
     void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
@@ -557,7 +582,7 @@ struct PlugDataDarkLook : public PlugDataLook
         auto thumbWidth = getSliderThumbRadius(slider);
         valueTrack.startNewSubPath(minPoint);
         valueTrack.lineTo(maxPoint);
-        g.setColour(slider.findColour(Slider::backgroundColourId));
+        g.setColour(slider.findColour(TextButton::buttonColourId));
         g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
         g.setColour(slider.findColour(Slider::thumbColourId));
         g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));

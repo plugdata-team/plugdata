@@ -16,7 +16,6 @@
 #include "Edge.h"
 #include "x_libpd_mod_utils.h"
 
-//==============================================================================
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters, p.meterSource)
 {
@@ -175,8 +174,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
         auto createFunc = [this]()
         {
             tabbar.clearTabs();
-
             canvases.clear();
+            pd.patches.clear();
 
             pd.loadPatch(pd::Instance::defaultPatch);
             pd.getPatch().setTitle("Untitled Patcher");
@@ -290,18 +289,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
 
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
-
-
-    // TEMPORARY:
-    // Ideally, we store the tabs on pd::instance, so they don't get lost when the editor closes
-    for (int n = 0; n < tabbar.getNumTabs(); n++)
-    {
-        auto* closeButton = static_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(n)->getExtraComponent());
-
-        
-        closeButton->triggerClick();
-    }
-    
 #if JUCE_LINUX
     stopTimer();
 #endif
@@ -423,7 +410,6 @@ void PlugDataPluginEditor::showNewObjectMenu()
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]).withParentComponent(this), ModalCallbackFunction::create(callback));
 }
 
-//==============================================================================
 void PlugDataPluginEditor::paint(Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
