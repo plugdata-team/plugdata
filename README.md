@@ -56,31 +56,48 @@ Known issues:
 
 v0.3.3:
 - Fix all warnings
+- Fix multi-instance problems for plugins (DONE, hopefully)
 - Clean up:
     - Box class, reduce resize calls
-    - Better patch management (opening/closing patches, tab behaviour, remembering tabs when closing plugin editor)
-    - Move sidebar features to separate file
+    - Better patch management (opening/closing patches, tab behaviour, remembering tabs when closing plugin editor) (DONE)
+    - Move sidebar classes to separate file
     - Consistent naming of inlets/outlets
-    - LookAndFeel classes
+    - LookAndFeel classes (DONE)
 - MIDI Blinker
-- Allow modifying labels
+- Allow modifying label text, font, position and colour
 - Ensure all object properties are supported, including height/width where applicable
-- Create document and system for object descriptions and inlet/outlet hover messages
+- Create document and system for object descriptions and inlet/outlet hover messages (DONE)
 - More flexible connection manipulation
 - Increase number of automatable parameters
-- Make sure most ELSE objects work properly, especially ones with GUI features
-- Do a lot more testing
+- Make sure most Pd and ELSE objects work properly, especially ones with GUI features
+  - text define, pic, possibly more
+- Add AtomList object
+- Fix resize problems:
+    - No resize for some pre-existing objects
+    - Array resize
+    - Graph resize
+    - Keyboard resize
+- Fix gaps when dragging over array
+- Fix showing suggestions in comments
+- Fix comment rectangle not clearing
+- Implement zooming by ctrl+scrolling, maybe pinch on trackpads/touchscreens
+- Always show console when interacting with GUI objects
+- Fix mixed red/white outline bug
+- Add light theme for pd compatibility (to make black text in original pd patches readable)
+- Fix ctrl to temporarily enter lock mode on Linux (DONE)
+- Make sure pd patches always look correct (especially for compact UI's designed in pd)
 
-v0.4
+v0.3.4 - v0.4:
+- Support grid
 - Smart patching behaviour: shift to drop object between connection or create multiple connections at once
 - Final GUI changes before stable release
 - Finished document with object descriptions and inlet/outlet hover messages
-- Ensure that all externals fully work
+- Ensure that all externals work
 - Create manual
 - Improve code documentation
 
 
 Future plans:
-- Support for GEM
+- Support for GEM or Ofelia
 
 Please contact me if you wish to contribute, I could use some help! Bug reports are also appricated, they help me to get to a stable version much faster.
