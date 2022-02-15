@@ -109,11 +109,13 @@ bool Box::hitTest(int x, int y)
 
 void Box::mouseEnter(const MouseEvent& e)
 {
+    isOver = true;
     repaint();
 }
 
 void Box::mouseExit(const MouseEvent& e)
 {
+    isOver = false;
     repaint();
 }
 
@@ -253,8 +255,6 @@ void Box::paint(Graphics& g)
     auto baseColour = findColour(TextButton::buttonColourId);
     auto outlineColour = findColour(ComboBox::outlineColourId);
 
-    bool isOver = getLocalBounds().contains(getMouseXYRelative());
-
     bool selected = cnv->isSelected(this);
 
     if (pdObject && pdObject->getType() == pd::Type::Invalid && !textLabel.isBeingEdited())
@@ -275,12 +275,10 @@ void Box::paint(Graphics& g)
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {
-        if (locked || (!isOver && !selected))
-            g.setColour(Colours::transparentBlack);
-        else
-            g.setColour(findColour(ComboBox::outlineColourId));
-
-        g.drawRect(rect.toFloat(), 0.5f);
+        if(!locked && (isOver || selected)) {
+            g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(ComboBox::outlineColourId));
+            g.drawRect(rect.toFloat(), 0.5f);
+        }
     }
     // Draw for all other objects
     else

@@ -554,6 +554,12 @@ float Gui::getFontHeight() const noexcept
         return libpd_get_canvas_font_height(patch->getPointer());
     }
 }
+void Gui::setFontHeight(float newSize) noexcept
+{
+    if (!ptr || !isIEM()) return 0;
+
+    static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
+}
 
 std::string Gui::getFontName() const
 {
