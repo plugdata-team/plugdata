@@ -1,6 +1,4 @@
 /*
-  ==============================================================================
-
    This file is part of the JUCE library.
    Copyright (c) 2020 - Raw Material Software Limited
 
@@ -19,8 +17,6 @@
    JUCE IS PROVIDED "AS IS" WITHOUT ANY WARRANTY, AND ALL WARRANTIES, WHETHER
    EXPRESSED OR IMPLIED, INCLUDING MERCHANTABILITY AND FITNESS FOR PURPOSE, ARE
    DISCLAIMED.
-
-  ==============================================================================
 */
 
 #include <JuceHeader.h>
@@ -29,7 +25,6 @@
 
 #include "PlugDataWindow.h"
 
-//==============================================================================
 class PlugDataApp : public JUCEApplication
 {
    public:
@@ -38,6 +33,7 @@ class PlugDataApp : public JUCEApplication
         PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
 
         PropertiesFile::Options options;
+        
 
         options.applicationName = "PlugData";
         options.filenameSuffix = ".settings";
@@ -91,7 +87,7 @@ class PlugDataApp : public JUCEApplication
         return new PlugDataWindow(getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr
 #ifdef JucePlugin_PreferredChannelConfigurations
                                   ,
-                                  juce::Array<StandalonePluginHolder::PluginInOuts>(channels, juce::numElementsInArray(channels))
+                                  Array<StandalonePluginHolder::PluginInOuts>(channels, numElementsInArray(channels))
 #else
                                   ,
                                   {}

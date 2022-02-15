@@ -94,6 +94,10 @@ class ConsoleComponent : public Component, private AsyncUpdater, public Componen
 
         triggerAsyncUpdate();
     }
+    
+    void mouseDown(const MouseEvent& e) override {
+        
+    }
 
     void paint(Graphics& g) override
     {

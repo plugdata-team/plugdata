@@ -13,9 +13,6 @@ extern "C"
 
 namespace pd
 {
-// ==================================================================================== //
-//                                      GRAPH                                           //
-// ==================================================================================== //
 
 Array::Array(std::string arrayName, void* arrayInstance) : name(std::move(arrayName)), instance(arrayInstance)
 {

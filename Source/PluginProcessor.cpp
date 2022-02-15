@@ -9,7 +9,7 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 
-//==============================================================================
+
 PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(BusesProperties()
@@ -23,12 +23,12 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
       pd::Instance("PlugData")
 #endif
       ,
-      parameters(*this, nullptr, juce::Identifier("PlugData"),
-                 {std::make_unique<juce::AudioParameterFloat>("volume", "Volume", 0.0f, 1.0f, 0.75f), std::make_unique<juce::AudioParameterBool>("enabled", "Enabled", true),
+      parameters(*this, nullptr, Identifier("PlugData"),
+                 {std::make_unique<AudioParameterFloat>("volume", "Volume", 0.0f, 1.0f, 0.75f), std::make_unique<AudioParameterBool>("enabled", "Enabled", true),
 
-                  std::make_unique<juce::AudioParameterFloat>("param1", "Parameter 1", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param2", "Parameter 2", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param3", "Parameter 3", 0.0f, 1.0f, 0.0f),
-                  std::make_unique<juce::AudioParameterFloat>("param4", "Parameter 4", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param5", "Parameter 5", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param6", "Parameter 6", 0.0f, 1.0f, 0.0f),
-                  std::make_unique<juce::AudioParameterFloat>("param7", "Parameter 7", 0.0f, 1.0f, 0.0f), std::make_unique<juce::AudioParameterFloat>("param8", "Parameter 8", 0.0f, 1.0f, 0.0f)})
+                  std::make_unique<AudioParameterFloat>("param1", "Parameter 1", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param2", "Parameter 2", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param3", "Parameter 3", 0.0f, 1.0f, 0.0f),
+                  std::make_unique<AudioParameterFloat>("param4", "Parameter 4", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param5", "Parameter 5", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param6", "Parameter 6", 0.0f, 1.0f, 0.0f),
+                  std::make_unique<AudioParameterFloat>("param7", "Parameter 7", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param8", "Parameter 8", 0.0f, 1.0f, 0.0f)})
 {
     volume = parameters.getRawParameterValue("volume");
     enabled = parameters.getRawParameterValue("enabled");
@@ -128,7 +128,7 @@ void PlugDataAudioProcessor::updateSearchPaths()
 
     objectLibrary.initialiseLibrary(pathTree);
 }
-//==============================================================================
+
 const String PlugDataAudioProcessor::getName() const
 {
     return JucePlugin_Name;
@@ -190,7 +190,6 @@ void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
 {
 }
 
-//==============================================================================
 void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate);
@@ -586,7 +585,6 @@ void PlugDataAudioProcessor::processInternal()
     }
 }
 
-//==============================================================================
 bool PlugDataAudioProcessor::hasEditor() const
 {
     return true;  // (change this to false if you choose to not supply an editor)
@@ -596,6 +594,8 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
     auto* editor = new PlugDataPluginEditor(*this, &console);
 
+    setThis();
+    
     if (patches.isEmpty())
     {
         auto patchFile = File::createTempFile(".pd");
@@ -622,13 +622,12 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     return editor;
 }
 
-//==============================================================================
 void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
 {
     MemoryBlock xmlBlock;
 
     auto state = parameters.copyState();
-    std::unique_ptr<juce::XmlElement> xml(state.createXml());
+    std::unique_ptr<XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, xmlBlock);
 
     // Store pure-data state
@@ -653,10 +652,10 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
     void* xmlData = static_cast<void*>(new char[xmlSize]);
     istream.read(xmlData, xmlSize);
 
-    std::unique_ptr<juce::XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
+    std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
     if (xmlState)
-        if (xmlState->hasTagName(parameters.state.getType())) parameters.replaceState(juce::ValueTree::fromXml(*xmlState));
+        if (xmlState->hasTagName(parameters.state.getType())) parameters.replaceState(ValueTree::fromXml(*xmlState));
 
     File location;
     if (!istream.isExhausted())
@@ -692,6 +691,7 @@ void PlugDataAudioProcessor::loadPatch(File patch)
     {
         editor->tabbar.clearTabs();
         editor->canvases.clear();
+        patches.clear();
     }
 
     openPatch(patch);
@@ -711,6 +711,7 @@ void PlugDataAudioProcessor::loadPatch(String patch)
     patchFile.replaceWithText(patch);
 
     openPatch(patchFile);
+    patches.addIfNotAlreadyThere(getPatch());
 
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
@@ -835,7 +836,6 @@ void PlugDataAudioProcessor::titleChanged()
     }
 }
 
-//==============================================================================
 // This creates new instances of the plugin..
 AudioProcessor* JUCE_CALLTYPE createPluginFilter()
 {

@@ -33,9 +33,6 @@ struct _outlet
 
 namespace pd
 {
-// ==================================================================================== //
-//                                      OBJECT                                          //
-// ==================================================================================== //
 
 Object::Object(void* objectPtr, Patch* parentPatch, Instance* parentInstance) noexcept : ptr(objectPtr), patch(parentPatch), instance(parentInstance)
 {
