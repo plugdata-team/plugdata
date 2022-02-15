@@ -118,6 +118,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
 
     Component seperators[2];
+    
+    bool inspectorWasVisible;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };
