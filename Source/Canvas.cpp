@@ -81,9 +81,6 @@ void Canvas::synchronise(bool updatePosition)
         setTransform(main.transform);
     }
 
-    main.inspector.deselect();
-    main.inspector.setVisible(false);
-    main.console->setVisible(true);
 
     pd->waitForStateUpdate();
     deselectAll();
@@ -511,8 +508,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
     auto* source = e.originalComponent;
 
-    // if(source != this) repaint();
-
     // Drag lasso
     if (dynamic_cast<Connection*>(source))
     {
@@ -618,7 +613,11 @@ void Canvas::mouseUp(const MouseEvent& e)
     if (lassoSelection.getNumSelected() == 1)
     {
         auto* box = lassoSelection.getSelectedItem(0);
-        if (box->graphics)
+        if(main.pd.commandLocked) {
+            main.inspector.setVisible(true);
+            main.console->setVisible(false);
+        }
+        else if (box->graphics)
         {
             auto params = box->graphics->getParameters();
             if(!params.first.empty()) {
@@ -791,6 +790,10 @@ void Canvas::deselectAll()
             connection->repaint();
         }
     }
+    
+    main.inspector.deselect();
+    main.inspector.setVisible(false);
+    main.console->setVisible(true);
 }
 
 void Canvas::copySelection()
