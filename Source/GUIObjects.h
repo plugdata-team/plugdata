@@ -237,11 +237,15 @@ struct GUIComponent : public Component, public ComponentListener
     void startEdition() noexcept;
 
     void stopEdition() noexcept;
+    
+    void mouseDown(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
 
     Box* box;
 
    protected:
     
+    bool inspectorWasVisible = false;
     
     const std::string stringGui = std::string("gui");
     const std::string stringMouse = std::string("mouse");
@@ -359,6 +363,7 @@ struct MessageComponent : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
+        GUIComponent::mouseDown(e);
         // Edit messages when unlocked
         if (e.getNumberOfClicks() == 2 && !isLocked && !gui.isAtom())
         {
@@ -416,17 +421,18 @@ struct NumboxComponent : public GUIComponent
         return {w, h};
     };
 
-    void mouseDown(const MouseEvent& event) override
+    void mouseDown(const MouseEvent& e) override
     {
+        GUIComponent::mouseDown(e);
         if (!input.isBeingEdited())
         {
             startEdition();
-            shift = event.mods.isShiftDown();
+            shift = e.mods.isShiftDown();
             downValue = input.getText().getFloatValue();
         }
     }
 
-    void mouseUp(const MouseEvent& event) override
+    void mouseUp(const MouseEvent& e) override
     {
         if (!input.isBeingEdited())
         {

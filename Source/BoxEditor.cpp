@@ -96,7 +96,8 @@ TextEditor* ClickLabel::createEditorComponent()
     // Allow multiline for comment objects
     newEditor->setMultiLine(multiLine, false);
     newEditor->setReturnKeyStartsNewLine(multiLine);
-
+    newEditor->setBorder(border);
+    newEditor->setJustification(Justification::centred);
 
     newEditor->onFocusLost = [this]()
     {
