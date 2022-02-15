@@ -11,7 +11,7 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
-//==============================================================================
+
 Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(parent->pd->locked), textLabel(this, *parent), resizer(this, &restrainer)
 {
     cnv = parent;
@@ -177,7 +177,7 @@ void Box::setType(const String& newType, bool exists)
     if (pdObject)
     {
         // Create graphics for the object if necessary
-        graphics.reset(GUIComponent::createGui(type, this));
+        graphics.reset(GUIComponent::createGui(type, this, !exists));
 
         if (graphics)
         {
@@ -245,7 +245,7 @@ void Box::setType(const String& newType, bool exists)
     resized();
 }
 
-//==============================================================================
+
 void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(6);

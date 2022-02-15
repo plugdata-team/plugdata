@@ -12,10 +12,11 @@ enum ParameterType
     tInt,
     tFloat,
     tColour,
-    tBool
+    tBool,
+    tCombo
 };
 
-using ObjectParameter = std::tuple<String, ParameterType, void*>;  // name, type and pointer to value
+using ObjectParameter = std::tuple<String, ParameterType, void*, std::vector<String>>;  // name, type and pointer to value, list of items only for combobox and bool
 
 using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<void(int)>>;  // List of elements and update function
 
@@ -78,7 +79,7 @@ struct Inspector : public Component, public TableListBoxModel
 
         if (rowNumber < items.size())
         {
-            const auto [name, type, ptr] = items[rowNumber];
+            const auto [name, type, ptr, options] = items[rowNumber];
             g.drawText(name, 6, 0, width - 4, height, Justification::centredLeft, true);
         }
 
@@ -99,7 +100,7 @@ struct Inspector : public Component, public TableListBoxModel
         // Draw names regularly
         if (columnId == 1) return nullptr;
 
-        auto [name, type, ptr] = items[rowNumber];
+        auto [name, type, ptr, options] = items[rowNumber];
 
         switch (type)
         {
@@ -112,7 +113,9 @@ struct Inspector : public Component, public TableListBoxModel
             case tColour:
                 return new ColourComponent(callback, static_cast<String*>(ptr), rowNumber);
             case tBool:
-                return new ToggleComponent(callback, static_cast<bool*>(ptr), rowNumber);
+                return new ToggleComponent(callback, static_cast<bool*>(ptr), rowNumber, options);
+            case tCombo:
+                return new ComboComponent(callback, static_cast<int*>(ptr), rowNumber, options);
         }
 
         // for any other column, just return 0, as we'll be painting these columns directly.
@@ -164,14 +167,47 @@ struct Inspector : public Component, public TableListBoxModel
 
     int numRows;  // The number of rows of data we've got
 
+    struct ComboComponent : public Component
+    {
+        ComboComponent(std::function<void(int)> cb, int* value, int rowIdx, std::vector<String> items) : callback(std::move(cb)), row(rowIdx)
+        {
+            
+            for(int n = 0; n < items.size(); n++) {
+                comboBox.addItem(items[n], n + 1);
+            }
+            
+            comboBox.setName("inspector:combo");
+            comboBox.setSelectedId((*value) + 1);
+  
+            addAndMakeVisible(comboBox);
+
+            comboBox.onChange = [this, value]()
+            {
+                *value = comboBox.getSelectedId() - 1;
+                callback(row);
+            };
+        }
+
+        void resized() override
+        {
+            comboBox.setBounds(getLocalBounds());
+        }
+
+       private:
+        std::function<void(int)> callback;
+        int row;
+        ComboBox comboBox;
+        
+    };
+    
     struct ToggleComponent : public Component
     {
-        ToggleComponent(std::function<void(int)> cb, bool* value, int rowIdx) : callback(std::move(cb)), row(rowIdx)
+        ToggleComponent(std::function<void(int)> cb, bool* value, int rowIdx, std::vector<String> options) : callback(std::move(cb)), row(rowIdx)
         {
             toggleButton.setClickingTogglesState(true);
 
             toggleButton.setToggleState(*value, sendNotification);
-            toggleButton.setButtonText((*value) ? "true" : "false");
+            toggleButton.setButtonText((*value) ? options[1] : options[0]);
             toggleButton.setConnectedEdges(12);
 
             addAndMakeVisible(toggleButton);
@@ -269,6 +305,8 @@ struct Inspector : public Component, public TableListBoxModel
     template <typename T>
     struct EditableComponent : public Label
     {
+        float downValue;
+        
         EditableComponent(std::function<void(int)> cb, T* value, int rowIdx) : callback(std::move(cb)), row(rowIdx)
         {
             setEditable(false, true);
@@ -304,10 +342,77 @@ struct Inspector : public Component, public TableListBoxModel
             }
             else if constexpr (std::is_integral<T>::value)
             {
-                editor->setInputRestrictions(0, "0123456789");
+                editor->setInputRestrictions(0, "0123456789-");
             }
 
             return editor;
+        }
+        
+        void mouseDown(const MouseEvent& event) override
+        {
+            if constexpr (!std::is_arithmetic<T>::value) return;
+            
+            downValue = getText().getFloatValue();
+        }
+        
+        void mouseDrag(const MouseEvent& e) override {
+            
+            if constexpr (!std::is_arithmetic<T>::value) return;
+            
+            Label::mouseDrag(e);
+        
+            auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
+            if (std::abs(inc) < 1.0f) return;
+
+            // Logic for dragging, where the x position decides the precision
+            auto currentValue = getText();
+            if (!currentValue.containsChar('.')) currentValue += '.';
+            if (currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
+            currentValue += "00000";
+
+            // Get position of all numbers
+            Array<int> glyphs;
+            Array<float> xOffsets;
+            getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
+
+            // Find the number closest to the mouse down
+            auto position = static_cast<float>(e.getMouseDownX() - 4);
+            auto precision = static_cast<int>(std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin());
+            precision -= currentValue.indexOfChar('.');
+
+            // I case of integer dragging
+            if (precision <= 0)
+            {
+                precision = 0;
+            }
+            else
+            {
+                // Offset for the decimal point character
+                precision -= 1;
+            }
+            
+            if constexpr (std::is_integral<T>::value)
+            {
+                precision = 0;
+            }
+
+            // Calculate increment multiplier
+            float multiplier = powf(10.0f, static_cast<float>(-precision));
+
+            // Calculate new value as string
+            auto newValue = String(downValue + inc * multiplier, precision);
+
+            if (precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
+
+            if constexpr (std::is_integral<T>::value)
+            {
+                newValue = newValue.upToFirstOccurrenceOf(".", false, false);
+            }
+            
+            setText(newValue, sendNotification);
+            
+    
+        
         }
 
        private:

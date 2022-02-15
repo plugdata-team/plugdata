@@ -18,25 +18,25 @@ struct LevelMeter : public Component
     {
         meter.setMeterSource(&source);
 
-        lnf.setColour(foleys::LevelMeter::lmTextColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmTextClipColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmTextDeactiveColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmTicksColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmOutlineColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextClipColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextDeactiveColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTicksColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmOutlineColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, findColour(Slider::thumbColourId));
-        lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, juce::Colours::darkgrey);
+        lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, Colours::darkgrey);
         lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, findColour(Slider::thumbColourId));
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, findColour(Slider::thumbColourId));
-        lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, Colours::red);
 
         addAndMakeVisible(meter);
         meter.setLookAndFeel(&lnf);
 
         addAndMakeVisible(volumeSlider);
-        volumeSlider.setTextBoxStyle(juce::Slider::NoTextBox, false, 0, 0);
+        volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
 
         volumeSlider.setValue(0.75);
         volumeSlider.setRange(0.0f, 1.0f);

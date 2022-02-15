@@ -13,9 +13,6 @@ namespace pd
 {
 class Patch;
 class Instance;
-// ==================================================================================== //
-//                                      OBJECT                                          //
-// ==================================================================================== //
 
 //! @brief The Pd object.
 //! @details The class is a wrapper around a Pd object. The lifetime of the internal\n

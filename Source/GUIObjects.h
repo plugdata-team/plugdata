@@ -29,7 +29,7 @@ class Box;
 
 struct GUIComponent : public Component, public ComponentListener
 {
-    GUIComponent(const pd::Gui& gui, Box* parent);
+    GUIComponent(const pd::Gui&, Box* parent, bool newObject);
 
     ~GUIComponent() override;
 
@@ -39,7 +39,7 @@ struct GUIComponent : public Component, public ComponentListener
 
     virtual void update(){};
 
-    virtual void initParameters();
+    virtual void initParameters(bool newObject);
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -67,11 +67,7 @@ struct GUIComponent : public Component, public ComponentListener
 
     void closeOpenedSubpatchers();
 
-    static GUIComponent* createGui(const String& name, Box* parent);
-
-    void setForeground(Colour colour);
-
-    void setBackground(Colour colour);
+    static GUIComponent* createGui(const String& name, Box* parent, bool newObject);
 
     virtual ObjectParameters defineParamters()
     {
@@ -86,22 +82,36 @@ struct GUIComponent : public Component, public ComponentListener
 
         if (gui.isIEM())
         {
-            parameterList.insert(parameterList.begin(), {"Foreground", tColour, static_cast<void*>(&primaryColour)});
-            parameterList.insert(parameterList.begin() + 1, {"Background", tColour, static_cast<void*>(&secondaryColour)});
-            parameterList.insert(parameterList.begin() + 2, {"Send Symbol", tString, static_cast<void*>(&sendSymbol)});
-            parameterList.insert(parameterList.begin() + 3, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol)});
+            parameterList.insert(parameterList.begin(), {"Foreground", tColour, static_cast<void*>(&primaryColour), {}});
+            parameterList.insert(parameterList.begin() + 1, {"Background", tColour, static_cast<void*>(&secondaryColour), {}});
+            parameterList.insert(parameterList.begin() + 2, {"Send Symbol", tString, static_cast<void*>(&sendSymbol), {}});
+            parameterList.insert(parameterList.begin() + 3, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol), {}});
+            parameterList.insert(parameterList.begin() + 4, {"Label", tString, static_cast<void*>(&labelText), {}});
+            parameterList.insert(parameterList.begin() + 5, {"Label Colour", tColour, static_cast<void*>(&labelColour), {}});
+            parameterList.insert(parameterList.begin() + 6, {"Label X", tInt, static_cast<void*>(&labelX), {}});
+            parameterList.insert(parameterList.begin() + 7, {"Label Y", tInt, static_cast<void*>(&labelY), {}});
 
             auto oldCallback = callback;
             callback = [this, oldCallback](int changedParameter)
             {
                 if (changedParameter == 0)
                 {
-                    setForeground(Colour::fromString(primaryColour));
+                    auto colour = Colour::fromString(primaryColour);
+                    gui.setForegroundColour(colour);
+                    
+                    getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
+                    getLookAndFeel().setColour(Slider::thumbColourId, colour);
                     repaint();
                 }
                 else if (changedParameter == 1)
                 {
-                    setBackground(Colour::fromString(secondaryColour));
+                    auto colour = Colour::fromString(primaryColour);
+                    gui.setBackgroundColour(colour);
+                    
+                    getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
+                    getLookAndFeel().setColour(TextButton::buttonColourId, colour);
+                    getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
+                    
                     repaint();
                 }
                 else if (changedParameter == 2)
@@ -114,9 +124,29 @@ struct GUIComponent : public Component, public ComponentListener
                     gui.setReceiveSymbol(receiveSymbol.toStdString());
                     repaint();
                 }
+                else if (changedParameter == 4)
+                {
+                    gui.setLabelText(labelText);
+                    updateLabel();
+                }
+                else if (changedParameter == 5)
+                {
+                    gui.setLabelColour(Colour::fromString(labelColour));
+                    updateLabel();
+                }
+                else if (changedParameter == 6)
+                {
+                    gui.setLabelPosition({labelX, labelY});
+                    updateLabel();
+                }
+                else if (changedParameter == 7)
+                {
+                    gui.setLabelPosition({labelX, labelY});
+                    updateLabel();
+                }
                 else
                 {
-                    oldCallback(changedParameter - 4);
+                    oldCallback(changedParameter - 8);
                 }
             };
         }
@@ -126,9 +156,12 @@ struct GUIComponent : public Component, public ComponentListener
 
             // parameters.insert(parameters.begin(), {"Width", tInt, static_cast<void*>(&width)});
 
-            parameters.insert(parameters.begin(), {"Send Symbol", tString, static_cast<void*>(&sendSymbol)});
-            parameters.insert(parameters.begin() + 1, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol)});
+            parameters.insert(parameters.begin(), {"Send Symbol", tString, static_cast<void*>(&sendSymbol), {}});
+            parameters.insert(parameters.begin() + 1, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol), {}});
 
+            parameterList.insert(parameterList.begin() + 2, {"Label", tString, static_cast<void*>(&labelText), {}});
+            parameterList.insert(parameterList.begin() + 3, {"Label Position", tCombo, static_cast<void*>(&labelX), {"left", "right", "top", "bottom"}});
+            
             auto oldCallback = cb;
             cb = [this, oldCallback](int changedParameter)
             {
@@ -147,9 +180,19 @@ struct GUIComponent : public Component, public ComponentListener
                     gui.setReceiveSymbol(receiveSymbol.toStdString());
                     repaint();
                 }
+                else if (changedParameter == 2)
+                {
+                    gui.setLabelText(labelText);
+                    updateLabel();
+                }
+                else if (changedParameter == 3)
+                {
+                    gui.setLabelPosition(labelX);
+                    updateLabel();
+                }
                 else
                 {
-                    oldCallback(changedParameter - 2);
+                    oldCallback(changedParameter - 4);
                 }
             };
         }
@@ -204,21 +247,33 @@ struct GUIComponent : public Component, public ComponentListener
     float min = 0;
     float max = 0;
     int width = 6;
+    
 
     String sendSymbol;
     String receiveSymbol;
 
     String primaryColour = findColour(Slider::thumbColourId).toString();
     String secondaryColour = findColour(ComboBox::backgroundColourId).toString();
+    
+    String labelColour = Colours::white.toString();
+    int labelX = 0;
+    int labelY = 0;
+    
+    String labelText;
+    
 };
 
-struct BangComponent : public GUIComponent, public Timer
+struct BangComponent : public GUIComponent
 {
+    
+    uint32_t lastBang;
+    
     int bangInterrupt = 40;
+    int bangHold = 40;
 
     TextButton bangButton;
 
-    BangComponent(const pd::Gui& gui, Box* parent);
+    BangComponent(const pd::Gui&, Box* parent, bool newObject);
 
     std::pair<int, int> getBestSize() override
     {
@@ -229,14 +284,24 @@ struct BangComponent : public GUIComponent, public Timer
     ObjectParameters defineParamters() override
     {
         return {{
-                    {"Interrupt", tInt, static_cast<void*>(&bangInterrupt)},
-                },
-                [this](int) { static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold = bangInterrupt; }};
+            {"Interrupt", tInt, static_cast<void*>(&bangInterrupt), {}},
+            {"Hold",      tInt, static_cast<void*>(&bangHold),      {}},
+            
+            
+        },
+                [this](int item) {
+                    if(item == 0) {
+                        static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold = bangInterrupt;
+                    }
+                    else if(item == 1) {
+                        static_cast<t_bng*>(gui.getPointer())->x_flashtime_break = bangHold;
+                    }
+                }};
     }
 
-    void initParameters() override
+    void initParameters(bool newObject) override
     {
-        GUIComponent::initParameters();
+        GUIComponent::initParameters(newObject);
 
         bangInterrupt = static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold;
     };
@@ -244,19 +309,13 @@ struct BangComponent : public GUIComponent, public Timer
     void update() override;
 
     void resized() override;
-
-    void timerCallback() override
-    {
-        bangButton.setToggleState(false, dontSendNotification);
-        stopTimer();
-    };
 };
 
 struct ToggleComponent : public GUIComponent
 {
     TextButton toggleButton;
 
-    ToggleComponent(const pd::Gui& gui, Box* parent);
+    ToggleComponent(const pd::Gui&, Box* parent, bool newObject);
 
     std::pair<int, int> getBestSize() override
     {
@@ -278,7 +337,7 @@ struct MessageComponent : public GUIComponent
 
     std::string lastMessage;
 
-    MessageComponent(const pd::Gui& gui, Box* parent);
+    MessageComponent(const pd::Gui&, Box* parent, bool newObject);
 
     std::pair<int, int> getBestSize() override
     {
@@ -339,10 +398,10 @@ struct NumboxComponent : public GUIComponent
 {
     Label input;
 
-    float last = 0.0f;
+    float downValue = 0.0f;
     bool shift = false;
 
-    NumboxComponent(const pd::Gui& gui, Box* parent);
+    NumboxComponent(const pd::Gui&, Box* parent, bool newObject);
 
     std::pair<int, int> getBestSize() override
     {
@@ -356,8 +415,7 @@ struct NumboxComponent : public GUIComponent
         {
             startEdition();
             shift = event.mods.isShiftDown();
-            last = input.getText().getFloatValue();
-            // setValueOriginal(last);
+            downValue = input.getText().getFloatValue();
         }
     }
 
@@ -409,7 +467,7 @@ struct NumboxComponent : public GUIComponent
             float multiplier = powf(10.0f, static_cast<float>(-precision));
 
             // Calculate new value as string
-            auto newValue = String(std::clamp(last + inc * multiplier, min, max), precision);
+            auto newValue = String(std::clamp(downValue + inc * multiplier, min, max), precision);
 
             if (precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
 
@@ -434,7 +492,7 @@ struct NumboxComponent : public GUIComponent
             }
         };
 
-        return {{{"Minimum", tFloat, static_cast<void*>(&min)}, {"Maximum", tFloat, static_cast<void*>(&max)}}, callback};
+        return {{{"Minimum", tFloat, static_cast<void*>(&min), {}}, {"Maximum", tFloat, static_cast<void*>(&max), {}}}, callback};
     }
 
     void paint(Graphics& g) override
@@ -465,9 +523,9 @@ struct NumboxComponent : public GUIComponent
 
 struct ListComponent : public GUIComponent
 {
-    ListComponent(const pd::Gui& gui, Box* parent);
+    ListComponent(const pd::Gui& gui, Box* parent, bool newObject);
 
-    void paint(juce::Graphics& g) override;
+    void paint(Graphics& g) override;
 
     void update() override;
 
@@ -488,7 +546,7 @@ struct SliderComponent : public GUIComponent
 
     Slider slider;
 
-    SliderComponent(bool vertical, const pd::Gui& gui, Box* parent);
+    SliderComponent(bool vertical, const pd::Gui& gui, Box* parent, bool newObject);
 
     std::pair<int, int> getBestSize() override
     {
@@ -517,9 +575,9 @@ struct SliderComponent : public GUIComponent
         };
 
         return {{
-                    {"Minimum", tFloat, static_cast<void*>(&min)},
-                    {"Maximum", tFloat, static_cast<void*>(&max)},
-                    {"Logarithmic", tBool, static_cast<void*>(&isLogarithmic)},
+            {"Minimum", tFloat, static_cast<void*>(&min), {}},
+            {"Maximum", tFloat, static_cast<void*>(&max), {}},
+            {"Logarithmic", tBool, static_cast<void*>(&isLogarithmic), {"off", "on"}},
                 },
                 callback};
     }
@@ -537,7 +595,7 @@ struct RadioComponent : public GUIComponent
 
     bool isVertical;
 
-    RadioComponent(bool vertical, const pd::Gui& gui, Box* parent);
+    RadioComponent(bool vertical, const pd::Gui& gui, Box* parent, bool newObject);
 
     OwnedArray<TextButton> radioButtons;
 
@@ -564,8 +622,8 @@ struct RadioComponent : public GUIComponent
         };
 
         return {{
-                    {"Minimum", tInt, static_cast<void*>(&minimum)},
-                    {"Maximum", tInt, static_cast<void*>(&maximum)},
+            {"Minimum", tInt, static_cast<void*>(&minimum), {}},
+            {"Maximum", tInt, static_cast<void*>(&maximum), {}},
                 },
                 callback};
     }
@@ -614,7 +672,7 @@ struct GraphicalArray : public Component, public Timer
 struct ArrayComponent : public GUIComponent
 {
    public:
-    ArrayComponent(const pd::Gui& gui, Box* box);
+    ArrayComponent(const pd::Gui& gui, Box* box, bool newObject);
 
     void paint(Graphics&) override
     {
@@ -642,7 +700,7 @@ struct GraphOnParent : public GUIComponent
     bool isLocked = false;
 
    public:
-    GraphOnParent(const pd::Gui& gui, Box* box);
+    GraphOnParent(const pd::Gui& gui, Box* box, bool newObject);
 
     ~GraphOnParent() override;
 
@@ -684,7 +742,7 @@ struct GraphOnParent : public GUIComponent
 
 struct Subpatch : public GUIComponent
 {
-    Subpatch(const pd::Gui& gui, Box* box);
+    Subpatch(const pd::Gui& gui, Box* box, bool newObject);
 
     ~Subpatch() override;
 
@@ -713,7 +771,7 @@ struct Subpatch : public GUIComponent
 
 struct CommentComponent : public GUIComponent
 {
-    CommentComponent(const pd::Gui& gui, Box* box);
+    CommentComponent(const pd::Gui& gui, Box* box, bool newObject);
 
     void paint(Graphics& g) override;
 
@@ -737,21 +795,21 @@ struct CommentComponent : public GUIComponent
 
 struct VUMeter : public GUIComponent
 {
-    VUMeter(const pd::Gui& gui, Box* box) : GUIComponent(gui, box)
+    VUMeter(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        lnf.setColour(foleys::LevelMeter::lmTextColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmTextClipColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmTextDeactiveColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmTicksColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmOutlineColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmBackgroundColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, juce::Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextClipColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTextDeactiveColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmTicksColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmOutlineColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmBackgroundClipColour, Colours::transparentBlack);
         lnf.setColour(foleys::LevelMeter::lmMeterForegroundColour, findColour(Slider::thumbColourId));
-        lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, juce::Colours::transparentBlack);
-        lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, juce::Colours::darkgrey);
+        lnf.setColour(foleys::LevelMeter::lmMeterOutlineColour, Colours::transparentBlack);
+        lnf.setColour(foleys::LevelMeter::lmMeterBackgroundColour, Colours::darkgrey);
         lnf.setColour(foleys::LevelMeter::lmMeterGradientLowColour, findColour(Slider::thumbColourId));
         lnf.setColour(foleys::LevelMeter::lmMeterGradientMidColour, findColour(Slider::thumbColourId));
-        lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, juce::Colours::red);
+        lnf.setColour(foleys::LevelMeter::lmMeterGradientMaxColour, Colours::red);
 
         addAndMakeVisible(meter);
 
@@ -799,7 +857,7 @@ struct VUMeter : public GUIComponent
 
 struct PanelComponent : public GUIComponent
 {
-    PanelComponent(const pd::Gui& gui, Box* box);
+    PanelComponent(const pd::Gui& gui, Box* box, bool newObject);
 
     void paint(Graphics& g) override
     {
@@ -819,15 +877,20 @@ struct PanelComponent : public GUIComponent
 
         auto& [parameterList, callback] = parameters;
 
-        parameterList.insert(parameterList.begin(), {"Background", tColour, static_cast<void*>(&secondaryColour)});
-        parameterList.insert(parameterList.begin() + 1, {"Send Symbol", tString, static_cast<void*>(&sendSymbol)});
-        parameterList.insert(parameterList.begin() + 2, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol)});
+        parameterList.insert(parameterList.begin(), {"Background", tColour, static_cast<void*>(&secondaryColour), {}});
+        parameterList.insert(parameterList.begin() + 1, {"Send Symbol", tString, static_cast<void*>(&sendSymbol), {}});
+        parameterList.insert(parameterList.begin() + 2, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol), {}});
 
         callback = [this](int changedParameter)
         {
             if (changedParameter == 0)
             {
-                setBackground(Colour::fromString(secondaryColour));
+                auto colour = Colour::fromString(primaryColour);
+                gui.setBackgroundColour(colour);
+                
+                getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
+                getLookAndFeel().setColour(TextButton::buttonColourId, colour);
+                getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
                 repaint();
             }
             else if (changedParameter == 1)
@@ -874,7 +937,7 @@ struct MousePad : public GUIComponent
         unsigned char x_color[3];
     } t_pad;
 
-    MousePad(const pd::Gui& gui, Box* box);
+    MousePad(const pd::Gui& gui, Box* box, bool newObject);
 
     ~MousePad() override;
 
@@ -915,7 +978,7 @@ struct MouseComponent : public GUIComponent
         t_outlet* x_vertical;
     } t_mouse;
 
-    MouseComponent(const pd::Gui& gui, Box* box);
+    MouseComponent(const pd::Gui& gui, Box* box, bool newObject);
 
     ~MouseComponent() override;
 
@@ -988,7 +1051,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_outlet* x_out;
     } t_keyboard;
 
-    KeyboardComponent(const pd::Gui& gui, Box* box);
+    KeyboardComponent(const pd::Gui& gui, Box* box, bool newObject);
 
     void paint(Graphics& g) override{};
 

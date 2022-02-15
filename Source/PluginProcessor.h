@@ -13,9 +13,6 @@
 #include "Pd/PdLibrary.h"
 #include "PluginEditor.h"
 
-//==============================================================================
-/**
- */
 
 class PlugDataPluginEditor;
 class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer, public PatchLoader

@@ -18,9 +18,6 @@ namespace pd
 
 using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
 class Instance;
-// ==================================================================================== //
-//                                          PATCHER                                     //
-// ==================================================================================== //
 
 //! @brief The Pd patch.
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
@@ -87,7 +84,6 @@ class Patch
 
     t_canvas* getPointer() const
     {
-        // TODO: some crash here????
         return static_cast<t_canvas*>(ptr);
     }
 

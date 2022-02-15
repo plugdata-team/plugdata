@@ -15,7 +15,6 @@ ClickLabel::ClickLabel(Box* parent, MultiComponentDragger<Box>& multiDragger) : 
 {
 }
 
-//==============================================================================
 void ClickLabel::setText(const String& newText, NotificationType notification)
 {
     hideEditor();
@@ -93,13 +92,11 @@ TextEditor* ClickLabel::createEditorComponent()
 
     bool multiLine = box->pdObject && box->pdObject->getType() == pd::Type::Comment;
 
-    auto& suggestor = box->cnv->suggestor;
+    
     // Allow multiline for comment objects
     newEditor->setMultiLine(multiLine, false);
     newEditor->setReturnKeyStartsNewLine(multiLine);
 
-    newEditor->setInputFilter(&suggestor, false);
-    newEditor->addKeyListener(&suggestor);
 
     newEditor->onFocusLost = [this]()
     {
@@ -108,13 +105,18 @@ TextEditor* ClickLabel::createEditorComponent()
             hideEditor();
         }
     };
-
-    suggestor.createCalloutBox(box, newEditor);
-
-    auto boundsInParent = getBounds() + box->getPosition();
-
-    suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 115);
-    suggestor.resized();
+    
+    if(!(box->graphics && box->graphics->getGui().getType() == pd::Type::Comment)) {
+        auto& suggestor = box->cnv->suggestor;
+        suggestor.createCalloutBox(box, newEditor);
+        auto boundsInParent = getBounds() + box->getPosition();
+        suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 115);
+        suggestor.resized();
+        
+        
+        newEditor->setInputFilter(&suggestor, false);
+        newEditor->addKeyListener(&suggestor);
+    }
 
     return newEditor;
 }
@@ -228,7 +230,7 @@ TextEditor* ClickLabel::getCurrentTextEditor() const noexcept
     return editor.get();
 }
 
-//==============================================================================
+
 void ClickLabel::paint(Graphics& g)
 {
     g.fillAll(findColour(Label::backgroundColourId));
