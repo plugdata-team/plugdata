@@ -161,7 +161,7 @@ void Box::setType(const String& newType, bool exists)
         width = pdObject->getWidth();
         if (width == 0)
         {
-            width = textLabel.getFont().getStringWidth(newType) + 28;
+            width = textLabel.getFont().getStringWidth(newType) + 27;
         }
         else
         {
@@ -170,7 +170,7 @@ void Box::setType(const String& newType, bool exists)
     }
     else
     {
-        width = textLabel.getFont().getStringWidth(newType) + 28;
+        width = textLabel.getFont().getStringWidth(newType) + 27;
     }
 
     // Update inlets/outlets if it's not in a graph
@@ -300,7 +300,7 @@ void Box::resized()
         pdObject->setWidth(getWidth() - 8);
     }
 
-    auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 28;
+    auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 27;
 
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !textLabel.isBeingEdited())
     {

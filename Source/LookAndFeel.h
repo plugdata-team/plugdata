@@ -61,6 +61,8 @@ struct PlugDataLook : public LookAndFeel_V4
 
     virtual void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
     
+    virtual void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
+    
     virtual Font getToolbarFont(int buttonHeight) = 0;
     virtual Font getStatusbarFont(int buttonHeight) = 0;
     virtual Font getSuggestionFont(int buttonHeight) = 0;
@@ -97,8 +99,13 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             drawPdButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
+        else if (button.getName().startsWith("inspector"))
+        {
+            drawInspectorButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
+        }
         else
         {
+            
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
     }
@@ -469,6 +476,21 @@ struct PlugDataDarkLook : public PlugDataLook
         }
 
         g.fillRect(buttonArea.toFloat());
+    }
+    
+    void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
+    {
+        auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
+
+        auto baseColour = backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
+                                          .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f);
+
+        if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
+            baseColour = baseColour.contrasting (shouldDrawButtonAsDown ? 0.2f : 0.05f);
+
+        g.setColour (baseColour);
+        g.fillRect(bounds);
+        g.setColour (button.findColour (ComboBox::outlineColourId));
     }
 
     void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
