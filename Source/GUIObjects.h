@@ -90,6 +90,7 @@ struct GUIComponent : public Component, public ComponentListener
             parameterList.insert(parameterList.begin() + 5, {"Label Colour", tColour, static_cast<void*>(&labelColour), {}});
             parameterList.insert(parameterList.begin() + 6, {"Label X", tInt, static_cast<void*>(&labelX), {}});
             parameterList.insert(parameterList.begin() + 7, {"Label Y", tInt, static_cast<void*>(&labelY), {}});
+            parameterList.insert(parameterList.begin() + 8, {"Label Height", tInt, static_cast<void*>(&labelHeight), {}});
 
             auto oldCallback = callback;
             callback = [this, oldCallback](int changedParameter)
@@ -105,7 +106,7 @@ struct GUIComponent : public Component, public ComponentListener
                 }
                 else if (changedParameter == 1)
                 {
-                    auto colour = Colour::fromString(primaryColour);
+                    auto colour = Colour::fromString(secondaryColour);
                     gui.setBackgroundColour(colour);
                     
                     getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
@@ -144,9 +145,14 @@ struct GUIComponent : public Component, public ComponentListener
                     gui.setLabelPosition({labelX, labelY});
                     updateLabel();
                 }
+                else if (changedParameter == 8)
+                {
+                    gui.setFontHeight(labelHeight);
+                    updateLabel();
+                }
                 else
                 {
-                    oldCallback(changedParameter - 8);
+                    oldCallback(changedParameter - 9);
                 }
             };
         }
@@ -258,6 +264,7 @@ struct GUIComponent : public Component, public ComponentListener
     String labelColour = Colours::white.toString();
     int labelX = 0;
     int labelY = 0;
+    int labelHeight = 18;
     
     String labelText;
     
