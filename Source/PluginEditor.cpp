@@ -522,15 +522,21 @@ void PlugDataPluginEditor::resized()
 // We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...
 // This timer is only started on Linux
 void PlugDataPluginEditor::timerCallback() {
+        
     if (ModifierKeys::getCurrentModifiers().isCommandDown() && !lockButton.getToggleState())
     {
         pd.commandLocked = true;
+        inspectorWasVisible = inspector.isVisible();
+        inspector.setVisible(false);
+        console->setVisible(true);
         sendChangeMessage();
     }
 
     if (!ModifierKeys::getCurrentModifiers().isCommandDown() && pd.commandLocked)
     {
         pd.commandLocked = false;
+        inspector.setVisible(inspectorWasVisible);
+        console->setVisible(!inspectorWasVisible);
         sendChangeMessage();
     }
 }
@@ -542,12 +548,17 @@ bool PlugDataPluginEditor::keyStateChanged(bool isKeyDown, Component* originatin
     if (isKeyDown && mod.isCommandDown() && !lockButton.getToggleState())
     {
         pd.commandLocked = true;
+        inspectorWasVisible = inspector.isVisible();
+        inspector.setVisible(false);
+        console->setVisible(true);
         sendChangeMessage();
     }
 
     if (!mod.isCommandDown() && pd.commandLocked)
     {
         pd.commandLocked = false;
+        inspector.setVisible(inspectorWasVisible);
+        console->setVisible(!inspectorWasVisible);
         sendChangeMessage();
     }
 

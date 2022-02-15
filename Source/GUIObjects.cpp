@@ -34,7 +34,7 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
     if(gui.isIEM()) {
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
         labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
-        labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize;
+        labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize * pd::Patch::zoom;
     }
 
     updateLabel();
@@ -86,6 +86,17 @@ void GUIComponent::initParameters(bool newObject)
         primaryColour = Colour(gui.getForegroundColor()).toString();
         secondaryColour = Colour(gui.getBackgroundColor()).toString();
         if(gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
+        
+        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour));
+        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour));
+        
+        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour));
+        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour));
+        
+        auto sliderBackground = Colour::fromString(secondaryColour);
+        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
+        
+        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
 }
 
