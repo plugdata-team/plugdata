@@ -209,6 +209,8 @@ struct Inspector : public Component, public TableListBoxModel
             toggleButton.setToggleState(*value, sendNotification);
             toggleButton.setButtonText((*value) ? options[1] : options[0]);
             toggleButton.setConnectedEdges(12);
+            
+            toggleButton.setName("inspector:toggle");
 
             addAndMakeVisible(toggleButton);
 

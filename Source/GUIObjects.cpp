@@ -44,6 +44,8 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
 
     setWantsKeyboardFocus(true);
     
+    addMouseListener(this, true);
+    
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
 }
 
@@ -59,6 +61,25 @@ GUIComponent::~GUIComponent()
 void GUIComponent::lock(bool isLocked)
 {
     setInterceptsMouseClicks(isLocked, isLocked);
+}
+
+void GUIComponent::mouseDown(const MouseEvent& e) {
+    if(box->cnv->pd->commandLocked) {
+        auto& inspector = box->cnv->main.inspector;
+        auto& console = box->cnv->main.console;
+        inspectorWasVisible = inspector.isVisible();
+        inspector.setVisible(false);
+        console->setVisible(true);
+    }
+}
+
+void GUIComponent::mouseUp(const MouseEvent& e) {
+    if(box->cnv->pd->commandLocked) {
+        auto& inspector = box->cnv->main.inspector;
+        auto& console = box->cnv->main.console;
+        inspector.setVisible(inspectorWasVisible);
+        console->setVisible(!inspectorWasVisible);
+    }
 }
 
 void GUIComponent::initParameters(bool newObject)
@@ -964,11 +985,11 @@ void GraphicalArray::paint(Graphics& g)
     g.drawRect(getLocalBounds(), 1);
 }
 
-void GraphicalArray::mouseDown(const MouseEvent& event)
+void GraphicalArray::mouseDown(const MouseEvent& e)
 {
     if (error) return;
     edited = true;
-    mouseDrag(event);
+    mouseDrag(e);
 }
 
 void GraphicalArray::mouseDrag(const MouseEvent& event)
@@ -1046,8 +1067,6 @@ GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : G
     box->resized();
     box->textLabel.setVisible(false);
 
-    addMouseListener(this, true);
-
     resized();
 }
 
@@ -1069,6 +1088,7 @@ void GraphOnParent::lock(bool locked)
 
 void GraphOnParent::mouseDown(const MouseEvent& e)
 {
+    GUIComponent::mouseDown(e);
     if (!isLocked)
     {
         box->textLabel.mouseDown(e.getEventRelativeTo(&box->textLabel));
@@ -1205,6 +1225,7 @@ void MousePad::updateValue(){
 
 void MousePad::mouseDown(const MouseEvent& e)
 {
+    GUIComponent::mouseDown(e);
     if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
 
     auto* x = static_cast<t_pad*>(gui.getPointer());
