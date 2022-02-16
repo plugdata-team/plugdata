@@ -65,20 +65,15 @@ void GUIComponent::lock(bool isLocked)
 
 void GUIComponent::mouseDown(const MouseEvent& e) {
     if(box->cnv->pd->commandLocked) {
-        auto& inspector = box->cnv->main.inspector;
-        auto& console = box->cnv->main.console;
-        inspectorWasVisible = inspector.isVisible();
-        inspector.setVisible(false);
-        console->setVisible(true);
+        auto& sidebar = box->cnv->main.sidebar;
+        inspectorWasVisible = !sidebar.isShowingConsole();
+        sidebar.hideParameters();
     }
 }
 
 void GUIComponent::mouseUp(const MouseEvent& e) {
-    if(box->cnv->pd->commandLocked) {
-        auto& inspector = box->cnv->main.inspector;
-        auto& console = box->cnv->main.console;
-        inspector.setVisible(inspectorWasVisible);
-        console->setVisible(!inspectorWasVisible);
+    if(box->cnv->pd->commandLocked && inspectorWasVisible) {
+        box->cnv->main.sidebar.showParameters();
     }
 }
 

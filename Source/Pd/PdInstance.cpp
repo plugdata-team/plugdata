@@ -631,4 +631,14 @@ void Instance::createPanel(int type, const char* snd, const char* location)
     }
 }
 
+
+void Instance::logMessage(const String& message) {
+    consoleMessages.emplace_back(message, 0);
+    updateConsole();
+}
+
+void Instance::logError(const String& error) {
+    consoleMessages.emplace_back(error, 1);
+    updateConsole();
+}
 }  // namespace pd

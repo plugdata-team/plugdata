@@ -59,8 +59,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     sendMessagesFromQueue();
     processMessages();
     
+    lnf = std::make_unique<PlugDataDarkLook>();
     
-    LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+    LookAndFeel::setDefaultLookAndFeel(lnf.get());
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -592,7 +593,7 @@ bool PlugDataAudioProcessor::hasEditor() const
 
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
-    auto* editor = new PlugDataPluginEditor(*this, &console);
+    auto* editor = new PlugDataPluginEditor(*this);
 
     setThis();
     
@@ -823,6 +824,12 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
     }
 
     startTimer(15);
+}
+
+void PlugDataAudioProcessor::updateConsole() {
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        editor->sidebar.updateConsole();
+    }
 }
 
 void PlugDataAudioProcessor::titleChanged()

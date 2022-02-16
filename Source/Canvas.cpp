@@ -239,7 +239,7 @@ void Canvas::synchronise(bool updatePosition)
             // TEMP: remove when we're sure this works
             if (srcno >= boxes.size() || sinkno >= boxes.size() || outno >= srcEdges.size() || inno >= sinkEdges.size())
             {
-                pd->console.logError("Error: impossible connection");
+                pd->logError("Error: impossible connection");
                 continue;
             }
 
@@ -443,7 +443,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 
                     if (!helpPatch.getPointer())
                     {
-                        main.console->logMessage("Couldn't find help file");
+                        pd->logMessage("Couldn't find help file");
                         return;
                     }
 
@@ -613,36 +613,26 @@ void Canvas::mouseUp(const MouseEvent& e)
     if (lassoSelection.getNumSelected() == 1)
     {
         auto* box = lassoSelection.getSelectedItem(0);
-        if(main.pd.commandLocked) {
-            main.inspector.setVisible(true);
-            main.console->setVisible(false);
-        }
-        else if (box->graphics)
+
+        if (box->graphics)
         {
             auto params = box->graphics->getParameters();
             if(!params.first.empty()) {
-                main.inspector.loadData(params);
-                main.inspector.setVisible(true);
-                main.console->setVisible(false);
+                
+                main.sidebar.showParameters(params);
             }
             else {
-                main.inspector.deselect();
-                main.inspector.setVisible(false);
-                main.console->setVisible(true);
+                main.sidebar.hideParameters();
             }
         }
         else
         {
-            main.inspector.deselect();
-            main.inspector.setVisible(false);
-            main.console->setVisible(true);
+            main.sidebar.hideParameters();
         }
     }
     else
     {
-        main.inspector.deselect();
-        main.inspector.setVisible(false);
-        main.console->setVisible(true);
+        main.sidebar.hideParameters();
     }
 
     lasso.endLasso();
@@ -791,9 +781,7 @@ void Canvas::deselectAll()
         }
     }
     
-    main.inspector.deselect();
-    main.inspector.setVisible(false);
-    main.console->setVisible(true);
+    main.sidebar.hideParameters();
 }
 
 void Canvas::copySelection()
@@ -863,10 +851,7 @@ void Canvas::duplicateSelection()
 void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
-    main.inspector.deselect();
-    main.inspector.setVisible(false);
-    main.console->setVisible(true);
-    // main.stopTimer();
+    main.sidebar.hideParameters();
 
     // Find selected objects and make them selected in pd
     Array<pd::Object*> objects;
