@@ -33,7 +33,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 {
     GUIComponent(const pd::Gui&, Box* parent, bool newObject);
 
-    ~GUIComponent() override;
+    virtual ~GUIComponent() override;
 
     virtual std::pair<int, int> getBestSize() = 0;
 
@@ -71,35 +71,34 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     static GUIComponent* createGui(const String& name, Box* parent, bool newObject);
 
-    virtual ObjectParameters defineParamters()
+    virtual ObjectParameters defineParameters()
     {
         return {};
     };
 
     virtual ObjectParameters getParameters()
     {
-        ObjectParameters params = defineParamters();
-
+        ObjectParameters params = defineParameters();
 
         if (gui.isIEM())
         {
-            params.insert(params.begin(), {"Foreground", tColour, cAppearance, &primaryColour, {}});
-            params.insert(params.begin() + 1, {"Background", tColour, cAppearance, &secondaryColour, {}});
-            params.insert(params.begin() + 2, {"Send Symbol", tString, cGeneral, &sendSymbol, {}});
-            params.insert(params.begin() + 3, {"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
-            params.insert(params.begin() + 4, {"Label", tString, cLabel, &labelText, {}});
-            params.insert(params.begin() + 5, {"Label Colour", tColour, cLabel, &labelColour, {}});
-            params.insert(params.begin() + 6, {"Label X", tInt, cLabel, &labelX, {}});
-            params.insert(params.begin() + 7, {"Label Y", tInt, cLabel, &labelY, {}});
-            params.insert(params.begin() + 8, {"Label Height", tInt, cLabel, &labelHeight, {}});
+            params.push_back({"Foreground", tColour, cAppearance, &primaryColour, {}});
+            params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
+            params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
+            params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
+            params.push_back({"Label", tString, cLabel, &labelText, {}});
+            params.push_back({"Label Colour", tColour, cLabel, &labelColour, {}});
+            params.push_back({"Label X", tInt, cLabel, &labelX, {}});
+            params.push_back({"Label Y", tInt, cLabel, &labelY, {}});
+            params.push_back({"Label Height", tInt, cLabel, &labelHeight, {}});
         }
         else if (gui.isAtom())
         {
-            params.insert(params.begin(), {"Send Symbol", tString, cAppearance, &sendSymbol, {}});
-            params.insert(params.begin() + 1, {"Receive Symbol", tString, cAppearance, &receiveSymbol, {}});
+            params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
+            params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
 
-            params.insert(params.begin() + 2, {"Label", tString, cLabel, &labelText, {}});
-            params.insert(params.begin() + 3, {"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
+            params.push_back({"Label", tString, cLabel, &labelText, {}});
+            params.push_back({"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
         }
         return params;
     }
@@ -172,7 +171,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
         }
         else if(value.refersToSameSourceAs(labelX)) {
             if(gui.isAtom()) {
-                gui.setLabelPosition(static_cast<int>(labelX.getValue()));
+                gui.setLabelPosition(static_cast<int>(labelX.getValue()) - 1);
                 updateLabel();
             }
             else {
@@ -245,7 +244,7 @@ struct BangComponent : public GUIComponent
         return {w, h};
     };
 
-    ObjectParameters defineParamters() override
+    ObjectParameters defineParameters() override
     {
         return {
             {"Interrupt", tInt, cGeneral, &bangInterrupt, {}},
@@ -444,7 +443,7 @@ struct NumboxComponent : public GUIComponent
         }
     }
 
-    ObjectParameters defineParamters() override
+    ObjectParameters defineParameters() override
     {
         return {{"Minimum", tFloat, cGeneral, &min, {}}, {"Maximum", tFloat, cGeneral, &max, {}}};
     }
@@ -524,7 +523,7 @@ struct SliderComponent : public GUIComponent
         return {w, h};
     };
 
-    ObjectParameters defineParamters() override
+    ObjectParameters defineParameters() override
     {
         return {
             {"Minimum", tFloat, cGeneral, &min, {}},
@@ -576,7 +575,7 @@ struct RadioComponent : public GUIComponent
         return {w, h};
     };
 
-    ObjectParameters defineParamters() override
+    ObjectParameters defineParameters() override
     {
         return {
             {"Minimum", tInt, cGeneral, &minimum, {}},
@@ -845,9 +844,9 @@ struct PanelComponent : public GUIComponent
     ObjectParameters getParameters() override
     {
         ObjectParameters params;
-        params.insert(params.begin(), {"Background", tColour, cAppearance, &secondaryColour, {}});
-        params.insert(params.begin() + 1, {"Send Symbol", tString, cGeneral, &sendSymbol, {}});
-        params.insert(params.begin() + 2, {"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
+        params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
+        params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
+        params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
         return params;
     }
     

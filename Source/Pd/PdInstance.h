@@ -170,6 +170,7 @@ class Instance
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
     std::vector<std::pair<String, int>> consoleMessages;
+    std::vector<std::pair<String, int>> consoleHistory;
     
    private:
     struct Message
