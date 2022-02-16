@@ -10,8 +10,6 @@
 
 #include <memory>
 
-#include "Inspector.h"
-
 SaveDialog::SaveDialog()
 {
     setSize(400, 200);

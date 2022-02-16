@@ -8,11 +8,11 @@
 
 #include <JuceHeader.h>
 
-#include "Console.h"
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
 #include "PluginEditor.h"
 
+class PlugDataDarkLook;
 
 class PlugDataPluginEditor;
 class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer, public PatchLoader
@@ -62,6 +62,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receiveMidiByte(const int port, const int byte) override;
 
     void receiveGuiUpdate(int type) override;
+    
+    void updateConsole() override;
 
     void receivePrint(const std::string& message) override
     {
@@ -70,16 +72,16 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
             if (!message.compare(0, 6, "error:"))
             {
                 const auto temp = String(message);
-                console.logError(temp.substring(7));
+                logError(temp.substring(7));
             }
             else if (!message.compare(0, 11, "verbose(4):"))
             {
                 const auto temp = String(message);
-                console.logError(temp.substring(12));
+                logError(temp.substring(12));
             }
             else
             {
-                console.logMessage(message);
+                logMessage(message);
             }
         }
     };
@@ -115,8 +117,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void loadPatch(File patch) override;
 
     void titleChanged() override;
-
-    Console console;
     
     // All opened patches
     Array<pd::Patch> patches;
@@ -171,7 +171,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     const CriticalSection* audioLock;
     
-    SharedResourcePointer<PlugDataDarkLook> lnf;
+    std::unique_ptr<LookAndFeel> lnf;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

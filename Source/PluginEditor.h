@@ -8,9 +8,8 @@
 
 #include <JuceHeader.h>
 
-#include "Console.h"
 #include "Dialogs.h"
-#include "Inspector.h"
+#include "Sidebar.h"
 #include "LevelMeter.h"
 #include "LookAndFeel.h"
 
@@ -36,11 +35,9 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
 {
    public:
 
-    PlugDataPluginEditor(PlugDataAudioProcessor&, Console* console);
+    PlugDataPluginEditor(PlugDataAudioProcessor&);
     ~PlugDataPluginEditor() override;
-
-    Component::SafePointer<Console> console;
-
+    
     void showNewObjectMenu();
 
     void paint(Graphics&) override;
@@ -49,10 +46,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     void timerCallback() override;
     bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
     bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override;
-
-    void mouseDown(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
 
     void openProject();
     void saveProject(const std::function<void()>& nestedCallback = []() {});
@@ -77,7 +70,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
 
     TabComponent tabbar;
     OwnedArray<Canvas, CriticalSection> canvases;
-    Inspector inspector;
+    Sidebar sidebar;
 
     LevelMeter levelmeter;
 
@@ -96,7 +89,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
 
     static constexpr int toolbarHeight = 40;
     static constexpr int statusbarHeight = 25;
-    static constexpr int dragbarWidth = 10;
     int sidebarWidth = 275;
 
     bool sidebarHidden = false;
@@ -106,9 +98,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     TextButton& hideButton = toolbarButtons[8];
 
     std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
-
-    int dragStartWidth = 0;
-    bool draggingSidebar = false;
 
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;

@@ -23,6 +23,8 @@ extern "C"
 #include "PluginProcessor.h"
 #include "x_libpd_extra_utils.h"
 
+#include "Sidebar.h"
+
 class Canvas;
 
 class Box;
@@ -82,15 +84,15 @@ struct GUIComponent : public Component, public ComponentListener
 
         if (gui.isIEM())
         {
-            parameterList.insert(parameterList.begin(), {"Foreground", tColour, static_cast<void*>(&primaryColour), {}});
-            parameterList.insert(parameterList.begin() + 1, {"Background", tColour, static_cast<void*>(&secondaryColour), {}});
-            parameterList.insert(parameterList.begin() + 2, {"Send Symbol", tString, static_cast<void*>(&sendSymbol), {}});
-            parameterList.insert(parameterList.begin() + 3, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol), {}});
-            parameterList.insert(parameterList.begin() + 4, {"Label", tString, static_cast<void*>(&labelText), {}});
-            parameterList.insert(parameterList.begin() + 5, {"Label Colour", tColour, static_cast<void*>(&labelColour), {}});
-            parameterList.insert(parameterList.begin() + 6, {"Label X", tInt, static_cast<void*>(&labelX), {}});
-            parameterList.insert(parameterList.begin() + 7, {"Label Y", tInt, static_cast<void*>(&labelY), {}});
-            parameterList.insert(parameterList.begin() + 8, {"Label Height", tInt, static_cast<void*>(&labelHeight), {}});
+            parameterList.insert(parameterList.begin(), {"Foreground", tColour, cAppearance, static_cast<void*>(&primaryColour), {}});
+            parameterList.insert(parameterList.begin() + 1, {"Background", tColour, cAppearance, static_cast<void*>(&secondaryColour), {}});
+            parameterList.insert(parameterList.begin() + 2, {"Send Symbol", tString, cGeneral, static_cast<void*>(&sendSymbol), {}});
+            parameterList.insert(parameterList.begin() + 3, {"Receive Symbol", tString, cGeneral, static_cast<void*>(&receiveSymbol), {}});
+            parameterList.insert(parameterList.begin() + 4, {"Label", tString, cLabel, static_cast<void*>(&labelText), {}});
+            parameterList.insert(parameterList.begin() + 5, {"Label Colour", tColour, cLabel, static_cast<void*>(&labelColour), {}});
+            parameterList.insert(parameterList.begin() + 6, {"Label X", tInt, cLabel, static_cast<void*>(&labelX), {}});
+            parameterList.insert(parameterList.begin() + 7, {"Label Y", tInt, cLabel, static_cast<void*>(&labelY), {}});
+            parameterList.insert(parameterList.begin() + 8, {"Label Height", tInt, cLabel, static_cast<void*>(&labelHeight), {}});
 
             auto oldCallback = callback;
             callback = [this, oldCallback](int changedParameter)
@@ -162,11 +164,11 @@ struct GUIComponent : public Component, public ComponentListener
 
             // parameters.insert(parameters.begin(), {"Width", tInt, static_cast<void*>(&width)});
 
-            parameters.insert(parameters.begin(), {"Send Symbol", tString, static_cast<void*>(&sendSymbol), {}});
-            parameters.insert(parameters.begin() + 1, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol), {}});
+            parameters.insert(parameters.begin(), {"Send Symbol", tString, cAppearance, static_cast<void*>(&sendSymbol), {}});
+            parameters.insert(parameters.begin() + 1, {"Receive Symbol", tString, cAppearance, static_cast<void*>(&receiveSymbol), {}});
 
-            parameterList.insert(parameterList.begin() + 2, {"Label", tString, static_cast<void*>(&labelText), {}});
-            parameterList.insert(parameterList.begin() + 3, {"Label Position", tCombo, static_cast<void*>(&labelX), {"left", "right", "top", "bottom"}});
+            parameterList.insert(parameterList.begin() + 2, {"Label", tString, cLabel, static_cast<void*>(&labelText), {}});
+            parameterList.insert(parameterList.begin() + 3, {"Label Position", tCombo, cLabel, static_cast<void*>(&labelX), {"left", "right", "top", "bottom"}});
             
             auto oldCallback = cb;
             cb = [this, oldCallback](int changedParameter)
@@ -295,8 +297,8 @@ struct BangComponent : public GUIComponent
     ObjectParameters defineParamters() override
     {
         return {{
-            {"Interrupt", tInt, static_cast<void*>(&bangInterrupt), {}},
-            {"Hold",      tInt, static_cast<void*>(&bangHold),      {}},
+            {"Interrupt", tInt, cGeneral, static_cast<void*>(&bangInterrupt), {}},
+            {"Hold",      tInt, cGeneral, static_cast<void*>(&bangHold),      {}},
             
             
         },
@@ -505,7 +507,7 @@ struct NumboxComponent : public GUIComponent
             }
         };
 
-        return {{{"Minimum", tFloat, static_cast<void*>(&min), {}}, {"Maximum", tFloat, static_cast<void*>(&max), {}}}, callback};
+        return {{{"Minimum", tFloat, cGeneral, static_cast<void*>(&min), {}}, {"Maximum", tFloat, cGeneral, static_cast<void*>(&max), {}}}, callback};
     }
 
     void paint(Graphics& g) override
@@ -588,9 +590,9 @@ struct SliderComponent : public GUIComponent
         };
 
         return {{
-            {"Minimum", tFloat, static_cast<void*>(&min), {}},
-            {"Maximum", tFloat, static_cast<void*>(&max), {}},
-            {"Logarithmic", tBool, static_cast<void*>(&isLogarithmic), {"off", "on"}},
+            {"Minimum", tFloat, cGeneral, static_cast<void*>(&min), {}},
+            {"Maximum", tFloat, cGeneral, static_cast<void*>(&max), {}},
+            {"Logarithmic", tBool, cGeneral, static_cast<void*>(&isLogarithmic), {"off", "on"}},
                 },
                 callback};
     }
@@ -635,8 +637,8 @@ struct RadioComponent : public GUIComponent
         };
 
         return {{
-            {"Minimum", tInt, static_cast<void*>(&minimum), {}},
-            {"Maximum", tInt, static_cast<void*>(&maximum), {}},
+            {"Minimum", tInt, cGeneral, static_cast<void*>(&minimum), {}},
+            {"Maximum", tInt, cGeneral, static_cast<void*>(&maximum), {}},
                 },
                 callback};
     }
@@ -890,9 +892,9 @@ struct PanelComponent : public GUIComponent
 
         auto& [parameterList, callback] = parameters;
 
-        parameterList.insert(parameterList.begin(), {"Background", tColour, static_cast<void*>(&secondaryColour), {}});
-        parameterList.insert(parameterList.begin() + 1, {"Send Symbol", tString, static_cast<void*>(&sendSymbol), {}});
-        parameterList.insert(parameterList.begin() + 2, {"Receive Symbol", tString, static_cast<void*>(&receiveSymbol), {}});
+        parameterList.insert(parameterList.begin(), {"Background", tColour, cAppearance,  static_cast<void*>(&secondaryColour), {}});
+        parameterList.insert(parameterList.begin() + 1, {"Send Symbol", tString, cGeneral, static_cast<void*>(&sendSymbol), {}});
+        parameterList.insert(parameterList.begin() + 2, {"Receive Symbol", tString, cGeneral, static_cast<void*>(&receiveSymbol), {}});
 
         callback = [this](int changedParameter)
         {

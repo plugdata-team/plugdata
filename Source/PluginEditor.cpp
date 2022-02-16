@@ -17,12 +17,10 @@
 #include "x_libpd_mod_utils.h"
 
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* debugConsole) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters, p.meterSource)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters, p.meterSource), sidebar(&p)
 {
     addKeyListener(this);
     setWantsKeyboardFocus(true);
-
-    console = debugConsole;
 
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(ComboBox::backgroundColourId));
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(ComboBox::backgroundColourId));
@@ -60,8 +58,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     };
 
     addAndMakeVisible(tabbar);
-    addAndMakeVisible(console);
-    addChildComponent(inspector);
+    addAndMakeVisible(sidebar);
 
     bypassButton.setTooltip("Bypass");
     bypassButton.setClickingTogglesState(true);
@@ -261,7 +258,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     hideButton.setConnectedEdges(12);
     hideButton.onClick = [this]()
     {
-        sidebarHidden = hideButton.getToggleState();
+        sidebar.showSidebar(!hideButton.getToggleState());
         hideButton.setButtonText(sidebarHidden ? Icons::Show : Icons::Hide);
 
         repaint();
@@ -276,7 +273,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p, Console* d
     addAndMakeVisible(resizer.get());
 
     setSize(pd.lastUIWidth, pd.lastUIHeight);
-    console->console->update();
 
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
@@ -418,12 +414,6 @@ void PlugDataPluginEditor::paint(Graphics& g)
     auto baseColour = findColour(ComboBox::backgroundColourId);
     auto highlightColour = findColour(Slider::thumbColourId);
 
-    int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
-
-    // Sidebar
-    g.setColour(baseColour.darker(0.1));
-    g.fillRect(getWidth() - sWidth, dragbarWidth, sWidth + 10, getHeight() - toolbarHeight);
-
     // Toolbar background
     g.setColour(baseColour);
     g.fillRect(0, 0, getWidth(), toolbarHeight - 4);
@@ -438,29 +428,17 @@ void PlugDataPluginEditor::paint(Graphics& g)
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbarHeight, getWidth(), statusbarHeight);
-
-    // Draggable bar
-    g.setColour(baseColour);
-    g.fillRect(getWidth() - sWidth, dragbarWidth, statusbarHeight, getHeight() - (toolbarHeight - statusbarHeight));
 }
 
 void PlugDataPluginEditor::resized()
 {
-    int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, sidebarWidth);
-
-    int sContentWidth = sWidth - dragbarWidth;
 
     int sbarY = toolbarHeight - 4;
 
-    console->setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
-    console->toFront(false);
+    tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth(), getHeight() - sbarY - statusbarHeight);
 
-    inspector.setBounds(getWidth() - sContentWidth, sbarY + 2, sContentWidth, getHeight() - sbarY);
-    inspector.toFront(false);
-
-    tabbar.setBounds(0, sbarY, getWidth() - sWidth, getHeight() - sbarY - statusbarHeight);
-    tabbar.toFront(false);
-
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getParentHeight() - (toolbarHeight + statusbarHeight));
+    
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
     fb.justifyContent = FlexBox::JustifyContent::flexStart;
@@ -486,7 +464,7 @@ void PlugDataPluginEditor::resized()
         fb.items.add(item);
     }
 
-    Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sWidth + 60.0f, static_cast<float>(toolbarHeight)};
+    Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sidebar.getWidth() + 60.0f, static_cast<float>(toolbarHeight)};
     if (sidebarHidden) toolbarBounds.setWidth(getWidth() - 50.0f);
 
     fb.performLayout(toolbarBounds);
@@ -497,7 +475,7 @@ void PlugDataPluginEditor::resized()
         toolbarButtons[b].setVisible((toolbarButtons[b].getBounds().getCentreX()) < getWidth() - sidebarWidth);
     }
 
-    hideButton.setBounds(std::min(getWidth() - sWidth, getWidth() - 80), 0, 70, toolbarHeight);
+    hideButton.setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
 
     lockButton.setBounds(8, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
 
@@ -508,9 +486,9 @@ void PlugDataPluginEditor::resized()
     zoomIn.setBounds(150, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
     zoomOut.setBounds(178, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
 
-    bypassButton.setBounds(getWidth() - sWidth - 40, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
+    bypassButton.setBounds(getWidth() - sidebar.getWidth() - 40, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
 
-    levelmeter.setBounds(getWidth() - sWidth - 150, getHeight() - statusbarHeight, 100, statusbarHeight);
+    levelmeter.setBounds(getWidth() - sidebar.getWidth() - 150, getHeight() - statusbarHeight, 100, statusbarHeight);
 
     resizer->setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer->toFront(false);
@@ -696,38 +674,6 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
     return false;
 }
 
-void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
-{
-    Rectangle<int> dragBar(getWidth() - sidebarWidth, dragbarWidth, sidebarWidth, getHeight() - toolbarHeight);
-    if (dragBar.contains(e.getPosition()) && !sidebarHidden)
-    {
-        draggingSidebar = true;
-        dragStartWidth = sidebarWidth;
-    }
-    else
-    {
-        draggingSidebar = false;
-    }
-}
-
-void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
-{
-    if (draggingSidebar)
-    {
-        sidebarWidth = dragStartWidth - e.getDistanceFromDragStartX();
-        repaint();
-        resized();
-    }
-}
-
-void PlugDataPluginEditor::mouseUp(const MouseEvent& e)
-{
-    if (draggingSidebar)
-    {
-        getCurrentCanvas()->checkBounds();
-        draggingSidebar = false;
-    }
-}
 
 void PlugDataPluginEditor::openProject()
 {
