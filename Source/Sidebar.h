@@ -81,6 +81,6 @@ private:
     bool draggingSidebar = false;
     bool sidebarHidden = false;
     
-    int lastWidth = 150;
+    int lastWidth = 250;
     
 };

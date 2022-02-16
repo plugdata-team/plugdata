@@ -40,11 +40,9 @@ struct Inspector : public PropertyPanel
                     return new BoolComponent(name, *value, bg, options);
                 case tCombo:
                     return new ComboComponent(name, *value, bg, options);
-                    
             }
         };
-            
-            
+        
         for(int i = 0; i < 4; i++) {
             Array<PropertyComponent*> panels;
             
@@ -62,262 +60,250 @@ struct Inspector : public PropertyPanel
                 addSection(names[i], panels);
             }
         }
-        
-    }
-
-    
-struct InspectorProperty : public PropertyComponent
-{
-    Colour bg;
-    
-    InspectorProperty(String propertyName, Colour background) : PropertyComponent(propertyName, 23), bg(background) {
     }
     
-    void paint(Graphics& g) override {
-        g.fillAll(bg);
-        getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
-    }
-    
-    void refresh() override {};
-};
-
-struct ComboComponent : public InspectorProperty
-{
-    ComboComponent(String propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background), property(value)
+    struct InspectorProperty : public PropertyComponent
     {
+        Colour bg;
         
-        for(int n = 0; n < options.size(); n++) {
-            comboBox.addItem(options[n], n + 1);
+        InspectorProperty(String propertyName, Colour background) : PropertyComponent(propertyName, 23), bg(background) {
         }
         
-        comboBox.setName("inspector:combo");
-        comboBox.setSelectedId(static_cast<int>(value.getValue()) + 1);
-        
-        addAndMakeVisible(comboBox);
-        
-        comboBox.onChange = [this]()
-        {
-            property = comboBox.getSelectedId() - 1;
-            callback(row);
-        };
-    }
-    
-    void resized() override
-    {
-        comboBox.setBounds(getLocalBounds().removeFromLeft(getWidth() / 2));
-    }
-    
-private:
-    
-    Value& property;
-    std::function<void(int)> callback;
-    int row;
-    ComboBox comboBox;
-    
-};
-
-struct BoolComponent : public InspectorProperty
-{
-    BoolComponent(String propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background)
-    {
-        toggleButton.setClickingTogglesState(true);
-        
-        toggleButton.setConnectedEdges(12);
-        
-        toggleButton.getToggleStateValue().referTo(value);
-        toggleButton.setButtonText(static_cast<bool>(value.getValue()) ? options[1] : options[0]);
-        
-        toggleButton.setName("inspector:toggle");
-        
-        addAndMakeVisible(toggleButton);
-        
-        toggleButton.onClick = [this, value, options]() mutable
-        {
-            toggleButton.setButtonText(toggleButton.getToggleState() ? options[1] : options[0]);
-        };
-    }
-    
-    void resized() override
-    {
-        toggleButton.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
-    }
-    
-private:
-    TextButton toggleButton;
-};
-
-struct ColourComponent : public InspectorProperty, public ChangeListener
-{
-    
-    ColourComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), currentColour(value)
-    {
-        String strValue = currentColour.toString();
-        if (strValue.length() > 2)
-        {
-            button.setButtonText(String("#") + strValue.substring(2));
+        void paint(Graphics& g) override {
+            g.fillAll(bg);
+            getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
         }
-        button.setConnectedEdges(12);
-        button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         
-        addAndMakeVisible(button);
-        updateColour();
-        
-        button.onClick = [this]()
+        void refresh() override {};
+    };
+    
+    struct ComboComponent : public InspectorProperty
+    {
+        ComboComponent(String propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background), property(value)
         {
-            std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
-            colourSelector->setName("background");
-            colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
-            colourSelector->addChangeListener(this);
-            colourSelector->setSize(300, 400);
-            colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
             
-            colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
-            
-            CallOutBox::launchAsynchronously(std::move(colourSelector), button.getScreenBounds(), nullptr);
-        };
-    }
-    
-    void updateColour()
-    {
-        auto colour = Colour::fromString(currentColour.toString());
-        
-        button.setColour(TextButton::buttonColourId, colour);
-        button.setColour(TextButton::buttonOnColourId, colour.brighter());
-        
-        auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
-        
-        // make sure text is readable
-        button.setColour(TextButton::textColourOffId, textColour);
-        button.setColour(TextButton::textColourOnId, textColour);
-        
-        button.setButtonText(String("#") + currentColour.toString().substring(2));
-    }
-    
-    void changeListenerCallback(ChangeBroadcaster* source) override
-    {
-        auto* cs = dynamic_cast<ColourSelector*>(source);
-        
-        auto colour = cs->getCurrentColour();
-        currentColour = colour.toString();
-        
-        updateColour();
-    }
-    
-    ~ColourComponent() override = default;
-    
-    void resized() override
-    {
-        button.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
-    }
-    
-private:
-    TextButton button;
-    Value& currentColour;
-};
-
-template <typename T>
-struct EditableComponent : public InspectorProperty
-{
-    Label label;
-    Value& property;
-    float downValue;
-    
-    EditableComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), property(value)
-    {
-        addAndMakeVisible(label);
-        label.setEditable(false, true);
-        label.getTextValue().referTo(property);
-        label.addMouseListener(this, true);
-        
-        label.onEditorShow = [this](){
-            auto* editor = label.getCurrentTextEditor();
-            
-            if constexpr (std::is_floating_point<T>::value)
-            {
-                editor->setInputRestrictions(0, "0123456789.-");
+            for(int n = 0; n < options.size(); n++) {
+                comboBox.addItem(options[n], n + 1);
             }
-            else if constexpr (std::is_integral<T>::value)
-            {
-                editor->setInputRestrictions(0, "0123456789-");
-            }
-        };
-    }
+            
+            comboBox.setName("inspector:combo");
+            comboBox.getSelectedIdAsValue().referTo(value);
+            
+            addAndMakeVisible(comboBox);
+        }
+        
+        void resized() override
+        {
+            comboBox.setBounds(getLocalBounds().removeFromLeft(getWidth() / 2));
+        }
+        
+    private:
+        
+        Value& property;
+        ComboBox comboBox;
+        
+    };
     
-    void mouseDown(const MouseEvent& event) override
+    struct BoolComponent : public InspectorProperty
     {
-        if constexpr (!std::is_arithmetic<T>::value) return;
+        BoolComponent(String propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background)
+        {
+            toggleButton.setClickingTogglesState(true);
+            
+            toggleButton.setConnectedEdges(12);
+            
+            toggleButton.getToggleStateValue().referTo(value);
+            toggleButton.setButtonText(static_cast<bool>(value.getValue()) ? options[1] : options[0]);
+            
+            toggleButton.setName("inspector:toggle");
+            
+            addAndMakeVisible(toggleButton);
+            
+            toggleButton.onClick = [this, value, options]() mutable
+            {
+                toggleButton.setButtonText(toggleButton.getToggleState() ? options[1] : options[0]);
+            };
+        }
         
-        downValue = label.getText().getFloatValue();
-    }
+        void resized() override
+        {
+            toggleButton.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+        }
+        
+    private:
+        TextButton toggleButton;
+    };
     
-    void mouseDrag(const MouseEvent& e) override {
+    struct ColourComponent : public InspectorProperty, public ChangeListener
+    {
         
-        if constexpr (!std::is_arithmetic<T>::value) return;
-        
-        auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
-        if (std::abs(inc) < 1.0f) return;
-        
-        // Logic for dragging, where the x position decides the precision
-        auto currentValue = label.getText();
-        if (!currentValue.containsChar('.')) currentValue += '.';
-        if (currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
-        currentValue += "00000";
-        
-        // Get position of all numbers
-        Array<int> glyphs;
-        Array<float> xOffsets;
-        label.getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
-        
-        // Find the number closest to the mouse down
-        auto position = static_cast<float>(e.getMouseDownX() - 4);
-        auto precision = static_cast<int>(std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin());
-        precision -= currentValue.indexOfChar('.');
-        
-        // I case of integer dragging
-        if (precision <= 0)
+        ColourComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), currentColour(value)
         {
-            precision = 0;
-        }
-        else
-        {
-            // Offset for the decimal point character
-            precision -= 1;
+            String strValue = currentColour.toString();
+            if (strValue.length() > 2)
+            {
+                button.setButtonText(String("#") + strValue.substring(2));
+            }
+            button.setConnectedEdges(12);
+            button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            
+            addAndMakeVisible(button);
+            updateColour();
+            
+            button.onClick = [this]()
+            {
+                std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
+                colourSelector->setName("background");
+                colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
+                colourSelector->addChangeListener(this);
+                colourSelector->setSize(300, 400);
+                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
+                
+                colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
+                
+                CallOutBox::launchAsynchronously(std::move(colourSelector), button.getScreenBounds(), nullptr);
+            };
         }
         
-        if constexpr (std::is_integral<T>::value)
+        void updateColour()
         {
-            precision = 0;
+            auto colour = Colour::fromString(currentColour.toString());
+            
+            button.setColour(TextButton::buttonColourId, colour);
+            button.setColour(TextButton::buttonOnColourId, colour.brighter());
+            
+            auto textColour = colour.getPerceivedBrightness() > 0.5 ? Colours::black : Colours::white;
+            
+            // make sure text is readable
+            button.setColour(TextButton::textColourOffId, textColour);
+            button.setColour(TextButton::textColourOnId, textColour);
+            
+            button.setButtonText(String("#") + currentColour.toString().substring(2));
         }
         
-        // Calculate increment multiplier
-        float multiplier = powf(10.0f, static_cast<float>(-precision));
-        
-        // Calculate new value as string
-        auto newValue = String(downValue + inc * multiplier, precision);
-        
-        if (precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
-        
-        if constexpr (std::is_integral<T>::value)
+        void changeListenerCallback(ChangeBroadcaster* source) override
         {
-            newValue = newValue.upToFirstOccurrenceOf(".", false, false);
+            auto* cs = dynamic_cast<ColourSelector*>(source);
+            
+            auto colour = cs->getCurrentColour();
+            currentColour = colour.toString();
+            
+            updateColour();
         }
         
-        label.setText(newValue, sendNotification);
+        ~ColourComponent() override = default;
         
+        void resized() override
+        {
+            button.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+        }
         
-    }
+    private:
+        TextButton button;
+        Value& currentColour;
+    };
     
-    void resized() override {
-        label.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
-    }
-};
-
+    template <typename T>
+    struct EditableComponent : public InspectorProperty
+    {
+        Label label;
+        Value& property;
+        float downValue;
+        
+        EditableComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), property(value)
+        {
+            addAndMakeVisible(label);
+            label.setEditable(false, true);
+            label.getTextValue().referTo(property);
+            label.addMouseListener(this, true);
+            
+            label.onEditorShow = [this](){
+                auto* editor = label.getCurrentTextEditor();
+                
+                if constexpr (std::is_floating_point<T>::value)
+                {
+                    editor->setInputRestrictions(0, "0123456789.-");
+                }
+                else if constexpr (std::is_integral<T>::value)
+                {
+                    editor->setInputRestrictions(0, "0123456789-");
+                }
+            };
+        }
+        
+        void mouseDown(const MouseEvent& event) override
+        {
+            if constexpr (!std::is_arithmetic<T>::value) return;
+            
+            downValue = label.getText().getFloatValue();
+        }
+        
+        void mouseDrag(const MouseEvent& e) override {
+            
+            if constexpr (!std::is_arithmetic<T>::value) return;
+            
+            auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
+            if (std::abs(inc) < 1.0f) return;
+            
+            // Logic for dragging, where the x position decides the precision
+            auto currentValue = label.getText();
+            if (!currentValue.containsChar('.')) currentValue += '.';
+            if (currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
+            currentValue += "00000";
+            
+            // Get position of all numbers
+            Array<int> glyphs;
+            Array<float> xOffsets;
+            label.getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
+            
+            // Find the number closest to the mouse down
+            auto position = static_cast<float>(e.getMouseDownX() - 4);
+            auto precision = static_cast<int>(std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin());
+            precision -= currentValue.indexOfChar('.');
+            
+            // I case of integer dragging
+            if (precision <= 0)
+            {
+                precision = 0;
+            }
+            else
+            {
+                // Offset for the decimal point character
+                precision -= 1;
+            }
+            
+            if constexpr (std::is_integral<T>::value)
+            {
+                precision = 0;
+            }
+            
+            // Calculate increment multiplier
+            float multiplier = powf(10.0f, static_cast<float>(-precision));
+            
+            // Calculate new value as string
+            auto newValue = String(downValue + inc * multiplier, precision);
+            
+            if (precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
+            
+            if constexpr (std::is_integral<T>::value)
+            {
+                newValue = newValue.upToFirstOccurrenceOf(".", false, false);
+            }
+            
+            label.setText(newValue, sendNotification);
+            
+            
+        }
+        
+        void resized() override {
+            label.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+        }
+    };
+    
     
 };
 
 // MARK: Console
-
-
 struct ConsoleComponent : public Component, public ComponentListener
 {
     std::array<TextButton, 5>& buttons;
@@ -670,7 +656,7 @@ Sidebar::Sidebar(pd::Instance* instance) : pd(instance) {
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     
-
+    
     setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 65);
 }
 
@@ -682,7 +668,7 @@ Sidebar::~Sidebar() {
 void Sidebar::paint(Graphics& g) {
     
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
-        
+    
     // Sidebar
     g.setColour(findColour(ComboBox::backgroundColourId).darker(0.1));
     g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight());
@@ -783,6 +769,6 @@ bool Sidebar::isShowingConsole() const noexcept {
 void Sidebar::updateConsole()
 {
     console->console->messages = pd->consoleMessages;
-    console->repaint();
+    console->console->update();
 }
 
