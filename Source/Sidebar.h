@@ -7,12 +7,11 @@
 #pragma once
 #include <JuceHeader.h>
 
-
-
 struct Console;
 struct Inspector;
 
-namespace pd {
+namespace pd
+{
 struct Instance;
 }
 
@@ -26,7 +25,6 @@ enum ParameterType
     tCombo
 };
 
-
 enum ParameterCategory
 {
     cGeneral,
@@ -39,47 +37,42 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
 
-
 struct Sidebar : public Component
 {
-  
     Sidebar(pd::Instance* instance);
-    
+
     ~Sidebar();
-    
+
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
     void resized() override;
-    
+
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-    
+
     void showParameters(ObjectParameters& params);
     void showParameters();
     void hideParameters();
-    
+
     bool isShowingConsole() const noexcept;
-    
+
     void showSidebar(bool show);
-    
+
     void updateConsole();
-    
-    
+
     ObjectParameters lastParameters;
-    
+
     Console* console;
     Inspector* inspector;
-    
-private:
-    
+
+   private:
     void loadParameters(ObjectParameters& params);
-    
+
     static constexpr int dragbarWidth = 10;
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;
-    
+
     int lastWidth = 250;
-    
 };

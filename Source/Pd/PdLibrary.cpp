@@ -225,7 +225,7 @@ void Library::initialiseLibrary(ValueTree pathTree)
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
-        
+
         searchTree.insert(m->me_name->s_name);
     }
 
@@ -239,7 +239,6 @@ void Library::initialiseLibrary(ValueTree pathTree)
         {
             auto file = iter.getFile();
             if (file.getFileExtension() == ".pd") searchTree.insert(file.getFileNameWithoutExtension().toStdString());
-            
         }
     }
 }

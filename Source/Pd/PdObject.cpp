@@ -86,7 +86,7 @@ std::array<int, 4> Object::getBounds() const noexcept
     {
         int x = 0, y = 0, w = 0, h = 0;
         instance->setThis();
-        //patch->setCurrent(true);
+        // patch->setCurrent(true);
 
         libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
 

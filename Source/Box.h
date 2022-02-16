@@ -21,8 +21,8 @@ extern "C"
 class Canvas;
 class Box : public Component, public ChangeListener
 {
-    
     bool isOver = false;
+
    public:
     explicit Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
@@ -42,7 +42,6 @@ class Box : public Component, public ChangeListener
     int numInputs = 0;
     int numOutputs = 0;
     bool locked = false;
-    
 
     ClickLabel textLabel;
 
