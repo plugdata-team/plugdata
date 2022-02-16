@@ -61,7 +61,7 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
         labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize * pd::Patch::zoom;
     }
     else if(gui.isAtom()) {
-        labelX = static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1;
+        labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
     }
 
     updateLabel();
