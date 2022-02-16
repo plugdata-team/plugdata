@@ -509,7 +509,7 @@ struct ListComponent : public GUIComponent
 struct SliderComponent : public GUIComponent
 {
     bool isVertical;
-    Value isLogarithmic = Value(false);
+    Value isLogarithmic = Value(var(false));
 
     Slider slider;
 
