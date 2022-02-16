@@ -29,7 +29,7 @@ class Canvas;
 
 class Box;
 
-struct GUIComponent : public Component, public ComponentListener
+struct GUIComponent : public Component, public ComponentListener, public Value::Listener
 {
     GUIComponent(const pd::Gui&, Box* parent, bool newObject);
 
@@ -80,129 +80,26 @@ struct GUIComponent : public Component, public ComponentListener
     {
         ObjectParameters params = defineParamters();
 
-        auto& [parameterList, callback] = params;
 
         if (gui.isIEM())
         {
-            parameterList.insert(parameterList.begin(), {"Foreground", tColour, cAppearance, static_cast<void*>(&primaryColour), {}});
-            parameterList.insert(parameterList.begin() + 1, {"Background", tColour, cAppearance, static_cast<void*>(&secondaryColour), {}});
-            parameterList.insert(parameterList.begin() + 2, {"Send Symbol", tString, cGeneral, static_cast<void*>(&sendSymbol), {}});
-            parameterList.insert(parameterList.begin() + 3, {"Receive Symbol", tString, cGeneral, static_cast<void*>(&receiveSymbol), {}});
-            parameterList.insert(parameterList.begin() + 4, {"Label", tString, cLabel, static_cast<void*>(&labelText), {}});
-            parameterList.insert(parameterList.begin() + 5, {"Label Colour", tColour, cLabel, static_cast<void*>(&labelColour), {}});
-            parameterList.insert(parameterList.begin() + 6, {"Label X", tInt, cLabel, static_cast<void*>(&labelX), {}});
-            parameterList.insert(parameterList.begin() + 7, {"Label Y", tInt, cLabel, static_cast<void*>(&labelY), {}});
-            parameterList.insert(parameterList.begin() + 8, {"Label Height", tInt, cLabel, static_cast<void*>(&labelHeight), {}});
-
-            auto oldCallback = callback;
-            callback = [this, oldCallback](int changedParameter)
-            {
-                if (changedParameter == 0)
-                {
-                    auto colour = Colour::fromString(primaryColour);
-                    gui.setForegroundColour(colour);
-                    
-                    getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
-                    getLookAndFeel().setColour(Slider::thumbColourId, colour);
-                    repaint();
-                }
-                else if (changedParameter == 1)
-                {
-                    auto colour = Colour::fromString(secondaryColour);
-                    gui.setBackgroundColour(colour);
-                    
-                    getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
-                    getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-                    getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
-                    
-                    repaint();
-                }
-                else if (changedParameter == 2)
-                {
-                    gui.setSendSymbol(sendSymbol.toStdString());
-                    repaint();
-                }
-                else if (changedParameter == 3)
-                {
-                    gui.setReceiveSymbol(receiveSymbol.toStdString());
-                    repaint();
-                }
-                else if (changedParameter == 4)
-                {
-                    gui.setLabelText(labelText);
-                    updateLabel();
-                }
-                else if (changedParameter == 5)
-                {
-                    gui.setLabelColour(Colour::fromString(labelColour));
-                    updateLabel();
-                }
-                else if (changedParameter == 6)
-                {
-                    gui.setLabelPosition({labelX, labelY});
-                    updateLabel();
-                }
-                else if (changedParameter == 7)
-                {
-                    gui.setLabelPosition({labelX, labelY});
-                    updateLabel();
-                }
-                else if (changedParameter == 8)
-                {
-                    gui.setFontHeight(labelHeight);
-                    updateLabel();
-                }
-                else
-                {
-                    oldCallback(changedParameter - 9);
-                }
-            };
+            params.insert(params.begin(), {"Foreground", tColour, cAppearance, &primaryColour, {}});
+            params.insert(params.begin() + 1, {"Background", tColour, cAppearance, &secondaryColour, {}});
+            params.insert(params.begin() + 2, {"Send Symbol", tString, cGeneral, &sendSymbol, {}});
+            params.insert(params.begin() + 3, {"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
+            params.insert(params.begin() + 4, {"Label", tString, cLabel, &labelText, {}});
+            params.insert(params.begin() + 5, {"Label Colour", tColour, cLabel, &labelColour, {}});
+            params.insert(params.begin() + 6, {"Label X", tInt, cLabel, &labelX, {}});
+            params.insert(params.begin() + 7, {"Label Y", tInt, cLabel, &labelY, {}});
+            params.insert(params.begin() + 8, {"Label Height", tInt, cLabel, &labelHeight, {}});
         }
         else if (gui.isAtom())
         {
-            auto& [parameters, cb] = params;
+            params.insert(params.begin(), {"Send Symbol", tString, cAppearance, &sendSymbol, {}});
+            params.insert(params.begin() + 1, {"Receive Symbol", tString, cAppearance, &receiveSymbol, {}});
 
-            // parameters.insert(parameters.begin(), {"Width", tInt, static_cast<void*>(&width)});
-
-            parameters.insert(parameters.begin(), {"Send Symbol", tString, cAppearance, static_cast<void*>(&sendSymbol), {}});
-            parameters.insert(parameters.begin() + 1, {"Receive Symbol", tString, cAppearance, static_cast<void*>(&receiveSymbol), {}});
-
-            parameterList.insert(parameterList.begin() + 2, {"Label", tString, cLabel, static_cast<void*>(&labelText), {}});
-            parameterList.insert(parameterList.begin() + 3, {"Label Position", tCombo, cLabel, static_cast<void*>(&labelX), {"left", "right", "top", "bottom"}});
-            
-            auto oldCallback = cb;
-            cb = [this, oldCallback](int changedParameter)
-            {
-                /*
-                if (changedParameter == 0)
-                {
-                    // Width
-                } */
-                if (changedParameter == 0)
-                {
-                    gui.setSendSymbol(sendSymbol.toStdString());
-                    repaint();
-                }
-                else if (changedParameter == 1)
-                {
-                    gui.setReceiveSymbol(receiveSymbol.toStdString());
-                    repaint();
-                }
-                else if (changedParameter == 2)
-                {
-                    gui.setLabelText(labelText);
-                    updateLabel();
-                }
-                else if (changedParameter == 3)
-                {
-                    gui.setLabelPosition(labelX);
-                    updateLabel();
-                }
-                else
-                {
-                    oldCallback(changedParameter - 4);
-                }
-            };
+            params.insert(params.begin() + 2, {"Label", tString, cLabel, &labelText, {}});
+            params.insert(params.begin() + 3, {"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
         }
         return params;
     }
@@ -242,6 +139,60 @@ struct GUIComponent : public Component, public ComponentListener
     
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
+    
+    void valueChanged(Value& value) override {
+        if(value.refersToSameSourceAs(sendSymbol)) {
+            gui.setSendSymbol(sendSymbol.toString());
+        }
+        else if(value.refersToSameSourceAs(receiveSymbol)) {
+            gui.setReceiveSymbol(sendSymbol.toString());
+        }
+        else if(value.refersToSameSourceAs(primaryColour)) {
+            auto colour = Colour::fromString(primaryColour.toString());
+            gui.setForegroundColour(colour);
+            
+            getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
+            getLookAndFeel().setColour(Slider::thumbColourId, colour);
+            repaint();
+        }
+        else if(value.refersToSameSourceAs(secondaryColour)) {
+            auto colour = Colour::fromString(secondaryColour.toString());
+            gui.setBackgroundColour(colour);
+            
+            getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
+            getLookAndFeel().setColour(TextButton::buttonColourId, colour);
+            getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
+            
+            repaint();
+        }
+        
+        else if(value.refersToSameSourceAs(labelColour)) {
+            gui.setLabelColour(Colour::fromString(labelColour.toString()));
+            updateLabel();
+        }
+        else if(value.refersToSameSourceAs(labelX)) {
+            if(gui.isAtom()) {
+                gui.setLabelPosition(static_cast<int>(labelX.getValue()));
+                updateLabel();
+            }
+            else {
+                gui.setLabelPosition({static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue())});
+                updateLabel();
+            }
+        }
+        else if(value.refersToSameSourceAs(labelY)) {
+            gui.setLabelPosition({static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue())});
+            updateLabel();
+        }
+        else if(value.refersToSameSourceAs(labelHeight)) {
+            gui.setFontHeight(static_cast<int>(labelHeight.getValue()));
+            updateLabel();
+        }
+        else if(value.refersToSameSourceAs(labelText)) {
+            gui.setLabelText(labelText.toString());
+            updateLabel();
+        }
+    }
 
     Box* box;
 
@@ -256,23 +207,23 @@ struct GUIComponent : public Component, public ComponentListener
     pd::Gui gui;
     std::atomic<bool> edited;
     float value = 0;
-    float min = 0;
-    float max = 0;
+    Value min = Value(0.0f);
+    Value max = Value(0.0f);
     int width = 6;
     
 
-    String sendSymbol;
-    String receiveSymbol;
+    Value sendSymbol;
+    Value receiveSymbol;
 
-    String primaryColour = findColour(Slider::thumbColourId).toString();
-    String secondaryColour = findColour(ComboBox::backgroundColourId).toString();
+    Value primaryColour = Value(findColour(Slider::thumbColourId).toString());
+    Value secondaryColour = Value(findColour(ComboBox::backgroundColourId).toString());
     
-    String labelColour = Colours::white.toString();
-    int labelX = 0;
-    int labelY = 0;
-    int labelHeight = 18;
+    Value labelColour = Value(Colours::white.toString());
+    Value labelX = Value(0.0f);
+    Value labelY = Value(0.0f);
+    Value labelHeight = Value(18.0f);
     
-    String labelText;
+    Value labelText;
     
 };
 
@@ -281,8 +232,8 @@ struct BangComponent : public GUIComponent
     
     uint32_t lastBang;
     
-    int bangInterrupt = 40;
-    int bangHold = 40;
+    Value bangInterrupt = Value(40.0f);
+    Value bangHold = Value(40.0f);
 
     TextButton bangButton;
 
@@ -296,20 +247,20 @@ struct BangComponent : public GUIComponent
 
     ObjectParameters defineParamters() override
     {
-        return {{
-            {"Interrupt", tInt, cGeneral, static_cast<void*>(&bangInterrupt), {}},
-            {"Hold",      tInt, cGeneral, static_cast<void*>(&bangHold),      {}},
+        return {
+            {"Interrupt", tInt, cGeneral, &bangInterrupt, {}},
+            {"Hold",      tInt, cGeneral, &bangHold,      {}},
+        };
             
-            
-        },
-                [this](int item) {
-                    if(item == 0) {
-                        static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold = bangInterrupt;
-                    }
-                    else if(item == 1) {
-                        static_cast<t_bng*>(gui.getPointer())->x_flashtime_break = bangHold;
-                    }
-                }};
+            /*
+        [this](int item) {
+            if(item == 0) {
+                static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold = static_cast<float>(bangInterrupt.getValue());
+            }
+            else if(item == 1) {
+                static_cast<t_bng*>(gui.getPointer())->x_flashtime_break = static_cast<float>(bangHold.getValue());
+            }
+        }}; */
     }
 
     void initParameters(bool newObject) override
@@ -481,8 +432,10 @@ struct NumboxComponent : public GUIComponent
             // Calculate increment multiplier
             float multiplier = powf(10.0f, static_cast<float>(-precision));
 
+            float minimum = static_cast<float>(min.getValue());
+            float maximum = static_cast<float>(max.getValue());
             // Calculate new value as string
-            auto newValue = String(std::clamp(downValue + inc * multiplier, min, max), precision);
+            auto newValue = String(std::clamp(downValue + inc * multiplier, minimum, maximum), precision);
 
             if (precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
 
@@ -493,21 +446,21 @@ struct NumboxComponent : public GUIComponent
 
     ObjectParameters defineParamters() override
     {
-        auto callback = [this](int changedParameter)
-        {
-            if (changedParameter == 0)
-            {
-                gui.setMinimum(min);
-                updateValue();
-            }
-            if (changedParameter == 1)
-            {
-                gui.setMaximum(max);
-                updateValue();
-            }
-        };
-
-        return {{{"Minimum", tFloat, cGeneral, static_cast<void*>(&min), {}}, {"Maximum", tFloat, cGeneral, static_cast<void*>(&max), {}}}, callback};
+        return {{"Minimum", tFloat, cGeneral, &min, {}}, {"Maximum", tFloat, cGeneral, &max, {}}};
+    }
+    
+    void valueChanged(Value& value) override {
+        if(value.refersToSameSourceAs(min)) {
+            gui.setMinimum(static_cast<float>(min.getValue()));
+            updateValue();
+        }
+        if(value.refersToSameSourceAs(max)) {
+            gui.setMaximum(static_cast<float>(max.getValue()));
+            updateValue();
+        }
+        else {
+            GUIComponent::valueChanged(value);
+        }
     }
 
     void paint(Graphics& g) override
@@ -557,12 +510,14 @@ struct ListComponent : public GUIComponent
 struct SliderComponent : public GUIComponent
 {
     bool isVertical;
-    bool isLogarithmic;
+    Value isLogarithmic = Value(false);
 
     Slider slider;
 
     SliderComponent(bool vertical, const pd::Gui& gui, Box* parent, bool newObject);
 
+    ~SliderComponent();
+    
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
@@ -571,30 +526,31 @@ struct SliderComponent : public GUIComponent
 
     ObjectParameters defineParamters() override
     {
-        auto callback = [this](int changedParameter)
+        return {
+            {"Minimum", tFloat, cGeneral, &min, {}},
+            {"Maximum", tFloat, cGeneral, &max, {}},
+            {"Logarithmic", tBool, cGeneral, &isLogarithmic, {"off", "on"}},
+            };
+    }
+    
+    void valueChanged(Value& value) override {
+        if (value.refersToSameSourceAs(min))
         {
-            if (changedParameter == 0)
-            {
-                gui.setMinimum(min);
-            }
-            else if (changedParameter == 1)
-            {
-                gui.setMaximum(max);
-            }
-            else if (changedParameter == 2)
-            {
-                gui.setLogScale(isLogarithmic);
-                min = gui.getMinimum();
-                max = gui.getMaximum();
-            }
-        };
-
-        return {{
-            {"Minimum", tFloat, cGeneral, static_cast<void*>(&min), {}},
-            {"Maximum", tFloat, cGeneral, static_cast<void*>(&max), {}},
-            {"Logarithmic", tBool, cGeneral, static_cast<void*>(&isLogarithmic), {"off", "on"}},
-                },
-                callback};
+            gui.setMinimum(static_cast<float>(min.getValue()));
+        }
+        else if (value.refersToSameSourceAs(max))
+        {
+            gui.setMaximum(static_cast<float>(max.getValue()));
+        }
+        else if (value.refersToSameSourceAs(isLogarithmic))
+        {
+            gui.setLogScale(bool(isLogarithmic.getValue()));
+            min = gui.getMinimum();
+            max = gui.getMaximum();
+        }
+        else {
+            GUIComponent::valueChanged(value);
+        }
     }
 
     void resized() override;
@@ -606,7 +562,7 @@ struct RadioComponent : public GUIComponent
 {
     int lastState = 0;
 
-    int minimum = 0, maximum = 8;
+    Value minimum = Value(0.0f), maximum = Value(8.0f);
 
     bool isVertical;
 
@@ -622,25 +578,25 @@ struct RadioComponent : public GUIComponent
 
     ObjectParameters defineParamters() override
     {
-        auto callback = [this](int changedParameter)
+        return {
+            {"Minimum", tInt, cGeneral, &minimum, {}},
+            {"Maximum", tInt, cGeneral, &maximum, {}}};
+    }
+    
+    void valueChanged(Value& value) override {
+        if (value.refersToSameSourceAs(min))
         {
-            if (changedParameter == 0)
-            {
-                gui.setMinimum(static_cast<float>(minimum));
-                updateRange();
-            }
-            else if (changedParameter == 1)
-            {
-                gui.setMaximum(static_cast<float>(maximum));
-                updateRange();
-            }
-        };
-
-        return {{
-            {"Minimum", tInt, cGeneral, static_cast<void*>(&minimum), {}},
-            {"Maximum", tInt, cGeneral, static_cast<void*>(&maximum), {}},
-                },
-                callback};
+            gui.setMinimum(static_cast<float>(min.getValue()));
+            updateRange();
+        }
+        else if (value.refersToSameSourceAs(max))
+        {
+            gui.setMaximum(static_cast<float>(max.getValue()));
+            updateRange();
+        }
+        else {
+            GUIComponent::valueChanged(value);
+        }
     }
 
     void resized() override;
@@ -876,7 +832,7 @@ struct PanelComponent : public GUIComponent
 
     void paint(Graphics& g) override
     {
-        g.fillAll(Colour::fromString(secondaryColour));
+        g.fillAll(Colour::fromString(secondaryColour.toString()));
     }
 
     void resized() override
@@ -888,40 +844,14 @@ struct PanelComponent : public GUIComponent
 
     ObjectParameters getParameters() override
     {
-        ObjectParameters parameters;
-
-        auto& [parameterList, callback] = parameters;
-
-        parameterList.insert(parameterList.begin(), {"Background", tColour, cAppearance,  static_cast<void*>(&secondaryColour), {}});
-        parameterList.insert(parameterList.begin() + 1, {"Send Symbol", tString, cGeneral, static_cast<void*>(&sendSymbol), {}});
-        parameterList.insert(parameterList.begin() + 2, {"Receive Symbol", tString, cGeneral, static_cast<void*>(&receiveSymbol), {}});
-
-        callback = [this](int changedParameter)
-        {
-            if (changedParameter == 0)
-            {
-                auto colour = Colour::fromString(primaryColour);
-                gui.setBackgroundColour(colour);
-                
-                getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
-                getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-                getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
-                repaint();
-            }
-            else if (changedParameter == 1)
-            {
-                gui.setSendSymbol(sendSymbol.toStdString());
-                repaint();
-            }
-            else if (changedParameter == 2)
-            {
-                gui.setReceiveSymbol(receiveSymbol.toStdString());
-                repaint();
-            }
-        };
-
-        return parameters;
+        ObjectParameters params;
+        params.insert(params.begin(), {"Background", tColour, cAppearance, &secondaryColour, {}});
+        params.insert(params.begin() + 1, {"Send Symbol", tString, cGeneral, &sendSymbol, {}});
+        params.insert(params.begin() + 2, {"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
+        return params;
     }
+    
+    
 
     std::pair<int, int> getBestSize() override
     {

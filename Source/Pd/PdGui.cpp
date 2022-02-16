@@ -709,7 +709,7 @@ Patch Gui::getPatch() const noexcept
     return {};
 }
 
-void Gui::setSendSymbol(const std::string& symbol) const noexcept
+void Gui::setSendSymbol(const String& symbol) const noexcept
 {
     if (ptr && isIEM())
     {
@@ -721,18 +721,18 @@ void Gui::setSendSymbol(const std::string& symbol) const noexcept
         }
         else
         {
-            iemgui->x_snd = gensym(symbol.c_str());
+            iemgui->x_snd = gensym(symbol.toRawUTF8());
             iemgui->x_fsf.x_snd_able = true;
             iemgui_verify_snd_ne_rcv(iemgui);
         }
     }
     if (ptr && isAtom())
     {
-        static_cast<t_fake_gatom*>(ptr)->a_symto = gensym(symbol.c_str());
+        static_cast<t_fake_gatom*>(ptr)->a_symto = gensym(symbol.toRawUTF8());
     }
 }
 
-void Gui::setReceiveSymbol(const std::string& symbol) const noexcept
+void Gui::setReceiveSymbol(const String& symbol) const noexcept
 {
     if (ptr && isIEM())
     {
@@ -750,31 +750,31 @@ void Gui::setReceiveSymbol(const std::string& symbol) const noexcept
 
         if (rcvable)
         {
-            if (strcmp(symbol.c_str(), iemgui->x_rcv->s_name))
+            if (strcmp(symbol.toRawUTF8(), iemgui->x_rcv->s_name))
             {
                 if (iemgui->x_fsf.x_rcv_able) pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-                iemgui->x_rcv = gensym(symbol.c_str());
+                iemgui->x_rcv = gensym(symbol.toRawUTF8());
                 pd_bind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
             }
         }
         else if (iemgui->x_fsf.x_rcv_able)
         {
             pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-            iemgui->x_rcv = gensym(symbol.c_str());
+            iemgui->x_rcv = gensym(symbol.toRawUTF8());
         }
 
         iemgui->x_fsf.x_rcv_able = rcvable;
 
-        iemgui->x_rcv = gensym(symbol.c_str());
+        iemgui->x_rcv = gensym(symbol.toRawUTF8());
         iemgui_verify_snd_ne_rcv(iemgui);
     }
     else if (ptr && isAtom())
     {
-        static_cast<t_fake_gatom*>(ptr)->a_symfrom = gensym(symbol.c_str());
+        static_cast<t_fake_gatom*>(ptr)->a_symfrom = gensym(symbol.toRawUTF8());
     }
 }
 
-std::string Gui::getSendSymbol() noexcept
+String Gui::getSendSymbol() noexcept
 {
     if (ptr && isIEM())
     {
@@ -787,7 +787,7 @@ std::string Gui::getSendSymbol() noexcept
 
     return "";
 }
-std::string Gui::getReceiveSymbol() noexcept
+String Gui::getReceiveSymbol() noexcept
 {
     if (ptr && isIEM())
     {

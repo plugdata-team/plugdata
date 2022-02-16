@@ -55,11 +55,11 @@ class Gui : public Object
     void setMinimum(float value) noexcept;
     void setMaximum(float value) noexcept;
 
-    void setSendSymbol(const std::string& symbol) const noexcept;
-    void setReceiveSymbol(const std::string& symbol) const noexcept;
+    void setSendSymbol(const String& symbol) const noexcept;
+    void setReceiveSymbol(const String& symbol) const noexcept;
 
-    std::string getSendSymbol() noexcept;
-    std::string getReceiveSymbol() noexcept;
+    String getSendSymbol() noexcept;
+    String getReceiveSymbol() noexcept;
 
     float getValue() const noexcept;
     float getPeak() const noexcept;
