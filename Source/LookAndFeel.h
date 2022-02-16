@@ -159,17 +159,23 @@ struct PlugDataLook : public LookAndFeel_V4
     }
 };
 
-// Make sure you only initialise one, or the fonts will be copied!
-struct PlugDataDarkLook : public PlugDataLook
+struct Resources
 {
     Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
 
     Typeface::Ptr iconTypeface = Typeface::createSystemTypefaceFor(BinaryData::PlugDataFont_ttf, BinaryData::PlugDataFont_ttfSize);
+};
 
+// Make sure you only initialise one, or the fonts will be copied!
+struct PlugDataDarkLook : public PlugDataLook
+{
+
+    SharedResourcePointer<Resources> resources;
+    
     Font defaultFont;
     Font iconFont;
 
-    PlugDataDarkLook() : defaultFont(defaultTypeface), iconFont(iconTypeface)
+    PlugDataDarkLook() : defaultFont(resources->defaultTypeface), iconFont(resources->iconTypeface)
     {
         setColour(ResizableWindow::backgroundColourId, Colour(32, 32, 32));
         
@@ -191,7 +197,7 @@ struct PlugDataDarkLook : public PlugDataLook
         setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
         setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
 
-        setDefaultSansSerifTypeface(defaultTypeface);
+        setDefaultSansSerifTypeface(resources->defaultTypeface);
     }
 
     class PlugData_DocumentWindowButton : public Button
@@ -488,6 +494,9 @@ struct PlugDataDarkLook : public PlugDataLook
         if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
             baseColour = baseColour.contrasting (shouldDrawButtonAsDown ? 0.2f : 0.05f);
 
+        if(!shouldDrawButtonAsHighlighted && !shouldDrawButtonAsHighlighted && !button.getToggleState())
+            baseColour = Colours::transparentBlack;
+        
         g.setColour (baseColour);
         g.fillRect(bounds);
         g.setColour (button.findColour (ComboBox::outlineColourId));
