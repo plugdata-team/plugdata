@@ -67,8 +67,7 @@ struct Sidebar : public Component
     
     
     ObjectParameters lastParameters;
-
-    pd::Instance* pd;
+    
     Console* console;
     Inspector* inspector;
     
