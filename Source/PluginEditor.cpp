@@ -437,7 +437,7 @@ void PlugDataPluginEditor::resized()
 
     tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth(), getHeight() - sbarY - statusbarHeight);
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getParentHeight() - (toolbarHeight + statusbarHeight));
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getParentHeight() - toolbarHeight);
     
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
