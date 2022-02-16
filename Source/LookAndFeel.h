@@ -60,13 +60,13 @@ struct PlugDataLook : public LookAndFeel_V4
     virtual void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
 
     virtual void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
-    
+
     virtual void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
-    
+
     virtual Font getToolbarFont(int buttonHeight) = 0;
     virtual Font getStatusbarFont(int buttonHeight) = 0;
     virtual Font getSuggestionFont(int buttonHeight) = 0;
-    
+
     virtual LookAndFeel* getPdLook() = 0;
 
     int getSliderThumbRadius(Slider& s) override
@@ -80,9 +80,8 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        if (button.getName().startsWith("tab"))
-            return;
-            
+        if (button.getName().startsWith("tab")) return;
+
         if (button.getName().startsWith("toolbar"))
         {
             drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
@@ -105,7 +104,6 @@ struct PlugDataLook : public LookAndFeel_V4
         }
         else
         {
-            
             LookAndFeel_V4::drawButtonBackground(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
     }
@@ -169,34 +167,33 @@ struct Resources
 // Make sure you only initialise one, or the fonts will be copied!
 struct PlugDataDarkLook : public PlugDataLook
 {
-
     SharedResourcePointer<Resources> resources;
-    
+
     Font defaultFont;
     Font iconFont;
 
     PlugDataDarkLook() : defaultFont(resources->defaultTypeface), iconFont(resources->iconTypeface)
     {
         setColour(ResizableWindow::backgroundColourId, Colour(32, 32, 32));
-        
+
         setColour(TextButton::buttonColourId, Colour(23, 23, 23));
         setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
 
         setColour(ComboBox::backgroundColourId, Colour(23, 23, 23));
         setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
-        
+
         setColour(Slider::thumbColourId, Colour(0xff42a2c8));
         setColour(Slider::backgroundColourId, Colour(60, 60, 60));
         setColour(Slider::trackColourId, Colour(90, 90, 90));
-        
+
         setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
         setColour(TextEditor::textColourId, Colours::white);
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-        
+
         setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.8f));
         setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
         setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
-        
+
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
 
         setDefaultSansSerifTypeface(resources->defaultTypeface);
@@ -382,32 +379,31 @@ struct PlugDataDarkLook : public PlugDataLook
             }
         }
     }
-    
-    void drawTableHeaderColumn (Graphics& g, TableHeaderComponent& header, const String &columnName, int columnId, int width, int height, bool isMouseOver, bool isMouseDown, int columnFlags) override {
-        auto highlightColour = header.findColour (TableHeaderComponent::highlightColourId);
+
+    void drawTableHeaderColumn(Graphics& g, TableHeaderComponent& header, const String& columnName, int columnId, int width, int height, bool isMouseOver, bool isMouseDown, int columnFlags) override
+    {
+        auto highlightColour = header.findColour(TableHeaderComponent::highlightColourId);
 
         if (isMouseDown)
-            g.fillAll (highlightColour);
+            g.fillAll(highlightColour);
         else if (isMouseOver)
-            g.fillAll (highlightColour.withMultipliedAlpha (0.625f));
+            g.fillAll(highlightColour.withMultipliedAlpha(0.625f));
 
-        Rectangle<int> area (width, height);
-        area.reduce (6, 0);
+        Rectangle<int> area(width, height);
+        area.reduce(6, 0);
 
         if ((columnFlags & (TableHeaderComponent::sortedForwards | TableHeaderComponent::sortedBackwards)) != 0)
         {
             Path sortArrow;
-            sortArrow.addTriangle (0.0f, 0.0f,
-                                   0.5f, (columnFlags & TableHeaderComponent::sortedForwards) != 0 ? -0.8f : 0.8f,
-                                   1.0f, 0.0f);
+            sortArrow.addTriangle(0.0f, 0.0f, 0.5f, (columnFlags & TableHeaderComponent::sortedForwards) != 0 ? -0.8f : 0.8f, 1.0f, 0.0f);
 
-            g.setColour (Colour (0x99000000));
-            g.fillPath (sortArrow, sortArrow.getTransformToScaleToFit (area.removeFromRight (height / 2).reduced (2).toFloat(), true));
+            g.setColour(Colour(0x99000000));
+            g.fillPath(sortArrow, sortArrow.getTransformToScaleToFit(area.removeFromRight(height / 2).reduced(2).toFloat(), true));
         }
 
-        g.setColour (header.findColour (TableHeaderComponent::textColourId));
-        g.setFont (Font ((float) height * 0.5f, Font::bold));
-        g.drawFittedText (columnName, area, Justification::centredLeft, 1);
+        g.setColour(header.findColour(TableHeaderComponent::textColourId));
+        g.setFont(Font((float)height * 0.5f, Font::bold));
+        g.drawFittedText(columnName, area, Justification::centredLeft, 1);
     }
 
     void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
@@ -433,31 +429,30 @@ struct PlugDataDarkLook : public PlugDataLook
         g.setColour(highlightColour);
         g.fillRect(highlightRect);
     }
-    
-    void drawComboBox (Graphics& g, int width, int height, bool,
-                       int, int, int, int, ComboBox& box) override
+
+    void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& box) override
     {
-     
         bool inspectorElement = box.getName().startsWith("inspector");
         auto cornerSize = inspectorElement ? 0.0f : 3.0f;
-        Rectangle<int> boxBounds (0, 0, width, height);
+        Rectangle<int> boxBounds(0, 0, width, height);
 
-        g.setColour (box.findColour (ComboBox::backgroundColourId));
-        g.fillRoundedRectangle (boxBounds.toFloat(), cornerSize);
+        g.setColour(box.findColour(ComboBox::backgroundColourId));
+        g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
 
-        if(!inspectorElement)  {
-            g.setColour (box.findColour (ComboBox::outlineColourId));
-            g.drawRoundedRectangle (boxBounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 1.0f);
+        if (!inspectorElement)
+        {
+            g.setColour(box.findColour(ComboBox::outlineColourId));
+            g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
         }
 
-        Rectangle<int> arrowZone (width - 20, 2, 14, height - 4);
+        Rectangle<int> arrowZone(width - 20, 2, 14, height - 4);
         Path path;
-        path.startNewSubPath ((float) arrowZone.getX() + 3.0f, (float) arrowZone.getCentreY() - 2.0f);
-        path.lineTo ((float) arrowZone.getCentreX(), (float) arrowZone.getCentreY() + 3.0f);
-        path.lineTo ((float) arrowZone.getRight() - 3.0f, (float) arrowZone.getCentreY() - 2.0f);
-        g.setColour (box.findColour (ComboBox::arrowColourId).withAlpha ((box.isEnabled() ? 0.9f : 0.2f)));
-        
-        g.strokePath (path, PathStrokeType (2.0f));
+        path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
+        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 3.0f);
+        path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
+        g.setColour(box.findColour(ComboBox::arrowColourId).withAlpha((box.isEnabled() ? 0.9f : 0.2f)));
+
+        g.strokePath(path, PathStrokeType(2.0f));
     }
 
     void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
@@ -485,23 +480,20 @@ struct PlugDataDarkLook : public PlugDataLook
 
         g.fillRect(buttonArea.toFloat());
     }
-    
+
     void drawInspectorButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        auto bounds = button.getLocalBounds().toFloat().reduced (0.5f, 0.5f);
+        auto bounds = button.getLocalBounds().toFloat().reduced(0.5f, 0.5f);
 
-        auto baseColour = backgroundColour.withMultipliedSaturation (button.hasKeyboardFocus (true) ? 1.3f : 0.9f)
-                                          .withMultipliedAlpha (button.isEnabled() ? 1.0f : 0.5f);
+        auto baseColour = backgroundColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
 
-        if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
-            baseColour = baseColour.contrasting (shouldDrawButtonAsDown ? 0.2f : 0.05f);
+        if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted) baseColour = baseColour.contrasting(shouldDrawButtonAsDown ? 0.2f : 0.05f);
 
-        if(!shouldDrawButtonAsHighlighted && !shouldDrawButtonAsHighlighted && !button.getToggleState())
-            baseColour = Colours::transparentBlack;
-        
-        g.setColour (baseColour);
+        if (!shouldDrawButtonAsHighlighted && !shouldDrawButtonAsHighlighted && !button.getToggleState()) baseColour = Colours::transparentBlack;
+
+        g.setColour(baseColour);
         g.fillRect(bounds);
-        g.setColour (button.findColour (ComboBox::outlineColourId));
+        g.setColour(button.findColour(ComboBox::outlineColourId));
     }
 
     void drawSuggestionButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
@@ -600,7 +592,7 @@ struct PlugDataDarkLook : public PlugDataLook
         float trackWidth = 6.;
         Point<float> startPoint(slider.isHorizontal() ? x : x + width * 0.5f, slider.isHorizontal() ? y + height * 0.5f : height + y);
         Point<float> endPoint(slider.isHorizontal() ? width + x : startPoint.x, slider.isHorizontal() ? startPoint.y : y);
-        
+
         Path backgroundTrack;
         backgroundTrack.startNewSubPath(startPoint);
         backgroundTrack.lineTo(endPoint);
@@ -620,9 +612,9 @@ struct PlugDataDarkLook : public PlugDataLook
         g.setColour(slider.findColour(Slider::thumbColourId));
         g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));
     }
-    
-    struct PdLook : public LookAndFeel_V4 {
-        
+
+    struct PdLook : public LookAndFeel_V4
+    {
         PdLook()
         {
             setColour(TextButton::buttonColourId, Colour(23, 23, 23));
@@ -633,82 +625,78 @@ struct PlugDataDarkLook : public PlugDataLook
             setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
             setColour(Slider::backgroundColourId, Colour(60, 60, 60));
             setColour(Slider::trackColourId, Colour(90, 90, 90));
-            
+
             setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
             setColour(TextEditor::textColourId, Colours::white);
             setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
         }
-        
+
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor)
         {
-            if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr) {
-                if (textEditor.isEnabled()) {
-                    if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly()) {
+            if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
+            {
+                if (textEditor.isEnabled())
+                {
+                    if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly())
+                    {
                         g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
                         g.drawRect(0, 0, width, height, 2);
-                    } else {
+                    }
+                    else
+                    {
                         g.setColour(textEditor.findColour(TextEditor::outlineColourId));
                         g.drawRect(0, 0, width, height, 1);
                     }
                 }
             }
         }
-        
+
         void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
         {
-            
             auto cornerSize = 6.0f;
-            auto bounds = button.getLocalBounds().toFloat(); //.reduced (0.5f, 0.5f);
-            
+            auto bounds = button.getLocalBounds().toFloat();  //.reduced (0.5f, 0.5f);
+
             auto baseColour = findColour(TextButton::buttonColourId);
-            
+
             auto highlightColour = findColour(TextButton::buttonOnColourId);
-            
-            if (shouldDrawButtonAsDown || button.getToggleState())
-                baseColour = highlightColour;
-            
-            baseColour = baseColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f)
-                .withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
-            
+
+            if (shouldDrawButtonAsDown || button.getToggleState()) baseColour = highlightColour;
+
+            baseColour = baseColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
+
             g.setColour(baseColour);
-            
+
             auto flatOnLeft = button.isConnectedOnLeft();
             auto flatOnRight = button.isConnectedOnRight();
             auto flatOnTop = button.isConnectedOnTop();
             auto flatOnBottom = button.isConnectedOnBottom();
-            
-            if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom) {
+
+            if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
+            {
                 Path path;
-                path.addRoundedRectangle(bounds.getX(), bounds.getY(),
-                                         bounds.getWidth(), bounds.getHeight(),
-                                         cornerSize, cornerSize,
-                                         !(flatOnLeft || flatOnTop),
-                                         !(flatOnRight || flatOnTop),
-                                         !(flatOnLeft || flatOnBottom),
-                                         !(flatOnRight || flatOnBottom));
-                
+                path.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize, cornerSize, !(flatOnLeft || flatOnTop), !(flatOnRight || flatOnTop), !(flatOnLeft || flatOnBottom), !(flatOnRight || flatOnBottom));
+
                 g.fillPath(path);
-                
+
                 g.setColour(button.findColour(ComboBox::outlineColourId));
                 g.strokePath(path, PathStrokeType(1.0f));
-            } else {
+            }
+            else
+            {
                 int dimension = std::min(bounds.getHeight(), bounds.getWidth()) / 2.0f;
                 auto centre = bounds.getCentre();
                 auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
                 // g.fillRoundedRectangle (bounds, cornerSize);
                 g.fillEllipse(ellpiseBounds);
-                
+
                 g.setColour(button.findColour(ComboBox::outlineColourId));
                 g.drawEllipse(ellpiseBounds, 1.0f);
             }
         }
     };
-    
-    
-    LookAndFeel* getPdLook() override {
+
+    LookAndFeel* getPdLook() override
+    {
         return new PdLook;
     }
-
-    
 };
-

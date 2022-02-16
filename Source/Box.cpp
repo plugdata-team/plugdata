@@ -11,7 +11,6 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
-
 Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(parent->pd->locked), textLabel(this, *parent), resizer(this, &restrainer)
 {
     cnv = parent;
@@ -247,7 +246,6 @@ void Box::setType(const String& newType, bool exists)
     resized();
 }
 
-
 void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(6);
@@ -275,7 +273,8 @@ void Box::paint(Graphics& g)
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {
-        if(!locked && (isOver || selected)) {
+        if (!locked && (isOver || selected))
+        {
             g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(ComboBox::outlineColourId));
             g.drawRect(rect.toFloat(), 0.5f);
         }

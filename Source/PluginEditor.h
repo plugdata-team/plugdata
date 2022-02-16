@@ -34,10 +34,9 @@ class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener, public ValueTree::Listener, public Timer
 {
    public:
-
     PlugDataPluginEditor(PlugDataAudioProcessor&);
     ~PlugDataPluginEditor() override;
-    
+
     void showNewObjectMenu();
 
     void paint(Graphics&) override;

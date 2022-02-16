@@ -440,7 +440,7 @@ void Instance::waitForStateUpdate()
 
 void Instance::sendMessagesFromQueue()
 {
-    //libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    // libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     std::function<void(void)> callback;
     while (m_function_queue.try_dequeue(callback))
@@ -631,13 +631,14 @@ void Instance::createPanel(int type, const char* snd, const char* location)
     }
 }
 
-
-void Instance::logMessage(const String& message) {
+void Instance::logMessage(const String& message)
+{
     consoleMessages.emplace_back(message, 0);
     updateConsole();
 }
 
-void Instance::logError(const String& error) {
+void Instance::logError(const String& error)
+{
     consoleMessages.emplace_back(error, 1);
     updateConsole();
 }

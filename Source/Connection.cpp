@@ -173,7 +173,6 @@ bool Connection::hitTest(int x, int y)
     return false;
 }
 
-
 void Connection::paint(Graphics& g)
 {
     g.setColour(Colours::grey);

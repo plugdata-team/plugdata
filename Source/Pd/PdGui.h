@@ -14,7 +14,6 @@
 namespace pd
 {
 
-
 //! @brief The Pd GUI objects.
 //! @details The Instance is a wrapper for the Pd native GUI. The lifetime of the internal\n
 //! GUI is not guaranteed by the class.
@@ -71,11 +70,11 @@ class Gui : public Object
     Colour getBackgroundColor() const noexcept;
     Colour getForegroundColor() const noexcept;
     Colour getLabelColour() const noexcept;
-    
+
     void setLabelColour(Colour newColour) noexcept;
     void setForegroundColour(Colour newColour) noexcept;
     void setBackgroundColour(Colour newColour) noexcept;
-    
+
     std::string getSymbol() const noexcept;
 
     void setSymbol(std::string const& value) noexcept;
@@ -94,13 +93,11 @@ class Gui : public Object
 
     String getLabelText() const noexcept;
     Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
-    
-    
+
     void setLabelText(String newText) noexcept;
     void setLabelPosition(Point<int> bounds) noexcept;
     void setLabelPosition(int wherelabel) noexcept;
-    
-    
+
     Patch getPatch() const noexcept;
 
     std::vector<Atom> getList() const noexcept;
@@ -114,4 +111,4 @@ class Gui : public Object
     friend class Patch;
 };
 
-}
+}  // namespace pd

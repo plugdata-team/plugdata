@@ -19,7 +19,6 @@ extern "C"
 #include "Edge.h"
 #include "PluginEditor.h"
 
-
 // False GATOM
 typedef struct _fake_gatom
 {
@@ -42,7 +41,6 @@ typedef struct _fake_gatom
     t_symbol* a_expanded_to;
 } t_fake_gatom;
 
-
 GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : box(parent), processor(*parent->cnv->pd), gui(pdGui), edited(false)
 
 {
@@ -54,13 +52,15 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
     min = gui.getMinimum();
     max = gui.getMaximum();
     cs->exit();
-    
-    if(gui.isIEM()) {
+
+    if (gui.isIEM())
+    {
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
         labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
         labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize * pd::Patch::zoom;
     }
-    else if(gui.isAtom()) {
+    else if (gui.isAtom())
+    {
         labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
     }
 
@@ -70,11 +70,11 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
     receiveSymbol = gui.getReceiveSymbol();
 
     setWantsKeyboardFocus(true);
-    
+
     addMouseListener(this, true);
-    
+
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
-    
+
     sendSymbol.addListener(this);
     receiveSymbol.addListener(this);
     primaryColour.addListener(this);
@@ -101,12 +101,11 @@ GUIComponent::~GUIComponent()
     labelText.removeListener(this);
     min.removeListener(this);
     max.removeListener(this);
-    
+
     box->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
     delete lnf;
-    
 }
 
 void GUIComponent::lock(bool isLocked)
@@ -114,16 +113,20 @@ void GUIComponent::lock(bool isLocked)
     setInterceptsMouseClicks(isLocked, isLocked);
 }
 
-void GUIComponent::mouseDown(const MouseEvent& e) {
-    if(box->cnv->pd->commandLocked) {
+void GUIComponent::mouseDown(const MouseEvent& e)
+{
+    if (box->cnv->pd->commandLocked)
+    {
         auto& sidebar = box->cnv->main.sidebar;
         inspectorWasVisible = !sidebar.isShowingConsole();
         sidebar.hideParameters();
     }
 }
 
-void GUIComponent::mouseUp(const MouseEvent& e) {
-    if(box->cnv->pd->commandLocked && inspectorWasVisible) {
+void GUIComponent::mouseUp(const MouseEvent& e)
+{
+    if (box->cnv->pd->commandLocked && inspectorWasVisible)
+    {
         box->cnv->main.sidebar.showParameters();
     }
 }
@@ -137,32 +140,34 @@ void GUIComponent::initParameters(bool newObject)
     }
 
     if (!gui.isIEM()) return;
-    
-    if(newObject) {
+
+    if (newObject)
+    {
         primaryColour = findColour(Slider::thumbColourId).toString();
         secondaryColour = findColour(ComboBox::backgroundColourId).toString();
         labelColour = Colours::white.toString();
-        
+
         gui.setForegroundColour(findColour(Slider::thumbColourId));
         gui.setBackgroundColour(findColour(ComboBox::backgroundColourId));
         gui.setLabelColour(Colours::white);
-        
+
         labelHeight = gui.getFontHeight();
     }
-    else {
+    else
+    {
         primaryColour = Colour(gui.getForegroundColor()).toString();
         secondaryColour = Colour(gui.getBackgroundColor()).toString();
-        if(gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
-        
+        if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
+
         getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
         getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
-        
+
         getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
         getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-        
+
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
-        
+
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
 }
@@ -268,7 +273,7 @@ void GUIComponent::setValueOriginal(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
 
     gui.setValue(value);
@@ -278,7 +283,7 @@ float GUIComponent::getValueScaled() const noexcept
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
 }
 
@@ -286,7 +291,7 @@ void GUIComponent::setValueScaled(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
     gui.setValue(value);
 }
@@ -349,13 +354,13 @@ void GUIComponent::updateLabel()
         {
             return;
         }
-   
+
         Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
-        
+
         const int width = 100;
         const int height = static_cast<int>(labelHeight.getValue());
         label->setBounds(position.x, position.y, width, height);
-        
+
         label->setFont(Font(static_cast<int>(labelHeight.getValue())));
         label->setJustificationType(Justification::left);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
@@ -364,7 +369,7 @@ void GUIComponent::updateLabel()
         label->setEditable(false, false);
         label->setInterceptsMouseClicks(false, false);
         label->setColour(Label::textColourId, gui.getLabelColour());
-        //label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColor())));
+        // label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColor())));
         box->cnv->addAndMakeVisible(label.get());
         box->addComponentListener(this);
     }
@@ -392,7 +397,6 @@ void GUIComponent::closeOpenedSubpatchers()
             tabbar->removeTab(n);
             main.pd.patches.removeFirstMatchingValue(cnv->patch);
             main.canvases.removeObject(cnv);
-            
         }
     }
 
@@ -416,7 +420,7 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) 
 
     bangButton.setTriggeredOnMouseDown(true);
     bangButton.setName("pd:bang");
-    
+
     bangButton.onClick = [this]()
     {
         startEdition();
@@ -436,31 +440,33 @@ void BangComponent::update()
     if (getValueOriginal() > std::numeric_limits<float>::epsilon())
     {
         bangButton.setToggleState(true, dontSendNotification);
-        
+
         auto currentTime = Time::getCurrentTime().getMillisecondCounter();
         auto timeSinceLast = currentTime - lastBang;
-        
+
         int holdTime = int(bangHold.getValue());
-        
-        if (timeSinceLast < int(bangHold.getValue()) * 2) {
+
+        if (timeSinceLast < int(bangHold.getValue()) * 2)
+        {
             holdTime = timeSinceLast / 2;
         }
-        if (holdTime < int(bangInterrupt.getValue())) {
+        if (holdTime < int(bangInterrupt.getValue()))
+        {
             holdTime = int(bangInterrupt.getValue());
         }
-        
-        lastBang = currentTime;
-        
-        Timer::callAfterDelay(holdTime, [this]()
-        {
-            bangButton.setToggleState(false, dontSendNotification);
-            if(bangButton.isDown()) {
-                bangButton.setState(Button::ButtonState::buttonNormal);
-            }
-        });
-    }
-    
 
+        lastBang = currentTime;
+
+        Timer::callAfterDelay(holdTime,
+                              [this]()
+                              {
+                                  bangButton.setToggleState(false, dontSendNotification);
+                                  if (bangButton.isDown())
+                                  {
+                                      bangButton.setState(Button::ButtonState::buttonNormal);
+                                  }
+                              });
+    }
 }
 
 void BangComponent::resized()
@@ -484,7 +490,7 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObje
         setValueOriginal(newValue);
         toggleButton.setToggleState(newValue, dontSendNotification);
         stopEdition();
-        
+
         update();
     };
 
@@ -845,7 +851,7 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
         box->restrainer.setSizeLimits(100, 35, 500, 250);
         box->restrainer.checkComponentBounds(box);
     }
-    
+
     isLogarithmic.addListener(this);
 }
 
