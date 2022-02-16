@@ -19,6 +19,30 @@ extern "C"
 #include "Edge.h"
 #include "PluginEditor.h"
 
+
+// False GATOM
+typedef struct _fake_gatom
+{
+    t_text a_text;
+    int a_flavor;          /* A_FLOAT, A_SYMBOL, or A_LIST */
+    t_glist* a_glist;      /* owning glist */
+    t_float a_toggle;      /* value to toggle to */
+    t_float a_draghi;      /* high end of drag range */
+    t_float a_draglo;      /* low end of drag range */
+    t_symbol* a_label;     /* symbol to show as label next to box */
+    t_symbol* a_symfrom;   /* "receive" name -- bind ourselves to this */
+    t_symbol* a_symto;     /* "send" name -- send to this on output */
+    t_binbuf* a_revertbuf; /* binbuf to revert to if typing canceled */
+    int a_dragindex;       /* index of atom being dragged */
+    int a_fontsize;
+    unsigned int a_shift : 1;         /* was shift key down when drag started? */
+    unsigned int a_wherelabel : 2;    /* 0-3 for left, right, above, below */
+    unsigned int a_grabbed : 1;       /* 1 if we've grabbed keyboard */
+    unsigned int a_doubleclicked : 1; /* 1 if dragging from a double click */
+    t_symbol* a_expanded_to;
+} t_fake_gatom;
+
+
 GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : box(parent), processor(*parent->cnv->pd), gui(pdGui), edited(false)
 
 {
@@ -35,6 +59,9 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
         labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
         labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize * pd::Patch::zoom;
+    }
+    else if(gui.isAtom()) {
+        labelX = static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1;
     }
 
     updateLabel();
@@ -72,8 +99,8 @@ GUIComponent::~GUIComponent()
     labelY.removeListener(this);
     labelHeight.removeListener(this);
     labelText.removeListener(this);
-    min.addListener(this);
-    max.addListener(this);
+    min.removeListener(this);
+    max.removeListener(this);
     
     box->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
