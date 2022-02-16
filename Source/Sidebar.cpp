@@ -349,10 +349,53 @@ struct ConsoleComponent : public Component, public ComponentListener
         pd->consoleHistory.clear();
         update();
     }
+    
+    int getNumLines(String text)
+    {
+        auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
+        
+        int numLines = 1;
+        
+        Array<int> glyphs;
+        Array<float> xOffsets;
+        font.getGlyphPositions(text, glyphs, xOffsets);
+
+        for (int i = 0; i < xOffsets.size(); i++)
+        {
+            if ((xOffsets[i] + 10) >= static_cast<float>(getWidth()))
+            {
+                for (int j = i + 1; j < xOffsets.size(); j++)
+                {
+                    xOffsets.getReference(j) -= xOffsets[i];
+                }
+                numLines++;
+            }
+        }
+        
+        return numLines;
+    }
 
     void mouseDown(const MouseEvent& e) override
     {
-        // TODO: implement selecting and copying comments
+        
+        int totalHeight = 0;
+        
+        for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
+        {
+            auto& message = pd->consoleMessages[row];
+            
+            int numLines = getNumLines(message.first);
+            int height = numLines * 22 + 2;
+            
+            const Rectangle<int> r(0, totalHeight, getWidth(), height);
+            
+            if(r.contains(e.getPosition())) {
+                selectedItem = row;
+                repaint();
+                break;
+            }
+
+        }
     }
 
     void paint(Graphics& g) override
@@ -362,7 +405,6 @@ struct ConsoleComponent : public Component, public ComponentListener
         g.fillAll(findColour(ComboBox::backgroundColourId));
 
         int totalHeight = 0;
-
         int numEmpty = 0;
 
         bool showMessages = buttons[2].getToggleState();
@@ -372,13 +414,14 @@ struct ConsoleComponent : public Component, public ComponentListener
         
         for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
         {
-            int height = 24;
-            int numLines = 1;
-
-            const Rectangle<int> r(0, totalHeight, getWidth(), height);
-            auto& e = pd->consoleMessages[row];
+            auto& message = pd->consoleMessages[row];
             
-            if ((e.second == 1 && !showMessages) || (e.second == 0 && !showErrors))
+            int numLines = getNumLines(message.first);
+            int height = numLines * 22 + 2;
+            
+            const Rectangle<int> r(0, totalHeight, getWidth(), height);
+            
+            if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors))
             {
                 continue;
             }
@@ -392,28 +435,8 @@ struct ConsoleComponent : public Component, public ComponentListener
             
             rowColour = !rowColour;
 
-            
-
-            Array<int> glyphs;
-            Array<float> xOffsets;
-            font.getGlyphPositions(e.first, glyphs, xOffsets);
-
-            for (int i = 0; i < xOffsets.size(); i++)
-            {
-                if ((xOffsets[i] + 10) >= static_cast<float>(getWidth()))
-                {
-                    height += 22;
-
-                    for (int j = i + 1; j < xOffsets.size(); j++)
-                    {
-                        xOffsets.getReference(j) -= xOffsets[i];
-                    }
-                    numLines++;
-                }
-            }
-
-            g.setColour(selectedItem == row ? Colours::white : colourWithType(e.second));
-            g.drawFittedText(e.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
+            g.setColour(selectedItem == row ? Colours::white : colourWithType(message.second));
+            g.drawFittedText(message.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
 
             totalHeight += height;
         }
@@ -444,34 +467,13 @@ struct ConsoleComponent : public Component, public ComponentListener
 
         for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
         {
-            int height = 24;
-            int numLines = 1;
-
-            auto& e = pd->consoleMessages[row];
-
-            if ((e.second == 1 && !showMessages) || (e.second == 0 && !showErrors))
-            {
-                continue;
-            }
-
-            Array<int> glyphs;
-            Array<float> xOffsets;
-            font.getGlyphPositions(e.first, glyphs, xOffsets);
-
-            for (int i = 0; i < xOffsets.size(); i++)
-            {
-                if ((xOffsets[i] + 10) >= static_cast<float>(getWidth()))
-                {
-                    height += 22;
-
-                    for (int j = i + 1; j < xOffsets.size(); j++)
-                    {
-                        xOffsets.getReference(j) -= xOffsets[i];
-                    }
-                    numLines++;
-                }
-            }
-
+            auto& message = pd->consoleMessages[row];
+            
+            int numLines = getNumLines(message.first);
+            int height = numLines * 22 + 2;
+            
+            if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors)) continue;
+            
             totalHeight += height;
         }
 
