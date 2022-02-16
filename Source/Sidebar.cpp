@@ -94,7 +94,7 @@ struct Inspector : public PropertyPanel
         
         void resized() override
         {
-            comboBox.setBounds(getLocalBounds().removeFromLeft(getWidth() / 2));
+            comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
         }
         
     private:
@@ -276,6 +276,11 @@ struct Inspector : public PropertyPanel
             {
                 precision = 0;
             }
+            else
+            {
+                precision = std::min(precision, 3);
+            }
+            
             
             // Calculate increment multiplier
             float multiplier = powf(10.0f, static_cast<float>(-precision));
@@ -309,10 +314,9 @@ struct ConsoleComponent : public Component, public ComponentListener
     std::array<TextButton, 5>& buttons;
     Viewport& viewport;
     
-    std::vector<std::pair<String, int>> messages;
-    std::vector<std::pair<String, int>> history;
+    pd::Instance* pd; // instance to get console messages from
     
-    ConsoleComponent(std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v)
+    ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v), pd(instance)
     {
         update();
     }
@@ -334,14 +338,24 @@ public:
         {
             viewport.setViewPositionProportionately(0.0f, 1.0f);
         }
+        
     }
     
     
     void clear()
     {
-        messages.clear();
+        pd->consoleHistory = pd->consoleMessages;
+        pd->consoleMessages.clear();
+        update();
     }
     
+    
+    void restore()
+    {
+        pd->consoleMessages.insert(pd->consoleMessages.begin(), pd->consoleHistory.begin(), pd->consoleHistory.end());
+        pd->consoleHistory.clear();
+        update();
+    }
     
     void mouseDown(const MouseEvent& e) override {
         // TODO: implement selecting and copying comments
@@ -353,7 +367,6 @@ public:
         g.setFont(font);
         g.fillAll(findColour(ComboBox::backgroundColourId));
         
-        
         int totalHeight = 0;
         
         int numEmpty = 0;
@@ -361,16 +374,29 @@ public:
         bool showMessages = buttons[2].getToggleState();
         bool showErrors = buttons[3].getToggleState();
         
-        for (int row = 0; row < jmax(32, static_cast<int>(messages.size())); row++)
+        for (int row = 0; row < jmax(32, static_cast<int>(pd->consoleMessages.size())); row++)
         {
             int height = 24;
             int numLines = 1;
             
-            if (isPositiveAndBelow(row, messages.size()))
+            const Rectangle<int> r(0, totalHeight, getWidth(), height);
+            
+            if (row % 2 || row == selectedItem)
             {
-                auto& e = messages[row];
+                g.setColour(selectedItem == row ? findColour(Slider::thumbColourId) : findColour(ResizableWindow::backgroundColourId));
                 
-                if((e.second == 1 && !showMessages) || (e.second == 2 && !showErrors)) continue;
+                g.fillRect(r);
+            }
+
+            
+            if (isPositiveAndBelow(row, pd->consoleMessages.size()))
+            {
+                auto& e = pd->consoleMessages[row];
+                
+                if((e.second == 1 && !showMessages) || (e.second == 0 && !showErrors))  {
+                    height = 0;
+                    continue;
+                }
                 
                 Array<int> glyphs;
                 Array<float> xOffsets;
@@ -389,20 +415,6 @@ public:
                         numLines++;
                     }
                 }
-            }
-            
-            const Rectangle<int> r(0, totalHeight, getWidth(), height);
-            
-            if (row % 2 || row == selectedItem)
-            {
-                g.setColour(selectedItem == row ? findColour(Slider::thumbColourId) : findColour(ResizableWindow::backgroundColourId));
-                
-                g.fillRect(r);
-            }
-            
-            if (isPositiveAndBelow(row, messages.size()))
-            {
-                const auto& e = messages[row];
                 
                 g.setColour(selectedItem == row ? Colours::white : colourWithType(e.second));
                 g.drawFittedText(e.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
@@ -422,19 +434,27 @@ public:
     // TODO: pre-calculate the number of lines in messages!!
     int getTotalHeight()
     {
+        bool showMessages = buttons[2].getToggleState();
+        bool showErrors = buttons[3].getToggleState();
+        
         auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
         int totalHeight = 0;
         
         int numEmpty = 0;
         
-        for (int row = 0; row < jmax(32, static_cast<int>(messages.size())); row++)
+        for (int row = 0; row < jmax(32, static_cast<int>(pd->consoleMessages.size())); row++)
         {
             int height = 24;
             int numLines = 1;
             
-            if (isPositiveAndBelow(row, messages.size()))
+            if (isPositiveAndBelow(row, pd->consoleMessages.size()))
             {
-                auto& e = messages[row];
+                auto& e = pd->consoleMessages[row];
+                
+                if((e.second == 1 && !showMessages) || (e.second == 0 && !showErrors))  {
+                    height = 0;
+                    continue;
+                }
                 
                 Array<int> glyphs;
                 Array<float> xOffsets;
@@ -454,11 +474,11 @@ public:
                     }
                 }
             }
-            
-            if (!isPositiveAndBelow(row, messages.size()))
+            else
             {
                 numEmpty++;
             }
+            
             
             totalHeight += height;
         }
@@ -476,62 +496,9 @@ public:
 private:
     static Colour colourWithType(int type)
     {
-        auto c = Colours::red;
-        
-        if (type == 0)
-        {
-            c = Colours::white;
-        }
-        else if (type == 1)
-        {
-            c = Colours::orange;
-        }
-        else if (type == 2)
-        {
-            c = Colours::red;
-        }
-        
-        return c;
-    }
-    
-    static void removeMessagesIfRequired(std::deque<std::pair<String, int>>& messages)
-    {
-        const int maximum = 2048;
-        const int removed = 64;
-        
-        int size = static_cast<int>(messages.size());
-        
-        if (size >= maximum)
-        {
-            const int n = nextPowerOfTwo(size - maximum + removed);
-            
-            jassert(n < size);
-            
-            messages.erase(messages.cbegin(), messages.cbegin() + n);
-        }
-    }
-    
-    template <class T>
-    static void parseMessages(T& m, bool showMessages, bool showErrors)
-    {
-        if (!showMessages || !showErrors)
-        {
-            auto f = [showMessages, showErrors](const std::pair<String, bool>& e)
-            {
-                bool t = e.second;
-                
-                if ((t && !showMessages) || (!t && !showErrors))
-                {
-                    return true;
-                }
-                else
-                {
-                    return false;
-                }
-            };
-            
-            m.erase(std::remove_if(m.begin(), m.end(), f), m.end());
-        }
+        if      (type == 0) return Colours::white;
+        else if (type == 1) return Colours::orange;
+        else                return Colours::red;
     }
     
     int selectedItem = -1;
@@ -542,10 +509,10 @@ private:
 
 struct Console : public Component
 {
-    Console()
+    Console(pd::Instance* instance)
     {
         // Viewport takes ownership
-        console = new ConsoleComponent(buttons, viewport);
+        console = new ConsoleComponent(instance, buttons, viewport);
         
         addComponentListener(console);
         
@@ -558,32 +525,19 @@ struct Console : public Component
         std::vector<String> tooltips = {"Clear logs", "Restore logs", "Show errors", "Show messages", "Enable autoscroll"};
         
         std::vector<std::function<void()>> callbacks = {
-            [this]() { /*console->clear();*/ },
-            [this]() { /* console->restore(); */ },
+            [this]() { console->clear(); },
+            [this]() { console->restore(); },
             [this]()
             {
-                repaint();
-                /*
-                 if (buttons[2].getState())
-                 console->restore();
-                 else
-                 console->parse(); */
+                console->update();
             },
             [this]()
             {
-                repaint();
-                /*
-                 if (buttons[3].getState())
-                 console->restore();
-                 else
-                 console->parse(); */
+                console->update();
             },
             [this]()
             {
-                if (buttons[4].getState())
-                {
-                    console->update();
-                }
+                console->update();
             },
             
         };
@@ -601,13 +555,10 @@ struct Console : public Component
             i++;
         }
         
-        buttons[2].setClickingTogglesState(true);
-        buttons[3].setClickingTogglesState(true);
-        buttons[4].setClickingTogglesState(true);
-        
-        buttons[2].setToggleState(true, sendNotification);
-        buttons[3].setToggleState(true, sendNotification);
-        buttons[4].setToggleState(true, sendNotification);
+        for(int n = 2; n < 5; n++) {
+            buttons[n].setClickingTogglesState(true);
+            buttons[n].setToggleState(true, sendNotification);
+        }
         
         resized();
     }
@@ -648,16 +599,16 @@ struct Console : public Component
 };
 
 
-Sidebar::Sidebar(pd::Instance* instance) : pd(instance) {
+Sidebar::Sidebar(pd::Instance* instance) {
     // Can't use RAII because unique pointer won't compile with forward declarations
-    console = new Console;
+    console = new Console(instance);
     inspector = new Inspector;
     
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     
     
-    setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 65);
+    setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 40);
 }
 
 Sidebar::~Sidebar() {
@@ -691,6 +642,7 @@ void Sidebar::resized() {
     
     console->setBounds(bounds);
     inspector->setBounds(bounds);
+    
 }
 
 void Sidebar::mouseDown(const MouseEvent& e)
@@ -768,7 +720,6 @@ bool Sidebar::isShowingConsole() const noexcept {
 
 void Sidebar::updateConsole()
 {
-    console->console->messages = pd->consoleMessages;
     console->console->update();
 }
 
