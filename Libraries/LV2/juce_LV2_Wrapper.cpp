@@ -1035,7 +1035,7 @@ public:
                     
                     if (i < filter->getTotalNumInputChannels() && portAudioIns[i] != portAudioOuts[i])
                         
-                        std::copy(portAudioOuts[i], portAudioOuts[i] + sampleCount, portAudioIns[i]);
+                        std::memcpy(portAudioOuts[i], portAudioOuts[i] + sampleCount, portAudioIns[i]);
                         //FloatVectorOperations::copy (portAudioOuts [i], portAudioIns[i], sampleCount);
                 }
                 

@@ -47,10 +47,34 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
     addMouseListener(this, true);
     
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
+    
+    sendSymbol.addListener(this);
+    receiveSymbol.addListener(this);
+    primaryColour.addListener(this);
+    secondaryColour.addListener(this);
+    labelColour.addListener(this);
+    labelX.addListener(this);
+    labelY.addListener(this);
+    labelHeight.addListener(this);
+    labelText.addListener(this);
+    min.addListener(this);
+    max.addListener(this);
 }
 
 GUIComponent::~GUIComponent()
 {
+    sendSymbol.removeListener(this);
+    receiveSymbol.removeListener(this);
+    primaryColour.removeListener(this);
+    secondaryColour.removeListener(this);
+    labelColour.removeListener(this);
+    labelX.removeListener(this);
+    labelY.removeListener(this);
+    labelHeight.removeListener(this);
+    labelText.removeListener(this);
+    min.addListener(this);
+    max.addListener(this);
+    
     box->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
@@ -81,7 +105,7 @@ void GUIComponent::initParameters(bool newObject)
 {
     if (gui.getType() == pd::Type::Number)
     {
-        auto color = Colour::fromString(secondaryColour);
+        auto color = Colour::fromString(secondaryColour.toString());
         secondaryColour = color.toString();
     }
 
@@ -103,13 +127,13 @@ void GUIComponent::initParameters(bool newObject)
         secondaryColour = Colour(gui.getBackgroundColor()).toString();
         if(gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
         
-        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour));
-        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour));
+        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
+        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
         
-        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour));
-        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour));
+        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
+        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
         
-        auto sliderBackground = Colour::fromString(secondaryColour);
+        auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
         
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
@@ -215,19 +239,28 @@ float GUIComponent::getValueOriginal() const noexcept
 
 void GUIComponent::setValueOriginal(float v)
 {
-    value = (min < max) ? std::max(std::min(v, max), min) : std::max(std::min(v, min), max);
+    auto minimum = static_cast<float>(min.getValue());
+    auto maximum = static_cast<float>(max.getValue());
+    
+    value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
 
     gui.setValue(value);
 }
 
 float GUIComponent::getValueScaled() const noexcept
 {
-    return (min < max) ? (value - min) / (max - min) : 1.f - (value - max) / (min - max);
+    auto minimum = static_cast<float>(min.getValue());
+    auto maximum = static_cast<float>(max.getValue());
+    
+    return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
 }
 
 void GUIComponent::setValueScaled(float v)
 {
-    value = (min < max) ? std::max(std::min(v, 1.f), 0.f) * (max - min) + min : (1.f - std::max(std::min(v, 1.f), 0.f)) * (min - max) + max;
+    auto minimum = static_cast<float>(min.getValue());
+    auto maximum = static_cast<float>(max.getValue());
+    
+    value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
     gui.setValue(value);
 }
 
@@ -293,10 +326,10 @@ void GUIComponent::updateLabel()
         Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
         
         const int width = 100;
-        const int height = labelHeight;
+        const int height = static_cast<int>(labelHeight.getValue());
         label->setBounds(position.x, position.y, width, height);
         
-        label->setFont(Font(labelHeight));
+        label->setFont(Font(static_cast<int>(labelHeight.getValue())));
         label->setJustificationType(Justification::left);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
@@ -380,13 +413,13 @@ void BangComponent::update()
         auto currentTime = Time::getCurrentTime().getMillisecondCounter();
         auto timeSinceLast = currentTime - lastBang;
         
-        int holdTime = bangHold;
+        int holdTime = int(bangHold.getValue());
         
-        if (timeSinceLast < bangHold * 2) {
+        if (timeSinceLast < int(bangHold.getValue()) * 2) {
             holdTime = timeSinceLast / 2;
         }
-        if (holdTime < bangInterrupt) {
-            holdTime = bangInterrupt;
+        if (holdTime < int(bangInterrupt.getValue())) {
+            holdTime = int(bangInterrupt.getValue());
         }
         
         lastBang = currentTime;
@@ -760,8 +793,10 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
         const float val = slider.getValue();
         if (gui.isLogScale())
         {
-            float minimum = min == 0.0f ? std::numeric_limits<float>::epsilon() : min;
-            setValueOriginal(exp(val * log(max / minimum)) * minimum);
+            float minValue = static_cast<float>(min.getValue());
+            float maxValue = static_cast<float>(max.getValue());
+            float minimum = minValue == 0.0f ? std::numeric_limits<float>::epsilon() : minValue;
+            setValueOriginal(exp(val * log(maxValue / minimum)) * minimum);
         }
         else
         {
@@ -783,6 +818,13 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
         box->restrainer.setSizeLimits(100, 35, 500, 250);
         box->restrainer.checkComponentBounds(box);
     }
+    
+    isLogarithmic.addListener(this);
+}
+
+SliderComponent::~SliderComponent()
+{
+    isLogarithmic.removeListener(this);
 }
 
 void SliderComponent::resized()
@@ -858,7 +900,7 @@ void RadioComponent::updateRange()
     minimum = gui.getMinimum();
     maximum = gui.getMaximum();
 
-    int numButtons = maximum - minimum;
+    int numButtons = int(maximum.getValue()) - int(minimum.getValue());
 
     radioButtons.clear();
 

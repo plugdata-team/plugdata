@@ -196,6 +196,8 @@ struct PlugDataDarkLook : public PlugDataLook
         setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.8f));
         setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
         setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
+        
+        setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
 
         setDefaultSansSerifTypeface(resources->defaultTypeface);
     }

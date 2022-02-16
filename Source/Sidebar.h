@@ -35,9 +35,9 @@ enum ParameterCategory
     cExtra
 };
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, void*, std::vector<String>>;  // name, type and pointer to value, list of items only for combobox and bool
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>;  // name, type and pointer to value, list of items only for combobox and bool
 
-using ObjectParameters = std::pair<std::vector<ObjectParameter>, std::function<void(int)>>;  // List of elements and update function
+using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
 
 
 struct Sidebar : public Component
@@ -48,6 +48,7 @@ struct Sidebar : public Component
     ~Sidebar();
     
     void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
     void resized() override;
     
     void mouseDown(const MouseEvent& e) override;
@@ -72,6 +73,8 @@ struct Sidebar : public Component
     Inspector* inspector;
     
 private:
+    
+    void loadParameters(ObjectParameters& params);
     
     static constexpr int dragbarWidth = 10;
     int dragStartWidth = 0;

@@ -617,7 +617,7 @@ void Canvas::mouseUp(const MouseEvent& e)
         if (box->graphics)
         {
             auto params = box->graphics->getParameters();
-            if(!params.first.empty()) {
+            if(!params.empty()) {
                 
                 main.sidebar.showParameters(params);
             }
