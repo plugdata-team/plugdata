@@ -17,7 +17,6 @@ extern "C"
 #include "Connection.h"
 #include "PluginProcessor.h"
 
-
 Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : MultiComponentDragger<Box>(this, &boxes), main(parent), pd(&parent.pd), patch(patch)
 {
     isGraph = graph;
@@ -48,8 +47,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
     lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::ColourIds::thumbColourId).withAlpha(0.3f));
 
     addKeyListener(this);
-    
-    
 
     setWantsKeyboardFocus(true);
 
@@ -67,7 +64,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
 
 Canvas::~Canvas()
 {
-   
     Component::removeAllChildren();
     removeKeyListener(this);
 }
@@ -80,7 +76,6 @@ void Canvas::synchronise(bool updatePosition)
     {
         setTransform(main.transform);
     }
-
 
     pd->waitForStateUpdate();
     deselectAll();
@@ -450,7 +445,6 @@ void Canvas::mouseDown(const MouseEvent& e)
                     auto* newCnv = main.canvases.add(new Canvas(main, helpPatch));
                     main.addTab(newCnv, true);
 
-
                     break;
                 }
 
@@ -617,11 +611,12 @@ void Canvas::mouseUp(const MouseEvent& e)
         if (box->graphics)
         {
             auto params = box->graphics->getParameters();
-            if(!params.empty()) {
-                
+            if (!params.empty())
+            {
                 main.sidebar.showParameters(params);
             }
-            else {
+            else
+            {
                 main.sidebar.hideParameters();
             }
         }
@@ -716,7 +711,6 @@ void Canvas::findDrawables(Graphics& g)
     }
 }
 
-
 void Canvas::paintOverChildren(Graphics& g)
 {
     // Pd Template drawing: not the most efficient implementation but it seems to work!
@@ -780,7 +774,7 @@ void Canvas::deselectAll()
             connection->repaint();
         }
     }
-    
+
     main.sidebar.hideParameters();
 }
 

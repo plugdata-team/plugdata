@@ -53,7 +53,7 @@ extern "C"
         if (strcmp(x->gl_name->s_name, "Pd")) pd_unbind(&x->gl_pd, canvas_makebindsym(x->gl_name));
     }
 
-    void canvas_map(t_canvas *x, t_floatarg f);
+    void canvas_map(t_canvas* x, t_floatarg f);
 }
 
 namespace pd
@@ -64,10 +64,10 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
     if (auto* cnv = getPointer())
     {
         instance->getCallbackLock()->enter();
-        
+
         setCurrent();
         setZoom(1);
-        
+
         instance->getCallbackLock()->exit();
 
         infoObject = getInfoObject();
@@ -99,12 +99,12 @@ void Patch::close()
 
 void Patch::setCurrent(bool lock)
 {
-    //instance->setThis();
+    // instance->setThis();
 
     if (lock) instance->getCallbackLock()->enter();
 
     auto* cnv = canvas_getcurrent();
-    
+
     if (cnv)
     {
         canvas_unsetcurrent(cnv);
@@ -113,11 +113,11 @@ void Patch::setCurrent(bool lock)
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
     canvas_map(getPointer(), 1.);
-    
+
     t_atom argv[1];
     SETFLOAT(argv, 1);
     pd_typedmess((t_pd*)getPointer(), gensym("pop"), 1, argv);
-    
+
     if (lock) instance->getCallbackLock()->exit();
 }
 

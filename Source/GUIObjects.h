@@ -135,59 +135,71 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     void startEdition() noexcept;
 
     void stopEdition() noexcept;
-    
+
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
-    
-    void valueChanged(Value& value) override {
-        if(value.refersToSameSourceAs(sendSymbol)) {
+
+    void valueChanged(Value& value) override
+    {
+        if (value.refersToSameSourceAs(sendSymbol))
+        {
             gui.setSendSymbol(sendSymbol.toString());
         }
-        else if(value.refersToSameSourceAs(receiveSymbol)) {
+        else if (value.refersToSameSourceAs(receiveSymbol))
+        {
             gui.setReceiveSymbol(sendSymbol.toString());
         }
-        else if(value.refersToSameSourceAs(primaryColour)) {
+        else if (value.refersToSameSourceAs(primaryColour))
+        {
             auto colour = Colour::fromString(primaryColour.toString());
             gui.setForegroundColour(colour);
-            
+
             getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
             getLookAndFeel().setColour(Slider::thumbColourId, colour);
             repaint();
         }
-        else if(value.refersToSameSourceAs(secondaryColour)) {
+        else if (value.refersToSameSourceAs(secondaryColour))
+        {
             auto colour = Colour::fromString(secondaryColour.toString());
             gui.setBackgroundColour(colour);
-            
+
             getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
             getLookAndFeel().setColour(TextButton::buttonColourId, colour);
             getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
-            
+
             repaint();
         }
-        
-        else if(value.refersToSameSourceAs(labelColour)) {
+
+        else if (value.refersToSameSourceAs(labelColour))
+        {
             gui.setLabelColour(Colour::fromString(labelColour.toString()));
             updateLabel();
         }
-        else if(value.refersToSameSourceAs(labelX)) {
-            if(gui.isAtom()) {
+        else if (value.refersToSameSourceAs(labelX))
+        {
+            if (gui.isAtom())
+            {
                 gui.setLabelPosition(static_cast<int>(labelX.getValue()) - 1);
                 updateLabel();
             }
-            else {
+            else
+            {
                 gui.setLabelPosition({static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue())});
                 updateLabel();
             }
         }
-        else if(value.refersToSameSourceAs(labelY)) {
+        else if (value.refersToSameSourceAs(labelY))
+        {
             gui.setLabelPosition({static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue())});
             updateLabel();
         }
-        else if(value.refersToSameSourceAs(labelHeight)) {
+        else if (value.refersToSameSourceAs(labelHeight))
+        {
             gui.setFontHeight(static_cast<int>(labelHeight.getValue()));
             updateLabel();
         }
-        else if(value.refersToSameSourceAs(labelText)) {
+        else if (value.refersToSameSourceAs(labelText))
+        {
             gui.setLabelText(labelText.toString());
             updateLabel();
         }
@@ -196,9 +208,8 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     Box* box;
 
    protected:
-    
     bool inspectorWasVisible = false;
-    
+
     const std::string stringGui = std::string("gui");
     const std::string stringMouse = std::string("mouse");
 
@@ -209,28 +220,25 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     Value min = Value(0.0f);
     Value max = Value(0.0f);
     int width = 6;
-    
 
     Value sendSymbol;
     Value receiveSymbol;
 
     Value primaryColour = Value(findColour(Slider::thumbColourId).toString());
     Value secondaryColour = Value(findColour(ComboBox::backgroundColourId).toString());
-    
+
     Value labelColour = Value(Colours::white.toString());
     Value labelX = Value(0.0f);
     Value labelY = Value(0.0f);
     Value labelHeight = Value(18.0f);
-    
+
     Value labelText;
-    
 };
 
 struct BangComponent : public GUIComponent
 {
-    
     uint32_t lastBang;
-    
+
     Value bangInterrupt = Value(40.0f);
     Value bangHold = Value(40.0f);
 
@@ -248,18 +256,18 @@ struct BangComponent : public GUIComponent
     {
         return {
             {"Interrupt", tInt, cGeneral, &bangInterrupt, {}},
-            {"Hold",      tInt, cGeneral, &bangHold,      {}},
+            {"Hold", tInt, cGeneral, &bangHold, {}},
         };
-            
-            /*
-        [this](int item) {
-            if(item == 0) {
-                static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold = static_cast<float>(bangInterrupt.getValue());
-            }
-            else if(item == 1) {
-                static_cast<t_bng*>(gui.getPointer())->x_flashtime_break = static_cast<float>(bangHold.getValue());
-            }
-        }}; */
+
+        /*
+    [this](int item) {
+        if(item == 0) {
+            static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold = static_cast<float>(bangInterrupt.getValue());
+        }
+        else if(item == 1) {
+            static_cast<t_bng*>(gui.getPointer())->x_flashtime_break = static_cast<float>(bangHold.getValue());
+        }
+    }}; */
     }
 
     void initParameters(bool newObject) override
@@ -447,17 +455,21 @@ struct NumboxComponent : public GUIComponent
     {
         return {{"Minimum", tFloat, cGeneral, &min, {}}, {"Maximum", tFloat, cGeneral, &max, {}}};
     }
-    
-    void valueChanged(Value& value) override {
-        if(value.refersToSameSourceAs(min)) {
+
+    void valueChanged(Value& value) override
+    {
+        if (value.refersToSameSourceAs(min))
+        {
             gui.setMinimum(static_cast<float>(min.getValue()));
             updateValue();
         }
-        if(value.refersToSameSourceAs(max)) {
+        if (value.refersToSameSourceAs(max))
+        {
             gui.setMaximum(static_cast<float>(max.getValue()));
             updateValue();
         }
-        else {
+        else
+        {
             GUIComponent::valueChanged(value);
         }
     }
@@ -516,7 +528,7 @@ struct SliderComponent : public GUIComponent
     SliderComponent(bool vertical, const pd::Gui& gui, Box* parent, bool newObject);
 
     ~SliderComponent();
-    
+
     std::pair<int, int> getBestSize() override
     {
         auto [x, y, w, h] = gui.getBounds();
@@ -529,10 +541,11 @@ struct SliderComponent : public GUIComponent
             {"Minimum", tFloat, cGeneral, &min, {}},
             {"Maximum", tFloat, cGeneral, &max, {}},
             {"Logarithmic", tBool, cGeneral, &isLogarithmic, {"off", "on"}},
-            };
+        };
     }
-    
-    void valueChanged(Value& value) override {
+
+    void valueChanged(Value& value) override
+    {
         if (value.refersToSameSourceAs(min))
         {
             gui.setMinimum(static_cast<float>(min.getValue()));
@@ -547,7 +560,8 @@ struct SliderComponent : public GUIComponent
             min = gui.getMinimum();
             max = gui.getMaximum();
         }
-        else {
+        else
+        {
             GUIComponent::valueChanged(value);
         }
     }
@@ -577,12 +591,11 @@ struct RadioComponent : public GUIComponent
 
     ObjectParameters defineParameters() override
     {
-        return {
-            {"Minimum", tInt, cGeneral, &minimum, {}},
-            {"Maximum", tInt, cGeneral, &maximum, {}}};
+        return {{"Minimum", tInt, cGeneral, &minimum, {}}, {"Maximum", tInt, cGeneral, &maximum, {}}};
     }
-    
-    void valueChanged(Value& value) override {
+
+    void valueChanged(Value& value) override
+    {
         if (value.refersToSameSourceAs(min))
         {
             gui.setMinimum(static_cast<float>(min.getValue()));
@@ -593,7 +606,8 @@ struct RadioComponent : public GUIComponent
             gui.setMaximum(static_cast<float>(max.getValue()));
             updateRange();
         }
-        else {
+        else
+        {
             GUIComponent::valueChanged(value);
         }
     }
@@ -683,9 +697,11 @@ struct GraphOnParent : public GUIComponent
     void mouseUp(const MouseEvent& e) override;
 
     void updateValue() override;
-    
+
     // override to make transparent
-    void paint(Graphics& g) override {}
+    void paint(Graphics& g) override
+    {
+    }
 
     std::pair<int, int> getBestSize() override
     {
@@ -849,8 +865,6 @@ struct PanelComponent : public GUIComponent
         params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
         return params;
     }
-    
-    
 
     std::pair<int, int> getBestSize() override
     {

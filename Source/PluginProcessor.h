@@ -62,7 +62,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receiveMidiByte(const int port, const int byte) override;
 
     void receiveGuiUpdate(int type) override;
-    
+
     void updateConsole() override;
 
     void receivePrint(const std::string& message) override
@@ -117,7 +117,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void loadPatch(File patch) override;
 
     void titleChanged() override;
-    
+
     // All opened patches
     Array<pd::Patch> patches;
 
@@ -170,7 +170,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
-    
+
     std::unique_ptr<LookAndFeel> lnf;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)

@@ -25,7 +25,6 @@ namespace pd
 {
 class Patch;
 
-
 class Instance
 {
    public:
@@ -97,8 +96,8 @@ class Instance
     virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list)
     {
     }
-    
-    virtual void updateConsole() {};
+
+    virtual void updateConsole(){};
 
     virtual void titleChanged(){};
 
@@ -111,7 +110,7 @@ class Instance
 
     void logMessage(const String& message);
     void logError(const String& error);
-    
+
     void addListener(const char* sym);
 
     virtual void messageEnqueued(){};
@@ -171,7 +170,7 @@ class Instance
 
     std::vector<std::pair<String, int>> consoleMessages;
     std::vector<std::pair<String, int>> consoleHistory;
-    
+
    private:
     struct Message
     {
@@ -217,11 +216,9 @@ class Instance
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-    
-
 
     WaitableEvent updateWait;
-    
+
     struct internal;
 };
 }  // namespace pd

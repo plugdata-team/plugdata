@@ -92,7 +92,6 @@ TextEditor* ClickLabel::createEditorComponent()
 
     bool multiLine = box->pdObject && box->pdObject->getType() == pd::Type::Comment;
 
-    
     // Allow multiline for comment objects
     newEditor->setMultiLine(multiLine, false);
     newEditor->setReturnKeyStartsNewLine(multiLine);
@@ -106,15 +105,15 @@ TextEditor* ClickLabel::createEditorComponent()
             hideEditor();
         }
     };
-    
-    if(!(box->graphics && box->graphics->getGui().getType() == pd::Type::Comment)) {
+
+    if (!(box->graphics && box->graphics->getGui().getType() == pd::Type::Comment))
+    {
         auto& suggestor = box->cnv->suggestor;
         suggestor.createCalloutBox(box, newEditor);
         auto boundsInParent = getBounds() + box->getPosition();
         suggestor.setBounds(boundsInParent.getX(), boundsInParent.getBottom(), 200, 115);
         suggestor.resized();
-        
-        
+
         newEditor->setInputFilter(&suggestor, false);
         newEditor->addKeyListener(&suggestor);
     }
@@ -230,7 +229,6 @@ TextEditor* ClickLabel::getCurrentTextEditor() const noexcept
 {
     return editor.get();
 }
-
 
 void ClickLabel::paint(Graphics& g)
 {

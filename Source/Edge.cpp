@@ -45,7 +45,6 @@ Rectangle<int> Edge::getCanvasBounds()
     return getBounds() + getParentComponent()->getPosition();
 }
 
-
 void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();

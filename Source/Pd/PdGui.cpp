@@ -607,17 +607,20 @@ Colour Gui::getLabelColour() const noexcept
     return Colours::white;
 }
 
-void Gui::setBackgroundColour(Colour colour) noexcept {
+void Gui::setBackgroundColour(Colour colour) noexcept
+{
     String colourStr = colour.toString();
     libpd_iemgui_set_background_color(getPointer(), colourStr.toRawUTF8());
 }
 
-void Gui::setForegroundColour(Colour colour) noexcept {
+void Gui::setForegroundColour(Colour colour) noexcept
+{
     String colourStr = colour.toString();
     libpd_iemgui_set_foreground_color(getPointer(), colourStr.toRawUTF8());
 }
 
-void Gui::setLabelColour(Colour colour) noexcept {
+void Gui::setLabelColour(Colour colour) noexcept
+{
     String colourStr = colour.toString();
     libpd_iemgui_set_label_color(getPointer(), colourStr.toRawUTF8());
 }
@@ -802,7 +805,6 @@ String Gui::getReceiveSymbol() noexcept
     return "";
 }
 
-
 Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
 {
     instance->setThis();
@@ -857,7 +859,6 @@ Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
     return {bounds.getX(), bounds.getY()};
 }
 
-
 String Gui::getLabelText() const noexcept
 {
     instance->setThis();
@@ -879,52 +880,50 @@ String Gui::getLabelText() const noexcept
         t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
         if (sym)
         {
-            
             auto const text = String(sym->s_name);
             if (text.isNotEmpty() && text != "empty")
             {
                 return text;
             }
-            
-            
         }
     }
-           
+
     return "";
 }
 
-void Gui::setLabelText(String newText) noexcept {
-
-    if(isIEM()) {
+void Gui::setLabelText(String newText) noexcept
+{
+    if (isIEM())
+    {
         static_cast<t_iemgui*>(ptr)->x_lab = gensym(newText.toRawUTF8());
     }
-    if(isAtom()) {
+    if (isAtom())
+    {
         static_cast<t_fake_gatom*>(ptr)->a_label = gensym(newText.toRawUTF8());
     }
-    
 }
 
-void Gui::setLabelPosition(Point<int> position) noexcept {
-    
-    if(isIEM()) {
+void Gui::setLabelPosition(Point<int> position) noexcept
+{
+    if (isIEM())
+    {
         auto* iem = static_cast<t_iemgui*>(ptr);
         iem->x_ldx = position.x;
         iem->x_ldy = position.y;
         return;
     }
     jassertfalse;
-    
 }
 
-void Gui::setLabelPosition(int wherelabel) noexcept {
-    
-    if(isAtom()) {
+void Gui::setLabelPosition(int wherelabel) noexcept
+{
+    if (isAtom())
+    {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_wherelabel = wherelabel;
         return;
     }
     jassertfalse;
 }
-
 
 }  // namespace pd

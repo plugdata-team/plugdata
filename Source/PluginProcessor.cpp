@@ -9,7 +9,6 @@
 #include "Canvas.h"
 #include "PluginEditor.h"
 
-
 PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
     : AudioProcessor(BusesProperties()
@@ -58,15 +57,14 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     sendMessagesFromQueue();
     processMessages();
-    
+
     lnf = std::make_unique<PlugDataDarkLook>();
-    
+
     LookAndFeel::setDefaultLookAndFeel(lnf.get());
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
 {
-    
     // Save current settings before quitting
     saveSettings();
 }
@@ -546,9 +544,8 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
+    // setThis();
 
-    //setThis();
-    
     // Dequeue messages
     sendMessagesFromQueue();
 
@@ -596,7 +593,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     auto* editor = new PlugDataPluginEditor(*this);
 
     setThis();
-    
+
     if (patches.isEmpty())
     {
         auto patchFile = File::createTempFile(".pd");
@@ -614,7 +611,8 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     }
     else
     {
-        for(auto& patch : patches) {
+        for (auto& patch : patches)
+        {
             auto* cnv = editor->canvases.add(new Canvas(*editor, patch, false));
             editor->addTab(cnv);
         }
@@ -826,8 +824,10 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
     startTimer(15);
 }
 
-void PlugDataAudioProcessor::updateConsole() {
-    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+void PlugDataAudioProcessor::updateConsole()
+{
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    {
         editor->sidebar.updateConsole();
     }
 }

@@ -33,7 +33,6 @@ class PlugDataApp : public JUCEApplication
         PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
 
         PropertiesFile::Options options;
-        
 
         options.applicationName = "PlugData";
         options.filenameSuffix = ".settings";

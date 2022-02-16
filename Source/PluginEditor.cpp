@@ -16,7 +16,6 @@
 #include "Edge.h"
 #include "x_libpd_mod_utils.h"
 
-
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters, p.meterSource), sidebar(&p)
 {
     addKeyListener(this);
@@ -276,8 +275,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-    
-    
+
 #if JUCE_LINUX
     startTimer(50);
 #endif
@@ -432,13 +430,12 @@ void PlugDataPluginEditor::paint(Graphics& g)
 
 void PlugDataPluginEditor::resized()
 {
-
     int sbarY = toolbarHeight - 4;
 
     tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth(), getHeight() - sbarY - statusbarHeight);
 
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
-    
+
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
     fb.justifyContent = FlexBox::JustifyContent::flexStart;
@@ -499,7 +496,8 @@ void PlugDataPluginEditor::resized()
 
 // We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...
 // This timer is only started on Linux
-void PlugDataPluginEditor::timerCallback() {
+void PlugDataPluginEditor::timerCallback()
+{
     if (ModifierKeys::getCurrentModifiers().isCommandDown() && !lockButton.getToggleState())
     {
         pd.commandLocked = true;
@@ -674,7 +672,6 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatin
     return false;
 }
 
-
 void PlugDataPluginEditor::openProject()
 {
     auto openFunc = [this](const FileChooser& f)
@@ -773,8 +770,8 @@ void PlugDataPluginEditor::updateUndoState()
         pd.enqueueFunction(
             [this, cnv]()
             {
-                //getCurrentCanvas()->patch.setCurrent();
-                // Check undo state on pd's thread
+                // getCurrentCanvas()->patch.setCurrent();
+                //  Check undo state on pd's thread
                 bool canUndo = libpd_can_undo(cnv);
                 bool canRedo = libpd_can_redo(cnv);
 
@@ -822,7 +819,7 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx)
 void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
     pd.patches.addIfNotAlreadyThere(cnv->patch);
-    
+
     tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
     int tabIdx = tabbar.getNumTabs() - 1;
@@ -862,10 +859,9 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         {
             tabbar.setCurrentTabIndex(0, false);
         }
-        
+
         auto* cnv = getCanvas(idx);
-        
-        
+
         pd.patches.removeFirstMatchingValue(cnv->patch);
 
         if (deleteWhenClosed)
@@ -909,7 +905,6 @@ void PlugDataPluginEditor::zoom(bool zoomingIn)
     int scale = ((std::abs(transform.mat00) + std::abs(transform.mat11)) / 2.0f) * 100.0f;
     zoomLabel.setText(String(scale) + "%", dontSendNotification);
     getCurrentCanvas()->checkBounds();
-    
 }
 
 void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
