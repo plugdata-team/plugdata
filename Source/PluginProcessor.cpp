@@ -8,6 +8,7 @@
 
 #include "Canvas.h"
 #include "PluginEditor.h"
+#include "LookAndFeel.h"
 
 PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -23,7 +24,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 #endif
       ,
       parameters(*this, nullptr, Identifier("PlugData"),
-                 {std::make_unique<AudioParameterFloat>("volume", "Volume", 0.0f, 1.0f, 0.75f), std::make_unique<AudioParameterBool>("enabled", "Enabled", true),
+                 {std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 0.75f), std::make_unique<AudioParameterBool>("enabled", "Enabled", true),
 
                   std::make_unique<AudioParameterFloat>("param1", "Parameter 1", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param2", "Parameter 2", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param3", "Parameter 3", 0.0f, 1.0f, 0.0f),
                   std::make_unique<AudioParameterFloat>("param4", "Parameter 4", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param5", "Parameter 5", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param6", "Parameter 6", 0.0f, 1.0f, 0.0f),
@@ -61,6 +62,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     lnf = std::make_unique<PlugDataDarkLook>();
 
     LookAndFeel::setDefaultLookAndFeel(lnf.get());
+    
+    logMessage("PlugData " + String(ProjectInfo::versionString));
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -215,6 +218,8 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     processingBuffer.setSize(2, samplesPerBlock);
 
     meterSource.resize(minOut, static_cast<int>(50.0f * 0.001f * sampleRate / samplesPerBlock));
+    
+    statusbarSource.prepareToPlay(getTotalNumOutputChannels());
 
     audioStarted = true;
 }
@@ -310,6 +315,8 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
     }
 
+    auto midiIn = midiMessages;
+    
     process(processingBuffer, midiMessages);
 
     if (buffer.getNumChannels() != 0)
@@ -323,7 +330,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     buffer.applyGain(getParameters()[0]->getValue());
 
-    meterSource.measureBlock(buffer);
+    statusbarSource.processBlock(buffer, midiIn, midiMessages);
 }
 
 void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)

@@ -10,8 +10,7 @@
 
 #include "Dialogs.h"
 #include "Sidebar.h"
-#include "LevelMeter.h"
-#include "LookAndFeel.h"
+#include "Statusbar.h"
 
 #include "Standalone/PlugDataWindow.h"
 
@@ -31,20 +30,18 @@ struct TabComponent : public TabbedComponent
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcaster, public KeyListener, public ValueTree::Listener, public Timer
+class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 {
    public:
     PlugDataPluginEditor(PlugDataAudioProcessor&);
-    ~PlugDataPluginEditor() override;
 
+    ~PlugDataPluginEditor();
     void showNewObjectMenu();
 
     void paint(Graphics&) override;
     void resized() override;
 
-    void timerCallback() override;
-    bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
-    bool keyStateChanged(bool isKeyDown, Component* originatingComponent) override;
+    bool keyPressed(const KeyPress& key) override;
 
     void openProject();
     void saveProject(const std::function<void()>& nestedCallback = []() {});
@@ -58,10 +55,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     void updateValues();
 
     void updateUndoState();
-
-    void zoom(bool zoomingIn);
-
-    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
+    
+    void valueChanged(Value& v) override;
 
     PlugDataAudioProcessor& pd;
 
@@ -70,31 +65,17 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     TabComponent tabbar;
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
-
-    LevelMeter levelmeter;
-
-    TextButton bypassButton = TextButton(Icons::Power);
-    TextButton lockButton = TextButton(Icons::Lock);
-    TextButton connectionStyleButton = TextButton(Icons::ConnectionStyle);
-    TextButton connectionPathfind = TextButton(Icons::Wand);
-
-    TextButton zoomIn = TextButton(Icons::ZoomIn);
-    TextButton zoomOut = TextButton(Icons::ZoomOut);
-    Label zoomLabel;
+    Statusbar statusbar;
 
    private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
     static constexpr int toolbarHeight = 40;
-    static constexpr int statusbarHeight = 25;
-    int sidebarWidth = 275;
 
-    bool sidebarHidden = false;
+    OwnedArray<TextButton> toolbarButtons;
 
-    std::array<TextButton, 9> toolbarButtons = {TextButton(Icons::New), TextButton(Icons::Open), TextButton(Icons::Save), TextButton(Icons::SaveAs), TextButton(Icons::Undo), TextButton(Icons::Redo), TextButton(Icons::Add), TextButton(Icons::Settings), TextButton(Icons::Hide)};
-
-    TextButton& hideButton = toolbarButtons[8];
+    TextButton* hideButton;
 
     std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
 
@@ -102,8 +83,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public ChangeBroadcast
     std::unique_ptr<ResizableCornerComponent> resizer;
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
-
-    std::unique_ptr<ButtonParameterAttachment> enableAttachment;
 
     Component seperators[2];
 

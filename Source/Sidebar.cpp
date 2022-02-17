@@ -9,13 +9,14 @@
 #include "LookAndFeel.h"
 
 #include "Sidebar.h"
+
 // MARK: Inspector
 
 struct Inspector : public PropertyPanel
 {
-    void paint(Graphics& g)
+    void paint(Graphics& g) override
     {
-        g.setColour(findColour(ComboBox::backgroundColourId).darker(0.4f));
+        g.setColour(findColour(ComboBox::backgroundColourId).darker(0.2f));
         g.fillRect(getLocalBounds().withHeight(getTotalContentHeight()));
     }
 
@@ -42,6 +43,8 @@ struct Inspector : public PropertyPanel
                 case tCombo:
                     return new ComboComponent(name, *value, bg, options);
             }
+            
+            return new EditableComponent<String>(name, *value, bg);
         };
 
         for (int i = 0; i < 4; i++)
@@ -77,7 +80,7 @@ struct Inspector : public PropertyPanel
         void paint(Graphics& g) override
         {
             g.fillAll(bg);
-            getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight(), *this);
+            getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.9, *this);
         }
 
         void refresh() override{};
@@ -217,6 +220,8 @@ struct Inspector : public PropertyPanel
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
 
+            label.setFont(Font(14));
+            
             label.onEditorShow = [this]()
             {
                 auto* editor = label.getCurrentTextEditor();
@@ -306,203 +311,7 @@ struct Inspector : public PropertyPanel
 };
 
 // MARK: Console
-struct ConsoleComponent : public Component, public ComponentListener
-{
-    std::array<TextButton, 5>& buttons;
-    Viewport& viewport;
 
-    pd::Instance* pd;  // instance to get console messages from
-
-    ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v), pd(instance)
-    {
-        update();
-    }
-
-    void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override
-    {
-        setSize(viewport.getWidth(), getHeight());
-        repaint();
-    }
-
-   public:
-    void update()
-    {
-        repaint();
-        setSize(viewport.getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
-
-        if (buttons[4].getToggleState())
-        {
-            viewport.setViewPositionProportionately(0.0f, 1.0f);
-        }
-    }
-
-    void clear()
-    {
-        pd->consoleHistory = pd->consoleMessages;
-        pd->consoleMessages.clear();
-        update();
-    }
-
-    void restore()
-    {
-        pd->consoleMessages.insert(pd->consoleMessages.begin(), pd->consoleHistory.begin(), pd->consoleHistory.end());
-        pd->consoleHistory.clear();
-        update();
-    }
-    
-    int getNumLines(String text)
-    {
-        auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-        
-        int numLines = 1;
-        
-        Array<int> glyphs;
-        Array<float> xOffsets;
-        font.getGlyphPositions(text, glyphs, xOffsets);
-
-        for (int i = 0; i < xOffsets.size(); i++)
-        {
-            if ((xOffsets[i] + 10) >= static_cast<float>(getWidth()))
-            {
-                for (int j = i + 1; j < xOffsets.size(); j++)
-                {
-                    xOffsets.getReference(j) -= xOffsets[i];
-                }
-                numLines++;
-            }
-        }
-        
-        return numLines;
-    }
-
-    void mouseDown(const MouseEvent& e) override
-    {
-        
-        int totalHeight = 0;
-        
-        for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
-        {
-            auto& message = pd->consoleMessages[row];
-            
-            int numLines = getNumLines(message.first);
-            int height = numLines * 22 + 2;
-            
-            const Rectangle<int> r(0, totalHeight, getWidth(), height);
-            
-            if(r.contains(e.getPosition())) {
-                selectedItem = row;
-                repaint();
-                break;
-            }
-
-        }
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-        g.setFont(font);
-        g.fillAll(findColour(ComboBox::backgroundColourId));
-
-        int totalHeight = 0;
-        int numEmpty = 0;
-
-        bool showMessages = buttons[2].getToggleState();
-        bool showErrors = buttons[3].getToggleState();
-
-        bool rowColour = false;
-        
-        for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
-        {
-            auto& message = pd->consoleMessages[row];
-            
-            int numLines = getNumLines(message.first);
-            int height = numLines * 22 + 2;
-            
-            const Rectangle<int> r(0, totalHeight, getWidth(), height);
-            
-            if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors))
-            {
-                continue;
-            }
-            
-            if (rowColour || row == selectedItem)
-            {
-                g.setColour(selectedItem == row ? findColour(Slider::thumbColourId) : findColour(ResizableWindow::backgroundColourId));
-
-                g.fillRect(r);
-            }
-            
-            rowColour = !rowColour;
-
-            g.setColour(selectedItem == row ? Colours::white : colourWithType(message.second));
-            g.drawFittedText(message.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
-
-            totalHeight += height;
-        }
-        
-        while(totalHeight < viewport.getHeight()) {
-            if (rowColour)
-            {
-                const Rectangle<int> r(0, totalHeight, getWidth(), 24);
-                g.setColour(findColour(ResizableWindow::backgroundColourId));
-                g.fillRect(r);
-            }
-            rowColour = !rowColour;
-            totalHeight += 24;
-        }
-    }
-
-    // Get total height of messages, also taking multi-line messages into account
-    // TODO: pre-calculate the number of lines in messages!!
-    int getTotalHeight()
-    {
-        bool showMessages = buttons[2].getToggleState();
-        bool showErrors = buttons[3].getToggleState();
-
-        auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-        int totalHeight = 0;
-
-        int numEmpty = 0;
-
-        for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
-        {
-            auto& message = pd->consoleMessages[row];
-            
-            int numLines = getNumLines(message.first);
-            int height = numLines * 22 + 2;
-            
-            if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors)) continue;
-            
-            totalHeight += height;
-        }
-
-        totalHeight -= numEmpty * 24;
-
-        return totalHeight;
-    }
-
-    void resized() override
-    {
-        update();
-    }
-
-   private:
-    static Colour colourWithType(int type)
-    {
-        if (type == 0)
-            return Colours::white;
-        else if (type == 1)
-            return Colours::orange;
-        else
-            return Colours::red;
-    }
-
-    int selectedItem = -1;
-
-   private:
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
-};
 
 struct Console : public Component
 {
@@ -576,8 +385,240 @@ struct Console : public Component
 
         fb.performLayout(bounds.removeFromBottom(27));
         viewport.setBounds(bounds.toNearestInt());
+        console->resized();
     }
+    
+    void update() {
+        console->update();
+    }
+    
+    struct ConsoleComponent : public Component, public ComponentListener
+    {
+        std::array<TextButton, 5>& buttons;
+        Viewport& viewport;
 
+        pd::Instance* pd;  // instance to get console messages from
+
+        ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v), pd(instance)
+        {
+            setWantsKeyboardFocus(true);
+            update();
+            
+        }
+
+        void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override
+        {
+            setSize(viewport.getWidth(), getHeight());
+            repaint();
+        }
+        
+        void focusLost(FocusChangeType cause) override
+        {
+            selectedItem = -1;
+        }
+        
+        
+        bool keyPressed(const KeyPress& key) override
+        {
+            
+            if(isPositiveAndBelow(selectedItem, pd->consoleMessages.size())) {
+                
+                // Copy console item
+                if (key == KeyPress('c', ModifierKeys::commandModifier, 0))
+                {
+                    SystemClipboard::copyTextToClipboard(pd->consoleMessages[selectedItem].first);
+                    return true;
+                }
+                
+            }
+            
+            return false;
+        }
+
+       public:
+        void update()
+        {
+            repaint();
+            setSize(viewport.getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
+
+            if (buttons[4].getToggleState())
+            {
+                viewport.setViewPositionProportionately(0.0f, 1.0f);
+            }
+        }
+
+        void clear()
+        {
+            pd->consoleHistory = pd->consoleMessages;
+            pd->consoleMessages.clear();
+            update();
+        }
+
+        void restore()
+        {
+            pd->consoleMessages.insert(pd->consoleMessages.begin(), pd->consoleHistory.begin(), pd->consoleHistory.end());
+            pd->consoleHistory.clear();
+            update();
+        }
+        
+        int getNumLines(String text)
+        {
+            auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
+            
+            int numLines = 1;
+            
+            Array<int> glyphs;
+            Array<float> xOffsets;
+            font.getGlyphPositions(text, glyphs, xOffsets);
+
+            for (int i = 0; i < xOffsets.size(); i++)
+            {
+                if ((xOffsets[i] + 10) >= static_cast<float>(getWidth()))
+                {
+                    for (int j = i + 1; j < xOffsets.size(); j++)
+                    {
+                        xOffsets.getReference(j) -= xOffsets[i];
+                    }
+                    numLines++;
+                }
+            }
+            
+            return numLines;
+        }
+
+        void mouseDown(const MouseEvent& e) override
+        {
+            int totalHeight = 0;
+            
+            for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
+            {
+                auto& message = pd->consoleMessages[row];
+                
+                int numLines = getNumLines(message.first);
+                int height = numLines * 22 + 2;
+                
+                const Rectangle<int> r(0, totalHeight, getWidth(), height);
+                
+                
+                if(r.contains(e.getPosition() + viewport.getViewPosition())) {
+                    selectedItem = row;
+                    repaint();
+                    break;
+                }
+                
+                totalHeight += height;
+            }
+        }
+
+        void paint(Graphics& g) override
+        {
+            auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
+            g.setFont(font);
+            g.fillAll(findColour(ComboBox::backgroundColourId));
+
+            int totalHeight = 0;
+            int numEmpty = 0;
+
+            bool showMessages = buttons[2].getToggleState();
+            bool showErrors = buttons[3].getToggleState();
+
+            bool rowColour = false;
+            
+            for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
+            {
+                auto& message = pd->consoleMessages[row];
+                
+                int numLines = getNumLines(message.first);
+                int height = numLines * 22 + 2;
+                
+                const Rectangle<int> r(0, totalHeight, getWidth(), height);
+                
+                if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors))
+                {
+                    continue;
+                }
+                
+                if (rowColour || row == selectedItem)
+                {
+                    g.setColour(selectedItem == row ? findColour(Slider::thumbColourId) : findColour(ResizableWindow::backgroundColourId));
+
+                    g.fillRect(r);
+                }
+                
+                rowColour = !rowColour;
+
+                g.setColour(selectedItem == row ? Colours::white : colourWithType(message.second));
+                g.drawFittedText(message.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
+
+                totalHeight += height;
+            }
+            
+            while(totalHeight < viewport.getHeight()) {
+                if (rowColour)
+                {
+                    const Rectangle<int> r(0, totalHeight, getWidth(), 24);
+                    g.setColour(findColour(ResizableWindow::backgroundColourId));
+                    g.fillRect(r);
+                }
+                rowColour = !rowColour;
+                totalHeight += 24;
+            }
+        }
+
+        // Get total height of messages, also taking multi-line messages into account
+        // TODO: pre-calculate the number of lines in messages!!
+        int getTotalHeight()
+        {
+            bool showMessages = buttons[2].getToggleState();
+            bool showErrors = buttons[3].getToggleState();
+
+            auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
+            int totalHeight = 0;
+
+            int numEmpty = 0;
+
+            for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
+            {
+                auto& message = pd->consoleMessages[row];
+                
+                int numLines = getNumLines(message.first);
+                int height = numLines * 22 + 2;
+                
+                if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors)) continue;
+                
+                totalHeight += height;
+            }
+
+            totalHeight -= numEmpty * 24;
+
+            return totalHeight;
+        }
+
+        void resized() override
+        {
+            update();
+        }
+
+       private:
+        static Colour colourWithType(int type)
+        {
+            if (type == 0)
+                return Colours::white;
+            else if (type == 1)
+                return Colours::orange;
+            else
+                return Colours::red;
+        }
+
+        int selectedItem = -1;
+
+       private:
+        JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
+    };
+    
+
+private:
+    
     ConsoleComponent* console;
     Viewport viewport;
 
@@ -708,5 +749,5 @@ bool Sidebar::isShowingConsole() const noexcept
 
 void Sidebar::updateConsole()
 {
-    console->console->update();
+    console->update();
 }

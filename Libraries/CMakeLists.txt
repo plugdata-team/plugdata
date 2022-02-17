@@ -14,7 +14,6 @@ endif()
 
 add_subdirectory(JUCE)
 
-juce_add_module(./ff_meters ALIAS_NAMESPACE ff_meters)
 #------------------------------------------------------------------------------#
 
 set(CMAKE_MACOSX_RPATH ON)

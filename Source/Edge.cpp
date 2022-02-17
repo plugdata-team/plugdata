@@ -16,9 +16,11 @@ Edge::Edge(Box* parent, bool input) : box(parent)
 
     parent->addAndMakeVisible(this);
 
+    locked.referTo(parent->cnv->pd->locked);
+    
     onClick = [this]()
     {
-        if (box->cnv->pd->locked) return;
+        if (bool(locked.getValue())) return;
         createConnection();
     };
 
@@ -54,8 +56,8 @@ void Edge::paint(Graphics& g)
         bounds = bounds.reduced(1);
     }
 
-    bool down = isDown() && !box->locked;
-    bool over = isOver() && !box->locked;
+    bool down = isDown() && !bool(box->locked.getValue());
+    bool over = isOver() && !bool(box->locked.getValue());
 
     auto backgroundColour = isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
 
@@ -95,7 +97,7 @@ void Edge::resized()
 void Edge::mouseDrag(const MouseEvent& e)
 {
     // Ignore when locked
-    if (box->cnv->pd->locked) return;
+    if (bool(locked.getValue())) return;
 
     // For dragging to create new connections
     TextButton::mouseDrag(e);
@@ -114,7 +116,7 @@ void Edge::mouseMove(const MouseEvent& e)
 void Edge::mouseEnter(const MouseEvent& e)
 {
     // Only show when not locked
-    isHovered = !box->locked;
+    isHovered = !bool(locked.getValue());
     repaint();
 }
 

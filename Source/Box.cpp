@@ -11,7 +11,7 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
-Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(parent->pd->locked), textLabel(this, *parent), resizer(this, &restrainer)
+Box::Box(Canvas* parent, const String& name, Point<int> position) : textLabel(this, *parent), resizer(this, &restrainer)
 {
     cnv = parent;
 
@@ -32,12 +32,9 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : locked(paren
         textLabel.showEditor();
         resized();
     }
-
-    // Updates lock/unlock mode
-    changeListenerCallback(nullptr);
 }
 
-Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object), locked(parent->pd->locked), textLabel(this, *parent), resizer(this, &restrainer)
+Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object), textLabel(this, *parent), resizer(this, &restrainer)
 {
     cnv = parent;
     initialise();
@@ -46,20 +43,16 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
     setType(name, true);
 
     setTopLeftPosition(position);
-
-    // Updates lock/unlock mode
-    changeListenerCallback(nullptr);
 }
 
 Box::~Box()
 {
-    cnv->main.removeChangeListener(this);
+    locked.removeListener(this);
+    commandLocked.removeListener(this);
 }
 
-void Box::changeListenerCallback(ChangeBroadcaster* source)
+void Box::valueChanged(Value &v)
 {
-    locked = cnv->pd->locked;
-
     // Hide certain objects in GOP
     if (cnv->isGraph && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
     {
@@ -72,10 +65,10 @@ void Box::changeListenerCallback(ChangeBroadcaster* source)
 
     if (graphics)
     {
-        graphics->lock(locked || cnv->pd->commandLocked);
+        graphics->lock(locked == true || commandLocked == true);
     }
 
-    resizer.setVisible(!locked);
+    resizer.setVisible(locked == false);
 
     resized();
     repaint();
@@ -86,6 +79,13 @@ void Box::initialise()
     addMouseListener(this, true);
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
+    
+    // Updates lock/unlock mode
+    locked.referTo(cnv->pd->locked);
+    commandLocked.referTo(cnv->pd->commandLocked);
+    
+    locked.addListener(this);
+    commandLocked.addListener(this);
 
     addAndMakeVisible(&textLabel);
 
@@ -97,8 +97,6 @@ void Box::initialise()
         setType(newText);
     };
 
-    // Add listener for lock/unlock messages
-    cnv->main.addChangeListener(this);
 }
 
 bool Box::hitTest(int x, int y)
@@ -182,7 +180,7 @@ void Box::setType(const String& newType, bool exists)
 
         if (graphics)
         {
-            graphics->lock(locked);
+            graphics->lock(locked == true);
             graphics->updateValue();
         }
 
@@ -273,7 +271,7 @@ void Box::paint(Graphics& g)
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {
-        if (!locked && (isOver || selected))
+        if (locked == false && (isOver || selected))
         {
             g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(ComboBox::outlineColourId));
             g.drawRect(rect.toFloat(), 0.5f);

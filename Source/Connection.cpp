@@ -11,12 +11,13 @@
 #include "Canvas.h"
 #include "Edge.h"
 
-Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : start(s), end(e)
+Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), start(s), end(e)
 {
     // Should improve performance
     setBufferedToImage(true);
 
-    cnv = parent;
+    locked.referTo(parent->locked);
+    connectionStyle.referTo(parent->connectionStyle);
 
     // Receive mouse events on canvas
     addMouseListener(cnv, true);
@@ -150,7 +151,7 @@ Connection::~Connection()
 
 bool Connection::hitTest(int x, int y)
 {
-    if (start->box->locked || end->box->locked) return false;
+    if (locked == false) return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
 
@@ -193,8 +194,9 @@ void Connection::mouseMove(const MouseEvent& e)
 {
     auto scaledPlan = scalePath(currentPlan);
 
-    bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
-    if (curvedConnection && scaledPlan.size() > 2)
+    bool segmentedConnection = connectionStyle == true;
+    
+    if (segmentedConnection && scaledPlan.size() > 2)
     {
         for (int n = 2; n < scaledPlan.size() - 1; n++)
         {
@@ -273,7 +275,7 @@ void Connection::mouseDrag(const MouseEvent& e)
     bool flippedX = planDistance.x * currentDistance.x < 0;
     bool flippedY = planDistance.y * currentDistance.y < 0;
 
-    bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
+    bool curvedConnection = cnv->pd->settingsTree.getProperty("ConnectionStyle");
     if (curvedConnection && dragIdx != -1)
     {
         auto n = dragIdx;
@@ -334,7 +336,7 @@ void Connection::resized()
     Point<int> pstart = s->getCanvasBounds().getCentre() - getPosition();
     Point<int> pend = e->getCanvasBounds().getCentre() - getPosition();
 
-    bool curvedConnection = cnv->pd->settingsTree.getProperty(Identifiers::connectionStyle);
+    bool curvedConnection = cnv->pd->settingsTree.getProperty("ConnectionStyle");
 
     if (!curvedConnection)
     {

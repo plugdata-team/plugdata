@@ -21,8 +21,11 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
 {
     isGraph = graph;
     isGraphChild = graphChild;
-
-    parent.sendChangeMessage();
+    
+    locked.referTo(pd->locked);
+    locked.addListener(this);
+    connectionStyle.referTo(parent.pd.settingsTree.getPropertyAsValue("ConnectionStyle", nullptr));
+    connectionStyle.addListener(this);
 
     tabbar = &parent.tabbar;
 
@@ -46,8 +49,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
     lasso.setAlwaysOnTop(true);
     lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::ColourIds::thumbColourId).withAlpha(0.3f));
 
-    addKeyListener(this);
-
     setWantsKeyboardFocus(true);
 
     if (!isGraph)
@@ -64,8 +65,33 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
 
 Canvas::~Canvas()
 {
-    Component::removeAllChildren();
-    removeKeyListener(this);
+    locked.removeListener(this);
+}
+
+void Canvas::paint(Graphics& g)
+{
+    if (!isGraph)
+    {
+        g.fillAll(findColour(ComboBox::backgroundColourId));
+
+        g.setColour(findColour(ResizableWindow::backgroundColourId));
+        g.fillRect(zeroPosition.x, zeroPosition.y, getWidth(), getHeight());
+
+        // draw origin
+        g.setColour(Colour(100, 100, 100));
+        g.drawLine(zeroPosition.x - 1, zeroPosition.y, zeroPosition.x - 1, getHeight());
+        g.drawLine(zeroPosition.x, zeroPosition.y - 1, getWidth(), zeroPosition.y - 1);
+    }
+}
+
+void Canvas::focusGained(FocusChangeType cause)
+{
+    // This is necessary because in some cases, setting the canvas as current right before an action isn't enough
+    pd->setThis();
+    if (patch.getPointer())
+    {
+        patch.setCurrent(true);
+    }
 }
 
 // Synchronise state with pure-data
@@ -319,7 +345,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     auto* source = e.originalComponent;
 
     // Ignore if locked
-    if (pd->locked)
+    if (locked == true)
     {
         if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
         {
@@ -347,7 +373,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
     {
-        if (pd->locked)
+        if (locked == true)
         {
             if (auto* label = dynamic_cast<ClickLabel*>(source))
             {
@@ -498,7 +524,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
-    if (isGraph || pd->locked) return;
+    if (isGraph || locked == true) return;
 
     auto* source = e.originalComponent;
 
@@ -557,7 +583,7 @@ void Canvas::mouseUp(const MouseEvent& e)
             deselectAll();
         }
 
-        if (!pd->locked && !isGraph && box->getParentComponent() == this)
+        if (locked == false && !isGraph && box->getParentComponent() == this)
         {
             setSelected(box, true);
         }
@@ -636,7 +662,7 @@ void Canvas::mouseUp(const MouseEvent& e)
 void Canvas::dragCallback(int dx, int dy)
 {
     // Ignore when locked
-    if (pd->locked) return;
+    if (locked == true) return;
 
     auto objects = std::vector<pd::Object*>();
 
@@ -738,19 +764,15 @@ void Canvas::paintOverChildren(Graphics& g)
 void Canvas::mouseMove(const MouseEvent& e)
 {
     // For deciding where to place a new object
-    lastMousePos = e.getPosition();
-
+    lastMousePos =     getLocalBounds().reduced(20).getConstrainedPoint(e.getPosition());
+    
     if (connectingEdge)
     {
         repaint();
     }
 }
 
-void Canvas::resized()
-{
-}
-
-bool Canvas::keyPressed(const KeyPress& key, Component* originatingComponent)
+bool Canvas::keyPressed(const KeyPress& key)
 {
     if (main.getCurrentCanvas() != this) return false;
     if (isGraph) return false;
@@ -955,5 +977,30 @@ void Canvas::checkBounds()
     {
         auto [x, y, w, h] = patch.getBounds();
         graphArea->setBounds(x, y, w, h);
+    }
+}
+
+
+void Canvas::valueChanged(Value& v) {
+    // When lock changes
+    if(v.refersToSameSourceAs(locked)) {
+        deselectAll();
+        
+        for (auto& connection : connections)
+        {
+            if (connection->isSelected)
+            {
+                connection->isSelected = false;
+                connection->repaint();
+            }
+        }
+    }
+    
+    else if(v.refersToSameSourceAs(connectionStyle)) {
+        for (auto* connection : connections)
+        {
+            connection->resized();
+            connection->repaint();
+        }
     }
 }
