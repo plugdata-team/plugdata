@@ -56,19 +56,19 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void showEditor();
     void hideEditor();
     void setLabelVisible(bool labelVisible);
-    
+
     /** Returns the currently-visible text editor, or nullptr if none is open. */
     TextEditor* getCurrentTextEditor() const noexcept;
-    
+
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
-    
+
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
 
     String getText(bool returnActiveEditorContents = false) const;
-    
+
    private:
     void initialise();
     bool hitTest(int x, int y) override;
@@ -78,13 +78,12 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void setEditable(bool editable);
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
-    
+
     std::function<void()> onTextChange;
 
    protected:
-
     void mouseDoubleClick(const MouseEvent&) override;
-    
+
     bool hideLabel;
 
     Value textValue;
@@ -96,7 +95,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     float minimumHorizontalScale = 0;
     TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
     bool editDoubleClick = false;
-    
 
     Colour outline = findColour(Slider::thumbColourId);
 

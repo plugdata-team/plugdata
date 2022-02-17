@@ -19,7 +19,7 @@ struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
-class Canvas : public Component, public Value::Listener,  public LassoSource<Component*>
+class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
    public:
     Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
@@ -44,22 +44,21 @@ class Canvas : public Component, public Value::Listener,  public LassoSource<Com
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
-    
+
     void valueChanged(Value& v) override;
 
     void checkBounds();
 
     void paint(Graphics& g) override;
-    
+
     void focusGained(FocusChangeType cause) override;
 
     void undo();
     void redo();
-    
-    
+
     // Multi-dragger functions
     void deselectAll();
-    
+
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
@@ -74,10 +73,9 @@ class Canvas : public Component, public Value::Listener,  public LassoSource<Com
 
     void findDrawables(Graphics& g);
     Box* getSingleSelection();
-    
+
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
-    
 
     Viewport* viewport = nullptr;
 
@@ -88,14 +86,12 @@ class Canvas : public Component, public Value::Listener,  public LassoSource<Com
 
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
-    
+
     Value locked;
     Value connectionStyle;
 
     bool isGraph = false;
     bool isGraphChild = false;
-
-    
 
     Point<int> zeroPosition = {0, 0};
     Point<int> lastMousePos;
@@ -108,10 +104,9 @@ class Canvas : public Component, public Value::Listener,  public LassoSource<Com
 
     LassoComponent<Component*> lasso;
     PopupMenu popupMenu;
-    
-    
+
     // Multi-dragger variables
-    
+
     const int minimumMovementToStartDrag = 10;
 
     bool didStartDragging{false};
@@ -125,4 +120,3 @@ class Canvas : public Component, public Value::Listener,  public LassoSource<Com
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
-

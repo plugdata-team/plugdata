@@ -43,7 +43,7 @@ struct Inspector : public PropertyPanel
                 case tCombo:
                     return new ComboComponent(name, *value, bg, options);
             }
-            
+
             return new EditableComponent<String>(name, *value, bg);
         };
 
@@ -221,7 +221,7 @@ struct Inspector : public PropertyPanel
             label.addMouseListener(this, true);
 
             label.setFont(Font(14));
-            
+
             label.onEditorShow = [this]()
             {
                 auto* editor = label.getCurrentTextEditor();
@@ -247,10 +247,9 @@ struct Inspector : public PropertyPanel
         void mouseDrag(const MouseEvent& e) override
         {
             if constexpr (!std::is_arithmetic<T>::value) return;
-            
+
             // Skip for scientific notation
-            if(label.getText().contains("e")) return;
-            
+            if (label.getText().contains("e")) return;
 
             auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
             if (std::abs(inc) < 1.0f) return;
@@ -315,7 +314,6 @@ struct Inspector : public PropertyPanel
 };
 
 // MARK: Console
-
 
 struct Console : public Component
 {
@@ -391,16 +389,18 @@ struct Console : public Component
         viewport.setBounds(bounds.toNearestInt());
         console->resized();
     }
-    
-    void update() {
+
+    void update()
+    {
         console->update();
     }
-    
-    void deselect() {
+
+    void deselect()
+    {
         console->selectedItem = -1;
         repaint();
     }
-    
+
     struct ConsoleComponent : public Component, public ComponentListener
     {
         std::array<TextButton, 5>& buttons;
@@ -412,7 +412,6 @@ struct Console : public Component
         {
             setWantsKeyboardFocus(true);
             update();
-            
         }
 
         void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override
@@ -420,27 +419,24 @@ struct Console : public Component
             setSize(viewport.getWidth(), getHeight());
             repaint();
         }
-        
+
         void focusLost(FocusChangeType cause) override
         {
             selectedItem = -1;
         }
-        
-        
+
         bool keyPressed(const KeyPress& key) override
         {
-            
-            if(isPositiveAndBelow(selectedItem, pd->consoleMessages.size())) {
-                
+            if (isPositiveAndBelow(selectedItem, pd->consoleMessages.size()))
+            {
                 // Copy console item
                 if (key == KeyPress('c', ModifierKeys::commandModifier, 0))
                 {
                     SystemClipboard::copyTextToClipboard(pd->consoleMessages[selectedItem].first);
                     return true;
                 }
-                
             }
-            
+
             return false;
         }
 
@@ -468,13 +464,13 @@ struct Console : public Component
             pd->consoleHistory.clear();
             update();
         }
-        
+
         int getNumLines(String text)
         {
             auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-            
+
             int numLines = 1;
-            
+
             Array<int> glyphs;
             Array<float> xOffsets;
             font.getGlyphPositions(text, glyphs, xOffsets);
@@ -490,30 +486,30 @@ struct Console : public Component
                     numLines++;
                 }
             }
-            
+
             return numLines;
         }
 
         void mouseDown(const MouseEvent& e) override
         {
             int totalHeight = 0;
-            
+
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
             {
                 auto& message = pd->consoleMessages[row];
-                
+
                 int numLines = getNumLines(message.first);
                 int height = numLines * 22 + 2;
-                
+
                 const Rectangle<int> r(0, totalHeight, getWidth(), height);
-                
-                
-                if(r.contains(e.getPosition() + viewport.getViewPosition())) {
+
+                if (r.contains(e.getPosition() + viewport.getViewPosition()))
+                {
                     selectedItem = row;
                     repaint();
                     break;
                 }
-                
+
                 totalHeight += height;
             }
         }
@@ -531,28 +527,28 @@ struct Console : public Component
             bool showErrors = buttons[3].getToggleState();
 
             bool rowColour = false;
-            
+
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
             {
                 auto& message = pd->consoleMessages[row];
-                
+
                 int numLines = getNumLines(message.first);
                 int height = numLines * 22 + 2;
-                
+
                 const Rectangle<int> r(0, totalHeight, getWidth(), height);
-                
+
                 if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors))
                 {
                     continue;
                 }
-                
+
                 if (rowColour || row == selectedItem)
                 {
                     g.setColour(selectedItem == row ? findColour(Slider::thumbColourId) : findColour(ResizableWindow::backgroundColourId));
 
                     g.fillRect(r);
                 }
-                
+
                 rowColour = !rowColour;
 
                 g.setColour(selectedItem == row ? Colours::white : colourWithType(message.second));
@@ -560,8 +556,9 @@ struct Console : public Component
 
                 totalHeight += height;
             }
-            
-            while(totalHeight < viewport.getHeight()) {
+
+            while (totalHeight < viewport.getHeight())
+            {
                 if (rowColour)
                 {
                     const Rectangle<int> r(0, totalHeight, getWidth(), 24);
@@ -587,12 +584,12 @@ struct Console : public Component
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
             {
                 auto& message = pd->consoleMessages[row];
-                
+
                 int numLines = getNumLines(message.first);
                 int height = numLines * 22 + 2;
-                
+
                 if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors)) continue;
-                
+
                 totalHeight += height;
             }
 
@@ -607,7 +604,7 @@ struct Console : public Component
         }
 
         int selectedItem = -1;
-        
+
        private:
         static Colour colourWithType(int type)
         {
@@ -619,15 +616,11 @@ struct Console : public Component
                 return Colours::red;
         }
 
-       
-
        private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
-    
 
-private:
-    
+   private:
     ConsoleComponent* console;
     Viewport viewport;
 

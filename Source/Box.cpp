@@ -46,13 +46,13 @@ void Box::initialise()
 {
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
-    
+
     // Updates lock/unlock mode
     locked.referTo(cnv->pd->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
-    
+
     setBufferedToImage(true);
-    
+
     locked.addListener(this);
     commandLocked.addListener(this);
 
@@ -61,16 +61,14 @@ void Box::initialise()
         String newText = getText();
         setType(newText);
     };
-    
-    
+
     addAndMakeVisible(resizer);
 }
 
-
-void Box::valueChanged(Value &v)
+void Box::valueChanged(Value& v)
 {
     if (lastTextValue != textValue.toString()) setText(textValue.toString(), sendNotification);
-    
+
     // Hide certain objects in GOP
     if (cnv->isGraph && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
     {
@@ -85,14 +83,12 @@ void Box::valueChanged(Value &v)
     {
         graphics->lock(locked == true || commandLocked == true);
     }
-    
 
     resizer.setVisible(locked == false);
 
     resized();
     repaint();
 }
-
 
 bool Box::hitTest(int x, int y)
 {
@@ -192,7 +188,7 @@ void Box::setType(const String& newType, bool exists)
             graphics->toBack();
             setEditable(false);
         }
-        else if(!type.isEmpty())
+        else if (!type.isEmpty())
         {
             setEditable(true);
             setSize(width, 34);
@@ -276,8 +272,9 @@ void Box::paint(Graphics& g)
         g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
     }
-    
-    if(!hideLabel && !editor) {
+
+    if (!hideLabel && !editor)
+    {
         g.setColour(findColour(Label::textColourId));
         g.setFont(font);
 
@@ -383,10 +380,7 @@ void Box::updatePorts()
         numIn += input;
         numOut += !input;
     }
-    
-    
 }
-
 
 void Box::setText(const String& newText, NotificationType notification)
 {
@@ -410,7 +404,7 @@ String Box::getText(bool returnActiveEditorContents) const
 void Box::mouseDown(const MouseEvent& e)
 {
     if (cnv->isGraph || cnv->pd->locked == true) return;
-    
+
     cnv->handleMouseDown(this, e);
 }
 
@@ -472,7 +466,7 @@ void Box::showEditor()
         {
             cnv->showSuggestions(this, editor.get());
         }
-        
+
         editor->setSize(10, 10);
         addAndMakeVisible(editor.get());
         editor->setText(getText(), false);
@@ -498,9 +492,9 @@ void Box::hideEditor()
         WeakReference<Component> deletionChecker(this);
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap(outgoingEditor, editor);
-        
+
         if (auto* peer = getPeer()) peer->dismissPendingTextInput();
-        
+
         outgoingEditor->setInputFilter(nullptr, false);
 
         // Clear overridden lambda
@@ -513,7 +507,7 @@ void Box::hideEditor()
         }
 
         cnv->hideSuggestions();
-        
+
         auto newText = outgoingEditor->getText();
 
         bool changed;
@@ -525,10 +519,10 @@ void Box::hideEditor()
 
             changed = true;
         }
-        else {
+        else
+        {
             changed = false;
         }
-        
 
         outgoingEditor.reset();
 
@@ -538,12 +532,10 @@ void Box::hideEditor()
     }
 }
 
-
 TextEditor* Box::getCurrentTextEditor() const noexcept
 {
     return editor.get();
 }
-
 
 void Box::mouseDoubleClick(const MouseEvent& e)
 {
@@ -552,7 +544,6 @@ void Box::mouseDoubleClick(const MouseEvent& e)
         showEditor();
     }
 }
-
 
 void Box::setEditable(bool editable)
 {
@@ -563,8 +554,8 @@ void Box::setEditable(bool editable)
     invalidateAccessibilityHandler();
 }
 
-
-void Box::textEditorReturnKeyPressed(TextEditor& ed)  {
+void Box::textEditorReturnKeyPressed(TextEditor& ed)
+{
     if (editor != nullptr)
     {
         editor->giveAwayKeyboardFocus();
@@ -575,4 +566,3 @@ void Box::setLabelVisible(bool labelVisible)
 {
     hideLabel = !labelVisible;
 }
-

@@ -67,7 +67,6 @@ struct Sidebar : public Component
     Inspector* inspector;
 
    private:
-
     static constexpr int dragbarWidth = 10;
     int dragStartWidth = 0;
     bool draggingSidebar = false;

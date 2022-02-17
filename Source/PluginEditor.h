@@ -28,9 +28,6 @@ struct TabComponent : public TabbedComponent
     }
 };
 
-
-
-
 class Canvas;
 class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
@@ -58,7 +55,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void updateValues();
 
     void updateUndoState();
-    
+
     void valueChanged(Value& v) override;
 
     PlugDataAudioProcessor& pd;
@@ -87,7 +84,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     Component seperators[2];
 
-    
     enum ToolbarButtonType
     {
         New = 0,
@@ -101,9 +97,10 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
         Hide
     };
 
-    TextButton* toolbarButton(ToolbarButtonType type) {
+    TextButton* toolbarButton(ToolbarButtonType type)
+    {
         return toolbarButtons[static_cast<int>(type)];
     }
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };
