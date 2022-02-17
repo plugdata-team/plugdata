@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
-
 #include <memory>
 
 #include "Statusbar.h"
@@ -14,24 +13,22 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-struct LevelMeter  : public Component, public Timer
+struct LevelMeter : public Component, public Timer
 {
-    
     int numChannels = 2;
     StatusbarSource& source;
-    
+
     LevelMeter(StatusbarSource& statusbarSource) : source(statusbarSource)
     {
-        startTimerHz (20);
+        startTimerHz(20);
     }
 
     ~LevelMeter() override
     {
     }
-    
-    void updateLevel (const float* const* channelData, int numChannels, int numSamples) noexcept
-    {
 
+    void updateLevel(const float* const* channelData, int numChannels, int numSamples) noexcept
+    {
     }
 
     void timerCallback() override
@@ -39,61 +36,60 @@ struct LevelMeter  : public Component, public Timer
         if (isShowing())
         {
             bool needsRepaint = false;
-            for(int ch = 0; ch < numChannels; ch++) {
+            for (int ch = 0; ch < numChannels; ch++)
+            {
                 auto newLevel = source.level[ch].load();
-                
-                if(!std::isfinite(newLevel))  {
+
+                if (!std::isfinite(newLevel))
+                {
                     source.level[ch] = 0;
                     blocks[ch] = 0;
                     return;
                 }
-                
-                float lvl = (float) std::exp (std::log (newLevel) / 3.0) * (newLevel > 0.002);
-                auto numBlocks = roundToInt (totalBlocks * lvl);
-                
-                
-                if(blocks[ch] != numBlocks) {
+
+                float lvl = (float)std::exp(std::log(newLevel) / 3.0) * (newLevel > 0.002);
+                auto numBlocks = roundToInt(totalBlocks * lvl);
+
+                if (blocks[ch] != numBlocks)
+                {
                     blocks[ch] = numBlocks;
                     needsRepaint = true;
                 }
             }
-            
-            if(needsRepaint) repaint();
+
+            if (needsRepaint) repaint();
         }
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
         int height = getHeight() / 2;
         int width = getWidth() - 8;
         int x = 4;
-        
+
         auto outerBorderWidth = 2.0f;
         auto spacingFraction = 0.03f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
-        
-        auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float> (totalBlocks);
+
+        auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
         auto blockHeight = height - doubleOuterBorderWidth;
         auto blockRectWidth = (1.0f - 2.0f * spacingFraction) * blockWidth;
         auto blockRectSpacing = spacingFraction * blockWidth;
         auto blockCornerSize = 0.1f * blockWidth;
-        auto c = findColour (Slider::thumbColourId);
-        
-        for(int ch = 0; ch < numChannels; ch++) {
+        auto c = findColour(Slider::thumbColourId);
+
+        for (int ch = 0; ch < numChannels; ch++)
+        {
             int y = ch * height;
 
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour (c.withAlpha (0.5f));
+                    g.setColour(c.withAlpha(0.5f));
                 else
-                    g.setColour (i < totalBlocks - 1 ? c : Colours::red);
+                    g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
-                g.fillRoundedRectangle (x + outerBorderWidth + (i * blockWidth) + blockRectSpacing,
-                                        y + outerBorderWidth,
-                                        blockRectWidth,
-                                        blockHeight,
-                                        blockCornerSize);
+                g.fillRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
             }
         }
     }
@@ -101,75 +97,73 @@ struct LevelMeter  : public Component, public Timer
     int totalBlocks = 15;
     int blocks[2];
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelMeter)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
 struct MidiBlinker : public Component, public Timer
 {
-    
     StatusbarSource& source;
-    
-    MidiBlinker(StatusbarSource& statusbarSource) : source(statusbarSource) {
-        
+
+    MidiBlinker(StatusbarSource& statusbarSource) : source(statusbarSource)
+    {
         startTimer(200);
     }
-    
-    void paint(Graphics& g) override {
+
+    void paint(Graphics& g) override
+    {
         g.setColour(Colours::white);
         g.drawText("MIDI", getLocalBounds().removeFromLeft(35).reduced(0, 8).translated(3, -1), Justification::left);
-        
+
         auto midiInRect = Rectangle<float>(38.0f, 6.0f, 17.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 14.0f, 17.0f, 3.0f);
-        
+
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawRoundedRectangle(midiInRect, 1.0f, 1.0f);
         g.drawRoundedRectangle(midiOutRect, 1.0f, 1.0f);
-        
-        
+
         g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colours::darkgrey);
         g.fillRoundedRectangle(midiInRect, 1.0f);
-        
+
         g.setColour(blinkMidiOut ? findColour(Slider::thumbColourId) : Colours::darkgrey);
         g.fillRoundedRectangle(midiOutRect, 1.0f);
-
     }
-    
+
     void timerCallback() override
     {
-        if(source.midiReceived != blinkMidiIn) {
+        if (source.midiReceived != blinkMidiIn)
+        {
             blinkMidiIn = source.midiReceived;
             repaint();
         }
-        if(source.midiSent != blinkMidiOut) {
+        if (source.midiSent != blinkMidiOut)
+        {
             blinkMidiOut = source.midiSent;
             repaint();
         }
     }
-    
+
     bool blinkMidiIn = false;
     bool blinkMidiOut = false;
-    
-    
 };
 
 Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 {
     levelMeter = new LevelMeter(processor.statusbarSource);
     midiBlinker = new MidiBlinker(processor.statusbarSource);
-    
+
     setWantsKeyboardFocus(true);
-    
+
     locked.referTo(pd.locked);
     commandLocked.referTo(pd.commandLocked);
     zoomScale.referTo(pd.zoomScale);
-    
+
     bypassButton = std::make_unique<TextButton>(Icons::Power);
     lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
     zoomIn = std::make_unique<TextButton>(Icons::ZoomIn);
     zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
-    
+
     bypassButton->setTooltip("Bypass");
     bypassButton->setClickingTogglesState(true);
     bypassButton->setConnectedEdges(12);
@@ -183,39 +177,32 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     lockButton->setConnectedEdges(12);
     lockButton->setName("statusbar:lock");
     lockButton->getToggleStateValue().referTo(locked);
-    lockButton->onClick = [this]()
-    {
-        lockButton->setButtonText(locked == true ? Icons::Lock : Icons::Unlock);
-    };
+    lockButton->onClick = [this]() { lockButton->setButtonText(locked == true ? Icons::Lock : Icons::Unlock); };
     addAndMakeVisible(lockButton.get());
 
     lockButton->setButtonText(locked == true ? Icons::Lock : Icons::Unlock);
 
     connectionStyle.referTo(pd.settingsTree.getPropertyAsValue("ConnectionStyle", nullptr));
-    
+
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
     connectionStyleButton->setName("statusbar:connectionstyle");
     connectionStyleButton->getToggleStateValue().referTo(connectionStyle);
-    
-    connectionStyleButton->onClick = [this]()
-    {
-        connectionPathfind->setEnabled(connectionStyle == true);
-    };
+
+    connectionStyleButton->onClick = [this]() { connectionPathfind->setEnabled(connectionStyle == true); };
 
     addAndMakeVisible(connectionStyleButton.get());
-   
 
     connectionPathfind->setTooltip("Find best connection path");
     connectionPathfind->setConnectedEdges(12);
     connectionPathfind->setName("statusbar:findpath");
     connectionPathfind->onClick = [this]()
     {
-        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())) {
-            
+        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor()))
+        {
             auto* cnv = editor->getCurrentCanvas();
-            
+
             for (auto& c : cnv->connections)
             {
                 if (c->isSelected)
@@ -234,55 +221,48 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomIn->setTooltip("Zoom In");
     zoomIn->setConnectedEdges(12);
     zoomIn->setName("statusbar:zoomin");
-    zoomIn->onClick = [this]() {
-        zoom(true);
-    };
+    zoomIn->onClick = [this]() { zoom(true); };
     addAndMakeVisible(zoomIn.get());
 
     zoomOut->setTooltip("Zoom Out");
     zoomOut->setConnectedEdges(12);
     zoomOut->setName("statusbar:zoomout");
-    zoomOut->onClick = [this]() {
-        zoom(false);
-    };
-    
-    
+    zoomOut->onClick = [this]() { zoom(false); };
+
     addAndMakeVisible(zoomOut.get());
-    
-    
+
     addAndMakeVisible(volumeSlider);
     volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
 
     volumeSlider.setValue(0.75);
     volumeSlider.setRange(0.0f, 1.0f);
     volumeSlider.setName("statusbar:meter");
-    
-    
+
     volumeAttachment.reset(new SliderParameterAttachment(*pd.parameters.getParameter("volume"), volumeSlider, nullptr));
-    
+
     enableAttachment.reset(new ButtonParameterAttachment(*pd.parameters.getParameter("enabled"), *bypassButton, nullptr));
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);
-    
+
     levelMeter->toBehind(&volumeSlider);
-    
+
     setSize(getWidth(), statusbarHeight);
-    
+
 #if JUCE_LINUX
     startTimer(50);
 #endif
 }
 
-Statusbar::~Statusbar() {
+Statusbar::~Statusbar()
+{
     delete midiBlinker;
     delete levelMeter;
-    
+
 #if JUCE_LINUX
     stopTimer();
 #endif
 }
-
 
 void Statusbar::resized()
 {
@@ -291,9 +271,8 @@ void Statusbar::resized()
     connectionStyleButton->setBounds(43, 0, getHeight(), getHeight());
     connectionPathfind->setBounds(70, 0, getHeight(), getHeight());
 
-    
     zoomLabel.setBounds(110, 0, getHeight() * 2, getHeight());
-    
+
     zoomIn->setBounds(150, 0, getHeight(), getHeight());
     zoomOut->setBounds(178, 0, getHeight(), getHeight());
 
@@ -301,7 +280,7 @@ void Statusbar::resized()
 
     levelMeter->setBounds(getWidth() - 150, 0, 100, getHeight());
     midiBlinker->setBounds(getWidth() - 210, 0, 70, getHeight());
-    
+
     volumeSlider.setBounds(getWidth() - 150, 0, 100, getHeight());
 }
 
@@ -324,7 +303,7 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
 {
     // Lock when command is down
     auto mod = ComponentPeer::getCurrentModifiersRealtime();
-    
+
     if (isKeyDown && mod.isCommandDown() && !lockButton->getToggleState())
     {
         commandLocked = true;
@@ -338,8 +317,8 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
     return false;  //  Never claim this event!
 }
 
-bool Statusbar::keyPressed(const KeyPress& key, Component*) {
-    
+bool Statusbar::keyPressed(const KeyPress& key, Component*)
+{
     // cmd-e
     if (key == KeyPress('e', ModifierKeys::commandModifier, 0))
     {
@@ -349,17 +328,17 @@ bool Statusbar::keyPressed(const KeyPress& key, Component*) {
 
     if (key == KeyPress('y', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
     {
-        if(connectionPathfind->isEnabled()) {
+        if (connectionPathfind->isEnabled())
+        {
             connectionPathfind->triggerClick();
         }
-        
+
         return true;
     }
 
     // Zoom in
     if (key.isKeyCode(61) && key.getModifiers().isCommandDown())
     {
-        
         zoom(true);
         return true;
     }
@@ -369,18 +348,18 @@ bool Statusbar::keyPressed(const KeyPress& key, Component*) {
         zoom(false);
         return true;
     }
-    
+
     return false;
 }
 
 void Statusbar::zoom(bool zoomIn)
 {
     float value = static_cast<float>(zoomScale.getValue());
-    
+
     value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.5f);
-    
+
     zoomScale = value;
-    
+
     zoomLabel.setText(String(value * 100.0f) + "%", dontSendNotification);
 }
 
@@ -390,16 +369,17 @@ StatusbarSource::StatusbarSource()
     level[1] = 0.0f;
 }
 
-void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut) {
-    
+void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut)
+{
     auto** channelData = buffer.getArrayOfReadPointers();
-    
-    for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
+
+    for (int ch = 0; ch < buffer.getNumChannels(); ch++)
+    {
         auto localLevel = level[ch & 1].load();
 
         for (int n = 0; n < buffer.getNumSamples(); n++)
         {
-            float s = std::abs (channelData[ch][n]);
+            float s = std::abs(channelData[ch][n]);
 
             const float decayFactor = 0.99992f;
 
@@ -410,29 +390,34 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
             else
                 localLevel = 0;
         }
-        
+
         level[ch & 1] = localLevel;
     }
-    
+
     auto now = Time::getCurrentTime();
-    
-    if(midiIn.isEmpty() && (now - lastMidiIn).inMilliseconds() > 700) {
+
+    if (midiIn.isEmpty() && (now - lastMidiIn).inMilliseconds() > 700)
+    {
         midiReceived = false;
     }
-    else if(!midiIn.isEmpty()) {
+    else if (!midiIn.isEmpty())
+    {
         midiReceived = true;
         lastMidiIn = now;
     }
-    
-    if(midiOut.isEmpty() && (now - lastMidiOut).inMilliseconds() > 700) {
+
+    if (midiOut.isEmpty() && (now - lastMidiOut).inMilliseconds() > 700)
+    {
         midiSent = false;
     }
-    else if(!midiOut.isEmpty()){
+    else if (!midiOut.isEmpty())
+    {
         midiSent = true;
         lastMidiOut = now;
     }
 }
 
-void StatusbarSource::prepareToPlay(int nChannels) {
+void StatusbarSource::prepareToPlay(int nChannels)
+{
     numChannels = nChannels;
 }

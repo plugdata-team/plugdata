@@ -17,7 +17,7 @@ Edge::Edge(Box* parent, bool input) : box(parent)
     parent->addAndMakeVisible(this);
 
     locked.referTo(parent->cnv->pd->locked);
-    
+
     onClick = [this]()
     {
         if (bool(locked.getValue())) return;
@@ -182,7 +182,6 @@ Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position)
             nearestEdge = newPos.getDistanceFrom(position) < oldPos.getDistanceFrom(position) ? edge : nearestEdge;
         }
     }
-    
-    return nearestEdge;
 
+    return nearestEdge;
 }

@@ -27,7 +27,7 @@ class Edge : public TextButton
 
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
-    
+
     static Edge* findNearestEdge(Canvas* cnv, Point<int> position);
 
     void createConnection();
@@ -39,7 +39,7 @@ class Edge : public TextButton
     int edgeIdx;
     bool isInput;
     bool isSignal;
-    
+
     Value locked;
 
     bool isHovered = false;

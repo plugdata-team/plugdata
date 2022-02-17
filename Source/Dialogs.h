@@ -8,7 +8,6 @@
 
 #include <JuceHeader.h>
 
-
 class SaveDialog : public Component
 {
     DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});

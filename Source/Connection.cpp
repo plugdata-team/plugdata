@@ -194,7 +194,7 @@ void Connection::mouseMove(const MouseEvent& e)
     auto scaledPlan = scalePath(currentPlan);
 
     bool segmentedConnection = connectionStyle == true;
-    
+
     if (segmentedConnection && scaledPlan.size() > 2)
     {
         for (int n = 2; n < scaledPlan.size() - 1; n++)
@@ -221,11 +221,9 @@ void Connection::mouseDown(const MouseEvent& e)
     {
         cnv->deselectAll();
     }
-    
-    
+
     isSelected = true;
     repaint();
-    
 
     if (currentPlan.empty()) return;
 

@@ -18,15 +18,14 @@
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {
-    
     toolbarButtons = {new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide)};
-    
+
     addKeyListener(&statusbar);
-    
+
     pd.locked.addListener(this);
     pd.zoomScale.addListener(this);
     pd.settingsTree.getPropertyAsValue("LastChooserPath", nullptr).addListener(this);
-    
+
     setWantsKeyboardFocus(true);
 
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(ComboBox::backgroundColourId));
@@ -67,7 +66,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
 
-    
     for (auto* button : toolbarButtons)
     {
         button->setName("toolbar:button");
@@ -187,9 +185,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-    
-    tabbar.toFront(false);
 
+    tabbar.toFront(false);
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -346,7 +343,7 @@ void PlugDataPluginEditor::resized()
     tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth(), getHeight() - sbarY - statusbar.getHeight());
 
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
-    
+
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
     FlexBox fb;
@@ -387,15 +384,12 @@ void PlugDataPluginEditor::resized()
 
     toolbarButton(Hide)->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
 
-
     resizer->setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer->toFront(false);
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
 }
-
-
 
 bool PlugDataPluginEditor::keyPressed(const KeyPress& key)
 {
@@ -734,21 +728,26 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 void PlugDataPluginEditor::valueChanged(Value& v)
 {
     // Update undo state when locking/unlocking
-    if(v.refersToSameSourceAs(pd.locked)) {
+    if (v.refersToSameSourceAs(pd.locked))
+    {
         updateUndoState();
     }
     // Update zoom
-    else if(v.refersToSameSourceAs(pd.zoomScale)) {
+    else if (v.refersToSameSourceAs(pd.zoomScale))
+    {
         transform = AffineTransform().scaled(static_cast<float>(v.getValue()));
-        for(auto& canvas : canvases)  {
-            if(!canvas->isGraph) {
+        for (auto& canvas : canvases)
+        {
+            if (!canvas->isGraph)
+            {
                 canvas->setTransform(transform);
             }
         }
         getCurrentCanvas()->checkBounds();
     }
     // Update last filechooser path
-    else {
+    else
+    {
         saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
         openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     }
