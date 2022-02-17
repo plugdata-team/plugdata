@@ -307,6 +307,14 @@ void Box::resized()
         graphics->setBounds(getLocalBounds().reduced(6));
     }
     
+    // Send current width to pd object
+    if (pdObject)
+    {
+        pdObject->setSize(getWidth() - 8, getHeight() - 8);
+    }
+    
+    restrainer.checkComponentBounds(this);
+    
     auto bestWidth = font.getStringWidth(getText()) + 27;
 
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())

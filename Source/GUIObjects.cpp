@@ -442,7 +442,6 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) 
     initParameters(newObject);
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.setFixedAspectRatio(1.0f);
-    box->restrainer.checkComponentBounds(box);
 }
 
 void BangComponent::update()
@@ -509,7 +508,6 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObje
 
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.setFixedAspectRatio(1.0f);
-    box->restrainer.checkComponentBounds(box);
 }
 
 void ToggleComponent::resized()
@@ -589,7 +587,6 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent, bool newOb
 
     box->addMouseListener(this, false);
     box->restrainer.setSizeLimits(50, 30, 500, 600);
-    box->restrainer.checkComponentBounds(box);
 }
 
 void MessageComponent::lock(bool locked)
@@ -708,8 +705,6 @@ NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent, bool newObje
     input.setEditable(false, true);
 
     box->restrainer.setSizeLimits(50, 30, 500, 30);
-    box->restrainer.checkComponentBounds(box);
-    
 }
 
 void NumboxComponent::resized()
@@ -764,7 +759,6 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : 
     updateValue();
 
     box->restrainer.setSizeLimits(100, 30, 500, 600);
-    box->restrainer.checkComponentBounds(box);
 }
 
 void ListComponent::paint(Graphics& g)
@@ -855,12 +849,10 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
     if (isVertical)
     {
         box->restrainer.setSizeLimits(40, 77, 250, 500);
-        box->restrainer.checkComponentBounds(box);
     }
     else
     {
         box->restrainer.setSizeLimits(100, 35, 500, 250);
-        box->restrainer.checkComponentBounds(box);
     }
 
     isLogarithmic.addListener(this);
@@ -898,12 +890,10 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent,
     if (isVertical)
     {
         box->restrainer.setSizeLimits(25, 90, 250, 500);
-        box->restrainer.checkComponentBounds(box);
     }
     else
     {
         box->restrainer.setSizeLimits(100, 25, 500, 250);
-        box->restrainer.checkComponentBounds(box);
     }
 }
 
@@ -1255,7 +1245,6 @@ void GraphOnParent::updateValue()
 PanelComponent::PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
 {
     box->restrainer.setSizeLimits(40, 40, 2000, 2000);
-    box->restrainer.checkComponentBounds(box);
 
     initParameters(newObject);
 }
