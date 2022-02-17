@@ -217,8 +217,6 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     processPrints();
     processingBuffer.setSize(2, samplesPerBlock);
 
-    meterSource.resize(minOut, static_cast<int>(50.0f * 0.001f * sampleRate / samplesPerBlock));
-    
     statusbarSource.prepareToPlay(getTotalNumOutputChannels());
 
     audioStarted = true;
