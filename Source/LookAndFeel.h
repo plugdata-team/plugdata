@@ -612,6 +612,23 @@ struct PlugDataDarkLook : public PlugDataLook
         g.setColour(slider.findColour(Slider::thumbColourId));
         g.fillRect(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint));
     }
+    
+    void drawPropertyPanelSectionHeader (Graphics& g, const String& name,
+                                                         bool isOpen, int width, int height) override
+    {
+        auto buttonSize = (float) height * 0.75f;
+        auto buttonIndent = ((float) height - buttonSize) * 0.5f;
+
+        drawTreeviewPlusMinusBox (g, { buttonIndent, buttonIndent, buttonSize, buttonSize },
+                                  findColour (ResizableWindow::backgroundColourId), isOpen, false);
+
+        auto textX = static_cast<int> ((buttonIndent * 2.0f + buttonSize + 2.0f));
+
+        g.setColour (findColour (PropertyComponent::labelTextColourId));
+
+        g.setFont ({ (float) height * 0.6f, Font::bold });
+        g.drawText (name, textX, 0, width - textX - 4, height, Justification::centredLeft, true);
+    }
 
     struct PdLook : public LookAndFeel_V4
     {

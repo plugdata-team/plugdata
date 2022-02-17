@@ -35,6 +35,8 @@ class Edge : public TextButton
     int edgeIdx;
     bool isInput;
     bool isSignal;
+    
+    Value locked;
 
     bool isHovered = false;
 
