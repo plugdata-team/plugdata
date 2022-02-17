@@ -312,7 +312,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
         processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
     }
-
+    
     auto midiIn = midiMessages;
     
     process(processingBuffer, midiMessages);
