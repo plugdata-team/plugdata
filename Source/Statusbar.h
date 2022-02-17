@@ -13,22 +13,7 @@ struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;
 
-struct StatusbarSource
-{
-    void processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut);
-    
-    void prepareToPlay(int numChannels);
-    
-    std::atomic<bool> midiReceived;
-    std::atomic<bool> midiSent;
-    std::atomic<float> level[2];
-    
-    int numChannels;
-    
-    Time lastMidiIn;
-    Time lastMidiOut;
-    
-};
+
 
 struct Statusbar : public Component, public Timer, public KeyListener
 {
@@ -76,4 +61,24 @@ struct Statusbar : public Component, public Timer, public KeyListener
     
     
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
+};
+
+struct StatusbarSource
+{
+    
+    StatusbarSource();
+    
+    void processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut);
+    
+    void prepareToPlay(int numChannels);
+    
+    std::atomic<bool> midiReceived;
+    std::atomic<bool> midiSent;
+    std::atomic<float> level[2];
+    
+    int numChannels;
+    
+    Time lastMidiIn;
+    Time lastMidiOut;
+    
 };
