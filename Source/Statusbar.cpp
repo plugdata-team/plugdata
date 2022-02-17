@@ -41,7 +41,7 @@ struct LevelMeter  : public Component, public Timer
             for(int ch = 0; ch < numChannels; ch++) {
                 auto newLevel = source.level[ch].load();
                 
-                if(!isfinite(newLevel))  {
+                if(!std::isfinite(newLevel))  {
                     source.level[ch] = 0;
                     level[ch] = 0;
                     return;
@@ -111,26 +111,26 @@ struct MidiBlinker : public Component, public Timer
     
     MidiBlinker(StatusbarSource& statusbarSource) : source(statusbarSource) {
         
-        startTimer(500);
+        startTimer(200);
     }
     
     void paint(Graphics& g) override {
-        
-        auto rect = getLocalBounds();
-        
         g.setColour(Colours::white);
-        g.drawText("MIDI", rect.removeFromLeft(getWidth() / 1.3f), Justification::left);
+        g.drawText("MIDI", getLocalBounds().removeFromLeft(35).reduced(0, 7).translated(3, -1), Justification::left);
         
-        auto rectCopy = rect;
+        auto midiInRect = Rectangle<float>(38.0f, 6.0f, 17.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(38.0f, 14.0f, 17.0f, 3.0f);
         
-        g.drawEllipse(rect.removeFromTop(getHeight() / 2.0f).reduced(5).toFloat(), 2.0f);
-        g.drawEllipse(rect.reduced(5).toFloat(), 2.0f);
+        g.setColour(findColour(ComboBox::outlineColourId));
+        g.drawRoundedRectangle(midiInRect, 1.0f, 1.0f);
+        g.drawRoundedRectangle(midiOutRect, 1.0f, 1.0f);
         
-        g.setColour(blinkMidiIn ? Colours::green : Colours::transparentBlack);
-        g.fillEllipse(rectCopy.removeFromTop(getHeight() / 2.0f).reduced(5).toFloat());
         
-        g.setColour(blinkMidiOut ? Colours::red : Colours::transparentBlack);
-        g.fillEllipse(rectCopy.reduced(5).toFloat());
+        g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colours::darkgrey);
+        g.fillRoundedRectangle(midiInRect, 1.0f);
+        
+        g.setColour(blinkMidiOut ? findColour(Slider::thumbColourId) : Colours::darkgrey);
+        g.fillRoundedRectangle(midiOutRect, 1.0f);
 
     }
     
@@ -300,7 +300,7 @@ void Statusbar::resized()
     bypassButton->setBounds(getWidth() - 40, 0, getHeight(), getHeight());
 
     levelMeter->setBounds(getWidth() - 150, 0, 100, getHeight());
-    midiBlinker->setBounds(getWidth() - 300, 0, 100, getHeight());
+    midiBlinker->setBounds(getWidth() - 210, 0, 70, getHeight());
     
     volumeSlider.setBounds(getWidth() - 150, 0, 100, getHeight());
 }
@@ -384,10 +384,16 @@ void Statusbar::zoom(bool zoomIn)
     zoomLabel.setText(String(value * 100.0f) + "%", dontSendNotification);
 }
 
+StatusbarSource::StatusbarSource()
+{
+    level[0] = 0.0f;
+    level[1] = 0.0f;
+}
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut) {
     
     auto** channelData = buffer.getArrayOfReadPointers();
+    
     for (int ch = 0; ch < buffer.getNumChannels(); ch++) {
         auto localLevel = level[ch & 1].load();
 
@@ -410,7 +416,7 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
     
     auto now = Time::getCurrentTime();
     
-    if(midiIn.isEmpty() && (now - lastMidiIn).inMilliseconds() > 1000) {
+    if(midiIn.isEmpty() && (now - lastMidiIn).inMilliseconds() > 700) {
         midiReceived = false;
     }
     else if(!midiIn.isEmpty()) {
@@ -418,10 +424,10 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
         lastMidiIn = now;
     }
     
-    if(midiOut.isEmpty() && (now - lastMidiOut).inMilliseconds() > 1000) {
+    if(midiOut.isEmpty() && (now - lastMidiOut).inMilliseconds() > 700) {
         midiSent = false;
     }
-    else if(!midiIn.isEmpty()) {
+    else if(!midiOut.isEmpty()){
         midiSent = true;
         lastMidiOut = now;
     }
