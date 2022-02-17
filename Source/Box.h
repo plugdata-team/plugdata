@@ -55,7 +55,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     void showEditor();
     void hideEditor();
-    void setLabelVisible(bool labelVisible);
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
     TextEditor* getCurrentTextEditor() const noexcept;
@@ -84,7 +83,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
    protected:
     void mouseDoubleClick(const MouseEvent&) override;
 
-    bool hideLabel;
+    bool hideLabel = false;
 
     Value textValue;
     String lastTextValue;

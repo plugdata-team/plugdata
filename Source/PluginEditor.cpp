@@ -129,8 +129,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Redo)->onClick = [this]() { getCurrentCanvas()->redo(); };
 
     // New object button
-    toolbarButton(New)->setTooltip("Create Object");
-    toolbarButton(New)->onClick = [this]() { showNewObjectMenu(); };
+    toolbarButton(Add)->setTooltip("Create Object");
+    toolbarButton(Add)->onClick = [this]() { showNewObjectMenu(); };
 
     // Show settings
     toolbarButton(Settings)->setTooltip("Settings");
