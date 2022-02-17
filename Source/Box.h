@@ -13,13 +13,11 @@ extern "C"
 #include <m_pd.h>
 }
 
-#include "BoxEditor.h"
 #include "Edge.h"
 #include "GUIObjects.h"
-#include "MultiComponentDragger.h"
 
 class Canvas;
-class Box : public Component, public Value::Listener
+class Box : public Component, public Value::Listener, private TextEditor::Listener
 {
     bool isOver = false;
 
@@ -44,8 +42,6 @@ class Box : public Component, public Value::Listener
     Value locked;
     Value commandLocked;
 
-    ClickLabel textLabel;
-
     Canvas* cnv;
 
     std::unique_ptr<GUIComponent> graphics = nullptr;
@@ -57,13 +53,50 @@ class Box : public Component, public Value::Listener
 
     void setType(const String& newType, bool exists = false);
 
-   private:
-    void initialise();
-
-    bool hitTest(int x, int y) override;
-
+    void showEditor();
+    void hideEditor();
+    void setLabelVisible(bool labelVisible);
+    
+    /** Returns the currently-visible text editor, or nullptr if none is open. */
+    TextEditor* getCurrentTextEditor() const noexcept;
+    
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
+    
+    void mouseDown(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+
+    String getText(bool returnActiveEditorContents = false) const;
+    
+   private:
+    void initialise();
+    bool hitTest(int x, int y) override;
+
+    void setText(const String& newText, NotificationType notification);
+
+    void setEditable(bool editable);
+
+    void textEditorReturnKeyPressed(TextEditor& ed) override;
+    
+    std::function<void()> onTextChange;
+
+   protected:
+
+    void mouseDoubleClick(const MouseEvent&) override;
+    
+    bool hideLabel;
+
+    Value textValue;
+    String lastTextValue;
+    Font font{15.0f};
+    Justification justification = Justification::centred;
+    std::unique_ptr<TextEditor> editor;
+    BorderSize<int> border{1, 5, 1, 5};
+    float minimumHorizontalScale = 0;
+    TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
+    bool editDoubleClick = false;
+    
 
     Colour outline = findColour(Slider::thumbColourId);
 

@@ -38,23 +38,27 @@ struct LevelMeter  : public Component, public Timer
     {
         if (isShowing())
         {
+            bool needsRepaint = false;
             for(int ch = 0; ch < numChannels; ch++) {
                 auto newLevel = source.level[ch].load();
                 
                 if(!std::isfinite(newLevel))  {
                     source.level[ch] = 0;
-                    level[ch] = 0;
+                    blocks[ch] = 0;
                     return;
                 }
                 
-                float diff = fabs(Decibels::gainToDecibels(newLevel) - level[ch]);
+                float lvl = (float) std::exp (std::log (newLevel) / 3.0) * (newLevel > 0.002);
+                auto numBlocks = roundToInt (totalBlocks * lvl);
                 
-                if (diff > 3.0f)
-                {
-                    level[ch] = newLevel;
-                    repaint();
+                
+                if(blocks[ch] != numBlocks) {
+                    blocks[ch] = numBlocks;
+                    needsRepaint = true;
                 }
             }
+            
+            if(needsRepaint) repaint();
         }
     }
 
@@ -65,9 +69,7 @@ struct LevelMeter  : public Component, public Timer
         int x = 4;
         
         auto outerBorderWidth = 2.0f;
-        auto totalBlocks = 15;
         auto spacingFraction = 0.03f;
-        
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         
         auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float> (totalBlocks);
@@ -79,13 +81,10 @@ struct LevelMeter  : public Component, public Timer
         
         for(int ch = 0; ch < numChannels; ch++) {
             int y = ch * height;
-            
-            float lvl = (float) std::exp (std::log (level[ch]) / 3.0) * (level[ch] > 0.002);
-            auto numBlocks = roundToInt (totalBlocks * lvl);
 
             for (auto i = 0; i < totalBlocks; ++i)
             {
-                if (i >= numBlocks)
+                if (i >= blocks[ch])
                     g.setColour (c.withAlpha (0.5f));
                 else
                     g.setColour (i < totalBlocks - 1 ? c : Colours::red);
@@ -99,7 +98,8 @@ struct LevelMeter  : public Component, public Timer
         }
     }
 
-    float level[2];
+    int totalBlocks = 15;
+    int blocks[2];
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelMeter)
 };
@@ -116,7 +116,7 @@ struct MidiBlinker : public Component, public Timer
     
     void paint(Graphics& g) override {
         g.setColour(Colours::white);
-        g.drawText("MIDI", getLocalBounds().removeFromLeft(35).reduced(0, 7).translated(3, -1), Justification::left);
+        g.drawText("MIDI", getLocalBounds().removeFromLeft(35).reduced(0, 8).translated(3, -1), Justification::left);
         
         auto midiInRect = Rectangle<float>(38.0f, 6.0f, 17.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 14.0f, 17.0f, 3.0f);
@@ -229,7 +229,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     addAndMakeVisible(zoomLabel);
     zoomLabel.setText("100%", dontSendNotification);
-    zoomLabel.setFont(Font(11));
+    zoomLabel.setFont(Font(12));
 
     zoomIn->setTooltip("Zoom In");
     zoomIn->setConnectedEdges(12);
