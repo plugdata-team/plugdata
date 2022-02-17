@@ -31,7 +31,7 @@ class Connection : public Component, public ComponentListener
 
     PathPlan currentPlan;
     Path toDraw;
-    
+
     Value locked;
     Value connectionStyle;
 

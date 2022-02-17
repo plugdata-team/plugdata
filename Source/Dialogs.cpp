@@ -326,9 +326,8 @@ class LibraryComponent : public Component, public TableListBoxModel
 
 SettingsComponent::SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
 {
-    
     toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search)};
-    
+
     for (auto& button : toolbarButtons)
     {
         button->setClickingTogglesState(true);

@@ -20,7 +20,6 @@ extern "C"
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component, public KeyListener, public TextEditor::InputFilter
 {
-    
     class Suggestion : public TextButton
     {
         int type = -1;
@@ -64,11 +63,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         }
     };
 
-    
    public:
     bool selecting = false;
 
-    SuggestionComponent() {
+    SuggestionComponent()
+    {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
 
@@ -98,14 +97,16 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         setVisible(true);
     }
 
-    ~SuggestionComponent() {
+    ~SuggestionComponent()
+    {
         buttons.clear();
     }
 
-    void createCalloutBox(Box* box, TextEditor* editor) {
+    void createCalloutBox(Box* box, TextEditor* editor)
+    {
         currentBox = box;
         openedEditor = editor;
-        
+
         editor->setInputFilter(this, false);
         editor->addKeyListener(this);
 
@@ -141,7 +142,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         setVisible(editor->getText().isNotEmpty());
         repaint();
     }
-    
+
     void move(int offset, int setto = -1)
     {
         if (!openedEditor) return;
@@ -181,11 +182,12 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
         }
     }
-    
+
     TextEditor* openedEditor = nullptr;
     Box* currentBox;
 
-    void resized() override {
+    void resized() override
+    {
         port->setBounds(0, 0, getWidth(), std::min(std::min(5, numOptions) * 23, getHeight()));
         buttonholder->setBounds(0, 0, getWidth(), std::min((numOptions + 1), 20) * 22 + 2);
 
@@ -195,7 +197,6 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     }
 
    private:
-    
     void paint(Graphics& g) override
     {
         g.setColour(findColour(ComboBox::backgroundColourId));
@@ -217,12 +218,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         }
         return false;
     }
-    
+
     String filterNewText(TextEditor& e, const String& newInput) override
     {
-
         String mutableInput = newInput;
-        
+
         // Find start of highlighted region
         // This is the start of the last auto-completion suggestion
         // This region will automatically be removed after this function because it's selected
@@ -358,16 +358,13 @@ struct GraphArea : public Component, public ComponentDragger
     }
 };
 
-
-
-
 Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(patch)
 {
     isGraph = graph;
     isGraphChild = graphChild;
-    
+
     suggestor = new SuggestionComponent;
-    
+
     locked.referTo(pd->locked);
     locked.addListener(this);
     connectionStyle.referTo(parent.pd.settingsTree.getPropertyAsValue("ConnectionStyle", nullptr));
@@ -413,7 +410,7 @@ Canvas::~Canvas()
 {
     delete graphArea;
     delete suggestor;
-    
+
     locked.removeListener(this);
 }
 
@@ -752,7 +749,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool multiple = lassoSelection.getNumSelected() > 1;
 
         auto* box = getSingleSelection();
-        
+
         bool isSubpatch = box && (box->graphics && (box->graphics->getGui().getType() == pd::Type::GraphOnParent || box->graphics->getGui().getType() == pd::Type::Subpatch));
 
         bool isGui = hasSelection && !multiple && box->graphics && !box->graphics->fakeGui();
@@ -834,14 +831,17 @@ void Canvas::mouseDown(const MouseEvent& e)
             options = options.withTargetComponent(box);
             popupMenu.showMenuAsync(options, ModalCallbackFunction::create(callback));
         };
-        
-        if(auto* box = source->findParentComponentOfClass<Box>()) {
+
+        if (auto* box = source->findParentComponentOfClass<Box>())
+        {
             showMenu(box);
         }
-        else if(auto* box = dynamic_cast<Box*>(source)) {
+        else if (auto* box = dynamic_cast<Box*>(source))
+        {
             showMenu(box);
         }
-        else if(source == this) {
+        else if (source == this)
+        {
             auto options = PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main);
 
             options = options.withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 100, 100));
@@ -868,7 +868,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
         lasso.dragLasso(e);
 
         if (e.getDistanceFromDragStart() < 5) return;
-
     }
 
     if (connectingWithDrag) repaint();
@@ -1007,8 +1006,8 @@ void Canvas::paintOverChildren(Graphics& g)
 void Canvas::mouseMove(const MouseEvent& e)
 {
     // For deciding where to place a new object
-    lastMousePos =     getLocalBounds().reduced(20).getConstrainedPoint(e.getPosition());
-    
+    lastMousePos = getLocalBounds().reduced(20).getConstrainedPoint(e.getPosition());
+
     if (connectingEdge)
     {
         repaint();
@@ -1226,12 +1225,13 @@ void Canvas::checkBounds()
     }
 }
 
-
-void Canvas::valueChanged(Value& v) {
+void Canvas::valueChanged(Value& v)
+{
     // When lock changes
-    if(v.refersToSameSourceAs(locked)) {
+    if (v.refersToSameSourceAs(locked))
+    {
         deselectAll();
-        
+
         for (auto& connection : connections)
         {
             if (connection->isSelected)
@@ -1241,8 +1241,9 @@ void Canvas::valueChanged(Value& v) {
             }
         }
     }
-    
-    else if(v.refersToSameSourceAs(connectionStyle)) {
+
+    else if (v.refersToSameSourceAs(connectionStyle))
+    {
         for (auto* connection : connections)
         {
             connection->resized();
@@ -1251,14 +1252,14 @@ void Canvas::valueChanged(Value& v) {
     }
 }
 
-
-void Canvas::showSuggestions(Box* box, TextEditor* editor) {
+void Canvas::showSuggestions(Box* box, TextEditor* editor)
+{
     suggestor->createCalloutBox(box, editor);
     suggestor->setBounds(box->getX(), box->getBounds().getBottom(), 200, 115);
     suggestor->resized();
-    
 }
-void Canvas::hideSuggestions() {
+void Canvas::hideSuggestions()
+{
     suggestor->setVisible(false);
 
     suggestor->openedEditor = nullptr;
@@ -1273,28 +1274,32 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
     if (!isAlreadySelected && shouldNowBeSelected)
     {
         selectedComponents.addToSelection(component);
-        
-        if(auto* box = dynamic_cast<Box*>(component)) {
+
+        if (auto* box = dynamic_cast<Box*>(component))
+        {
             // ?
         }
-        if(auto* con = dynamic_cast<Connection*>(component)) {
+        if (auto* con = dynamic_cast<Connection*>(component))
+        {
             con->isSelected = true;
         }
-        
+
         component->repaint();
     }
 
     if (isAlreadySelected && !shouldNowBeSelected)
     {
         removeSelectedComponent(component);
-        
-        if(auto* box = dynamic_cast<Box*>(component)) {
+
+        if (auto* box = dynamic_cast<Box*>(component))
+        {
             // ?
         }
-        if(auto* con = dynamic_cast<Connection*>(component)) {
-            //con->isSelected = false;
+        if (auto* con = dynamic_cast<Connection*>(component))
+        {
+            // con->isSelected = false;
         }
-        
+
         component->repaint();
     }
 }
@@ -1303,7 +1308,6 @@ bool Canvas::isSelected(Component* component) const
 {
     return std::find(selectedComponents.begin(), selectedComponents.end(), component) != selectedComponents.end();
 }
-
 
 void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
 {
@@ -1335,7 +1339,8 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 
         for (auto* component : getLassoSelection())
         {
-            if(auto* box = dynamic_cast<Box*>(component)) {
+            if (auto* box = dynamic_cast<Box*>(component))
+            {
                 if (box->pdObject) objects.push_back(box->pdObject.get());
             }
         }
@@ -1370,7 +1375,7 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
         Rectangle<int> bounds(comp->getBounds());
 
         bounds += delta;
-        
+
         comp->setBounds(bounds);
     }
     totalDragDelta += delta;
@@ -1401,7 +1406,7 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
             setSelected(element, false);
         }
     }
-    
+
     for (auto& con : connections)
     {
         bool intersect = false;
@@ -1430,14 +1435,15 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
 }
 
 // TODO: this is incorrect!!
-Box* Canvas::getSingleSelection() {
-    if(selectedComponents.getNumSelected() == 1) {
-        if(auto* box = dynamic_cast<Box*>(selectedComponents.getSelectedItem(0))) {
+Box* Canvas::getSingleSelection()
+{
+    if (selectedComponents.getNumSelected() == 1)
+    {
+        if (auto* box = dynamic_cast<Box*>(selectedComponents.getSelectedItem(0)))
+        {
             return box;
         }
     }
-    
+
     return nullptr;
 }
-
-
