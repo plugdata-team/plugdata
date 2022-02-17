@@ -67,16 +67,16 @@
 #include <atomic>  // Requires C++11. Sorry VS2010.
 #include <cassert>
 #endif
-#include <algorithm>
-#include <array>
-#include <climits>  // for CHAR_BIT
 #include <cstddef>  // for max_align_t
 #include <cstdint>
 #include <cstdlib>
-#include <limits>
-#include <thread>  // partly for __WINPTHREADS_VERSION if on MinGW-w64 w/ POSIX threading
 #include <type_traits>
+#include <algorithm>
 #include <utility>
+#include <limits>
+#include <climits>  // for CHAR_BIT
+#include <array>
+#include <thread>  // partly for __WINPTHREADS_VERSION if on MinGW-w64 w/ POSIX threading
 
 // Platform-specific definitions of a numeric thread ID type and an invalid value
 namespace moodycamel
@@ -275,7 +275,7 @@ inline thread_id_t thread_id()
 #if (!defined(_MSC_VER) || _MSC_VER >= 1900) && (!defined(__MINGW32__) && !defined(__MINGW64__) || !defined(__WINPTHREADS_VERSION)) && (!defined(__GNUC__) || __GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 8)) && (!defined(__APPLE__) || !TARGET_OS_IPHONE) && !defined(__arm__) && \
     !defined(_M_ARM) && !defined(__aarch64__)
 // Assume `thread_local` is fully supported in all other C++11 compilers/platforms
-//#define MOODYCAMEL_CPP11_THREAD_LOCAL_SUPPORTED    // always disabled for now since several users report having problems with it on
+#define MOODYCAMEL_CPP11_THREAD_LOCAL_SUPPORTED  // tentatively enabled for now; years ago several users report having problems with it on
 #endif
 #endif
 #endif
@@ -499,6 +499,13 @@ struct ConcurrentQueueDefaultTraits
     // consumer threads exceeds the number of idle cores (in which case try 0-100).
     // Only affects instances of the BlockingConcurrentQueue.
     static const int MAX_SEMA_SPINS = 10000;
+
+    // Whether to recycle dynamically-allocated blocks into an internal free list or
+    // not. If false, only pre-allocated blocks (controlled by the constructor
+    // arguments) will be recycled, and all others will be `free`d back to the heap.
+    // Note that blocks consumed by explicit producers are only freed on destruction
+    // of the queue (not following destruction of the token) regardless of this trait.
+    static const bool RECYCLE_ALLOCATED_BLOCKS = false;
 
 #ifndef MCDBGQ_USE_RELACY
     // Memory allocation can be customized if needed.
@@ -1011,7 +1018,7 @@ class ConcurrentQueue
     // queue is fully constructed before it starts being used by other threads (this
     // includes making the memory effects of construction visible, possibly with a
     // memory barrier).
-    explicit ConcurrentQueue(size_t capacity = 6 * BLOCK_SIZE) : producerListTail(nullptr), producerCount(0), initialBlockPoolIndex(0), nextExplicitConsumerId(0), globalExplicitConsumerOffset(0)
+    explicit ConcurrentQueue(size_t capacity = 32 * BLOCK_SIZE) : producerListTail(nullptr), producerCount(0), initialBlockPoolIndex(0), nextExplicitConsumerId(0), globalExplicitConsumerOffset(0)
     {
         implicitProducerHashResizeInProgress.clear(std::memory_order_relaxed);
         populate_initial_implicit_producer_hash();
@@ -1807,7 +1814,7 @@ class ConcurrentQueue
 
     struct Block
     {
-        Block() : next(nullptr), elementsCompletelyDequeued(0), freeListRefs(0), freeListNext(nullptr), shouldBeOnFreeList(false), dynamicallyAllocated(true)
+        Block() : next(nullptr), elementsCompletelyDequeued(0), freeListRefs(0), freeListNext(nullptr), dynamicallyAllocated(true)
         {
 #ifdef MCDBGQ_TRACKMEM
             owner = nullptr;
@@ -1948,7 +1955,6 @@ class ConcurrentQueue
        public:
         std::atomic<std::uint32_t> freeListRefs;
         std::atomic<Block*> freeListNext;
-        std::atomic<bool> shouldBeOnFreeList;
         bool dynamicallyAllocated;  // Perhaps a better name for this would be 'isNotPartOfInitialBlockPool'
 
 #ifdef MCDBGQ_TRACKMEM
@@ -2111,14 +2117,7 @@ class ConcurrentQueue
                 do
                 {
                     auto nextBlock = block->next;
-                    if (block->dynamicallyAllocated)
-                    {
-                        destroy(block);
-                    }
-                    else
-                    {
-                        this->parent->add_block_to_free_list(block);
-                    }
+                    this->parent->add_block_to_free_list(block);
                     block = nextBlock;
                 } while (block != this->tailBlock);
             }
@@ -3333,13 +3332,16 @@ class ConcurrentQueue
             {
                 return false;
             }
-            localBlockIndex = blockIndex.load(std::memory_order_relaxed);
-            newTail = (localBlockIndex->tail.load(std::memory_order_relaxed) + 1) & (localBlockIndex->capacity - 1);
-            idxEntry = localBlockIndex->index[newTail];
-            assert(idxEntry->key.load(std::memory_order_relaxed) == INVALID_BLOCK_BASE);
-            idxEntry->key.store(blockStartIndex, std::memory_order_relaxed);
-            localBlockIndex->tail.store(newTail, std::memory_order_release);
-            return true;
+            else
+            {
+                localBlockIndex = blockIndex.load(std::memory_order_relaxed);
+                newTail = (localBlockIndex->tail.load(std::memory_order_relaxed) + 1) & (localBlockIndex->capacity - 1);
+                idxEntry = localBlockIndex->index[newTail];
+                assert(idxEntry->key.load(std::memory_order_relaxed) == INVALID_BLOCK_BASE);
+                idxEntry->key.store(blockStartIndex, std::memory_order_relaxed);
+                localBlockIndex->tail.store(newTail, std::memory_order_release);
+                return true;
+            }
         }
 
         inline void rewind_block_index_tail()
@@ -3485,7 +3487,14 @@ class ConcurrentQueue
 #ifdef MCDBGQ_TRACKMEM
         block->owner = nullptr;
 #endif
-        freeList.add(block);
+        if (!Traits::RECYCLE_ALLOCATED_BLOCKS && block->dynamicallyAllocated)
+        {
+            destroy(block);
+        }
+        else
+        {
+            freeList.add(block);
+        }
     }
 
     inline void add_blocks_to_free_list(Block* block)

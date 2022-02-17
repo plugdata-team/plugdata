@@ -11,38 +11,29 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
-Box::Box(Canvas* parent, const String& name, Point<int> position) : textLabel(this, *parent), resizer(this, &restrainer)
+Box::Box(Canvas* parent, const String& name, Point<int> position) : resizer(this, &restrainer)
 {
     cnv = parent;
 
     initialise();
     setTopLeftPosition(position);
 
-    setBufferedToImage(true);
-
     setType(name);
-
-    addChildComponent(resizer);
-
-    setTopLeftPosition(position);
 
     // Open editor for undefined objects
     if (name.isEmpty())
     {
-        textLabel.showEditor();
-        resized();
+        showEditor();
     }
 }
 
-Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object), textLabel(this, *parent), resizer(this, &restrainer)
+Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object), resizer(this, &restrainer)
 {
     cnv = parent;
     initialise();
     setTopLeftPosition(position);
 
     setType(name, true);
-
-    setTopLeftPosition(position);
 }
 
 Box::~Box()
@@ -51,8 +42,35 @@ Box::~Box()
     commandLocked.removeListener(this);
 }
 
+void Box::initialise()
+{
+    addMouseListener(cnv, true);  // Receive mouse messages on canvas
+    cnv->addAndMakeVisible(this);
+    
+    // Updates lock/unlock mode
+    locked.referTo(cnv->pd->locked);
+    commandLocked.referTo(cnv->pd->commandLocked);
+    
+    setBufferedToImage(true);
+    
+    locked.addListener(this);
+    commandLocked.addListener(this);
+
+    onTextChange = [this]()
+    {
+        String newText = getText();
+        setType(newText);
+    };
+    
+    
+    addAndMakeVisible(resizer);
+}
+
+
 void Box::valueChanged(Value &v)
 {
+    if (lastTextValue != textValue.toString()) setText(textValue.toString(), sendNotification);
+    
     // Hide certain objects in GOP
     if (cnv->isGraph && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
     {
@@ -67,6 +85,7 @@ void Box::valueChanged(Value &v)
     {
         graphics->lock(locked == true || commandLocked == true);
     }
+    
 
     resizer.setVisible(locked == false);
 
@@ -74,30 +93,6 @@ void Box::valueChanged(Value &v)
     repaint();
 }
 
-void Box::initialise()
-{
-    addMouseListener(this, true);
-    addMouseListener(cnv, true);  // Receive mouse messages on canvas
-    cnv->addAndMakeVisible(this);
-    
-    // Updates lock/unlock mode
-    locked.referTo(cnv->pd->locked);
-    commandLocked.referTo(cnv->pd->commandLocked);
-    
-    locked.addListener(this);
-    commandLocked.addListener(this);
-
-    addAndMakeVisible(&textLabel);
-
-    textLabel.toBack();
-
-    textLabel.onTextChange = [this]()
-    {
-        String newText = textLabel.getText();
-        setType(newText);
-    };
-
-}
 
 bool Box::hitTest(int x, int y)
 {
@@ -119,7 +114,7 @@ void Box::mouseExit(const MouseEvent& e)
 void Box::setType(const String& newType, bool exists)
 {
     // Change box type
-    textLabel.setText(newType, dontSendNotification);
+    setText(newType, dontSendNotification);
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
     // "exists" indicates that this object already exists in pd
@@ -158,7 +153,7 @@ void Box::setType(const String& newType, bool exists)
         width = pdObject->getWidth();
         if (width == 0)
         {
-            width = textLabel.getFont().getStringWidth(newType) + 27;
+            width = font.getStringWidth(newType) + 27;
         }
         else
         {
@@ -167,7 +162,7 @@ void Box::setType(const String& newType, bool exists)
     }
     else
     {
-        width = textLabel.getFont().getStringWidth(newType) + 27;
+        width = font.getStringWidth(newType) + 27;
     }
 
     // Update inlets/outlets if it's not in a graph
@@ -187,7 +182,7 @@ void Box::setType(const String& newType, bool exists)
         if (graphics && graphics->getGui().getType() == pd::Type::Comment)
         {
             setSize(width, 34);
-            textLabel.setEditable(true);
+            setEditable(true);
         }
         else if (graphics && !graphics->fakeGui())
         {
@@ -195,12 +190,11 @@ void Box::setType(const String& newType, bool exists)
             auto [w, h] = graphics->getBestSize();
             setSize(w, h);
             graphics->toBack();
-            textLabel.toBack();
-            textLabel.setEditable(false);
+            setEditable(false);
         }
-        else
+        else if(!type.isEmpty())
         {
-            textLabel.setEditable(true);
+            setEditable(true);
             setSize(width, 34);
         }
     }
@@ -211,13 +205,14 @@ void Box::setType(const String& newType, bool exists)
 
     if (type.isEmpty())
     {
+        setEditable(true);
         setSize(100, 34);
     }
 
     // Hide "comment" in front of name
     if (newType.startsWith("comment "))
     {
-        textLabel.setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
+        setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
 
     if (graphics && (graphics->getGui().isIEM() || graphics->getGui().getType() == pd::Type::Panel))
@@ -240,8 +235,6 @@ void Box::setType(const String& newType, bool exists)
     restrainer.checkComponentBounds(this);
 
     cnv->main.updateUndoState();
-
-    resized();
 }
 
 void Box::paint(Graphics& g)
@@ -253,7 +246,7 @@ void Box::paint(Graphics& g)
 
     bool selected = cnv->isSelected(this);
 
-    if (pdObject && pdObject->getType() == pd::Type::Invalid && !textLabel.isBeingEdited())
+    if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
     {
         outlineColour = Colours::red;
     }
@@ -283,6 +276,17 @@ void Box::paint(Graphics& g)
         g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
     }
+    
+    if(!hideLabel && !editor) {
+        g.setColour(findColour(Label::textColourId));
+        g.setFont(font);
+
+        auto textArea = border.subtractedFrom(rect);
+
+        g.drawFittedText(getText(), textArea, justification, jmax(1, static_cast<int>((static_cast<float>(textArea.getHeight()) / font.getHeight()))), minimumHorizontalScale);
+
+        g.setColour(findColour(Label::outlineColourId));
+    }
 }
 
 void Box::resized()
@@ -292,32 +296,31 @@ void Box::resized()
         graphics->setBounds(getLocalBounds().reduced(6));
     }
 
+    // Send current width to pd object
     if (pdObject && (!graphics || !graphics->getGui().isIEM()))
     {
         pdObject->setWidth(getWidth() - 8);
     }
 
-    auto bestWidth = textLabel.getFont().getStringWidth(textLabel.getText()) + 27;
+    auto bestWidth = font.getStringWidth(getText()) + 27;
 
-    if (graphics && graphics->getGui().getType() == pd::Type::Comment && !textLabel.isBeingEdited())
+    if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
     {
-        int numLines = std::max(StringArray::fromTokens(textLabel.getText(), "\n", "\'").size(), 1);
+        int numLines = std::max(StringArray::fromTokens(getText(), "\n", "\'").size(), 1);
         setSize(bestWidth + 30, (numLines * 17) + 14);
-        textLabel.setBounds(getLocalBounds().reduced(6));
     }
 
-    textLabel.setBounds(getLocalBounds().reduced(6));
-
     // Init size for empty objects
-    if (textLabel.isBeingEdited())
+    if (auto* editor = getCurrentTextEditor())
     {
-        if (textLabel.getCurrentTextEditor()->getText().isEmpty())
+        if (editor->getText().isEmpty())
         {
             setSize(100, 34);
         }
+        editor->setBounds(getLocalBounds().reduced(6));
     }
 
-    resizer.setBounds(getLocalBounds().reduced(6));
+    resizer.setBounds(getLocalBounds().reduced(5));
 
     int index = 0;
     for (auto& edge : edges)
@@ -380,6 +383,196 @@ void Box::updatePorts()
         numIn += input;
         numOut += !input;
     }
-
-    resized();
+    
+    
 }
+
+
+void Box::setText(const String& newText, NotificationType notification)
+{
+    hideEditor();
+
+    if (lastTextValue != newText)
+    {
+        lastTextValue = newText;
+        textValue = newText;
+        repaint();
+
+        if (notification != dontSendNotification && onTextChange != nullptr) onTextChange();
+    }
+}
+
+String Box::getText(bool returnActiveEditorContents) const
+{
+    return (returnActiveEditorContents && editor) ? editor->getText() : textValue.toString();
+}
+
+void Box::mouseDown(const MouseEvent& e)
+{
+    if (cnv->isGraph || cnv->pd->locked == true) return;
+    
+    cnv->handleMouseDown(this, e);
+}
+
+void Box::mouseUp(const MouseEvent& e)
+{
+    if (cnv->isGraph || cnv->pd->locked == true) return;
+
+    cnv->handleMouseUp(this, e);
+
+    if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
+    {
+        cnv->connectingEdge = nullptr;
+    }
+}
+
+void Box::mouseDrag(const MouseEvent& e)
+{
+    if (cnv->isGraph || cnv->pd->locked == true) return;
+
+    cnv->handleMouseDrag(e);
+}
+
+static void copyColourIfSpecified(Box& l, TextEditor& ed, int colourId, int targetColourId)
+{
+    if (l.isColourSpecified(colourId) || l.getLookAndFeel().isColourSpecified(colourId)) ed.setColour(targetColourId, l.findColour(colourId));
+}
+
+void Box::showEditor()
+{
+    if (editor == nullptr)
+    {
+        editor.reset(new TextEditor(getName()));
+        editor->applyFontToAllText(font);
+        copyAllExplicitColoursTo(*editor);
+
+        copyColourIfSpecified(*this, *editor, Label::textWhenEditingColourId, TextEditor::textColourId);
+        copyColourIfSpecified(*this, *editor, Label::backgroundWhenEditingColourId, TextEditor::backgroundColourId);
+        copyColourIfSpecified(*this, *editor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId);
+
+        editor->setAlwaysOnTop(true);
+
+        bool multiLine = pdObject && pdObject->getType() == pd::Type::Comment;
+
+        // Allow multiline for comment objects
+        editor->setMultiLine(multiLine, false);
+        editor->setReturnKeyStartsNewLine(multiLine);
+        editor->setBorder(border);
+        editor->setJustification(Justification::centred);
+
+        editor->onFocusLost = [this]()
+        {
+            if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
+            {
+                hideEditor();
+            }
+        };
+
+        if (!(graphics && graphics->getGui().getType() == pd::Type::Comment))
+        {
+            cnv->showSuggestions(this, editor.get());
+        }
+        
+        editor->setSize(10, 10);
+        addAndMakeVisible(editor.get());
+        editor->setText(getText(), false);
+        editor->setKeyboardType(keyboardType);
+        editor->addListener(this);
+
+        if (editor == nullptr)  // may be deleted by a callback
+            return;
+
+        editor->setHighlightedRegion(Range<int>(0, textValue.toString().length()));
+
+        resized();
+        repaint();
+
+        editor->grabKeyboardFocus();
+    }
+}
+
+void Box::hideEditor()
+{
+    if (editor != nullptr)
+    {
+        WeakReference<Component> deletionChecker(this);
+        std::unique_ptr<TextEditor> outgoingEditor;
+        std::swap(outgoingEditor, editor);
+        
+        if (auto* peer = getPeer()) peer->dismissPendingTextInput();
+        
+        outgoingEditor->setInputFilter(nullptr, false);
+
+        // Clear overridden lambda
+        outgoingEditor->onTextChange = []() {};
+
+        if (graphics && !graphics->fakeGui())
+        {
+            setVisible(false);
+            resized();
+        }
+
+        cnv->hideSuggestions();
+        
+        auto newText = outgoingEditor->getText();
+
+        bool changed;
+        if (textValue.toString() != newText)
+        {
+            lastTextValue = newText;
+            textValue = newText;
+            repaint();
+
+            changed = true;
+        }
+        else {
+            changed = false;
+        }
+        
+
+        outgoingEditor.reset();
+
+        repaint();
+
+        if (changed && onTextChange != nullptr) onTextChange();
+    }
+}
+
+
+TextEditor* Box::getCurrentTextEditor() const noexcept
+{
+    return editor.get();
+}
+
+
+void Box::mouseDoubleClick(const MouseEvent& e)
+{
+    if (editDoubleClick && isEnabled() && !e.mods.isPopupMenu())
+    {
+        showEditor();
+    }
+}
+
+
+void Box::setEditable(bool editable)
+{
+    editDoubleClick = editable;
+
+    setWantsKeyboardFocus(editDoubleClick);
+    setFocusContainerType(editDoubleClick ? FocusContainerType::keyboardFocusContainer : FocusContainerType::none);
+    invalidateAccessibilityHandler();
+}
+
+
+void Box::textEditorReturnKeyPressed(TextEditor& ed)  {
+    if (editor != nullptr)
+    {
+        editor->giveAwayKeyboardFocus();
+    }
+}
+
+void Box::setLabelVisible(bool labelVisible)
+{
+    hideLabel = !labelVisible;
+}
+

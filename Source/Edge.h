@@ -10,6 +10,8 @@
 
 class Connection;
 class Box;
+class Canvas;
+
 class Edge : public TextButton
 {
    public:
@@ -25,6 +27,8 @@ class Edge : public TextButton
 
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
+    
+    static Edge* findNearestEdge(Canvas* cnv, Point<int> position);
 
     void createConnection();
 

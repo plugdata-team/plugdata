@@ -17,10 +17,356 @@ extern "C"
 #include "Connection.h"
 #include "PluginProcessor.h"
 
-Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : MultiComponentDragger<Box>(this, &boxes), main(parent), pd(&parent.pd), patch(patch)
+// Suggestions component that shows up when objects are edited
+class SuggestionComponent : public Component, public KeyListener, public TextEditor::InputFilter
+{
+    
+    class Suggestion : public TextButton
+    {
+        int type = -1;
+        Array<Colour> colours = {findColour(ScrollBar::thumbColourId), Colours::yellow};
+
+        Array<String> letters = {"pd", "~"};
+
+       public:
+        Suggestion()
+        {
+            setText("");
+            setWantsKeyboardFocus(true);
+            setConnectedEdges(12);
+            setClickingTogglesState(true);
+            setRadioGroupId(1001);
+            setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
+        }
+
+        void setText(const String& name)
+        {
+            setButtonText(name);
+            type = name.contains("~") ? 1 : 0;
+
+            repaint();
+        }
+
+        void paint(Graphics& g) override
+        {
+            TextButton::paint(g);
+
+            if (type == -1) return;
+
+            g.setColour(colours[type].withAlpha(float(0.8)));
+            Rectangle<int> iconbound = getLocalBounds().reduced(4);
+            iconbound.setWidth(getHeight() - 8);
+            iconbound.translate(3, 0);
+            g.fillRect(iconbound);
+
+            g.setColour(Colours::white);
+            g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
+        }
+    };
+
+    
+   public:
+    bool selecting = false;
+
+    SuggestionComponent() {
+        // Set up the button list that contains our suggestions
+        buttonholder = std::make_unique<Component>();
+
+        for (int i = 0; i < 20; i++)
+        {
+            Suggestion* but = buttons.add(new Suggestion);
+            buttonholder->addAndMakeVisible(buttons[i]);
+
+            but->setClickingTogglesState(true);
+            but->setRadioGroupId(110);
+            but->setName("suggestions:button");
+
+            // Colour pattern
+            but->setColour(TextButton::buttonColourId, colours[i % 2]);
+        }
+
+        // Set up viewport
+        port = std::make_unique<Viewport>();
+        port->setScrollBarsShown(true, false);
+        port->setViewedComponent(buttonholder.get(), false);
+        port->setInterceptsMouseClicks(true, true);
+        port->setViewportIgnoreDragFlag(true);
+        addAndMakeVisible(port.get());
+
+        setInterceptsMouseClicks(true, true);
+        setAlwaysOnTop(true);
+        setVisible(true);
+    }
+
+    ~SuggestionComponent() {
+        buttons.clear();
+    }
+
+    void createCalloutBox(Box* box, TextEditor* editor) {
+        currentBox = box;
+        openedEditor = editor;
+        
+        editor->setInputFilter(this, false);
+        editor->addKeyListener(this);
+
+        // Should run after the input filter
+        editor->onTextChange = [this, editor, box]()
+        {
+            if (isCompleting && !editor->getText().containsChar(' '))
+            {
+                editor->setHighlightedRegion({highlightStart, highlightEnd});
+            }
+            auto width = editor->getTextWidth() + 10;
+
+            if (width > box->getWidth())
+            {
+                box->setSize(width, box->getHeight());
+            }
+        };
+
+        for (int i = 0; i < buttons.size(); i++)
+        {
+            auto* but = buttons[i];
+            but->setAlwaysOnTop(true);
+
+            but->onClick = [this, i, editor]() mutable
+            {
+                move(0, i);
+                if (!editor->isVisible()) editor->setVisible(true);
+                editor->grabKeyboardFocus();
+            };
+        }
+
+        // buttons[0]->setToggleState(true, sendNotification);
+        setVisible(editor->getText().isNotEmpty());
+        repaint();
+    }
+    
+    void move(int offset, int setto = -1)
+    {
+        if (!openedEditor) return;
+
+        // Calculate new selected index
+        if (setto == -1)
+            currentidx += offset;
+        else
+            currentidx = setto;
+
+        if (numOptions == 0) return;
+
+        // Limit it to minimum of the number of buttons and the number of suggestions
+        int numButtons = std::min(20, numOptions);
+        currentidx = (currentidx + numButtons) % numButtons;
+
+        auto* but = buttons[currentidx];
+
+        // If we use setto, the toggle state should already be set
+        if (setto == -1) but->setToggleState(true, dontSendNotification);
+
+        if (openedEditor)
+        {
+            String newText = buttons[currentidx]->getButtonText();
+            openedEditor->setText(newText, dontSendNotification);
+            highlightEnd = newText.length();
+            openedEditor->setHighlightedRegion({highlightStart, highlightEnd});
+        }
+
+        // Auto-scroll item into viewport bounds
+        if (port->getViewPositionY() > but->getY())
+        {
+            port->setViewPosition(0, but->getY());
+        }
+        else if (port->getViewPositionY() + port->getMaximumVisibleHeight() < but->getY() + but->getHeight())
+        {
+            port->setViewPosition(0, but->getY() - (but->getHeight() * 4));
+        }
+    }
+    
+    TextEditor* openedEditor = nullptr;
+    Box* currentBox;
+
+    void resized() override {
+        port->setBounds(0, 0, getWidth(), std::min(std::min(5, numOptions) * 23, getHeight()));
+        buttonholder->setBounds(0, 0, getWidth(), std::min((numOptions + 1), 20) * 22 + 2);
+
+        for (int i = 0; i < buttons.size(); i++) buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
+
+        repaint();
+    }
+
+   private:
+    
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.fillRect(port->getBounds());
+    }
+
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(bordercolor);
+        g.drawRoundedRectangle(port->getBounds().reduced(1).toFloat(), 3.0f, 2.5f);
+    }
+
+    bool keyPressed(const KeyPress& key, Component* originatingComponent) override
+    {
+        if (key == KeyPress::upKey || key == KeyPress::downKey)
+        {
+            move(key == KeyPress::downKey ? 1 : -1);
+            return true;
+        }
+        return false;
+    }
+    
+    String filterNewText(TextEditor& e, const String& newInput) override
+    {
+
+        String mutableInput = newInput;
+        
+        // Find start of highlighted region
+        // This is the start of the last auto-completion suggestion
+        // This region will automatically be removed after this function because it's selected
+        int start = e.getHighlightedRegion().getLength() > 0 ? e.getHighlightedRegion().getStart() : e.getText().length();
+
+        // Reconstruct users typing
+        String typedText = e.getText().substring(0, start) + mutableInput;
+        highlightStart = typedText.length();
+
+        // Update suggestions
+        auto found = currentBox->cnv->pd->objectLibrary.autocomplete(typedText.toStdString());
+
+        for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++) buttons[i]->setText(found[i]);
+
+        for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("     ");
+
+        numOptions = found.size();
+
+        setVisible(typedText.isNotEmpty() && numOptions);
+
+        resized();
+
+        // Get length of user-typed text
+        int textlen = e.getText().substring(0, start).length();
+
+        // Retrieve best suggestion
+        if (currentidx >= found.size() || textlen == 0)
+        {
+            highlightEnd = 0;
+            return mutableInput;
+        }
+
+        String fullName = found[currentidx];
+
+        highlightEnd = fullName.length();
+
+        if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" "))
+        {
+            isCompleting = false;
+            return mutableInput;
+        }
+
+        isCompleting = true;
+        mutableInput = fullName.substring(textlen);
+
+        return mutableInput;
+    }
+
+    bool running = false;
+    int numOptions = 0;
+    int currentidx = 0;
+
+    std::unique_ptr<Viewport> port;
+    std::unique_ptr<Component> buttonholder;
+    OwnedArray<Suggestion> buttons;
+
+    Array<Colour> colours = {findColour(ComboBox::backgroundColourId), findColour(ResizableWindow::backgroundColourId)};
+
+    Colour bordercolor = Colour(142, 152, 155);
+
+    int highlightStart = 0;
+    int highlightEnd = 0;
+
+    bool isCompleting = false;
+};
+
+// Graph bounds component
+struct GraphArea : public Component, public ComponentDragger
+{
+    ResizableBorderComponent resizer;
+    Canvas* canvas;
+
+    Rectangle<int> startRect;
+
+    explicit GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent)
+    {
+        addAndMakeVisible(resizer);
+    }
+
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(Slider::thumbColourId));
+        g.drawRect(getLocalBounds());
+
+        g.setColour(findColour(Slider::thumbColourId).darker(0.8f));
+        g.drawRect(getLocalBounds().reduced(6));
+    }
+
+    bool hitTest(int x, int y) override
+    {
+        return !getLocalBounds().reduced(8).contains(Point<int>{x, y});
+    }
+
+    void mouseMove(const MouseEvent& e) override
+    {
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+    }
+
+    void mouseDown(const MouseEvent& e) override
+    {
+        startDraggingComponent(this, e);
+    }
+
+    void mouseDrag(const MouseEvent& e) override
+    {
+        dragComponent(this, e, nullptr);
+    }
+
+    void mouseUp(const MouseEvent& e) override
+    {
+        updatePosition();
+        repaint();
+    }
+
+    void resized() override
+    {
+        updatePosition();
+        resizer.setBounds(getLocalBounds());
+        repaint();
+    }
+
+    void updatePosition()
+    {
+        t_canvas* cnv = canvas->patch.getPointer();
+        // Lock first?
+        if (cnv)
+        {
+            cnv->gl_pixwidth = getWidth() / pd::Patch::zoom;
+            cnv->gl_pixheight = getHeight() / pd::Patch::zoom;
+            cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;
+            cnv->gl_ymargin = (getY() - 4) / pd::Patch::zoom;
+        }
+    }
+};
+
+
+
+
+Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(patch)
 {
     isGraph = graph;
     isGraphChild = graphChild;
+    
+    suggestor = new SuggestionComponent;
     
     locked.referTo(pd->locked);
     locked.addListener(this);
@@ -32,8 +378,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
     // Add draggable border for setting graph position
     if (isGraphChild)
     {
-        graphArea = std::make_unique<GraphArea>(this);
-        addAndMakeVisible(graphArea.get());
+        graphArea = new GraphArea(this);
+        addAndMakeVisible(graphArea);
     }
 
     setSize(600, 400);
@@ -65,6 +411,9 @@ Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph,
 
 Canvas::~Canvas()
 {
+    delete graphArea;
+    delete suggestor;
+    
     locked.removeListener(this);
 }
 
@@ -307,9 +656,9 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
-    if (suggestor.openedEditor && e.originalComponent != suggestor.openedEditor)
+    if (suggestor->openedEditor && e.originalComponent != suggestor->openedEditor)
     {
-        suggestor.currentBox->textLabel.hideEditor();
+        suggestor->currentBox->hideEditor();
         return;
     }
 
@@ -349,14 +698,11 @@ void Canvas::mouseDown(const MouseEvent& e)
     {
         if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
         {
-            if (auto* label = dynamic_cast<ClickLabel*>(source))
-            {
-                auto* box = static_cast<Box*>(label->getParentComponent());
+            auto* box = dynamic_cast<Box*>(source);
 
-                if (box->graphics && box->graphics->getGui().getType() == pd::Type::Subpatch)
-                {
-                    openSubpatch(box);
-                }
+            if (box && box->graphics && box->graphics->getGui().getType() == pd::Type::Subpatch)
+            {
+                openSubpatch(box);
             }
         }
         return;
@@ -375,15 +721,14 @@ void Canvas::mouseDown(const MouseEvent& e)
     {
         if (locked == true)
         {
-            if (auto* label = dynamic_cast<ClickLabel*>(source))
+            if (auto* box = dynamic_cast<Box*>(source))
             {
-                auto* box = static_cast<Box*>(label->getParentComponent());
                 openSubpatch(box);
                 return;
             }
         }
         // Connecting objects by dragging
-        if (source == this || source == graphArea.get())
+        if (source == this || source == graphArea)
         {
             if (connectingEdge)
             {
@@ -406,9 +751,11 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool hasSelection = lassoSelection.getNumSelected();
         bool multiple = lassoSelection.getNumSelected() > 1;
 
-        bool isSubpatch = hasSelection && (lassoSelection.getSelectedItem(0)->graphics && (lassoSelection.getSelectedItem(0)->graphics->getGui().getType() == pd::Type::GraphOnParent || lassoSelection.getSelectedItem(0)->graphics->getGui().getType() == pd::Type::Subpatch));
+        auto* box = getSingleSelection();
+        
+        bool isSubpatch = box && (box->graphics && (box->graphics->getGui().getType() == pd::Type::GraphOnParent || box->graphics->getGui().getType() == pd::Type::Subpatch));
 
-        bool isGui = hasSelection && !multiple && lassoSelection.getSelectedItem(0)->graphics && !lassoSelection.getSelectedItem(0)->graphics->fakeGui();
+        bool isGui = hasSelection && !multiple && box->graphics && !box->graphics->fakeGui();
 
         // Create popup menu
         popupMenu.clear();
@@ -432,7 +779,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             {
                 case 1:
                 {
-                    openSubpatch(lassoSelection.getSelectedItem(0));
+                    openSubpatch(getSingleSelection());
                     break;
                 }
                 case 4:  // Cut
@@ -460,7 +807,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 
                     pd->setThis();
                     // Find name of help file
-                    auto helpPatch = lassoSelection.getSelectedItem(0)->pdObject->getHelp();
+                    auto helpPatch = getSingleSelection()->pdObject->getHelp();
 
                     if (!helpPatch.getPointer())
                     {
@@ -479,44 +826,26 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
         };
 
-        auto showMenu = [this, callback](Component* target, Rectangle<int> bounds = {0, 0, 0, 0})
+        auto showMenu = [this, callback](Box* box)
         {
+            if (box->getCurrentTextEditor()) return;
             auto options = PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main);
 
-            if (target)
-            {
-                options = options.withTargetComponent(target);
-            }
-            else
-            {
-                options = options.withTargetScreenArea(bounds);
-            }
-
+            options = options.withTargetComponent(box);
             popupMenu.showMenuAsync(options, ModalCallbackFunction::create(callback));
         };
-        // Open popupmenu with different positions for these origins
-        if (auto* box = dynamic_cast<ClickLabel*>(e.originalComponent))
-        {
-            if (!box->getCurrentTextEditor())
-            {
-                showMenu(box);
-            }
+        
+        if(auto* box = source->findParentComponentOfClass<Box>()) {
+            showMenu(box);
         }
-        else if (auto* box = dynamic_cast<Box*>(e.originalComponent))
-        {
-            if (!box->textLabel.getCurrentTextEditor())
-            {
-                showMenu(&box->textLabel);
-            }
+        else if(auto* box = dynamic_cast<Box*>(source)) {
+            showMenu(box);
         }
-        else if (auto* gui = dynamic_cast<GUIComponent*>(e.originalComponent))
-        {
-            auto* box = gui->box;
-            showMenu(&box->textLabel);
-        }
-        else if (dynamic_cast<Canvas*>(e.originalComponent))
-        {
-            showMenu(nullptr, {e.getScreenX(), e.getScreenY(), 10, 10});
+        else if(source == this) {
+            auto options = PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main);
+
+            options = options.withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 100, 100));
+            popupMenu.showMenuAsync(options, ModalCallbackFunction::create(callback));
         }
     }
 }
@@ -540,35 +869,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
         if (e.getDistanceFromDragStart() < 5) return;
 
-        for (auto& con : connections)
-        {
-            bool intersect = false;
-
-            // Check intersection with path
-            for (int i = 0; i < 200; i++)
-            {
-                float position = static_cast<float>(i) / 200.0f;
-                auto point = con->toDraw.getPointAlongPath(position * con->toDraw.getLength());
-
-                if (!point.isFinite()) continue;
-
-                if (lasso.getBounds().contains(point.toInt() + con->getPosition()))
-                {
-                    intersect = true;
-                }
-            }
-
-            if (!con->isSelected && intersect)
-            {
-                con->isSelected = true;
-                con->repaint();
-            }
-            else if (con->isSelected && !intersect && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown())
-            {
-                con->isSelected = false;
-                con->repaint();
-            }
-        }
     }
 
     if (connectingWithDrag) repaint();
@@ -576,7 +876,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
 void Canvas::mouseUp(const MouseEvent& e)
 {
-    if (auto* box = dynamic_cast<Box*>(e.originalComponent->getParentComponent()))
+    if (auto* box = dynamic_cast<Box*>(e.originalComponent))
     {
         if (!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2)
         {
@@ -593,33 +893,9 @@ void Canvas::mouseUp(const MouseEvent& e)
     if (connectingWithDrag)
     {
         auto pos = e.getEventRelativeTo(this).getPosition();
+        auto* nearest = Edge::findNearestEdge(this, pos);
 
-        // Find all edges
-        Array<Edge*> allEdges;
-        for (auto* box : boxes)
-        {
-            for (auto* edge : box->edges)
-            {
-                allEdges.add(edge);
-            }
-        }
-
-        Edge* nearestEdge = nullptr;
-
-        for (auto& edge : allEdges)
-        {
-            auto bounds = edge->getCanvasBounds().expanded(150, 150);
-            if (bounds.contains(pos))
-            {
-                if (!nearestEdge) nearestEdge = edge;
-
-                auto oldPos = nearestEdge->getCanvasBounds().getCentre();
-                auto newPos = bounds.getCentre();
-                nearestEdge = newPos.getDistanceFrom(pos) < oldPos.getDistanceFrom(pos) ? edge : nearestEdge;
-            }
-        }
-
-        if (nearestEdge) nearestEdge->createConnection();
+        if (nearest) nearest->createConnection();
 
         connectingEdge = nullptr;
         connectingWithDrag = false;
@@ -630,21 +906,13 @@ void Canvas::mouseUp(const MouseEvent& e)
     auto& lassoSelection = getLassoSelection();
 
     // Pass parameters of selected box to inspector
-    if (lassoSelection.getNumSelected() == 1)
+    if (auto* box = getSingleSelection())
     {
-        auto* box = lassoSelection.getSelectedItem(0);
+        auto params = box->graphics ? box->graphics->getParameters() : ObjectParameters();
 
-        if (box->graphics)
+        if (!params.empty())
         {
-            auto params = box->graphics->getParameters();
-            if (!params.empty())
-            {
-                main.sidebar.showParameters(params);
-            }
-            else
-            {
-                main.sidebar.hideParameters();
-            }
+            main.sidebar.showParameters(params);
         }
         else
         {
@@ -657,31 +925,6 @@ void Canvas::mouseUp(const MouseEvent& e)
     }
 
     lasso.endLasso();
-}
-
-void Canvas::dragCallback(int dx, int dy)
-{
-    // Ignore when locked
-    if (locked == true) return;
-
-    auto objects = std::vector<pd::Object*>();
-
-    for (auto* box : getLassoSelection())
-    {
-        if (box->pdObject)
-        {
-            objects.push_back(box->pdObject.get());
-        }
-    }
-
-    // When done dragging objects, update positions to pd
-    patch.moveObjects(objects, dx, dy);
-
-    // Check if canvas is large enough
-    checkBounds();
-
-    // Update undo state
-    main.updateUndoState();
 }
 
 void Canvas::findDrawables(Graphics& g)
@@ -785,7 +1028,10 @@ bool Canvas::keyPressed(const KeyPress& key)
 void Canvas::deselectAll()
 {
     // Deselects boxes
-    MultiComponentDragger::deselectAll();
+    for (auto c : selectedComponents)
+        if (c) c->repaint();
+
+    selectedComponents.deselectAll();
 
     // Deselect connections
     for (auto& connection : connections)
@@ -1004,3 +1250,194 @@ void Canvas::valueChanged(Value& v) {
         }
     }
 }
+
+
+void Canvas::showSuggestions(Box* box, TextEditor* editor) {
+    suggestor->createCalloutBox(box, editor);
+    suggestor->setBounds(box->getX(), box->getBounds().getBottom(), 200, 115);
+    suggestor->resized();
+    
+}
+void Canvas::hideSuggestions() {
+    suggestor->setVisible(false);
+
+    suggestor->openedEditor = nullptr;
+    suggestor->currentBox = nullptr;
+}
+
+// Makes component selected
+void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
+{
+    bool isAlreadySelected = isSelected(component);
+
+    if (!isAlreadySelected && shouldNowBeSelected)
+    {
+        selectedComponents.addToSelection(component);
+        
+        if(auto* box = dynamic_cast<Box*>(component)) {
+            // ?
+        }
+        if(auto* con = dynamic_cast<Connection*>(component)) {
+            con->isSelected = true;
+        }
+        
+        component->repaint();
+    }
+
+    if (isAlreadySelected && !shouldNowBeSelected)
+    {
+        removeSelectedComponent(component);
+        
+        if(auto* box = dynamic_cast<Box*>(component)) {
+            // ?
+        }
+        if(auto* con = dynamic_cast<Connection*>(component)) {
+            //con->isSelected = false;
+        }
+        
+        component->repaint();
+    }
+}
+
+bool Canvas::isSelected(Component* component) const
+{
+    return std::find(selectedComponents.begin(), selectedComponents.end(), component) != selectedComponents.end();
+}
+
+
+void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
+{
+    if (!isSelected(component))
+    {
+        if (!(e.mods.isShiftDown() || e.mods.isCommandDown())) deselectAll();
+
+        setSelected(component, true);
+    }
+
+    mouseDownWithinTarget = e.getMouseDownPosition();
+
+    componentBeingDragged = component;
+
+    totalDragDelta = {0, 0};
+
+    component->repaint();
+}
+
+// Call from component's mouseUp
+void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
+{
+    if (didStartDragging)
+    {
+        // Ignore when locked
+        if (locked == true) return;
+
+        auto objects = std::vector<pd::Object*>();
+
+        for (auto* component : getLassoSelection())
+        {
+            if(auto* box = dynamic_cast<Box*>(component)) {
+                if (box->pdObject) objects.push_back(box->pdObject.get());
+            }
+        }
+
+        // When done dragging objects, update positions to pd
+        patch.moveObjects(objects, totalDragDelta.x, totalDragDelta.y);
+
+        // Check if canvas is large enough
+        checkBounds();
+
+        // Update undo state
+        main.updateUndoState();
+    }
+
+    if (didStartDragging) didStartDragging = false;
+
+    component->repaint();
+}
+
+// Call from component's mouseDrag
+void Canvas::handleMouseDrag(const MouseEvent& e)
+{
+    /** Ensure tiny movements don't start a drag. */
+    if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag) return;
+
+    didStartDragging = true;
+
+    Point<int> delta = e.getPosition() - mouseDownWithinTarget;
+
+    for (auto comp : selectedComponents)
+    {
+        Rectangle<int> bounds(comp->getBounds());
+
+        bounds += delta;
+        
+        comp->setBounds(bounds);
+    }
+    totalDragDelta += delta;
+}
+
+SelectedItemSet<Component*>& Canvas::getLassoSelection()
+{
+    return selectedComponents;
+}
+
+void Canvas::removeSelectedComponent(Component* component)
+{
+    selectedComponents.deselect(component);
+}
+
+void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area)
+{
+    for (auto* element : boxes)
+    {
+        if (area.intersects(element->getBounds()))
+        {
+            itemsFound.add(element);
+            setSelected(element, true);
+            element->repaint();
+        }
+        else if (!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown())
+        {
+            setSelected(element, false);
+        }
+    }
+    
+    for (auto& con : connections)
+    {
+        bool intersect = false;
+
+        // Check intersection with path
+        for (int i = 0; i < 200; i++)
+        {
+            float position = static_cast<float>(i) / 200.0f;
+            auto point = con->toDraw.getPointAlongPath(position * con->toDraw.getLength());
+
+            if (!point.isFinite()) continue;
+
+            if (lasso.getBounds().contains(point.toInt() + con->getPosition()))
+            {
+                intersect = true;
+            }
+        }
+
+        if (!con->isSelected && intersect)
+        {
+            con->isSelected = true;
+            con->repaint();
+            itemsFound.add(con);
+        }
+    }
+}
+
+// TODO: this is incorrect!!
+Box* Canvas::getSingleSelection() {
+    if(selectedComponents.getNumSelected() == 1) {
+        if(auto* box = dynamic_cast<Box*>(selectedComponents.getSelectedItem(0))) {
+            return box;
+        }
+    }
+    
+    return nullptr;
+}
+
+

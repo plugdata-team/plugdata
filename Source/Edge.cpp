@@ -155,3 +155,34 @@ void Edge::createConnection()
         box->cnv->connectingEdge = this;
     }
 }
+
+Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position)
+{
+    // Find all edges
+    Array<Edge*> allEdges;
+    for (auto* box : cnv->boxes)
+    {
+        for (auto* edge : box->edges)
+        {
+            allEdges.add(edge);
+        }
+    }
+
+    Edge* nearestEdge = nullptr;
+
+    for (auto& edge : allEdges)
+    {
+        auto bounds = edge->getCanvasBounds().expanded(150, 150);
+        if (bounds.contains(position))
+        {
+            if (!nearestEdge) nearestEdge = edge;
+
+            auto oldPos = nearestEdge->getCanvasBounds().getCentre();
+            auto newPos = bounds.getCentre();
+            nearestEdge = newPos.getDistanceFrom(position) < oldPos.getDistanceFrom(position) ? edge : nearestEdge;
+        }
+    }
+    
+    return nearestEdge;
+
+}

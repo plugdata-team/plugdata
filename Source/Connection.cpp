@@ -77,7 +77,6 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     start->addComponentListener(this);
     end->addComponentListener(this);
 
-    // Don't need mouse clicks
     setInterceptsMouseClicks(true, false);
 
     cnv->addAndMakeVisible(this);
@@ -151,7 +150,7 @@ Connection::~Connection()
 
 bool Connection::hitTest(int x, int y)
 {
-    if (locked == false) return false;
+    if (locked == true) return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
 
@@ -217,6 +216,17 @@ void Connection::mouseMove(const MouseEvent& e)
 
 void Connection::mouseDown(const MouseEvent& e)
 {
+    // Deselect all other connection if shift or command is not down
+    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && !ModifierKeys::getCurrentModifiers().isShiftDown())
+    {
+        cnv->deselectAll();
+    }
+    
+    
+    isSelected = true;
+    repaint();
+    
+
     if (currentPlan.empty()) return;
 
     const auto scaledPlan = scalePath(currentPlan);
@@ -244,16 +254,6 @@ void Connection::mouseDown(const MouseEvent& e)
             break;
         }
     }
-
-    // Deselect all other connection if shift or command is not down
-    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && !ModifierKeys::getCurrentModifiers().isShiftDown())
-    {
-        cnv->deselectAll();
-    }
-
-    isSelected = true;
-
-    repaint();
 }
 
 void Connection::mouseDrag(const MouseEvent& e)

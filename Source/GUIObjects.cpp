@@ -48,13 +48,13 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
 {
     // if(!box->pdObject) return;
     const CriticalSection* cs = box->cnv->pd->getCallbackLock();
-
+    
     cs->enter();
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
     cs->exit();
-
+    
     if (gui.isIEM())
     {
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
@@ -65,18 +65,18 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
     {
         labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
     }
-
+    
     updateLabel();
-
+    
     sendSymbol = gui.getSendSymbol();
     receiveSymbol = gui.getReceiveSymbol();
-
+    
     setWantsKeyboardFocus(true);
-
+    
     addMouseListener(this, true);
-
+    
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
-
+    
     sendSymbol.addListener(this);
     receiveSymbol.addListener(this);
     primaryColour.addListener(this);
@@ -103,7 +103,7 @@ GUIComponent::~GUIComponent()
     labelText.removeListener(this);
     min.removeListener(this);
     max.removeListener(this);
-
+    
     box->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
@@ -140,19 +140,19 @@ void GUIComponent::initParameters(bool newObject)
         auto color = Colour::fromString(secondaryColour.toString());
         secondaryColour = color.toString();
     }
-
+    
     if (!gui.isIEM()) return;
-
+    
     if (newObject)
     {
         primaryColour = findColour(Slider::thumbColourId).toString();
         secondaryColour = findColour(ComboBox::backgroundColourId).toString();
         labelColour = Colours::white.toString();
-
+        
         gui.setForegroundColour(findColour(Slider::thumbColourId));
         gui.setBackgroundColour(findColour(ComboBox::backgroundColourId));
         gui.setLabelColour(Colours::white);
-
+        
         labelHeight = gui.getFontHeight();
     }
     else
@@ -160,28 +160,30 @@ void GUIComponent::initParameters(bool newObject)
         primaryColour = Colour(gui.getForegroundColor()).toString();
         secondaryColour = Colour(gui.getBackgroundColor()).toString();
         if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
-
+        
         getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
         getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
-
+        
         getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
         getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-
+        
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
-
+        
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
+    
+    repaint();
 }
 
 GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newObject)
 {
     auto* guiPtr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
-
+    
     if (!guiPtr) return nullptr;
-
+    
     auto& gui = *guiPtr;
-
+    
     if (gui.getType() == pd::Type::Bang)
     {
         return new BangComponent(gui, parent, newObject);
@@ -262,7 +264,7 @@ GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newO
     {
         return new KeyboardComponent(gui, parent, newObject);
     }
-
+    
     return nullptr;
 }
 
@@ -275,9 +277,9 @@ void GUIComponent::setValueOriginal(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-
+    
     value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-
+    
     gui.setValue(value);
 }
 
@@ -285,7 +287,7 @@ float GUIComponent::getValueScaled() const noexcept
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-
+    
     return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
 }
 
@@ -293,7 +295,7 @@ void GUIComponent::setValueScaled(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-
+    
     value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
     gui.setValue(value);
 }
@@ -302,7 +304,7 @@ void GUIComponent::startEdition() noexcept
 {
     edited = true;
     processor.enqueueMessages(stringGui, stringMouse, {1.f});
-
+    
     value = gui.getValue();
 }
 
@@ -317,20 +319,20 @@ void GUIComponent::updateValue()
     if (edited == false)
     {
         box->cnv->pd->enqueueFunction(
-            [this]()
-            {
-                float const v = gui.getValue();
-
-                MessageManager::callAsync(
-                    [this, v]() mutable
-                    {
-                        if (v != value)
-                        {
-                            value = v;
-                            update();
-                        }
-                    });
-            });
+                                      [this]()
+                                      {
+                                          float const v = gui.getValue();
+                                          
+                                          MessageManager::callAsync(
+                                                                    [this, v]() mutable
+                                                                    {
+                                                                        if (v != value)
+                                                                        {
+                                                                            value = v;
+                                                                            update();
+                                                                        }
+                                                                    });
+                                      });
     }
 }
 
@@ -339,7 +341,7 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
     if (label)
     {
         Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
-
+        
         const int width = 100;
         const int height = 23;  // ??
         label->setBounds(position.x, position.y, width, height);
@@ -356,13 +358,13 @@ void GUIComponent::updateLabel()
         {
             return;
         }
-
+        
         Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
-
+        
         const int width = 100;
         const int height = static_cast<int>(labelHeight.getValue());
         label->setBounds(position.x, position.y, width, height);
-
+        
         label->setFont(Font(static_cast<int>(labelHeight.getValue())));
         label->setJustificationType(Justification::left);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
@@ -388,9 +390,9 @@ void GUIComponent::closeOpenedSubpatchers()
 {
     auto& main = box->cnv->main;
     auto* tabbar = &main.tabbar;
-
+    
     if (!tabbar) return;
-
+    
     for (int n = 0; n < tabbar->getNumTabs(); n++)
     {
         auto* cnv = main.getCanvas(n);
@@ -401,7 +403,7 @@ void GUIComponent::closeOpenedSubpatchers()
             main.canvases.removeObject(cnv);
         }
     }
-
+    
     if (tabbar->getNumTabs() > 1)
     {
         tabbar->getTabbedButtonBar().setVisible(true);
@@ -419,10 +421,10 @@ void GUIComponent::closeOpenedSubpatchers()
 BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     addAndMakeVisible(bangButton);
-
+    
     bangButton.setTriggeredOnMouseDown(true);
     bangButton.setName("pd:bang");
-
+    
     bangButton.onClick = [this]()
     {
         startEdition();
@@ -430,7 +432,7 @@ BangComponent::BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) 
         stopEdition();
         update();
     };
-
+    
     initParameters(newObject);
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.setFixedAspectRatio(1.0f);
@@ -442,12 +444,12 @@ void BangComponent::update()
     if (getValueOriginal() > std::numeric_limits<float>::epsilon())
     {
         bangButton.setToggleState(true, dontSendNotification);
-
+        
         auto currentTime = Time::getCurrentTime().getMillisecondCounter();
         auto timeSinceLast = currentTime - lastBang;
-
+        
         int holdTime = bangHold.getValue();
-
+        
         if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2)
         {
             holdTime = timeSinceLast / 2;
@@ -456,18 +458,20 @@ void BangComponent::update()
         {
             holdTime = bangInterrupt.getValue();
         }
-
+        
         lastBang = currentTime;
-
+        
+        auto button = SafePointer<TextButton>(&bangButton);
         Timer::callAfterDelay(holdTime,
-                              [this]()
+                              [button] () mutable
                               {
-                                  bangButton.setToggleState(false, dontSendNotification);
-                                  if (bangButton.isDown())
-                                  {
-                                      bangButton.setState(Button::ButtonState::buttonNormal);
-                                  }
-                              });
+            if(!button) return;
+            button->setToggleState(false, dontSendNotification);
+            if (button->isDown())
+            {
+                button->setState(Button::ButtonState::buttonNormal);
+            }
+        });
     }
 }
 
@@ -484,7 +488,7 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObje
     toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
     toggleButton.setConnectedEdges(12);
     toggleButton.setName("pd:toggle");
-
+    
     toggleButton.onClick = [this]()
     {
         startEdition();
@@ -492,12 +496,12 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObje
         setValueOriginal(newValue);
         toggleButton.setToggleState(newValue, dontSendNotification);
         stopEdition();
-
+        
         update();
     };
-
+    
     initParameters(newObject);
-
+    
     box->restrainer.setSizeLimits(38, 38, 1200, 1200);
     box->restrainer.setFixedAspectRatio(1.0f);
     box->restrainer.checkComponentBounds(box);
@@ -518,30 +522,30 @@ void ToggleComponent::update()
 MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     addAndMakeVisible(input);
-
+    
     input.setInterceptsMouseClicks(false, false);
-
+    
     // message box behaviour
     if (!gui.isAtom())
     {
         input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-
+        
         input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
-
+        
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
-
+            
             editor->onTextChange = [this, editor]()
             {
                 auto width = input.getFont().getStringWidth(editor->getText()) + 25;
-
+                
                 if (width > box->getWidth())
                 {
                     box->setSize(width, box->getHeight());
                 }
             };
-
+            
             editor->onFocusLost = [this]()
             {
                 auto width = input.getFont().getStringWidth(input.getText()) + 25;
@@ -566,7 +570,7 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent, bool newOb
                 stopEdition();
                 // input.setText(String(gui.getSymbol()), dontSendNotification);
             };
-
+            
             editor->onFocusLost = [this]()
             {
                 auto width = input.getFont().getStringWidth(input.getText()) + 25;
@@ -578,8 +582,8 @@ MessageComponent::MessageComponent(const pd::Gui& pdGui, Box* parent, bool newOb
             };
         };
     }
-
-    box->textLabel.addMouseListener(this, false);
+    
+    box->addMouseListener(this, false);
     box->restrainer.setSizeLimits(50, 30, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
@@ -606,10 +610,10 @@ void MessageComponent::paint(Graphics& g)
     if (!getGui().isAtom())
     {
         auto baseColour = isDown ? Colour(90, 90, 90) : Colour(70, 70, 70);
-
+        
         auto rect = getLocalBounds().toFloat();
         g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(1.1f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
-
+        
         g.fillRoundedRectangle(rect, 2.0f);
     }
     else
@@ -630,12 +634,12 @@ void MessageComponent::updateValue()
     if (!edited)
     {
         std::string const v = gui.getSymbol();
-
+        
         if (lastMessage != v && !String(v).startsWith("click"))
         {
             numLines = 1;
             longestLine = 7;
-
+            
             int currentLineLength = 0;
             for (auto& c : v)
             {
@@ -651,9 +655,9 @@ void MessageComponent::updateValue()
                 }
             }
             if (numLines == 1) longestLine = std::max(longestLine, currentLineLength);
-
+            
             lastMessage = v;
-
+            
             update();
             // repaint();
         }
@@ -665,40 +669,40 @@ void MessageComponent::updateValue()
 NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     input.addMouseListener(this, false);
-
+    
     input.onEditorShow = [this]()
     {
         auto* editor = input.getCurrentTextEditor();
         startEdition();
-
+        
         if (!gui.isAtom())
         {
             editor->setBorder({0, 10, 0, 0});
         }
-
+        
         if (editor != nullptr)
         {
             editor->setInputRestrictions(0, ".-0123456789");
         }
     };
-
+    
     input.onEditorHide = [this]()
     {
         setValueOriginal(input.getText().getFloatValue());
         stopEdition();
     };
-
+    
     if (!gui.isAtom())
     {
         input.setBorderSize({1, 15, 1, 1});
     }
     addAndMakeVisible(input);
-
+    
     input.setText(String(getValueOriginal()), dontSendNotification);
-
+    
     initParameters(newObject);
     input.setEditable(false, true);
-
+    
     box->restrainer.setSizeLimits(50, 30, 500, 30);
     box->restrainer.checkComponentBounds(box);
 }
@@ -711,14 +715,14 @@ void NumboxComponent::resized()
 void NumboxComponent::update()
 {
     float value = getValueOriginal();
-
+    
     input.setText(String(value), dontSendNotification);
 }
 
 ListComponent::ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : GUIComponent(gui, parent, newObject)
 {
     static const int border = 1;
-
+    
     label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
     label.setMinimumHorizontalScale(1.f);
     label.setJustificationType(Justification::centredLeft);
@@ -729,7 +733,7 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : 
     label.setColour(Label::textColourId, gui.getForegroundColor());
     setInterceptsMouseClicks(true, false);
     addAndMakeVisible(label);
-
+    
     label.onEditorHide = [this]()
     {
         auto const newValue = label.getText().getFloatValue();
@@ -741,7 +745,7 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : 
             label.setText(String(getValueOriginal()), dontSendNotification);
         }
     };
-
+    
     label.onEditorShow = [this]()
     {
         auto* editor = label.getCurrentTextEditor();
@@ -751,9 +755,9 @@ ListComponent::ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : 
             editor->setBorder(BorderSize<int>(0));
         }
     };
-
+    
     updateValue();
-
+    
     box->restrainer.setSizeLimits(100, 30, 500, 600);
     box->restrainer.checkComponentBounds(box);
 }
@@ -808,21 +812,21 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
 {
     isVertical = vertical;
     addAndMakeVisible(slider);
-
+    
     isLogarithmic = gui.isLogScale();
-
+    
     if (vertical) slider.setSliderStyle(Slider::LinearVertical);
-
+    
     slider.setRange(0., 1., 0.001);
     slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
     slider.setScrollWheelEnabled(false);
-
+    
     slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
-
+    
     slider.setValue(getValueScaled());
-
+    
     slider.onDragStart = [this]() { startEdition(); };
-
+    
     slider.onValueChange = [this]()
     {
         const float val = slider.getValue();
@@ -838,11 +842,11 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
             setValueScaled(val);
         }
     };
-
+    
     slider.onDragEnd = [this]() { stopEdition(); };
-
+    
     initParameters(newObject);
-
+    
     if (isVertical)
     {
         box->restrainer.setSizeLimits(40, 77, 250, 500);
@@ -853,7 +857,7 @@ SliderComponent::SliderComponent(bool vertical, const pd::Gui& pdGui, Box* paren
         box->restrainer.setSizeLimits(100, 35, 500, 250);
         box->restrainer.checkComponentBounds(box);
     }
-
+    
     isLogarithmic.addListener(this);
 }
 
@@ -877,12 +881,12 @@ void SliderComponent::update()
 RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
 {
     isVertical = vertical;
-
+    
     initParameters(newObject);
     updateRange();
-
+    
     int selected = getValueOriginal();
-
+    
     if (selected < radioButtons.size())
     {
         radioButtons[selected]->setToggleState(true, dontSendNotification);
@@ -902,13 +906,13 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent,
 void RadioComponent::resized()
 {
     gui.setSize(box->getWidth(), box->getHeight());
-
+    
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
     fb.justifyContent = FlexBox::JustifyContent::flexStart;
     fb.alignContent = FlexBox::AlignContent::flexStart;
     fb.flexDirection = isVertical ? FlexBox::Direction::column : FlexBox::Direction::row;
-
+    
     for (auto* b : radioButtons)
     {
         auto item = FlexItem(*b).withMinWidth(8.0f).withMinHeight(8.0f);
@@ -916,14 +920,14 @@ void RadioComponent::resized()
         item.flexShrink = 1.0f;
         fb.items.add(item);
     }
-
+    
     fb.performLayout(getLocalBounds().toFloat());
 }
 
 void RadioComponent::update()
 {
     int selected = getValueOriginal();
-
+    
     if (selected < radioButtons.size())
     {
         radioButtons[selected]->setToggleState(true, dontSendNotification);
@@ -934,11 +938,11 @@ void RadioComponent::updateRange()
 {
     minimum = gui.getMinimum();
     maximum = gui.getMaximum();
-
+    
     int numButtons = int(maximum.getValue()) - int(minimum.getValue());
-
+    
     radioButtons.clear();
-
+    
     for (int i = 0; i < numButtons; i++)
     {
         radioButtons.add(new TextButton);
@@ -946,14 +950,14 @@ void RadioComponent::updateRange()
         radioButtons[i]->setRadioGroupId(1001);
         radioButtons[i]->setClickingTogglesState(true);
         addAndMakeVisible(radioButtons[i]);
-
+        
         radioButtons[i]->onClick = [this, i]() mutable
         {
             lastState = i;
             setValueOriginal(i);
         };
     }
-
+    
     box->resized();
     resized();
 }
@@ -964,7 +968,7 @@ ArrayComponent::ArrayComponent(const pd::Gui& pdGui, Box* box, bool newObject) :
     setInterceptsMouseClicks(false, true);
     array.setBounds(getLocalBounds());
     addAndMakeVisible(&array);
-
+    
     box->restrainer.setSizeLimits(100, 40, 500, 600);
 }
 
@@ -977,7 +981,7 @@ void ArrayComponent::resized()
 GraphicalArray::GraphicalArray(PlugDataAudioProcessor* instance, pd::Array& graph) : array(graph), edited(false), pd(instance)
 {
     if (graph.getName().empty()) return;
-
+    
     vec.reserve(8192);
     temp.reserve(8192);
     try
@@ -996,7 +1000,7 @@ GraphicalArray::GraphicalArray(PlugDataAudioProcessor* instance, pd::Array& grap
 void GraphicalArray::paint(Graphics& g)
 {
     g.fillAll(findColour(TextButton::buttonColourId));
-
+    
     if (error)
     {
         // g.setFont(CamoLookAndFeel::getDefaultFont());
@@ -1052,7 +1056,7 @@ void GraphicalArray::paint(Graphics& g)
             }
         }
     }
-
+    
     g.setColour(findColour(ComboBox::outlineColourId));
     g.drawRect(getLocalBounds(), 1);
 }
@@ -1072,13 +1076,13 @@ void GraphicalArray::mouseDrag(const MouseEvent& event)
     const float h = static_cast<float>(getHeight());
     const float x = static_cast<float>(event.x);
     const float y = static_cast<float>(event.y);
-
+    
     const std::array<float, 2> scale = array.getScale();
     const size_t index = static_cast<size_t>(std::round(clip(x / w, 0.f, 1.f) * s));
     vec[index] = (1.f - clip(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
-
+    
     const CriticalSection* cs = pd->getCallbackLock();
-
+    
     if (cs->tryEnter())
     {
         try
@@ -1091,7 +1095,7 @@ void GraphicalArray::mouseDrag(const MouseEvent& event)
         }
         cs->exit();
     }
-
+    
     pd->enqueueMessages(stringArray, array.getName(), {});
     repaint();
 }
@@ -1132,19 +1136,19 @@ size_t GraphicalArray::getArraySize() const noexcept
 GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
 {
     setInterceptsMouseClicks(box->locked == false, true);
-
+    
     subpatch = gui.getPatch();
     updateCanvas();
-
+    
     box->resized();
-    box->textLabel.setVisible(false);
-
+    box->setLabelVisible(false);
+    
     resized();
 }
 
 GraphOnParent::~GraphOnParent()
 {
-    box->textLabel.setVisible(true);
+    box->setLabelVisible(true);
     closeOpenedSubpatchers();
 }
 
@@ -1163,7 +1167,7 @@ void GraphOnParent::mouseDown(const MouseEvent& e)
     GUIComponent::mouseDown(e);
     if (!isLocked)
     {
-        box->textLabel.mouseDown(e.getEventRelativeTo(&box->textLabel));
+        box->mouseDown(e.getEventRelativeTo(box));
     }
 }
 
@@ -1171,7 +1175,7 @@ void GraphOnParent::mouseDrag(const MouseEvent& e)
 {
     if (!isLocked)
     {
-        box->textLabel.mouseDrag(e.getEventRelativeTo(&box->textLabel));
+        box->mouseDrag(e.getEventRelativeTo(box));
     }
 }
 
@@ -1179,7 +1183,7 @@ void GraphOnParent::mouseUp(const MouseEvent& e)
 {
     if (!isLocked)
     {
-        box->textLabel.mouseUp(e.getEventRelativeTo(&box->textLabel));
+        box->mouseUp(e.getEventRelativeTo(box));
     }
 }
 
@@ -1192,13 +1196,13 @@ void GraphOnParent::updateCanvas()
     {
         canvas.reset(new Canvas(box->cnv->main, subpatch, true));
         addAndMakeVisible(canvas.get());
-
+        
         auto [x, y, w, h] = getPatch()->getBounds();
-
+        
         canvas->setBounds(-x, -y, w + x, h + y);
-
+        
         box->resized();
-
+        
         // Make sure that the graph doesn't become the current canvas
         box->cnv->patch.setCurrent(true);
         box->cnv->main.updateUndoState();
@@ -1206,10 +1210,10 @@ void GraphOnParent::updateCanvas()
     if (canvas)
     {
         auto [x, y, w, h] = getPatch()->getBounds();
-
+        
         canvas->checkBounds();
         canvas->setBounds(-x, -y, w + x, h + y);
-
+        
         auto parentBounds = box->getBounds();
         box->setSize(w, h);
     }
@@ -1218,9 +1222,9 @@ void GraphOnParent::updateCanvas()
 void GraphOnParent::updateValue()
 {
     updateCanvas();
-
+    
     if (!canvas) return;
-
+    
     for (auto& box : canvas->boxes)
     {
         if (box->graphics)
@@ -1234,7 +1238,7 @@ PanelComponent::PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : G
 {
     box->restrainer.setSizeLimits(40, 40, 2000, 2000);
     box->restrainer.checkComponentBounds(box);
-
+    
     initParameters(newObject);
 }
 
@@ -1250,7 +1254,7 @@ void Subpatch::updateValue()
     // In that case we tell the box to create the gui
     if (static_cast<t_canvas*>(gui.getPointer())->gl_isgraph)
     {
-        box->setType(box->textLabel.getText(), true);
+        box->setType(box->getText(), true);
     }
 };
 
@@ -1273,49 +1277,49 @@ void CommentComponent::paint(Graphics& g)
 MousePad::MousePad(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
 {
     Desktop::getInstance().addGlobalMouseListener(this);
-
+    
     // setInterceptsMouseClicks(box->locked, box->locked);
-
-    addMouseListener(&box->textLabel, false);
-    box->textLabel.setVisible(false);
+    
+    addMouseListener(box, false);
+    box->setLabelVisible(false);
 }
 
 MousePad::~MousePad()
 {
-    removeMouseListener(&box->textLabel);
-    box->textLabel.setVisible(true);
+    removeMouseListener(box);
+    box->setLabelVisible(true);
     Desktop::getInstance().removeGlobalMouseListener(this);
 }
 
 void MousePad::paint(Graphics& g){
-
+    
 };
 
 void MousePad::updateValue(){
-
+    
 };
 
 void MousePad::mouseDown(const MouseEvent& e)
 {
     GUIComponent::mouseDown(e);
     if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
-
+    
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
-
+    
     auto relativeEvent = e.getEventRelativeTo(this);
-
+    
     // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
     x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
     x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
-
+    
     SETFLOAT(at, 1.0f);
     sys_lock();
     outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
     sys_unlock();
-
+    
     isPressed = true;
-
+    
     // glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
 }
 
@@ -1327,19 +1331,19 @@ void MousePad::mouseDrag(const MouseEvent& e)
 void MousePad::mouseMove(const MouseEvent& e)
 {
     if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
-
+    
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[3];
-
+    
     auto relativeEvent = e.getEventRelativeTo(this);
-
+    
     // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
     x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
     x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
-
+    
     SETFLOAT(at, x->x_x);
     SETFLOAT(at + 1, x->x_y);
-
+    
     sys_lock();
     outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
     sys_unlock();
@@ -1348,7 +1352,7 @@ void MousePad::mouseMove(const MouseEvent& e)
 void MousePad::mouseUp(const MouseEvent& e)
 {
     if (!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) return;
-
+    
     auto* x = static_cast<t_pad*>(gui.getPointer());
     t_atom at[1];
     SETFLOAT(at, 0);
@@ -1379,26 +1383,26 @@ void MouseComponent::mouseMove(const MouseEvent& e)
 {
     // Do this with a mouselistener?
     auto pos = Desktop::getInstance().getMousePosition();
-
+    
     if (Desktop::getInstance().getMouseSource(0)->isDragging())
     {
         t_atom args[1];
         SETFLOAT(args, 0);
-
+        
         pd_typedmess((t_pd*)gui.getPointer(), gensym("_up"), 1, args);
     }
     else
     {
         t_atom args[1];
         SETFLOAT(args, 1);
-
+        
         pd_typedmess((t_pd*)gui.getPointer(), gensym("_up"), 1, args);
     }
-
+    
     t_atom args[2];
     SETFLOAT(args, pos.x);
     SETFLOAT(args + 1, pos.y);
-
+    
     pd_typedmess((t_pd*)gui.getPointer(), gensym("_getscreen"), 2, args);
 }
 
@@ -1414,10 +1418,10 @@ KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box, bool newObjec
 {
     keyboard.setAvailableRange(36, 83);
     keyboard.setScrollButtonsVisible(false);
-
+    
     state.addListener(this);
     addAndMakeVisible(keyboard);
-
+    
     box->restrainer.setSizeLimits(50, 70, 1200, 1200);
 }
 
@@ -1427,41 +1431,41 @@ void KeyboardComponent::resized()
 }
 
 void KeyboardComponent::updateValue(){
-
+    
 };
 
 void KeyboardComponent::handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity)
 {
     auto* x = (t_keyboard*)gui.getPointer();
-
+    
     box->cnv->pd->enqueueFunction(
-        [x, note, velocity]() mutable
-        {
-            int ac = 2;
-            t_atom at[2];
-            SETFLOAT(at, note);
-            SETFLOAT(at + 1, velocity * 127);
-
-            outlet_list(x->x_out, &s_list, ac, at);
-            if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-        });
+                                  [x, note, velocity]() mutable
+                                  {
+                                      int ac = 2;
+                                      t_atom at[2];
+                                      SETFLOAT(at, note);
+                                      SETFLOAT(at + 1, velocity * 127);
+                                      
+                                      outlet_list(x->x_out, &s_list, ac, at);
+                                      if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+                                  });
 }
 
 void KeyboardComponent::handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity)
 {
     auto* x = (t_keyboard*)gui.getPointer();
-
+    
     box->cnv->pd->enqueueFunction(
-        [x, note, velocity]() mutable
-        {
-            int ac = 2;
-            t_atom at[2];
-            SETFLOAT(at, note);
-            SETFLOAT(at + 1, 0);
-
-            outlet_list(x->x_out, &s_list, ac, at);
-            if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-        });
+                                  [x, note, velocity]() mutable
+                                  {
+                                      int ac = 2;
+                                      t_atom at[2];
+                                      SETFLOAT(at, note);
+                                      SETFLOAT(at + 1, 0);
+                                      
+                                      outlet_list(x->x_out, &s_list, ac, at);
+                                      if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+                                  });
 };
 
 #define CLOSED 1      /* polygon */
@@ -1511,33 +1515,33 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
     auto* glist = canvas->patch.getPointer();
     auto* x = (t_curve*)obj;
     auto* templ = template_findbyname(scalar->sc_template);
-
+    
     bool vis = true;
-
+    
     int i, n = x->x_npoints;
     t_fielddesc* f = x->x_vec;
-
+    
     auto* data = scalar->sc_vec;
-
+    
     /* see comment in plot_vis() */
     if (vis && !fielddesc_getfloat(&x->x_vis, templ, data, 0))
     {
         return;
     }
-
+    
     // Reduce clip region
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
     auto bounds = canvas->getParentComponent()->getLocalBounds().withPosition(pos);
-
+    
     Path toDraw;
-
+    
     if (vis)
     {
         if (n > 1)
         {
             int flags = x->x_flags, closed = (flags & CLOSED);
             t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
-
+            
             char outline[20], fill[20];
             int pix[200];
             if (n > 100) n = 100;
@@ -1553,25 +1557,25 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
                 canvas->pd->getCallbackLock()->exit();
-
+                
                 pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;
             }
             if (width < 1) width = 1;
             if (glist->gl_isgraph) width *= glist_getzoom(glist);
-
+            
             numbertocolor(fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1), outline);
             if (flags & CLOSED)
             {
                 numbertocolor(fielddesc_getfloat(&x->x_fillcolor, templ, data, 1), fill);
-
+                
                 // sys_vgui(".x%lx.c create polygon\\\n",
                 //     glist_getcanvas(glist));
             }
             // else sys_vgui(".x%lx.c create line\\\n", glist_getcanvas(glist));
-
+            
             // sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
-
+            
             if (flags & CLOSED)
             {
                 toDraw.startNewSubPath(pix[0], pix[1]);
@@ -1589,14 +1593,14 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
                     toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
                 }
             }
-
+            
             Colour juceColourOutline = Colour::fromString("FF" + String::fromUTF8(outline + 1));
             Colour juceColourFill = Colour::fromString("FF" + String::fromUTF8(fill + 1));
-
+            
             g.setColour(juceColourFill);
-
+            
             // sys_vgui("-width %f\\\n", width);
-
+            
             String objName = String::fromUTF8(x->x_obj.te_g.g_pd->c_name->s_name);
             if (objName.contains("fill"))
             {
@@ -1606,12 +1610,12 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
             {
                 g.strokePath(toDraw, PathStrokeType(width));
             }
-
+            
             if (flags & BEZ)
             {
                 // sys_vgui("-smooth 1\\\n")
             };
-
+            
             // sys_vgui("-tags curve%lx\n", data);
         }
         else

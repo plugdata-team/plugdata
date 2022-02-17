@@ -21,8 +21,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     
     toolbarButtons = {new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide)};
     
-    hideButton = toolbarButtons[8];
-    
     addKeyListener(&statusbar);
     
     pd.locked.addListener(this);
@@ -113,32 +111,32 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     };
 
     // Open button
-    toolbarButtons[1]->setTooltip("Open Project");
-    toolbarButtons[1]->onClick = [this]() { openProject(); };
+    toolbarButton(Open)->setTooltip("Open Project");
+    toolbarButton(Open)->onClick = [this]() { openProject(); };
 
     // Save button
-    toolbarButtons[2]->setTooltip("Save Project");
-    toolbarButtons[2]->onClick = [this]() { saveProject(); };
+    toolbarButton(Save)->setTooltip("Save Project");
+    toolbarButton(Save)->onClick = [this]() { saveProject(); };
 
     // Save Ad button
-    toolbarButtons[3]->setTooltip("Save Project as");
-    toolbarButtons[3]->onClick = [this]() { saveProjectAs(); };
+    toolbarButton(SaveAs)->setTooltip("Save Project as");
+    toolbarButton(SaveAs)->onClick = [this]() { saveProjectAs(); };
 
     //  Undo button
-    toolbarButtons[4]->setTooltip("Undo");
-    toolbarButtons[4]->onClick = [this]() { getCurrentCanvas()->undo(); };
+    toolbarButton(Undo)->setTooltip("Undo");
+    toolbarButton(Undo)->onClick = [this]() { getCurrentCanvas()->undo(); };
 
     // Redo button
-    toolbarButtons[5]->setTooltip("Redo");
-    toolbarButtons[5]->onClick = [this]() { getCurrentCanvas()->redo(); };
+    toolbarButton(Redo)->setTooltip("Redo");
+    toolbarButton(Redo)->onClick = [this]() { getCurrentCanvas()->redo(); };
 
     // New object button
-    toolbarButtons[6]->setTooltip("Create Object");
-    toolbarButtons[6]->onClick = [this]() { showNewObjectMenu(); };
+    toolbarButton(New)->setTooltip("Create Object");
+    toolbarButton(New)->onClick = [this]() { showNewObjectMenu(); };
 
     // Show settings
-    toolbarButtons[7]->setTooltip("Settings");
-    toolbarButtons[7]->onClick = [this]()
+    toolbarButton(Settings)->setTooltip("Settings");
+    toolbarButton(Settings)->onClick = [this]()
     {
         // By initialising after the first click we prevent it possibly hanging because audio hasn't started yet
         if (!settingsDialog)
@@ -164,21 +162,21 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     };
 
     // Hide sidebar
-    hideButton->setTooltip("Hide Sidebar");
-    hideButton->setName("toolbar:hide");
-    hideButton->setClickingTogglesState(true);
-    hideButton->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    hideButton->setConnectedEdges(12);
-    hideButton->onClick = [this]()
+    toolbarButton(Hide)->setTooltip("Hide Sidebar");
+    toolbarButton(Hide)->setName("toolbar:hide");
+    toolbarButton(Hide)->setClickingTogglesState(true);
+    toolbarButton(Hide)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    toolbarButton(Hide)->setConnectedEdges(12);
+    toolbarButton(Hide)->onClick = [this]()
     {
-        sidebar.showSidebar(!hideButton->getToggleState());
-        hideButton->setButtonText(hideButton->getToggleState() ? Icons::Show : Icons::Hide);
+        sidebar.showSidebar(!toolbarButton(Hide)->getToggleState());
+        toolbarButton(Hide)->setButtonText(toolbarButton(Hide)->getToggleState() ? Icons::Show : Icons::Hide);
 
         repaint();
         resized();
     };
 
-    addAndMakeVisible(hideButton);
+    addAndMakeVisible(toolbarButton(Hide));
 
     // window size limits
     restrainer.setSizeLimits(700, 300, 4000, 4000);
@@ -189,6 +187,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    
+    tabbar.toFront(false);
 
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
@@ -312,7 +312,7 @@ void PlugDataPluginEditor::showNewObjectMenu()
         cnv->boxes.add(new Box(cnv, boxName, cnv->viewport->getViewArea().getCentre()));
     };
 
-    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButtons[5]).withParentComponent(this), ModalCallbackFunction::create(callback));
+    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButton(Add)).withParentComponent(this), ModalCallbackFunction::create(callback));
 }
 
 void PlugDataPluginEditor::paint(Graphics& g)
@@ -375,7 +375,7 @@ void PlugDataPluginEditor::resized()
     }
 
     Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sidebar.getWidth() + 60.0f, static_cast<float>(toolbarHeight)};
-    if (hideButton->getToggleState()) toolbarBounds.setWidth(getWidth() - 50.0f);
+    if (toolbarButton(Hide)->getToggleState()) toolbarBounds.setWidth(getWidth() - 50.0f);
 
     fb.performLayout(toolbarBounds);
 
@@ -385,7 +385,7 @@ void PlugDataPluginEditor::resized()
         toolbarButtons[b]->setVisible((toolbarButtons[b]->getBounds().getCentreX()) < getWidth() - sidebar.getWidth());
     }
 
-    hideButton->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
+    toolbarButton(Hide)->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
 
 
     resizer->setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
@@ -595,7 +595,7 @@ void PlugDataPluginEditor::updateValues()
 // Called by the hook in pd_inter, on pd's thread!
 void PlugDataPluginEditor::updateUndoState()
 {
-    MessageManager::callAsync([this]() { toolbarButtons[6]->setEnabled(pd.locked == false); });
+    MessageManager::callAsync([this]() { toolbarButton(Add)->setEnabled(pd.locked == false); });
 
     if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && pd.locked == false)
     {
@@ -613,15 +613,15 @@ void PlugDataPluginEditor::updateUndoState()
                 MessageManager::callAsync(
                     [this, canUndo, canRedo]() mutable
                     {
-                        toolbarButtons[4]->setEnabled(canUndo);
-                        toolbarButtons[5]->setEnabled(canRedo);
+                        toolbarButton(Undo)->setEnabled(canUndo);
+                        toolbarButton(Redo)->setEnabled(canRedo);
                     });
             });
     }
     else
     {
-        toolbarButtons[4]->setEnabled(false);
-        toolbarButtons[5]->setEnabled(false);
+        toolbarButton(Undo)->setEnabled(false);
+        toolbarButton(Redo)->setEnabled(false);
     }
 }
 
