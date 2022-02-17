@@ -64,7 +64,7 @@ class Object
     //! @brief The name of the help file
     Patch getHelp() const;
 
-    void setWidth(int width);
+    virtual void setSize(int width, int height);
 
     int getWidth() const;
 

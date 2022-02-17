@@ -648,29 +648,39 @@ std::array<int, 4> Gui::getBounds() const noexcept
     if (type == Type::Panel)
     {
         auto const bounds = Object::getBounds();
-        return {zoom(bounds[0]), zoom(bounds[1]), zoom(static_cast<t_my_canvas*>(ptr)->x_vis_w) + 1, zoom(static_cast<t_my_canvas*>(ptr)->x_vis_h) + 1};
+        return {bounds[0], bounds[1], zoom(static_cast<t_my_canvas*>(ptr)->x_vis_w) + 1, zoom(static_cast<t_my_canvas*>(ptr)->x_vis_h) + 1};
+    }
+    if(type == Type::GraphOnParent){
+        auto* glist = static_cast<_glist*>(ptr);
+        auto const bounds = Object::getBounds();
+        return {bounds[0] + 4, bounds[1] + 4, zoom(glist->gl_pixwidth), zoom(glist->gl_pixheight)};
+    }
+    if(type == Type::Array) {
+        auto* glist = static_cast<_glist*>(ptr);
+        auto const bounds = Object::getBounds();
+        return {bounds[0], bounds[1], zoom(glist->gl_pixwidth), zoom(glist->gl_pixheight)};
     }
     else if (type == Type::AtomNumber || type == Type::AtomSymbol)
     {
         auto const bounds = Object::getBounds();
-        return {zoom(bounds[0]), zoom(bounds[1]), zoom(bounds[2]), zoom(bounds[3]) - 2};
+        return {bounds[0], bounds[1], bounds[2], bounds[3] - 2};
     }
     else if (type == Type::Comment)
     {
         auto const bounds = Object::getBounds();
-        return {zoom(bounds[0]) + 2, zoom(bounds[1]) + 2, zoom(bounds[2]), zoom(bounds[3]) - 2};
+        return {bounds[0] + 2, bounds[1] + 2, bounds[2], bounds[3] - 2};
     }
     else if (isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         auto const bounds = Object::getBounds();
-        return {zoom(bounds[0]), zoom(bounds[1]), zoom(iemgui->x_w), zoom(iemgui->x_h)};
+        return {bounds[0], bounds[1], zoom(iemgui->x_w), zoom(iemgui->x_h)};
     }
 
     return Object::getBounds();
 }
 
-void Gui::setSize(int w, int h) noexcept
+void Gui::setSize(int w, int h)
 {
     w /= Patch::zoom;
     h /= Patch::zoom;
@@ -679,6 +689,10 @@ void Gui::setSize(int w, int h) noexcept
     {
         static_cast<t_my_canvas*>(ptr)->x_vis_w = w - 1;
         static_cast<t_my_canvas*>(ptr)->x_vis_h = h - 1;
+    }
+    if(type == Type::Array || type == Type::GraphOnParent) {
+        static_cast<_glist*>(ptr)->gl_pixwidth = w;
+        static_cast<_glist*>(ptr)->gl_pixheight = h;
     }
     else if (isIEM())
     {
@@ -689,7 +703,7 @@ void Gui::setSize(int w, int h) noexcept
     }
     else
     {
-        Object::setWidth(w);
+        Object::setSize(w, h);
     }
 }
 

@@ -164,7 +164,11 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
             getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
             getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-            getLookAndFeel().setColour(Slider::backgroundColourId, colour.brighter(0.14f));
+            
+            auto sliderBackground = Colour::fromString(secondaryColour.toString());
+            sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
+
+            getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
             repaint();
         }
@@ -648,6 +652,8 @@ struct GraphicalArray : public Component, public Timer
     std::atomic<bool> edited;
     bool error = false;
     const std::string stringArray = std::string("array");
+    
+    int lastIndex;
 
     PlugDataAudioProcessor* pd;
 };
@@ -672,6 +678,7 @@ struct ArrayComponent : public GUIComponent
         auto [x, y, w, h] = gui.getBounds();
         return {w, h};
     };
+    
 
    private:
     pd::Array graph;
@@ -762,11 +769,6 @@ struct CommentComponent : public GUIComponent
 
     void updateValue() override{};
 
-    void resized() override
-    {
-        gui.setSize(getWidth(), getHeight());
-    }
-
     std::pair<int, int> getBestSize() override
     {
         return {120, 4};
@@ -851,11 +853,6 @@ struct PanelComponent : public GUIComponent
     void paint(Graphics& g) override
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
-    }
-
-    void resized() override
-    {
-        gui.setSize(getWidth(), getHeight());
     }
 
     void updateValue() override{};
@@ -1014,6 +1011,8 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
 
     KeyboardComponent(const pd::Gui& gui, Box* box, bool newObject);
 
+    ~KeyboardComponent();
+    
     void paint(Graphics& g) override{};
 
     void updateValue() override;
@@ -1029,6 +1028,34 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         auto [x, y, w, h] = gui.getBounds();
         return {w - 28, h};
     };
+    
+    
+    ObjectParameters defineParameters() override
+    {
+        
+        return {
+            {"Lowest note", tInt, cGeneral, &rangeMin, {}},
+            {"Highest note", tInt, cGeneral, &rangeMax, {}}
+        };
+    };
+    
+    void valueChanged(Value& value) override
+    {
+        if(value.refersToSameSourceAs(rangeMin)) {
+            static_cast<t_keyboard*>(gui.getPointer())->x_low_c = static_cast<int>(value.getValue());
+            
+            keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
+        }
+        else if(value.refersToSameSourceAs(rangeMax)) {
+            /*
+            static_cast<t_keyboard*>(gui.getPointer())->x_octaves = static_cast<int>(value.getValue()); */
+            keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
+        }
+        
+    }
+    
+    Value rangeMin;
+    Value rangeMax;
 
     MidiKeyboardState state;
     MidiKeyboardComponent keyboard;
