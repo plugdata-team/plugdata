@@ -17,7 +17,6 @@ extern "C"
 #include <type_traits>
 #include <utility>
 
-#include "../Libraries/ff_meters/ff_meters.h"
 #include "Pd/PdGui.h"
 #include "Pd/PdPatch.h"
 #include "PluginProcessor.h"
