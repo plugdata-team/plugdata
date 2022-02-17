@@ -145,7 +145,7 @@ struct Inspector : public PropertyPanel
             String strValue = currentColour.toString();
             if (strValue.length() > 2)
             {
-                button.setButtonText(String("#") + strValue.substring(2));
+                button.setButtonText(String("#") + strValue.substring(2).toUpperCase());
             }
             button.setConnectedEdges(12);
             button.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
@@ -181,7 +181,7 @@ struct Inspector : public PropertyPanel
             button.setColour(TextButton::textColourOffId, textColour);
             button.setColour(TextButton::textColourOnId, textColour);
 
-            button.setButtonText(String("#") + currentColour.toString().substring(2));
+            button.setButtonText(String("#") + currentColour.toString().substring(2).toUpperCase());
         }
 
         void changeListenerCallback(ChangeBroadcaster* source) override
@@ -247,6 +247,10 @@ struct Inspector : public PropertyPanel
         void mouseDrag(const MouseEvent& e) override
         {
             if constexpr (!std::is_arithmetic<T>::value) return;
+            
+            // Skip for scientific notation
+            if(label.getText().contains("e")) return;
+            
 
             auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
             if (std::abs(inc) < 1.0f) return;
@@ -392,6 +396,11 @@ struct Console : public Component
         console->update();
     }
     
+    void deselect() {
+        console->selectedItem = -1;
+        repaint();
+    }
+    
     struct ConsoleComponent : public Component, public ComponentListener
     {
         std::array<TextButton, 5>& buttons;
@@ -435,7 +444,6 @@ struct Console : public Component
             return false;
         }
 
-       public:
         void update()
         {
             repaint();
@@ -473,7 +481,7 @@ struct Console : public Component
 
             for (int i = 0; i < xOffsets.size(); i++)
             {
-                if ((xOffsets[i] + 10) >= static_cast<float>(getWidth()))
+                if ((xOffsets[i] + 12) >= static_cast<float>(getWidth()))
                 {
                     for (int j = i + 1; j < xOffsets.size(); j++)
                     {
@@ -566,7 +574,6 @@ struct Console : public Component
         }
 
         // Get total height of messages, also taking multi-line messages into account
-        // TODO: pre-calculate the number of lines in messages!!
         int getTotalHeight()
         {
             bool showMessages = buttons[2].getToggleState();
@@ -599,6 +606,8 @@ struct Console : public Component
             update();
         }
 
+        int selectedItem = -1;
+        
        private:
         static Colour colourWithType(int type)
         {
@@ -610,7 +619,7 @@ struct Console : public Component
                 return Colours::red;
         }
 
-        int selectedItem = -1;
+       
 
        private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
@@ -740,6 +749,7 @@ void Sidebar::hideParameters()
 {
     inspector->setVisible(false);
     console->setVisible(true);
+    console->deselect();
 }
 
 bool Sidebar::isShowingConsole() const noexcept
