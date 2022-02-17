@@ -15,16 +15,12 @@
 
 extern JUCEApplicationBase* juce_CreateApplication();
 
-struct Identifiers
-{
-    static inline const Identifier connectionStyle = Identifier("ConnectionStyle");
-};
 
 struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
-class Canvas : public Component, public KeyListener, public MultiComponentDragger<Box>
+class Canvas : public Component, public MultiComponentDragger<Box>, public Value::Listener
 {
    public:
     Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
@@ -35,7 +31,6 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
     PlugDataAudioProcessor* pd;
 
     void paintOverChildren(Graphics&) override;
-    void resized() override;
 
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
@@ -44,42 +39,22 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
 
     void synchronise(bool updatePosition = true);
 
-    bool keyPressed(const KeyPress& key, Component* originatingComponent) override;
+    bool keyPressed(const KeyPress& key) override;
 
     void copySelection();
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
+    
+    void valueChanged(Value& v) override;
 
     void checkBounds();
 
-    void paint(Graphics& g) override
-    {
-        if (!isGraph)
-        {
-            g.fillAll(findColour(ComboBox::backgroundColourId));
-
-            g.setColour(findColour(ResizableWindow::backgroundColourId));
-            g.fillRect(zeroPosition.x, zeroPosition.y, getWidth(), getHeight());
-
-            // draw origin
-            g.setColour(Colour(100, 100, 100));
-            g.drawLine(zeroPosition.x - 1, zeroPosition.y, zeroPosition.x - 1, getHeight());
-            g.drawLine(zeroPosition.x, zeroPosition.y - 1, getWidth(), zeroPosition.y - 1);
-        }
-    }
+    void paint(Graphics& g) override;
 
     void deselectAll() override;
 
-    void focusGained(FocusChangeType cause) override
-    {
-        // This is necessary because in some cases, setting the canvas as current right before an action isn't enough
-        pd->setThis();
-        if (patch.getPointer())
-        {
-            patch.setCurrent(true);
-        }
-    }
+    void focusGained(FocusChangeType cause) override;
 
     void undo();
     void redo();
@@ -97,6 +72,9 @@ class Canvas : public Component, public KeyListener, public MultiComponentDragge
 
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
+    
+    Value locked;
+    Value connectionStyle;
 
     bool isGraph = false;
     bool isGraphChild = false;

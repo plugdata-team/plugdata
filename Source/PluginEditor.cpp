@@ -6,9 +6,9 @@
 
 #include "PluginEditor.h"
 
-#include <memory>
-
 #include "LookAndFeel.h"
+
+#include <memory>
 
 #include "Canvas.h"
 #include "Connection.h"
@@ -16,16 +16,26 @@
 #include "Edge.h"
 #include "x_libpd_mod_utils.h"
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), levelmeter(p.parameters, p.meterSource), sidebar(&p)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {
-    addKeyListener(this);
+    
+    toolbarButtons = {new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide)};
+    
+    hideButton = toolbarButtons[8];
+    
+    addKeyListener(&statusbar);
+    
+    pd.locked.addListener(this);
+    pd.zoomScale.addListener(this);
+    pd.settingsTree.getPropertyAsValue("LastChooserPath", nullptr).addListener(this);
+    
     setWantsKeyboardFocus(true);
 
     tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(ComboBox::backgroundColourId));
     tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(ComboBox::backgroundColourId));
     tabbar.setColour(TabbedComponent::outlineColourId, findColour(ComboBox::backgroundColourId));
 
-    addAndMakeVisible(levelmeter);
+    addAndMakeVisible(statusbar);
 
     tabbar.onTabChange = [this](int idx)
     {
@@ -59,113 +69,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
 
-    bypassButton.setTooltip("Bypass");
-    bypassButton.setClickingTogglesState(true);
-    bypassButton.setConnectedEdges(12);
-    bypassButton.setName("statusbar:bypass");
-    addAndMakeVisible(bypassButton);
-    bypassButton.onClick = [this]() { pd.setBypass(!bypassButton.getToggleState()); };
-
-    bypassButton.setToggleState(true, dontSendNotification);
-
-    lockButton.setTooltip("Lock");
-    lockButton.setClickingTogglesState(true);
-    lockButton.setConnectedEdges(12);
-    lockButton.setName("statusbar:lock");
-    lockButton.onClick = [this]()
+    
+    for (auto* button : toolbarButtons)
     {
-        pd.locked = lockButton.getToggleState();
-
-        for (auto& cnv : canvases)
-        {
-            cnv->deselectAll();
-            for (auto& connection : cnv->connections)
-            {
-                if (connection->isSelected)
-                {
-                    connection->isSelected = false;
-                    connection->repaint();
-                }
-            }
-        }
-
-        updateUndoState();
-
-        lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
-
-        sendChangeMessage();
-    };
-    addAndMakeVisible(lockButton);
-
-    lockButton.setButtonText(pd.locked ? Icons::Lock : Icons::Unlock);
-    lockButton.setToggleState(pd.locked, dontSendNotification);
-
-    connectionStyleButton.setTooltip("Enable segmented connections");
-    connectionStyleButton.setClickingTogglesState(true);
-    connectionStyleButton.setConnectedEdges(12);
-    connectionStyleButton.setName("statusbar:connectionstyle");
-    connectionStyleButton.onClick = [this]()
-    {
-        pd.settingsTree.setProperty(Identifiers::connectionStyle, connectionStyleButton.getToggleState(), nullptr);
-
-        connectionPathfind.setEnabled(connectionStyleButton.getToggleState());
-
-        for (auto& cnv : canvases)
-        {
-            for (auto* connection : cnv->connections)
-            {
-                connection->resized();
-                connection->repaint();
-            }
-        }
-    };
-
-    auto defaultConnectionStyle = static_cast<bool>(pd.settingsTree.getProperty(Identifiers::connectionStyle));
-    connectionStyleButton.setToggleState(defaultConnectionStyle, sendNotification);
-    addAndMakeVisible(connectionStyleButton);
-
-    connectionPathfind.setTooltip("Find best connection path");
-    connectionPathfind.setConnectedEdges(12);
-    connectionPathfind.setName("statusbar:findpath");
-    connectionPathfind.onClick = [this]()
-    {
-        for (auto& c : getCurrentCanvas()->connections)
-        {
-            if (c->isSelected)
-            {
-                c->applyPath(c->findPath());
-            }
-        }
-    };
-    connectionPathfind.setEnabled(defaultConnectionStyle);
-    addAndMakeVisible(connectionPathfind);
-
-    addAndMakeVisible(zoomLabel);
-    zoomLabel.setText("100%", dontSendNotification);
-    zoomLabel.setFont(Font(11));
-
-    zoomIn.setTooltip("Zoom In");
-    zoomIn.setConnectedEdges(12);
-    zoomIn.setName("statusbar:zoomin");
-    zoomIn.onClick = [this]() { zoom(true); };
-    addAndMakeVisible(zoomIn);
-
-    zoomOut.setTooltip("Zoom Out");
-    zoomOut.setConnectedEdges(12);
-    zoomOut.setName("statusbar:zoomout");
-    zoomOut.onClick = [this]() { zoom(false); };
-    addAndMakeVisible(zoomOut);
-
-    for (auto& button : toolbarButtons)
-    {
-        button.setName("toolbar:button");
-        button.setConnectedEdges(12);
+        button->setName("toolbar:button");
+        button->setConnectedEdges(12);
         addAndMakeVisible(button);
     }
 
     // New button
-    toolbarButtons[0].setTooltip("New Project");
-    toolbarButtons[0].onClick = [this]()
+    toolbarButtons[0]->setTooltip("New Project");
+    toolbarButtons[0]->onClick = [this]()
     {
         auto createFunc = [this]()
         {
@@ -199,32 +113,32 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     };
 
     // Open button
-    toolbarButtons[1].setTooltip("Open Project");
-    toolbarButtons[1].onClick = [this]() { openProject(); };
+    toolbarButtons[1]->setTooltip("Open Project");
+    toolbarButtons[1]->onClick = [this]() { openProject(); };
 
     // Save button
-    toolbarButtons[2].setTooltip("Save Project");
-    toolbarButtons[2].onClick = [this]() { saveProject(); };
+    toolbarButtons[2]->setTooltip("Save Project");
+    toolbarButtons[2]->onClick = [this]() { saveProject(); };
 
     // Save Ad button
-    toolbarButtons[3].setTooltip("Save Project as");
-    toolbarButtons[3].onClick = [this]() { saveProjectAs(); };
+    toolbarButtons[3]->setTooltip("Save Project as");
+    toolbarButtons[3]->onClick = [this]() { saveProjectAs(); };
 
     //  Undo button
-    toolbarButtons[4].setTooltip("Undo");
-    toolbarButtons[4].onClick = [this]() { getCurrentCanvas()->undo(); };
+    toolbarButtons[4]->setTooltip("Undo");
+    toolbarButtons[4]->onClick = [this]() { getCurrentCanvas()->undo(); };
 
     // Redo button
-    toolbarButtons[5].setTooltip("Redo");
-    toolbarButtons[5].onClick = [this]() { getCurrentCanvas()->redo(); };
+    toolbarButtons[5]->setTooltip("Redo");
+    toolbarButtons[5]->onClick = [this]() { getCurrentCanvas()->redo(); };
 
     // New object button
-    toolbarButtons[6].setTooltip("Create Object");
-    toolbarButtons[6].onClick = [this]() { showNewObjectMenu(); };
+    toolbarButtons[6]->setTooltip("Create Object");
+    toolbarButtons[6]->onClick = [this]() { showNewObjectMenu(); };
 
     // Show settings
-    toolbarButtons[7].setTooltip("Settings");
-    toolbarButtons[7].onClick = [this]()
+    toolbarButtons[7]->setTooltip("Settings");
+    toolbarButtons[7]->onClick = [this]()
     {
         // By initialising after the first click we prevent it possibly hanging because audio hasn't started yet
         if (!settingsDialog)
@@ -250,15 +164,15 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     };
 
     // Hide sidebar
-    hideButton.setTooltip("Hide Sidebar");
-    hideButton.setName("toolbar:hide");
-    hideButton.setClickingTogglesState(true);
-    hideButton.setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
-    hideButton.setConnectedEdges(12);
-    hideButton.onClick = [this]()
+    hideButton->setTooltip("Hide Sidebar");
+    hideButton->setName("toolbar:hide");
+    hideButton->setClickingTogglesState(true);
+    hideButton->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    hideButton->setConnectedEdges(12);
+    hideButton->onClick = [this]()
     {
-        sidebar.showSidebar(!hideButton.getToggleState());
-        hideButton.setButtonText(sidebarHidden ? Icons::Show : Icons::Hide);
+        sidebar.showSidebar(!hideButton->getToggleState());
+        hideButton->setButtonText(hideButton->getToggleState() ? Icons::Show : Icons::Hide);
 
         repaint();
         resized();
@@ -276,16 +190,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 
-#if JUCE_LINUX
-    startTimer(50);
-#endif
 }
-
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
-#if JUCE_LINUX
-    stopTimer();
-#endif
+    removeKeyListener(&statusbar);
+    pd.locked.removeListener(this);
+    pd.zoomScale.removeListener(this);
+    pd.settingsTree.getPropertyAsValue("LastChooserPath", nullptr).removeListener(this);
 }
 
 void PlugDataPluginEditor::showNewObjectMenu()
@@ -425,16 +336,18 @@ void PlugDataPluginEditor::paint(Graphics& g)
 
     // Statusbar background
     g.setColour(baseColour);
-    g.fillRect(0, getHeight() - statusbarHeight, getWidth(), statusbarHeight);
+    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
 }
 
 void PlugDataPluginEditor::resized()
 {
     int sbarY = toolbarHeight - 4;
 
-    tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth(), getHeight() - sbarY - statusbarHeight);
+    tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth(), getHeight() - sbarY - statusbar.getHeight());
 
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
+    
+    statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
@@ -444,9 +357,9 @@ void PlugDataPluginEditor::resized()
 
     for (int b = 0; b < 9; b++)
     {
-        auto& button = toolbarButtons[b];
+        auto* button = toolbarButtons[b];
 
-        auto item = FlexItem(button).withMinWidth(50.0f).withMinHeight(8.0f).withMaxWidth(80.0f);
+        auto item = FlexItem(*button).withMinWidth(50.0f).withMinHeight(8.0f).withMaxWidth(80.0f);
         item.flexGrow = 1.0f;
         item.flexShrink = 1.0f;
 
@@ -462,30 +375,18 @@ void PlugDataPluginEditor::resized()
     }
 
     Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sidebar.getWidth() + 60.0f, static_cast<float>(toolbarHeight)};
-    if (sidebarHidden) toolbarBounds.setWidth(getWidth() - 50.0f);
+    if (hideButton->getToggleState()) toolbarBounds.setWidth(getWidth() - 50.0f);
 
     fb.performLayout(toolbarBounds);
 
     // hide when they fall off the screen
     for (int b = 0; b < 8; b++)
     {
-        toolbarButtons[b].setVisible((toolbarButtons[b].getBounds().getCentreX()) < getWidth() - sidebarWidth);
+        toolbarButtons[b]->setVisible((toolbarButtons[b]->getBounds().getCentreX()) < getWidth() - sidebar.getWidth());
     }
 
-    hideButton.setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
+    hideButton->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
 
-    lockButton.setBounds(8, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-
-    connectionStyleButton.setBounds(43, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-    connectionPathfind.setBounds(70, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-
-    zoomLabel.setBounds(110, getHeight() - statusbarHeight, statusbarHeight * 2, statusbarHeight);
-    zoomIn.setBounds(150, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-    zoomOut.setBounds(178, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-
-    bypassButton.setBounds(getWidth() - sidebar.getWidth() - 40, getHeight() - statusbarHeight, statusbarHeight, statusbarHeight);
-
-    levelmeter.setBounds(getWidth() - sidebar.getWidth() - 150, getHeight() - statusbarHeight, 100, statusbarHeight);
 
     resizer->setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer->toFront(false);
@@ -494,80 +395,13 @@ void PlugDataPluginEditor::resized()
     pd.lastUIHeight = getHeight();
 }
 
-// We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...
-// This timer is only started on Linux
-void PlugDataPluginEditor::timerCallback()
-{
-    if (ModifierKeys::getCurrentModifiers().isCommandDown() && !lockButton.getToggleState())
-    {
-        pd.commandLocked = true;
-        sendChangeMessage();
-    }
 
-    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && pd.commandLocked)
-    {
-        pd.commandLocked = false;
-        sendChangeMessage();
-    }
-}
 
-bool PlugDataPluginEditor::keyStateChanged(bool isKeyDown, Component* originatingComponent)
-{
-    // Lock when command is down
-    auto mod = ComponentPeer::getCurrentModifiersRealtime();
-    if (isKeyDown && mod.isCommandDown() && !lockButton.getToggleState())
-    {
-        pd.commandLocked = true;
-        sendChangeMessage();
-    }
-
-    if (!mod.isCommandDown() && pd.commandLocked)
-    {
-        pd.commandLocked = false;
-        sendChangeMessage();
-    }
-
-    return false;  //  Never claim this event!
-}
-
-bool PlugDataPluginEditor::keyPressed(const KeyPress& key, Component* originatingComponent)
+bool PlugDataPluginEditor::keyPressed(const KeyPress& key)
 {
     auto* cnv = getCurrentCanvas();
 
-    // cmd-e
-    if (key == KeyPress('e', ModifierKeys::commandModifier, 0))
-    {
-        lockButton.triggerClick();
-        return true;
-    }
-
-    if (key == KeyPress('e', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
-    {
-        for (auto& connection : cnv->connections)
-        {
-            if (connection->isSelected)
-            {
-                connection->applyPath(connection->findPath());
-            }
-        }
-        return true;
-    }
-
-    // Zoom in
-    if (key.isKeyCode(61) && key.getModifiers().isCommandDown())
-    {
-        zoom(true);
-
-        return true;
-    }
-    // Zoom out
-    if (key.isKeyCode(45) && key.getModifiers().isCommandDown())
-    {
-        zoom(false);
-        return true;
-    }
-
-    if (pd.locked) return false;
+    if (pd.locked == true) return false;
 
     // Key shortcuts for creating objects
     if (key == KeyPress('n', ModifierKeys::noModifiers, 0))
@@ -761,9 +595,9 @@ void PlugDataPluginEditor::updateValues()
 // Called by the hook in pd_inter, on pd's thread!
 void PlugDataPluginEditor::updateUndoState()
 {
-    MessageManager::callAsync([this]() { toolbarButtons[6].setEnabled(!pd.locked); });
+    MessageManager::callAsync([this]() { toolbarButtons[6]->setEnabled(pd.locked == false); });
 
-    if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && !pd.locked)
+    if (getCurrentCanvas() && getCurrentCanvas()->patch.getPointer() && pd.locked == false)
     {
         auto* cnv = getCurrentCanvas()->patch.getPointer();
 
@@ -779,15 +613,15 @@ void PlugDataPluginEditor::updateUndoState()
                 MessageManager::callAsync(
                     [this, canUndo, canRedo]() mutable
                     {
-                        toolbarButtons[4].setEnabled(canUndo);
-                        toolbarButtons[5].setEnabled(canRedo);
+                        toolbarButtons[4]->setEnabled(canUndo);
+                        toolbarButtons[5]->setEnabled(canRedo);
                     });
             });
     }
     else
     {
-        toolbarButtons[4].setEnabled(false);
-        toolbarButtons[5].setEnabled(false);
+        toolbarButtons[4]->setEnabled(false);
+        toolbarButtons[5]->setEnabled(false);
     }
 }
 
@@ -897,18 +731,25 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     cnv->setVisible(true);
 }
 
-void PlugDataPluginEditor::zoom(bool zoomingIn)
+void PlugDataPluginEditor::valueChanged(Value& v)
 {
-    transform = transform.scaled(zoomingIn ? 1.1f : 1.0f / 1.1f);
-    for (auto& cnv : canvases) cnv->setTransform(transform);
-
-    int scale = ((std::abs(transform.mat00) + std::abs(transform.mat11)) / 2.0f) * 100.0f;
-    zoomLabel.setText(String(scale) + "%", dontSendNotification);
-    getCurrentCanvas()->checkBounds();
-}
-
-void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
-{
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    // Update undo state when locking/unlocking
+    if(v.refersToSameSourceAs(pd.locked)) {
+        updateUndoState();
+    }
+    // Update zoom
+    else if(v.refersToSameSourceAs(pd.zoomScale)) {
+        transform = AffineTransform().scaled(static_cast<float>(v.getValue()));
+        for(auto& canvas : canvases)  {
+            if(!canvas->isGraph) {
+                canvas->setTransform(transform);
+            }
+        }
+        getCurrentCanvas()->checkBounds();
+    }
+    // Update last filechooser path
+    else {
+        saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+        openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    }
 }

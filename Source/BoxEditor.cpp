@@ -37,7 +37,7 @@ String ClickLabel::getText(bool returnActiveEditorContents) const
 void ClickLabel::mouseDown(const MouseEvent& e)
 {
     auto* canvas = findParentComponentOfClass<Canvas>();
-    if (canvas->isGraph || canvas->pd->locked) return;
+    if (canvas->isGraph || canvas->pd->locked == true) return;
 
     isDown = true;
     canvas->handleMouseDown(box, e);
@@ -46,7 +46,7 @@ void ClickLabel::mouseDown(const MouseEvent& e)
 void ClickLabel::mouseUp(const MouseEvent& e)
 {
     auto* canvas = findParentComponentOfClass<Canvas>();
-    if (canvas->isGraph || canvas->pd->locked) return;
+    if (canvas->isGraph || canvas->pd->locked == true) return;
 
     isDown = false;
     dragger.handleMouseUp(box, e);
@@ -60,7 +60,7 @@ void ClickLabel::mouseUp(const MouseEvent& e)
 void ClickLabel::mouseDrag(const MouseEvent& e)
 {
     auto* canvas = findParentComponentOfClass<Canvas>();
-    if (canvas->isGraph || canvas->pd->locked) return;
+    if (canvas->isGraph || canvas->pd->locked == true) return;
 
     canvas->handleMouseDrag(e);
 }

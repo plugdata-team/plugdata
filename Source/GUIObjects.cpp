@@ -19,6 +19,8 @@ extern "C"
 #include "Edge.h"
 #include "PluginEditor.h"
 
+#include "LookAndFeel.h"
+
 // False GATOM
 typedef struct _fake_gatom
 {
@@ -115,7 +117,7 @@ void GUIComponent::lock(bool isLocked)
 
 void GUIComponent::mouseDown(const MouseEvent& e)
 {
-    if (box->cnv->pd->commandLocked)
+    if (box->commandLocked == true)
     {
         auto& sidebar = box->cnv->main.sidebar;
         inspectorWasVisible = !sidebar.isShowingConsole();
@@ -125,7 +127,7 @@ void GUIComponent::mouseDown(const MouseEvent& e)
 
 void GUIComponent::mouseUp(const MouseEvent& e)
 {
-    if (box->cnv->pd->commandLocked && inspectorWasVisible)
+    if (box->commandLocked == true && inspectorWasVisible)
     {
         box->cnv->main.sidebar.showParameters();
     }
@@ -444,15 +446,15 @@ void BangComponent::update()
         auto currentTime = Time::getCurrentTime().getMillisecondCounter();
         auto timeSinceLast = currentTime - lastBang;
 
-        int holdTime = int(bangHold.getValue());
+        int holdTime = bangHold.getValue();
 
-        if (timeSinceLast < int(bangHold.getValue()) * 2)
+        if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2)
         {
             holdTime = timeSinceLast / 2;
         }
-        if (holdTime < int(bangInterrupt.getValue()))
+        if (holdTime < bangInterrupt)
         {
-            holdTime = int(bangInterrupt.getValue());
+            holdTime = bangInterrupt.getValue();
         }
 
         lastBang = currentTime;
@@ -1129,7 +1131,7 @@ size_t GraphicalArray::getArraySize() const noexcept
 // Graph On Parent
 GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
 {
-    setInterceptsMouseClicks(!box->locked, true);
+    setInterceptsMouseClicks(box->locked == false, true);
 
     subpatch = gui.getPatch();
     updateCanvas();

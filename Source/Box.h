@@ -19,7 +19,7 @@ extern "C"
 #include "MultiComponentDragger.h"
 
 class Canvas;
-class Box : public Component, public ChangeListener
+class Box : public Component, public Value::Listener
 {
     bool isOver = false;
 
@@ -30,7 +30,7 @@ class Box : public Component, public ChangeListener
 
     ~Box() override;
 
-    void changeListenerCallback(ChangeBroadcaster* source) override;
+    void valueChanged(Value& v) override;
 
     void paint(Graphics&) override;
     void resized() override;
@@ -41,7 +41,8 @@ class Box : public Component, public ChangeListener
 
     int numInputs = 0;
     int numOutputs = 0;
-    bool locked = false;
+    Value locked;
+    Value commandLocked;
 
     ClickLabel textLabel;
 

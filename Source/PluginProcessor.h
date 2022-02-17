@@ -139,12 +139,13 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     File settingsFile = appDir.getChildFile("Settings.xml");
     File abstractions = appDir.getChildFile("Abstractions");
 
-    bool locked = false;
-    bool commandLocked = false;
+    Value locked = Value(var(false));
+    Value commandLocked = Value(var(false));
+    Value zoomScale = Value(1.0f);
 
     AudioProcessorValueTreeState parameters;
 
-    foleys::LevelMeterSource meterSource;
+    StatusbarSource statusbarSource;
 
    private:
     void processInternal();

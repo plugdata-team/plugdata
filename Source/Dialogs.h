@@ -7,7 +7,7 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include "LookAndFeel.h"
+
 
 class SaveDialog : public Component
 {
@@ -106,7 +106,7 @@ struct SettingsComponent : public Component
 
     int toolbarHeight = 50;
 
-    OwnedArray<TextButton> toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search)};
+    OwnedArray<TextButton> toolbarButtons;
 };
 
 struct SettingsDialog : public Component
