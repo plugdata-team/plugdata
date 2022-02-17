@@ -122,7 +122,13 @@ void Box::setType(const String& newType, bool exists)
         if (pdObject)
         {
             pdObject = pd->renameObject(pdObject.get(), newType);
-            cnv->synchronise(false);
+            
+            // Synchronise to make sure connections are preserved correctly
+            // Asynchronous because it could possibly delete this object
+            MessageManager::callAsync([this](){
+                cnv->synchronise(false);
+            });
+            
         }
         else
         {
@@ -160,10 +166,17 @@ void Box::setType(const String& newType, bool exists)
     {
         width = font.getStringWidth(newType) + 27;
     }
-
+    
     // Update inlets/outlets if it's not in a graph
     if (!cnv->isGraph) updatePorts();
+    
+    int largestSide = std::max(numInputs, numOutputs);
 
+    // Make sure we have enough space for inlets/outlets
+    if(width - 12 < largestSide * 16) {
+        width = (largestSide * 16) + 12;
+    }
+    
     if (pdObject)
     {
         // Create graphics for the object if necessary
@@ -179,28 +192,34 @@ void Box::setType(const String& newType, bool exists)
         {
             setSize(width, 34);
             setEditable(true);
+            hideLabel = false;
         }
         else if (graphics && !graphics->fakeGui())
         {
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
             setSize(w, h);
+            graphics->resized();
             graphics->toBack();
+            hideLabel = true;
             setEditable(false);
         }
         else if (!type.isEmpty())
         {
+            hideLabel = false;
             setEditable(true);
             setSize(width, 34);
         }
     }
     else
     {
+        hideLabel = false;
         setSize(width, 34);
     }
 
     if (type.isEmpty())
     {
+        hideLabel = false;
         setEditable(true);
         setSize(100, 34);
     }
@@ -211,14 +230,9 @@ void Box::setType(const String& newType, bool exists)
         setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
 
-    if (graphics && (graphics->getGui().isIEM() || graphics->getGui().getType() == pd::Type::Panel))
+    if (graphics && !graphics->fakeGui())
     {
         resizer.setBorderThickness({0, 0, 5, 5});
-    }
-    else if (graphics && graphics->getGui().getType() == pd::Type::GraphOnParent)
-    {
-        // Only allow resize on right, otherwise we have to edit the position
-        resizer.setBorderThickness({0, 0, 0, 0});
     }
     else
     {
@@ -292,13 +306,7 @@ void Box::resized()
     {
         graphics->setBounds(getLocalBounds().reduced(6));
     }
-
-    // Send current width to pd object
-    if (pdObject && (!graphics || !graphics->getGui().isIEM()))
-    {
-        pdObject->setWidth(getWidth() - 8);
-    }
-
+    
     auto bestWidth = font.getStringWidth(getText()) + 27;
 
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
@@ -307,18 +315,14 @@ void Box::resized()
         setSize(bestWidth + 30, (numLines * 17) + 14);
     }
 
-    // Init size for empty objects
     if (auto* editor = getCurrentTextEditor())
     {
-        if (editor->getText().isEmpty())
-        {
-            setSize(100, 34);
-        }
         editor->setBounds(getLocalBounds().reduced(6));
     }
 
     resizer.setBounds(getLocalBounds().reduced(5));
-
+    resizer.toFront(false);
+    
     int index = 0;
     for (auto& edge : edges)
     {
@@ -334,8 +338,6 @@ void Box::resized()
 
         index++;
     }
-
-    resizer.toFront(false);
 }
 
 void Box::updatePorts()
@@ -560,9 +562,4 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
     {
         editor->giveAwayKeyboardFocus();
     }
-}
-
-void Box::setLabelVisible(bool labelVisible)
-{
-    hideLabel = !labelVisible;
 }

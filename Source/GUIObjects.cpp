@@ -148,6 +148,12 @@ void GUIComponent::initParameters(bool newObject)
         primaryColour = findColour(Slider::thumbColourId).toString();
         secondaryColour = findColour(ComboBox::backgroundColourId).toString();
         labelColour = Colours::white.toString();
+        
+        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
+        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
+
+        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
+        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
 
         gui.setForegroundColour(findColour(Slider::thumbColourId));
         gui.setBackgroundColour(findColour(ComboBox::backgroundColourId));
@@ -477,7 +483,6 @@ void BangComponent::update()
 
 void BangComponent::resized()
 {
-    gui.setSize(box->getWidth(), box->getHeight());
     bangButton.setBounds(getLocalBounds().reduced(5));
 }
 
@@ -509,7 +514,6 @@ ToggleComponent::ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObje
 
 void ToggleComponent::resized()
 {
-    gui.setSize(box->getWidth(), box->getHeight());
     toggleButton.setBounds(getLocalBounds().reduced(6));
 }
 
@@ -705,6 +709,7 @@ NumboxComponent::NumboxComponent(const pd::Gui& pdGui, Box* parent, bool newObje
 
     box->restrainer.setSizeLimits(50, 30, 500, 30);
     box->restrainer.checkComponentBounds(box);
+    
 }
 
 void NumboxComponent::resized()
@@ -868,7 +873,6 @@ SliderComponent::~SliderComponent()
 
 void SliderComponent::resized()
 {
-    gui.setSize(box->getWidth(), box->getHeight());
     slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 3.0, isVertical ? 3.0 : 0.0));
 }
 
@@ -905,8 +909,6 @@ RadioComponent::RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent,
 
 void RadioComponent::resized()
 {
-    gui.setSize(box->getWidth(), box->getHeight());
-
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
     fb.justifyContent = FlexBox::JustifyContent::flexStart;
@@ -1003,7 +1005,6 @@ void GraphicalArray::paint(Graphics& g)
 
     if (error)
     {
-        // g.setFont(CamoLookAndFeel::getDefaultFont());
         g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
     }
     else
@@ -1065,29 +1066,48 @@ void GraphicalArray::mouseDown(const MouseEvent& e)
 {
     if (error) return;
     edited = true;
+    
+    const float s = static_cast<float>(vec.size() - 1);
+    const float w = static_cast<float>(getWidth());
+    const float x = static_cast<float>(e.x);
+    
+    const std::array<float, 2> scale = array.getScale();
+    lastIndex = static_cast<size_t>(std::round(clip(x / w, 0.f, 1.f) * s));
+    
+    
     mouseDrag(e);
 }
 
-void GraphicalArray::mouseDrag(const MouseEvent& event)
+void GraphicalArray::mouseDrag(const MouseEvent& e)
 {
     if (error) return;
     const float s = static_cast<float>(vec.size() - 1);
     const float w = static_cast<float>(getWidth());
     const float h = static_cast<float>(getHeight());
-    const float x = static_cast<float>(event.x);
-    const float y = static_cast<float>(event.y);
+    const float x = static_cast<float>(e.x);
+    const float y = static_cast<float>(e.y);
 
     const std::array<float, 2> scale = array.getScale();
-    const size_t index = static_cast<size_t>(std::round(clip(x / w, 0.f, 1.f) * s));
-    vec[index] = (1.f - clip(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
-
+    const int index = static_cast<int>(std::round(clip(x / w, 0.f, 1.f) * s));
+    
+    float start = vec[lastIndex];
+    float current = (1.f - clip(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
+    
     const CriticalSection* cs = pd->getCallbackLock();
 
     if (cs->tryEnter())
     {
         try
         {
-            array.write(index, vec[index]);
+            // Fix to make sure we don't leave any gaps while dragging
+            for(int n = index; n <= lastIndex; n++) {
+                vec[n] = jmap<float>(n, index, lastIndex + 1, current, start);
+                array.write(n, vec[n]);
+            }
+            for(int n = lastIndex; n <= index; n++) {
+                vec[n] = jmap<float>(n, lastIndex, index + 1, start, current);
+                array.write(n, vec[n]);
+            }
         }
         catch (...)
         {
@@ -1095,12 +1115,14 @@ void GraphicalArray::mouseDrag(const MouseEvent& event)
         }
         cs->exit();
     }
+    
+    lastIndex = index;
 
     pd->enqueueMessages(stringArray, array.getName(), {});
     repaint();
 }
 
-void GraphicalArray::mouseUp(const MouseEvent& event)
+void GraphicalArray::mouseUp(const MouseEvent& e)
 {
     if (error) return;
     edited = false;
@@ -1141,14 +1163,13 @@ GraphOnParent::GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : G
     updateCanvas();
 
     box->resized();
-    box->setLabelVisible(false);
+    box->restrainer.setSizeLimits(25, 25, 500, 500);
 
     resized();
 }
 
 GraphOnParent::~GraphOnParent()
 {
-    box->setLabelVisible(true);
     closeOpenedSubpatchers();
 }
 
@@ -1213,9 +1234,6 @@ void GraphOnParent::updateCanvas()
 
         canvas->checkBounds();
         canvas->setBounds(-x, -y, w + x, h + y);
-
-        auto parentBounds = box->getBounds();
-        box->setSize(w, h);
     }
 }
 
@@ -1281,13 +1299,11 @@ MousePad::MousePad(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(
     // setInterceptsMouseClicks(box->locked, box->locked);
 
     addMouseListener(box, false);
-    box->setLabelVisible(false);
 }
 
 MousePad::~MousePad()
 {
     removeMouseListener(box);
-    box->setLabelVisible(true);
     Desktop::getInstance().removeGlobalMouseListener(this);
 }
 
@@ -1423,10 +1439,20 @@ KeyboardComponent::KeyboardComponent(const pd::Gui& gui, Box* box, bool newObjec
     addAndMakeVisible(keyboard);
 
     box->restrainer.setSizeLimits(50, 70, 1200, 1200);
+    
+    rangeMax.addListener(this);
+    rangeMin.addListener(this);
+}
+
+KeyboardComponent::~KeyboardComponent()
+{
+    rangeMax.removeListener(this);
+    rangeMin.removeListener(this);
 }
 
 void KeyboardComponent::resized()
 {
+    
     keyboard.setBounds(getLocalBounds());
 }
 

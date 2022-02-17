@@ -85,7 +85,7 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour(c.withAlpha(0.5f));
+                    g.setColour(Colours::darkgrey);
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 

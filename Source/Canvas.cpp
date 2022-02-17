@@ -823,30 +823,12 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
         };
 
-        auto showMenu = [this, callback](Box* box)
+        if (auto* box = dynamic_cast<Box*>(source))
         {
             if (box->getCurrentTextEditor()) return;
-            auto options = PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main);
-
-            options = options.withTargetComponent(box);
-            popupMenu.showMenuAsync(options, ModalCallbackFunction::create(callback));
-        };
-
-        if (auto* box = source->findParentComponentOfClass<Box>())
-        {
-            showMenu(box);
         }
-        else if (auto* box = dynamic_cast<Box*>(source))
-        {
-            showMenu(box);
-        }
-        else if (source == this)
-        {
-            auto options = PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main);
 
-            options = options.withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 100, 100));
-            popupMenu.showMenuAsync(options, ModalCallbackFunction::create(callback));
-        }
+        popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main).withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 2, 2)), ModalCallbackFunction::create(callback));
     }
 }
 
