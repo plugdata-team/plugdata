@@ -248,7 +248,7 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 #if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
     return true;
-#else
+#endif
     /*
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
@@ -264,29 +264,22 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
     return true;
 #endif */
     
+    //if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet()) return false;
     
     
-     // One input bus: stereo or disabled
-         if (layouts.inputBuses.size() != numInputBuses)
-             return false;
+    // One input bus: stereo or disabled
+    if (layouts.inputBuses.size() != numInputBuses) return false;
+    for (auto& ib : layouts.inputBuses)
+        if (ib != AudioChannelSet::stereo() && !ib.isDisabled()) return false;
     
-        /*
-         for (auto& ib : layouts.inputBuses)
-             if (ib.isDisabled())
-                 return false; */
-         
-         // Exactly our specified number of output buses, stereo or disabled
-         if (layouts.outputBuses.size() != numOutputBuses)
-             return false;
-    
-    /*
-         for (auto& ob : layouts.outputBuses)
-             if (ob.isDisabled())
-                 return false; */
+    // Exactly our specified number of output buses, stereo or disabled
+    if (layouts.outputBuses.size() != numOutputBuses) return false;
+    for (auto& ob : layouts.outputBuses)
+        if (ob != AudioChannelSet::stereo() && !ob.isDisabled()) return false;
 
-         return true;
+    return true;
 }
-#endif
+
 
 void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
@@ -310,16 +303,8 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
-    // In case we have more outputs than inputs, this code clears any output
-    // channels that didn't contain input data, (because these aren't
-    // guaranteed to be empty - they may contain garbage).
-    // This is here to avoid people getting screaming feedback
-    // when they first compile a plugin, but obviously you don't need to keep
-    // this code if your algorithm always overwrites all the output channels.
-    for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i) buffer.clear(i, 0, buffer.getNumSamples());
-
     auto const maxOuts = std::max(minOut, buffer.getNumChannels());
-    for (int i = minIn; i < maxOuts; ++i)
+    for(int i = minIn; i < maxOuts; ++i)
     {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
@@ -337,31 +322,9 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         }
     }
 
-    processingBuffer.setSize(2, buffer.getNumSamples());
-
-    // If we're an AU MIDI processor!
-    if (buffer.getNumChannels() == 0)
-    {
-        processingBuffer.clear();
-    }
-    else
-    {
-        processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
-        processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
-    }
-
     midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
 
-    process(processingBuffer, midiMessages);
-
-    if (buffer.getNumChannels() != 0)
-    {
-        buffer.copyFrom(0, 0, processingBuffer, 0, 0, buffer.getNumSamples());
-    }
-    if (totalNumOutputChannels == 2)
-    {
-        buffer.copyFrom(1, 0, processingBuffer, 1, 0, buffer.getNumSamples());
-    }
+    process(buffer, midiMessages);
 
     buffer.applyGain(getParameters()[0]->getValue());
 

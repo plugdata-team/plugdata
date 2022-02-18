@@ -691,6 +691,8 @@ String Patch::getTitle() const
 
 void Patch::setTitle(const String& title)
 {
+    if(!getPointer()) return;
+    
     canvas_unbind(getPointer());
     getPointer()->gl_name = gensym(title.toRawUTF8());
     canvas_bind(getPointer());
