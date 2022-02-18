@@ -23,6 +23,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
    public:
     PlugDataAudioProcessor();
     ~PlugDataAudioProcessor() override;
+    
+    AudioProcessor::BusesProperties buildBusesProperties();
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
@@ -120,7 +122,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void loadPatch(File patch) override;
 
     void titleChanged() override;
-
+    
     // All opened patches
     Array<pd::Patch> patches;
 
@@ -162,13 +164,19 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     MidiBuffer midiBufferIn;
     MidiBuffer midiBufferOut;
     MidiBuffer midiBufferTemp;
+    MidiBuffer midiBufferCopy;
 
     bool midiByteIsSysex = false;
     uint8 midiByteBuffer[512] = {0};
     size_t midiByteIndex = 0;
 
-    std::array<std::atomic<float>*, 8> parameterValues = {nullptr};
-    std::array<float, 8> lastParameters = {0};
+    
+    static inline constexpr int numParameters = 512;
+    static inline constexpr int numInputBuses = 8;
+    static inline constexpr int numOutputBuses = 8;
+    
+    std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
+    std::array<float, numParameters> lastParameters = {0};
 
     int minIn = 2;
     int minOut = 2;

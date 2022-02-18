@@ -84,6 +84,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDoubleClick(const MouseEvent&) override;
 
     bool hideLabel = false;
+    
+    
 
     Value textValue;
     String lastTextValue;

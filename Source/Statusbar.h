@@ -27,6 +27,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
     bool keyStateChanged(bool isKeyDown, Component*) override;
 
     void zoom(bool zoomIn);
+    void zoom(float zoomAmount);
 
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
