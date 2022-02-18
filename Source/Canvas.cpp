@@ -1175,8 +1175,8 @@ void Canvas::checkBounds()
     // Check new bounds
     int minX = zeroPosition.x;
     int minY = zeroPosition.y;
-    int maxX = std::max(getWidth() - minX, viewWidth);
-    int maxY = std::max(getHeight() - minY, viewHeight);
+    int maxX = viewWidth * static_cast<float>(pd->zoomScale.getValue());
+    int maxY = viewHeight * static_cast<float>(pd->zoomScale.getValue());
 
     for (auto obj : boxes)
     {

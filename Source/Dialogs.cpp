@@ -472,7 +472,7 @@ struct SettingsDialog : public Component
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
 
         setCentrePosition(400, 400);
-        setSize(600, 500);
+        setSize(600, 550);
 
         setVisible(false);
 
