@@ -27,19 +27,14 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [Camomile](https://github.com/pierreguillot/Camomile) by Pierre Guillot
 - [ELSE](https://github.com/porres/pd-else) by Alexandre Torres Porres
 - [cyclone](https://github.com/porres/pd-cyclone) by Krzysztof Czaja, Hans-Christoph Steiner, Fred Jan Kraan, Alexandre Torres Porres, Derek Kwan, Matt Barber and others (note: Cyclone is included to offer an easy entry point for Max users but ELSE contains several alternatives to objects in Cyclone and Pure Data Vanilla itself also has some alternatives. Not only that, but objects that weren't cloned into Cyclone also have alternatives in ELSE, see: [this](https://github.com/porres/pd-else/wiki/Cyclone-alternatives))
-
-
-
 - [Pure Data](https://puredata.info) by Miller Puckette and others
 - [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
-- [ff_meters](https://github.com/ffAudio/ff_meters) by Foleys Finest Audio
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
 - [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
 - [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
 - [Audio Unit PlugIn Technology](https://developer.apple.com/documentation/audiounit) by Apple
 - [Juce LV2 interface](http://www.falktx.com) by Filipe Coelho
-- [Multi-Dragger](https://github.com/jcredland/juce-multi-component-dragger) by Jim Credland
 
 ## Status
 What works:
