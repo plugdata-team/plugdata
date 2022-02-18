@@ -5,6 +5,8 @@
  */
 #pragma once
 
+#include <JuceHeader.h>
+
 #include <array>
 #include <cstddef>
 #include <string>
@@ -74,7 +76,7 @@ class Object
     }
 
     //! @brief The bounds of the Object.
-    virtual std::array<int, 4> getBounds() const noexcept;
+    virtual Rectangle<int> getBounds() const noexcept;
 
     void* getPointer() const noexcept
     {

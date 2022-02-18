@@ -89,18 +89,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
         if (pd.isDirty())
         {
-            SaveDialog::show(this,
-                             [this, createFunc](int result)
-                             {
-                                 if (result == 2)
-                                 {
-                                     saveProject([createFunc]() mutable { createFunc(); });
-                                 }
-                                 else if (result == 1)
-                                 {
-                                     createFunc();
-                                 }
-                             });
+            Dialogs::showSaveDialog(this,
+                                    [this, createFunc](int result)
+                                    {
+                                        if (result == 2)
+                                        {
+                                            saveProject([createFunc]() mutable { createFunc(); });
+                                        }
+                                        else if (result == 1)
+                                        {
+                                            createFunc();
+                                        }
+                                    });
         }
         else
         {
@@ -143,11 +143,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
             if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone)
             {
                 auto pluginHolder = StandalonePluginHolder::getInstance();
-                settingsDialog = std::make_unique<SettingsDialog>(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
+
+                settingsDialog = Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
             }
             else
             {
-                settingsDialog = std::make_unique<SettingsDialog>(pd, nullptr, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
+                settingsDialog = Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree, [this]() { pd.updateSearchPaths(); });
             }
         }
 
@@ -198,118 +199,30 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 
 void PlugDataPluginEditor::showNewObjectMenu()
 {
-    PopupMenu menu;
-
-    menu.addItem(16, "Empty Object");
-    menu.addSeparator();
-
-    menu.addItem(1, "Numbox");
-    menu.addItem(2, "Message");
-    menu.addItem(3, "Bang");
-    menu.addItem(4, "Toggle");
-    menu.addItem(5, "Horizontal Slider");
-    menu.addItem(6, "Vertical Slider");
-    menu.addItem(7, "Horizontal Radio");
-    menu.addItem(8, "Vertical Radio");
-
-    menu.addSeparator();
-
-    menu.addItem(9, "Float Atom");    // 11
-    menu.addItem(10, "Symbol Atom");  // 12
-
-    menu.addSeparator();
-
-    menu.addItem(11, "Array");          // 9
-    menu.addItem(12, "GraphOnParent");  // 13
-    menu.addItem(13, "Comment");        // 14
-    menu.addItem(14, "Canvas");         // 10
-    menu.addSeparator();
-    menu.addItem(15, "Keyboard");
-
-    auto callback = [this](int choice)
+    std::function<void(String)> callback = [this](String result)
     {
-        if (choice < 1) return;
-
-        String boxName;
-
-        switch (choice)
-        {
-            case 1:
-                boxName = "nbx";
-                break;
-
-            case 2:
-                boxName = "msg";
-                break;
-
-            case 3:
-                boxName = "bng";
-                break;
-
-            case 4:
-                boxName = "tgl";
-                break;
-
-            case 5:
-                boxName = "hsl";
-                break;
-
-            case 6:
-                boxName = "vsl";
-                break;
-
-            case 7:
-                boxName = "hradio";
-                break;
-
-            case 8:
-                boxName = "vradio";
-                break;
-            case 9:
-                boxName = "floatatom";
-                break;
-
-            case 10:
-                boxName = "symbolatom";
-                break;
-
-            case 11:
-            {
-                ArrayDialog::show(this,
-                                  [this](int result, const String& name, const String& size)
-                                  {
-                                      if (result)
-                                      {
-                                          auto* cnv = getCurrentCanvas();
-                                          auto* box = new Box(cnv, "graph " + name + " " + size, cnv->lastMousePos);
-                                          cnv->boxes.add(box);
-                                      }
-                                  });
-                return;
-            }
-            case 12:
-                boxName = "graph";
-                break;
-
-            case 13:
-                boxName = "comment";
-                break;
-            case 14:
-                boxName = "cnv";
-                break;
-            case 15:
-                boxName = "keyboard";
-                break;
-            default:
-                break;
-        }
-
         auto* cnv = getCurrentCanvas();
 
-        cnv->boxes.add(new Box(cnv, boxName, cnv->viewport->getViewArea().getCentre()));
+        if (result == "array")
+        {
+            Dialogs::showArrayDialog(this,
+                                     [this](int result, const String& name, const String& size)
+                                     {
+                                         if (result)
+                                         {
+                                             auto* cnv = getCurrentCanvas();
+                                             auto* box = new Box(cnv, "graph " + name + " " + size, cnv->lastMousePos);
+                                             cnv->boxes.add(box);
+                                         }
+                                     });
+        }
+        else
+        {
+            cnv->boxes.add(new Box(cnv, result, cnv->viewport->getViewArea().getCentre()));
+        }
     };
 
-    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(toolbarButton(Add)).withParentComponent(this), ModalCallbackFunction::create(callback));
+    Dialogs::showObjectMenu(this, toolbarButton(Add), callback);
 }
 
 void PlugDataPluginEditor::paint(Graphics& g)
@@ -517,18 +430,18 @@ void PlugDataPluginEditor::openProject()
 
     if (pd.isDirty())
     {
-        SaveDialog::show(this,
-                         [this, openFunc](int result)
-                         {
-                             if (result == 2)
-                             {
-                                 saveProject([this, openFunc]() mutable { openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
-                             }
-                             else if (result != 0)
-                             {
-                                 openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
-                             }
-                         });
+        Dialogs::showSaveDialog(this,
+                                [this, openFunc](int result)
+                                {
+                                    if (result == 2)
+                                    {
+                                        saveProject([this, openFunc]() mutable { openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
+                                    }
+                                    else if (result != 0)
+                                    {
+                                        openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+                                    }
+                                });
     }
     else
     {

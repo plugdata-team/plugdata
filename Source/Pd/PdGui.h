@@ -81,7 +81,7 @@ class Gui : public Object
 
     void click() noexcept;
 
-    std::array<int, 4> getBounds() const noexcept override;
+    Rectangle<int> getBounds() const noexcept override;
     void setSize(int w, int h) override;
 
     bool jumpOnClick() const noexcept;

@@ -78,7 +78,7 @@ Patch::Patch(const File& toOpen, Instance* instance) noexcept
 {
 }
 
-std::array<int, 4> Patch::getBounds() const noexcept
+Rectangle<int> Patch::getBounds() const noexcept
 {
     if (ptr)
     {
@@ -342,7 +342,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
     // Don't rename when going to or from a gui object, remove and recreate instead
     if (notRenamable.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() == Type::Message || obj->getType() == Type::AtomNumber || obj->getType() == Type::AtomSymbol)
     {
-        auto [x, y, w, h] = obj->getBounds();
+        auto b = obj->getBounds();
 
         instance->enqueueFunction(
             [this, obj]()
@@ -355,7 +355,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
                 glist_noselect(getPointer());
             });
 
-        auto obj = createObject(name, x, y);
+        auto obj = createObject(name, b.getX(), b.getY());
 
         instance->enqueueFunction([this]() { canvas_restoreconnections(getPointer()); });
 

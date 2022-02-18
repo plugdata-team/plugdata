@@ -625,7 +625,7 @@ void Gui::setLabelColour(Colour colour) noexcept
     libpd_iemgui_set_label_color(getPointer(), colourStr.toRawUTF8());
 }
 
-std::array<int, 4> Gui::getBounds() const noexcept
+Rectangle<int> Gui::getBounds() const noexcept
 {
     auto zoom = [](float val) { return int(round(val * Patch::zoom)); };
     if (type == Type::Keyboard)
@@ -648,33 +648,35 @@ std::array<int, 4> Gui::getBounds() const noexcept
     if (type == Type::Panel)
     {
         auto const bounds = Object::getBounds();
-        return {bounds[0], bounds[1], zoom(static_cast<t_my_canvas*>(ptr)->x_vis_w) + 1, zoom(static_cast<t_my_canvas*>(ptr)->x_vis_h) + 1};
+        return {bounds.getX(), bounds.getY(), zoom(static_cast<t_my_canvas*>(ptr)->x_vis_w) + 1, zoom(static_cast<t_my_canvas*>(ptr)->x_vis_h) + 1};
     }
-    if(type == Type::GraphOnParent){
+    if (type == Type::GraphOnParent)
+    {
         auto* glist = static_cast<_glist*>(ptr);
         auto const bounds = Object::getBounds();
-        return {bounds[0] + 4, bounds[1] + 4, zoom(glist->gl_pixwidth), zoom(glist->gl_pixheight)};
+        return {bounds.getX() + 4, bounds.getY() + 4, zoom(glist->gl_pixwidth), zoom(glist->gl_pixheight)};
     }
-    if(type == Type::Array) {
+    if (type == Type::Array)
+    {
         auto* glist = static_cast<_glist*>(ptr);
         auto const bounds = Object::getBounds();
-        return {bounds[0], bounds[1], zoom(glist->gl_pixwidth), zoom(glist->gl_pixheight)};
+        return {bounds.getX(), bounds.getY(), zoom(glist->gl_pixwidth), zoom(glist->gl_pixheight)};
     }
     else if (type == Type::AtomNumber || type == Type::AtomSymbol)
     {
         auto const bounds = Object::getBounds();
-        return {bounds[0], bounds[1], bounds[2], bounds[3] - 2};
+        return {bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight() - 2};
     }
     else if (type == Type::Comment)
     {
         auto const bounds = Object::getBounds();
-        return {bounds[0] + 2, bounds[1] + 2, bounds[2], bounds[3] - 2};
+        return {bounds.getX() + 2, bounds.getY() + 2, bounds.getWidth(), bounds.getHeight() - 2};
     }
     else if (isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         auto const bounds = Object::getBounds();
-        return {bounds[0], bounds[1], zoom(iemgui->x_w), zoom(iemgui->x_h)};
+        return {bounds.getX(), bounds.getY(), zoom(iemgui->x_w), zoom(iemgui->x_h)};
     }
 
     return Object::getBounds();
@@ -690,7 +692,8 @@ void Gui::setSize(int w, int h)
         static_cast<t_my_canvas*>(ptr)->x_vis_w = w - 1;
         static_cast<t_my_canvas*>(ptr)->x_vis_h = h - 1;
     }
-    if(type == Type::Array || type == Type::GraphOnParent) {
+    if (type == Type::Array || type == Type::GraphOnParent)
+    {
         static_cast<_glist*>(ptr)->gl_pixwidth = w;
         static_cast<_glist*>(ptr)->gl_pixheight = h;
     }

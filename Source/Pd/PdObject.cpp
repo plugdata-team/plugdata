@@ -80,7 +80,7 @@ std::string Object::getName() const
     return {};
 }
 
-std::array<int, 4> Object::getBounds() const noexcept
+Rectangle<int> Object::getBounds() const noexcept
 {
     if (ptr)
     {
@@ -144,7 +144,7 @@ Patch Object::getHelp() const
 void Object::setSize(int width, int height)
 {
     ignoreUnused(height);
-    
+
     auto* textObj = static_cast<t_text*>(ptr);
     textObj->te_width = std::max<short>(3, round(static_cast<float>(width) / sys_fontwidth(18)));
 }

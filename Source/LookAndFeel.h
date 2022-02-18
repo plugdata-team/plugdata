@@ -607,15 +607,14 @@ struct PlugDataDarkLook : public PlugDataLook
         auto thumbWidth = getSliderThumbRadius(slider);
         valueTrack.startNewSubPath(minPoint);
         valueTrack.lineTo(maxPoint);
-        
+
         g.setColour(slider.findColour(TextButton::buttonColourId));
         g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
         g.setColour(slider.findColour(Slider::thumbColourId));
-        
-        
+
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f);
-        
-        g.setColour(findColour(ComboBox::outlineColourId)); 
+
+        g.setColour(findColour(ComboBox::outlineColourId));
         g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f, 1.0f);
     }
 
