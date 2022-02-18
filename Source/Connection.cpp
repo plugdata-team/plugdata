@@ -5,8 +5,6 @@
  */
 #include "Connection.h"
 
-#include <set>
-
 #include "Box.h"
 #include "Canvas.h"
 #include "Edge.h"

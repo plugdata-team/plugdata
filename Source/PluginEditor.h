@@ -12,8 +12,6 @@
 #include "Sidebar.h"
 #include "Statusbar.h"
 
-#include "Standalone/PlugDataWindow.h"
-
 struct TabComponent : public TabbedComponent
 {
     std::function<void(int)> onTabChange = [](int) {};
@@ -75,7 +73,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     OwnedArray<TextButton> toolbarButtons;
 
-    std::unique_ptr<SettingsDialog> settingsDialog = nullptr;
+    std::unique_ptr<Component> settingsDialog = nullptr;
 
     ComponentBoundsConstrainer restrainer;
     std::unique_ptr<ResizableCornerComponent> resizer;

@@ -10,7 +10,10 @@
 
 #include "Pd/PdInstance.h"
 #include "Pd/PdLibrary.h"
-#include "PluginEditor.h"
+#include "Standalone/PlugDataWindow.h"
+#include "Statusbar.h"
+
+
 
 class PlugDataDarkLook;
 
