@@ -11,11 +11,10 @@ extern "C"
 #include <m_imp.h>
 }
 
-#include <memory>
-
 #include "Box.h"
 #include "Connection.h"
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
 
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component, public KeyListener, public TextEditor::InputFilter
@@ -509,7 +508,7 @@ void Canvas::synchronise(bool updatePosition)
 
         if (it == boxes.end())
         {
-            auto [x, y, w, h] = object.getBounds();
+            auto b = object.getBounds();
             auto name = String(object.getText());
 
             auto type = pd::Gui::getType(object.getPointer());
@@ -536,13 +535,12 @@ void Canvas::synchronise(bool updatePosition)
                 }
             };
 
-            x += zeroPosition.x;
-            y += zeroPosition.y;
+            b.translate(zeroPosition.x, zeroPosition.y);
 
             // These objects have extra info (like size and colours) in their names that we want to hide
             guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
-            auto* newBox = boxes.add(new Box(pdObject, this, name, {static_cast<int>(x), static_cast<int>(y)}));
+            auto* newBox = boxes.add(new Box(pdObject, this, name, b.getPosition()));
             newBox->toFront(false);
 
             if (newBox->graphics && newBox->graphics->label) newBox->graphics->label->toFront(false);
@@ -553,16 +551,15 @@ void Canvas::synchronise(bool updatePosition)
         else
         {
             auto* box = *it;
-            auto [x, y, w, h] = object.getBounds();
+            auto b = object.getBounds();
 
-            x += zeroPosition.x;
-            y += zeroPosition.y;
+            b.translate(zeroPosition.x, zeroPosition.y);
 
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
-            if (updatePosition && box->getPosition().getDistanceFrom(Point<int>(x, y)) > 8)
+            if (updatePosition && box->getPosition().getDistanceFrom(b.getPosition()) > 8)
             {
-                box->setTopLeftPosition(x, y);
+                box->setTopLeftPosition(b.getPosition());
             }
 
             box->toFront(false);
@@ -677,11 +674,11 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *subpatch, false, isGraphChild));
 
-        auto [x, y, w, h] = subpatch->getBounds();
+        auto b = subpatch->getBounds();
 
         if (isGraphChild)
         {
-            newCanvas->graphArea->setBounds(x, y, std::max(w, 60), std::max(h, 60));
+            newCanvas->graphArea->setBounds(b.getX(), b.getY(), std::max(b.getWidth(), 60), std::max(b.getHeight(), 60));
         }
 
         main.addTab(newCanvas);
@@ -1202,8 +1199,7 @@ void Canvas::checkBounds()
 
     if (graphArea)
     {
-        auto [x, y, w, h] = patch.getBounds();
-        graphArea->setBounds(x, y, w, h);
+        graphArea->setBounds(patch.getBounds());
     }
 }
 

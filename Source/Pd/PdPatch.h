@@ -42,7 +42,7 @@ class Patch
     void close();
 
     //! @brief Gets the bounds of the patch.
-    std::array<int, 4> getBounds() const noexcept;
+    Rectangle<int> getBounds() const noexcept;
 
     std::unique_ptr<Object> createGraph(const String& name, int size, int x, int y);
     std::unique_ptr<Object> createGraphOnParent(int x, int y);

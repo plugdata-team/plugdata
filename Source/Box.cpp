@@ -122,13 +122,10 @@ void Box::setType(const String& newType, bool exists)
         if (pdObject)
         {
             pdObject = pd->renameObject(pdObject.get(), newType);
-            
+
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
-            MessageManager::callAsync([this](){
-                cnv->synchronise(false);
-            });
-            
+            MessageManager::callAsync([this]() { cnv->synchronise(false); });
         }
         else
         {
@@ -166,17 +163,18 @@ void Box::setType(const String& newType, bool exists)
     {
         width = font.getStringWidth(newType) + 27;
     }
-    
+
     // Update inlets/outlets if it's not in a graph
     if (!cnv->isGraph) updatePorts();
-    
+
     int largestSide = std::max(numInputs, numOutputs);
 
     // Make sure we have enough space for inlets/outlets
-    if(width - 12 < largestSide * 16) {
+    if (width - 12 < largestSide * 16)
+    {
         width = (largestSide * 16) + 12;
     }
-    
+
     if (pdObject)
     {
         // Create graphics for the object if necessary
@@ -198,7 +196,7 @@ void Box::setType(const String& newType, bool exists)
         {
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
-            setSize(w, h);
+            setSize(w + 8, h + 8);
             graphics->resized();
             graphics->toBack();
             hideLabel = true;
@@ -241,8 +239,6 @@ void Box::setType(const String& newType, bool exists)
 
     // graphical objects manage their own size limits
     if (!graphics) restrainer.setSizeLimits(25, getHeight(), 350, getHeight());
-
-    restrainer.checkComponentBounds(this);
 
     cnv->main.updateUndoState();
 }
@@ -306,15 +302,15 @@ void Box::resized()
     {
         graphics->setBounds(getLocalBounds().reduced(6));
     }
-    
+
     // Send current width to pd object
     if (pdObject)
     {
         pdObject->setSize(getWidth() - 8, getHeight() - 8);
     }
-    
+
     restrainer.checkComponentBounds(this);
-    
+
     auto bestWidth = font.getStringWidth(getText()) + 27;
 
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
@@ -330,7 +326,7 @@ void Box::resized()
 
     resizer.setBounds(getLocalBounds().reduced(5));
     resizer.toFront(false);
-    
+
     int index = 0;
     for (auto& edge : edges)
     {

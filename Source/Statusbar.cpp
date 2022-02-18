@@ -10,6 +10,7 @@
 #include "LookAndFeel.h"
 
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
 #include "Canvas.h"
 #include "Connection.h"
 
@@ -112,7 +113,8 @@ struct MidiBlinker : public Component, public Timer
     void paint(Graphics& g) override
     {
         g.setColour(Colours::white);
-        g.drawText("MIDI", getLocalBounds().removeFromLeft(35).reduced(0, 8).translated(3, -1), Justification::left);
+        g.setFont(Font(13));
+        g.drawText("MIDI", getLocalBounds().removeFromLeft(35).translated(3, -1), Justification::left);
 
         auto midiInRect = Rectangle<float>(38.0f, 6.0f, 17.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 14.0f, 17.0f, 3.0f);
