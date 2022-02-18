@@ -423,6 +423,7 @@ void Instance::waitForStateUpdate()
     {
         // Append signal to resume thread at the end of the queue
         // This will make sure that any actions we performed are definitely finished now
+        // If it can aquire a lock, it will dequeue all action immediately
         enqueueFunction([this]() { updateWait.signal(); });
 
         updateWait.wait();

@@ -40,6 +40,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void resized() override;
 
     bool keyPressed(const KeyPress& key) override;
+    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
+    void mouseMagnify(const MouseEvent& e, float scaleFactor) override;
 
     void openProject();
     void saveProject(const std::function<void()>& nestedCallback = []() {});

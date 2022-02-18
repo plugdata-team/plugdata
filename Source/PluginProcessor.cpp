@@ -10,35 +10,47 @@
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 
+AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
+{
+    AudioProcessor::BusesProperties busesProperties;
+    
+    busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
+    for (int i = 1; i < numInputBuses; i++)
+        busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), true);
+
+    busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
+    for (int i = 1; i < numOutputBuses; i++)
+        busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), true);
+
+    return busesProperties;
+}
+
+
 PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
-    : AudioProcessor(BusesProperties()
-#if !JucePlugin_IsMidiEffect
-#if !JucePlugin_IsSynth
-                         .withInput("Input", AudioChannelSet::stereo(), true)
+    : AudioProcessor(buildBusesProperties()),
 #endif
-                         .withOutput("Output", AudioChannelSet::stereo(), true)
-#endif
-                         ),
-      pd::Instance("PlugData")
-#endif
-      ,
-      parameters(*this, nullptr, Identifier("PlugData"),
-                 {std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 0.75f), std::make_unique<AudioParameterBool>("enabled", "Enabled", true),
-
-                  std::make_unique<AudioParameterFloat>("param1", "Parameter 1", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param2", "Parameter 2", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param3", "Parameter 3", 0.0f, 1.0f, 0.0f),
-                  std::make_unique<AudioParameterFloat>("param4", "Parameter 4", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param5", "Parameter 5", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param6", "Parameter 6", 0.0f, 1.0f, 0.0f),
-                  std::make_unique<AudioParameterFloat>("param7", "Parameter 7", 0.0f, 1.0f, 0.0f), std::make_unique<AudioParameterFloat>("param8", "Parameter 8", 0.0f, 1.0f, 0.0f)})
+      pd::Instance("PlugData"),
+      parameters(*this, nullptr)
 {
-    volume = parameters.getRawParameterValue("volume");
-    enabled = parameters.getRawParameterValue("enabled");
 
-    // 8 general purpose automation parameters you can get by using "receive param1" etc.
-    for (int n = 0; n < 8; n++)
+    parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 0.75f));
+                                     
+    parameters.createAndAddParameter(std::make_unique<AudioParameterBool>("enabled", "Enabled", true));
+    
+    // General purpose automation parameters you can get by using "receive param1" etc.
+    for (int n = 0; n < numParameters; n++)
     {
-        parameterValues[n] = parameters.getRawParameterValue("param" + String(n + 1));
+        String id = "param" + String(n + 1);
+        parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
+        parameterValues[n] = parameters.getRawParameterValue(id);
         lastParameters[n] = 0;
     }
+    
+    volume = parameters.getRawParameterValue("volume");
+    enabled = parameters.getRawParameterValue("enabled");
+    
+    parameters.replaceState(ValueTree("PlugData"));
 
     // On first startup, initialise abstractions and settings
     initialiseFilesystem();
@@ -53,7 +65,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     midiBufferIn.ensureSize(2048);
     midiBufferOut.ensureSize(2048);
     midiBufferTemp.ensureSize(2048);
-
+    midiBufferCopy.ensureSize(2048);
+    
     setCallbackLock(&AudioProcessor::getCallbackLock());
 
     sendMessagesFromQueue();
@@ -71,6 +84,7 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
     // Save current settings before quitting
     saveSettings();
 }
+
 
 void PlugDataAudioProcessor::initialiseFilesystem()
 {
@@ -228,13 +242,14 @@ void PlugDataAudioProcessor::releaseResources()
     audioStarted = false;
 }
 
-#ifndef JucePlugin_PreferredChannelConfigurations
+//#ifndef JucePlugin_PreferredChannelConfigurations
 bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) const
 {
 #if JucePlugin_IsMidiEffect
     ignoreUnused(layouts);
     return true;
 #else
+    /*
     // This is the place where you check if the layout is supported.
     // In this template code we only support mono or stereo.
     // Some plugin hosts, such as certain GarageBand versions, will only
@@ -247,7 +262,29 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
 #endif
 
     return true;
-#endif
+#endif */
+    
+    
+    
+     // One input bus: stereo or disabled
+         if (layouts.inputBuses.size() != numInputBuses)
+             return false;
+    
+        /*
+         for (auto& ib : layouts.inputBuses)
+             if (ib.isDisabled())
+                 return false; */
+         
+         // Exactly our specified number of output buses, stereo or disabled
+         if (layouts.outputBuses.size() != numOutputBuses)
+             return false;
+    
+    /*
+         for (auto& ob : layouts.outputBuses)
+             if (ob.isDisabled())
+                 return false; */
+
+         return true;
 }
 #endif
 
@@ -287,7 +324,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
-    for (int n = 0; n < 8; n++)
+    for (int n = 0; n < numParameters; n++)
     {
         if (parameterValues[n]->load() != lastParameters[n])
         {
@@ -313,7 +350,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
     }
 
-    auto midiIn = midiMessages;
+    midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
 
     process(processingBuffer, midiMessages);
 
@@ -328,7 +365,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
 
     buffer.applyGain(getParameters()[0]->getValue());
 
-    statusbarSource.processBlock(buffer, midiIn, midiMessages);
+    statusbarSource.processBlock(buffer, midiBufferCopy, midiMessages);
 }
 
 void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)

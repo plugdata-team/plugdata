@@ -155,7 +155,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         addChildComponent(settingsDialog.get());
 
         settingsDialog->setVisible(true);
-        settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(600, 460));
+        settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(650, 500));
         settingsDialog->toFront(false);
         settingsDialog->resized();
     };
@@ -411,6 +411,37 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key)
     }
 
     return false;
+}
+
+void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
+{
+   auto mods = ModifierKeys::getCurrentModifiers();
+    
+    if (e.mods.isCommandDown()) {
+       mouseMagnify (e, 1.0f / (1.0f - wheel.deltaY));
+    }
+}
+
+
+void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
+{
+   auto* cnv = getCurrentCanvas();
+   auto* viewport = getCurrentCanvas()->viewport;
+    
+   auto event = e.getEventRelativeTo(viewport);
+    
+   //Point<int> anchor (cnv->getLocalPoint (viewport, Point<int> (event.x, event.y)));
+    
+   auto pos = cnv->getLocalPoint(this, e.getPosition());
+
+   statusbar.zoom(scrollFactor);
+   valueChanged(pd.zoomScale); // trigger change to make the anchoring work
+    
+    auto pos2 = cnv->getLocalPoint(this, e.getPosition());
+    
+    std::cout << "diffx:" << (pos.x - pos2.x) << "diffy:" << (pos.y - pos2.y) << std::endl;
+    
+    viewport->setViewPosition(viewport->getViewPositionX() + (pos.x - pos2.x), viewport->getViewPositionY() + (pos.y - pos2.y));
 }
 
 void PlugDataPluginEditor::openProject()

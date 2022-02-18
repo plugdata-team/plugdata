@@ -357,18 +357,47 @@ bool Statusbar::keyPressed(const KeyPress& key, Component*)
 void Statusbar::zoom(bool zoomIn)
 {
     float value = static_cast<float>(zoomScale.getValue());
+    
+    // Round in case we zoomed with scrolling
+    value = static_cast<float>(static_cast<int>(value * 10.)) / 10.;
 
-    value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.5f);
+    // Zoom limits
+    value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);
 
     zoomScale = value;
 
     zoomLabel.setText(String(value * 100.0f) + "%", dontSendNotification);
 }
 
+void Statusbar::zoom(float zoomAmount)
+{
+    float value = static_cast<float>(zoomScale.getValue());
+    value *= zoomAmount;
+    
+    // Zoom limits
+    value = std::clamp(value, 0.5f, 2.0f);
+    
+    zoomScale = value;
+    
+    zoomLabel.setText(String(value * 100.0f, 1) + "%", dontSendNotification);
+}
+
 StatusbarSource::StatusbarSource()
 {
     level[0] = 0.0f;
     level[1] = 0.0f;
+}
+
+
+static bool hasRealEvents(MidiBuffer& buffer) {
+    for(auto event : buffer) {
+        auto m = event.getMessage();
+        if(!m.isSysEx()) {
+            return true;
+        }
+    }
+    
+     return false;
 }
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut)
@@ -397,22 +426,26 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
     }
 
     auto now = Time::getCurrentTime();
+    
+    auto hasInEvents = hasRealEvents(midiIn);
+    auto hasOutEvents = hasRealEvents(midiOut);
 
-    if (midiIn.isEmpty() && (now - lastMidiIn).inMilliseconds() > 700)
+    if (!hasInEvents && (now - lastMidiIn).inMilliseconds() > 700)
     {
         midiReceived = false;
     }
-    else if (!midiIn.isEmpty())
+    else if (hasInEvents)
     {
         midiReceived = true;
         lastMidiIn = now;
     }
 
-    if (midiOut.isEmpty() && (now - lastMidiOut).inMilliseconds() > 700)
+    if (!hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700)
     {
+        
         midiSent = false;
     }
-    else if (!midiOut.isEmpty())
+    else if (hasOutEvents)
     {
         midiSent = true;
         lastMidiOut = now;

@@ -453,8 +453,11 @@ struct Console : public Component
 
         void clear()
         {
-            pd->consoleHistory = pd->consoleMessages;
+            pd->consoleHistory.insert(pd->consoleHistory.end(), pd->consoleMessages.begin(), pd->consoleMessages.end());
+            
             pd->consoleMessages.clear();
+            
+            
             update();
         }
 
