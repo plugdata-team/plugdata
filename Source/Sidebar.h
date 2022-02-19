@@ -39,9 +39,9 @@ using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and 
 
 struct Sidebar : public Component
 {
-    Sidebar(pd::Instance* instance);
+    explicit Sidebar(pd::Instance* instance);
 
-    ~Sidebar();
+    ~Sidebar() override;
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;

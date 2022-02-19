@@ -12,6 +12,8 @@ extern "C"
 #include <g_canvas.h>
 #include <m_imp.h>
 #include <g_all_guis.h>
+
+#include <memory>
 }
 
 #include "Box.h"
@@ -41,7 +43,7 @@ typedef struct _fake_gatom
     t_symbol* a_expanded_to;
 } t_fake_gatom;
 
-GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : box(parent), processor(*parent->cnv->pd), gui(pdGui), edited(false)
+GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(parent), processor(*parent->cnv->pd), gui(std::move(pdGui)), edited(false)
 
 {
     // if(!box->pdObject) return;
@@ -197,17 +199,17 @@ ObjectParameters GUIComponent::getParameters()
     return params;
 }
 
-void GUIComponent::valueChanged(Value& value)
+void GUIComponent::valueChanged(Value& v)
 {
-    if (value.refersToSameSourceAs(sendSymbol))
+    if (v.refersToSameSourceAs(sendSymbol))
     {
         gui.setSendSymbol(sendSymbol.toString());
     }
-    else if (value.refersToSameSourceAs(receiveSymbol))
+    else if (v.refersToSameSourceAs(receiveSymbol))
     {
         gui.setReceiveSymbol(sendSymbol.toString());
     }
-    else if (value.refersToSameSourceAs(primaryColour))
+    else if (v.refersToSameSourceAs(primaryColour))
     {
         auto colour = Colour::fromString(primaryColour.toString());
         gui.setForegroundColour(colour);
@@ -216,7 +218,7 @@ void GUIComponent::valueChanged(Value& value)
         getLookAndFeel().setColour(Slider::thumbColourId, colour);
         repaint();
     }
-    else if (value.refersToSameSourceAs(secondaryColour))
+    else if (v.refersToSameSourceAs(secondaryColour))
     {
         auto colour = Colour::fromString(secondaryColour.toString());
         gui.setBackgroundColour(colour);
@@ -232,12 +234,12 @@ void GUIComponent::valueChanged(Value& value)
         repaint();
     }
 
-    else if (value.refersToSameSourceAs(labelColour))
+    else if (v.refersToSameSourceAs(labelColour))
     {
         gui.setLabelColour(Colour::fromString(labelColour.toString()));
         updateLabel();
     }
-    else if (value.refersToSameSourceAs(labelX))
+    else if (v.refersToSameSourceAs(labelX))
     {
         if (gui.isAtom())
         {
@@ -250,17 +252,17 @@ void GUIComponent::valueChanged(Value& value)
             updateLabel();
         }
     }
-    else if (value.refersToSameSourceAs(labelY))
+    else if (v.refersToSameSourceAs(labelY))
     {
         gui.setLabelPosition({static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue())});
         updateLabel();
     }
-    else if (value.refersToSameSourceAs(labelHeight))
+    else if (v.refersToSameSourceAs(labelHeight))
     {
         gui.setFontHeight(static_cast<int>(labelHeight.getValue()));
         updateLabel();
     }
-    else if (value.refersToSameSourceAs(labelText))
+    else if (v.refersToSameSourceAs(labelText))
     {
         gui.setLabelText(labelText.toString());
         updateLabel();
@@ -332,7 +334,7 @@ void GUIComponent::stopEdition() noexcept
 
 void GUIComponent::updateValue()
 {
-    if (edited == false)
+    if (!edited)
     {
         box->cnv->pd->enqueueFunction(
             [this]()
@@ -603,7 +605,7 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
 
 struct BangComponent : public GUIComponent
 {
-    uint32_t lastBang;
+    uint32_t lastBang = 0;
 
     Value bangInterrupt = Value(100.0f);
     Value bangHold = Value(40.0f);
@@ -628,10 +630,6 @@ struct BangComponent : public GUIComponent
         initialise(newObject);
         box->constrainer.setSizeLimits(38, 38, 1200, 1200);
         box->constrainer.setFixedAspectRatio(1.0f);
-    }
-
-    ~BangComponent()
-    {
     }
 
     void update() override
@@ -918,13 +916,8 @@ struct MessageComponent : public GUIComponent
     void mouseDown(const MouseEvent& e) override
     {
         GUIComponent::mouseDown(e);
-        // Edit messages when unlocked
-        if (e.getNumberOfClicks() == 2 && !isLocked && !gui.isAtom())
-        {
-            input.showEditor();
-        }
-        // Edit atoms when locked
-        else if (e.getNumberOfClicks() == 2 && isLocked && gui.isAtom())
+        // Edit messages when unlocked, edit atoms when locked
+        if (e.getNumberOfClicks() == 2 && ((!isLocked && !gui.isAtom()) || (isLocked && gui.isAtom())))
         {
             input.showEditor();
         }
@@ -1179,9 +1172,9 @@ struct ListComponent : public GUIComponent
     void paint(Graphics& g) override
     {
         static auto const border = 1.0f;
-        const float h = static_cast<float>(getHeight());
-        const float w = static_cast<float>(getWidth());
-        const float o = h * 0.25f;
+        const auto h = static_cast<float>(getHeight());
+        const auto w = static_cast<float>(getWidth());
+        const auto o = h * 0.25f;
         Path p;
         p.startNewSubPath(0.5f, 0.5f);
         p.lineTo(0.5f, h - 0.5f);
@@ -1285,10 +1278,6 @@ struct SliderComponent : public GUIComponent
         {
             box->constrainer.setSizeLimits(100, 35, 500, 250);
         }
-    }
-
-    ~SliderComponent()
-    {
     }
 
     void resized() override
@@ -1491,8 +1480,8 @@ struct GraphicalArray : public Component, public Timer
         }
         else
         {
-            const float h = static_cast<float>(getHeight());
-            const float w = static_cast<float>(getWidth());
+            const auto h = static_cast<float>(getHeight());
+            const auto w = static_cast<float>(getWidth());
             if (!vec.empty())
             {
                 const std::array<float, 2> scale = array.getScale();
@@ -1549,9 +1538,9 @@ struct GraphicalArray : public Component, public Timer
         if (error) return;
         edited = true;
 
-        const float s = static_cast<float>(vec.size() - 1);
-        const float w = static_cast<float>(getWidth());
-        const float x = static_cast<float>(e.x);
+        const auto s = static_cast<float>(vec.size() - 1);
+        const auto w = static_cast<float>(getWidth());
+        const auto x = static_cast<float>(e.x);
 
         const std::array<float, 2> scale = array.getScale();
         lastIndex = static_cast<size_t>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
@@ -1562,11 +1551,11 @@ struct GraphicalArray : public Component, public Timer
     void mouseDrag(const MouseEvent& e) override
     {
         if (error) return;
-        const float s = static_cast<float>(vec.size() - 1);
-        const float w = static_cast<float>(getWidth());
-        const float h = static_cast<float>(getHeight());
-        const float x = static_cast<float>(e.x);
-        const float y = static_cast<float>(e.y);
+        const auto s = static_cast<float>(vec.size() - 1);
+        const auto w = static_cast<float>(getWidth());
+        const auto h = static_cast<float>(getHeight());
+        const auto x = static_cast<float>(e.x);
+        const auto y = static_cast<float>(e.y);
 
         const std::array<float, 2> scale = array.getScale();
         const int index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
@@ -1644,7 +1633,7 @@ struct GraphicalArray : public Component, public Timer
     bool error = false;
     const std::string stringArray = std::string("array");
 
-    int lastIndex;
+    int lastIndex = 0;
 
     PlugDataAudioProcessor* pd;
 };
@@ -1699,7 +1688,7 @@ struct GraphOnParent : public GUIComponent
         resized();
     }
 
-    ~GraphOnParent()
+    ~GraphOnParent() override
     {
         closeOpenedSubpatchers();
     }
@@ -1746,7 +1735,7 @@ struct GraphOnParent : public GUIComponent
         //  But it's also kinda weird
         if (!canvas)
         {
-            canvas.reset(new Canvas(box->cnv->main, subpatch, true));
+            canvas = std::make_unique<Canvas>(box->cnv->main, subpatch, true);
             addAndMakeVisible(canvas.get());
 
             auto b = getPatch()->getBounds();
@@ -1878,10 +1867,6 @@ struct VUMeter : public GUIComponent
         initialise(newObject);
         
         box->constrainer.setSizeLimits(55, 120, 2000, 2000);
-    }
-
-    ~VUMeter() override
-    {
     }
 
     void resized() override
@@ -2217,10 +2202,6 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         box->constrainer.setSizeLimits(50, 70, 1200, 1200);
     }
 
-    ~KeyboardComponent()
-    {
-    }
-
     void resized() override
     {
         keyboard.setBounds(getLocalBounds());
@@ -2248,7 +2229,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         auto* x = (t_keyboard*)gui.getPointer();
 
         box->cnv->pd->enqueueFunction(
-            [x, note, velocity]() mutable
+            [x, note]() mutable
             {
                 int ac = 2;
                 t_atom at[2];

@@ -26,8 +26,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
-    ~Box() override;
-
     void valueChanged(Value& v) override;
 
     void paint(Graphics&) override;

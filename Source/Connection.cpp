@@ -5,7 +5,6 @@
  */
 #include "Connection.h"
 
-#include "Box.h"
 #include "Canvas.h"
 #include "Edge.h"
 
@@ -265,8 +264,8 @@ void Connection::mouseDrag(const MouseEvent& e)
     auto planDistance = currentPlan.front() - currentPlan.back();
     auto currentDistance = pstart - pend;
 
-    float lastWidth = std::max<float>(abs(currentPlan.front().x - currentPlan.back().x), 1.0f);
-    float lastHeight = std::max<float>(abs(currentPlan.front().y - currentPlan.back().y), 1.0f);
+    //float lastWidth = std::max<float>(abs(currentPlan.front().x - currentPlan.back().x), 1.0f);
+    //float lastHeight = std::max<float>(abs(currentPlan.front().y - currentPlan.back().y), 1.0f);
 
     bool flippedX = planDistance.x * currentDistance.x < 0;
     bool flippedY = planDistance.y * currentDistance.y < 0;
@@ -352,7 +351,7 @@ void Connection::resized()
         Path connectionPath;
         connectionPath.startNewSubPath(pstart.toFloat());
 
-        // Add points inbetween if we've found a path
+        // Add points in between if we've found a path
         for (int n = 1; n < plan.size() - 1; n++)
         {
             if (connectionPath.contains(plan[n].toFloat())) continue;

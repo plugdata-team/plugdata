@@ -19,17 +19,9 @@ struct LevelMeter : public Component, public Timer
     int numChannels = 2;
     StatusbarSource& source;
 
-    LevelMeter(StatusbarSource& statusbarSource) : source(statusbarSource)
+    explicit LevelMeter(StatusbarSource& statusbarSource) : source(statusbarSource)
     {
         startTimerHz(20);
-    }
-
-    ~LevelMeter() override
-    {
-    }
-
-    void updateLevel(const float* const* channelData, int numChannels, int numSamples) noexcept
-    {
     }
 
     void timerCallback() override
@@ -96,7 +88,7 @@ struct LevelMeter : public Component, public Timer
     }
 
     int totalBlocks = 15;
-    int blocks[2];
+    int blocks[2] = {0};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
@@ -105,7 +97,7 @@ struct MidiBlinker : public Component, public Timer
 {
     StatusbarSource& source;
 
-    MidiBlinker(StatusbarSource& statusbarSource) : source(statusbarSource)
+    explicit MidiBlinker(StatusbarSource& statusbarSource) : source(statusbarSource)
     {
         startTimer(200);
     }
@@ -240,9 +232,9 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     volumeSlider.setRange(0.0f, 1.0f);
     volumeSlider.setName("statusbar:meter");
 
-    volumeAttachment.reset(new SliderParameterAttachment(*pd.parameters.getParameter("volume"), volumeSlider, nullptr));
+    volumeAttachment = std::make_unique<SliderParameterAttachment>(*pd.parameters.getParameter("volume"), volumeSlider, nullptr);
 
-    enableAttachment.reset(new ButtonParameterAttachment(*pd.parameters.getParameter("enabled"), *bypassButton, nullptr));
+    enableAttachment = std::make_unique<ButtonParameterAttachment>(*pd.parameters.getParameter("enabled"), *bypassButton, nullptr);
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);

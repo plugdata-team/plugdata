@@ -22,7 +22,7 @@ class PlugDataPluginProcessor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
    public:
-    Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
+    Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool isGraph = false, bool isGraphChild = false);
 
     ~Canvas() override;
 

@@ -13,7 +13,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Dialogs.h"
-#include "Edge.h"
 #include "x_libpd_mod_utils.h"
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p), resizer(this, &constrainer)
@@ -239,7 +238,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(highlightColour);
     g.drawRoundedRectangle({-4.0f, toolbarHeight - 6.0f, static_cast<float>(getWidth() + 9), 20.0f}, 12.0, 4.0);
 
-    // Make sure we cant see the bottom half of the rounded rectangle
+    // Make sure we can't see the bottom half of the rounded rectangle
     g.setColour(baseColour);
     g.fillRect(0, toolbarHeight - 4, getWidth(), toolbarHeight + 16);
 

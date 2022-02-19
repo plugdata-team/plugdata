@@ -31,9 +31,9 @@ class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 {
    public:
-    PlugDataPluginEditor(PlugDataAudioProcessor&);
+    explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
 
-    ~PlugDataPluginEditor();
+    ~PlugDataPluginEditor() override;
     void showNewObjectMenu();
 
     void paint(Graphics&) override;
