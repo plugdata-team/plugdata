@@ -105,16 +105,15 @@ struct MidiBlinker : public Component, public Timer
     void paint(Graphics& g) override
     {
         g.setColour(Colours::white);
-        g.setFont(Font(13));
-        g.drawText("MIDI", getLocalBounds().removeFromLeft(35).translated(3, -1), Justification::left);
+        g.setFont(Font(11));
+        g.drawText("MIDI", getLocalBounds().removeFromLeft(28), Justification::right);
 
-        auto midiInRect = Rectangle<float>(38.0f, 6.0f, 17.0f, 3.0f);
-        auto midiOutRect = Rectangle<float>(38.0f, 14.0f, 17.0f, 3.0f);
+        
+        auto midiInRect = Rectangle<float>(38.0f, 7.0f, 15.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(38.0f, 15.0f, 15.0f, 3.0f);
 
         g.setColour(findColour(ComboBox::outlineColourId));
-        g.drawRoundedRectangle(midiInRect, 1.0f, 1.0f);
-        g.drawRoundedRectangle(midiOutRect, 1.0f, 1.0f);
-
+        
         g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colours::darkgrey);
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
@@ -210,7 +209,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     addAndMakeVisible(zoomLabel);
     zoomLabel.setText("100%", dontSendNotification);
-    zoomLabel.setFont(Font(12));
+    zoomLabel.setFont(Font(11));
 
     zoomIn->setTooltip("Zoom In");
     zoomIn->setConnectedEdges(12);
@@ -267,15 +266,15 @@ void Statusbar::resized()
 
     zoomLabel.setBounds(110, 0, getHeight() * 2, getHeight());
 
-    zoomIn->setBounds(150, 0, getHeight(), getHeight());
-    zoomOut->setBounds(178, 0, getHeight(), getHeight());
+    zoomIn->setBounds(146, 0, getHeight(), getHeight());
+    zoomOut->setBounds(174, 0, getHeight(), getHeight());
 
-    bypassButton->setBounds(getWidth() - 40, 0, getHeight(), getHeight());
+    bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
 
-    levelMeter->setBounds(getWidth() - 150, 0, 100, getHeight());
-    midiBlinker->setBounds(getWidth() - 210, 0, 70, getHeight());
+    levelMeter->setBounds(getWidth() - 133, 1, 100, getHeight());
+    midiBlinker->setBounds(getWidth() - 190, 0, 70, getHeight());
 
-    volumeSlider.setBounds(getWidth() - 150, 0, 100, getHeight());
+    volumeSlider.setBounds(getWidth() - 133, 0, 100, getHeight());
 }
 
 // We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...

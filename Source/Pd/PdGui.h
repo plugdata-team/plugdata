@@ -103,6 +103,13 @@ class Gui : public Object
     std::vector<Atom> getList() const noexcept;
 
     void setList(std::vector<Atom> const& value) noexcept;
+    
+    void startEditingProperties();
+    void finishEditingProperties();
+    
+    void* getObjectState();
+    
+    void* lastProperties = nullptr;
 
     Gui(void* ptr, Patch* patch, Instance* instance) noexcept;
 
