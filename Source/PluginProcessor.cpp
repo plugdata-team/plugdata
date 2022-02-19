@@ -15,12 +15,16 @@ AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
     AudioProcessor::BusesProperties busesProperties;
     
     busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
+    
+    
     for (int i = 1; i < numInputBuses; i++)
-        busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), true);
+        busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
 
     busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
+    
+    
     for (int i = 1; i < numOutputBuses; i++)
-        busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), true);
+        busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
 
     return busesProperties;
 }
@@ -249,35 +253,47 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
     ignoreUnused(layouts);
     return true;
 #endif
-    /*
-    // This is the place where you check if the layout is supported.
-    // In this template code we only support mono or stereo.
-    // Some plugin hosts, such as certain GarageBand versions, will only
-    // load plugins that support stereo bus layouts.
-    if (layouts.getMainOutputChannelSet() != AudioChannelSet::mono() && layouts.getMainOutputChannelSet() != AudioChannelSet::stereo()) return false;
+    
+    const AudioChannelSet& mainOutput = layouts.getMainOutputChannelSet();
+    if (mainOutput.isDisabled())
+        return false;
 
-        // This checks if the input layout matches the output layout
-#if !JucePlugin_IsSynth
-    if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet()) return false;
-#endif
-
+    int ninch = 0;
+    int noutch = 0;
+    for (int bus = 0; bus < layouts.outputBuses.size(); bus++) {
+      int nchb = layouts.getNumChannels(false, bus);
+      if (nchb > 2)
+          return false;
+      if (nchb == 0)
+          return false;
+      noutch += nchb;
+    }
+    
+    for (int bus = 0; bus < layouts.inputBuses.size(); bus++) {
+      int nchb = layouts.getNumChannels(true, bus);
+      if (nchb > 2)
+          return false;
+      if (nchb == 0)
+          return false;
+      ninch += nchb;
+    }
+    
+    if (ninch > 32 || noutch > 32)
+        return false;
+    
     return true;
-#endif */
-    
-    //if (layouts.getMainOutputChannelSet() != layouts.getMainInputChannelSet()) return false;
-    
     
     // One input bus: stereo or disabled
-    if (layouts.inputBuses.size() != numInputBuses) return false;
+    //if (layouts.inputBuses.size() != layouts.outputBus.size()) return false;
+    /*
     for (auto& ib : layouts.inputBuses)
-        if (ib != AudioChannelSet::stereo() && !ib.isDisabled()) return false;
+        if (ib != AudioChannelSet::stereo() && !ib.isDisabled())
+            return false;
     
-    // Exactly our specified number of output buses, stereo or disabled
-    if (layouts.outputBuses.size() != numOutputBuses) return false;
     for (auto& ob : layouts.outputBuses)
-        if (ob != AudioChannelSet::stereo() && !ob.isDisabled()) return false;
+        if (ob != AudioChannelSet::stereo() && !ob.isDisabled())
+            return false; */
 
-    return true;
 }
 
 
