@@ -24,7 +24,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     PlugDataAudioProcessor();
     ~PlugDataAudioProcessor() override;
     
-    AudioProcessor::BusesProperties buildBusesProperties();
+    static AudioProcessor::BusesProperties buildBusesProperties();
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;

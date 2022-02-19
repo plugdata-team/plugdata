@@ -16,7 +16,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
 {
     PlugDataAudioProcessor& pd;
 
-    Statusbar(PlugDataAudioProcessor& processor);
+    explicit Statusbar(PlugDataAudioProcessor& processor);
     ~Statusbar();
 
     void resized() override;
@@ -67,9 +67,9 @@ struct StatusbarSource
 
     void prepareToPlay(int numChannels);
 
-    std::atomic<bool> midiReceived;
-    std::atomic<bool> midiSent;
-    std::atomic<float> level[2];
+    std::atomic<bool> midiReceived = false;
+    std::atomic<bool> midiSent = false;
+    std::atomic<float> level[2] = {0};
 
     int numChannels;
 

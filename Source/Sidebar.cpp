@@ -26,7 +26,7 @@ struct Inspector : public PropertyPanel
 
         clear();
 
-        auto createPanel = [](int type, String name, Value* value, Colour bg, std::vector<String>& options) -> PropertyComponent*
+        auto createPanel = [](int type, const String& name, Value* value, Colour bg, std::vector<String>& options) -> PropertyComponent*
         {
             switch (type)
             {
@@ -42,9 +42,9 @@ struct Inspector : public PropertyPanel
                     return new BoolComponent(name, *value, bg, options);
                 case tCombo:
                     return new ComboComponent(name, *value, bg, options);
+                default:
+                    return new EditableComponent<String>(name, *value, bg);
             }
-
-            return new EditableComponent<String>(name, *value, bg);
         };
 
         for (int i = 0; i < 4; i++)
@@ -73,7 +73,7 @@ struct Inspector : public PropertyPanel
     {
         Colour bg;
 
-        InspectorProperty(String propertyName, Colour background) : PropertyComponent(propertyName, 23), bg(background)
+        InspectorProperty(const String& propertyName, Colour background) : PropertyComponent(propertyName, 23), bg(background)
         {
         }
 
@@ -88,7 +88,7 @@ struct Inspector : public PropertyPanel
 
     struct ComboComponent : public InspectorProperty
     {
-        ComboComponent(String propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background), property(value)
+        ComboComponent(const String& propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background)
         {
             for (int n = 0; n < options.size(); n++)
             {
@@ -107,13 +107,12 @@ struct Inspector : public PropertyPanel
         }
 
        private:
-        Value& property;
         ComboBox comboBox;
     };
 
     struct BoolComponent : public InspectorProperty
     {
-        BoolComponent(String propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background)
+        BoolComponent(const String& propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background)
         {
             toggleButton.setClickingTogglesState(true);
 
@@ -140,7 +139,7 @@ struct Inspector : public PropertyPanel
 
     struct ColourComponent : public InspectorProperty, public ChangeListener
     {
-        ColourComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), currentColour(value)
+        ColourComponent(const String& propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), currentColour(value)
         {
             String strValue = currentColour.toString();
             if (strValue.length() > 2)
@@ -211,7 +210,7 @@ struct Inspector : public PropertyPanel
     {
         Label label;
         Value& property;
-        float downValue;
+        float downValue = 0;
 
         EditableComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), property(value)
         {
@@ -317,7 +316,7 @@ struct Inspector : public PropertyPanel
 
 struct Console : public Component
 {
-    Console(pd::Instance* instance)
+    explicit Console(pd::Instance* instance)
     {
         // Viewport takes ownership
         console = new ConsoleComponent(instance, buttons, viewport);
@@ -468,7 +467,7 @@ struct Console : public Component
             update();
         }
 
-        int getNumLines(String text)
+        int getNumLines(const String& text)
         {
             auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
 
@@ -524,8 +523,6 @@ struct Console : public Component
             g.fillAll(findColour(ComboBox::backgroundColourId));
 
             int totalHeight = 0;
-            int numEmpty = 0;
-
             bool showMessages = buttons[2].getToggleState();
             bool showErrors = buttons[3].getToggleState();
 
@@ -584,10 +581,8 @@ struct Console : public Component
 
             int numEmpty = 0;
 
-            for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
+            for (auto & message : pd->consoleMessages)
             {
-                auto& message = pd->consoleMessages[row];
-
                 int numLines = getNumLines(message.first);
                 int height = numLines * 22 + 2;
 

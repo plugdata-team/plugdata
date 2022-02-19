@@ -41,14 +41,6 @@ struct Icons
 
 struct PlugDataLook : public LookAndFeel_V4
 {
-    PlugDataLook()
-    {
-    }
-
-    virtual ~PlugDataLook()
-    {
-    }
-
     virtual void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
 
     virtual void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
@@ -489,7 +481,7 @@ struct PlugDataDarkLook : public PlugDataLook
 
         if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted) baseColour = baseColour.contrasting(shouldDrawButtonAsDown ? 0.2f : 0.05f);
 
-        if (!shouldDrawButtonAsHighlighted && !shouldDrawButtonAsHighlighted && !button.getToggleState()) baseColour = Colours::transparentBlack;
+        if (!shouldDrawButtonAsHighlighted && !button.getToggleState()) baseColour = Colours::transparentBlack;
 
         g.setColour(baseColour);
         g.fillRect(bounds);
