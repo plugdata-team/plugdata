@@ -159,10 +159,8 @@ Type Gui::getType(void* ptr) noexcept
             type = Type::AtomNumber;
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
             type = Type::AtomSymbol;
-
-        /*
          else if(static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
-         type = Type::AtomList; */
+         type = Type::AtomList;
     }
 
     else if (name == "canvas" || name == "graph")

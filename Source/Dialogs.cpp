@@ -575,6 +575,7 @@ void Dialogs::showObjectMenu(Component* parent, Component* target, std::function
 
     menu.addItem(9, "Float Atom");    // 11
     menu.addItem(10, "Symbol Atom");  // 12
+    menu.addItem(16, "List Atom");  // 16
 
     menu.addSeparator();
 
@@ -630,6 +631,9 @@ void Dialogs::showObjectMenu(Component* parent, Component* target, std::function
 
             case 10:
                 boxName = "symbolatom";
+                break;
+            case 16:
+                boxName = "listbox";
                 break;
 
             case 11:
