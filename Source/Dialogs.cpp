@@ -482,13 +482,27 @@ struct SettingsDialog : public Component
         settingsComponent.addMouseListener(this, false);
 
         closeButton->onClick = [this]() { setVisible(false); };
+        
+        
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
+        
+        parentSizeChanged();
+        
     }
 
     ~SettingsDialog() override
     {
         settingsComponent.removeMouseListener(this);
+    }
+    
+    void parentSizeChanged() override {
+        // make sure it fits the editor, otherwise it might be un-closable
+        if(auto* editor = audioProcessor.getActiveEditor()) {
+            setBounds(editor->getLocalBounds().withSizeKeepingCentre(std::min<int>(650, editor->getWidth() / 1.3f), std::min<int>(500, editor->getHeight() / 1.3f)));
+        }
+     
+        constrainer.checkComponentBounds(this);
     }
 
     void mouseDown(const MouseEvent& e) override

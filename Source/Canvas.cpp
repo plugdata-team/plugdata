@@ -26,10 +26,13 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         Array<String> letters = {"pd", "~"};
 
+        
+        String objectDescription;
+        
        public:
         Suggestion()
         {
-            setText("");
+            setText("", "");
             setWantsKeyboardFocus(true);
             setConnectedEdges(12);
             setClickingTogglesState(true);
@@ -37,8 +40,9 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
 
-        void setText(const String& name)
+        void setText(const String& name, const String& description)
         {
+            objectDescription = description;
             setButtonText(name);
             type = name.contains("~") ? 1 : 0;
 
@@ -48,6 +52,22 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         void paint(Graphics& g) override
         {
             TextButton::paint(g);
+            
+            if(objectDescription.isNotEmpty()) {
+                auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
+                auto textLength = font.getStringWidth(getButtonText()) + 22;
+                
+                g.setColour(findColour(ComboBox::outlineColourId));
+                
+                auto yIndent = jmin(4, proportionOfHeight(0.3f));
+                auto cornerSize = jmin(getHeight(), getWidth()) / 2;
+                auto fontHeight = roundToInt(font.getHeight() * 0.5f);
+                auto leftIndent = textLength + 10;
+                auto rightIndent = jmin(fontHeight, 2 + cornerSize / 2);
+                auto textWidth = getWidth() - leftIndent - rightIndent;
+
+                g.drawText("- " + objectDescription, Rectangle<int>(leftIndent, yIndent, textWidth, getHeight() - yIndent * 2), Justification::left);
+            }
 
             if (type == -1) return;
 
@@ -65,7 +85,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
    public:
     bool selecting = false;
 
-    SuggestionComponent()
+    SuggestionComponent() : resizer(this, &constrainer)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
@@ -90,10 +110,15 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         port->setInterceptsMouseClicks(true, true);
         port->setViewportIgnoreDragFlag(true);
         addAndMakeVisible(port.get());
+        
+        constrainer.setSizeLimits(150, 120, 500, 400);
+        setSize(250, 115);
+        
+        addAndMakeVisible(resizer);
 
         setInterceptsMouseClicks(true, true);
         setAlwaysOnTop(true);
-        setVisible(true);
+        setVisible(false);
     }
 
     ~SuggestionComponent()
@@ -187,11 +212,15 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
     void resized() override
     {
-        port->setBounds(0, 0, getWidth(), std::min(std::min(5, numOptions) * 23, getHeight()));
-        buttonholder->setBounds(0, 0, getWidth(), std::min((numOptions + 1), 20) * 22 + 2);
+        int yScroll = port->getViewPositionY();
+        port->setBounds(getLocalBounds());
+        buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
 
         for (int i = 0; i < buttons.size(); i++) buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
+        
+        resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
 
+        port->setViewPosition(0, yScroll);
         repaint();
     }
 
@@ -231,17 +260,30 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         String typedText = e.getText().substring(0, start) + mutableInput;
         highlightStart = typedText.length();
 
+        
+        auto& library = currentBox->cnv->pd->objectLibrary;
         // Update suggestions
-        auto found = currentBox->cnv->pd->objectLibrary.autocomplete(typedText.toStdString());
+        auto found = library.autocomplete(typedText.toStdString());
+        
 
-        for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++) buttons[i]->setText(found[i]);
+        for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++) {
+            if(library.objectDescriptions.find(found[i]) != library.objectDescriptions.end())
+            {
+                buttons[i]->setText(found[i], library.objectDescriptions[found[i]]);
+            }
+            else {
+                buttons[i]->setText(found[i], "");
+            }
+            
+        }
 
-        for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("     ");
+        for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("", "");
 
         numOptions = found.size();
 
         setVisible(typedText.isNotEmpty() && numOptions);
-
+        
+        constrainer.setSizeLimits(150, 100, 500, 400);
         resized();
 
         // Get length of user-typed text
@@ -259,6 +301,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         highlightEnd = fullName.length();
 
         if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" "))
+            
         {
             isCompleting = false;
             return mutableInput;
@@ -277,6 +320,9 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     std::unique_ptr<Viewport> port;
     std::unique_ptr<Component> buttonholder;
     OwnedArray<Suggestion> buttons;
+    
+    ResizableCornerComponent resizer;
+    ComponentBoundsConstrainer constrainer;
 
     Array<Colour> colours = {findColour(ComboBox::backgroundColourId), findColour(ResizableWindow::backgroundColourId)};
 
@@ -409,8 +455,6 @@ Canvas::~Canvas()
 {
     delete graphArea;
     delete suggestor;
-
-    locked.removeListener(this);
 }
 
 void Canvas::paint(Graphics& g)
@@ -565,12 +609,6 @@ void Canvas::synchronise(bool updatePosition)
             box->toFront(false);
             if (box->graphics && box->graphics->label) box->graphics->label->toFront(false);
 
-            // Reload colour information for
-            if (box->graphics)
-            {
-                box->graphics->initParameters(false);
-            }
-
             // Don't show non-patchable (internal) objects
             if (!pd::Patch::checkObject(&object)) box->setVisible(false);
         }
@@ -655,12 +693,6 @@ void Canvas::mouseDown(const MouseEvent& e)
         suggestor->currentBox->hideEditor();
         return;
     }
-    
-    // Middle mouse pan
-    if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
-        mousePanDownPos = e.getEventRelativeTo(viewport).getPosition();
-        startTimer(20);
-    }
 
     auto openSubpatch = [this](Box* parent)
     {
@@ -741,6 +773,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             {
                 deselectAll();
             }
+            
         }
     }
     // Right click
@@ -839,15 +872,32 @@ void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
     if (isGraph || locked == true) return;
-    if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) return;
 
     auto* source = e.originalComponent;
     
-    if(!viewport->getViewArea().contains(e.getPosition()) && !isTimerRunning()) {
-        mousePanDownPos = viewport->getViewArea().getConstrainedPoint(e.getPosition());
-        startTimer(20);
+    auto viewportEvent = e.getEventRelativeTo(viewport);
+    
+    float scrollSpeed = 8.5f;
+    
+    // Middle mouse pan
+    if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
+        beginDragAutoRepeat(40);
+        
+        auto delta = Point<int>{viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY()};
+        
+        viewport->setViewPosition(viewport->getViewPositionX() + delta.x * (1.0f / scrollSpeed), viewport->getViewPositionY() + delta.y * (1.0f / scrollSpeed));
+        
+        return; // Middle mouse button cancels any other drag actions
     }
 
+    // For fixing coords when zooming
+    float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
+    
+    // Auto scroll when dragging close to the edge
+    if(viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 100, scrollSpeed)) {
+        beginDragAutoRepeat(40);
+    }
+    
     // Drag lasso
     if (dynamic_cast<Connection*>(source))
     {
@@ -915,21 +965,6 @@ void Canvas::mouseUp(const MouseEvent& e)
     }
 
     lasso.endLasso();
-}
-
-
-void Canvas::timerCallback()
-{
-    auto pos = viewport->getMouseXYRelative();
-    
-    if(!ModifierKeys::getCurrentModifiers().isMiddleButtonDown() && viewport->getViewArea().contains(pos)) {
-        stopTimer();
-        return;
-    }
-    
-    auto delta = pos - mousePanDownPos;
-    
-    viewport->setViewPosition(viewport->getViewPositionX() + delta.x * 0.15f, viewport->getViewPositionY() + delta.y * 0.15f);
 }
 
 void Canvas::findDrawables(Graphics& g)
@@ -1190,39 +1225,26 @@ void Canvas::redo()
 
 void Canvas::checkBounds()
 {
-    int viewHeight = 0;
-    int viewWidth = 0;
-
-    if (viewport)
-    {
-        viewWidth = viewport->getWidth();
-        viewHeight = viewport->getHeight();
-    }
-
-    // Check new bounds
-    int minX = zeroPosition.x;
-    int minY = zeroPosition.y;
-    int maxX = viewWidth * static_cast<float>(pd->zoomScale.getValue());
-    int maxY = viewHeight * static_cast<float>(pd->zoomScale.getValue());
+    
+    if(isGraph || !viewport) return;
+    
+    float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
+    
+    auto viewBounds = Rectangle<int>(zeroPosition.x, zeroPosition.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
 
     for (auto obj : boxes)
     {
-        maxX = std::max<int>(maxX, obj->getX() + obj->getWidth());
-        maxY = std::max<int>(maxY, obj->getY() + obj->getHeight());
-        minX = std::min<int>(minX, obj->getX());
-        minY = std::min<int>(minY, obj->getY());
+        viewBounds = obj->getBounds().getUnion(viewBounds);
     }
 
-    if (!isGraph)
+
+    for (auto& box : boxes)
     {
-        for (auto& box : boxes)
-        {
-            box->setBounds(box->getBounds().translated(-minX, -minY));
-        }
-
-        zeroPosition -= {minX, minY};
-        setSize(maxX - minX, maxY - minY);
+        box->setBounds(box->getBounds().translated(-viewBounds.getX(), -viewBounds.getY()));
     }
+
+    zeroPosition -= {viewBounds.getX(), viewBounds.getY()};
+    setSize(viewBounds.getWidth(), viewBounds.getHeight());
 
     if (graphArea)
     {
@@ -1260,8 +1282,9 @@ void Canvas::valueChanged(Value& v)
 void Canvas::showSuggestions(Box* box, TextEditor* editor)
 {
     suggestor->createCalloutBox(box, editor);
-    suggestor->setBounds(box->getX(), box->getBounds().getBottom(), 200, 115);
-    suggestor->resized();
+    suggestor->setTopLeftPosition(box->getX(), box->getBounds().getBottom());
+    //suggestor->resized();
+    //suggestor->setVisible(true);
 }
 void Canvas::hideSuggestions()
 {
