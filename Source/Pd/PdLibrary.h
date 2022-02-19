@@ -47,8 +47,14 @@ class Trie
 struct Library
 {
     void initialiseLibrary(ValueTree pathTree);
+    
+    void parseDocumentation(const String& path);
 
     std::vector<std::string> autocomplete(std::string query);
+    
+    std::unordered_map<String, String> objectDescriptions;
+    std::unordered_map<String, StringArray> objectKeywords;
+    std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
     Trie searchTree;
 };

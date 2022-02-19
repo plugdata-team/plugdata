@@ -19,7 +19,7 @@ struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
-class Canvas : public Component, public Value::Listener, public LassoSource<Component*>, public Timer
+class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
    public:
     Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
@@ -64,7 +64,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     
     
     Point<int> mousePanDownPos;
-    void timerCallback() override; // for mouse panning
 
     void handleMouseDown(Component* component, const MouseEvent& e);
     void handleMouseUp(Component* component, const MouseEvent& e);

@@ -74,34 +74,10 @@ GUIComponent::GUIComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : 
     addMouseListener(this, true);
 
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
-
-    sendSymbol.addListener(this);
-    receiveSymbol.addListener(this);
-    primaryColour.addListener(this);
-    secondaryColour.addListener(this);
-    labelColour.addListener(this);
-    labelX.addListener(this);
-    labelY.addListener(this);
-    labelHeight.addListener(this);
-    labelText.addListener(this);
-    min.addListener(this);
-    max.addListener(this);
 }
 
 GUIComponent::~GUIComponent()
 {
-    sendSymbol.removeListener(this);
-    receiveSymbol.removeListener(this);
-    primaryColour.removeListener(this);
-    secondaryColour.removeListener(this);
-    labelColour.removeListener(this);
-    labelX.removeListener(this);
-    labelY.removeListener(this);
-    labelHeight.removeListener(this);
-    labelText.removeListener(this);
-    min.removeListener(this);
-    max.removeListener(this);
-
     box->removeComponentListener(this);
     auto* lnf = &getLookAndFeel();
     setLookAndFeel(nullptr);
@@ -131,7 +107,7 @@ void GUIComponent::mouseUp(const MouseEvent& e)
     }
 }
 
-void GUIComponent::initParameters(bool newObject)
+void GUIComponent::initialise(bool newObject)
 {
     if (gui.getType() == pd::Type::Number)
     {
@@ -141,25 +117,7 @@ void GUIComponent::initParameters(bool newObject)
 
     if (!gui.isIEM()) return;
 
-    if (newObject)
-    {
-        primaryColour = findColour(Slider::thumbColourId).toString();
-        secondaryColour = findColour(ComboBox::backgroundColourId).toString();
-        labelColour = Colours::white.toString();
-
-        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
-        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
-
-        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
-        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-
-        gui.setForegroundColour(findColour(Slider::thumbColourId));
-        gui.setBackgroundColour(findColour(ComboBox::backgroundColourId));
-        gui.setLabelColour(Colours::white);
-
-        labelHeight = gui.getFontHeight();
-    }
-    else
+    if (!newObject)
     {
         primaryColour = Colour(gui.getForegroundColor()).toString();
         secondaryColour = Colour(gui.getBackgroundColor()).toString();
@@ -176,9 +134,17 @@ void GUIComponent::initParameters(bool newObject)
 
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
+    
+    auto params = getParameters();
+    for(auto& [name, type, cat, value, list] : params) {
+        value->addListener(this);
+        valueChanged(*value);
+    }
 
     repaint();
+    
 }
+
 
 
 void GUIComponent::paint(Graphics& g)
@@ -639,7 +605,7 @@ struct BangComponent : public GUIComponent
 {
     uint32_t lastBang;
 
-    Value bangInterrupt = Value(40.0f);
+    Value bangInterrupt = Value(100.0f);
     Value bangHold = Value(40.0f);
 
     TextButton bangButton;
@@ -659,18 +625,13 @@ struct BangComponent : public GUIComponent
             update();
         };
 
-        initParameters(newObject);
-        box->restrainer.setSizeLimits(38, 38, 1200, 1200);
-        box->restrainer.setFixedAspectRatio(1.0f);
-
-        bangInterrupt.addListener(this);
-        bangHold.addListener(this);
+        initialise(newObject);
+        box->constrainer.setSizeLimits(38, 38, 1200, 1200);
+        box->constrainer.setFixedAspectRatio(1.0f);
     }
 
     ~BangComponent()
     {
-        bangInterrupt.removeListener(this);
-        bangHold.removeListener(this);
     }
 
     void update() override
@@ -728,14 +689,6 @@ struct BangComponent : public GUIComponent
         };
     }
 
-    void initParameters(bool newObject) override
-    {
-        GUIComponent::initParameters(newObject);
-
-        bangHold = static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold;
-        bangInterrupt = static_cast<t_bng*>(gui.getPointer())->x_flashtime_break;
-    };
-
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(bangInterrupt))
@@ -775,10 +728,10 @@ struct ToggleComponent : public GUIComponent
             update();
         };
 
-        initParameters(newObject);
+        initialise(newObject);
 
-        box->restrainer.setSizeLimits(38, 38, 1200, 1200);
-        box->restrainer.setFixedAspectRatio(1.0f);
+        box->constrainer.setSizeLimits(38, 38, 1200, 1200);
+        box->constrainer.setFixedAspectRatio(1.0f);
     }
 
     void resized() override
@@ -840,7 +793,7 @@ struct MessageComponent : public GUIComponent
                     if (width < box->getWidth())
                     {
                         box->setSize(width, box->getHeight());
-                        box->restrainer.checkComponentBounds(box);
+                        box->constrainer.checkComponentBounds(box);
                     }
                 };
             };
@@ -865,14 +818,16 @@ struct MessageComponent : public GUIComponent
                     if (width < box->getWidth())
                     {
                         box->setSize(width, box->getHeight());
-                        box->restrainer.checkComponentBounds(box);
+                        box->constrainer.checkComponentBounds(box);
                     }
                 };
             };
         }
 
+        initialise(newObject);
+        
         box->addMouseListener(this, false);
-        box->restrainer.setSizeLimits(50, 30, 500, 600);
+        box->constrainer.setSizeLimits(50, 30, 500, 600);
     }
 
     void lock(bool locked) override
@@ -1036,10 +991,10 @@ struct NumboxComponent : public GUIComponent
 
         input.setText(String(getValueOriginal()), dontSendNotification);
 
-        initParameters(newObject);
+        initialise(newObject);
         input.setEditable(false, true);
 
-        box->restrainer.setSizeLimits(50, 30, 500, 30);
+        box->constrainer.setSizeLimits(50, 30, 500, 30);
     }
 
     void resized() override
@@ -1215,8 +1170,10 @@ struct ListComponent : public GUIComponent
         };
 
         updateValue();
+        
+        initialise(newObject);
 
-        box->restrainer.setSizeLimits(100, 30, 500, 600);
+        box->constrainer.setSizeLimits(100, 30, 500, 600);
     }
 
     void paint(Graphics& g) override
@@ -1318,23 +1275,20 @@ struct SliderComponent : public GUIComponent
 
         slider.onDragEnd = [this]() { stopEdition(); };
 
-        initParameters(newObject);
+        initialise(newObject);
 
         if (isVertical)
         {
-            box->restrainer.setSizeLimits(40, 77, 250, 500);
+            box->constrainer.setSizeLimits(40, 77, 250, 500);
         }
         else
         {
-            box->restrainer.setSizeLimits(100, 35, 500, 250);
+            box->constrainer.setSizeLimits(100, 35, 500, 250);
         }
-
-        isLogarithmic.addListener(this);
     }
 
     ~SliderComponent()
     {
-        isLogarithmic.removeListener(this);
     }
 
     void resized() override
@@ -1397,7 +1351,7 @@ struct RadioComponent : public GUIComponent
     {
         isVertical = vertical;
 
-        initParameters(newObject);
+        initialise(newObject);
         updateRange();
 
         int selected = getValueOriginal();
@@ -1408,11 +1362,11 @@ struct RadioComponent : public GUIComponent
         }
         if (isVertical)
         {
-            box->restrainer.setSizeLimits(25, 90, 250, 500);
+            box->constrainer.setSizeLimits(25, 90, 250, 500);
         }
         else
         {
-            box->restrainer.setSizeLimits(100, 25, 500, 250);
+            box->constrainer.setSizeLimits(100, 25, 500, 250);
         }
     }
 
@@ -1705,7 +1659,8 @@ struct ArrayComponent : public GUIComponent
         array.setBounds(getLocalBounds());
         addAndMakeVisible(&array);
 
-        box->restrainer.setSizeLimits(100, 40, 500, 600);
+        initialise(newObject);
+        box->constrainer.setSizeLimits(100, 40, 500, 600);
     }
 
     void resized() override
@@ -1736,8 +1691,10 @@ struct GraphOnParent : public GUIComponent
 
         subpatch = gui.getPatch();
         updateCanvas();
+        
+        initialise(newObject);
 
-        box->restrainer.setSizeLimits(25, 25, 500, 500);
+        box->constrainer.setSizeLimits(25, 25, 500, 500);
 
         resized();
     }
@@ -1918,9 +1875,9 @@ struct VUMeter : public GUIComponent
 {
     VUMeter(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        initParameters(newObject);
+        initialise(newObject);
         
-        box->restrainer.setSizeLimits(55, 120, 2000, 2000);
+        box->constrainer.setSizeLimits(55, 120, 2000, 2000);
     }
 
     ~VUMeter() override
@@ -1997,9 +1954,9 @@ struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        box->restrainer.setSizeLimits(40, 40, 2000, 2000);
+        box->constrainer.setSizeLimits(40, 40, 2000, 2000);
 
-        initParameters(newObject);
+        initialise(newObject);
     }
 
     void paint(Graphics& g) override
@@ -2253,19 +2210,15 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
 
-        state.addListener(this);
         addAndMakeVisible(keyboard);
+        
+        initialise(newObject);
 
-        box->restrainer.setSizeLimits(50, 70, 1200, 1200);
-
-        rangeMax.addListener(this);
-        rangeMin.addListener(this);
+        box->constrainer.setSizeLimits(50, 70, 1200, 1200);
     }
 
     ~KeyboardComponent()
     {
-        rangeMax.removeListener(this);
-        rangeMin.removeListener(this);
     }
 
     void resized() override

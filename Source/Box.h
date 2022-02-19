@@ -48,7 +48,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     OwnedArray<Edge> edges;
 
-    ComponentBoundsConstrainer restrainer;
+    ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent resizer;
 
     void setType(const String& newType, bool exists = false);

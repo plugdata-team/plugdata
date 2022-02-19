@@ -32,8 +32,9 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     virtual void updateValue();
 
     virtual void update(){};
-
-    virtual void initParameters(bool newObject);
+    
+    void initialise(bool newObject);
+    void deinitialise(bool newObject);
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour

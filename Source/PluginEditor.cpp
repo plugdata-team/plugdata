@@ -16,7 +16,7 @@
 #include "Edge.h"
 #include "x_libpd_mod_utils.h"
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p), resizer(this, &constrainer)
 {
     toolbarButtons = {new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide)};
 
@@ -178,9 +178,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(toolbarButton(Hide));
 
     // window size limits
-    restrainer.setSizeLimits(700, 300, 4000, 4000);
-    resizer = std::make_unique<ResizableCornerComponent>(this, &restrainer);
-    addAndMakeVisible(resizer.get());
+    constrainer.setSizeLimits(700, 300, 4000, 4000);
+    addAndMakeVisible(resizer);
 
     setSize(pd.lastUIWidth, pd.lastUIHeight);
 
@@ -297,8 +296,8 @@ void PlugDataPluginEditor::resized()
 
     toolbarButton(Hide)->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
 
-    resizer->setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
-    resizer->toFront(false);
+    resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
+    resizer.toFront(false);
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();

@@ -78,8 +78,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     std::unique_ptr<Component> settingsDialog = nullptr;
 
-    ComponentBoundsConstrainer restrainer;
-    std::unique_ptr<ResizableCornerComponent> resizer;
+    ComponentBoundsConstrainer constrainer;
+    ResizableCornerComponent resizer;
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
