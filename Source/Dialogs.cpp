@@ -635,7 +635,7 @@ void Dialogs::showObjectMenu(Component* parent, Component* target, std::function
             case 11:
             {
                 boxName = "array";
-                return;
+                break;
             }
             case 12:
                 boxName = "graph";
