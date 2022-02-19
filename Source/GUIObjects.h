@@ -23,9 +23,9 @@ class Box;
 
 struct GUIComponent : public Component, public ComponentListener, public Value::Listener
 {
-    GUIComponent(const pd::Gui&, Box* parent, bool newObject);
+    GUIComponent(pd::Gui gui, Box* parent, bool newObject);
 
-    virtual ~GUIComponent() override;
+    ~GUIComponent() override;
 
     virtual std::pair<int, int> getBestSize() = 0;
 
@@ -34,7 +34,6 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     virtual void update(){};
     
     void initialise(bool newObject);
-    void deinitialise(bool newObject);
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour

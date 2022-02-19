@@ -6,6 +6,8 @@
 
 #include "Box.h"
 
+#include <memory>
+
 #include "Canvas.h"
 #include "Connection.h"
 #include "Edge.h"
@@ -36,9 +38,6 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
     setType(name, true);
 }
 
-Box::~Box()
-{
-}
 
 void Box::initialise()
 {
@@ -244,8 +243,6 @@ void Box::setType(const String& newType, bool exists)
 void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(6);
-
-    auto baseColour = findColour(TextButton::buttonColourId);
     auto outlineColour = findColour(ComboBox::outlineColourId);
 
     bool selected = cnv->isSelected(this);
@@ -317,9 +314,9 @@ void Box::resized()
         setSize(bestWidth + 30, (numLines * 17) + 14);
     }
 
-    if (auto* editor = getCurrentTextEditor())
+    if (auto* newEditor = getCurrentTextEditor())
     {
-        editor->setBounds(getLocalBounds().reduced(6));
+        newEditor->setBounds(getLocalBounds().reduced(6));
     }
 
     resizer.setBounds(getLocalBounds().reduced(5));
@@ -346,12 +343,12 @@ void Box::updatePorts()
 {
     // update inlets and outlets
 
-    int oldnumInputs = 0;
-    int oldnumOutputs = 0;
+    int oldNumInputs = 0;
+    int oldNumOutputs = 0;
 
     for (auto& edge : edges)
     {
-        edge->isInput ? oldnumInputs++ : oldnumOutputs++;
+        edge->isInput ? oldNumInputs++ : oldNumOutputs++;
     }
 
     numInputs = 0;
@@ -363,10 +360,10 @@ void Box::updatePorts()
         numOutputs = pdObject->getNumOutlets();
     }
 
-    while (numInputs < oldnumInputs) edges.remove(--oldnumInputs);
-    while (numInputs > oldnumInputs) edges.insert(oldnumInputs++, new Edge(this, true));
-    while (numOutputs < oldnumOutputs) edges.remove(numInputs + (--oldnumOutputs));
-    while (numOutputs > oldnumOutputs) edges.insert(numInputs + (++oldnumOutputs), new Edge(this, false));
+    while (numInputs < oldNumInputs) edges.remove(--oldNumInputs);
+    while (numInputs > oldNumInputs) edges.insert(oldNumInputs++, new Edge(this, true));
+    while (numOutputs < oldNumOutputs) edges.remove(numInputs + (--oldNumOutputs));
+    while (numOutputs > oldNumOutputs) edges.insert(numInputs + (++oldNumOutputs), new Edge(this, false));
 
     int numIn = 0;
     int numOut = 0;
@@ -440,7 +437,7 @@ void Box::showEditor()
 {
     if (editor == nullptr)
     {
-        editor.reset(new TextEditor(getName()));
+        editor = std::make_unique<TextEditor>(getName());
         editor->applyFontToAllText(font);
         copyAllExplicitColoursTo(*editor);
 

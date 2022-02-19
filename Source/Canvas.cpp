@@ -85,7 +85,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
    public:
     bool selecting = false;
 
-    SuggestionComponent() : resizer(this, &constrainer)
+    SuggestionComponent() : resizer(this, &constrainer), currentBox(nullptr)
     {
         // Set up the button list that contains our suggestions
         buttonholder = std::make_unique<Component>();
@@ -121,7 +121,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         setVisible(false);
     }
 
-    ~SuggestionComponent()
+    ~SuggestionComponent() override
     {
         buttons.clear();
     }
@@ -403,7 +403,7 @@ struct GraphArea : public Component, public ComponentDragger
     }
 };
 
-Canvas::Canvas(PlugDataPluginEditor& parent, const pd::Patch& patch, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(patch)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(std::move(patch))
 {
     isGraph = graph;
     isGraphChild = graphChild;
@@ -1067,7 +1067,7 @@ bool Canvas::keyPressed(const KeyPress& key)
 
 void Canvas::deselectAll()
 {
-    // Deselects boxes
+    // Deselect boxes
     for (auto c : selectedComponents)
         if (c) c->repaint();
 

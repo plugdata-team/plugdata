@@ -23,17 +23,25 @@ struct SaveDialog : public Component
         cancel.onClick = [this]
         {
             cb(0);
-            delete this;  // yikesss
+            MessageManager::callAsync([this](){
+                                          delete this;
+            });
+
+
         };
         save.onClick = [this]
         {
             cb(2);
-            delete this;  // yikesss
+            MessageManager::callAsync([this](){
+                                          delete this;
+                                      });
         };
         dontsave.onClick = [this]
         {
             cb(1);
-            delete this;  // yikesss
+            MessageManager::callAsync([this](){
+                                          delete this;
+                                      });
         };
         cancel.changeWidthToFitText();
         dontsave.changeWidthToFitText();
@@ -372,7 +380,7 @@ class LibraryComponent : public Component, public TableListBoxModel
 
 struct SettingsComponent : public Component
 {
-    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
+    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, std::function<void()> updatePaths)
     {
         toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search)};
 
@@ -466,7 +474,7 @@ struct SettingsDialog : public Component
 
     ComponentBoundsConstrainer constrainer;
 
-    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths) : audioProcessor(processor), settingsComponent(processor, manager, std::move(settingsTree), std::move(updatePaths))
+    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, std::function<void()> updatePaths) : audioProcessor(processor), settingsComponent(processor, manager, settingsTree, std::move(updatePaths))
     {
         shadower.setOwner(this);
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
@@ -564,12 +572,12 @@ void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String,
     dialog->setBounds((centre->getWidth() / 2.) - 200., 37, 300, 180);
 }
 
-std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree settingsTree, std::function<void()> updatePaths)
+std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, const std::function<void()>& updatePaths)
 {
     return std::make_unique<SettingsDialog>(processor, manager, settingsTree, updatePaths);
 }
 
-void Dialogs::showObjectMenu(Component* parent, Component* target, std::function<void(String)> cb)
+void Dialogs::showObjectMenu(Component* parent, Component* target, const std::function<void(String)>& cb)
 {
     PopupMenu menu;
 
