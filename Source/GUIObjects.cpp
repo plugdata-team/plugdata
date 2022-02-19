@@ -1918,6 +1918,9 @@ struct VUMeter : public GUIComponent
 {
     VUMeter(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
+        initParameters(newObject);
+        
+        box->restrainer.setSizeLimits(55, 120, 2000, 2000);
     }
 
     ~VUMeter() override
@@ -1930,47 +1933,57 @@ struct VUMeter : public GUIComponent
 
     void paint(Graphics& g) override
     {
-        g.setColour(Colours::white);
+        g.fillAll(findColour(ComboBox::backgroundColourId));
+        
 
-        auto rms = gui.getValue();
-        auto peak = gui.getPeak();
-
-        g.drawFittedText(String(rms, 2) + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+        auto values = std::vector<float>{gui.getValue(),  gui.getPeak()};
 
         int height = getHeight();
-        int width = getWidth();
+        int width = getWidth() / 2.0f;
 
         auto outerBorderWidth = 2.0f;
         auto totalBlocks = 15;
         auto spacingFraction = 0.03f;
-
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
 
-        auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
-        auto blockHeight = height - doubleOuterBorderWidth;
-        auto blockRectWidth = (1.0f - 2.0f * spacingFraction) * blockWidth;
-        auto blockRectSpacing = spacingFraction * blockWidth;
-        auto blockCornerSize = 0.1f * blockWidth;
+        auto blockHeight = (height - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
+        auto blockWidth = width - doubleOuterBorderWidth;
+        auto blockRectHeight = (1.0f - 2.0f * spacingFraction) * blockHeight;
+        auto blockRectSpacing = spacingFraction * blockHeight;
+        auto blockCornerSize = 0.1f * blockHeight;
         auto c = findColour(Slider::thumbColourId);
 
-        float lvl = (float)std::exp(std::log(peak) / 3.0) * (peak > 0.002);
-        auto numBlocks = roundToInt(totalBlocks * lvl);
-
-        for (auto i = 0; i < totalBlocks; ++i)
+        for (int ch = 0; ch < 2; ch++)
         {
-            if (i >= numBlocks)
-                g.setColour(c.withAlpha(0.5f));
-            else
-                g.setColour(i < totalBlocks - 1 ? c : Colours::red);
+            float lvl = (float)std::exp(std::log(values[ch]) / 3.0) * (values[ch] > 0.002);
+            auto numBlocks = roundToInt(totalBlocks * lvl);
+            
+            int x = ch * width;
 
-            g.fillRoundedRectangle(outerBorderWidth + (i * blockWidth) + blockRectSpacing, outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
+            for (auto i = 0; i < totalBlocks; ++i)
+            {
+                if (i >= numBlocks)
+                    g.setColour(Colours::darkgrey);
+                else
+                    g.setColour(i < totalBlocks - 1 ? c : Colours::red);
+                
+                //g.fillRoundedRectangle(y + outerBorderWidth, outerBorderWidth + (i * blockWidth) + blockRectSpacing, blockHeight, blockRectWidth, blockCornerSize);
+                
+                
+                g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
+            }
         }
+        
+        g.setColour(Colours::white);
+        g.drawFittedText(String(values[0], 2) + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
     }
+    
 
     void updateValue() override
     {
         auto rms = gui.getValue();
         auto peak = gui.getPeak();
+        repaint();
     };
 
     std::pair<int, int> getBestSize() override

@@ -268,6 +268,11 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
         typesymbol = gensym("floatatom");
         tokens.remove(0);
     }
+    if (tokens[0] == "listbox")
+    {
+        typesymbol = gensym("listbox");
+        tokens.remove(0);
+    }
     if (tokens[0] == "symbolatom")
     {
         typesymbol = gensym("symbolatom");
@@ -337,7 +342,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
     // Cant use the queue for this...
     setCurrent(true);
 
-    StringArray notRenamable = {"msg", "message", "gatom", "floatatom", "symbolatom"};
+    StringArray notRenamable = {"msg", "message", "gatom", "floatatom", "symbolatom", "listbox"};
 
     // Don't rename when going to or from a gui object, remove and recreate instead
     if (notRenamable.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() == Type::Message || obj->getType() == Type::AtomNumber || obj->getType() == Type::AtomSymbol)
