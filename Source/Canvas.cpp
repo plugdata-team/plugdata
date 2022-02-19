@@ -655,6 +655,12 @@ void Canvas::mouseDown(const MouseEvent& e)
         suggestor->currentBox->hideEditor();
         return;
     }
+    
+    // Middle mouse pan
+    if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
+        mousePanDownPos = e.getPosition();
+        startTimer(20);
+    }
 
     auto openSubpatch = [this](Box* parent)
     {
@@ -833,8 +839,14 @@ void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
     if (isGraph || locked == true) return;
+    if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) return;
 
     auto* source = e.originalComponent;
+    
+    if(!viewport->getViewArea().contains(e.getPosition()) && !isTimerRunning()) {
+        mousePanDownPos = viewport->getViewArea().getConstrainedPoint(e.getPosition());
+        startTimer(20);
+    }
 
     // Drag lasso
     if (dynamic_cast<Connection*>(source))
@@ -903,6 +915,22 @@ void Canvas::mouseUp(const MouseEvent& e)
     }
 
     lasso.endLasso();
+}
+
+
+void Canvas::timerCallback()
+{
+    auto pos = getMouseXYRelative() - viewport->getViewPosition();
+    
+    if(!ModifierKeys::getCurrentModifiers().isMiddleButtonDown() && viewport->getViewArea().contains(pos)) {
+        stopTimer();
+        return;
+    }
+    
+    // This is okay, but it could be smoother!
+    auto delta = pos - mousePanDownPos;
+    
+    viewport->setViewPosition(viewport->getViewPositionX() + delta.x * 0.1f, viewport->getViewPositionY() + delta.y * 0.1f);
 }
 
 void Canvas::findDrawables(Graphics& g)

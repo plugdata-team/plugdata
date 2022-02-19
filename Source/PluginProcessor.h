@@ -107,6 +107,16 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     {
         return audioLock;
     };
+    
+    bool canAddBus(bool isInput) const override {
+      return true;
+    }
+
+    bool canRemoveBus(bool isInput) const override {
+      int nbus = getBusCount(isInput);
+      return nbus > 0;
+    }
+
 
     std::atomic<uint64> lastAudioCallback;
 
@@ -172,8 +182,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     
     static inline constexpr int numParameters = 512;
-    static inline constexpr int numInputBuses = 8;
-    static inline constexpr int numOutputBuses = 8;
+    static inline constexpr int numInputBuses = 16;
+    static inline constexpr int numOutputBuses = 16;
     
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
     std::array<float, numParameters> lastParameters = {0};
