@@ -658,7 +658,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     
     // Middle mouse pan
     if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
-        mousePanDownPos = e.getPosition();
+        mousePanDownPos = e.getEventRelativeTo(viewport).getPosition();
         startTimer(20);
     }
 
@@ -920,17 +920,16 @@ void Canvas::mouseUp(const MouseEvent& e)
 
 void Canvas::timerCallback()
 {
-    auto pos = getMouseXYRelative() - viewport->getViewPosition();
+    auto pos = viewport->getMouseXYRelative();
     
     if(!ModifierKeys::getCurrentModifiers().isMiddleButtonDown() && viewport->getViewArea().contains(pos)) {
         stopTimer();
         return;
     }
     
-    // This is okay, but it could be smoother!
     auto delta = pos - mousePanDownPos;
     
-    viewport->setViewPosition(viewport->getViewPositionX() + delta.x * 0.1f, viewport->getViewPositionY() + delta.y * 0.1f);
+    viewport->setViewPosition(viewport->getViewPositionX() + delta.x * 0.15f, viewport->getViewPositionY() + delta.y * 0.15f);
 }
 
 void Canvas::findDrawables(Graphics& g)
