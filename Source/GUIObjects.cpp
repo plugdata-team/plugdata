@@ -1085,6 +1085,7 @@ struct NumboxComponent : public GUIComponent
 
     void valueChanged(Value& value) override
     {
+
         if (value.refersToSameSourceAs(min))
         {
             gui.setMinimum(static_cast<float>(min.getValue()));

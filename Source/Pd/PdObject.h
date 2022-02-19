@@ -88,6 +88,8 @@ class Object
 
     bool isSignalInlet(int idx) noexcept;
     bool isSignalOutlet(int idx) noexcept;
+    
+    void addUndoableAction();
 
     Object(void* ptr, Patch* patch, Instance* instance) noexcept;
 
