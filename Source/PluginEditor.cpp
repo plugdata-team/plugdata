@@ -430,19 +430,16 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
     
    auto event = e.getEventRelativeTo(viewport);
     
-   //Point<int> anchor (cnv->getLocalPoint (viewport, Point<int> (event.x, event.y)));
-    
-   auto pos = cnv->getLocalPoint(this, e.getPosition());
+   auto oldMousePos = cnv->getLocalPoint(this, e.getPosition());
 
    statusbar.zoom(scrollFactor);
    valueChanged(pd.zoomScale); // trigger change to make the anchoring work
     
-    auto pos2 = cnv->getLocalPoint(this, e.getPosition());
+    auto newMousePos = cnv->getLocalPoint(this, e.getPosition());
     
-    std::cout << "diffx:" << (pos.x - pos2.x) << "diffy:" << (pos.y - pos2.y) << std::endl;
-    
-    viewport->setViewPosition(viewport->getViewPositionX() + (pos.x - pos2.x), viewport->getViewPositionY() + (pos.y - pos2.y));
+    viewport->setViewPosition(viewport->getViewPositionX() + (oldMousePos.x - newMousePos.x), viewport->getViewPositionY() + (oldMousePos.y - newMousePos.y));
 }
+
 
 void PlugDataPluginEditor::openProject()
 {
