@@ -729,6 +729,8 @@ Patch Gui::getPatch() const noexcept
 
 void Gui::setSendSymbol(const String& symbol) const noexcept
 {
+    if(symbol.isEmpty()) return;
+    
     if (ptr && isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -752,6 +754,7 @@ void Gui::setSendSymbol(const String& symbol) const noexcept
 
 void Gui::setReceiveSymbol(const String& symbol) const noexcept
 {
+    if(symbol.isEmpty()) return;
     if (ptr && isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);

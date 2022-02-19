@@ -11,7 +11,7 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
-Box::Box(Canvas* parent, const String& name, Point<int> position) : resizer(this, &restrainer)
+Box::Box(Canvas* parent, const String& name, Point<int> position) : resizer(this, &constrainer)
 {
     cnv = parent;
 
@@ -27,7 +27,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : resizer(this
     }
 }
 
-Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object), resizer(this, &restrainer)
+Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object), resizer(this, &constrainer)
 {
     cnv = parent;
     initialise();
@@ -38,8 +38,6 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
 
 Box::~Box()
 {
-    locked.removeListener(this);
-    commandLocked.removeListener(this);
 }
 
 void Box::initialise()
@@ -238,7 +236,7 @@ void Box::setType(const String& newType, bool exists)
     }
 
     // graphical objects manage their own size limits
-    if (!graphics) restrainer.setSizeLimits(25, getHeight(), 350, getHeight());
+    if (!graphics) constrainer.setSizeLimits(25, getHeight(), 350, getHeight());
 
     cnv->main.updateUndoState();
 }
@@ -309,7 +307,7 @@ void Box::resized()
         pdObject->setSize(getWidth() - 8, getHeight() - 8);
     }
 
-    restrainer.checkComponentBounds(this);
+    constrainer.checkComponentBounds(this);
 
     auto bestWidth = font.getStringWidth(getText()) + 27;
 
