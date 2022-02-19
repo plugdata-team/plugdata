@@ -78,6 +78,17 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
+static int glist_getindex(t_glist* x, t_gobj* y)
+{
+    t_gobj* y2;
+    int indx;
+
+    for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
+    return (indx);
+}
+
+void *canvas_undo_set_apply(t_canvas *x, int n);
+
 Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, patch, instance), type(Type::Undefined)
 {
     type = getType(ptr);
@@ -682,8 +693,20 @@ Rectangle<int> Gui::getBounds() const noexcept
 
 void Gui::setSize(int w, int h)
 {
+    
+    auto oldBounds = getBounds();
+    
+    if(w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
+    
     w /= Patch::zoom;
     h /= Patch::zoom;
+    
+    if(type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM()) {
+        Object::setSize(w, h);
+        return;
+    }
+    
+    addUndoableAction();
 
     if (type == Type::Panel)
     {
@@ -702,10 +725,7 @@ void Gui::setSize(int w, int h)
         iemgui->x_w = w;
         iemgui->x_h = h;
     }
-    else
-    {
-        Object::setSize(w, h);
-    }
+
 }
 
 Array Gui::getArray() const noexcept
@@ -943,5 +963,6 @@ void Gui::setLabelPosition(int wherelabel) noexcept
     }
     jassertfalse;
 }
+
 
 }  // namespace pd

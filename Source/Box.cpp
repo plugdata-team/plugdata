@@ -52,6 +52,8 @@ void Box::initialise()
 
     locked.addListener(this);
     commandLocked.addListener(this);
+    
+    resizer.addMouseListener(this, false);
 
     onTextChange = [this]()
     {
@@ -298,12 +300,6 @@ void Box::resized()
         graphics->setBounds(getLocalBounds().reduced(6));
     }
 
-    // Send current width to pd object
-    if (pdObject)
-    {
-        pdObject->setSize(getWidth() - 8, getHeight() - 8);
-    }
-
     constrainer.checkComponentBounds(this);
 
     auto bestWidth = font.getStringWidth(getText()) + 27;
@@ -404,9 +400,11 @@ String Box::getText(bool returnActiveEditorContents) const
 
 void Box::mouseDown(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->pd->locked == true) return;
+    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent != this) return;
 
     cnv->handleMouseDown(this, e);
+    
+    lastBounds = getLocalBounds();
 }
 
 void Box::mouseUp(const MouseEvent& e)
@@ -419,11 +417,17 @@ void Box::mouseUp(const MouseEvent& e)
     {
         cnv->connectingEdge = nullptr;
     }
+    
+    
+    if(lastBounds != getLocalBounds()) {
+        pdObject->setSize(getWidth() - 8, getHeight() - 8);
+    }
+    
 }
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->pd->locked == true) return;
+    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent != this) return;
 
     cnv->handleMouseDrag(e);
 }

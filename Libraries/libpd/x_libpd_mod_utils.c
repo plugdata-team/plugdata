@@ -727,6 +727,15 @@ int libpd_can_redo(t_canvas* cnv) {
 }
 
 
+// Can probably be used as a general purpose undo action on an object?
+void libpd_undo_apply(t_canvas* cnv, t_gobj* obj)
+{
+    
+    canvas_undo_add(cnv, UNDO_APPLY, "props",
+        canvas_undo_set_apply(cnv, glist_getindex(cnv, obj)));
+}
+
+
 void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
 {
     glist_noselect(cnv);

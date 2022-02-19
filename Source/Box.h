@@ -83,7 +83,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     bool hideLabel = false;
     
-    
+    Rectangle<int> lastBounds;
 
     Value textValue;
     String lastTextValue;
