@@ -1563,32 +1563,36 @@ struct GraphicalArray : public Component, public Timer
 
         float start = vec[lastIndex];
         float current = (1.f - std::clamp(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
+        
+        int interpStart = std::min(index, lastIndex);
+        int interpEnd = std::max(index, lastIndex);
+        
+        float min = index == interpStart ? current : start;
+        float max = index == interpStart ? start : current;
 
         const CriticalSection* cs = pd->getCallbackLock();
 
-        if (cs->tryEnter())
+        // Fix to make sure we don't leave any gaps while dragging
+        for (int n = interpStart; n <= interpEnd; n++)
         {
+            vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);
+        }
+        
+        pd->enqueueFunction([this, interpStart, interpEnd]() mutable {
             try
             {
-                // Fix to make sure we don't leave any gaps while dragging
-                for (int n = index; n <= lastIndex; n++)
+                for (int n = interpStart; n <= interpEnd; n++)
                 {
-                    vec[n] = jmap<float>(n, index, lastIndex + 1, current, start);
-                    array.write(n, vec[n]);
-                }
-                for (int n = lastIndex; n <= index; n++)
-                {
-                    vec[n] = jmap<float>(n, lastIndex, index + 1, start, current);
-                    array.write(n, vec[n]);
+                        array.write(n, vec[n]);
                 }
             }
             catch (...)
             {
                 error = true;
             }
-            cs->exit();
-        }
-
+                
+        });
+        
         lastIndex = index;
 
         pd->enqueueMessages(stringArray, array.getName(), {});
