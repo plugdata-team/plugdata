@@ -87,7 +87,7 @@ static int glist_getindex(t_glist* x, t_gobj* y)
     return (indx);
 }
 
-void *canvas_undo_set_apply(t_canvas *x, int n);
+void* canvas_undo_set_apply(t_canvas* x, int n);
 
 Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, patch, instance), type(Type::Undefined)
 {
@@ -170,8 +170,8 @@ Type Gui::getType(void* ptr) noexcept
             type = Type::AtomNumber;
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
             type = Type::AtomSymbol;
-         else if(static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
-         type = Type::AtomList;
+        else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
+            type = Type::AtomList;
     }
 
     else if (name == "canvas" || name == "graph")
@@ -693,19 +693,19 @@ Rectangle<int> Gui::getBounds() const noexcept
 
 void Gui::setSize(int w, int h)
 {
-    
     auto oldBounds = getBounds();
-    
-    if(w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
-    
+
+    if (w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
+
     w /= Patch::zoom;
     h /= Patch::zoom;
-    
-    if(type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM()) {
+
+    if (type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM())
+    {
         Object::setSize(w, h);
         return;
     }
-    
+
     addUndoableAction();
 
     if (type == Type::Panel)
@@ -725,7 +725,6 @@ void Gui::setSize(int w, int h)
         iemgui->x_w = w;
         iemgui->x_h = h;
     }
-
 }
 
 Array Gui::getArray() const noexcept
@@ -749,8 +748,8 @@ Patch Gui::getPatch() const noexcept
 
 void Gui::setSendSymbol(const String& symbol) const noexcept
 {
-    if(symbol.isEmpty()) return;
-    
+    if (symbol.isEmpty()) return;
+
     if (ptr && isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -774,7 +773,7 @@ void Gui::setSendSymbol(const String& symbol) const noexcept
 
 void Gui::setReceiveSymbol(const String& symbol) const noexcept
 {
-    if(symbol.isEmpty()) return;
+    if (symbol.isEmpty()) return;
     if (ptr && isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -963,6 +962,5 @@ void Gui::setLabelPosition(int wherelabel) noexcept
     }
     jassertfalse;
 }
-
 
 }  // namespace pd

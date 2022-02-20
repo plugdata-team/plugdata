@@ -13,22 +13,17 @@
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {
     AudioProcessor::BusesProperties busesProperties;
-    
+
     busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
-    
-    
-    for (int i = 1; i < numInputBuses; i++)
-        busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
+
+    for (int i = 1; i < numInputBuses; i++) busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
 
     busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
-    
-    
-    for (int i = 1; i < numOutputBuses; i++)
-        busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
+
+    for (int i = 1; i < numOutputBuses; i++) busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
 
     return busesProperties;
 }
-
 
 PlugDataAudioProcessor::PlugDataAudioProcessor()
 #ifndef JucePlugin_PreferredChannelConfigurations
@@ -37,11 +32,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
       pd::Instance("PlugData"),
       parameters(*this, nullptr)
 {
-
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 0.75f));
-                                     
+
     parameters.createAndAddParameter(std::make_unique<AudioParameterBool>("enabled", "Enabled", true));
-    
+
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++)
     {
@@ -50,10 +44,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         parameterValues[n] = parameters.getRawParameterValue(id);
         lastParameters[n] = 0;
     }
-    
+
     volume = parameters.getRawParameterValue("volume");
     enabled = parameters.getRawParameterValue("enabled");
-    
+
     parameters.replaceState(ValueTree("PlugData"));
 
     // On first startup, initialise abstractions and settings
@@ -70,15 +64,13 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     midiBufferOut.ensureSize(2048);
     midiBufferTemp.ensureSize(2048);
     midiBufferCopy.ensureSize(2048);
-    
+
     setCallbackLock(&AudioProcessor::getCallbackLock());
 
     sendMessagesFromQueue();
     processMessages();
 
-  
     LookAndFeel::setDefaultLookAndFeel(&lnf.get());
-
 
     logMessage("PlugData " + String(ProjectInfo::versionString));
 }
@@ -88,7 +80,6 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
     // Save current settings before quitting
     saveSettings();
 }
-
 
 void PlugDataAudioProcessor::initialiseFilesystem()
 {
@@ -253,49 +244,43 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
     ignoreUnused(layouts);
     return true;
 #endif
-    
+
     const AudioChannelSet& mainOutput = layouts.getMainOutputChannelSet();
-    if (mainOutput.isDisabled())
-        return false;
+    if (mainOutput.isDisabled()) return false;
 
     int ninch = 0;
     int noutch = 0;
-    for (int bus = 0; bus < layouts.outputBuses.size(); bus++) {
-      int nchb = layouts.getNumChannels(false, bus);
-      if (nchb > 2)
-          return false;
-      if (nchb == 0)
-          return false;
-      noutch += nchb;
+    for (int bus = 0; bus < layouts.outputBuses.size(); bus++)
+    {
+        int nchb = layouts.getNumChannels(false, bus);
+        if (nchb > 2) return false;
+        if (nchb == 0) return false;
+        noutch += nchb;
     }
-    
-    for (int bus = 0; bus < layouts.inputBuses.size(); bus++) {
-      int nchb = layouts.getNumChannels(true, bus);
-      if (nchb > 2)
-          return false;
-      if (nchb == 0)
-          return false;
-      ninch += nchb;
+
+    for (int bus = 0; bus < layouts.inputBuses.size(); bus++)
+    {
+        int nchb = layouts.getNumChannels(true, bus);
+        if (nchb > 2) return false;
+        if (nchb == 0) return false;
+        ninch += nchb;
     }
-    
-    if (ninch > 32 || noutch > 32)
-        return false;
-    
+
+    if (ninch > 32 || noutch > 32) return false;
+
     return true;
-    
+
     // One input bus: stereo or disabled
-    //if (layouts.inputBuses.size() != layouts.outputBus.size()) return false;
+    // if (layouts.inputBuses.size() != layouts.outputBus.size()) return false;
     /*
     for (auto& ib : layouts.inputBuses)
         if (ib != AudioChannelSet::stereo() && !ib.isDisabled())
             return false;
-    
+
     for (auto& ob : layouts.outputBuses)
         if (ob != AudioChannelSet::stereo() && !ob.isDisabled())
             return false; */
-
 }
-
 
 void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
 {
@@ -320,7 +305,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
     auto const maxOuts = std::max(minOut, buffer.getNumChannels());
-    for(int i = minIn; i < maxOuts; ++i)
+    for (int i = minIn; i < maxOuts; ++i)
     {
         buffer.clear(i, 0, buffer.getNumSamples());
     }
@@ -566,7 +551,7 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
-    //setThis();
+    // setThis();
 
     // Dequeue messages
     sendMessagesFromQueue();
@@ -613,7 +598,7 @@ bool PlugDataAudioProcessor::hasEditor() const
 AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 {
     auto* editor = new PlugDataPluginEditor(*this);
-    
+
     setThis();
 
     if (patches.isEmpty())
@@ -821,15 +806,18 @@ void PlugDataAudioProcessor::timerCallback()
     {
         if (!callbackType) return;
 
-        if(callbackType == 1) {
+        if (callbackType == 1)
+        {
             editor->updateValues();
         }
         else if (callbackType == 3)
         {
             editor->updateValues();
         }
-        else {
-            for(auto* tmpl : editor->getCurrentCanvas()->templates) {
+        else
+        {
+            for (auto* tmpl : editor->getCurrentCanvas()->templates)
+            {
                 static_cast<DrawableTemplate*>(tmpl)->update();
             }
         }

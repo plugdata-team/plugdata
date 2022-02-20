@@ -453,10 +453,9 @@ struct Console : public Component
         void clear()
         {
             pd->consoleHistory.insert(pd->consoleHistory.end(), pd->consoleMessages.begin(), pd->consoleMessages.end());
-            
+
             pd->consoleMessages.clear();
-            
-            
+
             update();
         }
 
@@ -581,7 +580,7 @@ struct Console : public Component
 
             int numEmpty = 0;
 
-            for (auto & message : pd->consoleMessages)
+            for (auto& message : pd->consoleMessages)
             {
                 int numLines = getNumLines(message.first);
                 int height = numLines * 22 + 2;

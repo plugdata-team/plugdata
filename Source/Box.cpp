@@ -38,7 +38,6 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
     setType(name, true);
 }
 
-
 void Box::initialise()
 {
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
@@ -52,7 +51,7 @@ void Box::initialise()
 
     locked.addListener(this);
     commandLocked.addListener(this);
-    
+
     resizer.addMouseListener(this, false);
 
     onTextChange = [this]()
@@ -403,7 +402,7 @@ void Box::mouseDown(const MouseEvent& e)
     if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent == &resizer) return;
 
     cnv->handleMouseDown(this, e);
-    
+
     lastBounds = getLocalBounds();
 }
 
@@ -417,12 +416,11 @@ void Box::mouseUp(const MouseEvent& e)
     {
         cnv->connectingEdge = nullptr;
     }
-    
-    
-    if(lastBounds != getLocalBounds()) {
+
+    if (lastBounds != getLocalBounds())
+    {
         pdObject->setSize(getWidth() - 8, getHeight() - 8);
     }
-    
 }
 
 void Box::mouseDrag(const MouseEvent& e)
