@@ -55,7 +55,7 @@ class Patch
 
     void finishRemove();
     void removeSelection();
-
+    
     void selectObject(Object*);
     void deselectAll();
 
