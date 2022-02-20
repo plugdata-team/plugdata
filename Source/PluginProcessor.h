@@ -193,7 +193,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     const CriticalSection* audioLock;
 
-    std::unique_ptr<LookAndFeel> lnf;
+    SharedResourcePointer<PlugDataDarkLook> lnf;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };
