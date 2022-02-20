@@ -37,6 +37,9 @@ void libpd_duplicate(t_canvas *x);
 void libpd_undo(t_canvas* cnv);
 void libpd_redo(t_canvas* cnv);
 
+void libpd_start_undo_sequence(t_canvas* cnv, const char* name);
+void libpd_end_undo_sequence(t_canvas* cnv, const char* name);
+
 // Start and end of remove action, to group them together for undo/redo
 void libpd_removeselection(t_canvas* cnv);
 
