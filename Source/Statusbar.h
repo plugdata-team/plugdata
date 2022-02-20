@@ -36,6 +36,8 @@ struct Statusbar : public Component, public Timer, public KeyListener
     std::unique_ptr<TextButton> lockButton;
     std::unique_ptr<TextButton> connectionStyleButton;
     std::unique_ptr<TextButton> connectionPathfind;
+    
+    std::unique_ptr<TextButton> presentationButton;
 
     std::unique_ptr<TextButton> zoomIn;
     std::unique_ptr<TextButton> zoomOut;
@@ -46,6 +48,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
 
     Value locked;
     Value commandLocked;
+    Value presentationMode;
 
     Value zoomScale;
 

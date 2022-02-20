@@ -155,7 +155,15 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
     zoomIn = std::make_unique<TextButton>(Icons::ZoomIn);
     zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
+    presentationButton = std::make_unique<TextButton>(Icons::Presentation);
 
+    presentationButton->setTooltip("Presentation Mode");
+    presentationButton->setClickingTogglesState(true);
+    presentationButton->setConnectedEdges(12);
+    presentationButton->setName("statusbar:presentation");
+    presentationButton->getToggleStateValue().referTo(presentationMode);
+    addAndMakeVisible(presentationButton.get());
+    
     bypassButton->setTooltip("Bypass");
     bypassButton->setClickingTogglesState(true);
     bypassButton->setConnectedEdges(12);
@@ -257,6 +265,8 @@ void Statusbar::resized()
     zoomIn->setBounds(146, 0, getHeight(), getHeight());
     zoomOut->setBounds(174, 0, getHeight(), getHeight());
 
+    presentationButton->setBounds(215, 0, getHeight(), getHeight());
+    
     bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
 
     levelMeter->setBounds(getWidth() - 133, 1, 100, getHeight());

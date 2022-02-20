@@ -587,11 +587,19 @@ void PlugDataPluginEditor::valueChanged(Value& v)
    {
        toolbarButton(Add)->setEnabled(pd.locked == false);
        
+       bool hasBoxSelection = false;
        bool hasSelection = false;
        bool noCanvas = true;
        
+
        if(auto* cnv = getCurrentCanvas()) {
-           hasSelection = cnv->getLassoSelection().getNumSelected();
+           
+           auto selectedBoxes = cnv->getSelectionOfType<Box>();
+           auto selectedConnections = cnv->getSelectionOfType<Connection>();
+           
+           hasBoxSelection = !selectedBoxes.isEmpty();
+           hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
+           
            noCanvas = false;
        }
        
@@ -680,7 +688,7 @@ void PlugDataPluginEditor::valueChanged(Value& v)
            {
                result.setInfo(translate("Copy"), translate("Copy"), "Edit", 0);
                result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-               result.setActive(pd.locked == false && hasSelection);
+               result.setActive(pd.locked == false && hasBoxSelection);
                break;
            }
            case CommandIDs::Paste:
@@ -708,7 +716,7 @@ void PlugDataPluginEditor::valueChanged(Value& v)
            {
                result.setInfo(translate("Duplicate"), translate("Duplicate selection"), "Edit", 0);
                result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-               result.setActive(pd.locked == false && hasSelection);
+               result.setActive(pd.locked == false && hasBoxSelection);
                break;
            }
            case CommandIDs::SelectAll:
