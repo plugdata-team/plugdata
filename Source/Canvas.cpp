@@ -26,9 +26,8 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         Array<String> letters = {"pd", "~"};
 
-        
         String objectDescription;
-        
+
        public:
         Suggestion()
         {
@@ -52,13 +51,14 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         void paint(Graphics& g) override
         {
             TextButton::paint(g);
-            
-            if(objectDescription.isNotEmpty()) {
+
+            if (objectDescription.isNotEmpty())
+            {
                 auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
                 auto textLength = font.getStringWidth(getButtonText()) + 22;
-                
+
                 g.setColour(findColour(ComboBox::outlineColourId));
-                
+
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
                 auto fontHeight = roundToInt(font.getHeight() * 0.5f);
@@ -110,10 +110,10 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         port->setInterceptsMouseClicks(true, true);
         port->setViewportIgnoreDragFlag(true);
         addAndMakeVisible(port.get());
-        
+
         constrainer.setSizeLimits(150, 120, 500, 400);
         setSize(250, 115);
-        
+
         addAndMakeVisible(resizer);
 
         setInterceptsMouseClicks(true, true);
@@ -217,7 +217,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
 
         for (int i = 0; i < buttons.size(); i++) buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
-        
+
         resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
 
         port->setViewPosition(0, yScroll);
@@ -260,21 +260,20 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         String typedText = e.getText().substring(0, start) + mutableInput;
         highlightStart = typedText.length();
 
-        
         auto& library = currentBox->cnv->pd->objectLibrary;
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
-        
 
-        for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++) {
-            if(library.objectDescriptions.find(found[i]) != library.objectDescriptions.end())
+        for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
+        {
+            if (library.objectDescriptions.find(found[i]) != library.objectDescriptions.end())
             {
                 buttons[i]->setText(found[i], library.objectDescriptions[found[i]]);
             }
-            else {
+            else
+            {
                 buttons[i]->setText(found[i], "");
             }
-            
         }
 
         for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("", "");
@@ -282,7 +281,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         numOptions = found.size();
 
         setVisible(typedText.isNotEmpty() && numOptions);
-        
+
         constrainer.setSizeLimits(150, 100, 500, 400);
         resized();
 
@@ -301,7 +300,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         highlightEnd = fullName.length();
 
         if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" "))
-            
+
         {
             isCompleting = false;
             return mutableInput;
@@ -320,7 +319,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     std::unique_ptr<Viewport> port;
     std::unique_ptr<Component> buttonholder;
     OwnedArray<Suggestion> buttons;
-    
+
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
 
@@ -673,13 +672,14 @@ void Canvas::synchronise(bool updatePosition)
                 c.repaint();
             }
         }
-        
+
         setTransform(main.transform);
-        
+
         templates.clear();
         templates.addArray(findDrawables());
-        
-        for(auto& tmpl : templates) {
+
+        for (auto& tmpl : templates)
+        {
             addAndMakeVisible(tmpl);
             tmpl->setAlwaysOnTop(true);
             tmpl->update();
@@ -779,7 +779,6 @@ void Canvas::mouseDown(const MouseEvent& e)
             {
                 deselectAll();
             }
-            
         }
     }
     // Right click
@@ -880,30 +879,32 @@ void Canvas::mouseDrag(const MouseEvent& e)
     if (isGraph || locked == true) return;
 
     auto* source = e.originalComponent;
-    
+
     auto viewportEvent = e.getEventRelativeTo(viewport);
-    
+
     float scrollSpeed = 8.5f;
-    
+
     // Middle mouse pan
-    if(ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
+    if (ModifierKeys::getCurrentModifiers().isMiddleButtonDown())
+    {
         beginDragAutoRepeat(40);
-        
+
         auto delta = Point<int>{viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY()};
-        
+
         viewport->setViewPosition(viewport->getViewPositionX() + delta.x * (1.0f / scrollSpeed), viewport->getViewPositionY() + delta.y * (1.0f / scrollSpeed));
-        
-        return; // Middle mouse button cancels any other drag actions
+
+        return;  // Middle mouse button cancels any other drag actions
     }
 
     // For fixing coords when zooming
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
-    
+
     // Auto scroll when dragging close to the edge
-    if(viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 100, scrollSpeed)) {
+    if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 100, scrollSpeed))
+    {
         beginDragAutoRepeat(40);
     }
-    
+
     // Drag lasso
     if (dynamic_cast<Connection*>(source))
     {
@@ -977,7 +978,7 @@ Array<DrawableTemplate*> Canvas::findDrawables()
 {
     // Find all drawables (from objects like drawpolygon, filledcurve, etc.)
     // Pd draws this over all siblings, even when drawn inside a graph!
-    
+
     Array<DrawableTemplate*> result;
 
     for (auto& box : boxes)
@@ -1016,13 +1017,12 @@ Array<DrawableTemplate*> Canvas::findDrawables()
             {
                 const t_parentwidgetbehavior* wb = pd_getparentwidget(&y->g_pd);
                 if (!wb) continue;
-  
 
                 result.add(new DrawableTemplate(x, y, this, static_cast<int>(basex), static_cast<int>(basey)));
             }
         }
     }
-    
+
     return result;
 }
 
@@ -1032,7 +1032,7 @@ void Canvas::paintOverChildren(Graphics& g)
     // Graphs are drawn from their parent, so pd drawings are always on top of other objects
     if (!isGraph)
     {
-        //findDrawables(g);
+        // findDrawables(g);
     }
 
     // Draw connections in the making over everything else
@@ -1231,18 +1231,16 @@ void Canvas::redo()
 
 void Canvas::checkBounds()
 {
-    
-    if(isGraph || !viewport) return;
-    
+    if (isGraph || !viewport) return;
+
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
-    
+
     auto viewBounds = Rectangle<int>(zeroPosition.x, zeroPosition.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
 
     for (auto obj : boxes)
     {
         viewBounds = obj->getBounds().getUnion(viewBounds);
     }
-
 
     for (auto& box : boxes)
     {
@@ -1289,8 +1287,8 @@ void Canvas::showSuggestions(Box* box, TextEditor* editor)
 {
     suggestor->createCalloutBox(box, editor);
     suggestor->setTopLeftPosition(box->getX(), box->getBounds().getBottom());
-    //suggestor->resized();
-    //suggestor->setVisible(true);
+    // suggestor->resized();
+    // suggestor->setVisible(true);
 }
 void Canvas::hideSuggestions()
 {
@@ -1412,11 +1410,12 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
 
         comp->setBounds(bounds);
     }
-    
-    for(auto& tmpl : templates) {
+
+    for (auto& tmpl : templates)
+    {
         tmpl->updateIfMoved();
     }
-    
+
     totalDragDelta += delta;
 }
 

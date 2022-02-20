@@ -264,8 +264,8 @@ void Connection::mouseDrag(const MouseEvent& e)
     auto planDistance = currentPlan.front() - currentPlan.back();
     auto currentDistance = pstart - pend;
 
-    //float lastWidth = std::max<float>(abs(currentPlan.front().x - currentPlan.back().x), 1.0f);
-    //float lastHeight = std::max<float>(abs(currentPlan.front().y - currentPlan.back().y), 1.0f);
+    // float lastWidth = std::max<float>(abs(currentPlan.front().x - currentPlan.back().x), 1.0f);
+    // float lastHeight = std::max<float>(abs(currentPlan.front().y - currentPlan.back().y), 1.0f);
 
     bool flippedX = planDistance.x * currentDistance.x < 0;
     bool flippedY = planDistance.y * currentDistance.y < 0;

@@ -32,7 +32,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     virtual void updateValue();
 
     virtual void update(){};
-    
+
     void initialise(bool newObject);
 
     // Most objects ignore mouseclicks when locked
@@ -109,7 +109,6 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     Value labelText;
 };
 
-
 struct _fielddesc
 {
     char fd_type; /* LATER consider removing this? */
@@ -134,13 +133,12 @@ struct DrawableTemplate : public DrawablePath
     t_curve* object;
     int baseX, baseY;
     Canvas* canvas;
-    
+
     Rectangle<int> lastBounds;
-    
+
     DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y);
-    
+
     void update();
-    
+
     void updateIfMoved();
 };
-

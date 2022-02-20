@@ -147,7 +147,8 @@ void Object::setSize(int width, int height)
 
     auto* textObj = static_cast<t_text*>(ptr);
     short newWidth = std::max<short>(3, round(static_cast<float>(width) / sys_fontwidth(18)));
-    if(newWidth != textObj->te_width) {
+    if (newWidth != textObj->te_width)
+    {
         addUndoableAction();
         textObj->te_width = newWidth;
     }
@@ -196,7 +197,8 @@ bool Object::isSignalOutlet(int idx) noexcept
     return false;
 }
 
-void Object::addUndoableAction() {
+void Object::addUndoableAction()
+{
     auto* obj = static_cast<t_gobj*>(getPointer());
     auto* cnv = static_cast<t_canvas*>(patch->getPointer());
     libpd_undo_apply(cnv, obj);

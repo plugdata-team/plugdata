@@ -82,7 +82,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDoubleClick(const MouseEvent&) override;
 
     bool hideLabel = false;
-    
+
     Rectangle<int> lastBounds;
 
     Value textValue;

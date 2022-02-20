@@ -56,7 +56,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         {
             cnv->patch.setCurrent();
         }
-        
+
         cnv->synchronise();
         updateValues();
     };
@@ -412,31 +412,30 @@ bool PlugDataPluginEditor::keyPressed(const KeyPress& key)
 
 void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
 {
-   auto mods = ModifierKeys::getCurrentModifiers();
-    
-    if (e.mods.isCommandDown()) {
-       mouseMagnify (e, 1.0f / (1.0f - wheel.deltaY));
+    auto mods = ModifierKeys::getCurrentModifiers();
+
+    if (e.mods.isCommandDown())
+    {
+        mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
     }
 }
 
-
 void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 {
-   auto* cnv = getCurrentCanvas();
-   auto* viewport = getCurrentCanvas()->viewport;
-    
-   auto event = e.getEventRelativeTo(viewport);
-    
-   auto oldMousePos = cnv->getLocalPoint(this, e.getPosition());
+    auto* cnv = getCurrentCanvas();
+    auto* viewport = getCurrentCanvas()->viewport;
 
-   statusbar.zoom(scrollFactor);
-   valueChanged(pd.zoomScale); // trigger change to make the anchoring work
-    
+    auto event = e.getEventRelativeTo(viewport);
+
+    auto oldMousePos = cnv->getLocalPoint(this, e.getPosition());
+
+    statusbar.zoom(scrollFactor);
+    valueChanged(pd.zoomScale);  // trigger change to make the anchoring work
+
     auto newMousePos = cnv->getLocalPoint(this, e.getPosition());
-    
+
     viewport->setViewPosition(viewport->getViewPositionX() + (oldMousePos.x - newMousePos.x), viewport->getViewPositionY() + (oldMousePos.y - newMousePos.y));
 }
-
 
 void PlugDataPluginEditor::openProject()
 {

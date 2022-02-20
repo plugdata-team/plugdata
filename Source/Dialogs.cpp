@@ -23,25 +23,17 @@ struct SaveDialog : public Component
         cancel.onClick = [this]
         {
             cb(0);
-            MessageManager::callAsync([this](){
-                                          delete this;
-            });
-
-
+            MessageManager::callAsync([this]() { delete this; });
         };
         save.onClick = [this]
         {
             cb(2);
-            MessageManager::callAsync([this](){
-                                          delete this;
-                                      });
+            MessageManager::callAsync([this]() { delete this; });
         };
         dontsave.onClick = [this]
         {
             cb(1);
-            MessageManager::callAsync([this](){
-                                          delete this;
-                                      });
+            MessageManager::callAsync([this]() { delete this; });
         };
         cancel.changeWidthToFitText();
         dontsave.changeWidthToFitText();
@@ -490,26 +482,25 @@ struct SettingsDialog : public Component
         settingsComponent.addMouseListener(this, false);
 
         closeButton->onClick = [this]() { setVisible(false); };
-        
-        
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
-        
+
         parentSizeChanged();
-        
     }
 
     ~SettingsDialog() override
     {
         settingsComponent.removeMouseListener(this);
     }
-    
-    void parentSizeChanged() override {
+
+    void parentSizeChanged() override
+    {
         // make sure it fits the editor, otherwise it might be un-closable
-        if(auto* editor = audioProcessor.getActiveEditor()) {
+        if (auto* editor = audioProcessor.getActiveEditor())
+        {
             setBounds(editor->getLocalBounds().withSizeKeepingCentre(std::min<int>(650, editor->getWidth() / 1.3f), std::min<int>(500, editor->getHeight() / 1.3f)));
         }
-     
+
         constrainer.checkComponentBounds(this);
     }
 
@@ -597,7 +588,7 @@ void Dialogs::showObjectMenu(Component* parent, Component* target, const std::fu
 
     menu.addItem(9, "Float Atom");    // 11
     menu.addItem(10, "Symbol Atom");  // 12
-    menu.addItem(16, "List Atom");  // 16
+    menu.addItem(16, "List Atom");    // 16
 
     menu.addSeparator();
 

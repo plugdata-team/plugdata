@@ -13,8 +13,6 @@
 #include "Standalone/PlugDataWindow.h"
 #include "Statusbar.h"
 
-
-
 class PlugDataDarkLook;
 
 class PlugDataPluginEditor;
@@ -23,7 +21,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
    public:
     PlugDataAudioProcessor();
     ~PlugDataAudioProcessor() override;
-    
+
     static AudioProcessor::BusesProperties buildBusesProperties();
 
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
@@ -107,16 +105,17 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     {
         return audioLock;
     };
-    
-    bool canAddBus(bool isInput) const override {
-      return true;
+
+    bool canAddBus(bool isInput) const override
+    {
+        return true;
     }
 
-    bool canRemoveBus(bool isInput) const override {
-      int nbus = getBusCount(isInput);
-      return nbus > 0;
+    bool canRemoveBus(bool isInput) const override
+    {
+        int nbus = getBusCount(isInput);
+        return nbus > 0;
     }
-
 
     std::atomic<uint64> lastAudioCallback;
 
@@ -132,7 +131,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void loadPatch(File patch) override;
 
     void titleChanged() override;
-    
+
     // All opened patches
     Array<pd::Patch> patches;
 
@@ -180,11 +179,10 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     uint8 midiByteBuffer[512] = {0};
     size_t midiByteIndex = 0;
 
-    
     static inline constexpr int numParameters = 512;
     static inline constexpr int numInputBuses = 16;
     static inline constexpr int numOutputBuses = 16;
-    
+
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
     std::array<float, numParameters> lastParameters = {0};
 

@@ -28,7 +28,7 @@ namespace pd
 void Trie::insert(const std::string& key)
 {
     // Names with spaces not supported yet by the suggestor
-    if(std::count(key.begin(), key.end(), ' ')) return;
+    if (std::count(key.begin(), key.end(), ' ')) return;
 
     // start from the root node
     Trie* curr = this;
@@ -244,32 +244,35 @@ void Library::initialiseLibrary(ValueTree pathTree)
             if (file.getFileExtension() == ".pd") searchTree.insert(file.getFileNameWithoutExtension().toStdString());
         }
     }
-    
+
     auto appdata = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
-    
+
     auto pddocPath = appdata.getChildFile("PlugData").getChildFile("Documentation").getChildFile("pddoc").getFullPathName();
-    
+
     parseDocumentation(pddocPath);
 }
 
-void Library::parseDocumentation(const String& path) {
-    for(auto& iter : RangedDirectoryIterator(path, true)) {
+void Library::parseDocumentation(const String& path)
+{
+    for (auto& iter : RangedDirectoryIterator(path, true))
+    {
         auto file = iter.getFile();
-        
-        if(file.hasFileExtension("pddoc")) {
+
+        if (file.hasFileExtension("pddoc"))
+        {
             XmlDocument doc(file);
-            
+
             auto elt = doc.getDocumentElement();
-            //elt->setTagName(file.getFileNameWithoutExtension());
-            
+            // elt->setTagName(file.getFileNameWithoutExtension());
+
             auto object = elt->getChildByName("object");
             auto name = object->getStringAttribute("name");
-            
+
             auto meta = object->getChildByName("meta");
-            
+
             auto keywords = meta->getChildElementAllSubText("keywords", "");
             auto description = meta->getChildElementAllSubText("description", "");
-            
+
             objectDescriptions[name] = description;
             objectKeywords[name] = StringArray::fromTokens(keywords, false);
         }

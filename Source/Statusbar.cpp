@@ -108,12 +108,11 @@ struct MidiBlinker : public Component, public Timer
         g.setFont(Font(11));
         g.drawText("MIDI", getLocalBounds().removeFromLeft(28), Justification::right);
 
-        
         auto midiInRect = Rectangle<float>(38.0f, 7.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 15.0f, 15.0f, 3.0f);
 
         g.setColour(findColour(ComboBox::outlineColourId));
-        
+
         g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colours::darkgrey);
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
@@ -348,7 +347,7 @@ bool Statusbar::keyPressed(const KeyPress& key, Component*)
 void Statusbar::zoom(bool zoomIn)
 {
     float value = static_cast<float>(zoomScale.getValue());
-    
+
     // Round in case we zoomed with scrolling
     value = static_cast<float>(static_cast<int>(value * 10.)) / 10.;
 
@@ -364,12 +363,12 @@ void Statusbar::zoom(float zoomAmount)
 {
     float value = static_cast<float>(zoomScale.getValue());
     value *= zoomAmount;
-    
+
     // Zoom limits
     value = std::clamp(value, 0.5f, 2.0f);
-    
+
     zoomScale = value;
-    
+
     zoomLabel.setText(String(value * 100.0f, 1) + "%", dontSendNotification);
 }
 
@@ -379,16 +378,18 @@ StatusbarSource::StatusbarSource()
     level[1] = 0.0f;
 }
 
-
-static bool hasRealEvents(MidiBuffer& buffer) {
-    for(auto event : buffer) {
+static bool hasRealEvents(MidiBuffer& buffer)
+{
+    for (auto event : buffer)
+    {
         auto m = event.getMessage();
-        if(!m.isSysEx()) {
+        if (!m.isSysEx())
+        {
             return true;
         }
     }
-    
-     return false;
+
+    return false;
 }
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut)
@@ -417,7 +418,7 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
     }
 
     auto now = Time::getCurrentTime();
-    
+
     auto hasInEvents = hasRealEvents(midiIn);
     auto hasOutEvents = hasRealEvents(midiOut);
 
@@ -433,7 +434,6 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
 
     if (!hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700)
     {
-        
         midiSent = false;
     }
     else if (hasOutEvents)
