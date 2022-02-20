@@ -490,7 +490,17 @@ void Canvas::synchronise(bool updatePosition)
     if (!isGraph)
     {
         setTransform(main.transform);
+        
+        templates.clear();
+        templates.addArray(findDrawables());
+        
+        for(auto& tmpl : templates) {
+            addAndMakeVisible(tmpl);
+            tmpl->setAlwaysOnTop(true);
+            tmpl->update();
+        }
     }
+    
 
     pd->waitForStateUpdate();
     deselectAll();
@@ -967,11 +977,13 @@ void Canvas::mouseUp(const MouseEvent& e)
     lasso.endLasso();
 }
 
-void Canvas::findDrawables(Graphics& g)
+Array<DrawableTemplate*> Canvas::findDrawables()
 {
     // Find all drawables (from objects like drawpolygon, filledcurve, etc.)
     // Pd draws this over all siblings, even when drawn inside a graph!
     // To mimic this we find the drawables from the top-level canvas and paint it over everything
+    
+    Array<DrawableTemplate*> result;
 
     for (auto& box : boxes)
     {
@@ -986,14 +998,11 @@ void Canvas::findDrawables(Graphics& g)
             {
                 auto* canvas = box->graphics->getCanvas();
 
-                g.saveState();
                 auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
                 auto bounds = canvas->getParentComponent()->getLocalBounds().withPosition(pos);
-                g.reduceClipRegion(bounds);
 
-                canvas->findDrawables(g);
-
-                g.restoreState();
+                auto subdrawables = canvas->findDrawables();
+                result.addArray(subdrawables);
             }
         }
         // Scalar found!
@@ -1012,12 +1021,14 @@ void Canvas::findDrawables(Graphics& g)
             {
                 const t_parentwidgetbehavior* wb = pd_getparentwidget(&y->g_pd);
                 if (!wb) continue;
+  
 
-                // This function is a work-in-progress conversion from pd's drawing to JUCE drawing
-                TemplateDraw::paintOnCanvas(g, this, x, y, static_cast<int>(basex), static_cast<int>(basey));
+                result.add(new DrawableTemplate(x, y, this, static_cast<int>(basex), static_cast<int>(basey)));
             }
         }
     }
+    
+    return result;
 }
 
 void Canvas::paintOverChildren(Graphics& g)
@@ -1026,7 +1037,7 @@ void Canvas::paintOverChildren(Graphics& g)
     // Graphs are drawn from their parent, so pd drawings are always on top of other objects
     if (!isGraph)
     {
-        findDrawables(g);
+        //findDrawables(g);
     }
 
     // Draw connections in the making over everything else
@@ -1406,6 +1417,11 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
 
         comp->setBounds(bounds);
     }
+    
+    for(auto& tmpl : templates) {
+        tmpl->updateIfMoved();
+    }
+    
     totalDragDelta += delta;
 }
 

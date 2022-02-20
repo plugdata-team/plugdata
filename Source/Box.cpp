@@ -400,7 +400,7 @@ String Box::getText(bool returnActiveEditorContents) const
 
 void Box::mouseDown(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent != this) return;
+    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent == &resizer) return;
 
     cnv->handleMouseDown(this, e);
     
@@ -427,7 +427,7 @@ void Box::mouseUp(const MouseEvent& e)
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent != this) return;
+    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent == &resizer) return;
 
     cnv->handleMouseDrag(e);
 }
