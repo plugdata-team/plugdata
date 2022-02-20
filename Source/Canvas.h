@@ -62,6 +62,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
     
+    OwnedArray<DrawableTemplate> templates;
+    
     
     Point<int> mousePanDownPos;
 
@@ -74,7 +76,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
 
-    void findDrawables(Graphics& g);
+    Array<DrawableTemplate*> findDrawables();
     Box* getSingleSelection();
 
     void showSuggestions(Box* box, TextEditor* editor);

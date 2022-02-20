@@ -127,22 +127,20 @@ struct _fielddesc
     float fd_quantum; /* quantization in value */
 };
 
-
-struct TemplateDraw
+struct t_curve;
+struct DrawableTemplate : public DrawablePath
 {
+    t_scalar* scalar;
+    t_curve* object;
+    int baseX, baseY;
+    Canvas* canvas;
     
-    struct t_curve
-    {
-        t_object x_obj;
-        int x_flags; /* CLOSED, BEZ, NOMOUSERUN, NOMOUSEEDIT */
-        t_fielddesc x_fillcolor;
-        t_fielddesc x_outlinecolor;
-        t_fielddesc x_width;
-        t_fielddesc x_vis;
-        int x_npoints;
-        t_fielddesc* x_vec;
-        t_canvas* x_canvas;
-    };
-
-    static void paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, t_gobj* obj, int baseX, int baseY);
+    Rectangle<int> lastBounds;
+    
+    DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y);
+    
+    void update();
+    
+    void updateIfMoved();
 };
+
