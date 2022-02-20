@@ -1015,7 +1015,7 @@ Array<DrawableTemplate*> Canvas::findDrawables()
             t_float basex, basey;
             scalar_getbasexy(x, &basex, &basey);
 
-            if (!templatecanvas) return;
+            if (!templatecanvas) continue;
 
             for (y = templatecanvas->gl_list; y; y = y->g_next)
             {
