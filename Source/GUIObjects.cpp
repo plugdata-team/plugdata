@@ -111,8 +111,6 @@ void GUIComponent::mouseUp(const MouseEvent& e)
 
 void GUIComponent::initialise(bool newObject)
 {
-    
-
     if (gui.getType() == pd::Type::Number)
     {
         auto color = Colour::fromString(secondaryColour.toString());
@@ -138,23 +136,18 @@ void GUIComponent::initialise(bool newObject)
 
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
-    
+
     auto params = getParameters();
-    for(auto& [name, type, cat, value, list] : params) {
+    for (auto& [name, type, cat, value, list] : params)
+    {
         value->addListener(this);
-        
-        
+
         // Push current parameters to pd
         valueChanged(*value);
     }
-    
-
 
     repaint();
-    
 }
-
-
 
 void GUIComponent::paint(Graphics& g)
 {
@@ -276,7 +269,6 @@ void GUIComponent::valueChanged(Value& v)
     }
 }
 
-
 pd::Patch* GUIComponent::getPatch()
 {
     return nullptr;
@@ -286,12 +278,11 @@ Canvas* GUIComponent::getCanvas()
 {
     return nullptr;
 }
- 
+
 bool GUIComponent::fakeGui()
 {
     return false;
 }
-
 
 float GUIComponent::getValueOriginal() const noexcept
 {
@@ -441,7 +432,6 @@ void GUIComponent::closeOpenedSubpatchers()
     }
 }
 
-
 #define CLOSED 1      /* polygon */
 #define BEZ 2         /* bezier shape */
 #define NOMOUSERUN 4  /* disable mouse interaction when in run mode  */
@@ -484,7 +474,6 @@ static void numbertocolor(int n, char* s)
     sprintf(s, "#%2.2x%2.2x%2.2x", rangecolor(red), rangecolor(blue), rangecolor(green));
 }
 
-
 struct t_curve
 {
     t_object x_obj;
@@ -498,20 +487,18 @@ struct t_curve
     t_canvas* x_canvas;
 };
 
-
-DrawableTemplate::DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y) : scalar(s), object(reinterpret_cast<t_curve*>(obj)), canvas(cnv), baseX(x), baseY(y) {
-    
+DrawableTemplate::DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y) : scalar(s), object(reinterpret_cast<t_curve*>(obj)), canvas(cnv), baseX(x), baseY(y)
+{
     setBufferedToImage(true);
-    
 }
 
-
-void DrawableTemplate::updateIfMoved() {
-    
+void DrawableTemplate::updateIfMoved()
+{
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
     auto bounds = canvas->getParentComponent()->getLocalBounds() + pos;
-    
-    if(lastBounds != bounds) {
+
+    if (lastBounds != bounds)
+    {
         update();
     }
 }
@@ -531,7 +518,7 @@ void DrawableTemplate::update()
     /* see comment in plot_vis() */
     if (vis && !fielddesc_getfloat(&object->x_vis, templ, data, 0))
     {
-        //return;
+        // return;
     }
 
     // Reduce clip region
@@ -539,7 +526,7 @@ void DrawableTemplate::update()
     auto bounds = canvas->getParentComponent()->getLocalBounds();
 
     lastBounds = bounds + pos;
-    
+
     if (vis)
     {
         if (n > 1)
@@ -550,24 +537,23 @@ void DrawableTemplate::update()
             char outline[20], fill[20];
             int pix[200];
             if (n > 100) n = 100;
-            
+
             canvas->pd->getCallbackLock()->enter();
-            
+
             for (i = 0, f = object->x_vec; i < n; i++, f += 2)
             {
                 // glist->gl_havewindow = canvas->isGraphChild;
                 // glist->gl_isgraph = canvas->isGraph;
-                
+
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
-               
 
                 pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;
             }
-            
+
             canvas->pd->getCallbackLock()->exit();
-            
+
             if (width < 1) width = 1;
             if (glist->gl_isgraph) width *= glist_getzoom(glist);
 
@@ -584,7 +570,7 @@ void DrawableTemplate::update()
             // sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
 
             Path toDraw;
-            
+
             if (flags & CLOSED)
             {
                 toDraw.startNewSubPath(pix[0], pix[1]);
@@ -602,7 +588,7 @@ void DrawableTemplate::update()
                     toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
                 }
             }
-            
+
             String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
             if (objName.contains("fill"))
             {
@@ -844,7 +830,7 @@ struct MessageComponent : public GUIComponent
         }
 
         initialise(newObject);
-        
+
         box->addMouseListener(this, false);
         box->constrainer.setSizeLimits(50, 30, 500, 600);
     }
@@ -1106,7 +1092,6 @@ struct NumboxComponent : public GUIComponent
 
     void valueChanged(Value& value) override
     {
-
         if (value.refersToSameSourceAs(min))
         {
             gui.setMinimum(static_cast<float>(min.getValue()));
@@ -1155,77 +1140,76 @@ struct ListComponent : public GUIComponent, public Timer
         label.setBorderSize(BorderSize<int>(2, 6, 2, 2));
         label.setText(String(getValueOriginal()), dontSendNotification);
         label.setEditable(false, true);
-        //label.setInterceptsMouseClicks(false, false);
-        
+        // label.setInterceptsMouseClicks(false, false);
+
         label.setColour(Label::textColourId, gui.getForegroundColor());
         setInterceptsMouseClicks(true, false);
         addAndMakeVisible(label);
 
         label.onEditorHide = [this]()
+        {
+            auto gui = getGui();
+            auto array = StringArray();
+            array.addTokens(label.getText(), true);
+            std::vector<pd::Atom> list;
+            list.reserve(array.size());
+            for (auto const& elem : array)
             {
-                auto gui = getGui();
-                auto array = StringArray();
-                array.addTokens(label.getText(), true);
-                std::vector<pd::Atom> list;
-                list.reserve(array.size());
-                for(auto const& elem : array)
+                if (elem.getCharPointer().isDigit())
                 {
-                    if(elem.getCharPointer().isDigit())
-                    {
-                        list.push_back({elem.getFloatValue()});
-                    }
-                    else
-                    {
-                        list.push_back({elem.toStdString()});
-                    }
+                    list.push_back({elem.getFloatValue()});
                 }
-                if(list != gui.getList())
+                else
                 {
-                    
-                    startEdition();
-                    gui.setList(list);
-                    stopEdition();
-                    //label.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+                    list.push_back({elem.toStdString()});
                 }
-            };
-            
-            label.onEditorShow = [this]()
+            }
+            if (list != gui.getList())
             {
-                auto* editor = label.getCurrentTextEditor();
-                if(editor != nullptr)
-                {
-                    editor->setIndents(1, 2);
-                    editor->setBorder(BorderSize<int>(2, 6, 2, 2));
-                }
-            };
+                startEdition();
+                gui.setList(list);
+                stopEdition();
+                // label.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+            }
+        };
 
+        label.onEditorShow = [this]()
+        {
+            auto* editor = label.getCurrentTextEditor();
+            if (editor != nullptr)
+            {
+                editor->setIndents(1, 2);
+                editor->setBorder(BorderSize<int>(2, 6, 2, 2));
+            }
+        };
 
         updateValue();
-        
+
         initialise(newObject);
 
         box->constrainer.setSizeLimits(100, 30, 500, 600);
         startTimer(100);
     }
-    
-    ~ListComponent() {
+
+    ~ListComponent()
+    {
         stopTimer();
     }
 
-    
-    void timerCallback() override {
+    void timerCallback() override
+    {
         update();
     }
 
-    void resized() override {
+    void resized() override
+    {
         label.setBounds(getLocalBounds());
     }
-    
+
     void paint(Graphics& g) override
     {
-        
         g.fillAll(findColour(Slider::thumbColourId));
-        
+
         static auto const border = 1.0f;
         const auto h = static_cast<float>(getHeight());
         const auto w = static_cast<float>(getWidth());
@@ -1238,8 +1222,7 @@ struct ListComponent : public GUIComponent, public Timer
         p.lineTo(w - 0.5f, o);
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
-        
-        
+
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillPath(p);
         g.strokePath(p, PathStrokeType(border));
@@ -1618,10 +1601,10 @@ struct GraphicalArray : public Component, public Timer
 
         float start = vec[lastIndex];
         float current = (1.f - std::clamp(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
-        
+
         int interpStart = std::min(index, lastIndex);
         int interpEnd = std::max(index, lastIndex);
-        
+
         float min = index == interpStart ? current : start;
         float max = index == interpStart ? start : current;
 
@@ -1632,25 +1615,26 @@ struct GraphicalArray : public Component, public Timer
         {
             vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);
         }
-        
+
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd);
-        
-        pd->enqueueFunction([this, interpStart, changed]() mutable {
-            try
+
+        pd->enqueueFunction(
+            [this, interpStart, changed]() mutable
             {
-                for (int n = 0; n < changed.size(); n++)
+                try
                 {
+                    for (int n = 0; n < changed.size(); n++)
+                    {
                         array.write(interpStart + n, changed[n]);
+                    }
                 }
-            }
-            catch (...)
-            {
-                error = true;
-            }
-                
-        });
-        
+                catch (...)
+                {
+                    error = true;
+                }
+            });
+
         lastIndex = index;
 
         pd->enqueueMessages(stringArray, array.getName(), {});
@@ -1743,7 +1727,7 @@ struct GraphOnParent : public GUIComponent
 
         subpatch = gui.getPatch();
         updateCanvas();
-        
+
         initialise(newObject);
 
         box->constrainer.setSizeLimits(25, 25, 500, 500);
@@ -1928,7 +1912,7 @@ struct VUMeter : public GUIComponent
     VUMeter(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
         initialise(newObject);
-        
+
         box->constrainer.setSizeLimits(55, 120, 2000, 2000);
     }
 
@@ -1939,9 +1923,8 @@ struct VUMeter : public GUIComponent
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(ComboBox::backgroundColourId));
-        
 
-        auto values = std::vector<float>{gui.getValue(),  gui.getPeak()};
+        auto values = std::vector<float>{gui.getValue(), gui.getPeak()};
 
         int height = getHeight();
         int width = getWidth() / 2.0f;
@@ -1962,7 +1945,7 @@ struct VUMeter : public GUIComponent
         {
             float lvl = (float)std::exp(std::log(values[ch]) / 3.0) * (values[ch] > 0.002);
             auto numBlocks = roundToInt(totalBlocks * lvl);
-            
+
             int x = ch * width;
 
             for (auto i = 0; i < totalBlocks; ++i)
@@ -1971,18 +1954,16 @@ struct VUMeter : public GUIComponent
                     g.setColour(Colours::darkgrey);
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
-                
-                //g.fillRoundedRectangle(y + outerBorderWidth, outerBorderWidth + (i * blockWidth) + blockRectSpacing, blockHeight, blockRectWidth, blockCornerSize);
-                
-                
+
+                // g.fillRoundedRectangle(y + outerBorderWidth, outerBorderWidth + (i * blockWidth) + blockRectSpacing, blockHeight, blockRectWidth, blockCornerSize);
+
                 g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
             }
         }
-        
+
         g.setColour(Colours::white);
         g.drawFittedText(String(values[0], 2) + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
     }
-    
 
     void updateValue() override
     {
@@ -2259,7 +2240,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         keyboard.setScrollButtonsVisible(false);
 
         addAndMakeVisible(keyboard);
-        
+
         initialise(newObject);
 
         box->constrainer.setSizeLimits(50, 70, 1200, 1200);

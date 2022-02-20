@@ -61,10 +61,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
-    
+
     OwnedArray<DrawableTemplate> templates;
-    
-    
+
     Point<int> mousePanDownPos;
 
     void handleMouseDown(Component* component, const MouseEvent& e);
