@@ -27,6 +27,41 @@
 
 #include <memory>
 
+enum CommandIDs
+{
+    NewProject = 1,
+    OpenProject,
+    SaveProject,
+    SaveProjectAs,
+    Undo,
+    Redo,
+    
+    Lock,
+    ConnectionStyle,
+    ConnectionPathfind,
+    ZoomIn,
+    ZoomOut,
+
+    Copy,
+    Paste,
+    Cut,
+    Delete,
+    Duplicate,
+    SelectAll,
+    
+    NewObject,
+    NewComment,
+    NewBang,
+    NewMessage,
+    NewToggle,
+    NewNumbox,
+    NewFloatAtom,
+    NewSlider,
+
+    NumItems
+};
+
+
 namespace juce
 {
 
@@ -39,6 +74,7 @@ namespace juce
 
     @tags{Audio}
 */
+
 
 struct PatchLoader
 {
@@ -695,8 +731,10 @@ class PlugDataWindow : public DocumentWindow
    private:
     bool maximised = false;
     Rectangle<int> nonMaximisedBounds;
+    
+    
 
-    class MainContentComponent : public Component, private ComponentListener
+    class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
        public:
         MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
@@ -705,17 +743,63 @@ class PlugDataWindow : public DocumentWindow
 
             if (editor != nullptr)
             {
+                auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
+                
+                // Menubar, only for standalone on mac
+                // Doesn't add any new features, but was easy to implement because we already have a command manager
+                setApplicationCommandManagerToWatch(commandManager);
+                MenuBarModel::setMacMainMenu(this);
+            
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 
                 addAndMakeVisible(editor.get());
             }
         }
+        
+        StringArray getMenuBarNames() override {
+            return {"File", "Edit"};
+        }
+        
+        PopupMenu getMenuForIndex(int topLevelMenuIndex, const String& menuName) override
+        {
+            PopupMenu menu;
+            
+            auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
+               
+            if(topLevelMenuIndex == 0) {
+                menu.addCommandItem(commandManager, CommandIDs::NewProject);
+                menu.addCommandItem(commandManager, CommandIDs::OpenProject);
+                menu.addCommandItem(commandManager, CommandIDs::SaveProject);
+                menu.addCommandItem(commandManager, CommandIDs::SaveProjectAs);
+            }
+            else {
+                menu.addCommandItem(commandManager, CommandIDs::Copy);
+                menu.addCommandItem(commandManager, CommandIDs::Paste);
+                menu.addCommandItem(commandManager, CommandIDs::Duplicate);
+                menu.addCommandItem(commandManager, CommandIDs::Delete);
+                menu.addCommandItem(commandManager, CommandIDs::SelectAll);
+                menu.addSeparator();
+                menu.addCommandItem(commandManager, CommandIDs::Undo);
+                menu.addCommandItem(commandManager, CommandIDs::Redo);
+            }
+            
+            return menu;
+        }
+        
+        void menuItemSelected (int menuItemID, int topLevelMenuIndex) override
+        {
+        }
+
 
         ~MainContentComponent() override
         {
+            setApplicationCommandManagerToWatch(nullptr);
+            MenuBarModel::setMacMainMenu(nullptr);
+            
             if (editor != nullptr)
             {
+                
                 editor->removeComponentListener(this);
                 owner.pluginHolder->processor->editorBeingDeleted(editor.get());
                 editor = nullptr;

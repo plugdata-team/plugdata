@@ -238,7 +238,7 @@ void Box::setType(const String& newType, bool exists)
     // graphical objects manage their own size limits
     if (!graphics) constrainer.setSizeLimits(25, getHeight(), 350, getHeight());
 
-    cnv->main.updateUndoState();
+    cnv->main.commandStatusChanged();
 }
 
 void Box::paint(Graphics& g)

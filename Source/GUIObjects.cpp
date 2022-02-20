@@ -1791,7 +1791,7 @@ struct GraphOnParent : public GUIComponent
 
             // Make sure that the graph doesn't become the current canvas
             box->cnv->patch.setCurrent(true);
-            box->cnv->main.updateUndoState();
+            box->cnv->main.commandStatusChanged();
         }
         if (canvas)
         {

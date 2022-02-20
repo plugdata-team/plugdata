@@ -93,23 +93,10 @@ t_pd* libpd_newest(t_canvas* cnv)
 void libpd_canvas_doclear(t_canvas* cnv)
 {
     
-    
-    
     t_gobj *y, *y2;
     int dspstate;
     
     dspstate = canvas_suspend_dsp();
-    
-    /* don't clear connections, call removeconnection instead
-     if (x->gl_editor && x->gl_editor->e_selectedline)
-     {
-     canvas_disconnect(x,
-     x->gl_editor->e_selectline_index1,
-     x->gl_editor->e_selectline_outno,
-     x->gl_editor->e_selectline_index2,
-     x->gl_editor->e_selectline_inno);
-     x->gl_editor->e_selectedline=0;
-     } */
     
     /* if text is selected, deselecting it might remake the
      object. So we deselect it and hunt for a "new" object on

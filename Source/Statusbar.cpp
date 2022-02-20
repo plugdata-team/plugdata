@@ -191,18 +191,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionPathfind->setName("statusbar:findpath");
     connectionPathfind->onClick = [this]()
     {
-        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor()))
-        {
-            auto* cnv = editor->getCurrentCanvas();
-
-            for (auto& c : cnv->connections)
-            {
-                if (c->isSelected)
-                {
-                    c->applyPath(c->findPath());
-                }
-            }
-        }
+        dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true);
     };
     addAndMakeVisible(connectionPathfind.get());
 
@@ -307,41 +296,6 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
     }
 
     return false;  //  Never claim this event!
-}
-
-bool Statusbar::keyPressed(const KeyPress& key, Component*)
-{
-    // cmd-e
-    if (key == KeyPress('e', ModifierKeys::commandModifier, 0))
-    {
-        lockButton->triggerClick();
-        return true;
-    }
-
-    if (key == KeyPress('y', ModifierKeys::commandModifier | ModifierKeys::shiftModifier, 0))
-    {
-        if (connectionPathfind->isEnabled())
-        {
-            connectionPathfind->triggerClick();
-        }
-
-        return true;
-    }
-
-    // Zoom in
-    if (key.isKeyCode(61) && key.getModifiers().isCommandDown())
-    {
-        zoom(true);
-        return true;
-    }
-    // Zoom out
-    if (key.isKeyCode(45) && key.getModifiers().isCommandDown())
-    {
-        zoom(false);
-        return true;
-    }
-
-    return false;
 }
 
 void Statusbar::zoom(bool zoomIn)

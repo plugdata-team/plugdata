@@ -8,9 +8,8 @@
 
 #include <JuceHeader.h>
 
-class SaveDialog;
-class ArrayDialog;
-class SettingsDialog;
+
+class PlugDataPluginEditor;
 
 struct Dialogs
 {
@@ -19,5 +18,5 @@ struct Dialogs
 
     static std::unique_ptr<Component> createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, const std::function<void()>& updatePaths);
 
-    static void showObjectMenu(Component* parent, Component* target, const std::function<void(String)>& cb);
+    static void showObjectMenu(PlugDataPluginEditor* parent, Component* target, const std::function<void(String)>& cb);
 };

@@ -690,6 +690,7 @@ void Canvas::synchronise(bool updatePosition)
 
     // Resize canvas to fit objects
     checkBounds();
+    main.commandStatusChanged();
 }
 
 void Canvas::mouseDown(const MouseEvent& e)
@@ -797,14 +798,18 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         // Create popup menu
         popupMenu.clear();
+        
         popupMenu.addItem(1, "Open", hasSelection && !multiple && isSubpatch);  // for opening subpatches
         // popupMenu.addItem(10, "Edit", isGui);
         popupMenu.addSeparator();
-        popupMenu.addItem(4, "Cut", hasSelection);
-        popupMenu.addItem(5, "Copy", hasSelection);
-        popupMenu.addItem(6, "Duplicate", hasSelection);
-        popupMenu.addItem(7, "Delete", hasSelection);
+        
+        popupMenu.addCommandItem(&main, CommandIDs::Cut);
+        popupMenu.addCommandItem(&main, CommandIDs::Copy);
+        popupMenu.addCommandItem(&main, CommandIDs::Paste);
+        popupMenu.addCommandItem(&main, CommandIDs::Duplicate);
+        popupMenu.addCommandItem(&main, CommandIDs::Delete);
         popupMenu.addSeparator();
+        
         popupMenu.addItem(8, "To Front", hasSelection);
         popupMenu.addSeparator();
         popupMenu.addItem(9, "Help", hasSelection);  // Experimental: opening help files
@@ -1063,10 +1068,17 @@ void Canvas::mouseMove(const MouseEvent& e)
 
 bool Canvas::keyPressed(const KeyPress& key)
 {
-    if (main.getCurrentCanvas() != this) return false;
-    if (isGraph) return false;
-
-    patch.keyPress(key.getKeyCode(), key.getModifiers().isShiftDown());
+    if (main.getCurrentCanvas() != this || isGraph) return false;
+    
+    int keycode = key.getKeyCode();
+    // Ignore backspace, arrow keys, return key and more that might cause actions in pd
+    if( KeyPress::backspaceKey || KeyPress::leftKey ||  KeyPress::rightKey ||  KeyPress::upKey ||  KeyPress::downKey || KeyPress::pageUpKey || KeyPress::pageDownKey || KeyPress::homeKey || KeyPress::escapeKey || KeyPress::deleteKey || KeyPress::returnKey || KeyPress::tabKey) {
+        return false;
+    }
+   
+   
+    
+    patch.keyPress(keycode, key.getModifiers().isShiftDown());
 
     return false;
 }
@@ -1197,11 +1209,8 @@ void Canvas::removeSelection()
     // Load state from pd, don't update positions
     synchronise(false);
 
-    // patch.deselectAll();
+    patch.deselectAll();
 
-    // Update GUI
-    main.updateValues();
-    main.updateUndoState();
 }
 
 void Canvas::undo()
@@ -1213,8 +1222,6 @@ void Canvas::undo()
     synchronise();
 
     patch.deselectAll();
-
-    main.updateUndoState();
 }
 
 void Canvas::redo()
@@ -1226,7 +1233,6 @@ void Canvas::redo()
     synchronise();
 
     patch.deselectAll();
-    main.updateUndoState();
 }
 
 void Canvas::checkBounds()
@@ -1384,7 +1390,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         checkBounds();
 
         // Update undo state
-        main.updateUndoState();
+        main.commandStatusChanged();
     }
 
     if (didStartDragging) didStartDragging = false;

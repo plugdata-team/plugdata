@@ -26,9 +26,11 @@ struct TabComponent : public TabbedComponent
     }
 };
 
+
+
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
+class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ApplicationCommandTarget, public ApplicationCommandManager
 {
    public:
     explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
@@ -39,7 +41,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void paint(Graphics&) override;
     void resized() override;
 
-    bool keyPressed(const KeyPress& key) override;
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
     void mouseMagnify(const MouseEvent& e, float scaleFactor) override;
 
@@ -54,9 +55,12 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     void updateValues();
 
-    void updateUndoState();
-
     void valueChanged(Value& v) override;
+    
+    ApplicationCommandTarget* getNextCommandTarget() override;
+    void getAllCommands(Array<CommandID>& commands) override;
+    void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
+    bool perform(const InvocationInfo& info) override;
 
     PlugDataAudioProcessor& pd;
 
@@ -66,6 +70,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
     Statusbar statusbar;
+    
+    std::atomic<bool> canUndo, canRedo;
 
    private:
     std::unique_ptr<FileChooser> saveChooser;
