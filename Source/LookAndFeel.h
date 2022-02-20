@@ -37,6 +37,9 @@ struct Icons
     inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
     inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
     inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
+
+    inline static const CharPointer_UTF8 Keyboard = CharPointer_UTF8("\xef\x84\x9c");
+
 };
 
 struct PlugDataLook : public LookAndFeel_V4
@@ -185,7 +188,11 @@ struct PlugDataDarkLook : public PlugDataLook
         setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.8f));
         setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
         setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
-
+        
+        setColour(KeyMappingEditorComponent::backgroundColourId, Colour(23, 23, 23));
+        setColour(AlertWindow::backgroundColourId, Colour(23, 23, 23));
+        
+        
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
 
         setDefaultSansSerifTypeface(resources->defaultTypeface);
