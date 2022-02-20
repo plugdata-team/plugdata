@@ -23,7 +23,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
 
     void timerCallback() override;
 
-    bool keyPressed(const KeyPress& key, Component*) override;
+    bool keyPressed(const KeyPress& k, Component*) override { return false; };
     bool keyStateChanged(bool isKeyDown, Component*) override;
 
     void zoom(bool zoomIn);

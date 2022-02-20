@@ -7,6 +7,9 @@
 #include "Dialogs.h"
 #include "LookAndFeel.h"
 
+#include "PluginEditor.h"
+#include "Standalone/PlugDataWindow.h"
+
 #include <JuceHeader.h>
 
 #include <memory>
@@ -374,49 +377,53 @@ struct SettingsComponent : public Component
 {
     SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, std::function<void()> updatePaths)
     {
-        toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search)};
+        toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search), new TextButton(Icons::Keyboard)};
 
-        for (auto& button : toolbarButtons)
-        {
-            button->setClickingTogglesState(true);
-            button->setRadioGroupId(0110);
-            button->setConnectedEdges(12);
-            button->setName("toolbar:settings");
-            addAndMakeVisible(button);
-        }
 
-        auto* libraryList = new LibraryComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths));
-        libraryPanel.reset(libraryList);
+        auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
+        
+        
 
         if (manager)
         {
-            audioSetupComp = std::make_unique<AudioDeviceSelectorComponent>(*manager, 1, 2, 1, 2, true, true, true, false);
+        panels.add(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
+            
         }
-        else
-        {
-            audioSetupComp = std::make_unique<DAWAudioSettings>(processor);
+        else {
+            panels.add(new DAWAudioSettings(processor));
         }
+        
+        panels.add(new LibraryComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths)));
+        
+        panels.add(new KeyMappingEditorComponent(*editor->getKeyMappings(), true));
 
-        addAndMakeVisible(audioSetupComp.get());
-
-        toolbarButtons[0]->onClick = [this]()
-        {
-            audioSetupComp->setVisible(true);
-            libraryPanel->setVisible(false);
-            resized();
-        };
-
-        toolbarButtons[1]->onClick = [this]()
-        {
-            audioSetupComp->setVisible(false);
-            libraryPanel->setVisible(true);
-            // make other panel visible
-            resized();
-        };
-
-        addChildComponent(libraryPanel.get());
+        
+        for(int i = 0; i < toolbarButtons.size(); i++) {
+            
+            toolbarButtons[i]->setClickingTogglesState(true);
+            toolbarButtons[i]->setRadioGroupId(0110);
+            toolbarButtons[i]->setConnectedEdges(12);
+            toolbarButtons[i]->setName("toolbar:settings");
+            addAndMakeVisible(toolbarButtons[i]);
+            
+            addChildComponent(panels[i]);
+            toolbarButtons[i]->onClick = [this, i]() mutable
+            {
+                showPanel(i);
+            };
+        }
 
         toolbarButtons[0]->setToggleState(true, sendNotification);
+    }
+    
+    
+    void showPanel(int idx) {
+        for(int i = 0; i < toolbarButtons.size(); i++) {
+            panels[i]->setVisible(false);
+        }
+        
+        panels[idx]->setVisible(true);
+        
     }
 
     void paint(Graphics& g) override
@@ -438,16 +445,18 @@ struct SettingsComponent : public Component
             button->setBounds(toolbarPosition, 0, 70, toolbarHeight);
             toolbarPosition += 70;
         }
-
-        audioSetupComp->setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight);
-
-        libraryPanel->setBounds(0, toolbarHeight, getWidth(), getHeight() - toolbarHeight);
+        
+        for(auto* panel : panels) {
+            if(panel == panels.getLast()) {
+                panel->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 8);
+                continue;
+            }
+            panel->setBounds(2, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 8);
+        }
     }
-
+    
+    OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
-    std::unique_ptr<Component> audioSetupComp;
-
-    std::unique_ptr<Component> libraryPanel;
 
     int toolbarHeight = 50;
 
@@ -490,6 +499,9 @@ struct SettingsDialog : public Component
 
     ~SettingsDialog() override
     {
+        
+
+        
         settingsComponent.removeMouseListener(this);
     }
 
@@ -535,12 +547,7 @@ struct SettingsDialog : public Component
         g.setColour(findColour(ComboBox::outlineColourId).darker());
         g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
     }
-
-    void closeButtonPressed()
-    {
-        setVisible(false);
-    }
-
+    
     std::unique_ptr<Button> closeButton;
 };
 
@@ -568,34 +575,72 @@ std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& process
     return std::make_unique<SettingsDialog>(processor, manager, settingsTree, updatePaths);
 }
 
-void Dialogs::showObjectMenu(Component* parent, Component* target, const std::function<void(String)>& cb)
+void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, const std::function<void(String)>& cb)
 {
     PopupMenu menu;
+    
+    // Custom functions because JUCE adds "shortcut:" before some keycommands, which looks terrible!
+    auto createCommandItem = [parent](const CommandID commandID, const String& displayName){
+        if (auto* registeredInfo = parent->getCommandForID (commandID))
+        {
+            ApplicationCommandInfo info (*registeredInfo);
+            auto* target = parent->ApplicationCommandManager::getTargetForCommand (commandID, info);
 
-    menu.addItem(16, "Empty Object");
+            PopupMenu::Item i;
+            i.text = displayName;
+            i.itemID = (int) commandID;
+            i.commandManager = parent;
+            i.isEnabled = target != nullptr && (info.flags & ApplicationCommandInfo::isDisabled) == 0;
+            
+            if (i.shortcutKeyDescription.isEmpty())
+            {
+                String shortcutKey;
+
+                for (auto& keypress : parent->getKeyMappings()
+                                        ->getKeyPressesAssignedToCommand (commandID))
+                {
+                    auto key = keypress.getTextDescriptionWithIcons();
+
+                    if (shortcutKey.isNotEmpty())
+                        shortcutKey << ", ";
+
+                    if (key.length() == 1 && key[0] < 128)
+                        shortcutKey << key;
+                    else
+                        shortcutKey << key;
+                }
+
+                i.shortcutKeyDescription = shortcutKey.trim();
+            }
+            
+            return i;
+        }
+    };
+    
+
+    menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
     menu.addSeparator();
-
-    menu.addItem(1, "Numbox");
-    menu.addItem(2, "Message");
-    menu.addItem(3, "Bang");
-    menu.addItem(4, "Toggle");
+    menu.addItem(createCommandItem(CommandIDs::NewNumbox, "Number"));
+    menu.addItem(createCommandItem(CommandIDs::NewMessage, "Message"));
+    menu.addItem(createCommandItem(CommandIDs::NewBang, "Bang"));
+    menu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
+    menu.addItem(createCommandItem(CommandIDs::NewSlider, "Vertical Slider"));
     menu.addItem(5, "Horizontal Slider");
-    menu.addItem(6, "Vertical Slider");
     menu.addItem(7, "Horizontal Radio");
     menu.addItem(8, "Vertical Radio");
 
     menu.addSeparator();
 
-    menu.addItem(9, "Float Atom");    // 11
-    menu.addItem(10, "Symbol Atom");  // 12
-    menu.addItem(16, "List Atom");    // 16
+    menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float Atom"));
+    menu.addItem(10, "Symbol Atom");
+    menu.addItem(16, "List Atom");
 
     menu.addSeparator();
 
-    menu.addItem(11, "Array");          // 9
-    menu.addItem(12, "GraphOnParent");  // 13
-    menu.addItem(13, "Comment");        // 14
-    menu.addItem(14, "Canvas");         // 10
+    menu.addItem(11, "Array");
+    menu.addItem(12, "GraphOnParent");
+    menu.addItem(createCommandItem(CommandIDs::NewComment, "Comment"));
+    menu.addItem(14, "Canvas");
     menu.addSeparator();
     menu.addItem(15, "Keyboard");
 
@@ -607,59 +652,26 @@ void Dialogs::showObjectMenu(Component* parent, Component* target, const std::fu
 
         switch (choice)
         {
-            case 1:
-                boxName = "nbx";
-                break;
-
-            case 2:
-                boxName = "msg";
-                break;
-
-            case 3:
-                boxName = "bng";
-                break;
-
-            case 4:
-                boxName = "tgl";
-                break;
-
             case 5:
                 boxName = "hsl";
                 break;
-
-            case 6:
-                boxName = "vsl";
-                break;
-
             case 7:
                 boxName = "hradio";
                 break;
-
             case 8:
                 boxName = "vradio";
                 break;
-            case 9:
-                boxName = "floatatom";
-                break;
-
             case 10:
                 boxName = "symbolatom";
                 break;
             case 16:
                 boxName = "listbox";
                 break;
-
             case 11:
-            {
                 boxName = "array";
                 break;
-            }
             case 12:
                 boxName = "graph";
-                break;
-
-            case 13:
-                boxName = "comment";
                 break;
             case 14:
                 boxName = "cnv";
@@ -668,7 +680,7 @@ void Dialogs::showObjectMenu(Component* parent, Component* target, const std::fu
                 boxName = "keyboard";
                 break;
             default:
-                break;
+                return;
         }
         cb(boxName);
     };
