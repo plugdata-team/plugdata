@@ -487,21 +487,6 @@ void Canvas::focusGained(FocusChangeType cause)
 // Used for loading and for complicated actions like undo/redo
 void Canvas::synchronise(bool updatePosition)
 {
-    if (!isGraph)
-    {
-        setTransform(main.transform);
-        
-        templates.clear();
-        templates.addArray(findDrawables());
-        
-        for(auto& tmpl : templates) {
-            addAndMakeVisible(tmpl);
-            tmpl->setAlwaysOnTop(true);
-            tmpl->update();
-        }
-    }
-    
-
     pd->waitForStateUpdate();
     deselectAll();
 
@@ -687,6 +672,17 @@ void Canvas::synchronise(bool updatePosition)
                 if (info.getSize()) c.setState(info);
                 c.repaint();
             }
+        }
+        
+        setTransform(main.transform);
+        
+        templates.clear();
+        templates.addArray(findDrawables());
+        
+        for(auto& tmpl : templates) {
+            addAndMakeVisible(tmpl);
+            tmpl->setAlwaysOnTop(true);
+            tmpl->update();
         }
     }
 
@@ -981,7 +977,6 @@ Array<DrawableTemplate*> Canvas::findDrawables()
 {
     // Find all drawables (from objects like drawpolygon, filledcurve, etc.)
     // Pd draws this over all siblings, even when drawn inside a graph!
-    // To mimic this we find the drawables from the top-level canvas and paint it over everything
     
     Array<DrawableTemplate*> result;
 

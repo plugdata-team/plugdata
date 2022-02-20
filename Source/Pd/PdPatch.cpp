@@ -522,6 +522,8 @@ void Patch::removeSelection()
         });
 }
 
+
+
 void Patch::undo()
 {
     instance->enqueueFunction(

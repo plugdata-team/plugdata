@@ -111,6 +111,8 @@ void GUIComponent::mouseUp(const MouseEvent& e)
 
 void GUIComponent::initialise(bool newObject)
 {
+    
+
     if (gui.getType() == pd::Type::Number)
     {
         auto color = Colour::fromString(secondaryColour.toString());
@@ -140,8 +142,13 @@ void GUIComponent::initialise(bool newObject)
     auto params = getParameters();
     for(auto& [name, type, cat, value, list] : params) {
         value->addListener(this);
+        
+        
+        // Push current parameters to pd
         valueChanged(*value);
     }
+    
+
 
     repaint();
     
@@ -434,15 +441,6 @@ void GUIComponent::closeOpenedSubpatchers()
     }
 }
 
-// MessageComponent
-
-// NumboxComponent
-
-// SliderComponent
-
-// RadioComponent
-
-// Array graph
 
 #define CLOSED 1      /* polygon */
 #define BEZ 2         /* bezier shape */
@@ -1147,52 +1145,82 @@ struct NumboxComponent : public GUIComponent
     }
 };
 
-struct ListComponent : public GUIComponent
+struct ListComponent : public GUIComponent, public Timer
 {
     ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : GUIComponent(gui, parent, newObject)
     {
-        static const int border = 1;
-
         label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         label.setMinimumHorizontalScale(1.f);
         label.setJustificationType(Justification::centredLeft);
-        label.setBorderSize(BorderSize<int>(border + 2, border, border, border));
+        label.setBorderSize(BorderSize<int>(2, 6, 2, 2));
         label.setText(String(getValueOriginal()), dontSendNotification);
-        label.setEditable(false, false);
-        label.setInterceptsMouseClicks(false, false);
+        label.setEditable(false, true);
+        //label.setInterceptsMouseClicks(false, false);
+        
         label.setColour(Label::textColourId, gui.getForegroundColor());
         setInterceptsMouseClicks(true, false);
         addAndMakeVisible(label);
 
         label.onEditorHide = [this]()
-        {
-            auto const newValue = label.getText().getFloatValue();
-            if (std::abs(newValue - getValueOriginal()) > std::numeric_limits<float>::epsilon())
             {
-                startEdition();
-                setValueOriginal(newValue);
-                stopEdition();
-                label.setText(String(getValueOriginal()), dontSendNotification);
-            }
-        };
+                auto gui = getGui();
+                auto array = StringArray();
+                array.addTokens(label.getText(), true);
+                std::vector<pd::Atom> list;
+                list.reserve(array.size());
+                for(auto const& elem : array)
+                {
+                    if(elem.getCharPointer().isDigit())
+                    {
+                        list.push_back({elem.getFloatValue()});
+                    }
+                    else
+                    {
+                        list.push_back({elem.toStdString()});
+                    }
+                }
+                if(list != gui.getList())
+                {
+                    
+                    startEdition();
+                    gui.setList(list);
+                    stopEdition();
+                    //label.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+                }
+            };
+            
+            label.onEditorShow = [this]()
+            {
+                auto* editor = label.getCurrentTextEditor();
+                if(editor != nullptr)
+                {
+                    editor->setIndents(1, 2);
+                    editor->setBorder(BorderSize<int>(2, 6, 2, 2));
+                }
+            };
 
-        label.onEditorShow = [this]()
-        {
-            auto* editor = label.getCurrentTextEditor();
-            if (editor != nullptr)
-            {
-                editor->setIndents(1, 2);
-                editor->setBorder(BorderSize<int>(0));
-            }
-        };
 
         updateValue();
         
         initialise(newObject);
 
         box->constrainer.setSizeLimits(100, 30, 500, 600);
+        startTimer(100);
+    }
+    
+    ~ListComponent() {
+        stopTimer();
     }
 
+    
+    void timerCallback() override {
+        update();
+    }
+
+    void resized() override {
+        label.setBounds(getLocalBounds());
+    }
+    
     void paint(Graphics& g) override
     {
         

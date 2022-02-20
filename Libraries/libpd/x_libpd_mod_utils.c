@@ -159,6 +159,18 @@ void libpd_removeselection(t_canvas* cnv)
     libpd_canvas_doclear(cnv);
 }
 
+void libpd_start_undo_sequence(t_canvas* cnv, const char* name)
+{
+    canvas_undo_add(cnv, UNDO_SEQUENCE_START, name, 0);
+    
+}
+
+void libpd_end_undo_sequence(t_canvas* cnv, const char* name)
+{
+    canvas_undo_add(cnv, UNDO_SEQUENCE_END, name, 0);
+    
+}
+
 void canvas_savedeclarationsto(t_canvas* cnv, t_binbuf *b);
 
 
