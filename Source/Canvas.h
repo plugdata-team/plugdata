@@ -76,10 +76,24 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
 
     Array<DrawableTemplate*> findDrawables();
-    Box* getSingleSelection();
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
+    
+    template<typename T>
+    Array<T*> getSelectionOfType()
+    {
+        Array<T*> result;
+        
+        for(auto* obj : selectedComponents) {
+            if(auto* objOfType = dynamic_cast<T*>(obj)) {
+                result.add(objOfType);
+            }
+        }
+
+        return result;
+    }
+
 
     Viewport* viewport = nullptr;
 
@@ -93,6 +107,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     Value locked;
     Value connectionStyle;
+    Value presentationMode;
 
     bool isGraph = false;
     bool isGraphChild = false;

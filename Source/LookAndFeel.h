@@ -38,6 +38,9 @@ struct Icons
     inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
     inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
 
+    inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8 ("\xef\x81\xab");
+    
+    
     inline static const CharPointer_UTF8 Keyboard = CharPointer_UTF8("\xef\x84\x9c");
 
 };

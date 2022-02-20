@@ -411,6 +411,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
 
     locked.referTo(pd->locked);
     locked.addListener(this);
+    
     connectionStyle.referTo(parent.pd.settingsTree.getPropertyAsValue("ConnectionStyle", nullptr));
     connectionStyle.addListener(this);
 
@@ -429,6 +430,11 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
     {
         // Apply zooming
         setTransform(parent.transform);
+        presentationMode.referTo(parent.statusbar.presentationMode);
+        presentationMode.addListener(this);
+    }
+    else {
+        presentationMode = false;
     }
 
     // Add lasso component
@@ -748,7 +754,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     }
 
     // Select parent box when clicking on graphs
-    if (isGraph)
+    if (isGraph && presentationMode == false)
     {
         auto* box = findParentComponentOfClass<Box>();
         box->cnv->setSelected(box, true);
@@ -787,10 +793,16 @@ void Canvas::mouseDown(const MouseEvent& e)
     {
         // Info about selection status
         auto& lassoSelection = getLassoSelection();
-        bool hasSelection = lassoSelection.getNumSelected();
-        bool multiple = lassoSelection.getNumSelected() > 1;
+        
+        auto selectedBoxes = getSelectionOfType<Box>();
+        
+        bool hasSelection = !selectedBoxes.isEmpty();
+        bool multiple = selectedBoxes.size() > 1;
 
-        auto* box = getSingleSelection();
+        Box* box = nullptr;
+        if(hasSelection && !multiple) box = selectedBoxes.getFirst();
+        
+        
 
         bool isSubpatch = box && (box->graphics && (box->graphics->getGui().getType() == pd::Type::GraphOnParent || box->graphics->getGui().getType() == pd::Type::Subpatch));
 
@@ -810,11 +822,11 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addCommandItem(&main, CommandIDs::Delete);
         popupMenu.addSeparator();
         
-        popupMenu.addItem(8, "To Front", hasSelection);
+        popupMenu.addItem(8, "To Front", box != nullptr);
         popupMenu.addSeparator();
-        popupMenu.addItem(9, "Help", hasSelection);  // Experimental: opening help files
+        popupMenu.addItem(9, "Help", box != nullptr);
 
-        auto callback = [this, &lassoSelection, openSubpatch](int result)
+        auto callback = [this, &lassoSelection, openSubpatch, box](int result)
         {
             if (result < 1) return;
 
@@ -822,7 +834,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             {
                 case 1:
                 {
-                    openSubpatch(getSingleSelection());
+                    openSubpatch(box);
                     break;
                 }
                 case 4:  // Cut
@@ -850,7 +862,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 
                     pd->setThis();
                     // Find name of help file
-                    auto helpPatch = getSingleSelection()->pdObject->getHelp();
+                    auto helpPatch = box->pdObject->getHelp();
 
                     if (!helpPatch.getPointer())
                     {
@@ -955,11 +967,10 @@ void Canvas::mouseUp(const MouseEvent& e)
         repaint();
     }
 
-    auto& lassoSelection = getLassoSelection();
+    auto lassoSelection = getSelectionOfType<Box>();
 
-    // Pass parameters of selected box to inspector
-    if (auto* box = getSingleSelection())
-    {
+    if(lassoSelection.size() == 1) {
+        auto* box = lassoSelection.getFirst();
         auto params = box->graphics ? box->graphics->getParameters() : ObjectParameters();
 
         if (!params.empty())
@@ -975,6 +986,7 @@ void Canvas::mouseUp(const MouseEvent& e)
     {
         main.sidebar.hideParameters();
     }
+
 
     lasso.endLasso();
 }
@@ -1278,7 +1290,16 @@ void Canvas::valueChanged(Value& v)
             }
         }
     }
-
+    // Should only get called when the canvas isn't a real graph
+    else if(v.refersToSameSourceAs(presentationMode)) {
+        isGraph = presentationMode == true;
+        
+        deselectAll();
+        
+        if(isGraph) connections.clear();
+        
+        synchronise();
+    }
     else if (v.refersToSameSourceAs(connectionStyle))
     {
         for (auto* connection : connections)
@@ -1340,6 +1361,8 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
 
         component->repaint();
     }
+    
+    main.commandStatusChanged();
 }
 
 bool Canvas::isSelected(Component* component) const
@@ -1474,20 +1497,8 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
             con->isSelected = true;
             con->repaint();
             itemsFound.add(con);
+            setSelected(con, true);
         }
     }
 }
 
-// TODO: this is incorrect!!
-Box* Canvas::getSingleSelection()
-{
-    if (selectedComponents.getNumSelected() == 1)
-    {
-        if (auto* box = dynamic_cast<Box*>(selectedComponents.getSelectedItem(0)))
-        {
-            return box;
-        }
-    }
-
-    return nullptr;
-}

@@ -39,6 +39,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     int numOutputs = 0;
     Value locked;
     Value commandLocked;
+    Value presentationMode;
 
     Canvas* cnv;
 
