@@ -56,9 +56,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         {
             cnv->patch.setCurrent();
         }
-
-        cnv->checkBounds();
-
+        
+        cnv->synchronise();
         updateValues();
     };
 

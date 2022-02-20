@@ -338,6 +338,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         }
     }
 
+    midiBufferCopy.clear();
     midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
 
     process(buffer, midiMessages);
@@ -565,7 +566,7 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
-    // setThis();
+    setThis();
 
     // Dequeue messages
     sendMessagesFromQueue();
@@ -820,12 +821,18 @@ void PlugDataAudioProcessor::timerCallback()
     {
         if (!callbackType) return;
 
-        if (callbackType == 3)
+        if(callbackType == 1) {
+            editor->updateValues();
+        }
+        else if (callbackType == 3)
         {
             editor->updateValues();
         }
-
-        callbackType == 1 ? editor->updateValues() : editor->getCurrentCanvas()->repaint();
+        else {
+            for(auto* tmpl : editor->getCurrentCanvas()->templates) {
+                static_cast<DrawableTemplate*>(tmpl)->update();
+            }
+        }
 
         callbackType = 0;
     }

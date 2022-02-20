@@ -486,64 +486,97 @@ static void numbertocolor(int n, char* s)
     sprintf(s, "#%2.2x%2.2x%2.2x", rangecolor(red), rangecolor(blue), rangecolor(green));
 }
 
-void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, t_gobj* obj, int baseX, int baseY)
+
+struct t_curve
+{
+    t_object x_obj;
+    int x_flags; /* CLOSED, BEZ, NOMOUSERUN, NOMOUSEEDIT */
+    t_fielddesc x_fillcolor;
+    t_fielddesc x_outlinecolor;
+    t_fielddesc x_width;
+    t_fielddesc x_vis;
+    int x_npoints;
+    t_fielddesc* x_vec;
+    t_canvas* x_canvas;
+};
+
+
+DrawableTemplate::DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y) : scalar(s), object(reinterpret_cast<t_curve*>(obj)), canvas(cnv), baseX(x), baseY(y) {
+    
+    setBufferedToImage(true);
+    
+}
+
+
+void DrawableTemplate::updateIfMoved() {
+    
+    auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
+    auto bounds = canvas->getParentComponent()->getLocalBounds() + pos;
+    
+    if(lastBounds != bounds) {
+        update();
+    }
+}
+
+void DrawableTemplate::update()
 {
     auto* glist = canvas->patch.getPointer();
-    auto* x = (t_curve*)obj;
     auto* templ = template_findbyname(scalar->sc_template);
 
     bool vis = true;
 
-    int i, n = x->x_npoints;
-    t_fielddesc* f = x->x_vec;
+    int i, n = object->x_npoints;
+    t_fielddesc* f = object->x_vec;
 
     auto* data = scalar->sc_vec;
 
     /* see comment in plot_vis() */
-    if (vis && !fielddesc_getfloat(&x->x_vis, templ, data, 0))
+    if (vis && !fielddesc_getfloat(&object->x_vis, templ, data, 0))
     {
-        return;
+        //return;
     }
 
     // Reduce clip region
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
-    auto bounds = canvas->getParentComponent()->getLocalBounds().withPosition(pos);
+    auto bounds = canvas->getParentComponent()->getLocalBounds();
 
-    Path toDraw;
-
+    lastBounds = bounds + pos;
+    
     if (vis)
     {
         if (n > 1)
         {
-            int flags = x->x_flags, closed = (flags & CLOSED);
-            t_float width = fielddesc_getfloat(&x->x_width, templ, data, 1);
+            int flags = object->x_flags, closed = (flags & CLOSED);
+            t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
 
             char outline[20], fill[20];
             int pix[200];
             if (n > 100) n = 100;
-            /* calculate the pixel values before we start printing
-             out the TK message so that "error" printout won't be
-             interspersed with it.  Only show up to 100 points so we don't
-             have to allocate memory here. */
-            for (i = 0, f = x->x_vec; i < n; i++, f += 2)
+            
+            canvas->pd->getCallbackLock()->enter();
+            
+            for (i = 0, f = object->x_vec; i < n; i++, f += 2)
             {
                 // glist->gl_havewindow = canvas->isGraphChild;
                 // glist->gl_isgraph = canvas->isGraph;
-                canvas->pd->getCallbackLock()->enter();
+                
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
-                canvas->pd->getCallbackLock()->exit();
+               
 
                 pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;
             }
+            
+            canvas->pd->getCallbackLock()->exit();
+            
             if (width < 1) width = 1;
             if (glist->gl_isgraph) width *= glist_getzoom(glist);
 
-            numbertocolor(fielddesc_getfloat(&x->x_outlinecolor, templ, data, 1), outline);
+            numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
             if (flags & CLOSED)
             {
-                numbertocolor(fielddesc_getfloat(&x->x_fillcolor, templ, data, 1), fill);
+                numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
 
                 // sys_vgui(".x%lx.c create polygon\\\n",
                 //     glist_getcanvas(glist));
@@ -552,6 +585,8 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
 
             // sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
 
+            Path toDraw;
+            
             if (flags & CLOSED)
             {
                 toDraw.startNewSubPath(pix[0], pix[1]);
@@ -569,37 +604,25 @@ void TemplateDraw::paintOnCanvas(Graphics& g, Canvas* canvas, t_scalar* scalar, 
                     toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
                 }
             }
-
-            Colour juceColourOutline = Colour::fromString("FF" + String::fromUTF8(outline + 1));
-            Colour juceColourFill = Colour::fromString("FF" + String::fromUTF8(fill + 1));
-
-            g.setColour(juceColourFill);
-
-            // sys_vgui("-width %f\\\n", width);
-
-            String objName = String::fromUTF8(x->x_obj.te_g.g_pd->c_name->s_name);
+            
+            String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
             if (objName.contains("fill"))
             {
-                g.fillPath(toDraw);
+                setFill(Colour::fromString("FF" + String::fromUTF8(fill + 1)));
+                setStrokeThickness(0.0f);
             }
             else
             {
-                g.strokePath(toDraw, PathStrokeType(width));
+                setFill(Colours::transparentBlack);
+                setStrokeFill(Colour::fromString("FF" + String::fromUTF8(outline + 1)));
+                setStrokeThickness(width);
             }
 
-            if (flags & BEZ)
-            {
-                // sys_vgui("-smooth 1\\\n")
-            };
-
-            // sys_vgui("-tags curve%lx\n", data);
+            setPath(toDraw);
+            repaint();
         }
         else
             post("warning: curves need at least two points to be graphed");
-    }
-    else
-    {
-        if (n > 1) sys_vgui(".x%lx.c delete curve%lx\n", glist_getcanvas(glist), data);
     }
 }
 
@@ -1172,6 +1195,9 @@ struct ListComponent : public GUIComponent
 
     void paint(Graphics& g) override
     {
+        
+        g.fillAll(findColour(Slider::thumbColourId));
+        
         static auto const border = 1.0f;
         const auto h = static_cast<float>(getHeight());
         const auto w = static_cast<float>(getWidth());
@@ -1184,9 +1210,10 @@ struct ListComponent : public GUIComponent
         p.lineTo(w - 0.5f, o);
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
-        g.setColour(gui.getBackgroundColor());
+        
+        
+        g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillPath(p);
-        g.setColour(Colours::black);
         g.strokePath(p, PathStrokeType(border));
     }
 
@@ -1578,12 +1605,15 @@ struct GraphicalArray : public Component, public Timer
             vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);
         }
         
-        pd->enqueueFunction([this, interpStart, interpEnd]() mutable {
+        // Don't want to touch vec on the other thread, so we copy the vector into the lambda
+        auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd);
+        
+        pd->enqueueFunction([this, interpStart, changed]() mutable {
             try
             {
-                for (int n = interpStart; n <= interpEnd; n++)
+                for (int n = 0; n < changed.size(); n++)
                 {
-                        array.write(n, vec[n]);
+                        array.write(interpStart + n, changed[n]);
                 }
             }
             catch (...)
