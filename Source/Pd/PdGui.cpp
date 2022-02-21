@@ -583,13 +583,13 @@ std::string Gui::getFontName() const
     }
 }
 
-static unsigned int fromIemColors(int const color)
+static unsigned int fromIemColours(int const color)
 {
     auto const c = static_cast<unsigned int>(color << 8 | 0xFF);
     return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
 }
 
-Colour Gui::getBackgroundColor() const noexcept
+Colour Gui::getBackgroundColour() const noexcept
 {
     if (ptr && isIEM())
     {
@@ -598,7 +598,7 @@ Colour Gui::getBackgroundColor() const noexcept
     return Colours::white;
 }
 
-Colour Gui::getForegroundColor() const noexcept
+Colour Gui::getForegroundColour() const noexcept
 {
     if (ptr && isIEM())
     {

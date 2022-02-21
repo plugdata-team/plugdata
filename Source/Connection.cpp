@@ -331,13 +331,34 @@ void Connection::resized()
     Point<int> pstart = s->getCanvasBounds().getCentre() - getPosition();
     Point<int> pend = e->getCanvasBounds().getCentre() - getPosition();
 
-    bool curvedConnection = cnv->pd->settingsTree.getProperty("ConnectionStyle");
+   
+    bool segmentedConnection =  connectionStyle == true;
 
-    if (!curvedConnection)
+    if (!segmentedConnection)
     {
         toDraw.clear();
-        toDraw.startNewSubPath(pstart.toFloat());
-        toDraw.lineTo(pend.toFloat());
+        
+        const float width =  std::max(pstart.x, pend.x) - std::min(pstart.x, pend.x);
+        const float height =  std::max(pstart.y, pend.y) - std::min(pstart.y, pend.y);
+        
+        const float min = std::min<float>(width, height);
+        const float max = std::max<float>(width, height);
+        
+        const float max_shift_y = 20.f;
+        const float max_shift_x = 20.f;
+        
+        const float shift_y = std::min<float>(max_shift_y, max * 0.5);
+        
+        const float shift_x = ((pend.y >= pstart.y)
+                               ? std::min<float>(max_shift_x, min * 0.5)
+                               : 0.f) * ((pend.x < pstart.x) ? -1. : 1.);
+        
+        const juce::Point<float> ctrl_pt1 { pend.x - shift_x, pend.y + shift_y };
+        const juce::Point<float> ctrl_pt2 { pstart.x + shift_x, pstart.y - shift_y };
+        
+        toDraw.startNewSubPath(pend.toFloat());
+        toDraw.cubicTo(ctrl_pt1, ctrl_pt2, pstart.toFloat());
+        
     }
     else
     {

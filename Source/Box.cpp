@@ -70,13 +70,15 @@ void Box::valueChanged(Value& v)
     if (lastTextValue != textValue.toString()) setText(textValue.toString(), sendNotification);
 
     // Hide certain objects in GOP
-    if (cnv->isGraph && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
+    if ((cnv->isGraph || cnv->presentationMode == true) && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
     {
         setVisible(false);
     }
     else
     {
         setVisible(true);
+        updatePorts();
+        resized();
     }
 
     if (graphics)
@@ -92,7 +94,7 @@ void Box::valueChanged(Value& v)
 
 bool Box::hitTest(int x, int y)
 {
-    return getLocalBounds().reduced(2).contains(x, y);
+    return getLocalBounds().reduced(1).contains(x, y);
 }
 
 void Box::mouseEnter(const MouseEvent& e)
@@ -152,27 +154,27 @@ void Box::setType(const String& newType, bool exists)
         width = pdObject->getWidth();
         if (width == 0)
         {
-            width = font.getStringWidth(newType) + 27;
+            width = font.getStringWidth(newType) + widthOffset;
         }
         else
         {
-            width += 8;
+            width += margin;
         }
     }
     else
     {
-        width = font.getStringWidth(newType) + 27;
+        width = font.getStringWidth(newType) + widthOffset;
     }
 
-    // Update inlets/outlets if it's not in a graph
-    if (!cnv->isGraph) updatePorts();
+    // Update inlets/outlets
+    updatePorts();
 
     int largestSide = std::max(numInputs, numOutputs);
 
     // Make sure we have enough space for inlets/outlets
-    if (width - 12 < largestSide * 16)
+    if (width - doubleMargin < largestSide * doubleMargin)
     {
-        width = (largestSide * 16) + 12;
+        width = (largestSide * doubleMargin) + 15;
     }
 
     if (pdObject)
@@ -188,7 +190,7 @@ void Box::setType(const String& newType, bool exists)
 
         if (graphics && graphics->getGui().getType() == pd::Type::Comment)
         {
-            setSize(width, 34);
+            setSize(width, height);
             setEditable(true);
             hideLabel = false;
         }
@@ -196,7 +198,7 @@ void Box::setType(const String& newType, bool exists)
         {
             addAndMakeVisible(graphics.get());
             auto [w, h] = graphics->getBestSize();
-            setSize(w + 8, h + 8);
+            setSize(w + doubleMargin, h + doubleMargin);
             graphics->resized();
             graphics->toBack();
             hideLabel = true;
@@ -206,20 +208,20 @@ void Box::setType(const String& newType, bool exists)
         {
             hideLabel = false;
             setEditable(true);
-            setSize(width, 34);
+            setSize(width, height);
         }
     }
     else
     {
         hideLabel = false;
-        setSize(width, 34);
+        setSize(width, height);
     }
 
     if (type.isEmpty())
     {
         hideLabel = false;
         setEditable(true);
-        setSize(100, 34);
+        setSize(100, height);
     }
 
     // Hide "comment" in front of name
@@ -245,7 +247,7 @@ void Box::setType(const String& newType, bool exists)
 
 void Box::paint(Graphics& g)
 {
-    auto rect = getLocalBounds().reduced(6);
+    auto rect = getLocalBounds().reduced(margin);
     auto outlineColour = findColour(ComboBox::outlineColourId);
 
     bool selected = cnv->isSelected(this);
@@ -257,12 +259,20 @@ void Box::paint(Graphics& g)
     else if (selected)
     {
         outlineColour = findColour(Slider::thumbColourId);
+        g.setColour(outlineColour);
+        
+        float offset = 2.0f;
+        // Draw resize edges when selected
+        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), 2.0f);
+        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset), 2.0f);
+        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), 2.0f);
+        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset), 2.0f);
     }
 
     if (!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
     {
         g.setColour(findColour(ComboBox::backgroundColourId));
-        g.fillRect(getLocalBounds().reduced(6));
+        g.fillRect(getLocalBounds().reduced(margin));
     }
 
     // Draw comment style
@@ -298,27 +308,30 @@ void Box::resized()
 {
     if (graphics)
     {
-        graphics->setBounds(getLocalBounds().reduced(6));
+        graphics->setBounds(getLocalBounds().reduced(margin));
     }
 
     constrainer.checkComponentBounds(this);
 
-    auto bestWidth = font.getStringWidth(getText()) + 27;
+    auto bestWidth = font.getStringWidth(getText()) + widthOffset;
 
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
     {
         int numLines = std::max(StringArray::fromTokens(getText(), "\n", "\'").size(), 1);
-        setSize(bestWidth + 30, (numLines * 17) + 14);
+        setSize(bestWidth + 10, (numLines * 17) + 14);
     }
 
     if (auto* newEditor = getCurrentTextEditor())
     {
-        newEditor->setBounds(getLocalBounds().reduced(6));
+        newEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
-    resizer.setBounds(getLocalBounds().reduced(5));
+    resizer.setBounds(getLocalBounds().reduced((margin - 1)));
     resizer.toFront(false);
 
+    const int edgeMargin = 18;
+    const int doubleEdgeMargin = edgeMargin * 2;
+    
     int index = 0;
     for (auto& edge : edges)
     {
@@ -326,11 +339,12 @@ void Box::resized()
         int position = index < numInputs ? index : index - numInputs;
         int total = isInput ? numInputs : numOutputs;
 
-        float newY = isInput ? 6 : getHeight() - 6;
-        float newX = position * ((getWidth() - 32) / (total - 1 + (total == 1))) + 16;
+        float newY = isInput ? margin : getHeight() - margin;
+        float newX = position * ((getWidth() - doubleEdgeMargin) / (total - 1 + (total == 1))) + edgeMargin;
 
         edge->setCentrePosition(newX, newY);
-        edge->setSize(10, 10);
+        edge->setSize(12, 12);
+        
 
         index++;
     }
@@ -339,6 +353,7 @@ void Box::resized()
 void Box::updatePorts()
 {
     // update inlets and outlets
+    
 
     int oldNumInputs = 0;
     int oldNumOutputs = 0;
@@ -374,10 +389,15 @@ void Box::updatePorts()
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;
         edge->setAlwaysOnTop(true);
+        
+        // Dont show for graphs or presentation mode
+        edge->setVisible(!(cnv->isGraph || cnv->presentationMode == true));
 
         numIn += input;
         numOut += !input;
     }
+    
+    resized();
 }
 
 void Box::setText(const String& newText, NotificationType notification)
@@ -401,7 +421,7 @@ String Box::getText(bool returnActiveEditorContents) const
 
 void Box::mouseDown(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent == &resizer) return;
+    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true || e.originalComponent == &resizer) return;
 
     cnv->handleMouseDown(this, e);
 
@@ -410,7 +430,7 @@ void Box::mouseDown(const MouseEvent& e)
 
 void Box::mouseUp(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->pd->locked == true) return;
+    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
 
     cnv->handleMouseUp(this, e);
 
@@ -421,13 +441,13 @@ void Box::mouseUp(const MouseEvent& e)
 
     if (lastBounds != getLocalBounds())
     {
-        pdObject->setSize(getWidth() - 8, getHeight() - 8);
+        pdObject->setSize(getWidth() - doubleMargin, getHeight() - doubleMargin);
     }
 }
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->pd->locked == true || e.originalComponent == &resizer) return;
+    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true || e.originalComponent == &resizer) return;
 
     cnv->handleMouseDrag(e);
 }

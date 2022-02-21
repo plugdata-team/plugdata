@@ -17,9 +17,7 @@
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p), resizer(this, &constrainer)
 {
-    toolbarButtons = {new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide)};
-
-
+    toolbarButtons = {new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide), new TextButton(Icons::Pin)};
     
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
@@ -187,6 +185,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         repaint();
         resized();
     };
+    
+    // Hide pin sidebar panel
+    toolbarButton(Pin)->setTooltip("Pin Panel");
+    toolbarButton(Pin)->setName("toolbar:pin");
+    toolbarButton(Pin)->setClickingTogglesState(true);
+    toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
+    toolbarButton(Pin)->setConnectedEdges(12);
+    toolbarButton(Pin)->onClick = [this]()
+    {
+        sidebar.pinSidebar(toolbarButton(Pin)->getToggleState());
+    };
 
     addAndMakeVisible(toolbarButton(Hide));
 
@@ -314,6 +323,8 @@ void PlugDataPluginEditor::resized()
     }
 
     toolbarButton(Hide)->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
+    
+    toolbarButton(Pin)->setBounds(std::min((getWidth() - sidebar.getWidth()) + 70, getWidth() - 80), 0, 70, toolbarHeight);
 
     resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer.toFront(false);

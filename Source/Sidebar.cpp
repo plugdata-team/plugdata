@@ -720,25 +720,51 @@ void Sidebar::showSidebar(bool show)
     }
 }
 
+void Sidebar::pinSidebar(bool pin)
+{
+    pinned = pin;
+    
+    if(!pinned && lastParameters.empty()) {
+        hideParameters();
+    }
+}
+
+bool Sidebar::isPinned(){
+    return pinned;
+}
+
 void Sidebar::showParameters(ObjectParameters& params)
 {
     lastParameters = params;
     inspector->loadParameters(params);
 
-    inspector->setVisible(true);
-    console->setVisible(false);
+    if(!pinned) {
+        inspector->setVisible(true);
+        console->setVisible(false);
+    }
 }
 
 void Sidebar::showParameters()
 {
     inspector->loadParameters(lastParameters);
-    inspector->setVisible(true);
-    console->setVisible(false);
+    
+    if(!pinned) {
+        inspector->setVisible(true);
+        console->setVisible(false);
+    }
 }
 void Sidebar::hideParameters()
 {
-    inspector->setVisible(false);
-    console->setVisible(true);
+    if(!pinned) {
+        inspector->setVisible(false);
+        console->setVisible(true);
+    }
+    
+    if(pinned) {
+        ObjectParameters params = {};
+        inspector->loadParameters(params);
+    }
+    
     console->deselect();
 }
 
