@@ -426,16 +426,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
 
     setSize(600, 400);
 
-    if (!isGraph)
-    {
-        // Apply zooming
-        setTransform(parent.transform);
-        presentationMode.referTo(parent.statusbar.presentationMode);
-        presentationMode.addListener(this);
-    }
-    else {
-        presentationMode = false;
-    }
 
     // Add lasso component
     addAndMakeVisible(&lasso);
@@ -449,6 +439,14 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
         viewport->setBufferedToImage(true);
+        
+        // Apply zooming
+        setTransform(parent.transform);
+        presentationMode.referTo(parent.statusbar.presentationMode);
+        presentationMode.addListener(this);
+    }
+    else {
+        presentationMode = false;
     }
 
     addChildComponent(suggestor);
@@ -512,7 +510,7 @@ void Canvas::synchronise(bool updatePosition)
         return true;
     };
 
-    if (!isGraph)
+    if (!(isGraph || presentationMode == true))
     {
         // Remove deprecated connections
         for (int n = connections.size() - 1; n >= 0; n--)
@@ -626,7 +624,7 @@ void Canvas::synchronise(bool updatePosition)
 
     auto pdConnections = patch.getConnections();
 
-    if (!isGraph)
+    if (!(isGraph || presentationMode == true))
     {
         for (auto& connection : pdConnections)
         {
@@ -754,7 +752,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     }
 
     // Select parent box when clicking on graphs
-    if (isGraph && presentationMode == false)
+    if (isGraph)
     {
         auto* box = findParentComponentOfClass<Box>();
         box->cnv->setSelected(box, true);
@@ -973,12 +971,13 @@ void Canvas::mouseUp(const MouseEvent& e)
         auto* box = lassoSelection.getFirst();
         auto params = box->graphics ? box->graphics->getParameters() : ObjectParameters();
 
-        if (!params.empty())
+        if (!params.empty() || main.sidebar.isPinned())
         {
             main.sidebar.showParameters(params);
         }
         else
         {
+            
             main.sidebar.hideParameters();
         }
     }
@@ -1045,13 +1044,6 @@ Array<DrawableTemplate*> Canvas::findDrawables()
 
 void Canvas::paintOverChildren(Graphics& g)
 {
-    // Pd Template drawing: not the most efficient implementation but it seems to work!
-    // Graphs are drawn from their parent, so pd drawings are always on top of other objects
-    if (!isGraph)
-    {
-        // findDrawables(g);
-    }
-
     // Draw connections in the making over everything else
     if (connectingEdge)
     {
@@ -1184,6 +1176,9 @@ void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
     main.sidebar.hideParameters();
+    
+    // Make sure nothing is selected
+    patch.deselectAll();
 
     // Find selected objects and make them selected in pd
     Array<pd::Object*> objects;
@@ -1292,11 +1287,9 @@ void Canvas::valueChanged(Value& v)
     }
     // Should only get called when the canvas isn't a real graph
     else if(v.refersToSameSourceAs(presentationMode)) {
-        isGraph = presentationMode == true;
-        
         deselectAll();
         
-        if(isGraph) connections.clear();
+        if(presentationMode == true) connections.clear();
         
         synchronise();
     }

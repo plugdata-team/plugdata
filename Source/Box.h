@@ -64,23 +64,24 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-
+    void mouseDoubleClick(const MouseEvent&) override;
+    
     String getText(bool returnActiveEditorContents = false) const;
 
+    static inline constexpr int widthOffset = 32;
+    static inline constexpr int margin = 8;
+    static inline constexpr int doubleMargin = margin * 2;
+    static inline constexpr int height = 37;
+    
    private:
     void initialise();
     bool hitTest(int x, int y) override;
 
     void setText(const String& newText, NotificationType notification);
-
     void setEditable(bool editable);
-
     void textEditorReturnKeyPressed(TextEditor& ed) override;
 
     std::function<void()> onTextChange;
-
-   protected:
-    void mouseDoubleClick(const MouseEvent&) override;
 
     bool hideLabel = false;
 
@@ -95,6 +96,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     float minimumHorizontalScale = 0;
     TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
     bool editDoubleClick = false;
+    
+
 
     Colour outline = findColour(Slider::thumbColourId);
 

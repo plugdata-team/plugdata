@@ -53,7 +53,7 @@ void Edge::paint(Graphics& g)
 
     if (!isHovered)
     {
-        bounds = bounds.reduced(1);
+        bounds = bounds.reduced(2);
     }
 
     bool down = isDown() && !bool(box->locked.getValue());
@@ -61,9 +61,8 @@ void Edge::paint(Graphics& g)
 
     auto backgroundColour = isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
 
-    auto baseColour = backgroundColour.darker(over ? 0.15f : 0.0f);
-
-    if (down || over) baseColour = baseColour.contrasting(down ? 0.2f : 0.05f);
+    if (down || over)
+        backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
     Path path;
 
@@ -84,7 +83,7 @@ void Edge::paint(Graphics& g)
         path.addEllipse(bounds);
     }
 
-    g.setColour(baseColour);
+    g.setColour(backgroundColour);
     g.fillPath(path);
     g.setColour(findColour(ComboBox::outlineColourId));
     g.strokePath(path, PathStrokeType(1.f));

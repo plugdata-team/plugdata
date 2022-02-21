@@ -406,7 +406,12 @@ void Patch::duplicate()
 
 void Patch::selectObject(Object* obj)
 {
-    instance->enqueueFunction([this, obj]() { glist_select(getPointer(), &checkObject(obj)->te_g); });
+    instance->enqueueFunction([this, obj]() {
+        auto* checked = &checkObject(obj)->te_g;
+        if(!glist_isselected(getPointer(), checked)) {
+            glist_select(getPointer(), checked);
+        }
+    });
 }
 
 void Patch::deselectAll()
@@ -486,10 +491,13 @@ void Patch::moveObjects(const std::vector<Object*>& objects, int dx, int dy)
         [this, objects, dx, dy]() mutable
         {
             setCurrent();
+            
+            glist_noselect(getPointer());
 
             for (auto* obj : objects)
             {
                 if (!obj) continue;
+                
                 glist_select(getPointer(), &checkObject(obj)->te_g);
             }
 

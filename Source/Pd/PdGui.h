@@ -67,8 +67,8 @@ class Gui : public Object
 
     size_t getNumberOfSteps() const noexcept;
 
-    Colour getBackgroundColor() const noexcept;
-    Colour getForegroundColor() const noexcept;
+    Colour getBackgroundColour() const noexcept;
+    Colour getForegroundColour() const noexcept;
     Colour getLabelColour() const noexcept;
 
     void setLabelColour(Colour newColour) noexcept;

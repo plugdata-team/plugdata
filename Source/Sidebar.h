@@ -58,19 +58,25 @@ struct Sidebar : public Component
     bool isShowingConsole() const noexcept;
 
     void showSidebar(bool show);
+    
+    void pinSidebar(bool pin);
+    bool isPinned();
 
     void updateConsole();
 
+   private:
+    
     ObjectParameters lastParameters;
 
     Console* console;
     Inspector* inspector;
-
-   private:
+    
     static constexpr int dragbarWidth = 10;
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;
+    
+    bool pinned = false;
 
     int lastWidth = 250;
 };
