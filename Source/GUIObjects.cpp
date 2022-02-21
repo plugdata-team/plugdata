@@ -121,8 +121,8 @@ void GUIComponent::initialise(bool newObject)
 
     if (!newObject)
     {
-        primaryColour = Colour(gui.getForegroundColor()).toString();
-        secondaryColour = Colour(gui.getBackgroundColor()).toString();
+        primaryColour = Colour(gui.getForegroundColour()).toString();
+        secondaryColour = Colour(gui.getBackgroundColour()).toString();
         if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
 
         getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
@@ -132,7 +132,7 @@ void GUIComponent::initialise(bool newObject)
         getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
 
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
-        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
+        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
@@ -389,7 +389,7 @@ void GUIComponent::updateLabel()
         label->setEditable(false, false);
         label->setInterceptsMouseClicks(false, false);
         label->setColour(Label::textColourId, gui.getLabelColour());
-        // label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColor())));
+        // label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColour())));
         box->cnv->addAndMakeVisible(label.get());
         box->addComponentListener(this);
     }
@@ -616,8 +616,31 @@ struct BangComponent : public GUIComponent
 
     Value bangInterrupt = Value(100.0f);
     Value bangHold = Value(40.0f);
+    
+    // TODO: fix in LookAndFeel!
+    struct BangButton : public TextButton
+    {
+        void paint(Graphics& g) override {
+            
+            const auto bounds = getLocalBounds().reduced(1).toFloat();
+            const auto width = std::max(bounds.getWidth(), bounds.getHeight());
+            
+            const float circleOuter = 80.f * (width * 0.01f);
+            const float circleThickness = std::max(8.f * (width * 0.01f), 2.0f);
 
-    TextButton bangButton;
+            g.setColour(findColour(ComboBox::outlineColourId));
+            g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
+            
+            g.setColour(getToggleState()  ? findColour(TextButton::buttonOnColourId) : Colours::transparentWhite);
+            
+            g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
+            
+
+            
+        }
+    };
+
+    BangButton bangButton;
 
     BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
@@ -635,7 +658,7 @@ struct BangComponent : public GUIComponent
         };
 
         initialise(newObject);
-        box->constrainer.setSizeLimits(38, 38, 1200, 1200);
+        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, 1200, 1200);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
 
@@ -677,7 +700,7 @@ struct BangComponent : public GUIComponent
 
     void resized() override
     {
-        bangButton.setBounds(getLocalBounds().reduced(5));
+        bangButton.setBounds(getLocalBounds().reduced(1));
     }
 
     std::pair<int, int> getBestSize() override
@@ -713,7 +736,27 @@ struct BangComponent : public GUIComponent
 
 struct ToggleComponent : public GUIComponent
 {
-    TextButton toggleButton;
+    // TODO: fix in LookAndFeel!
+    struct Toggle : public TextButton
+    {
+        void paint(Graphics& g) override {
+            
+            
+            g.setColour(getToggleState()
+                               ? findColour(TextButton::buttonOnColourId)
+                               : Colours::grey);
+                   
+            const auto crossBounds = getLocalBounds().toFloat();
+            
+            const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
+            const auto strokeWidth = std::max(max * 0.15f, 2.0f);
+           
+           g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
+           g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
+        }
+    };
+    
+    Toggle toggleButton;
 
     ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
@@ -735,7 +778,7 @@ struct ToggleComponent : public GUIComponent
 
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(38, 38, 1200, 1200);
+        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, 1200, 1200);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
 
@@ -832,7 +875,7 @@ struct MessageComponent : public GUIComponent
         initialise(newObject);
 
         box->addMouseListener(this, false);
-        box->constrainer.setSizeLimits(50, 30, 500, 600);
+        box->constrainer.setSizeLimits(50, Box::height - 2, 500, 600);
     }
 
     void lock(bool locked) override
@@ -859,7 +902,7 @@ struct MessageComponent : public GUIComponent
             auto baseColour = isDown ? Colour(90, 90, 90) : Colour(70, 70, 70);
 
             auto rect = getLocalBounds().toFloat();
-            g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(1.1f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
+            g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(1.5f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
 
             g.fillRoundedRectangle(rect, 2.0f);
         }
@@ -954,13 +997,14 @@ struct NumboxComponent : public GUIComponent
 {
     Label input;
 
-    float downValue = 0.0f;
+    float dragValue = 0.0f;
     bool shift = false;
+    int decimalDrag = 0;
+    
+    Point<float> lastDragPos;
 
     NumboxComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
-        input.addMouseListener(this, false);
-
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
@@ -989,24 +1033,31 @@ struct NumboxComponent : public GUIComponent
         }
         addAndMakeVisible(input);
 
-        input.setText(String(getValueOriginal()), dontSendNotification);
+       
+        input.setText(formatNumber(getValueOriginal()), dontSendNotification);
 
         initialise(newObject);
         input.setEditable(false, true);
 
-        box->constrainer.setSizeLimits(50, 30, 500, 30);
+        box->constrainer.setSizeLimits(50, Box::height - 2, 500, Box::height - 2);
     }
 
     void resized() override
     {
         input.setBounds(getLocalBounds());
     }
+    
+    
+    String formatNumber(float value) {
+        String text;
+        text << value;
+        if(!text.containsChar('.')) text << '.';
+        return text;
+    }
 
     void update() override
     {
-        float value = getValueOriginal();
-
-        input.setText(String(value), dontSendNotification);
+        input.setText(formatNumber(getValueOriginal()), dontSendNotification);
     }
 
     std::pair<int, int> getBestSize() override
@@ -1022,66 +1073,99 @@ struct NumboxComponent : public GUIComponent
         {
             startEdition();
             shift = e.mods.isShiftDown();
-            downValue = input.getText().getFloatValue();
+            dragValue = input.getText().getFloatValue();
+            
+            lastDragPos = e.position;
+                
+            const auto textArea = input.getBorderSize().subtractedFrom(input.getBounds());
+            
+            juce::GlyphArrangement glyphs;
+            glyphs.addFittedText (input.getFont(), input.getText(),
+                                  textArea.getX(), 0., textArea.getWidth(), getHeight(),
+                                  juce::Justification::centredLeft, 1,
+                                  input.getMinimumHorizontalScale());
+            
+            double decimalX = getWidth();
+            for(int i = 0; i < glyphs.getNumGlyphs(); ++i)
+            {
+                auto const& glyph = glyphs.getGlyph(i);
+                if(glyph.getCharacter() == '.')
+                {
+                    decimalX = glyph.getRight();
+                }
+            }
+            
+            const bool isDraggingDecimal = e.x > decimalX;
+            
+            decimalDrag = isDraggingDecimal ? 6 : 0;
+            
+            if(isDraggingDecimal)
+            {
+                juce::GlyphArrangement decimalsGlyph;
+                static const juce::String decimalStr("000000");
+                
+                decimalsGlyph.addFittedText (input.getFont(), decimalStr,
+                                              decimalX, 0, getWidth(), getHeight(),
+                                              juce::Justification::centredLeft, 1,
+                                              input.getMinimumHorizontalScale());
+                
+                for(int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
+                {
+                    auto const& glyph = decimalsGlyph.getGlyph(i);
+                    if(e.x <= glyph.getRight())
+                    {
+                        decimalDrag = i + 1;
+                        break;
+                    }
+                }
+            }
         }
+        
+       
     }
 
     void mouseUp(const MouseEvent& e) override
     {
         if (!input.isBeingEdited())
         {
+            setMouseCursor(MouseCursor::NormalCursor);
+            updateMouseCursor();
             stopEdition();
         }
     }
 
     void mouseDrag(const MouseEvent& e) override
     {
-        input.mouseDrag(e);
-
         if (!input.isBeingEdited())
         {
-            auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
-            if (std::abs(inc) < 1.0f) return;
+            setMouseCursor(MouseCursor::NoCursor);
+            updateMouseCursor();
+            
+            const int decimal = decimalDrag + e.mods.isShiftDown();
+            const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
+            const float deltaY = e.y - lastDragPos.y;
+            lastDragPos = e.position;
+            
+            dragValue += increment * -deltaY;
 
-            // Logic for dragging, where the x position decides the precision
-            auto currentValue = input.getText();
-            if (!currentValue.containsChar('.')) currentValue += '.';
-            if (currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
-            currentValue += "00000";
-
-            // Get position of all numbers
-            Array<int> glyphs;
-            Array<float> xOffsets;
-            input.getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
-
-            // Find the number closest to the mouse down
-            auto position = static_cast<float>(gui.isAtom() ? e.getMouseDownX() - 4 : e.getMouseDownX() - 15);
-            auto precision = static_cast<int>(std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin());
-            precision -= currentValue.indexOfChar('.');
-
-            // I case of integer dragging
-            if (shift || precision <= 0)
+            // truncate value and set
+            double newValue = dragValue;
+            
+            if(decimal > 0)
             {
-                precision = 0;
+                const int sign = (newValue > 0) ? 1 : -1;
+                unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
+                newValue = (((double)ui_temp)/std::pow(10, decimal) * sign);
             }
             else
             {
-                // Offset for the decimal point character
-                precision -= 1;
+                newValue = static_cast<int64_t>(newValue);
             }
-
-            // Calculate increment multiplier
-            float multiplier = powf(10.0f, static_cast<float>(-precision));
-
-            float minimum = static_cast<float>(min.getValue());
-            float maximum = static_cast<float>(max.getValue());
-            // Calculate new value as string
-            auto newValue = String(std::clamp(downValue + inc * multiplier, minimum, maximum), precision);
-
-            if (precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
-
-            setValueOriginal(newValue.getFloatValue());
-            input.setText(newValue, NotificationType::dontSendNotification);
+            
+                            
+            setValueOriginal(newValue);
+            
+            input.setText(formatNumber(getValueOriginal()), NotificationType::dontSendNotification);
         }
     }
 
@@ -1112,6 +1196,7 @@ struct NumboxComponent : public GUIComponent
     {
         g.setColour(findColour(TextEditor::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(1));
+        
     }
 
     void paintOverChildren(Graphics& g) override
@@ -1120,12 +1205,21 @@ struct NumboxComponent : public GUIComponent
 
         if (!gui.isAtom())
         {
-            g.setColour(Colour(gui.getForegroundColor()));
-
-            Path triangle;
-            triangle.addTriangle({0.0f, 0.0f}, {10.0f, static_cast<float>(getHeight()) / 2.0f}, {0.0f, static_cast<float>(getHeight())});
-
-            g.fillPath(triangle);
+            const int indent = 9;
+            
+            const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
+            
+            Path corner;
+            
+            corner.addTriangle(iconBounds.getTopLeft().toFloat(),
+                               iconBounds.getTopRight().toFloat()
+                               + Point<float>(0, (iconBounds.getHeight() / 2.)),
+                               iconBounds.getBottomLeft().toFloat());
+            
+            g.setColour(Colour(gui.getForegroundColour()));
+            g.fillPath(corner);
+            
+            
         }
     }
 };
@@ -1142,7 +1236,7 @@ struct ListComponent : public GUIComponent, public Timer
         label.setEditable(false, true);
         // label.setInterceptsMouseClicks(false, false);
 
-        label.setColour(Label::textColourId, gui.getForegroundColor());
+        label.setColour(Label::textColourId, gui.getForegroundColour());
         setInterceptsMouseClicks(true, false);
         addAndMakeVisible(label);
 
@@ -1187,7 +1281,7 @@ struct ListComponent : public GUIComponent, public Timer
 
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(100, 30, 500, 600);
+        box->constrainer.setSizeLimits(100, Box::height - 2, 500, 600);
         startTimer(100);
     }
 
@@ -1315,7 +1409,7 @@ struct SliderComponent : public GUIComponent
         }
         else
         {
-            box->constrainer.setSizeLimits(100, 35, 500, 250);
+            box->constrainer.setSizeLimits(100, Box::height - 2, 500, 250);
         }
     }
 

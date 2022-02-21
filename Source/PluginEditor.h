@@ -100,7 +100,9 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
         Redo,
         Add,
         Settings,
-        Hide
+        Hide,
+        Pin,
+        NumButtons
     };
 
     TextButton* toolbarButton(ToolbarButtonType type)
