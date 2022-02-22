@@ -325,7 +325,7 @@ class LibraryComponent : public Component, public TableListBoxModel
     {
         FileComponent(std::function<void(int)> cb, String* value, int rowIdx) : callback(std::move(cb)), row(rowIdx)
         {
-            setEditable(false, true);
+            setEditable(true, false);
 
             setText(String(*value), dontSendNotification);
 

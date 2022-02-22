@@ -215,7 +215,7 @@ struct Inspector : public PropertyPanel
         EditableComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), property(value)
         {
             addAndMakeVisible(label);
-            label.setEditable(false, true);
+            label.setEditable(true, false);
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
 

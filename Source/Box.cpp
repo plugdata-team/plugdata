@@ -461,7 +461,13 @@ void Box::mouseDown(const MouseEvent& e)
             return;
         }
     }
+    bool wasSelected = cnv->isSelected(this);
     cnv->handleMouseDown(this, e);
+    
+    if(wasSelected != cnv->isSelected(this)) {
+        selectionChanged = true;
+    }
+    
 }
 
 void Box::mouseUp(const MouseEvent& e)
@@ -470,6 +476,11 @@ void Box::mouseUp(const MouseEvent& e)
     
     if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
 
+    if (editSingleClick && isEnabled() && contains(e.getPosition()) && ! (e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && cnv->isSelected(this) && !selectionChanged)
+    {
+        showEditor();
+    }
+    
     cnv->handleMouseUp(this, e);
 
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
@@ -479,8 +490,13 @@ void Box::mouseUp(const MouseEvent& e)
 
     if (originalBounds != getBounds())
     {
-        pdObject->setBounds(getBounds().reduced(margin) - cnv->zeroPosition);
+        cnv->pd->enqueueFunction([this](){
+            pdObject->setBounds(getBounds().reduced(margin) - cnv->zeroPosition);
+        });
+        
     }
+    
+    selectionChanged = false;
 }
 
 void Box::mouseDrag(const MouseEvent& e)
@@ -615,20 +631,12 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
     return editor.get();
 }
 
-void Box::mouseDoubleClick(const MouseEvent& e)
-{
-    if (editDoubleClick && isEnabled() && !e.mods.isPopupMenu())
-    {
-        showEditor();
-    }
-}
-
 void Box::setEditable(bool editable)
 {
-    editDoubleClick = editable;
+    editSingleClick = editable;
 
-    setWantsKeyboardFocus(editDoubleClick);
-    setFocusContainerType(editDoubleClick ? FocusContainerType::keyboardFocusContainer : FocusContainerType::none);
+    setWantsKeyboardFocus(editSingleClick);
+    setFocusContainerType(editSingleClick ? FocusContainerType::keyboardFocusContainer : FocusContainerType::none);
     invalidateAccessibilityHandler();
 }
 
@@ -639,3 +647,4 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
         editor->giveAwayKeyboardFocus();
     }
 }
+

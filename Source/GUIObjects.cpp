@@ -966,26 +966,30 @@ struct MessageComponent : public GUIComponent
     void mouseDown(const MouseEvent& e) override
     {
         GUIComponent::mouseDown(e);
-        // Edit messages when unlocked, edit atoms when locked
-        if (e.getNumberOfClicks() == 2 && ((!isLocked && !gui.isAtom()) || (isLocked && gui.isAtom())))
-        {
-            input.showEditor();
-        }
-
         if (!gui.isAtom() && isLocked)
         {
             isDown = true;
             repaint();
-
-            startEdition();
-            gui.click();
-            stopEdition();
         }
     }
 
     void mouseUp(const MouseEvent& e) override
     {
         isDown = false;
+        
+        // Edit messages when unlocked, edit atoms when locked
+        if (((!isLocked && box->cnv->isSelected(box) && !box->selectionChanged && !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom())))
+        {
+            input.showEditor();
+        }
+
+        if (!gui.isAtom() && isLocked)
+        {
+            startEdition();
+            gui.click();
+            stopEdition();
+        }
+        
         repaint();
     }
 
@@ -1037,7 +1041,7 @@ struct NumboxComponent : public GUIComponent
         input.setText(formatNumber(getValueOriginal()), dontSendNotification);
 
         initialise(newObject);
-        input.setEditable(false, true);
+        input.setEditable(true, false);
 
         box->constrainer.setSizeLimits(50, Box::height - 2, 500, Box::height - 2);
     }
@@ -1233,7 +1237,7 @@ struct ListComponent : public GUIComponent, public Timer
         label.setJustificationType(Justification::centredLeft);
         label.setBorderSize(BorderSize<int>(2, 6, 2, 2));
         label.setText(String(getValueOriginal()), dontSendNotification);
-        label.setEditable(false, true);
+        label.setEditable(true, false);
         // label.setInterceptsMouseClicks(false, false);
 
         label.setColour(Label::textColourId, gui.getForegroundColour());
