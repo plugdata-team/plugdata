@@ -51,8 +51,6 @@ void Box::initialise()
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
-    
-    resizer.addMouseListener(this, false);
 
     setBufferedToImage(true);
     
@@ -61,8 +59,6 @@ void Box::initialise()
         String newText = getText();
         setType(newText);
     };
-
-    addAndMakeVisible(resizer);
 }
 
 void Box::valueChanged(Value& v)
@@ -86,7 +82,7 @@ void Box::valueChanged(Value& v)
         graphics->lock(locked == true || commandLocked == true);
     }
 
-    resizer.setVisible(locked == false);
+    //resizer.setVisible(locked == false);
 
     resized();
     repaint();
@@ -107,6 +103,25 @@ void Box::mouseExit(const MouseEvent& e)
 {
     isOver = false;
     repaint();
+}
+
+void Box::mouseMove(const MouseEvent& e)
+{
+    auto corners = getCorners();
+    
+    for(auto& rect : corners)
+    {
+        if(rect.contains(e.position)) {
+            auto zone = ResizableBorderComponent::Zone::fromPositionOnBorder (getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
+            
+            setMouseCursor(zone.getMouseCursor());
+            updateMouseCursor();
+            return;
+        }
+    }
+    
+    setMouseCursor(MouseCursor::NormalCursor);
+    updateMouseCursor();
 }
 
 void Box::setType(const String& newType, bool exists)
@@ -230,6 +245,7 @@ void Box::setType(const String& newType, bool exists)
         setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
 
+    /*
     if (graphics && !graphics->fakeGui())
     {
         resizer.setBorderThickness({0, 0, 5, 5});
@@ -237,13 +253,29 @@ void Box::setType(const String& newType, bool exists)
     else
     {
         resizer.setBorderThickness({0, 0, 0, 5});
-    }
+    } */
 
     // graphical objects manage their own size limits
     if (!graphics) constrainer.setSizeLimits(25, getHeight(), 350, getHeight());
 
     cnv->main.commandStatusChanged();
 }
+
+Array<Rectangle<float>> Box::getCorners() const {
+    
+    auto rect = getLocalBounds().reduced(margin);
+    const float offset = 2.0f;
+
+    Array<Rectangle<float>> corners = {
+        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset),
+        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
+        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset),
+        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)
+    };
+    
+    return corners;
+}
+
 
 void Box::paint(Graphics& g)
 {
@@ -260,13 +292,9 @@ void Box::paint(Graphics& g)
     {
         outlineColour = findColour(Slider::thumbColourId);
         g.setColour(outlineColour);
-        
-        float offset = 2.0f;
+
         // Draw resize edges when selected
-        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), 2.0f);
-        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset), 2.0f);
-        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), 2.0f);
-        g.fillRoundedRectangle(Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset), 2.0f);
+        for(auto& rect : getCorners()) g.fillRoundedRectangle(rect, 2.0f);
     }
 
     if (!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
@@ -326,8 +354,8 @@ void Box::resized()
         newEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
-    resizer.setBounds(getLocalBounds().reduced((margin - 1)));
-    resizer.toFront(false);
+    //resizer.setBounds(getLocalBounds().reduced((margin - 1)));
+    //resizer.toFront(false);
 
     const int edgeMargin = 18;
     const int doubleEdgeMargin = edgeMargin * 2;
