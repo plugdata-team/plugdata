@@ -146,7 +146,7 @@ void Box::setType(const String& newType, bool exists)
         }
         else
         {
-            pdObject = pd->createObject(newType, getX() - cnv->zeroPosition.x, getY() - cnv->zeroPosition.y);
+            pdObject = pd->createObject(newType, getX() - cnv->canvasOrigin.x, getY() - cnv->canvasOrigin.y);
         }
     }
     else
@@ -491,7 +491,7 @@ void Box::mouseUp(const MouseEvent& e)
     if (originalBounds != getBounds())
     {
         cnv->pd->enqueueFunction([this](){
-            pdObject->setBounds(getBounds().reduced(margin) - cnv->zeroPosition);
+            pdObject->setBounds(getBounds().reduced(margin) - cnv->canvasOrigin);
         });
         
     }

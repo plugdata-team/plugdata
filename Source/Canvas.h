@@ -30,6 +30,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     PlugDataAudioProcessor* pd;
 
     void paintOverChildren(Graphics&) override;
+    void paint(Graphics& g) override;
+    void resized() override { repaint(); }
 
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
@@ -49,7 +51,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void checkBounds();
 
-    void paint(Graphics& g) override;
 
     void focusGained(FocusChangeType cause) override;
 
@@ -112,7 +113,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool isGraph = false;
     bool isGraphChild = false;
 
-    Point<int> zeroPosition = {0, 0};
+    Point<int> canvasOrigin = {0, 0};
     Point<int> lastMousePos;
 
     GraphArea* graphArea = nullptr;

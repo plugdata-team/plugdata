@@ -467,12 +467,27 @@ void Canvas::paint(Graphics& g)
         g.fillAll(findColour(ComboBox::backgroundColourId));
 
         g.setColour(findColour(ResizableWindow::backgroundColourId));
-        g.fillRect(zeroPosition.x, zeroPosition.y, getWidth(), getHeight());
+        g.fillRect(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
 
         // draw origin
         g.setColour(Colour(100, 100, 100));
-        g.drawLine(zeroPosition.x - 1, zeroPosition.y, zeroPosition.x - 1, getHeight());
-        g.drawLine(zeroPosition.x, zeroPosition.y - 1, getWidth(), zeroPosition.y - 1);
+        g.drawLine(canvasOrigin.x - 1, canvasOrigin.y, canvasOrigin.x - 1, getHeight());
+        g.drawLine(canvasOrigin.x, canvasOrigin.y - 1, getWidth(), canvasOrigin.y - 1);
+    }
+    
+    if(locked == false) {
+        const int gridSize = 25;
+        const juce::Rectangle<int> clipBounds = g.getClipBounds();
+        
+        g.setColour(findColour(ComboBox::backgroundColourId).contrasting(0.3));
+        
+        for(int x = (canvasOrigin.getX() % gridSize); x < clipBounds.getRight(); x += gridSize)
+        {
+            for(int y = (canvasOrigin.getY() % gridSize); y < clipBounds.getBottom(); y += gridSize)
+            {
+                g.fillRect(x, y, 1, 1);
+            }
+        }
     }
 }
 
@@ -577,7 +592,7 @@ void Canvas::synchronise(bool updatePosition)
                 }
             };
 
-            b.translate(zeroPosition.x, zeroPosition.y);
+            b.translate(canvasOrigin.x, canvasOrigin.y);
 
             // These objects have extra info (like size and colours) in their names that we want to hide
             guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
@@ -595,7 +610,7 @@ void Canvas::synchronise(bool updatePosition)
             auto* box = *it;
             auto b = object.getBounds();
 
-            b.translate(zeroPosition.x, zeroPosition.y);
+            b.translate(canvasOrigin.x, canvasOrigin.y);
 
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
@@ -1043,6 +1058,7 @@ Array<DrawableTemplate*> Canvas::findDrawables()
     return result;
 }
 
+
 void Canvas::paintOverChildren(Graphics& g)
 {
     // Draw connections in the making over everything else
@@ -1249,7 +1265,7 @@ void Canvas::checkBounds()
 
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
 
-    auto viewBounds = Rectangle<int>(zeroPosition.x, zeroPosition.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
+    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
 
     for (auto obj : boxes)
     {
@@ -1261,7 +1277,7 @@ void Canvas::checkBounds()
         box->setBounds(box->getBounds().translated(-viewBounds.getX(), -viewBounds.getY()));
     }
 
-    zeroPosition -= {viewBounds.getX(), viewBounds.getY()};
+    canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
     setSize(viewBounds.getWidth(), viewBounds.getHeight());
 
     if (graphArea)
@@ -1285,6 +1301,8 @@ void Canvas::valueChanged(Value& v)
                 connection->repaint();
             }
         }
+        
+        repaint();
     }
     // Should only get called when the canvas isn't a real graph
     else if(v.refersToSameSourceAs(presentationMode)) {
