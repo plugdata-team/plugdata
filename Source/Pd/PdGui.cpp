@@ -691,18 +691,18 @@ Rectangle<int> Gui::getBounds() const noexcept
     return Object::getBounds();
 }
 
-void Gui::setSize(int w, int h)
+void Gui::setBounds(Rectangle<int> bounds)
 {
     auto oldBounds = getBounds();
+    
+    int w = bounds.getWidth() / Patch::zoom;
+    int h = bounds.getHeight() / Patch::zoom;
 
     if (w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
 
-    w /= Patch::zoom;
-    h /= Patch::zoom;
-
     if (type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM())
     {
-        Object::setSize(w, h);
+        Object::setBounds(bounds);
         return;
     }
 
@@ -725,6 +725,8 @@ void Gui::setSize(int w, int h)
         iemgui->x_w = w;
         iemgui->x_h = h;
     }
+    
+    libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX() / Patch::zoom, bounds.getY() / Patch::zoom);
 }
 
 Array Gui::getArray() const noexcept

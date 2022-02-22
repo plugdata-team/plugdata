@@ -141,16 +141,16 @@ Patch Object::getHelp() const
     return {};
 }
 
-void Object::setSize(int width, int height)
+void Object::setBounds(Rectangle<int> bounds)
 {
-    ignoreUnused(height);
-
     auto* textObj = static_cast<t_text*>(ptr);
-    short newWidth = std::max<short>(3, round(static_cast<float>(width) / sys_fontwidth(18)));
+    short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / sys_fontwidth(18)));
+    
     if (newWidth != textObj->te_width)
     {
         addUndoableAction();
         textObj->te_width = newWidth;
+        libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX() / Patch::zoom, bounds.getY() / Patch::zoom);
     }
 }
 
