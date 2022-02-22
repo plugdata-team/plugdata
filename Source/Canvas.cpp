@@ -1318,7 +1318,7 @@ void Canvas::valueChanged(Value& v)
     {
         for (auto* connection : connections)
         {
-            connection->resized();
+            connection->updatePath();
             connection->repaint();
         }
     }
