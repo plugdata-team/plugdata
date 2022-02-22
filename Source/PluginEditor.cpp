@@ -179,11 +179,15 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Hide)->setConnectedEdges(12);
     toolbarButton(Hide)->onClick = [this]()
     {
-        sidebar.showSidebar(!toolbarButton(Hide)->getToggleState());
-        toolbarButton(Hide)->setButtonText(toolbarButton(Hide)->getToggleState() ? Icons::Show : Icons::Hide);
+        bool show = !toolbarButton(Hide)->getToggleState();
+        sidebar.showSidebar(show);
+        toolbarButton(Hide)->setButtonText(show ? Icons::Show : Icons::Hide);
 
+        toolbarButton(Pin)->setVisible(show);
+       
         repaint();
         resized();
+        
     };
     
     // Hide pin sidebar panel
@@ -331,6 +335,10 @@ void PlugDataPluginEditor::resized()
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
+    
+    if(auto* cnv = getCurrentCanvas()) {
+        cnv->checkBounds();
+    }
 }
 
 void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
