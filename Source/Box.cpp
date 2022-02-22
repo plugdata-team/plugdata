@@ -456,16 +456,18 @@ void Box::mouseDown(const MouseEvent& e)
             // Start resize
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder (getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
             
+            originalBounds = getBounds();
+            
             return;
         }
     }
     cnv->handleMouseDown(this, e);
-
-    lastBounds = getLocalBounds();
 }
 
 void Box::mouseUp(const MouseEvent& e)
 {
+    resizeZone = ResizableBorderComponent::Zone();
+    
     if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
 
     cnv->handleMouseUp(this, e);
@@ -475,9 +477,9 @@ void Box::mouseUp(const MouseEvent& e)
         cnv->connectingEdge = nullptr;
     }
 
-    if (lastBounds != getLocalBounds())
+    if (originalBounds != getBounds())
     {
-        pdObject->setSize(getWidth() - doubleMargin, getHeight() - doubleMargin);
+        pdObject->setBounds(getBounds().reduced(margin) - cnv->zeroPosition);
     }
 }
 
@@ -488,6 +490,16 @@ void Box::mouseDrag(const MouseEvent& e)
     if(resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
         
+        
+        auto newBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
+
+        constrainer.setBoundsForComponent (this, newBounds,
+                                           resizeZone.isDraggingTopEdge(),
+                                           resizeZone.isDraggingLeftEdge(),
+                                           resizeZone.isDraggingBottomEdge(),
+                                           resizeZone.isDraggingRightEdge());
+        
+        wasResized = true;
         return;
     }
     cnv->handleMouseDrag(e);
