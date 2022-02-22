@@ -972,7 +972,7 @@ struct MessageComponent : public GUIComponent
             input.showEditor();
         }
 
-        if (!gui.isAtom())
+        if (!gui.isAtom() && isLocked)
         {
             isDown = true;
             repaint();

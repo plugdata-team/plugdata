@@ -61,12 +61,14 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
 
+    void mouseMove(const MouseEvent& e) override;
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseDoubleClick(const MouseEvent&) override;
     
     String getText(bool returnActiveEditorContents = false) const;
+    Array<Rectangle<float>> getCorners() const;
 
     static inline constexpr int widthOffset = 32;
     static inline constexpr int margin = 8;
@@ -80,6 +82,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void setText(const String& newText, NotificationType notification);
     void setEditable(bool editable);
     void textEditorReturnKeyPressed(TextEditor& ed) override;
+    
+    
 
     std::function<void()> onTextChange;
 
