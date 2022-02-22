@@ -312,11 +312,11 @@ void Statusbar::zoom(bool zoomIn)
 {
     float value = static_cast<float>(zoomScale.getValue());
 
-    // Round in case we zoomed with scrolling
-    value = static_cast<float>(static_cast<int>(value * 10.)) / 10.;
-
     // Zoom limits
     value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);
+
+    // Round in case we zoomed with scrolling
+    value = static_cast<float>(static_cast<int>(value * 10.)) / 10.;
 
     zoomScale = value;
 

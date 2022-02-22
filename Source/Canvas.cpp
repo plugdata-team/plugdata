@@ -217,8 +217,10 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
 
         for (int i = 0; i < buttons.size(); i++) buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
+        
+        const int resizerSize = 12;
 
-        resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
+        resizer.setBounds(getWidth() - (resizerSize + 1), getHeight() - (resizerSize + 1), resizerSize, resizerSize);
 
         port->setViewPosition(0, yScroll);
         repaint();
@@ -477,7 +479,7 @@ void Canvas::paint(Graphics& g)
     
     if(locked == false) {
         const int gridSize = 25;
-        const juce::Rectangle<int> clipBounds = g.getClipBounds();
+        const Rectangle<int> clipBounds = g.getClipBounds();
         
         g.setColour(findColour(ComboBox::backgroundColourId).contrasting(0.3));
         

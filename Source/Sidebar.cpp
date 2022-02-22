@@ -648,7 +648,7 @@ void Sidebar::paint(Graphics& g)
 
     // Sidebar
     g.setColour(findColour(ComboBox::backgroundColourId).darker(0.1));
-    g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight());
+    g.fillRect(getWidth() - sWidth, 0, sWidth - 5, getHeight());
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -688,7 +688,8 @@ void Sidebar::mouseDrag(const MouseEvent& e)
     if (draggingSidebar)
     {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
-
+        newWidth = std::min(newWidth, getParentWidth() / 2);
+        
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
     }

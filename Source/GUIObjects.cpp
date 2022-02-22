@@ -746,7 +746,7 @@ struct ToggleComponent : public GUIComponent
                                ? findColour(TextButton::buttonOnColourId)
                                : Colours::grey);
                    
-            const auto crossBounds = getLocalBounds().toFloat();
+            const auto crossBounds = getLocalBounds().reduced(6).toFloat();
             
             const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
             const auto strokeWidth = std::max(max * 0.15f, 2.0f);
@@ -784,7 +784,7 @@ struct ToggleComponent : public GUIComponent
 
     void resized() override
     {
-        toggleButton.setBounds(getLocalBounds().reduced(6));
+        toggleButton.setBounds(getLocalBounds());
     }
 
     void update() override
@@ -1083,10 +1083,10 @@ struct NumboxComponent : public GUIComponent
                 
             const auto textArea = input.getBorderSize().subtractedFrom(input.getBounds());
             
-            juce::GlyphArrangement glyphs;
+            GlyphArrangement glyphs;
             glyphs.addFittedText (input.getFont(), input.getText(),
                                   textArea.getX(), 0., textArea.getWidth(), getHeight(),
-                                  juce::Justification::centredLeft, 1,
+                                  Justification::centredLeft, 1,
                                   input.getMinimumHorizontalScale());
             
             double decimalX = getWidth();
@@ -1105,12 +1105,12 @@ struct NumboxComponent : public GUIComponent
             
             if(isDraggingDecimal)
             {
-                juce::GlyphArrangement decimalsGlyph;
-                static const juce::String decimalStr("000000");
+                GlyphArrangement decimalsGlyph;
+                static const String decimalStr("000000");
                 
                 decimalsGlyph.addFittedText (input.getFont(), decimalStr,
                                               decimalX, 0, getWidth(), getHeight(),
-                                              juce::Justification::centredLeft, 1,
+                                              Justification::centredLeft, 1,
                                               input.getMinimumHorizontalScale());
                 
                 for(int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
@@ -1267,7 +1267,7 @@ struct ListComponent : public GUIComponent, public Timer
                 startEdition();
                 gui.setList(list);
                 stopEdition();
-                // label.setText(juce::String(gui.getSymbol()), juce::NotificationType::dontSendNotification);
+                // label.setText(String(gui.getSymbol()), NotificationType::dontSendNotification);
             }
         };
 
@@ -1413,7 +1413,7 @@ struct SliderComponent : public GUIComponent
         }
         else
         {
-            box->constrainer.setSizeLimits(100, Box::height - 2, 500, 250);
+            box->constrainer.setSizeLimits(50, Box::height - 2, 500, 250);
         }
     }
 
