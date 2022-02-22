@@ -83,6 +83,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void setEditable(bool editable);
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     
+    ResizableBorderComponent::Zone resizeZone;
     
 
     std::function<void()> onTextChange;
