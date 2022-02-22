@@ -38,6 +38,8 @@ class Connection : public Component, public ComponentListener
     Canvas* cnv;
 
     String lastId;
+    
+    Point<int> origin;
 
     int dragIdx = -1;
 
@@ -49,6 +51,8 @@ class Connection : public Component, public ComponentListener
 
     void paint(Graphics&) override;
     void resized() override;
+    
+    void updatePath();
 
     bool hitTest(int x, int y) override;
 
