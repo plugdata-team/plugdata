@@ -48,8 +48,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     OwnedArray<Edge> edges;
 
     ComponentBoundsConstrainer constrainer;
-    ResizableBorderComponent resizer;
-
+    ResizableBorderComponent::Zone resizeZone;
+    
     void setType(const String& newType, bool exists = false);
 
     void showEditor();
@@ -85,7 +85,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     
     Rectangle<int> originalBounds;
-    ResizableBorderComponent::Zone resizeZone;
+
     
     bool wasResized = false;
 

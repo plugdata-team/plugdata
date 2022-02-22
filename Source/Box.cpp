@@ -13,7 +13,7 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
-Box::Box(Canvas* parent, const String& name, Point<int> position) : resizer(this, &constrainer)
+Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
     cnv = parent;
 
@@ -29,7 +29,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : resizer(this
     }
 }
 
-Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object), resizer(this, &constrainer)
+Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object)
 {
     cnv = parent;
     initialise();
@@ -82,8 +82,6 @@ void Box::valueChanged(Value& v)
         graphics->lock(locked == true || commandLocked == true);
     }
 
-    //resizer.setVisible(locked == false);
-
     resized();
     repaint();
 }
@@ -108,6 +106,8 @@ void Box::mouseExit(const MouseEvent& e)
 void Box::mouseMove(const MouseEvent& e)
 {
     auto corners = getCorners();
+    
+    if(!cnv->isSelected(this) || locked == true) return;
     
     for(auto& rect : corners)
     {
@@ -245,16 +245,6 @@ void Box::setType(const String& newType, bool exists)
         setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
 
-    /*
-    if (graphics && !graphics->fakeGui())
-    {
-        resizer.setBorderThickness({0, 0, 5, 5});
-    }
-    else
-    {
-        resizer.setBorderThickness({0, 0, 0, 5});
-    } */
-
     // graphical objects manage their own size limits
     if (!graphics) constrainer.setSizeLimits(25, getHeight(), 350, getHeight());
 
@@ -354,9 +344,6 @@ void Box::resized()
         newEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
-    //resizer.setBounds(getLocalBounds().reduced((margin - 1)));
-    //resizer.toFront(false);
-
     const int edgeMargin = 18;
     const int doubleEdgeMargin = edgeMargin * 2;
     
@@ -449,10 +436,12 @@ String Box::getText(bool returnActiveEditorContents) const
 
 void Box::mouseDown(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true || e.originalComponent == &resizer) return;
+    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
 
+    bool isSelected = cnv->isSelected(this);
+    
     for(auto& rect : getCorners()) {
-        if(rect.contains(e.position)) {
+        if(rect.contains(e.position) && isSelected) {
             // Start resize
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder (getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
             
@@ -461,10 +450,10 @@ void Box::mouseDown(const MouseEvent& e)
             return;
         }
     }
-    bool wasSelected = cnv->isSelected(this);
+    
     cnv->handleMouseDown(this, e);
     
-    if(wasSelected != cnv->isSelected(this)) {
+    if(isSelected != cnv->isSelected(this)) {
         selectionChanged = true;
     }
     
@@ -501,12 +490,10 @@ void Box::mouseUp(const MouseEvent& e)
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true || e.originalComponent == &resizer) return;
+    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
 
     if(resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
-        
-        
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
 
         constrainer.setBoundsForComponent (this, newBounds,
