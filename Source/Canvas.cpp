@@ -817,8 +817,6 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         Box* box = nullptr;
         if(hasSelection && !multiple) box = selectedBoxes.getFirst();
-        
-        
 
         bool isSubpatch = box && (box->graphics && (box->graphics->getGui().getType() == pd::Type::GraphOnParent || box->graphics->getGui().getType() == pd::Type::Subpatch));
 
@@ -937,21 +935,11 @@ void Canvas::mouseDrag(const MouseEvent& e)
     {
         beginDragAutoRepeat(40);
     }
-
+    
     // Drag lasso
-    if (dynamic_cast<Connection*>(source))
-    {
-        lasso.dragLasso(e.getEventRelativeTo(this));
-    }
-    else if (source == this)
-    {
-        connectingEdge = nullptr;
-        lasso.dragLasso(e);
-
-        if (e.getDistanceFromDragStart() < 5) return;
-    }
-
-    if (connectingWithDrag) repaint();
+    lasso.dragLasso(e);
+    
+if (connectingWithDrag) repaint();
 }
 
 void Canvas::mouseUp(const MouseEvent& e)
@@ -1003,6 +991,8 @@ void Canvas::mouseUp(const MouseEvent& e)
     {
         main.sidebar.hideParameters();
     }
+    
+    main.commandStatusChanged();
 
 
     lasso.endLasso();
@@ -1506,7 +1496,7 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
             }
         }
 
-        if (!con->isSelected && intersect)
+        if (intersect)
         {
             con->isSelected = true;
             con->repaint();
