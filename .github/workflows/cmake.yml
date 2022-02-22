@@ -156,7 +156,7 @@ jobs:
         files: PlugData-MacOS-Universal.zip
 
   windows-64-build:
-    runs-on: windows-latest
+    runs-on: windows-2019
 
     steps:
     - uses: actions/checkout@v2
