@@ -66,8 +66,7 @@ class Object
     //! @brief The name of the help file
     Patch getHelp() const;
 
-    virtual void setSize(int width, int height);
-
+    virtual void setBounds(Rectangle<int> bounds);
     int getWidth() const;
 
     virtual inline Type getType() const noexcept

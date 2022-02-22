@@ -83,15 +83,15 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void setEditable(bool editable);
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     
+    Rectangle<int> originalBounds;
     ResizableBorderComponent::Zone resizeZone;
+    bool wasResized = false;
     
 
     std::function<void()> onTextChange;
 
     bool hideLabel = false;
-
-    Rectangle<int> lastBounds;
-
+    
     Value textValue;
     String lastTextValue;
     Font font{15.0f};

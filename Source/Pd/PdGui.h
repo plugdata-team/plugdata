@@ -82,7 +82,7 @@ class Gui : public Object
     void click() noexcept;
 
     Rectangle<int> getBounds() const noexcept override;
-    void setSize(int w, int h) override;
+    void setBounds(Rectangle<int> bounds) override;
 
     bool jumpOnClick() const noexcept;
 

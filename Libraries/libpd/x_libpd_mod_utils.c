@@ -737,13 +737,14 @@ void libpd_undo_apply(t_canvas* cnv, t_gobj* obj)
 
 void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y)
 {
-    glist_noselect(cnv);
-    glist_select(cnv, obj);
-    
     int x1, y1, x2, y2;
     (*obj->g_pd->c_wb->w_getrectfn)(obj, cnv, &x1, &y1, &x2, &y2);
     
-    libpd_moveselection(cnv, x - x1, y - y1);
+    int dx = x - x1;
+    int dy = y - y1;
+
+    gobj_displace(obj, cnv, dx, dy);
+
     glist_noselect(cnv);
 }
 
