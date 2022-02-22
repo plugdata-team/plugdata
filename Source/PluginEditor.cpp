@@ -610,7 +610,6 @@ void PlugDataPluginEditor::valueChanged(Value& v)
        bool hasSelection = false;
        bool noCanvas = true;
        
-
        if(auto* cnv = getCurrentCanvas()) {
            
            auto selectedBoxes = cnv->getSelectionOfType<Box>();

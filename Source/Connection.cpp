@@ -11,14 +11,13 @@
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), start(s), end(e)
 {
     // Should improve performance
-    //setBufferedToImage(true);
+    setBufferedToImage(true);
 
     locked.referTo(parent->locked);
     connectionStyle.referTo(parent->connectionStyle);
-    
 
-    // Receive mouse events on canvas
-    addMouseListener(cnv, true);
+    // Receive mouse events on canvas: maybe not needed because we test for hitbox now?
+    //addMouseListener(cnv, true);
 
     // Make sure it's not 2x the same edge
     if (!start || !end || start->isInput == end->isInput)
