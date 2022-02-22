@@ -702,6 +702,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     if (suggestor->openedEditor && e.originalComponent != suggestor->openedEditor)
     {
         suggestor->currentBox->hideEditor();
+        deselectAll();
         return;
     }
 

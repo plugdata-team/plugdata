@@ -65,7 +65,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-    void mouseDoubleClick(const MouseEvent&) override;
     
     String getText(bool returnActiveEditorContents = false) const;
     Array<Rectangle<float>> getCorners() const;
@@ -75,18 +74,21 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
     
+    bool selectionChanged = false;
+    
    private:
     void initialise();
     bool hitTest(int x, int y) override;
-
+    
     void setText(const String& newText, NotificationType notification);
     void setEditable(bool editable);
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     
     Rectangle<int> originalBounds;
     ResizableBorderComponent::Zone resizeZone;
-    bool wasResized = false;
     
+    bool wasResized = false;
+
 
     std::function<void()> onTextChange;
 
@@ -100,7 +102,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     BorderSize<int> border{1, 5, 1, 5};
     float minimumHorizontalScale = 0;
     TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
-    bool editDoubleClick = false;
+    bool editSingleClick = false;
     
 
 
