@@ -451,6 +451,14 @@ void Box::mouseDown(const MouseEvent& e)
 {
     if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true || e.originalComponent == &resizer) return;
 
+    for(auto& rect : getCorners()) {
+        if(rect.contains(e.position)) {
+            // Start resize
+            resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder (getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
+            
+            return;
+        }
+    }
     cnv->handleMouseDown(this, e);
 
     lastBounds = getLocalBounds();
@@ -477,6 +485,11 @@ void Box::mouseDrag(const MouseEvent& e)
 {
     if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true || e.originalComponent == &resizer) return;
 
+    if(resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
+    {
+        
+        return;
+    }
     cnv->handleMouseDrag(e);
 }
 
