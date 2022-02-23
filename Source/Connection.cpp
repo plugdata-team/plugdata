@@ -182,7 +182,7 @@ void Connection::paint(Graphics& g)
 
     auto baseColour = Colours::white;
  
-    if (isSelected)
+    if (cnv->isSelected(this))
     {
         baseColour = start->isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
     }
@@ -224,7 +224,7 @@ void Connection::mouseDown(const MouseEvent& e)
         cnv->deselectAll();
     }
 
-    isSelected = true;
+    cnv->setSelected(this, true);
     repaint();
 
     if (currentPlan.empty()) return;
