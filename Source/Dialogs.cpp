@@ -620,6 +620,8 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
             
             return i;
         }
+        
+        return PopupMenu::Item();
     };
     
 
