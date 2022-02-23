@@ -231,6 +231,7 @@ class LibraryComponent : public Component, public TableListBoxModel
 
         addButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         addButton.setConnectedEdges(12);
+        addButton.setName("statusbar:add");
         addButton.onClick = [this]()
         {
             openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
@@ -332,6 +333,10 @@ class LibraryComponent : public Component, public TableListBoxModel
             addAndMakeVisible(deleteButton);
             deleteButton.toFront(true);
             deleteButton.setConnectedEdges(12);
+            
+            // Use statusbar style even though it's not in the statusbar
+            deleteButton.setName("statusbar:delete");
+            
 
             onTextChange = [this, value]()
             {
@@ -353,7 +358,7 @@ class LibraryComponent : public Component, public TableListBoxModel
             return editor;
         }
 
-        TextButton deleteButton = TextButton("x");
+        TextButton deleteButton = TextButton(Icons::Clear);
 
        private:
         std::function<void(int)> callback;
@@ -366,7 +371,7 @@ class LibraryComponent : public Component, public TableListBoxModel
 
     std::function<void()> updateFunc;
 
-    TextButton addButton = TextButton("+");
+    TextButton addButton = TextButton(Icons::Add);
 
     TableListBox table;
     ValueTree tree;
@@ -451,7 +456,7 @@ struct SettingsComponent : public Component
                 panel->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 8);
                 continue;
             }
-            panel->setBounds(2, toolbarHeight, getWidth(), getHeight() - toolbarHeight - 8);
+            panel->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 8);
         }
     }
     

@@ -618,7 +618,7 @@ struct PlugDataDarkLook : public PlugDataLook
 
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f);
 
-        g.setColour(findColour(ComboBox::outlineColourId));
+        g.setColour(findColour(ComboBox::backgroundColourId));
         g.drawRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f, 1.0f);
     }
 

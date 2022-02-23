@@ -181,7 +181,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     {
         bool show = !toolbarButton(Hide)->getToggleState();
         sidebar.showSidebar(show);
-        toolbarButton(Hide)->setButtonText(show ? Icons::Show : Icons::Hide);
+        toolbarButton(Hide)->setButtonText(show ? Icons::Hide : Icons::Show);
 
         toolbarButton(Pin)->setVisible(show);
        
@@ -702,6 +702,12 @@ void PlugDataPluginEditor::valueChanged(Value& v)
                result.addDefaultKeypress(45, ModifierKeys::commandModifier);
                break;
            }
+           case CommandIDs::ZoomNormal:
+           {
+               result.setInfo(translate("Zoom 100%"), translate("Revert zoom to 100%"), "Edit", 0);
+               result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+               break;
+           }
            case CommandIDs::Copy:
            {
                result.setInfo(translate("Copy"), translate("Copy"), "Edit", 0);
@@ -887,6 +893,10 @@ void PlugDataPluginEditor::valueChanged(Value& v)
            }
            case CommandIDs::ZoomOut: {
                statusbar.zoom(false);
+               return true;
+           }
+           case CommandIDs::ZoomNormal: {
+               statusbar.defaultZoom();
                return true;
            }
            case CommandIDs::Undo: {
