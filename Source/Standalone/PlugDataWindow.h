@@ -24,42 +24,9 @@
 #pragma once
 
 #include <juce_audio_plugin_client/utility/juce_CreatePluginFilter.h>
+#include "../PluginEditor.h"
 
 #include <memory>
-
-enum CommandIDs
-{
-    NewProject = 1,
-    OpenProject,
-    SaveProject,
-    SaveProjectAs,
-    Undo,
-    Redo,
-    
-    Lock,
-    ConnectionStyle,
-    ConnectionPathfind,
-    ZoomIn,
-    ZoomOut,
-
-    Copy,
-    Paste,
-    Cut,
-    Delete,
-    Duplicate,
-    SelectAll,
-    
-    NewObject,
-    NewComment,
-    NewBang,
-    NewMessage,
-    NewToggle,
-    NewNumbox,
-    NewFloatAtom,
-    NewSlider,
-
-    NumItems
-};
 
 
 namespace juce

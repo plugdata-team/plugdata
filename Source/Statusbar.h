@@ -28,6 +28,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
 
     void zoom(bool zoomIn);
     void zoom(float zoomAmount);
+    void defaultZoom();
 
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;

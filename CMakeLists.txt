@@ -18,7 +18,7 @@ endif()
 
 add_subdirectory(Libraries/)
 
-set(PLUGDATA_VERSION                    "0.3.4")
+set(PLUGDATA_VERSION                    "0.3.3")
 set(PLUGDATA_COMPANY_NAME               "Octagon")
 set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/timothyschoen/plugdata")

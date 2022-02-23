@@ -136,6 +136,20 @@ void GUIComponent::initialise(bool newObject)
 
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
+    else {
+        primaryColour = findColour(Slider::thumbColourId).toString();
+        secondaryColour = findColour(ComboBox::backgroundColourId).toString();
+        
+        auto sliderBackground = Colour::fromString(secondaryColour.toString());
+        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
+
+        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
+    }
+    /*
+    else {
+        
+
+    } */
 
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params)
@@ -813,14 +827,29 @@ struct MessageComponent : public GUIComponent
         addAndMakeVisible(input);
 
         input.setInterceptsMouseClicks(false, false);
+        
+        input.onTextChange = [this](){
+            startEdition();
+            gui.setSymbol(input.getText().toStdString());
+            stopEdition();
+            
+            auto width = input.getFont().getStringWidth(input.getText()) + 25;
+            if (width < box->getWidth())
+            {
+                box->setSize(width, box->getHeight());
+                box->constrainer.checkComponentBounds(box);
+            }
+            
+        };
 
         // message box behaviour
         if (!gui.isAtom())
         {
             input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
-            input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
+            //input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
 
+            /*
             input.onEditorShow = [this]()
             {
                 auto* editor = input.getCurrentTextEditor();
@@ -844,11 +873,12 @@ struct MessageComponent : public GUIComponent
                         box->constrainer.checkComponentBounds(box);
                     }
                 };
-            };
+            }; */
         }
         // symbolatom box behaviour
         else
         {
+            /*
             input.onEditorShow = [this]()
             {
                 auto* editor = input.getCurrentTextEditor();
@@ -868,8 +898,9 @@ struct MessageComponent : public GUIComponent
                         box->setSize(width, box->getHeight());
                         box->constrainer.checkComponentBounds(box);
                     }
+                    
                 };
-            };
+            }; */
         }
 
         initialise(newObject);
