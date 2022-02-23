@@ -1103,17 +1103,6 @@ void Canvas::deselectAll()
         if (c) c->repaint();
 
     selectedComponents.deselectAll();
-
-    // Deselect connections
-    for (auto& connection : connections)
-    {
-        if (connection->isSelected)
-        {
-            connection->isSelected = false;
-            connection->repaint();
-        }
-    }
-
     main.sidebar.hideParameters();
 }
 
@@ -1207,9 +1196,9 @@ void Canvas::removeSelection()
     patch.removeSelection();
 
     // Remove connection afterwards and make sure they aren't already deleted
-    for (auto& con : connections)
+    for (auto* con : connections)
     {
-        if (con->isSelected)
+        if (isSelected(con))
         {
             if (!(objects.contains(con->outObj->get()) || objects.contains(con->inObj->get())))
             {
@@ -1284,16 +1273,6 @@ void Canvas::valueChanged(Value& v)
     if (v.refersToSameSourceAs(locked))
     {
         deselectAll();
-
-        for (auto& connection : connections)
-        {
-            if (connection->isSelected)
-            {
-                connection->isSelected = false;
-                connection->repaint();
-            }
-        }
-        
         repaint();
     }
     // Should only get called when the canvas isn't a real graph
@@ -1337,32 +1316,12 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
     if (!isAlreadySelected && shouldNowBeSelected)
     {
         selectedComponents.addToSelection(component);
-
-        if (auto* box = dynamic_cast<Box*>(component))
-        {
-            // ?
-        }
-        if (auto* con = dynamic_cast<Connection*>(component))
-        {
-            con->isSelected = true;
-        }
-
         component->repaint();
     }
 
     if (isAlreadySelected && !shouldNowBeSelected)
     {
         removeSelectedComponent(component);
-
-        if (auto* box = dynamic_cast<Box*>(component))
-        {
-            // ?
-        }
-        if (auto* con = dynamic_cast<Connection*>(component))
-        {
-            // con->isSelected = false;
-        }
-
         component->repaint();
     }
     
@@ -1498,7 +1457,6 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
 
         if (intersect)
         {
-            con->isSelected = true;
             con->repaint();
             itemsFound.add(con);
             setSelected(con, true);

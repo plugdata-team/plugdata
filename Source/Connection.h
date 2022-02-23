@@ -43,7 +43,6 @@ class Connection : public Component, public ComponentListener
 
     int dragIdx = -1;
 
-    bool isSelected = false;
     int mouseDownPosition = 0;
 
     Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);

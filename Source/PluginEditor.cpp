@@ -854,14 +854,13 @@ void PlugDataPluginEditor::valueChanged(Value& v)
                return true;
            }
            case CommandIDs::SelectAll: {
-               for (auto* child : cnv->boxes)
+               for (auto* box : cnv->boxes)
                {
-                   cnv->setSelected(child, true);
+                   cnv->setSelected(box, true);
                }
-               for (auto* child : cnv->connections)
+               for (auto* con : cnv->connections)
                {
-                   child->isSelected = true;
-                   child->repaint();
+                   cnv->setSelected(con, true);
                }
                return true;
            }
@@ -872,11 +871,11 @@ void PlugDataPluginEditor::valueChanged(Value& v)
            case CommandIDs::ConnectionPathfind: {
                auto* cnv = getCurrentCanvas();
 
-               for (auto& c : cnv->connections)
+               for (auto* con : cnv->connections)
                {
-                   if (c->isSelected)
+                   if (cnv->isSelected(con))
                    {
-                       c->applyPath(c->findPath());
+                       con->applyPath(con->findPath());
                    }
                }
                
