@@ -616,9 +616,9 @@ void Canvas::synchronise(bool updatePosition)
 
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
-            if (updatePosition && box->getPosition().getDistanceFrom(b.getPosition()) > 8)
+            if (updatePosition && (box->getPosition().getDistanceFrom(b.getPosition()) > 8 || box->getLocalBounds() != b.withPosition(0, 0)))
             {
-                box->setTopLeftPosition(b.getPosition());
+                box->setBounds(b);
             }
 
             box->toFront(false);
