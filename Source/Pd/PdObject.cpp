@@ -145,7 +145,7 @@ void Object::setBounds(Rectangle<int> bounds)
 {
     auto* textObj = static_cast<t_text*>(ptr);
     short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / sys_fontwidth(18)));
-    
+
     if (newWidth != textObj->te_width)
     {
         addUndoableAction();

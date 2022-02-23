@@ -61,8 +61,7 @@ void Edge::paint(Graphics& g)
 
     auto backgroundColour = isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
 
-    if (down || over)
-        backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
+    if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
     Path path;
 

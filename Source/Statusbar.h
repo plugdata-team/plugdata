@@ -23,7 +23,10 @@ struct Statusbar : public Component, public Timer, public KeyListener
 
     void timerCallback() override;
 
-    bool keyPressed(const KeyPress& k, Component*) override { return false; };
+    bool keyPressed(const KeyPress& k, Component*) override
+    {
+        return false;
+    };
     bool keyStateChanged(bool isKeyDown, Component*) override;
 
     void zoom(bool zoomIn);
@@ -37,7 +40,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
     std::unique_ptr<TextButton> lockButton;
     std::unique_ptr<TextButton> connectionStyleButton;
     std::unique_ptr<TextButton> connectionPathfind;
-    
+
     std::unique_ptr<TextButton> presentationButton;
 
     std::unique_ptr<TextButton> zoomIn;

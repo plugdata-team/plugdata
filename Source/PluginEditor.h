@@ -12,7 +12,6 @@
 #include "Sidebar.h"
 #include "Statusbar.h"
 
-
 enum CommandIDs
 {
     NewProject = 1,
@@ -21,7 +20,7 @@ enum CommandIDs
     SaveProjectAs,
     Undo,
     Redo,
-    
+
     Lock,
     ConnectionStyle,
     ConnectionPathfind,
@@ -35,7 +34,7 @@ enum CommandIDs
     Delete,
     Duplicate,
     SelectAll,
-    
+
     NewObject,
     NewComment,
     NewBang,
@@ -61,7 +60,6 @@ struct TabComponent : public TabbedComponent
         onTabChange(newCurrentTabIndex);
     }
 };
-
 
 class Canvas;
 class PlugDataAudioProcessor;
@@ -91,7 +89,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void updateValues();
 
     void valueChanged(Value& v) override;
-    
+
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
@@ -105,7 +103,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     OwnedArray<Canvas, CriticalSection> canvases;
     Sidebar sidebar;
     Statusbar statusbar;
-    
+
     std::atomic<bool> canUndo, canRedo;
 
    private:

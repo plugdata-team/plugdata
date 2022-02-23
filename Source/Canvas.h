@@ -31,7 +31,10 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void paintOverChildren(Graphics&) override;
     void paint(Graphics& g) override;
-    void resized() override { repaint(); }
+    void resized() override
+    {
+        repaint();
+    }
 
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
@@ -50,7 +53,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void valueChanged(Value& v) override;
 
     void checkBounds();
-
 
     void focusGained(FocusChangeType cause) override;
 
@@ -80,21 +82,22 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
-    
-    template<typename T>
+
+    template <typename T>
     Array<T*> getSelectionOfType()
     {
         Array<T*> result;
-        
-        for(auto* obj : selectedComponents) {
-            if(auto* objOfType = dynamic_cast<T*>(obj)) {
+
+        for (auto* obj : selectedComponents)
+        {
+            if (auto* objOfType = dynamic_cast<T*>(obj))
+            {
                 result.add(objOfType);
             }
         }
 
         return result;
     }
-
 
     Viewport* viewport = nullptr;
 

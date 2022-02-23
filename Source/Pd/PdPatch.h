@@ -128,6 +128,22 @@ class Patch
     Instance* instance = nullptr;
 
     t_gobj* infoObject = nullptr;
+    
+    
+    static inline const std::map<String, String> guiDefaults = {
+        {"tgl", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"hsl", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"vsl", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"bng", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"nbx", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"hradio", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"vradio", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"floatatom", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"symbolatom", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"listatom", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+    };
+    
+    
 
     friend class Instance;
     friend class Gui;

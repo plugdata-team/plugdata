@@ -27,7 +27,6 @@
 
 class PlugDataApp : public JUCEApplication
 {
-    
    public:
     PlugDataApp()
     {

@@ -17,8 +17,9 @@
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p), resizer(this, &constrainer)
 {
-    toolbarButtons = {new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide), new TextButton(Icons::Pin)};
-    
+    toolbarButtons = {new TextButton(Icons::New),  new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
+                      new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
+
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
 
@@ -28,15 +29,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
-    
+
     auto keymap = p.settingsTree.getChildWithName("Keymap");
-    if(keymap.isValid()) {
+    if (keymap.isValid())
+    {
         auto xmlStr = keymap.getProperty("keyxml").toString();
         auto elt = XmlDocument(xmlStr).getDocumentElement();
-        
+
         getKeyMappings()->restoreFromXml(*elt);
     }
-    else {
+    else
+    {
         p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
     }
 
@@ -184,22 +187,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         toolbarButton(Hide)->setButtonText(show ? Icons::Hide : Icons::Show);
 
         toolbarButton(Pin)->setVisible(show);
-       
+
         repaint();
         resized();
-        
     };
-    
+
     // Hide pin sidebar panel
     toolbarButton(Pin)->setTooltip("Pin Panel");
     toolbarButton(Pin)->setName("toolbar:pin");
     toolbarButton(Pin)->setClickingTogglesState(true);
     toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     toolbarButton(Pin)->setConnectedEdges(12);
-    toolbarButton(Pin)->onClick = [this]()
-    {
-        sidebar.pinSidebar(toolbarButton(Pin)->getToggleState());
-    };
+    toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
 
     addAndMakeVisible(toolbarButton(Hide));
 
@@ -216,12 +215,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
-    
     auto keymap = pd.settingsTree.getChildWithName("Keymap");
-    if(keymap.isValid()) {
-        keymap.setProperty("keyxml",  getKeyMappings()->createXml(true)->toString(), nullptr);
+    if (keymap.isValid())
+    {
+        keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
-    
+
     removeKeyListener(&statusbar);
     pd.locked.removeListener(this);
     pd.zoomScale.removeListener(this);
@@ -327,7 +326,7 @@ void PlugDataPluginEditor::resized()
     }
 
     toolbarButton(Hide)->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
-    
+
     toolbarButton(Pin)->setBounds(std::min((getWidth() - sidebar.getWidth()) + 70, getWidth() - 80), 0, 70, toolbarHeight);
 
     resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
@@ -335,8 +334,9 @@ void PlugDataPluginEditor::resized()
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
-    
-    if(auto* cnv = getCurrentCanvas()) {
+
+    if (auto* cnv = getCurrentCanvas())
+    {
         cnv->checkBounds();
     }
 }
@@ -588,363 +588,382 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     }
 }
 
+ApplicationCommandTarget* PlugDataPluginEditor::getNextCommandTarget()
+{
+    return this;
+}
 
-    ApplicationCommandTarget* PlugDataPluginEditor::getNextCommandTarget()
-   {
-       return this;
-   }
-   
-   void PlugDataPluginEditor::getAllCommands(Array<CommandID>& commands)
-   {
-       // Add all command IDs
-       for(int n = NewProject; n < NumItems; n++) {
-           commands.add(n);
-       }
-   }
-   
-   void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
-   {
-       toolbarButton(Add)->setEnabled(pd.locked == false);
-       
-       bool hasBoxSelection = false;
-       bool hasSelection = false;
-       bool noCanvas = true;
-       
-       if(auto* cnv = getCurrentCanvas()) {
-           
-           auto selectedBoxes = cnv->getSelectionOfType<Box>();
-           auto selectedConnections = cnv->getSelectionOfType<Connection>();
-           
-           hasBoxSelection = !selectedBoxes.isEmpty();
-           hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-           
-           noCanvas = false;
-       }
-       
-       switch (commandID)
-       {
-           case CommandIDs::NewProject:
-           {
-               result.setInfo(translate("New Project"), translate("Create a new project"), "General", 0);
-               break;
-           }
-           case CommandIDs::OpenProject:
-           {
-               result.setInfo(translate("Open Project"), translate("Open a new project"), "General", 0);
-               break;
-           }
-           case CommandIDs::SaveProject:
-           {
-               result.setInfo(translate("Save Project"), translate("Save project at current location"), "General", 0);
-               result.addDefaultKeypress(83, ModifierKeys::commandModifier);
-               break;
-           }
-           case CommandIDs::SaveProjectAs:
-           {
-               result.setInfo(translate("Save Project As"), translate("Save project in chosen location"), "General", 0);
-               result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-               break;
-           }
-           case CommandIDs::Undo:
-           {
-               // TODO: Fix threading issue!!
-               bool canUndo = !noCanvas && libpd_can_undo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
-               
-               toolbarButton(Undo)->setEnabled(canUndo);
-               
-               result.setInfo(translate("Undo"), translate("Undo action"), "General", 0);
-               result.addDefaultKeypress(90, ModifierKeys::commandModifier);
-               result.setActive(canUndo);
-               
-               break;
-           }
-            
-           case CommandIDs::Redo:
-           {
-               // TODO: Fix threading issue!!
-               bool canRedo = !noCanvas && libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
-               
-               toolbarButton(Redo)->setEnabled(canRedo);
-               
-               result.setInfo(translate("Redo"), translate("Redo action"), "General", 0);
-               result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-               result.setActive(canRedo);
-               break;
-           }
-           case CommandIDs::Lock:
-           {
-               result.setInfo(translate("Lock"), translate("Lock patch"), "Edit", 0);
-               result.addDefaultKeypress(69, ModifierKeys::commandModifier);
-               break;
-           }
-           case CommandIDs::ConnectionPathfind:
-           {
-               result.setInfo(translate("Tidy connection"), translate("Find best path for connection"), "Edit", 0);
-               result.setActive(statusbar.connectionStyle == true);
-               break;
-           }
-           case CommandIDs::ConnectionStyle:
-           {
-               result.setInfo(translate("Connection style"), translate("Set connection style"), "Edit", 0);
+void PlugDataPluginEditor::getAllCommands(Array<CommandID>& commands)
+{
+    // Add all command IDs
+    for (int n = NewProject; n < NumItems; n++)
+    {
+        commands.add(n);
+    }
+}
 
-               break;
-           }
-           case CommandIDs::ZoomIn:
-           {
-           
-               result.setInfo(translate("Zoom in"), translate("Zoom in"), "Edit", 0);
-               result.addDefaultKeypress(61, ModifierKeys::commandModifier);
-               break;
-           }
-           case CommandIDs::ZoomOut:
-           {
-               result.setInfo(translate("Zoom out"), translate("Zoom out"), "Edit", 0);
-               result.addDefaultKeypress(45, ModifierKeys::commandModifier);
-               break;
-           }
-           case CommandIDs::ZoomNormal:
-           {
-               result.setInfo(translate("Zoom 100%"), translate("Revert zoom to 100%"), "Edit", 0);
-               result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-               break;
-           }
-           case CommandIDs::Copy:
-           {
-               result.setInfo(translate("Copy"), translate("Copy"), "Edit", 0);
-               result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-               result.setActive(pd.locked == false && hasBoxSelection);
-               break;
-           }
-           case CommandIDs::Paste:
-           {
-               result.setInfo(translate("Paste"), translate("Paste"), "Edit", 0);
-               result.addDefaultKeypress(86, ModifierKeys::commandModifier);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::Cut:
-           {
-               result.setInfo(translate("Cut"), translate("Cut selection"), "Edit", 0);
-               result.addDefaultKeypress(88, ModifierKeys::commandModifier);
-               result.setActive(pd.locked == false && hasSelection);
-               break;
-           }
-           case CommandIDs::Delete:
-           {
-               result.setInfo(translate("Delete"), translate("Delete selection"), "Edit", 0);
-               result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false && hasSelection);
-               break;
-           }
-           case CommandIDs::Duplicate:
-           {
-               result.setInfo(translate("Duplicate"), translate("Duplicate selection"), "Edit", 0);
-               result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-               result.setActive(pd.locked == false && hasBoxSelection);
-               break;
-           }
-           case CommandIDs::SelectAll:
-           {
-               result.setInfo(translate("Select all"), translate("Select all objects and connections"), "Edit", 0);
-               result.addDefaultKeypress(65, ModifierKeys::commandModifier);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewObject:
-           {
-               result.setInfo(translate("New Object"), translate("Create new object"), "Objects", 0);
-               result.addDefaultKeypress(78, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewComment:
-           {
-               result.setInfo(translate("New Comment"), translate("Create new comment"), "Objects", 0);
-               result.addDefaultKeypress(67, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewBang:
-           {
-               result.setInfo(translate("New Bang"), translate("Create new bang"), "Objects", 0);
-               result.addDefaultKeypress(66, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewMessage:
-           {
-               result.setInfo(translate("New Message"), translate("Create new message"), "Objects", 0);
-               result.addDefaultKeypress(77, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewToggle:
-           {
-               result.setInfo(translate("New Toggle"), translate("Create new toggle"), "Objects", 0);
-               result.addDefaultKeypress(84, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewNumbox:
-           {
-               result.setInfo(translate("New Number"), translate("Create new number box"), "Objects", 0);
-               result.addDefaultKeypress(73, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewFloatAtom:
-           {
-               result.setInfo(translate("New Floatatom"), translate("Create new floatatom"), "Objects", 0);
-               result.addDefaultKeypress(70, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-           case CommandIDs::NewSlider:
-           {
-               result.setInfo(translate("New Slider"), translate("Create new slider"), "Objects", 0);
-               result.addDefaultKeypress(83, ModifierKeys::noModifiers);
-               result.setActive(pd.locked == false);
-               break;
-           }
-               
-           default: break;
-       }
-   }
-   
-   bool PlugDataPluginEditor::perform(const InvocationInfo& info)
-   {
-       auto* cnv = getCurrentCanvas();
-              
-       switch (info.commandID)
-       {
-           case CommandIDs::NewProject:
-           {
-               // could be nicer
-               toolbarButtons[0]->triggerClick();
-               break;
-           }
-           case CommandIDs::OpenProject:
-           {
-               openProject();
-               break;
-           }
-           case CommandIDs::SaveProject:
-           {
-               saveProject();
-               break;
-           }
-           case CommandIDs::SaveProjectAs:
-           {
-               saveProjectAs();
-               break;
-           }
-           case CommandIDs::Copy: {
-               cnv->copySelection();
-               return true;
-           }
-           case CommandIDs::Paste: {
-               cnv->pasteSelection();
-               return true;
-           }
-           case CommandIDs::Cut: {
-               cnv->copySelection();
-               cnv->removeSelection();
-               return true;
-           }
-           case CommandIDs::Delete: {
-               cnv->removeSelection();
-               return true;
-           }
-           case CommandIDs::Duplicate: {
-               cnv->duplicateSelection();
-               return true;
-           }
-           case CommandIDs::SelectAll: {
-               for (auto* box : cnv->boxes)
-               {
-                   cnv->setSelected(box, true);
-               }
-               for (auto* con : cnv->connections)
-               {
-                   cnv->setSelected(con, true);
-               }
-               return true;
-           }
-           case CommandIDs::Lock: {
-               statusbar.lockButton->triggerClick();
-               return true;
-           }
-           case CommandIDs::ConnectionPathfind: {
-               auto* cnv = getCurrentCanvas();
+void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
+{
+    toolbarButton(Add)->setEnabled(pd.locked == false);
 
-               for (auto* con : cnv->connections)
-               {
-                   if (cnv->isSelected(con))
-                   {
-                       con->applyPath(con->findPath());
-                   }
-               }
-               
-               return true;
-           }
-           case CommandIDs::ZoomIn: {
-               statusbar.zoom(true);
-               return true;
-           }
-           case CommandIDs::ZoomOut: {
-               statusbar.zoom(false);
-               return true;
-           }
-           case CommandIDs::ZoomNormal: {
-               statusbar.defaultZoom();
-               return true;
-           }
-           case CommandIDs::Undo: {
-               cnv->undo();
-               return true;
-           }
-           case CommandIDs::Redo: {
-               cnv->redo();
-               return true;
-           }
-               
-           case CommandIDs::NewObject: {
-               cnv->boxes.add(new Box(cnv, "", cnv->lastMousePos));
-               return true;
-           }
-           case CommandIDs::NewComment: {
-               cnv->boxes.add(new Box(cnv, "comment", cnv->lastMousePos));
-               return true;
-           }
-           case CommandIDs::NewBang: {
-               cnv->boxes.add(new Box(cnv, "bng", cnv->lastMousePos));
-               return true;
-           }
-           case CommandIDs::NewMessage: {
-               cnv->boxes.add(new Box(cnv, "msg", cnv->lastMousePos));
-               return true;
-           }
-           case CommandIDs::NewToggle: {
-               cnv->boxes.add(new Box(cnv, "tgl", cnv->lastMousePos));
-               return true;
-           }
-           case CommandIDs::NewNumbox: {
-               cnv->boxes.add(new Box(cnv, "nbx", cnv->lastMousePos));
-               return true;
-           }
-           case CommandIDs::NewFloatAtom: {
-               cnv->boxes.add(new Box(cnv, "floatatom", cnv->lastMousePos));
-               return true;
-           }
-           case CommandIDs::NewSlider: {
-               cnv->boxes.add(new Box(cnv, "vsl", cnv->lastMousePos));
-               return true;
-           }
+    bool hasBoxSelection = false;
+    bool hasSelection = false;
+    bool noCanvas = true;
 
-               
-            
-           
-           default: return false;
-       }
-       return true;
-   }
+    if (auto* cnv = getCurrentCanvas())
+    {
+        auto selectedBoxes = cnv->getSelectionOfType<Box>();
+        auto selectedConnections = cnv->getSelectionOfType<Connection>();
+
+        hasBoxSelection = !selectedBoxes.isEmpty();
+        hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
+
+        noCanvas = false;
+    }
+
+    switch (commandID)
+    {
+        case CommandIDs::NewProject:
+        {
+            result.setInfo(translate("New Project"), translate("Create a new project"), "General", 0);
+            break;
+        }
+        case CommandIDs::OpenProject:
+        {
+            result.setInfo(translate("Open Project"), translate("Open a new project"), "General", 0);
+            break;
+        }
+        case CommandIDs::SaveProject:
+        {
+            result.setInfo(translate("Save Project"), translate("Save project at current location"), "General", 0);
+            result.addDefaultKeypress(83, ModifierKeys::commandModifier);
+            break;
+        }
+        case CommandIDs::SaveProjectAs:
+        {
+            result.setInfo(translate("Save Project As"), translate("Save project in chosen location"), "General", 0);
+            result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            break;
+        }
+        case CommandIDs::Undo:
+        {
+            // TODO: Fix threading issue!!
+            bool canUndo = !noCanvas && libpd_can_undo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
+
+            toolbarButton(Undo)->setEnabled(canUndo);
+
+            result.setInfo(translate("Undo"), translate("Undo action"), "General", 0);
+            result.addDefaultKeypress(90, ModifierKeys::commandModifier);
+            result.setActive(canUndo);
+
+            break;
+        }
+
+        case CommandIDs::Redo:
+        {
+            // TODO: Fix threading issue!!
+            bool canRedo = !noCanvas && libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
+
+            toolbarButton(Redo)->setEnabled(canRedo);
+
+            result.setInfo(translate("Redo"), translate("Redo action"), "General", 0);
+            result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(canRedo);
+            break;
+        }
+        case CommandIDs::Lock:
+        {
+            result.setInfo(translate("Lock"), translate("Lock patch"), "Edit", 0);
+            result.addDefaultKeypress(69, ModifierKeys::commandModifier);
+            break;
+        }
+        case CommandIDs::ConnectionPathfind:
+        {
+            result.setInfo(translate("Tidy connection"), translate("Find best path for connection"), "Edit", 0);
+            result.setActive(statusbar.connectionStyle == true);
+            break;
+        }
+        case CommandIDs::ConnectionStyle:
+        {
+            result.setInfo(translate("Connection style"), translate("Set connection style"), "Edit", 0);
+
+            break;
+        }
+        case CommandIDs::ZoomIn:
+        {
+            result.setInfo(translate("Zoom in"), translate("Zoom in"), "Edit", 0);
+            result.addDefaultKeypress(61, ModifierKeys::commandModifier);
+            break;
+        }
+        case CommandIDs::ZoomOut:
+        {
+            result.setInfo(translate("Zoom out"), translate("Zoom out"), "Edit", 0);
+            result.addDefaultKeypress(45, ModifierKeys::commandModifier);
+            break;
+        }
+        case CommandIDs::ZoomNormal:
+        {
+            result.setInfo(translate("Zoom 100%"), translate("Revert zoom to 100%"), "Edit", 0);
+            result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            break;
+        }
+        case CommandIDs::Copy:
+        {
+            result.setInfo(translate("Copy"), translate("Copy"), "Edit", 0);
+            result.addDefaultKeypress(67, ModifierKeys::commandModifier);
+            result.setActive(pd.locked == false && hasBoxSelection);
+            break;
+        }
+        case CommandIDs::Paste:
+        {
+            result.setInfo(translate("Paste"), translate("Paste"), "Edit", 0);
+            result.addDefaultKeypress(86, ModifierKeys::commandModifier);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::Cut:
+        {
+            result.setInfo(translate("Cut"), translate("Cut selection"), "Edit", 0);
+            result.addDefaultKeypress(88, ModifierKeys::commandModifier);
+            result.setActive(pd.locked == false && hasSelection);
+            break;
+        }
+        case CommandIDs::Delete:
+        {
+            result.setInfo(translate("Delete"), translate("Delete selection"), "Edit", 0);
+            result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false && hasSelection);
+            break;
+        }
+        case CommandIDs::Duplicate:
+        {
+            result.setInfo(translate("Duplicate"), translate("Duplicate selection"), "Edit", 0);
+            result.addDefaultKeypress(68, ModifierKeys::commandModifier);
+            result.setActive(pd.locked == false && hasBoxSelection);
+            break;
+        }
+        case CommandIDs::SelectAll:
+        {
+            result.setInfo(translate("Select all"), translate("Select all objects and connections"), "Edit", 0);
+            result.addDefaultKeypress(65, ModifierKeys::commandModifier);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewObject:
+        {
+            result.setInfo(translate("New Object"), translate("Create new object"), "Objects", 0);
+            result.addDefaultKeypress(78, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewComment:
+        {
+            result.setInfo(translate("New Comment"), translate("Create new comment"), "Objects", 0);
+            result.addDefaultKeypress(67, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewBang:
+        {
+            result.setInfo(translate("New Bang"), translate("Create new bang"), "Objects", 0);
+            result.addDefaultKeypress(66, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewMessage:
+        {
+            result.setInfo(translate("New Message"), translate("Create new message"), "Objects", 0);
+            result.addDefaultKeypress(77, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewToggle:
+        {
+            result.setInfo(translate("New Toggle"), translate("Create new toggle"), "Objects", 0);
+            result.addDefaultKeypress(84, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewNumbox:
+        {
+            result.setInfo(translate("New Number"), translate("Create new number box"), "Objects", 0);
+            result.addDefaultKeypress(73, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewFloatAtom:
+        {
+            result.setInfo(translate("New Floatatom"), translate("Create new floatatom"), "Objects", 0);
+            result.addDefaultKeypress(70, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+        case CommandIDs::NewSlider:
+        {
+            result.setInfo(translate("New Slider"), translate("Create new slider"), "Objects", 0);
+            result.addDefaultKeypress(83, ModifierKeys::noModifiers);
+            result.setActive(pd.locked == false);
+            break;
+        }
+
+        default:
+            break;
+    }
+}
+
+bool PlugDataPluginEditor::perform(const InvocationInfo& info)
+{
+    auto* cnv = getCurrentCanvas();
+
+    switch (info.commandID)
+    {
+        case CommandIDs::NewProject:
+        {
+            // could be nicer
+            toolbarButtons[0]->triggerClick();
+            break;
+        }
+        case CommandIDs::OpenProject:
+        {
+            openProject();
+            break;
+        }
+        case CommandIDs::SaveProject:
+        {
+            saveProject();
+            break;
+        }
+        case CommandIDs::SaveProjectAs:
+        {
+            saveProjectAs();
+            break;
+        }
+        case CommandIDs::Copy:
+        {
+            cnv->copySelection();
+            return true;
+        }
+        case CommandIDs::Paste:
+        {
+            cnv->pasteSelection();
+            return true;
+        }
+        case CommandIDs::Cut:
+        {
+            cnv->copySelection();
+            cnv->removeSelection();
+            return true;
+        }
+        case CommandIDs::Delete:
+        {
+            cnv->removeSelection();
+            return true;
+        }
+        case CommandIDs::Duplicate:
+        {
+            cnv->duplicateSelection();
+            return true;
+        }
+        case CommandIDs::SelectAll:
+        {
+            for (auto* box : cnv->boxes)
+            {
+                cnv->setSelected(box, true);
+            }
+            for (auto* con : cnv->connections)
+            {
+                cnv->setSelected(con, true);
+            }
+            return true;
+        }
+        case CommandIDs::Lock:
+        {
+            statusbar.lockButton->triggerClick();
+            return true;
+        }
+        case CommandIDs::ConnectionPathfind:
+        {
+            auto* cnv = getCurrentCanvas();
+
+            for (auto* con : cnv->connections)
+            {
+                if (cnv->isSelected(con))
+                {
+                    con->applyPath(con->findPath());
+                }
+            }
+
+            return true;
+        }
+        case CommandIDs::ZoomIn:
+        {
+            statusbar.zoom(true);
+            return true;
+        }
+        case CommandIDs::ZoomOut:
+        {
+            statusbar.zoom(false);
+            return true;
+        }
+        case CommandIDs::ZoomNormal:
+        {
+            statusbar.defaultZoom();
+            return true;
+        }
+        case CommandIDs::Undo:
+        {
+            cnv->undo();
+            return true;
+        }
+        case CommandIDs::Redo:
+        {
+            cnv->redo();
+            return true;
+        }
+
+        case CommandIDs::NewObject:
+        {
+            cnv->boxes.add(new Box(cnv, "", cnv->lastMousePos));
+            return true;
+        }
+        case CommandIDs::NewComment:
+        {
+            cnv->boxes.add(new Box(cnv, "comment", cnv->lastMousePos));
+            return true;
+        }
+        case CommandIDs::NewBang:
+        {
+            cnv->boxes.add(new Box(cnv, "bng", cnv->lastMousePos));
+            return true;
+        }
+        case CommandIDs::NewMessage:
+        {
+            cnv->boxes.add(new Box(cnv, "msg", cnv->lastMousePos));
+            return true;
+        }
+        case CommandIDs::NewToggle:
+        {
+            cnv->boxes.add(new Box(cnv, "tgl", cnv->lastMousePos));
+            return true;
+        }
+        case CommandIDs::NewNumbox:
+        {
+            cnv->boxes.add(new Box(cnv, "nbx", cnv->lastMousePos));
+            return true;
+        }
+        case CommandIDs::NewFloatAtom:
+        {
+            cnv->boxes.add(new Box(cnv, "floatatom", cnv->lastMousePos));
+            return true;
+        }
+        case CommandIDs::NewSlider:
+        {
+            cnv->boxes.add(new Box(cnv, "vsl", cnv->lastMousePos));
+            return true;
+        }
+
+        default:
+            return false;
+    }
+    return true;
+}

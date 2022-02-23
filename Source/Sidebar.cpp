@@ -689,7 +689,7 @@ void Sidebar::mouseDrag(const MouseEvent& e)
     {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
         newWidth = std::min(newWidth, getParentWidth() / 2);
-        
+
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
     }
@@ -724,13 +724,15 @@ void Sidebar::showSidebar(bool show)
 void Sidebar::pinSidebar(bool pin)
 {
     pinned = pin;
-    
-    if(!pinned && lastParameters.empty()) {
+
+    if (!pinned && lastParameters.empty())
+    {
         hideParameters();
     }
 }
 
-bool Sidebar::isPinned(){
+bool Sidebar::isPinned()
+{
     return pinned;
 }
 
@@ -739,7 +741,8 @@ void Sidebar::showParameters(ObjectParameters& params)
     lastParameters = params;
     inspector->loadParameters(params);
 
-    if(!pinned) {
+    if (!pinned)
+    {
         inspector->setVisible(true);
         console->setVisible(false);
     }
@@ -748,24 +751,27 @@ void Sidebar::showParameters(ObjectParameters& params)
 void Sidebar::showParameters()
 {
     inspector->loadParameters(lastParameters);
-    
-    if(!pinned) {
+
+    if (!pinned)
+    {
         inspector->setVisible(true);
         console->setVisible(false);
     }
 }
 void Sidebar::hideParameters()
 {
-    if(!pinned) {
+    if (!pinned)
+    {
         inspector->setVisible(false);
         console->setVisible(true);
     }
-    
-    if(pinned) {
+
+    if (pinned)
+    {
         ObjectParameters params = {};
         inspector->loadParameters(params);
     }
-    
+
     console->deselect();
 }
 

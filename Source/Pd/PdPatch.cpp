@@ -241,6 +241,10 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
 
     StringArray tokens;
     tokens.addTokens(name, " ", "");
+    
+    if(guiDefaults.find(tokens[0]) != guiDefaults.end()) {
+        tokens.addTokens(guiDefaults.at(tokens[0]), false);
+    }
 
     if (tokens[0] == "graph" && tokens.size() == 3)
     {
@@ -278,6 +282,8 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
     }
+    
+
 
     int argc = tokens.size() + 2;
 
@@ -406,12 +412,15 @@ void Patch::duplicate()
 
 void Patch::selectObject(Object* obj)
 {
-    instance->enqueueFunction([this, obj]() {
-        auto* checked = &checkObject(obj)->te_g;
-        if(!glist_isselected(getPointer(), checked)) {
-            glist_select(getPointer(), checked);
-        }
-    });
+    instance->enqueueFunction(
+        [this, obj]()
+        {
+            auto* checked = &checkObject(obj)->te_g;
+            if (!glist_isselected(getPointer(), checked))
+            {
+                glist_select(getPointer(), checked);
+            }
+        });
 }
 
 void Patch::deselectAll()
@@ -491,13 +500,13 @@ void Patch::moveObjects(const std::vector<Object*>& objects, int dx, int dy)
         [this, objects, dx, dy]() mutable
         {
             setCurrent();
-            
+
             glist_noselect(getPointer());
 
             for (auto* obj : objects)
             {
                 if (!obj) continue;
-                
+
                 glist_select(getPointer(), &checkObject(obj)->te_g);
             }
 
