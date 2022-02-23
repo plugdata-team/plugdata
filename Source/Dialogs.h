@@ -8,7 +8,6 @@
 
 #include <JuceHeader.h>
 
-
 class PlugDataPluginEditor;
 
 struct Dialogs

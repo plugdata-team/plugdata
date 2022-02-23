@@ -208,10 +208,10 @@ class LibraryComponent : public Component, public TableListBoxModel
         table.setRowHeight(30);
 
         // give it a border
-        table.setColour(ListBox::outlineColourId, Colours::transparentBlack);
+        //table.setColour(ListBox::outlineColourId, Colours::transparentBlack);
         table.setColour(ListBox::textColourId, Colours::white);
 
-        table.setOutlineThickness(1);
+        table.setOutlineThickness(0);
 
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
@@ -221,7 +221,6 @@ class LibraryComponent : public Component, public TableListBoxModel
         table.getHeader().setSortColumnId(1, true);    // sort forwards by the ID column
         table.getHeader().setColumnVisible(7, false);  // hide the "length" column until the user shows it
 
-        // un-comment this line to have a go of stretch-to-fit mode
         table.getHeader().setStretchToFitActive(true);
 
         table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
@@ -251,6 +250,8 @@ class LibraryComponent : public Component, public TableListBoxModel
 
         addAndMakeVisible(table);
         addAndMakeVisible(addButton);
+        
+        addAndMakeVisible(resetButton);
 
         loadData();
     }
@@ -262,10 +263,11 @@ class LibraryComponent : public Component, public TableListBoxModel
         for (auto child : tree)
         {
             items.add(child.getProperty("Path"));
-            table.updateContent();
-            table.selectRow(items.size() - 1);
         }
-
+        
+        table.updateContent();
+        table.selectRow(items.size() - 1);
+        
         updateFunc();
     }
 
@@ -318,8 +320,18 @@ class LibraryComponent : public Component, public TableListBoxModel
 
     void resized() override
     {
-        table.setBounds(getLocalBounds());
+        auto tableBounds = getLocalBounds();
+        tableBounds.removeFromBottom(40);
+        
+        table.setBounds(tableBounds);
         addButton.setBounds(getWidth() - 30, 0, 30, 30);
+        
+        const int buttonHeight = 20;
+        const int h = getHeight() - (buttonHeight + 8);
+        const int x = getWidth() - 8;
+
+        resetButton.changeWidthToFitText (buttonHeight);
+        resetButton.setTopRightPosition (x, h + 6);
     }
 
     struct FileComponent : public Label
@@ -333,10 +345,9 @@ class LibraryComponent : public Component, public TableListBoxModel
             addAndMakeVisible(deleteButton);
             deleteButton.toFront(true);
             deleteButton.setConnectedEdges(12);
-            
+
             // Use statusbar style even though it's not in the statusbar
             deleteButton.setName("statusbar:delete");
-            
 
             onTextChange = [this, value]()
             {
@@ -372,6 +383,7 @@ class LibraryComponent : public Component, public TableListBoxModel
     std::function<void()> updateFunc;
 
     TextButton addButton = TextButton(Icons::Add);
+    TextButton resetButton = TextButton("Reset to defaults");
 
     TableListBox table;
     ValueTree tree;
@@ -384,51 +396,44 @@ struct SettingsComponent : public Component
     {
         toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search), new TextButton(Icons::Keyboard)};
 
-
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
-        
-        
 
         if (manager)
         {
-        panels.add(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
-            
+            panels.add(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
         }
-        else {
+        else
+        {
             panels.add(new DAWAudioSettings(processor));
         }
-        
+
         panels.add(new LibraryComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths)));
-        
+
         panels.add(new KeyMappingEditorComponent(*editor->getKeyMappings(), true));
 
-        
-        for(int i = 0; i < toolbarButtons.size(); i++) {
-            
+        for (int i = 0; i < toolbarButtons.size(); i++)
+        {
             toolbarButtons[i]->setClickingTogglesState(true);
             toolbarButtons[i]->setRadioGroupId(0110);
             toolbarButtons[i]->setConnectedEdges(12);
             toolbarButtons[i]->setName("toolbar:settings");
             addAndMakeVisible(toolbarButtons[i]);
-            
+
             addChildComponent(panels[i]);
-            toolbarButtons[i]->onClick = [this, i]() mutable
-            {
-                showPanel(i);
-            };
+            toolbarButtons[i]->onClick = [this, i]() mutable { showPanel(i); };
         }
 
         toolbarButtons[0]->setToggleState(true, sendNotification);
     }
-    
-    
-    void showPanel(int idx) {
-        for(int i = 0; i < toolbarButtons.size(); i++) {
+
+    void showPanel(int idx)
+    {
+        for (int i = 0; i < toolbarButtons.size(); i++)
+        {
             panels[i]->setVisible(false);
         }
-        
+
         panels[idx]->setVisible(true);
-        
     }
 
     void paint(Graphics& g) override
@@ -450,16 +455,18 @@ struct SettingsComponent : public Component
             button->setBounds(toolbarPosition, 0, 70, toolbarHeight);
             toolbarPosition += 70;
         }
-        
-        for(auto* panel : panels) {
-            if(panel == panels.getLast()) {
+
+        for (auto* panel : panels)
+        {
+            if (panel == panels.getLast())
+            {
                 panel->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 8);
                 continue;
             }
             panel->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 8);
         }
     }
-    
+
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
@@ -504,9 +511,6 @@ struct SettingsDialog : public Component
 
     ~SettingsDialog() override
     {
-        
-
-        
         settingsComponent.removeMouseListener(this);
     }
 
@@ -552,7 +556,7 @@ struct SettingsDialog : public Component
         g.setColour(findColour(ComboBox::outlineColourId).darker());
         g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
     }
-    
+
     std::unique_ptr<Button> closeButton;
 };
 
@@ -583,47 +587,37 @@ std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& process
 void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, const std::function<void(String)>& cb)
 {
     PopupMenu menu;
-    
+
     // Custom functions because JUCE adds "shortcut:" before some keycommands, which looks terrible!
-    auto createCommandItem = [parent](const CommandID commandID, const String& displayName){
-        if (auto* registeredInfo = parent->getCommandForID (commandID))
+    auto createCommandItem = [parent](const CommandID commandID, const String& displayName)
+    {
+        ApplicationCommandInfo info(*parent->getCommandForID(commandID));
+        auto* target = parent->ApplicationCommandManager::getTargetForCommand(commandID, info);
+
+        PopupMenu::Item i;
+        i.text = displayName;
+        i.itemID = (int)commandID;
+        i.commandManager = parent;
+        i.isEnabled = target != nullptr && (info.flags & ApplicationCommandInfo::isDisabled) == 0;
+
+        String shortcutKey;
+
+        for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID))
         {
-            ApplicationCommandInfo info (*registeredInfo);
-            auto* target = parent->ApplicationCommandManager::getTargetForCommand (commandID, info);
+            auto key = keypress.getTextDescriptionWithIcons();
 
-            PopupMenu::Item i;
-            i.text = displayName;
-            i.itemID = (int) commandID;
-            i.commandManager = parent;
-            i.isEnabled = target != nullptr && (info.flags & ApplicationCommandInfo::isDisabled) == 0;
-            
-            if (i.shortcutKeyDescription.isEmpty())
-            {
-                String shortcutKey;
+            if (shortcutKey.isNotEmpty()) shortcutKey << ", ";
 
-                for (auto& keypress : parent->getKeyMappings()
-                                        ->getKeyPressesAssignedToCommand (commandID))
-                {
-                    auto key = keypress.getTextDescriptionWithIcons();
-
-                    if (shortcutKey.isNotEmpty())
-                        shortcutKey << ", ";
-
-                    if (key.length() == 1 && key[0] < 128)
-                        shortcutKey << key;
-                    else
-                        shortcutKey << key;
-                }
-
-                i.shortcutKeyDescription = shortcutKey.trim();
-            }
-            
-            return i;
+            if (key.length() == 1 && key[0] < 128)
+                shortcutKey << key;
+            else
+                shortcutKey << key;
         }
-        
-        return PopupMenu::Item();
+
+        i.shortcutKeyDescription = shortcutKey.trim();
+
+        return i;
     };
-    
 
     menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
     menu.addSeparator();

@@ -217,7 +217,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
 
         for (int i = 0; i < buttons.size(); i++) buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
-        
+
         const int resizerSize = 12;
 
         resizer.setBounds(getWidth() - (resizerSize + 1), getHeight() - (resizerSize + 1), resizerSize, resizerSize);
@@ -413,7 +413,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
 
     locked.referTo(pd->locked);
     locked.addListener(this);
-    
+
     connectionStyle.referTo(parent.pd.settingsTree.getPropertyAsValue("ConnectionStyle", nullptr));
     connectionStyle.addListener(this);
 
@@ -428,7 +428,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
 
     setSize(600, 400);
 
-
     // Add lasso component
     addAndMakeVisible(&lasso);
     lasso.setAlwaysOnTop(true);
@@ -441,13 +440,14 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
         viewport->setBufferedToImage(true);
-        
+
         // Apply zooming
         setTransform(parent.transform);
         presentationMode.referTo(parent.statusbar.presentationMode);
         presentationMode.addListener(this);
     }
-    else {
+    else
+    {
         presentationMode = false;
     }
 
@@ -476,16 +476,17 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x - 1, canvasOrigin.y, canvasOrigin.x - 1, getHeight());
         g.drawLine(canvasOrigin.x, canvasOrigin.y - 1, getWidth(), canvasOrigin.y - 1);
     }
-    
-    if(locked == false) {
+
+    if (locked == false)
+    {
         const int gridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
-        
+
         g.setColour(findColour(ComboBox::backgroundColourId).contrasting(0.4));
-        
-        for(int x = (canvasOrigin.getX() % gridSize); x < clipBounds.getRight(); x += gridSize)
+
+        for (int x = (canvasOrigin.getX() % gridSize); x < clipBounds.getRight(); x += gridSize)
         {
-            for(int y = (canvasOrigin.getY() % gridSize); y < clipBounds.getBottom(); y += gridSize)
+            for (int y = (canvasOrigin.getY() % gridSize); y < clipBounds.getBottom(); y += gridSize)
             {
                 g.fillRect(x + canvasOrigin.getX(), y + canvasOrigin.getY(), 1, 1);
             }
@@ -809,14 +810,14 @@ void Canvas::mouseDown(const MouseEvent& e)
     {
         // Info about selection status
         auto& lassoSelection = getLassoSelection();
-        
+
         auto selectedBoxes = getSelectionOfType<Box>();
-        
+
         bool hasSelection = !selectedBoxes.isEmpty();
         bool multiple = selectedBoxes.size() > 1;
 
         Box* box = nullptr;
-        if(hasSelection && !multiple) box = selectedBoxes.getFirst();
+        if (hasSelection && !multiple) box = selectedBoxes.getFirst();
 
         bool isSubpatch = box && (box->graphics && (box->graphics->getGui().getType() == pd::Type::GraphOnParent || box->graphics->getGui().getType() == pd::Type::Subpatch));
 
@@ -824,18 +825,18 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         // Create popup menu
         popupMenu.clear();
-        
+
         popupMenu.addItem(1, "Open", hasSelection && !multiple && isSubpatch);  // for opening subpatches
         // popupMenu.addItem(10, "Edit", isGui);
         popupMenu.addSeparator();
-        
+
         popupMenu.addCommandItem(&main, CommandIDs::Cut);
         popupMenu.addCommandItem(&main, CommandIDs::Copy);
         popupMenu.addCommandItem(&main, CommandIDs::Paste);
         popupMenu.addCommandItem(&main, CommandIDs::Duplicate);
         popupMenu.addCommandItem(&main, CommandIDs::Delete);
         popupMenu.addSeparator();
-        
+
         popupMenu.addItem(8, "To Front", box != nullptr);
         popupMenu.addSeparator();
         popupMenu.addItem(9, "Help", box != nullptr);
@@ -935,11 +936,11 @@ void Canvas::mouseDrag(const MouseEvent& e)
     {
         beginDragAutoRepeat(40);
     }
-    
+
     // Drag lasso
     lasso.dragLasso(e);
-    
-if (connectingWithDrag) repaint();
+
+    if (connectingWithDrag) repaint();
 }
 
 void Canvas::mouseUp(const MouseEvent& e)
@@ -973,7 +974,8 @@ void Canvas::mouseUp(const MouseEvent& e)
 
     auto lassoSelection = getSelectionOfType<Box>();
 
-    if(lassoSelection.size() == 1) {
+    if (lassoSelection.size() == 1)
+    {
         auto* box = lassoSelection.getFirst();
         auto params = box->graphics ? box->graphics->getParameters() : ObjectParameters();
 
@@ -983,7 +985,6 @@ void Canvas::mouseUp(const MouseEvent& e)
         }
         else
         {
-            
             main.sidebar.hideParameters();
         }
     }
@@ -991,9 +992,8 @@ void Canvas::mouseUp(const MouseEvent& e)
     {
         main.sidebar.hideParameters();
     }
-    
-    main.commandStatusChanged();
 
+    main.commandStatusChanged();
 
     lasso.endLasso();
 }
@@ -1050,7 +1050,6 @@ Array<DrawableTemplate*> Canvas::findDrawables()
     return result;
 }
 
-
 void Canvas::paintOverChildren(Graphics& g)
 {
     // Draw connections in the making over everything else
@@ -1082,15 +1081,14 @@ void Canvas::mouseMove(const MouseEvent& e)
 bool Canvas::keyPressed(const KeyPress& key)
 {
     if (main.getCurrentCanvas() != this || isGraph) return false;
-    
+
     int keycode = key.getKeyCode();
     // Ignore backspace, arrow keys, return key and more that might cause actions in pd
-    if( KeyPress::backspaceKey || KeyPress::leftKey ||  KeyPress::rightKey ||  KeyPress::upKey ||  KeyPress::downKey || KeyPress::pageUpKey || KeyPress::pageDownKey || KeyPress::homeKey || KeyPress::escapeKey || KeyPress::deleteKey || KeyPress::returnKey || KeyPress::tabKey) {
+    if (KeyPress::backspaceKey || KeyPress::leftKey || KeyPress::rightKey || KeyPress::upKey || KeyPress::downKey || KeyPress::pageUpKey || KeyPress::pageDownKey || KeyPress::homeKey || KeyPress::escapeKey || KeyPress::deleteKey || KeyPress::returnKey || KeyPress::tabKey)
+    {
         return false;
     }
-   
-   
-    
+
     patch.keyPress(keycode, key.getModifiers().isShiftDown());
 
     return false;
@@ -1174,7 +1172,7 @@ void Canvas::removeSelection()
 {
     // Make sure object isn't selected and stop updating gui
     main.sidebar.hideParameters();
-    
+
     // Make sure nothing is selected
     patch.deselectAll();
 
@@ -1215,7 +1213,6 @@ void Canvas::removeSelection()
     synchronise(false);
 
     patch.deselectAll();
-
 }
 
 void Canvas::undo()
@@ -1276,11 +1273,12 @@ void Canvas::valueChanged(Value& v)
         repaint();
     }
     // Should only get called when the canvas isn't a real graph
-    else if(v.refersToSameSourceAs(presentationMode)) {
+    else if (v.refersToSameSourceAs(presentationMode))
+    {
         deselectAll();
-        
-        if(presentationMode == true) connections.clear();
-        
+
+        if (presentationMode == true) connections.clear();
+
         synchronise();
     }
     else if (v.refersToSameSourceAs(connectionStyle))
@@ -1324,7 +1322,7 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
         removeSelectedComponent(component);
         component->repaint();
     }
-    
+
     main.commandStatusChanged();
 }
 
@@ -1463,4 +1461,3 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
         }
     }
 }
-

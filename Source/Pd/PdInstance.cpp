@@ -587,7 +587,7 @@ void Instance::createPanel(int type, const char* snd, const char* location)
         MessageManager::callAsync(
             [this, obj, defaultFile]() mutable
             {
-                auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories |  FileBrowserComponent::canSelectFiles;
+                auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", true);
 
                 openChooser->launchAsync(folderChooserFlags,
