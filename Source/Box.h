@@ -49,7 +49,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent::Zone resizeZone;
-    
+
     void setType(const String& newType, bool exists = false);
 
     void showEditor();
@@ -65,7 +65,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-    
+
     String getText(bool returnActiveEditorContents = false) const;
     Array<Rectangle<float>> getCorners() const;
 
@@ -73,27 +73,25 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     static inline constexpr int margin = 8;
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
-    
+
     bool selectionChanged = false;
-    
+
    private:
     void initialise();
     bool hitTest(int x, int y) override;
-    
+
     void setText(const String& newText, NotificationType notification);
     void setEditable(bool editable);
     void textEditorReturnKeyPressed(TextEditor& ed) override;
-    
+
     Rectangle<int> originalBounds;
 
-    
     bool wasResized = false;
-
 
     std::function<void()> onTextChange;
 
     bool hideLabel = false;
-    
+
     Value textValue;
     String lastTextValue;
     Font font{15.0f};
@@ -103,8 +101,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     float minimumHorizontalScale = 0;
     TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
     bool editSingleClick = false;
-    
-
 
     Colour outline = findColour(Slider::thumbColourId);
 

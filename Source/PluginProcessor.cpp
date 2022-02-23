@@ -110,7 +110,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
-        
+
         saveSettings();
     }
     else

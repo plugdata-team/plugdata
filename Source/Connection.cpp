@@ -17,7 +17,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     connectionStyle.referTo(parent->connectionStyle);
 
     // Receive mouse events on canvas: maybe not needed because we test for hitbox now?
-    //addMouseListener(cnv, true);
+    // addMouseListener(cnv, true);
 
     // Make sure it's not 2x the same edge
     if (!start || !end || start->isInput == end->isInput)
@@ -83,7 +83,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     // Update position
     componentMovedOrResized(*start, true, true);
     componentMovedOrResized(*end, true, true);
-    
+
     updatePath();
     repaint();
 }
@@ -174,14 +174,14 @@ bool Connection::hitTest(int x, int y)
 
 void Connection::paint(Graphics& g)
 {
-    //g.getInternalContext().clipToPath(toDraw, {});
-    //g.reduceClipRegion(toDraw);
-    
+    // g.getInternalContext().clipToPath(toDraw, {});
+    // g.reduceClipRegion(toDraw);
+
     g.setColour(Colours::grey);
     g.strokePath(toDraw, PathStrokeType(3.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 
     auto baseColour = Colours::white;
- 
+
     if (cnv->isSelected(this))
     {
         baseColour = start->isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
@@ -323,56 +323,54 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     int bottom = std::max(start->getCanvasBounds().getCentreY(), end->getCanvasBounds().getCentreY());
 
     // Leave some extra room
-    //setBounds(left, top, right - left, bottom - top);
-    
+    // setBounds(left, top, right - left, bottom - top);
+
     setBounds(toDraw.getBounds().toNearestInt().getUnion(Rectangle<int>(left, top, right - left, bottom - top)));
     updatePath();
 }
 
-void Connection::updatePath() {
-    
+void Connection::updatePath()
+{
     if (!start || !end) return;
 
     auto& s = start->isInput ? start : end;
     auto& e = start->isInput ? end : start;
-    
+
     int left = std::min(start->getCanvasBounds().getCentreX(), end->getCanvasBounds().getCentreX()) - 4;
     int top = std::min(start->getCanvasBounds().getCentreY(), end->getCanvasBounds().getCentreY()) - 4;
     int right = std::max(start->getCanvasBounds().getCentreX(), end->getCanvasBounds().getCentreX()) + 4;
     int bottom = std::max(start->getCanvasBounds().getCentreY(), end->getCanvasBounds().getCentreY()) + 4;
 
     // Leave some extra room
-    //setBounds(left, top, right - left, bottom - top);
-    
+    // setBounds(left, top, right - left, bottom - top);
+
     origin = Rectangle<int>(left, top, right - left, bottom - top).getPosition();
-    
+
     Point<int> pstart = s->getCanvasBounds().getCentre() - origin;
     Point<int> pend = e->getCanvasBounds().getCentre() - origin;
 
-    bool segmentedConnection =  connectionStyle == true;
+    bool segmentedConnection = connectionStyle == true;
 
     if (!segmentedConnection)
     {
         toDraw.clear();
-        
-        const float width =  std::max(pstart.x, pend.x) - std::min(pstart.x, pend.x);
-        const float height =  std::max(pstart.y, pend.y) - std::min(pstart.y, pend.y);
-        
+
+        const float width = std::max(pstart.x, pend.x) - std::min(pstart.x, pend.x);
+        const float height = std::max(pstart.y, pend.y) - std::min(pstart.y, pend.y);
+
         const float min = std::min<float>(width, height);
         const float max = std::max<float>(width, height);
-        
+
         const float maxShiftY = 20.f;
         const float maxShiftX = 20.f;
-        
+
         const float shiftY = std::min<float>(maxShiftY, max * 0.5);
-        
-        const float shiftX = ((pend.y >= pstart.y)
-                               ? std::min<float>(maxShiftX, min * 0.5)
-                               : 0.f) * ((pend.x < pstart.x) ? -1. : 1.);
-        
-        const Point<float> ctrlPoint1 { pend.x - shiftX, pend.y + shiftY };
-        const Point<float> ctrlPoint2 { pstart.x + shiftX, pstart.y - shiftY };
-        
+
+        const float shiftX = ((pend.y >= pstart.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((pend.x < pstart.x) ? -1. : 1.);
+
+        const Point<float> ctrlPoint1{pend.x - shiftX, pend.y + shiftY};
+        const Point<float> ctrlPoint2{pstart.x + shiftX, pstart.y - shiftY};
+
         toDraw.startNewSubPath(pend.toFloat());
         toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pstart.toFloat());
     }
@@ -396,24 +394,23 @@ void Connection::updatePath() {
         }
         connectionPath.lineTo(pend.toFloat());
         toDraw = connectionPath.createPathWithRoundedCorners(8.0f);
-        
+
         repaint();
     }
-    
+
     // This is bad, it will trigger 1 unneeded resize call
     // Or, if the size (hypothetically) kept changing forever, it will freeze...
     auto bounds = toDraw.getBounds().toNearestInt().expanded(4);
     setBounds(bounds + origin);
-    
-    if(bounds.getX() < 0 || bounds.getY() < 0) {
+
+    if (bounds.getX() < 0 || bounds.getY() < 0)
+    {
         toDraw.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
     }
 }
 
 void Connection::resized()
 {
-    
-    
 }
 
 PathPlan Connection::scalePath(const PathPlan& plan)

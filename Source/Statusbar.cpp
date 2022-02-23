@@ -163,7 +163,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     presentationButton->setName("statusbar:presentation");
     presentationButton->getToggleStateValue().referTo(presentationMode);
     addAndMakeVisible(presentationButton.get());
-    
+
     bypassButton->setTooltip("Bypass");
     bypassButton->setClickingTogglesState(true);
     bypassButton->setConnectedEdges(12);
@@ -197,10 +197,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionPathfind->setTooltip("Find best connection path");
     connectionPathfind->setConnectedEdges(12);
     connectionPathfind->setName("statusbar:findpath");
-    connectionPathfind->onClick = [this]()
-    {
-        dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true);
-    };
+    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
     addAndMakeVisible(connectionPathfind.get());
 
     addAndMakeVisible(zoomLabel);
@@ -266,7 +263,7 @@ void Statusbar::resized()
     zoomOut->setBounds(174, 0, getHeight(), getHeight());
 
     presentationButton->setBounds(215, 0, getHeight(), getHeight());
-    
+
     bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
 
     levelMeter->setBounds(getWidth() - 133, 1, 100, getHeight());

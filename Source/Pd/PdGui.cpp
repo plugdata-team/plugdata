@@ -694,7 +694,7 @@ Rectangle<int> Gui::getBounds() const noexcept
 void Gui::setBounds(Rectangle<int> bounds)
 {
     auto oldBounds = getBounds();
-    
+
     int w = bounds.getWidth() / Patch::zoom;
     int h = bounds.getHeight() / Patch::zoom;
 
@@ -725,7 +725,7 @@ void Gui::setBounds(Rectangle<int> bounds)
         iemgui->x_w = w;
         iemgui->x_h = h;
     }
-    
+
     libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX() / Patch::zoom, bounds.getY() / Patch::zoom);
 }
 

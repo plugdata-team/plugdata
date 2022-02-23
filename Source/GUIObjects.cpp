@@ -119,8 +119,7 @@ void GUIComponent::initialise(bool newObject)
 
     if (!gui.isIEM()) return;
 
-    if (!newObject)
-    {
+  
         primaryColour = Colour(gui.getForegroundColour()).toString();
         secondaryColour = Colour(gui.getBackgroundColour()).toString();
         if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
@@ -135,19 +134,22 @@ void GUIComponent::initialise(bool newObject)
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
-    }
-    else {
+    
+    
+    /*
+    else
+    {
         primaryColour = findColour(Slider::thumbColourId).toString();
         secondaryColour = findColour(ComboBox::backgroundColourId).toString();
-        
+
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
-    }
+    } */
     /*
     else {
-        
+
 
     } */
 
@@ -159,7 +161,7 @@ void GUIComponent::initialise(bool newObject)
         // Push current parameters to pd
         valueChanged(*value);
     }
-
+    
     repaint();
 }
 
@@ -630,27 +632,24 @@ struct BangComponent : public GUIComponent
 
     Value bangInterrupt = Value(100.0f);
     Value bangHold = Value(40.0f);
-    
+
     // TODO: fix in LookAndFeel!
     struct BangButton : public TextButton
     {
-        void paint(Graphics& g) override {
-            
+        void paint(Graphics& g) override
+        {
             const auto bounds = getLocalBounds().reduced(1).toFloat();
             const auto width = std::max(bounds.getWidth(), bounds.getHeight());
-            
+
             const float circleOuter = 80.f * (width * 0.01f);
             const float circleThickness = std::max(8.f * (width * 0.01f), 2.0f);
 
             g.setColour(findColour(ComboBox::outlineColourId));
             g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
-            
-            g.setColour(getToggleState()  ? findColour(TextButton::buttonOnColourId) : Colours::transparentWhite);
-            
-            g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
-            
 
-            
+            g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::transparentWhite);
+
+            g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
         }
     };
 
@@ -753,23 +752,20 @@ struct ToggleComponent : public GUIComponent
     // TODO: fix in LookAndFeel!
     struct Toggle : public TextButton
     {
-        void paint(Graphics& g) override {
-            
-            
-            g.setColour(getToggleState()
-                               ? findColour(TextButton::buttonOnColourId)
-                               : Colours::grey);
-                   
+        void paint(Graphics& g) override
+        {
+            g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::grey);
+
             const auto crossBounds = getLocalBounds().reduced(6).toFloat();
-            
+
             const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
             const auto strokeWidth = std::max(max * 0.15f, 2.0f);
-           
-           g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
-           g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
+
+            g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
+            g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
         }
     };
-    
+
     Toggle toggleButton;
 
     ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
@@ -827,19 +823,19 @@ struct MessageComponent : public GUIComponent
         addAndMakeVisible(input);
 
         input.setInterceptsMouseClicks(false, false);
-        
-        input.onTextChange = [this](){
+
+        input.onTextChange = [this]()
+        {
             startEdition();
             gui.setSymbol(input.getText().toStdString());
             stopEdition();
-            
+
             auto width = input.getFont().getStringWidth(input.getText()) + 25;
             if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
                 box->constrainer.checkComponentBounds(box);
             }
-            
         };
 
         // message box behaviour
@@ -847,7 +843,7 @@ struct MessageComponent : public GUIComponent
         {
             input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
 
-            //input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
+            // input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
 
             /*
             input.onEditorShow = [this]()
@@ -898,7 +894,7 @@ struct MessageComponent : public GUIComponent
                         box->setSize(width, box->getHeight());
                         box->constrainer.checkComponentBounds(box);
                     }
-                    
+
                 };
             }; */
         }
@@ -1007,7 +1003,7 @@ struct MessageComponent : public GUIComponent
     void mouseUp(const MouseEvent& e) override
     {
         isDown = false;
-        
+
         // Edit messages when unlocked, edit atoms when locked
         if (((!isLocked && box->cnv->isSelected(box) && !box->selectionChanged && !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom())))
         {
@@ -1020,7 +1016,7 @@ struct MessageComponent : public GUIComponent
             gui.click();
             stopEdition();
         }
-        
+
         repaint();
     }
 
@@ -1035,7 +1031,7 @@ struct NumboxComponent : public GUIComponent
     float dragValue = 0.0f;
     bool shift = false;
     int decimalDrag = 0;
-    
+
     Point<float> lastDragPos;
 
     NumboxComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
@@ -1068,7 +1064,6 @@ struct NumboxComponent : public GUIComponent
         }
         addAndMakeVisible(input);
 
-       
         input.setText(formatNumber(getValueOriginal()), dontSendNotification);
 
         initialise(newObject);
@@ -1081,12 +1076,12 @@ struct NumboxComponent : public GUIComponent
     {
         input.setBounds(getLocalBounds());
     }
-    
-    
-    String formatNumber(float value) {
+
+    String formatNumber(float value)
+    {
         String text;
         text << value;
-        if(!text.containsChar('.')) text << '.';
+        if (!text.containsChar('.')) text << '.';
         return text;
     }
 
@@ -1109,45 +1104,39 @@ struct NumboxComponent : public GUIComponent
             startEdition();
             shift = e.mods.isShiftDown();
             dragValue = input.getText().getFloatValue();
-            
+
             lastDragPos = e.position;
-                
+
             const auto textArea = input.getBorderSize().subtractedFrom(input.getBounds());
-            
+
             GlyphArrangement glyphs;
-            glyphs.addFittedText (input.getFont(), input.getText(),
-                                  textArea.getX(), 0., textArea.getWidth(), getHeight(),
-                                  Justification::centredLeft, 1,
-                                  input.getMinimumHorizontalScale());
-            
+            glyphs.addFittedText(input.getFont(), input.getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
+
             double decimalX = getWidth();
-            for(int i = 0; i < glyphs.getNumGlyphs(); ++i)
+            for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
             {
                 auto const& glyph = glyphs.getGlyph(i);
-                if(glyph.getCharacter() == '.')
+                if (glyph.getCharacter() == '.')
                 {
                     decimalX = glyph.getRight();
                 }
             }
-            
+
             const bool isDraggingDecimal = e.x > decimalX;
-            
+
             decimalDrag = isDraggingDecimal ? 6 : 0;
-            
-            if(isDraggingDecimal)
+
+            if (isDraggingDecimal)
             {
                 GlyphArrangement decimalsGlyph;
                 static const String decimalStr("000000");
-                
-                decimalsGlyph.addFittedText (input.getFont(), decimalStr,
-                                              decimalX, 0, getWidth(), getHeight(),
-                                              Justification::centredLeft, 1,
-                                              input.getMinimumHorizontalScale());
-                
-                for(int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
+
+                decimalsGlyph.addFittedText(input.getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
+
+                for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
                 {
                     auto const& glyph = decimalsGlyph.getGlyph(i);
-                    if(e.x <= glyph.getRight())
+                    if (e.x <= glyph.getRight())
                     {
                         decimalDrag = i + 1;
                         break;
@@ -1155,8 +1144,6 @@ struct NumboxComponent : public GUIComponent
                 }
             }
         }
-        
-       
     }
 
     void mouseUp(const MouseEvent& e) override
@@ -1175,31 +1162,30 @@ struct NumboxComponent : public GUIComponent
         {
             setMouseCursor(MouseCursor::NoCursor);
             updateMouseCursor();
-            
+
             const int decimal = decimalDrag + e.mods.isShiftDown();
             const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
             const float deltaY = e.y - lastDragPos.y;
             lastDragPos = e.position;
-            
+
             dragValue += increment * -deltaY;
 
             // truncate value and set
             double newValue = dragValue;
-            
-            if(decimal > 0)
+
+            if (decimal > 0)
             {
                 const int sign = (newValue > 0) ? 1 : -1;
                 unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
-                newValue = (((double)ui_temp)/std::pow(10, decimal) * sign);
+                newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
             }
             else
             {
                 newValue = static_cast<int64_t>(newValue);
             }
-            
-                            
+
             setValueOriginal(newValue);
-            
+
             input.setText(formatNumber(getValueOriginal()), NotificationType::dontSendNotification);
         }
     }
@@ -1231,7 +1217,6 @@ struct NumboxComponent : public GUIComponent
     {
         g.setColour(findColour(TextEditor::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(1));
-        
     }
 
     void paintOverChildren(Graphics& g) override
@@ -1241,20 +1226,15 @@ struct NumboxComponent : public GUIComponent
         if (!gui.isAtom())
         {
             const int indent = 9;
-            
+
             const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
-            
+
             Path corner;
-            
-            corner.addTriangle(iconBounds.getTopLeft().toFloat(),
-                               iconBounds.getTopRight().toFloat()
-                               + Point<float>(0, (iconBounds.getHeight() / 2.)),
-                               iconBounds.getBottomLeft().toFloat());
-            
+
+            corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
+
             g.setColour(Colour(gui.getForegroundColour()));
             g.fillPath(corner);
-            
-            
         }
     }
 };
