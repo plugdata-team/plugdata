@@ -59,6 +59,9 @@ void Box::initialise()
         String newText = getText();
         setType(newText);
     };
+    
+    
+    originalBounds.setBounds(0, 0, 0, 0);
 }
 
 void Box::valueChanged(Value& v)
@@ -146,7 +149,8 @@ void Box::setType(const String& newType, bool exists)
         }
         else
         {
-            pdObject = pd->createObject(newType, getX() - cnv->canvasOrigin.x, getY() - cnv->canvasOrigin.y);
+            auto rect = getBounds() - cnv->canvasOrigin;
+            pdObject = pd->createObject(newType, rect.getX(), rect.getY());
         }
     }
     else
@@ -477,12 +481,13 @@ void Box::mouseUp(const MouseEvent& e)
         cnv->connectingEdge = nullptr;
     }
 
-    if (originalBounds != getBounds())
+    if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
     {
         cnv->pd->enqueueFunction([this](){
-            pdObject->setBounds(getBounds().reduced(margin) - cnv->canvasOrigin);
+            pdObject->setBounds(getBounds() - cnv->canvasOrigin);
         });
         
+        originalBounds.setBounds(0, 0, 0, 0);
     }
     
     selectionChanged = false;

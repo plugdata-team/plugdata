@@ -336,6 +336,13 @@ void Statusbar::zoom(float zoomAmount)
     zoomLabel.setText(String(value * 100.0f, 1) + "%", dontSendNotification);
 }
 
+void Statusbar::defaultZoom()
+{
+    zoomScale = 1.0;
+
+    zoomLabel.setText("100%", dontSendNotification);
+}
+
 StatusbarSource::StatusbarSource()
 {
     level[0] = 0.0f;

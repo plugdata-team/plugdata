@@ -12,6 +12,42 @@
 #include "Sidebar.h"
 #include "Statusbar.h"
 
+
+enum CommandIDs
+{
+    NewProject = 1,
+    OpenProject,
+    SaveProject,
+    SaveProjectAs,
+    Undo,
+    Redo,
+    
+    Lock,
+    ConnectionStyle,
+    ConnectionPathfind,
+    ZoomIn,
+    ZoomOut,
+    ZoomNormal,
+
+    Copy,
+    Paste,
+    Cut,
+    Delete,
+    Duplicate,
+    SelectAll,
+    
+    NewObject,
+    NewComment,
+    NewBang,
+    NewMessage,
+    NewToggle,
+    NewNumbox,
+    NewFloatAtom,
+    NewSlider,
+
+    NumItems
+};
+
 struct TabComponent : public TabbedComponent
 {
     std::function<void(int)> onTabChange = [](int) {};
@@ -25,7 +61,6 @@ struct TabComponent : public TabbedComponent
         onTabChange(newCurrentTabIndex);
     }
 };
-
 
 
 class Canvas;

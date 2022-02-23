@@ -481,13 +481,13 @@ void Canvas::paint(Graphics& g)
         const int gridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
         
-        g.setColour(findColour(ComboBox::backgroundColourId).contrasting(0.3));
+        g.setColour(findColour(ComboBox::backgroundColourId).contrasting(0.4));
         
         for(int x = (canvasOrigin.getX() % gridSize); x < clipBounds.getRight(); x += gridSize)
         {
             for(int y = (canvasOrigin.getY() % gridSize); y < clipBounds.getBottom(); y += gridSize)
             {
-                g.fillRect(x, y, 1, 1);
+                g.fillRect(x + canvasOrigin.getX(), y + canvasOrigin.getY(), 1, 1);
             }
         }
     }
