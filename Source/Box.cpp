@@ -321,7 +321,6 @@ void Box::resized()
 
     constrainer.checkComponentBounds(this);
 
-
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
     {
         auto bestWidth = font.getStringWidth(getText()) + widthOffset;
@@ -340,11 +339,11 @@ void Box::resized()
     int index = 0;
     for (auto& edge : edges)
     {
-        bool isInput = edge->isInput;
+        bool isInlet = edge->isInlet;
         int position = index < numInputs ? index : index - numInputs;
-        int total = isInput ? numInputs : numOutputs;
+        int total = isInlet ? numInputs : numOutputs;
 
-        float newY = isInput ? margin : getHeight() - margin;
+        float newY = isInlet ? margin : getHeight() - margin;
         float newX = position * ((getWidth() - doubleEdgeMargin) / (total - 1 + (total == 1))) + edgeMargin;
 
         edge->setCentrePosition(newX, newY);
@@ -363,7 +362,7 @@ void Box::updatePorts()
 
     for (auto& edge : edges)
     {
-        edge->isInput ? oldNumInputs++ : oldNumOutputs++;
+        edge->isInlet ? oldNumInputs++ : oldNumOutputs++;
     }
 
     numInputs = 0;
@@ -386,7 +385,7 @@ void Box::updatePorts()
     for (int i = 0; i < numInputs + numOutputs; i++)
     {
         auto* edge = edges[i];
-        bool input = edge->isInput;
+        bool input = edge->isInlet;
         bool isSignal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
 
         edge->edgeIdx = input ? numIn : numOut;

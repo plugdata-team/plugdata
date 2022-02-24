@@ -9,9 +9,9 @@
 #include "Canvas.h"
 #include "Connection.h"
 
-Edge::Edge(Box* parent, bool input) : box(parent)
+Edge::Edge(Box* parent, bool inlet) : box(parent)
 {
-    isInput = input;
+    isInlet = inlet;
     setSize(8, 8);
 
     parent->addAndMakeVisible(this);
@@ -32,7 +32,7 @@ bool Edge::hasConnection()
     // Check if it has any connections
     for (auto* connection : box->cnv->connections)
     {
-        if (connection->start == this || connection->end == this)
+        if (connection->inlet == this || connection->outlet == this)
         {
             return true;
         }
@@ -68,7 +68,7 @@ void Edge::paint(Graphics& g)
     // Visual change if it has a connection
     if (hasConnection() && !isHovered)
     {
-        if (isInput)
+        if (isInlet)
         {
             path.addPieSegment(bounds, MathConstants<float>::pi + MathConstants<float>::halfPi, MathConstants<float>::halfPi, 0.3f);
         }
@@ -130,7 +130,7 @@ void Edge::createConnection()
     if (box->cnv->connectingEdge)
     {
         // Check type for input and output
-        bool sameDirection = isInput == box->cnv->connectingEdge->isInput;
+        bool sameDirection = isInlet == box->cnv->connectingEdge->isInlet;
 
         bool connectionAllowed = box->cnv->connectingEdge->getParentComponent() != getParentComponent() && !sameDirection;
 

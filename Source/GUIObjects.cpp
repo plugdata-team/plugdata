@@ -130,6 +130,7 @@ void GUIComponent::initialise(bool newObject)
     getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
     getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
 
+
     auto sliderBackground = Colour::fromString(secondaryColour.toString());
     sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
@@ -225,6 +226,9 @@ void GUIComponent::valueChanged(Value& v)
 
         getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
         getLookAndFeel().setColour(TextButton::buttonColourId, colour);
+        
+        getLookAndFeel().setColour(Label::textColourId, colour.contrasting(1.0f));
+        getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(1.0f));
 
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
@@ -913,7 +917,8 @@ struct MessageComponent : public GUIComponent
             auto baseColour = isDown ? Colour(90, 90, 90) : Colour(70, 70, 70);
 
             auto rect = getLocalBounds().toFloat();
-            g.setGradientFill(ColourGradient(baseColour, Point<float>(0.0f, 0.0f), baseColour.darker(1.5f), getPosition().toFloat() + Point<float>(0, getHeight()), false));
+            
+            g.setGradientFill(ColourGradient::vertical(baseColour, baseColour.darker(1.5f), getLocalBounds()));
 
             g.fillRoundedRectangle(rect, 2.0f);
         }

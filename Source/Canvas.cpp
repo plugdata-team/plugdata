@@ -535,16 +535,16 @@ void Canvas::synchronise(bool updatePosition)
         {
             auto connection = connections[n];
 
-            if (isObjectDeprecated(connection->start->box->pdObject.get()) || isObjectDeprecated(connection->end->box->pdObject.get()))
+            if (isObjectDeprecated(connection->inlet->box->pdObject.get()) || isObjectDeprecated(connection->outlet->box->pdObject.get()))
             {
                 connections.remove(n);
             }
             else
             {
-                auto* start = static_cast<t_text*>(connection->start->box->pdObject->getPointer());
-                auto* end = static_cast<t_text*>(connection->end->box->pdObject->getPointer());
+                auto* inlet = static_cast<t_text*>(connection->inlet->box->pdObject->getPointer());
+                auto* outlet = static_cast<t_text*>(connection->outlet->box->pdObject->getPointer());
 
-                if (!canvas_isconnected(patch.getPointer(), start, connection->outIdx, end, connection->inIdx))
+                if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx))
                 {
                     connections.remove(n);
                 }
@@ -666,10 +666,10 @@ void Canvas::synchronise(bool updatePosition)
                                    {
                                        auto& [inno, inobj, outno, outobj] = connection;
 
-                                       if (!c->start || !c->end) return false;
+                                       if (!c->inlet || !c->outlet) return false;
 
-                                       bool sameStart = c->start->box == boxes[srcno];
-                                       bool sameEnd = c->end->box == boxes[sinkno];
+                                       bool sameStart = c->outlet->box == boxes[srcno];
+                                       bool sameEnd = c->inlet->box == boxes[sinkno];
 
                                        return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
                                    });
@@ -1198,9 +1198,9 @@ void Canvas::removeSelection()
     {
         if (isSelected(con))
         {
-            if (!(objects.contains(con->outObj->get()) || objects.contains(con->inObj->get())))
+            if (!(objects.contains(con->outlet->box->pdObject.get()) || objects.contains(con->inlet->box->pdObject.get())))
             {
-                patch.removeConnection(con->outObj->get(), con->outIdx, con->inObj->get(), con->inIdx);
+                patch.removeConnection(con->outlet->box->pdObject.get(), con->outIdx, con->inlet->box->pdObject.get(), con->inIdx);
             }
         }
     }
