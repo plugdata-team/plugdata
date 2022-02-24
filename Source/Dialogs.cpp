@@ -208,7 +208,7 @@ class LibraryComponent : public Component, public TableListBoxModel
         table.setRowHeight(30);
 
         // give it a border
-        //table.setColour(ListBox::outlineColourId, Colours::transparentBlack);
+        // table.setColour(ListBox::outlineColourId, Colours::transparentBlack);
         table.setColour(ListBox::textColourId, Colours::white);
 
         table.setOutlineThickness(0);
@@ -250,7 +250,7 @@ class LibraryComponent : public Component, public TableListBoxModel
 
         addAndMakeVisible(table);
         addAndMakeVisible(addButton);
-        
+
         addAndMakeVisible(resetButton);
 
         loadData();
@@ -264,10 +264,10 @@ class LibraryComponent : public Component, public TableListBoxModel
         {
             items.add(child.getProperty("Path"));
         }
-        
+
         table.updateContent();
         table.selectRow(items.size() - 1);
-        
+
         updateFunc();
     }
 
@@ -322,16 +322,16 @@ class LibraryComponent : public Component, public TableListBoxModel
     {
         auto tableBounds = getLocalBounds();
         tableBounds.removeFromBottom(40);
-        
+
         table.setBounds(tableBounds);
         addButton.setBounds(getWidth() - 30, 0, 30, 30);
-        
+
         const int buttonHeight = 20;
         const int h = getHeight() - (buttonHeight + 8);
         const int x = getWidth() - 8;
 
-        resetButton.changeWidthToFitText (buttonHeight);
-        resetButton.setTopRightPosition (x, h + 6);
+        resetButton.changeWidthToFitText(buttonHeight);
+        resetButton.setTopRightPosition(x, h + 6);
     }
 
     struct FileComponent : public Label

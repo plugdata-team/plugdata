@@ -241,8 +241,9 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
 
     StringArray tokens;
     tokens.addTokens(name, false);
-    
-    if(guiDefaults.find(tokens[0]) != guiDefaults.end()) {
+
+    if (guiDefaults.find(tokens[0]) != guiDefaults.end())
+    {
         tokens.addTokens(guiDefaults.at(tokens[0]), false);
     }
 
@@ -282,7 +283,7 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
     }
-    
+
     int argc = tokens.size() + 2;
 
     auto argv = std::vector<t_atom>(argc);

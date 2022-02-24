@@ -232,13 +232,14 @@ void Box::setType(const String& newType, bool exists)
     {
         setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
-    
+
     // graphical objects manage their own size limits
     // For text object, make sure the width at least fits the text
-    if (!graphics || graphics->fakeGui()) {
+    if (!graphics || graphics->fakeGui())
+    {
         int ioletWidth = (std::max(numInputs, numOutputs) * doubleMargin) + 15;
         int textWidth = font.getStringWidth(newType) + widthOffset;
-        
+
         int minimumWidth = std::max(textWidth, ioletWidth);
         constrainer.setSizeLimits(minimumWidth, Box::height, std::max(1000, minimumWidth), Box::height);
     }
@@ -325,7 +326,7 @@ void Box::resized()
     {
         auto bestWidth = font.getStringWidth(getText()) + widthOffset;
         int numLines = std::max(StringArray::fromTokens(getText(), "\n", "\'").size(), 1);
-        //setSize(bestWidth + 10, (numLines * 17) + 14);
+        // setSize(bestWidth + 10, (numLines * 17) + 14);
     }
 
     if (auto* newEditor = getCurrentTextEditor())

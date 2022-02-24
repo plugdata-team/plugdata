@@ -56,8 +56,7 @@ class Connection : public Component, public ComponentListener
     void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
-    
-    
+
     int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
 
     String getId() const;
