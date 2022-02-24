@@ -718,6 +718,10 @@ void Gui::setBounds(Rectangle<int> bounds)
         static_cast<_glist*>(ptr)->gl_pixwidth = w;
         static_cast<_glist*>(ptr)->gl_pixheight = h;
     }
+    if(type == Type::Number) {
+        auto* nbx = static_cast<t_my_numbox*>(ptr);
+        nbx->x_numwidth = w / sys_fontwidth(18);
+    }
     else if (isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
