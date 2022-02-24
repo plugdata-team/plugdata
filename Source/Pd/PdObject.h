@@ -68,7 +68,6 @@ class Object
 
     virtual void setBounds(Rectangle<int> bounds);
 
-
     virtual inline Type getType() const noexcept
     {
         return Type::Undefined;

@@ -27,7 +27,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
         jassertfalse;
         return;
     }
-    
+
     inIdx = outlet->edgeIdx;
     outIdx = inlet->edgeIdx;
 
@@ -184,7 +184,7 @@ void Connection::mouseMove(const MouseEvent& e)
 
     bool segmentedConnection = connectionStyle == true;
     int n = getClosestLineIdx(e.getPosition(), scaledPlan);
-    
+
     if (segmentedConnection && scaledPlan.size() > 2 && n >= 0)
     {
         auto line = Line<int>(scaledPlan[n - 1], scaledPlan[n]);
@@ -208,10 +208,10 @@ void Connection::mouseDown(const MouseEvent& e)
     const auto scaledPlan = scalePath(currentPlan);
 
     if (scaledPlan.size() <= 2) return;
-    
+
     int n = getClosestLineIdx(e.getPosition(), scaledPlan);
-    if(n < 0) return;
-    
+    if (n < 0) return;
+
     if (Line<int>(scaledPlan[n - 1], scaledPlan[n]).isVertical())
     {
         mouseDownPosition = currentPlan[n].x;
@@ -220,7 +220,7 @@ void Connection::mouseDown(const MouseEvent& e)
     {
         mouseDownPosition = currentPlan[n].y;
     }
-    
+
     dragIdx = n;
 }
 
@@ -277,10 +277,9 @@ int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& pl
             return n;
         }
     }
-    
+
     return -1;
 }
-
 
 void Connection::mouseUp(const MouseEvent& e)
 {
@@ -315,7 +314,6 @@ void Connection::updatePath()
     int top = std::min(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) - 4;
     int right = std::max(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX()) + 4;
     int bottom = std::max(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY()) + 4;
-
 
     origin = Rectangle<int>(left, top, right - left, bottom - top).getPosition();
 
@@ -378,7 +376,7 @@ void Connection::updatePath()
     {
         toDraw.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
     }
-    
+
     offset = {-bounds.getX(), -bounds.getY()};
 }
 
@@ -390,7 +388,7 @@ PathPlan Connection::scalePath(const PathPlan& plan)
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
 
     auto newPlan = plan;
-    
+
     auto rect = Rectangle<int>(pstart, pend).expanded(4);
 
     auto lastWidth = std::max(abs(plan.front().x - plan.back().x), 1);
@@ -409,9 +407,9 @@ PathPlan Connection::scalePath(const PathPlan& plan)
     {
         // Don't scale if it's outside of the rectangle between the inlet and outlet
         // Doing so will cause the scaling direction to invert and look bad
-        
+
         auto insideRect = rect.contains(point);
-        
+
         if (flippedX)
         {
             point.x = lastWidth - point.x;

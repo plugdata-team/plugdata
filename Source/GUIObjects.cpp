@@ -119,7 +119,6 @@ void GUIComponent::initialise(bool newObject)
 
     if (!gui.isIEM()) return;
 
-    
     primaryColour = Colour(gui.getForegroundColour()).toString();
     secondaryColour = Colour(gui.getBackgroundColour()).toString();
     if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
@@ -130,13 +129,10 @@ void GUIComponent::initialise(bool newObject)
     getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
     getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
 
-
     auto sliderBackground = Colour::fromString(secondaryColour.toString());
     sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
     getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
-
-
 
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params)
@@ -146,7 +142,7 @@ void GUIComponent::initialise(bool newObject)
         // Push current parameters to pd
         valueChanged(*value);
     }
-    
+
     repaint();
 }
 
@@ -226,7 +222,7 @@ void GUIComponent::valueChanged(Value& v)
 
         getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
         getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-        
+
         getLookAndFeel().setColour(Label::textColourId, colour.contrasting(1.0f));
         getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(1.0f));
 
@@ -917,7 +913,7 @@ struct MessageComponent : public GUIComponent
             auto baseColour = isDown ? Colour(90, 90, 90) : Colour(70, 70, 70);
 
             auto rect = getLocalBounds().toFloat();
-            
+
             g.setGradientFill(ColourGradient::vertical(baseColour, baseColour.darker(1.5f), getLocalBounds()));
 
             g.fillRoundedRectangle(rect, 2.0f);

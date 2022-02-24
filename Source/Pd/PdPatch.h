@@ -128,8 +128,7 @@ class Patch
     Instance* instance = nullptr;
 
     t_gobj* infoObject = nullptr;
-    
-    
+
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters, which is important for correct undo/redo
     static inline const std::map<String, String> guiDefaults = {
@@ -141,11 +140,8 @@ class Patch
         {"hradio", "15 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
         {"vradio", "15 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
         {"cnv", "15 100 60 empty empty empty 20 12 0 14 #171717 #404040"},
-        
-        
+
     };
-    
-    
 
     friend class Instance;
     friend class Gui;
