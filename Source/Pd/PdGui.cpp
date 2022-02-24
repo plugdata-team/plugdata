@@ -721,7 +721,12 @@ void Gui::setBounds(Rectangle<int> bounds)
     if (type == Type::Number)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        nbx->x_numwidth = w / sys_fontwidth(18);
+        nbx->x_numwidth = w / sys_fontwidth(31);
+        
+        auto* iemgui = &nbx->x_gui;
+
+        iemgui->x_w = w;
+        iemgui->x_h = h;
     }
     else if (isIEM())
     {

@@ -227,9 +227,13 @@ void GUIComponent::valueChanged(Value& v)
         getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(1.0f));
 
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
-        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker() : sliderBackground.brighter();
+        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.5f) : sliderBackground.brighter(0.5f);
+        
+        auto sliderTrack = Colour::fromString(secondaryColour.toString());
+        sliderTrack = sliderTrack.getBrightness() > 0.5f ? sliderTrack.darker(0.2f) : sliderTrack.brighter(0.2f);
 
-        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
+        getLookAndFeel().setColour(Slider::backgroundColourId, sliderTrack);
+        getLookAndFeel().setColour(Slider::trackColourId, sliderBackground);
 
         repaint();
     }
@@ -1084,48 +1088,47 @@ struct NumboxComponent : public GUIComponent
     void mouseDown(const MouseEvent& e) override
     {
         GUIComponent::mouseDown(e);
-        if (!input.isBeingEdited())
+        if (input.isBeingEdited()) return;
+
+        startEdition();
+        shift = e.mods.isShiftDown();
+        dragValue = input.getText().getFloatValue();
+
+        lastDragPos = e.position;
+
+        const auto textArea = input.getBorderSize().subtractedFrom(input.getBounds());
+
+        GlyphArrangement glyphs;
+        glyphs.addFittedText(input.getFont(), input.getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
+
+        double decimalX = getWidth();
+        for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
         {
-            startEdition();
-            shift = e.mods.isShiftDown();
-            dragValue = input.getText().getFloatValue();
-
-            lastDragPos = e.position;
-
-            const auto textArea = input.getBorderSize().subtractedFrom(input.getBounds());
-
-            GlyphArrangement glyphs;
-            glyphs.addFittedText(input.getFont(), input.getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
-
-            double decimalX = getWidth();
-            for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
+            auto const& glyph = glyphs.getGlyph(i);
+            if (glyph.getCharacter() == '.')
             {
-                auto const& glyph = glyphs.getGlyph(i);
-                if (glyph.getCharacter() == '.')
-                {
-                    decimalX = glyph.getRight();
-                }
+                decimalX = glyph.getRight();
             }
+        }
 
-            const bool isDraggingDecimal = e.x > decimalX;
+        const bool isDraggingDecimal = e.x > decimalX;
 
-            decimalDrag = isDraggingDecimal ? 6 : 0;
+        decimalDrag = isDraggingDecimal ? 6 : 0;
 
-            if (isDraggingDecimal)
+        if (isDraggingDecimal)
+        {
+            GlyphArrangement decimalsGlyph;
+            static const String decimalStr("000000");
+
+            decimalsGlyph.addFittedText(input.getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
+
+            for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
             {
-                GlyphArrangement decimalsGlyph;
-                static const String decimalStr("000000");
-
-                decimalsGlyph.addFittedText(input.getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
-
-                for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
+                auto const& glyph = decimalsGlyph.getGlyph(i);
+                if (e.x <= glyph.getRight())
                 {
-                    auto const& glyph = decimalsGlyph.getGlyph(i);
-                    if (e.x <= glyph.getRight())
-                    {
-                        decimalDrag = i + 1;
-                        break;
-                    }
+                    decimalDrag = i + 1;
+                    break;
                 }
             }
         }
@@ -1133,46 +1136,44 @@ struct NumboxComponent : public GUIComponent
 
     void mouseUp(const MouseEvent& e) override
     {
-        if (!input.isBeingEdited())
-        {
-            setMouseCursor(MouseCursor::NormalCursor);
-            updateMouseCursor();
-            stopEdition();
-        }
+        if (input.isBeingEdited()) return;
+
+        setMouseCursor(MouseCursor::NormalCursor);
+        updateMouseCursor();
+        stopEdition();
     }
 
     void mouseDrag(const MouseEvent& e) override
     {
-        if (!input.isBeingEdited())
+        if (input.isBeingEdited()) return;
+
+        setMouseCursor(MouseCursor::NoCursor);
+        updateMouseCursor();
+
+        const int decimal = decimalDrag + e.mods.isShiftDown();
+        const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
+        const float deltaY = e.y - lastDragPos.y;
+        lastDragPos = e.position;
+
+        dragValue += increment * -deltaY;
+
+        // truncate value and set
+        double newValue = dragValue;
+
+        if (decimal > 0)
         {
-            setMouseCursor(MouseCursor::NoCursor);
-            updateMouseCursor();
-
-            const int decimal = decimalDrag + e.mods.isShiftDown();
-            const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
-            const float deltaY = e.y - lastDragPos.y;
-            lastDragPos = e.position;
-
-            dragValue += increment * -deltaY;
-
-            // truncate value and set
-            double newValue = dragValue;
-
-            if (decimal > 0)
-            {
-                const int sign = (newValue > 0) ? 1 : -1;
-                unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
-                newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
-            }
-            else
-            {
-                newValue = static_cast<int64_t>(newValue);
-            }
-
-            setValueOriginal(newValue);
-
-            input.setText(formatNumber(getValueOriginal()), NotificationType::dontSendNotification);
+            const int sign = (newValue > 0) ? 1 : -1;
+            unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
+            newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
         }
+        else
+        {
+            newValue = static_cast<int64_t>(newValue);
+        }
+
+        setValueOriginal(newValue);
+
+        input.setText(formatNumber(getValueOriginal()), NotificationType::dontSendNotification);
     }
 
     ObjectParameters defineParameters() override
@@ -1208,19 +1209,19 @@ struct NumboxComponent : public GUIComponent
     {
         GUIComponent::paintOverChildren(g);
 
-        if (!gui.isAtom())
-        {
-            const int indent = 9;
+        if (gui.isAtom()) return;
 
-            const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
+        const int indent = 9;
 
-            Path corner;
+        const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
 
-            corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
+        Path corner;
 
-            g.setColour(Colour(gui.getForegroundColour()));
-            g.fillPath(corner);
-        }
+        corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
+
+        g.setColour(Colour(gui.getForegroundColour()));
+        g.fillPath(corner);
+
     }
 };
 
@@ -2077,7 +2078,7 @@ struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        box->constrainer.setSizeLimits(40, 40, 2000, 2000);
+        box->constrainer.setSizeLimits(40, 40, 4000, 4000);
 
         initialise(newObject);
     }

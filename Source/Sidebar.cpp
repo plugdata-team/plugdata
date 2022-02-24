@@ -210,7 +210,12 @@ struct Inspector : public PropertyPanel
     {
         Label label;
         Value& property;
-        float downValue = 0;
+        
+        float dragValue = 0.0f;
+        bool shift = false;
+        int decimalDrag = 0;
+
+        Point<float> lastDragPos;
 
         EditableComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), property(value)
         {
@@ -236,73 +241,101 @@ struct Inspector : public PropertyPanel
             };
         }
 
-        void mouseDown(const MouseEvent& event) override
+        void mouseDown(const MouseEvent& e) override
         {
             if constexpr (!std::is_arithmetic<T>::value) return;
+            if(label.isBeingEdited()) return;
+            
+            shift = e.mods.isShiftDown();
+            dragValue = label.getText().getFloatValue();
 
-            downValue = label.getText().getFloatValue();
+            lastDragPos = e.position;
+
+            const auto textArea = label.getBorderSize().subtractedFrom(label.getBounds());
+
+            GlyphArrangement glyphs;
+            glyphs.addFittedText(label.getFont(), label.getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
+
+            double decimalX = getWidth();
+            for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
+            {
+                auto const& glyph = glyphs.getGlyph(i);
+                if (glyph.getCharacter() == '.')
+                {
+                    decimalX = glyph.getRight();
+                }
+            }
+
+            bool isDraggingDecimal = e.x > decimalX;
+            
+            if constexpr (std::is_integral<T>::value) isDraggingDecimal = false;
+
+            decimalDrag = isDraggingDecimal ? 6 : 0;
+
+            if (isDraggingDecimal)
+            {
+                GlyphArrangement decimalsGlyph;
+                static const String decimalStr("000000");
+
+                decimalsGlyph.addFittedText(label.getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
+
+                for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
+                {
+                    auto const& glyph = decimalsGlyph.getGlyph(i);
+                    if (e.x <= glyph.getRight())
+                    {
+                        decimalDrag = i + 1;
+                        break;
+                    }
+                }
+            }
+        }
+
+        void mouseUp(const MouseEvent& e) override
+        {
+            setMouseCursor(MouseCursor::NormalCursor);
+            updateMouseCursor();
         }
 
         void mouseDrag(const MouseEvent& e) override
         {
             if constexpr (!std::is_arithmetic<T>::value) return;
+            if (label.isBeingEdited()) return;
 
-            // Skip for scientific notation
-            if (label.getText().contains("e")) return;
+            setMouseCursor(MouseCursor::NoCursor);
+            updateMouseCursor();
 
-            auto const inc = static_cast<float>(-e.getDistanceFromDragStartY()) * 0.5f;
-            if (std::abs(inc) < 1.0f) return;
+            const int decimal = decimalDrag + e.mods.isShiftDown();
+            const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
+            const float deltaY = e.y - lastDragPos.y;
+            lastDragPos = e.position;
 
-            // Logic for dragging, where the x position decides the precision
-            auto currentValue = label.getText();
-            if (!currentValue.containsChar('.')) currentValue += '.';
-            if (currentValue.getCharPointer()[0] == '-') currentValue = currentValue.substring(1);
-            currentValue += "00000";
+            dragValue += increment * -deltaY;
 
-            // Get position of all numbers
-            Array<int> glyphs;
-            Array<float> xOffsets;
-            label.getFont().getGlyphPositions(currentValue, glyphs, xOffsets);
+            // truncate value and set
+            double newValue = dragValue;
 
-            // Find the number closest to the mouse down
-            auto position = static_cast<float>(e.getMouseDownX() - 4);
-            auto precision = static_cast<int>(std::lower_bound(xOffsets.begin(), xOffsets.end(), position) - xOffsets.begin());
-            precision -= currentValue.indexOfChar('.');
-
-            // I case of integer dragging
-            if (precision <= 0)
+            if (decimal > 0)
             {
-                precision = 0;
+                const int sign = (newValue > 0) ? 1 : -1;
+                unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
+                newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
             }
             else
             {
-                // Offset for the decimal point character
-                precision -= 1;
+                newValue = static_cast<int64_t>(newValue);
             }
 
-            if constexpr (std::is_integral<T>::value)
-            {
-                precision = 0;
-            }
-            else
-            {
-                precision = std::min(precision, 3);
-            }
+            label.setText(formatNumber(newValue), NotificationType::sendNotification);
 
-            // Calculate increment multiplier
-            float multiplier = powf(10.0f, static_cast<float>(-precision));
-
-            // Calculate new value as string
-            auto newValue = String(downValue + inc * multiplier, precision);
-
-            if (precision == 0) newValue = newValue.upToFirstOccurrenceOf(".", true, false);
-
-            if constexpr (std::is_integral<T>::value)
-            {
-                newValue = newValue.upToFirstOccurrenceOf(".", false, false);
-            }
-
-            label.setText(newValue, sendNotification);
+        }
+        
+        String formatNumber(float value)
+        {
+            String text;
+            text << value;
+            if (!text.containsChar('.')) text << '.';
+            return text;
         }
 
         void resized() override
@@ -648,7 +681,7 @@ void Sidebar::paint(Graphics& g)
 
     // Sidebar
     g.setColour(findColour(ComboBox::backgroundColourId).darker(0.1));
-    g.fillRect(getWidth() - sWidth, 0, sWidth - 5, getHeight());
+    g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight());
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
