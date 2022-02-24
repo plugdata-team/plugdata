@@ -54,36 +54,36 @@ Known issues:
 
 v0.3.3:
 - Fix all warnings
-- Fix multi-instance problems for plugins (DONE, hopefully)
+- Fix multi-instance problems for plugins (DONE)
 - Clean up:
-    - Box class, reduce resize calls
+    - Box class, reduce resize calls (DONE)
     - Better patch management (opening/closing patches, tab behaviour, remembering tabs when closing plugin editor) (DONE)
-    - Move sidebar classes to separate file
-    - Consistent naming of inlets/outlets
+    - Move sidebar classes to separate file (DONE)
     - LookAndFeel classes (DONE)
-- MIDI Blinker
-- Allow modifying label text, font, position and colour
-- Ensure all object properties are supported, including height/width where applicable
+- MIDI Blinker (DONE)
+- Allow modifying label text, font, position and colour (DONE, except font)
 - Create document and system for object descriptions and inlet/outlet hover messages (DONE)
-- More flexible connection manipulation
-- Increase number of automatable parameters
+- More flexible connection manipulation (DONE)
+- Increase number of automatable parameters (DONE)
 - Make sure most Pd and ELSE objects work properly, especially ones with GUI features
   - text define, pic, possibly more
-- Add AtomList object
+- Add AtomList object (DONE)
 - Fix resize problems:
-    - No resize for some pre-existing objects
-    - Array resize
-    - Graph resize
+    - No resize for some pre-existing objects (DONE)
+    - Array resize (DONE)
+    - Graph resize (DONE)
     - Keyboard resize
-- Fix gaps when dragging over array
-- Fix showing suggestions in comments
-- Fix comment rectangle not clearing
-- Implement zooming by ctrl+scrolling, maybe pinch on trackpads/touchscreens
-- Always show console when interacting with GUI objects
-- Fix mixed red/white outline bug
+- Fix gaps when dragging over array (DONE)
+- Fix showing suggestions in comments (DONE)
+- Fix comment rectangle not clearing (DONE)
+- Implement zooming by ctrl+scrolling, maybe pinch on trackpads/touchscreens (DONE)
+- Always show console when interacting with GUI objects (DONE)
+- Fix mixed red/white outline bug (DONE)
 - Add light theme for pd compatibility (to make black text in original pd patches readable)
 - Fix ctrl to temporarily enter lock mode on Linux (DONE)
 - Make sure pd patches always look correct (especially for compact UI's designed in pd)
+
+Version 0.3.3 is almost there, and features a vastly improved GUI, multi-channel for plugins, presentation mode, improved sidebar/statusbar and much more!
 
 v0.3.4 - v0.4:
 - Support grid
