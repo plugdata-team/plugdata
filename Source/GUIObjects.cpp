@@ -119,39 +119,23 @@ void GUIComponent::initialise(bool newObject)
 
     if (!gui.isIEM()) return;
 
-  
-        primaryColour = Colour(gui.getForegroundColour()).toString();
-        secondaryColour = Colour(gui.getBackgroundColour()).toString();
-        if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
-
-        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
-        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
-
-        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
-        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-
-        auto sliderBackground = Colour::fromString(secondaryColour.toString());
-        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
-
-        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     
-    
-    /*
-    else
-    {
-        primaryColour = findColour(Slider::thumbColourId).toString();
-        secondaryColour = findColour(ComboBox::backgroundColourId).toString();
+    primaryColour = Colour(gui.getForegroundColour()).toString();
+    secondaryColour = Colour(gui.getBackgroundColour()).toString();
+    if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
 
-        auto sliderBackground = Colour::fromString(secondaryColour.toString());
-        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
+    getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
+    getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
 
-        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
-    } */
-    /*
-    else {
+    getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
+    getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
+
+    auto sliderBackground = Colour::fromString(secondaryColour.toString());
+    sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
+
+    getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
 
 
-    } */
 
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params)
@@ -1976,7 +1960,7 @@ struct Subpatch : public GUIComponent
 
     std::pair<int, int> getBestSize() override
     {
-        return {0, 3};
+        return {0, Box::height};
     };
 
     pd::Patch* getPatch() override

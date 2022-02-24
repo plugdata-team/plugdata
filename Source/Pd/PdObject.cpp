@@ -92,6 +92,7 @@ Rectangle<int> Object::getBounds() const noexcept
 
         return {static_cast<int>(x * Patch::zoom), static_cast<int>(y * Patch::zoom), static_cast<int>(w * Patch::zoom), static_cast<int>(h * Patch::zoom)};
     }
+    
     return {0, 0, 0, 0};
 }
 
@@ -152,11 +153,6 @@ void Object::setBounds(Rectangle<int> bounds)
         textObj->te_width = newWidth;
         libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX() / Patch::zoom, bounds.getY() / Patch::zoom);
     }
-}
-
-int Object::getWidth() const
-{
-    return static_cast<t_text*>(ptr)->te_width * sys_fontwidth(18);
 }
 
 int Object::getNumInlets() noexcept

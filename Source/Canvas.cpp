@@ -484,11 +484,11 @@ void Canvas::paint(Graphics& g)
 
         g.setColour(findColour(ComboBox::backgroundColourId).contrasting(0.4));
 
-        for (int x = (canvasOrigin.getX() % gridSize); x < clipBounds.getRight(); x += gridSize)
+        for (int x = canvasOrigin.getX() + gridSize; x < clipBounds.getRight(); x += gridSize)
         {
-            for (int y = (canvasOrigin.getY() % gridSize); y < clipBounds.getBottom(); y += gridSize)
+            for (int y = canvasOrigin.getY() + gridSize; y < clipBounds.getBottom(); y += gridSize)
             {
-                g.fillRect(x + canvasOrigin.getX(), y + canvasOrigin.getY(), 1, 1);
+                g.fillRect(x, y, 1, 1);
             }
         }
     }

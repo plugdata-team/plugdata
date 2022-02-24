@@ -603,7 +603,8 @@ void lowpass_tilde_setup(void);
 void lowshelf_tilde_setup(void);
 void match_tilde_setup(void);
 void median_tilde_setup(void);
-extern void merge_setup(void);
+void merge_setup(void);
+void metronome_setup(void);
 void message_setup(void);
 void messbox_setup(void);
 void midi_setup(void);
@@ -1071,6 +1072,7 @@ void libpd_multi_init(void)
         match_tilde_setup();
         median_tilde_setup();
         merge_setup();
+        metronome_setup();
         message_setup();
         messbox_setup();
         midi_setup();
