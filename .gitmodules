@@ -7,3 +7,9 @@
 [submodule "Libraries/pure-data"]
 	path = Libraries/pure-data
 	url = https://github.com/pure-data/pure-data.git
+[submodule "Libraries/readerwriterqueue"]
+	path = Libraries/readerwriterqueue
+	url = https://github.com/cameron314/readerwriterqueue.git
+[submodule "Libraries/concurrentqueue"]
+	path = Libraries/concurrentqueue
+	url = https://github.com/cameron314/concurrentqueue.git

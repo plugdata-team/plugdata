@@ -67,7 +67,7 @@ class Object
     Patch getHelp() const;
 
     virtual void setBounds(Rectangle<int> bounds);
-    int getWidth() const;
+
 
     virtual inline Type getType() const noexcept
     {
