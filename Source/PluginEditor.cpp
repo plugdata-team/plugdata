@@ -277,6 +277,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+    
 }
 
 void PlugDataPluginEditor::resized()
