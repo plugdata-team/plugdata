@@ -58,6 +58,9 @@ struct SaveDialog : public Component
     {
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
+        
+        g.setColour(findColour(ComboBox::outlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 2.0f);
     }
 
     std::function<void(int)> cb;
@@ -567,7 +570,7 @@ void Dialogs::showSaveDialog(Component* centre, std::function<void(int)> callbac
 
     centre->addAndMakeVisible(dialog);
 
-    dialog->setBounds((centre->getWidth() / 2.) - 200., 40, 400, 130);
+    dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 400, 130);
 }
 void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
 {
@@ -576,7 +579,7 @@ void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String,
 
     centre->addAndMakeVisible(dialog);
 
-    dialog->setBounds((centre->getWidth() / 2.) - 200., 37, 300, 180);
+    dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 300, 180);
 }
 
 std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, const std::function<void()>& updatePaths)

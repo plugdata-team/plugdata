@@ -72,6 +72,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void showNewObjectMenu();
 
     void paint(Graphics&) override;
+    
     void resized() override;
 
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;

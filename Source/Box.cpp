@@ -134,7 +134,7 @@ void Box::setType(const String& newType, bool exists)
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
     // "exists" indicates that this object already exists in pd
-    // When setting exists to true, you need to have assigned an object to the pdObject variable already
+    // When setting exists to true, the pdObject need to be assigned already
     if (!exists)
     {
         auto* pd = &cnv->patch;
@@ -241,7 +241,7 @@ void Box::setType(const String& newType, bool exists)
         int textWidth = font.getStringWidth(newType) + widthOffset;
 
         int minimumWidth = std::max(textWidth, ioletWidth);
-        constrainer.setSizeLimits(minimumWidth, Box::height, std::max(1000, minimumWidth), Box::height);
+        constrainer.setSizeLimits(minimumWidth, Box::height, std::max(3000, minimumWidth), Box::height);
     }
 
     cnv->main.commandStatusChanged();
