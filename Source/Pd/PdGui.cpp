@@ -932,6 +932,8 @@ String Gui::getLabelText() const noexcept
 
 void Gui::setLabelText(String newText) noexcept
 {
+    if(newText.isEmpty()) newText = "empty";
+    
     if (isIEM())
     {
         static_cast<t_iemgui*>(ptr)->x_lab = gensym(newText.toRawUTF8());

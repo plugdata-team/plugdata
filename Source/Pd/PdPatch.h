@@ -130,17 +130,19 @@ class Patch
     t_gobj* infoObject = nullptr;
     
     
+    // Initialisation parameters for GUI objects
+    // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters, which is important for correct undo/redo
     static inline const std::map<String, String> guiDefaults = {
-        {"tgl", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"hsl", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"vsl", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"bng", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"nbx", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"hradio", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"vradio", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"floatatom", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"symbolatom", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"listatom", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"tgl", "15 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff 0 1"},
+        {"hsl", "128 15 0 127 0 0 empty empty empty -2 -8 0 10 #171717 #42a2c8 #ffffff 0 1"},
+        {"vsl", "15 128 0 127 0 0 empty empty empty 0 -9 0 10 #171717 #42a2c8 #ffffff 0 1"},
+        {"bng", "15 250 50 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
+        {"nbx", "3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0 256"},
+        {"hradio", "15 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
+        {"vradio", "15 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
+        {"cnv", "15 100 60 empty empty empty 20 12 0 14 #171717 #404040"},
+        
+        
     };
     
     

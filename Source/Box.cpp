@@ -170,15 +170,7 @@ void Box::setType(const String& newType, bool exists)
     int width;
     if (exists)
     {
-        width = pdObject->getWidth();
-        if (width == 0)
-        {
-            width = font.getStringWidth(newType) + widthOffset;
-        }
-        else
-        {
-            width += margin;
-        }
+        width = pdObject->getBounds().getWidth() + doubleMargin;
     }
     else
     {
@@ -187,14 +179,6 @@ void Box::setType(const String& newType, bool exists)
 
     // Update inlets/outlets
     updatePorts();
-
-    int largestSide = std::max(numInputs, numOutputs);
-
-    // Make sure we have enough space for inlets/outlets
-    if (width - doubleMargin < largestSide * doubleMargin)
-    {
-        width = (largestSide * doubleMargin) + 15;
-    }
 
     if (pdObject)
     {
@@ -248,9 +232,16 @@ void Box::setType(const String& newType, bool exists)
     {
         setText(newType.fromFirstOccurrenceOf("comment ", false, false), dontSendNotification);
     }
-
+    
     // graphical objects manage their own size limits
-    if (!graphics) constrainer.setSizeLimits(25, getHeight(), 350, getHeight());
+    // For text object, make sure the width at least fits the text
+    if (!graphics || graphics->fakeGui()) {
+        int ioletWidth = (std::max(numInputs, numOutputs) * doubleMargin) + 15;
+        int textWidth = font.getStringWidth(newType) + widthOffset;
+        
+        int minimumWidth = std::max(textWidth, ioletWidth);
+        constrainer.setSizeLimits(minimumWidth, Box::height, std::max(1000, minimumWidth), Box::height);
+    }
 
     cnv->main.commandStatusChanged();
 }
@@ -330,12 +321,12 @@ void Box::resized()
 
     constrainer.checkComponentBounds(this);
 
-    auto bestWidth = font.getStringWidth(getText()) + widthOffset;
 
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
     {
+        auto bestWidth = font.getStringWidth(getText()) + widthOffset;
         int numLines = std::max(StringArray::fromTokens(getText(), "\n", "\'").size(), 1);
-        setSize(bestWidth + 10, (numLines * 17) + 14);
+        //setSize(bestWidth + 10, (numLines * 17) + 14);
     }
 
     if (auto* newEditor = getCurrentTextEditor())

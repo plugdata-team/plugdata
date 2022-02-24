@@ -240,7 +240,7 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
     y /= zoom;
 
     StringArray tokens;
-    tokens.addTokens(name, " ", "");
+    tokens.addTokens(name, false);
     
     if(guiDefaults.find(tokens[0]) != guiDefaults.end()) {
         tokens.addTokens(guiDefaults.at(tokens[0]), false);
@@ -283,8 +283,6 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
         tokens.remove(0);
     }
     
-
-
     int argc = tokens.size() + 2;
 
     auto argv = std::vector<t_atom>(argc);
@@ -295,7 +293,8 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
 
     for (int i = 0; i < tokens.size(); i++)
     {
-        if (tokens[i].containsOnly("0123456789.-") && tokens[i] != "-")
+        auto& tok = tokens[i];
+        if (tokens[i].containsOnly("0123456789e.-+") && tokens[i] != "-")
         {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         }

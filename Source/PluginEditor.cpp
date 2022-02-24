@@ -625,23 +625,23 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     {
         case CommandIDs::NewProject:
         {
-            result.setInfo(translate("New Project"), translate("Create a new project"), "General", 0);
+            result.setInfo("New Project", "Create a new project", "General", 0);
             break;
         }
         case CommandIDs::OpenProject:
         {
-            result.setInfo(translate("Open Project"), translate("Open a new project"), "General", 0);
+            result.setInfo("Open Project", "Open a new project", "General", 0);
             break;
         }
         case CommandIDs::SaveProject:
         {
-            result.setInfo(translate("Save Project"), translate("Save project at current location"), "General", 0);
+            result.setInfo("Save Project", "Save project at current location", "General", 0);
             result.addDefaultKeypress(83, ModifierKeys::commandModifier);
             break;
         }
         case CommandIDs::SaveProjectAs:
         {
-            result.setInfo(translate("Save Project As"), translate("Save project in chosen location"), "General", 0);
+            result.setInfo("Save Project As", "Save project in chosen location", "General", 0);
             result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             break;
         }
@@ -652,7 +652,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
             toolbarButton(Undo)->setEnabled(canUndo);
 
-            result.setInfo(translate("Undo"), translate("Undo action"), "General", 0);
+            result.setInfo("Undo", "Undo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier);
             result.setActive(canUndo);
 
@@ -666,141 +666,141 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
             toolbarButton(Redo)->setEnabled(canRedo);
 
-            result.setInfo(translate("Redo"), translate("Redo action"), "General", 0);
+            result.setInfo("Redo", "Redo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(canRedo);
             break;
         }
         case CommandIDs::Lock:
         {
-            result.setInfo(translate("Lock"), translate("Lock patch"), "Edit", 0);
+            result.setInfo("Lock", "Lock patch", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier);
             break;
         }
         case CommandIDs::ConnectionPathfind:
         {
-            result.setInfo(translate("Tidy connection"), translate("Find best path for connection"), "Edit", 0);
+            result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
             result.setActive(statusbar.connectionStyle == true);
             break;
         }
         case CommandIDs::ConnectionStyle:
         {
-            result.setInfo(translate("Connection style"), translate("Set connection style"), "Edit", 0);
+            result.setInfo("Connection style", "Set connection style", "Edit", 0);
 
             break;
         }
         case CommandIDs::ZoomIn:
         {
-            result.setInfo(translate("Zoom in"), translate("Zoom in"), "Edit", 0);
+            result.setInfo("Zoom in", "Zoom in", "Edit", 0);
             result.addDefaultKeypress(61, ModifierKeys::commandModifier);
             break;
         }
         case CommandIDs::ZoomOut:
         {
-            result.setInfo(translate("Zoom out"), translate("Zoom out"), "Edit", 0);
+            result.setInfo("Zoom out", "Zoom out", "Edit", 0);
             result.addDefaultKeypress(45, ModifierKeys::commandModifier);
             break;
         }
         case CommandIDs::ZoomNormal:
         {
-            result.setInfo(translate("Zoom 100%"), translate("Revert zoom to 100%"), "Edit", 0);
+            result.setInfo("Zoom 100%", "Revert zoom to 100%", "Edit", 0);
             result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             break;
         }
         case CommandIDs::Copy:
         {
-            result.setInfo(translate("Copy"), translate("Copy"), "Edit", 0);
+            result.setInfo("Copy", "Copy", "Edit", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier);
             result.setActive(pd.locked == false && hasBoxSelection);
             break;
         }
         case CommandIDs::Paste:
         {
-            result.setInfo(translate("Paste"), translate("Paste"), "Edit", 0);
+            result.setInfo("Paste", "Paste", "Edit", 0);
             result.addDefaultKeypress(86, ModifierKeys::commandModifier);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::Cut:
         {
-            result.setInfo(translate("Cut"), translate("Cut selection"), "Edit", 0);
+            result.setInfo("Cut", "Cut selection", "Edit", 0);
             result.addDefaultKeypress(88, ModifierKeys::commandModifier);
             result.setActive(pd.locked == false && hasSelection);
             break;
         }
         case CommandIDs::Delete:
         {
-            result.setInfo(translate("Delete"), translate("Delete selection"), "Edit", 0);
+            result.setInfo("Delete", "Delete selection", "Edit", 0);
             result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false && hasSelection);
             break;
         }
         case CommandIDs::Duplicate:
         {
-            result.setInfo(translate("Duplicate"), translate("Duplicate selection"), "Edit", 0);
+            result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier);
             result.setActive(pd.locked == false && hasBoxSelection);
             break;
         }
         case CommandIDs::SelectAll:
         {
-            result.setInfo(translate("Select all"), translate("Select all objects and connections"), "Edit", 0);
+            result.setInfo("Select all", "Select all objects and connections", "Edit", 0);
             result.addDefaultKeypress(65, ModifierKeys::commandModifier);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewObject:
         {
-            result.setInfo(translate("New Object"), translate("Create new object"), "Objects", 0);
+            result.setInfo("New Object", "Create new object", "Objects", 0);
             result.addDefaultKeypress(78, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewComment:
         {
-            result.setInfo(translate("New Comment"), translate("Create new comment"), "Objects", 0);
+            result.setInfo("New Comment", "Create new comment", "Objects", 0);
             result.addDefaultKeypress(67, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewBang:
         {
-            result.setInfo(translate("New Bang"), translate("Create new bang"), "Objects", 0);
+            result.setInfo("New Bang", "Create new bang", "Objects", 0);
             result.addDefaultKeypress(66, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewMessage:
         {
-            result.setInfo(translate("New Message"), translate("Create new message"), "Objects", 0);
+            result.setInfo("New Message", "Create new message", "Objects", 0);
             result.addDefaultKeypress(77, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewToggle:
         {
-            result.setInfo(translate("New Toggle"), translate("Create new toggle"), "Objects", 0);
+            result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
             result.addDefaultKeypress(84, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewNumbox:
         {
-            result.setInfo(translate("New Number"), translate("Create new number box"), "Objects", 0);
+            result.setInfo("New Number", "Create new number box", "Objects", 0);
             result.addDefaultKeypress(73, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewFloatAtom:
         {
-            result.setInfo(translate("New Floatatom"), translate("Create new floatatom"), "Objects", 0);
+            result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
             result.addDefaultKeypress(70, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
         }
         case CommandIDs::NewSlider:
         {
-            result.setInfo(translate("New Slider"), translate("Create new slider"), "Objects", 0);
+            result.setInfo("New Slider", "Create new slider", "Objects", 0);
             result.addDefaultKeypress(83, ModifierKeys::noModifiers);
             result.setActive(pd.locked == false);
             break;
