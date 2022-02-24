@@ -17,7 +17,7 @@ class Edge : public TextButton
    public:
     Box* box;
 
-    Edge(Box* parent, bool isInput);
+    Edge(Box* parent, bool isInlet);
 
     void paint(Graphics&) override;
     void resized() override;
@@ -37,7 +37,7 @@ class Edge : public TextButton
     Rectangle<int> getCanvasBounds();
 
     int edgeIdx;
-    bool isInput;
+    bool isInlet;
     bool isSignal;
 
     Value locked;

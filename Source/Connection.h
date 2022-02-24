@@ -24,10 +24,8 @@ class Connection : public Component, public ComponentListener
    public:
     int inIdx;
     int outIdx;
-    std::unique_ptr<pd::Object>* inObj;
-    std::unique_ptr<pd::Object>* outObj;
 
-    SafePointer<Edge> start, end;
+    SafePointer<Edge> inlet, outlet;
 
     PathPlan currentPlan;
     Path toDraw;
@@ -39,7 +37,7 @@ class Connection : public Component, public ComponentListener
 
     String lastId;
 
-    Point<int> origin;
+    Point<int> origin, offset;
 
     int dragIdx = -1;
 
@@ -49,7 +47,6 @@ class Connection : public Component, public ComponentListener
     ~Connection() override;
 
     void paint(Graphics&) override;
-    void resized() override;
 
     void updatePath();
 
@@ -59,6 +56,9 @@ class Connection : public Component, public ComponentListener
     void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
+    
+    
+    int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
 
     String getId() const;
 
