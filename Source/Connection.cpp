@@ -28,8 +28,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
         return;
     }
 
-    inIdx = outlet->edgeIdx;
-    outIdx = inlet->edgeIdx;
+    inIdx = inlet->edgeIdx;
+    outIdx = outlet->edgeIdx;
 
     outlet->repaint();
     inlet->repaint();

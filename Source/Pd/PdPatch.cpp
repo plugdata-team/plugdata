@@ -100,6 +100,7 @@ void Patch::close()
 void Patch::setCurrent(bool lock)
 {
     // instance->setThis();
+    if(!ptr) return;
 
     if (lock) instance->getCallbackLock()->enter();
 

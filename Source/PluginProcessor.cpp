@@ -699,11 +699,12 @@ void PlugDataAudioProcessor::loadPatch(File patch)
     {
         editor->tabbar.clearTabs();
         editor->canvases.clear();
-        patches.clear();
     }
+    patches.clear();
 
     openPatch(patch);
-
+    patches.addIfNotAlreadyThere(getPatch());
+    
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));

@@ -149,6 +149,7 @@ juce_add_plugin(PlugDataMidi
 endif()
 
 if(APPLE)
+set_target_properties(PlugData PROPERTIES MACOSX_BUNDLE TRUE)
 set_target_properties(PlugData PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 set_target_properties(PlugDataFx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 endif()
@@ -163,6 +164,7 @@ target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSE
 
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
+
 set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 17)
 set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})

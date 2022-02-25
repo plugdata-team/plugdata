@@ -13,6 +13,9 @@
 namespace pd
 {
 
+using Suggestion = std::pair<std::string, bool>;
+using Suggestions = std::vector<Suggestion>;
+
 // Define the character size
 #define CHAR_SIZE 128
 #define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
@@ -40,8 +43,8 @@ class Trie
     bool search(const std::string&);
     bool hasChildren();
 
-    void suggestionsRec(std::string currPrefix, std::vector<std::string>& result);
-    int autocomplete(std::string query, std::vector<std::string>& result);
+    void suggestionsRec(std::string currPrefix, Suggestions& result);
+    int autocomplete(std::string query, Suggestions& result);
 };
 
 struct Library
@@ -50,7 +53,7 @@ struct Library
 
     void parseDocumentation(const String& path);
 
-    std::vector<std::string> autocomplete(std::string query);
+    Suggestions autocomplete(std::string query);
 
     std::unordered_map<String, String> objectDescriptions;
     std::unordered_map<String, StringArray> objectKeywords;

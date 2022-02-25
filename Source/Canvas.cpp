@@ -265,16 +265,18 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         auto& library = currentBox->cnv->pd->objectLibrary;
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
-
+        
         for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
         {
-            if (library.objectDescriptions.find(found[i]) != library.objectDescriptions.end())
+            auto& [name, autocomplete] = found[i];
+            
+            if (library.objectDescriptions.find(name) != library.objectDescriptions.end())
             {
-                buttons[i]->setText(found[i], library.objectDescriptions[found[i]]);
+                buttons[i]->setText(name, library.objectDescriptions[name]);
             }
             else
             {
-                buttons[i]->setText(found[i], "");
+                buttons[i]->setText(name, "");
             }
         }
 
@@ -297,11 +299,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             return mutableInput;
         }
 
-        String fullName = found[currentidx];
+        String fullName = found[currentidx].first;
 
         highlightEnd = fullName.length();
 
-        if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" "))
+        if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" ") || !found[currentidx].second)
 
         {
             isCompleting = false;
