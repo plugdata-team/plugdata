@@ -721,7 +721,7 @@ void Gui::setBounds(Rectangle<int> bounds)
     if (type == Type::Number)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        nbx->x_numwidth = w / sys_fontwidth(31);
+        nbx->x_numwidth = w / glist_fontwidth(patch->getPointer());
         
         auto* iemgui = &nbx->x_gui;
 
