@@ -142,12 +142,12 @@ bool Trie::deletion(Trie*& curr, std::string key)
     return false;
 }
 
-void Trie::suggestionsRec(std::string currPrefix, std::vector<std::string>& result)
+void Trie::suggestionsRec(std::string currPrefix, Suggestions& result)
 {
     // found aString in Trie with the given prefix
     if (isLeaf)
     {
-        result.push_back(currPrefix);
+        result.push_back({currPrefix, true});
     }
 
     // All children struct node pointers are NULL
@@ -170,10 +170,10 @@ void Trie::suggestionsRec(std::string currPrefix, std::vector<std::string>& resu
 }
 
 // print suggestions for given query prefix.
-int Trie::autocomplete(std::string query, std::vector<std::string>& result)
+int Trie::autocomplete(std::string query, Suggestions& result)
 {
     auto* pCrawl = this;
-
+    
     // Check if prefix is present and find the
     // the node (of last level) with last character
     // of givenString.
@@ -201,7 +201,7 @@ int Trie::autocomplete(std::string query, std::vector<std::string>& result)
     // matching node.
     if (isWord && isLast)
     {
-        result.push_back(query);
+        result.push_back({query, true});
         return -1;
     }
 
@@ -279,9 +279,9 @@ void Library::parseDocumentation(const String& path)
     }
 }
 
-std::vector<std::string> Library::autocomplete(std::string query)
+Suggestions Library::autocomplete(std::string query)
 {
-    std::vector<std::string> result;
+    Suggestions result;
     searchTree.autocomplete(std::move(query), result);
     return result;
 }
