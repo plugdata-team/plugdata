@@ -112,7 +112,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Value locked;
     Value connectionStyle;
     Value presentationMode;
-
+    
     bool isGraph = false;
     bool isGraphChild = false;
 
