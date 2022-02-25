@@ -19,24 +19,18 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     
     setTopLeftPosition(position);
     
-    // Makes sure it animates it at the correct size
-    if(name.isEmpty()) {
-        setSize(100, height);
-    }
-    
-    auto& animator = Desktop::getInstance().getAnimator();
-    animator.fadeIn(this, 150);
     
     initialise();
-    
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
     if(name.isEmpty()) {
+        setSize(100, height);
         showEditor();
     }
     else {
         setType(name);
     }
+
 }
 
 Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object)
@@ -187,6 +181,7 @@ void Box::setType(const String& newType, bool exists)
     {
         width = font.getStringWidth(newType) + widthOffset;
         
+        
     }
 
     // Update inlets/outlets
@@ -254,6 +249,14 @@ void Box::setType(const String& newType, bool exists)
 
         int minimumWidth = std::max(textWidth, ioletWidth);
         constrainer.setSizeLimits(minimumWidth, Box::height, std::max(3000, minimumWidth), Box::height);
+    }
+        
+    if(!exists) {
+        cnv->pd->enqueueFunction([this]() {
+            auto b = getBounds() - cnv->canvasOrigin;
+            b.setWidth(b.getWidth() - doubleMargin);
+            pdObject->setBounds(b);
+        });
     }
 
     cnv->main.commandStatusChanged();
