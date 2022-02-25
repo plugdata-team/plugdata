@@ -410,11 +410,6 @@ PathPlan Connection::scalePath(const PathPlan& plan)
 
         auto insideRect = rect.contains(point);
 
-        if(!insideRect) {
-            flippedX = false;
-            flippedY = false;
-        }
-        
         if (flippedX)
         {
             point.x = lastWidth - point.x;

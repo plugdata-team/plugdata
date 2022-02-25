@@ -2333,6 +2333,8 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     {
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
+       
+        state.addListener(this);
 
         addAndMakeVisible(keyboard);
 
