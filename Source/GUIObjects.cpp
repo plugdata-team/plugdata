@@ -659,7 +659,7 @@ struct BangComponent : public GUIComponent
         };
 
         initialise(newObject);
-        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, 1200, 1200);
+        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
 
@@ -776,7 +776,7 @@ struct ToggleComponent : public GUIComponent
 
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, 1200, 1200);
+        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
 
@@ -890,7 +890,7 @@ struct MessageComponent : public GUIComponent
         initialise(newObject);
 
         box->addMouseListener(this, false);
-        box->constrainer.setSizeLimits(50, Box::height - 2, 500, 600);
+        box->constrainer.setSizeLimits(50, Box::height - 2, maxSize, maxSize);
     }
 
     void lock(bool locked) override
@@ -1282,7 +1282,7 @@ struct ListComponent : public GUIComponent, public Timer
 
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(100, Box::height - 2, 500, 600);
+        box->constrainer.setSizeLimits(100, Box::height - 2, maxSize, maxSize);
         startTimer(100);
     }
 
@@ -1406,11 +1406,11 @@ struct SliderComponent : public GUIComponent
 
         if (isVertical)
         {
-            box->constrainer.setSizeLimits(40, 77, 250, 500);
+            box->constrainer.setSizeLimits(40, 77, maxSize, maxSize);
         }
         else
         {
-            box->constrainer.setSizeLimits(50, Box::height - 2, 500, 250);
+            box->constrainer.setSizeLimits(50, Box::height - 2, maxSize, maxSize);
         }
     }
 
@@ -1485,11 +1485,11 @@ struct RadioComponent : public GUIComponent
         }
         if (isVertical)
         {
-            box->constrainer.setSizeLimits(25, 90, 250, 500);
+            box->constrainer.setSizeLimits(25, 90, maxSize, maxSize);
         }
         else
         {
-            box->constrainer.setSizeLimits(100, 25, 500, 250);
+            box->constrainer.setSizeLimits(100, 25, maxSize, maxSize);
         }
     }
 
@@ -1791,7 +1791,7 @@ struct ArrayComponent : public GUIComponent
         addAndMakeVisible(&array);
 
         initialise(newObject);
-        box->constrainer.setSizeLimits(100, 40, 500, 600);
+        box->constrainer.setSizeLimits(100, 40, maxSize, maxSize);
     }
 
     void resized() override
@@ -1825,7 +1825,7 @@ struct GraphOnParent : public GUIComponent
 
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(25, 25, 500, 500);
+        box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
 
         resized();
     }
@@ -2008,7 +2008,7 @@ struct VUMeter : public GUIComponent
     {
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(55, 120, 2000, 2000);
+        box->constrainer.setSizeLimits(55, 120, maxSize, maxSize);
     }
 
     void resized() override
@@ -2078,7 +2078,7 @@ struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        box->constrainer.setSizeLimits(40, 40, 4000, 4000);
+        box->constrainer.setSizeLimits(40, 40, maxSize, maxSize);
 
         initialise(newObject);
     }
@@ -2088,7 +2088,7 @@ struct PanelComponent : public GUIComponent
         g.fillAll(Colour::fromString(secondaryColour.toString()));
     }
 
-    void updateValue() override{};
+    void updateValue() override {};
 
     ObjectParameters getParameters() override
     {
@@ -2338,7 +2338,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
 
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(50, 70, 1200, 1200);
+        box->constrainer.setSizeLimits(50, 70, maxSize, maxSize);
     }
 
     void resized() override
