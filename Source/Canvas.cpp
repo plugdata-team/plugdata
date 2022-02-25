@@ -611,8 +611,9 @@ void Canvas::synchronise(bool updatePosition)
         else
         {
             auto* box = *it;
-            auto b = object.getBounds();
+            auto b = box->pdObject->getBounds(); // don't take from pd object, in case it's a gui object!
 
+            
             b.translate(canvasOrigin.x, canvasOrigin.y);
 
             // Only update positions if we need to and there is a significant difference

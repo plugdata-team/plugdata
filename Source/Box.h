@@ -25,6 +25,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     explicit Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
     Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = {100, 100});
+    
+    ~Box();
 
     void valueChanged(Value& v) override;
 
@@ -85,11 +87,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void textEditorReturnKeyPressed(TextEditor& ed) override;
 
     Rectangle<int> originalBounds;
-
-    bool wasResized = false;
-
-    std::function<void()> onTextChange;
-
     bool hideLabel = false;
 
     Value textValue;

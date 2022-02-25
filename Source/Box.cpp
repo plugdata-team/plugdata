@@ -16,33 +16,50 @@
 Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
     cnv = parent;
-
-    initialise();
+    
     setTopLeftPosition(position);
-
-    setType(name);
-
+    
+    // Makes sure it animates it at the correct size
+    if(name.isEmpty()) {
+        setSize(100, height);
+    }
+    
+    auto& animator = Desktop::getInstance().getAnimator();
+    animator.fadeIn(this, 150);
+    
+    initialise();
+    
     // Open editor for undefined objects
-    if (name.isEmpty())
-    {
+    // Delay the setting of the type to prevent creating an invalid object first
+    if(name.isEmpty()) {
         showEditor();
+    }
+    else {
+        setType(name);
     }
 }
 
 Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object)
 {
     cnv = parent;
-    initialise();
+    
     setTopLeftPosition(position);
-
     setType(name, true);
+    initialise();
 }
+
+Box::~Box(){
+    // This is safe according to JUCE documentation
+    auto& animator = Desktop::getInstance().getAnimator();
+    animator.fadeOut(this, 150);
+}
+
 
 void Box::initialise()
 {
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
-
+    
     // Updates lock/unlock mode
     locked.referTo(cnv->pd->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
@@ -53,12 +70,6 @@ void Box::initialise()
     commandLocked.addListener(this);
 
     setBufferedToImage(true);
-
-    onTextChange = [this]()
-    {
-        String newText = getText();
-        setType(newText);
-    };
 
     originalBounds.setBounds(0, 0, 0, 0);
 }
@@ -175,6 +186,7 @@ void Box::setType(const String& newType, bool exists)
     else
     {
         width = font.getStringWidth(newType) + widthOffset;
+        
     }
 
     // Update inlets/outlets
@@ -413,7 +425,10 @@ void Box::setText(const String& newText, NotificationType notification)
         textValue = newText;
         repaint();
 
-        if (notification != dontSendNotification && onTextChange != nullptr) onTextChange();
+        if (notification != dontSendNotification) {
+            setType(newText);
+        }
+            
     }
 }
 
@@ -469,7 +484,13 @@ void Box::mouseUp(const MouseEvent& e)
 
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
     {
-        cnv->pd->enqueueFunction([this]() { pdObject->setBounds(getBounds() - cnv->canvasOrigin); });
+        cnv->pd->enqueueFunction([this]() {
+            auto b = getBounds() - cnv->canvasOrigin;
+            b.setWidth(b.getWidth() - doubleMargin);
+            pdObject->setBounds(b);
+        });
+        
+        cnv->checkBounds();
 
         originalBounds.setBounds(0, 0, 0, 0);
     }
@@ -487,7 +508,6 @@ void Box::mouseDrag(const MouseEvent& e)
 
         constrainer.setBoundsForComponent(this, newBounds, resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(), resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
 
-        wasResized = true;
         return;
     }
     cnv->handleMouseDrag(e);
@@ -563,9 +583,6 @@ void Box::hideEditor()
 
         outgoingEditor->setInputFilter(nullptr, false);
 
-        // Clear overridden lambda
-        outgoingEditor->onTextChange = []() {};
-
         if (graphics && !graphics->fakeGui())
         {
             setVisible(false);
@@ -594,7 +611,10 @@ void Box::hideEditor()
 
         repaint();
 
-        if (changed && onTextChange != nullptr) onTextChange();
+        // update if the name has changed, or if pdobject is unassigned
+        if (changed || !pdObject) {
+            setType(newText);
+        }
     }
 }
 
