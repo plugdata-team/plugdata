@@ -204,7 +204,7 @@ void GUIComponent::valueChanged(Value& v)
     }
     else if (v.refersToSameSourceAs(receiveSymbol))
     {
-        gui.setReceiveSymbol(sendSymbol.toString());
+        gui.setReceiveSymbol(receiveSymbol.toString());
     }
     else if (v.refersToSameSourceAs(primaryColour))
     {

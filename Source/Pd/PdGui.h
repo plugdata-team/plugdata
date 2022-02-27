@@ -116,6 +116,10 @@ class Gui : public Object
    private:
     Type type = Type::Undefined;
     friend class Patch;
+    
+    // pd expresses some object's width in characters
+    // This variable sets the conversion ratio from chars to width
+    static inline constexpr int nbxCharWidth = 12;
 };
 
 }  // namespace pd

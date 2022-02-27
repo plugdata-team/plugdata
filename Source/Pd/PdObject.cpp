@@ -145,7 +145,7 @@ Patch Object::getHelp() const
 void Object::setBounds(Rectangle<int> bounds)
 {
     auto* textObj = static_cast<t_text*>(ptr);
-    short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / glist_fontwidth(patch->getPointer())));
+    short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / Patch::zoom) / glist_fontwidth(patch->getPointer()));
 
     if (newWidth != textObj->te_width)
     {
