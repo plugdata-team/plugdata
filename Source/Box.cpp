@@ -43,6 +43,7 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
 }
 
 Box::~Box(){
+    // Fade the object out
     // This is safe according to JUCE documentation
     auto& animator = Desktop::getInstance().getAnimator();
     animator.fadeOut(this, 150);
@@ -252,11 +253,12 @@ void Box::setType(const String& newType, bool exists)
     }
         
     if(!exists) {
+        /*
         cnv->pd->enqueueFunction([this]() {
             auto b = getBounds() - cnv->canvasOrigin;
             b.setWidth(b.getWidth() - doubleMargin);
             pdObject->setBounds(b);
-        });
+        }); */
     }
 
     cnv->main.commandStatusChanged();

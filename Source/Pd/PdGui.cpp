@@ -20,7 +20,11 @@ extern "C"
 #include <z_libpd.h>
 
 #include "x_libpd_extra_utils.h"
+
+void my_numbox_calc_fontwidth(t_my_numbox *x);
+
 }
+
 
 namespace pd
 {
@@ -86,8 +90,6 @@ static int glist_getindex(t_glist* x, t_gobj* y)
     for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
     return (indx);
 }
-
-void* canvas_undo_set_apply(t_canvas* x, int n);
 
 Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, patch, instance), type(Type::Undefined)
 {
@@ -681,6 +683,18 @@ Rectangle<int> Gui::getBounds() const noexcept
         auto const bounds = Object::getBounds();
         return {bounds.getX() + 2, bounds.getY() + 2, bounds.getWidth(), bounds.getHeight() - 2};
     }
+    else if (type == Type::Number)
+    {
+        auto* nbx = static_cast<t_my_numbox*>(ptr);
+        auto* iemgui = &nbx->x_gui;
+        
+        int fontwidth = glist_fontwidth(patch->getPointer());
+        
+        auto const bounds = Object::getBounds();
+        int width = nbx->x_numwidth * nbxCharWidth;
+        
+        return {bounds.getX(), bounds.getY(), zoom(width), zoom(iemgui->x_h)};
+    }
     else if (isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -721,12 +735,11 @@ void Gui::setBounds(Rectangle<int> bounds)
     if (type == Type::Number)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        nbx->x_numwidth = w / glist_fontwidth(patch->getPointer());
-        
-        auto* iemgui = &nbx->x_gui;
 
-        iemgui->x_w = w;
-        iemgui->x_h = h;
+        short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / Patch::zoom) / nbxCharWidth);
+        nbx->x_numwidth = newWidth;
+        
+        my_numbox_calc_fontwidth(nbx);
     }
     else if (isIEM())
     {
@@ -802,7 +815,7 @@ void Gui::setReceiveSymbol(const String& symbol) const noexcept
 
         if (rcvable)
         {
-            if (strcmp(symbol.toRawUTF8(), iemgui->x_rcv->s_name))
+            if (strcmp(symbol.toRawUTF8(), iemgui->x_rcv_unexpanded->s_name))
             {
                 if (iemgui->x_fsf.x_rcv_able) pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
                 iemgui->x_rcv = gensym(symbol.toRawUTF8());
@@ -830,8 +843,10 @@ String Gui::getSendSymbol() noexcept
 {
     if (ptr && isIEM())
     {
+        t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        std::string name = iemgui->x_snd->s_name;
+        iemgui_all_sym2dollararg(iemgui, srlsym);
+        std::string name = iemgui->x_snd_unexpanded->s_name;
         if (name == "empty") return "";
 
         return name;
@@ -843,8 +858,11 @@ String Gui::getReceiveSymbol() noexcept
 {
     if (ptr && isIEM())
     {
+        t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        std::string name = iemgui->x_rcv->s_name;
+        iemgui_all_sym2dollararg(iemgui, srlsym);
+
+        std::string name = iemgui->x_rcv_unexpanded->s_name;
 
         if (name == "empty") return "";
 
