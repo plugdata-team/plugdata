@@ -612,7 +612,6 @@ void canvas_obj(t_glist *gl, t_symbol *s, int argc, t_atom *argv);
 
 t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int undoable) {
     
-    
     sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     sys_unlock();
