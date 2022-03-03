@@ -188,7 +188,7 @@ void Connection::mouseMove(const MouseEvent& e)
     bool segmentedConnection = connectionStyle == true;
     int n = getClosestLineIdx(e.getPosition(), scaledPlan);
 
-    if (segmentedConnection && scaledPlan.size() > 2 && n >= 0)
+    if (segmentedConnection && scaledPlan.size() > 2 && n > 0)
     {
         auto line = Line<int>(scaledPlan[n - 1], scaledPlan[n]);
         setMouseCursor(line.isVertical() ? MouseCursor::LeftRightResizeCursor : MouseCursor::UpDownResizeCursor);
@@ -271,6 +271,8 @@ void Connection::mouseDrag(const MouseEvent& e)
 
 int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& plan)
 {
+    if(plan.size() < 2) return -1;
+    
     for (int n = 2; n < plan.size() - 1; n++)
     {
         auto line = Line<int>(plan[n - 1], plan[n]);
@@ -340,13 +342,13 @@ void Connection::updatePath()
 
         const float shiftY = std::min<float>(maxShiftY, max * 0.5);
 
-        const float shiftX = ((pend.y >= pstart.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((pend.x < pstart.x) ? -1. : 1.);
+        const float shiftX = ((pstart.y >= pend.y) ? std::min<float>(maxShiftX, min * 0.5) : 0.f) * ((pstart.x < pend.x) ? -1. : 1.);
 
-        const Point<float> ctrlPoint1{pend.x - shiftX, pend.y + shiftY};
-        const Point<float> ctrlPoint2{pstart.x + shiftX, pstart.y - shiftY};
+        const Point<float> ctrlPoint1{pstart.x - shiftX, pstart.y + shiftY};
+        const Point<float> ctrlPoint2{pend.x + shiftX, pend.y - shiftY};
 
-        toDraw.startNewSubPath(pend.toFloat());
-        toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pstart.toFloat());
+        toDraw.startNewSubPath(pstart.toFloat());
+        toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend.toFloat());
     }
     else
     {
