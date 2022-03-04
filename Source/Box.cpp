@@ -173,16 +173,15 @@ void Box::setType(const String& newType, bool exists)
         }
     }
 
-    int width;
+    int width = 0;
     if (exists)
     {
         width = pdObject->getBounds().getWidth() + doubleMargin;
     }
-    else
+    // width didn't get assigned, or was zero
+    if(width <= doubleMargin)
     {
         width = font.getStringWidth(newType) + widthOffset;
-        
-        
     }
 
     // Update inlets/outlets

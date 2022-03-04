@@ -87,20 +87,14 @@ Rectangle<int> Object::getBounds() const noexcept
     instance->setThis();
     
     // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
-    if(pd_class(&((t_gobj*)getPointer())->g_pd) == text_class) {
-        auto* textObj = static_cast<t_text*>(ptr);
-        
-        libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
-        
-        w = textObj->te_width * glist_fontwidth(patch->getPointer());
-        
-        return {static_cast<int>(x * Patch::zoom), static_cast<int>(y * Patch::zoom), static_cast<int>(w * Patch::zoom), static_cast<int>(h * Patch::zoom)};
-        
-    }
-
+    auto* textObj = static_cast<t_text*>(ptr);
+    
     libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
     
+    w = textObj->te_width * glist_fontwidth(patch->getPointer());
+    
     return {static_cast<int>(x * Patch::zoom), static_cast<int>(y * Patch::zoom), static_cast<int>(w * Patch::zoom), static_cast<int>(h * Patch::zoom)};
+        
 }
 
 //! @brief The name of the help file
@@ -159,7 +153,7 @@ void Object::setBounds(Rectangle<int> bounds)
         addUndoableAction();
         textObj->te_width = newWidth;
 
-        libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX() / Patch::zoom, bounds.getY() / Patch::zoom);
+        libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), bounds.getX() / Patch::zoom, bounds.getY() / Patch::zoom);
     }
 }
 

@@ -36,7 +36,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         auto xmlStr = keymap.getProperty("keyxml").toString();
         auto elt = XmlDocument(xmlStr).getDocumentElement();
 
-        getKeyMappings()->restoreFromXml(*elt);
+        if(elt) {
+            getKeyMappings()->restoreFromXml(*elt);
+        }
     }
     else
     {
