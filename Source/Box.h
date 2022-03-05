@@ -26,8 +26,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = {100, 100});
     
-    ~Box();
-
     void valueChanged(Value& v) override;
 
     void paint(Graphics&) override;
@@ -53,6 +51,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     ResizableBorderComponent::Zone resizeZone;
 
     void setType(const String& newType, bool exists = false);
+    void updateBounds(bool newObject);
 
     void showEditor();
     void hideEditor();
@@ -67,8 +66,10 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
+    
+    void setEditable(bool editable);
 
-    String getText(bool returnActiveEditorContents = false) const;
+    //String getText(bool returnActiveEditorContents = false) const;
     Array<Rectangle<float>> getCorners() const;
 
     static inline constexpr int widthOffset = 32;
@@ -77,26 +78,24 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     static inline constexpr int height = 37;
 
     bool selectionChanged = false;
-
+    bool hideLabel = false;
+    
+    String currentText;
+    
    private:
     void initialise();
     bool hitTest(int x, int y) override;
 
-    void setText(const String& newText, NotificationType notification);
-    void setEditable(bool editable);
+
     void textEditorReturnKeyPressed(TextEditor& ed) override;
 
     Rectangle<int> originalBounds;
-    bool hideLabel = false;
-
-    Value textValue;
-    String lastTextValue;
+    
     Font font{15.0f};
     Justification justification = Justification::centred;
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border{1, 5, 1, 5};
+    BorderSize<int> border{1, 2, 1, 2};
     float minimumHorizontalScale = 0;
-    TextInputTarget::VirtualKeyboardType keyboardType = TextInputTarget::textKeyboard;
     bool editSingleClick = false;
 
     Colour outline = findColour(Slider::thumbColourId);

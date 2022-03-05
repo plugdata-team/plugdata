@@ -121,7 +121,7 @@ class Patch
 
     std::vector<t_template*> getTemplates() const;
 
-    static inline float zoom = 1.4f;
+    static inline float zoom = 1.3f;
 
    private:
     void* ptr = nullptr;

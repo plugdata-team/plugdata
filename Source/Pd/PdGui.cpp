@@ -738,7 +738,6 @@ void Gui::setBounds(Rectangle<int> bounds)
 
         short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / Patch::zoom) / nbxCharWidth);
         nbx->x_numwidth = newWidth;
-        
         my_numbox_calc_fontwidth(nbx);
     }
     else if (isIEM())
