@@ -943,7 +943,13 @@ void Canvas::mouseDrag(const MouseEvent& e)
     // Drag lasso
     lasso.dragLasso(e);
 
-    if (connectingWithDrag) repaint();
+    if (connectingWithDrag) {
+        beginDragAutoRepeat(40);
+        auto* nearest = Edge::findNearestEdge(this, e.getPosition());
+        
+        repaint();
+        
+    }
 }
 
 void Canvas::mouseUp(const MouseEvent& e)

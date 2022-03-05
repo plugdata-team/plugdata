@@ -148,9 +148,6 @@ void Box::updateBounds(bool newObject)
         addAndMakeVisible(graphics.get());
         auto [w, h] = graphics->getBestSize();
         setSize(w + doubleMargin, h + doubleMargin);
-        if(graphics->getGui().getType() == pd::Type::Bang) {
-            std::cout << w << std::endl;
-        }
         graphics->resized();
         graphics->toBack();
         hideLabel = true;
