@@ -1951,7 +1951,7 @@ struct Subpatch : public GUIComponent
         // In that case we tell the box to create the gui
         if (static_cast<t_canvas*>(gui.getPointer())->gl_isgraph)
         {
-            box->setType(box->getText(), true);
+            box->setType(box->currentText, true);
         }
     };
 
@@ -1985,6 +1985,9 @@ struct CommentComponent : public GUIComponent
     {
         setInterceptsMouseClicks(false, false);
         setVisible(false);
+        
+        box->setEditable(true);
+        box->hideLabel = false;
     }
 
     void paint(Graphics& g) override

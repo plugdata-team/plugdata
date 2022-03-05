@@ -132,9 +132,6 @@ Connection::~Connection()
         inlet->box->removeComponentListener(this);
         inlet->removeComponentListener(this);
     }
-    
-    auto& animator = Desktop::getInstance().getAnimator();
-    animator.fadeOut(this, 150);
 }
 
 bool Connection::hitTest(int x, int y)
