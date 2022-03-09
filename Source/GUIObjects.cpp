@@ -1541,6 +1541,8 @@ struct RadioComponent : public GUIComponent
 
             radioButtons[i]->onClick = [this, i]() mutable
             {
+                if(!radioButtons[i]->getToggleState()) return;
+                
                 lastState = i;
                 setValueOriginal(i);
             };

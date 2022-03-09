@@ -132,7 +132,7 @@ void Edge::createConnection()
         // Check type for input and output
         bool sameDirection = isInlet == box->cnv->connectingEdge->isInlet;
 
-        bool connectionAllowed = box->cnv->connectingEdge->getParentComponent() != getParentComponent() && !sameDirection;
+        bool connectionAllowed = box->cnv->connectingEdge->box != box && !sameDirection;
 
         // Don't create if this is the same edge
         if (box->cnv->connectingEdge == this)
@@ -154,7 +154,7 @@ void Edge::createConnection()
     }
 }
 
-Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position)
+Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet)
 {
     // Find all edges
     Array<Edge*> allEdges;
@@ -162,7 +162,9 @@ Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position)
     {
         for (auto* edge : box->edges)
         {
-            allEdges.add(edge);
+            if(edge->isInlet == inlet) {
+                allEdges.add(edge);
+            }
         }
     }
 
