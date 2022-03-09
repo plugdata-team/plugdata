@@ -201,10 +201,10 @@ struct DAWAudioSettings : public Component
     Slider latencySlider;
 };
 
-class LibraryComponent : public Component, public TableListBoxModel
+class SearchPathComponent : public Component, public TableListBoxModel
 {
    public:
-    LibraryComponent(ValueTree libraryTree, std::function<void()> updatePaths) : tree(std::move(libraryTree)), updateFunc(std::move(updatePaths))
+    SearchPathComponent(ValueTree libraryTree, std::function<void()> updatePaths) : tree(std::move(libraryTree)), updateFunc(std::move(updatePaths))
     {
         table.setModel(this);
         table.setColour(ListBox::backgroundColourId, Colour(25, 25, 25));
@@ -404,7 +404,7 @@ struct SettingsComponent : public Component
             panels.add(new DAWAudioSettings(processor));
         }
 
-        panels.add(new LibraryComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths)));
+        panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths)));
 
         panels.add(new KeyMappingEditorComponent(*editor->getKeyMappings(), true));
 

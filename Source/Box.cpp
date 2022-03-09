@@ -166,6 +166,12 @@ void Box::updateBounds(bool newObject)
         setEditable(true);
         setSize(100, height);
     }
+    if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
+    {
+        auto bestWidth = font.getStringWidth(currentText) + widthOffset;
+        int numLines = std::max(StringArray::fromTokens(currentText, "\n", "\'").size(), 1);
+        setSize(bestWidth + 10, (numLines * 17) + 14);
+    }
 }
 
 void Box::setType(const String& newType, bool exists)
@@ -325,12 +331,6 @@ void Box::resized()
     
     constrainer.checkComponentBounds(this);
     
-    if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
-    {
-        auto bestWidth = font.getStringWidth(currentText) + widthOffset;
-        int numLines = std::max(StringArray::fromTokens(currentText, "\n", "\'").size(), 1);
-        setSize(bestWidth + 10, (numLines * 17) + 14);
-    }
     
     if (auto* newEditor = getCurrentTextEditor())
     {
