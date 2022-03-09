@@ -421,8 +421,8 @@ PathPlan Connection::scalePath(const PathPlan& plan)
             point.y = lastHeight - point.y;
         }
 
-        point.x *= scaleX;
-        point.y *= scaleY;
+        point.x = round(scaleX * point.x);
+        point.y = round(scaleY * point.y);
     }
 
     // Align with inlets and outlets
