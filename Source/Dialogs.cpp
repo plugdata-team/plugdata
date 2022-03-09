@@ -218,12 +218,6 @@ class LibraryComponent : public Component, public TableListBoxModel
 
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
-        // setColour(ListBox::outlineColourId, Colours::white);
-
-        // we could now change some initial settings..
-        table.getHeader().setSortColumnId(1, true);    // sort forwards by the ID column
-        table.getHeader().setColumnVisible(7, false);  // hide the "length" column until the user shows it
-
         table.getHeader().setStretchToFitActive(true);
 
         table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);

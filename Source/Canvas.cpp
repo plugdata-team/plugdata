@@ -942,13 +942,23 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
     // Drag lasso
     lasso.dragLasso(e);
-
+    
     if (connectingWithDrag) {
-        beginDragAutoRepeat(40);
-        auto* nearest = Edge::findNearestEdge(this, e.getPosition());
+        auto* nearest = Edge::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet);
+        
+        if(connectingWithDrag && nearest && nearestEdge != nearest) {
+            nearest->isHovered = true;
+            
+            if(nearestEdge) {
+                nearestEdge->isHovered = false;
+                nearestEdge->repaint();
+            }
+            
+            nearestEdge = nearest;
+            nearestEdge->repaint();
+        }
         
         repaint();
-        
     }
 }
 
@@ -970,8 +980,12 @@ void Canvas::mouseUp(const MouseEvent& e)
     // Releasing a connect by drag action
     if (connectingWithDrag)
     {
+        if(nearestEdge) {
+            nearestEdge->isHovered = false;
+            nearestEdge->repaint();
+        }
         auto pos = e.getEventRelativeTo(this).getPosition();
-        auto* nearest = Edge::findNearestEdge(this, pos);
+        auto* nearest = Edge::findNearestEdge(this, pos, !connectingEdge->isInlet);
 
         if (nearest) nearest->createConnection();
 
