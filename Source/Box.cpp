@@ -37,9 +37,10 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> posi
 {
     cnv = parent;
     
+    initialise();
     setTopLeftPosition(position);
     setType(name, true);
-    initialise();
+
 }
 
 void Box::initialise()
@@ -328,7 +329,7 @@ void Box::resized()
     {
         auto bestWidth = font.getStringWidth(currentText) + widthOffset;
         int numLines = std::max(StringArray::fromTokens(currentText, "\n", "\'").size(), 1);
-        // setSize(bestWidth + 10, (numLines * 17) + 14);
+        setSize(bestWidth + 10, (numLines * 17) + 14);
     }
     
     if (auto* newEditor = getCurrentTextEditor())
