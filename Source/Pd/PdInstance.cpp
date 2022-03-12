@@ -381,6 +381,49 @@ void Instance::processPrint(std::string print)
     MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
 }
 
+void Instance::processSend(dmessage mess)
+{
+    if (mess.object && !mess.list.empty())
+    {
+        if (mess.selector == "list")
+        {
+            auto* argv = static_cast<t_atom*>(m_atoms);
+            for (size_t i = 0; i < mess.list.size(); ++i)
+            {
+                if (mess.list[i].isFloat())
+                    SETFLOAT(argv + i, mess.list[i].getFloat());
+                else if (mess.list[i].isSymbol())
+                {
+                    sys_lock();
+                    SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().data()));
+                    sys_unlock();
+                }
+                else
+                    SETFLOAT(argv + i, 0.0);
+            }
+            sys_lock();
+            pd_list(static_cast<t_pd*>(mess.object), gensym("list"), static_cast<int>(mess.list.size()), argv);
+            sys_unlock();
+        }
+        else if (mess.selector == "float" && mess.list[0].isFloat())
+        {
+            sys_lock();
+            pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
+            sys_unlock();
+        }
+        else if (mess.selector == "symbol")
+        {
+            sys_lock();
+            pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().c_str()));
+            sys_unlock();
+        }
+    }
+    else
+    {
+        sendMessage(mess.destination.c_str(), mess.selector.c_str(), mess.list);
+    }
+}
+
 void Instance::enqueueFunction(const std::function<void(void)>& fn)
 {
     // This should be the way to do it, but it currently causes some issues
@@ -391,26 +434,31 @@ void Instance::enqueueFunction(const std::function<void(void)>& fn)
 
 void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
 {
-    m_send_queue.try_enqueue(dmessage{nullptr, dest, msg, std::move(list)});
-    messageEnqueued();
+    enqueueFunction([this, dest, msg, list]() mutable {
+        processSend(dmessage{nullptr, dest, msg, std::move(list)});
+    });
 }
 
 void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list)
 {
-    m_send_queue.try_enqueue(dmessage{object, std::string(), "list", list});
-    messageEnqueued();
+    enqueueFunction([this, object, list]() mutable {
+        processSend(dmessage{object, std::string(), "list", list});
+    });
+
 }
 
 void Instance::enqueueDirectMessages(void* object, const std::string& msg)
 {
-    m_send_queue.try_enqueue(dmessage{object, std::string(), "symbol", std::vector<Atom>(1, msg)});
-    messageEnqueued();
+    enqueueFunction([this, object, msg]() mutable {
+        processSend(dmessage{object, std::string(), "symbol", std::vector<Atom>(1, msg)});
+    });
 }
 
 void Instance::enqueueDirectMessages(void* object, const float msg)
 {
-    m_send_queue.try_enqueue(dmessage{object, std::string(), "float", std::vector<Atom>(1, msg)});
-    messageEnqueued();
+    enqueueFunction([this, object, msg]() mutable {
+        processSend(dmessage{object, std::string(), "float", std::vector<Atom>(1, msg)});
+    });
 }
 
 void Instance::waitForStateUpdate()
@@ -451,50 +499,6 @@ void Instance::sendMessagesFromQueue()
     {
         callback();
         audioStarted = true;
-    }
-
-    dmessage mess;
-    while (m_send_queue.try_dequeue(mess))
-    {
-        if (mess.object && !mess.list.empty())
-        {
-            if (mess.selector == "list")
-            {
-                auto* argv = static_cast<t_atom*>(m_atoms);
-                for (size_t i = 0; i < mess.list.size(); ++i)
-                {
-                    if (mess.list[i].isFloat())
-                        SETFLOAT(argv + i, mess.list[i].getFloat());
-                    else if (mess.list[i].isSymbol())
-                    {
-                        sys_lock();
-                        SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().data()));
-                        sys_unlock();
-                    }
-                    else
-                        SETFLOAT(argv + i, 0.0);
-                }
-                sys_lock();
-                pd_list(static_cast<t_pd*>(mess.object), gensym("list"), static_cast<int>(mess.list.size()), argv);
-                sys_unlock();
-            }
-            else if (mess.selector == "float" && mess.list[0].isFloat())
-            {
-                sys_lock();
-                pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
-                sys_unlock();
-            }
-            else if (mess.selector == "symbol")
-            {
-                sys_lock();
-                pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().c_str()));
-                sys_unlock();
-            }
-        }
-        else
-        {
-            sendMessage(mess.destination.c_str(), mess.selector.c_str(), mess.list);
-        }
     }
 }
 
