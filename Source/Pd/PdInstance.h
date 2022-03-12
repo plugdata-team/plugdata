@@ -149,6 +149,7 @@ class Instance
     void processMessage(Message mess);
     void processPrint(std::string message);
     void processMidiEvent(midievent event);
+    void processSend(dmessage mess);
 
     Patch openPatch(const File& toOpen);
 
@@ -202,8 +203,6 @@ class Instance
    private:
 
     typedef moodycamel::ConcurrentQueue<dmessage> message_queue;
-
-    message_queue m_send_queue = message_queue(4096);
 
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
