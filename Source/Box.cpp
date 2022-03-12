@@ -156,6 +156,7 @@ void Box::updateBounds(bool newObject)
     }
     else if(!graphics)
     {
+        setEditable(true);
         hideLabel = false;
         setSize(width, height);
     }
@@ -170,7 +171,7 @@ void Box::updateBounds(bool newObject)
     {
         auto bestWidth = font.getStringWidth(currentText) + widthOffset;
         int numLines = std::max(StringArray::fromTokens(currentText, "\n", "\'").size(), 1);
-        setSize(bestWidth + 10, (numLines * 17) + 14);
+        setSize(bestWidth + doubleMargin, (numLines * 21) + doubleMargin);
     }
 }
 
@@ -482,22 +483,18 @@ void Box::mouseDrag(const MouseEvent& e)
     cnv->handleMouseDrag(e);
 }
 
-static void copyColourIfSpecified(Box& l, TextEditor& ed, int colourId, int targetColourId)
-{
-    if (l.isColourSpecified(colourId) || l.getLookAndFeel().isColourSpecified(colourId)) ed.setColour(targetColourId, l.findColour(colourId));
-}
-
 void Box::showEditor()
 {
     if (editor == nullptr)
     {
         editor = std::make_unique<TextEditor>(getName());
         editor->applyFontToAllText(font);
-        copyAllExplicitColoursTo(*editor);
+        //copyAllExplicitColoursTo(*editor);
         
+        /*
         copyColourIfSpecified(*this, *editor, Label::textWhenEditingColourId, TextEditor::textColourId);
         copyColourIfSpecified(*this, *editor, Label::backgroundWhenEditingColourId, TextEditor::backgroundColourId);
-        copyColourIfSpecified(*this, *editor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId);
+        copyColourIfSpecified(*this, *editor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId); */
         
         editor->setAlwaysOnTop(true);
         
@@ -580,6 +577,10 @@ void Box::hideEditor()
         // update if the name has changed, or if pdobject is unassigned
         if (changed || !pdObject) {
             setType(newText);
+        }
+        
+        if(graphics && graphics->getGui().getType() == pd::Type::Comment) {
+            updateBounds(false);
         }
     }
 }

@@ -215,15 +215,16 @@ class SearchPathComponent : public Component, public TableListBoxModel
         table.setColour(ListBox::textColourId, Colours::white);
 
         table.setOutlineThickness(0);
+        
+        table.deselectAllRows();
 
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
+        
         table.getHeader().setStretchToFitActive(true);
-
-        table.getHeader().setColour(TableHeaderComponent::textColourId, Colours::white);
-        table.getHeader().setColour(TableHeaderComponent::backgroundColourId, findColour(Slider::thumbColourId));
-
+        table.setHeaderHeight(0);
         table.getHeader().addColumn("Library Path", 1, 800, 50, 800, TableHeaderComponent::defaultFlags);
+        
 
         addButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         addButton.setConnectedEdges(12);
@@ -244,10 +245,32 @@ class SearchPathComponent : public Component, public TableListBoxModel
                                         loadData();
                                     });
         };
+        
+        removeButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        removeButton.setConnectedEdges(12);
+        removeButton.setName("statusbar:add");
+        removeButton.onClick = [this]() mutable{
+            int idx = table.getSelectedRow();
+            tree.removeChild(idx, nullptr);
+            loadData();
+        };
+        
+        resetButton.onClick = [this]() {
+            File abstractionsDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Abstractions");
+            
+            auto defaultPath = ValueTree("Path");
+            defaultPath.setProperty("Path", abstractionsDir.getFullPathName(), nullptr);
+
+            tree.removeAllChildren(nullptr);
+            tree.appendChild(defaultPath, nullptr);
+            loadData();
+            
+        };
 
         addAndMakeVisible(table);
         addAndMakeVisible(addButton);
 
+        addAndMakeVisible(removeButton);
         addAndMakeVisible(resetButton);
 
         loadData();
@@ -271,22 +294,27 @@ class SearchPathComponent : public Component, public TableListBoxModel
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
     void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
     {
-        g.fillAll((row % 2) ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId));
+        if(rowIsSelected) {
+            g.setColour(findColour(Slider::thumbColourId));
+        }
+        else {
+            g.setColour((row % 2) ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId));
+        }
+        
+        g.fillRect(1, 0, w - 3, h);
     }
 
     // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
     // components.
-    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool /*rowIsSelected*/) override
+    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override
     {
         g.setColour(Colours::white);
-        // g.setFont (font);
-
         const String item = tree.getChild(rowNumber).getProperty("Path").toString();
 
-        g.drawText(item, 2, 0, width - 4, height, Justification::centredLeft, true);
+        g.drawText(item, 4, 0, width - 4, height, Justification::centredLeft, true);
 
-        g.setColour(Colours::black.withAlpha(0.2f));
-        g.fillRect(width - 1, 0, 1, height);
+        //g.setColour(Colours::black.withAlpha(0.2f));
+        //g.fillRect(width - 1, 0, 1, height);
     }
 
     int getNumRows() override
@@ -297,22 +325,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
     Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
-
-        auto* rowComponent = new FileComponent(
-            [this](int row)
-            {
-                tree.getChild(row).setProperty("Path", items[row], nullptr);
-                updateFunc();
-            },
-            &items.getReference(rowNumber), rowNumber);
-
-        rowComponent->deleteButton.onClick = [this, rowNumber]() mutable
-        {
-            tree.removeChild(rowNumber, nullptr);
-            loadData();
-        };
-
-        return rowComponent;
+        return nullptr;
     }
 
     void resized() override
@@ -321,66 +334,26 @@ class SearchPathComponent : public Component, public TableListBoxModel
         tableBounds.removeFromBottom(40);
 
         table.setBounds(tableBounds);
-        addButton.setBounds(getWidth() - 30, 0, 30, 30);
 
         const int buttonHeight = 20;
-        const int h = getHeight() - (buttonHeight + 8);
+        const int y = getHeight() - (buttonHeight + 8);
         const int x = getWidth() - 8;
 
         resetButton.changeWidthToFitText(buttonHeight);
-        resetButton.setTopRightPosition(x, h + 6);
+        resetButton.setTopRightPosition(x, y + 6);
+        
+        addButton.setBounds(10, y, 30, 30);
+        removeButton.setBounds(40, y, 30, 30);
     }
-
-    struct FileComponent : public Label
-    {
-        FileComponent(std::function<void(int)> cb, String* value, int rowIdx) : callback(std::move(cb)), row(rowIdx)
-        {
-            setEditable(true, false);
-
-            setText(String(*value), dontSendNotification);
-
-            addAndMakeVisible(deleteButton);
-            deleteButton.toFront(true);
-            deleteButton.setConnectedEdges(12);
-
-            // Use statusbar style even though it's not in the statusbar
-            deleteButton.setName("statusbar:delete");
-
-            onTextChange = [this, value]()
-            {
-                *value = getText();
-                callback(row);
-            };
-        }
-
-        void resized() override
-        {
-            Label::resized();
-            deleteButton.setBounds(getWidth() - 28, 0, 28, getHeight());
-        }
-
-        TextEditor* createEditorComponent() override
-        {
-            auto* editor = Label::createEditorComponent();
-
-            return editor;
-        }
-
-        TextButton deleteButton = TextButton(Icons::Clear);
-
-       private:
-        std::function<void(int)> callback;
-
-        int row;
-    };
-
+    
    private:
     FileChooser openChooser = FileChooser("Choose path", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "");
 
     std::function<void()> updateFunc;
 
     TextButton addButton = TextButton(Icons::Add);
-    TextButton resetButton = TextButton("Reset to defaults");
+    TextButton removeButton = TextButton(Icons::Clear);
+    TextButton resetButton = TextButton("reset to defaults");
 
     TableListBox table;
     ValueTree tree;
