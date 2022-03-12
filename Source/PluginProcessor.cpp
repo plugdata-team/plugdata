@@ -68,7 +68,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     setCallbackLock(&AudioProcessor::getCallbackLock());
 
     sendMessagesFromQueue();
-    processMessages();
 
     LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
@@ -224,8 +223,6 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     midiByteBuffer[1] = 0;
     midiByteBuffer[2] = 0;
     startDSP();
-    processMessages();
-    processPrints();
     processingBuffer.setSize(2, samplesPerBlock);
 
     statusbarSource.prepareToPlay(getTotalNumOutputChannels());
@@ -478,7 +475,6 @@ void PlugDataAudioProcessor::messageEnqueued()
     if (isNonRealtime() || isSuspended())
     {
         sendMessagesFromQueue();
-        processMessages();
     }
     else
     {
@@ -486,7 +482,6 @@ void PlugDataAudioProcessor::messageEnqueued()
         if (cs->tryEnter())
         {
             sendMessagesFromQueue();
-            processMessages();
             cs->exit();
         }
     }
@@ -559,8 +554,6 @@ void PlugDataAudioProcessor::processInternal()
     sendMessagesFromQueue();
 
     sendMidiBuffer();
-    processMessages();
-    processPrints();
 
     // Process audio
     if (static_cast<bool>(enabled->load()))
@@ -588,7 +581,6 @@ void PlugDataAudioProcessor::processInternal()
         midiByteBuffer[1] = 0;
         midiByteBuffer[2] = 0;
         midiBufferOut.clear();
-        processMidi();
     }
 }
 
