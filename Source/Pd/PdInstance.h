@@ -27,6 +27,38 @@ class Patch;
 
 class Instance
 {
+    struct Message
+    {
+        std::string selector;
+        std::string destination;
+        std::vector<Atom> list;
+    };
+
+    struct dmessage
+    {
+        void* object;
+        std::string destination;
+        std::string selector;
+        std::vector<Atom> list;
+    };
+
+    typedef struct midievent
+    {
+        enum
+        {
+            NOTEON,
+            CONTROLCHANGE,
+            PROGRAMCHANGE,
+            PITCHBEND,
+            AFTERTOUCH,
+            POLYAFTERTOUCH,
+            MIDIBYTE
+        } type;
+        int midi1;
+        int midi2;
+        int midi3;
+    } midievent;
+    
    public:
     Instance(std::string const& symbol);
     Instance(Instance const& other) = delete;
@@ -111,14 +143,12 @@ class Instance
     void logMessage(const String& message);
     void logError(const String& error);
 
-    void addListener(const char* sym);
-
     virtual void messageEnqueued(){};
 
     void sendMessagesFromQueue();
-    void processMessages();
-    void processPrints();
-    void processMidi();
+    void processMessage(Message mess);
+    void processPrint(std::string message);
+    void processMidiEvent(midievent event);
 
     Patch openPatch(const File& toOpen);
 
@@ -153,14 +183,12 @@ class Instance
         return nullptr;
     };
 
-    void* m_instance = nullptr;
-    void* m_patch = nullptr;
-    void* m_atoms = nullptr;
-    void* m_midi_receiver = nullptr;
-    void* m_print_receiver = nullptr;
-    std::vector<void*> m_message_receiver = std::vector<void*>(1, nullptr);
-
-    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
+    void* m_instance            = nullptr;
+    void* m_patch               = nullptr;
+    void* m_atoms               = nullptr;
+    void* m_message_receiver    = nullptr;
+    void* m_midi_receiver       = nullptr;
+    void* m_print_receiver      = nullptr;
 
     std::atomic<bool> audioStarted = false;
     std::atomic<bool> canUndo = false;
@@ -172,45 +200,12 @@ class Instance
     std::vector<std::pair<String, int>> consoleHistory;
 
    private:
-    struct Message
-    {
-        std::string selector;
-        std::string destination;
-        std::vector<Atom> list;
-    };
-
-    struct dmessage
-    {
-        void* object;
-        std::string destination;
-        std::string selector;
-        std::vector<Atom> list;
-    };
-
-    typedef struct midievent
-    {
-        enum
-        {
-            NOTEON,
-            CONTROLCHANGE,
-            PROGRAMCHANGE,
-            PITCHBEND,
-            AFTERTOUCH,
-            POLYAFTERTOUCH,
-            MIDIBYTE
-        } type;
-        int midi1;
-        int midi2;
-        int midi3;
-    } midievent;
 
     typedef moodycamel::ConcurrentQueue<dmessage> message_queue;
 
     message_queue m_send_queue = message_queue(4096);
 
-    moodycamel::ConcurrentQueue<Message> m_message_queue = moodycamel::ConcurrentQueue<Message>(4096);
-    moodycamel::ConcurrentQueue<midievent> m_midi_queue = moodycamel::ConcurrentQueue<midievent>(4096);
-    moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
+    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     File currentFile;
 

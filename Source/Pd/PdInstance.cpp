@@ -25,17 +25,23 @@ extern "C"
     {
         static void instance_multi_bang(pd::Instance* ptr, const char* recv)
         {
-            ptr->m_message_queue.try_enqueue({std::string("bang"), std::string(recv)});
+            ptr->enqueueFunction([ptr, recv]() {
+                ptr->processMessage({std::string("bang"), std::string(recv)});
+            });
         }
 
         static void instance_multi_float(pd::Instance* ptr, const char* recv, float f)
         {
-            ptr->m_message_queue.try_enqueue({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})});
+            ptr->enqueueFunction([ptr, recv, f]() mutable {
+                ptr->processMessage({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})});
+            });
         }
 
         static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym)
         {
-            ptr->m_message_queue.try_enqueue({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))});
+            ptr->enqueueFunction([ptr, recv, sym]() mutable {
+                ptr->processMessage({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))});
+            });
         }
 
         static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
@@ -48,7 +54,10 @@ extern "C"
                 else if (argv[i].a_type == A_SYMBOL)
                     mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
             }
-            ptr->m_message_queue.try_enqueue(std::move(mess));
+            
+            ptr->enqueueFunction([ptr, mess]() mutable {
+                ptr->processMessage(std::move(mess));
+            });
         }
 
         static void instance_multi_message(pd::Instance* ptr, const char* recv, const char* msg, int argc, t_atom* argv)
@@ -61,47 +70,68 @@ extern "C"
                 else if (argv[i].a_type == A_SYMBOL)
                     mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
             }
-            ptr->m_message_queue.try_enqueue(std::move(mess));
+            ptr->enqueueFunction([ptr, mess]() mutable {
+                ptr->processMessage(std::move(mess));
+            });
         }
 
         static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
         {
-            ptr->m_midi_queue.try_enqueue({midievent::NOTEON, channel, pitch, velocity});
+            ptr->enqueueFunction([ptr, channel, pitch, velocity]() mutable {
+                ptr->processMidiEvent({midievent::NOTEON, channel, pitch, velocity});
+            });
         }
 
         static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
         {
-            ptr->m_midi_queue.try_enqueue({midievent::CONTROLCHANGE, channel, controller, value});
+            ptr->enqueueFunction([ptr, channel, controller, value]() mutable{
+                ptr->processMidiEvent({midievent::CONTROLCHANGE, channel, controller, value});
+            });
         }
 
         static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
         {
-            ptr->m_midi_queue.try_enqueue({midievent::PROGRAMCHANGE, channel, value, 0});
+            ptr->enqueueFunction([ptr, channel, value]() mutable {
+                ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0});
+            });
         }
 
         static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
         {
-            ptr->m_midi_queue.try_enqueue({midievent::PITCHBEND, channel, value, 0});
+            ptr->enqueueFunction([ptr, channel, value]() mutable {
+                ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0});
+            });
         }
 
         static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
         {
-            ptr->m_midi_queue.try_enqueue({midievent::AFTERTOUCH, channel, value, 0});
+            ptr->enqueueFunction([ptr, channel, value]() mutable {
+                ptr->processMidiEvent({midievent::AFTERTOUCH, channel, value, 0});
+            });
         }
 
         static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
         {
-            ptr->m_midi_queue.try_enqueue({midievent::POLYAFTERTOUCH, channel, pitch, value});
+                ptr->enqueueFunction([ptr, channel, pitch, value]() mutable {
+                    ptr->processMidiEvent({midievent::POLYAFTERTOUCH, channel, pitch, value});
+                });
+                    
         }
 
         static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
         {
-            ptr->m_midi_queue.try_enqueue({midievent::MIDIBYTE, port, byte, 0});
+            ptr->enqueueFunction([ptr, port, byte]() mutable {
+                ptr->processMidiEvent({midievent::MIDIBYTE, port, byte, 0});
+            });
+
         }
 
         static void instance_multi_print(pd::Instance* ptr, char const* s)
         {
-            ptr->m_print_queue.try_enqueue(std::string(s));
+            auto message = std::string(s);
+            ptr->enqueueFunction([ptr, message]() mutable {
+                ptr->processPrint(message);
+            });
         }
     };
 }
@@ -122,7 +152,7 @@ Instance::Instance(std::string const& symbol)
                              reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
 
-    m_message_receiver[0] = libpd_multi_receiver_new(this, symbol.c_str(), reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+    m_message_receiver = libpd_multi_receiver_new(this, symbol.c_str(), reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                      reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
 
@@ -156,8 +186,8 @@ Instance::Instance(std::string const& symbol)
 Instance::~Instance()
 {
     closePatch();
-    for (auto& i : m_message_receiver) pd_free(static_cast<t_pd*>(i));
-
+    
+    pd_free(static_cast<t_pd*>(m_message_receiver));
     pd_free(static_cast<t_pd*>(m_midi_receiver));
     pd_free(static_cast<t_pd*>(m_print_receiver));
 
@@ -168,12 +198,6 @@ Instance::~Instance()
 int Instance::getBlockSize() const noexcept
 {
     return libpd_blocksize();
-}
-
-void Instance::addListener(const char* sym)
-{
-    m_message_receiver.push_back(libpd_multi_receiver_new(this, sym, reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
-                                                          reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message)));
 }
 
 void Instance::prepareDSP(const int nins, const int nouts, const double samplerate)
@@ -313,29 +337,22 @@ void Instance::sendMessage(const char* receiver, const char* msg, const std::vec
     libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
 }
 
-void Instance::processMessages()
+void Instance::processMessage(Message mess)
 {
-    Message mess;
-    while (m_message_queue.try_dequeue(mess))
-    {
-        if (mess.selector == "bang")
-            receiveBang(mess.destination);
-        else if (mess.selector == "float")
-            receiveFloat(mess.destination, mess.list[0].getFloat());
-        else if (mess.selector == "symbol")
-            receiveSymbol(mess.destination, mess.list[0].getSymbol());
-        else if (mess.selector == "list")
-            receiveList(mess.destination, mess.list);
-        else
-            receiveMessage(mess.destination, mess.selector, mess.list);
-    }
+    if (mess.selector == "bang")
+        receiveBang(mess.destination);
+    else if (mess.selector == "float")
+        receiveFloat(mess.destination, mess.list[0].getFloat());
+    else if (mess.selector == "symbol")
+        receiveSymbol(mess.destination, mess.list[0].getSymbol());
+    else if (mess.selector == "list")
+        receiveList(mess.destination, mess.list);
+    else
+        receiveMessage(mess.destination, mess.selector, mess.list);
 }
 
-void Instance::processMidi()
+void Instance::processMidiEvent(midievent event)
 {
-    midievent event;
-    while (m_midi_queue.try_dequeue(event))
-    {
         if (event.type == midievent::NOTEON)
             receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
         else if (event.type == midievent::CONTROLCHANGE)
@@ -350,32 +367,18 @@ void Instance::processMidi()
             receivePolyAftertouch(event.midi1 + 1, event.midi2, event.midi3);
         else if (event.type == midievent::MIDIBYTE)
             receiveMidiByte(event.midi1, event.midi2);
-    }
 }
 
-void Instance::processPrints()
+void Instance::processPrint(std::string print)
 {
-    std::string temp;
-    std::string print;
-    while (m_print_queue.try_dequeue(print))
+    if(print.empty()) return;
+
+    while (!print.empty() && (print.back() == '\n' || print.back() == ' '))
     {
-        if (!print.empty() && print.back() == '\n')
-        {
-            while (!print.empty() && (print.back() == '\n' || print.back() == ' '))
-            {
-                print.pop_back();
-            }
-            temp += print;
-
-            MessageManager::callAsync([this, temp]() mutable { receivePrint(temp); });
-
-            temp.clear();
-        }
-        else
-        {
-            temp += print;
-        }
+        print.pop_back();
     }
+    
+    MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
 }
 
 void Instance::enqueueFunction(const std::function<void(void)>& fn)
