@@ -892,7 +892,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             {
                 if (cnv->isSelected(con))
                 {
-                    con->applyPath(con->findPath());
+                    con->findPath();
                 }
             }
 
