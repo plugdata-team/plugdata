@@ -41,7 +41,7 @@ class Connection : public Component, public ComponentListener
 
     int dragIdx = -1;
 
-    int mouseDownPosition = 0;
+    float mouseDownPosition = 0;
 
     Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);
     ~Connection() override;
@@ -56,6 +56,8 @@ class Connection : public Component, public ComponentListener
     void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
+    void mouseExit(const MouseEvent& e) override;
+    
 
     int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
 
@@ -71,9 +73,7 @@ class Connection : public Component, public ComponentListener
 
     void applyPath(const PathPlan& plan, bool updateState = true);
 
-    PathPlan findPath();
-
-    PathPlan scalePath(const PathPlan& plan);
+    void findPath();
 
     bool straightLineIntersectsObject(Line<int> first);
 

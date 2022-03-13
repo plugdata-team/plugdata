@@ -202,8 +202,6 @@ class Instance
 
    private:
 
-    typedef moodycamel::ConcurrentQueue<dmessage> message_queue;
-
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     File currentFile;
