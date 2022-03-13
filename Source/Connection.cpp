@@ -161,9 +161,6 @@ bool Connection::hitTest(int x, int y)
 
 void Connection::paint(Graphics& g)
 {
-    // g.getInternalContext().clipToPath(toDraw, {});
-    // g.reduceClipRegion(toDraw);
-
     g.setColour(Colours::grey);
     g.strokePath(toDraw, PathStrokeType(2.25f, PathStrokeType::mitered, PathStrokeType::rounded));
 
@@ -291,20 +288,15 @@ void Connection::mouseUp(const MouseEvent& e)
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
-    int left = std::min(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX());
-    int top = std::min(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY());
-    int right = std::max(outlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreX());
-    int bottom = std::max(outlet->getCanvasBounds().getCentreY(), inlet->getCanvasBounds().getCentreY());
-
-    auto newBounds = toDraw.getBounds().toNearestInt().getUnion(Rectangle<int>(left, top, right - left, bottom - top));
-    //origin = newBounds.getPosition();
-
-    setBounds(newBounds);
-    
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
     
     if(currentPlan.size() < 2) return;
+    
+    // If both inlet and outlet are selected we can just move the connection line
+    if(cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box)) {
+        
+    }
     
     int idx1 = 0;
     int idx2 = 1;
@@ -315,13 +307,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         idx2 = currentPlan.size() - 2;
         position = pend;
     }
-    
-    // TODO: in this case, there's any extra point to move!
-    if (pstart.y < pend.y)
-    {
-    }
-
-    
+        
     if (Line<int>(currentPlan[idx1], currentPlan[idx2]).isVertical())
     {
         currentPlan[idx1] = position;
@@ -332,6 +318,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         currentPlan[idx1] = position;
         currentPlan[idx2].y = position.y;
     }
+    
     
     updatePath();
 }
@@ -374,6 +361,8 @@ void Connection::updatePath()
 
         toDraw.startNewSubPath(pstart.toFloat());
         toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend.toFloat());
+        
+        currentPlan.clear();
     }
     else
     {
@@ -399,7 +388,7 @@ void Connection::updatePath()
 
     auto bounds = toDraw.getBounds().toNearestInt().expanded(4);
     setBounds(bounds + origin);
-
+    
     if (bounds.getX() < 0 || bounds.getY() < 0)
     {
         toDraw.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
