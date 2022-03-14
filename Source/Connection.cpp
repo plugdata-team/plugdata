@@ -187,7 +187,19 @@ void Connection::mouseMove(const MouseEvent& e)
     if (segmentedConnection && currentPlan.size() > 2 && n > 0)
     {
         auto line = Line<int>(currentPlan[n - 1], currentPlan[n]);
-        setMouseCursor(line.isVertical() ? MouseCursor::LeftRightResizeCursor : MouseCursor::UpDownResizeCursor);
+        
+        if(line.isVertical()) {
+            setMouseCursor(MouseCursor::LeftRightResizeCursor);
+        }
+        else if(line.isHorizontal()) {
+            setMouseCursor(MouseCursor::UpDownResizeCursor);
+        }
+        else {
+            setMouseCursor(MouseCursor::NormalCursor);
+        }
+    }
+    else {
+        setMouseCursor(MouseCursor::NormalCursor);
     }
     
     repaint();
@@ -231,9 +243,6 @@ void Connection::mouseDrag(const MouseEvent& e)
 
     auto pstart = outlet->getCanvasBounds().getCentre() - origin;
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
-
-    auto scaleX = static_cast<float>(abs(pstart.x - pend.x));
-    auto scaleY = static_cast<float>(abs(pstart.y - pend.y));
     
     bool curvedConnection = cnv->pd->settingsTree.getProperty("ConnectionStyle");
     if (curvedConnection && dragIdx != -1)

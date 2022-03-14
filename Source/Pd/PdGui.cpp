@@ -794,14 +794,18 @@ void Gui::setSendSymbol(const String& symbol) const noexcept
         }
         else
         {
-            iemgui->x_snd = gensym(symbol.toRawUTF8());
+            iemgui->x_snd_unexpanded = gensym(symbol.toRawUTF8());
+            iemgui->x_snd = canvas_realizedollar(iemgui->x_glist, iemgui->x_snd_unexpanded);
+
             iemgui->x_fsf.x_snd_able = true;
             iemgui_verify_snd_ne_rcv(iemgui);
         }
     }
     if (ptr && isAtom())
     {
-        static_cast<t_fake_gatom*>(ptr)->a_symto = gensym(symbol.toRawUTF8());
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        atom->a_symto = gensym(symbol.toRawUTF8());
+        atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
     }
 }
 
@@ -827,24 +831,31 @@ void Gui::setReceiveSymbol(const String& symbol) const noexcept
             if (strcmp(symbol.toRawUTF8(), iemgui->x_rcv_unexpanded->s_name))
             {
                 if (iemgui->x_fsf.x_rcv_able) pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-                iemgui->x_rcv = gensym(symbol.toRawUTF8());
+                iemgui->x_rcv_unexpanded = gensym(symbol.toRawUTF8());
+                iemgui->x_rcv = canvas_realizedollar(iemgui->x_glist, iemgui->x_rcv_unexpanded);
                 pd_bind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
             }
         }
         else if (iemgui->x_fsf.x_rcv_able)
         {
             pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-            iemgui->x_rcv = gensym(symbol.toRawUTF8());
+            iemgui->x_rcv_unexpanded = gensym(symbol.toRawUTF8());
+            iemgui->x_rcv = canvas_realizedollar(iemgui->x_glist, iemgui->x_rcv_unexpanded);
         }
 
         iemgui->x_fsf.x_rcv_able = rcvable;
-
-        iemgui->x_rcv = gensym(symbol.toRawUTF8());
         iemgui_verify_snd_ne_rcv(iemgui);
     }
     else if (ptr && isAtom())
     {
-        static_cast<t_fake_gatom*>(ptr)->a_symfrom = gensym(symbol.toRawUTF8());
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        if (*atom->a_symfrom->s_name)
+            pd_unbind(&atom->a_text.te_pd,
+                canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+        atom->a_symfrom = gensym(symbol.toRawUTF8());
+        if (*atom->a_symfrom->s_name)
+            pd_bind(&atom->a_text.te_pd,
+                canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
 }
 
