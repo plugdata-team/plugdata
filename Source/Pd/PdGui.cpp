@@ -65,6 +65,7 @@ typedef struct _fake_gatom
     t_symbol* a_expanded_to;
 } t_fake_gatom;
 
+
 static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 {
     int ac = binbuf_getnatom(x->a_text.te_binbuf);
@@ -655,6 +656,15 @@ Rectangle<int> Gui::getBounds() const noexcept
         }
 
         return {x, y, w, h};
+    }
+    if (type == Type::Mousepad)
+    {
+        int x = 0, y = 0, w = 0, h = 0;
+        instance->setThis();
+        patch->setCurrent(true);
+
+        libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
+        return {zoom(x), zoom(y), zoom(w), zoom(h)};
     }
     if (type == Type::Panel)
     {

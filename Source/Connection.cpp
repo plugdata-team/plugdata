@@ -107,8 +107,8 @@ void Connection::setState(MemoryBlock& block)
 
         plan.emplace_back(x, y);
     }
-    
-    applyPath(plan, false);
+    currentPlan = plan;
+    updatePath();
 }
 
 String Connection::getId() const
@@ -162,7 +162,7 @@ bool Connection::hitTest(int x, int y)
 void Connection::paint(Graphics& g)
 {
     g.setColour(Colours::grey);
-    g.strokePath(toDraw, PathStrokeType(2.25f, PathStrokeType::mitered, PathStrokeType::rounded));
+    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 
     auto baseColour = Colours::white;
 
@@ -176,7 +176,7 @@ void Connection::paint(Graphics& g)
     }
     
     g.setColour(baseColour.withAlpha(0.8f));
-    g.strokePath(toDraw, PathStrokeType(1.75f, PathStrokeType::mitered, PathStrokeType::rounded));
+    g.strokePath(toDraw, PathStrokeType(2.0f, PathStrokeType::mitered, PathStrokeType::rounded));
 }
 
 void Connection::mouseMove(const MouseEvent& e)
@@ -293,9 +293,12 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     
     if(currentPlan.size() < 2) return;
     
-    // If both inlet and outlet are selected we can just move the connection line
+    // If both inlet and outlet are selected we can just move the connection cord
     if(cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box)) {
-        
+        auto offset = pstart - currentPlan[0];
+        for(auto& point : currentPlan) point += offset;
+        updatePath();
+        return;
     }
     
     int idx1 = 0;
@@ -307,18 +310,17 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
         idx2 = currentPlan.size() - 2;
         position = pend;
     }
-        
+    
     if (Line<int>(currentPlan[idx1], currentPlan[idx2]).isVertical())
     {
-        currentPlan[idx1] = position;
         currentPlan[idx2].x = position.x;
     }
     else
     {
-        currentPlan[idx1] = position;
         currentPlan[idx2].y = position.y;
     }
     
+    currentPlan[idx1] = position;
     
     updatePath();
 }
@@ -370,6 +372,23 @@ void Connection::updatePath()
         {
             findPath();
         }
+        
+        auto snap = [this](Point<int> point, int idx1, int idx2) {
+            if (Line<int>(currentPlan[idx1], currentPlan[idx2]).isVertical())
+            {
+                currentPlan[idx2].x = point.x + origin.x;
+            }
+            else
+            {
+                currentPlan[idx2].y = point.y + origin.y;
+            }
+            
+            currentPlan[idx1] = point + origin;
+        };
+        
+        snap(pstart, 0, 1);
+        snap(pend, currentPlan.size() - 1, currentPlan.size() - 2);
+        
 
         Path connectionPath;
         connectionPath.startNewSubPath(pstart.toFloat());
@@ -378,8 +397,12 @@ void Connection::updatePath()
         for (int n = 1; n < currentPlan.size() - 1; n++)
         {
             if (connectionPath.contains(currentPlan[n].toFloat())) continue;
+            
+            
             connectionPath.lineTo(currentPlan[n].toFloat() - origin.toFloat());
         }
+        
+        
         connectionPath.lineTo(pend.toFloat());
         toDraw = connectionPath.createPathWithRoundedCorners(8.0f);
 
@@ -397,20 +420,6 @@ void Connection::updatePath()
     offset = {-bounds.getX(), -bounds.getY()};
 }
 
-
-void Connection::applyPath(const PathPlan& plan, bool updateState)
-{
-    currentPlan = plan;
-
-    if (updateState)
-    {
-        auto state = getState();
-        lastId = getId();
-        cnv->patch.setExtraInfo(lastId, state);
-    }
-
-    updatePath();
-}
 
 void Connection::findPath()
 {
@@ -492,7 +501,11 @@ void Connection::findPath()
     }
     std::reverse(simplifiedPath.begin(), simplifiedPath.end());
     
-    applyPath(simplifiedPath);
+    currentPlan = simplifiedPath;
+    
+    auto state = getState();
+    lastId = getId();
+    cnv->patch.setExtraInfo(lastId, state);
 }
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)
