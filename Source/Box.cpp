@@ -173,7 +173,7 @@ void Box::updateBounds(bool newObject)
     {
         auto bestWidth = font.getStringWidth(currentText) + widthOffset;
         int numLines = std::max(StringArray::fromTokens(currentText, "\n", "\'").size(), 1);
-        setSize(bestWidth + doubleMargin, (numLines * 21) + doubleMargin);
+        setSize(bestWidth + doubleMargin, (numLines * 18) + doubleMargin);
     }
 }
 
@@ -246,7 +246,7 @@ void Box::setType(const String& newType, bool exists)
     
     // graphical objects manage their own size limits
     // For text object, make sure the width at least fits the text
-    if (!graphics || graphics->fakeGui())
+    if (!graphics || (graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
     {
         int ioletWidth = (std::max(numInputs, numOutputs) * doubleMargin) + 15;
         int textWidth = font.getStringWidth(newType) + widthOffset;

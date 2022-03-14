@@ -833,7 +833,7 @@ struct MessageComponent : public GUIComponent
 
             // input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
 
-            /*
+            // For the autoresize while typing feature
             input.onEditorShow = [this]()
             {
                 auto* editor = input.getCurrentTextEditor();
@@ -857,7 +857,7 @@ struct MessageComponent : public GUIComponent
                         box->constrainer.checkComponentBounds(box);
                     }
                 };
-            }; */
+            };
         }
         // symbolatom box behaviour
         else
