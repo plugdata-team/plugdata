@@ -71,8 +71,6 @@ class Connection : public Component, public ComponentListener
     // Pathfinding
     int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
 
-    void applyPath(const PathPlan& plan, bool updateState = true);
-
     void findPath();
 
     bool straightLineIntersectsObject(Line<int> first);

@@ -154,7 +154,7 @@ void Edge::createConnection()
     }
 }
 
-Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet)
+Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Box* boxToExclude)
 {
     // Find all edges
     Array<Edge*> allEdges;
@@ -162,7 +162,7 @@ Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet)
     {
         for (auto* edge : box->edges)
         {
-            if(edge->isInlet == inlet) {
+            if(edge->isInlet == inlet && edge->box != boxToExclude) {
                 allEdges.add(edge);
             }
         }
