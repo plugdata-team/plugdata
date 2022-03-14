@@ -136,7 +136,9 @@ void Box::updateBounds(bool newObject)
     int width = 0;
     if (pdObject)
     {
+        auto bounds = pdObject->getBounds();
         width = pdObject->getBounds().getWidth() + doubleMargin;
+        setTopLeftPosition(bounds.getPosition());
     }
     // width didn't get assigned, or was zero
     if(width <= doubleMargin)
@@ -279,7 +281,7 @@ void Box::paint(Graphics& g)
     {
         outlineColour = Colours::red;
     }
-    else if (selected)
+    else if (selected && !cnv->isGraph)
     {
         outlineColour = findColour(Slider::thumbColourId);
         g.setColour(outlineColour);
@@ -297,7 +299,7 @@ void Box::paint(Graphics& g)
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {
-        if (locked == false && (isOver || selected))
+        if (locked == false && (isOver || selected) && !cnv->isGraph)
         {
             g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(ComboBox::outlineColourId));
             g.drawRect(rect.toFloat(), 0.5f);
