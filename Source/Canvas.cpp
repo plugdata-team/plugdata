@@ -366,7 +366,9 @@ struct GraphArea : public Component, public ComponentDragger
 
     void mouseMove(const MouseEvent& e) override
     {
-        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        if(canvas->locked == false) {
+            setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        }
     }
 
     void mouseDown(const MouseEvent& e) override
@@ -395,13 +397,13 @@ struct GraphArea : public Component, public ComponentDragger
     void updatePosition()
     {
         t_canvas* cnv = canvas->patch.getPointer();
-        // Lock first?
+        // TODO: make this thread safe
         if (cnv)
         {
             cnv->gl_pixwidth = getWidth() / pd::Patch::zoom;
             cnv->gl_pixheight = getHeight() / pd::Patch::zoom;
-            cnv->gl_xmargin = (getX() - 4) / pd::Patch::zoom;
-            cnv->gl_ymargin = (getY() - 4) / pd::Patch::zoom;
+            cnv->gl_xmargin = (getX() - canvas->canvasOrigin.x - 4) / pd::Patch::zoom;
+            cnv->gl_ymargin = (getY() - canvas->canvasOrigin.y - 4) / pd::Patch::zoom;
         }
     }
 };
@@ -479,7 +481,7 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x, canvasOrigin.y - 1, getWidth(), canvasOrigin.y - 1);
     }
 
-    if (locked == false)
+    if (locked == false && !isGraph)
     {
         const int gridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
@@ -500,7 +502,7 @@ void Canvas::focusGained(FocusChangeType cause)
 {
     // This is necessary because in some cases, setting the canvas as current right before an action isn't enough
     pd->setThis();
-    if (patch.getPointer())
+    if (patch.getPointer() && !isGraph)
     {
         patch.setCurrent(true);
     }
@@ -715,6 +717,12 @@ void Canvas::synchronise(bool updatePosition)
 
     // Resize canvas to fit objects
     checkBounds();
+    
+    for (auto& tmpl : templates)
+    {
+        tmpl->updateIfMoved();
+    }
+    
     main.commandStatusChanged();
 }
 
@@ -1283,7 +1291,14 @@ void Canvas::checkBounds()
 
     if (graphArea)
     {
-        graphArea->setBounds(patch.getBounds());
+        // TODO: fix translation
+        graphArea->setBounds(patch.getBounds().translated(canvasOrigin.x, canvasOrigin.y));
+    }
+    
+    
+    for (auto& tmpl : templates)
+    {
+        tmpl->updateIfMoved();
     }
 }
 

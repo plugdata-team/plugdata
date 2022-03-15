@@ -801,6 +801,7 @@ struct MessageComponent : public GUIComponent
 {
     bool isDown = false;
     bool isLocked = false;
+    bool shouldOpenEditor = false;
 
     Label input;
 
@@ -987,6 +988,9 @@ struct MessageComponent : public GUIComponent
             isDown = true;
             repaint();
         }
+        if(box->cnv->isSelected(box) && !box->selectionChanged) {
+            shouldOpenEditor = true;
+        }
     }
 
     void mouseUp(const MouseEvent& e) override
@@ -994,9 +998,10 @@ struct MessageComponent : public GUIComponent
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if (((!isLocked && box->cnv->isSelected(box) && !box->selectionChanged && !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom())))
+        if ((!isLocked && shouldOpenEditor &&  !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom()))
         {
             input.showEditor();
+            shouldOpenEditor = false;
         }
 
         if (!gui.isAtom() && isLocked)
@@ -1491,6 +1496,7 @@ struct RadioComponent : public GUIComponent
         {
             box->constrainer.setSizeLimits(100, 25, maxSize, maxSize);
         }
+        
     }
 
     void resized() override
@@ -1874,29 +1880,19 @@ struct GraphOnParent : public GUIComponent
 
     void updateCanvas()
     {
-        // if(isShowing() && !canvas) {
-        //  It could be an optimisation to only construct the canvas if its showing
-        //  But it's also kinda weird
         if (!canvas)
         {
             canvas = std::make_unique<Canvas>(box->cnv->main, subpatch, true);
             addAndMakeVisible(canvas.get());
 
-            auto b = getPatch()->getBounds();
-
-            canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
-
             // Make sure that the graph doesn't become the current canvas
             box->cnv->patch.setCurrent(true);
             box->cnv->main.commandStatusChanged();
         }
-        if (canvas)
-        {
-            auto b = getPatch()->getBounds();
 
-            canvas->checkBounds();
-            canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
-        }
+        auto b = getPatch()->getBounds();
+        canvas->checkBounds();
+        canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
     }
 
     void updateValue() override
