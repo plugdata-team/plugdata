@@ -683,6 +683,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::ConnectionPathfind:
         {
             result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
+            result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(statusbar.connectionStyle == true);
             break;
         }
@@ -893,6 +894,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                 if (cnv->isSelected(con))
                 {
                     con->findPath();
+                    con->updatePath();
                 }
             }
 
