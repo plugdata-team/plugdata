@@ -137,7 +137,9 @@ void Box::updateBounds(bool newObject)
     if (pdObject)
     {
         auto bounds = pdObject->getBounds();
-        width = pdObject->getBounds().getWidth() + doubleMargin;
+        bounds.translate(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
+        
+        width = bounds.getWidth() + doubleMargin;
         setTopLeftPosition(bounds.getPosition());
     }
     // width didn't get assigned, or was zero
@@ -401,6 +403,7 @@ void Box::updatePorts()
         
         // Dont show for graphs or presentation mode
         edge->setVisible(!(cnv->isGraph || cnv->presentationMode == true));
+        edge->repaint();
         
         numIn += input;
         numOut += !input;
