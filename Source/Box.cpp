@@ -208,7 +208,7 @@ void Box::setType(const String& newType, bool exists)
         else
         {
             auto rect = getBounds() - cnv->canvasOrigin;
-            pdObject = pd->createObject(newType, rect.getX(), rect.getY());
+            pdObject = pd->createObject(newType, rect.getX() + margin, rect.getY() + margin);
         }
     }
     else
@@ -514,10 +514,7 @@ void Box::showEditor()
 
         editor->onFocusLost = [this]()
         {
-            if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
-            {
-                hideEditor();
-            }
+            hideEditor();
         };
         
         if (!(graphics && graphics->getGui().getType() == pd::Type::Comment))
