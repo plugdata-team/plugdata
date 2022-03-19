@@ -82,7 +82,7 @@ MemoryBlock Connection::getState()
     String pathAsString;
     for (auto& point : currentPlan)
     {
-        pathAsString += String(point.x) + "*" + String(point.y) + ",";
+        pathAsString += String(point.x - outlet->getPosition().x) + "*" + String(point.y - outlet->getPosition().y) + ",";
     }
 
     info.writeString(pathAsString);
@@ -105,7 +105,7 @@ void Connection::setState(MemoryBlock& block)
         auto x = point.upToFirstOccurrenceOf("*", false, false).getFloatValue();
         auto y = point.fromFirstOccurrenceOf("*", false, false).getFloatValue();
 
-        plan.emplace_back(x, y);
+        plan.emplace_back(x + outlet->getPosition().x, y + outlet->getPosition().y);
     }
     currentPlan = plan;
     updatePath();

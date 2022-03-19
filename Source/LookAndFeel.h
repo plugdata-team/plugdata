@@ -308,14 +308,27 @@ struct PlugDataDarkLook : public PlugDataLook
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         g.setColour(button.getToggleState() ? Colour(55, 55, 55) : Colour(41, 41, 41));
-        g.fillRect(button.getLocalBounds());
+        g.fillRect(button.getLocalBounds().reduced(0, 1));
+        
+        int w = button.getWidth();
+        int h = button.getHeight();
 
-        g.setColour(Colour(120, 120, 120));
-        g.drawLine(0, button.getHeight() - 1, button.getWidth(), button.getHeight() - 1);
-        g.drawLine(button.getWidth(), 0, button.getWidth(), button.getHeight());
-
+        g.setColour (button.findColour (ComboBox::outlineColourId));
+        g.drawLine(Line<float>(0, h - 1, w, h - 1), 0.5f);
+        
+        if(button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1) {
+            g.drawLine(Line<float>(w, 0, w, h - 1), 1.0f);
+        }
+        
+        
+        
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
+    void drawTabAreaBehindFrontButton (TabbedButtonBar& bar, Graphics& g, const int w, const int h) override
+    {
+
+    }
+
 
     Font getTabButtonFont(TabBarButton&, float height) override
     {
@@ -715,9 +728,23 @@ struct PlugDataDarkLook : public PlugDataLook
             }
         }
     };
+    
+    void drawCornerResizer (Graphics& g, int w, int h, bool isMouseOver, bool isMouseDragging) override
+    {
+        Path corner;
+        
+        corner.addTriangle(Point<float>(0, h), Point<float>(w, h), Point<float>(w, 0));
+        corner = corner.createPathWithRoundedCorners(2.0f);
+        
+        g.setColour(findColour(Slider::thumbColourId).withAlpha(isMouseOver ? 1.0f : 0.6f));
+        g.fillPath(corner);
+
+    }
 
     LookAndFeel* getPdLook() override
     {
         return new PdLook;
     }
+    
+    
 };
