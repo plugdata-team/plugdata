@@ -78,6 +78,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
 
+    void updateDrawables();
     Array<DrawableTemplate*> findDrawables();
 
     void showSuggestions(Box* box, TextEditor* editor);
@@ -118,7 +119,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool isGraphChild = false;
 
     Point<int> canvasOrigin = {0, 0};
-    Point<int> lastMousePos;
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;

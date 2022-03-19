@@ -80,13 +80,15 @@ Patch::Patch(const File& toOpen, Instance* instance) noexcept
 
 Rectangle<int> Patch::getBounds() const noexcept
 {
+    auto zoom = [](float val) { return int(round(val * Patch::zoom)); };
+    
     if (ptr)
     {
         t_canvas const* cnv = getPointer();
 
         if (cnv->gl_isgraph)
         {
-            return {int(cnv->gl_xmargin * Patch::zoom) + 4, int(cnv->gl_ymargin * Patch::zoom) + 4, int(cnv->gl_pixwidth * Patch::zoom), int(cnv->gl_pixheight * Patch::zoom)};
+            return {zoom(cnv->gl_xmargin), zoom(cnv->gl_ymargin), zoom(cnv->gl_pixwidth), zoom(cnv->gl_pixheight)};
         }
     }
     return {0, 0, 0, 0};

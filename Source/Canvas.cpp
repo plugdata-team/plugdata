@@ -118,7 +118,6 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         setInterceptsMouseClicks(true, true);
         setAlwaysOnTop(true);
-        setVisible(false);
     }
 
     ~SuggestionComponent() override
@@ -163,7 +162,9 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         }
 
         // buttons[0]->setToggleState(true, sendNotification);
-        setVisible(editor->getText().isNotEmpty());
+        //setVisible(editor->getText().isNotEmpty());
+
+        addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary | ComponentPeer::StyleFlags::windowIgnoresKeyPresses);
         repaint();
     }
 
@@ -340,23 +341,19 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 // Graph bounds component
 struct GraphArea : public Component, public ComponentDragger
 {
-    ResizableBorderComponent resizer;
+    ResizableCornerComponent resizer;
     Canvas* canvas;
-
-    Rectangle<int> startRect;
 
     explicit GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent)
     {
         addAndMakeVisible(resizer);
+        updateBounds();
     }
 
     void paint(Graphics& g) override
     {
         g.setColour(findColour(Slider::thumbColourId));
-        g.drawRect(getLocalBounds());
-
-        g.setColour(findColour(Slider::thumbColourId).darker(0.8f));
-        g.drawRect(getLocalBounds().reduced(6));
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), 2.0f, 4.0f);
     }
 
     bool hitTest(int x, int y) override
@@ -383,18 +380,21 @@ struct GraphArea : public Component, public ComponentDragger
 
     void mouseUp(const MouseEvent& e) override
     {
-        updatePosition();
+        setPdBounds();
         repaint();
     }
 
     void resized() override
     {
-        updatePosition();
-        resizer.setBounds(getLocalBounds());
+        int handleSize = 20;
+        
+        setPdBounds();
+        resizer.setBounds(getWidth() - handleSize, getHeight() - handleSize, handleSize, handleSize);
+        
         repaint();
     }
 
-    void updatePosition()
+    void setPdBounds()
     {
         t_canvas* cnv = canvas->patch.getPointer();
         // TODO: make this thread safe
@@ -402,9 +402,13 @@ struct GraphArea : public Component, public ComponentDragger
         {
             cnv->gl_pixwidth = getWidth() / pd::Patch::zoom;
             cnv->gl_pixheight = getHeight() / pd::Patch::zoom;
-            cnv->gl_xmargin = (getX() - canvas->canvasOrigin.x - 4) / pd::Patch::zoom;
-            cnv->gl_ymargin = (getY() - canvas->canvasOrigin.y - 4) / pd::Patch::zoom;
+            cnv->gl_xmargin = round((getX() - canvas->canvasOrigin.x) / pd::Patch::zoom);
+            cnv->gl_ymargin = round((getY() - canvas->canvasOrigin.y) / pd::Patch::zoom);
         }
+    }
+    
+    void updateBounds() {
+        setBounds(canvas->patch.getBounds().translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y));
     }
 };
 
@@ -428,6 +432,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
     {
         graphArea = new GraphArea(this);
         addAndMakeVisible(graphArea);
+        graphArea->setAlwaysOnTop(true);
     }
 
     setSize(600, 400);
@@ -454,8 +459,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
     {
         presentationMode = false;
     }
-
-    addChildComponent(suggestor);
 
     synchronise();
 }
@@ -572,7 +575,6 @@ void Canvas::synchronise(bool updatePosition)
 
         if (it == boxes.end())
         {
-            auto b = object.getBounds();
             auto name = String(object.getText());
 
             auto type = pd::Gui::getType(object.getPointer());
@@ -599,12 +601,10 @@ void Canvas::synchronise(bool updatePosition)
                 }
             };
 
-            b.translate(canvasOrigin.x, canvasOrigin.y);
-
             // These objects have extra info (like size and colours) in their names that we want to hide
             guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
-            auto* newBox = boxes.add(new Box(pdObject, this, name, b.getPosition()));
+            auto* newBox = boxes.add(new Box(pdObject, this, name));
             newBox->toFront(false);
 
             if (newBox->graphics && newBox->graphics->label) newBox->graphics->label->toFront(false);
@@ -615,17 +615,10 @@ void Canvas::synchronise(bool updatePosition)
         else
         {
             auto* box = *it;
-            auto b = box->pdObject->getBounds(); // don't take from pd object, in case it's a gui object!
-
-            
-            b.translate(canvasOrigin.x, canvasOrigin.y);
 
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
-            if (updatePosition && (box->getPosition().getDistanceFrom(b.getPosition()) > 8 || box->getLocalBounds() != b.withPosition(0, 0)))
-            {
-                box->updateBounds(false);
-            }
+            if (updatePosition) box->updateBounds(false);
 
             box->toFront(false);
             if (box->graphics && box->graphics->label) box->graphics->label->toFront(false);
@@ -701,16 +694,7 @@ void Canvas::synchronise(bool updatePosition)
         }
 
         setTransform(main.transform);
-
-        templates.clear();
-        templates.addArray(findDrawables());
-
-        for (auto& tmpl : templates)
-        {
-            addAndMakeVisible(tmpl);
-            tmpl->setAlwaysOnTop(true);
-            tmpl->update();
-        }
+        updateDrawables();
     }
 
     // patch.deselectAll();
@@ -752,14 +736,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         }
         bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *subpatch, false, isGraphChild));
-
-        auto b = subpatch->getBounds();
-
-        if (isGraphChild)
-        {
-            newCanvas->graphArea->setBounds(b.getX(), b.getY(), std::max(b.getWidth(), 60), std::max(b.getHeight(), 60));
-        }
-
+        
         main.addTab(newCanvas);
         newCanvas->checkBounds();
     };
@@ -1029,6 +1006,20 @@ void Canvas::mouseUp(const MouseEvent& e)
     lasso.endLasso();
 }
 
+// Updates pd objects that use the drawing feature
+void Canvas::updateDrawables()
+{
+    templates.clear();
+    templates.addArray(findDrawables());
+
+    for (auto& tmpl : templates)
+    {
+        addAndMakeVisible(tmpl);
+        tmpl->setAlwaysOnTop(true);
+        tmpl->update();
+    }
+}
+
 Array<DrawableTemplate*> Canvas::findDrawables()
 {
     // Find all drawables (from objects like drawpolygon, filledcurve, etc.)
@@ -1100,9 +1091,6 @@ void Canvas::paintOverChildren(Graphics& g)
 
 void Canvas::mouseMove(const MouseEvent& e)
 {
-    // For deciding where to place a new object
-    lastMousePos = getLocalBounds().reduced(20).getConstrainedPoint(e.getPosition());
-
     if (connectingEdge)
     {
         repaint();
@@ -1278,23 +1266,21 @@ void Canvas::checkBounds()
 
     for (auto obj : boxes)
     {
-        viewBounds = obj->getBounds().getUnion(viewBounds);
-    }
-
-    for (auto& box : boxes)
-    {
-        box->setBounds(box->getBounds().translated(-viewBounds.getX(), -viewBounds.getY()));
+        viewBounds = obj->getBounds().reduced(Box::margin).getUnion(viewBounds);
     }
 
     canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
     setSize(viewBounds.getWidth(), viewBounds.getHeight());
 
+    for (auto& box : boxes)
+    {
+        box->updateBounds(false);
+    }
+
     if (graphArea)
     {
-        // TODO: fix translation
-        graphArea->setBounds(patch.getBounds().translated(canvasOrigin.x, canvasOrigin.y));
+        graphArea->updateBounds();
     }
-    
     
     for (auto& tmpl : templates)
     {
@@ -1332,14 +1318,14 @@ void Canvas::valueChanged(Value& v)
 void Canvas::showSuggestions(Box* box, TextEditor* editor)
 {
     suggestor->createCalloutBox(box, editor);
-    suggestor->setTopLeftPosition(box->getX(), box->getBounds().getBottom());
-    // suggestor->resized();
-    // suggestor->setVisible(true);
+    suggestor->setTopLeftPosition(box->getScreenX(), box->getScreenBounds().getBottom());
 }
 void Canvas::hideSuggestions()
 {
-    suggestor->setVisible(false);
-
+    if(suggestor->isOnDesktop()) {
+        suggestor->removeFromDesktop();
+    }
+    
     suggestor->openedEditor = nullptr;
     suggestor->currentBox = nullptr;
 }

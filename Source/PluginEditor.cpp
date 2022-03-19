@@ -81,6 +81,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
+    
+    tabbar.toBehind(&sidebar);
 
     for (auto* button : toolbarButtons)
     {
@@ -234,6 +236,8 @@ void PlugDataPluginEditor::showNewObjectMenu()
     std::function<void(String)> callback = [this](String result)
     {
         auto* cnv = getCurrentCanvas();
+        
+        auto position = cnv->getMouseXYRelative();
 
         if (result == "array")
         {
@@ -243,7 +247,7 @@ void PlugDataPluginEditor::showNewObjectMenu()
                                          if (result)
                                          {
                                              auto* cnv = getCurrentCanvas();
-                                             auto* box = new Box(cnv, "graph " + name + " " + size, cnv->lastMousePos);
+                                             auto* box = new Box(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
                                              cnv->boxes.add(box);
                                          }
                                      });
@@ -286,9 +290,9 @@ void PlugDataPluginEditor::resized()
 {
     int sbarY = toolbarHeight - 4;
 
-    tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth(), getHeight() - sbarY - statusbar.getHeight());
+    tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth() + 5, getHeight() - sbarY - statusbar.getHeight());
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight - 2, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
@@ -578,6 +582,7 @@ void PlugDataPluginEditor::valueChanged(Value& v)
         {
             if (!canvas->isGraph)
             {
+                canvas->hideSuggestions();
                 canvas->setTransform(transform);
             }
         }
@@ -818,6 +823,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 {
     auto* cnv = getCurrentCanvas();
+    
+    auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
 
     switch (info.commandID)
     {
@@ -928,42 +935,42 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
         case CommandIDs::NewObject:
         {
-            cnv->boxes.add(new Box(cnv, "", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "", lastPosition));
             return true;
         }
         case CommandIDs::NewComment:
         {
-            cnv->boxes.add(new Box(cnv, "comment", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "comment", lastPosition));
             return true;
         }
         case CommandIDs::NewBang:
         {
-            cnv->boxes.add(new Box(cnv, "bng", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "bng", lastPosition));
             return true;
         }
         case CommandIDs::NewMessage:
         {
-            cnv->boxes.add(new Box(cnv, "msg", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "msg", lastPosition));
             return true;
         }
         case CommandIDs::NewToggle:
         {
-            cnv->boxes.add(new Box(cnv, "tgl", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "tgl", lastPosition));
             return true;
         }
         case CommandIDs::NewNumbox:
         {
-            cnv->boxes.add(new Box(cnv, "nbx", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "nbx", lastPosition));
             return true;
         }
         case CommandIDs::NewFloatAtom:
         {
-            cnv->boxes.add(new Box(cnv, "floatatom", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "floatatom", lastPosition));
             return true;
         }
         case CommandIDs::NewSlider:
         {
-            cnv->boxes.add(new Box(cnv, "vsl", cnv->lastMousePos));
+            cnv->boxes.add(new Box(cnv, "vsl", lastPosition));
             return true;
         }
 

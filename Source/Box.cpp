@@ -17,7 +17,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
     cnv = parent;
     
-    setTopLeftPosition(position);
+    setTopLeftPosition(position - Point<int>(margin, margin));
     
     
     initialise();
@@ -33,14 +33,13 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     
 }
 
-Box::Box(pd::Object* object, Canvas* parent, const String& name, Point<int> position) : pdObject(object)
+Box::Box(pd::Object* object, Canvas* parent, const String& name) : pdObject(object)
 {
     cnv = parent;
     
     initialise();
-    setTopLeftPosition(position);
+    
     setType(name, true);
-
 }
 
 void Box::initialise()
@@ -136,7 +135,7 @@ void Box::updateBounds(bool newObject)
     int width = 0;
     if (pdObject)
     {
-        auto bounds = pdObject->getBounds();
+        auto bounds = pdObject->getBounds() - Point<int>(margin, margin);
         bounds.translate(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
         
         width = bounds.getWidth() + doubleMargin;
@@ -158,7 +157,7 @@ void Box::updateBounds(bool newObject)
         hideLabel = true;
         setEditable(false);
     }
-    else if(!graphics)
+    else if(!graphics || (graphics && graphics->fakeGui()))
     {
         setEditable(true);
         hideLabel = false;
@@ -177,6 +176,8 @@ void Box::updateBounds(bool newObject)
         int numLines = std::max(StringArray::fromTokens(currentText, "\n", "\'").size(), 1);
         setSize(bestWidth + doubleMargin, (numLines * 18) + doubleMargin);
     }
+    
+    resized();
 }
 
 void Box::setType(const String& newType, bool exists)
@@ -257,7 +258,7 @@ void Box::setType(const String& newType, bool exists)
         constrainer.setSizeLimits(minimumWidth, Box::height, std::max(3000, minimumWidth), Box::height);
     }
     
-    
+    cnv->updateDrawables();
     cnv->main.commandStatusChanged();
 }
 
@@ -462,7 +463,7 @@ void Box::mouseUp(const MouseEvent& e)
         cnv->pd->enqueueFunction([this]() {
             auto b = getBounds() - cnv->canvasOrigin;
             b.setWidth(b.getWidth() - doubleMargin);
-            pdObject->setBounds(b);
+            pdObject->setBounds(b + Point<int>(margin, margin));
         });
         
         cnv->checkBounds();
@@ -510,7 +511,7 @@ void Box::showEditor()
         editor->setReturnKeyStartsNewLine(multiLine);
         editor->setBorder(border);
         editor->setJustification(Justification::centred);
-        
+
         editor->onFocusLost = [this]()
         {
             if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
@@ -523,6 +524,7 @@ void Box::showEditor()
         {
             cnv->showSuggestions(this, editor.get());
         }
+        
         
         editor->setSize(10, 10);
         addAndMakeVisible(editor.get());
