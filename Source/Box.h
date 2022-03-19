@@ -22,9 +22,9 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     bool isOver = false;
 
    public:
-    explicit Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
+    Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
-    Box(pd::Object* object, Canvas* parent, const String& name = "", Point<int> position = {100, 100});
+    Box(pd::Object* object, Canvas* parent, const String& name = "");
     
     void valueChanged(Value& v) override;
 

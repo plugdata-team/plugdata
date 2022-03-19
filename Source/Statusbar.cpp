@@ -312,6 +312,7 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
 
 void Statusbar::zoom(bool zoomIn)
 {
+    
     float value = static_cast<float>(zoomScale.getValue());
 
     // Zoom limits
