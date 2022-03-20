@@ -356,12 +356,12 @@ struct PlugDataDarkLook : public PlugDataLook
         
         if (!Desktop::canUseSemiTransparentWindows() && JUCEApplicationBase::isStandaloneApp())
         {
-            g.fillAll(findColour(ResizableWindow::backgroundColourId));
+            g.fillAll(findColour(ComboBox::backgroundColourId));
         }
         
         // On linux, the canUseSemiTransparentWindows flag sometimes incorrectly returns true
 #ifdef JUCE_LINUX
-        g.fillAll(findColour(ResizableWindow::backgroundColourId));
+        g.fillAll(findColour(ComboBox::backgroundColourId));
 #endif
 
         auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
