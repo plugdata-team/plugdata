@@ -53,12 +53,13 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     // On first startup, initialise abstractions and settings
     initialiseFilesystem();
 
-    // Update pd search paths for abstractions
-    updateSearchPaths();
 
     // Initialise library for text autocompletion
     objectLibrary.initialiseLibrary();
-
+    
+    // Update pd search paths for abstractions
+    updateSearchPaths();
+    
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
     midiBufferOut.ensureSize(2048);
