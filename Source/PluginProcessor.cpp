@@ -260,7 +260,6 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
     {
         int nchb = layouts.getNumChannels(false, bus);
         if (nchb > 2) return false;
-        if (nchb == 0) return false;
         noutch += nchb;
     }
 
@@ -268,7 +267,6 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
     {
         int nchb = layouts.getNumChannels(true, bus);
         if (nchb > 2) return false;
-        if (nchb == 0) return false;
         ninch += nchb;
     }
 
