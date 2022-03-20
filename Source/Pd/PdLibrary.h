@@ -30,11 +30,21 @@ class Trie
     // Constructor
     Trie()
     {
-        this->isLeaf = false;
+        isLeaf = false;
 
         for (int i = 0; i < CHAR_SIZE; i++)
         {
-            this->character[i] = nullptr;
+            character[i] = nullptr;
+        }
+    }
+    
+    ~Trie() {
+        for (int i = 0; i < CHAR_SIZE; i++)
+        {
+            if (character[i])
+            {
+                delete character[i];
+            }
         }
     }
 
@@ -47,19 +57,31 @@ class Trie
     int autocomplete(std::string query, Suggestions& result);
 };
 
-struct Library
+struct Library : public Timer
 {
+    
     void initialiseLibrary(ValueTree pathTree);
 
+    void updateLibrary();
     void parseDocumentation(const String& path);
-
+    
     Suggestions autocomplete(std::string query);
+    
+    void timerCallback() override;
 
     std::unordered_map<String, String> objectDescriptions;
     std::unordered_map<String, StringArray> objectKeywords;
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
     Trie searchTree;
+    
+    File appDataDir;
+    
+    std::function<void()> appDirChanged;
+    
+    
+    Time lastAppDirModificationTime;
+    
 };
 
 }  // namespace pd

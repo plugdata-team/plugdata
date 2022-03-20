@@ -59,7 +59,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     {
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
         labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
-        labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize * pd::Patch::zoom;
+        labelHeight = pd::Patch::applyZoom(static_cast<t_iemgui*>(gui.getPointer())->x_fontsize);
     }
     else if (gui.isAtom())
     {
@@ -1845,6 +1845,7 @@ struct GraphOnParent : public GUIComponent
 
     void resized() override
     {
+        
     }
 
     void lock(bool locked) override
@@ -1891,7 +1892,7 @@ struct GraphOnParent : public GUIComponent
         }
 
         auto b = getPatch()->getBounds();
-        canvas->checkBounds();
+        //canvas->checkBounds();
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
     }
 
