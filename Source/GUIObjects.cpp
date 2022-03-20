@@ -93,7 +93,7 @@ void GUIComponent::lock(bool isLocked)
 
 void GUIComponent::mouseDown(const MouseEvent& e)
 {
-    if (box->commandLocked == true)
+    if (box->commandLocked == var(true))
     {
         auto& sidebar = box->cnv->main.sidebar;
         inspectorWasVisible = !sidebar.isShowingConsole();
@@ -103,7 +103,7 @@ void GUIComponent::mouseDown(const MouseEvent& e)
 
 void GUIComponent::mouseUp(const MouseEvent& e)
 {
-    if (box->commandLocked == true && inspectorWasVisible)
+    if (box->commandLocked == var(true) && inspectorWasVisible)
     {
         box->cnv->main.sidebar.showParameters();
     }
@@ -1330,7 +1330,7 @@ struct ListComponent : public GUIComponent, public Timer
 
     void update() override
     {
-        if (edited == false && !label.isBeingEdited())
+        if (!edited && !label.isBeingEdited())
         {
             auto const array = gui.getList();
             String message;
@@ -1456,7 +1456,7 @@ struct SliderComponent : public GUIComponent
         }
         else if (value.refersToSameSourceAs(isLogarithmic))
         {
-            gui.setLogScale(isLogarithmic == true);
+            gui.setLogScale(isLogarithmic == var(true));
             min = gui.getMinimum();
             max = gui.getMaximum();
         }
@@ -1825,7 +1825,7 @@ struct GraphOnParent : public GUIComponent
     // Graph On Parent
     GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
     {
-        setInterceptsMouseClicks(box->locked == false, true);
+        setInterceptsMouseClicks(box->locked == var(false), true);
 
         subpatch = gui.getPatch();
         updateCanvas();

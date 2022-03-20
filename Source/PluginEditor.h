@@ -109,7 +109,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     Sidebar sidebar;
     Statusbar statusbar;
 
-    std::atomic<bool> canUndo, canRedo;
+    std::atomic<bool> canUndo = false, canRedo = false;
 
    private:
     std::unique_ptr<FileChooser> saveChooser;

@@ -177,10 +177,10 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     lockButton->setConnectedEdges(12);
     lockButton->setName("statusbar:lock");
     lockButton->getToggleStateValue().referTo(locked);
-    lockButton->onClick = [this]() { lockButton->setButtonText(locked == true ? Icons::Lock : Icons::Unlock); };
+    lockButton->onClick = [this]() { lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock); };
     addAndMakeVisible(lockButton.get());
 
-    lockButton->setButtonText(locked == true ? Icons::Lock : Icons::Unlock);
+    lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
 
     connectionStyle.referTo(pd.settingsTree.getPropertyAsValue("ConnectionStyle", nullptr));
 
@@ -190,7 +190,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionStyleButton->setName("statusbar:connectionstyle");
     connectionStyleButton->getToggleStateValue().referTo(connectionStyle);
 
-    connectionStyleButton->onClick = [this]() { connectionPathfind->setEnabled(connectionStyle == true); };
+    connectionStyleButton->onClick = [this]() { connectionPathfind->setEnabled(connectionStyle == var(true)); };
 
     addAndMakeVisible(connectionStyleButton.get());
 
@@ -201,7 +201,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     {
         dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true);
     };
-    connectionPathfind->setEnabled(connectionStyle == true);
+    connectionPathfind->setEnabled(connectionStyle == var(true));
     addAndMakeVisible(connectionPathfind.get());
 
     addAndMakeVisible(zoomLabel);
@@ -280,12 +280,12 @@ void Statusbar::resized()
 // This timer is only started on Linux
 void Statusbar::timerCallback()
 {
-    if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == false)
+    if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var(false))
     {
         commandLocked = true;
     }
 
-    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == true)
+    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == var(true))
     {
         commandLocked = false;
     }
@@ -301,7 +301,7 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
         commandLocked = true;
     }
 
-    if (!mod.isCommandDown() && pd.commandLocked == true)
+    if (!mod.isCommandDown() && pd.commandLocked == var(true))
     {
         commandLocked = false;
     }

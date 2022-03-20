@@ -117,8 +117,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
         return nbus > 0;
     }
 
-    std::atomic<uint64> lastAudioCallback;
-
     void initialiseFilesystem();
     void saveSettings();
     void updateSearchPaths();
