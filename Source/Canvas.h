@@ -83,7 +83,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
-    
 
     template <typename T>
     Array<T*> getSelectionOfType()
@@ -115,7 +114,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Value locked;
     Value connectionStyle;
     Value presentationMode;
-    
+
     bool isGraph = false;
     bool isGraphChild = false;
 

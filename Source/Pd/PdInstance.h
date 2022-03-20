@@ -58,7 +58,7 @@ class Instance
         int midi2;
         int midi3;
     } midievent;
-    
+
    public:
     Instance(std::string const& symbol);
     Instance(Instance const& other) = delete;
@@ -184,12 +184,12 @@ class Instance
         return nullptr;
     };
 
-    void* m_instance            = nullptr;
-    void* m_patch               = nullptr;
-    void* m_atoms               = nullptr;
-    void* m_message_receiver    = nullptr;
-    void* m_midi_receiver       = nullptr;
-    void* m_print_receiver      = nullptr;
+    void* m_instance = nullptr;
+    void* m_patch = nullptr;
+    void* m_atoms = nullptr;
+    void* m_message_receiver = nullptr;
+    void* m_midi_receiver = nullptr;
+    void* m_print_receiver = nullptr;
 
     std::atomic<bool> audioStarted = false;
     std::atomic<bool> canUndo = false;
@@ -201,7 +201,6 @@ class Instance
     std::vector<std::pair<String, int>> consoleHistory;
 
    private:
-
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     File currentFile;

@@ -70,8 +70,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     sendMessagesFromQueue();
 
     LookAndFeel::setDefaultLookAndFeel(&lnf.get());
-    
-    objectLibrary.appDirChanged = [this](){
+
+    objectLibrary.appDirChanged = [this]()
+    {
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
         updateSearchPaths();
     };
@@ -701,7 +702,7 @@ void PlugDataAudioProcessor::loadPatch(File patch)
 
     openPatch(patch);
     patches.addIfNotAlreadyThere(getPatch());
-    
+
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));

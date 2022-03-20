@@ -173,7 +173,7 @@ void Trie::suggestionsRec(std::string currPrefix, Suggestions& result)
 int Trie::autocomplete(std::string query, Suggestions& result)
 {
     auto* pCrawl = this;
-    
+
     // Check if prefix is present and find the
     // the node (of last level) with last character
     // of givenString.
@@ -219,26 +219,26 @@ int Trie::autocomplete(std::string query, Suggestions& result)
 void Library::initialiseLibrary()
 {
     appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
-    
+
     lastAppDirModificationTime = appDataDir.getLastModificationTime();
-    
+
     updateLibrary();
-    
+
     auto pddocPath = appDataDir.getChildFile("Documentation").getChildFile("pddoc").getFullPathName();
 
     parseDocumentation(pddocPath);
-    
+
     startTimer(3000);
 }
 
-void Library::updateLibrary() {
-    
+void Library::updateLibrary()
+{
     auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
-    
+
     auto pathTree = settingsTree.getChildWithName("Paths");
-    
+
     searchTree = Trie();
-    
+
     int i;
     t_class* o = pd_objectmaker;
 
@@ -303,12 +303,12 @@ Suggestions Library::autocomplete(std::string query)
 
 void Library::timerCallback()
 {
-    if(lastAppDirModificationTime < appDataDir.getLastModificationTime()) {
+    if (lastAppDirModificationTime < appDataDir.getLastModificationTime())
+    {
         appDirChanged();
         updateLibrary();
         lastAppDirModificationTime = appDataDir.getLastModificationTime();
     }
-
 }
 
 }  // namespace pd

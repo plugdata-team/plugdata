@@ -228,7 +228,7 @@ void GUIComponent::valueChanged(Value& v)
 
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.5f) : sliderBackground.brighter(0.5f);
-        
+
         auto sliderTrack = Colour::fromString(secondaryColour.toString());
         sliderTrack = sliderTrack.getBrightness() > 0.5f ? sliderTrack.darker(0.2f) : sliderTrack.brighter(0.2f);
 
@@ -988,7 +988,8 @@ struct MessageComponent : public GUIComponent
             isDown = true;
             repaint();
         }
-        if(box->cnv->isSelected(box) && !box->selectionChanged) {
+        if (box->cnv->isSelected(box) && !box->selectionChanged)
+        {
             shouldOpenEditor = true;
         }
     }
@@ -998,7 +999,7 @@ struct MessageComponent : public GUIComponent
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if ((!isLocked && shouldOpenEditor &&  !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom()))
+        if ((!isLocked && shouldOpenEditor && !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom()))
         {
             input.showEditor();
             shouldOpenEditor = false;
@@ -1226,7 +1227,6 @@ struct NumboxComponent : public GUIComponent
 
         g.setColour(Colour(gui.getForegroundColour()));
         g.fillPath(corner);
-
     }
 };
 
@@ -1496,7 +1496,6 @@ struct RadioComponent : public GUIComponent
         {
             box->constrainer.setSizeLimits(100, 25, maxSize, maxSize);
         }
-        
     }
 
     void resized() override
@@ -1547,8 +1546,8 @@ struct RadioComponent : public GUIComponent
 
             radioButtons[i]->onClick = [this, i]() mutable
             {
-                if(!radioButtons[i]->getToggleState()) return;
-                
+                if (!radioButtons[i]->getToggleState()) return;
+
                 lastState = i;
                 setValueOriginal(i);
             };
@@ -1845,7 +1844,6 @@ struct GraphOnParent : public GUIComponent
 
     void resized() override
     {
-        
     }
 
     void lock(bool locked) override
@@ -1892,7 +1890,7 @@ struct GraphOnParent : public GUIComponent
         }
 
         auto b = getPatch()->getBounds();
-        //canvas->checkBounds();
+        // canvas->checkBounds();
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
     }
 
@@ -1984,7 +1982,7 @@ struct CommentComponent : public GUIComponent
     {
         setInterceptsMouseClicks(false, false);
         setVisible(false);
-        
+
         box->setEditable(true);
         box->hideLabel = false;
     }
@@ -2090,7 +2088,7 @@ struct PanelComponent : public GUIComponent
         g.fillAll(Colour::fromString(secondaryColour.toString()));
     }
 
-    void updateValue() override {};
+    void updateValue() override{};
 
     ObjectParameters getParameters() override
     {
@@ -2335,7 +2333,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     {
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
-       
+
         state.addListener(this);
 
         addAndMakeVisible(keyboard);

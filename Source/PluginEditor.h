@@ -72,7 +72,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void showNewObjectMenu();
 
     void paint(Graphics&) override;
-    
+
     void resized() override;
 
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
@@ -90,16 +90,15 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void updateValues();
 
     void valueChanged(Value& v) override;
-    
+
     void updateCommandStatus();
 
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(const InvocationInfo& info) override;
-    
-    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
 
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
 
     PlugDataAudioProcessor& pd;
 

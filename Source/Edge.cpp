@@ -162,7 +162,8 @@ Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Box* b
     {
         for (auto* edge : box->edges)
         {
-            if(edge->isInlet == inlet && edge->box != boxToExclude) {
+            if (edge->isInlet == inlet && edge->box != boxToExclude)
+            {
                 allEdges.add(edge);
             }
         }
