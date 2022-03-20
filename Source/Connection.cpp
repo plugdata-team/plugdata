@@ -136,7 +136,7 @@ Connection::~Connection()
 
 bool Connection::hitTest(int x, int y)
 {
-    if (locked == true) return false;
+    if (locked == var(true)) return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
 
@@ -182,7 +182,7 @@ void Connection::paint(Graphics& g)
 
 void Connection::mouseMove(const MouseEvent& e)
 {
-    bool segmentedConnection = connectionStyle == true;
+    bool segmentedConnection = connectionStyle == var(true);
     int n = getClosestLineIdx(e.getPosition() + origin, currentPlan);
 
     if (segmentedConnection && currentPlan.size() > 2 && n > 0)
@@ -306,7 +306,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
 
-    if (currentPlan.size() <= 2 || connectionStyle == false)
+    if (currentPlan.size() <= 2 || connectionStyle == var(false))
     {
         updatePath();
         return;
@@ -359,7 +359,7 @@ void Connection::updatePath()
     auto pstart = outlet->getCanvasBounds().getCentre() - origin;
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
 
-    bool segmentedConnection = connectionStyle == true;
+    bool segmentedConnection = connectionStyle == var(true);
 
     if (!segmentedConnection)
     {

@@ -363,7 +363,7 @@ struct GraphArea : public Component, public ComponentDragger
 
     void mouseMove(const MouseEvent& e) override
     {
-        if (canvas->locked == false)
+        if (canvas->locked == var(false))
         {
             setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
         }
@@ -486,7 +486,7 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x, canvasOrigin.y - 1, getWidth(), canvasOrigin.y - 1);
     }
 
-    if (locked == false && !isGraph)
+    if (locked == var(false) && !isGraph)
     {
         const int gridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
@@ -537,7 +537,7 @@ void Canvas::synchronise(bool updatePosition)
         return true;
     };
 
-    if (!(isGraph || presentationMode == true))
+    if (!(isGraph || presentationMode == var(true)))
     {
         // Remove deprecated connections
         for (int n = connections.size() - 1; n >= 0; n--)
@@ -642,7 +642,7 @@ void Canvas::synchronise(bool updatePosition)
 
     auto pdConnections = patch.getConnections();
 
-    if (!(isGraph || presentationMode == true))
+    if (!(isGraph || presentationMode == var(true)))
     {
         for (auto& connection : pdConnections)
         {
@@ -746,7 +746,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     auto* source = e.originalComponent;
 
     // Ignore if locked
-    if (locked == true)
+    if (locked == var(true))
     {
         if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
         {
@@ -771,7 +771,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
     {
-        if (locked == true)
+        if (locked == var(true))
         {
             if (auto* box = dynamic_cast<Box*>(source))
             {
@@ -898,7 +898,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
-    if (isGraph || locked == true) return;
+    if (isGraph || locked == var(true)) return;
 
     auto* source = e.originalComponent;
 
@@ -961,7 +961,7 @@ void Canvas::mouseUp(const MouseEvent& e)
             deselectAll();
         }
 
-        if (locked == false && !isGraph && box->getParentComponent() == this)
+        if (locked == var(false) && !isGraph && box->getParentComponent() == this)
         {
             setSelected(box, true);
         }
@@ -1307,7 +1307,7 @@ void Canvas::valueChanged(Value& v)
     {
         deselectAll();
 
-        if (presentationMode == true) connections.clear();
+        if (presentationMode == var(true)) connections.clear();
 
         synchronise();
     }
@@ -1386,7 +1386,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     if (didStartDragging)
     {
         // Ignore when locked
-        if (locked == true) return;
+        if (locked == var(true)) return;
 
         auto objects = std::vector<pd::Object*>();
 

@@ -70,7 +70,7 @@ void Box::valueChanged(Value& v)
      } */
 
     // Hide certain objects in GOP
-    if ((cnv->isGraph || cnv->presentationMode == true) && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
+    if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
     {
         setVisible(false);
     }
@@ -83,7 +83,7 @@ void Box::valueChanged(Value& v)
 
     if (graphics)
     {
-        graphics->lock(locked == true || commandLocked == true);
+        graphics->lock(locked == var(true) || commandLocked == var(true));
     }
 
     resized();
@@ -111,7 +111,7 @@ void Box::mouseMove(const MouseEvent& e)
 {
     auto corners = getCorners();
 
-    if (!cnv->isSelected(this) || locked == true) return;
+    if (!cnv->isSelected(this) || locked == var(true)) return;
 
     for (auto& rect : corners)
     {
@@ -236,7 +236,7 @@ void Box::setType(const String& newType, bool exists)
 
         if (graphics)
         {
-            graphics->lock(locked == true);
+            graphics->lock(locked == var(true));
             graphics->updateValue();
         }
     }
@@ -306,7 +306,7 @@ void Box::paint(Graphics& g)
     // Draw comment style
     if (graphics && graphics->getGui().getType() == pd::Type::Comment)
     {
-        if (locked == false && (isOver || selected) && !cnv->isGraph)
+        if (locked == var(false) && (isOver || selected) && !cnv->isGraph)
         {
             g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(ComboBox::outlineColourId));
             g.drawRect(rect.toFloat(), 0.5f);
@@ -406,7 +406,7 @@ void Box::updatePorts()
         edge->setAlwaysOnTop(true);
 
         // Dont show for graphs or presentation mode
-        edge->setVisible(!(cnv->isGraph || cnv->presentationMode == true));
+        edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
         edge->repaint();
 
         numIn += input;
@@ -418,7 +418,7 @@ void Box::updatePorts()
 
 void Box::mouseDown(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
 
     bool isSelected = cnv->isSelected(this);
 
@@ -447,7 +447,7 @@ void Box::mouseUp(const MouseEvent& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
 
-    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
 
     if (editSingleClick && isEnabled() && contains(e.getPosition()) && !(e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && cnv->isSelected(this) && !selectionChanged)
     {
@@ -481,7 +481,7 @@ void Box::mouseUp(const MouseEvent& e)
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->presentationMode == true || cnv->pd->locked == true) return;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
 
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {

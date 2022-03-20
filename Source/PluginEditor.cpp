@@ -605,8 +605,8 @@ void PlugDataPluginEditor::updateCommandStatus()
     // TODO: Fix threading issue!!
     if (auto* cnv = getCurrentCanvas())
     {
-        canUndo = libpd_can_undo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
-        canRedo = libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
+        canUndo = libpd_can_undo(getCurrentCanvas()->patch.getPointer()) && pd.locked == var(false);
+        canRedo = libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == var(false);
     }
 
     toolbarButton(Redo)->setEnabled(canRedo);
@@ -631,7 +631,7 @@ void PlugDataPluginEditor::getAllCommands(Array<CommandID>& commands)
 
 void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
 {
-    toolbarButton(Add)->setEnabled(pd.locked == false);
+    toolbarButton(Add)->setEnabled(pd.locked == var(false));
 
     bool hasBoxSelection = false;
     bool hasSelection = false;
@@ -697,7 +697,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
             result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(statusbar.connectionStyle == true);
+            result.setActive(statusbar.connectionStyle == var(true));
             break;
         }
         case CommandIDs::ConnectionStyle:
@@ -728,98 +728,98 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Copy", "Copy", "Edit", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == false && hasBoxSelection);
+            result.setActive(pd.locked == var(false) && hasBoxSelection);
             break;
         }
         case CommandIDs::Paste:
         {
             result.setInfo("Paste", "Paste", "Edit", 0);
             result.addDefaultKeypress(86, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::Cut:
         {
             result.setInfo("Cut", "Cut selection", "Edit", 0);
             result.addDefaultKeypress(88, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == false && hasSelection);
+            result.setActive(pd.locked == var(false) && hasSelection);
             break;
         }
         case CommandIDs::Delete:
         {
             result.setInfo("Delete", "Delete selection", "Edit", 0);
             result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false && hasSelection);
+            result.setActive(pd.locked == var(false) && hasSelection);
             break;
         }
         case CommandIDs::Duplicate:
         {
             result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == false && hasBoxSelection);
+            result.setActive(pd.locked == var(false) && hasBoxSelection);
             break;
         }
         case CommandIDs::SelectAll:
         {
             result.setInfo("Select all", "Select all objects and connections", "Edit", 0);
             result.addDefaultKeypress(65, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewObject:
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
             result.addDefaultKeypress(78, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewComment:
         {
             result.setInfo("New Comment", "Create new comment", "Objects", 0);
             result.addDefaultKeypress(67, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewBang:
         {
             result.setInfo("New Bang", "Create new bang", "Objects", 0);
             result.addDefaultKeypress(66, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewMessage:
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
             result.addDefaultKeypress(77, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewToggle:
         {
             result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
             result.addDefaultKeypress(84, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewNumbox:
         {
             result.setInfo("New Number", "Create new number box", "Objects", 0);
             result.addDefaultKeypress(73, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewFloatAtom:
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
             result.addDefaultKeypress(70, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
         case CommandIDs::NewSlider:
         {
             result.setInfo("New Slider", "Create new slider", "Objects", 0);
             result.addDefaultKeypress(83, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == false);
+            result.setActive(pd.locked == var(false));
             break;
         }
 
