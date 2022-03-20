@@ -597,6 +597,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
         return i;
     };
 
+    
     menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewNumbox, "Number"));
@@ -605,8 +606,9 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
     menu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
     menu.addItem(createCommandItem(CommandIDs::NewSlider, "Vertical Slider"));
     menu.addItem(5, "Horizontal Slider");
-    menu.addItem(7, "Horizontal Radio");
     menu.addItem(8, "Vertical Radio");
+    menu.addItem(7, "Horizontal Radio");
+
 
     menu.addSeparator();
 
