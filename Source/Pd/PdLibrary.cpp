@@ -233,7 +233,7 @@ void Library::initialiseLibrary()
 
 void Library::updateLibrary() {
     
-    auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("settings.xml").loadFileAsString());
+    auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
     
     auto pathTree = settingsTree.getChildWithName("Paths");
     
