@@ -76,7 +76,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         updateSearchPaths();
     };
 
-    logMessage("PlugData " + String(ProjectInfo::versionString));
+    logMessage("PlugData v" + String(ProjectInfo::versionString));
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
