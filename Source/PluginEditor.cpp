@@ -458,7 +458,7 @@ void PlugDataPluginEditor::updateValues()
         }
     }
 
-    commandStatusChanged();
+    updateCommandStatus();
 }
 
 Canvas* PlugDataPluginEditor::getCurrentCanvas()
@@ -572,7 +572,7 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     // Update undo state when locking/unlocking
     if (v.refersToSameSourceAs(pd.locked))
     {
-        commandStatusChanged();
+        updateCommandStatus();
     }
     // Update zoom
     else if (v.refersToSameSourceAs(pd.zoomScale))
@@ -596,6 +596,21 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     }
 }
 
+void PlugDataPluginEditor::updateCommandStatus()
+{
+    // TODO: Fix threading issue!!
+    if (auto* cnv = getCurrentCanvas())
+    {
+        canUndo = libpd_can_undo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
+        canRedo = libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
+    }
+
+    toolbarButton(Redo)->setEnabled(canRedo);
+    toolbarButton(Undo)->setEnabled(canUndo);
+    
+    commandStatusChanged();
+}
+
 ApplicationCommandTarget* PlugDataPluginEditor::getNextCommandTarget()
 {
     return this;
@@ -616,7 +631,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
     bool hasBoxSelection = false;
     bool hasSelection = false;
-    bool noCanvas = true;
 
     if (auto* cnv = getCurrentCanvas())
     {
@@ -625,8 +639,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-
-        noCanvas = false;
     }
 
     switch (commandID)
@@ -655,10 +667,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         }
         case CommandIDs::Undo:
         {
-            // TODO: Fix threading issue!!
-            bool canUndo = !noCanvas && libpd_can_undo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
-
-            toolbarButton(Undo)->setEnabled(canUndo);
 
             result.setInfo("Undo", "Undo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier);
@@ -670,9 +678,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::Redo:
         {
             // TODO: Fix threading issue!!
-            bool canRedo = !noCanvas && libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == false;
 
-            toolbarButton(Redo)->setEnabled(canRedo);
 
             result.setInfo("Redo", "Redo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);

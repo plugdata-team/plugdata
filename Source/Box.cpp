@@ -259,7 +259,7 @@ void Box::setType(const String& newType, bool exists)
     }
     
     cnv->updateDrawables();
-    cnv->main.commandStatusChanged();
+    cnv->main.updateCommandStatus();
 }
 
 Array<Rectangle<float>> Box::getCorners() const
