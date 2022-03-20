@@ -210,7 +210,7 @@ struct Inspector : public PropertyPanel
     {
         Label label;
         Value& property;
-        
+
         float dragValue = 0.0f;
         bool shift = false;
         int decimalDrag = 0;
@@ -244,8 +244,8 @@ struct Inspector : public PropertyPanel
         void mouseDown(const MouseEvent& e) override
         {
             if constexpr (!std::is_arithmetic<T>::value) return;
-            if(label.isBeingEdited()) return;
-            
+            if (label.isBeingEdited()) return;
+
             shift = e.mods.isShiftDown();
             dragValue = label.getText().getFloatValue();
 
@@ -267,7 +267,7 @@ struct Inspector : public PropertyPanel
             }
 
             bool isDraggingDecimal = e.x > decimalX;
-            
+
             if constexpr (std::is_integral<T>::value) isDraggingDecimal = false;
 
             decimalDrag = isDraggingDecimal ? 6 : 0;
@@ -327,9 +327,8 @@ struct Inspector : public PropertyPanel
             }
 
             label.setText(formatNumber(newValue), NotificationType::sendNotification);
-
         }
-        
+
         String formatNumber(float value)
         {
             String text;

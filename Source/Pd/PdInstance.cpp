@@ -25,23 +25,17 @@ extern "C"
     {
         static void instance_multi_bang(pd::Instance* ptr, const char* recv)
         {
-            ptr->enqueueFunction([ptr, recv]() {
-                ptr->processMessage({std::string("bang"), std::string(recv)});
-            });
+            ptr->enqueueFunction([ptr, recv]() { ptr->processMessage({std::string("bang"), std::string(recv)}); });
         }
 
         static void instance_multi_float(pd::Instance* ptr, const char* recv, float f)
         {
-            ptr->enqueueFunction([ptr, recv, f]() mutable {
-                ptr->processMessage({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})});
-            });
+            ptr->enqueueFunction([ptr, recv, f]() mutable { ptr->processMessage({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})}); });
         }
 
         static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym)
         {
-            ptr->enqueueFunction([ptr, recv, sym]() mutable {
-                ptr->processMessage({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))});
-            });
+            ptr->enqueueFunction([ptr, recv, sym]() mutable { ptr->processMessage({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))}); });
         }
 
         static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
@@ -54,10 +48,8 @@ extern "C"
                 else if (argv[i].a_type == A_SYMBOL)
                     mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
             }
-            
-            ptr->enqueueFunction([ptr, mess]() mutable {
-                ptr->processMessage(std::move(mess));
-            });
+
+            ptr->enqueueFunction([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
         }
 
         static void instance_multi_message(pd::Instance* ptr, const char* recv, const char* msg, int argc, t_atom* argv)
@@ -70,68 +62,48 @@ extern "C"
                 else if (argv[i].a_type == A_SYMBOL)
                     mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
             }
-            ptr->enqueueFunction([ptr, mess]() mutable {
-                ptr->processMessage(std::move(mess));
-            });
+            ptr->enqueueFunction([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
         }
 
         static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
         {
-            ptr->enqueueFunction([ptr, channel, pitch, velocity]() mutable {
-                ptr->processMidiEvent({midievent::NOTEON, channel, pitch, velocity});
-            });
+            ptr->enqueueFunction([ptr, channel, pitch, velocity]() mutable { ptr->processMidiEvent({midievent::NOTEON, channel, pitch, velocity}); });
         }
 
         static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
         {
-            ptr->enqueueFunction([ptr, channel, controller, value]() mutable{
-                ptr->processMidiEvent({midievent::CONTROLCHANGE, channel, controller, value});
-            });
+            ptr->enqueueFunction([ptr, channel, controller, value]() mutable { ptr->processMidiEvent({midievent::CONTROLCHANGE, channel, controller, value}); });
         }
 
         static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunction([ptr, channel, value]() mutable {
-                ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0});
-            });
+            ptr->enqueueFunction([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
         }
 
         static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunction([ptr, channel, value]() mutable {
-                ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0});
-            });
+            ptr->enqueueFunction([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
         }
 
         static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunction([ptr, channel, value]() mutable {
-                ptr->processMidiEvent({midievent::AFTERTOUCH, channel, value, 0});
-            });
+            ptr->enqueueFunction([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::AFTERTOUCH, channel, value, 0}); });
         }
 
         static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
         {
-                ptr->enqueueFunction([ptr, channel, pitch, value]() mutable {
-                    ptr->processMidiEvent({midievent::POLYAFTERTOUCH, channel, pitch, value});
-                });
-                    
+            ptr->enqueueFunction([ptr, channel, pitch, value]() mutable { ptr->processMidiEvent({midievent::POLYAFTERTOUCH, channel, pitch, value}); });
         }
 
         static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
         {
-            ptr->enqueueFunction([ptr, port, byte]() mutable {
-                ptr->processMidiEvent({midievent::MIDIBYTE, port, byte, 0});
-            });
-
+            ptr->enqueueFunction([ptr, port, byte]() mutable { ptr->processMidiEvent({midievent::MIDIBYTE, port, byte, 0}); });
         }
 
         static void instance_multi_print(pd::Instance* ptr, char const* s)
         {
             auto message = std::string(s);
-            ptr->enqueueFunction([ptr, message]() mutable {
-                ptr->processPrint(message);
-            });
+            ptr->enqueueFunction([ptr, message]() mutable { ptr->processPrint(message); });
         }
     };
 }
@@ -153,7 +125,7 @@ Instance::Instance(std::string const& symbol)
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
 
     m_message_receiver = libpd_multi_receiver_new(this, symbol.c_str(), reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
-                                                     reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+                                                  reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
@@ -186,7 +158,7 @@ Instance::Instance(std::string const& symbol)
 Instance::~Instance()
 {
     closePatch();
-    
+
     pd_free(static_cast<t_pd*>(m_message_receiver));
     pd_free(static_cast<t_pd*>(m_midi_receiver));
     pd_free(static_cast<t_pd*>(m_print_receiver));
@@ -353,31 +325,31 @@ void Instance::processMessage(Message mess)
 
 void Instance::processMidiEvent(midievent event)
 {
-        if (event.type == midievent::NOTEON)
-            receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
-        else if (event.type == midievent::CONTROLCHANGE)
-            receiveControlChange(event.midi1 + 1, event.midi2, event.midi3);
-        else if (event.type == midievent::PROGRAMCHANGE)
-            receiveProgramChange(event.midi1 + 1, event.midi2);
-        else if (event.type == midievent::PITCHBEND)
-            receivePitchBend(event.midi1 + 1, event.midi2);
-        else if (event.type == midievent::AFTERTOUCH)
-            receiveAftertouch(event.midi1 + 1, event.midi2);
-        else if (event.type == midievent::POLYAFTERTOUCH)
-            receivePolyAftertouch(event.midi1 + 1, event.midi2, event.midi3);
-        else if (event.type == midievent::MIDIBYTE)
-            receiveMidiByte(event.midi1, event.midi2);
+    if (event.type == midievent::NOTEON)
+        receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
+    else if (event.type == midievent::CONTROLCHANGE)
+        receiveControlChange(event.midi1 + 1, event.midi2, event.midi3);
+    else if (event.type == midievent::PROGRAMCHANGE)
+        receiveProgramChange(event.midi1 + 1, event.midi2);
+    else if (event.type == midievent::PITCHBEND)
+        receivePitchBend(event.midi1 + 1, event.midi2);
+    else if (event.type == midievent::AFTERTOUCH)
+        receiveAftertouch(event.midi1 + 1, event.midi2);
+    else if (event.type == midievent::POLYAFTERTOUCH)
+        receivePolyAftertouch(event.midi1 + 1, event.midi2, event.midi3);
+    else if (event.type == midievent::MIDIBYTE)
+        receiveMidiByte(event.midi1, event.midi2);
 }
 
 void Instance::processPrint(std::string print)
 {
-    if(print.empty()) return;
+    if (print.empty()) return;
 
     while (!print.empty() && (print.back() == '\n' || print.back() == ' '))
     {
         print.pop_back();
     }
-    
+
     MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
 }
 
@@ -434,31 +406,22 @@ void Instance::enqueueFunction(const std::function<void(void)>& fn)
 
 void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
 {
-    enqueueFunction([this, dest, msg, list]() mutable {
-        processSend(dmessage{nullptr, dest, msg, std::move(list)});
-    });
+    enqueueFunction([this, dest, msg, list]() mutable { processSend(dmessage{nullptr, dest, msg, std::move(list)}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list)
 {
-    enqueueFunction([this, object, list]() mutable {
-        processSend(dmessage{object, std::string(), "list", list});
-    });
-
+    enqueueFunction([this, object, list]() mutable { processSend(dmessage{object, std::string(), "list", list}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, const std::string& msg)
 {
-    enqueueFunction([this, object, msg]() mutable {
-        processSend(dmessage{object, std::string(), "symbol", std::vector<Atom>(1, msg)});
-    });
+    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, std::string(), "symbol", std::vector<Atom>(1, msg)}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, const float msg)
 {
-    enqueueFunction([this, object, msg]() mutable {
-        processSend(dmessage{object, std::string(), "float", std::vector<Atom>(1, msg)});
-    });
+    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, std::string(), "float", std::vector<Atom>(1, msg)}); });
 }
 
 void Instance::waitForStateUpdate()

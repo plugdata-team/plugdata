@@ -80,7 +80,6 @@ Patch::Patch(const File& toOpen, Instance* instance) noexcept
 
 Rectangle<int> Patch::getBounds() const noexcept
 {
-    
     if (ptr)
     {
         t_canvas const* cnv = getPointer();
@@ -101,7 +100,7 @@ void Patch::close()
 void Patch::setCurrent(bool lock)
 {
     // instance->setThis();
-    if(!ptr) return;
+    if (!ptr) return;
 
     if (lock) instance->getCallbackLock()->enter();
 
@@ -740,12 +739,14 @@ std::vector<t_template*> Patch::getTemplates() const
     return templates;
 }
 
-int Patch::applyZoom(int toZoom) {
+int Patch::applyZoom(int toZoom)
+{
     return static_cast<int>(round(toZoom * Patch::zoom));
 }
-               
-int Patch::applyUnzoom(int toUnzoom) {
+
+int Patch::applyUnzoom(int toUnzoom)
+{
     return static_cast<int>(round(toUnzoom / Patch::zoom));
 }
-        
+
 }  // namespace pd

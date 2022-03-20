@@ -37,8 +37,9 @@ class Trie
             character[i] = nullptr;
         }
     }
-    
-    ~Trie() {
+
+    ~Trie()
+    {
         for (int i = 0; i < CHAR_SIZE; i++)
         {
             if (character[i])
@@ -59,14 +60,13 @@ class Trie
 
 struct Library : public Timer
 {
-    
     void initialiseLibrary();
 
     void updateLibrary();
     void parseDocumentation(const String& path);
-    
+
     Suggestions autocomplete(std::string query);
-    
+
     void timerCallback() override;
 
     std::unordered_map<String, String> objectDescriptions;
@@ -74,14 +74,12 @@ struct Library : public Timer
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
     Trie searchTree;
-    
+
     File appDataDir;
-    
+
     std::function<void()> appDirChanged;
-    
-    
+
     Time lastAppDirModificationTime;
-    
 };
 
 }  // namespace pd

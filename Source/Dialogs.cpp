@@ -60,7 +60,7 @@ struct SaveDialog : public Component
     {
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
-        
+
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 2.0f);
     }
@@ -217,16 +217,15 @@ class SearchPathComponent : public Component, public TableListBoxModel
         table.setColour(ListBox::textColourId, Colours::white);
 
         table.setOutlineThickness(0);
-        
+
         table.deselectAllRows();
 
         setColour(ListBox::textColourId, Colours::white);
         setColour(ListBox::outlineColourId, Colours::white);
-        
+
         table.getHeader().setStretchToFitActive(true);
         table.setHeaderHeight(0);
         table.getHeader().addColumn("Library Path", 1, 800, 50, 800, TableHeaderComponent::defaultFlags);
-        
 
         addButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         addButton.setConnectedEdges(12);
@@ -247,31 +246,32 @@ class SearchPathComponent : public Component, public TableListBoxModel
                                         loadData();
                                     });
         };
-        
+
         removeButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         removeButton.setConnectedEdges(12);
         removeButton.setName("statusbar:add");
-        removeButton.onClick = [this]() mutable{
+        removeButton.onClick = [this]() mutable
+        {
             int idx = table.getSelectedRow();
             tree.removeChild(idx, nullptr);
             loadData();
         };
-        
-        resetButton.onClick = [this]() {
+
+        resetButton.onClick = [this]()
+        {
             File abstractionsDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Abstractions");
-            
+
             auto defaultPath = ValueTree("Path");
             defaultPath.setProperty("Path", abstractionsDir.getFullPathName(), nullptr);
 
             tree.removeAllChildren(nullptr);
             tree.appendChild(defaultPath, nullptr);
             loadData();
-            
         };
 
         addButton.setColour(ComboBox::backgroundColourId, Colour(20, 20, 20));
         removeButton.setColour(ComboBox::backgroundColourId, Colour(20, 20, 20));
-        
+
         addAndMakeVisible(table);
         addAndMakeVisible(addButton);
         addAndMakeVisible(removeButton);
@@ -296,13 +296,15 @@ class SearchPathComponent : public Component, public TableListBoxModel
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
     void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
     {
-        if(rowIsSelected) {
+        if (rowIsSelected)
+        {
             g.setColour(findColour(Slider::thumbColourId));
         }
-        else {
+        else
+        {
             g.setColour((row % 2) ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId));
         }
-        
+
         g.fillRect(1, 0, w - 3, h);
     }
 
@@ -315,8 +317,8 @@ class SearchPathComponent : public Component, public TableListBoxModel
 
         g.drawText(item, 4, 0, width - 4, height, Justification::centredLeft, true);
 
-        //g.setColour(Colours::black.withAlpha(0.2f));
-        //g.fillRect(width - 1, 0, 1, height);
+        // g.setColour(Colours::black.withAlpha(0.2f));
+        // g.fillRect(width - 1, 0, 1, height);
     }
 
     int getNumRows() override
@@ -329,7 +331,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
         delete existingComponentToUpdate;
         return nullptr;
     }
-    
+
     void resized() override
     {
         auto tableBounds = getLocalBounds();
@@ -343,11 +345,11 @@ class SearchPathComponent : public Component, public TableListBoxModel
 
         resetButton.changeWidthToFitText(buttonHeight);
         resetButton.setTopRightPosition(x, y + 6);
-        
+
         addButton.setBounds(10, y, 30, 30);
         removeButton.setBounds(40, y, 30, 30);
     }
-    
+
    private:
     FileChooser openChooser = FileChooser("Choose path", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "");
 
@@ -411,10 +413,11 @@ struct SettingsComponent : public Component
 
         g.setColour(highlightColour);
         g.fillRect(2, 42, getWidth() - 4, 4);
-        
-        if(currentPanel > 0) {
+
+        if (currentPanel > 0)
+        {
             auto tableBounds = getLocalBounds();
-           
+
             g.setColour(Colour(20, 20, 20));
             g.fillRect(tableBounds.removeFromBottom(40));
         }
@@ -476,10 +479,10 @@ struct SettingsDialog : public Component
 
         settingsComponent.addMouseListener(this, false);
 
-        closeButton->onClick = [this]() {
+        closeButton->onClick = [this]()
+        {
             dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
             setVisible(false);
-            
         };
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
@@ -597,7 +600,6 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
         return i;
     };
 
-    
     menu.addItem(createCommandItem(CommandIDs::NewObject, "Empty Object"));
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewNumbox, "Number"));
@@ -608,7 +610,6 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
     menu.addItem(5, "Horizontal Slider");
     menu.addItem(8, "Vertical Radio");
     menu.addItem(7, "Horizontal Radio");
-
 
     menu.addSeparator();
 

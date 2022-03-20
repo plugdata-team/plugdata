@@ -21,10 +21,8 @@ extern "C"
 
 #include "x_libpd_extra_utils.h"
 
-void my_numbox_calc_fontwidth(t_my_numbox *x);
-
+    void my_numbox_calc_fontwidth(t_my_numbox* x);
 }
-
 
 namespace pd
 {
@@ -64,7 +62,6 @@ typedef struct _fake_gatom
     unsigned int a_doubleclicked : 1; /* 1 if dragging from a double click */
     t_symbol* a_expanded_to;
 } t_fake_gatom;
-
 
 static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 {
@@ -641,15 +638,15 @@ Rectangle<int> Gui::getBounds() const noexcept
 {
     instance->setThis();
     patch->setCurrent(true);
-    
+
     int x = 0, y = 0, w = 0, h = 0;
     libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
-    
+
     x = Patch::applyZoom(x);
     y = Patch::applyZoom(y);
     w = Patch::applyZoom(w);
     h = Patch::applyZoom(h);
-    
+
     if (type == Type::Keyboard)
     {
         return {x, y, w, h};
@@ -671,11 +668,11 @@ Rectangle<int> Gui::getBounds() const noexcept
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         auto* iemgui = &nbx->x_gui;
-        
+
         int fontwidth = glist_fontwidth(patch->getPointer());
-        
+
         int width = nbx->x_numwidth * nbxCharWidth;
-        
+
         return {x, y, Patch::applyZoom(width), Patch::applyZoom(iemgui->x_h)};
     }
     else if (isIEM())
@@ -691,7 +688,6 @@ void Gui::setBounds(Rectangle<int> bounds)
 {
     auto oldBounds = getBounds();
 
-    
     int w = Patch::applyUnzoom(bounds.getWidth());
     int h = Patch::applyUnzoom(bounds.getHeight());
 
@@ -718,7 +714,7 @@ void Gui::setBounds(Rectangle<int> bounds)
     if (type == Type::Number)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        
+
         short newWidth = std::max<short>(3, Patch::applyUnzoom(bounds.getWidth() / nbxCharWidth));
         nbx->x_numwidth = newWidth;
         my_numbox_calc_fontwidth(nbx);
@@ -822,13 +818,9 @@ void Gui::setReceiveSymbol(const String& symbol) const noexcept
     else if (ptr && isAtom())
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        if (*atom->a_symfrom->s_name)
-            pd_unbind(&atom->a_text.te_pd,
-                canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+        if (*atom->a_symfrom->s_name) pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         atom->a_symfrom = gensym(symbol.toRawUTF8());
-        if (*atom->a_symfrom->s_name)
-            pd_bind(&atom->a_text.te_pd,
-                canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+        if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
 }
 

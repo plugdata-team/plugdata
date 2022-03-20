@@ -162,7 +162,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         }
 
         // buttons[0]->setToggleState(true, sendNotification);
-        //setVisible(editor->getText().isNotEmpty());
+        // setVisible(editor->getText().isNotEmpty());
 
         addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary | ComponentPeer::StyleFlags::windowIgnoresKeyPresses);
         repaint();
@@ -266,11 +266,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         auto& library = currentBox->cnv->pd->objectLibrary;
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
-        
+
         for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
         {
             auto& [name, autocomplete] = found[i];
-            
+
             if (library.objectDescriptions.find(name) != library.objectDescriptions.end())
             {
                 buttons[i]->setText(name, library.objectDescriptions[name]);
@@ -363,7 +363,8 @@ struct GraphArea : public Component, public ComponentDragger
 
     void mouseMove(const MouseEvent& e) override
     {
-        if(canvas->locked == false) {
+        if (canvas->locked == false)
+        {
             setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
         }
     }
@@ -387,10 +388,10 @@ struct GraphArea : public Component, public ComponentDragger
     void resized() override
     {
         int handleSize = 20;
-        
+
         setPdBounds();
         resizer.setBounds(getWidth() - handleSize, getHeight() - handleSize, handleSize, handleSize);
-        
+
         repaint();
     }
 
@@ -400,15 +401,15 @@ struct GraphArea : public Component, public ComponentDragger
         // TODO: make this thread safe
         if (cnv)
         {
-            
             cnv->gl_pixwidth = pd::Patch::applyUnzoom(getWidth());
             cnv->gl_pixheight = pd::Patch::applyUnzoom(getHeight());
             cnv->gl_xmargin = pd::Patch::applyUnzoom(getX() - canvas->canvasOrigin.x);
             cnv->gl_ymargin = pd::Patch::applyUnzoom(getY() - canvas->canvasOrigin.y);
         }
     }
-    
-    void updateBounds() {
+
+    void updateBounds()
+    {
         setBounds(canvas->patch.getBounds().translated(canvas->canvasOrigin.x, canvas->canvasOrigin.y));
     }
 };
@@ -702,12 +703,12 @@ void Canvas::synchronise(bool updatePosition)
 
     // Resize canvas to fit objects
     checkBounds();
-    
+
     for (auto& tmpl : templates)
     {
         tmpl->updateIfMoved();
     }
-    
+
     main.updateCommandStatus();
 }
 
@@ -737,7 +738,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         }
         bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *subpatch, false, isGraphChild));
-        
+
         main.addTab(newCanvas);
         newCanvas->checkBounds();
     };
@@ -928,22 +929,25 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
     // Drag lasso
     lasso.dragLasso(e);
-    
-    if (connectingWithDrag) {
+
+    if (connectingWithDrag)
+    {
         auto* nearest = Edge::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->box);
-        
-        if(connectingWithDrag && nearest && nearestEdge != nearest) {
+
+        if (connectingWithDrag && nearest && nearestEdge != nearest)
+        {
             nearest->isHovered = true;
-            
-            if(nearestEdge) {
+
+            if (nearestEdge)
+            {
                 nearestEdge->isHovered = false;
                 nearestEdge->repaint();
             }
-            
+
             nearestEdge = nearest;
             nearestEdge->repaint();
         }
-        
+
         repaint();
     }
 }
@@ -966,7 +970,8 @@ void Canvas::mouseUp(const MouseEvent& e)
     // Releasing a connect by drag action
     if (connectingWithDrag)
     {
-        if(nearestEdge) {
+        if (nearestEdge)
+        {
             nearestEdge->isHovered = false;
             nearestEdge->repaint();
         }
@@ -1282,7 +1287,7 @@ void Canvas::checkBounds()
     {
         graphArea->updateBounds();
     }
-    
+
     for (auto& tmpl : templates)
     {
         tmpl->updateIfMoved();
@@ -1323,10 +1328,11 @@ void Canvas::showSuggestions(Box* box, TextEditor* editor)
 }
 void Canvas::hideSuggestions()
 {
-    if(suggestor->isOnDesktop()) {
+    if (suggestor->isOnDesktop())
+    {
         suggestor->removeFromDesktop();
     }
-    
+
     suggestor->openedEditor = nullptr;
     suggestor->currentBox = nullptr;
 }

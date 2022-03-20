@@ -27,7 +27,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     pd.zoomScale.addListener(this);
 
     pd.settingsTree.addListener(this);
-    
+
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
 
@@ -37,7 +37,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         auto xmlStr = keymap.getProperty("keyxml").toString();
         auto elt = XmlDocument(xmlStr).getDocumentElement();
 
-        if(elt) {
+        if (elt)
+        {
             getKeyMappings()->restoreFromXml(*elt);
         }
     }
@@ -82,7 +83,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
-    
+
     tabbar.toBehind(&sidebar);
 
     for (auto* button : toolbarButtons)
@@ -236,7 +237,7 @@ void PlugDataPluginEditor::showNewObjectMenu()
     std::function<void(String)> callback = [this](String result)
     {
         auto* cnv = getCurrentCanvas();
-        
+
         auto position = cnv->getMouseXYRelative();
 
         if (result == "array")
@@ -283,7 +284,6 @@ void PlugDataPluginEditor::paint(Graphics& g)
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
-    
 }
 
 void PlugDataPluginEditor::resized()
@@ -592,7 +592,8 @@ void PlugDataPluginEditor::valueChanged(Value& v)
 
 void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
 {
-    if(property == Identifier("LastChooserPath")) {
+    if (property == Identifier("LastChooserPath"))
+    {
         saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
         openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
         pd.saveSettings();
@@ -610,7 +611,7 @@ void PlugDataPluginEditor::updateCommandStatus()
 
     toolbarButton(Redo)->setEnabled(canRedo);
     toolbarButton(Undo)->setEnabled(canUndo);
-    
+
     commandStatusChanged();
 }
 
@@ -670,7 +671,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         }
         case CommandIDs::Undo:
         {
-
             result.setInfo("Undo", "Undo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier);
             result.setActive(canUndo);
@@ -681,7 +681,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::Redo:
         {
             // TODO: Fix threading issue!!
-
 
             result.setInfo("Redo", "Redo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
@@ -832,7 +831,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 {
     auto* cnv = getCurrentCanvas();
-    
+
     auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
 
     switch (info.commandID)
