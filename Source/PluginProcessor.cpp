@@ -70,6 +70,11 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     sendMessagesFromQueue();
 
     LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+    
+    objectLibrary.appDirChanged = [this](){
+        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        updateSearchPaths();
+    };
 
     logMessage("PlugData " + String(ProjectInfo::versionString));
 }

@@ -218,6 +218,27 @@ int Trie::autocomplete(std::string query, Suggestions& result)
 
 void Library::initialiseLibrary(ValueTree pathTree)
 {
+    appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    
+    lastAppDirModificationTime = appDataDir.getLastModificationTime();
+    
+    updateLibrary();
+    
+    auto pddocPath = appDataDir.getChildFile("Documentation").getChildFile("pddoc").getFullPathName();
+
+    parseDocumentation(pddocPath);
+    
+    startTimer(3000);
+}
+
+void Library::updateLibrary() {
+    
+    auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("settings.xml").loadFileAsString());
+    
+    auto pathTree = settingsTree.getChildWithName("Paths");
+    
+    searchTree = Trie();
+    
     int i;
     t_class* o = pd_objectmaker;
 
@@ -244,12 +265,6 @@ void Library::initialiseLibrary(ValueTree pathTree)
             if (file.getFileExtension() == ".pd") searchTree.insert(file.getFileNameWithoutExtension().toStdString());
         }
     }
-
-    auto appdata = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory);
-
-    auto pddocPath = appdata.getChildFile("PlugData").getChildFile("Documentation").getChildFile("pddoc").getFullPathName();
-
-    parseDocumentation(pddocPath);
 }
 
 void Library::parseDocumentation(const String& path)
@@ -284,6 +299,16 @@ Suggestions Library::autocomplete(std::string query)
     Suggestions result;
     searchTree.autocomplete(std::move(query), result);
     return result;
+}
+
+void Library::timerCallback()
+{
+    if(lastAppDirModificationTime < appDataDir.getLastModificationTime()) {
+        appDirChanged();
+        updateLibrary();
+        lastAppDirModificationTime = appDataDir.getLastModificationTime();
+    }
+
 }
 
 }  // namespace pd

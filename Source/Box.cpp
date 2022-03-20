@@ -462,8 +462,8 @@ void Box::mouseUp(const MouseEvent& e)
     {
         cnv->pd->enqueueFunction([this]() {
             auto b = getBounds() - cnv->canvasOrigin;
-            b.setWidth(b.getWidth() - doubleMargin);
-            pdObject->setBounds(b + Point<int>(margin, margin));
+            b.reduce(margin, margin);
+            pdObject->setBounds(b);
         });
         
         cnv->checkBounds();

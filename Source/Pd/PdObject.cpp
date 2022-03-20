@@ -93,7 +93,8 @@ Rectangle<int> Object::getBounds() const noexcept
     
     w = textObj->te_width * glist_fontwidth(patch->getPointer());
     
-    return {static_cast<int>(x * Patch::zoom), static_cast<int>(y * Patch::zoom), static_cast<int>(w * Patch::zoom), static_cast<int>(h * Patch::zoom)};
+    
+    return {Patch::applyZoom(x), Patch::applyZoom(y), Patch::applyZoom(w), Patch::applyZoom(h)};
         
 }
 
@@ -146,14 +147,15 @@ Patch Object::getHelp() const
 void Object::setBounds(Rectangle<int> bounds)
 {
     auto* textObj = static_cast<t_text*>(ptr);
-    short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / Patch::zoom) / glist_fontwidth(patch->getPointer()));
+    short newWidth = std::max<short>(3, Patch::applyUnzoom(bounds.getWidth()) / glist_fontwidth(patch->getPointer()));
+    
 
     if (newWidth != textObj->te_width)
     {
         addUndoableAction();
         textObj->te_width = newWidth;
 
-        libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), bounds.getX() / Patch::zoom, bounds.getY() / Patch::zoom);
+        libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()),    Patch::applyUnzoom(bounds.getX()), Patch::applyUnzoom(bounds.getY()));
     }
 }
 

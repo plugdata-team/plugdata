@@ -8,6 +8,8 @@
 #include "LookAndFeel.h"
 
 #include "PluginEditor.h"
+#include "PluginProcessor.h"
+
 #include "Standalone/PlugDataWindow.h"
 
 #include <JuceHeader.h>
@@ -204,7 +206,7 @@ struct DAWAudioSettings : public Component
 class SearchPathComponent : public Component, public TableListBoxModel
 {
    public:
-    SearchPathComponent(ValueTree libraryTree, std::function<void()> updatePaths) : tree(std::move(libraryTree)), updateFunc(std::move(updatePaths))
+    SearchPathComponent(ValueTree libraryTree) : tree(std::move(libraryTree))
     {
         table.setModel(this);
         table.setColour(ListBox::backgroundColourId, Colour(25, 25, 25));
@@ -267,9 +269,11 @@ class SearchPathComponent : public Component, public TableListBoxModel
             
         };
 
+        addButton.setColour(ComboBox::backgroundColourId, Colour(20, 20, 20));
+        removeButton.setColour(ComboBox::backgroundColourId, Colour(20, 20, 20));
+        
         addAndMakeVisible(table);
         addAndMakeVisible(addButton);
-
         addAndMakeVisible(removeButton);
         addAndMakeVisible(resetButton);
 
@@ -287,8 +291,6 @@ class SearchPathComponent : public Component, public TableListBoxModel
 
         table.updateContent();
         table.selectRow(items.size() - 1);
-
-        updateFunc();
     }
 
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
@@ -327,11 +329,11 @@ class SearchPathComponent : public Component, public TableListBoxModel
         delete existingComponentToUpdate;
         return nullptr;
     }
-
+    
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        tableBounds.removeFromBottom(40);
+        tableBounds.removeFromBottom(30);
 
         table.setBounds(tableBounds);
 
@@ -349,8 +351,6 @@ class SearchPathComponent : public Component, public TableListBoxModel
    private:
     FileChooser openChooser = FileChooser("Choose path", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "");
 
-    std::function<void()> updateFunc;
-
     TextButton addButton = TextButton(Icons::Add);
     TextButton removeButton = TextButton(Icons::Clear);
     TextButton resetButton = TextButton("reset to defaults");
@@ -362,7 +362,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
 
 struct SettingsComponent : public Component
 {
-    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, std::function<void()> updatePaths)
+    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
     {
         toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search), new TextButton(Icons::Keyboard)};
 
@@ -377,8 +377,7 @@ struct SettingsComponent : public Component
             panels.add(new DAWAudioSettings(processor));
         }
 
-        panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths"), std::move(updatePaths)));
-
+        panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
         panels.add(new KeyMappingEditorComponent(*editor->getKeyMappings(), true));
 
         for (int i = 0; i < toolbarButtons.size(); i++)
@@ -398,12 +397,9 @@ struct SettingsComponent : public Component
 
     void showPanel(int idx)
     {
-        for (int i = 0; i < toolbarButtons.size(); i++)
-        {
-            panels[i]->setVisible(false);
-        }
-
+        panels[currentPanel]->setVisible(false);
         panels[idx]->setVisible(true);
+        currentPanel = idx;
     }
 
     void paint(Graphics& g) override
@@ -415,6 +411,13 @@ struct SettingsComponent : public Component
 
         g.setColour(highlightColour);
         g.fillRect(2, 42, getWidth() - 4, 4);
+        
+        if(currentPanel > 0) {
+            auto tableBounds = getLocalBounds();
+           
+            g.setColour(Colour(20, 20, 20));
+            g.fillRect(tableBounds.removeFromBottom(40));
+        }
     }
 
     void resized() override
@@ -437,6 +440,7 @@ struct SettingsComponent : public Component
         }
     }
 
+    int currentPanel = 0;
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
@@ -457,7 +461,7 @@ struct SettingsDialog : public Component
 
     ComponentBoundsConstrainer constrainer;
 
-    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, std::function<void()> updatePaths) : audioProcessor(processor), settingsComponent(processor, manager, settingsTree, std::move(updatePaths))
+    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor), settingsComponent(processor, manager, settingsTree)
     {
         shadower.setOwner(this);
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
@@ -472,7 +476,11 @@ struct SettingsDialog : public Component
 
         settingsComponent.addMouseListener(this, false);
 
-        closeButton->onClick = [this]() { setVisible(false); };
+        closeButton->onClick = [this]() {
+            dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
+            setVisible(false);
+            
+        };
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
 
@@ -549,9 +557,9 @@ void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String,
     dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 300, 180);
 }
 
-std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree, const std::function<void()>& updatePaths)
+std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
 {
-    return std::make_unique<SettingsDialog>(processor, manager, settingsTree, updatePaths);
+    return std::make_unique<SettingsDialog>(processor, manager, settingsTree);
 }
 
 void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, const std::function<void(String)>& cb)

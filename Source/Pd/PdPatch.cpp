@@ -80,7 +80,6 @@ Patch::Patch(const File& toOpen, Instance* instance) noexcept
 
 Rectangle<int> Patch::getBounds() const noexcept
 {
-    auto zoom = [](float val) { return int(round(val * Patch::zoom)); };
     
     if (ptr)
     {
@@ -88,7 +87,7 @@ Rectangle<int> Patch::getBounds() const noexcept
 
         if (cnv->gl_isgraph)
         {
-            return {zoom(cnv->gl_xmargin), zoom(cnv->gl_ymargin), zoom(cnv->gl_pixwidth), zoom(cnv->gl_pixheight)};
+            return {applyZoom(cnv->gl_xmargin), applyZoom(cnv->gl_ymargin), applyZoom(cnv->gl_pixwidth), applyZoom(cnv->gl_pixheight)};
         }
     }
     return {0, 0, 0, 0};
@@ -741,4 +740,12 @@ std::vector<t_template*> Patch::getTemplates() const
     return templates;
 }
 
+int Patch::applyZoom(int toZoom) {
+    return static_cast<int>(round(toZoom * Patch::zoom));
+}
+               
+int Patch::applyUnzoom(int toUnzoom) {
+    return static_cast<int>(round(toUnzoom / Patch::zoom));
+}
+        
 }  // namespace pd

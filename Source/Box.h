@@ -33,23 +33,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     void updatePorts();
 
-    std::unique_ptr<pd::Object> pdObject = nullptr;
-
-    int numInputs = 0;
-    int numOutputs = 0;
-    Value locked;
-    Value commandLocked;
-    Value presentationMode;
-
-    Canvas* cnv;
-
-    std::unique_ptr<GUIComponent> graphics = nullptr;
-
-    OwnedArray<Edge> edges;
-
-    ComponentBoundsConstrainer constrainer;
-    ResizableBorderComponent::Zone resizeZone;
-
     void setType(const String& newType, bool exists = false);
     void updateBounds(bool newObject);
 
@@ -68,10 +51,26 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDrag(const MouseEvent& e) override;
     
     void setEditable(bool editable);
-
-    //String getText(bool returnActiveEditorContents = false) const;
     Array<Rectangle<float>> getCorners() const;
+    
+    
+    std::unique_ptr<pd::Object> pdObject = nullptr;
 
+    int numInputs = 0;
+    int numOutputs = 0;
+    Value locked;
+    Value commandLocked;
+    Value presentationMode;
+
+    Canvas* cnv;
+
+    std::unique_ptr<GUIComponent> graphics = nullptr;
+
+    OwnedArray<Edge> edges;
+
+    ComponentBoundsConstrainer constrainer;
+    ResizableBorderComponent::Zone resizeZone;
+    
     static inline constexpr int widthOffset = 32;
     static inline constexpr int margin = 8;
     static inline constexpr int doubleMargin = margin * 2;
@@ -85,7 +84,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
    private:
     void initialise();
     bool hitTest(int x, int y) override;
-
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
 
