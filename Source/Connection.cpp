@@ -300,7 +300,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
     
-    if(currentPlan.size() < 2)  {
+    if(currentPlan.size() <= 2 || connectionStyle == false)  {
         updatePath();
         return;
     }
@@ -333,7 +333,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
     
     currentPlan[idx1] = position;
-    
+    updatePath();
     
 }
 
