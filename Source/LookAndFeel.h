@@ -244,10 +244,6 @@ struct PlugDataDarkLook : public PlugDataLook
         return buttonBar.getWidth() / buttonBar.getNumTabs();
     }
 
-    void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border) override
-    {
-    }
-
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
     {
         if (w * h == 0) return;
@@ -357,10 +353,16 @@ struct PlugDataDarkLook : public PlugDataLook
         g.setColour(background);
 
         // Fill background if there's no support for transparent popupmenus
+        
         if (!Desktop::canUseSemiTransparentWindows() && JUCEApplicationBase::isStandaloneApp())
         {
             g.fillAll(findColour(ResizableWindow::backgroundColourId));
         }
+        
+        // On linux, the canUseSemiTransparentWindows flag sometimes incorrectly returns true
+#ifdef JUCE_LINUX
+        g.fillAll(findColour(ResizableWindow::backgroundColourId));
+#endif
 
         auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
         g.fillRoundedRectangle(bounds, 3.0f);
@@ -471,7 +473,7 @@ struct PlugDataDarkLook : public PlugDataLook
 
     void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.setColour(button.findColour(ComboBox::backgroundColourId));
         g.fillRect(button.getLocalBounds());
     }
 

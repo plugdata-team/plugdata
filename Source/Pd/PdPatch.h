@@ -79,6 +79,9 @@ class Patch
     bool canConnect(Object* src, int nout, Object* sink, int nin);
     bool createConnection(Object* src, int nout, Object* sink, int nin);
     void removeConnection(Object* src, int nout, Object* sink, int nin);
+    
+    static int applyZoom(int toZoom);
+    static int applyUnzoom(int toUnzoom);
 
     Connections getConnections() const;
 

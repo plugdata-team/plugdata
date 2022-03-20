@@ -400,10 +400,11 @@ struct GraphArea : public Component, public ComponentDragger
         // TODO: make this thread safe
         if (cnv)
         {
-            cnv->gl_pixwidth = getWidth() / pd::Patch::zoom;
-            cnv->gl_pixheight = getHeight() / pd::Patch::zoom;
-            cnv->gl_xmargin = round((getX() - canvas->canvasOrigin.x) / pd::Patch::zoom);
-            cnv->gl_ymargin = round((getY() - canvas->canvasOrigin.y) / pd::Patch::zoom);
+            
+            cnv->gl_pixwidth = pd::Patch::applyUnzoom(getWidth());
+            cnv->gl_pixheight = pd::Patch::applyUnzoom(getHeight());
+            cnv->gl_xmargin = pd::Patch::applyUnzoom(getX() - canvas->canvasOrigin.x);
+            cnv->gl_ymargin = pd::Patch::applyUnzoom(getY() - canvas->canvasOrigin.y);
         }
     }
     
@@ -920,7 +921,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
 
     // Auto scroll when dragging close to the edge
-    if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 100, scrollSpeed))
+    if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed))
     {
         beginDragAutoRepeat(40);
     }
