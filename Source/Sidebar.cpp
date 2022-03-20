@@ -566,7 +566,7 @@ struct Console : public Component
                 int numLines = getNumLines(message.first);
                 int height = numLines * 22 + 2;
 
-                const Rectangle<int> r(0, totalHeight, getWidth(), height);
+                const Rectangle<int> r(2, totalHeight, getWidth(), height);
 
                 if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors))
                 {
@@ -734,6 +734,21 @@ void Sidebar::mouseUp(const MouseEvent& e)
         // getCurrentCanvas()->checkBounds(); fix this
         draggingSidebar = false;
     }
+}
+
+void Sidebar::mouseMove(const MouseEvent& e)
+{
+    if(e.getPosition().getX() < dragbarWidth) {
+        setMouseCursor(MouseCursor::LeftRightResizeCursor);
+    }
+    else {
+        setMouseCursor(MouseCursor::NormalCursor);
+    }
+}
+
+void Sidebar::mouseExit(const MouseEvent& e)
+{
+    setMouseCursor(MouseCursor::NormalCursor);
 }
 
 void Sidebar::showSidebar(bool show)
