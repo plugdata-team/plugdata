@@ -139,7 +139,10 @@ void Box::updateBounds(bool newObject)
         bounds.translate(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
         
         width = bounds.getWidth() + doubleMargin;
-        setTopLeftPosition(bounds.getPosition());
+        
+        if(bounds.getPosition().getDistanceFrom(getPosition()) >= 2.0f) {
+            setTopLeftPosition(bounds.getPosition());
+        }
     }
     // width didn't get assigned, or was zero
     if(width <= doubleMargin)

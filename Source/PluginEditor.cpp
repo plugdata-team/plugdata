@@ -25,8 +25,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     pd.locked.addListener(this);
     pd.zoomScale.addListener(this);
-    pd.settingsTree.getPropertyAsValue("LastChooserPath", nullptr).addListener(this);
 
+    pd.settingsTree.addListener(this);
+    
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
 
@@ -228,7 +229,6 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     removeKeyListener(&statusbar);
     pd.locked.removeListener(this);
     pd.zoomScale.removeListener(this);
-    pd.settingsTree.getPropertyAsValue("LastChooserPath", nullptr).removeListener(this);
 }
 
 void PlugDataPluginEditor::showNewObjectMenu()
@@ -588,11 +588,14 @@ void PlugDataPluginEditor::valueChanged(Value& v)
         }
         getCurrentCanvas()->checkBounds();
     }
-    // Update last filechooser path
-    else
-    {
+}
+
+void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
+{
+    if(property == Identifier("LastChooserPath")) {
         saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
         openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+        pd.saveSettings();
     }
 }
 
