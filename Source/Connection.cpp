@@ -300,7 +300,10 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
     
-    if(currentPlan.size() < 2) return;
+    if(currentPlan.size() < 2)  {
+        updatePath();
+        return;
+    }
     
     // If both inlet and outlet are selected we can just move the connection cord
     if(cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box)) {
@@ -331,7 +334,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     
     currentPlan[idx1] = position;
     
-    updatePath();
+    
 }
 
 void Connection::updatePath()
