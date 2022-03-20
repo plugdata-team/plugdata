@@ -364,7 +364,7 @@ struct PlugDataDarkLook : public PlugDataLook
         g.fillAll(findColour(ResizableWindow::backgroundColourId));
 #endif
 
-        auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
+        auto bounds = Rectangle<float>(1, 1, width - 2, height - 2);
         g.fillRoundedRectangle(bounds, 3.0f);
 
         g.setColour(findColour(PopupMenu::textColourId).withAlpha(0.3f));
@@ -475,6 +475,10 @@ struct PlugDataDarkLook : public PlugDataLook
     {
         g.setColour(button.findColour(ComboBox::backgroundColourId));
         g.fillRect(button.getLocalBounds());
+    }
+    
+    void drawResizableFrame (Graphics& g, int w, int h, const BorderSize<int>& border) override
+    {
     }
 
     void drawSuggestionButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
