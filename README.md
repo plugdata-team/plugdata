@@ -52,47 +52,21 @@ Known issues:
 
 ## Roadmap
 
-v0.3.3:
-- Fix all warnings
-- Fix multi-instance problems for plugins (DONE)
-- Clean up:
-    - Box class, reduce resize calls (DONE)
-    - Better patch management (opening/closing patches, tab behaviour, remembering tabs when closing plugin editor) (DONE)
-    - Move sidebar classes to separate file (DONE)
-    - LookAndFeel classes (DONE)
-- MIDI Blinker (DONE)
-- Allow modifying label text, font, position and colour (DONE, except font)
-- Create document and system for object descriptions and inlet/outlet hover messages (DONE)
-- More flexible connection manipulation (DONE)
-- Increase number of automatable parameters (DONE)
-- Make sure most Pd and ELSE objects work properly, especially ones with GUI features
-  - text define, pic, possibly more
-- Add AtomList object (DONE)
-- Fix resize problems:
-    - No resize for some pre-existing objects (DONE)
-    - Array resize (DONE)
-    - Graph resize (DONE)
-    - Keyboard resize
-- Fix gaps when dragging over array (DONE)
-- Fix showing suggestions in comments (DONE)
-- Fix comment rectangle not clearing (DONE)
-- Implement zooming by ctrl+scrolling, maybe pinch on trackpads/touchscreens (DONE)
-- Always show console when interacting with GUI objects (DONE)
-- Fix mixed red/white outline bug (DONE)
-- Add light theme for pd compatibility (to make black text in original pd patches readable)
-- Fix ctrl to temporarily enter lock mode on Linux (DONE)
-- Make sure pd patches always look correct (especially for compact UI's designed in pd)
-
-Version 0.3.3 is almost there, and features a vastly improved GUI, multi-channel for plugins, presentation mode, improved sidebar/statusbar and much more!
-
-v0.3.4 - v0.4:
-- Support grid
-- Smart patching behaviour: shift to drop object between connection or create multiple connections at once
-- Final GUI changes before stable release
-- Finished document with object descriptions and inlet/outlet hover messages
-- Ensure that all externals work
-- Create manual
-- Improve code documentation
+v0.5:
+- Ask to save when closing standalone
+- Grid
+- Tidy up feature
+- Light theme
+- Fix C externals support
+- Blacked out background for dialogs
+- Command line arguments
+- Better rendering of pd patch layouts
+- Stick to mouse when creating from menu
+- Tail length option for plugins
+- DAW Transport object
+- Keyboard GUI component resize
+- Ensure all object properties are supported
+- Expand pddocs with more descriptions
 
 
 Future plans:
