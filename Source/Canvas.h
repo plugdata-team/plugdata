@@ -83,6 +83,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
+    
 
     template <typename T>
     Array<T*> getSelectionOfType()

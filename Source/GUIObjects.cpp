@@ -1888,7 +1888,7 @@ struct GraphOnParent : public GUIComponent
 
             // Make sure that the graph doesn't become the current canvas
             box->cnv->patch.setCurrent(true);
-            box->cnv->main.commandStatusChanged();
+            box->cnv->main.updateCommandStatus();
         }
 
         auto b = getPatch()->getBounds();

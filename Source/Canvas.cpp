@@ -708,7 +708,7 @@ void Canvas::synchronise(bool updatePosition)
         tmpl->updateIfMoved();
     }
     
-    main.commandStatusChanged();
+    main.updateCommandStatus();
 }
 
 void Canvas::mouseDown(const MouseEvent& e)
@@ -1002,7 +1002,7 @@ void Canvas::mouseUp(const MouseEvent& e)
         main.sidebar.hideParameters();
     }
 
-    main.commandStatusChanged();
+    main.updateCommandStatus();
 
     lasso.endLasso();
 }
@@ -1348,7 +1348,7 @@ void Canvas::setSelected(Component* component, bool shouldNowBeSelected)
         component->repaint();
     }
 
-    main.commandStatusChanged();
+    main.updateCommandStatus();
 }
 
 bool Canvas::isSelected(Component* component) const
@@ -1399,7 +1399,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         checkBounds();
 
         // Update undo state
-        main.commandStatusChanged();
+        main.updateCommandStatus();
     }
 
     if (didStartDragging) didStartDragging = false;
