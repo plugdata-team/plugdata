@@ -216,7 +216,7 @@ int Trie::autocomplete(std::string query, Suggestions& result)
     return 0;
 }
 
-void Library::initialiseLibrary(ValueTree pathTree)
+void Library::initialiseLibrary()
 {
     appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
     

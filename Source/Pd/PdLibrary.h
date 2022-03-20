@@ -60,7 +60,7 @@ class Trie
 struct Library : public Timer
 {
     
-    void initialiseLibrary(ValueTree pathTree);
+    void initialiseLibrary();
 
     void updateLibrary();
     void parseDocumentation(const String& path);
