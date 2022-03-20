@@ -63,7 +63,7 @@ struct TabComponent : public TabbedComponent
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ApplicationCommandTarget, public ApplicationCommandManager
+class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager
 {
    public:
     explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
@@ -97,6 +97,9 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void getAllCommands(Array<CommandID>& commands) override;
     void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
     bool perform(const InvocationInfo& info) override;
+    
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
+
 
     PlugDataAudioProcessor& pd;
 
