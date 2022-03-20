@@ -84,7 +84,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
 
-    tabbar.toBehind(&sidebar);
 
     for (auto* button : toolbarButtons)
     {
@@ -218,6 +217,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 
     tabbar.toFront(false);
+    sidebar.toFront(false);
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -292,7 +292,7 @@ void PlugDataPluginEditor::resized()
 
     tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth() + 5, getHeight() - sbarY - statusbar.getHeight());
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight - 2, sidebar.getWidth(), getHeight() - toolbarHeight);
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight - 3, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
