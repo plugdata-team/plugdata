@@ -90,6 +90,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void updateValues();
 
     void valueChanged(Value& v) override;
+    
+    void updateCommandStatus();
 
     ApplicationCommandTarget* getNextCommandTarget() override;
     void getAllCommands(Array<CommandID>& commands) override;
