@@ -364,7 +364,7 @@ struct PlugDataDarkLook : public PlugDataLook
         g.fillAll(findColour(ResizableWindow::backgroundColourId));
 #endif
 
-        auto bounds = Rectangle<float>(1, 1, width - 2, height - 2);
+        auto bounds = Rectangle<float>(2, 2, width - 4, height - 4);
         g.fillRoundedRectangle(bounds, 3.0f);
 
         g.setColour(findColour(PopupMenu::textColourId).withAlpha(0.3f));
