@@ -609,6 +609,7 @@ void PlugDataPluginEditor::updateCommandStatus()
         canRedo = libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == var(false);
     }
 
+    toolbarButton(Add)->setEnabled(pd.locked == var(true));
     toolbarButton(Redo)->setEnabled(canRedo);
     toolbarButton(Undo)->setEnabled(canUndo);
 
@@ -631,8 +632,6 @@ void PlugDataPluginEditor::getAllCommands(Array<CommandID>& commands)
 
 void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result)
 {
-    toolbarButton(Add)->setEnabled(pd.locked == var(false));
-
     bool hasBoxSelection = false;
     bool hasSelection = false;
 
