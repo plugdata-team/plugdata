@@ -190,20 +190,19 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionStyleButton->setName("statusbar:connectionstyle");
     connectionStyleButton->getToggleStateValue().referTo(connectionStyle);
 
-    connectionStyleButton->onClick = [this]() { connectionPathfind->setEnabled(connectionStyle == true);
-    };
+    connectionStyleButton->onClick = [this]() { connectionPathfind->setEnabled(connectionStyle == true); };
 
     addAndMakeVisible(connectionStyleButton.get());
 
     connectionPathfind->setTooltip("Find best connection path");
     connectionPathfind->setConnectedEdges(12);
     connectionPathfind->setName("statusbar:findpath");
-    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true);
-        
+    connectionPathfind->onClick = [this]()
+    {
+        dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true);
     };
     connectionPathfind->setEnabled(connectionStyle == true);
     addAndMakeVisible(connectionPathfind.get());
-    
 
     addAndMakeVisible(zoomLabel);
     zoomLabel.setText("100%", dontSendNotification);
@@ -312,7 +311,6 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
 
 void Statusbar::zoom(bool zoomIn)
 {
-    
     float value = static_cast<float>(zoomScale.getValue());
 
     // Zoom limits

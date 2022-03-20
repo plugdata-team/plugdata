@@ -86,7 +86,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     const std::string stringGui = std::string("gui");
     const std::string stringMouse = std::string("mouse");
-    
+
     static inline constexpr int maxSize = 1000000;
 
     PlugDataAudioProcessor& processor;

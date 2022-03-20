@@ -170,11 +170,12 @@ void Connection::paint(Graphics& g)
     {
         baseColour = outlet->isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
     }
-    else if(isMouseOver()) {
+    else if (isMouseOver())
+    {
         baseColour = outlet->isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
         baseColour = baseColour.brighter(0.6f);
     }
-    
+
     g.setColour(baseColour.withAlpha(0.8f));
     g.strokePath(toDraw, PathStrokeType(2.0f, PathStrokeType::mitered, PathStrokeType::rounded));
 }
@@ -187,25 +188,30 @@ void Connection::mouseMove(const MouseEvent& e)
     if (segmentedConnection && currentPlan.size() > 2 && n > 0)
     {
         auto line = Line<int>(currentPlan[n - 1], currentPlan[n]);
-        
-        if(line.isVertical()) {
+
+        if (line.isVertical())
+        {
             setMouseCursor(MouseCursor::LeftRightResizeCursor);
         }
-        else if(line.isHorizontal()) {
+        else if (line.isHorizontal())
+        {
             setMouseCursor(MouseCursor::UpDownResizeCursor);
         }
-        else {
+        else
+        {
             setMouseCursor(MouseCursor::NormalCursor);
         }
     }
-    else {
+    else
+    {
         setMouseCursor(MouseCursor::NormalCursor);
     }
-    
+
     repaint();
 }
 
-void Connection::mouseExit(const MouseEvent& e) {
+void Connection::mouseExit(const MouseEvent& e)
+{
     repaint();
 }
 
@@ -243,7 +249,7 @@ void Connection::mouseDrag(const MouseEvent& e)
 
     auto pstart = outlet->getCanvasBounds().getCentre() - origin;
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
-    
+
     bool curvedConnection = cnv->pd->settingsTree.getProperty("ConnectionStyle");
     if (curvedConnection && dragIdx != -1)
     {
@@ -269,8 +275,8 @@ void Connection::mouseDrag(const MouseEvent& e)
 
 int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& plan)
 {
-    if(plan.size() < 2) return -1;
-    
+    if (plan.size() < 2) return -1;
+
     for (int n = 2; n < plan.size() - 1; n++)
     {
         auto line = Line<int>(plan[n - 1], plan[n]);
@@ -299,30 +305,33 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 {
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
-    
-    if(currentPlan.size() <= 2 || connectionStyle == false)  {
+
+    if (currentPlan.size() <= 2 || connectionStyle == false)
+    {
         updatePath();
         return;
     }
-    
+
     // If both inlet and outlet are selected we can just move the connection cord
-    if(cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box)) {
+    if (cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box))
+    {
         auto offset = pstart - currentPlan[0];
-        for(auto& point : currentPlan) point += offset;
+        for (auto& point : currentPlan) point += offset;
         updatePath();
         return;
     }
-    
+
     int idx1 = 0;
     int idx2 = 1;
-    
+
     auto& position = pstart;
-    if(&component == inlet || &component == inlet->box){
+    if (&component == inlet || &component == inlet->box)
+    {
         idx1 = currentPlan.size() - 1;
         idx2 = currentPlan.size() - 2;
         position = pend;
     }
-    
+
     if (Line<int>(currentPlan[idx1], currentPlan[idx2]).isVertical())
     {
         currentPlan[idx2].x = position.x;
@@ -331,10 +340,9 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     {
         currentPlan[idx2].y = position.y;
     }
-    
+
     currentPlan[idx1] = position;
     updatePath();
-    
 }
 
 void Connection::updatePath()
@@ -375,7 +383,7 @@ void Connection::updatePath()
 
         toDraw.startNewSubPath(pstart.toFloat());
         toDraw.cubicTo(ctrlPoint1, ctrlPoint2, pend.toFloat());
-        
+
         currentPlan.clear();
     }
     else
@@ -384,8 +392,9 @@ void Connection::updatePath()
         {
             findPath();
         }
-        
-        auto snap = [this](Point<int> point, int idx1, int idx2) {
+
+        auto snap = [this](Point<int> point, int idx1, int idx2)
+        {
             if (Line<int>(currentPlan[idx1], currentPlan[idx2]).isVertical())
             {
                 currentPlan[idx2].x = point.x + origin.x;
@@ -394,13 +403,12 @@ void Connection::updatePath()
             {
                 currentPlan[idx2].y = point.y + origin.y;
             }
-            
+
             currentPlan[idx1] = point + origin;
         };
-        
+
         snap(pstart, 0, 1);
         snap(pend, currentPlan.size() - 1, currentPlan.size() - 2);
-        
 
         Path connectionPath;
         connectionPath.startNewSubPath(pstart.toFloat());
@@ -409,12 +417,10 @@ void Connection::updatePath()
         for (int n = 1; n < currentPlan.size() - 1; n++)
         {
             if (connectionPath.contains(currentPlan[n].toFloat())) continue;
-            
-            
+
             connectionPath.lineTo(currentPlan[n].toFloat() - origin.toFloat());
         }
-        
-        
+
         connectionPath.lineTo(pend.toFloat());
         toDraw = connectionPath.createPathWithRoundedCorners(8.0f);
 
@@ -423,7 +429,7 @@ void Connection::updatePath()
 
     auto bounds = toDraw.getBounds().toNearestInt().expanded(4);
     setBounds(bounds + origin);
-    
+
     if (bounds.getX() < 0 || bounds.getY() < 0)
     {
         toDraw.applyTransform(AffineTransform::translation(-bounds.getX(), -bounds.getY()));
@@ -431,7 +437,6 @@ void Connection::updatePath()
 
     offset = {-bounds.getX(), -bounds.getY()};
 }
-
 
 void Connection::findPath()
 {
@@ -512,9 +517,9 @@ void Connection::findPath()
         }
     }
     std::reverse(simplifiedPath.begin(), simplifiedPath.end());
-    
+
     currentPlan = simplifiedPath;
-    
+
     auto state = getState();
     lastId = getId();
     cnv->patch.setExtraInfo(lastId, state);

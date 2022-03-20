@@ -25,7 +25,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
     Box(pd::Object* object, Canvas* parent, const String& name = "");
-    
+
     void valueChanged(Value& v) override;
 
     void paint(Graphics&) override;
@@ -49,11 +49,10 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-    
+
     void setEditable(bool editable);
     Array<Rectangle<float>> getCorners() const;
-    
-    
+
     std::unique_ptr<pd::Object> pdObject = nullptr;
 
     int numInputs = 0;
@@ -70,7 +69,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent::Zone resizeZone;
-    
+
     static inline constexpr int widthOffset = 32;
     static inline constexpr int margin = 8;
     static inline constexpr int doubleMargin = margin * 2;
@@ -78,9 +77,9 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     bool selectionChanged = false;
     bool hideLabel = false;
-    
+
     String currentText;
-    
+
    private:
     void initialise();
     bool hitTest(int x, int y) override;
@@ -88,7 +87,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void textEditorReturnKeyPressed(TextEditor& ed) override;
 
     Rectangle<int> originalBounds;
-    
+
     Font font{15.0f};
     Justification justification = Justification::centred;
     std::unique_ptr<TextEditor> editor;
