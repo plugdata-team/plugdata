@@ -57,7 +57,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     updateSearchPaths();
 
     // Initialise library for text autocompletion
-    objectLibrary.initialiseLibrary(settingsTree.getChildWithName("Paths"));
+    objectLibrary.initialiseLibrary();
 
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
@@ -143,7 +143,7 @@ void PlugDataAudioProcessor::updateSearchPaths()
         libpd_add_to_search_path(path.toRawUTF8());
     }
 
-    objectLibrary.initialiseLibrary(pathTree);
+    objectLibrary.updateLibrary();
 }
 
 const String PlugDataAudioProcessor::getName() const
