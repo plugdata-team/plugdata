@@ -251,39 +251,38 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
     return true;
 #endif
 
-    const AudioChannelSet& mainOutput = layouts.getMainOutputChannelSet();
-    if (mainOutput.isDisabled()) return false;
-
     int ninch = 0;
     int noutch = 0;
     for (int bus = 0; bus < layouts.outputBuses.size(); bus++)
     {
         int nchb = layouts.getNumChannels(false, bus);
-        if (nchb > 2) return false;
+        
+        if(layouts.outputBuses[bus].isDisabled()) continue;
+        
+        if (nchb > 2)
+            return false;
+        if (nchb == 0)
+            return false;
         noutch += nchb;
     }
 
     for (int bus = 0; bus < layouts.inputBuses.size(); bus++)
     {
         int nchb = layouts.getNumChannels(true, bus);
-        if (nchb > 2) return false;
+        
+        if(layouts.inputBuses[bus].isDisabled()) continue;
+        
+        if (nchb > 2)
+            return false;
+        if (nchb == 0)
+            return false;
         ninch += nchb;
     }
 
-    if (ninch > 32 || noutch > 32) return false;
+    if (ninch > 32 || noutch > 32)
+        return false;
 
     return true;
-
-    // One input bus: stereo or disabled
-    // if (layouts.inputBuses.size() != layouts.outputBus.size()) return false;
-    /*
-    for (auto& ib : layouts.inputBuses)
-        if (ib != AudioChannelSet::stereo() && !ib.isDisabled())
-            return false;
-
-    for (auto& ob : layouts.outputBuses)
-        if (ob != AudioChannelSet::stereo() && !ob.isDisabled())
-            return false; */
 }
 
 void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
@@ -295,11 +294,6 @@ void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, Mid
 
     processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
     processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
-
-    bool oldEnabled = enabled;
-    enabled->store(0);
-    sendMessagesFromQueue();
-    enabled->store(oldEnabled);
 }
 
 void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)

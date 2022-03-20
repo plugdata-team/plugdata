@@ -609,7 +609,7 @@ void PlugDataPluginEditor::updateCommandStatus()
         canRedo = libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == var(false);
     }
 
-    toolbarButton(Add)->setEnabled(pd.locked == var(true));
+    toolbarButton(Add)->setEnabled(pd.locked == var(false));
     toolbarButton(Redo)->setEnabled(canRedo);
     toolbarButton(Undo)->setEnabled(canUndo);
 
