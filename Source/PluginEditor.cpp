@@ -572,6 +572,7 @@ void PlugDataPluginEditor::valueChanged(Value& v)
     // Update undo state when locking/unlocking
     if (v.refersToSameSourceAs(pd.locked))
     {
+        toolbarButton(Add)->setEnabled(pd.locked == var(false));
         updateCommandStatus();
     }
     // Update zoom
@@ -634,7 +635,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     bool hasBoxSelection = false;
     bool hasSelection = false;
     
-    toolbarButton(Add)->setEnabled(pd.locked == var(false));
+    
 
     if (auto* cnv = getCurrentCanvas())
     {
