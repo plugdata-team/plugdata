@@ -218,6 +218,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     tabbar.toFront(false);
     sidebar.toFront(false);
+    resizer.setAlwaysOnTop(true);
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -635,8 +636,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     bool hasBoxSelection = false;
     bool hasSelection = false;
     
-    
-
     if (auto* cnv = getCurrentCanvas())
     {
         auto selectedBoxes = cnv->getSelectionOfType<Box>();

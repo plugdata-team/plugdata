@@ -44,7 +44,9 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
             outlet = nullptr;
             inlet = nullptr;
 
-            jassertfalse;
+            MessageManager::callAsync([this](){
+                cnv->connections.removeObject(this);
+            });
 
             return;
         }
