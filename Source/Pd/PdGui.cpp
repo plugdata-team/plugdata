@@ -747,8 +747,9 @@ void Gui::setBounds(Rectangle<int> bounds)
 
     if (type == Type::Keyboard)
     {
-        static_cast<t_keyboard*>(ptr)->x_width = w + 28;
-        static_cast<t_keyboard*>(ptr)->x_height = h;
+        // Don't use zooming for keyboard, it's big enough already
+        static_cast<t_keyboard*>(ptr)->x_width = bounds.getWidth() + 28;
+        static_cast<t_keyboard*>(ptr)->x_height = bounds.getHeight();
     }
     if (type == Type::Panel)
     {
