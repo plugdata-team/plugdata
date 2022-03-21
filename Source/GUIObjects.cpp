@@ -2388,10 +2388,11 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         return {b.getWidth(), b.getHeight()};
     };
 
+    /*
     ObjectParameters defineParameters() override
     {
         return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
-    };
+    }; */
 
     void valueChanged(Value& value) override
     {
