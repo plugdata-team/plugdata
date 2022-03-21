@@ -63,6 +63,49 @@ typedef struct _fake_gatom
     t_symbol* a_expanded_to;
 } t_fake_gatom;
 
+typedef struct _edit_proxy
+{
+    t_object p_obj;
+    t_symbol* p_sym;
+    t_clock* p_clock;
+    struct _keyboard* p_cnv;
+} t_edit_proxy;
+
+typedef struct _keyboard
+{
+    t_object x_obj;
+    t_glist* x_glist;
+    t_edit_proxy* x_proxy;
+    int* x_tgl_notes;  // to store which notes should be played
+    int x_velocity;    // to store velocity
+    int x_last_note;   // to store last note
+    float x_vel_in;    // to store the second inlet values
+    float x_space;
+    int x_width;
+    int x_height;
+    int x_octaves;
+    int x_first_c;
+    int x_low_c;
+    int x_toggle_mode;
+    int x_norm;
+    int x_zoom;
+    int x_shift;
+    int x_xpos;
+    int x_ypos;
+    int x_snd_set;
+    int x_rcv_set;
+    int x_flag;
+    int x_s_flag;
+    int x_r_flag;
+    int x_edit;
+    t_symbol* x_receive;
+    t_symbol* x_rcv_raw;
+    t_symbol* x_send;
+    t_symbol* x_snd_raw;
+    t_symbol* x_bindsym;
+    t_outlet* x_out;
+} t_keyboard;
+
 static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 {
     int ac = binbuf_getnatom(x->a_text.te_binbuf);
@@ -649,7 +692,8 @@ Rectangle<int> Gui::getBounds() const noexcept
 
     if (type == Type::Keyboard)
     {
-        return {x, y, w, h};
+        auto* keyboard = static_cast<t_keyboard*>(ptr);
+        return {x, y, keyboard->x_width - 28, keyboard->x_height};
     }
     if (type == Type::Mousepad)
     {
@@ -701,6 +745,11 @@ void Gui::setBounds(Rectangle<int> bounds)
 
     addUndoableAction();
 
+    if (type == Type::Keyboard)
+    {
+        static_cast<t_keyboard*>(ptr)->x_width = w + 28;
+        static_cast<t_keyboard*>(ptr)->x_height = h;
+    }
     if (type == Type::Panel)
     {
         static_cast<t_my_canvas*>(ptr)->x_vis_w = w - 1;

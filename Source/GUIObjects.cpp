@@ -2385,7 +2385,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
-        return {b.getWidth() - 28, b.getHeight()};
+        return {b.getWidth(), b.getHeight()};
     };
 
     ObjectParameters defineParameters() override
