@@ -737,7 +737,7 @@ void Gui::setBounds(Rectangle<int> bounds)
 
     if (w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
 
-    if (type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM())
+    if (type != Type::Keyboard && type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM())
     {
         Object::setBounds(bounds);
         return;
@@ -748,8 +748,11 @@ void Gui::setBounds(Rectangle<int> bounds)
     if (type == Type::Keyboard)
     {
         // Don't use zooming for keyboard, it's big enough already
-        static_cast<t_keyboard*>(ptr)->x_width = bounds.getWidth() + 28;
-        static_cast<t_keyboard*>(ptr)->x_height = bounds.getHeight();
+        //static_cast<t_keyboard*>(ptr)->x_width = bounds.getWidth() + 28;
+        //static_cast<t_keyboard*>(ptr)->x_height = bounds.getHeight();
+        
+        // Don't allow keyboard resize for now
+        Object::setBounds(bounds);
     }
     if (type == Type::Panel)
     {
