@@ -393,12 +393,21 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
 
 void Patch::copy()
 {
-    instance->enqueueFunction([this]() { libpd_copy(getPointer()); });
+    instance->enqueueFunction([this]() {
+        auto copied = String(CharPointer_UTF8(libpd_copy(getPointer())));
+        MessageManager::callAsync([copied]() mutable {
+            SystemClipboard::copyTextToClipboard(copied);
+        });
+    });
 }
 
 void Patch::paste()
 {
-    instance->enqueueFunction([this]() { libpd_paste(getPointer()); });
+    auto text = SystemClipboard::getTextFromClipboard();
+    
+    instance->enqueueFunction([this, text]() mutable {
+        libpd_paste(getPointer(), text.toRawUTF8());
+    });
 }
 
 void Patch::duplicate()

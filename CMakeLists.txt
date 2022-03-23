@@ -5,7 +5,11 @@ set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment ve
 set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
 endif()
 
-set(COPY_PLUGIN_AFTER_BUILD FALSE)
+if (NOT DEFINED COPY_PLUGIN_AFTER_BUILD)
+  set(COPY_PLUGIN_AFTER_BUILD FALSE)
+else()
+  set(COPY_PLUGIN_AFTER_BUILD TRUE)
+endif()
 
 set(HARDENED_RUNTIME_ENABLED YES)
 set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
@@ -101,7 +105,7 @@ juce_add_plugin(PlugData
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_MANUFACTURER_CODE    OCTA
     PLUGIN_CODE                 PlDt
-    FORMATS                     Standalone AU VST3 # AAX Unity AUv3
+    FORMATS                     Standalone AU VST3
     PRODUCT_NAME                "PlugData"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
@@ -127,7 +131,7 @@ juce_add_plugin(PlugDataFx
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_MANUFACTURER_CODE    OCTA
     PLUGIN_CODE                 PlDf
-    FORMATS                     AU VST3 # AAX Unity AUv3
+    FORMATS                     AU VST3
     PRODUCT_NAME                "PlugDataFx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
