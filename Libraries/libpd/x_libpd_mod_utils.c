@@ -314,11 +314,18 @@ static int binbuf_getpos(t_binbuf*b, int *x0, int *y0, t_symbol**type)
 }
 
 
-void libpd_copy(t_canvas* cnv){
+const char* libpd_copy(t_canvas* cnv){
     pd_typedmess((t_pd*)cnv, gensym("copy"), 0, NULL);
+    const char* text;
+    int len;
+    binbuf_gettext(pd_this->pd_gui->i_editor->copy_binbuf, &text, &len);
+    return text;
+    
 }
 
-void libpd_paste(t_canvas* cnv) {
+void libpd_paste(t_canvas* cnv, const char* buf) {
+    int len = strlen(buf);
+    binbuf_text(pd_this->pd_gui->i_editor->copy_binbuf, buf, len);
     pd_typedmess((t_pd*)cnv, gensym("paste"), 0, NULL);
 }
 
