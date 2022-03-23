@@ -30,8 +30,9 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize);
 void libpd_moveobj(t_canvas* cnv, t_gobj* obj, int x, int y);
 
 
-void libpd_copy(t_canvas* cnv);
-void libpd_paste(t_canvas* cnv);
+const char* libpd_copy(t_canvas* cnv);
+void libpd_paste(t_canvas* cnv, const char*);
+
 void libpd_duplicate(t_canvas *x);
 
 void libpd_undo(t_canvas* cnv);
