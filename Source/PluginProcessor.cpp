@@ -642,6 +642,8 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
 void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInBytes)
 {
     if (sizeInBytes == 0) return;
+    
+    
 
     MemoryInputStream istream(data, sizeInBytes, false);
     String state = istream.readString();
@@ -706,6 +708,13 @@ void PlugDataAudioProcessor::loadPatch(File patch)
 
 void PlugDataAudioProcessor::loadPatch(String patch)
 {
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    {
+        editor->tabbar.clearTabs();
+        editor->canvases.clear();
+    }
+    patches.clear();
+    
     auto patchFile = File::createTempFile(".pd");
 
     patchFile.replaceWithText(patch);

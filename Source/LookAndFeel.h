@@ -29,6 +29,11 @@ struct Icons
     inline static const CharPointer_UTF8 Audio = CharPointer_UTF8("\xef\x80\xa8");
     inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
     inline static const CharPointer_UTF8 Wand = CharPointer_UTF8("\xef\x83\x90");
+    
+    inline static const CharPointer_UTF8 CleanUp = CharPointer_UTF8 ("\xef\x87\xbc");
+    inline static const CharPointer_UTF8 Colour = CharPointer_UTF8 ("\xef\x87\xbb");
+    inline static const CharPointer_UTF8 Grid = CharPointer_UTF8 ("\xef\x83\x8e");
+    
 
     inline static const CharPointer_UTF8 ZoomIn = CharPointer_UTF8("\xef\x80\x8e");
     inline static const CharPointer_UTF8 ZoomOut = CharPointer_UTF8("\xef\x80\x90");
@@ -748,4 +753,3 @@ struct PlugDataDarkLook : public PlugDataLook
         return new PdLook;
     }
 };
-

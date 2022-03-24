@@ -607,14 +607,25 @@ void PlugDataPluginEditor::updateCommandStatus()
     // TODO: Fix threading issue!!
     if (auto* cnv = getCurrentCanvas())
     {
-        canUndo = libpd_can_undo(getCurrentCanvas()->patch.getPointer()) && pd.locked == var(false);
-        canRedo = libpd_can_redo(getCurrentCanvas()->patch.getPointer()) && pd.locked == var(false);
+        auto* patchPtr = cnv->patch.getPointer();
+        if(!patchPtr) return;
+        
+        // First on pd's thread, get undo status
+        pd.enqueueFunction([this, cnv, patchPtr]() mutable {
+            canUndo = libpd_can_undo(patchPtr);
+            canRedo = libpd_can_redo(patchPtr);
+            
+            // Set button enablement on message thread
+            MessageManager::callAsync([this](){
+                toolbarButton(Redo)->setEnabled(canRedo && pd.locked == var(false));
+                toolbarButton(Undo)->setEnabled(canUndo && pd.locked == var(false));
+                
+                // Application commands need to be updated when undo state changes
+                commandStatusChanged();
+            });
+            
+        });
     }
-
-    toolbarButton(Redo)->setEnabled(canRedo);
-    toolbarButton(Undo)->setEnabled(canUndo);
-
-    commandStatusChanged();
 }
 
 ApplicationCommandTarget* PlugDataPluginEditor::getNextCommandTarget()
