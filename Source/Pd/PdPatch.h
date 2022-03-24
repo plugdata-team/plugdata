@@ -28,8 +28,6 @@ class Patch
    public:
     Patch(void* ptr, Instance* instance) noexcept;
 
-    Patch(const File& toOpen, Instance* instance) noexcept;
-
     //! @brief The default constructor.
     Patch() = default;
 
@@ -106,9 +104,8 @@ class Patch
 
     t_gobj* getInfoObject();
     void setExtraInfoId(const String& oldId, const String& newId);
-
+    bool hasExtraInfo(const String& id) const;
     void storeExtraInfo();
-
     void updateExtraInfo();
     MemoryBlock getExtraInfo(const String& id) const;
     void setExtraInfo(const String& id, MemoryBlock& info);

@@ -71,11 +71,8 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
         instance->getCallbackLock()->exit();
 
         infoObject = getInfoObject();
+        updateExtraInfo();
     }
-}
-
-Patch::Patch(const File& toOpen, Instance* instance) noexcept
-{
 }
 
 Rectangle<int> Patch::getBounds() const noexcept
@@ -604,13 +601,11 @@ void Patch::keyPress(int keycode, int shift)
 
 void Patch::updateExtraInfo()
 {
-    auto* info = getInfoObject();
-
-    if (!info) return;
+    if (!infoObject) return;
 
     char* text;
     int size = 0;
-    libpd_get_object_text(info, &text, &size);
+    libpd_get_object_text(infoObject, &text, &size);
 
     MemoryOutputStream ostream;
     Base64::convertFromBase64(ostream, String(CharPointer_UTF8(text), size).fromFirstOccurrenceOf("plugdatainfo ", false, false));
@@ -680,6 +675,12 @@ void Patch::storeExtraInfo()
     binbuf_text((reinterpret_cast<t_text*>(info))->te_binbuf, newname.toRawUTF8(), newname.length());
 
     deselectAll();
+}
+
+bool Patch::hasExtraInfo(const String& id) const
+{
+    auto child = extraInfo.getChildWithProperty("ID", id);
+    return child.isValid();
 }
 
 MemoryBlock Patch::getExtraInfo(const String& id) const

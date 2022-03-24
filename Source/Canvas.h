@@ -122,7 +122,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
-
+    
    private:
     SafePointer<TabbedComponent> tabbar;
 

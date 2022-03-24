@@ -656,8 +656,25 @@ class PlugDataWindow : public DocumentWindow
     void closeButtonPressed() override
     {
         pluginHolder->savePluginState();
+        
+        
+        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
+            
 
-        JUCEApplicationBase::quit();
+            Dialogs::showSaveDialog(editor,
+                                    [editor](int result)
+                                    {
+                                        if (result == 2)
+                                        {
+                                            editor->saveProject([]() mutable { JUCEApplicationBase::quit(); });
+                                        }
+                                        else if (result == 1) {
+                                            JUCEApplicationBase::quit();
+                                        }
+            });
+        }
+
+        ;
     }
 
     void maximiseButtonPressed() override
