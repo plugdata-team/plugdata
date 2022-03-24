@@ -21,7 +21,6 @@ project(PlugData VERSION 0.4.1 LANGUAGES C CXX)
 
 if("${CMAKE_SYSTEM}" MATCHES "Linux")
   set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
-  set(CMAKE_MODULE_LINKER_FLAGS "${CMAKE_MODULE_LINKER_FLAGS} -Wl,-Symbolic")
 endif()
 
 add_subdirectory(Libraries/)
