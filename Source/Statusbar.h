@@ -12,12 +12,14 @@ struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;
 
-struct Statusbar : public Component, public Timer, public KeyListener
+struct Statusbar : public Component, public Timer, public KeyListener, public ChangeListener
 {
     PlugDataAudioProcessor& pd;
 
     explicit Statusbar(PlugDataAudioProcessor& processor);
     ~Statusbar();
+    
+    void changeListenerCallback(ChangeBroadcaster* source) override;
 
     void resized() override;
 
@@ -36,16 +38,9 @@ struct Statusbar : public Component, public Timer, public KeyListener
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> bypassButton;
-    std::unique_ptr<TextButton> lockButton;
-    std::unique_ptr<TextButton> connectionStyleButton;
-    std::unique_ptr<TextButton> connectionPathfind;
-
-    std::unique_ptr<TextButton> presentationButton;
-
-    std::unique_ptr<TextButton> zoomIn;
-    std::unique_ptr<TextButton> zoomOut;
-
+    std::unique_ptr<TextButton> bypassButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, backgroundColour;
+    
+    
     Label zoomLabel;
 
     Slider volumeSlider;

@@ -414,7 +414,7 @@ struct GraphArea : public Component, public ComponentDragger
     }
 };
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(std::move(patch))
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(std::move(p))
 {
     isGraph = graph;
     isGraphChild = graphChild;
@@ -461,6 +461,16 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool graph, bool g
     {
         presentationMode = false;
     }
+    
+    // If background colour is not defined, set to default
+    if(!patch.hasExtraInfo("BackgroundColour")){
+        MemoryOutputStream stream;
+        
+        stream.writeString(findColour(ResizableWindow::backgroundColourId).toString());
+        auto block = stream.getMemoryBlock();
+        patch.setExtraInfo("BackgroundColour", block);
+    }
+
 
     synchronise();
 }
@@ -475,9 +485,12 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
+        auto memblock = patch.getExtraInfo("BackgroundColour");
+        auto bgColour = Colour::fromString(MemoryInputStream(std::move(memblock)).readString());
+        
         g.fillAll(findColour(ComboBox::backgroundColourId));
 
-        g.setColour(findColour(ResizableWindow::backgroundColourId));
+        g.setColour(bgColour);
         g.fillRect(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
 
         // draw origin

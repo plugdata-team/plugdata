@@ -27,18 +27,25 @@ struct SaveDialog : public Component
         addAndMakeVisible(save);
         cancel.onClick = [this]
         {
-            cb(0);
-            MessageManager::callAsync([this]() { delete this; });
+            
+            MessageManager::callAsync([this]() {
+                cb(0);
+                delete this;
+            });
         };
         save.onClick = [this]
         {
-            cb(2);
-            MessageManager::callAsync([this]() { delete this; });
+            MessageManager::callAsync([this]() {
+                cb(2);
+                delete this;
+            });
         };
         dontsave.onClick = [this]
         {
-            cb(1);
-            MessageManager::callAsync([this]() { delete this; });
+            MessageManager::callAsync([this]() {
+                cb(1);
+                delete this;
+            });
         };
         cancel.changeWidthToFitText();
         dontsave.changeWidthToFitText();

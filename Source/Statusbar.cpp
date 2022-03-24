@@ -156,7 +156,29 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomIn = std::make_unique<TextButton>(Icons::ZoomIn);
     zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
+     
+    backgroundColour = std::make_unique<TextButton>(Icons::Colour);
 
+    backgroundColour->setTooltip("Background Colour");
+    backgroundColour->setConnectedEdges(12);
+    backgroundColour->setName("statusbar:backgroundcolour");
+    backgroundColour->onClick = [this](){
+        std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
+        colourSelector->setName("background");
+        colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
+        colourSelector->addChangeListener(this);
+        colourSelector->setSize(300, 400);
+        colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
+        
+        auto memblock = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas()->patch.getExtraInfo("BackgroundColour");
+        auto stream = MemoryInputStream(std::move(memblock));
+
+        colourSelector->setCurrentColour(Colour::fromString(stream.readString()));
+
+        CallOutBox::launchAsynchronously(std::move(colourSelector), backgroundColour->getScreenBounds(), nullptr);
+    };
+    addAndMakeVisible(backgroundColour.get());
+    
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->setConnectedEdges(12);
@@ -254,6 +276,22 @@ Statusbar::~Statusbar()
 #endif
 }
 
+void Statusbar::changeListenerCallback(ChangeBroadcaster* source)
+{
+    auto* cs = dynamic_cast<ColourSelector*>(source);
+    
+    MemoryOutputStream stream;
+    stream.writeString(cs->getCurrentColour().toString());
+    
+    auto block = stream.getMemoryBlock();
+    
+    auto* cnv = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas();
+
+    cnv->patch.setExtraInfo("BackgroundColour", block);
+    cnv->repaint();
+}
+
+
 void Statusbar::resized()
 {
     lockButton->setBounds(8, 0, getHeight(), getHeight());
@@ -267,6 +305,8 @@ void Statusbar::resized()
     zoomOut->setBounds(174, 0, getHeight(), getHeight());
 
     presentationButton->setBounds(215, 0, getHeight(), getHeight());
+    
+    backgroundColour->setBounds(256, 0, getHeight(), getHeight());
 
     bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
 
