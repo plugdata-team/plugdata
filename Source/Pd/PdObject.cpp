@@ -93,7 +93,7 @@ Rectangle<int> Object::getBounds() const noexcept
 
     w = textObj->te_width * glist_fontwidth(patch->getPointer());
 
-    return {Patch::applyZoom(x), Patch::applyZoom(y), Patch::applyZoom(w), Patch::applyZoom(h)};
+    return {x, y, w, h};
 }
 
 //! @brief The name of the help file
@@ -145,14 +145,14 @@ Patch Object::getHelp() const
 void Object::setBounds(Rectangle<int> bounds)
 {
     auto* textObj = static_cast<t_text*>(ptr);
-    short newWidth = std::max<short>(3, Patch::applyUnzoom(bounds.getWidth()) / glist_fontwidth(patch->getPointer()));
+    short newWidth = std::max<short>(3, bounds.getWidth() / glist_fontwidth(patch->getPointer()));
 
     if (newWidth != textObj->te_width)
     {
         addUndoableAction();
         textObj->te_width = newWidth;
 
-        libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), Patch::applyUnzoom(bounds.getX()), Patch::applyUnzoom(bounds.getY()));
+        libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), bounds.getX(), bounds.getY());
     }
 }
 

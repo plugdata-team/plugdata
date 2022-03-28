@@ -599,18 +599,18 @@ float Gui::getFontHeight() const noexcept
     if (!ptr) return 0;
     if (isIEM())
     {
-        return Patch::applyZoom(static_cast<t_iemgui*>(ptr)->x_fontsize);
+        return static_cast<t_iemgui*>(ptr)->x_fontsize;
     }
     else
     {
-        return Patch::applyZoom(libpd_get_canvas_font_height(patch->getPointer()));
+        return libpd_get_canvas_font_height(patch->getPointer());
     }
 }
 void Gui::setFontHeight(float newSize) noexcept
 {
     if (!ptr || !isIEM()) return;
 
-    static_cast<t_iemgui*>(ptr)->x_fontsize = Patch::applyUnzoom(newSize);
+    static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
 }
 
 std::string Gui::getFontName() const
@@ -684,12 +684,7 @@ Rectangle<int> Gui::getBounds() const noexcept
 
     int x = 0, y = 0, w = 0, h = 0;
     libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
-
-    x = Patch::applyZoom(x);
-    y = Patch::applyZoom(y);
-    w = Patch::applyZoom(w);
-    h = Patch::applyZoom(h);
-
+    
     if (type == Type::Keyboard)
     {
         auto* keyboard = static_cast<t_keyboard*>(ptr);
@@ -701,12 +696,12 @@ Rectangle<int> Gui::getBounds() const noexcept
     }
     if (type == Type::Panel)
     {
-        return {x, y, Patch::applyZoom(static_cast<t_my_canvas*>(ptr)->x_vis_w), Patch::applyZoom(static_cast<t_my_canvas*>(ptr)->x_vis_h)};
+        return {x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w, static_cast<t_my_canvas*>(ptr)->x_vis_h};
     }
     if (type == Type::Array || type == Type::GraphOnParent)
     {
         auto* glist = static_cast<_glist*>(ptr);
-        return {x, y, Patch::applyZoom(glist->gl_pixwidth), Patch::applyZoom(glist->gl_pixheight)};
+        return {x, y, glist->gl_pixwidth, glist->gl_pixheight};
     }
     else if (type == Type::Number)
     {
@@ -717,12 +712,12 @@ Rectangle<int> Gui::getBounds() const noexcept
 
         int width = nbx->x_numwidth * nbxCharWidth;
 
-        return {x, y, Patch::applyZoom(width), Patch::applyZoom(iemgui->x_h)};
+        return {x, y, width, iemgui->x_h};
     }
     else if (isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        return {x, y, Patch::applyZoom(iemgui->x_w), Patch::applyZoom(iemgui->x_h)};
+        return {x, y, iemgui->x_w, iemgui->x_h};
     }
 
     return Object::getBounds();
@@ -732,8 +727,8 @@ void Gui::setBounds(Rectangle<int> bounds)
 {
     auto oldBounds = getBounds();
 
-    int w = Patch::applyUnzoom(bounds.getWidth());
-    int h = Patch::applyUnzoom(bounds.getHeight());
+    int w = bounds.getWidth();
+    int h = bounds.getHeight();
 
     if (w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
 
@@ -768,7 +763,7 @@ void Gui::setBounds(Rectangle<int> bounds)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
 
-        short newWidth = std::max<short>(3, Patch::applyUnzoom(bounds.getWidth() / nbxCharWidth));
+        short newWidth = std::max<short>(3, bounds.getWidth() / nbxCharWidth);
         nbx->x_numwidth = newWidth;
         my_numbox_calc_fontwidth(nbx);
     }
@@ -780,7 +775,7 @@ void Gui::setBounds(Rectangle<int> bounds)
         iemgui->x_h = h;
     }
 
-    libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), Patch::applyUnzoom(bounds.getX()), Patch::applyUnzoom(bounds.getY()));
+    libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX(), bounds.getY());
 }
 
 Array Gui::getArray() const noexcept
