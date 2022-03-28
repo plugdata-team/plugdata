@@ -72,7 +72,10 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
 
         infoObject = getInfoObject();
         updateExtraInfo();
+        
+        canvas_undo_add(cnv, UNDO_SEQUENCE_START, "MainSeq", 0);
     }
+    
 }
 
 Rectangle<int> Patch::getBounds() const noexcept
@@ -83,7 +86,7 @@ Rectangle<int> Patch::getBounds() const noexcept
 
         if (cnv->gl_isgraph)
         {
-            return {applyZoom(cnv->gl_xmargin), applyZoom(cnv->gl_ymargin), applyZoom(cnv->gl_pixwidth), applyZoom(cnv->gl_pixheight)};
+            return {cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight};
         }
     }
     return {0, 0, 0, 0};
@@ -233,9 +236,6 @@ std::unique_ptr<Object> Patch::createGraph(const String& name, int size, int x, 
 std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bool undoable)
 {
     if (!ptr) return nullptr;
-
-    x /= zoom;
-    y /= zoom;
 
     StringArray tokens;
     tokens.addTokens(name, false);
@@ -517,7 +517,7 @@ void Patch::moveObjects(const std::vector<Object*>& objects, int dx, int dy)
                 glist_select(getPointer(), &checkObject(obj)->te_g);
             }
 
-            libpd_moveselection(getPointer(), dx / zoom, dy / zoom);
+            libpd_moveselection(getPointer(), dx, dy);
 
             glist_noselect(getPointer());
             EDITOR->canvas_undo_already_set_move = 0;
@@ -747,16 +747,6 @@ std::vector<t_template*> Patch::getTemplates() const
     }
 
     return templates;
-}
-
-int Patch::applyZoom(int toZoom)
-{
-    return static_cast<int>(round(toZoom * Patch::zoom));
-}
-
-int Patch::applyUnzoom(int toUnzoom)
-{
-    return static_cast<int>(round(toUnzoom / Patch::zoom));
 }
 
 }  // namespace pd

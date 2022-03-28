@@ -78,9 +78,6 @@ class Patch
     bool createConnection(Object* src, int nout, Object* sink, int nin);
     void removeConnection(Object* src, int nout, Object* sink, int nin);
 
-    static int applyZoom(int toZoom);
-    static int applyUnzoom(int toUnzoom);
-
     Connections getConnections() const;
 
     t_canvas* getPointer() const
@@ -120,8 +117,6 @@ class Patch
     void setTitle(const String& title);
 
     std::vector<t_template*> getTemplates() const;
-
-    static inline float zoom = 1.3f;
 
    private:
     void* ptr = nullptr;

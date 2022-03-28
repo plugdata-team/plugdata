@@ -31,6 +31,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void paintOverChildren(Graphics&) override;
     void paint(Graphics& g) override;
+        
     void resized() override
     {
         repaint();
@@ -83,7 +84,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
-
+    
     template <typename T>
     Array<T*> getSelectionOfType()
     {
@@ -122,6 +123,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
+    
+    Colour backgroundColour;
+
     
    private:
     SafePointer<TabbedComponent> tabbar;

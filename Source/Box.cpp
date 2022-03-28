@@ -299,7 +299,8 @@ void Box::paint(Graphics& g)
 
     if (!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
     {
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        
+        g.setColour(cnv->backgroundColour);
         g.fillRect(getLocalBounds().reduced(margin));
     }
 
@@ -321,14 +322,14 @@ void Box::paint(Graphics& g)
 
     if (!hideLabel && !editor)
     {
-        g.setColour(findColour(Label::textColourId));
+        g.setColour(cnv->backgroundColour.contrasting());
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(rect);
 
         g.drawFittedText(currentText, textArea, justification, jmax(1, static_cast<int>((static_cast<float>(textArea.getHeight()) / font.getHeight()))), minimumHorizontalScale);
 
-        g.setColour(findColour(Label::outlineColourId));
+
     }
 }
 
