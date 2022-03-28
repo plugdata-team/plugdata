@@ -59,7 +59,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     {
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
         labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
-        labelHeight = pd::Patch::applyZoom(static_cast<t_iemgui*>(gui.getPointer())->x_fontsize);
+        labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize;
     }
     else if (gui.isAtom())
     {
@@ -1377,8 +1377,9 @@ struct SliderComponent : public GUIComponent
 
         isLogarithmic = gui.isLogScale();
 
-        if (vertical) slider.setSliderStyle(Slider::LinearVertical);
-
+        if (vertical) slider.setSliderStyle(Slider::LinearBarVertical);
+        else          slider.setSliderStyle(Slider::LinearBar);
+        
         slider.setRange(0., 1., 0.001);
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         slider.setScrollWheelEnabled(false);
@@ -1421,7 +1422,7 @@ struct SliderComponent : public GUIComponent
 
     void resized() override
     {
-        slider.setBounds(getLocalBounds().reduced(isVertical ? 0.0 : 3.0, isVertical ? 3.0 : 0.0));
+        slider.setBounds(getLocalBounds());
     }
 
     void update() override
@@ -2008,7 +2009,7 @@ struct VUMeter : public GUIComponent
     {
         initialise(newObject);
 
-        box->constrainer.setSizeLimits(55, 120, maxSize, maxSize);
+        box->constrainer.setSizeLimits(30, 80, maxSize, maxSize);
     }
 
     void resized() override
@@ -2022,7 +2023,7 @@ struct VUMeter : public GUIComponent
         auto values = std::vector<float>{gui.getValue(), gui.getPeak()};
 
         int height = getHeight();
-        int width = getWidth() / 2.0f;
+        int width = getWidth();
 
         auto outerBorderWidth = 2.0f;
         auto totalBlocks = 15;
@@ -2032,30 +2033,25 @@ struct VUMeter : public GUIComponent
         auto blockHeight = (height - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
         auto blockWidth = width - doubleOuterBorderWidth;
         auto blockRectHeight = (1.0f - 2.0f * spacingFraction) * blockHeight;
-        auto blockRectSpacing = spacingFraction * blockHeight;
-        auto blockCornerSize = 0.1f * blockHeight;
-        auto c = findColour(Slider::thumbColourId);
+    auto blockRectSpacing = spacingFraction * blockHeight;
+    auto blockCornerSize = 0.1f * blockHeight;
+    auto c = findColour(Slider::thumbColourId);
 
-        for (int ch = 0; ch < 2; ch++)
+        float lvl = (float)std::exp(std::log(values[0]) / 3.0) * (values[0] > 0.002);
+        auto numBlocks = roundToInt(totalBlocks * lvl);
+
+        for (auto i = 0; i < totalBlocks; ++i)
         {
-            float lvl = (float)std::exp(std::log(values[ch]) / 3.0) * (values[ch] > 0.002);
-            auto numBlocks = roundToInt(totalBlocks * lvl);
+            if (i >= numBlocks)
+                g.setColour(Colours::darkgrey);
+            else
+                g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
-            int x = ch * width;
+            // g.fillRoundedRectangle(y + outerBorderWidth, outerBorderWidth + (i * blockWidth) + blockRectSpacing, blockHeight, blockRectWidth, blockCornerSize);
 
-            for (auto i = 0; i < totalBlocks; ++i)
-            {
-                if (i >= numBlocks)
-                    g.setColour(Colours::darkgrey);
-                else
-                    g.setColour(i < totalBlocks - 1 ? c : Colours::red);
-
-                // g.fillRoundedRectangle(y + outerBorderWidth, outerBorderWidth + (i * blockWidth) + blockRectSpacing, blockHeight, blockRectWidth, blockCornerSize);
-
-                g.fillRoundedRectangle(x + outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
-            }
+            g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
         }
-
+        
         g.setColour(Colours::white);
         g.drawFittedText(String(values[0], 2) + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
     }
@@ -2078,8 +2074,9 @@ struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        box->constrainer.setSizeLimits(40, 40, maxSize, maxSize);
+        box->constrainer.setSizeLimits(20, 20, maxSize, maxSize);
 
+        box->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         initialise(newObject);
     }
 

@@ -153,8 +153,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
-        else
-        {
+        else {
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
     }
@@ -673,7 +672,7 @@ struct PlugDataDarkLook : public PlugDataLook
             setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
         }
 
-        void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor)
+        void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
         {
             if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
             {
@@ -692,8 +691,36 @@ struct PlugDataDarkLook : public PlugDataLook
                 }
             }
         }
+        
+        void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
+        {
+            
+                g.setColour (slider.findColour (Slider::trackColourId));
+                
+                if(slider.isHorizontal()) {
+                    auto rect = Rectangle<float> (static_cast<float> (x), (float) y + 0.5f, sliderPos - (float) x, (float) height - 1.0f);
+                    
+                    g.fillRect(rect);
+                    g.setColour(findColour(Slider::thumbColourId));
+                    
+                    x = jmap<int>(sliderPos, x, x + width, x + 2.5f, x + width - 2.5f) - 2.5f;
+                    g.fillRect(rect.withWidth(5.0f).withX(x));
+                    
+                    
+                }
+                else {
+                    auto rect = Rectangle<float> ((float) x + 0.5f, sliderPos, (float) width - 1.0f, (float) y + ((float) height - sliderPos));
+                    
+                    g.fillRect(rect);
+                    g.setColour(findColour(Slider::thumbColourId));
+                    
+                    y = jmap<int>(sliderPos, y, y + height, y + 2.5f, y + height - 2.5f) - 2.5f;
+                    g.fillRect(rect.withHeight(5.0f).withY(y));
+                    
+            }
+        }
 
-        void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
+        void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             auto cornerSize = 6.0f;
             auto bounds = button.getLocalBounds().toFloat();  //.reduced (0.5f, 0.5f);

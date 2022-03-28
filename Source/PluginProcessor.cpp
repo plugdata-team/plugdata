@@ -617,7 +617,9 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
             editor->addTab(cnv);
         }
     }
-
+    
+    editor->resized();
+    
     return editor;
 }
 

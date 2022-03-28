@@ -401,10 +401,10 @@ struct GraphArea : public Component, public ComponentDragger
         // TODO: make this thread safe
         if (cnv)
         {
-            cnv->gl_pixwidth = pd::Patch::applyUnzoom(getWidth());
-            cnv->gl_pixheight = pd::Patch::applyUnzoom(getHeight());
-            cnv->gl_xmargin = pd::Patch::applyUnzoom(getX() - canvas->canvasOrigin.x);
-            cnv->gl_ymargin = pd::Patch::applyUnzoom(getY() - canvas->canvasOrigin.y);
+            cnv->gl_pixwidth = getWidth();
+            cnv->gl_pixheight = getHeight();
+            cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;
+            cnv->gl_ymargin = getY() - canvas->canvasOrigin.y;
         }
     }
 
@@ -486,11 +486,11 @@ void Canvas::paint(Graphics& g)
     if (!isGraph)
     {
         auto memblock = patch.getExtraInfo("BackgroundColour");
-        auto bgColour = Colour::fromString(MemoryInputStream(std::move(memblock)).readString());
+        backgroundColour = Colour::fromString(MemoryInputStream(std::move(memblock)).readString());
         
         g.fillAll(findColour(ComboBox::backgroundColourId));
 
-        g.setColour(bgColour);
+        g.setColour(backgroundColour);
         g.fillRect(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
 
         // draw origin
@@ -595,29 +595,6 @@ void Canvas::synchronise(bool updatePosition)
             auto type = pd::Gui::getType(object.getPointer());
             auto isGui = type != pd::Type::Undefined;
             auto* pdObject = isGui ? new pd::Gui(object.getPointer(), &patch, pd) : new pd::Object(object);
-
-            if (type == pd::Type::Message)
-                name = "msg";
-            else if (type == pd::Type::AtomNumber)
-                name = "floatatom";
-            else if (type == pd::Type::AtomSymbol)
-                name = "symbolatom";
-
-            // Some of these GUI objects have a lot of extra symbols that we don't want to show
-            auto guiSimplify = [](String& target, const StringArray& selectors)
-            {
-                for (auto& str : selectors)
-                {
-                    if (target.startsWith(str))
-                    {
-                        target = str;
-                        return;
-                    }
-                }
-            };
-
-            // These objects have extra info (like size and colours) in their names that we want to hide
-            guiSimplify(name, {"bng", "tgl", "nbx", "hsl", "vsl", "hradio", "vradio", "pad", "cnv"});
 
             auto* newBox = boxes.add(new Box(pdObject, this, name));
             newBox->toFront(false);
