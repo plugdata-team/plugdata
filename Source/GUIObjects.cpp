@@ -360,7 +360,7 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
 {
     if (label)
     {
-        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
+        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
 
         const int width = 100;
         const int height = 23;  // ??
@@ -379,7 +379,7 @@ void GUIComponent::updateLabel()
             return;
         }
 
-        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(5));
+        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
 
         const int width = 100;
         const int height = static_cast<int>(labelHeight.getValue());
@@ -1412,11 +1412,11 @@ struct SliderComponent : public GUIComponent
 
         if (isVertical)
         {
-            box->constrainer.setSizeLimits(40, 77, maxSize, maxSize);
+            box->constrainer.setSizeLimits(15, 77, maxSize, maxSize);
         }
         else
         {
-            box->constrainer.setSizeLimits(50, Box::height - 2, maxSize, maxSize);
+            box->constrainer.setSizeLimits(50, 15, maxSize, maxSize);
         }
     }
 
