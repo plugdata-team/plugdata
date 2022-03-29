@@ -20,8 +20,10 @@ struct BlackoutComponent : public Component
 {
     Component* parent;
     Component* dialog;
+    
+    std::function<void()> onClose;
 
-    BlackoutComponent(Component* p, Component* d) : parent(p), dialog(d) {
+    BlackoutComponent(Component* p, Component* d, std::function<void()> closeCallback = [](){}) : parent(p), dialog(d), onClose(closeCallback) {
         parent->addAndMakeVisible(this);
         //toBehind(dialog);
         setAlwaysOnTop(true);
@@ -38,6 +40,10 @@ struct BlackoutComponent : public Component
         setBounds(parent->getLocalBounds());
     }
     
+    void mouseDown(const MouseEvent& e) {
+        onClose();
+    }
+    
 };
 
 struct SaveDialog : public Component
@@ -49,8 +55,7 @@ struct SaveDialog : public Component
         addAndMakeVisible(cancel);
         addAndMakeVisible(dontsave);
         addAndMakeVisible(save);
-        
-        background.reset(new BlackoutComponent(editor, this));
+
 
         cancel.onClick = [this]
         {
@@ -75,6 +80,10 @@ struct SaveDialog : public Component
                 delete this;
             });
         };
+        
+        
+        background.reset(new BlackoutComponent(editor, this));
+        
         cancel.changeWidthToFitText();
         dontsave.changeWidthToFitText();
         save.changeWidthToFitText();
@@ -161,7 +170,8 @@ struct ArrayDialog : public Component
         cancel.changeWidthToFitText();
         ok.changeWidthToFitText();
         
-        background.reset(new BlackoutComponent(editor, this));
+        background.reset(new BlackoutComponent(editor, this, cancel.onClick));
+        
 
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(sizeLabel);
@@ -520,7 +530,7 @@ struct SettingsDialog : public Component
 
         settingsComponent.addMouseListener(this, false);
 
-        background.reset(new BlackoutComponent(processor.getActiveEditor(), this));
+        
         
         closeButton->onClick = [this]()
         {
@@ -528,6 +538,8 @@ struct SettingsDialog : public Component
             dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
             setVisible(false);
         };
+        
+        background.reset(new BlackoutComponent(processor.getActiveEditor(), this, closeButton->onClick));
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
         
