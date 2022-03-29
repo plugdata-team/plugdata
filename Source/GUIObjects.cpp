@@ -48,13 +48,13 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
 {
     // if(!box->pdObject) return;
     const CriticalSection* cs = box->cnv->pd->getCallbackLock();
-
+    
     cs->enter();
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
     cs->exit();
-
+    
     if (gui.isIEM())
     {
         labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
@@ -65,16 +65,16 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     {
         labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
     }
-
+    
     updateLabel();
-
+    
     sendSymbol = gui.getSendSymbol();
     receiveSymbol = gui.getReceiveSymbol();
-
+    
     setWantsKeyboardFocus(true);
-
+    
     addMouseListener(this, true);
-
+    
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
 }
 
@@ -116,33 +116,33 @@ void GUIComponent::initialise(bool newObject)
         auto color = Colour::fromString(secondaryColour.toString());
         secondaryColour = color.toString();
     }
-
+    
     if (!gui.isIEM()) return;
-
+    
     primaryColour = Colour(gui.getForegroundColour()).toString();
     secondaryColour = Colour(gui.getBackgroundColour()).toString();
     if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
-
+    
     getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
     getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
-
+    
     getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
     getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-
+    
     auto sliderBackground = Colour::fromString(secondaryColour.toString());
     sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
-
+    
     getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
-
+    
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params)
     {
         value->addListener(this);
-
+        
         // Push current parameters to pd
         valueChanged(*value);
     }
-
+    
     repaint();
 }
 
@@ -159,7 +159,7 @@ void GUIComponent::paintOverChildren(Graphics& g)
         g.setColour(findColour(Slider::thumbColourId));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-
+        
         g.fillPath(triangle);
     }
 }
@@ -172,7 +172,7 @@ ObjectParameters GUIComponent::defineParameters()
 ObjectParameters GUIComponent::getParameters()
 {
     ObjectParameters params = defineParameters();
-
+    
     if (gui.isIEM())
     {
         params.push_back({"Foreground", tColour, cAppearance, &primaryColour, {}});
@@ -189,7 +189,7 @@ ObjectParameters GUIComponent::getParameters()
     {
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
         params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
-
+        
         params.push_back({"Label", tString, cLabel, &labelText, {}});
         params.push_back({"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
     }
@@ -210,7 +210,7 @@ void GUIComponent::valueChanged(Value& v)
     {
         auto colour = Colour::fromString(primaryColour.toString());
         gui.setForegroundColour(colour);
-
+        
         getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
         getLookAndFeel().setColour(Slider::thumbColourId, colour);
         repaint();
@@ -219,25 +219,25 @@ void GUIComponent::valueChanged(Value& v)
     {
         auto colour = Colour::fromString(secondaryColour.toString());
         gui.setBackgroundColour(colour);
-
+        
         getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
         getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-
+        
         getLookAndFeel().setColour(Label::textColourId, colour.contrasting(1.0f));
         getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(1.0f));
-
+        
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.5f) : sliderBackground.brighter(0.5f);
-
+        
         auto sliderTrack = Colour::fromString(secondaryColour.toString());
         sliderTrack = sliderTrack.getBrightness() > 0.5f ? sliderTrack.darker(0.2f) : sliderTrack.brighter(0.2f);
-
+        
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderTrack);
         getLookAndFeel().setColour(Slider::trackColourId, sliderBackground);
-
+        
         repaint();
     }
-
+    
     else if (v.refersToSameSourceAs(labelColour))
     {
         gui.setLabelColour(Colour::fromString(labelColour.toString()));
@@ -297,9 +297,9 @@ void GUIComponent::setValueOriginal(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-
+    
     value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-
+    
     gui.setValue(value);
 }
 
@@ -307,7 +307,7 @@ float GUIComponent::getValueScaled() const noexcept
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-
+    
     return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
 }
 
@@ -315,7 +315,7 @@ void GUIComponent::setValueScaled(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-
+    
     value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
     gui.setValue(value);
 }
@@ -324,7 +324,7 @@ void GUIComponent::startEdition() noexcept
 {
     edited = true;
     processor.enqueueMessages(stringGui, stringMouse, {1.f});
-
+    
     value = gui.getValue();
 }
 
@@ -339,20 +339,20 @@ void GUIComponent::updateValue()
     if (!edited)
     {
         box->cnv->pd->enqueueFunction(
-            [this]()
-            {
-                float const v = gui.getValue();
-
-                MessageManager::callAsync(
-                    [this, v]() mutable
-                    {
-                        if (v != value)
-                        {
-                            value = v;
-                            update();
-                        }
-                    });
-            });
+                                      [this]()
+                                      {
+                                          float const v = gui.getValue();
+                                          
+                                          MessageManager::callAsync(
+                                                                    [this, v]() mutable
+                                                                    {
+                                                                        if (v != value)
+                                                                        {
+                                                                            value = v;
+                                                                            update();
+                                                                        }
+                                                                    });
+                                      });
     }
 }
 
@@ -361,7 +361,7 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
     if (label)
     {
         Point<int> position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
-
+        
         const int width = 100;
         const int height = 23;  // ??
         label->setBounds(position.x, position.y, width, height);
@@ -378,13 +378,13 @@ void GUIComponent::updateLabel()
         {
             return;
         }
-
+        
         Point<int> position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
-
+        
         const int width = 100;
         const int height = static_cast<int>(labelHeight.getValue());
         label->setBounds(position.x, position.y, width, height);
-
+        
         label->setFont(Font(static_cast<int>(labelHeight.getValue())));
         label->setJustificationType(Justification::left);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
@@ -410,9 +410,9 @@ void GUIComponent::closeOpenedSubpatchers()
 {
     auto& main = box->cnv->main;
     auto* tabbar = &main.tabbar;
-
+    
     if (!tabbar) return;
-
+    
     for (int n = 0; n < tabbar->getNumTabs(); n++)
     {
         auto* cnv = main.getCanvas(n);
@@ -423,7 +423,7 @@ void GUIComponent::closeOpenedSubpatchers()
             main.canvases.removeObject(cnv);
         }
     }
-
+    
     if (tabbar->getNumTabs() > 1)
     {
         tabbar->getTabbedButtonBar().setVisible(true);
@@ -500,7 +500,7 @@ void DrawableTemplate::updateIfMoved()
 {
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
     auto bounds = canvas->getParentComponent()->getLocalBounds() + pos;
-
+    
     if (lastBounds != bounds)
     {
         update();
@@ -511,70 +511,70 @@ void DrawableTemplate::update()
 {
     auto* glist = canvas->patch.getPointer();
     auto* templ = template_findbyname(scalar->sc_template);
-
+    
     bool vis = true;
-
+    
     int i, n = object->x_npoints;
     t_fielddesc* f = object->x_vec;
-
+    
     auto* data = scalar->sc_vec;
-
+    
     /* see comment in plot_vis() */
     if (vis && !fielddesc_getfloat(&object->x_vis, templ, data, 0))
     {
         // return;
     }
-
+    
     // Reduce clip region
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
     auto bounds = canvas->getParentComponent()->getLocalBounds();
-
+    
     lastBounds = bounds + pos;
-
+    
     if (vis)
     {
         if (n > 1)
         {
             int flags = object->x_flags, closed = (flags & CLOSED);
             t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
-
+            
             char outline[20], fill[20];
             int pix[200];
             if (n > 100) n = 100;
-
+            
             canvas->pd->getCallbackLock()->enter();
-
+            
             for (i = 0, f = object->x_vec; i < n; i++, f += 2)
             {
                 // glist->gl_havewindow = canvas->isGraphChild;
                 // glist->gl_isgraph = canvas->isGraph;
-
+                
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
-
+                
                 pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;
             }
-
+            
             canvas->pd->getCallbackLock()->exit();
-
+            
             if (width < 1) width = 1;
             if (glist->gl_isgraph) width *= glist_getzoom(glist);
-
+            
             numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
             if (flags & CLOSED)
             {
                 numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
-
+                
                 // sys_vgui(".x%lx.c create polygon\\\n",
                 //     glist_getcanvas(glist));
             }
             // else sys_vgui(".x%lx.c create line\\\n", glist_getcanvas(glist));
-
+            
             // sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
-
+            
             Path toDraw;
-
+            
             if (flags & CLOSED)
             {
                 toDraw.startNewSubPath(pix[0], pix[1]);
@@ -592,7 +592,7 @@ void DrawableTemplate::update()
                     toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
                 }
             }
-
+            
             String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
             if (objName.contains("fill"))
             {
@@ -605,7 +605,7 @@ void DrawableTemplate::update()
                 setStrokeFill(Colour::fromString("FF" + String::fromUTF8(outline + 1)));
                 setStrokeThickness(width);
             }
-
+            
             setPath(toDraw);
             repaint();
         }
@@ -617,10 +617,10 @@ void DrawableTemplate::update()
 struct BangComponent : public GUIComponent
 {
     uint32_t lastBang = 0;
-
+    
     Value bangInterrupt = Value(100.0f);
     Value bangHold = Value(40.0f);
-
+    
     // TODO: fix in LookAndFeel!
     struct BangButton : public TextButton
     {
@@ -628,28 +628,28 @@ struct BangComponent : public GUIComponent
         {
             const auto bounds = getLocalBounds().reduced(1).toFloat();
             const auto width = std::max(bounds.getWidth(), bounds.getHeight());
-
+            
             const float circleOuter = 80.f * (width * 0.01f);
             const float circleThickness = std::max(8.f * (width * 0.01f), 2.0f);
-
+            
             g.setColour(findColour(ComboBox::outlineColourId));
             g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
-
+            
             g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::transparentWhite);
-
+            
             g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
         }
     };
-
+    
     BangButton bangButton;
-
+    
     BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         addAndMakeVisible(bangButton);
-
+        
         bangButton.setTriggeredOnMouseDown(true);
         bangButton.setName("pd:bang");
-
+        
         bangButton.onClick = [this]()
         {
             startEdition();
@@ -657,23 +657,23 @@ struct BangComponent : public GUIComponent
             stopEdition();
             update();
         };
-
+        
         initialise(newObject);
         box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
-
+    
     void update() override
     {
         if (getValueOriginal() > std::numeric_limits<float>::epsilon())
         {
             bangButton.setToggleState(true, dontSendNotification);
-
+            
             auto currentTime = Time::getCurrentTime().getMillisecondCounter();
             auto timeSinceLast = currentTime - lastBang;
-
+            
             int holdTime = bangHold.getValue();
-
+            
             if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2)
             {
                 holdTime = timeSinceLast / 2;
@@ -682,34 +682,34 @@ struct BangComponent : public GUIComponent
             {
                 holdTime = bangInterrupt.getValue();
             }
-
+            
             lastBang = currentTime;
-
+            
             auto button = SafePointer<TextButton>(&bangButton);
             Timer::callAfterDelay(holdTime,
                                   [button]() mutable
                                   {
-                                      if (!button) return;
-                                      button->setToggleState(false, dontSendNotification);
-                                      if (button->isDown())
-                                      {
-                                          button->setState(Button::ButtonState::buttonNormal);
-                                      }
-                                  });
+                if (!button) return;
+                button->setToggleState(false, dontSendNotification);
+                if (button->isDown())
+                {
+                    button->setState(Button::ButtonState::buttonNormal);
+                }
+            });
         }
     }
-
+    
     void resized() override
     {
         bangButton.setBounds(getLocalBounds().reduced(1));
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
+    
     ObjectParameters defineParameters() override
     {
         return {
@@ -717,7 +717,7 @@ struct BangComponent : public GUIComponent
             {"Hold", tInt, cGeneral, &bangHold, {}},
         };
     }
-
+    
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(bangInterrupt))
@@ -743,26 +743,26 @@ struct ToggleComponent : public GUIComponent
         void paint(Graphics& g) override
         {
             g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::grey);
-
+            
             const auto crossBounds = getLocalBounds().reduced(6).toFloat();
-
+            
             const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
             const auto strokeWidth = std::max(max * 0.15f, 2.0f);
-
+            
             g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
             g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
         }
     };
-
+    
     Toggle toggleButton;
-
+    
     ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         addAndMakeVisible(toggleButton);
         toggleButton.setToggleState(getValueOriginal(), dontSendNotification);
         toggleButton.setConnectedEdges(12);
         toggleButton.setName("pd:toggle");
-
+        
         toggleButton.onClick = [this]()
         {
             startEdition();
@@ -770,26 +770,26 @@ struct ToggleComponent : public GUIComponent
             setValueOriginal(newValue);
             toggleButton.setToggleState(newValue, dontSendNotification);
             stopEdition();
-
+            
             update();
         };
-
+        
         initialise(newObject);
-
+        
         box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
-
+    
     void resized() override
     {
         toggleButton.setBounds(getLocalBounds());
     }
-
+    
     void update() override
     {
         toggleButton.setToggleState((getValueOriginal() > std::numeric_limits<float>::epsilon()), dontSendNotification);
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
@@ -802,23 +802,23 @@ struct MessageComponent : public GUIComponent
     bool isDown = false;
     bool isLocked = false;
     bool shouldOpenEditor = false;
-
+    
     Label input;
-
+    
     std::string lastMessage;
-
+    
     MessageComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         addAndMakeVisible(input);
-
+        
         input.setInterceptsMouseClicks(false, false);
-
+        
         input.onTextChange = [this]()
         {
             startEdition();
             gui.setSymbol(input.getText().toStdString());
             stopEdition();
-
+            
             auto width = input.getFont().getStringWidth(input.getText()) + 25;
             if (width < box->getWidth())
             {
@@ -826,29 +826,29 @@ struct MessageComponent : public GUIComponent
                 box->constrainer.checkComponentBounds(box);
             }
         };
-
+        
         // message box behaviour
         if (!gui.isAtom())
         {
             input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-
+            
             // input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
-
+            
             // For the autoresize while typing feature
             input.onEditorShow = [this]()
             {
                 auto* editor = input.getCurrentTextEditor();
-
+                
                 editor->onTextChange = [this, editor]()
                 {
                     auto width = input.getFont().getStringWidth(editor->getText()) + 25;
-
+                    
                     if (width > box->getWidth())
                     {
                         box->setSize(width, box->getHeight());
                     }
                 };
-
+                
                 editor->onFocusLost = [this]()
                 {
                     auto width = input.getFont().getStringWidth(input.getText()) + 25;
@@ -864,63 +864,63 @@ struct MessageComponent : public GUIComponent
         else
         {
             /*
-            input.onEditorShow = [this]()
-            {
-                auto* editor = input.getCurrentTextEditor();
-                editor->onReturnKey = [this, editor]()
-                {
-                    startEdition();
-                    gui.setSymbol(editor->getText().toStdString());
-                    stopEdition();
-                    // input.setText(String(gui.getSymbol()), dontSendNotification);
-                };
-
-                editor->onFocusLost = [this]()
-                {
-                    auto width = input.getFont().getStringWidth(input.getText()) + 25;
-                    if (width < box->getWidth())
-                    {
-                        box->setSize(width, box->getHeight());
-                        box->constrainer.checkComponentBounds(box);
-                    }
-
-                };
-            }; */
+             input.onEditorShow = [this]()
+             {
+             auto* editor = input.getCurrentTextEditor();
+             editor->onReturnKey = [this, editor]()
+             {
+             startEdition();
+             gui.setSymbol(editor->getText().toStdString());
+             stopEdition();
+             // input.setText(String(gui.getSymbol()), dontSendNotification);
+             };
+             
+             editor->onFocusLost = [this]()
+             {
+             auto width = input.getFont().getStringWidth(input.getText()) + 25;
+             if (width < box->getWidth())
+             {
+             box->setSize(width, box->getHeight());
+             box->constrainer.checkComponentBounds(box);
+             }
+             
+             };
+             }; */
         }
-
+        
         initialise(newObject);
-
+        
         box->addMouseListener(this, false);
         box->constrainer.setSizeLimits(50, Box::height - 2, maxSize, maxSize);
     }
-
+    
     void lock(bool locked) override
     {
         isLocked = locked;
         setInterceptsMouseClicks(isLocked, isLocked);
     }
-
+    
     void resized() override
     {
         input.setBounds(getLocalBounds());
     }
-
+    
     void update() override
     {
         input.setText(String(gui.getSymbol()), sendNotification);
     }
-
+    
     void paint(Graphics& g) override
     {
         // Draw message style
         if (!getGui().isAtom())
         {
             auto baseColour = isDown ? Colour(90, 90, 90) : Colour(70, 70, 70);
-
+            
             auto rect = getLocalBounds().toFloat();
-
+            
             g.setGradientFill(ColourGradient::vertical(baseColour, baseColour.darker(1.5f), getLocalBounds()));
-
+            
             g.fillRoundedRectangle(rect, 2.0f);
         }
         else
@@ -928,25 +928,25 @@ struct MessageComponent : public GUIComponent
             g.fillAll(findColour(ComboBox::backgroundColourId));
         }
     }
-
+    
     void paintOverChildren(Graphics& g) override
     {
         GUIComponent::paintOverChildren(g);
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 1.5f);
     }
-
+    
     void updateValue() override
     {
         if (!edited)
         {
             std::string const v = gui.getSymbol();
-
+            
             if (lastMessage != v && !String(v).startsWith("click"))
             {
                 numLines = 1;
                 longestLine = 7;
-
+                
                 int currentLineLength = 0;
                 for (auto& c : v)
                 {
@@ -962,24 +962,24 @@ struct MessageComponent : public GUIComponent
                     }
                 }
                 if (numLines == 1) longestLine = std::max(longestLine, currentLineLength);
-
+                
                 lastMessage = v;
-
+                
                 update();
                 // repaint();
             }
         }
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         updateValue();  // make sure text is loaded
-
+        
         // auto [x, y, w, h] = gui.getBounds();
         int stringLength = std::max(10, input.getFont().getStringWidth(input.getText()));
         return {stringLength + 20, numLines * 21};
     };
-
+    
     void mouseDown(const MouseEvent& e) override
     {
         GUIComponent::mouseDown(e);
@@ -993,28 +993,28 @@ struct MessageComponent : public GUIComponent
             shouldOpenEditor = true;
         }
     }
-
+    
     void mouseUp(const MouseEvent& e) override
     {
         isDown = false;
-
+        
         // Edit messages when unlocked, edit atoms when locked
         if ((!isLocked && shouldOpenEditor && !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom()))
         {
             input.showEditor();
             shouldOpenEditor = false;
         }
-
+        
         if (!gui.isAtom() && isLocked)
         {
             startEdition();
             gui.click();
             stopEdition();
         }
-
+        
         repaint();
     }
-
+    
     int numLines = 1;
     int longestLine = 7;
 };
@@ -1022,56 +1022,56 @@ struct MessageComponent : public GUIComponent
 struct NumboxComponent : public GUIComponent
 {
     Label input;
-
+    
     float dragValue = 0.0f;
     bool shift = false;
     int decimalDrag = 0;
-
+    
     Point<float> lastDragPos;
-
+    
     NumboxComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
-
+            
             if (!gui.isAtom())
             {
                 editor->setBorder({0, 10, 0, 0});
             }
-
+            
             if (editor != nullptr)
             {
                 editor->setInputRestrictions(0, ".-0123456789");
             }
         };
-
+        
         input.onEditorHide = [this]()
         {
             setValueOriginal(input.getText().getFloatValue());
             stopEdition();
         };
-
+        
         if (!gui.isAtom())
         {
             input.setBorderSize({1, 15, 1, 1});
         }
         addAndMakeVisible(input);
-
+        
         input.setText(formatNumber(getValueOriginal()), dontSendNotification);
-
+        
         initialise(newObject);
         input.setEditable(true, false);
-
+        
         box->constrainer.setSizeLimits(50, Box::height - 2, 500, Box::height - 2);
     }
-
+    
     void resized() override
     {
         input.setBounds(getLocalBounds());
     }
-
+    
     String formatNumber(float value)
     {
         String text;
@@ -1079,34 +1079,34 @@ struct NumboxComponent : public GUIComponent
         if (!text.containsChar('.')) text << '.';
         return text;
     }
-
+    
     void update() override
     {
         input.setText(formatNumber(getValueOriginal()), dontSendNotification);
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
+    
     void mouseDown(const MouseEvent& e) override
     {
         GUIComponent::mouseDown(e);
         if (input.isBeingEdited()) return;
-
+        
         startEdition();
         shift = e.mods.isShiftDown();
         dragValue = input.getText().getFloatValue();
-
+        
         lastDragPos = e.position;
-
+        
         const auto textArea = input.getBorderSize().subtractedFrom(input.getBounds());
-
+        
         GlyphArrangement glyphs;
         glyphs.addFittedText(input.getFont(), input.getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
-
+        
         double decimalX = getWidth();
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
         {
@@ -1116,18 +1116,18 @@ struct NumboxComponent : public GUIComponent
                 decimalX = glyph.getRight();
             }
         }
-
+        
         const bool isDraggingDecimal = e.x > decimalX;
-
+        
         decimalDrag = isDraggingDecimal ? 6 : 0;
-
+        
         if (isDraggingDecimal)
         {
             GlyphArrangement decimalsGlyph;
             static const String decimalStr("000000");
-
+            
             decimalsGlyph.addFittedText(input.getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
-
+            
             for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
             {
                 auto const& glyph = decimalsGlyph.getGlyph(i);
@@ -1139,33 +1139,33 @@ struct NumboxComponent : public GUIComponent
             }
         }
     }
-
+    
     void mouseUp(const MouseEvent& e) override
     {
         if (input.isBeingEdited()) return;
-
+        
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
         stopEdition();
     }
-
+    
     void mouseDrag(const MouseEvent& e) override
     {
         if (input.isBeingEdited()) return;
-
+        
         setMouseCursor(MouseCursor::NoCursor);
         updateMouseCursor();
-
+        
         const int decimal = decimalDrag + e.mods.isShiftDown();
         const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
         const float deltaY = e.y - lastDragPos.y;
         lastDragPos = e.position;
-
+        
         dragValue += increment * -deltaY;
-
+        
         // truncate value and set
         double newValue = dragValue;
-
+        
         if (decimal > 0)
         {
             const int sign = (newValue > 0) ? 1 : -1;
@@ -1176,17 +1176,17 @@ struct NumboxComponent : public GUIComponent
         {
             newValue = static_cast<int64_t>(newValue);
         }
-
+        
         setValueOriginal(newValue);
-
+        
         input.setText(formatNumber(getValueOriginal()), NotificationType::dontSendNotification);
     }
-
+    
     ObjectParameters defineParameters() override
     {
         return {{"Minimum", tFloat, cGeneral, &min, {}}, {"Maximum", tFloat, cGeneral, &max, {}}};
     }
-
+    
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min))
@@ -1204,27 +1204,27 @@ struct NumboxComponent : public GUIComponent
             GUIComponent::valueChanged(value);
         }
     }
-
+    
     void paint(Graphics& g) override
     {
         g.setColour(findColour(TextEditor::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(1));
     }
-
+    
     void paintOverChildren(Graphics& g) override
     {
         GUIComponent::paintOverChildren(g);
-
+        
         if (gui.isAtom()) return;
-
+        
         const int indent = 9;
-
+        
         const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
-
+        
         Path corner;
-
+        
         corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
-
+        
         g.setColour(Colour(gui.getForegroundColour()));
         g.fillPath(corner);
     }
@@ -1241,11 +1241,11 @@ struct ListComponent : public GUIComponent, public Timer
         label.setText(String(getValueOriginal()), dontSendNotification);
         label.setEditable(true, false);
         // label.setInterceptsMouseClicks(false, false);
-
+        
         label.setColour(Label::textColourId, gui.getForegroundColour());
         setInterceptsMouseClicks(true, false);
         addAndMakeVisible(label);
-
+        
         label.onEditorHide = [this]()
         {
             auto gui = getGui();
@@ -1272,7 +1272,7 @@ struct ListComponent : public GUIComponent, public Timer
                 // label.setText(String(gui.getSymbol()), NotificationType::dontSendNotification);
             }
         };
-
+        
         label.onEditorShow = [this]()
         {
             auto* editor = label.getCurrentTextEditor();
@@ -1282,34 +1282,34 @@ struct ListComponent : public GUIComponent, public Timer
                 editor->setBorder(BorderSize<int>(2, 6, 2, 2));
             }
         };
-
+        
         updateValue();
-
+        
         initialise(newObject);
-
+        
         box->constrainer.setSizeLimits(100, Box::height - 2, maxSize, maxSize);
         startTimer(100);
     }
-
+    
     ~ListComponent()
     {
         stopTimer();
     }
-
+    
     void timerCallback() override
     {
         update();
     }
-
+    
     void resized() override
     {
         label.setBounds(getLocalBounds());
     }
-
+    
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(Slider::thumbColourId));
-
+        
         static auto const border = 1.0f;
         const auto h = static_cast<float>(getHeight());
         const auto w = static_cast<float>(getWidth());
@@ -1322,12 +1322,12 @@ struct ListComponent : public GUIComponent, public Timer
         p.lineTo(w - 0.5f, o);
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
-
+        
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillPath(p);
         g.strokePath(p, PathStrokeType(border));
     }
-
+    
     void update() override
     {
         if (!edited && !label.isBeingEdited())
@@ -1352,14 +1352,14 @@ struct ListComponent : public GUIComponent, public Timer
             label.setText(message, NotificationType::dontSendNotification);
         }
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
-   private:
+    
+private:
     Label label;
 };
 
@@ -1367,29 +1367,29 @@ struct SliderComponent : public GUIComponent
 {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
-
+    
     Slider slider;
-
+    
     SliderComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         isVertical = vertical;
         addAndMakeVisible(slider);
-
+        
         isLogarithmic = gui.isLogScale();
-
+        
         if (vertical) slider.setSliderStyle(Slider::LinearBarVertical);
         else          slider.setSliderStyle(Slider::LinearBar);
         
         slider.setRange(0., 1., 0.001);
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         slider.setScrollWheelEnabled(false);
-
+        
         slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
-
+        
         slider.setValue(getValueScaled());
-
+        
         slider.onDragStart = [this]() { startEdition(); };
-
+        
         slider.onValueChange = [this]()
         {
             const float val = slider.getValue();
@@ -1405,11 +1405,11 @@ struct SliderComponent : public GUIComponent
                 setValueScaled(val);
             }
         };
-
+        
         slider.onDragEnd = [this]() { stopEdition(); };
-
+        
         initialise(newObject);
-
+        
         if (isVertical)
         {
             box->constrainer.setSizeLimits(15, 77, maxSize, maxSize);
@@ -1419,23 +1419,23 @@ struct SliderComponent : public GUIComponent
             box->constrainer.setSizeLimits(50, 15, maxSize, maxSize);
         }
     }
-
+    
     void resized() override
     {
         slider.setBounds(getLocalBounds());
     }
-
+    
     void update() override
     {
         slider.setValue(getValueScaled(), dontSendNotification);
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
+    
     ObjectParameters defineParameters() override
     {
         return {
@@ -1444,7 +1444,7 @@ struct SliderComponent : public GUIComponent
             {"Logarithmic", tBool, cGeneral, &isLogarithmic, {"off", "on"}},
         };
     }
-
+    
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min))
@@ -1471,20 +1471,20 @@ struct SliderComponent : public GUIComponent
 struct RadioComponent : public GUIComponent
 {
     int lastState = 0;
-
+    
     Value minimum = Value(0.0f), maximum = Value(8.0f);
-
+    
     bool isVertical;
-
+    
     RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         isVertical = vertical;
-
+        
         initialise(newObject);
         updateRange();
-
+        
         int selected = getValueOriginal();
-
+        
         if (selected < radioButtons.size())
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
@@ -1498,7 +1498,7 @@ struct RadioComponent : public GUIComponent
             box->constrainer.setSizeLimits(100, 25, maxSize, maxSize);
         }
     }
-
+    
     void resized() override
     {
         FlexBox fb;
@@ -1506,7 +1506,7 @@ struct RadioComponent : public GUIComponent
         fb.justifyContent = FlexBox::JustifyContent::flexStart;
         fb.alignContent = FlexBox::AlignContent::flexStart;
         fb.flexDirection = isVertical ? FlexBox::Direction::column : FlexBox::Direction::row;
-
+        
         for (auto* b : radioButtons)
         {
             auto item = FlexItem(*b).withMinWidth(8.0f).withMinHeight(8.0f);
@@ -1514,29 +1514,29 @@ struct RadioComponent : public GUIComponent
             item.flexShrink = 1.0f;
             fb.items.add(item);
         }
-
+        
         fb.performLayout(getLocalBounds().toFloat());
     }
-
+    
     void update() override
     {
         int selected = getValueOriginal();
-
+        
         if (selected < radioButtons.size())
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
     }
-
+    
     void updateRange()
     {
         minimum = gui.getMinimum();
         maximum = gui.getMaximum();
-
+        
         int numButtons = int(maximum.getValue()) - int(minimum.getValue());
-
+        
         radioButtons.clear();
-
+        
         for (int i = 0; i < numButtons; i++)
         {
             radioButtons.add(new TextButton);
@@ -1544,33 +1544,33 @@ struct RadioComponent : public GUIComponent
             radioButtons[i]->setRadioGroupId(1001);
             radioButtons[i]->setClickingTogglesState(true);
             addAndMakeVisible(radioButtons[i]);
-
+            
             radioButtons[i]->onClick = [this, i]() mutable
             {
                 if (!radioButtons[i]->getToggleState()) return;
-
+                
                 lastState = i;
                 setValueOriginal(i);
             };
         }
-
+        
         box->resized();
         resized();
     }
-
+    
     OwnedArray<TextButton> radioButtons;
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
+    
     ObjectParameters defineParameters() override
     {
         return {{"Minimum", tInt, cGeneral, &minimum, {}}, {"Maximum", tInt, cGeneral, &maximum, {}}};
     }
-
+    
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min))
@@ -1592,11 +1592,11 @@ struct RadioComponent : public GUIComponent
 
 struct GraphicalArray : public Component, public Timer
 {
-   public:
+public:
     GraphicalArray(PlugDataAudioProcessor* instance, pd::Array& graph) : array(graph), edited(false), pd(instance)
     {
         if (graph.getName().empty()) return;
-
+        
         vec.reserve(8192);
         temp.reserve(8192);
         try
@@ -1611,11 +1611,11 @@ struct GraphicalArray : public Component, public Timer
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
     }
-
+    
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(TextButton::buttonColourId));
-
+        
         if (error)
         {
             g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
@@ -1670,26 +1670,26 @@ struct GraphicalArray : public Component, public Timer
                 }
             }
         }
-
+        
         g.setColour(findColour(ComboBox::outlineColourId));
         g.drawRect(getLocalBounds(), 1);
     }
-
+    
     void mouseDown(const MouseEvent& e) override
     {
         if (error) return;
         edited = true;
-
+        
         const auto s = static_cast<float>(vec.size() - 1);
         const auto w = static_cast<float>(getWidth());
         const auto x = static_cast<float>(e.x);
-
+        
         const std::array<float, 2> scale = array.getScale();
         lastIndex = static_cast<size_t>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
-
+        
         mouseDrag(e);
     }
-
+    
     void mouseDrag(const MouseEvent& e) override
     {
         if (error) return;
@@ -1698,58 +1698,58 @@ struct GraphicalArray : public Component, public Timer
         const auto h = static_cast<float>(getHeight());
         const auto x = static_cast<float>(e.x);
         const auto y = static_cast<float>(e.y);
-
+        
         const std::array<float, 2> scale = array.getScale();
         const int index = static_cast<int>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
-
+        
         float start = vec[lastIndex];
         float current = (1.f - std::clamp(y / h, 0.f, 1.f)) * (scale[1] - scale[0]) + scale[0];
-
+        
         int interpStart = std::min(index, lastIndex);
         int interpEnd = std::max(index, lastIndex);
-
+        
         float min = index == interpStart ? current : start;
         float max = index == interpStart ? start : current;
-
+        
         const CriticalSection* cs = pd->getCallbackLock();
-
+        
         // Fix to make sure we don't leave any gaps while dragging
         for (int n = interpStart; n <= interpEnd; n++)
         {
             vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);
         }
-
+        
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd);
-
+        
         pd->enqueueFunction(
-            [this, interpStart, changed]() mutable
-            {
-                try
-                {
-                    for (int n = 0; n < changed.size(); n++)
-                    {
-                        array.write(interpStart + n, changed[n]);
-                    }
-                }
-                catch (...)
-                {
-                    error = true;
-                }
-            });
-
+                            [this, interpStart, changed]() mutable
+                            {
+                                try
+                                {
+                                    for (int n = 0; n < changed.size(); n++)
+                                    {
+                                        array.write(interpStart + n, changed[n]);
+                                    }
+                                }
+                                catch (...)
+                                {
+                                    error = true;
+                                }
+                            });
+        
         lastIndex = index;
-
+        
         pd->enqueueMessages(stringArray, array.getName(), {});
         repaint();
     }
-
+    
     void mouseUp(const MouseEvent& e) override
     {
         if (error) return;
         edited = false;
     }
-
+    
     void timerCallback() override
     {
         if (!edited)
@@ -1770,50 +1770,50 @@ struct GraphicalArray : public Component, public Timer
             }
         }
     }
-
+    
     size_t getArraySize() const noexcept
     {
         return vec.size();
     }
-
+    
     pd::Array array;
     std::vector<float> vec;
     std::vector<float> temp;
     std::atomic<bool> edited;
     bool error = false;
     const std::string stringArray = std::string("array");
-
+    
     int lastIndex = 0;
-
+    
     PlugDataAudioProcessor* pd;
 };
 
 struct ArrayComponent : public GUIComponent
 {
-   public:
+public:
     // Array component
     ArrayComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), graph(gui.getArray()), array(box->cnv->pd, graph)
     {
         setInterceptsMouseClicks(false, true);
         array.setBounds(getLocalBounds());
         addAndMakeVisible(&array);
-
+        
         initialise(newObject);
         box->constrainer.setSizeLimits(100, 40, maxSize, maxSize);
     }
-
+    
     void resized() override
     {
         array.setBounds(getLocalBounds());
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
-   private:
+    
+private:
     pd::Array graph;
     GraphicalArray array;
 };
@@ -1821,38 +1821,38 @@ struct ArrayComponent : public GUIComponent
 struct GraphOnParent : public GUIComponent
 {
     bool isLocked = false;
-
-   public:
+    
+public:
     // Graph On Parent
     GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
     {
         setInterceptsMouseClicks(box->locked == var(false), true);
-
+        
         subpatch = gui.getPatch();
         updateCanvas();
-
+        
         initialise(newObject);
-
+        
         box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
-
+        
         resized();
     }
-
+    
     ~GraphOnParent() override
     {
         closeOpenedSubpatchers();
     }
-
+    
     void resized() override
     {
     }
-
+    
     void lock(bool locked) override
     {
         isLocked = locked;
         setInterceptsMouseClicks(isLocked, true);
     }
-
+    
     void mouseDown(const MouseEvent& e) override
     {
         GUIComponent::mouseDown(e);
@@ -1861,7 +1861,7 @@ struct GraphOnParent : public GUIComponent
             box->mouseDown(e.getEventRelativeTo(box));
         }
     }
-
+    
     void mouseDrag(const MouseEvent& e) override
     {
         if (!isLocked)
@@ -1869,7 +1869,7 @@ struct GraphOnParent : public GUIComponent
             box->mouseDrag(e.getEventRelativeTo(box));
         }
     }
-
+    
     void mouseUp(const MouseEvent& e) override
     {
         if (!isLocked)
@@ -1877,30 +1877,30 @@ struct GraphOnParent : public GUIComponent
             box->mouseUp(e.getEventRelativeTo(box));
         }
     }
-
+    
     void updateCanvas()
     {
         if (!canvas)
         {
             canvas = std::make_unique<Canvas>(box->cnv->main, subpatch, true);
             addAndMakeVisible(canvas.get());
-
+            
             // Make sure that the graph doesn't become the current canvas
             box->cnv->patch.setCurrent(true);
             box->cnv->main.updateCommandStatus();
         }
-
+        
         auto b = getPatch()->getBounds();
         // canvas->checkBounds();
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
     }
-
+    
     void updateValue() override
     {
         updateCanvas();
-
+        
         if (!canvas) return;
-
+        
         for (auto& box : canvas->boxes)
         {
             if (box->graphics)
@@ -1909,29 +1909,29 @@ struct GraphOnParent : public GUIComponent
             }
         }
     }
-
+    
     // override to make transparent
     void paint(Graphics& g) override
     {
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
+    
     pd::Patch* getPatch() override
     {
         return &subpatch;
     }
-
+    
     Canvas* getCanvas() override
     {
         return canvas.get();
     }
-
-   private:
+    
+private:
     pd::Patch subpatch;
     std::unique_ptr<Canvas> canvas;
 };
@@ -1942,7 +1942,7 @@ struct Subpatch : public GUIComponent
     {
         subpatch = gui.getPatch();
     }
-
+    
     void updateValue() override
     {
         // Pd sometimes sets the isgraph flag too late...
@@ -1952,28 +1952,28 @@ struct Subpatch : public GUIComponent
             box->setType(box->currentText, true);
         }
     };
-
+    
     ~Subpatch()
     {
         closeOpenedSubpatchers();
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         return {0, Box::height};
     };
-
+    
     pd::Patch* getPatch() override
     {
         return &subpatch;
     }
-
+    
     bool fakeGui() override
     {
         return true;
     }
-
-   private:
+    
+private:
     pd::Patch subpatch;
 };
 
@@ -1983,20 +1983,20 @@ struct CommentComponent : public GUIComponent
     {
         setInterceptsMouseClicks(false, false);
         setVisible(false);
-
+        
         box->setEditable(true);
         box->hideLabel = false;
     }
-
+    
     void paint(Graphics& g) override
     {
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         return {120, 4};
     };
-
+    
     bool fakeGui() override
     {
         return true;
@@ -2008,61 +2008,73 @@ struct VUMeter : public GUIComponent
     VUMeter(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
         initialise(newObject);
-
+        
         box->constrainer.setSizeLimits(30, 80, maxSize, maxSize);
     }
-
+    
     void resized() override
     {
     }
-
+    
     void paint(Graphics& g) override
     {
         g.fillAll(findColour(ComboBox::backgroundColourId));
-
+        
         auto values = std::vector<float>{gui.getValue(), gui.getPeak()};
-
+        
         int height = getHeight();
         int width = getWidth();
-
+        
         auto outerBorderWidth = 2.0f;
         auto totalBlocks = 15;
         auto spacingFraction = 0.03f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
-
+        
         auto blockHeight = (height - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
         auto blockWidth = width - doubleOuterBorderWidth;
         auto blockRectHeight = (1.0f - 2.0f * spacingFraction) * blockHeight;
-    auto blockRectSpacing = spacingFraction * blockHeight;
-    auto blockCornerSize = 0.1f * blockHeight;
-    auto c = findColour(Slider::thumbColourId);
-
+        auto blockRectSpacing = spacingFraction * blockHeight;
+        auto blockCornerSize = 0.1f * blockHeight;
+        auto c = Colour(0xff42a2c8);
+        
         float lvl = (float)std::exp(std::log(values[0]) / 3.0) * (values[0] > 0.002);
         auto numBlocks = roundToInt(totalBlocks * lvl);
-
+        
+        auto verticalGradient = ColourGradient (c, 0, getHeight(), Colours::red, 0, 0, false);
+        verticalGradient.addColour(0.5f, c);
+        verticalGradient.addColour(0.75f, Colours::orange);
+    
         for (auto i = 0; i < totalBlocks; ++i)
         {
             if (i >= numBlocks)
                 g.setColour(Colours::darkgrey);
             else
-                g.setColour(i < totalBlocks - 1 ? c : Colours::red);
-
-            // g.fillRoundedRectangle(y + outerBorderWidth, outerBorderWidth + (i * blockWidth) + blockRectSpacing, blockHeight, blockRectWidth, blockCornerSize);
-
+                g.setGradientFill (verticalGradient);
+            
             g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
         }
         
+        float lvl2 = (float)std::exp(std::log(values[1]) / 3.0) * (values[1] > 0.002);
+        auto numBlocks2 = roundToInt(totalBlocks * lvl2);
+        
         g.setColour(Colours::white);
-        g.drawFittedText(String(values[0], 2) + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+        g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
+        
+        String textValue = String(values[0], 2) + " dB";
+        if(getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
+            // Check noscale flag, otherwise display next to slider
+            g.setColour(Colours::white);
+            g.drawFittedText(textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+        }
     }
-
+    
     void updateValue() override
     {
         auto rms = gui.getValue();
         auto peak = gui.getPeak();
         repaint();
     };
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
@@ -2075,18 +2087,18 @@ struct PanelComponent : public GUIComponent
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
         box->constrainer.setSizeLimits(20, 20, maxSize, maxSize);
-
+        
         box->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         initialise(newObject);
     }
-
+    
     void paint(Graphics& g) override
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
     }
-
+    
     void updateValue() override{};
-
+    
     ObjectParameters getParameters() override
     {
         ObjectParameters params;
@@ -2095,7 +2107,7 @@ struct PanelComponent : public GUIComponent
         params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
         return params;
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
@@ -2108,7 +2120,7 @@ struct MousePad : public GUIComponent
 {
     bool isLocked = false;
     bool isPressed = false;
-
+    
     typedef struct _pad
     {
         t_object x_obj;
@@ -2124,91 +2136,91 @@ struct MousePad : public GUIComponent
         int x_edit;
         unsigned char x_color[3];
     } t_pad;
-
+    
     MousePad(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
-
+        
         // setInterceptsMouseClicks(box->locked, box->locked);
-
+        
         addMouseListener(box, false);
     }
-
+    
     ~MousePad()
     {
         removeMouseListener(box);
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
-
+    
     void paint(Graphics& g) override{
-
+        
     };
-
+    
     void mouseDown(const MouseEvent& e) override
     {
         GUIComponent::mouseDown(e);
         if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
-
+        
         auto* x = static_cast<t_pad*>(gui.getPointer());
         t_atom at[3];
-
+        
         auto relativeEvent = e.getEventRelativeTo(this);
-
+        
         // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
         x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
         x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
-
+        
         SETFLOAT(at, 1.0f);
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
         sys_unlock();
-
+        
         isPressed = true;
-
+        
         // glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
     }
-
+    
     void mouseDrag(const MouseEvent& e) override
     {
         mouseMove(e);
     }
-
+    
     void mouseMove(const MouseEvent& e) override
     {
         if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
-
+        
         auto* x = static_cast<t_pad*>(gui.getPointer());
         t_atom at[3];
-
+        
         auto relativeEvent = e.getEventRelativeTo(this);
-
+        
         // int xpos = text_xpix(&x->x_obj, glist), ypos = text_ypix(&x->x_obj, glist);
         x->x_x = (relativeEvent.getPosition().x / (float)getWidth()) * 127.0f;
         x->x_y = (relativeEvent.getPosition().y / (float)getHeight()) * 127.0f;
-
+        
         SETFLOAT(at, x->x_x);
         SETFLOAT(at + 1, x->x_y);
-
+        
         sys_lock();
         outlet_anything(x->x_obj.ob_outlet, &s_list, 2, at);
         sys_unlock();
     }
-
+    
     void mouseUp(const MouseEvent& e) override
     {
         if (!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) return;
-
+        
         auto* x = static_cast<t_pad*>(gui.getPointer());
         t_atom at[1];
         SETFLOAT(at, 0);
         outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
     }
-
+    
     void lock(bool locked) override
     {
         isLocked = locked;
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
@@ -2231,49 +2243,49 @@ struct MouseComponent : public GUIComponent
         t_outlet* x_horizontal;
         t_outlet* x_vertical;
     } t_mouse;
-
+    
     MouseComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
     }
-
+    
     ~MouseComponent()
     {
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
-
+    
     void mouseMove(const MouseEvent& e) override
     {
         // Do this with a mouselistener?
         auto pos = Desktop::getInstance().getMousePosition();
-
+        
         if (Desktop::getInstance().getMouseSource(0)->isDragging())
         {
             t_atom args[1];
             SETFLOAT(args, 0);
-
+            
             pd_typedmess((t_pd*)gui.getPointer(), gensym("_up"), 1, args);
         }
         else
         {
             t_atom args[1];
             SETFLOAT(args, 1);
-
+            
             pd_typedmess((t_pd*)gui.getPointer(), gensym("_up"), 1, args);
         }
-
+        
         t_atom args[2];
         SETFLOAT(args, pos.x);
         SETFLOAT(args + 1, pos.y);
-
+        
         pd_typedmess((t_pd*)gui.getPointer(), gensym("_getscreen"), 2, args);
     }
-
+    
     std::pair<int, int> getBestSize() override
     {
         return {0, 3};
     };
-
+    
     bool fakeGui() override
     {
         return true;
@@ -2290,7 +2302,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_clock* p_clock;
         struct _keyboard* p_cnv;
     } t_edit_proxy;
-
+    
     typedef struct _keyboard
     {
         t_object x_obj;
@@ -2325,91 +2337,91 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_symbol* x_bindsym;
         t_outlet* x_out;
     } t_keyboard;
-
+    
     KeyboardComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
-
+        
         state.addListener(this);
-
+        
         addAndMakeVisible(keyboard);
-
+        
         initialise(newObject);
-
+        
         box->constrainer.setSizeLimits(50, 70, maxSize, maxSize);
     }
-
+    
     void resized() override
     {
         keyboard.setBounds(getLocalBounds());
     }
-
+    
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
         auto* x = (t_keyboard*)gui.getPointer();
-
+        
         box->cnv->pd->enqueueFunction(
-            [x, note, velocity]() mutable
-            {
-                int ac = 2;
-                t_atom at[2];
-                SETFLOAT(at, note);
-                SETFLOAT(at + 1, velocity * 127);
-
-                outlet_list(x->x_out, &s_list, ac, at);
-                if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-            });
+                                      [x, note, velocity]() mutable
+                                      {
+                                          int ac = 2;
+                                          t_atom at[2];
+                                          SETFLOAT(at, note);
+                                          SETFLOAT(at + 1, velocity * 127);
+                                          
+                                          outlet_list(x->x_out, &s_list, ac, at);
+                                          if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+                                      });
     }
-
+    
     void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
         auto* x = (t_keyboard*)gui.getPointer();
-
+        
         box->cnv->pd->enqueueFunction(
-            [x, note]() mutable
-            {
-                int ac = 2;
-                t_atom at[2];
-                SETFLOAT(at, note);
-                SETFLOAT(at + 1, 0);
-
-                outlet_list(x->x_out, &s_list, ac, at);
-                if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-            });
+                                      [x, note]() mutable
+                                      {
+                                          int ac = 2;
+                                          t_atom at[2];
+                                          SETFLOAT(at, note);
+                                          SETFLOAT(at + 1, 0);
+                                          
+                                          outlet_list(x->x_out, &s_list, ac, at);
+                                          if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+                                      });
     };
-
+    
     std::pair<int, int> getBestSize() override
     {
         auto b = gui.getBounds();
         return {b.getWidth(), b.getHeight()};
     };
-
+    
     /*
-    ObjectParameters defineParameters() override
-    {
-        return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
-    }; */
-
+     ObjectParameters defineParameters() override
+     {
+     return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
+     }; */
+    
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(rangeMin))
         {
             static_cast<t_keyboard*>(gui.getPointer())->x_low_c = static_cast<int>(value.getValue());
-
+            
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
         }
         else if (value.refersToSameSourceAs(rangeMax))
         {
             /*
-            static_cast<t_keyboard*>(gui.getPointer())->x_octaves = static_cast<int>(value.getValue()); */
+             static_cast<t_keyboard*>(gui.getPointer())->x_octaves = static_cast<int>(value.getValue()); */
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
         }
     }
-
+    
     Value rangeMin;
     Value rangeMax;
-
+    
     MidiKeyboardState state;
     MidiKeyboardComponent keyboard;
 };
@@ -2417,11 +2429,11 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
 GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newObject)
 {
     auto* guiPtr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
-
+    
     if (!guiPtr) return nullptr;
-
+    
     auto& gui = *guiPtr;
-
+    
     if (gui.getType() == pd::Type::Bang)
     {
         return new BangComponent(gui, parent, newObject);
@@ -2502,6 +2514,6 @@ GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newO
     {
         return new KeyboardComponent(gui, parent, newObject);
     }
-
+    
     return nullptr;
 }
