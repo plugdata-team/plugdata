@@ -35,6 +35,7 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [libpd](https://github.com/libpd/libpd) by the Peter Brinkmann, Dan Wilcox and others
 - [Juce](https://github.com/WeAreROLI/JUCE) by ROLI Ltd.
 - [MoodyCamel](https://github.com/cameron314/concurrentqueue) by Cameron Desrochers
+- [Kiwi](https://github.com/Musicoll/Kiwi) by Eliott Paris, Pierre Guillot and Jean Millot
 - [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
 - [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
 - [Audio Unit PlugIn Technology](https://developer.apple.com/documentation/audiounit) by Apple
