@@ -74,7 +74,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     objectLibrary.appDirChanged = [this]()
     {
-        settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        settingsTree.copyPropertiesAndChildrenFrom(newTree, nullptr);
         updateSearchPaths();
     };
 

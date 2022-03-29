@@ -1489,6 +1489,7 @@ struct RadioComponent : public GUIComponent
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
+        
         if (isVertical)
         {
             box->constrainer.setSizeLimits(25, 90, maxSize, maxSize);
@@ -1514,6 +1515,7 @@ struct RadioComponent : public GUIComponent
             item.flexShrink = 1.0f;
             fb.items.add(item);
         }
+        
         
         fb.performLayout(getLocalBounds().toFloat());
     }
@@ -2022,6 +2024,7 @@ struct VUMeter : public GUIComponent
         
         auto values = std::vector<float>{gui.getValue(), gui.getPeak()};
         
+        
         int height = getHeight();
         int width = getWidth();
         
@@ -2037,7 +2040,7 @@ struct VUMeter : public GUIComponent
         auto blockCornerSize = 0.1f * blockHeight;
         auto c = Colour(0xff42a2c8);
         
-        float lvl = (float)std::exp(std::log(values[0]) / 3.0) * (values[0] > 0.002);
+        float lvl = (float)std::exp(std::log(values[1]) / 3.0) * (values[1] > 0.002);
         auto numBlocks = roundToInt(totalBlocks * lvl);
         
         auto verticalGradient = ColourGradient (c, 0, getHeight(), Colours::red, 0, 0, false);
@@ -2054,18 +2057,24 @@ struct VUMeter : public GUIComponent
             g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
         }
         
-        float lvl2 = (float)std::exp(std::log(values[1]) / 3.0) * (values[1] > 0.002);
+        float lvl2 = (float)std::exp(std::log(values[0]) / 3.0) * (values[0] > 0.002);
         auto numBlocks2 = roundToInt(totalBlocks * lvl2);
         
         g.setColour(Colours::white);
         g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
         
-        String textValue = String(values[0], 2) + " dB";
-        if(getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
+        String textValue = String(values[0], 2);
+        
+        if(getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB")) {
             // Check noscale flag, otherwise display next to slider
+            g.setColour(Colours::white);
+            g.drawFittedText(textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+        }
+        else if(getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
             g.setColour(Colours::white);
             g.drawFittedText(textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
         }
+        
     }
     
     void updateValue() override
