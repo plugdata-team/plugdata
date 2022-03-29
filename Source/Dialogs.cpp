@@ -16,19 +16,47 @@
 
 #include <memory>
 
+struct BlackoutComponent : public Component
+{
+    Component* parent;
+    Component* dialog;
+
+    BlackoutComponent(Component* p, Component* d) : parent(p), dialog(d) {
+        parent->addAndMakeVisible(this);
+        //toBehind(dialog);
+        setAlwaysOnTop(true);
+        dialog->setAlwaysOnTop(true);
+        
+        resized();
+    }
+    
+    void paint(Graphics& g) {
+        g.fillAll(Colours::black.withAlpha(0.5f));
+    }
+    
+    void resized() {
+        setBounds(parent->getLocalBounds());
+    }
+    
+};
+
 struct SaveDialog : public Component
 {
-    SaveDialog()
+    SaveDialog(Component* editor)
     {
         setSize(400, 200);
         addAndMakeVisible(savelabel);
         addAndMakeVisible(cancel);
         addAndMakeVisible(dontsave);
         addAndMakeVisible(save);
+        
+        background.reset(new BlackoutComponent(editor, this));
+
         cancel.onClick = [this]
         {
             
             MessageManager::callAsync([this]() {
+                background->setVisible(false);
                 cb(0);
                 delete this;
             });
@@ -51,8 +79,7 @@ struct SaveDialog : public Component
         dontsave.changeWidthToFitText();
         save.changeWidthToFitText();
         setOpaque(false);
-
-        shadower.setOwner(this);
+        
     }
 
     void resized() override
@@ -75,9 +102,9 @@ struct SaveDialog : public Component
     std::function<void(int)> cb;
 
    private:
-    DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
-    DropShadower shadower = DropShadower(shadow);
-
+    
+    std::unique_ptr<BlackoutComponent> background;
+    
     Label savelabel = Label("savelabel", "Save Changes?");
 
     TextButton cancel = TextButton("Cancel");
@@ -87,7 +114,7 @@ struct SaveDialog : public Component
 
 struct ArrayDialog : public Component
 {
-    ArrayDialog()
+    ArrayDialog(Component* editor)
     {
         setSize(400, 200);
 
@@ -97,8 +124,12 @@ struct ArrayDialog : public Component
 
         cancel.onClick = [this]
         {
-            cb(0, "", "");
-            delete this;
+            MessageManager::callAsync([this](){
+                background->setVisible(false);
+                cb(0, "", "");
+                delete this;
+            });
+
         };
         ok.onClick = [this]
         {
@@ -117,8 +148,11 @@ struct ArrayDialog : public Component
             }
             if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0)
             {
-                cb(1, nameEditor.getText(), sizeEditor.getText());
-                delete this;
+                MessageManager::callAsync([this](){
+                    background->setVisible(false);
+                    cb(1, nameEditor.getText(), sizeEditor.getText());
+                    delete this;
+                });
             }
         };
 
@@ -126,6 +160,8 @@ struct ArrayDialog : public Component
 
         cancel.changeWidthToFitText();
         ok.changeWidthToFitText();
+        
+        background.reset(new BlackoutComponent(editor, this));
 
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(sizeLabel);
@@ -135,9 +171,10 @@ struct ArrayDialog : public Component
 
         nameEditor.setText("array1");
         sizeEditor.setText("100");
+        
 
         setOpaque(false);
-        shadower.setOwner(this);
+
     }
 
     void resized() override
@@ -150,6 +187,7 @@ struct ArrayDialog : public Component
         sizeEditor.setBounds(65, 85, getWidth() - 85, 25);
         nameLabel.setBounds(8, 45, 52, 25);
         sizeLabel.setBounds(8, 85, 52, 25);
+        
     }
 
     void paint(Graphics& g) override
@@ -164,8 +202,6 @@ struct ArrayDialog : public Component
     std::function<void(int, String, String)> cb;
 
    private:
-    DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
-    DropShadower shadower = DropShadower(shadow);
 
     Label label = Label("savelabel", "Array Properties");
 
@@ -177,6 +213,8 @@ struct ArrayDialog : public Component
 
     TextButton cancel = TextButton("Cancel");
     TextButton ok = TextButton("OK");
+    
+    std::unique_ptr<BlackoutComponent> background;
 };
 
 struct DAWAudioSettings : public Component
@@ -450,6 +488,7 @@ struct SettingsComponent : public Component
         }
     }
 
+    
     int currentPanel = 0;
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
@@ -464,69 +503,43 @@ struct SettingsDialog : public Component
     AudioProcessor& audioProcessor;
 
     SettingsComponent settingsComponent;
-    ComponentDragger dragger;
-
-    DropShadow shadow = DropShadow(Colour{10, 10, 10}, 12, {0, 0});
-    DropShadower shadower = DropShadower(shadow);
 
     ComponentBoundsConstrainer constrainer;
 
     SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor), settingsComponent(processor, manager, settingsTree)
     {
-        shadower.setOwner(this);
         closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
 
         setCentrePosition(400, 400);
         setSize(600, 550);
 
         setVisible(false);
-
+        
         addAndMakeVisible(&settingsComponent);
         addAndMakeVisible(closeButton.get());
 
         settingsComponent.addMouseListener(this, false);
 
+        background.reset(new BlackoutComponent(processor.getActiveEditor(), this));
+        
         closeButton->onClick = [this]()
         {
+           
             dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
             setVisible(false);
         };
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
-
-        parentSizeChanged();
+        
     }
 
     ~SettingsDialog() override
     {
         settingsComponent.removeMouseListener(this);
     }
-
-    void parentSizeChanged() override
-    {
-        // make sure it fits the editor, otherwise it might be un-closable
-        if (auto* editor = audioProcessor.getActiveEditor())
-        {
-            setBounds(editor->getLocalBounds().withSizeKeepingCentre(std::min<int>(650, editor->getWidth() / 1.3f), std::min<int>(500, editor->getHeight() / 1.3f)));
-        }
-
-        constrainer.checkComponentBounds(this);
-    }
-
-    void mouseDown(const MouseEvent& e) override
-    {
-        if (e.getPosition().getY() < 30)
-        {
-            dragger.startDraggingComponent(this, e);
-        }
-    }
-
-    void mouseDrag(const MouseEvent& e) override
-    {
-        if (e.getMouseDownPosition().getY() < 30)
-        {
-            dragger.dragComponent(this, e, &constrainer);
-        }
+    
+    void visibilityChanged() override {
+        background->setVisible(isVisible());
     }
 
     void resized() override
@@ -545,12 +558,13 @@ struct SettingsDialog : public Component
         g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
     }
 
+    std::unique_ptr<BlackoutComponent> background;
     std::unique_ptr<Button> closeButton;
 };
 
 void Dialogs::showSaveDialog(Component* centre, std::function<void(int)> callback)
 {
-    auto* dialog = new SaveDialog;
+    auto* dialog = new SaveDialog(centre);
     dialog->cb = std::move(callback);
 
     centre->addAndMakeVisible(dialog);
@@ -559,7 +573,7 @@ void Dialogs::showSaveDialog(Component* centre, std::function<void(int)> callbac
 }
 void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
 {
-    auto* dialog = new ArrayDialog;
+    auto* dialog = new ArrayDialog(centre);
     dialog->cb = std::move(callback);
 
     centre->addAndMakeVisible(dialog);

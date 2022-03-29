@@ -919,7 +919,7 @@ Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
             auto const* iemgui = static_cast<t_iemgui*>(ptr);
             int const posx = bounds.getX() + iemgui->x_ldx;
             int const posy = bounds.getY() + iemgui->x_ldy;
-            return {posx, posy};
+            return {posx, posy - 10};
         }
     }
     else if (isAtom())
