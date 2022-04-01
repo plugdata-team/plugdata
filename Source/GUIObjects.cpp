@@ -44,7 +44,6 @@ typedef struct _fake_gatom
 } t_fake_gatom;
 
 GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(parent), processor(*parent->cnv->pd), gui(std::move(pdGui)), edited(false)
-
 {
     // if(!box->pdObject) return;
     const CriticalSection* cs = box->cnv->pd->getCallbackLock();
@@ -57,13 +56,16 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     
     if (gui.isIEM())
     {
-        labelX = static_cast<t_iemgui*>(gui.getPointer())->x_ldx;
-        labelY = static_cast<t_iemgui*>(gui.getPointer())->x_ldy;
+        
+        auto rect = gui.getLabelPosition(Rectangle<int>());
+        labelX = rect.getX();
+        labelY = rect.getY();
         labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize;
     }
     else if (gui.isAtom())
     {
         labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
+        labelHeight = 16;
     }
     
     updateLabel();
@@ -117,22 +119,25 @@ void GUIComponent::initialise(bool newObject)
         secondaryColour = color.toString();
     }
     
-    if (!gui.isIEM()) return;
+    labelText = gui.getLabelText();
     
-    primaryColour = Colour(gui.getForegroundColour()).toString();
-    secondaryColour = Colour(gui.getBackgroundColour()).toString();
-    if (gui.isIEM()) labelColour = Colour(gui.getLabelColour()).toString();
+    if (gui.isIEM()) {
     
-    getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
-    getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
-    
-    getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
-    getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-    
-    auto sliderBackground = Colour::fromString(secondaryColour.toString());
-    sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
-    
-    getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
+        primaryColour = Colour(gui.getForegroundColour()).toString();
+        secondaryColour = Colour(gui.getBackgroundColour()).toString();
+        labelColour = Colour(gui.getLabelColour()).toString();
+        
+        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
+        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
+        
+        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
+        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
+        
+        auto sliderBackground = Colour::fromString(secondaryColour.toString());
+        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
+        
+        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
+    }
     
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params)
@@ -247,7 +252,7 @@ void GUIComponent::valueChanged(Value& v)
     {
         if (gui.isAtom())
         {
-            gui.setLabelPosition(static_cast<int>(labelX.getValue()) - 1);
+            gui.setLabelPosition(static_cast<int>(labelX.getValue()));
             updateLabel();
         }
         else
@@ -358,35 +363,57 @@ void GUIComponent::updateValue()
 
 void GUIComponent::componentMovedOrResized(Component& component, bool moved, bool resized)
 {
-    if (label)
-    {
-        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
-        
-        const int width = 100;
-        const int height = 23;  // ??
-        label->setBounds(position.x, position.y, width, height);
-    }
+    updateLabel();
 }
 
 void GUIComponent::updateLabel()
 {
+    
+    const int fontHeight = static_cast<int>(labelHeight.getValue());
     const String text = gui.getLabelText();
     if (text.isNotEmpty())
     {
-        label = std::make_unique<Label>();
-        if (label == nullptr)
-        {
-            return;
+        if(!label) {
+            label = std::make_unique<Label>();
         }
         
-        Point<int> position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
+        label->setFont(Font(fontHeight));
+        label->setJustificationType(Justification::left);
         
-        const int width = 100;
-        const int height = static_cast<int>(labelHeight.getValue());
-        label->setBounds(position.x, position.y, width, height);
+        Point<int> position;
+        
+        int labelWidth = label->getFont().getStringWidth(text);
+        int height = 21;
+        
+        if(gui.isAtom()) {
+            
+            int labelPosition = labelX.getValue();
+            auto boxBounds = box->getBounds().reduced(Box::margin);
+            
+            if(labelPosition == 1) { // left
+                label->setJustificationType(Justification::right);
+                position = {boxBounds.getX() - labelWidth - 4, boxBounds.getY()};
+                
+            }
+            if(labelPosition == 2) { // right
+                position = {boxBounds.getRight() + 4, boxBounds.getY()};
+            }
+            if(labelPosition == 3) { // top
+                position = {boxBounds.getX(), boxBounds.getY() - height - 2};
+            }
+            if(labelPosition == 4) { // bottom
+                position = {boxBounds.getX(), boxBounds.getBottom() + 2};
+            }
+        }
+        else {
+            position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
+        }
+        
+    
+        label->setBounds(position.x, position.y, labelWidth, height);
         
         label->setFont(Font(static_cast<int>(labelHeight.getValue())));
-        label->setJustificationType(Justification::left);
+
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
         label->setText(text, dontSendNotification);
@@ -2114,6 +2141,11 @@ struct PanelComponent : public GUIComponent
         params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
         params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
+        params.push_back({"Label", tString, cLabel, &labelText, {}});
+        params.push_back({"Label Colour", tColour, cLabel, &labelColour, {}});
+        params.push_back({"Label X", tInt, cLabel, &labelX, {}});
+        params.push_back({"Label Y", tInt, cLabel, &labelY, {}});
+        params.push_back({"Label Height", tInt, cLabel, &labelHeight, {}});
         return params;
     }
     

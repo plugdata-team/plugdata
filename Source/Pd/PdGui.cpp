@@ -909,7 +909,7 @@ Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
 {
     instance->setThis();
 
-    auto const fontheight = 23;
+    auto const fontheight = 12;
 
     if (isIEM())
     {
@@ -922,40 +922,7 @@ Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
             return {posx, posy - 10};
         }
     }
-    else if (isAtom())
-    {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-
-        t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
-        if (sym)
-        {
-            auto const text = std::string(sym->s_name);
-
-            if (gatom->a_wherelabel == 0)  // Left
-            {
-                auto const nchars = static_cast<int>(text.size());
-                auto const fwidth = glist_fontwidth(static_cast<t_fake_gatom*>(ptr)->a_glist);
-                auto const posx = bounds.getX() - 4 - nchars * fwidth;
-                auto const posy = bounds.getY();
-                return {posx, posy};
-            }
-            else if (gatom->a_wherelabel == 1)  // Right
-            {
-                auto const posx = bounds.getX() + bounds.getWidth() + 1;
-                auto const posy = bounds.getY();
-                return {posx, posy};
-            }
-            else if (gatom->a_wherelabel == 2)  // Up
-            {
-                auto const posx = bounds.getX();
-                auto const posy = bounds.getY() - fontheight;
-                return {posx, posy};
-            }
-            auto const posx = bounds.getX();
-            auto const posy = bounds.getY() + bounds.getHeight();
-            return {posx, posy};  // Down
-        }
-    }
+    
     return {bounds.getX(), bounds.getY()};
 }
 
@@ -1011,7 +978,7 @@ void Gui::setLabelPosition(Point<int> position) noexcept
     {
         auto* iem = static_cast<t_iemgui*>(ptr);
         iem->x_ldx = position.x;
-        iem->x_ldy = position.y;
+        iem->x_ldy = position.y + 10.0f;
         return;
     }
     jassertfalse;
@@ -1022,7 +989,7 @@ void Gui::setLabelPosition(int wherelabel) noexcept
     if (isAtom())
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        gatom->a_wherelabel = wherelabel;
+        gatom->a_wherelabel = wherelabel - 1;
         return;
     }
     jassertfalse;
