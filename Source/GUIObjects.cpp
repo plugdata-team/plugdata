@@ -1503,6 +1503,8 @@ struct RadioComponent : public GUIComponent
     
     bool isVertical;
     
+    
+    
     RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         isVertical = vertical;
@@ -1525,10 +1527,22 @@ struct RadioComponent : public GUIComponent
         {
             box->constrainer.setSizeLimits(100, 25, maxSize, maxSize);
         }
+        
+        
     }
+    
+    template<typename T>
+    T roundMultiple( T value, T multiple )
+    {
+        if (multiple == 0) return value;
+        return static_cast<T>(std::round(static_cast<double>(value)/static_cast<double>(multiple))*static_cast<double>(multiple));
+    }
+
     
     void resized() override
     {
+
+        /*
         FlexBox fb;
         fb.flexWrap = FlexBox::Wrap::noWrap;
         fb.justifyContent = FlexBox::JustifyContent::flexStart;
@@ -1544,7 +1558,30 @@ struct RadioComponent : public GUIComponent
         }
         
         
-        fb.performLayout(getLocalBounds().toFloat());
+        fb.performLayout(getLocalBounds().toFloat()); */
+        
+        int size = isVertical ? getHeight() / radioButtons.size() : getWidth() / radioButtons.size();
+        
+        for(int i = 0; i < radioButtons.size(); i++) {
+            if(isVertical) radioButtons[i]->setBounds(0, i * size, size, size);
+            else           radioButtons[i]->setBounds(i * size, 0, size, size);
+            
+        }
+        
+        // Fix aspect ratio and
+        if(isVertical) {
+            if(getWidth() - Box::doubleMargin != size) {
+                
+                box->setSize(size + Box::doubleMargin, box->getHeight());
+            }
+        }
+        else
+        {
+            if(getHeight() - Box::doubleMargin != size) {
+                box->setSize(box->getWidth(), size + Box::doubleMargin);
+            }
+        }
+        
     }
     
     void update() override
