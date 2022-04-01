@@ -714,6 +714,16 @@ Rectangle<int> Gui::getBounds() const noexcept
 
         return {x, y, width, iemgui->x_h};
     }
+    else if (type == Type::VerticalRadio)
+    {
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        return {x, y, iemgui->x_w - 3, iemgui->x_h};
+    }
+    else if (type == Type::HorizontalRadio)
+    {
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        return {x, y, iemgui->x_w, iemgui->x_h - 3};
+    }
     else if (isIEM())
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -766,6 +776,20 @@ void Gui::setBounds(Rectangle<int> bounds)
         short newWidth = std::max<short>(3, bounds.getWidth() / nbxCharWidth);
         nbx->x_numwidth = newWidth;
         my_numbox_calc_fontwidth(nbx);
+    }
+    else if (type == Type::VerticalRadio)
+    {
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+
+        iemgui->x_w = w + 3;
+        iemgui->x_h = h;
+    }
+    else if (type == Type::HorizontalRadio)
+    {
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+
+        iemgui->x_w = w;
+        iemgui->x_h = h + 3;
     }
     else if (isIEM())
     {
