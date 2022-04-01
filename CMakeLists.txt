@@ -184,8 +184,6 @@ set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LI
 target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
 endif()
 
-
-
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
 target_link_libraries(PlugData_LV2 PRIVATE PlugDataFx libpdstatic)
 set_target_properties(PlugData_LV2 PROPERTIES PREFIX "")
