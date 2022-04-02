@@ -256,7 +256,7 @@ void Box::setType(const String& newType, bool exists)
     // For text object, make sure the width at least fits the text
     if (!graphics || (graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
     {
-        int ioletWidth = (std::max(numInputs, numOutputs) * doubleMargin) + 15;
+        int ioletWidth = (std::max(numInputs, numOutputs) * 15) + 15;
         int textWidth = font.getStringWidth(newType) + widthOffset;
 
         int minimumWidth = std::max(textWidth, ioletWidth);
@@ -361,6 +361,10 @@ void Box::resized()
         float newY = isInlet ? margin : getHeight() - margin;
         float newX = position * ((getWidth() - doubleEdgeMargin) / (total - 1 + (total == 1))) + edgeMargin;
 
+        if(((numInputs == 1 && isInlet) || (numOutputs == 1 && !isInlet)) && getWidth() < 40) {
+            newX = getLocalBounds().getCentreX();
+        }
+        
         edge->setCentrePosition(newX, newY);
         edge->setSize(12, 12);
 
