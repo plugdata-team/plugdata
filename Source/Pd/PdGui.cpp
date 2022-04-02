@@ -688,7 +688,7 @@ Rectangle<int> Gui::getBounds() const noexcept
     if (type == Type::Keyboard)
     {
         auto* keyboard = static_cast<t_keyboard*>(ptr);
-        return {x, y, keyboard->x_width - 28, keyboard->x_height};
+        return {x, y, keyboard->x_width, keyboard->x_height};
     }
     if (type == Type::Mousepad)
     {
@@ -752,12 +752,8 @@ void Gui::setBounds(Rectangle<int> bounds)
 
     if (type == Type::Keyboard)
     {
-        // Don't use zooming for keyboard, it's big enough already
-        //static_cast<t_keyboard*>(ptr)->x_width = bounds.getWidth() + 28;
-        //static_cast<t_keyboard*>(ptr)->x_height = bounds.getHeight();
-        
-        // Don't allow keyboard resize for now
-        Object::setBounds(bounds);
+        static_cast<t_keyboard*>(ptr)->x_width = bounds.getWidth();
+        static_cast<t_keyboard*>(ptr)->x_height = bounds.getHeight();
     }
     if (type == Type::Panel)
     {

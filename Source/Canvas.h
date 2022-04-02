@@ -125,7 +125,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     SuggestionComponent* suggestor = nullptr;
     
     Colour backgroundColour;
-
     
    private:
     SafePointer<TabbedComponent> tabbar;

@@ -710,7 +710,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         deselectAll();
         return;
     }
-
+    
     auto openSubpatch = [this](Box* parent)
     {
         if (!parent->graphics) return;
