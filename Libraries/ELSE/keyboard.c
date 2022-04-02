@@ -31,6 +31,7 @@ typedef struct _keyboard{
     int            x_width;
     int            x_height;
     int            x_octaves;
+    int            x_semitones;
     int            x_first_c;
     int            x_low_c;
     int            x_toggle_mode;
@@ -575,7 +576,7 @@ static void keyboard_set_properties(t_keyboard *x, float space, float height, fl
     x->x_space = (space < 7) ? 7 : space; // key width
     x->x_height = (height < 10) ? 10 : height;
     x->x_octaves = oct < 1 ? 1 : oct > 10 ? 10 : oct;
-    x->x_low_c = low_c < 0 ? 0 : low_c > 8 ? 8 : low_c;
+    x->x_low_c = low_c;
     x->x_norm = vel < 0 ? 0 : vel > 127 ? 127 : vel;
     x->x_toggle_mode = (tgl != 0);
     x->x_width = ((int)(x->x_space)) * 7 * (int)x->x_octaves;
@@ -606,7 +607,7 @@ static void keyboard_save(t_gobj *z, t_binbuf *b){
     t_keyboard *x = (t_keyboard *)z;
     keyboard_get_snd_rcv(x);
     binbuf_addv(b,
-                "ssiisiiiiiiss",
+                "ssiisiiiiiissi",
                 gensym("#X"),
                 gensym("obj"),
                 (int)x->x_obj.te_xpix,
@@ -619,7 +620,8 @@ static void keyboard_save(t_gobj *z, t_binbuf *b){
                 (int)x->x_toggle_mode,
                 (int)x->x_norm,
                 x->x_snd_raw,
-                x->x_rcv_raw);
+                x->x_rcv_raw,
+                x->x_semitones);
     binbuf_addv(b, ";");
 }
 
@@ -685,7 +687,8 @@ void * keyboard_new(t_symbol *s, int ac, t_atom* av){
     float init_space = 17;
     float init_height = 80;
     float init_8ves = 4;
-    float init_low_c = 3;
+    float init_low_c = 36;
+    float init_semitones = 0;
     t_symbol *snd = &s_;
     t_symbol *rcv = &s_;
     if(ac && av->a_type == A_FLOAT){ // 1st Width
@@ -719,6 +722,14 @@ void * keyboard_new(t_symbol *s, int ac, t_atom* av){
                                     else{
                                         rcv = av->a_w.w_symbol;
                                         ac--, av++;
+                                    }
+                                    if(ac && av->a_type == A_FLOAT){ // 9th semitones
+                                        if(av->a_w.w_symbol == gensym("empty")) // ignore empty symbol
+                                            ac--, av++;
+                                        else {
+                                            init_semitones = av->a_w.w_float;
+                                            ac--, av++;
+                                        }
                                     }
                                 }
                             }
@@ -808,7 +819,8 @@ void * keyboard_new(t_symbol *s, int ac, t_atom* av){
     x->x_space = (init_space < 7) ? 7 : init_space; // key width
     x->x_height = (init_height < 10) ? 10 : init_height;
     x->x_octaves = init_8ves < 1 ? 1 : init_8ves > 10 ? 10 : init_8ves;
-    x->x_low_c = init_low_c < 0 ? 0 : init_low_c > 8 ? 8 : init_low_c;
+    x->x_semitones = init_semitones;
+    x->x_low_c = init_low_c;
     x->x_norm = vel < 0 ? 0 : vel > 127 ? 127 : vel;
     x->x_toggle_mode = (tgl != 0);
     x->x_width = ((int)(x->x_space)) * 7 * (int)x->x_octaves;
