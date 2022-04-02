@@ -722,7 +722,6 @@ struct PlugDataDarkLook : public PlugDataLook
 
         void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
-            auto cornerSize = 6.0f;
             auto bounds = button.getLocalBounds().toFloat();
 
             auto baseColour = findColour(TextButton::buttonColourId);

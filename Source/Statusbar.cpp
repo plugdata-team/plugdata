@@ -289,7 +289,10 @@ void Statusbar::changeListenerCallback(ChangeBroadcaster* source)
 
     cnv->patch.setExtraInfo("BackgroundColour", block);
     cnv->repaint();
-    for(auto& box : cnv->boxes)       box->repaint();
+    for(auto& box : cnv->boxes) {
+        box->repaint();
+        if(box->graphics) box->graphics->updateLabel();
+    }
     for(auto& con : cnv->connections) con->repaint();
 }
 

@@ -28,10 +28,7 @@ set(LIBPD_OUTPUT_DIRECTORY "./..")
 #------------------------------------------------------------------------------#
 option(PD_UTILS "Compile libpd utilities" OFF)
 option(PD_EXTRA "Compile extras" ON)
-option(PD_MULTI "Compile with multiple instance support" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
-option(LIBPD_INCLUDE_STATIC_LIBRARY  "Compile the libpd static library" ON)
-option(LIBPD_INCLUDE_DYNAMIC_LIBRARY  "Compile the libpd dynamic library" OFF)
 
 #------------------------------------------------------------------------------#
 # OUTPUT DIRECTORY
@@ -224,9 +221,6 @@ set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
 if(PD_EXTRA)
     list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_EXTRA=1)
 endif()
-if(PD_MULTI)
-    list(APPEND LIBPD_COMPILE_DEFINITIONS PDINSTANCE=1 PDTHREADS=1)
-endif()
 if(NOT PD_LOCALE)
     list(APPEND LIBPD_COMPILE_DEFINITIONS LIBPD_NO_NUMERIC=1)
 endif()
@@ -274,40 +268,36 @@ endif()
 #------------------------------------------------------------------------------#
 # TARGETS
 #------------------------------------------------------------------------------#
-if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-  add_library(libpdshared SHARED ${SOURCE_FILES})
-  target_compile_definitions(libpdshared PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
-  set_target_properties(libpdshared PROPERTIES POSITION_INDEPENDENT_CODE ON)
-endif()
 
-if(LIBPD_INCLUDE_STATIC_LIBRARY)
-  add_library(libpdstatic STATIC ${SOURCE_FILES})
-  target_compile_definitions(libpdstatic PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
-  if(MSVC)
-    target_compile_definitions(libpdstatic PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
-  endif()
-  set_target_properties(libpdstatic PROPERTIES POSITION_INDEPENDENT_CODE ON)
+add_library(pd STATIC ${SOURCE_FILES})
+target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+if(MSVC)
+  target_compile_definitions(pd PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
+set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
+add_library(pd-multi STATIC ${SOURCE_FILES})
+target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
+if(MSVC)
+  target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
+endif()
+set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+
 
 #------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 #------------------------------------------------------------------------------#
 if(CMAKE_GENERATOR STREQUAL Xcode)
-    if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-      set_target_properties(libpdshared PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-      set_target_properties(libpdshared PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-      set_target_properties(libpdshared PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-      set_target_properties(libpdshared PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-      set_target_properties(libpdshared PROPERTIES GCC_FAST_MATH[variant=Release] True)
-    endif()
-
-    if(LIBPD_INCLUDE_STATIC_LIBRARY)
-      set_target_properties(libpdstatic PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
-      set_target_properties(libpdstatic PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
-      set_target_properties(libpdstatic PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
-      set_target_properties(libpdstatic PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
-      set_target_properties(libpdstatic PROPERTIES GCC_FAST_MATH[variant=Release] True)
-    endif()
+      set_target_properties(pd PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
+      set_target_properties(pd PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
+      set_target_properties(pd PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
+      set_target_properties(pd PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
+      set_target_properties(pd PROPERTIES GCC_FAST_MATH[variant=Release] True)
+      set_target_properties(pd-multi PROPERTIES GCC_WARN_UNUSED_VARIABLE False)
+      set_target_properties(pd-multi PROPERTIES XCODE_ATTRIBUTE_LLVM_LTO[variant=Release] True)
+      set_target_properties(pd-multi PROPERTIES GCC_OPTIMIZATION_LEVEL[variant=Release] 3)
+      set_target_properties(pd-multi PROPERTIES GCC_UNROLL_LOOPS[variant=Release] True)
+      set_target_properties(pd-multi PROPERTIES GCC_FAST_MATH[variant=Release] True)
 endif()
 
 #------------------------------------------------------------------------------#
@@ -317,25 +307,17 @@ endif()
 # LINK OS
 #------------------------------------------------------------------------------#
 if(WIN32)
-
-  if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-    target_link_libraries(libpdshared PRIVATE ws2_32)
-  endif()
-  if(LIBPD_INCLUDE_STATIC_LIBRARY)
-    target_link_libraries(libpdstatic PRIVATE ws2_32)
-  endif()
+    target_link_libraries(pd PRIVATE ws2_32)
+    target_link_libraries(pd-multi PRIVATE ws2_32)
 
 else("${CMAKE_SYSTEM}" MATCHES "Linux")
 
   find_library(MATH_LIB m)
-  if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-    target_link_libraries(libpdshared ${MATH_LIB})
-  	target_link_libraries(libpdshared ${CMAKE_DL_LIBS})
-  endif()
-  if(LIBPD_INCLUDE_STATIC_LIBRARY)
-    target_link_libraries(libpdstatic ${MATH_LIB})
-  	target_link_libraries(libpdstatic ${CMAKE_DL_LIBS})
-  endif()
+
+  target_link_libraries(pd ${MATH_LIB})
+  target_link_libraries(pd ${CMAKE_DL_LIBS})
+  target_link_libraries(pd-multi ${MATH_LIB})
+  target_link_libraries(pd-multi ${CMAKE_DL_LIBS})
 
 endif()
 
@@ -343,48 +325,3 @@ endif()
 #------------------------------------------------------------------------------#
 set(THREADS_PREFER_PTHREAD_FLAG On)
 set(CMAKE_THREAD_PREFER_PTHREAD True)
-
-#------------------------------------------------------------------------------#
-# OUTPUT NAME
-#------------------------------------------------------------------------------#
-if(WIN32)
-    if(PD_MULTI)
-
-      if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-        set_target_properties(libpdshared PROPERTIES OUTPUT_NAME libpd-multi)
-      endif()
-      if(LIBPD_INCLUDE_STATIC_LIBRARY)
-        set_target_properties(libpdstatic PROPERTIES OUTPUT_NAME libpd-multi-static)
-      endif()
-
-    else()
-
-      if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-        set_target_properties(libpdshared PROPERTIES OUTPUT_NAME libpd)
-      endif()
-      if(LIBPD_INCLUDE_STATIC_LIBRARY)
-    	   set_target_properties(libpdstatic PROPERTIES OUTPUT_NAME libpd-static)
-      endif()
-
-    endif()
-else()
-    if(PD_MULTI)
-
-      if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-        set_target_properties(libpdshared PROPERTIES OUTPUT_NAME pd-multi)
-      endif()
-      if(LIBPD_INCLUDE_STATIC_LIBRARY)
-    	   set_target_properties(libpdstatic PROPERTIES OUTPUT_NAME pd-multi)
-      endif()
-
-    else()
-
-      if(LIBPD_INCLUDE_DYNAMIC_LIBRARY)
-        set_target_properties(libpdshared PROPERTIES OUTPUT_NAME pd)
-      endif()
-      if(LIBPD_INCLUDE_STATIC_LIBRARY)
-    	   set_target_properties(libpdstatic PROPERTIES OUTPUT_NAME pd)
-      endif()
-
-    endif()
-endif()

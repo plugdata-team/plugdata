@@ -889,8 +889,10 @@ int libpd_ninlets(const t_object *x)
     return (n);
 }
 
+#if PDINSTANCE
 #define s_anything  (pd_this->pd_s_anything)
 #define s_signal    (pd_this->pd_s_signal)
+#endif
 
 int libpd_issignalinlet(const t_object *x, int m)
 {

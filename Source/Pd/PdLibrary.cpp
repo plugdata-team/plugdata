@@ -244,8 +244,12 @@ void Library::updateLibrary()
 
     t_methodentry *mlist, *m;
 
+#if PDINSTANCE
     mlist = o->c_methods[pd_this->pd_instanceno];
-
+#else
+    mlist = o->c_methods;
+#endif
+    
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
