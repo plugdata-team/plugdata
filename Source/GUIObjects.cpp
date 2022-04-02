@@ -343,18 +343,19 @@ void GUIComponent::updateValue()
 {
     if (!edited)
     {
+        auto thisPtr = SafePointer<GUIComponent>(this);
         box->cnv->pd->enqueueFunction(
-                                      [this]()
+                                      [thisPtr]()
                                       {
-                                          float const v = gui.getValue();
+                                          float const v = thisPtr->gui.getValue();
                                           
                                           MessageManager::callAsync(
-                                                                    [this, v]() mutable
+                                                                    [thisPtr, v]() mutable
                                                                     {
-                                                                        if (v != value)
+                                                                        if (thisPtr && v != thisPtr->value)
                                                                         {
-                                                                            value = v;
-                                                                            update();
+                                                                            thisPtr->value = v;
+                                                                            thisPtr->update();
                                                                         }
                                                                     });
                                       });
@@ -1503,8 +1504,6 @@ struct RadioComponent : public GUIComponent
     
     bool isVertical;
     
-    
-    
     RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         isVertical = vertical;
@@ -1518,7 +1517,6 @@ struct RadioComponent : public GUIComponent
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
-        
         if (isVertical)
         {
             box->constrainer.setSizeLimits(25, 90, maxSize, maxSize);
@@ -1527,8 +1525,6 @@ struct RadioComponent : public GUIComponent
         {
             box->constrainer.setSizeLimits(100, 25, maxSize, maxSize);
         }
-        
-        
     }
     
     template<typename T>
@@ -1541,37 +1537,16 @@ struct RadioComponent : public GUIComponent
     
     void resized() override
     {
-
-        /*
-        FlexBox fb;
-        fb.flexWrap = FlexBox::Wrap::noWrap;
-        fb.justifyContent = FlexBox::JustifyContent::flexStart;
-        fb.alignContent = FlexBox::AlignContent::flexStart;
-        fb.flexDirection = isVertical ? FlexBox::Direction::column : FlexBox::Direction::row;
-        
-        for (auto* b : radioButtons)
-        {
-            auto item = FlexItem(*b).withMinWidth(8.0f).withMinHeight(8.0f);
-            item.flexGrow = 1.0f;
-            item.flexShrink = 1.0f;
-            fb.items.add(item);
-        }
-        
-        
-        fb.performLayout(getLocalBounds().toFloat()); */
-        
         int size = isVertical ? getHeight() / radioButtons.size() : getWidth() / radioButtons.size();
         
         for(int i = 0; i < radioButtons.size(); i++) {
             if(isVertical) radioButtons[i]->setBounds(0, i * size, size, size);
             else           radioButtons[i]->setBounds(i * size, 0, size, size);
-            
         }
         
         // Fix aspect ratio and
         if(isVertical) {
             if(getWidth() - Box::doubleMargin != size) {
-                
                 box->setSize(size + Box::doubleMargin, box->getHeight());
             }
         }
@@ -1599,7 +1574,7 @@ struct RadioComponent : public GUIComponent
         minimum = gui.getMinimum();
         maximum = gui.getMaximum();
         
-        int numButtons = int(maximum.getValue()) - int(minimum.getValue());
+        int numButtons = int(maximum.getValue()) - int(minimum.getValue()) + 1;
         
         radioButtons.clear();
         
@@ -1609,6 +1584,7 @@ struct RadioComponent : public GUIComponent
             radioButtons[i]->setConnectedEdges(12);
             radioButtons[i]->setRadioGroupId(1001);
             radioButtons[i]->setClickingTogglesState(true);
+            radioButtons[i]->setName("radiobutton");
             addAndMakeVisible(radioButtons[i]);
             
             radioButtons[i]->onClick = [this, i]() mutable
