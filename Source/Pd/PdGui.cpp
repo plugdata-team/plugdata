@@ -716,13 +716,13 @@ Rectangle<int> Gui::getBounds() const noexcept
     }
     else if (type == Type::VerticalRadio)
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        return {x, y, iemgui->x_w - 3, iemgui->x_h};
+        auto* dial = static_cast<t_vdial*>(ptr);
+        return {x, y, dial->x_gui.x_w, dial->x_gui.x_w};
     }
     else if (type == Type::HorizontalRadio)
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        return {x, y, iemgui->x_w, iemgui->x_h - 3};
+        auto* dial = static_cast<t_hdial*>(ptr);
+        return {x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h};
     }
     else if (isIEM())
     {
@@ -782,10 +782,10 @@ void Gui::setBounds(Rectangle<int> bounds)
     }
     else if (type == Type::HorizontalRadio)
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+         auto* dial = static_cast<t_hdial*>(ptr);
 
-        iemgui->x_w = w;
-        iemgui->x_h = h + 3;
+         dial->x_gui.x_w = w / dial->x_number;
+         dial->x_gui.x_h = h;
     }
     else if (isIEM())
     {
