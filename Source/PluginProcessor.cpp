@@ -605,6 +605,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
         auto* cnv = editor->canvases.add(new Canvas(*editor, getPatch(), false));
 
         getPatch().setTitle("Untitled Patcher");
+    
         editor->addTab(cnv);
 
         // Set to unknown file when loading temp patch
