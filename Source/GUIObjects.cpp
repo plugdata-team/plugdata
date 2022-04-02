@@ -1511,7 +1511,7 @@ struct RadioComponent : public GUIComponent
 {
     int lastState = 0;
     
-    Value minimum = Value(0.0f), maximum = Value(8.0f);
+    Value numButtons = Value(8.0f);
     
     bool isVertical;
     
@@ -1521,6 +1521,8 @@ struct RadioComponent : public GUIComponent
         
         initialise(newObject);
         updateRange();
+        
+        numButtons.addListener(this);
         
         int selected = getValueOriginal();
         
@@ -1582,10 +1584,7 @@ struct RadioComponent : public GUIComponent
     
     void updateRange()
     {
-        minimum = gui.getMinimum();
-        maximum = gui.getMaximum();
-        
-        int numButtons = int(maximum.getValue()) - int(minimum.getValue()) + 1;
+        numButtons = gui.getMaximum();
         
         radioButtons.clear();
         
@@ -1607,8 +1606,9 @@ struct RadioComponent : public GUIComponent
             };
         }
         
-        box->resized();
-        resized();
+        radioButtons[(int)gui.getValue()]->setToggleState(true, dontSendNotification);
+        
+        box->updateBounds(false);
     }
     
     OwnedArray<TextButton> radioButtons;
@@ -1621,19 +1621,14 @@ struct RadioComponent : public GUIComponent
     
     ObjectParameters defineParameters() override
     {
-        return {{"Minimum", tInt, cGeneral, &minimum, {}}, {"Maximum", tInt, cGeneral, &maximum, {}}};
+        return {{"Options", tInt, cGeneral, &numButtons, {}}};
     }
     
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min))
+        if (value.refersToSameSourceAs(numButtons))
         {
-            gui.setMinimum(static_cast<float>(min.getValue()));
-            updateRange();
-        }
-        else if (value.refersToSameSourceAs(max))
-        {
-            gui.setMaximum(static_cast<float>(max.getValue()));
+            gui.setMaximum(static_cast<int>(numButtons.getValue()));
             updateRange();
         }
         else
