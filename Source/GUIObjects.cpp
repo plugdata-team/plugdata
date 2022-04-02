@@ -369,7 +369,6 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
 
 void GUIComponent::updateLabel()
 {
-    
     const int fontHeight = static_cast<int>(labelHeight.getValue());
     const String text = gui.getLabelText();
     if (text.isNotEmpty())
@@ -410,6 +409,10 @@ void GUIComponent::updateLabel()
             position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
         }
         
+        if(fontHeight > height) {
+            position.y -= (fontHeight - height) / 2;
+            height = fontHeight;
+        }
     
         label->setBounds(position.x, position.y, labelWidth, height);
         
@@ -420,7 +423,15 @@ void GUIComponent::updateLabel()
         label->setText(text, dontSendNotification);
         label->setEditable(false, false);
         label->setInterceptsMouseClicks(false, false);
-        label->setColour(Label::textColourId, gui.getLabelColour());
+        
+        if(gui.isIEM()) {
+            label->setColour(Label::textColourId, gui.getLabelColour());
+        }
+        else {
+            
+            label->setColour(Label::textColourId, box->cnv->backgroundColour.contrasting());
+        }
+        
         // label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColour())));
         box->cnv->addAndMakeVisible(label.get());
         box->addComponentListener(this);

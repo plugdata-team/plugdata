@@ -951,7 +951,7 @@ String Gui::getLabelText() const noexcept
     instance->setThis();
     if (isIEM())
     {
-        t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
+        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
         if (sym)
         {
             auto const text = String(sym->s_name);
@@ -984,11 +984,14 @@ void Gui::setLabelText(String newText) noexcept
 
     if (isIEM())
     {
-        static_cast<t_iemgui*>(ptr)->x_lab = gensym(newText.toRawUTF8());
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
+        iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
     }
     if (isAtom())
     {
-        static_cast<t_fake_gatom*>(ptr)->a_label = gensym(newText.toRawUTF8());
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        atom->a_label = gensym(newText.toRawUTF8());
     }
 }
 

@@ -140,9 +140,14 @@ struct _instanceinter
 
 void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback) {
     
+#if !PDINSTANCE
+    instance = &pd_maininstance;
+#endif
+    
     instance->pd_inter->gui_callback = gui_callback;
     instance->pd_inter->panel_callback = panel_callback;
     instance->pd_inter->callback_target = target;
+
 }
 
 void update_gui(void* obj_target) {
