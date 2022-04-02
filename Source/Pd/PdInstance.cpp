@@ -147,8 +147,12 @@ Instance::Instance(std::string const& symbol)
     };
 
     auto panel_trigger = [](void* instance, int open, const char* snd, const char* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
+    
+    auto synchronise_trigger = [](void* instance, void* cnv) {
+        static_cast<Instance*>(instance)->synchroniseCanvas(cnv);
+    };
 
-    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger);
+    register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger);
 
     libpd_set_verbose(0);
 
