@@ -717,7 +717,7 @@ Rectangle<int> Gui::getBounds() const noexcept
     else if (type == Type::VerticalRadio)
     {
         auto* dial = static_cast<t_vdial*>(ptr);
-        return {x, y, dial->x_gui.x_w, dial->x_gui.x_w};
+        return {x, y, dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number};
     }
     else if (type == Type::HorizontalRadio)
     {
@@ -775,10 +775,10 @@ void Gui::setBounds(Rectangle<int> bounds)
     }
     else if (type == Type::VerticalRadio)
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        auto* dial = static_cast<t_hdial*>(ptr);
 
-        iemgui->x_w = w + 3;
-        iemgui->x_h = h;
+        dial->x_gui.x_w = w;
+        dial->x_gui.x_h = h / dial->x_number;
     }
     else if (type == Type::HorizontalRadio)
     {

@@ -855,6 +855,20 @@ void PlugDataAudioProcessor::updateConsole()
     }
 }
 
+void PlugDataAudioProcessor::synchroniseCanvas(void* cnv)
+{
+    MessageManager::callAsync([this, cnv]() mutable {
+        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+        {
+            for(auto* canvas : editor->canvases) {
+                if(canvas->patch.getPointer() == cnv) {
+                    canvas->synchronise();
+                }
+            }
+        }
+    });
+};
+
 void PlugDataAudioProcessor::titleChanged()
 {
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))

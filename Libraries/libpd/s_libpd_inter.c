@@ -133,12 +133,13 @@ struct _instanceinter
     
     pd_gui_callback gui_callback;
     pd_panel_callback panel_callback;
+    pd_synchronise_callback synchronise_callback;
     void* callback_target;
     
     
 };
 
-void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback) {
+void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback gui_callback, pd_panel_callback panel_callback, pd_synchronise_callback synchronise_callback) {
     
 #if !PDINSTANCE
     instance = &pd_maininstance;
@@ -146,7 +147,9 @@ void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback
     
     instance->pd_inter->gui_callback = gui_callback;
     instance->pd_inter->panel_callback = panel_callback;
+    instance->pd_inter->synchronise_callback = synchronise_callback;
     instance->pd_inter->callback_target = target;
+
 
 }
 
@@ -155,6 +158,13 @@ void update_gui(void* obj_target) {
         pd_this->pd_inter->gui_callback(pd_this->pd_inter->callback_target, obj_target);
     }
 }
+
+void synchronise_canvas(void* cnv_target) {
+    if(pd_this->pd_inter->synchronise_callback) {
+        pd_this->pd_inter->synchronise_callback(pd_this->pd_inter->callback_target, cnv_target);
+    }
+}
+
 
 void create_panel(int openpanel, const char* path, const char* snd) {
     if(pd_this->pd_inter->panel_callback) {
@@ -826,6 +836,29 @@ void sys_vgui(const char *fmt, ...)
         create_panel(1, path, symbol);
         
     }
+    /* disabled for now, could be used for dynamic patching
+    if(strncmp(fmt, "pdtk_canvas_reflecttitle", strlen("pdtk_canvas_reflecttitle")) == 0) {
+        
+        va_list args;
+        va_start(args, fmt);
+        
+        t_canvas* cnv = va_arg(args, t_canvas*);
+        
+        synchronise_canvas(cnv);
+    }
+    if(strncmp(fmt, "pdtk_text_new", strlen("pdtk_text_new")) == 0) {
+        
+        va_list args;
+        va_start(args, fmt);
+        
+        t_canvas* cnv = va_arg(args, t_canvas*);
+        
+        synchronise_canvas(cnv);
+    } */
+
+
+    
+    
     
     update_gui(NULL);
 }
