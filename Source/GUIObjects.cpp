@@ -2394,6 +2394,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         int x_width;
         int x_height;
         int x_octaves;
+        int x_semitones;
         int x_first_c;
         int x_low_c;
         int x_toggle_mode;
@@ -2425,13 +2426,50 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         
         addAndMakeVisible(keyboard);
         
-        initialise(newObject);
+
+
+        auto* x = (t_keyboard*)gui.getPointer();
+        x->x_width = width * 0.595f;
         
+        rangeMin = x->x_low_c;
+        rangeMax = x->x_low_c + (x->x_octaves * 12) + x->x_semitones;
+        
+        if(static_cast<int>(rangeMax.getValue()) == 0) {
+            rangeMin = 36;
+            rangeMax = 86;
+        }
+        
+        initialise(newObject);
         box->constrainer.setSizeLimits(50, 70, maxSize, maxSize);
+        
+        //int width = keyboard.getKeyPosition(rangeMax.getValue(), keyboard.getKeyWidth()).getEnd();
+        //box->constrainer.setFixedAspectRatio(width / 150);
     }
     
     void resized() override
     {
+        /*
+        
+            
+            keyboard.setKeyWidth(getWidth() / (numKeys * 0.595f));
+            int width = keyboard.getKeyPosition(rangeMax.getValue(), keyboard.getKeyWidth()).getEnd();
+        } */
+        int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
+        float ratio = numKeys / 9.55f;
+        
+        auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
+        
+        if(box->getWidth() / ratio != box->getHeight()) {
+            box->setSize(box->getHeight() * ratio, box->getHeight());
+            
+            if(getWidth() > 0) {
+                keyboard.setKeyWidth(getWidth() / (numKeys * 0.597f));
+                keyboardObject->x_width = getWidth();
+            }
+        }
+        
+        
+        //keyboard.setBounds(Rectangle<int>(0, 0, width, width / 10.0f));
         keyboard.setBounds(getLocalBounds());
     }
     
@@ -2475,25 +2513,43 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         return {b.getWidth(), b.getHeight()};
     };
     
-    /*
+    
      ObjectParameters defineParameters() override
      {
      return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
-     }; */
+     };
+    
     
     void valueChanged(Value& value) override
     {
+        auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
+        
         if (value.refersToSameSourceAs(rangeMin))
         {
-            static_cast<t_keyboard*>(gui.getPointer())->x_low_c = static_cast<int>(value.getValue());
+            rangeMin = std::clamp<int>(rangeMin.getValue(), 0, 127);
+            
+            keyboardObject->x_low_c = static_cast<int>(rangeMin.getValue());
+            
+            int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
+            keyboardObject->x_octaves = range / 12;
+            keyboardObject->x_semitones = range % 12;
             
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
+            resized();
         }
         else if (value.refersToSameSourceAs(rangeMax))
         {
+            
+            rangeMax = std::clamp<int>(rangeMax.getValue(), 0, 127);
             /*
              static_cast<t_keyboard*>(gui.getPointer())->x_octaves = static_cast<int>(value.getValue()); */
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
+            
+            int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
+            keyboardObject->x_octaves = range / 12;
+            keyboardObject->x_semitones = range % 12;
+            
+            resized();
         }
     }
     

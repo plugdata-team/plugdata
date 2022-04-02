@@ -133,6 +133,7 @@ void Box::updateBounds(bool newObject)
 {
     auto type = currentText.upToFirstOccurrenceOf(" ", false, false);
     int width = 0;
+    
     if (pdObject)
     {
         auto bounds = pdObject->getBounds() - Point<int>(margin, margin);
