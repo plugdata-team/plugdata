@@ -543,15 +543,15 @@ struct PlugDataDarkLook : public PlugDataLook
         }
         else if (button.getToggleState())
         {
-            g.setColour(findColour(Slider::thumbColourId));
+            g.setColour(button.findColour(Slider::thumbColourId));
         }
         else if (shouldDrawButtonAsHighlighted)
         {
-            g.setColour(findColour(Slider::thumbColourId).brighter(0.8f));
+            g.setColour(button.findColour(Slider::thumbColourId).brighter(0.8f));
         }
         else
         {
-            g.setColour(Colours::white);
+            g.setColour(button.findColour(TextButton::textColourOffId));
         }
 
         const int yIndent = jmin(4, button.proportionOfHeight(0.3f));

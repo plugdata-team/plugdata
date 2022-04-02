@@ -328,11 +328,15 @@ void Statusbar::timerCallback()
     if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var(false))
     {
         commandLocked = true;
+        lockButton->setColour(TextButton::textColourOffId, findColour(Slider::thumbColourId).brighter(0.6f));
+        lockButton->repaint();
     }
 
     if (!ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == var(true))
     {
         commandLocked = false;
+        lockButton->setColour(TextButton::textColourOffId, Colours::white);
+        lockButton->repaint();
     }
 }
 
@@ -344,11 +348,15 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
     if (isKeyDown && mod.isCommandDown() && !lockButton->getToggleState())
     {
         commandLocked = true;
+        lockButton->setColour(TextButton::textColourOffId, findColour(Slider::thumbColourId).brighter(0.2f));
+        lockButton->repaint();
     }
 
     if (!mod.isCommandDown() && pd.commandLocked == var(true))
     {
         commandLocked = false;
+        lockButton->setColour(TextButton::textColourOffId, Colours::white);
+        lockButton->repaint();
     }
 
     return false;  //  Never claim this event!
