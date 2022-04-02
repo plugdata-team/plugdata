@@ -723,44 +723,28 @@ struct PlugDataDarkLook : public PlugDataLook
         void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
             auto cornerSize = 6.0f;
-            auto bounds = button.getLocalBounds().toFloat();  //.reduced (0.5f, 0.5f);
+            auto bounds = button.getLocalBounds().toFloat();
 
             auto baseColour = findColour(TextButton::buttonColourId);
 
             auto highlightColour = findColour(TextButton::buttonOnColourId);
 
-            if (shouldDrawButtonAsDown || button.getToggleState()) baseColour = highlightColour;
-
-            baseColour = baseColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
-
+            Path path;
+            path.addRectangle(button.getLocalBounds());
+            
             g.setColour(baseColour);
-
-            auto flatOnLeft = button.isConnectedOnLeft();
-            auto flatOnRight = button.isConnectedOnRight();
-            auto flatOnTop = button.isConnectedOnTop();
-            auto flatOnBottom = button.isConnectedOnBottom();
-
-            if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
-            {
-                Path path;
-                path.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize, cornerSize, !(flatOnLeft || flatOnTop), !(flatOnRight || flatOnTop), !(flatOnLeft || flatOnBottom), !(flatOnRight || flatOnBottom));
-
-                g.fillPath(path);
-
-                g.setColour(button.findColour(ComboBox::outlineColourId));
-                g.strokePath(path, PathStrokeType(1.0f));
+            
+            g.fillRect(button.getLocalBounds());
+            
+            g.setColour(findColour(ComboBox::outlineColourId));
+            g.strokePath(path, PathStrokeType(1.0f));
+            
+            
+            if(shouldDrawButtonAsDown || button.getToggleState()) {
+                g.setColour(highlightColour);
+                g.fillRect(button.getLocalBounds().reduced(button.getWidth() * 0.25f));
             }
-            else
-            {
-                int dimension = std::min(bounds.getHeight(), bounds.getWidth()) / 2.0f;
-                auto centre = bounds.getCentre();
-                auto ellpiseBounds = Rectangle<float>(centre.translated(-dimension, -dimension), centre.translated(dimension, dimension));
-                // g.fillRoundedRectangle (bounds, cornerSize);
-                g.fillEllipse(ellpiseBounds);
 
-                g.setColour(button.findColour(ComboBox::outlineColourId));
-                g.drawEllipse(ellpiseBounds, 1.0f);
-            }
         }
     };
 

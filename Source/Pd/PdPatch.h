@@ -132,8 +132,8 @@ class Patch
         {"vsl", "15 128 0 127 0 0 empty empty empty 0 -9 0 10 #171717 #42a2c8 #ffffff 0 1"},
         {"bng", "15 250 50 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
         {"nbx", "3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0 256"},
-        {"hradio", "15 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
-        {"vradio", "15 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
+        {"hradio", "24 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
+        {"vradio", "24 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
         {"cnv", "15 100 60 empty empty empty 20 12 0 14 #171717 #404040"}
     };
 
