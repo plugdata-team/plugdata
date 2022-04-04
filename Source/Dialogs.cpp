@@ -467,7 +467,7 @@ struct SettingsComponent : public Component
         g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
         g.setColour(highlightColour);
-        g.fillRect(2, 42, getWidth() - 4, 4);
+        g.fillRect(2, 44, getWidth() - 4, 4);
 
         if (currentPanel > 0)
         {
@@ -483,7 +483,7 @@ struct SettingsComponent : public Component
         int toolbarPosition = 2;
         for (auto& button : toolbarButtons)
         {
-            button->setBounds(toolbarPosition, 0, 70, toolbarHeight);
+            button->setBounds(toolbarPosition, 2, 70, toolbarHeight);
             toolbarPosition += 70;
         }
 
@@ -529,8 +529,6 @@ struct SettingsDialog : public Component
         addAndMakeVisible(closeButton.get());
 
         settingsComponent.addMouseListener(this, false);
-
-        
         
         closeButton->onClick = [this]()
         {
