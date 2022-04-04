@@ -111,6 +111,8 @@ extern "C"
 namespace pd
 {
 
+
+
 Instance::Instance(std::string const& symbol)
 {
     libpd_multi_init();
@@ -155,7 +157,7 @@ Instance::Instance(std::string const& symbol)
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger);
 
     libpd_set_verbose(0);
-
+    
     setThis();
 }
 
