@@ -1556,7 +1556,7 @@ struct RadioComponent : public GUIComponent
             if(isVertical) radioButtons[i]->setBounds(0, i * size, size, size);
             else           radioButtons[i]->setBounds(i * size, 0, size, size);
         }
-        
+                
         // Fix aspect ratio and
         if(isVertical) {
             if(getWidth() - Box::doubleMargin != size) {
@@ -1608,7 +1608,8 @@ struct RadioComponent : public GUIComponent
         
         radioButtons[(int)gui.getValue()]->setToggleState(true, dontSendNotification);
         
-        box->updateBounds(false);
+        resized();
+        //box->updateBounds(false);
     }
     
     OwnedArray<TextButton> radioButtons;

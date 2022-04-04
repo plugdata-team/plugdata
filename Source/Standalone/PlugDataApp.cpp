@@ -62,6 +62,7 @@ class PlugDataApp : public JUCEApplication
     // For opening files with PlugData standalone
     void anotherInstanceStarted(const String& commandLine) override
     {
+        
         auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
         if (file.existsAsFile())
         {
@@ -75,6 +76,7 @@ class PlugDataApp : public JUCEApplication
                 }
             }
         }
+
     }
 
     virtual PlugDataWindow* createWindow()

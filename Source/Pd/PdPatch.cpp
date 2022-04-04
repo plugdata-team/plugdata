@@ -196,14 +196,17 @@ std::vector<Object> Patch::getObjects(bool onlyGui) noexcept
 std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y)
 {
     t_pd* pdobject = nullptr;
+    std::atomic<bool> done = false;
+    
     instance->enqueueFunction(
-        [this, x, y, &pdobject]() mutable
+        [this, x, y, &pdobject, &done]() mutable
         {
             setCurrent();
             pdobject = libpd_creategraphonparent(getPointer(), x, y);
+            done = true;
         });
 
-    while (!pdobject)
+    while (!done)
     {
         instance->waitForStateUpdate();
     }
@@ -216,14 +219,17 @@ std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y)
 std::unique_ptr<Object> Patch::createGraph(const String& name, int size, int x, int y)
 {
     t_pd* pdobject = nullptr;
+    std::atomic<bool> done = false;
+    
     instance->enqueueFunction(
-        [this, name, size, x, y, &pdobject]() mutable
+        [this, name, size, x, y, &pdobject, &done]() mutable
         {
             setCurrent();
             pdobject = libpd_creategraph(getPointer(), name.toRawUTF8(), size, x, y);
+            done = true;
         });
 
-    while (!pdobject)
+    while (!done)
     {
         instance->waitForStateUpdate();
     }
@@ -304,14 +310,17 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y, bo
     }
 
     t_pd* pdobject = nullptr;
+    std::atomic<bool> done = false;
+    
     instance->enqueueFunction(
-        [this, argc, argv, undoable, typesymbol, &pdobject]() mutable
+        [this, argc, argv, undoable, typesymbol, &pdobject, &done]() mutable
         {
             setCurrent();
             pdobject = libpd_createobj(getPointer(), typesymbol, argc, argv.data(), undoable);
+            done = true;
         });
 
-    while (!pdobject)
+    while (!done)
     {
         instance->waitForStateUpdate();
     }
