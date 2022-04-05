@@ -22,7 +22,7 @@ cmake --build .
 
 **Important:**
 - Please ensure that the git submodules are initialized and updated! You can use the `--recursive` option while cloning or `git submodule update --init --recursive` in the PlugData repository .
-- On Linux OS, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
+- On Linux, Juce framework requires to install dependencies, please refer to [Linux Dependencies.md](https://github.com/juce-framework/JUCE/blob/master/docs/Linux%20Dependencies.md) and use the full command.
 - The CMake build system has been tested with *Unix Makefiles*, *XCode* and *Visual Studio 16 2019*.
 
 ## Credits
@@ -44,13 +44,13 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 ## Status
 What works:
 - Very close to full support for pd (including all GUI objects, undo/redo, copy/paste, saving, loading, console, object properties, drawing functions, audio and MIDI I/O, help files)
-- Most ELSE library objects work
+- Most ELSE and cyclone library objects work
 - LV2, AU and VST3 formats available, tested on Windows (x64), Mac (ARM/x64) and Linux (ARM/x64), also works as AU MIDI processor for Logic
-- Receive 8 DAW parameters using "receive param1"
+- Receive 512 DAW parameters using "receive param1", "receive param2", etc. 
 
 Known issues:
-- Tabs sometimes close when closing editor
-- Needs more testing on different systems and DAWs
+- Tabs sometimes close when closing patch editor
+- DAW Presets are still unstable
 - Broken objects:
   - text define
 - There may still be some more bugs
@@ -58,18 +58,11 @@ Known issues:
 ## Roadmap
 
 v0.5:
-- Ask to save when closing standalone
 - Grid
 - Tidy up feature
-- Light theme
-- Fix C externals support
-- Blacked out background for dialogs
 - Command line arguments
-- Better rendering of pd patch layouts
-- Stick to mouse when creating from menu
 - Tail length option for plugins
 - DAW Transport object
-- Keyboard GUI component resize
 - Ensure all object properties are supported
 - Expand pddocs with more descriptions
 
