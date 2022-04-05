@@ -328,7 +328,7 @@ void Statusbar::timerCallback()
     if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var(false))
     {
         commandLocked = true;
-        lockButton->setColour(TextButton::textColourOffId, findColour(Slider::thumbColourId).brighter(0.6f));
+        lockButton->setColour(TextButton::textColourOffId, findColour(Slider::thumbColourId).brighter(0.2f));
         lockButton->repaint();
     }
 
