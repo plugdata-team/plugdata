@@ -438,17 +438,16 @@ void Instance::waitForStateUpdate()
         return;
     }
 
-    // Need to wait twice to ensure that pd has processed all changes
-    if (audioStarted)
-    {
+    //if (audioStarted) {
         // Append signal to resume thread at the end of the queue
         // This will make sure that any actions we performed are definitely finished now
         // If it can aquire a lock, it will dequeue all action immediately
         enqueueFunction([this]() { updateWait.signal(); });
 
         updateWait.wait();
-    }
+    //}
     // Should ensure that patches are loaded correctly when audio hasn't started yet
+    /*
     else
     {
         std::function<void(void)> callback;
@@ -456,7 +455,7 @@ void Instance::waitForStateUpdate()
         {
             callback();
         }
-    }
+    } */
 }
 
 void Instance::sendMessagesFromQueue()
@@ -467,25 +466,31 @@ void Instance::sendMessagesFromQueue()
     while (m_function_queue.try_dequeue(callback))
     {
         callback();
-        audioStarted = true;
     }
 }
 
 Patch Instance::openPatch(const File& toOpen)
 {
-    String dirname = toOpen.getParentDirectory().getFullPathName();
-    auto* dir = dirname.toRawUTF8();
+    enqueueFunction([this, toOpen]() mutable {
+        String dirname = toOpen.getParentDirectory().getFullPathName();
+        auto* dir = dirname.toRawUTF8();
 
-    String filename = toOpen.getFileName();
-    auto* file = filename.toRawUTF8();
+        String filename = toOpen.getFileName();
+        auto* file = filename.toRawUTF8();
 
-    closePatch();
-    setThis();
+        closePatch();
+        setThis();
+        
+        // TODO: crash because pd_this gets set wrong? probably threading related
 
-    m_patch = libpd_create_canvas(file, dir);
+        m_patch = libpd_create_canvas(file, dir);
 
-    currentFile = toOpen;
+        currentFile = toOpen;
+        
+    });
 
+    
+    
     return getPatch();
 }
 

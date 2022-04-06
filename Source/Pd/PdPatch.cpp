@@ -99,7 +99,8 @@ void Patch::close()
 
 void Patch::setCurrent(bool lock)
 {
-    // instance->setThis();
+    instance->setThis(); // important for canvas_getcurrent
+    
     if (!ptr) return;
 
     if (lock) instance->getCallbackLock()->enter();
@@ -635,7 +636,7 @@ t_gobj* Patch::getInfoObject()
     {
         return infoObject;
     }
-
+    
     instance->getCallbackLock()->enter();
 
     for (t_gobj* y = getPointer()->gl_list; y; y = y->g_next)
