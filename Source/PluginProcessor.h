@@ -69,7 +69,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void updateConsole() override;
     
     void synchroniseCanvas(void* cnv) override;
-
+    
     void receivePrint(const std::string& message) override
     {
         if (!message.empty())
