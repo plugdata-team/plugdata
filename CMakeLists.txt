@@ -19,10 +19,6 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(PlugData VERSION 0.4.2 LANGUAGES C CXX)
 
-if("${CMAKE_SYSTEM}" MATCHES "Linux")
-  set(CMAKE_SHARED_LINKER_FLAGS "${CMAKE_SHARED_LINKER_FLAGS} -Wl,-Bsymbolic")
-endif()
-
 add_subdirectory(Libraries/)
 
 set(PLUGDATA_VERSION                    "0.4.2")
