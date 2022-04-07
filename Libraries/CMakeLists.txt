@@ -303,11 +303,7 @@ endif()
 
 # LINK OS
 #------------------------------------------------------------------------------#
-if(WIN32)
-    target_link_libraries(pd PRIVATE ws2_32)
-    target_link_libraries(pd-multi PRIVATE ws2_32)
-
-else("${CMAKE_SYSTEM}" MATCHES "Linux")
+if("${CMAKE_SYSTEM}" MATCHES "Linux")
 
   find_library(MATH_LIB m)
 
