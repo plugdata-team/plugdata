@@ -246,6 +246,8 @@ if(UNIX AND NOT APPLE)
     ${PLUGDATA_COMPILE_DEFINITIONS}
     JUCE_MODAL_LOOPS_PERMITTED=1
     )
+
+    target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
 endif()
 
 target_compile_definitions(PlugDataStandalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
@@ -317,6 +319,9 @@ set_target_properties(PlugDataFx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_
 if(APPLE)
 set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 endif()
+
+
+
 
 set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
 set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
