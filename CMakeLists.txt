@@ -244,7 +244,7 @@ if(UNIX AND NOT APPLE)
     )
 
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
-else if(MSVC)
+elseif(MSVC)
 
 target_link_libraries(PlugDataStandalone PUBLIC "-Wl,--export-all-symbols ws2_32 kernel32 -static-libgcc")
 
