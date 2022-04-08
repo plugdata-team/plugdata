@@ -288,6 +288,7 @@ void Box::paint(Graphics& g)
     if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
     {
         outlineColour = Colours::red;
+        if(selected) outlineColour = outlineColour.brighter();
     }
     else if (selected && !cnv->isGraph)
     {
