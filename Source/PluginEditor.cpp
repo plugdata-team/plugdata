@@ -531,21 +531,20 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             tabbar.setCurrentTabIndex(0, false);
         }
 
-        auto* cnv = getCanvas(idx);
+        MessageManager::callAsync([this, idx, deleteWhenClosed]() mutable {
+            auto* cnv = getCanvas(idx);
 
-        pd.patches.removeFirstMatchingValue(cnv->patch);
+            pd.patches.removeFirstMatchingValue(cnv->patch);
 
-        if (deleteWhenClosed)
-        {
-            cnv->patch.close();
-        }
-        canvases.removeObject(cnv);
-        
-        MessageManager::callAsync([this, idx]() mutable {
+            if (deleteWhenClosed)
+            {
+                cnv->patch.close();
+            }
             
-            tabbar.removeTab(idx);
-
             tabbar.setCurrentTabIndex(0, true);
+            
+            canvases.removeObject(cnv);
+            tabbar.removeTab(idx);
 
             if (tabbar.getNumTabs() == 1)
             {
