@@ -431,10 +431,10 @@ struct PlugDataDarkLook : public PlugDataLook
 
         auto highlightColour = findColour(Slider::thumbColourId);
 
-        if (shouldDrawButtonAsHighlighted || button.getToggleState()) highlightColour = highlightColour.brighter(1.3f);
-
-        else if (shouldDrawButtonAsDown)
-            highlightColour = highlightColour.brighter(1.0f);
+        if (shouldDrawButtonAsHighlighted)
+            highlightColour = highlightColour.brighter(0.6f);
+        else if (shouldDrawButtonAsDown || button.getToggleState())
+            highlightColour = highlightColour.brighter(1.4f);
         else
             highlightColour = highlightColour;
 
