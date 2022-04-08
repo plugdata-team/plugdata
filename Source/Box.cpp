@@ -523,7 +523,12 @@ void Box::showEditor()
         editor->setBorder(border);
         editor->setJustification(Justification::centred);
 
-        editor->onFocusLost = [this]() { hideEditor(); };
+        editor->onFocusLost = [this]() {
+            // Necessary so the editor doesn't close when clicking on a suggestion
+            if(!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
+                hideEditor();
+            }
+        };
 
         if (!(graphics && graphics->getGui().getType() == pd::Type::Comment))
         {
