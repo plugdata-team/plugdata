@@ -53,7 +53,7 @@ struct Icons
 struct PlugDataLook : public LookAndFeel_V4
 {
     virtual void drawToolbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
-
+    
     virtual void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
 
     virtual void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) = 0;
@@ -431,10 +431,10 @@ struct PlugDataDarkLook : public PlugDataLook
 
         auto highlightColour = findColour(Slider::thumbColourId);
 
-        if (shouldDrawButtonAsHighlighted || button.getToggleState()) highlightColour = highlightColour.brighter(0.4f);
+        if (shouldDrawButtonAsHighlighted || button.getToggleState()) highlightColour = highlightColour.brighter(1.3f);
 
-        if (shouldDrawButtonAsDown)
-            highlightColour = highlightColour.brighter(0.2f);
+        else if (shouldDrawButtonAsDown)
+            highlightColour = highlightColour.brighter(1.0f);
         else
             highlightColour = highlightColour;
 
@@ -531,7 +531,7 @@ struct PlugDataDarkLook : public PlugDataLook
 
         if (textWidth > 0) g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::left, 2);
     }
-
+    
     void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
         Font font(getTextButtonFont(button, button.getHeight()));
