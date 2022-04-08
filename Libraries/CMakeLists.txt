@@ -312,6 +312,8 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   target_link_libraries(pd-multi ${MATH_LIB})
   target_link_libraries(pd-multi ${CMAKE_DL_LIBS})
 
+elseif(MSVC)
+  target_link_libraries(pd PUBLIC "-Wl,--export-all-symbols ws2_32 kernel32 -static-libgcc")
 endif()
 
 # LINK PTHREAD
