@@ -5,7 +5,6 @@ cmake_minimum_required(VERSION 3.1)
 #------------------------------------------------------------------------------#
 project(libpd VERSION 1.0.0 LANGUAGES C)
 
-
 if (MSVC)
     add_compile_definitions(PTW32_STATIC_LIB)
     add_subdirectory(pthread-win32)
@@ -313,7 +312,7 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   target_link_libraries(pd-multi ${CMAKE_DL_LIBS})
 
 elseif(MSVC)
-  target_link_libraries(pd PUBLIC "-Wl,--export-all-symbols ws2_32 kernel32 -static-libgcc")
+  target_link_libraries(pd PUBLIC "-Wl,--export-all-symbols --whole-archive ws2_32 kernel32 -static-libgcc")
 endif()
 
 # LINK PTHREAD
