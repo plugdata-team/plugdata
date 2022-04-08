@@ -540,15 +540,20 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             cnv->patch.close();
         }
         canvases.removeObject(cnv);
-        tabbar.removeTab(idx);
+        
+        MessageManager::callAsync([this, idx]() mutable {
+            
+            tabbar.removeTab(idx);
 
-        tabbar.setCurrentTabIndex(0, true);
+            tabbar.setCurrentTabIndex(0, true);
 
-        if (tabbar.getNumTabs() == 1)
-        {
-            tabbar.getTabbedButtonBar().setVisible(false);
-            tabbar.setTabBarDepth(1);
-        }
+            if (tabbar.getNumTabs() == 1)
+            {
+                tabbar.getTabbedButtonBar().setVisible(false);
+                tabbar.setTabBarDepth(1);
+            }
+        });
+
     };
 
     closeButton->setName("tab:close");
