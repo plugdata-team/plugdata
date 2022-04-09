@@ -314,7 +314,7 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
 elseif(MSVC)
   target_link_libraries(pd PUBLIC "-Wl,--export-all-symbols,--out-implib,libpd.a --whole-archive ws2_32 kernel32 -static-libgcc")
   add_library(libpd_dll DYNAMIC)
-  target_link_library(libpd_dll libpd);
+  target_link_library(libpd_dll libpd)
 endif()
 
 # LINK PTHREAD
