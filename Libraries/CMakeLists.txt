@@ -268,7 +268,7 @@ endif()
 add_library(pd STATIC ${SOURCE_FILES})
 target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 if(MSVC)
-  target_compile_definitions(pd PRIVATE PTW32_STATIC_LIB=1)
+  target_compile_definitions(pd PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
@@ -312,7 +312,9 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   target_link_libraries(pd-multi ${CMAKE_DL_LIBS})
 
 elseif(MSVC)
-  target_link_libraries(pd PUBLIC "-Wl,--export-all-symbols,--whole-archive ws2_32 kernel32 -static-libgcc")
+  target_link_libraries(pd PUBLIC "-Wl,--export-all-symbols,--out-implib,libpd.a --whole-archive ws2_32 kernel32 -static-libgcc")
+  add_library(libpd_dll DYNAMIC)
+  target_link_library(libpd_dll libpd);
 endif()
 
 # LINK PTHREAD
