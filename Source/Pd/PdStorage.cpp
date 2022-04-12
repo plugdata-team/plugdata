@@ -115,9 +115,10 @@ void Storage::loadInfoFromPatch()
     
     if(succeeded) {
         MemoryInputStream stream(block, false);
+        String base64 = stream.readString();
         
         try {
-            auto tree = ValueTree::readFromStream(stream);
+            auto tree = ValueTree::fromXml(base64);
             
             if (tree.isValid())
             {
@@ -136,7 +137,7 @@ void Storage::storeInfo()
     if(!infoObject) return;
     
     MemoryOutputStream stream;
-    extraInfo.writeToStream(stream);
+    stream.writeString(extraInfo.toXmlString());
     
     String newname = "plugdatainfo " + stream.getMemoryBlock().toBase64Encoding();
     
