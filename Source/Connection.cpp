@@ -96,18 +96,19 @@ void Connection::setState(const String& state)
     auto plan = PathPlan();
     
     auto block = MemoryBlock();
-    block.fromBase64Encoding(state);
+    auto succeeded = block.fromBase64Encoding(state);
     
-    auto stream = MemoryInputStream(std::move(block));
-    
-    while (!stream.isExhausted())
-    {
-        auto x = stream.readInt();
-        auto y = stream.readInt();
+    if(succeeded) {
+        auto stream = MemoryInputStream(block, false);
+        
+        while (!stream.isExhausted())
+        {
+            auto x = stream.readInt();
+            auto y = stream.readInt();
 
-        plan.emplace_back(x + outlet->getPosition().x, y + outlet->getPosition().y);
+            plan.emplace_back(x + outlet->getPosition().x, y + outlet->getPosition().y);
+        }
     }
-    
     currentPlan = plan;
     updatePath();
 }
