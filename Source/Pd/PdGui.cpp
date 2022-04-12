@@ -384,11 +384,11 @@ void Gui::setMaximum(float value) noexcept
     }
     else if (type == Type::HorizontalRadio)
     {
-        static_cast<t_hdial*>(ptr)->x_number = value + 1;
+        static_cast<t_hdial*>(ptr)->x_number = value;
     }
     else if (type == Type::VerticalRadio)
     {
-        static_cast<t_vdial*>(ptr)->x_number = value + 1;
+        static_cast<t_vdial*>(ptr)->x_number = value;
     }
     else if (type == Type::AtomNumber)
     {

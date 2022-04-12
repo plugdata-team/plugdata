@@ -13,6 +13,7 @@
 #include "Edge.h"
 #include "PluginEditor.h"
 
+
 Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
     cnv = parent;

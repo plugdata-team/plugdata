@@ -105,7 +105,7 @@ struct MidiBlinker : public Component, public Timer
     void paint(Graphics& g) override
     {
         g.setColour(Colours::white);
-        g.setFont(Font(11));
+        g.setFont(Font(12));
         g.drawText("MIDI", getLocalBounds().removeFromLeft(28), Justification::right);
 
         auto midiInRect = Rectangle<float>(38.0f, 7.0f, 15.0f, 3.0f);
@@ -227,7 +227,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     addAndMakeVisible(zoomLabel);
     zoomLabel.setText("100%", dontSendNotification);
-    zoomLabel.setFont(Font(11));
+    zoomLabel.setFont(Font(12));
 
     zoomIn->setTooltip("Zoom In");
     zoomIn->setConnectedEdges(12);
