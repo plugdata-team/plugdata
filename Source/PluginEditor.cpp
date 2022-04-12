@@ -206,7 +206,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
 
     addAndMakeVisible(toolbarButton(Hide));
-
+    
+    for(auto& seperator : seperators) {
+        seperator.setName("toolbar:seperator");
+        addAndMakeVisible(&seperator);
+    }
+    
     // window size limits
     constrainer.setSizeLimits(700, 300, 4000, 4000);
     addAndMakeVisible(resizer);
@@ -266,24 +271,43 @@ void PlugDataPluginEditor::showNewObjectMenu()
 void PlugDataPluginEditor::paint(Graphics& g)
 {
     // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+    //g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
 
     auto baseColour = findColour(ComboBox::backgroundColourId);
     auto highlightColour = findColour(Slider::thumbColourId);
 
     // Toolbar background
-    g.setColour(baseColour);
-    g.fillRect(0, 0, getWidth(), toolbarHeight - 4);
+    auto gradient = ColourGradient(Colour(50, 50, 50), Point<float>(0, 0), Colour(42, 42, 42), Point<float>(0, toolbarHeight), false);
+    
+    g.setGradientFill(gradient);
+    //g.setColour(baseColour);
+    
+    if(JUCEApplication::isStandaloneApp()) {
+        Path path;
+        path.addRoundedRectangle(0, 0, getWidth(), toolbarHeight, 3.0f, 3.0f, true, true, false, false);
+        g.fillPath(path);
+    }
+    else {
+        g.fillRect(0, 0, getWidth(), toolbarHeight);
 
-    g.setColour(highlightColour);
-    g.drawRoundedRectangle({-4.0f, toolbarHeight - 6.0f, static_cast<float>(getWidth() + 9), 20.0f}, 12.0, 4.0);
+    }
+    
+    g.setColour(Colour(68, 68, 68));
+    g.drawLine(0, 0, getWidth(), 0);
+    
 
-    // Make sure we can't see the bottom half of the rounded rectangle
-    g.setColour(baseColour);
-    g.fillRect(0, toolbarHeight - 4, getWidth(), toolbarHeight + 16);
+    g.setColour(Colour(62, 62, 62));
+    g.drawLine(0, toolbarHeight - 4.0f, static_cast<float>(getWidth()), toolbarHeight - 4.0f);
 
+    g.setColour(Colour(27, 27, 27));
+    g.drawLine(0.0f, toolbarHeight - 3.5f, static_cast<float>(getWidth()), toolbarHeight - 3.5f);
+
+
+    g.setColour(Colour(27, 27, 27));
+    g.drawLine(0, getHeight() - statusbar.getHeight() - 1, getWidth(), getHeight() - statusbar.getHeight() - 1);
+    
     // Statusbar background
-    g.setColour(baseColour);
+    g.setColour(Colour(43, 43, 43));
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
 }
 
@@ -332,11 +356,16 @@ void PlugDataPluginEditor::resized()
     {
         toolbarButtons[b]->setVisible((toolbarButtons[b]->getBounds().getCentreX()) < getWidth() - sidebar.getWidth());
     }
+    
+    int offset = JUCEApplication::isStandaloneApp() ? 150 : 80;
+    
+    int xPosition = getWidth() - sidebar.getWidth();
+    toolbarButton(Hide)->setBounds(std::min(xPosition, getWidth() - offset), 0, 70, toolbarHeight);
 
-    toolbarButton(Hide)->setBounds(std::min(getWidth() - sidebar.getWidth(), getWidth() - 80), 0, 70, toolbarHeight);
+    toolbarButton(Pin)->setBounds(std::min(xPosition + 70, getWidth() - offset), 0, 70, toolbarHeight);
 
-    toolbarButton(Pin)->setBounds(std::min((getWidth() - sidebar.getWidth()) + 70, getWidth() - 80), 0, 70, toolbarHeight);
-
+    
+    
     resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer.toFront(false);
 
@@ -346,6 +375,26 @@ void PlugDataPluginEditor::resized()
     if (auto* cnv = getCurrentCanvas())
     {
         cnv->checkBounds();
+    }
+}
+
+void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
+{
+    if(JUCEApplication::isStandaloneApp()) {
+        if(e.getPosition().getY() < toolbarHeight)
+        {
+            auto* window = getTopLevelComponent();
+            windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
+        }
+    }
+}
+
+void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
+{
+   
+    if(JUCEApplication::isStandaloneApp()) {
+        auto* window = getTopLevelComponent();
+        windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
     }
 }
 

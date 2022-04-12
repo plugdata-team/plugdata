@@ -53,7 +53,7 @@ struct Statusbar : public Component, public Timer, public KeyListener, public Ch
 
     Value connectionStyle;
 
-    static constexpr int statusbarHeight = 25;
+    static constexpr int statusbarHeight = 30;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;

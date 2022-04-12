@@ -176,13 +176,13 @@ struct PlugDataDarkLook : public PlugDataLook
 
     PlugDataDarkLook() : defaultFont(resources->defaultTypeface), iconFont(resources->iconTypeface)
     {
-        setColour(ResizableWindow::backgroundColourId, Colour(32, 32, 32));
+        setColour(ResizableWindow::backgroundColourId, Colour(58, 58, 58));
 
-        setColour(TextButton::buttonColourId, Colour(23, 23, 23));
+        setColour(TextButton::buttonColourId, Colour(49, 49, 49));
         setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
 
-        setColour(ComboBox::backgroundColourId, Colour(23, 23, 23));
-        setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
+        setColour(ComboBox::backgroundColourId, Colour(49, 49, 49));
+        setColour(ListBox::backgroundColourId, Colour(49, 49, 49));
 
         setColour(Slider::thumbColourId, Colour(0xff42a2c8));
         setColour(Slider::backgroundColourId, Colour(60, 60, 60));
@@ -192,12 +192,12 @@ struct PlugDataDarkLook : public PlugDataLook
         setColour(TextEditor::textColourId, Colours::white);
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
 
-        setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.8f));
-        setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
+        setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)49, 49, 49, 0.8f));
+        setColour(PopupMenu::backgroundColourId, Colour((uint8_t)49, 49, 49, 0.95f));
         setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
 
-        setColour(KeyMappingEditorComponent::backgroundColourId, Colour(23, 23, 23));
-        setColour(AlertWindow::backgroundColourId, Colour(23, 23, 23));
+        setColour(KeyMappingEditorComponent::backgroundColourId, Colour(49, 49, 49));
+        setColour(AlertWindow::backgroundColourId, Colour(49, 49, 49));
 
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
 
@@ -213,20 +213,8 @@ struct PlugDataDarkLook : public PlugDataLook
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
-            auto background = findColour(ComboBox::backgroundColourId);
-
-            if (findParentComponentOfClass<ResizableWindow>())
-            {
-                g.fillAll(background);
-            }
-
-            g.setColour((!isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
-
-            if (shouldDrawButtonAsHighlighted)
-            {
-                g.fillAll();
-                g.setColour(background);
-            }
+            g.setColour(Colours::white);
+            
 
             auto& p = getToggleState() ? toggledShape : normalShape;
 
@@ -339,7 +327,7 @@ struct PlugDataDarkLook : public PlugDataLook
 
     Font getStatusbarFont(int buttonHeight) override
     {
-        return iconFont.withHeight(buttonHeight / 2.25);
+        return iconFont.withHeight(buttonHeight / 2.7);
     }
 
     Font getSuggestionFont(int buttonHeight) override
@@ -427,24 +415,22 @@ struct PlugDataDarkLook : public PlugDataLook
     {
         auto rect = button.getLocalBounds();
 
-        auto baseColour = findColour(ComboBox::backgroundColourId);
-
-        auto highlightColour = findColour(Slider::thumbColourId);
-
-        if (shouldDrawButtonAsHighlighted)
-            highlightColour = highlightColour.brighter(0.6f);
-        else if (shouldDrawButtonAsDown || button.getToggleState())
-            highlightColour = highlightColour.brighter(1.4f);
-        else
-            highlightColour = highlightColour;
-
-        g.setColour(baseColour);
+        // Toolbar background
+        auto gradient = ColourGradient(Colour(50, 50, 50), Point<float>(0, 0), Colour(42, 42, 42), Point<float>(0, rect.getHeight()), false);
+        
+        g.setGradientFill(gradient);
         g.fillRect(rect);
+        
+        g.setColour(Colour(68, 68, 68));
+        g.drawLine(0, 0, rect.getWidth(), 0);
+        
+        g.setColour(Colour(62, 62, 62));
+        g.drawLine(0.0f, rect.getHeight() - 4.0f, static_cast<float>(rect.getWidth()), rect.getHeight() - 4.0f);
+        
+        g.setColour(Colour(27, 27, 27));
+        g.drawLine(0.0f, rect.getHeight() - 3.5f, static_cast<float>(rect.getWidth()), rect.getHeight() - 3.5f);
 
-        auto highlightRect = Rectangle<float>(rect.getX(), rect.getY() + rect.getHeight() - 8, rect.getWidth(), 4);
 
-        g.setColour(highlightColour);
-        g.fillRect(highlightRect);
     }
 
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& box) override
@@ -474,7 +460,7 @@ struct PlugDataDarkLook : public PlugDataLook
 
     void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        g.setColour(button.findColour(ComboBox::backgroundColourId));
+        g.setColour(Colour(43, 43, 43));
         g.fillRect(button.getLocalBounds());
     }
 

@@ -688,8 +688,8 @@ void Sidebar::paintOverChildren(Graphics& g)
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
 
     // Draggable bar
-    g.setColour(findColour(ComboBox::backgroundColourId));
-    g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
+    g.setColour(Colour(22, 22, 22));
+    g.drawLine(getWidth() - sWidth, 0, getWidth() - sWidth, getHeight());
 }
 
 void Sidebar::resized()

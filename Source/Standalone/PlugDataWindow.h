@@ -585,6 +585,8 @@ class PlugDataWindow : public DocumentWindow
                    )
         : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
+        
+        setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
@@ -685,7 +687,21 @@ class PlugDataWindow : public DocumentWindow
 
     void resized() override
     {
-        DocumentWindow::resized();
+        ResizableWindow::resized();
+
+        if (auto* b = getMaximiseButton())
+            b->setToggleState (isFullScreen(), dontSendNotification);
+
+        auto titleBarArea = Rectangle<int>(0, 8, getWidth() - 5, 22);
+
+        getLookAndFeel()
+            .positionDocumentWindowButtons (*this,
+                                            titleBarArea.getX(), titleBarArea.getY(),
+                                            titleBarArea.getWidth(), titleBarArea.getHeight(),
+                                            getMinimiseButton(),
+                                            getMaximiseButton(),
+                                            getCloseButton(),
+                                            false);
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
