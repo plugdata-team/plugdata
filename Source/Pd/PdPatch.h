@@ -10,6 +10,7 @@
 #include <array>
 #include <vector>
 
+
 #include "PdGui.h"
 #include "x_libpd_mod_utils.h"
 
@@ -26,11 +27,9 @@ class Instance;
 class Patch
 {
    public:
-    Patch(void* ptr, Instance* instance) noexcept;
+    Patch(void* ptr, Instance* instance);
 
-    //! @brief The default constructor.
-    Patch() = default;
-
+    
     //! @brief The compare equal operator.
     bool operator==(Patch const& other) const noexcept
     {
@@ -99,16 +98,6 @@ class Patch
 
     int getIndex(void* obj);
 
-    t_gobj* getInfoObject();
-    void setExtraInfoId(const String& oldId, const String& newId);
-    bool hasExtraInfo(const String& id) const;
-    void storeExtraInfo();
-    void updateExtraInfo();
-    MemoryBlock getExtraInfo(const String& id) const;
-    void setExtraInfo(const String& id, MemoryBlock& info);
-
-    ValueTree extraInfo = ValueTree("PlugDataInfo");
-
     static t_object* checkObject(Object* obj) noexcept;
 
     void keyPress(int keycode, int shift);
@@ -117,12 +106,12 @@ class Patch
     void setTitle(const String& title);
 
     std::vector<t_template*> getTemplates() const;
-
+    
+    Instance* instance = nullptr;
+    
    private:
     void* ptr = nullptr;
-    Instance* instance = nullptr;
 
-    t_gobj* infoObject = nullptr;
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters, which is important for correct undo/redo

@@ -414,7 +414,7 @@ struct GraphArea : public Component, public ComponentDragger
     }
 };
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(std::move(p))
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(std::move(p)), storage(patch.getPointer(), pd)
 {
     isGraph = graph;
     isGraphChild = graphChild;
@@ -463,12 +463,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     }
     
     // If background colour is not defined, set to default
-    if(!patch.hasExtraInfo("BackgroundColour")){
-        MemoryOutputStream stream;
-        
-        stream.writeString(findColour(ResizableWindow::backgroundColourId).toString());
-        auto block = stream.getMemoryBlock();
-        patch.setExtraInfo("BackgroundColour", block);
+    if(!storage.hasInfo("BackgroundColour")){
+        storage.setInfo("BackgroundColour", findColour(ResizableWindow::backgroundColourId).toString());
     }
 
 
@@ -485,8 +481,8 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
-        auto memblock = patch.getExtraInfo("BackgroundColour");
-        backgroundColour = Colour::fromString(MemoryInputStream(std::move(memblock)).readString());
+        auto colourState = storage.getInfo("BackgroundColour");
+        backgroundColour = Colour::fromString(colourState);
         
         g.fillAll(findColour(ComboBox::backgroundColourId));
 
@@ -534,7 +530,6 @@ void Canvas::synchronise(bool updatePosition)
     deselectAll();
 
     patch.setCurrent(true);
-    patch.updateExtraInfo();
 
     auto objects = patch.getObjects();
     auto isObjectDeprecated = [&](pd::Object* obj)
@@ -675,12 +670,13 @@ void Canvas::synchronise(bool updatePosition)
                 auto currentId = c.getId();
                 if (c.lastId.isNotEmpty() && c.lastId != currentId)
                 {
-                    patch.setExtraInfoId(c.lastId, currentId);
-                    c.lastId = currentId;
+                    storage.setInfoId(c.lastId, currentId);
                 }
+                
+                c.lastId = currentId;
 
-                auto info = patch.getExtraInfo(currentId);
-                if (info.getSize()) c.setState(info);
+                auto info = storage.getInfo(currentId);
+                if (info.length()) c.setState(info);
                 c.repaint();
             }
         }
@@ -700,6 +696,7 @@ void Canvas::synchronise(bool updatePosition)
     }
 
     main.updateCommandStatus();
+    repaint();
 }
 
 void Canvas::mouseDown(const MouseEvent& e)
@@ -1190,6 +1187,7 @@ void Canvas::removeSelection()
 
     // Make sure nothing is selected
     patch.deselectAll();
+    storage.ensureDeselected();
 
     // Find selected objects and make them selected in pd
     Array<pd::Object*> objects;
@@ -1232,6 +1230,9 @@ void Canvas::removeSelection()
 
 void Canvas::undo()
 {
+    // Performs undo on storage data if the next undo event if a dummy
+    storage.undoIfNeeded();
+    
     // Tell pd to undo the last action
     patch.undo();
 
@@ -1243,6 +1244,9 @@ void Canvas::undo()
 
 void Canvas::redo()
 {
+    // Performs redo on storage data if the next redo event if a dummy
+    storage.redoIfNeeded();
+    
     // Tell pd to undo the last action
     patch.redo();
 

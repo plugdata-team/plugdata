@@ -10,6 +10,7 @@
 
 #include "Box.h"
 #include "Pd/PdPatch.h"
+#include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
 
 extern JUCEApplicationBase* juce_CreateApplication();
@@ -126,6 +127,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     
     Colour backgroundColour;
     
+    pd::Storage storage;
+    
    private:
     SafePointer<TabbedComponent> tabbar;
 
@@ -133,7 +136,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     PopupMenu popupMenu;
 
     // Multi-dragger variables
-
     const int minimumMovementToStartDrag = 10;
 
     bool didStartDragging{false};

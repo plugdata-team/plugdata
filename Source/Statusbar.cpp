@@ -170,10 +170,9 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
         colourSelector->setSize(300, 400);
         colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
         
-        auto memblock = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas()->patch.getExtraInfo("BackgroundColour");
-        auto stream = MemoryInputStream(std::move(memblock));
-
-        colourSelector->setCurrentColour(Colour::fromString(stream.readString()));
+        auto colourState = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas()->storage.getInfo("BackgroundColour");
+        
+        colourSelector->setCurrentColour(Colour::fromString(colourState));
 
         CallOutBox::launchAsynchronously(std::move(colourSelector), backgroundColour->getScreenBounds(), nullptr);
     };
@@ -279,16 +278,11 @@ Statusbar::~Statusbar()
 void Statusbar::changeListenerCallback(ChangeBroadcaster* source)
 {
     auto* cs = dynamic_cast<ColourSelector*>(source);
-    
-    MemoryOutputStream stream;
-    stream.writeString(cs->getCurrentColour().toString());
-    
-    auto block = stream.getMemoryBlock();
-    
     auto* cnv = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas();
 
-    cnv->patch.setExtraInfo("BackgroundColour", block);
+    cnv->storage.setInfo("BackgroundColour", cs->getCurrentColour().toString());
     cnv->repaint();
+    
     for(auto& box : cnv->boxes) {
         box->repaint();
         if(box->graphics) box->graphics->updateLabel();
