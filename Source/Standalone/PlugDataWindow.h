@@ -266,7 +266,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             savedState = settings->getXmlValue("audioSetup");
 
 #if !(JUCE_IOS || JUCE_ANDROID)
-            shouldMuteInput.setValue(settings->getBoolValue("shouldMuteInput", true));
+            shouldMuteInput.setValue(false);
 #endif
         }
 
@@ -424,10 +424,11 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
               shouldMuteButton("Mute audio input")
         {
             setOpaque(true);
-
+            
             shouldMuteButton.setClickingTogglesState(true);
             shouldMuteButton.getToggleStateValue().referTo(owner.shouldMuteInput);
-
+            owner.muteInput = false;
+            
             addAndMakeVisible(deviceSelector);
 
             if (owner.getProcessorHasPotentialFeedbackLoop())
