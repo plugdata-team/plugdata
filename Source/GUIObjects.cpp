@@ -1873,11 +1873,10 @@ struct GraphOnParent : public GUIComponent
     
 public:
     // Graph On Parent
-    GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
+    GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), subpatch(gui.getPatch())
     {
         setInterceptsMouseClicks(box->locked == var(false), true);
         
-        subpatch = gui.getPatch();
         updateCanvas();
         
         initialise(newObject);
@@ -1987,9 +1986,8 @@ private:
 
 struct Subpatch : public GUIComponent
 {
-    Subpatch(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
+    Subpatch(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), subpatch(gui.getPatch())
     {
-        subpatch = gui.getPatch();
     }
     
     void updateValue() override

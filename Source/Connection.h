@@ -62,8 +62,8 @@ class Connection : public Component, public ComponentListener
 
     String getId() const;
 
-    MemoryBlock getState();
-    void setState(MemoryBlock& block);
+    String getState();
+    void setState(const String& block);
 
     void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
 

@@ -709,6 +709,8 @@ void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
     sys_unlock();
 }
 
+    
+
 int libpd_can_undo(t_canvas* cnv) {
     
     t_undo* udo = canvas_undo_get(cnv);

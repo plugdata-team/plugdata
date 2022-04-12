@@ -9,6 +9,7 @@
 #include "PdGui.h"
 #include "PdInstance.h"
 #include "PdObject.h"
+#include "PdStorage.h"
 
 extern "C"
 {
@@ -59,8 +60,9 @@ extern "C"
 namespace pd
 {
 
-Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr), instance(parentInstance)
+Patch::Patch(void* patchPtr, Instance* parentInstance)  : ptr(patchPtr), instance(parentInstance)
 {
+    
     if (auto* cnv = getPointer())
     {
         instance->getCallbackLock()->enter();
@@ -69,13 +71,7 @@ Patch::Patch(void* patchPtr, Instance* parentInstance) noexcept : ptr(patchPtr),
         setZoom(1);
 
         instance->getCallbackLock()->exit();
-
-        infoObject = getInfoObject();
-        updateExtraInfo();
-        
-        canvas_undo_add(cnv, UNDO_SEQUENCE_START, "MainSeq", 0);
     }
-    
 }
 
 Rectangle<int> Patch::getBounds() const noexcept
@@ -116,6 +112,8 @@ void Patch::setCurrent(bool lock)
     canvas_vis(getPointer(), 1.);
     canvas_map(getPointer(), 1.);
 
+
+
     t_atom argv[1];
     SETFLOAT(argv, 1);
     pd_typedmess((t_pd*)getPointer(), gensym("pop"), 1, argv);
@@ -130,9 +128,7 @@ int Patch::getIndex(void* obj)
 
     for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
     {
-        Object object(static_cast<void*>(y), this, instance);
-
-        if (String(object.getText()).startsWith("plugdatainfo")) continue;
+        if (Storage::isInfoParent(y)) continue;
 
         if (obj == y)
         {
@@ -174,7 +170,7 @@ std::vector<Object> Patch::getObjects(bool onlyGui) noexcept
         {
             Object object(static_cast<void*>(y), this, instance);
 
-            if (String(object.getText()).startsWith("plugdatainfo")) continue;
+            if (Storage::isInfoParent(y)) continue;
 
             if (onlyGui)
             {
@@ -381,7 +377,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
         return obj;
     }
 
-    instance->enqueueFunction([this, obj, name]() mutable { libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.length()); });
+    instance->enqueueFunction([this, obj, name]() mutable { libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.getNumBytesAsUTF8()); });
 
     instance->waitForStateUpdate();
 
@@ -566,7 +562,7 @@ void Patch::undo()
             EDITOR->canvas_undo_already_set_move = 0;
 
             libpd_undo(getPointer());
-
+            
             setCurrent();
         });
 }
@@ -590,6 +586,7 @@ void Patch::setZoom(int newZoom)
 {
     t_atom arg;
     SETFLOAT(&arg, newZoom);
+    
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
@@ -609,123 +606,6 @@ void Patch::keyPress(int keycode, int shift)
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("key"), 3, args);
 }
 
-void Patch::updateExtraInfo()
-{
-    if (!infoObject) return;
-
-    char* text;
-    int size = 0;
-    libpd_get_object_text(infoObject, &text, &size);
-
-    MemoryOutputStream ostream;
-    Base64::convertFromBase64(ostream, String(CharPointer_UTF8(text), size).fromFirstOccurrenceOf("plugdatainfo ", false, false));
-
-    MemoryInputStream istream(ostream.getMemoryBlock());
-
-    auto tree = ValueTree::fromXml(istream.readString());
-    if (tree.isValid())
-    {
-        extraInfo = tree;
-        return;
-    }
-}
-
-t_gobj* Patch::getInfoObject()
-{
-    if (infoObject)
-    {
-        return infoObject;
-    }
-    
-    instance->getCallbackLock()->enter();
-
-    for (t_gobj* y = getPointer()->gl_list; y; y = y->g_next)
-    {
-        if (strcmp(libpd_get_object_class_name(y), "text") != 0) continue;
-
-        char* text = nullptr;
-        int size = 0;
-        setCurrent(true);
-        libpd_get_object_text(y, &text, &size);
-        if (text && size)
-        {
-            if (String(CharPointer_UTF8(text), size).startsWith("plugdatainfo"))
-            {
-                instance->getCallbackLock()->exit();
-                return y;
-            }
-        }
-    }
-    instance->getCallbackLock()->exit();
-
-    auto newObject = createObject("comment plugdatainfo", 0, 0, false);
-    return static_cast<t_gobj*>(newObject->getPointer());
-}
-void Patch::setExtraInfoId(const String& oldId, const String& newId)
-{
-    auto child = extraInfo.getChildWithProperty("ID", oldId);
-
-    if (child.isValid())
-    {
-        child.setProperty("ID", newId, nullptr);
-    }
-
-    storeExtraInfo();
-}
-
-void Patch::storeExtraInfo()
-{
-    String infoString = Base64::toBase64(extraInfo.toXmlString());
-
-    t_gobj* info = getInfoObject();
-
-    String newname = "plugdatainfo " + infoString;
-
-    // This is likely thread safe because nothing else should access this object
-    binbuf_text((reinterpret_cast<t_text*>(info))->te_binbuf, newname.toRawUTF8(), newname.length());
-
-    deselectAll();
-}
-
-bool Patch::hasExtraInfo(const String& id) const
-{
-    auto child = extraInfo.getChildWithProperty("ID", id);
-    return child.isValid();
-}
-
-MemoryBlock Patch::getExtraInfo(const String& id) const
-{
-    auto child = extraInfo.getChildWithProperty("ID", id);
-
-    MemoryBlock block;
-
-    const auto info = child.getProperty("Info").toString();
-
-    block.fromBase64Encoding(info);
-
-    return block;
-}
-
-void Patch::setExtraInfo(const String& id, MemoryBlock& info)
-{
-    auto tree = ValueTree("Connection");
-
-    auto existingInfo = extraInfo.getChildWithProperty("ID", id);
-    if (existingInfo.isValid())
-    {
-        tree = existingInfo;
-    }
-
-    tree.setProperty("ID", id, nullptr);
-    tree.setProperty("Info", info.toBase64Encoding(), nullptr);
-
-    if (!existingInfo.isValid())
-    {
-        extraInfo.appendChild(tree, nullptr);
-    }
-
-    storeExtraInfo();
-}
 
 String Patch::getTitle() const
 {

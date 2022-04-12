@@ -53,7 +53,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     }
     else
     {
-        auto info = cnv->patch.getExtraInfo(getId());
+        auto info = cnv->storage.getInfo(getId());
         if (!info.isEmpty()) setState(info);
     }
 
@@ -77,47 +77,51 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     repaint();
 }
 
-MemoryBlock Connection::getState()
+String Connection::getState()
 {
-    MemoryOutputStream info;
-
     String pathAsString;
+    
+    MemoryOutputStream stream;
     for (auto& point : currentPlan)
     {
-        pathAsString += String(point.x - outlet->getPosition().x) + "*" + String(point.y - outlet->getPosition().y) + ",";
+        stream.writeInt(point.x - outlet->getPosition().x);
+        stream.writeInt(point.y - outlet->getPosition().y);
     }
-
-    info.writeString(pathAsString);
-
-    return info.getMemoryBlock();
+    
+    return stream.getMemoryBlock().toBase64Encoding();
 }
 
-void Connection::setState(MemoryBlock& block)
+void Connection::setState(const String& state)
 {
-    auto info = MemoryInputStream(cnv->patch.getExtraInfo(getId()));
-
-    auto pathAsString = info.readString();
-
     auto plan = PathPlan();
-
-    for (auto& point : StringArray::fromTokens(pathAsString, ",", ""))
+    
+    auto block = MemoryBlock();
+    block.fromBase64Encoding(state);
+    
+    auto stream = MemoryInputStream(std::move(block));
+    
+    while (!stream.isExhausted())
     {
-        if (point.length() < 1) continue;
-
-        auto x = point.upToFirstOccurrenceOf("*", false, false).getFloatValue();
-        auto y = point.fromFirstOccurrenceOf("*", false, false).getFloatValue();
+        auto x = stream.readInt();
+        auto y = stream.readInt();
 
         plan.emplace_back(x + outlet->getPosition().x, y + outlet->getPosition().y);
     }
+    
     currentPlan = plan;
     updatePath();
 }
 
 String Connection::getId() const
 {
-    int idx1 = cnv->patch.getIndex(inlet->box->pdObject->getPointer());
-    int idx2 = cnv->patch.getIndex(outlet->box->pdObject->getPointer());
-    return "c" + String(idx1) + String(idx2) + String(inIdx) + String(outIdx);
+    MemoryOutputStream stream;
+    
+    stream.writeInt(cnv->patch.getIndex(inlet->box->pdObject->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(outlet->box->pdObject->getPointer()));
+    stream.writeInt(inIdx);
+    stream.writeInt(outIdx);
+
+    return stream.getMemoryBlock().toBase64Encoding();
 }
 
 Connection::~Connection()
@@ -298,8 +302,12 @@ void Connection::mouseUp(const MouseEvent& e)
     {
         auto state = getState();
         lastId = getId();
-        cnv->patch.setExtraInfo(lastId, state);
+        
+
+        cnv->storage.setInfo(lastId, state);
         dragIdx = -1;
+        
+
     }
 }
 
@@ -524,7 +532,8 @@ void Connection::findPath()
 
     auto state = getState();
     lastId = getId();
-    cnv->patch.setExtraInfo(lastId, state);
+    cnv->storage.setInfo(lastId, state, false);
+    
 }
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)

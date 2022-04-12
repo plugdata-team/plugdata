@@ -814,7 +814,7 @@ Patch Gui::getPatch() const noexcept
         return {ptr, instance};
     }
 
-    return {};
+    return {nullptr, nullptr};
 }
 
 void Gui::setSendSymbol(const String& symbol) const noexcept
