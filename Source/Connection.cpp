@@ -8,6 +8,7 @@
 #include "Canvas.h"
 #include "Edge.h"
 
+
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e)
 {
     // Should improve performance

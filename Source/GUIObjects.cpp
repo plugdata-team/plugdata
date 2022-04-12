@@ -776,12 +776,14 @@ struct BangComponent : public GUIComponent
 
 struct ToggleComponent : public GUIComponent
 {
-    // TODO: fix in LookAndFeel!
+
     struct Toggle : public TextButton
     {
         void paint(Graphics& g) override
         {
-            g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::grey);
+            auto offColour = findColour(TextButton::buttonColourId).overlaidWith(Colours::grey.withAlpha(0.42f));
+            
+            g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : offColour);
             
             const auto crossBounds = getLocalBounds().reduced(6).toFloat();
             
@@ -789,6 +791,7 @@ struct ToggleComponent : public GUIComponent
             const auto strokeWidth = std::max(max * 0.15f, 2.0f);
             
             g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
+            
             g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
         }
     };
