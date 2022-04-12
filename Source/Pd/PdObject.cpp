@@ -139,7 +139,7 @@ Patch Object::getHelp() const
         return {pdPatch, instance};
     }
 
-    return {};
+    return {nullptr, nullptr};
 }
 
 void Object::setBounds(Rectangle<int> bounds)
