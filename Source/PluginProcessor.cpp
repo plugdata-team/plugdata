@@ -303,12 +303,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
     
-    auto const maxOuts = std::max(minOut, buffer.getNumChannels());
-    for (int i = minIn; i < maxOuts; ++i)
-    {
-        buffer.clear(i, 0, buffer.getNumSamples());
-    }
-    
     for (int n = 0; n < numParameters; n++)
     {
         if (parameterValues[n]->load() != lastParameters[n])
