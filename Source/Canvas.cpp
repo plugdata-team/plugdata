@@ -671,6 +671,13 @@ void Canvas::synchronise(bool updatePosition)
                 if (c.lastId.isNotEmpty() && c.lastId != currentId)
                 {
                     storage.setInfoId(c.lastId, currentId);
+                    
+                    for(auto& c2 : connections) {
+                        if(&c != c2) {
+                            //jassert(c2->lastId != currentId);
+                        }
+                    }
+                    
                 }
                 
                 c.lastId = currentId;
