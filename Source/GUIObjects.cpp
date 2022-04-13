@@ -75,8 +75,6 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     
     setWantsKeyboardFocus(true);
     
-    addMouseListener(this, true);
-    
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
 }
 
@@ -1026,6 +1024,10 @@ struct MessageComponent : public GUIComponent
         {
             isDown = true;
             repaint();
+            
+            startEdition();
+            gui.click();
+            stopEdition();
         }
         if (box->cnv->isSelected(box) && !box->selectionChanged)
         {
@@ -1042,13 +1044,6 @@ struct MessageComponent : public GUIComponent
         {
             input.showEditor();
             shouldOpenEditor = false;
-        }
-        
-        if (!gui.isAtom() && isLocked)
-        {
-            startEdition();
-            gui.click();
-            stopEdition();
         }
         
         repaint();
@@ -1880,6 +1875,8 @@ public:
         updateCanvas();
         
         initialise(newObject);
+        
+        addMouseListener(this, true);
         
         box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
         
