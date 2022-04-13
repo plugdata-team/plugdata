@@ -1106,6 +1106,8 @@ struct NumboxComponent : public GUIComponent
         initialise(newObject);
         input.setEditable(true, false);
         
+        addMouseListener(this, true); // why do we need this??
+        
         box->constrainer.setSizeLimits(50, Box::height - 2, 500, Box::height - 2);
     }
     
