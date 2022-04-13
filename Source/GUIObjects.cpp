@@ -782,7 +782,9 @@ struct ToggleComponent : public GUIComponent
         
         void paint(Graphics& g) override
         {
-            g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::grey);
+            auto offColour = findColour(TextButton::buttonColourId).overlaidWith(Colours::grey.withAlpha(0.42f));
+            
+            g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : offColour);
             
             const auto crossBounds = getLocalBounds().reduced(6).toFloat();
             

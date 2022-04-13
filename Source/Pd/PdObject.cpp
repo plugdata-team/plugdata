@@ -196,9 +196,47 @@ bool Object::isSignalOutlet(int idx) noexcept
 
 void Object::addUndoableAction()
 {
+    // unused but could be used for properties!!
     auto* obj = static_cast<t_gobj*>(getPointer());
     auto* cnv = static_cast<t_canvas*>(patch->getPointer());
     libpd_undo_apply(cnv, obj);
+}
+
+void Object::toFront() {
+    auto* cnv = static_cast<t_canvas*>(patch->getPointer());
+    
+    t_gobj *oldy, *oldy_prev, *oldy_next;
+    t_gobj *y_begin = cnv->gl_list;
+
+    auto glist_getindex = [](t_glist* x, t_gobj* y){
+        t_gobj* y2;
+        int indx;
+        for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
+        return (indx);
+    };
+    
+    auto glist_nth = [](t_glist *x, int n){
+        t_gobj *y;
+        int indx;
+        for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
+            if (indx == n)
+                return (y);
+       
+        jassertfalse;
+    };
+    
+    t_gobj* y = static_cast<t_gobj*>(getPointer());
+    t_gobj *y_end = glist_nth(cnv, glist_getindex(cnv, 0) - 1);
+
+    y_end->g_next = oldy;
+    oldy->g_next = NULL;
+
+        /* now fix links in the hole made in the list due to moving of the oldy
+         * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
+         */
+    if (oldy_prev) /* there is indeed more before the oldy position */
+        oldy_prev->g_next = oldy_next;
+    else cnv->gl_list = oldy_next;
 }
 
 }  // namespace pd
