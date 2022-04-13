@@ -75,5 +75,6 @@ class Connection : public Component, public ComponentListener
     bool straightLineIntersectsObject(Line<int> first);
 
    private:
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };
