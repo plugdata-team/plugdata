@@ -86,6 +86,8 @@ class Object
 
     bool isSignalInlet(int idx) noexcept;
     bool isSignalOutlet(int idx) noexcept;
+    
+    void toFront();
 
     void addUndoableAction();
 

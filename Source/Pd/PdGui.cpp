@@ -21,7 +21,7 @@ extern "C"
 
 #include "x_libpd_extra_utils.h"
 
-    void my_numbox_calc_fontwidth(t_my_numbox* x);
+void my_numbox_calc_fontwidth(t_my_numbox* x);
 }
 
 namespace pd
@@ -121,15 +121,6 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
         binbuf_addv(x->a_text.te_binbuf, "s", &s_);
     }
     return (binbuf_getvec(x->a_text.te_binbuf));
-}
-
-static int glist_getindex(t_glist* x, t_gobj* y)
-{
-    t_gobj* y2;
-    int indx;
-
-    for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
-    return (indx);
 }
 
 Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, patch, instance), type(Type::Undefined)
