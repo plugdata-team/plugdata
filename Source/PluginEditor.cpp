@@ -169,9 +169,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
             {
                 settingsDialog = Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree);
             }
+            
+            // Add on top of everything
+            // To make sure it is above the top-level close button
+            getTopLevelComponent()->addChildComponent(settingsDialog.get());
         }
-
-        addChildComponent(settingsDialog.get());
 
         settingsDialog->setVisible(true);
         settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(650, 500));
