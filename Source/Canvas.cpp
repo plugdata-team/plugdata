@@ -1300,6 +1300,7 @@ void Canvas::valueChanged(Value& v)
     // When lock changes
     if (v.refersToSameSourceAs(locked))
     {
+        if(connectingEdge) connectingEdge = nullptr;
         deselectAll();
         repaint();
     }
