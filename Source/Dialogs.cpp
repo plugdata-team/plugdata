@@ -23,7 +23,8 @@ struct BlackoutComponent : public Component
     
     std::function<void()> onClose;
 
-    BlackoutComponent(Component* p, Component* d, std::function<void()> closeCallback = [](){}) : parent(p), dialog(d), onClose(closeCallback) {
+    BlackoutComponent(Component* p, Component* d, std::function<void()> closeCallback = [](){}) : parent(p->getTopLevelComponent()), dialog(d), onClose(closeCallback) {
+        
         parent->addAndMakeVisible(this);
         //toBehind(dialog);
         setAlwaysOnTop(true);
@@ -577,7 +578,7 @@ void Dialogs::showSaveDialog(Component* centre, std::function<void(int)> callbac
     auto* dialog = new SaveDialog(centre);
     dialog->cb = std::move(callback);
 
-    centre->addAndMakeVisible(dialog);
+    centre->getTopLevelComponent()->addAndMakeVisible(dialog);
 
     dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 400, 130);
 }
@@ -586,7 +587,7 @@ void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String,
     auto* dialog = new ArrayDialog(centre);
     dialog->cb = std::move(callback);
 
-    centre->addAndMakeVisible(dialog);
+    centre->getTopLevelComponent()->addAndMakeVisible(dialog);
 
     dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 300, 180);
 }
