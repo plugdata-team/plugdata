@@ -774,9 +774,12 @@ struct BangComponent : public GUIComponent
 
 struct ToggleComponent : public GUIComponent
 {
-    // TODO: fix in LookAndFeel!
+
+    
     struct Toggle : public TextButton
     {
+        std::function<void()> onMouseDown;
+        
         void paint(Graphics& g) override
         {
             g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::grey);
@@ -789,6 +792,11 @@ struct ToggleComponent : public GUIComponent
             g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
             g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
         }
+        
+        void mouseDown(const MouseEvent& e) override {
+            TextButton::mouseDown(e);
+            onMouseDown();
+        }
     };
     
     Toggle toggleButton;
@@ -800,7 +808,7 @@ struct ToggleComponent : public GUIComponent
         toggleButton.setConnectedEdges(12);
         toggleButton.setName("pd:toggle");
         
-        toggleButton.onClick = [this]()
+        toggleButton.onMouseDown = [this]()
         {
             startEdition();
             auto newValue = 1.f - getValueOriginal();
