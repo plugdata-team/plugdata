@@ -215,7 +215,7 @@ void Object::toFront() {
         return (indx);
     };
     
-    auto glist_nth = [](t_glist *x, int n){
+    auto glist_nth = [](t_glist *x, int n) -> t_gobj* {
         t_gobj *y;
         int indx;
         for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
@@ -223,6 +223,7 @@ void Object::toFront() {
                 return (y);
        
         jassertfalse;
+        return nullptr;
     };
     
     t_gobj* y = static_cast<t_gobj*>(getPointer());
