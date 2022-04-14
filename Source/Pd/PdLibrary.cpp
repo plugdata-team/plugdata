@@ -24,6 +24,7 @@ struct _canvasenvironment
 namespace pd
 {
 
+
 // Iterative function to insert a key into a Trie
 void Trie::insert(const std::string& key)
 {

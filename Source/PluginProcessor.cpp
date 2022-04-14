@@ -653,7 +653,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
     // The DAW can call this function from basically any thread, hence the need for this
     MessageManager::callAsync([this, copy, sizeInBytes]() mutable {
         
-        MemoryInputStream istream(copy, sizeInBytes, true);
+        MemoryInputStream istream(copy, sizeInBytes, false);
         
         suspendProcessing(true);
         
@@ -698,7 +698,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
         
         suspendProcessing(false);
         
-        free(copy);
+        freebytes(copy, sizeInBytes);
     });
 }
 

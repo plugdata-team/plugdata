@@ -464,7 +464,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     
     // If background colour is not defined, set to default
     if(!storage.hasInfo("BackgroundColour")){
-        storage.setInfo("BackgroundColour", findColour(ResizableWindow::backgroundColourId).toString());
+        storage.setInfo("BackgroundColour", "Colour", findColour(ResizableWindow::backgroundColourId).toString());
     }
 
 
@@ -481,7 +481,7 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
-        auto colourState = storage.getInfo("BackgroundColour");
+        auto colourState = storage.getInfo("BackgroundColour", "Colour");
         backgroundColour = Colour::fromString(colourState);
         
         g.fillAll(findColour(ComboBox::backgroundColourId));
@@ -665,28 +665,26 @@ void Canvas::synchronise(bool updatePosition)
             }
             else
             {
+                // Update storage ids for connections
                 auto& c = *(*it);
 
                 auto currentId = c.getId();
                 if (c.lastId.isNotEmpty() && c.lastId != currentId)
                 {
                     storage.setInfoId(c.lastId, currentId);
-                    
-                    for(auto& c2 : connections) {
-                        if(&c != c2) {
-                            //jassert(c2->lastId != currentId);
-                        }
-                    }
-                    
                 }
                 
                 c.lastId = currentId;
 
-                auto info = storage.getInfo(currentId);
+                auto info = storage.getInfo(currentId, "Path");
                 if (info.length()) c.setState(info);
                 c.repaint();
+
+
             }
         }
+        
+        storage.confirmIds();
 
         setTransform(main.transform);
         updateDrawables();
@@ -705,6 +703,7 @@ void Canvas::synchronise(bool updatePosition)
     main.updateCommandStatus();
     repaint();
 }
+
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
