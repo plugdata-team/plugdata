@@ -120,7 +120,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     bool isGraph = false;
     bool isGraphChild = false;
-
+    bool updatingBounds = false; // used by connection
+    
     Point<int> canvasOrigin = {0, 0};
 
     GraphArea* graphArea = nullptr;

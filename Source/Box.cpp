@@ -26,6 +26,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     {
         setSize(100, height);
         showEditor();
+        toFront(false);
     }
     else
     {
@@ -362,6 +363,7 @@ void Box::resized()
         float newY = isInlet ? margin : getHeight() - margin;
         float newX = position * ((getWidth() - doubleEdgeMargin) / (total - 1 + (total == 1))) + edgeMargin;
 
+        
         if(((numInputs == 1 && isInlet) || (numOutputs == 1 && !isInlet)) && getWidth() < 40) {
             newX = getLocalBounds().getCentreX();
         }
