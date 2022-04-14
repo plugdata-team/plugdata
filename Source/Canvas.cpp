@@ -421,6 +421,9 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
 
     suggestor = new SuggestionComponent;
 
+    commandLocked.referTo(pd->commandLocked);
+    commandLocked.addListener(this);
+    
     locked.referTo(pd->locked);
     locked.addListener(this);
 
@@ -495,7 +498,8 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x, canvasOrigin.y - 1, getWidth(), canvasOrigin.y - 1);
     }
 
-    if (locked == var(false) && !isGraph)
+    
+    if (locked == var(false) && commandLocked == var(false) && !isGraph)
     {
         const int gridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
@@ -1301,6 +1305,9 @@ void Canvas::valueChanged(Value& v)
     {
         if(connectingEdge) connectingEdge = nullptr;
         deselectAll();
+        repaint();
+    }
+    else if(v.refersToSameSourceAs(commandLocked)) {
         repaint();
     }
     // Should only get called when the canvas isn't a real graph
