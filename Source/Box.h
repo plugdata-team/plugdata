@@ -32,6 +32,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void resized() override;
 
     void updatePorts();
+    Rectangle<int> getEdgeBounds(const int index, const int total, bool isInlet) const;
 
     void setType(const String& newType, bool exists = false);
     void updateBounds(bool newObject);

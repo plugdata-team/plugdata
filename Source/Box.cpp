@@ -349,27 +349,47 @@ void Box::resized()
     {
         newEditor->setBounds(getLocalBounds().reduced(margin));
     }
-
-    const int edgeMargin = 18;
-    const int doubleEdgeMargin = edgeMargin * 2;
-
+    
+    
+    
+    const int edgeSize = 12;
+    const int edgeHitBox = 8;
+    const int borderWidth = 14;
+    
+    auto inletBounds = getLocalBounds();
+    if(auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (edgeHitBox * numInputs) - borderWidth))
+    {
+        inletBounds.removeFromLeft(spaceToRemove);
+        inletBounds.removeFromRight(spaceToRemove);
+    }
+    
+    auto outletBounds = getLocalBounds();
+    if(auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (edgeHitBox * numOutputs) - borderWidth))
+    {
+        outletBounds.removeFromLeft(spaceToRemove);
+        outletBounds.removeFromRight(spaceToRemove);
+    }
+    
     int index = 0;
     for (auto& edge : edges)
     {
-        bool isInlet = edge->isInlet;
-        int position = index < numInputs ? index : index - numInputs;
-        int total = isInlet ? numInputs : numOutputs;
-
-        float newY = isInlet ? margin : getHeight() - margin;
-        float newX = position * ((getWidth() - doubleEdgeMargin) / (total - 1 + (total == 1))) + edgeMargin;
-
+        const bool isInlet = edge->isInlet;
+        const int position = index < numInputs ? index : index - numInputs;
+        const int total = isInlet ? numInputs : numOutputs;
+        const float yPosition = (isInlet ? margin : getHeight() - margin) - edgeSize / 2.0f;
         
-        if(((numInputs == 1 && isInlet) || (numOutputs == 1 && !isInlet)) && getWidth() < 40) {
-            newX = getLocalBounds().getCentreX();
+        const auto bounds = isInlet ? inletBounds : outletBounds;
+
+        if(total == 1 && position == 0)
+        {
+            int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - edgeSize / 2.0f: bounds.getX();
+            edge->setBounds(xPosition, yPosition, edgeSize, edgeSize);
         }
-        
-        edge->setCentrePosition(newX, newY);
-        edge->setSize(12, 12);
+        else if(total > 1)
+        {
+            const double ratio = (bounds.getWidth() - edgeSize) / (double)(total - 1);
+            edge->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
+        }
 
         index++;
     }
