@@ -53,7 +53,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     }
     else
     {
-        auto info = cnv->storage.getInfo(getId());
+        auto info = cnv->storage.getInfo(getId(), "Path");
         if (!info.isEmpty()) setState(info);
     }
 
@@ -82,10 +82,11 @@ String Connection::getState()
     String pathAsString;
     
     MemoryOutputStream stream;
+    
     for (auto& point : currentPlan)
     {
-        stream.writeInt(point.x - outlet->getPosition().x);
-        stream.writeInt(point.y - outlet->getPosition().y);
+        stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
+        stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
     }
     
     return stream.getMemoryBlock().toBase64Encoding();
@@ -94,6 +95,13 @@ String Connection::getState()
 void Connection::setState(const String& state)
 {
     auto plan = PathPlan();
+    
+    /*
+    MemoryBlock positionBlock;
+    positionBlock.fromBase64Encoding(cnv->storage.getInfo(getId(), "Offset"));
+    MemoryInputStream positionStream(positionBlock, false);
+    int xOffset = positionStream.readInt();
+    int yOffset = positionStream.readInt(); */
     
     auto block = MemoryBlock();
     auto succeeded = block.fromBase64Encoding(state);
@@ -106,7 +114,7 @@ void Connection::setState(const String& state)
             auto x = stream.readInt();
             auto y = stream.readInt();
 
-            plan.emplace_back(x + outlet->getPosition().x, y + outlet->getPosition().y);
+            plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
         }
     }
     currentPlan = plan;
@@ -117,10 +125,12 @@ String Connection::getId() const
 {
     MemoryOutputStream stream;
     
+    // TODO: check if connection is still valid before requesting idx from box
+    
     stream.writeInt(cnv->patch.getIndex(inlet->box->pdObject->getPointer()));
     stream.writeInt(cnv->patch.getIndex(outlet->box->pdObject->getPointer()));
     stream.writeInt(inIdx);
-    stream.writeInt(outIdx);
+    stream.writeInt(outlet->box->numInputs + outIdx);
 
     return stream.getMemoryBlock().toBase64Encoding();
 }
@@ -304,11 +314,8 @@ void Connection::mouseUp(const MouseEvent& e)
         auto state = getState();
         lastId = getId();
         
-
-        cnv->storage.setInfo(lastId, state);
+        cnv->storage.setInfo(lastId, "Path", state);
         dragIdx = -1;
-        
-
     }
 }
 
@@ -447,6 +454,13 @@ void Connection::updatePath()
     }
 
     offset = {-bounds.getX(), -bounds.getY()};
+
+    /*
+    MemoryOutputStream positionStream;
+    positionStream.writeInt(outlet->getCanvasBounds().getCentre().x);
+    positionStream.writeInt(outlet->getCanvasBounds().getCentre().y);
+    
+    cnv->storage.setInfo(lastId, "Offset", positionStream.getMemoryBlock().toBase64Encoding(), false); */
 }
 
 void Connection::findPath()
@@ -530,11 +544,10 @@ void Connection::findPath()
     std::reverse(simplifiedPath.begin(), simplifiedPath.end());
 
     currentPlan = simplifiedPath;
-
+    
     auto state = getState();
     lastId = getId();
-    cnv->storage.setInfo(lastId, state, false);
-    
+    cnv->storage.setInfo(lastId, "Path", state);
 }
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)

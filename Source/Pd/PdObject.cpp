@@ -196,7 +196,7 @@ bool Object::isSignalOutlet(int idx) noexcept
 
 void Object::addUndoableAction()
 {
-    // unused but could be used for properties!!
+    // Used for size changes, could also be used for properties
     auto* obj = static_cast<t_gobj*>(getPointer());
     auto* cnv = static_cast<t_canvas*>(patch->getPointer());
     libpd_undo_apply(cnv, obj);

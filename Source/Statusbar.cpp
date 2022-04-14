@@ -170,7 +170,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
         colourSelector->setSize(300, 400);
         colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
         
-        auto colourState = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas()->storage.getInfo("BackgroundColour");
+        auto colourState = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas()->storage.getInfo("BackgroundColour", "Colour");
         
         colourSelector->setCurrentColour(Colour::fromString(colourState));
 
@@ -280,7 +280,7 @@ void Statusbar::changeListenerCallback(ChangeBroadcaster* source)
     auto* cs = dynamic_cast<ColourSelector*>(source);
     auto* cnv = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas();
 
-    cnv->storage.setInfo("BackgroundColour", cs->getCurrentColour().toString());
+    cnv->storage.setInfo("BackgroundColour", "Colour", cs->getCurrentColour().toString());
     cnv->repaint();
     
     for(auto& box : cnv->boxes) {

@@ -617,17 +617,15 @@ t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y)
 
 void canvas_obj(t_glist *gl, t_symbol *s, int argc, t_atom *argv);
 
-t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int undoable) {
+t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
     
     sys_lock();
     pd_typedmess((t_pd*)cnv, s, argc, argv);
     sys_unlock();
     
-    if(undoable) {
-        canvas_undo_add(cnv, UNDO_CREATE, "create",
+    canvas_undo_add(cnv, UNDO_CREATE, "create",
                         (void *)canvas_undo_set_create(cnv));
-    }
-    
+
     glist_noselect(cnv);
     
     return libpd_newest(cnv);

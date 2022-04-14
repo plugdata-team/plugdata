@@ -252,7 +252,7 @@ size_t Gui::getNumberOfSteps() const noexcept
     }
     else if (type == Type::HorizontalRadio)
     {
-        return (static_cast<t_hdial*>(ptr))->x_number - 1;
+        return (static_cast<t_hdial*>(ptr))->x_number;
     }
     else if (type == Type::VerticalRadio)
     {
@@ -309,11 +309,11 @@ float Gui::getMaximum() const noexcept
     }
     else if (type == Type::HorizontalRadio)
     {
-        return (static_cast<t_hdial*>(ptr))->x_number - 1;
+        return (static_cast<t_hdial*>(ptr))->x_number;
     }
     else if (type == Type::VerticalRadio)
     {
-        return (static_cast<t_vdial*>(ptr))->x_number - 1;
+        return (static_cast<t_vdial*>(ptr))->x_number;
     }
     else if (type == Type::Bang)
     {
@@ -543,12 +543,15 @@ std::string Gui::getSymbol() const noexcept
     {
         instance->setThis();
 
-        char* argv;
-        int argc;
+        char* text;
+        int size;
 
-        binbuf_gettext(static_cast<t_message*>(ptr)->m_text.te_binbuf, &argv, &argc);
+        binbuf_gettext(static_cast<t_message*>(ptr)->m_text.te_binbuf, &text, &size);
 
-        return {argv, static_cast<size_t>(argc)};
+        auto result = std::string(text, size);
+        freebytes(text, size);
+        
+        return result;
     }
     else if (ptr && type == Type::AtomSymbol)
     {
