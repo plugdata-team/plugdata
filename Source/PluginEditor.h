@@ -78,10 +78,12 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
     void mouseMagnify(const MouseEvent& e, float scaleFactor) override;
     
+#ifdef PLUGDATA_STANDALONE
     // For dragging parent window
     void mouseDrag(const MouseEvent& e) override;
     void mouseDown(const MouseEvent& e) override;
-
+#endif
+    
     void openProject();
     void saveProject(const std::function<void()>& nestedCallback = []() {});
     void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
@@ -119,7 +121,13 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
+    
+    
+#ifdef PLUGDATA_STANDALONE
     static constexpr int toolbarHeight = 45;
+#else
+    static constexpr int toolbarHeight = 40;
+#endif
 
     OwnedArray<TextButton> toolbarButtons;
 

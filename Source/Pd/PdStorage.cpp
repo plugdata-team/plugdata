@@ -49,6 +49,7 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
                 libpd_get_object_text(glist->gl_list, &text, &size);
                 
                 String name = String(CharPointer_UTF8(text), size);
+                freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
                 
                 // Found an existing storage object!
                 if(name.startsWith("plugdatainfo")) {
@@ -83,7 +84,7 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
     SETSYMBOL(argv.data() + 2, gensym("plugdatainfo"));
     
 
-    infoObject = &pd_checkobject(libpd_createobj(infoParent, gensym("text"), argc, argv.data(), false))->te_g;
+    infoObject = &pd_checkobject(libpd_createobj(infoParent, gensym("text"), argc, argv.data()))->te_g;
 
     instance->getCallbackLock()->exit();
     
@@ -103,12 +104,13 @@ void Storage::loadInfoFromPatch()
     int size = 0;
     libpd_get_object_text(infoObject, &text, &size);
     
+    // copy state tree from patch
+    String content = String(CharPointer_UTF8(text), size).fromFirstOccurrenceOf("plugdatainfo ", false, false);
+    freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+    
     // Set parent to be current again
     canvas_setcurrent(parentPatch);
     canvas_map(infoParent, 0);
-    
-    // copy state tree from patch
-    String content = String(CharPointer_UTF8(text), size).fromFirstOccurrenceOf("plugdatainfo ", false, false);
     
     auto block = MemoryBlock();
     auto succeeded = block.fromBase64Encoding(content);
@@ -149,8 +151,8 @@ void Storage::storeInfo()
 
 void Storage::ensureDeselected()
 {
-    glist_noselect(infoParent);
-    glist_noselect(parentPatch);
+    //glist_noselect(infoParent);
+    //glist_noselect(parentPatch);
 }
 
 // Function to change the id of an entry
@@ -160,15 +162,23 @@ void Storage::setInfoId(const String& oldId, const String& newId)
 {
     if(!infoObject) return;
     
-    auto child = extraInfo.getChildWithProperty("ID", oldId);
-    
-    if (child.isValid())
-    {
-        child.setProperty("ID", newId, nullptr);
+    for (auto s : extraInfo) {
+        if (s.getProperty("ID") == oldId && s.getProperty("Updated") == var(false)) {
+            s.setProperty("ID", newId, nullptr);
+            s.setProperty("Updated", true, nullptr); // Updated flag in case we temporarily need conflicting IDs
+            return;
+        }
     }
     
+    jassertfalse;
+
+}
+
+void Storage::confirmIds() {
+    for (auto s : extraInfo) s.setProperty("Updated", false, nullptr);
     storeInfo();
 }
+
 
 // Check if info exists
 bool Storage::hasInfo(const String& id) const
@@ -178,15 +188,17 @@ bool Storage::hasInfo(const String& id) const
 }
 
 // Get info from local state
-String Storage::getInfo(const String& id) const
+String Storage::getInfo(const String& id, const String& property) const
 {
-    return extraInfo.getChildWithProperty("ID", id).getProperty("Info").toString();
+    return extraInfo.getChildWithProperty("ID", id).getProperty(property).toString();
 }
 
 // Set info to local state
 // Also pushes the change into pd patch
-void Storage::setInfo(const String& id, const String& info, bool undoable)
+void Storage::setInfo(const String& id, const String& property, const String& info, bool undoable)
 {
+    jassert(property != "Updated" && property != "ID");
+    
     auto tree = ValueTree("InfoObj");
     
     auto existingInfo = extraInfo.getChildWithProperty("ID", id);
@@ -201,7 +213,7 @@ void Storage::setInfo(const String& id, const String& info, bool undoable)
     }
     
     tree.setProperty("ID", id, nullptr);
-    tree.setProperty("Info", info, undoable ? &undoManager : nullptr);
+    tree.setProperty(property, info, undoable ? &undoManager : nullptr);
     
     if(undoable) createUndoAction();
     
@@ -284,6 +296,8 @@ bool Storage::isInfoParent(t_glist* glist) {
         libpd_get_object_text(glist->gl_list, &text, &size);
         
         String name = String(CharPointer_UTF8(text), size);
+        freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
+        
         if(name.startsWith("plugdatainfo")) {
             return true;
         }

@@ -20,7 +20,7 @@ extern "C"
 
 t_pd* libpd_newest(t_canvas* cnv);
 
-t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv, int undoable);
+t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv);
 t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y);
 t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y);
 

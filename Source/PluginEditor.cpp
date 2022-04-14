@@ -334,8 +334,11 @@ void PlugDataPluginEditor::resized()
     {
         toolbarButtons[b]->setVisible((toolbarButtons[b]->getBounds().getCentreX()) < getWidth() - sidebar.getWidth());
     }
-
-    int offset = JUCEApplication::isStandaloneApp() ? 150 : 80;
+#ifdef PLUGDATA_STANDALONE
+    int offset = 150;
+#else
+    int offset = 80;
+#endif
     int xPosition = getWidth() - sidebar.getWidth();
     
     toolbarButton(Hide)->setBounds(std::min(xPosition, getWidth() - offset), 0, 70, toolbarHeight);
@@ -381,26 +384,22 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
     viewport->setViewPosition(viewport->getViewPositionX() + (oldMousePos.x - newMousePos.x), viewport->getViewPositionY() + (oldMousePos.y - newMousePos.y));
 }
 
+#ifdef PLUGDATA_STANDALONE
 void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
-    if(JUCEApplication::isStandaloneApp()) {
-        if(e.getPosition().getY() < toolbarHeight)
-        {
-            auto* window = getTopLevelComponent();
-            windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
-        }
+    if(e.getPosition().getY() < toolbarHeight)
+    {
+        auto* window = getTopLevelComponent();
+        windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
     }
 }
 
 void PlugDataPluginEditor::mouseDrag(const MouseEvent& e)
 {
-   
-    if(JUCEApplication::isStandaloneApp()) {
-        auto* window = getTopLevelComponent();
-        windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
-    }
+    auto* window = getTopLevelComponent();
+    windowDragger.dragComponent(window, e.getEventRelativeTo(window), nullptr);
 }
-
+#endif
 
 void PlugDataPluginEditor::openProject()
 {

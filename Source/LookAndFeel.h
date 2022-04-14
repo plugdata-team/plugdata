@@ -202,6 +202,8 @@ struct PlugDataDarkLook : public PlugDataLook
         setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
 
         setDefaultSansSerifTypeface(resources->defaultTypeface);
+        
+        getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, Colour(23, 23, 23));
     }
 
     class PlugData_DocumentWindowButton : public Button
@@ -354,11 +356,12 @@ struct PlugDataDarkLook : public PlugDataLook
         g.setColour(background);
 
         // Fill background if there's no support for transparent popupmenus
-
-        if (!Desktop::canUseSemiTransparentWindows() && JUCEApplicationBase::isStandaloneApp())
+#ifdef PLUGDATA_STANDALONE
+        if (!Desktop::canUseSemiTransparentWindows())
         {
             g.fillAll(findColour(ResizableWindow::backgroundColourId));
         }
+#endif
 
         // On linux, the canUseSemiTransparentWindows flag sometimes incorrectly returns true
 #ifdef JUCE_LINUX

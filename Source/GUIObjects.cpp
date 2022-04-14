@@ -1581,7 +1581,7 @@ struct RadioComponent : public GUIComponent
     
     void update() override
     {
-        int selected = getValueOriginal();
+        int selected = getValueOriginal() - 1;
         
         if (selected < radioButtons.size())
         {
@@ -1613,7 +1613,7 @@ struct RadioComponent : public GUIComponent
             };
         }
         
-        radioButtons[(int)gui.getValue()]->setToggleState(true, dontSendNotification);
+        radioButtons[((int)gui.getValue() - 1)]->setToggleState(true, dontSendNotification);
         
         resized();
         //box->updateBounds(false);
