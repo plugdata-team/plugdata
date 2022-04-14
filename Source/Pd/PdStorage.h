@@ -30,10 +30,6 @@ class Storage
     
     Storage() = delete;
     
-    ~Storage() {
-        std::cout << "storage deleted!" << std::endl;
-        
-    }
     void setInfoId(const String& oldId, const String& newId);
     void confirmIds();
     

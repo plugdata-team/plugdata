@@ -626,9 +626,20 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
     canvas_undo_add(cnv, UNDO_CREATE, "create",
                         (void *)canvas_undo_set_create(cnv));
 
+    
+    t_pd* new_object = libpd_newest(cnv);
+    
+    if (new_object)
+    {
+        if (pd_class(new_object) == canvas_class)
+            canvas_loadbang((t_canvas *)pd_this->pd_newest);
+        else if (zgetfn(new_object, gensym("loadbang")))
+            vmess(new_object, gensym("loadbang"), "f", LB_LOAD);
+    }
+    
     glist_noselect(cnv);
     
-    return libpd_newest(cnv);
+    return new_object;
     
 }
 
