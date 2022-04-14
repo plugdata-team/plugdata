@@ -682,8 +682,9 @@ void Canvas::synchronise(bool updatePosition)
 
                 auto info = storage.getInfo(currentId, "Path");
                 if (info.length()) c.setState(info);
+                
                 c.repaint();
-
+                
 
             }
         }
@@ -856,7 +857,8 @@ void Canvas::mouseDown(const MouseEvent& e)
                     break;
 
                 case 8:  // To Front
-                    lassoSelection.getSelectedItem(0)->toFront(false);
+                    box->toFront(false);
+                    box->pdObject->toFront();
                     break;
 
                 case 9:
@@ -1269,6 +1271,8 @@ void Canvas::redo()
 void Canvas::checkBounds()
 {
     if (isGraph || !viewport) return;
+    
+    updatingBounds = true;
 
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
 
@@ -1286,6 +1290,7 @@ void Canvas::checkBounds()
     {
         box->updateBounds(false);
     }
+    
 
     if (graphArea)
     {
@@ -1296,6 +1301,8 @@ void Canvas::checkBounds()
     {
         tmpl->updateIfMoved();
     }
+    
+    updatingBounds = false;
 }
 
 void Canvas::valueChanged(Value& v)

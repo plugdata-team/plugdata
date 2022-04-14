@@ -203,11 +203,7 @@ void Object::addUndoableAction()
 }
 
 void Object::toFront() {
-    auto* cnv = static_cast<t_canvas*>(patch->getPointer());
     
-    t_gobj *oldy, *oldy_prev, *oldy_next;
-    t_gobj *y_begin = cnv->gl_list;
-
     auto glist_getindex = [](t_glist* x, t_gobj* y){
         t_gobj* y2;
         int indx;
@@ -225,19 +221,32 @@ void Object::toFront() {
         jassertfalse;
         return nullptr;
     };
-    
+
+    auto* cnv = static_cast<t_canvas*>(patch->getPointer());
     t_gobj* y = static_cast<t_gobj*>(getPointer());
+    
+    t_gobj *y_prev, *y_next;
+    t_gobj *y_begin = cnv->gl_list;
+    
+        /* if there is an object before ours (in other words our index is > 0) */
+    if (int idx = glist_getindex(cnv, y))
+        y_prev = glist_nth(cnv, idx - 1);
+
+        /* if there is an object after ours */
+    if (y->g_next)
+        y_next = y->g_next;
+
     t_gobj *y_end = glist_nth(cnv, glist_getindex(cnv, 0) - 1);
 
-    y_end->g_next = oldy;
-    oldy->g_next = NULL;
+    y_end->g_next = y;
+    y->g_next = NULL;
 
         /* now fix links in the hole made in the list due to moving of the oldy
          * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
          */
-    if (oldy_prev) /* there is indeed more before the oldy position */
-        oldy_prev->g_next = oldy_next;
-    else cnv->gl_list = oldy_next;
+    if (y_prev) /* there is indeed more before the oldy position */
+        y_prev->g_next = y_next;
+    else cnv->gl_list = y_next;
 }
 
 }  // namespace pd

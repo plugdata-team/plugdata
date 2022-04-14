@@ -12,6 +12,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
 {
     // Should improve performance
     setBufferedToImage(true);
+    
 
     locked.referTo(parent->locked);
     connectionStyle.referTo(parent->connectionStyle);
@@ -66,7 +67,6 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     setInterceptsMouseClicks(true, false);
 
     cnv->addAndMakeVisible(this);
-
     setAlwaysOnTop(true);
 
     // Update position
@@ -113,7 +113,7 @@ void Connection::setState(const String& state)
         {
             auto x = stream.readInt();
             auto y = stream.readInt();
-
+            
             plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
         }
     }
@@ -331,7 +331,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     // If both inlet and outlet are selected we can just move the connection cord
-    if (cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box))
+    if ((cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box)) || cnv->updatingBounds)
     {
         auto offset = pstart - currentPlan[0];
         for (auto& point : currentPlan) point += offset;
@@ -434,7 +434,7 @@ void Connection::updatePath()
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++)
         {
-            if (connectionPath.contains(currentPlan[n].toFloat())) continue;
+            if (connectionPath.contains(currentPlan[n].toFloat())) continue; // ??
 
             connectionPath.lineTo(currentPlan[n].toFloat() - origin.toFloat());
         }
@@ -454,13 +454,6 @@ void Connection::updatePath()
     }
 
     offset = {-bounds.getX(), -bounds.getY()};
-
-    /*
-    MemoryOutputStream positionStream;
-    positionStream.writeInt(outlet->getCanvasBounds().getCentre().x);
-    positionStream.writeInt(outlet->getCanvasBounds().getCentre().y);
-    
-    cnv->storage.setInfo(lastId, "Offset", positionStream.getMemoryBlock().toBase64Encoding(), false); */
 }
 
 void Connection::findPath()

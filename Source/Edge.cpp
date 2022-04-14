@@ -44,7 +44,7 @@ bool Edge::hasConnection()
 Rectangle<int> Edge::getCanvasBounds()
 {
     // Get bounds relative to canvas, used for positioning connections
-    return getBounds() + getParentComponent()->getPosition();
+    return getBounds() + box->getPosition();
 }
 
 void Edge::paint(Graphics& g)

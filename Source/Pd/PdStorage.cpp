@@ -212,10 +212,12 @@ void Storage::setInfo(const String& id, const String& property, const String& in
         extraInfo.appendChild(tree, nullptr);
     }
     
-    tree.setProperty("ID", id, nullptr);
-    tree.setProperty(property, info, undoable ? &undoManager : nullptr);
-    
     if(undoable) createUndoAction();
+    
+    tree.setProperty("ID", id, nullptr);
+    tree.setProperty(property, info, &undoManager);
+    
+
     
     storeInfo();
 }
