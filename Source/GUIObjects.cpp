@@ -120,7 +120,7 @@ void GUIComponent::initialise(bool newObject)
     labelText = gui.getLabelText();
     
     if (gui.isIEM()) {
-    
+        
         primaryColour = Colour(gui.getForegroundColour()).toString();
         secondaryColour = Colour(gui.getBackgroundColour()).toString();
         labelColour = Colour(gui.getLabelColour()).toString();
@@ -411,11 +411,11 @@ void GUIComponent::updateLabel()
             position.y -= (fontHeight - height) / 2;
             height = fontHeight;
         }
-    
+        
         label->setBounds(position.x, position.y, labelWidth, height);
         
         label->setFont(Font(static_cast<int>(labelHeight.getValue())));
-
+        
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
         label->setText(text, dontSendNotification);
@@ -774,7 +774,7 @@ struct BangComponent : public GUIComponent
 
 struct ToggleComponent : public GUIComponent
 {
-
+    
     
     struct Toggle : public TextButton
     {
@@ -879,8 +879,6 @@ struct MessageComponent : public GUIComponent
         {
             input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
             
-            // input.onTextChange = [this]() { gui.setSymbol(input.getText().toStdString()); };
-            
             // For the autoresize while typing feature
             input.onEditorShow = [this]()
             {
@@ -895,46 +893,9 @@ struct MessageComponent : public GUIComponent
                         box->setSize(width, box->getHeight());
                     }
                 };
-                
-                editor->onFocusLost = [this]()
-                {
-                    auto width = input.getFont().getStringWidth(input.getText()) + 25;
-                    if (width < box->getWidth())
-                    {
-                        box->setSize(width, box->getHeight());
-                        box->constrainer.checkComponentBounds(box);
-                    }
-                };
             };
         }
-        // symbolatom box behaviour
-        else
-        {
-            /*
-             input.onEditorShow = [this]()
-             {
-             auto* editor = input.getCurrentTextEditor();
-             editor->onReturnKey = [this, editor]()
-             {
-             startEdition();
-             gui.setSymbol(editor->getText().toStdString());
-             stopEdition();
-             // input.setText(String(gui.getSymbol()), dontSendNotification);
-             };
-             
-             editor->onFocusLost = [this]()
-             {
-             auto width = input.getFont().getStringWidth(input.getText()) + 25;
-             if (width < box->getWidth())
-             {
-             box->setSize(width, box->getHeight());
-             box->constrainer.checkComponentBounds(box);
-             }
-             
-             };
-             }; */
-        }
-        
+
         initialise(newObject);
         
         box->addMouseListener(this, false);
@@ -969,6 +930,17 @@ struct MessageComponent : public GUIComponent
             g.setGradientFill(ColourGradient::vertical(baseColour, baseColour.darker(1.5f), getLocalBounds()));
             
             g.fillRoundedRectangle(rect, 2.0f);
+            
+            auto b = getLocalBounds();
+            
+            Path flagPath;
+            flagPath.addQuadrilateral(b.getRight(), b.getY(),
+                                      b.getRight() - 4, b.getY() + 4,
+                                      b.getRight() - 4, b.getBottom() - 4,
+                                      b.getRight(), b.getBottom());
+            
+            g.setColour(findColour(Slider::thumbColourId));
+            g.fillPath(flagPath);
         }
         else
         {
@@ -1022,9 +994,8 @@ struct MessageComponent : public GUIComponent
     {
         updateValue();  // make sure text is loaded
         
-        // auto [x, y, w, h] = gui.getBounds();
-        int stringLength = std::max(10, input.getFont().getStringWidth(input.getText()));
-        return {stringLength + 20, numLines * 21};
+        auto bounds = gui.getBounds();
+        return {bounds.getWidth(), bounds.getHeight()};
     };
     
     void mouseDown(const MouseEvent& e) override
@@ -1530,8 +1501,8 @@ struct RadioComponent : public GUIComponent
         updateRange();
         
         numButtons.addListener(this);
-        
-        int selected = getValueOriginal();
+                
+        int selected = gui.getValue();
         
         if (selected < radioButtons.size())
         {
@@ -1553,7 +1524,7 @@ struct RadioComponent : public GUIComponent
         if (multiple == 0) return value;
         return static_cast<T>(std::round(static_cast<double>(value)/static_cast<double>(multiple))*static_cast<double>(multiple));
     }
-
+    
     
     void resized() override
     {
@@ -1563,7 +1534,7 @@ struct RadioComponent : public GUIComponent
             if(isVertical) radioButtons[i]->setBounds(0, i * size, size, size);
             else           radioButtons[i]->setBounds(i * size, 0, size, size);
         }
-                
+        
         // Fix aspect ratio and
         if(isVertical) {
             if(getWidth() - Box::doubleMargin != size) {
@@ -1581,7 +1552,7 @@ struct RadioComponent : public GUIComponent
     
     void update() override
     {
-        int selected = getValueOriginal() - 1;
+        int selected = gui.getValue();
         
         if (selected < radioButtons.size())
         {
@@ -1613,7 +1584,7 @@ struct RadioComponent : public GUIComponent
             };
         }
         
-        radioButtons[((int)gui.getValue() - 1)]->setToggleState(true, dontSendNotification);
+        radioButtons[gui.getValue()]->setToggleState(true, dontSendNotification);
         
         resized();
         //box->updateBounds(false);
@@ -1907,7 +1878,7 @@ public:
     void lock(bool locked) override
     {
         isLocked = locked;
-        setInterceptsMouseClicks(isLocked, true);
+        setInterceptsMouseClicks(isLocked, isLocked);
     }
     
     void mouseDown(const MouseEvent& e) override
@@ -2100,7 +2071,7 @@ struct VUMeter : public GUIComponent
         auto verticalGradient = ColourGradient (c, 0, getHeight(), Colours::red, 0, 0, false);
         verticalGradient.addColour(0.5f, c);
         verticalGradient.addColour(0.75f, Colours::orange);
-    
+        
         for (auto i = 0; i < totalBlocks; ++i)
         {
             if (i >= numBlocks)
@@ -2416,8 +2387,8 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         
         addAndMakeVisible(keyboard);
         
-
-
+        
+        
         auto* x = (t_keyboard*)gui.getPointer();
         x->x_width = width * 0.595f;
         
@@ -2439,11 +2410,11 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     void resized() override
     {
         /*
-        
-            
-            keyboard.setKeyWidth(getWidth() / (numKeys * 0.595f));
-            int width = keyboard.getKeyPosition(rangeMax.getValue(), keyboard.getKeyWidth()).getEnd();
-        } */
+         
+         
+         keyboard.setKeyWidth(getWidth() / (numKeys * 0.595f));
+         int width = keyboard.getKeyPosition(rangeMax.getValue(), keyboard.getKeyWidth()).getEnd();
+         } */
         int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
         float ratio = numKeys / 9.55f;
         
@@ -2504,10 +2475,10 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     };
     
     
-     ObjectParameters defineParameters() override
-     {
-     return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
-     };
+    ObjectParameters defineParameters() override
+    {
+        return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
+    };
     
     
     void valueChanged(Value& value) override

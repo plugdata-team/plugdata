@@ -160,6 +160,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     AudioProcessorValueTreeState parameters;
 
     StatusbarSource statusbarSource;
+    
+    Value tailLength = Value(0.0f);
 
    private:
     void processInternal();
