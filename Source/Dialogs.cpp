@@ -236,27 +236,44 @@ struct DAWAudioSettings : public Component
         latencySlider.setRange(0, 88200, 1);
         latencySlider.setTextValueSuffix(" Samples");
         latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
+        
+        addAndMakeVisible(tailLengthSlider);
+        tailLengthSlider.setRange(0, 88200, 1);
+        tailLengthSlider.setTextValueSuffix(" Seconds");
+        tailLengthSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
 
-        latencySlider.onValueChange = [this]() { processor.setLatencySamples(latencySlider.getValue()); };
-
+        addAndMakeVisible(tailLengthLabel);
+        tailLengthLabel.setText("Tail Length", dontSendNotification);
+        tailLengthLabel.attachToComponent(&tailLengthSlider, true);
+        
         addAndMakeVisible(latencyLabel);
         latencyLabel.setText("Latency", dontSendNotification);
         latencyLabel.attachToComponent(&latencySlider, true);
+        
+        auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
+        latencySlider.onValueChange = [this, proc]() { proc->setLatencySamples(latencySlider.getValue()); };
+        tailLengthSlider.onValueChange = [this, proc]() { proc->tailLength.setValue(tailLengthSlider.getValue());};
     }
 
     void resized() override
     {
         latencySlider.setBounds(90, 5, getWidth() - 130, 20);
+        tailLengthSlider.setBounds(90, 30, getWidth() - 130, 20);
     }
 
     void visibilityChanged() override
     {
+        auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
         latencySlider.setValue(processor.getLatencySamples());
+        tailLengthSlider.setValue(static_cast<float>(proc->tailLength.getValue()));
     }
 
     AudioProcessor& processor;
     Label latencyLabel;
+    Label tailLengthLabel;
+    
     Slider latencySlider;
+    Slider tailLengthSlider;
 };
 
 class SearchPathComponent : public Component, public TableListBoxModel

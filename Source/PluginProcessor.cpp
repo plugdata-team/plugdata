@@ -183,7 +183,7 @@ bool PlugDataAudioProcessor::isMidiEffect() const
 
 double PlugDataAudioProcessor::getTailLengthSeconds() const
 {
-    return 0.0;
+    return static_cast<float>(tailLength.getValue());
 }
 
 int PlugDataAudioProcessor::getNumPrograms()
@@ -634,6 +634,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     
     ostream.writeString(getPatch().getCanvasContent());
     ostream.writeInt(getLatencySamples());
+    ostream.writeFloat(static_cast<float>(tailLength.getValue()));
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
     ostream.writeString(getCurrentFile().getFullPathName());
@@ -659,7 +660,10 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
         
         String state = istream.readString();
         auto latency = istream.readInt();
+        auto tail = istream.readFloat();
         auto xmlSize = istream.readInt();
+        
+        tailLength = var(tail);
         
         void* xmlData = static_cast<void*>(new char[xmlSize]);
         istream.read(xmlData, xmlSize);
