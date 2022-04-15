@@ -696,7 +696,7 @@ struct BangComponent : public GUIComponent
         };
         
         initialise(newObject);
-        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, maxSize, maxSize);
+        box->constrainer.setSizeLimits(20, 20, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
     
@@ -786,7 +786,12 @@ struct ToggleComponent : public GUIComponent
             
             g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : offColour);
             
-            const auto crossBounds = getLocalBounds().reduced(6).toFloat();
+            
+            auto crossBounds = getLocalBounds().reduced(6).toFloat();
+            
+            if(getWidth() < 20) {
+                crossBounds = crossBounds.expanded(20 - getWidth());
+            }
             
             const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
             const auto strokeWidth = std::max(max * 0.15f, 2.0f);
@@ -823,7 +828,7 @@ struct ToggleComponent : public GUIComponent
         
         initialise(newObject);
         
-        box->constrainer.setSizeLimits(Box::height + 2, Box::height + 2, maxSize, maxSize);
+        box->constrainer.setSizeLimits(20, 20, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
     
@@ -1081,7 +1086,7 @@ struct NumboxComponent : public GUIComponent
         
         addMouseListener(this, true); // why do we need this??
         
-        box->constrainer.setSizeLimits(50, Box::height - 2, 500, Box::height - 2);
+        box->constrainer.setSizeLimits(50, Box::height - 12, maxSize, maxSize);
     }
     
     void resized() override
