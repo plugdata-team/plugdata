@@ -453,7 +453,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
-        viewport->setBufferedToImage(true);
+        viewport->setBufferedToImage(true); // makes scrolling much smoother
 
         // Apply zooming
         setTransform(parent.transform);

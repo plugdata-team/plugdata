@@ -78,6 +78,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     bool selectionChanged = false;
     bool hideLabel = false;
+    bool edgeHovered = false;
 
     String currentText;
 
