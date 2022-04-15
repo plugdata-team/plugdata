@@ -614,7 +614,7 @@ void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String,
     dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 300, 180);
 }
 
-Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
+Component::SafePointer<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
 {
     return new SettingsDialog(processor, manager, settingsTree);
 }

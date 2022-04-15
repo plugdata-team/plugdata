@@ -131,7 +131,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     OwnedArray<TextButton> toolbarButtons;
 
-    Component* settingsDialog;
+    SafePointer<Component> settingsDialog = nullptr;
 
     ComponentBoundsConstrainer constrainer;
     ResizableCornerComponent resizer;
