@@ -221,6 +221,8 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
     
+    if(settingsDialog) delete settingsDialog;
+    
     pd.settingsTree.removeListener(this);
 
     removeKeyListener(&statusbar);
