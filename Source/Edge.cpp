@@ -61,6 +61,8 @@ void Edge::paint(Graphics& g)
 
     auto backgroundColour = isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
 
+    if(!box->edgeHovered) backgroundColour = backgroundColour.withAlpha(0.7f);
+    
     if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
     Path path;
@@ -115,13 +117,15 @@ void Edge::mouseEnter(const MouseEvent& e)
 {
     // Only show when not locked
     isHovered = !bool(locked.getValue());
-    repaint();
+    box->edgeHovered = true;
+    for(auto& edge : box->edges) edge->repaint();
 }
 
 void Edge::mouseExit(const MouseEvent& e)
 {
     isHovered = false;
-    repaint();
+    box->edgeHovered = false;
+    for(auto& edge : box->edges) edge->repaint();
 }
 
 void Edge::createConnection()

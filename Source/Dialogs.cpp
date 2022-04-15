@@ -238,7 +238,7 @@ struct DAWAudioSettings : public Component
         latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
         
         addAndMakeVisible(tailLengthSlider);
-        tailLengthSlider.setRange(0, 88200, 1);
+        tailLengthSlider.setRange(0, 10.0f, 0.01f);
         tailLengthSlider.setTextValueSuffix(" Seconds");
         tailLengthSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
 
@@ -263,6 +263,8 @@ struct DAWAudioSettings : public Component
 
     void visibilityChanged() override
     {
+        if(!isVisible()) return;
+        
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
         latencySlider.setValue(processor.getLatencySamples());
         tailLengthSlider.setValue(static_cast<float>(proc->tailLength.getValue()));
@@ -550,9 +552,12 @@ struct SettingsDialog : public Component
         
         closeButton->onClick = [this]()
         {
-           
             dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
-            setVisible(false);
+           
+            MessageManager::callAsync([this](){
+                getTopLevelComponent()->removeChildComponent(this);
+                delete this;
+            });
         };
         
         background.reset(new BlackoutComponent(processor.getActiveEditor(), this, closeButton->onClick));
@@ -609,9 +614,9 @@ void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String,
     dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 300, 180);
 }
 
-std::unique_ptr<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
+Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
 {
-    return std::make_unique<SettingsDialog>(processor, manager, settingsTree);
+    return new SettingsDialog(processor, manager, settingsTree);
 }
 
 void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, const std::function<void(String)>& cb)

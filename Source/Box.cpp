@@ -350,11 +350,13 @@ void Box::resized()
         newEditor->setBounds(getLocalBounds().reduced(margin));
     }
     
-    
-    
-    const int edgeSize = 12;
-    const int edgeHitBox = 8;
+    int edgeSize = 12;
+    const int edgeHitBox = 6;
     const int borderWidth = 14;
+    
+    if(getWidth() < 35) {
+        edgeSize = std::max(edgeSize - (35 - getWidth()), 10);
+    }
     
     auto inletBounds = getLocalBounds();
     if(auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (edgeHitBox * numInputs) - borderWidth))

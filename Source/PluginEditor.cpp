@@ -155,27 +155,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]()
     {
-        // By initialising after the first click we prevent it possibly hanging because audio hasn't started yet
-        if (!settingsDialog)
-        {
-            // Initialise settings dialog for DAW and standalone
-            if (pd.wrapperType == AudioPluginInstance::wrapperType_Standalone)
-            {
-                auto pluginHolder = StandalonePluginHolder::getInstance();
+        
+#ifdef PLUGDATA_STANDALONE
+        // Initialise settings dialog for DAW and standalone
+        auto pluginHolder = StandalonePluginHolder::getInstance();
 
-                settingsDialog = Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree);
-            }
-            else
-            {
-                settingsDialog = Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree);
-            }
-            
-            // Add on top of everything
-            // To make sure it is above the top-level close button
-            getTopLevelComponent()->addChildComponent(settingsDialog.get());
-        }
-
-        settingsDialog->setVisible(true);
+        settingsDialog = Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree);
+#else
+        settingsDialog = Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree);
+#endif
+        // Add on top of everything
+        // To make sure it is above the top-level close button
+        getTopLevelComponent()->addAndMakeVisible(settingsDialog);
         settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(650, 500));
         settingsDialog->toFront(false);
         settingsDialog->resized();
@@ -229,6 +220,8 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     {
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
+    
+    pd.settingsTree.removeListener(this);
 
     removeKeyListener(&statusbar);
     pd.locked.removeListener(this);

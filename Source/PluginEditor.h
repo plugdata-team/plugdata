@@ -131,7 +131,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     OwnedArray<TextButton> toolbarButtons;
 
-    std::unique_ptr<Component> settingsDialog = nullptr;
+    Component* settingsDialog;
 
     ComponentBoundsConstrainer constrainer;
     ResizableCornerComponent resizer;
