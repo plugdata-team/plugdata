@@ -56,16 +56,25 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     
     if (gui.isIEM())
     {
-        
         auto rect = gui.getLabelPosition(Rectangle<int>());
         labelX = rect.getX();
         labelY = rect.getY();
-        labelHeight = static_cast<t_iemgui*>(gui.getPointer())->x_fontsize;
+        labelHeight = gui.getFontHeight();
     }
     else if (gui.isAtom())
     {
         labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
-        labelHeight = 16;
+        
+        int h = gui.getFontHeight();
+        if(h == 0) {
+            labelHeight = 1;
+        }
+        else {
+            int idx = static_cast<int>(std::find(atomSizes, atomSizes + 8, h) - atomSizes);
+            labelHeight = idx + 1;
+        }
+        
+        
     }
     
     updateLabel();
@@ -76,6 +85,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     setWantsKeyboardFocus(true);
     
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
+    
 }
 
 GUIComponent::~GUIComponent()
@@ -137,6 +147,8 @@ void GUIComponent::initialise(bool newObject)
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
     
+
+    
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params)
     {
@@ -190,11 +202,14 @@ ObjectParameters GUIComponent::getParameters()
     }
     else if (gui.isAtom())
     {
+        params.push_back({"Height", tCombo, cGeneral, &labelHeight, {"auto", "8", "10", "12", "16", "24", "36"}});
+        
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
         params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
         
         params.push_back({"Label", tString, cLabel, &labelText, {}});
         params.push_back({"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
+
     }
     return params;
 }
@@ -266,7 +281,10 @@ void GUIComponent::valueChanged(Value& v)
     }
     else if (v.refersToSameSourceAs(labelHeight))
     {
-        gui.setFontHeight(static_cast<int>(labelHeight.getValue()));
+        if(gui.isIEM()) {
+            gui.setFontHeight(static_cast<int>(labelHeight.getValue()));
+        }
+        
         updateLabel();
     }
     else if (v.refersToSameSourceAs(labelText))
@@ -367,8 +385,17 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
 
 void GUIComponent::updateLabel()
 {
-    const int fontHeight = static_cast<int>(labelHeight.getValue());
+    if(gui.isAtom()) {
+        int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
+        gui.setFontHeight(atomSizes[idx - 1]);
+    }
+    
+    int fontHeight = gui.getFontHeight();
+    
+    if(gui.isAtom()) fontHeight += 2;
+    
     const String text = gui.getLabelText();
+    
     if (text.isNotEmpty())
     {
         if(!label) {
@@ -413,9 +440,6 @@ void GUIComponent::updateLabel()
         }
         
         label->setBounds(position.x, position.y, labelWidth, height);
-        
-        label->setFont(Font(static_cast<int>(labelHeight.getValue())));
-        
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
         label->setText(text, dontSendNotification);
@@ -696,7 +720,7 @@ struct BangComponent : public GUIComponent
         };
         
         initialise(newObject);
-        box->constrainer.setSizeLimits(20, 20, maxSize, maxSize);
+        box->constrainer.setSizeLimits(30, 30, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
     
@@ -828,7 +852,7 @@ struct ToggleComponent : public GUIComponent
         
         initialise(newObject);
         
-        box->constrainer.setSizeLimits(20, 20, maxSize, maxSize);
+        box->constrainer.setSizeLimits(30, 30, maxSize, maxSize);
         box->constrainer.setFixedAspectRatio(1.0f);
     }
     
@@ -848,6 +872,8 @@ struct ToggleComponent : public GUIComponent
         return {b.getWidth(), b.getHeight()};
     };
 };
+
+
 
 struct MessageComponent : public GUIComponent
 {
@@ -902,6 +928,10 @@ struct MessageComponent : public GUIComponent
         }
 
         initialise(newObject);
+        
+        if(gui.isAtom())  {
+            input.setFont(gui.getFontHeight() + 2);
+        }
         
         box->addMouseListener(this, false);
         box->constrainer.setSizeLimits(50, Box::height - 2, maxSize, maxSize);
@@ -1035,6 +1065,19 @@ struct MessageComponent : public GUIComponent
         repaint();
     }
     
+    void valueChanged(Value& v) override
+    {
+        if (gui.isAtom() && v.refersToSameSourceAs(labelHeight))
+        {
+            updateLabel();
+            box->updateBounds(false); // update box size based on new font
+            input.setFont(gui.getFontHeight() + 2);
+        }
+        else {
+            GUIComponent::valueChanged(v);
+        }
+    }
+    
     int numLines = 1;
     int longestLine = 7;
 };
@@ -1077,15 +1120,20 @@ struct NumboxComponent : public GUIComponent
         {
             input.setBorderSize({1, 15, 1, 1});
         }
+        else {
+            input.setFont(gui.getFontHeight() + 2);
+        }
+        
         addAndMakeVisible(input);
         
         input.setText(formatNumber(getValueOriginal()), dontSendNotification);
         
         initialise(newObject);
+
         input.setEditable(true, false);
         
-        addMouseListener(this, true); // why do we need this??
-        
+        addMouseListener(this, true);
+    
         box->constrainer.setSizeLimits(50, Box::height - 12, maxSize, maxSize);
     }
     
@@ -1216,10 +1264,16 @@ struct NumboxComponent : public GUIComponent
             gui.setMinimum(static_cast<float>(min.getValue()));
             updateValue();
         }
-        if (value.refersToSameSourceAs(max))
+        else if (value.refersToSameSourceAs(max))
         {
             gui.setMaximum(static_cast<float>(max.getValue()));
             updateValue();
+        }
+        else if (gui.isAtom() && value.refersToSameSourceAs(labelHeight))
+        {
+            updateLabel();
+            box->updateBounds(false); // update box size based on new font
+            input.setFont(gui.getFontHeight() + 2);
         }
         else
         {
@@ -1502,11 +1556,13 @@ struct RadioComponent : public GUIComponent
     {
         isVertical = vertical;
         
+        numButtons = gui.getMaximum();
+        
         initialise(newObject);
         updateRange();
         
         numButtons.addListener(this);
-                
+
         int selected = gui.getValue();
         
         if (selected < radioButtons.size())
@@ -1515,11 +1571,11 @@ struct RadioComponent : public GUIComponent
         }
         if (isVertical)
         {
-            box->constrainer.setSizeLimits(25, 90, maxSize, maxSize);
+            box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
         }
         else
         {
-            box->constrainer.setSizeLimits(100, 25, maxSize, maxSize);
+            box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
         }
     }
     
@@ -1533,24 +1589,25 @@ struct RadioComponent : public GUIComponent
     
     void resized() override
     {
-        int size = isVertical ? getHeight() / radioButtons.size() : getWidth() / radioButtons.size();
+        int size = isVertical ? getWidth() : getHeight();
         
         for(int i = 0; i < radioButtons.size(); i++) {
             if(isVertical) radioButtons[i]->setBounds(0, i * size, size, size);
             else           radioButtons[i]->setBounds(i * size, 0, size, size);
         }
         
-        // Fix aspect ratio and
+        // Fix aspect ratio
         if(isVertical) {
-            if(getWidth() - Box::doubleMargin != size) {
-                box->setSize(size + Box::doubleMargin, box->getHeight());
-            }
+            //if(getHeight() - Box::doubleMargin != size * radioButtons.size()) {
+                box->setSize(box->getWidth(), size * radioButtons.size() + Box::doubleMargin);
+            //}
         }
         else
         {
-            if(getHeight() - Box::doubleMargin != size) {
-                box->setSize(box->getWidth(), size + Box::doubleMargin);
-            }
+            //if(getWidth() - Box::doubleMargin != size * radioButtons.size()) {
+            //    box->setSize(size * radioButtons.size() + Box::margin, box->getHeight());
+            //}
+            box->setSize(size * radioButtons.size() + Box::doubleMargin, box->getHeight());
         }
         
     }
@@ -1589,7 +1646,8 @@ struct RadioComponent : public GUIComponent
             };
         }
         
-        radioButtons[gui.getValue()]->setToggleState(true, dontSendNotification);
+        int idx = juce::isPositiveAndBelow(gui.getValue(), radioButtons.size());
+        radioButtons[idx]->setToggleState(true, dontSendNotification);
         
         resized();
         //box->updateBounds(false);

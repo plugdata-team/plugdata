@@ -967,7 +967,7 @@ void Canvas::mouseUp(const MouseEvent& e)
     }
 
     // Releasing a connect by drag action
-    if (connectingWithDrag)
+    if (connectingWithDrag && connectingEdge)
     {
         if (nearestEdge)
         {
@@ -983,6 +983,9 @@ void Canvas::mouseUp(const MouseEvent& e)
         connectingWithDrag = false;
 
         repaint();
+    }
+    else if(connectingWithDrag && !connectingEdge) {
+        connectingWithDrag = false;
     }
 
     auto lassoSelection = getSelectionOfType<Box>();
