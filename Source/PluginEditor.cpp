@@ -206,8 +206,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     setSize(pd.lastUIWidth, pd.lastUIHeight);
 
-    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 
     tabbar.toFront(false);
     sidebar.toFront(false);
@@ -410,21 +408,23 @@ void PlugDataPluginEditor::openProject()
             pd.loadPatch(openedFile);
         }
     };
+    
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 
     if (pd.isDirty())
     {
-        Dialogs::showSaveDialog(this,
-                                [this, openFunc](int result)
-                                {
-                                    if (result == 2)
-                                    {
-                                        saveProject([this, openFunc]() mutable { openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
-                                    }
-                                    else if (result != 0)
-                                    {
-                                        openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
-                                    }
-                                });
+        Dialogs::showSaveDialog(this, [this, openFunc](int result)
+        {
+            if (result == 2)
+            {
+                saveProject([this, openFunc]() mutable { openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
+            }
+            else if (result != 0)
+            {
+                
+                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
+            }
+        });
     }
     else
     {
@@ -434,6 +434,8 @@ void PlugDataPluginEditor::openProject()
 
 void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
+    saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
                              [this, nestedCallback](const FileChooser& f) mutable
                              {
@@ -618,12 +620,8 @@ void PlugDataPluginEditor::valueChanged(Value& v)
 
 void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
 {
-    if (property == Identifier("LastChooserPath"))
-    {
-        saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-        openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-        pd.saveSettings();
-    }
+    // Save settings to file whenever valuetree state changes
+    pd.saveSettings();
 }
 
 void PlugDataPluginEditor::updateCommandStatus()

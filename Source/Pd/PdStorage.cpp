@@ -170,7 +170,6 @@ void Storage::setInfoId(const String& oldId, const String& newId)
         }
     }
     
-    jassertfalse;
 
 }
 
