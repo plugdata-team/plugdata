@@ -593,7 +593,10 @@ float Gui::getFontHeight() const noexcept
     if (!ptr) return 0;
     if (isIEM())
     {
-        return static_cast<t_iemgui*>(ptr)->x_fontsize;
+        return static_cast<t_iemgui*>(ptr)->x_fontsize * 1.4f;
+    }
+    if(isAtom()){
+        return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
     }
     else
     {
@@ -602,9 +605,15 @@ float Gui::getFontHeight() const noexcept
 }
 void Gui::setFontHeight(float newSize) noexcept
 {
-    if (!ptr || !isIEM()) return;
+    if (!ptr) return;
 
-    static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
+    if(isIEM()) {
+        static_cast<t_iemgui*>(ptr)->x_fontsize = newSize / 1.4f;
+    }
+    else if(isAtom()){
+        static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;
+    }
+    
 }
 
 std::string Gui::getFontName() const
