@@ -193,6 +193,7 @@ class Instance
     void* m_midi_receiver = nullptr;
     void* m_print_receiver = nullptr;
 
+
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;
 

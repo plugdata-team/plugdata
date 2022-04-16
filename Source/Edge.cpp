@@ -83,6 +83,8 @@ void Edge::paint(Graphics& g)
     {
         path.addEllipse(bounds);
     }
+    
+    
 
     g.setColour(backgroundColour);
     g.fillPath(path);
