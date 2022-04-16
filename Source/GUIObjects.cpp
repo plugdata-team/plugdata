@@ -2053,14 +2053,13 @@ struct VUMeter : public GUIComponent
         g.fillAll(findColour(ComboBox::backgroundColourId));
         
         auto values = std::vector<float>{gui.getValue(), gui.getPeak()};
-        
-        
+
         int height = getHeight();
         int width = getWidth();
         
         auto outerBorderWidth = 2.0f;
-        auto totalBlocks = 15;
-        auto spacingFraction = 0.03f;
+        auto totalBlocks = 30;
+        auto spacingFraction = 0.05f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
         
         auto blockHeight = (height - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
@@ -2070,7 +2069,9 @@ struct VUMeter : public GUIComponent
         auto blockCornerSize = 0.1f * blockHeight;
         auto c = Colour(0xff42a2c8);
         
-        float lvl = (float)std::exp(std::log(values[1]) / 3.0) * (values[1] > 0.002);
+        float rms = Decibels::decibelsToGain(values[1] - 12.0f);
+        
+        float lvl = (float)std::exp(std::log(rms) / 3.0) * (rms > 0.002);
         auto numBlocks = roundToInt(totalBlocks * lvl);
         
         auto verticalGradient = ColourGradient (c, 0, getHeight(), Colours::red, 0, 0, false);
@@ -2087,13 +2088,16 @@ struct VUMeter : public GUIComponent
             g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - i) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight, blockCornerSize);
         }
         
-        float lvl2 = (float)std::exp(std::log(values[0]) / 3.0) * (values[0] > 0.002);
+        float peak = Decibels::decibelsToGain(values[0] - 12.0f);
+        float lvl2 = (float)std::exp(std::log(peak) / 3.0) * (peak > 0.002);
         auto numBlocks2 = roundToInt(totalBlocks * lvl2);
         
         g.setColour(Colours::white);
         g.fillRoundedRectangle(outerBorderWidth, outerBorderWidth + ((totalBlocks - numBlocks2) * blockHeight) + blockRectSpacing, blockWidth, blockRectHeight / 2.0f, blockCornerSize);
         
-        String textValue = String(values[0], 2);
+        // Get text value with 2 and 0 decimals
+        // Prevent going past -100 for size reasons
+        String textValue = String(std::max(values[1], -96.0f), 2);
         
         if(getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB")) {
             // Check noscale flag, otherwise display next to slider
@@ -2103,6 +2107,11 @@ struct VUMeter : public GUIComponent
         else if(getWidth() > g.getCurrentFont().getStringWidth(textValue)) {
             g.setColour(Colours::white);
             g.drawFittedText(textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
+        }
+        else {
+            g.setColour(Colours::white);
+            g.setFont(11);
+            g.drawFittedText(String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
         }
         
     }
