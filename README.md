@@ -46,11 +46,11 @@ What works:
 - Very close to full support for pd (including all GUI objects, undo/redo, copy/paste, saving, loading, console, object properties, drawing functions, audio and MIDI I/O, help files)
 - Most ELSE and cyclone library objects work
 - LV2, AU and VST3 formats available, tested on Windows (x64), Mac (ARM/x64) and Linux (ARM/x64), also works as AU MIDI processor for Logic
-- Receive 512 DAW parameters using "receive param1", "receive param2", etc. 
+- Receive 512 DAW parameters using [receive param1], [receive param2], etc. 
+- Receive DAW playhead position, tempo and more using the [playhead] abstraction
 
 Known issues:
 - Tabs sometimes close when closing patch editor
-- DAW Presets are still unstable
 - Broken objects:
   - text define
 - There may still be some more bugs
@@ -61,8 +61,6 @@ v0.5:
 - Grid
 - Tidy up feature
 - Command line arguments
-- Tail length option for plugins
-- DAW Transport object
 - Ensure all object properties are supported
 - Expand pddocs with more descriptions
 
