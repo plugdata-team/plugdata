@@ -123,7 +123,8 @@ class Patch
         {"nbx", "4 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0 256"},
         {"hradio", "18 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
         {"vradio", "18 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
-        {"cnv", "15 100 60 empty empty empty 20 12 0 14 #171717 #ffffff"}
+        {"cnv", "15 100 60 empty empty empty 20 12 0 14 #171717 #ffffff"},
+        {"vu", "15 120 empty empty -1 -8 0 10 #404040 #000000 1 0"}
     };
 
     friend class Instance;

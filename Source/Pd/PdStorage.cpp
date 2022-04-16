@@ -169,8 +169,6 @@ void Storage::setInfoId(const String& oldId, const String& newId)
             return;
         }
     }
-    
-
 }
 
 void Storage::confirmIds() {
