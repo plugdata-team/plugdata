@@ -65,6 +65,10 @@ parameters(*this, nullptr)
     midiBufferOut.ensureSize(2048);
     midiBufferTemp.ensureSize(2048);
     midiBufferCopy.ensureSize(2048);
+
+    atoms_playhead.reserve(3);
+    atoms_playhead.resize(1);
+    
     
     setCallbackLock(&AudioProcessor::getCallbackLock());
     
@@ -464,6 +468,43 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     }
 }
 
+void PlugDataAudioProcessor::sendPlayhead()
+{
+    AudioPlayHead* playhead = getPlayHead();
+    AudioPlayHead::CurrentPositionInfo infos;
+    if(playhead && playhead->getCurrentPosition(infos))
+    {
+        atoms_playhead[0] = static_cast<float>(infos.isPlaying);
+        sendMessage("playhead", "playing", atoms_playhead);
+        atoms_playhead[0] = static_cast<float>(infos.isRecording);
+        sendMessage("playhead", "recording", atoms_playhead);
+        atoms_playhead[0] = static_cast<float>(infos.isLooping);
+        atoms_playhead.push_back(static_cast<float>(infos.ppqLoopStart));
+        atoms_playhead.push_back(static_cast<float>(infos.ppqLoopEnd));
+        sendMessage("playhead", "looping", atoms_playhead);
+        atoms_playhead.resize(1);
+        atoms_playhead[0] = static_cast<float>(infos.editOriginTime);
+        sendMessage("playhead", "edittime", atoms_playhead);
+        atoms_playhead[0] = static_cast<float>(infos.frameRate.getEffectiveRate());
+        
+        sendMessage("playhead", "framerate", atoms_playhead);
+        
+        atoms_playhead[0] = static_cast<float>(infos.bpm);
+        sendMessage("playhead", "bpm", atoms_playhead);
+        atoms_playhead[0] = static_cast<float>(infos.ppqPositionOfLastBarStart);
+        sendMessage("playhead", "lastbar", atoms_playhead);
+        atoms_playhead[0] = static_cast<float>(infos.timeSigNumerator);
+        atoms_playhead.push_back(static_cast<float>(infos.timeSigDenominator));
+        sendMessage("playhead", "timesig", atoms_playhead);
+        
+        atoms_playhead[0] = static_cast<float>(infos.ppqPosition);
+        atoms_playhead[1] = static_cast<float>(infos.timeInSamples);
+        atoms_playhead.push_back(static_cast<float>(infos.timeInSeconds));
+        sendMessage("playhead", "position", atoms_playhead);
+        atoms_playhead.resize(1);
+    }
+}
+
 void PlugDataAudioProcessor::messageEnqueued()
 {
     if (isNonRealtime() || isSuspended())
@@ -546,7 +587,7 @@ void PlugDataAudioProcessor::processInternal()
     
     // Dequeue messages
     sendMessagesFromQueue();
-    
+    sendPlayhead();
     sendMidiBuffer();
     
     // Process audio

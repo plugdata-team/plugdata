@@ -124,6 +124,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void updateSearchPaths();
 
     void sendMidiBuffer();
+    void sendPlayhead();
 
     void messageEnqueued() override;
 
@@ -187,6 +188,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
     std::array<float, numParameters> lastParameters = {0};
+    
+    std::vector<pd::Atom> atoms_playhead;
 
     int minIn = 2;
     int minOut = 2;
