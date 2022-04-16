@@ -109,6 +109,8 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     Value labelHeight = Value(18.0f);
 
     Value labelText;
+    
+    const int atomSizes[7] = {12, 8, 10, 12, 16, 24, 36};
 };
 
 struct _fielddesc
