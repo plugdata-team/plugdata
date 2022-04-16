@@ -20,9 +20,6 @@
 */
 
 #include <JuceHeader.h>
-
-#if JUCE_USE_CUSTOM_PLUGIN_STANDALONE_APP
-
 #include "PlugDataWindow.h"
 
 class PlugDataApp : public JUCEApplication
@@ -81,23 +78,7 @@ class PlugDataApp : public JUCEApplication
 
     virtual PlugDataWindow* createWindow()
     {
-#ifdef JucePlugin_PreferredChannelConfigurations
-        StandalonePluginHolder::PluginInOuts channels[] = {JucePlugin_PreferredChannelConfigurations};
-#endif
-
-        return new PlugDataWindow(getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr
-#ifdef JucePlugin_PreferredChannelConfigurations
-                                  ,
-                                  Array<StandalonePluginHolder::PluginInOuts>(channels, numElementsInArray(channels))
-#else
-                                  ,
-                                  {}
-#endif
-#if JUCE_DONT_AUTO_OPEN_MIDI_DEVICES_ON_MOBILE
-                                      ,
-                                  false
-#endif
-        );
+        return new PlugDataWindow(getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr, {});
     }
 
     void initialise(const String&) override
@@ -138,5 +119,3 @@ class PlugDataApp : public JUCEApplication
 };
 
 JUCE_CREATE_APPLICATION_DEFINE(PlugDataApp);
-
-#endif

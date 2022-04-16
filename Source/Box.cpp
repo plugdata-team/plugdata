@@ -170,7 +170,7 @@ void Box::updateBounds(bool newObject)
         setSize(width, height);
     }
 
-    if (type.isEmpty())
+    if (type.isEmpty() && !pdObject)
     {
         hideLabel = false;
         setEditable(true);
