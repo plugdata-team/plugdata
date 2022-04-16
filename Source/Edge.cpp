@@ -83,8 +83,9 @@ void Edge::paint(Graphics& g)
     {
         path.addEllipse(bounds);
     }
-    
-    
+
+    g.setColour(box->cnv->backgroundColour);
+    g.drawLine(bounds.getX(), bounds.getCentreY(), bounds.getRight(), bounds.getCentreY(), 2);
 
     g.setColour(backgroundColour);
     g.fillPath(path);
