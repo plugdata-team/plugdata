@@ -710,10 +710,8 @@ Rectangle<int> Gui::getBounds() const noexcept
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         auto* iemgui = &nbx->x_gui;
-
-        int fontwidth = glist_fontwidth(patch->getPointer());
-
-        int width = nbx->x_numwidth * nbxCharWidth;
+        
+        int width = nbx->x_numwidth * iemgui->x_fontsize;
 
         return {x, y, width, iemgui->x_h};
     }
@@ -732,6 +730,13 @@ Rectangle<int> Gui::getBounds() const noexcept
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         return {x, y, iemgui->x_w, iemgui->x_h};
     }
+    else if (isAtom())
+    {
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+
+        w = gatom->a_text.te_width * sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0);
+        return {x, y, w, h};
+    }
 
     return Object::getBounds();
 }
@@ -745,7 +750,7 @@ void Gui::setBounds(Rectangle<int> bounds)
 
     if (w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
 
-    if (type != Type::Keyboard && type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM())
+    if (type != Type::Keyboard && type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM() && !isAtom())
     {
         Object::setBounds(bounds);
         return;
@@ -771,9 +776,11 @@ void Gui::setBounds(Rectangle<int> bounds)
     if (type == Type::Number)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
+        auto* iemgui = &nbx->x_gui;
+        
+        nbx->x_numwidth = round(static_cast<float>(bounds.getWidth()) / iemgui->x_fontsize);
+        iemgui->x_h = bounds.getHeight();
 
-        short newWidth = std::max<short>(3, bounds.getWidth() / nbxCharWidth);
-        nbx->x_numwidth = newWidth;
         my_numbox_calc_fontwidth(nbx);
     }
     else if (type == Type::VerticalRadio)
@@ -797,6 +804,15 @@ void Gui::setBounds(Rectangle<int> bounds)
         iemgui->x_w = w;
         iemgui->x_h = h;
     }
+    else if (isAtom())
+    {
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0)));
+        
+        gatom->a_text.te_width = newWidth;
+    }
+    
+
 
     libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX(), bounds.getY());
 }
@@ -928,25 +944,51 @@ String Gui::getReceiveSymbol() noexcept
     return "";
 }
 
-Point<int> Gui::getLabelPosition(Rectangle<int> bounds) const noexcept
+Rectangle<int> Gui::getLabelBounds(Rectangle<int> objectBounds) const noexcept
 {
     instance->setThis();
-
-    auto const fontheight = 12;
 
     if (isIEM())
     {
         t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
         if (sym)
         {
+            
+            int fontHeight = getFontHeight();
+            int labelLength = Font(fontHeight).getStringWidth(getLabelText());
+            
             auto const* iemgui = static_cast<t_iemgui*>(ptr);
-            int const posx = bounds.getX() + iemgui->x_ldx;
-            int const posy = bounds.getY() + iemgui->x_ldy;
-            return {posx, posy - 10};
+            int const posx = objectBounds.getX() + iemgui->x_ldx;
+            int const posy = objectBounds.getY() + iemgui->x_ldy - fontHeight / 2;
+            
+            return {posx, posy - 2, labelLength, fontHeight};
         }
     }
+    else if(isAtom()) {
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        
+        int fontHeight = getFontHeight() + 2;
+        int labelLength = Font(fontHeight).getStringWidth(getLabelText());
+        int labelPosition = gatom->a_wherelabel;
+        auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
+        
+        if(labelPosition == 0) { // left
+            return labelBounds.withRightX(objectBounds.getX() - 4);
+        }
+        if(labelPosition == 1) { // right
+            return labelBounds.withX(objectBounds.getRight() + 4);
+        }
+        if(labelPosition == 2) { // top
+            return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
+        }
+        if(labelPosition == 3) { // bottom
+            return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
+        }
+        
+    }
     
-    return {bounds.getX(), bounds.getY()};
+
+    return {objectBounds.getX(), objectBounds.getY()};
 }
 
 String Gui::getLabelText() const noexcept
