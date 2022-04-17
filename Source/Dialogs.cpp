@@ -481,13 +481,16 @@ struct SettingsComponent : public Component
 
     void paint(Graphics& g) override
     {
-        auto highlightColour = Colour(0xff42a2c8).darker(0.2);
-
+        g.fillAll(findColour(ResizableWindow::backgroundColourId));
         g.setColour(findColour(ComboBox::backgroundColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
+        
+        g.fillRect(0, 0, getWidth(), toolbarHeight);
 
-        g.setColour(highlightColour);
-        g.fillRect(2, 44, getWidth() - 4, 4);
+        g.setColour(Colour(62, 62, 62));
+        g.drawLine(0, toolbarHeight - 0.5f, static_cast<float>(getWidth()), toolbarHeight - 0.5f);
+
+        g.setColour(Colour(27, 27, 27));
+        g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
 
         if (currentPanel > 0)
         {
@@ -503,7 +506,7 @@ struct SettingsComponent : public Component
         int toolbarPosition = 2;
         for (auto& button : toolbarButtons)
         {
-            button->setBounds(toolbarPosition, 2, 70, toolbarHeight);
+            button->setBounds(toolbarPosition, 2, 70, toolbarHeight - 2);
             toolbarPosition += 70;
         }
 
@@ -523,7 +526,7 @@ struct SettingsComponent : public Component
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
-    int toolbarHeight = 50;
+    int toolbarHeight = 45;
 
     OwnedArray<TextButton> toolbarButtons;
 };

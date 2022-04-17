@@ -72,7 +72,7 @@ struct Sidebar : public Component
     Console* console;
     Inspector* inspector;
 
-    static constexpr int dragbarWidth = 11;
+    static constexpr int dragbarWidth = 5;
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;

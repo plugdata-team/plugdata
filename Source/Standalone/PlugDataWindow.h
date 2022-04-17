@@ -440,11 +440,6 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             }
         }
 
-        void paint(Graphics& g) override
-        {
-            g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
-        }
-
         void resized() override
         {
             const ScopedValueSetter<bool> scope(isResizing, true);

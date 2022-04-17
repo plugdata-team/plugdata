@@ -78,7 +78,7 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour(Colours::darkgrey);
+                    g.setColour(Colour(46, 46, 46));
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
@@ -112,11 +112,12 @@ struct MidiBlinker : public Component, public Timer
         auto midiOutRect = Rectangle<float>(38.0f, 15.0f, 15.0f, 3.0f);
 
         g.setColour(findColour(ComboBox::outlineColourId));
+        
 
-        g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colours::darkgrey);
+        g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colour(46, 46, 46));
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour(blinkMidiOut ? findColour(Slider::thumbColourId) : Colours::darkgrey);
+        g.setColour(blinkMidiOut ? findColour(Slider::thumbColourId) : Colour(46, 46, 46));
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
@@ -309,7 +310,7 @@ void Statusbar::resized()
 
     bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
 
-    levelMeter->setBounds(getWidth() - 133, 1, 100, getHeight());
+    levelMeter->setBounds(getWidth() - 133, 0, 100, getHeight());
     midiBlinker->setBounds(getWidth() - 190, 0, 70, getHeight());
 
     volumeSlider.setBounds(getWidth() - 133, 0, 100, getHeight());
