@@ -92,7 +92,7 @@ class Gui : public Object
     Array getArray() const noexcept;
 
     String getLabelText() const noexcept;
-    Point<int> getLabelPosition(Rectangle<int> bounds) const noexcept;
+    Rectangle<int> getLabelBounds(Rectangle<int> objectBounds) const noexcept;
 
     void setLabelText(String newText) noexcept;
     void setLabelPosition(Point<int> bounds) noexcept;

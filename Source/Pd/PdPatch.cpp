@@ -377,7 +377,10 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
         return obj;
     }
 
-    instance->enqueueFunction([this, obj, name]() mutable { libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.getNumBytesAsUTF8()); });
+    instance->enqueueFunction([this, obj, name]() mutable {
+        libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.getNumBytesAsUTF8());
+        
+    });
 
     instance->waitForStateUpdate();
 
