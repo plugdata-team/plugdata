@@ -138,7 +138,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
-    Component seperators[2];
+    TextButton seperators[2];
 
     ComponentDragger windowDragger;
     

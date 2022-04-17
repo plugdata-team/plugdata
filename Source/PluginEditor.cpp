@@ -30,6 +30,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
+    
+    for(auto& seperator : seperators) {
+         seperator.setName("toolbar:seperator");
+         addAndMakeVisible(&seperator);
+    }
+
 
     auto keymap = p.settingsTree.getChildWithName("Keymap");
     if (keymap.isValid())
@@ -260,35 +266,39 @@ void PlugDataPluginEditor::showNewObjectMenu()
 
 void PlugDataPluginEditor::paint(Graphics& g)
 {
-    // (Our component is opaque, so we must completely fill the background with a solid colour)
-    g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
-
     auto baseColour = findColour(ComboBox::backgroundColourId);
-    auto highlightColour = findColour(Slider::thumbColourId);
+    //auto highlightColour = findColour(Slider::thumbColourId);
 
     // Toolbar background
     g.setColour(baseColour);
-    g.fillRect(0, 0, getWidth(), toolbarHeight - 4);
+    g.fillRect(0, 0, getWidth(), toolbarHeight);
 
-    g.setColour(highlightColour);
-    g.drawRoundedRectangle({-4.0f, toolbarHeight - 6.0f, static_cast<float>(getWidth() + 9), 20.0f}, 12.0, 4.0);
+    g.setColour(Colour(62, 62, 62));
+    g.drawLine(0, toolbarHeight - 0.5f, static_cast<float>(getWidth()), toolbarHeight - 0.5f);
 
-    // Make sure we can't see the bottom half of the rounded rectangle
-    g.setColour(baseColour);
-    g.fillRect(0, toolbarHeight - 4, getWidth(), toolbarHeight + 16);
-
+    g.setColour(Colour(27, 27, 27));
+    g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
+    
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+    
+    g.setColour(Colour(62, 62, 62));
+    g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
+
+    //g.setColour(Colour(27, 27, 27));
+    //g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
+
+
 }
 
 void PlugDataPluginEditor::resized()
 {
-    int sbarY = toolbarHeight - 4;
+    int sbarY = toolbarHeight;
 
     tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth() + 5, getHeight() - sbarY - statusbar.getHeight());
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight - 3, sidebar.getWidth(), getHeight() - toolbarHeight);
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 

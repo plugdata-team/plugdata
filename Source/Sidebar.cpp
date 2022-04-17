@@ -18,6 +18,10 @@ struct Inspector : public PropertyPanel
     {
         g.setColour(findColour(ComboBox::backgroundColourId).darker(0.2f));
         g.fillRect(getLocalBounds().withHeight(getTotalContentHeight()));
+        
+        // Statusbar
+        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.fillRect(0, getHeight() - 26, getWidth(), 26);
     }
 
     void loadParameters(ObjectParameters& params)
@@ -345,7 +349,6 @@ struct Inspector : public PropertyPanel
 };
 
 // MARK: Console
-
 struct Console : public Component
 {
     explicit Console(pd::Instance* instance)
@@ -357,6 +360,7 @@ struct Console : public Component
 
         viewport.setViewedComponent(console);
         viewport.setScrollBarsShown(true, false);
+        
         console->setVisible(true);
 
         addAndMakeVisible(viewport);
@@ -397,6 +401,12 @@ struct Console : public Component
     {
         removeComponentListener(console);
     }
+    
+    void paint(Graphics& g) override {
+        // Statusbar
+        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.fillRect(0, getHeight() - 26, getWidth(), 26);
+    }
 
     void resized() override
     {
@@ -416,7 +426,7 @@ struct Console : public Component
 
         auto bounds = getLocalBounds().toFloat();
 
-        fb.performLayout(bounds.removeFromBottom(27));
+        fb.performLayout(bounds.removeFromBottom(24));
         viewport.setBounds(bounds.toNearestInt());
         console->resized();
     }
@@ -552,7 +562,7 @@ struct Console : public Component
             auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
             g.setFont(font);
             g.fillAll(findColour(ComboBox::backgroundColourId));
-
+            
             int totalHeight = 0;
             bool showMessages = buttons[2].getToggleState();
             bool showErrors = buttons[3].getToggleState();
@@ -648,6 +658,8 @@ struct Console : public Component
        private:
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(ConsoleComponent)
     };
+    
+
 
    private:
     ConsoleComponent* console;
@@ -681,6 +693,7 @@ void Sidebar::paint(Graphics& g)
     // Sidebar
     g.setColour(findColour(ComboBox::backgroundColourId).darker(0.1));
     g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight());
+    
 }
 
 void Sidebar::paintOverChildren(Graphics& g)
@@ -690,6 +703,12 @@ void Sidebar::paintOverChildren(Graphics& g)
     // Draggable bar
     g.setColour(findColour(ComboBox::backgroundColourId));
     g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
+    
+    g.setColour(Colour(62, 62, 62));
+    g.drawLine(getWidth() - sWidth, 0, getWidth() - sWidth, getHeight() - 27.5f);
+    
+    g.drawLine(0.0f, getHeight() - 28, getWidth(), getHeight() - 28, 0.5f);
+
 }
 
 void Sidebar::resized()

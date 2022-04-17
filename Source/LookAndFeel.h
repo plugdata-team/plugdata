@@ -80,6 +80,15 @@ struct PlugDataLook : public LookAndFeel_V4
         }
         return LookAndFeel_V4::getSliderThumbRadius(s);
     }
+    
+    void fillResizableWindowBackground (Graphics& g, int w, int h,  const BorderSize<int>& border, ResizableWindow& window) override
+    {
+    }
+
+    
+    void drawResizableWindowBorder (Graphics&, int w, int h, const BorderSize<int> &border, ResizableWindow&) override {
+        //std::cout << "Draw border" << std::endl;
+    }
 
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
@@ -209,25 +218,21 @@ struct PlugDataDarkLook : public PlugDataLook
     class PlugData_DocumentWindowButton : public Button
     {
        public:
-        PlugData_DocumentWindowButton(const String& name, Colour c, Path normal, Path toggled) : Button(name), colour(c), normalShape(std::move(normal)), toggledShape(std::move(toggled))
+        PlugData_DocumentWindowButton(const String& name, Path normal, Path toggled) : Button(name), normalShape(std::move(normal)), toggledShape(std::move(toggled))
         {
         }
 
         void paintButton(Graphics& g, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
-            auto background = findColour(ComboBox::backgroundColourId);
-
-            if (findParentComponentOfClass<ResizableWindow>())
-            {
-                g.fillAll(background);
-            }
+            
+            auto colour = Colours::white;
+            
 
             g.setColour((!isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
 
             if (shouldDrawButtonAsHighlighted)
             {
-                g.fillAll();
-                g.setColour(background);
+                g.setColour(findColour(Slider::thumbColourId));
             }
 
             auto& p = getToggleState() ? toggledShape : normalShape;
@@ -276,14 +281,14 @@ struct PlugDataDarkLook : public PlugDataLook
             shape.addLineSegment({0.0f, 0.0f, 1.0f, 1.0f}, crossThickness);
             shape.addLineSegment({1.0f, 0.0f, 0.0f, 1.0f}, crossThickness);
 
-            return new PlugData_DocumentWindowButton("close", findColour(Slider::thumbColourId), shape, shape);
+            return new PlugData_DocumentWindowButton("close", shape, shape);
         }
 
         if (buttonType == DocumentWindow::minimiseButton)
         {
             shape.addLineSegment({0.0f, 0.5f, 1.0f, 0.5f}, crossThickness);
 
-            return new PlugData_DocumentWindowButton("minimise", findColour(Slider::thumbColourId), shape, shape);
+            return new PlugData_DocumentWindowButton("minimise", shape, shape);
         }
 
         if (buttonType == DocumentWindow::maximiseButton)
@@ -300,7 +305,7 @@ struct PlugDataDarkLook : public PlugDataLook
             fullscreenShape.addRectangle(45.0f, 45.0f, 100.0f, 100.0f);
             PathStrokeType(30.0f).createStrokedPath(fullscreenShape, fullscreenShape);
 
-            return new PlugData_DocumentWindowButton("maximise", findColour(Slider::thumbColourId), shape, fullscreenShape);
+            return new PlugData_DocumentWindowButton("maximise", shape, fullscreenShape);
         }
 
         jassertfalse;
@@ -341,7 +346,7 @@ struct PlugDataDarkLook : public PlugDataLook
 
     Font getStatusbarFont(int buttonHeight) override
     {
-        return iconFont.withHeight(buttonHeight / 2.25);
+        return iconFont.withHeight(buttonHeight / 2.5);
     }
 
     Font getSuggestionFont(int buttonHeight) override
@@ -433,21 +438,15 @@ struct PlugDataDarkLook : public PlugDataLook
         auto baseColour = findColour(ComboBox::backgroundColourId);
 
         auto highlightColour = findColour(Slider::thumbColourId);
-
-        if (shouldDrawButtonAsHighlighted)
-            highlightColour = highlightColour.brighter(0.6f);
-        else if (shouldDrawButtonAsDown || button.getToggleState())
-            highlightColour = highlightColour.brighter(1.4f);
-        else
-            highlightColour = highlightColour;
-
+        
         g.setColour(baseColour);
         g.fillRect(rect);
+        
+        g.setColour(Colour(62, 62, 62));
+         g.drawLine(0.0f, rect.getHeight() - 0.5f, static_cast<float>(rect.getWidth()), rect.getHeight() - 0.5f);
 
-        auto highlightRect = Rectangle<float>(rect.getX(), rect.getY() + rect.getHeight() - 8, rect.getWidth(), 4);
-
-        g.setColour(highlightColour);
-        g.fillRect(highlightRect);
+         g.setColour(Colour(27, 27, 27));
+         g.drawLine(0.0f, rect.getHeight(), static_cast<float>(rect.getWidth()), rect.getHeight());
     }
 
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& box) override
@@ -477,8 +476,6 @@ struct PlugDataDarkLook : public PlugDataLook
 
     void drawStatusbarButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        g.setColour(button.findColour(ComboBox::backgroundColourId));
-        g.fillRect(button.getLocalBounds());
     }
 
     void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border) override
