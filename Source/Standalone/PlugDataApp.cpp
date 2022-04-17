@@ -83,7 +83,8 @@ class PlugDataApp : public JUCEApplication
 
     void initialise(const String&) override
     {
-        LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colour(20, 20, 20));
+        LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);
+        
         mainWindow.reset(createWindow());
 
         mainWindow->setVisible(true);

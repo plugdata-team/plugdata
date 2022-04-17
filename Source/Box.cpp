@@ -320,7 +320,7 @@ void Box::paint(Graphics& g)
     else
     {
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.5f);
+        g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.0f);
     }
 
     if (!hideLabel && !editor)
