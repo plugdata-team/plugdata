@@ -56,10 +56,10 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     
     if (gui.isIEM())
     {
-        auto rect = gui.getLabelPosition(Rectangle<int>());
+        auto rect = gui.getLabelBounds(Rectangle<int>());
         labelX = rect.getX();
         labelY = rect.getY();
-        labelHeight = gui.getFontHeight();
+        labelHeight = rect.getHeight();
     }
     else if (gui.isAtom())
     {
@@ -401,45 +401,12 @@ void GUIComponent::updateLabel()
         if(!label) {
             label = std::make_unique<Label>();
         }
+
+        auto bounds = gui.getLabelBounds(box->getBounds().reduced(Box::margin));
         
         label->setFont(Font(fontHeight));
         label->setJustificationType(Justification::left);
-        
-        Point<int> position;
-        
-        int labelWidth = label->getFont().getStringWidth(text);
-        int height = 21;
-        
-        if(gui.isAtom()) {
-            
-            int labelPosition = labelX.getValue();
-            auto boxBounds = box->getBounds().reduced(Box::margin);
-            
-            if(labelPosition == 1) { // left
-                label->setJustificationType(Justification::right);
-                position = {boxBounds.getX() - labelWidth - 4, boxBounds.getY()};
-                
-            }
-            if(labelPosition == 2) { // right
-                position = {boxBounds.getRight() + 4, boxBounds.getY()};
-            }
-            if(labelPosition == 3) { // top
-                position = {boxBounds.getX(), boxBounds.getY() - height - 2};
-            }
-            if(labelPosition == 4) { // bottom
-                position = {boxBounds.getX(), boxBounds.getBottom() + 2};
-            }
-        }
-        else {
-            position = gui.getLabelPosition(box->getBounds().reduced(Box::margin));
-        }
-        
-        if(fontHeight > height) {
-            position.y -= (fontHeight - height) / 2;
-            height = fontHeight;
-        }
-        
-        label->setBounds(position.x, position.y, labelWidth, height);
+        label->setBounds(bounds);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
         label->setText(text, dontSendNotification);
@@ -454,7 +421,6 @@ void GUIComponent::updateLabel()
             label->setColour(Label::textColourId, box->cnv->backgroundColour.contrasting());
         }
         
-        // label->setColour(Label::textColourId, Colour(static_cast<uint32>(lbl.getColour())));
         box->cnv->addAndMakeVisible(label.get());
         box->addComponentListener(this);
     }
@@ -1134,12 +1100,13 @@ struct NumboxComponent : public GUIComponent
         
         addMouseListener(this, true);
     
-        box->constrainer.setSizeLimits(50, Box::height - 12, maxSize, maxSize);
+        box->constrainer.setSizeLimits(30, Box::height - 12, maxSize, maxSize);
     }
     
     void resized() override
     {
         input.setBounds(getLocalBounds());
+        if(!gui.isAtom()) input.setFont(getHeight() - 4);
     }
     
     String formatNumber(float value)
@@ -1563,7 +1530,7 @@ struct RadioComponent : public GUIComponent
         
         numButtons.addListener(this);
 
-        int selected = gui.getValue();
+        int selected = getValueOriginal();
         
         if (selected < radioButtons.size())
         {
@@ -1614,7 +1581,7 @@ struct RadioComponent : public GUIComponent
     
     void update() override
     {
-        int selected = gui.getValue();
+        int selected = getValueOriginal();
         
         if (selected < radioButtons.size())
         {
@@ -1642,11 +1609,14 @@ struct RadioComponent : public GUIComponent
                 if (!radioButtons[i]->getToggleState()) return;
                 
                 lastState = i;
+                
+                startEdition();
                 setValueOriginal(i);
+                stopEdition();
             };
         }
         
-        int idx = juce::isPositiveAndBelow(gui.getValue(), radioButtons.size());
+        int idx = getValueOriginal();
         radioButtons[idx]->setToggleState(true, dontSendNotification);
         
         resized();
