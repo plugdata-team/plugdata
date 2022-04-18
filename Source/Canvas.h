@@ -127,8 +127,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
     
-    Colour backgroundColour;
-    
     pd::Storage storage;
     
    private:

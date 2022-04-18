@@ -116,15 +116,15 @@ class Patch
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters, which is important for correct undo/redo
     static inline const std::map<String, String> guiDefaults = {
-        {"tgl", "23 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff 0 1"},
-        {"hsl", "128 15 0 127 0 0 empty empty empty -2 -8 0 10 #171717 #42a2c8 #ffffff 0 1"},
-        {"vsl", "15 128 0 127 0 0 empty empty empty 0 -9 0 10 #171717 #42a2c8 #ffffff 0 1"},
-        {"bng", "23 250 50 0 empty empty empty 17 7 0 10 #171717 #42a2c8 #ffffff"},
-        {"nbx", "4 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0 256"},
-        {"hradio", "18 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
-        {"vradio", "18 1 0 8 empty empty empty 0 -8 0 10 #171717 #42a2c8 #ffffff 0"},
-        {"cnv", "15 100 60 empty empty empty 20 12 0 14 #171717 #ffffff"},
-        {"vu", "15 120 empty empty -1 -8 0 10 #404040 #000000 1 0"}
+        {"tgl", "23 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1"},
+        {"hsl", "128 15 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1"},
+        {"vsl", "15 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1"},
+        {"bng", "23 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour"},
+        {"nbx", "4 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256"},
+        {"hradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
+        {"vradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
+        {"cnv", "15 100 60 empty empty empty 20 12 0 14 bgColour lblColour"},
+        {"vu", "15 120 empty empty -1 -8 0 10 bgColour lblColour 1 0"}
     };
 
     friend class Instance;

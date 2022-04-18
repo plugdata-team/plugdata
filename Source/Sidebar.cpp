@@ -22,6 +22,7 @@ struct Inspector : public PropertyPanel
         // Statusbar
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillRect(0, getHeight() - 26, getWidth(), 26);
+
     }
 
     void loadParameters(ObjectParameters& params)
@@ -30,24 +31,24 @@ struct Inspector : public PropertyPanel
 
         clear();
 
-        auto createPanel = [](int type, const String& name, Value* value, Colour bg, std::vector<String>& options) -> PropertyComponent*
+        auto createPanel = [](int type, const String& name, Value* value, int idx, std::vector<String>& options) -> PropertyComponent*
         {
             switch (type)
             {
                 case tString:
-                    return new EditableComponent<String>(name, *value, bg);
+                    return new EditableComponent<String>(name, *value, idx);
                 case tFloat:
-                    return new EditableComponent<float>(name, *value, bg);
+                    return new EditableComponent<float>(name, *value, idx);
                 case tInt:
-                    return new EditableComponent<int>(name, *value, bg);
+                    return new EditableComponent<int>(name, *value, idx);
                 case tColour:
-                    return new ColourComponent(name, *value, bg);
+                    return new ColourComponent(name, *value, idx);
                 case tBool:
-                    return new BoolComponent(name, *value, bg, options);
+                    return new BoolComponent(name, *value, idx, options);
                 case tCombo:
-                    return new ComboComponent(name, *value, bg, options);
+                    return new ComboComponent(name, *value, idx, options);
                 default:
-                    return new EditableComponent<String>(name, *value, bg);
+                    return new EditableComponent<String>(name, *value, idx);
             }
         };
 
@@ -60,9 +61,7 @@ struct Inspector : public PropertyPanel
             {
                 if (static_cast<int>(category) == i)
                 {
-                    auto bg = idx & 1 ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId);
-
-                    panels.add(createPanel(type, name, value, bg, options));
+                    panels.add(createPanel(type, name, value, idx, options));
                     idx++;
                 }
             }
@@ -75,14 +74,16 @@ struct Inspector : public PropertyPanel
 
     struct InspectorProperty : public PropertyComponent
     {
-        Colour bg;
+        int idx;
 
-        InspectorProperty(const String& propertyName, Colour background) : PropertyComponent(propertyName, 23), bg(background)
+        InspectorProperty(const String& propertyName, int i) : PropertyComponent(propertyName, 23), idx(i)
         {
         }
 
         void paint(Graphics& g) override
         {
+            auto bg = idx & 1 ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId);
+            
             g.fillAll(bg);
             getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.9, *this);
         }
@@ -92,7 +93,7 @@ struct Inspector : public PropertyPanel
 
     struct ComboComponent : public InspectorProperty
     {
-        ComboComponent(const String& propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background)
+        ComboComponent(const String& propertyName, Value& value, int idx, std::vector<String> options) : InspectorProperty(propertyName, idx)
         {
             for (int n = 0; n < options.size(); n++)
             {
@@ -116,7 +117,7 @@ struct Inspector : public PropertyPanel
 
     struct BoolComponent : public InspectorProperty
     {
-        BoolComponent(const String& propertyName, Value& value, Colour background, std::vector<String> options) : InspectorProperty(propertyName, background)
+        BoolComponent(const String& propertyName, Value& value, int idx, std::vector<String> options) : InspectorProperty(propertyName, idx)
         {
             toggleButton.setClickingTogglesState(true);
 
@@ -143,7 +144,7 @@ struct Inspector : public PropertyPanel
 
     struct ColourComponent : public InspectorProperty, public ChangeListener
     {
-        ColourComponent(const String& propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), currentColour(value)
+        ColourComponent(const String& propertyName, Value& value, int idx) : InspectorProperty(propertyName, idx), currentColour(value)
         {
             String strValue = currentColour.toString();
             if (strValue.length() > 2)
@@ -221,7 +222,7 @@ struct Inspector : public PropertyPanel
 
         Point<float> lastDragPos;
 
-        EditableComponent(String propertyName, Value& value, Colour background) : InspectorProperty(propertyName, background), property(value)
+        EditableComponent(String propertyName, Value& value, int idx) : InspectorProperty(propertyName, idx), property(value)
         {
             addAndMakeVisible(label);
             label.setEditable(true, false);

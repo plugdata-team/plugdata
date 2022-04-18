@@ -166,6 +166,9 @@ class Instance
     {
         currentFile = newFile;
     }
+    
+    virtual Colour getForegroundColour() = 0;
+    virtual Colour getBackgroundColour() = 0;
 
     bool isDirty();
 
@@ -174,6 +177,7 @@ class Instance
 
     void setThis();
     Array getArray(std::string const& name);
+    
 
     bool checkState(String pdstate);
 

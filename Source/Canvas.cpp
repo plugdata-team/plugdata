@@ -21,6 +21,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 {
     class Suggestion : public TextButton
     {
+        int idx = 0;
         int type = -1;
         Array<Colour> colours = {findColour(ScrollBar::thumbColourId), Colours::yellow};
 
@@ -29,7 +30,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         String objectDescription;
 
        public:
-        Suggestion()
+        Suggestion(int i) : idx(i)
         {
             setText("", "");
             setWantsKeyboardFocus(true);
@@ -50,7 +51,12 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         void paint(Graphics& g) override
         {
-            TextButton::paint(g);
+             auto colour = idx & 1 ? ComboBox::backgroundColourId :  ResizableWindow::backgroundColourId;
+            
+            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? Slider::thumbColourId : colour), isMouseOver(), isMouseButtonDown());
+
+            
+            getLookAndFeel().drawButtonText(g, *this, isMouseOver(), false);
 
             if (objectDescription.isNotEmpty())
             {
@@ -92,7 +98,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         for (int i = 0; i < 20; i++)
         {
-            Suggestion* but = buttons.add(new Suggestion);
+            Suggestion* but = buttons.add(new Suggestion(i));
             buttonholder->addAndMakeVisible(buttons[i]);
 
             but->setClickingTogglesState(true);
@@ -464,12 +470,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     {
         presentationMode = false;
     }
-    
-    // If background colour is not defined, set to default
-    if(!storage.hasInfo("BackgroundColour")){
-        storage.setInfo("BackgroundColour", "Colour", findColour(ResizableWindow::backgroundColourId).toString());
-    }
-
 
     synchronise();
 }
@@ -484,12 +484,9 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
-        auto colourState = storage.getInfo("BackgroundColour", "Colour");
-        backgroundColour = Colour::fromString(colourState);
-        
         g.fillAll(findColour(ComboBox::backgroundColourId));
 
-        g.setColour(backgroundColour);
+        g.setColour(findColour(ResizableWindow::backgroundColourId));
         g.fillRect(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
 
         // draw origin
