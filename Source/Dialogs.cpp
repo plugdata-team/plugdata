@@ -106,7 +106,7 @@ struct SaveDialog : public Component
         g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
         g.setColour(findColour(ComboBox::outlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 2.0f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
     }
 
     std::function<void(int)> cb;
@@ -207,7 +207,7 @@ struct ArrayDialog : public Component
         g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
         g.setColour(findColour(ComboBox::outlineColourId).darker());
-        g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
     }
 
     std::function<void(int, String, String)> cb;
@@ -387,7 +387,8 @@ class SearchPathComponent : public Component, public TableListBoxModel
     // components.
     void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override
     {
-        g.setColour(Colours::white);
+        
+        g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
         const String item = tree.getChild(rowNumber).getProperty("Path").toString();
 
         g.drawText(item, 4, 0, width - 4, height, Justification::centredLeft, true);
@@ -490,7 +491,7 @@ struct SettingsComponent : public Component
         if (currentPanel > 0)
         {
             auto tableBounds = getLocalBounds();
-
+            
             g.setColour(findColour(ComboBox::backgroundColourId));
             g.fillRect(tableBounds.removeFromBottom(40));
         }
@@ -515,10 +516,10 @@ struct SettingsComponent : public Component
         {
             if (panel == panels.getLast())
             {
-                panel->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 8);
+                panel->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 4);
                 continue;
             }
-            panel->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 8);
+            panel->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
         }
     }
 
@@ -565,7 +566,7 @@ struct SettingsDialog : public Component
         background.reset(new BlackoutComponent(processor.getActiveEditor(), this, closeButton->onClick));
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
-        
+
     }
 
     ~SettingsDialog() override

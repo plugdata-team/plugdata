@@ -243,9 +243,23 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
     StringArray tokens;
     tokens.addTokens(name, false);
 
+    // See if we have preset parameters for this object
+    // These parameters are designed to make the experience in plugdata better
+    // Mostly larger GUI objects and a different colour scheme
     if (guiDefaults.find(tokens[0]) != guiDefaults.end())
     {
-        tokens.addTokens(guiDefaults.at(tokens[0]), false);
+        auto preset = guiDefaults.at(tokens[0]);
+        
+        auto bg = instance->getBackgroundColour().toString().substring(2);
+        auto fg = instance->getForegroundColour().toString().substring(2);
+        auto lbl = instance->getBackgroundColour().contrasting().toString().substring(2);
+        
+        
+        preset = preset.replace("bgColour", "#" + bg);
+        preset = preset.replace("fgColour", "#" + fg);
+        preset = preset.replace("lblColour", "#" + lbl);
+        
+        tokens.addTokens(preset, false);
     }
 
     if (tokens[0] == "graph" && tokens.size() == 3)

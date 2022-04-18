@@ -786,6 +786,26 @@ void PlugDataAudioProcessor::loadPatch(String patch)
     setCurrentFile(File());
 }
 
+void PlugDataAudioProcessor::setTheme(bool themeToUse) {
+    lnf->setTheme(themeToUse);
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        editor->getTopLevelComponent()->repaint();
+        editor->repaint();
+        if(auto* cnv = editor->getCurrentCanvas()) {
+            cnv->repaint();
+        }
+    }
+
+}
+
+Colour PlugDataAudioProcessor::getForegroundColour() {
+    return lnf->findColour(Slider::thumbColourId);
+}
+
+Colour PlugDataAudioProcessor::getBackgroundColour() {
+    return lnf->findColour(ResizableWindow::backgroundColourId);
+}
+
 void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)
 {
     if (velocity == 0)
@@ -799,10 +819,7 @@ void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, c
 }
 
 
-bool PlugDataAudioProcessor::setTheme(bool themeToUse) {
-    lnf->setTheme(themeToUse);
-    getActiveEditor()->getTopLevelComponent()->repaint();
-}
+
 
 void PlugDataAudioProcessor::receiveControlChange(const int channel, const int controller, const int value)
 {

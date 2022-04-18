@@ -78,7 +78,7 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour(Colour(46, 46, 46));
+                    g.setColour(findColour(ResizableWindow::backgroundColourId).brighter());
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
@@ -158,27 +158,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     themeButton = std::make_unique<TextButton>(Icons::Theme);
-    
-    backgroundColour = std::make_unique<TextButton>(Icons::Colour);
-
-    backgroundColour->setTooltip("Background Colour");
-    backgroundColour->setConnectedEdges(12);
-    backgroundColour->setName("statusbar:backgroundcolour");
-    backgroundColour->onClick = [this](){
-        std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
-        colourSelector->setName("background");
-        colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
-        colourSelector->addChangeListener(this);
-        colourSelector->setSize(300, 400);
-        colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
-        
-        auto colourState = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas()->storage.getInfo("BackgroundColour", "Colour");
-        
-        colourSelector->setCurrentColour(Colour::fromString(colourState));
-
-        CallOutBox::launchAsynchronously(std::move(colourSelector), backgroundColour->getScreenBounds(), nullptr);
-    };
-    addAndMakeVisible(backgroundColour.get());
     
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
@@ -287,21 +266,6 @@ Statusbar::~Statusbar()
 #endif
 }
 
-void Statusbar::changeListenerCallback(ChangeBroadcaster* source)
-{
-    auto* cs = dynamic_cast<ColourSelector*>(source);
-    auto* cnv = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor())->getCurrentCanvas();
-
-    cnv->storage.setInfo("BackgroundColour", "Colour", cs->getCurrentColour().toString());
-    cnv->repaint();
-    
-    for(auto& box : cnv->boxes) {
-        box->repaint();
-        if(box->graphics) box->graphics->updateLabel();
-    }
-    for(auto& con : cnv->connections) con->repaint();
-}
-
 
 void Statusbar::resized()
 {
@@ -316,10 +280,7 @@ void Statusbar::resized()
     zoomOut->setBounds(174, 0, getHeight(), getHeight());
 
     presentationButton->setBounds(215, 0, getHeight(), getHeight());
-    
-    backgroundColour->setBounds(256, 0, getHeight(), getHeight());
-
-    themeButton->setBounds(284, 0, getHeight(), getHeight());
+    themeButton->setBounds(256, 0, getHeight(), getHeight());
     
     bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
 
