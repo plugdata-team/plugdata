@@ -71,8 +71,9 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     ~PlugDataPluginEditor() override;
     void showNewObjectMenu();
 
-    void paint(Graphics&) override;
-
+    void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
+    
     void resized() override;
 
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
@@ -82,6 +83,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     // For dragging parent window
     void mouseDrag(const MouseEvent& e) override;
     void mouseDown(const MouseEvent& e) override;
+    
+    ComponentDragger windowDragger;
 #endif
     
     void openProject();
@@ -105,7 +108,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     bool perform(const InvocationInfo& info) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
-
+    
     PlugDataAudioProcessor& pd;
 
     AffineTransform transform;
@@ -120,8 +123,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
    private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-
-    
     
 #ifdef PLUGDATA_STANDALONE
     static constexpr int toolbarHeight = 45;
@@ -139,8 +140,9 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     TextButton seperators[2];
-
-    ComponentDragger windowDragger;
+    
+    
+    inline static std::atomic<bool> useLightTheme = false;
     
     enum ToolbarButtonType
     {

@@ -13,7 +13,7 @@
 #include "Standalone/PlugDataWindow.h"
 #include "Statusbar.h"
 
-class PlugDataDarkLook;
+class PlugDataLook;
 
 class PlugDataPluginEditor;
 class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer, public PatchLoader
@@ -132,6 +132,9 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void loadPatch(File patch) override;
 
     void titleChanged() override;
+    
+    bool setTheme(bool themeToUse);
+
 
     // All opened patches
     Array<pd::Patch> patches;
@@ -164,6 +167,10 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     
     Value tailLength = Value(0.0f);
 
+    SharedResourcePointer<PlugDataLook> lnf;
+    
+
+    
    private:
     void processInternal();
 
@@ -195,8 +202,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
-
-    SharedResourcePointer<PlugDataDarkLook> lnf;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };
