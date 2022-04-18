@@ -417,8 +417,7 @@ void GUIComponent::updateLabel()
             label->setColour(Label::textColourId, gui.getLabelColour());
         }
         else {
-            
-            label->setColour(Label::textColourId, box->cnv->backgroundColour.contrasting());
+            label->setColour(Label::textColourId, box->findColour(ComboBox::textColourId));
         }
         
         box->cnv->addAndMakeVisible(label.get());

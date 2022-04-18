@@ -133,7 +133,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void titleChanged() override;
     
-    bool setTheme(bool themeToUse);
+    void setTheme(bool themeToUse);
+    
+    Colour getForegroundColour() override;
+    Colour getBackgroundColour() override;
+
 
 
     // All opened patches

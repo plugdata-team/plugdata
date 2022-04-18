@@ -303,7 +303,7 @@ void Box::paint(Graphics& g)
     if (!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
     {
         
-        g.setColour(cnv->backgroundColour);
+        g.setColour(findColour(ResizableWindow::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(margin));
     }
 
@@ -325,7 +325,7 @@ void Box::paint(Graphics& g)
 
     if (!hideLabel && !editor)
     {
-        g.setColour(cnv->backgroundColour.contrasting());
+        g.setColour(findColour(ResizableWindow::backgroundColourId).contrasting());
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(rect);
@@ -531,13 +531,12 @@ void Box::showEditor()
     {
         editor = std::make_unique<TextEditor>(getName());
         editor->applyFontToAllText(font);
-        // copyAllExplicitColoursTo(*editor);
-
-        /*
-        copyColourIfSpecified(*this, *editor, Label::textWhenEditingColourId, TextEditor::textColourId);
-        copyColourIfSpecified(*this, *editor, Label::backgroundWhenEditingColourId, TextEditor::backgroundColourId);
-        copyColourIfSpecified(*this, *editor, Label::outlineWhenEditingColourId, TextEditor::focusedOutlineColourId); */
-
+        
+        copyAllExplicitColoursTo(*editor);
+        editor->setColour (Label::textWhenEditingColourId, findColour (TextEditor::textColourId));
+        editor->setColour (Label::backgroundWhenEditingColourId, findColour (TextEditor::backgroundColourId));
+        editor->setColour (Label::outlineWhenEditingColourId, findColour (TextEditor::focusedOutlineColourId));
+        
         editor->setAlwaysOnTop(true);
 
         bool multiLine = pdObject && pdObject->getType() == pd::Type::Comment;

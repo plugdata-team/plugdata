@@ -181,7 +181,7 @@ void Connection::paint(Graphics& g)
     g.setColour(Colours::grey);
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 
-    auto baseColour = cnv->backgroundColour.contrasting();
+    auto baseColour = findColour(ResizableWindow::backgroundColourId).contrasting();
 
     if (cnv->isSelected(this))
     {

@@ -463,7 +463,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         auto font = getTextButtonFont(button, button.getHeight());
         g.setFont(font);
-        g.setColour(button.findColour(button.getToggleState() ? TextButton::textColourOnId : TextButton::textColourOffId).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f));
+        g.setColour((button.getToggleState() ? Colours::white : findColour(TextButton::textColourOffId)).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f));
         auto yIndent = jmin(4, button.proportionOfHeight(0.3f));
         auto cornerSize = jmin(button.getHeight(), button.getWidth()) / 2;
         auto fontHeight = roundToInt(font.getHeight() * 0.6f);
@@ -710,7 +710,7 @@ struct PlugDataLook : public LookAndFeel_V4
         if(useLightTheme) {
             auto firstColour = Colours::white;
             auto secondColour = Colour(240, 240, 240);
-            auto textColour = Colours::black;
+            auto textColour = Colours::darkgrey;
             
             setColour(ResizableWindow::backgroundColourId, secondColour);
             
@@ -727,15 +727,17 @@ struct PlugDataLook : public LookAndFeel_V4
             setColour(TableListBox::textColourId, textColour);
             
             setColour(Slider::thumbColourId, Colour(0xff42a2c8));
-            setColour(Slider::backgroundColourId, Colour(60, 60, 60));
-            setColour(Slider::trackColourId, Colour(90, 90, 90));
+            setColour(Slider::backgroundColourId, secondColour);
+            setColour(Slider::trackColourId, secondColour);
             
             setColour(Label::textColourId, textColour);
             setColour(ListBox::textColourId, textColour);
-            setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
+            setColour(TextEditor::backgroundColourId, secondColour);
             setColour(TextEditor::textColourId, textColour);
             setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
             setColour(PropertyComponent::labelTextColourId, textColour);
+            setColour(ScrollBar::backgroundColourId, firstColour);
+            setColour(ScrollBar::trackColourId, firstColour);
             
             setColour(TooltipWindow::backgroundColourId, firstColour.withAlpha(0.8f));
             setColour(PopupMenu::textColourId, textColour);
@@ -770,6 +772,9 @@ struct PlugDataLook : public LookAndFeel_V4
             setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
             setColour(PropertyComponent::labelTextColourId, Colours::white);
             
+            
+            setColour(ScrollBar::trackColourId, Colour(23, 23, 23));
+            setColour(ScrollBar::backgroundColourId, Colour(23, 23, 23));
             setColour(Slider::thumbColourId, Colour(0xff42a2c8));
             setColour(Slider::backgroundColourId, Colour(60, 60, 60));
             setColour(Slider::trackColourId, Colour(90, 90, 90));
