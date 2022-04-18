@@ -426,7 +426,7 @@ struct Console : public Component
 
         auto bounds = getLocalBounds().toFloat();
 
-        fb.performLayout(bounds.removeFromBottom(24));
+        fb.performLayout(bounds.removeFromBottom(28));
         viewport.setBounds(bounds.toNearestInt());
         console->resized();
     }
@@ -603,6 +603,7 @@ struct Console : public Component
                 if (rowColour)
                 {
                     const Rectangle<int> r(0, totalHeight, getWidth(), 24);
+                    
                     g.setColour(findColour(ResizableWindow::backgroundColourId));
                     g.fillRect(r);
                 }
@@ -645,10 +646,10 @@ struct Console : public Component
         int selectedItem = -1;
 
        private:
-        static Colour colourWithType(int type)
+        Colour colourWithType(int type)
         {
             if (type == 0)
-                return Colours::white;
+                return findColour(ComboBox::textColourId);
             else if (type == 1)
                 return Colours::orange;
             else
@@ -706,9 +707,6 @@ void Sidebar::paintOverChildren(Graphics& g)
     
     g.setColour(Colour(62, 62, 62));
     g.drawLine(getWidth() - sWidth, 0, getWidth() - sWidth, getHeight() - 27.5f);
-    
-    g.drawLine(0.0f, getHeight() - 28, getWidth(), getHeight() - 28, 0.5f);
-
 }
 
 void Sidebar::resized()

@@ -33,6 +33,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     
     for(auto& seperator : seperators) {
          seperator.setName("toolbar:seperator");
+         seperator.setInterceptsMouseClicks(false, false);
          addAndMakeVisible(&seperator);
     }
 
@@ -269,22 +270,19 @@ void PlugDataPluginEditor::paint(Graphics& g)
     auto baseColour = findColour(ComboBox::backgroundColourId);
     //auto highlightColour = findColour(Slider::thumbColourId);
 
+    g.fillAll(findColour(ResizableWindow::backgroundColourId));
     // Toolbar background
     g.setColour(baseColour);
     g.fillRect(0, 0, getWidth(), toolbarHeight);
 
-    g.setColour(Colour(62, 62, 62));
-    g.drawLine(0, toolbarHeight - 0.5f, static_cast<float>(getWidth()), toolbarHeight - 0.5f);
 
-    g.setColour(Colour(27, 27, 27));
-    g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
+    //g.setColour(Colour(27, 27, 27));
+    //g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
     
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
     
-    g.setColour(Colour(62, 62, 62));
-    g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
 
     //g.setColour(Colour(27, 27, 27));
     //g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
@@ -292,6 +290,13 @@ void PlugDataPluginEditor::paint(Graphics& g)
 
 }
 
+void PlugDataPluginEditor::paintOverChildren(Graphics& g)
+{
+    g.setColour(Colour(62, 62, 62));
+    g.drawLine(0, toolbarHeight + 0.5f, static_cast<float>(getWidth()), toolbarHeight + 0.5f);
+    g.drawLine(0.0f, getHeight() - statusbar.getHeight() - 0.5f, static_cast<float>(getWidth()), getHeight() - statusbar.getHeight() - 0.5f);
+}
+    
 void PlugDataPluginEditor::resized()
 {
     int sbarY = toolbarHeight;
@@ -342,11 +347,12 @@ void PlugDataPluginEditor::resized()
 #else
     int offset = 80;
 #endif
-    int xPosition = getWidth() - sidebar.getWidth();
     
-    toolbarButton(Hide)->setBounds(std::min(xPosition, getWidth() - offset), 0, 70, toolbarHeight);
-
-    toolbarButton(Pin)->setBounds(std::min(xPosition + 70, getWidth() - offset), 0, 70, toolbarHeight);
+    int pinPosition = getWidth() - std::max(sidebar.getWidth() - 40, offset);
+    int hidePosition = toolbarButton(Hide)->getToggleState() ? pinPosition : pinPosition - 70;
+    
+    toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
+    toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
 
     resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer.toFront(false);

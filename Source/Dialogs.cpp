@@ -284,7 +284,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
     SearchPathComponent(ValueTree libraryTree) : tree(std::move(libraryTree))
     {
         table.setModel(this);
-        table.setColour(ListBox::backgroundColourId, Colour(25, 25, 25));
+        table.setColour(ListBox::backgroundColourId, findColour(ResizableWindow::backgroundColourId));
         table.setRowHeight(30);
 
         // give it a border
@@ -392,8 +392,6 @@ class SearchPathComponent : public Component, public TableListBoxModel
 
         g.drawText(item, 4, 0, width - 4, height, Justification::centredLeft, true);
 
-        // g.setColour(Colours::black.withAlpha(0.2f));
-        // g.fillRect(width - 1, 0, 1, height);
     }
 
     int getNumRows() override
@@ -489,16 +487,19 @@ struct SettingsComponent : public Component
         g.setColour(Colour(62, 62, 62));
         g.drawLine(0, toolbarHeight - 0.5f, static_cast<float>(getWidth()), toolbarHeight - 0.5f);
 
-        g.setColour(Colour(27, 27, 27));
-        g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
-
         if (currentPanel > 0)
         {
             auto tableBounds = getLocalBounds();
 
-            g.setColour(Colour(20, 20, 20));
+            g.setColour(findColour(ComboBox::backgroundColourId));
             g.fillRect(tableBounds.removeFromBottom(40));
         }
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        g.setColour(Colour(62, 62, 62));
+        g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
     }
 
     void resized() override
@@ -534,9 +535,7 @@ struct SettingsComponent : public Component
 struct SettingsDialog : public Component
 {
     AudioProcessor& audioProcessor;
-
     SettingsComponent settingsComponent;
-
     ComponentBoundsConstrainer constrainer;
 
     SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor), settingsComponent(processor, manager, settingsTree)
@@ -591,7 +590,8 @@ struct SettingsDialog : public Component
         g.drawText("Settings", 0, 0, getWidth(), 30, Justification::centred, true);
 
         g.setColour(findColour(ComboBox::outlineColourId).darker());
-        g.drawRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f, 1.5f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
+        
     }
 
     std::unique_ptr<BlackoutComponent> background;
