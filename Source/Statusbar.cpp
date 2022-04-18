@@ -157,7 +157,8 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomIn = std::make_unique<TextButton>(Icons::ZoomIn);
     zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
-     
+    themeButton = std::make_unique<TextButton>(Icons::Theme);
+    
     backgroundColour = std::make_unique<TextButton>(Icons::Colour);
 
     backgroundColour->setTooltip("Background Colour");
@@ -235,6 +236,16 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomIn->setName("statusbar:zoomin");
     zoomIn->onClick = [this]() { zoom(true); };
     addAndMakeVisible(zoomIn.get());
+    
+    themeButton->setTooltip("Switch dark mode");
+    themeButton->setConnectedEdges(12);
+    themeButton->setName("statusbar:darkmode");
+    themeButton->onClick = [this]() {
+        pd.setTheme(themeButton->getToggleState());
+    };
+    themeButton->setClickingTogglesState(true);
+    addAndMakeVisible(themeButton.get());
+    
 
     zoomOut->setTooltip("Zoom Out");
     zoomOut->setConnectedEdges(12);
@@ -308,12 +319,16 @@ void Statusbar::resized()
     
     backgroundColour->setBounds(256, 0, getHeight(), getHeight());
 
+    themeButton->setBounds(284, 0, getHeight(), getHeight());
+    
     bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
 
     levelMeter->setBounds(getWidth() - 133, 0, 100, getHeight());
     midiBlinker->setBounds(getWidth() - 190, 0, 70, getHeight());
 
     volumeSlider.setBounds(getWidth() - 133, 0, 100, getHeight());
+    
+    
 }
 
 // We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...

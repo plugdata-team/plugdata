@@ -798,6 +798,12 @@ void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, c
     }
 }
 
+
+bool PlugDataAudioProcessor::setTheme(bool themeToUse) {
+    lnf->setTheme(themeToUse);
+    getActiveEditor()->getTopLevelComponent()->repaint();
+}
+
 void PlugDataAudioProcessor::receiveControlChange(const int channel, const int controller, const int value)
 {
     midiBufferOut.addEvent(MidiMessage::controllerEvent(channel, controller, value), audioAdvancement);
