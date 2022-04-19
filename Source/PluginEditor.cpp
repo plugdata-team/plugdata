@@ -54,9 +54,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         p.settingsTree.appendChild(ValueTree("Keymap"), nullptr);
     }
 
-    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(ComboBox::backgroundColourId));
-    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(ComboBox::backgroundColourId));
-    tabbar.setColour(TabbedComponent::outlineColourId, findColour(ComboBox::backgroundColourId));
+    tabbar.setColour(TabbedButtonBar::frontOutlineColourId, findColour(PlugDataColour::toolbarColourId));
+    tabbar.setColour(TabbedButtonBar::tabOutlineColourId, findColour(PlugDataColour::toolbarColourId));
+    tabbar.setColour(TabbedComponent::outlineColourId, findColour(PlugDataColour::toolbarColourId));
 
     addAndMakeVisible(statusbar);
 
@@ -88,6 +88,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         updateValues();
     };
 
+    tabbar.setOutline(0);
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
 
@@ -267,41 +268,31 @@ void PlugDataPluginEditor::showNewObjectMenu()
 
 void PlugDataPluginEditor::paint(Graphics& g)
 {
-    auto baseColour = findColour(ComboBox::backgroundColourId);
-    //auto highlightColour = findColour(Slider::thumbColourId);
-
-    g.fillAll(findColour(ResizableWindow::backgroundColourId));
+    auto baseColour = findColour(PlugDataColour::toolbarColourId);
+    
+    g.fillAll(findColour(PlugDataColour::canvasColourId));
+    
     // Toolbar background
     g.setColour(baseColour);
     g.fillRect(0, 0, getWidth(), toolbarHeight);
 
-
-    //g.setColour(Colour(27, 27, 27));
-    //g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
-    
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
-    
-
-    //g.setColour(Colour(27, 27, 27));
-    //g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
-
 
 }
 
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 {
-    g.setColour(Colour(62, 62, 62));
-    g.drawLine(0, toolbarHeight + 0.5f, static_cast<float>(getWidth()), toolbarHeight + 0.5f);
-    g.drawLine(0.0f, getHeight() - statusbar.getHeight() - 0.5f, static_cast<float>(getWidth()), getHeight() - statusbar.getHeight() - 0.5f);
+    
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawLine(0, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
+    g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
 }
     
 void PlugDataPluginEditor::resized()
 {
-    int sbarY = toolbarHeight;
-
-    tabbar.setBounds(0, sbarY, getWidth() - sidebar.getWidth() + 5, getHeight() - sbarY - statusbar.getHeight());
+    tabbar.setBounds(0, toolbarHeight, getWidth() - sidebar.getWidth() + 5, getHeight() - toolbarHeight - statusbar.getHeight());
 
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
 
@@ -532,8 +523,10 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
     int tabIdx = tabbar.getNumTabs() - 1;
+    
     tabbar.setCurrentTabIndex(tabIdx);
-
+    tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
+    
     if (tabbar.getNumTabs() > 1)
     {
         tabbar.getTabbedButtonBar().setVisible(true);

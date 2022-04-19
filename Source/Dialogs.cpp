@@ -102,10 +102,10 @@ struct SaveDialog : public Component
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
-        g.setColour(findColour(ComboBox::outlineColourId));
+        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
     }
 
@@ -203,10 +203,10 @@ struct ArrayDialog : public Component
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
 
-        g.setColour(findColour(ComboBox::outlineColourId).darker());
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
     }
 
@@ -344,9 +344,6 @@ class SearchPathComponent : public Component, public TableListBoxModel
             loadData();
         };
 
-        addButton.setColour(ComboBox::backgroundColourId, Colour(20, 20, 20));
-        removeButton.setColour(ComboBox::backgroundColourId, Colour(20, 20, 20));
-
         addAndMakeVisible(table);
         addAndMakeVisible(addButton);
         addAndMakeVisible(removeButton);
@@ -377,7 +374,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
         }
         else
         {
-            g.setColour((row % 2) ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId));
+            g.setColour((row % 2) ? findColour(PlugDataColour::toolbarColourId) : findColour(PlugDataColour::canvasColourId));
         }
 
         g.fillRect(1, 0, w - 3, h);
@@ -387,7 +384,6 @@ class SearchPathComponent : public Component, public TableListBoxModel
     // components.
     void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override
     {
-        
         g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
         const String item = tree.getChild(rowNumber).getProperty("Path").toString();
 
@@ -480,26 +476,23 @@ struct SettingsComponent : public Component
 
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(ResizableWindow::backgroundColourId));
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.fillAll(findColour(PlugDataColour::canvasColourId));
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         
         g.fillRect(0, 0, getWidth(), toolbarHeight);
-
-        g.setColour(Colour(62, 62, 62));
-        g.drawLine(0, toolbarHeight - 0.5f, static_cast<float>(getWidth()), toolbarHeight - 0.5f);
 
         if (currentPanel > 0)
         {
             auto tableBounds = getLocalBounds();
             
-            g.setColour(findColour(ComboBox::backgroundColourId));
+            g.setColour(findColour(PlugDataColour::toolbarColourId));
             g.fillRect(tableBounds.removeFromBottom(40));
         }
     }
     
     void paintOverChildren(Graphics& g) override
     {
-        g.setColour(Colour(62, 62, 62));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
     }
 
@@ -580,17 +573,13 @@ struct SettingsDialog : public Component
 
     void resized() override
     {
-        closeButton->setBounds(getWidth() - 31, 3, 28, 28);
+        closeButton->setBounds(getWidth() - 31, 8, 28, 28);
         settingsComponent.setBounds(getLocalBounds());
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        // Draw window title
-        g.setColour(Colours::white);
-        g.drawText("Settings", 0, 0, getWidth(), 30, Justification::centred, true);
-
-        g.setColour(findColour(ComboBox::outlineColourId).darker());
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
         
     }

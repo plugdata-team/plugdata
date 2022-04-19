@@ -791,7 +791,10 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse) {
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
         editor->getTopLevelComponent()->repaint();
         editor->repaint();
+
         if(auto* cnv = editor->getCurrentCanvas()) {
+            cnv->viewport->getLookAndFeel().setColour(ScrollBar::backgroundColourId, Colours::white);
+            cnv->viewport->repaint();
             cnv->repaint();
         }
     }

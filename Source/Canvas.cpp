@@ -15,6 +15,7 @@ extern "C"
 #include "Connection.h"
 #include "PluginProcessor.h"
 #include "PluginEditor.h"
+#include "LookAndFeel.h"
 
 // Suggestions component that shows up when objects are edited
 class SuggestionComponent : public Component, public KeyListener, public TextEditor::InputFilter
@@ -51,7 +52,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         void paint(Graphics& g) override
         {
-             auto colour = idx & 1 ? ComboBox::backgroundColourId :  ResizableWindow::backgroundColourId;
+             auto colour = idx & 1 ? PlugDataColour::toolbarColourId :  PlugDataColour::canvasColourId;
             
             getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? Slider::thumbColourId : colour), isMouseOver(), isMouseButtonDown());
 
@@ -63,7 +64,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
                 auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
                 auto textLength = font.getStringWidth(getButtonText()) + 22;
 
-                g.setColour(findColour(ComboBox::outlineColourId));
+                g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
 
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
@@ -236,7 +237,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
    private:
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRect(port->getBounds());
     }
 
@@ -334,7 +335,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     ResizableCornerComponent resizer;
     ComponentBoundsConstrainer constrainer;
 
-    Array<Colour> colours = {findColour(ComboBox::backgroundColourId), findColour(ResizableWindow::backgroundColourId)};
+    Array<Colour> colours = {findColour(PlugDataColour::toolbarColourId), findColour(PlugDataColour::canvasColourId)};
 
     Colour bordercolor = Colour(142, 152, 155);
 
@@ -484,15 +485,15 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
-        g.fillAll(findColour(ComboBox::backgroundColourId));
+        g.fillAll(findColour(PlugDataColour::toolbarColourId));
 
-        g.setColour(findColour(ResizableWindow::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::canvasColourId));
         g.fillRect(canvasOrigin.x, canvasOrigin.y, getWidth(), getHeight());
 
         // draw origin
         g.setColour(Colour(100, 100, 100));
-        g.drawLine(canvasOrigin.x - 1, canvasOrigin.y, canvasOrigin.x - 1, getHeight());
-        g.drawLine(canvasOrigin.x, canvasOrigin.y - 1, getWidth(), canvasOrigin.y - 1);
+        g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, canvasOrigin.x - 1, getHeight() + 2);
+        g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, getWidth() + 2, canvasOrigin.y - 1);
     }
 
     
@@ -501,7 +502,7 @@ void Canvas::paint(Graphics& g)
         const int gridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
 
-        g.setColour(findColour(ComboBox::backgroundColourId).contrasting(0.4));
+        g.setColour(findColour(PlugDataColour::toolbarColourId).contrasting(0.4));
 
         for (int x = canvasOrigin.getX() + gridSize; x < clipBounds.getRight(); x += gridSize)
         {
@@ -1386,11 +1387,13 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
         setSelected(component, true);
     }
 
-    mouseDownWithinTarget = e.getMouseDownPosition();
-
-    componentBeingDragged = component;
-
-    totalDragDelta = {0, 0};
+    if(auto* box = dynamic_cast<Box*>(component)) {
+        componentBeingDragged = box;
+    }
+    
+    for(auto* box : getSelectionOfType<Box>()) {
+        box->mouseDownPos = box->getPosition();
+    }
 
     component->repaint();
 }
@@ -1414,7 +1417,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         }
 
         // When done dragging objects, update positions to pd
-        patch.moveObjects(objects, totalDragDelta.x, totalDragDelta.y);
+        patch.moveObjects(objects, e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
 
         // Check if canvas is large enough
         checkBounds();
@@ -1424,8 +1427,32 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     }
 
     if (didStartDragging) didStartDragging = false;
+    
+    componentBeingDragged = nullptr;
 
     component->repaint();
+}
+
+int Canvas::shouldGridLock(const MouseEvent& e, Component* toDrag) {
+    gridEnabled = true;
+    if(!static_cast<bool>(gridEnabled.getValue())) return 0;
+    
+    return 0;
+    
+    /*
+    if(e.getDistanceFromDragStartX() > 20) {
+        gridIsLocked = false;
+        return 0;
+    }
+    else {
+        if(!gridIsLocked) {
+            gridIsLocked = true;
+            gridLockPosition = toDrag->getPosition();
+            
+        }
+        
+        return 1;
+    } */
 }
 
 // Call from component's mouseDrag
@@ -1436,23 +1463,19 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
 
     didStartDragging = true;
 
-    Point<int> delta = e.getPosition() - mouseDownWithinTarget;
+    if(shouldGridLock(e, componentBeingDragged)) {
+        //delta = gridLockPosition;
+    }
 
-    for (auto comp : selectedComponents)
+    for (auto* box : getSelectionOfType<Box>())
     {
-        Rectangle<int> bounds(comp->getBounds());
-
-        bounds += delta;
-
-        comp->setBounds(bounds);
+        box->setTopLeftPosition(box->mouseDownPos + Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY()));
     }
 
     for (auto& tmpl : templates)
     {
         tmpl->updateIfMoved();
     }
-
-    totalDragDelta += delta;
 }
 
 SelectedItemSet<Component*>& Canvas::getLassoSelection()

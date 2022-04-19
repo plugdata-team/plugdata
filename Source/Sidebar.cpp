@@ -16,11 +16,12 @@ struct Inspector : public PropertyPanel
 {
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(ComboBox::backgroundColourId).darker(0.2f));
+        
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRect(getLocalBounds().withHeight(getTotalContentHeight()));
         
         // Statusbar
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRect(0, getHeight() - 26, getWidth(), 26);
 
     }
@@ -82,7 +83,7 @@ struct Inspector : public PropertyPanel
 
         void paint(Graphics& g) override
         {
-            auto bg = idx & 1 ? findColour(ComboBox::backgroundColourId) : findColour(ResizableWindow::backgroundColourId);
+            auto bg = idx & 1 ? findColour(PlugDataColour::toolbarColourId) : findColour(PlugDataColour::canvasColourId);
             
             g.fillAll(bg);
             getLookAndFeel().drawPropertyComponentLabel(g, getWidth(), getHeight() * 0.9, *this);
@@ -164,7 +165,7 @@ struct Inspector : public PropertyPanel
                 colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
                 colourSelector->addChangeListener(this);
                 colourSelector->setSize(300, 400);
-                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(ComboBox::backgroundColourId));
+                colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
 
                 colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
 
@@ -405,7 +406,7 @@ struct Console : public Component
     
     void paint(Graphics& g) override {
         // Statusbar
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRect(0, getHeight() - 26, getWidth(), 26);
     }
 
@@ -562,7 +563,7 @@ struct Console : public Component
         {
             auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
             g.setFont(font);
-            g.fillAll(findColour(ComboBox::backgroundColourId));
+            g.fillAll(findColour(PlugDataColour::toolbarColourId));
             
             int totalHeight = 0;
             bool showMessages = buttons[2].getToggleState();
@@ -693,7 +694,7 @@ void Sidebar::paint(Graphics& g)
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
 
     // Sidebar
-    g.setColour(findColour(ComboBox::backgroundColourId).darker(0.1));
+    g.setColour(findColour(PlugDataColour::toolbarColourId));
     g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight());
     
 }
@@ -703,11 +704,11 @@ void Sidebar::paintOverChildren(Graphics& g)
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
 
     // Draggable bar
-    g.setColour(findColour(ComboBox::backgroundColourId));
+    g.setColour(findColour(PlugDataColour::toolbarColourId));
     g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
     
-    g.setColour(Colour(62, 62, 62));
-    g.drawLine(getWidth() - sWidth, 0, getWidth() - sWidth, getHeight() - 27.5f);
+    g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+    g.drawLine(1, 0, 1, getHeight() - 27.5f);
 }
 
 void Sidebar::resized()

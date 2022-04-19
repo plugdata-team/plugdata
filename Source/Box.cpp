@@ -12,6 +12,7 @@
 #include "Connection.h"
 #include "Edge.h"
 #include "PluginEditor.h"
+#include "LookAndFeel.h"
 
 Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
@@ -282,7 +283,7 @@ Array<Rectangle<float>> Box::getCorners() const
 void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(margin);
-    auto outlineColour = findColour(ComboBox::outlineColourId);
+    auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
 
     bool selected = cnv->isSelected(this);
 
@@ -312,7 +313,7 @@ void Box::paint(Graphics& g)
     {
         if (locked == var(false) && (isOver || selected) && !cnv->isGraph)
         {
-            g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(ComboBox::outlineColourId));
+            g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(PlugDataColour::canvasOutlineColourId));
             g.drawRect(rect.toFloat(), 0.5f);
         }
     }

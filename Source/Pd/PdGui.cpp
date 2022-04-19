@@ -593,7 +593,7 @@ float Gui::getFontHeight() const noexcept
     if (!ptr) return 0;
     if (isIEM())
     {
-        return static_cast<t_iemgui*>(ptr)->x_fontsize * 1.4f;
+        return static_cast<t_iemgui*>(ptr)->x_fontsize;
     }
     if(isAtom()){
         return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
@@ -608,7 +608,7 @@ void Gui::setFontHeight(float newSize) noexcept
     if (!ptr) return;
 
     if(isIEM()) {
-        static_cast<t_iemgui*>(ptr)->x_fontsize = newSize / 1.4f;
+        static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
     }
     else if(isAtom()){
         static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;

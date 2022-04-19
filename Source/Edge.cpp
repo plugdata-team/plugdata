@@ -8,6 +8,7 @@
 
 #include "Canvas.h"
 #include "Connection.h"
+#include "LookAndFeel.h"
 
 Edge::Edge(Box* parent, bool inlet) : box(parent)
 {
@@ -24,7 +25,7 @@ Edge::Edge(Box* parent, bool inlet) : box(parent)
         createConnection();
     };
 
-    setBufferedToImage(true);
+    //setBufferedToImage(true);
 }
 
 bool Edge::hasConnection()
@@ -89,7 +90,7 @@ void Edge::paint(Graphics& g)
 
     g.setColour(backgroundColour);
     g.fillPath(path);
-    g.setColour(findColour(ComboBox::outlineColourId));
+    g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
     g.strokePath(path, PathStrokeType(1.f));
 }
 
