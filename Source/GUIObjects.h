@@ -100,10 +100,10 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     Value sendSymbol;
     Value receiveSymbol;
 
-    Value primaryColour = Value(findColour(Slider::thumbColourId).toString());
-    Value secondaryColour = Value(findColour(ComboBox::backgroundColourId).toString());
-
-    Value labelColour = Value(Colours::white.toString());
+    Value primaryColour;
+    Value secondaryColour;
+    Value labelColour;
+    
     Value labelX = Value(0.0f);
     Value labelY = Value(0.0f);
     Value labelHeight = Value(18.0f);

@@ -658,7 +658,7 @@ struct BangComponent : public GUIComponent
             const float circleOuter = 80.f * (width * 0.01f);
             const float circleThickness = std::max(8.f * (width * 0.01f), 2.0f);
             
-            g.setColour(findColour(ComboBox::outlineColourId));
+            g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
             g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
             
             g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::transparentWhite);
@@ -944,14 +944,14 @@ struct MessageComponent : public GUIComponent
         }
         else
         {
-            g.fillAll(findColour(ComboBox::backgroundColourId));
+            g.fillAll(findColour(PlugDataColour::toolbarColourId));
         }
     }
     
     void paintOverChildren(Graphics& g) override
     {
         GUIComponent::paintOverChildren(g);
-        g.setColour(findColour(ComboBox::outlineColourId));
+        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 1.5f);
     }
     
@@ -1365,7 +1365,7 @@ struct ListComponent : public GUIComponent, public Timer
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
         
-        g.setColour(findColour(ComboBox::backgroundColourId));
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillPath(p);
         g.strokePath(p, PathStrokeType(border));
     }
@@ -1699,7 +1699,7 @@ public:
                         const float y3 = h - (std::clamp(vec[i + 1], scale[0], scale[1]) - scale[0]) * dh;
                         p.cubicTo(static_cast<float>(i - 1) * dw, y1, static_cast<float>(i) * dw, y2, static_cast<float>(i + 1) * dw, y3);
                     }
-                    g.setColour(findColour(ComboBox::outlineColourId));
+                    g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
                     g.strokePath(p, PathStrokeType(1));
                 }
                 else if (array.isDrawingLine())
@@ -1713,14 +1713,14 @@ public:
                         const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
                         p.lineTo(static_cast<float>(i) * dw, y);
                     }
-                    g.setColour(findColour(ComboBox::outlineColourId));
+                    g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
                     g.strokePath(p, PathStrokeType(1));
                 }
                 else
                 {
                     const float dh = h / (scale[1] - scale[0]);
                     const float dw = w / static_cast<float>(vec.size());
-                    g.setColour(findColour(ComboBox::outlineColourId));
+                    g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
                     for (size_t i = 0; i < vec.size(); ++i)
                     {
                         const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
@@ -1730,7 +1730,7 @@ public:
             }
         }
         
-        g.setColour(findColour(ComboBox::outlineColourId));
+        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
         g.drawRect(getLocalBounds(), 1);
     }
     

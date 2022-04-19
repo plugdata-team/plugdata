@@ -67,10 +67,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    OwnedArray<DrawableTemplate> templates;
-
-    Point<int> mousePanDownPos;
-
+    int shouldGridLock(const MouseEvent& e, Component* toDrag);
+    
     void handleMouseDown(Component* component, const MouseEvent& e);
     void handleMouseUp(Component* component, const MouseEvent& e);
     void handleMouseDrag(const MouseEvent& e);
@@ -104,6 +102,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     Viewport* viewport = nullptr;
 
+    OwnedArray<DrawableTemplate> templates;
+    Point<int> mousePanDownPos;
+    
     bool connectingWithDrag = false;
     SafePointer<Edge> connectingEdge;
     SafePointer<Edge> nearestEdge;
@@ -117,12 +118,16 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Value commandLocked;
     Value connectionStyle;
     Value presentationMode;
+    Value gridEnabled;
 
     bool isGraph = false;
     bool isGraphChild = false;
     bool updatingBounds = false; // used by connection
+    bool gridIsLocked = false;
+    
     
     Point<int> canvasOrigin = {0, 0};
+    Point<int> gridLockPosition;
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
@@ -140,12 +145,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     bool didStartDragging{false};
 
-    Point<int> mouseDownWithinTarget;
-    Point<int> totalDragDelta;
-
     SelectedItemSet<Component*> selectedComponents;
 
-    Component* componentBeingDragged{nullptr};
+    Box* componentBeingDragged{nullptr};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

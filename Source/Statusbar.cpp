@@ -104,14 +104,14 @@ struct MidiBlinker : public Component, public Timer
 
     void paint(Graphics& g) override
     {
-        g.setColour(Colours::white);
+        g.setColour(findColour(ComboBox::textColourId));
         g.setFont(Font(11));
         g.drawText("MIDI", getLocalBounds().removeFromLeft(28), Justification::right);
 
         auto midiInRect = Rectangle<float>(38.0f, 7.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 15.0f, 15.0f, 3.0f);
 
-        g.setColour(findColour(ComboBox::outlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         
 
         g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colour(46, 46, 46));
