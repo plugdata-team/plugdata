@@ -51,6 +51,16 @@ struct Icons
     inline static const CharPointer_UTF8 Theme = CharPointer_UTF8 ("\xef\x81\x82");
 };
 
+enum PlugDataColour
+{
+    toolbarColourId,
+    canvasColourId,
+    highlightColourId,
+    textColourId,
+    toolbarOutlineColourId,
+    canvasOutlineColourId
+};
+
 struct Resources
 {
     Typeface::Ptr defaultTypeface = Typeface::createSystemTypefaceFor(BinaryData::InterRegular_otf, BinaryData::InterRegular_otfSize);
@@ -262,7 +272,8 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
-        g.setColour(button.getToggleState() ? Colour(55, 55, 55) : Colour(41, 41, 41));
+        
+        g.setColour(findColour(button.getToggleState() ? ResizableWindow::backgroundColourId : ComboBox::backgroundColourId));
         g.fillRect(button.getLocalBounds().reduced(0, 1));
         
         int w = button.getWidth();
@@ -420,7 +431,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
     }
     
-    void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border)
+    void drawResizableFrame(Graphics& g, int w, int h, const BorderSize<int>& border) override
     {
     }
     
@@ -600,6 +611,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         PdLook()
         {
+            // FIX THIS!
             setColour(TextButton::buttonColourId, Colour(23, 23, 23));
             setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
             
@@ -612,6 +624,13 @@ struct PlugDataLook : public LookAndFeel_V4
             setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
             setColour(TextEditor::textColourId, Colours::white);
             setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
+            
+            setColour(PlugDataColour::toolbarColourId, findColour(ComboBox::backgroundColourId));
+            setColour(PlugDataColour::canvasColourId, findColour(ResizableWindow::backgroundColourId));
+            setColour(PlugDataColour::highlightColourId, Colour(0xff42a2c8));
+            setColour(PlugDataColour::textColourId, findColour(ComboBox::textColourId));
+            setColour(PlugDataColour::toolbarOutlineColourId, findColour(ComboBox::outlineColourId).interpolatedWith(findColour(ComboBox::backgroundColourId), 0.5f));
+            setColour(PlugDataColour::canvasOutlineColourId, findColour(ComboBox::outlineColourId));
         }
         
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
@@ -705,99 +724,63 @@ struct PlugDataLook : public LookAndFeel_V4
         return new PdLook;
     }
     
+    void setColours(Colour firstColour, Colour secondColour, Colour textColour, Colour highlightColour, Colour outlineColour)
+    {
+        setColour(PlugDataColour::toolbarColourId, firstColour);
+        setColour(PlugDataColour::canvasColourId, secondColour);
+        setColour(PlugDataColour::highlightColourId, highlightColour);
+        setColour(PlugDataColour::textColourId, textColour);
+        setColour(PlugDataColour::toolbarOutlineColourId, outlineColour.interpolatedWith(firstColour, 0.5f));
+        setColour(PlugDataColour::canvasOutlineColourId, outlineColour);
+        
+        setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
+        setColour(TextButton::textColourOnId, highlightColour);
+        setColour(Slider::thumbColourId, highlightColour);
+
+        setColour(TextButton::buttonColourId, firstColour);
+        setColour(TextButton::buttonOnColourId, firstColour);
+        setColour(ComboBox::backgroundColourId, firstColour);
+        setColour(ListBox::backgroundColourId, firstColour);
+        setColour(ScrollBar::backgroundColourId, firstColour);
+        setColour(ScrollBar::trackColourId, firstColour);
+        setColour(AlertWindow::backgroundColourId, firstColour);
+        getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
+        
+        setColour(TooltipWindow::backgroundColourId, firstColour.withAlpha(0.8f));
+        setColour(PopupMenu::backgroundColourId, firstColour.withAlpha(0.95f));
+        
+        setColour(KeyMappingEditorComponent::backgroundColourId, secondColour);
+        setColour(ResizableWindow::backgroundColourId, secondColour);
+        setColour(Slider::backgroundColourId, secondColour);
+        setColour(Slider::trackColourId, secondColour);
+        setColour(TextEditor::backgroundColourId, secondColour);
+
+        setColour(TextButton::textColourOffId, textColour);
+        setColour(ComboBox::textColourId, textColour);
+        setColour(TableListBox::textColourId, textColour);
+        setColour(Label::textColourId, textColour);
+        setColour(ListBox::textColourId, textColour);
+        setColour(TextEditor::textColourId, textColour);
+        setColour(PropertyComponent::labelTextColourId, textColour);
+        setColour(PopupMenu::textColourId, textColour);
+        setColour(KeyMappingEditorComponent::textColourId, textColour);
+        setColour(TabbedButtonBar::frontTextColourId, textColour);
+        setColour(TabbedButtonBar::tabTextColourId, textColour);
+        setColour(ToggleButton::textColourId, textColour);
+        
+        setColour(ComboBox::outlineColourId, outlineColour);
+        setColour(TextEditor::outlineColourId, outlineColour);
+    }
+    
     void setTheme(bool useLightTheme)
     {
+       // 53, 120, 247 ->alt blue
+        
         if(useLightTheme) {
-            auto firstColour = Colours::white;
-            auto secondColour = Colour(240, 240, 240);
-            auto textColour = Colours::darkgrey;
-            
-            setColour(ResizableWindow::backgroundColourId, secondColour);
-            
-            setColour(TextButton::buttonColourId, firstColour);
-            setColour(TextButton::buttonOnColourId, firstColour);
-            
-            setColour(TextButton::textColourOffId, textColour);
-            setColour(TextButton::textColourOnId, Colour(0xff42a2c8));
-            
-            setColour(ComboBox::textColourId, textColour);
-            setColour(ComboBox::backgroundColourId, firstColour);
-            setColour(ListBox::backgroundColourId, firstColour);
-            
-            setColour(TableListBox::textColourId, textColour);
-            
-            setColour(Slider::thumbColourId, Colour(0xff42a2c8));
-            setColour(Slider::backgroundColourId, secondColour);
-            setColour(Slider::trackColourId, secondColour);
-            
-            setColour(Label::textColourId, textColour);
-            setColour(ListBox::textColourId, textColour);
-            setColour(TextEditor::backgroundColourId, secondColour);
-            setColour(TextEditor::textColourId, textColour);
-            setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-            setColour(PropertyComponent::labelTextColourId, textColour);
-            setColour(ScrollBar::backgroundColourId, firstColour);
-            setColour(ScrollBar::trackColourId, firstColour);
-            
-            setColour(TooltipWindow::backgroundColourId, firstColour.withAlpha(0.8f));
-            setColour(PopupMenu::textColourId, textColour);
-            setColour(PopupMenu::backgroundColourId, firstColour.withAlpha(0.95f));
-            setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
-            
-            setColour(KeyMappingEditorComponent::backgroundColourId, firstColour);
-            setColour(KeyMappingEditorComponent::textColourId, textColour);
-            setColour(AlertWindow::backgroundColourId, firstColour);
-            
-            setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-            
-            setDefaultSansSerifTypeface(resources->defaultTypeface);
-            
-            getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, Colour(23, 23, 23));
+            setColours(Colour(231, 231, 231), Colour(245, 245, 245), Colour(91, 89, 94), Colour(66, 162, 200), Colour(202, 200, 204));
         }
         else {
-            setColour(ResizableWindow::backgroundColourId, Colour(32, 32, 32));
-            
-            setColour(TextButton::buttonColourId, Colour(23, 23, 23));
-            setColour(TextButton::buttonOnColourId, Colour(0xff42a2c8));
-            setColour(TextButton::textColourOffId, Colours::white);
-            setColour(TextButton::textColourOnId, Colour(0xff42a2c8));
-            
-            setColour(TableListBox::textColourId, Colours::white);
-            setColour(Label::textColourId, Colours::white);
-            setColour(PopupMenu::textColourId, Colours::white);
-            setColour(TextEditor::textColourId, Colours::white);
-            setColour(ComboBox::textColourId, Colours::white);
-            setColour(ListBox::textColourId, Colours::white);
-            setColour(ComboBox::backgroundColourId, Colour(23, 23, 23));
-            setColour(ListBox::backgroundColourId, Colour(23, 23, 23));
-            setColour(PropertyComponent::labelTextColourId, Colours::white);
-            
-            
-            setColour(ScrollBar::trackColourId, Colour(23, 23, 23));
-            setColour(ScrollBar::backgroundColourId, Colour(23, 23, 23));
-            setColour(Slider::thumbColourId, Colour(0xff42a2c8));
-            setColour(Slider::backgroundColourId, Colour(60, 60, 60));
-            setColour(Slider::trackColourId, Colour(90, 90, 90));
-            
-            setColour(TextEditor::backgroundColourId, Colour(45, 45, 45));
-            setColour(TextEditor::textColourId, Colours::white);
-            setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-            
-            
-            
-            setColour(TooltipWindow::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.8f));
-            setColour(PopupMenu::backgroundColourId, Colour((uint8_t)23, 23, 23, 0.95f));
-            setColour(PopupMenu::highlightedBackgroundColourId, Colour(0xff42a2c8));
-            
-            setColour(KeyMappingEditorComponent::backgroundColourId, Colour(32, 32, 32));
-            setColour(KeyMappingEditorComponent::textColourId, Colours::white);
-            setColour(AlertWindow::backgroundColourId, Colour(23, 23, 23));
-            
-            setColour(TextEditor::outlineColourId, findColour(ComboBox::outlineColourId));
-            
-            setDefaultSansSerifTypeface(resources->defaultTypeface);
-            
-            getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, Colour(23, 23, 23));
+            setColours(Colour(23, 23, 23), Colour(32, 32, 32), Colour(255, 255, 255), Colour(66, 162, 200),  Colour(100, 100, 100));
         }
     }
 };

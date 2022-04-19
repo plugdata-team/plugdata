@@ -81,6 +81,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     bool edgeHovered = false;
 
     String currentText;
+    
+    Point<int> mouseDownPos;
 
    private:
     void initialise();
