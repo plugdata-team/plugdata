@@ -103,10 +103,10 @@ struct SaveDialog : public Component
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
 
         g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f, 1.0f);
     }
 
     std::function<void(int)> cb;
@@ -204,10 +204,10 @@ struct ArrayDialog : public Component
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(2).toFloat(), 3.0f);
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
+        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f, 1.0f);
     }
 
     std::function<void(int, String, String)> cb;
@@ -286,17 +286,8 @@ class SearchPathComponent : public Component, public TableListBoxModel
         table.setModel(this);
         table.setColour(ListBox::backgroundColourId, findColour(ResizableWindow::backgroundColourId));
         table.setRowHeight(30);
-
-        // give it a border
-        // table.setColour(ListBox::outlineColourId, Colours::transparentBlack);
-        table.setColour(ListBox::textColourId, Colours::white);
-
         table.setOutlineThickness(0);
-
         table.deselectAllRows();
-
-        setColour(ListBox::textColourId, Colours::white);
-        setColour(ListBox::outlineColourId, Colours::white);
 
         table.getHeader().setStretchToFitActive(true);
         table.setHeaderHeight(0);
@@ -410,14 +401,14 @@ class SearchPathComponent : public Component, public TableListBoxModel
         table.setBounds(tableBounds);
 
         const int buttonHeight = 20;
-        const int y = getHeight() - (buttonHeight + 8);
+        const int y = getHeight() - (buttonHeight + 7);
         const int x = getWidth() - 8;
 
         resetButton.changeWidthToFitText(buttonHeight);
-        resetButton.setTopRightPosition(x, y + 6);
+        resetButton.setTopRightPosition(x, y + 5);
 
-        addButton.setBounds(10, y, 30, 30);
-        removeButton.setBounds(40, y, 30, 30);
+        addButton.setBounds(6, y, 30, 30);
+        removeButton.setBounds(34, y, 30, 30);
     }
 
    private:
@@ -472,28 +463,7 @@ struct SettingsComponent : public Component
         panels[currentPanel]->setVisible(false);
         panels[idx]->setVisible(true);
         currentPanel = idx;
-    }
-
-    void paint(Graphics& g) override
-    {
-        g.fillAll(findColour(PlugDataColour::canvasColourId));
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
-        
-        g.fillRect(0, 0, getWidth(), toolbarHeight);
-
-        if (currentPanel > 0)
-        {
-            auto tableBounds = getLocalBounds();
-            
-            g.setColour(findColour(PlugDataColour::toolbarColourId));
-            g.fillRect(tableBounds.removeFromBottom(40));
-        }
-    }
-    
-    void paintOverChildren(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0.0f, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
+        repaint();
     }
 
     void resized() override
@@ -521,7 +491,7 @@ struct SettingsComponent : public Component
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
 
-    int toolbarHeight = 45;
+    static constexpr int toolbarHeight = 45;
 
     OwnedArray<TextButton> toolbarButtons;
 };
@@ -573,14 +543,40 @@ struct SettingsDialog : public Component
 
     void resized() override
     {
-        closeButton->setBounds(getWidth() - 31, 8, 28, 28);
-        settingsComponent.setBounds(getLocalBounds());
+        closeButton->setBounds(getWidth() - 35, 8, 28, 28);
+        settingsComponent.setBounds(getLocalBounds().reduced(1));
+    }
+    
+    void paint(Graphics& g) override
+    {
+        //g.fillAll(findColour(PlugDataColour::canvasColourId));
+        
+        g.setColour(findColour(PlugDataColour::canvasColourId));
+        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
+        
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        
+        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, SettingsComponent::toolbarHeight);
+        g.fillRoundedRectangle(toolbarBounds, 5.0f);
+        g.fillRect(toolbarBounds.withTop(10.0f));
+        
+        if (settingsComponent.currentPanel > 0)
+        {
+            auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
+            g.setColour(findColour(PlugDataColour::toolbarColourId));
+            
+            g.fillRect(statusbarBounds.withHeight(20));
+            g.fillRoundedRectangle(statusbarBounds, 5.0f);
+        }
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1), 5.0f, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 3.0f, 0.5f);
+        g.drawLine(1.0f, SettingsComponent::toolbarHeight, static_cast<float>(getWidth() - 2), SettingsComponent::toolbarHeight);
         
     }
 

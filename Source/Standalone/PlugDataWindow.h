@@ -587,7 +587,7 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
 
         setContentOwned(new MainContentComponent(*this), true);
-
+        
         const auto windowScreenBounds = [this]() -> Rectangle<int>
         {
             const auto width = getWidth();
@@ -687,7 +687,7 @@ class PlugDataWindow : public DocumentWindow
         if (auto* b = getMaximiseButton())
             b->setToggleState (isFullScreen(), dontSendNotification);
 
-        auto titleBarArea = Rectangle<int>(0, 7, getWidth() - 5, 24);
+        auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 
         getLookAndFeel()
             .positionDocumentWindowButtons (*this,
@@ -697,6 +697,7 @@ class PlugDataWindow : public DocumentWindow
                                             getMaximiseButton(),
                                             getCloseButton(),
                                             false);
+        
     }
 
     virtual StandalonePluginHolder* getPluginHolder()

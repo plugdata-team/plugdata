@@ -206,8 +206,12 @@ void Box::setType(const String& newType, bool exists)
         auto* pd = &cnv->patch;
         if (pdObject)
         {
+            // Clear connections to this object
+            // They will be remade by the synchronise call later
+            for(auto* connection : getConnections()) cnv->connections.removeObject(connection);
+            
             pdObject = pd->renameObject(pdObject.get(), newType);
-
+            
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
             MessageManager::callAsync([this]() { cnv->synchronise(false); });
@@ -347,8 +351,6 @@ void Box::resized()
             setSize(minimumWidth,  Box::height);
         }
     }
-    
-
 
     if (auto* newEditor = getCurrentTextEditor())
     {
@@ -356,7 +358,7 @@ void Box::resized()
     }
     
     int edgeSize = 12;
-    const int edgeHitBox = 6;
+    const int edgeHitBox = 8;
     const int borderWidth = 14;
     
     if(getWidth() < 35) {
@@ -629,6 +631,18 @@ void Box::hideEditor()
             updateBounds(false);
         }
     }
+}
+
+Array<Connection*> Box::getConnections() const {
+    Array<Connection*> result;
+    for(auto* con : cnv->connections) {
+        for(auto* edge : edges) {
+            if(con->inlet == edge || con->outlet == edge) {
+                result.add(con);
+            }
+        }
+    }
+    return result;
 }
 
 TextEditor* Box::getCurrentTextEditor() const noexcept

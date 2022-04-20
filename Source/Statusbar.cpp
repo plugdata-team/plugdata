@@ -78,7 +78,7 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour(findColour(ResizableWindow::backgroundColourId).brighter());
+                    g.setColour(findColour(PlugDataColour::meterColourId));
                 else
                     g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
@@ -111,10 +111,10 @@ struct MidiBlinker : public Component, public Timer
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
-        g.setColour(blinkMidiIn ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::canvasColourId));
+        g.setColour(blinkMidiIn ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::meterColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour(blinkMidiOut ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::canvasColourId));
+        g.setColour(blinkMidiOut ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::meterColourId));
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
@@ -220,6 +220,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     themeButton->setName("statusbar:darkmode");
     themeButton->onClick = [this]() {
         pd.setTheme(themeButton->getToggleState());
+        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
     };
     
     theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
@@ -338,7 +339,7 @@ void Statusbar::timerCallback()
     if (!ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == var(true))
     {
         commandLocked = false;
-        lockButton->setColour(TextButton::textColourOffId, Colours::white);
+        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
         lockButton->repaint();
     }
 }
@@ -358,7 +359,7 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
     if (!mod.isCommandDown() && pd.commandLocked == var(true))
     {
         commandLocked = false;
-        lockButton->setColour(TextButton::textColourOffId, Colours::white);
+        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
         lockButton->repaint();
     }
 

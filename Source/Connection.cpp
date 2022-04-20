@@ -179,10 +179,7 @@ bool Connection::hitTest(int x, int y)
 
 void Connection::paint(Graphics& g)
 {
-    g.setColour(Colours::grey);
-    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
-
-    auto baseColour = findColour(ResizableWindow::backgroundColourId).contrasting();
+    auto baseColour = findColour(PlugDataColour::connectionColourId);
 
     if (cnv->isSelected(this))
     {
@@ -194,8 +191,15 @@ void Connection::paint(Graphics& g)
         baseColour = baseColour.brighter(0.6f);
     }
 
-    g.setColour(baseColour.withAlpha(0.8f));
-    g.strokePath(toDraw, PathStrokeType(2.0f, PathStrokeType::mitered, PathStrokeType::rounded));
+    
+    g.setColour(baseColour.darker(0.1));
+    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+    
+    g.setColour(baseColour.darker(0.2));
+    g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+
+    g.setColour(baseColour);
+    g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 }
 
 void Connection::mouseMove(const MouseEvent& e)
@@ -322,6 +326,8 @@ void Connection::mouseUp(const MouseEvent& e)
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
+    if(!inlet || !outlet) return;
+    
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
 
