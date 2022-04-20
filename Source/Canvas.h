@@ -30,8 +30,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     PlugDataPluginEditor& main;
     PlugDataAudioProcessor* pd;
 
-    void paintOverChildren(Graphics&) override;
     void paint(Graphics& g) override;
+    void paintOverChildren(Graphics&) override;
         
     void resized() override
     {
@@ -67,7 +67,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    int shouldGridLock(const MouseEvent& e, Component* toDrag);
+    int shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& gridIdx);
     
     void handleMouseDown(Component* component, const MouseEvent& e);
     void handleMouseUp(Component* component, const MouseEvent& e);
@@ -123,8 +123,11 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool isGraph = false;
     bool isGraphChild = false;
     bool updatingBounds = false; // used by connection
-    bool gridIsLocked = false;
     
+    int gridIsLocked = 0;
+    int lastGridIdx = -1;
+    
+    DrawablePath gridPath;
     
     Point<int> canvasOrigin = {0, 0};
     Point<int> gridLockPosition;

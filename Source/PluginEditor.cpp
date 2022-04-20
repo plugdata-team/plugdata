@@ -32,9 +32,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     registerAllCommandsForTarget(this);
     
     for(auto& seperator : seperators) {
-         seperator.setName("toolbar:seperator");
-         seperator.setInterceptsMouseClicks(false, false);
-         addAndMakeVisible(&seperator);
+        addChildComponent(&seperator);
     }
 
 
@@ -292,7 +290,7 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
     
 void PlugDataPluginEditor::resized()
 {
-    tabbar.setBounds(0, toolbarHeight, getWidth() - sidebar.getWidth() + 5, getHeight() - toolbarHeight - statusbar.getHeight());
+    tabbar.setBounds(0, toolbarHeight, getWidth() - sidebar.getWidth(), getHeight() - toolbarHeight - statusbar.getHeight());
 
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
 

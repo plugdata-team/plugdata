@@ -108,11 +108,10 @@ struct MidiBlinker : public Component, public Timer
         g.setFont(Font(11));
         g.drawText("MIDI", getLocalBounds().removeFromLeft(28), Justification::right);
 
-        auto midiInRect = Rectangle<float>(38.0f, 7.0f, 15.0f, 3.0f);
-        auto midiOutRect = Rectangle<float>(38.0f, 15.0f, 15.0f, 3.0f);
+        auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        
 
         g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colour(46, 46, 46));
         g.fillRoundedRectangle(midiInRect, 1.0f);
@@ -157,6 +156,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomIn = std::make_unique<TextButton>(Icons::ZoomIn);
     zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
+    gridButton = std::make_unique<TextButton>(Icons::Grid);
     themeButton = std::make_unique<TextButton>(Icons::Theme);
     
     presentationButton->setTooltip("Presentation Mode");
@@ -191,7 +191,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionStyleButton->setConnectedEdges(12);
     connectionStyleButton->setName("statusbar:connectionstyle");
     connectionStyleButton->getToggleStateValue().referTo(connectionStyle);
-
+    
     connectionStyleButton->onClick = [this]() { connectionPathfind->setEnabled(connectionStyle == var(true)); };
 
     addAndMakeVisible(connectionStyleButton.get());
@@ -209,6 +209,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     addAndMakeVisible(zoomLabel);
     zoomLabel.setText("100%", dontSendNotification);
     zoomLabel.setFont(Font(11));
+    zoomLabel.setJustificationType(Justification::right);
 
     zoomIn->setTooltip("Zoom In");
     zoomIn->setConnectedEdges(12);
@@ -222,9 +223,23 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     themeButton->onClick = [this]() {
         pd.setTheme(themeButton->getToggleState());
     };
+    
+    theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
+    themeButton->getToggleStateValue().referTo(theme);
     themeButton->setClickingTogglesState(true);
     addAndMakeVisible(themeButton.get());
     
+    gridButton->setTooltip("Enable grid");
+    gridButton->setConnectedEdges(12);
+    gridButton->setName("statusbar:grid");
+    gridButton->onClick = [this](){
+        pd.saveSettings();
+    };
+    
+    gridEnabled.referTo(pd.settingsTree.getPropertyAsValue("GridEnabled", nullptr));
+    gridButton->getToggleStateValue().referTo(gridEnabled);
+    gridButton->setClickingTogglesState(true);
+    addAndMakeVisible(gridButton.get());
 
     zoomOut->setTooltip("Zoom Out");
     zoomOut->setConnectedEdges(12);
@@ -269,27 +284,46 @@ Statusbar::~Statusbar()
 
 void Statusbar::resized()
 {
-    lockButton->setBounds(8, 0, getHeight(), getHeight());
-
-    connectionStyleButton->setBounds(43, 0, getHeight(), getHeight());
-    connectionPathfind->setBounds(70, 0, getHeight(), getHeight());
-
-    zoomLabel.setBounds(110, 0, getHeight() * 2, getHeight());
-
-    zoomIn->setBounds(146, 0, getHeight(), getHeight());
-    zoomOut->setBounds(174, 0, getHeight(), getHeight());
-
-    presentationButton->setBounds(215, 0, getHeight(), getHeight());
-    themeButton->setBounds(256, 0, getHeight(), getHeight());
     
-    bypassButton->setBounds(getWidth() - 30, 0, getHeight(), getHeight());
-
-    levelMeter->setBounds(getWidth() - 133, 0, 100, getHeight());
-    midiBlinker->setBounds(getWidth() - 190, 0, 70, getHeight());
-
-    volumeSlider.setBounds(getWidth() - 133, 0, 100, getHeight());
+    int pos = 0;
+    auto position = [this, &pos](int width, bool inverse = false) -> int {
+        int result = 8 + pos;
+        pos += width + 2;
+        return inverse ? getWidth() - pos : result;
+    };
     
+    lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+
+    position(5); // Seperator
     
+    connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+
+    position(5); // Seperator
+    
+    zoomLabel.setBounds(position(getHeight() * 1.25), 0, getHeight() * 1.25, getHeight());
+    
+    zoomIn->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    zoomOut->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+
+    position(5); // Seperator
+    
+    presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    
+    position(5); // Seperator
+    themeButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    
+    pos = 0; // reset position for elements on the left
+    
+    bypassButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+
+    int levelMeterPosition = position(100, true);
+    levelMeter->setBounds(levelMeterPosition, 0, 100, getHeight());
+    volumeSlider.setBounds(levelMeterPosition, 0, 100, getHeight());
+    
+    midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
+
 }
 
 // We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...

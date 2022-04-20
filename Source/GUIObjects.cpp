@@ -77,6 +77,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
         
     }
     
+    box->addComponentListener(this);
     updateLabel();
     
     sendSymbol = gui.getSendSymbol();
@@ -378,9 +379,20 @@ void GUIComponent::updateValue()
     }
 }
 
+
 void GUIComponent::componentMovedOrResized(Component& component, bool moved, bool resized)
 {
     updateLabel();
+    
+    if(recursiveResize) {
+        recursiveResize = false;
+        return; // break out of recursion: but doesn't protect against async recursion!!
+    }
+    else {
+        recursiveResize = true;
+        checkBoxBounds();
+        recursiveResize = false;
+    }
 }
 
 void GUIComponent::updateLabel()
@@ -421,7 +433,6 @@ void GUIComponent::updateLabel()
         }
         
         box->cnv->addAndMakeVisible(label.get());
-        box->addComponentListener(this);
     }
 }
 
@@ -685,9 +696,16 @@ struct BangComponent : public GUIComponent
         };
         
         initialise(newObject);
-        box->constrainer.setSizeLimits(30, 30, maxSize, maxSize);
-        box->constrainer.setFixedAspectRatio(1.0f);
     }
+    
+    void checkBoxBounds() override {
+        // Fix aspect ratio and apply limits
+        int size = jlimit(30, maxSize, box->getWidth());
+        if(size != box->getHeight() || size != box->getWidth()) {
+            box->setSize(size, size);
+        }
+    }
+    
     
     void update() override
     {
@@ -816,10 +834,16 @@ struct ToggleComponent : public GUIComponent
         };
         
         initialise(newObject);
-        
-        box->constrainer.setSizeLimits(30, 30, maxSize, maxSize);
-        box->constrainer.setFixedAspectRatio(1.0f);
     }
+    
+    void checkBoxBounds() override {
+        // Fix aspect ratio and apply limits
+        int size = jlimit(30, maxSize, box->getWidth());
+        if(size != box->getHeight() || size != box->getWidth()) {
+            box->setSize(size, size);
+        }
+    }
+    
     
     void resized() override
     {
@@ -866,7 +890,7 @@ struct MessageComponent : public GUIComponent
             if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
-                box->constrainer.checkComponentBounds(box);
+                checkBoxBounds();
             }
         };
         
@@ -899,7 +923,16 @@ struct MessageComponent : public GUIComponent
         }
         
         box->addMouseListener(this, false);
-        box->constrainer.setSizeLimits(50, Box::height - 2, maxSize, maxSize);
+    }
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(50, maxSize, box->getWidth());
+        int h = jlimit(Box::height - 2, maxSize, box->getHeight());
+        
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
     }
     
     void lock(bool locked) override
@@ -1098,8 +1131,16 @@ struct NumboxComponent : public GUIComponent
         input.setEditable(true, false);
         
         addMouseListener(this, true);
+    }
     
-        box->constrainer.setSizeLimits(30, Box::height - 12, maxSize, maxSize);
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(30, maxSize, box->getWidth());
+        int h = jlimit(Box::height - 12, maxSize, box->getHeight());
+        
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
     }
     
     void resized() override
@@ -1328,9 +1369,18 @@ struct ListComponent : public GUIComponent, public Timer
         updateValue();
         
         initialise(newObject);
-        
-        box->constrainer.setSizeLimits(100, Box::height - 2, maxSize, maxSize);
         startTimer(100);
+    }
+    
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(100, maxSize, box->getWidth());
+        int h = jlimit(Box::height - 2, maxSize, box->getHeight());
+        
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
     }
     
     ~ListComponent()
@@ -1451,14 +1501,15 @@ struct SliderComponent : public GUIComponent
         slider.onDragEnd = [this]() { stopEdition(); };
         
         initialise(newObject);
+    }
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(isVertical ? 15 : 50, maxSize, box->getWidth());
+        int h = jlimit(isVertical ? 77 : 25, maxSize, box->getHeight());
         
-        if (isVertical)
-        {
-            box->constrainer.setSizeLimits(15, 77, maxSize, maxSize);
-        }
-        else
-        {
-            box->constrainer.setSizeLimits(50, 15, maxSize, maxSize);
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
         }
     }
     
@@ -1534,14 +1585,6 @@ struct RadioComponent : public GUIComponent
         if (selected < radioButtons.size())
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
-        }
-        if (isVertical)
-        {
-            box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
-        }
-        else
-        {
-            box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
         }
     }
     
@@ -1858,7 +1901,16 @@ public:
         addAndMakeVisible(&array);
         
         initialise(newObject);
-        box->constrainer.setSizeLimits(100, 40, maxSize, maxSize);
+    }
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(100, maxSize, box->getWidth());
+        int h = jlimit(40, maxSize, box->getHeight());
+        
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
     }
     
     void resized() override
@@ -1893,10 +1945,19 @@ public:
         
         addMouseListener(this, true);
         
-        box->constrainer.setSizeLimits(25, 25, maxSize, maxSize);
-        
         resized();
     }
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(25, maxSize, box->getWidth());
+        int h = jlimit(25, maxSize, box->getHeight());
+        
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
+    }
+    
     
     ~GraphOnParent() override
     {
@@ -2067,8 +2128,16 @@ struct VUMeter : public GUIComponent
     VUMeter(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
         initialise(newObject);
+    }
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(30, maxSize, box->getWidth());
+        int h = jlimit(80, maxSize, box->getHeight());
         
-        box->constrainer.setSizeLimits(30, 80, maxSize, maxSize);
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
     }
     
     void resized() override
@@ -2161,10 +2230,18 @@ struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        box->constrainer.setSizeLimits(20, 20, maxSize, maxSize);
-        
         box->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
         initialise(newObject);
+    }
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(20, maxSize, box->getWidth());
+        int h = jlimit(20, maxSize, box->getHeight());
+        
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
     }
     
     void paint(Graphics& g) override
@@ -2442,11 +2519,18 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         }
         
         initialise(newObject);
-        box->constrainer.setSizeLimits(50, 70, maxSize, maxSize);
-        
-        //int width = keyboard.getKeyPosition(rangeMax.getValue(), keyboard.getKeyWidth()).getEnd();
-        //box->constrainer.setFixedAspectRatio(width / 150);
     }
+    
+    void checkBoxBounds() override {
+        // Apply size limits
+        int w = jlimit(50, maxSize, box->getWidth());
+        int h = jlimit(70, maxSize, box->getHeight());
+        
+        if(w != box->getWidth() || h != box->getHeight()) {
+            box->setSize(w, h);
+        }
+    }
+    
     
     void resized() override
     {

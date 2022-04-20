@@ -431,6 +431,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
     
+    gridEnabled.referTo(parent.statusbar.gridEnabled);
+    
     locked.referTo(pd->locked);
     locked.addListener(this);
 
@@ -471,7 +473,13 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     {
         presentationMode = false;
     }
-
+    
+    // Line to show when relative grid is used
+    gridPath.setStrokeFill(FillType(Colours::white));
+    gridPath.setStrokeThickness(1);
+    gridPath.setAlwaysOnTop(true);
+    
+    addAndMakeVisible(gridPath);
     synchronise();
 }
 
@@ -1403,9 +1411,6 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 {
     if (didStartDragging)
     {
-        // Ignore when locked
-        if (locked == var(true)) return;
-
         auto objects = std::vector<pd::Object*>();
 
         for (auto* component : getLassoSelection())
@@ -1415,9 +1420,20 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
                 if (box->pdObject) objects.push_back(box->pdObject.get());
             }
         }
-
+        
+        auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
+        
+        if(gridIsLocked == 1) {
+            distance.x = gridLockPosition.x;
+            gridPath.setPath(Path());
+        }
+        else if(gridIsLocked == 2) {
+            distance.y = gridLockPosition.y;
+            gridPath.setPath(Path());
+        }
+ 
         // When done dragging objects, update positions to pd
-        patch.moveObjects(objects, e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
+        patch.moveObjects(objects, distance.x, distance.y);
 
         // Check if canvas is large enough
         checkBounds();
@@ -1433,26 +1449,92 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     component->repaint();
 }
 
-int Canvas::shouldGridLock(const MouseEvent& e, Component* toDrag) {
-    gridEnabled = true;
+int Canvas::shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& gridIdx) {
     if(!static_cast<bool>(gridEnabled.getValue())) return 0;
     
-    return 0;
+    constexpr int tolerance = 2;
     
-    /*
-    if(e.getDistanceFromDragStartX() > 20) {
-        gridIsLocked = false;
-        return 0;
+    auto setPath = [this](int x1, int x2, int y1, int y2){
+        auto path = Path();
+        path.startNewSubPath(x1, y1);
+        path.lineTo(x2, y2);
+        gridPath.setPath(path);
+    };
+    
+    int totalSnaps = 0; // Keep idx of object snapped to recognise when we've changed to a different target
+    auto trySnap = [this, &totalSnaps, &offset, &gridIdx](int distance) -> bool {
+        if(abs(distance) < tolerance) {
+            gridIdx = totalSnaps;
+            offset = distance;
+            return true;
+        }
+        totalSnaps++;
+        return false;
+    };
+    
+    // Find snap points based on connection alignment
+    for(auto* edge : toDrag->edges) {
+        for(auto* connection : connections) {
+            if(connection->inlet == edge || connection->outlet == edge) {
+                
+                auto inletBounds = connection->inlet->getCanvasBounds();
+                auto outletBounds = connection->outlet->getCanvasBounds();
+                // Don't snap if the cord is upside-down
+                if(inletBounds.getY() < outletBounds.getY()) continue;
+                
+                int snapDistance = inletBounds.getCentreX() - outletBounds.getCentreX();
+                int totalDistance = inletBounds.getPosition().getDistanceFrom(outletBounds.getPosition());
+                
+                if(trySnap(snapDistance)) {
+                    setPath(inletBounds.getX() - 2, inletBounds.getX() - 2, outletBounds.getBottom() + 2, inletBounds.getY() - 2);
+                    return 1;
+                }
+            }
+        }
     }
-    else {
-        if(!gridIsLocked) {
-            gridIsLocked = true;
-            gridLockPosition = toDrag->getPosition();
-            
+
+    // Find snap points based on box alignment
+    for(auto* box : boxes) {
+        if(box == toDrag) continue;
+        
+        auto b1 = box->getBounds().reduced(Box::margin);
+        auto b2 = toDrag->getBounds().reduced(Box::margin);
+        
+        auto t = b1.getY() < b2.getY() ? b1 : b2;
+        auto b = b1.getY() > b2.getY() ? b1 : b2;
+        auto r = b1.getX() < b2.getX() ? b1 : b2;
+        auto l = b1.getX() > b2.getX() ? b1 : b2;
+        
+        int totalDistance = b1.getPosition().getDistanceFrom(b2.getPosition());
+        
+        if(trySnap(l.getX() - r.getX())) {
+            setPath(l.getX(), l.getX(), t.getY(), b.getBottom());
+            return 1;
+        }
+        if(trySnap(l.getCentreX() - r.getCentreX())) {
+            setPath(l.getRight(), l.getRight(), t.getY(), b.getBottom());
+            return 1;
+        }
+        if(trySnap(l.getRight() - r.getRight())) {
+            setPath(l.getCentreX(), l.getCentreX(), t.getY(), b.getBottom());
+            return 1;
         }
         
-        return 1;
-    } */
+        if(trySnap(t.getY() - b.getY())) {
+            setPath(l.getX(), r.getRight(), t.getY(), t.getY());
+            return 2;
+        }
+        if(trySnap(t.getCentreY() - b.getCentreY())) {
+            setPath(l.getX(), r.getRight(), t.getBottom(), t.getBottom());
+            return 2;
+        }
+        if(trySnap(t.getBottom() - b.getBottom())) {
+            setPath(l.getX(), r.getRight(), t.getCentreY(), t.getCentreY());
+            return 2;
+        }
+    }
+    
+    return 0;
 }
 
 // Call from component's mouseDrag
@@ -1462,14 +1544,46 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag) return;
 
     didStartDragging = true;
-
-    if(shouldGridLock(e, componentBeingDragged)) {
-        //delta = gridLockPosition;
+    
+    auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
+    
+    int offset;
+    
+    if(gridIsLocked) {
+        if((gridIsLocked == 1 && abs(gridLockPosition.x - distance.x) > 3) || (gridIsLocked == 2 && abs(gridLockPosition.y - distance.y) > 3)) {
+            gridIsLocked = false;
+            gridPath.setPath(Path());
+        }
+        else {
+            if(gridIsLocked == 1) {
+                distance.x = gridLockPosition.x;
+            }
+            else {
+                distance.y = gridLockPosition.y;
+            }
+        }
     }
 
     for (auto* box : getSelectionOfType<Box>())
     {
-        box->setTopLeftPosition(box->mouseDownPos + Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY()));
+        box->setTopLeftPosition(box->mouseDownPos + distance);
+    }
+    
+    int gridIdx;
+    
+    auto lock = shouldGridLock(e, componentBeingDragged, offset, gridIdx);
+    
+    if((!gridIsLocked && lock) || (gridIsLocked && gridIdx != lastGridIdx)) {
+        gridIsLocked = lock;
+        lastGridIdx = gridIdx;
+        
+        if(lock == 1) {
+            gridLockPosition.x = distance.x + offset;
+        }
+        else {
+            gridLockPosition.y = distance.y + offset;
+        }
+       
     }
 
     for (auto& tmpl : templates)
