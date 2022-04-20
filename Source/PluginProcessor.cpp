@@ -81,6 +81,7 @@ parameters(*this, nullptr)
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
         settingsTree.copyPropertiesAndChildrenFrom(newTree, nullptr);
         updateSearchPaths();
+        setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     };
     
     if(settingsTree.hasProperty("Theme")) {
@@ -797,7 +798,6 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse) {
         editor->repaint();
 
         if(auto* cnv = editor->getCurrentCanvas()) {
-            cnv->viewport->getLookAndFeel().setColour(ScrollBar::backgroundColourId, Colours::white);
             cnv->viewport->repaint();
             
             // Some objects with setBufferedToImage need manual repainting

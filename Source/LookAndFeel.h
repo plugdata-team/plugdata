@@ -58,7 +58,9 @@ enum PlugDataColour
     highlightColourId,
     textColourId,
     toolbarOutlineColourId,
-    canvasOutlineColourId
+    canvasOutlineColourId,
+    meterColourId,
+    connectionColourId
 };
 
 struct Resources
@@ -724,14 +726,16 @@ struct PlugDataLook : public LookAndFeel_V4
         return new PdLook;
     }
     
-    void setColours(Colour firstColour, Colour secondColour, Colour textColour, Colour highlightColour, Colour outlineColour)
+    void setColours(Colour firstColour, Colour secondColour, Colour textColour, Colour highlightColour, Colour outlineColour, Colour connectionColour)
     {
         setColour(PlugDataColour::toolbarColourId, firstColour);
         setColour(PlugDataColour::canvasColourId, secondColour);
         setColour(PlugDataColour::highlightColourId, highlightColour);
         setColour(PlugDataColour::textColourId, textColour);
-        setColour(PlugDataColour::toolbarOutlineColourId, outlineColour.interpolatedWith(firstColour, 0.7f));
+        setColour(PlugDataColour::toolbarOutlineColourId, outlineColour.interpolatedWith(firstColour, 0.6f));
         setColour(PlugDataColour::canvasOutlineColourId, outlineColour);
+        setColour(PlugDataColour::meterColourId, secondColour.brighter());
+        setColour(PlugDataColour::connectionColourId, connectionColour);
         
         setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
         setColour(TextButton::textColourOnId, highlightColour);
@@ -753,7 +757,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(KeyMappingEditorComponent::backgroundColourId, secondColour);
         setColour(ResizableWindow::backgroundColourId, secondColour);
         setColour(Slider::backgroundColourId, secondColour);
-        setColour(Slider::trackColourId, secondColour);
+        setColour(Slider::trackColourId, firstColour);
         setColour(TextEditor::backgroundColourId, secondColour);
 
         setColour(TextButton::textColourOffId, textColour);
@@ -770,6 +774,8 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ToggleButton::textColourId, textColour);
         setColour(ToggleButton::tickColourId, textColour);
         setColour(ToggleButton::tickDisabledColourId, textColour);
+        setColour(ComboBox::arrowColourId, textColour);
+        
         setColour(ComboBox::outlineColourId, outlineColour);
         setColour(TextEditor::outlineColourId, outlineColour);
     }
@@ -777,11 +783,10 @@ struct PlugDataLook : public LookAndFeel_V4
     void setTheme(bool useLightTheme)
     {
         if(useLightTheme) {
-            setColours(Colour(231, 231, 231), Colour(245, 245, 245), Colour(91, 89, 94), Colour(53, 120, 247), Colour(202, 200, 204));
+            setColours(Colour(231, 231, 231), Colour(245, 245, 245), Colour(91, 89, 94), Colour(0, 122, 255), Colour(165, 165, 165), Colour(179, 179, 179));
         }
         else {
-            auto c = findColour(ComboBox::outlineColourId);
-            setColours(Colour(23, 23, 23), Colour(32, 32, 32), Colour(255, 255, 255), Colour(66, 162, 200),  Colour(130, 130, 130));
+            setColours(Colour(23, 23, 23), Colour(32, 32, 32), Colour(255, 255, 255), Colour(66, 162, 200),  Colour(130, 130, 130), Colour(225, 225, 225));
         }
     }
 };

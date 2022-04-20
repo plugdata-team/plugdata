@@ -122,12 +122,7 @@ void GUIComponent::mouseUp(const MouseEvent& e)
 
 void GUIComponent::initialise(bool newObject)
 {
-    if (gui.getType() == pd::Type::Number)
-    {
-        auto color = Colour::fromString(secondaryColour.toString());
-        secondaryColour = color.toString();
-    }
-    
+
     labelText = gui.getLabelText();
     
     if (gui.isIEM()) {
@@ -147,7 +142,6 @@ void GUIComponent::initialise(bool newObject)
         
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
-    
 
     
     auto params = getParameters();
@@ -164,7 +158,16 @@ void GUIComponent::initialise(bool newObject)
 
 void GUIComponent::paint(Graphics& g)
 {
-    g.setColour(box->findColour(PlugDataColour::canvasColourId));
+    if(gui.isIEM()) {
+        g.setColour(findColour(TextButton::buttonColourId));
+    }
+    else {
+        // make sure text is readable
+        getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+        g.setColour(box->findColour(PlugDataColour::canvasColourId));
+    }
+    
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 }
 
@@ -416,8 +419,12 @@ void GUIComponent::updateLabel()
 
         auto bounds = gui.getLabelBounds(box->getBounds().reduced(Box::margin));
         
+        if(gui.isIEM()) {
+            bounds.translate(0, fontHeight / -2.0f);
+        }
+        
         label->setFont(Font(fontHeight));
-        label->setJustificationType(Justification::left);
+        label->setJustificationType(Justification::centredLeft);
         label->setBounds(bounds);
         label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
         label->setMinimumHorizontalScale(1.f);
@@ -954,22 +961,14 @@ struct MessageComponent : public GUIComponent
     {
         input.setText(String(gui.getSymbol()), sendNotification);
     }
-    
-    void paint(Graphics& g) override
+
+    void paintOverChildren(Graphics& g) override
     {
-        // Draw message style
-        if (!getGui().isAtom())
-        {
-            auto baseColour = isDown ? Colour(90, 90, 90) : Colour(70, 70, 70);
-            
-            auto rect = getLocalBounds().toFloat();
-            
-            g.setGradientFill(ColourGradient::vertical(baseColour, baseColour.darker(1.5f), getLocalBounds()));
-            
-            g.fillRoundedRectangle(rect, 2.0f);
-            
-            auto b = getLocalBounds();
-            
+        GUIComponent::paintOverChildren(g);
+        
+        auto b = getLocalBounds();
+        
+        if(!gui.isAtom()) {
             Path flagPath;
             flagPath.addQuadrilateral(b.getRight(), b.getY(),
                                       b.getRight() - 4, b.getY() + 4,
@@ -979,15 +978,7 @@ struct MessageComponent : public GUIComponent
             g.setColour(box->findColour(PlugDataColour::highlightColourId));
             g.fillPath(flagPath);
         }
-        else
-        {
-            g.fillAll(box->findColour(PlugDataColour::toolbarColourId));
-        }
-    }
-    
-    void paintOverChildren(Graphics& g) override
-    {
-        GUIComponent::paintOverChildren(g);
+        
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 1.5f);
     }
@@ -1290,12 +1281,6 @@ struct NumboxComponent : public GUIComponent
         {
             GUIComponent::valueChanged(value);
         }
-    }
-    
-    void paint(Graphics& g) override
-    {
-        g.setColour(box->findColour(TextEditor::backgroundColourId));
-        g.fillRect(getLocalBounds().reduced(1));
     }
     
     void paintOverChildren(Graphics& g) override

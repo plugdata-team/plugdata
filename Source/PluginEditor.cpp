@@ -15,11 +15,14 @@
 #include "Dialogs.h"
 #include "x_libpd_mod_utils.h"
 
-PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p), resizer(this, &constrainer)
+PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {
     toolbarButtons = {new TextButton(Icons::New),  new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
 
+    
+    setResizable(true, false);
+    
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
 
@@ -207,15 +210,16 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(toolbarButton(Hide));
 
     // window size limits
-    constrainer.setSizeLimits(700, 300, 4000, 4000);
+#ifndef PLUGDATA_STANDALONE
+    resizer.setAlwaysOnTop(true);
     addAndMakeVisible(resizer);
-
+#endif
+    
     setSize(pd.lastUIWidth, pd.lastUIHeight);
-
 
     tabbar.toFront(false);
     sidebar.toFront(false);
-    resizer.setAlwaysOnTop(true);
+
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -268,8 +272,22 @@ void PlugDataPluginEditor::paint(Graphics& g)
 {
     auto baseColour = findColour(PlugDataColour::toolbarColourId);
     
-    g.fillAll(findColour(PlugDataColour::canvasColourId));
+    // TODO: fix this by never having gaps around the canvas!!
+    g.setColour(findColour(PlugDataColour::canvasColourId));
+    g.fillRect(getLocalBounds().reduced(0, 10));
     
+#if PLUGDATA_STANDALONE
+    // Toolbar background
+    g.setColour(baseColour);
+    g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
+    g.fillRoundedRectangle(0, 0, getWidth(), toolbarHeight, 6.0f);
+    
+    // Statusbar background
+    g.setColour(baseColour);
+    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
+    g.fillRoundedRectangle(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
+    
+#else
     // Toolbar background
     g.setColour(baseColour);
     g.fillRect(0, 0, getWidth(), toolbarHeight);
@@ -277,7 +295,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
-
+#endif
 }
 
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
@@ -343,8 +361,11 @@ void PlugDataPluginEditor::resized()
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
 
+#ifndef PLUGDATA_STANDALONE
     resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer.toFront(false);
+#endif
+
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
@@ -581,15 +602,12 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 tabbar.setTabBarDepth(1);
             }
         });
-
     };
 
     closeButton->setName("tab:close");
     closeButton->setColour(TextButton::buttonColourId, Colour());
     closeButton->setColour(TextButton::buttonOnColourId, Colour());
     closeButton->setColour(ComboBox::outlineColourId, Colour());
-    closeButton->setColour(TextButton::textColourOnId, Colours::white);
-    closeButton->setColour(TextButton::textColourOffId, Colours::white);
     closeButton->setConnectedEdges(12);
     tabButton->setExtraComponent(closeButton, TabBarButton::beforeText);
 

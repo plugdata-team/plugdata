@@ -19,11 +19,6 @@ struct Inspector : public PropertyPanel
         
         g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRect(getLocalBounds().withHeight(getTotalContentHeight()));
-        
-        // Statusbar
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
-        g.fillRect(0, getHeight() - 26, getWidth(), 26);
-
     }
 
     void loadParameters(ObjectParameters& params)
@@ -403,12 +398,6 @@ struct Console : public Component
     {
         removeComponentListener(console);
     }
-    
-    void paint(Graphics& g) override {
-        // Statusbar
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
-        g.fillRect(0, getHeight() - 26, getWidth(), 26);
-    }
 
     void resized() override
     {
@@ -695,7 +684,7 @@ void Sidebar::paint(Graphics& g)
 
     // Sidebar
     g.setColour(findColour(PlugDataColour::toolbarColourId));
-    g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight());
+    g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight() - 28);
     
 }
 

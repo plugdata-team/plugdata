@@ -39,6 +39,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     void showEditor();
     void hideEditor();
+    
+    Array<Connection*> getConnections() const;
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
     TextEditor* getCurrentTextEditor() const noexcept;
