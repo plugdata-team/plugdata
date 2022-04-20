@@ -22,6 +22,22 @@ class PlugDataPluginEditor;
 class PlugDataPluginProcessor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
+    
+    struct GridSnap
+    {
+        enum GridSnapType
+        {
+            NotSnappedToGrid,
+            HorizontalSnap,
+            VerticalSnap
+        };
+        
+        GridSnapType type = GridSnap::NotSnappedToGrid;
+        int idx;
+        Point<int> position;
+        Line<int> gridLine;
+    };
+    
    public:
     Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool isGraph = false, bool isGraphChild = false);
 
@@ -67,8 +83,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    int shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& gridIdx);
-    
+    GridSnap shouldSnapToGrid(const Box* toDrag);
+
     void handleMouseDown(Component* component, const MouseEvent& e);
     void handleMouseUp(Component* component, const MouseEvent& e);
     void handleMouseDrag(const MouseEvent& e);
@@ -124,13 +140,10 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool isGraphChild = false;
     bool updatingBounds = false; // used by connection
     
-    int gridIsLocked = 0;
-    int lastGridIdx = -1;
-    
     DrawablePath gridPath;
-    
+    GridSnap lastGridSnap;
+
     Point<int> canvasOrigin = {0, 0};
-    Point<int> gridLockPosition;
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;

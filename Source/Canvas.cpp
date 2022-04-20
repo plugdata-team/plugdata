@@ -1424,14 +1424,15 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         
         auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
         
-        if(gridIsLocked == 1) {
-            distance.x = gridLockPosition.x;
-            gridPath.setPath(Path());
+        if(lastGridSnap.type == GridSnap::HorizontalSnap) {
+            distance.x = lastGridSnap.position.x;
         }
-        else if(gridIsLocked == 2) {
-            distance.y = gridLockPosition.y;
-            gridPath.setPath(Path());
+        else if(lastGridSnap.type == GridSnap::VerticalSnap) {
+            distance.y = lastGridSnap.position.y;
         }
+        
+        lastGridSnap = GridSnap();
+        gridPath.setPath(Path());
  
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
@@ -1450,23 +1451,12 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     component->repaint();
 }
 
-int Canvas::shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& gridIdx) {
-    if(!static_cast<bool>(gridEnabled.getValue())) return 0;
-    
+Canvas::GridSnap Canvas::shouldSnapToGrid(const Box* toDrag) {
     constexpr int tolerance = 2;
-    
-    auto setPath = [this](int x1, int x2, int y1, int y2){
-        auto path = Path();
-        path.startNewSubPath(x1, y1);
-        path.lineTo(x2, y2);
-        gridPath.setPath(path);
-    };
-    
+
     int totalSnaps = 0; // Keep idx of object snapped to recognise when we've changed to a different target
-    auto trySnap = [this, &totalSnaps, &offset, &gridIdx, &tolerance](int distance) -> bool {
+    auto trySnap = [this, &totalSnaps, &tolerance](int distance) -> bool {
         if(abs(distance) < tolerance) {
-            gridIdx = totalSnaps;
-            offset = distance;
             return true;
         }
         totalSnaps++;
@@ -1487,8 +1477,12 @@ int Canvas::shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& g
                 int totalDistance = inletBounds.getPosition().getDistanceFrom(outletBounds.getPosition());
                 
                 if(trySnap(snapDistance)) {
-                    setPath(inletBounds.getX() - 2, inletBounds.getX() - 2, outletBounds.getBottom() + 2, inletBounds.getY() - 2);
-                    return 1;
+                    auto gridLine = Line<int>(inletBounds.getX() - 2, outletBounds.getBottom() + 2, inletBounds.getX() - 2,  inletBounds.getY() - 2);
+                    return {GridSnap::HorizontalSnap, totalSnaps, {snapDistance, 0}, gridLine};
+                }
+                // If we're close, don't snap for other reasons
+                if(abs(snapDistance) < tolerance * 2.0f) {
+                    return GridSnap();
                 }
             }
         }
@@ -1496,7 +1490,8 @@ int Canvas::shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& g
 
     // Find snap points based on box alignment
     for(auto* box : boxes) {
-        if(box == toDrag) continue;
+        if(box == toDrag) continue; // if the box is the one we're dragging
+        if(!viewport->getViewArea().intersects(box->getBounds())) continue; // if the box is out of viewport bounds
         
         auto b1 = box->getBounds().reduced(Box::margin);
         auto b2 = toDrag->getBounds().reduced(Box::margin);
@@ -1509,33 +1504,33 @@ int Canvas::shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& g
         int totalDistance = b1.getPosition().getDistanceFrom(b2.getPosition());
         
         if(trySnap(l.getX() - r.getX())) {
-            setPath(l.getX(), l.getX(), t.getY(), b.getBottom());
-            return 1;
+            auto gridLine = Line<int>(l.getX(), t.getY(), l.getX(), b.getBottom());
+            return {GridSnap::HorizontalSnap, totalSnaps, {l.getX() - r.getX(), 0}, gridLine};
         }
         if(trySnap(l.getCentreX() - r.getCentreX())) {
-            setPath(l.getRight(), l.getRight(), t.getY(), b.getBottom());
-            return 1;
+            auto gridLine = Line<int>(l.getCentreX(), t.getY(), l.getCentreX(), b.getBottom());
+            return {GridSnap::HorizontalSnap, totalSnaps, {l.getCentreX() - r.getCentreX(), 0}, gridLine};
         }
         if(trySnap(l.getRight() - r.getRight())) {
-            setPath(l.getCentreX(), l.getCentreX(), t.getY(), b.getBottom());
-            return 1;
+            auto gridLine = Line<int>(l.getRight(), t.getY(), l.getRight(), b.getBottom());
+            return {GridSnap::HorizontalSnap, totalSnaps, {l.getRight() - r.getRight(), 0}, gridLine};
         }
         
         if(trySnap(t.getY() - b.getY())) {
-            setPath(l.getX(), r.getRight(), t.getY(), t.getY());
-            return 2;
+            auto gridLine = Line<int>(l.getX(), t.getY(), r.getRight(), t.getY());
+            return {GridSnap::VerticalSnap, totalSnaps, {0, t.getY() - b.getY()}, gridLine};
         }
         if(trySnap(t.getCentreY() - b.getCentreY())) {
-            setPath(l.getX(), r.getRight(), t.getBottom(), t.getBottom());
-            return 2;
+            auto gridLine = Line<int>(l.getX(), t.getCentreY(), r.getRight(), t.getCentreY());
+            return {GridSnap::VerticalSnap, totalSnaps, {0, t.getCentreY() - b.getCentreY()}, gridLine};
         }
         if(trySnap(t.getBottom() - b.getBottom())) {
-            setPath(l.getX(), r.getRight(), t.getCentreY(), t.getCentreY());
-            return 2;
+            auto gridLine = Line<int>(l.getX(), t.getBottom(), r.getRight(), t.getBottom());
+            return {GridSnap::VerticalSnap, totalSnaps, {0, t.getBottom() - b.getBottom()}, gridLine};
         }
     }
     
-    return 0;
+    return GridSnap();
 }
 
 // Call from component's mouseDrag
@@ -1545,46 +1540,47 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag) return;
 
     didStartDragging = true;
+
+    auto dragDistance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
     
-    auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
-    
-    int offset;
-    
-    if(gridIsLocked) {
-        if((gridIsLocked == 1 && abs(gridLockPosition.x - distance.x) > 3) || (gridIsLocked == 2 && abs(gridLockPosition.y - distance.y) > 3)) {
-            gridIsLocked = false;
-            gridPath.setPath(Path());
+    // If object was snapped last time
+    if(static_cast<bool>(gridEnabled.getValue()) && lastGridSnap.type != GridSnap::NotSnappedToGrid) {
+        
+        // Check if we've dragged out of the grid snap
+        bool horizontalSnap = lastGridSnap.type == GridSnap::HorizontalSnap;
+        bool horizontalUnsnap = horizontalSnap && abs(lastGridSnap.position.x - dragDistance.x) > 3;
+        bool verticalUnsnap = !horizontalSnap && abs(lastGridSnap.position.y - dragDistance.y) > 3;
+        
+        if(horizontalUnsnap || verticalUnsnap) {
+            lastGridSnap = GridSnap(); // reset grid
+            gridPath.setPath(Path());  // remove grid marker
+        }
+        // Otherwise replace drag distance with the drag distance when we first snapped
+        else if(horizontalSnap) {
+            dragDistance.x = lastGridSnap.position.x;
         }
         else {
-            if(gridIsLocked == 1) {
-                distance.x = gridLockPosition.x;
-            }
-            else {
-                distance.y = gridLockPosition.y;
-            }
+            dragDistance.y = lastGridSnap.position.y;
         }
     }
 
     for (auto* box : getSelectionOfType<Box>())
     {
-        box->setTopLeftPosition(box->mouseDownPos + distance);
+        box->setTopLeftPosition(box->mouseDownPos + dragDistance);
     }
     
-    int gridIdx;
+    auto snap = shouldSnapToGrid(componentBeingDragged);
     
-    auto lock = shouldGridLock(e, componentBeingDragged, offset, gridIdx);
-    
-    if((!gridIsLocked && lock) || (gridIsLocked && gridIdx != lastGridIdx)) {
-        gridIsLocked = lock;
-        lastGridIdx = gridIdx;
-        
-        if(lock == 1) {
-            gridLockPosition.x = distance.x + offset;
-        }
-        else {
-            gridLockPosition.y = distance.y + offset;
-        }
-       
+    // If we were not snapped last time and are locked now, or if the point to which we snapped has changed
+    if(snap.type != GridSnap::NotSnappedToGrid && (lastGridSnap.type == GridSnap::NotSnappedToGrid || snap.idx != lastGridSnap.idx)) {
+        snap.position += dragDistance;
+        lastGridSnap = snap;
+    }
+    if(lastGridSnap.type != GridSnap::NotSnappedToGrid) {
+        // Show grid indicator
+        auto path = Path();
+        path.addLineSegment(lastGridSnap.gridLine.toFloat(), 1.0f);
+        gridPath.setPath(path);
     }
 
     for (auto& tmpl : templates)
