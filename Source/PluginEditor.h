@@ -131,16 +131,15 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 #endif
 
     OwnedArray<TextButton> toolbarButtons;
-
     SafePointer<Component> settingsDialog = nullptr;
-
-    ComponentBoundsConstrainer constrainer;
-    ResizableCornerComponent resizer;
+    
+#ifndef PLUGDATA_STANDALONE
+    ResizableCornerComponent resizer = ResizableCornerComponent(this, nullptr);
+#endif
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     TextButton seperators[2];
-    
     
     inline static std::atomic<bool> useLightTheme = false;
     

@@ -24,7 +24,6 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     {
         int idx = 0;
         int type = -1;
-        Array<Colour> colours = {findColour(ScrollBar::thumbColourId), Colours::yellow};
 
         Array<String> letters = {"pd", "~"};
 
@@ -78,7 +77,8 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             if (type == -1) return;
 
-            g.setColour(colours[type].withAlpha(float(0.8)));
+           
+            g.setColour((type ? Colours::yellow : findColour(ScrollBar::thumbColourId)).withAlpha(float(0.8)));
             Rectangle<int> iconbound = getLocalBounds().reduced(4);
             iconbound.setWidth(getHeight() - 8);
             iconbound.translate(3, 0);
@@ -454,7 +454,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     // Add lasso component
     addAndMakeVisible(&lasso);
     lasso.setAlwaysOnTop(true);
-    lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::ColourIds::thumbColourId).withAlpha(0.3f));
 
     setWantsKeyboardFocus(true);
 
@@ -492,6 +491,7 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
+        lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::thumbColourId).withAlpha(0.3f));
         gridPath.setStrokeFill(FillType(findColour(PlugDataColour::highlightColourId)));
         
         g.fillAll(findColour(PlugDataColour::toolbarColourId));
@@ -1464,27 +1464,21 @@ Canvas::GridSnap Canvas::shouldSnapToGrid(const Box* toDrag) {
     };
     
     // Find snap points based on connection alignment
-    for(auto* edge : toDrag->edges) {
-        for(auto* connection : connections) {
-            if(connection->inlet == edge || connection->outlet == edge) {
-                
-                auto inletBounds = connection->inlet->getCanvasBounds();
-                auto outletBounds = connection->outlet->getCanvasBounds();
-                // Don't snap if the cord is upside-down
-                if(inletBounds.getY() < outletBounds.getY()) continue;
-                
-                int snapDistance = inletBounds.getCentreX() - outletBounds.getCentreX();
-                int totalDistance = inletBounds.getPosition().getDistanceFrom(outletBounds.getPosition());
-                
-                if(trySnap(snapDistance)) {
-                    auto gridLine = Line<int>(inletBounds.getX() - 2, outletBounds.getBottom() + 2, inletBounds.getX() - 2,  inletBounds.getY() - 2);
-                    return {GridSnap::HorizontalSnap, totalSnaps, {snapDistance, 0}, gridLine};
-                }
-                // If we're close, don't snap for other reasons
-                if(abs(snapDistance) < tolerance * 2.0f) {
-                    return GridSnap();
-                }
-            }
+    for(auto* connection : toDrag->getConnections()) {
+        auto inletBounds = connection->inlet->getCanvasBounds();
+        auto outletBounds = connection->outlet->getCanvasBounds();
+        // Don't snap if the cord is upside-down
+        if(inletBounds.getY() < outletBounds.getY()) continue;
+        
+        int snapDistance = inletBounds.getCentreX() - outletBounds.getCentreX();
+        
+        if(trySnap(snapDistance)) {
+            auto gridLine = Line<int>(inletBounds.getX() - 2, outletBounds.getBottom() + 2, inletBounds.getX() - 2,  inletBounds.getY() - 2);
+            return {GridSnap::HorizontalSnap, totalSnaps, {snapDistance, 0}, gridLine};
+        }
+        // If we're close, don't snap for other reasons
+        if(abs(snapDistance) < tolerance * 2.0f) {
+            return GridSnap();
         }
     }
 
@@ -1501,32 +1495,30 @@ Canvas::GridSnap Canvas::shouldSnapToGrid(const Box* toDrag) {
         auto r = b1.getX() < b2.getX() ? b1 : b2;
         auto l = b1.getX() > b2.getX() ? b1 : b2;
         
-        int totalDistance = b1.getPosition().getDistanceFrom(b2.getPosition());
-        
-        if(trySnap(l.getX() - r.getX())) {
+        if(trySnap(b1.getX() - b2.getX())) {
             auto gridLine = Line<int>(l.getX(), t.getY(), l.getX(), b.getBottom());
-            return {GridSnap::HorizontalSnap, totalSnaps, {l.getX() - r.getX(), 0}, gridLine};
+            return {GridSnap::HorizontalSnap, totalSnaps, {b1.getX() - b2.getX(), 0}, gridLine};
         }
-        if(trySnap(l.getCentreX() - r.getCentreX())) {
+        if(trySnap(b1.getCentreX() - b2.getCentreX())) {
             auto gridLine = Line<int>(l.getCentreX(), t.getY(), l.getCentreX(), b.getBottom());
-            return {GridSnap::HorizontalSnap, totalSnaps, {l.getCentreX() - r.getCentreX(), 0}, gridLine};
+            return {GridSnap::HorizontalSnap, totalSnaps, {b1.getCentreX() - b2.getCentreX(), 0}, gridLine};
         }
-        if(trySnap(l.getRight() - r.getRight())) {
+        if(trySnap(b1.getRight() - b2.getRight())) {
             auto gridLine = Line<int>(l.getRight(), t.getY(), l.getRight(), b.getBottom());
-            return {GridSnap::HorizontalSnap, totalSnaps, {l.getRight() - r.getRight(), 0}, gridLine};
+            return {GridSnap::HorizontalSnap, totalSnaps, {b1.getRight() - b2.getRight(), 0}, gridLine};
         }
         
-        if(trySnap(t.getY() - b.getY())) {
+        if(trySnap(b1.getY() - b2.getY())) {
             auto gridLine = Line<int>(l.getX(), t.getY(), r.getRight(), t.getY());
-            return {GridSnap::VerticalSnap, totalSnaps, {0, t.getY() - b.getY()}, gridLine};
+            return {GridSnap::VerticalSnap, totalSnaps, {0, b1.getY() - b2.getY()}, gridLine};
         }
-        if(trySnap(t.getCentreY() - b.getCentreY())) {
+        if(trySnap(b1.getCentreY() - b2.getCentreY())) {
             auto gridLine = Line<int>(l.getX(), t.getCentreY(), r.getRight(), t.getCentreY());
-            return {GridSnap::VerticalSnap, totalSnaps, {0, t.getCentreY() - b.getCentreY()}, gridLine};
+            return {GridSnap::VerticalSnap, totalSnaps, {0, b1.getCentreY() - b2.getCentreY()}, gridLine};
         }
-        if(trySnap(t.getBottom() - b.getBottom())) {
+        if(trySnap(b1.getBottom() - b2.getBottom())) {
             auto gridLine = Line<int>(l.getX(), t.getBottom(), r.getRight(), t.getBottom());
-            return {GridSnap::VerticalSnap, totalSnaps, {0, t.getBottom() - b.getBottom()}, gridLine};
+            return {GridSnap::VerticalSnap, totalSnaps, {0, b1.getBottom() - b2.getBottom()}, gridLine};
         }
     }
     
@@ -1548,8 +1540,8 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
         
         // Check if we've dragged out of the grid snap
         bool horizontalSnap = lastGridSnap.type == GridSnap::HorizontalSnap;
-        bool horizontalUnsnap = horizontalSnap && abs(lastGridSnap.position.x - dragDistance.x) > 3;
-        bool verticalUnsnap = !horizontalSnap && abs(lastGridSnap.position.y - dragDistance.y) > 3;
+        bool horizontalUnsnap = horizontalSnap && abs(lastGridSnap.position.x - dragDistance.x) > 4;
+        bool verticalUnsnap = !horizontalSnap && abs(lastGridSnap.position.y - dragDistance.y) > 4;
         
         if(horizontalUnsnap || verticalUnsnap) {
             lastGridSnap = GridSnap(); // reset grid
@@ -1569,18 +1561,21 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
         box->setTopLeftPosition(box->mouseDownPos + dragDistance);
     }
     
-    auto snap = shouldSnapToGrid(componentBeingDragged);
-    
-    // If we were not snapped last time and are locked now, or if the point to which we snapped has changed
-    if(snap.type != GridSnap::NotSnappedToGrid && (lastGridSnap.type == GridSnap::NotSnappedToGrid || snap.idx != lastGridSnap.idx)) {
-        snap.position += dragDistance;
-        lastGridSnap = snap;
-    }
-    if(lastGridSnap.type != GridSnap::NotSnappedToGrid) {
-        // Show grid indicator
-        auto path = Path();
-        path.addLineSegment(lastGridSnap.gridLine.toFloat(), 1.0f);
-        gridPath.setPath(path);
+    if(componentBeingDragged && static_cast<bool>(gridEnabled.getValue())) {
+        auto snap = shouldSnapToGrid(componentBeingDragged);
+        
+        // If we were not snapped last time and are locked now, or if the point to which we snapped has changed
+        if(snap.type != GridSnap::NotSnappedToGrid && (lastGridSnap.type == GridSnap::NotSnappedToGrid || snap.idx != lastGridSnap.idx)) {            
+            snap.position += dragDistance;
+            lastGridSnap = snap;
+        }
+        
+        if(snap.type != GridSnap::NotSnappedToGrid) {
+            // Show grid indicator
+            auto path = Path();
+            path.addLineSegment(snap.gridLine.toFloat(), 0.5f);
+            gridPath.setPath(path);
+        }
     }
 
     for (auto& tmpl : templates)

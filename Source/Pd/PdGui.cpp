@@ -959,9 +959,9 @@ Rectangle<int> Gui::getLabelBounds(Rectangle<int> objectBounds) const noexcept
             
             auto const* iemgui = static_cast<t_iemgui*>(ptr);
             int const posx = objectBounds.getX() + iemgui->x_ldx;
-            int const posy = objectBounds.getY() + iemgui->x_ldy - fontHeight / 2;
+            int const posy = objectBounds.getY() + iemgui->x_ldy;
             
-            return {posx, posy - 2, labelLength, fontHeight};
+            return {posx, posy, labelLength, fontHeight};
         }
     }
     else if(isAtom()) {
@@ -1044,9 +1044,11 @@ void Gui::setLabelPosition(Point<int> position) noexcept
 {
     if (isIEM())
     {
+        int fontHeight = getFontHeight();
+        
         auto* iem = static_cast<t_iemgui*>(ptr);
         iem->x_ldx = position.x;
-        iem->x_ldy = position.y + 10.0f;
+        iem->x_ldy = position.y;
         return;
     }
     jassertfalse;
