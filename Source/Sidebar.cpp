@@ -587,7 +587,7 @@ struct Console : public Component
 
                 if (rowColour || row == selectedItem)
                 {
-                    g.setColour(selectedItem == row ? findColour(Slider::thumbColourId) : findColour(ResizableWindow::backgroundColourId));
+                    g.setColour(selectedItem == row ? findColour(PlugDataColour::highlightColourId) : findColour(ResizableWindow::backgroundColourId));
 
                     g.fillRect(r);
                 }

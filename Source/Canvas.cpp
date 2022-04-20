@@ -54,7 +54,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         {
              auto colour = idx & 1 ? PlugDataColour::toolbarColourId :  PlugDataColour::canvasColourId;
             
-            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? Slider::thumbColourId : colour), isMouseOver(), isMouseButtonDown());
+            getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::highlightColourId : colour), isMouseOver(), isMouseButtonDown());
 
             
             getLookAndFeel().drawButtonText(g, *this, isMouseOver(), false);
@@ -359,7 +359,7 @@ struct GraphArea : public Component, public ComponentDragger
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(Slider::thumbColourId));
+        g.setColour(findColour(PlugDataColour::highlightColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1.f), 2.0f, 4.0f);
     }
 
@@ -475,7 +475,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graph
     }
     
     // Line to show when relative grid is used
-    gridPath.setStrokeFill(FillType(Colours::white));
     gridPath.setStrokeThickness(1);
     gridPath.setAlwaysOnTop(true);
     
@@ -493,6 +492,8 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
+        gridPath.setStrokeFill(FillType(findColour(PlugDataColour::highlightColourId)));
+        
         g.fillAll(findColour(PlugDataColour::toolbarColourId));
 
         g.setColour(findColour(PlugDataColour::canvasColourId));
