@@ -36,7 +36,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> bypassButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, themeButton;
+    std::unique_ptr<TextButton> bypassButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, gridButton, themeButton;
     
     Label zoomLabel;
 
@@ -49,6 +49,8 @@ struct Statusbar : public Component, public Timer, public KeyListener
     Value zoomScale;
 
     Value connectionStyle;
+    Value gridEnabled;
+    Value theme;
 
     static constexpr int statusbarHeight = 28;
 

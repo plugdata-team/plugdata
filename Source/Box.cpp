@@ -254,17 +254,6 @@ void Box::setType(const String& newType, bool exists)
         currentText = currentText.fromFirstOccurrenceOf("comment ", false, false);
     }
 
-    // graphical objects manage their own size limits
-    // For text object, make sure the width at least fits the text
-    if (!graphics || (graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
-    {
-        int ioletWidth = (std::max(numInputs, numOutputs) * 15) + 15;
-        int textWidth = font.getStringWidth(newType) + widthOffset;
-
-        int minimumWidth = std::max(textWidth, ioletWidth);
-        constrainer.setSizeLimits(minimumWidth, Box::height, std::max(3000, minimumWidth), Box::height);
-    }
-
     cnv->updateDrawables();
     cnv->main.updateCommandStatus();
 }
@@ -343,8 +332,23 @@ void Box::resized()
     {
         graphics->setBounds(getLocalBounds().reduced(margin));
     }
+    
+    // graphical objects manage their own size limits
+    // For text object, make sure the width at least fits the text
+    if (!graphics || (graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
+    {
+        int ioletWidth = std::max(numInputs, numOutputs) * 15 + 15;
+        int textWidth = font.getStringWidth(currentText) + widthOffset;
+        int minimumWidth = std::max(textWidth, ioletWidth);
+        
+        // Recursive resize is a bit tricky, but since these variables are very predictable,
+        // It won't be a problem
+        if(getWidth() < minimumWidth || getHeight() != Box::height) {
+            setSize(minimumWidth,  Box::height);
+        }
+    }
+    
 
-    constrainer.checkComponentBounds(this);
 
     if (auto* newEditor = getCurrentTextEditor())
     {
@@ -518,8 +522,7 @@ void Box::mouseDrag(const MouseEvent& e)
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
-
-        constrainer.setBoundsForComponent(this, newBounds, resizeZone.isDraggingTopEdge(), resizeZone.isDraggingLeftEdge(), resizeZone.isDraggingBottomEdge(), resizeZone.isDraggingRightEdge());
+        setBounds(newBounds);
 
         return;
     }

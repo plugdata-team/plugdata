@@ -83,6 +83,10 @@ parameters(*this, nullptr)
         updateSearchPaths();
     };
     
+    if(settingsTree.hasProperty("Theme")) {
+        setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+    }
+    
     logMessage("PlugData v" + String(ProjectInfo::versionString));
 }
 
@@ -795,18 +799,21 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse) {
         if(auto* cnv = editor->getCurrentCanvas()) {
             cnv->viewport->getLookAndFeel().setColour(ScrollBar::backgroundColourId, Colours::white);
             cnv->viewport->repaint();
+            
+            // Some objects with setBufferedToImage need manual repainting
+            for(auto* box : cnv->boxes) box->repaint();
+            for(auto* con : cnv->connections) reinterpret_cast<Component*>(con)->repaint();
             cnv->repaint();
         }
     }
-
 }
 
 Colour PlugDataAudioProcessor::getForegroundColour() {
-    return lnf->findColour(Slider::thumbColourId);
+    return lnf->findColour(PlugDataColour::highlightColourId);
 }
 
 Colour PlugDataAudioProcessor::getBackgroundColour() {
-    return lnf->findColour(ResizableWindow::backgroundColourId);
+    return lnf->findColour(PlugDataColour::canvasColourId);
 }
 
 void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)
