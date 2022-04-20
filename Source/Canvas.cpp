@@ -1462,7 +1462,7 @@ int Canvas::shouldGridLock(const MouseEvent& e, Box* toDrag, int& offset, int& g
     };
     
     int totalSnaps = 0; // Keep idx of object snapped to recognise when we've changed to a different target
-    auto trySnap = [this, &totalSnaps, &offset, &gridIdx](int distance) -> bool {
+    auto trySnap = [this, &totalSnaps, &offset, &gridIdx, &tolerance](int distance) -> bool {
         if(abs(distance) < tolerance) {
             gridIdx = totalSnaps;
             offset = distance;
