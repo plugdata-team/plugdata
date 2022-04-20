@@ -111,12 +111,10 @@ struct MidiBlinker : public Component, public Timer
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-
-        g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : Colour(46, 46, 46));
+        g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour(blinkMidiOut ? findColour(Slider::thumbColourId) : Colour(46, 46, 46));
+        g.setColour(blinkMidiOut ? findColour(Slider::thumbColourId) : findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
