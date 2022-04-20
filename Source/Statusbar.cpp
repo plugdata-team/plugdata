@@ -69,7 +69,7 @@ struct LevelMeter : public Component, public Timer
         auto blockRectWidth = (1.0f - 2.0f * spacingFraction) * blockWidth;
         auto blockRectSpacing = spacingFraction * blockWidth;
         auto blockCornerSize = 0.1f * blockWidth;
-        auto c = findColour(Slider::thumbColourId);
+        auto c = findColour(PlugDataColour::highlightColourId);
 
         for (int ch = 0; ch < numChannels; ch++)
         {
@@ -111,10 +111,10 @@ struct MidiBlinker : public Component, public Timer
         auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
         auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
-        g.setColour(blinkMidiIn ? findColour(Slider::thumbColourId) : findColour(PlugDataColour::canvasColourId));
+        g.setColour(blinkMidiIn ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour(blinkMidiOut ? findColour(Slider::thumbColourId) : findColour(PlugDataColour::canvasColourId));
+        g.setColour(blinkMidiOut ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
@@ -331,7 +331,7 @@ void Statusbar::timerCallback()
     if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var(false))
     {
         commandLocked = true;
-        lockButton->setColour(TextButton::textColourOffId, findColour(Slider::thumbColourId).brighter(0.2f));
+        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::highlightColourId).brighter(0.2f));
         lockButton->repaint();
     }
 
@@ -351,7 +351,7 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
     if (isKeyDown && mod.isCommandDown() && !lockButton->getToggleState())
     {
         commandLocked = true;
-        lockButton->setColour(TextButton::textColourOffId, findColour(Slider::thumbColourId).brighter(0.2f));
+        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::highlightColourId).brighter(0.2f));
         lockButton->repaint();
     }
 

@@ -164,7 +164,7 @@ void GUIComponent::initialise(bool newObject)
 
 void GUIComponent::paint(Graphics& g)
 {
-    g.setColour(findColour(TextButton::buttonColourId));
+    g.setColour(box->findColour(PlugDataColour::canvasColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 }
 
@@ -172,7 +172,7 @@ void GUIComponent::paintOverChildren(Graphics& g)
 {
     if (gui.isAtom())
     {
-        g.setColour(findColour(Slider::thumbColourId));
+        g.setColour(box->findColour(PlugDataColour::highlightColourId));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
         
@@ -429,7 +429,7 @@ void GUIComponent::updateLabel()
             label->setColour(Label::textColourId, gui.getLabelColour());
         }
         else {
-            label->setColour(Label::textColourId, box->findColour(ComboBox::textColourId));
+            label->setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
         }
         
         box->cnv->addAndMakeVisible(label.get());
@@ -661,6 +661,10 @@ struct BangComponent : public GUIComponent
     // TODO: fix in LookAndFeel!
     struct BangButton : public TextButton
     {
+        Box* box;
+        
+        BangButton(Box* parent) : box(parent) {};
+        
         void paint(Graphics& g) override
         {
             const auto bounds = getLocalBounds().reduced(1).toFloat();
@@ -669,7 +673,7 @@ struct BangComponent : public GUIComponent
             const float circleOuter = 80.f * (width * 0.01f);
             const float circleThickness = std::max(8.f * (width * 0.01f), 2.0f);
             
-            g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+            g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
             g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
             
             g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : Colours::transparentWhite);
@@ -680,7 +684,7 @@ struct BangComponent : public GUIComponent
     
     BangButton bangButton;
     
-    BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
+    BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject), bangButton(parent)
     {
         addAndMakeVisible(bangButton);
         
@@ -972,19 +976,19 @@ struct MessageComponent : public GUIComponent
                                       b.getRight() - 4, b.getBottom() - 4,
                                       b.getRight(), b.getBottom());
             
-            g.setColour(findColour(Slider::thumbColourId));
+            g.setColour(box->findColour(PlugDataColour::highlightColourId));
             g.fillPath(flagPath);
         }
         else
         {
-            g.fillAll(findColour(PlugDataColour::toolbarColourId));
+            g.fillAll(box->findColour(PlugDataColour::toolbarColourId));
         }
     }
     
     void paintOverChildren(Graphics& g) override
     {
         GUIComponent::paintOverChildren(g);
-        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 1.5f);
     }
     
@@ -1290,7 +1294,7 @@ struct NumboxComponent : public GUIComponent
     
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(TextEditor::backgroundColourId));
+        g.setColour(box->findColour(TextEditor::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(1));
     }
     
@@ -1400,7 +1404,7 @@ struct ListComponent : public GUIComponent, public Timer
     
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(Slider::thumbColourId));
+        g.fillAll(box->findColour(PlugDataColour::highlightColourId));
         
         static auto const border = 1.0f;
         const auto h = static_cast<float>(getHeight());
@@ -1415,7 +1419,7 @@ struct ListComponent : public GUIComponent, public Timer
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
         
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
         g.fillPath(p);
         g.strokePath(p, PathStrokeType(border));
     }
@@ -1695,7 +1699,10 @@ struct RadioComponent : public GUIComponent
 struct GraphicalArray : public Component, public Timer
 {
 public:
-    GraphicalArray(PlugDataAudioProcessor* instance, pd::Array& graph) : array(graph), edited(false), pd(instance)
+    
+    Box* box;
+    
+    GraphicalArray(PlugDataAudioProcessor* instance, pd::Array& graph, Box* parent) : array(graph), edited(false), pd(instance), box(parent)
     {
         if (graph.getName().empty()) return;
         
@@ -1716,7 +1723,7 @@ public:
     
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(TextButton::buttonColourId));
+        g.fillAll(box->findColour(PlugDataColour::toolbarColourId));
         
         if (error)
         {
@@ -1894,7 +1901,7 @@ struct ArrayComponent : public GUIComponent
 {
 public:
     // Array component
-    ArrayComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), graph(gui.getArray()), array(box->cnv->pd, graph)
+    ArrayComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), graph(gui.getArray()), array(box->cnv->pd, graph, box)
     {
         setInterceptsMouseClicks(false, true);
         array.setBounds(getLocalBounds());
@@ -2146,7 +2153,7 @@ struct VUMeter : public GUIComponent
     
     void paint(Graphics& g) override
     {
-        g.fillAll(findColour(ComboBox::backgroundColourId));
+        g.fillAll(box->findColour(PlugDataColour::toolbarColourId));
         
         auto values = std::vector<float>{gui.getValue(), gui.getPeak()};
 

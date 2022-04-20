@@ -283,7 +283,7 @@ void Box::paint(Graphics& g)
     }
     else if (selected && !cnv->isGraph)
     {
-        outlineColour = findColour(Slider::thumbColourId);
+        outlineColour = findColour(PlugDataColour::highlightColourId);
         g.setColour(outlineColour);
 
         // Draw resize edges when selected
@@ -302,7 +302,7 @@ void Box::paint(Graphics& g)
     {
         if (locked == var(false) && (isOver || selected) && !cnv->isGraph)
         {
-            g.setColour(selected ? findColour(Slider::thumbColourId) : findColour(PlugDataColour::canvasOutlineColourId));
+            g.setColour(selected ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::canvasOutlineColourId));
             g.drawRect(rect.toFloat(), 0.5f);
         }
     }

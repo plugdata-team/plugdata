@@ -60,7 +60,7 @@ void Edge::paint(Graphics& g)
     bool down = isDown() && !bool(box->locked.getValue());
     bool over = isOver() && !bool(box->locked.getValue());
 
-    auto backgroundColour = isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
+    auto backgroundColour = isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
 
     if(!box->edgeHovered) backgroundColour = backgroundColour.withAlpha(0.7f);
     

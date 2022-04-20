@@ -370,7 +370,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
     {
         if (rowIsSelected)
         {
-            g.setColour(findColour(Slider::thumbColourId));
+            g.setColour(findColour(PlugDataColour::highlightColourId));
         }
         else
         {
