@@ -47,6 +47,8 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     void closeOpenedSubpatchers();
 
     static GUIComponent* createGui(const String& name, Box* parent, bool newObject);
+    
+    virtual void checkBoxBounds() {};
 
     virtual ObjectParameters defineParameters();
 
@@ -83,6 +85,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
    protected:
     bool inspectorWasVisible = false;
+    bool recursiveResize = false;
 
     const std::string stringGui = std::string("gui");
     const std::string stringMouse = std::string("mouse");

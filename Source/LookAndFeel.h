@@ -33,7 +33,7 @@ struct Icons
     inline static const CharPointer_UTF8 CleanUp = CharPointer_UTF8 ("\xef\x87\xbc");
     inline static const CharPointer_UTF8 Colour = CharPointer_UTF8 ("\xef\x87\xbb");
     inline static const CharPointer_UTF8 Grid = CharPointer_UTF8 ("\xef\x83\x8e");
-    
+    inline static const CharPointer_UTF8 Theme = CharPointer_UTF8 ("\xef\x81\x82");
     
     inline static const CharPointer_UTF8 ZoomIn = CharPointer_UTF8("\xef\x80\x8e");
     inline static const CharPointer_UTF8 ZoomOut = CharPointer_UTF8("\xef\x80\x90");
@@ -48,7 +48,7 @@ struct Icons
     inline static const CharPointer_UTF8 Pin = CharPointer_UTF8("\xef\x82\x8d");
     
     inline static const CharPointer_UTF8 Keyboard = CharPointer_UTF8("\xef\x84\x9c");
-    inline static const CharPointer_UTF8 Theme = CharPointer_UTF8 ("\xef\x81\x82");
+
 };
 
 enum PlugDataColour
@@ -730,7 +730,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(PlugDataColour::canvasColourId, secondColour);
         setColour(PlugDataColour::highlightColourId, highlightColour);
         setColour(PlugDataColour::textColourId, textColour);
-        setColour(PlugDataColour::toolbarOutlineColourId, outlineColour.interpolatedWith(firstColour, 0.5f));
+        setColour(PlugDataColour::toolbarOutlineColourId, outlineColour.interpolatedWith(firstColour, 0.7f));
         setColour(PlugDataColour::canvasOutlineColourId, outlineColour);
         
         setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
@@ -780,7 +780,8 @@ struct PlugDataLook : public LookAndFeel_V4
             setColours(Colour(231, 231, 231), Colour(245, 245, 245), Colour(91, 89, 94), Colour(66, 162, 200), Colour(202, 200, 204));
         }
         else {
-            setColours(Colour(23, 23, 23), Colour(32, 32, 32), Colour(255, 255, 255), Colour(66, 162, 200),  Colour(100, 100, 100));
+            auto c = findColour(ComboBox::outlineColourId);
+            setColours(Colour(23, 23, 23), Colour(32, 32, 32), Colour(255, 255, 255), Colour(66, 162, 200),  Colour(130, 130, 130));
         }
     }
 };

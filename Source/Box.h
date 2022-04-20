@@ -67,8 +67,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     std::unique_ptr<GUIComponent> graphics = nullptr;
 
     OwnedArray<Edge> edges;
-
-    ComponentBoundsConstrainer constrainer;
     ResizableBorderComponent::Zone resizeZone;
 
     static inline constexpr int widthOffset = 32;
