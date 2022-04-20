@@ -736,6 +736,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
         setColour(TextButton::textColourOnId, highlightColour);
         setColour(Slider::thumbColourId, highlightColour);
+        setColour(ScrollBar::thumbColourId, highlightColour);
 
         setColour(TextButton::buttonColourId, firstColour);
         setColour(TextButton::buttonOnColourId, firstColour);
@@ -775,10 +776,8 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void setTheme(bool useLightTheme)
     {
-       // 53, 120, 247 ->alt blue
-        
         if(useLightTheme) {
-            setColours(Colour(231, 231, 231), Colour(245, 245, 245), Colour(91, 89, 94), Colour(66, 162, 200), Colour(202, 200, 204));
+            setColours(Colour(231, 231, 231), Colour(245, 245, 245), Colour(91, 89, 94), Colour(53, 120, 247), Colour(202, 200, 204));
         }
         else {
             auto c = findColour(ComboBox::outlineColourId);

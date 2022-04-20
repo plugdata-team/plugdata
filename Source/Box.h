@@ -97,7 +97,5 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     float minimumHorizontalScale = 0;
     bool editSingleClick = false;
 
-    Colour outline = findColour(Slider::thumbColourId);
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

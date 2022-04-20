@@ -7,6 +7,7 @@
 
 #include "Canvas.h"
 #include "Edge.h"
+#include "LookAndFeel.h"
 
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e)
 {
@@ -185,11 +186,11 @@ void Connection::paint(Graphics& g)
 
     if (cnv->isSelected(this))
     {
-        baseColour = outlet->isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
+        baseColour = outlet->isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
     }
     else if (isMouseOver())
     {
-        baseColour = outlet->isSignal ? Colours::yellow : findColour(Slider::thumbColourId);
+        baseColour = outlet->isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
         baseColour = baseColour.brighter(0.6f);
     }
 
