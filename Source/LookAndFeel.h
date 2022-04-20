@@ -767,7 +767,8 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(TabbedButtonBar::frontTextColourId, textColour);
         setColour(TabbedButtonBar::tabTextColourId, textColour);
         setColour(ToggleButton::textColourId, textColour);
-        
+        setColour(ToggleButton::tickColourId, textColour);
+        setColour(ToggleButton::tickDisabledColourId, textColour);
         setColour(ComboBox::outlineColourId, outlineColour);
         setColour(TextEditor::outlineColourId, outlineColour);
     }
