@@ -554,10 +554,6 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
     
-    BorderSize<int> getContentComponentBorder() override {
-        return {2, 2, 2, 2};
-    }
-
     AudioProcessor* getAudioProcessor() const noexcept
     {
         return pluginHolder->processor.get();
