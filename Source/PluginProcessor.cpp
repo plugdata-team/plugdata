@@ -336,6 +336,13 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     
     process(buffer, midiMessages);
     
+    // If input channels is larger than output channels, clear the output channels
+    // This prevents input data from showing up on the levelmeter
+    for(int i = totalNumOutputChannels; i < totalNumInputChannels; ++i)
+    {
+        buffer.clear(i, 0, buffer.getNumSamples());
+    }
+    
     buffer.applyGain(getParameters()[0]->getValue());
     
     statusbarSource.processBlock(buffer, midiBufferCopy, midiMessages);
