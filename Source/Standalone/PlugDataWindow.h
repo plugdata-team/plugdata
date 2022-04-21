@@ -487,6 +487,14 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 */
 class PlugDataWindow : public DocumentWindow
 {
+    
+    // Replacement for native Windows shadow, to allow rounded corners
+#if JUCE_WINDOWS
+        DropShadow shadow = DropShadow(Colours::black, 4);
+        DropShadower shadower = DropShadower(shadow);
+#endif
+        
+    
    public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
@@ -505,7 +513,12 @@ class PlugDataWindow : public DocumentWindow
                    )
         : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
-        
+#if JUCE_WINDOWS
+        setDropShadowEnabled(false);
+        shadower.setOwner(this);
+#else
+        setDropShadowEnabled(true);
+#endif
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
@@ -756,6 +769,7 @@ class PlugDataWindow : public DocumentWindow
 
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
