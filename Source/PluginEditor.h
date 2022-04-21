@@ -15,15 +15,7 @@
 #ifndef PLUGDATA_STANDALONE
 #define PLUGDATA_ROUNDED 0
 #else
-
-#if JUCE_MAC
 #define PLUGDATA_ROUNDED 1
-#elif JUCE_LINUX || JUCE_BSD
-#define PLUGDATA_ROUNDED 0
-#elif JUCE_WINDOWS
-#define PLUGDATA_ROUNDED 0
-#endif
-
 #endif
 
 enum CommandIDs
