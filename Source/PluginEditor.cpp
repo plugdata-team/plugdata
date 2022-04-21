@@ -367,7 +367,7 @@ void PlugDataPluginEditor::resized()
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
 
-#ifndef PLUGDATA_STANDALONE
+#if !(defined(PLUGDATA_STANDALONE) && JUCE_MAC)
     resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer.toFront(false);
 #endif
