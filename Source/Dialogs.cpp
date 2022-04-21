@@ -105,7 +105,7 @@ struct SaveDialog : public Component
         g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
 
-        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f, 1.0f);
     }
 
