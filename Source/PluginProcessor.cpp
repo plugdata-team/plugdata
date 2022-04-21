@@ -299,7 +299,7 @@ void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, Mid
 {
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
-    
+
     processingBuffer.setSize(2, buffer.getNumSamples());
     
     processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
@@ -311,6 +311,12 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+
+    for(int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
+    {
+        buffer.clear(i, 0, buffer.getNumSamples());
+    }
+    
     
     for (int n = 0; n < numParameters; n++)
     {
