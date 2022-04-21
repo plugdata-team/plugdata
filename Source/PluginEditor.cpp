@@ -20,8 +20,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButtons = {new TextButton(Icons::New),  new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
 
-    
+#if defined(PLUGDATA_STANDALONE) && JUCE_MAC
     setResizable(true, false);
+#endif
     
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
@@ -92,7 +93,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     tabbar.setOutline(0);
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
-
 
     for (auto* button : toolbarButtons)
     {

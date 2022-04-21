@@ -190,7 +190,6 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
         baseColour = baseColour.brighter(0.6f);
     }
-
     
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));

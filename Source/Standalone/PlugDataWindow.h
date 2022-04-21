@@ -679,6 +679,11 @@ class PlugDataWindow : public DocumentWindow
     {
         setFullScreen(!isFullScreen());
     }
+    
+    void paint(Graphics& g) override
+    {
+        g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
+    }
 
     void resized() override
     {
@@ -708,8 +713,6 @@ class PlugDataWindow : public DocumentWindow
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
 
    private:
-    bool maximised = false;
-    Rectangle<int> nonMaximisedBounds;
 
     class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
