@@ -489,8 +489,8 @@ class PlugDataWindow : public DocumentWindow
 {
 
     // Replacement for native Windows shadow, to allow rounded corners
-#if JUCE_WINDOWS
-        DropShadow shadow = DropShadow(Colours::black, 7, Point<int>(0, 0));
+#if 1
+        DropShadow shadow = DropShadow(Colours::black, 5, Point<int>(0, 0));
 #endif
     
    public:
@@ -511,7 +511,7 @@ class PlugDataWindow : public DocumentWindow
                    )
         : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
-#if JUCE_WINDOWS
+#if 1
         setDropShadowEnabled(false);
 #endif
         setTitleBarHeight(0);
@@ -564,9 +564,9 @@ class PlugDataWindow : public DocumentWindow
     }
     
     // Fixes shadow with rounded edges on windows
-#if JUCE_WINDOWS
+#if 1
     void paint(Graphics& g) override {
-        shadow.drawForRectangle(g, getLocalBounds().reduced(4));
+        shadow.drawForRectangle(g, getLocalBounds().reduced(5));
     }
 #endif
     
