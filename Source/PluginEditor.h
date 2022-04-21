@@ -133,7 +133,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     OwnedArray<TextButton> toolbarButtons;
     SafePointer<Component> settingsDialog = nullptr;
     
-#ifndef PLUGDATA_STANDALONE
+#if !(defined(PLUGDATA_STANDALONE) && JUCE_MAC)
     ResizableCornerComponent resizer = ResizableCornerComponent(this, nullptr);
 #endif
 
