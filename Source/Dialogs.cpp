@@ -668,6 +668,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
     menu.addItem(14, "Canvas");
     menu.addSeparator();
     menu.addItem(15, "Keyboard");
+    menu.addItem(17, "VU Meter");
 
     auto callback = [cb](int choice)
     {
@@ -703,6 +704,9 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
                 break;
             case 15:
                 boxName = "keyboard";
+                break;
+            case 17:
+                boxName = "vu";
                 break;
             default:
                 return;
