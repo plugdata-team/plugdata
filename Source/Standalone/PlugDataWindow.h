@@ -487,13 +487,11 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 */
 class PlugDataWindow : public DocumentWindow
 {
-    
+
     // Replacement for native Windows shadow, to allow rounded corners
 #if JUCE_WINDOWS
-        DropShadow shadow = DropShadow(Colours::black, 4);
-        DropShadower shadower = DropShadower(shadow);
+        DropShadow shadow = DropShadow(Colours::black, 7, Point<int>(0, 0));
 #endif
-        
     
    public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -515,9 +513,6 @@ class PlugDataWindow : public DocumentWindow
     {
 #if JUCE_WINDOWS
         setDropShadowEnabled(false);
-        shadower.setOwner(this);
-#else
-        setDropShadowEnabled(true);
 #endif
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
@@ -526,6 +521,7 @@ class PlugDataWindow : public DocumentWindow
 
         setOpaque(false);
         setContentOwned(new MainContentComponent(*this), true);
+        
         
         const auto windowScreenBounds = [this]() -> Rectangle<int>
         {
@@ -567,7 +563,12 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
     
-    
+    // Fixes shadow with rounded edges on windows
+#if JUCE_WINDOWS
+    void paint(Graphics& g) override {
+        shadow.drawForRectangle(g, getLocalBounds().reduced(4));
+    }
+#endif
     
     AudioProcessor* getAudioProcessor() const noexcept
     {
@@ -625,7 +626,7 @@ class PlugDataWindow : public DocumentWindow
     void resized() override
     {
         ResizableWindow::resized();
-
+        
         if (auto* b = getMaximiseButton())
             b->setToggleState (isFullScreen(), dontSendNotification);
 
@@ -653,9 +654,13 @@ class PlugDataWindow : public DocumentWindow
 
     class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
+
+        
        public:
         MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
         {
+        
+            
             inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
 
             if (editor != nullptr)
@@ -673,6 +678,7 @@ class PlugDataWindow : public DocumentWindow
                 componentMovedOrResized(*editor, false, true);
 
                 addAndMakeVisible(editor.get());
+                editor->setAlwaysOnTop(true);
             }
         }
 
