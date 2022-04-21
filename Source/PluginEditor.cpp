@@ -20,7 +20,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButtons = {new TextButton(Icons::New),  new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
                       new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
 
-#if defined(PLUGDATA_STANDALONE) && JUCE_MAC
+#if PLUGDATA_ROUNDED
     setResizable(true, false);
 #endif
     
@@ -210,7 +210,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(toolbarButton(Hide));
 
     // window size limits
-#if !(defined(PLUGDATA_STANDALONE) && JUCE_MAC)
+#if !PLUGDATA_ROUNDED
     resizer.setAlwaysOnTop(true);
     addAndMakeVisible(resizer);
 #endif
@@ -276,37 +276,29 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::canvasColourId));
     g.fillRect(getLocalBounds().reduced(0, 10));
     
-#if defined(PLUGDATA_STANDALONE) && JUCE_MAC
-    const bool rounded = true;
-#else
-    const bool rounded = false;
-#endif
+#if PLUGDATA_ROUNDED
+    // Toolbar background
+    g.setColour(baseColour);
+    g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
+    g.fillRoundedRectangle(0, 0, getWidth(), toolbarHeight, 6.0f);
     
-    if(rounded) {
-        // Toolbar background
-        g.setColour(baseColour);
-        g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-        g.fillRoundedRectangle(0, 0, getWidth(), toolbarHeight, 6.0f);
-        
-        // Statusbar background
-        g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
-        g.fillRoundedRectangle(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
-    }
-    else {
-        // Toolbar background
-        g.setColour(baseColour);
-        g.fillRect(0, 0, getWidth(), toolbarHeight);
+    // Statusbar background
+    g.setColour(baseColour);
+    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
+    g.fillRoundedRectangle(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
+#else
+    // Toolbar background
+    g.setColour(baseColour);
+    g.fillRect(0, 0, getWidth(), toolbarHeight);
 
-        // Statusbar background
-        g.setColour(baseColour);
-        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
-    }
+    // Statusbar background
+    g.setColour(baseColour);
+    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+#endif
 }
 
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 {
-    
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
@@ -367,7 +359,7 @@ void PlugDataPluginEditor::resized()
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
 
-#if !(defined(PLUGDATA_STANDALONE) && JUCE_MAC)
+#if !PLUGDATA_ROUNDED
     resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
     resizer.toFront(false);
 #endif
