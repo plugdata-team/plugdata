@@ -1,0 +1,192 @@
+#N canvas 606 40 565 480 10;
+#X obj 3 281 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 357 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 393 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 104 366 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 444 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 190 366 signal -;
+#X obj 124 151 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 124 216 else/out~;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 23 41 cnv 4 4 4 empty empty Impulse 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 90 41 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 5 cnv 15 301 42 empty empty impulse~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X text 183 149 <= hz;
+#N canvas 793 162 475 414 example 0;
+#X obj 95 133 else/sh~;
+#X obj 95 88 noise~;
+#X obj 95 216 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 213 113 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 216 88 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 241 87 frequency;
+#X obj 213 178 else/out~;
+#X text 31 267 Since it deals with negative frequencies \, the impulse
+is only sent when leaping from one phase cycle to the next (in either
+direction). How this happens is probably better understood if you check
+the [pimp~] object and its help file - [pimp~] is a variant of [imp~]
+which also carries an extra outlet for phase output.;
+#X obj 213 140 else/impulse~ 1;
+#X text 41 26 [imp~]/[impulse~] may be used as an oscillador but also
+to periodically trigger processes such as with [sh~] below.;
+#X text 215 373 see also:;
+#X obj 295 372 else/pimp~;
+#X obj 95 186 else/sig2float~;
+#X connect 0 0 12 0;
+#X connect 1 0 0 0;
+#X connect 3 0 8 0;
+#X connect 4 0 3 0;
+#X connect 8 0 0 1;
+#X connect 8 0 6 0;
+#X connect 12 0 2 0;
+#X restore 481 195 pd example;
+#X obj 285 213 else/out~;
+#X obj 105 291 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 147 292 float/signal -;
+#X text 251 292 frequency in hz;
+#X obj 104 313 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 147 334 float/signal -;
+#X obj 104 333 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 252 334 phase offset (modulation input);
+#X text 252 314 phase sync (ressets internal phase);
+#X text 147 314 float/signal -;
+#X text 173 403 1) float;
+#X text 239 422 - initial phase offset (default 0);
+#X text 239 403 - frequency in hertz (default 0);
+#X text 173 422 2) float;
+#N canvas 492 97 859 458 sync 0;
+#X msg 50 134 0;
+#X msg 81 133 0.25;
+#X msg 153 133 0.75;
+#X msg 193 133 1;
+#X msg 121 133 0.5;
+#X text 224 132 <= reset =>;
+#X text 34 15 The second inlet resets the phase ands behaves in the
+same way for control data as objects like [osc~] and [phasor~] in Pd.
+A number input resets the oscillator and restarts the cycle with an
+initial phase that corresponds to the input number \, so the internal
+phase is synced to the given value. The phase values are from 0 to
+1 and values beyond that are wrapped within this range.;
+#X text 513 24 Syncing the phase with control messages is useful for
+LFOs and control with MIDI. A sync with audio is useful for the "hard
+sync" technique \, where an oscillator is synced according to the frequency
+of a master frequency., f 44;
+#X obj 539 242 else/out~;
+#X obj 576 143 nbx 5 14 110 200 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 675 170 Master oscillator;
+#X text 638 203 Slave oscillator;
+#X obj 576 169 else/imp~ 110;
+#X text 491 336 NOTE:;
+#X text 510 363 The "phase sync" inlet is quite different from the
+"phase offset" inlet. This means that the are completely independent.
+, f 43;
+#X text 36 317 Additionally \, you can reset the oscillator with an
+impulse signal. Inputs that are > 0 and <= 1 reset the phase Pdexpects
+an impulse signal for syncing. The impulse values need to be > 0 and
+<= 1 (otherwise ignored). Because phase is cyclical \, the value of
+1 represents the "phase 0" of the cycle \, where the impulse occurs.
+Send it impulses above and check the result. Use a multiplier to reset
+to another phase value.;
+#X obj 70 211 else/out~;
+#X obj 271 228 else/out~;
+#X obj 271 198 else/impulse~ 1;
+#X obj 539 202 else/imp~ 200;
+#X obj 70 181 else/impulse~ 1;
+#X msg 420 130 0.25;
+#X msg 346 130 0.75;
+#X msg 314 130 1;
+#X msg 386 130 0.5;
+#X obj 314 162 else/impseq~;
+#X connect 0 0 20 1;
+#X connect 1 0 20 1;
+#X connect 2 0 20 1;
+#X connect 3 0 20 1;
+#X connect 4 0 20 1;
+#X connect 9 0 12 0;
+#X connect 12 0 19 1;
+#X connect 18 0 17 0;
+#X connect 19 0 8 0;
+#X connect 20 0 16 0;
+#X connect 21 0 25 0;
+#X connect 22 0 25 0;
+#X connect 23 0 25 0;
+#X connect 24 0 25 0;
+#X connect 25 0 18 1;
+#X restore 498 219 pd sync;
+#N canvas 430 175 780 341 phase 0;
+#X obj 472 186 else/out~;
+#X text 587 142 Phase Modulation:;
+#X obj 571 115 osc~ 50.01;
+#X text 28 31 The second argument sets an initial phase (or "phase
+offset"). This is also settable with the third inlet. This allows you
+to control two oscillators with the same frequency falling in and out
+of phase. Another feature is phase modulation., f 53;
+#X obj 97 256 else/out~;
+#X obj 97 220 +~;
+#X text 334 119 1;
+#X obj 202 119 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 199 143 4 0 0 0 - - - 0;
+#X text 182 119 0;
+#X obj 199 167 else/float2sig~ 10;
+#X text 387 46 The phase values are wrapped into the 0-1 range \, since
+the phase cycle is from 0 to 1 (where 1 is also the start of another
+cycle).;
+#X obj 472 143 else/impulse~ 200;
+#X obj 97 155 else/imp~ 1 0.5;
+#X obj 112 193 else/impulse~ 1;
+#X connect 2 0 12 2;
+#X connect 5 0 4 0;
+#X connect 7 0 8 0;
+#X connect 8 0 10 0;
+#X connect 10 0 14 2;
+#X connect 12 0 0 0;
+#X connect 13 0 5 0;
+#X connect 14 0 5 1;
+#X restore 450 243 pd phase offset;
+#X obj 124 179 else/impulse~ 100;
+#X obj 285 172 else/imp~ 5;
+#X text 63 90 The [impulse~] object (or [imp~] for short) is an impulse
+oscillator that accepts negative frequencies \, has inlets for phase
+sync and phase modulation., f 57;
+#X text 302 153 (alias);
+#X text 251 366 impulse oscillator signal;
+#X text 400 166 see also:;
+#X obj 468 166 else/bl.imp~;
+#X connect 6 0 38 0;
+#X connect 38 0 7 0;
+#X connect 39 0 22 0;

@@ -1,0 +1,79 @@
+#N canvas 492 79 561 502 10;
+#X obj 4 3 cnv 15 301 42 empty empty sort 20 20 2 37 #e0e0e0 #000000
+0;
+#X obj 307 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 24 40 cnv 4 4 4 empty empty List 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 59 40 cnv 4 4 4 empty empty sort 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 307 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 306 3 pd;
+#X obj 346 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 459 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 4 309 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 387 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 441 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 103 396 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 104 317 cnv 17 3 38 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 476 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 234 271 else/display;
+#X msg 264 152 9 0 3 1 10 20 33;
+#X msg 336 178 1;
+#X msg 303 178 -1;
+#X text 209 397 the sorted list;
+#X obj 104 362 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 153 363 float -;
+#X text 207 363 order (negative is descending \, ascending otherwise)
+;
+#X obj 303 235 else/display;
+#X text 155 396 list -;
+#X obj 103 419 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 155 419 list -;
+#X text 209 420 the sorted list as indexes of the original input;
+#X obj 234 210 else/sort -1;
+#X obj 234 151 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 134 318 anything -;
+#X text 207 319 a message to sort, f 51;
+#X text 170 335 bang;
+#X text 207 336 outputs the last incoming message sorted, f 51;
+#X text 117 451 1) float - order >= is ascending \, descending otherwise
+(default 0), f 67;
+#X text 62 85 [sort] sorts messages in ascending or descending order.
+A bang outputs the last incoming message. If you change the sorting
+order you can use the bang message to change the sorting direction
+of the last incoming message. Note upper case letters are sorted before
+lower case letters., f 70;
+#X msg 94 152 4 1 3 2 b c Z w x t;
+#X connect 20 0 32 0;
+#X connect 21 0 32 1;
+#X connect 22 0 32 1;
+#X connect 32 0 19 0;
+#X connect 32 1 27 0;
+#X connect 33 0 32 0;
+#X connect 40 0 32 0;

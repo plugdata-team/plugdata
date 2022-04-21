@@ -1,0 +1,112 @@
+#N canvas 533 52 563 574 10;
+#X obj 2 3 cnv 15 301 42 empty empty button 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 29 40 cnv 4 4 4 empty empty Button 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 85 40 cnv 4 4 4 empty empty GUI 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 6 338 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 442 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 473 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 549 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 114 345 cnv 17 3 90 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 114 449 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 155 360 size <float>;
+#X text 197 449 float;
+#X text 243 449 - latch status (on: 1 or off: 0);
+#X text 49 89 [button] is a GUI button that responds to mouse clicks.
+When clicked on \, it sends a "1" value \, and outputs "0" when releasing
+the mouse button., f 69;
+#X obj 238 301 else/display;
+#X text 181 193 click =>;
+#X msg 238 162 size \$1;
+#X floatatom 238 140 5 20 100 0 - - - 0;
+#X obj 238 189 else/button 50 50 255 255 255 128 128 159;
+#X text 243 345 - sets horizontal and vertical size in pixels;
+#X text 167 345 dim <f \, f>;
+#X text 143 390 height <float>;
+#X text 149 375 width <float>;
+#X text 243 375 - sets horizontal size in pixels;
+#X text 243 390 - sets vertical size in pixels;
+#X text 243 360 - sets both horizontal and vertical size in pixels
+;
+#X text 124 482 -dim <float \, float>: x/y dimensions (default 20 \,
+20);
+#X text 163 499 - size <float> (same as message method), f 55;
+#X msg 315 162 dim 50 100;
+#X text 125 405 bgcolor <f \, f \, f>;
+#X text 243 405 - sets background color in RGB;
+#X text 125 420 fgcolor <f \, f \, f>;
+#X text 243 420 - sets fore ground color in RGB;
+#X text 97 514 -bgcolor <f \, f \, f>: background color in RGB (default
+255 255 255), f 66;
+#X text 97 529 -fgcolor <f \, f \, f>: fore ground color in RGB (default
+255 255 255), f 66;
+#N canvas 945 119 544 500 colors 0;
+#X obj 250 102 vsl 15 128 0 255 0 0 empty empty empty 0 -9 0 10 #0800fc
+#fcfcfc #000000 0 1;
+#X obj 229 102 vsl 15 128 0 255 0 0 empty empty empty 0 -9 0 10 #00fc00
+#000000 #000000 0 1;
+#X obj 209 102 vsl 15 128 0 255 0 0 empty empty empty 0 -9 0 10 #fc0000
+#000000 #000000 0 1;
+#X obj 111 397 else/display;
+#X text 77 148 Example on how to set the color, f 16;
+#X text 130 400 <= click;
+#X obj 111 328 else/button 50 50 255 255 255 128 128 160;
+#X obj 349 132 vsl 15 128 0 255 0 0 empty empty empty 0 -9 0 10 #0800fc
+#fcfcfc #000000 0 1;
+#X obj 328 132 vsl 15 128 0 255 0 0 empty empty empty 0 -9 0 10 #00fc00
+#000000 #000000 0 1;
+#X obj 308 132 vsl 15 128 0 255 0 0 empty empty empty 0 -9 0 10 #fc0000
+#000000 #000000 0 1;
+#X obj 349 103 else/initmess 160;
+#X obj 308 81 else/initmess 128;
+#X obj 209 48 else/initmess 255;
+#X obj 249 285 else/pack2 fgcolor f f f;
+#X obj 111 255 else/pack2 bgcolor f f f;
+#X connect 0 0 14 3;
+#X connect 1 0 14 2;
+#X connect 2 0 14 1;
+#X connect 6 0 3 0;
+#X connect 7 0 13 3;
+#X connect 8 0 13 2;
+#X connect 9 0 13 1;
+#X connect 10 0 7 0;
+#X connect 11 0 9 0;
+#X connect 11 0 8 0;
+#X connect 12 0 0 0;
+#X connect 12 0 2 0;
+#X connect 12 0 1 0;
+#X connect 13 0 6 0;
+#X connect 14 0 6 0;
+#X restore 443 298 pd colors;
+#X connect 24 0 26 0;
+#X connect 25 0 24 0;
+#X connect 26 0 22 0;
+#X connect 36 0 26 0;

@@ -1,0 +1,127 @@
+#N struct 1011-cell float x float y float cellsize float color;
+#N struct 1010-cell float x float y float cellsize float color;
+#N canvas 568 23 563 592 10;
+#X msg 278 156 1 0 \$1;
+#X obj 278 132 tgl 16 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 2 2 cnv 15 301 42 empty empty mtx.ctl 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 2 graph;
+#X obj 23 39 cnv 4 4 4 empty empty Matrix 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 79 39 cnv 4 4 4 empty empty control 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 138 39 cnv 4 4 4 empty empty GUI 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 305 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 2 pd;
+#X obj 344 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 6 303 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 473 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 503 cnv 3 550 3 empty empty flags: 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 562 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 108 310 cnv 17 3 159 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X obj 108 480 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 191 480 list;
+#X text 230 480 - column \, row and status;
+#X text 190 310 list;
+#X text 142 410 rows <float>;
+#X text 124 425 columns <float>;
+#X text 230 410 - sets number of rows, f 49;
+#X text 230 425 - sets number of columns, f 49;
+#X text 142 440 size <float>;
+#X text 230 440 - sets cell size in pixels, f 49;
+#X text 148 224 click on the cells =>;
+#X text 49 88 [mtx.ctl] provides a user matrix interface control. The
+cells in the grid can be either on or off. The output is a list with
+3 floats that specify: column \, row and status., f 69;
+#N canvas 631 247 405 311 mtx~ 0;
+#X text 112 75 0;
+#X text 127 75 1;
+#X text 141 75 2;
+#X text 156 75 3;
+#X obj 192 68 osc~ 300;
+#X obj 225 90 osc~ 400;
+#X obj 258 112 osc~ 500;
+#X obj 291 135 osc~ 600;
+#X text 166 197 0;
+#X text 196 156 0;
+#X text 230 156 1;
+#X text 263 156 2;
+#X text 297 157 3;
+#X text 52 91 output 0;
+#X text 52 106 output 1;
+#X text 70 75 input:;
+#X text 271 197 1;
+#X obj 108 132 else/display;
+#X obj 192 171 else/mtx~ 4 2 100;
+#X text 48 27 [mtx.ctl] is very convenient for controlling [mtx~];
+#X obj 108 89 else/mtx.ctl 4 2 15;
+#X obj 177 207 else/out~;
+#X connect 4 0 18 0;
+#X connect 5 0 18 1;
+#X connect 6 0 18 2;
+#X connect 7 0 18 3;
+#X connect 17 0 18 0;
+#X connect 18 0 21 0;
+#X connect 18 1 21 1;
+#X connect 20 0 17 0;
+#X restore 492 274 pd mtx~;
+#X msg 223 157 clear;
+#X text 184 354 clear;
+#X msg 358 145 set 2 1 \$1;
+#X obj 358 122 tgl 16 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 154 324 set <list>;
+#X text 230 310 - sets column \, row \, status and outputs it, f 49
+;
+#X text 230 324 - sets column \, row and status (no output), f 49
+;
+#X text 230 354 - clears active cells (no output), f 49;
+#X obj 278 271 else/display;
+#X text 184 368 flush;
+#X text 230 368 - flushes all cell values, f 49;
+#X text 178 382 export;
+#X obj 278 201 else/mtx.ctl 3 3 20 0 0 0 0 0 0 0 0 0 0 0 0;
+#X text 178 396 import;
+#X text 136 454 embed <float>;
+#X text 230 382 - export contents as an array, f 49;
+#X text 230 396 - import contents as an array, f 49;
+#X text 230 454 - non zero save internal contents with the object;
+#X msg 365 170 get 2 1;
+#X text 154 339 get <list>;
+#X text 230 339 - outputs value of column/row, f 49;
+#X text 129 509 -n <float \, float>: number of columns and rows (default
+3 3);
+#X text 153 524 -size <float>: cell size in pixels (default 20), f
+55;
+#X text 147 540 -embed <float>: embed flag (default 0), f 56;
+#X connect 0 0 45 0;
+#X connect 1 0 0 0;
+#X connect 33 0 45 0;
+#X connect 35 0 45 0;
+#X connect 36 0 35 0;
+#X connect 45 0 41 0;
+#X connect 51 0 45 0;

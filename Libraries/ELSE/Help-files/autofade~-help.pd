@@ -1,0 +1,421 @@
+#N canvas 483 31 561 547 10;
+#X obj 4 292 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 398 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 451 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 521 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 105 407 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 169 373 signal;
+#X text 171 407 signal;
+#X obj 23 40 cnv 4 4 4 empty empty Automatic 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 110 40 cnv 4 4 4 empty empty fade-in/out 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 105 373 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 133 303 float/signal;
+#X obj 2 3 cnv 15 301 42 empty empty autofade~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X text 112 180 fade time;
+#X obj 178 159 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 225 407 - autofaded signal;
+#X obj 307 161 else/brown~;
+#X text 157 321 anything;
+#X text 225 321 -;
+#X text 237 321 fade types <quartic \, sin \, sqrt \, hann \, lin \,
+hannsin \, linsin>, f 42;
+#X obj 106 302 cnv 17 3 65 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 226 373 - input signal to be faded in/out, f 44;
+#X obj 42 237 else/fader~;
+#X text 49 219 see also:;
+#N canvas 717 143 540 389 curves 0;
+#N canvas 135 30 735 535 constant-power(3db) 0;
+#X obj 30 287 cnv 15 348 198 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-sqrt_in 441 float 0;
+#X array \$0-sqrt_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 29 286 graph;
+#X obj 32 45 cnv 15 348 198 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-sin_in 441 float 0;
+#X array \$0-sin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 31 44 graph;
+#N canvas 742 165 509 418 plot 0;
+#X obj 274 124 loadbang;
+#X obj 247 48 phasor~ 100;
+#X obj 82 125 loadbang;
+#X obj 55 49 phasor~ -100;
+#X obj 274 302 loadbang;
+#X obj 247 226 phasor~ 100;
+#X obj 82 303 loadbang;
+#X obj 55 227 phasor~ -100;
+#X obj 54 156 tabwrite~ \$0-sqrt_out;
+#X obj 246 156 tabwrite~ \$0-sqrt_in;
+#X obj 54 334 tabwrite~ \$0-sin_out;
+#X obj 246 334 tabwrite~ \$0-sin_in;
+#X obj 55 93 else/fader~ sqrt;
+#X obj 55 271 else/fader~ sin;
+#X obj 247 271 else/fader~ sin;
+#X obj 247 92 else/fader~ sqrt;
+#X connect 0 0 9 0;
+#X connect 1 0 15 0;
+#X connect 2 0 8 0;
+#X connect 3 0 12 0;
+#X connect 4 0 11 0;
+#X connect 5 0 14 0;
+#X connect 6 0 10 0;
+#X connect 7 0 13 0;
+#X connect 12 0 8 0;
+#X connect 13 0 10 0;
+#X connect 14 0 11 0;
+#X connect 15 0 9 0;
+#X restore 327 253 pd plot;
+#X text 431 108 There are two "constant power" curves \, which have
+a crossing point at -3dB., f 33;
+#X text 432 164 We have the "sin" (sine) function above and a "sqrt"
+(square root) function below., f 33;
+#X text 434 227 The "sin" function is 1/4 of the cycle of a sine function.
+, f 33;
+#X text 435 270 The "sqrt" function is the same as extracting the square
+root of the input., f 33;
+#X restore 298 52 pd constant-power(3db);
+#N canvas 240 70 761 552 compromise(4.5db) 0;
+#X obj 34 50 cnv 15 348 198 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-hannsin_in 441 float 0;
+#X array \$0-hannsin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 33 49 graph;
+#N canvas 742 165 509 418 plot 0;
+#X obj 274 124 loadbang;
+#X obj 247 48 phasor~ 100;
+#X obj 82 125 loadbang;
+#X obj 55 49 phasor~ -100;
+#X obj 274 302 loadbang;
+#X obj 247 226 phasor~ 100;
+#X obj 82 303 loadbang;
+#X obj 55 227 phasor~ -100;
+#X obj 55 93 else/fader~ hannsin;
+#X obj 247 92 else/fader~ hannsin;
+#X obj 55 271 else/fader~ linsin;
+#X obj 247 271 else/fader~ linsin;
+#X obj 54 156 tabwrite~ \$0-hannsin_out;
+#X obj 246 156 tabwrite~ \$0-hannsin_in;
+#X obj 54 334 tabwrite~ \$0-linsin_out;
+#X obj 246 334 tabwrite~ \$0-linsin_in;
+#X connect 0 0 13 0;
+#X connect 1 0 9 0;
+#X connect 2 0 12 0;
+#X connect 3 0 8 0;
+#X connect 4 0 15 0;
+#X connect 5 0 11 0;
+#X connect 6 0 14 0;
+#X connect 7 0 10 0;
+#X connect 8 0 12 0;
+#X connect 9 0 13 0;
+#X connect 10 0 14 0;
+#X connect 11 0 15 0;
+#X restore 329 258 pd plot;
+#X obj 34 290 cnv 15 348 198 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-linsin_in 441 float 0;
+#X array \$0-linsin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 33 289 graph;
+#X text 419 97 As a compromise between the functions that cross between
+-3 and -6dB \, we have a crossing point at -4.5 dB., f 37;
+#X text 419 150 This can be achieved with a geometric mean between
+such functions. Here we have a mean between the "hann" and the "sin"
+function above \, and a mean between the "lin" and "sin" function below.
+, f 37;
+#X restore 298 95 pd compromise(4.5db);
+#N canvas 221 110 734 527 constant-voltage(6db) 0;
+#X obj 31 56 cnv 15 348 198 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-hann_in 441 float 0;
+#X array \$0-hann_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 30 55 graph;
+#N canvas 233 311 515 432 plot 0;
+#X obj 274 123 loadbang;
+#X obj 247 47 phasor~ 100;
+#X obj 82 124 loadbang;
+#X obj 55 48 phasor~ -100;
+#X obj 54 155 tabwrite~ \$0-hann_out;
+#X obj 246 155 tabwrite~ \$0-hann_in;
+#X obj 247 91 else/fader~ hann;
+#X obj 55 92 else/fader~ hann;
+#X obj 274 301 loadbang;
+#X obj 247 225 phasor~ 100;
+#X obj 82 302 loadbang;
+#X obj 55 226 phasor~ -100;
+#X obj 247 270 else/fader~ lin;
+#X obj 55 270 else/fader~ lin;
+#X obj 246 333 tabwrite~ \$0-lin_in;
+#X obj 54 333 tabwrite~ \$0-lin_out;
+#X connect 0 0 5 0;
+#X connect 1 0 6 0;
+#X connect 2 0 4 0;
+#X connect 3 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 4 0;
+#X connect 8 0 14 0;
+#X connect 9 0 12 0;
+#X connect 10 0 15 0;
+#X connect 11 0 13 0;
+#X connect 12 0 14 0;
+#X connect 13 0 15 0;
+#X restore 327 262 pd plot;
+#X obj 32 289 cnv 15 348 198 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-lin_in 441 float 0;
+#X array \$0-lin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 31 288 graph;
+#X text 430 125 There are two "constant voltage" curves \, which have
+a crossing point at -6dB., f 33;
+#X text 430 181 We have the "hann" function above and a linear transfer
+function below, f 33;
+#X text 431 246 The "hann" function is half the cycle of a "cosine"
+function., f 33;
+#X text 432 288 The "lin" function does nothing \, it is the same as
+the input., f 33;
+#X restore 298 73 pd constant-voltage(6db);
+#N canvas 363 166 734 349 quartic 0;
+#X obj 45 72 cnv 15 348 198 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-quartic_in 441 float 0;
+#X array \$0-quartic_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 44 71 graph;
+#N canvas 404 51 478 244 plot 0;
+#X obj 274 123 loadbang;
+#X obj 247 47 phasor~ 100;
+#X obj 247 91 else/fader~ quartic;
+#X obj 246 155 tabwrite~ \$0-quartic_in;
+#X obj 82 124 loadbang;
+#X obj 55 92 else/fader~ quartic;
+#X obj 55 48 phasor~ -100;
+#X obj 54 155 tabwrite~ \$0-quartic_out;
+#X connect 0 0 3 0;
+#X connect 1 0 2 0;
+#X connect 2 0 3 0;
+#X connect 4 0 7 0;
+#X connect 5 0 7 0;
+#X connect 6 0 5 0;
+#X restore 44 277 pd plot;
+#X text 455 104 The default curve is "quartic" \, which is the same
+as raising the input to the power of 4, f 31;
+#X text 517 175 as in:;
+#X obj 572 176 pow~ 4;
+#X restore 298 31 pd quartic;
+#N canvas 207 34 366 264 (subpatch) 0;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#fcfcfc 0 1;
+#X obj 215 68 route dsp;
+#X obj 215 37 receive pd;
+#N canvas 977 77 379 291 set_color 0;
+#X obj 47 30 inlet;
+#X obj 147 200 s \$0-cnv;
+#X obj 47 83 select 0 1;
+#X obj 47 220 s \$0-tgl-r;
+#N canvas 0 22 712 637 off 0;
+#X obj 490 220 * -1;
+#X obj 424 300 +;
+#X obj 409 325 +;
+#X obj 347 219 * -65536;
+#X obj 424 220 * -256;
+#X obj 409 356 - 1;
+#X obj 390 189 unpack f f f;
+#X obj 225 295 +;
+#X obj 210 320 +;
+#X obj 148 214 * -65536;
+#X obj 225 215 * -256;
+#X obj 291 215 * -1;
+#X obj 210 351 - 1;
+#X obj 191 184 unpack f f f;
+#X obj 379 423 pack;
+#X msg 395 152 124 124 124;
+#X msg 203 154 220 220 220;
+#X obj 238 121 t b b;
+#X obj 238 81 inlet;
+#X obj 378 485 outlet;
+#X connect 0 0 1 1;
+#X connect 1 0 2 1;
+#X connect 2 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 5 0 14 1;
+#X connect 6 0 3 0;
+#X connect 6 1 4 0;
+#X connect 6 2 0 0;
+#X connect 7 0 8 1;
+#X connect 8 0 12 0;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 11 0 7 1;
+#X connect 12 0 14 0;
+#X connect 13 0 9 0;
+#X connect 13 1 10 0;
+#X connect 13 2 11 0;
+#X connect 14 0 19 0;
+#X connect 15 0 6 0;
+#X connect 16 0 13 0;
+#X connect 17 0 16 0;
+#X connect 17 1 15 0;
+#X connect 18 0 17 0;
+#X restore 47 113 pd off;
+#X msg 47 180 color \$1 \$2 0;
+#X msg 147 131 -4.86997e+06 -1.34937e+07;
+#X msg 147 171 color \$1 0 \$2;
+#X connect 0 0 2 0;
+#X connect 2 0 4 0;
+#X connect 2 1 6 0;
+#X connect 4 0 5 0;
+#X connect 4 0 7 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 1 0;
+#X restore 215 165 pd set_color;
+#X obj 135 122 r \$0-tgl-s;
+#N canvas 121 482 450 300 (subpatch) 0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+0;
+#X coords 0 -1 1 1 42 27 1 100 100;
+#X restore 51 144 pd;
+#X obj 226 139 s \$0-tgl-r;
+#X msg 226 115 set \$1;
+#X msg 135 177 \; pd dsp \$1;
+#N canvas 256 32 278 194 load_check 0;
+#X obj 136 53 sig~ 1;
+#X obj 74 24 loadbang;
+#X obj 136 86 snapshot~;
+#X obj 91 52 del 5;
+#X obj 136 151 outlet;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 74 126 switch~;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 3 0 5 0;
+#X connect 5 0 6 0;
+#X restore 51 72 pd load_check;
+#X connect 1 0 3 0;
+#X connect 1 0 7 0;
+#X connect 2 0 1 0;
+#X connect 4 0 8 0;
+#X connect 4 0 3 0;
+#X connect 7 0 6 0;
+#X connect 9 0 0 0;
+#X coords 0 -1 1 1 44 72 2 50 100;
+#X restore 329 269 pd;
+#X text 412 269 be sure audio is on, f 7;
+#X text 380 283 <===;
+#X obj 139 300 else/out~;
+#X msg 117 112 sin;
+#X msg 125 133 sqrt;
+#X msg 108 93 quartic;
+#X msg 133 153 hann;
+#X msg 140 173 lin;
+#X msg 146 194 hannsin;
+#X msg 151 214 linsin;
+#X text 41 30 Open the subpatches on the right for more details on
+the fading curves available, f 32;
+#X obj 268 230 else/brown~;
+#X text 48 182 gate;
+#X obj 83 182 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 83 206 sig~;
+#X obj 139 261 else/autofade~ sin 500;
+#X connect 8 0 20 0;
+#X connect 9 0 20 0;
+#X connect 10 0 20 0;
+#X connect 11 0 20 0;
+#X connect 12 0 20 0;
+#X connect 13 0 20 0;
+#X connect 14 0 20 0;
+#X connect 16 0 20 1;
+#X connect 18 0 19 0;
+#X connect 19 0 20 0;
+#X connect 20 0 7 0;
+#X restore 475 266 pd curves;
+#X text 238 457 (optional) fade types <quartic \, sin \, sqrt \, lin
+\, hann \, lin \, hannsin \, linsin> (default: quartic), f 47;
+#X text 226 457 -;
+#X text 154 458 1) symbol;
+#X text 226 485 - fade time in ms (default 0), f 49;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 304 3 graph;
+#X text 226 500 - number of channels (default 1), f 49;
+#X msg 178 179 fade \$1;
+#X text 241 159 gate;
+#X obj 246 177 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 226 348 - fade time in ms, f 44;
+#X text 133 348 fade <float>;
+#X text 225 303 - gate: "fade in" if != 0 \, "fade out" otherwise;
+#X obj 369 182 else/gray~;
+#X text 154 485 2) float;
+#X text 154 500 3) float;
+#X obj 105 429 cnv 17 3 17 empty empty n+1 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X obj 246 206 else/autofade~ 1000 2;
+#X obj 30 262 else/autofade2~;
+#X text 176 428 float;
+#X obj 369 232 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 392 233 <= status;
+#X text 225 428 - a 1 or 0 is sent when the fade in/out is finished
+;
+#X obj 233 232 else/out~;
+#X text 35 82 [autofade~] is an automatic fade in/out for multichannel
+inputs. It responds to a gate control and uses internal lookup tables
+for 7 different fading curves. A gate on happens when the last input
+value was zero and the incoming value isn't. A gate off happens when
+the last value was a non-zero value and the incoming value is 0! The
+maximum gain depends on the gate on level., f 80;
+#X connect 14 0 38 0;
+#X connect 16 0 48 1;
+#X connect 38 0 48 0;
+#X connect 40 0 48 0;
+#X connect 44 0 48 2;
+#X connect 48 0 54 0;
+#X connect 48 1 54 1;
+#X connect 48 2 51 0;

@@ -1,0 +1,71 @@
+#N canvas 563 23 570 418 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 41 cnv 4 4 4 empty empty Open 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 74 41 cnv 4 4 4 empty empty folders/files/weblinks 0 28 2 18
+#e0e0e0 #000000 0;
+#X obj 3 4 cnv 15 301 42 empty empty openfile 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 4 graph;
+#X obj 4 193 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 251 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 324 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 102 202 cnv 17 3 43 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 387 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 168 203 bang;
+#X obj 4 285 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 359 cnv 3 550 3 empty empty click 8 12 0 13 #dcdcdc #000000
+0;
+#X text 213 262 (none);
+#X obj 227 126 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 93 293 -h <anything> -;
+#X text 113 221 open <symbol> -;
+#X text 211 221 opens folder/file/weblink specified by the symbol \,
+if no symbol is given \, the current folder is opened, f 52;
+#X text 391 156 <= click;
+#N canvas 835 188 458 230 more 0;
+#X obj 98 141 else/openfile http://github.com/porres/pd-else;
+#X text 97 50 weblink example:;
+#X obj 99 93 else/openfile -h http://github.com/porres/pd-else ELSE
+on Github;
+#X coords 0 230 1 229 85 60 0;
+#X restore 492 157 pd more;
+#X obj 227 156 else/openfile ./README.pdf;
+#X text 30 146 hyperlink mode (click) ======>, f 15;
+#X text 247 125 <= open file;
+#X text 74 92 [openfile] can be used to open folders and files in your
+computer and also weblinks.;
+#X text 198 203 - open set file;
+#X text 110 332 1) symbol - folder/file/weblink address (default: current
+folder), f 66;
+#X text 162 367 clicking on the object opens file;
+#X obj 122 157 else/openfile -h ./README.pdf Else's README;
+#X text 191 293 sets to hyperlink (GUI) mode \, 1st element is file
+to open and name to display \, further arguments overwrite display.
+;
+#X connect 21 0 27 0;

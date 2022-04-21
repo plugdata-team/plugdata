@@ -1,0 +1,236 @@
+#N canvas 458 31 562 419 10;
+#X obj 4 294 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 330 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 361 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 122 338 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 303 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 390 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Convert\\\ note\\\ duration\\\ to\\\ fraction\\\ or\\\ float
+0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 3 cnv 15 301 42 empty empty note2dur 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#N canvas 607 32 427 540 table 0;
+#X text 27 57 1nd - whole note duplet/dotted (3/2 = 1.5) \; 1n - Whole
+note (1/1 = 1) \; 1nn - Whole note nonuplet (8/9 = 0.888889) \; 1nq
+- Whole note quintuplet (4/5 = 0.8) \; 1nt - Whole note triplet (2/3
+= 0.6666) \; 2nd - Half note duplet/dotted (3/4 = 0.75) \; 2ns - Half
+note septuplet (4/7 = 0.571429) \; 2n - Half note (1/2 = 0.5) \; 2nn
+- Half note nonuplet (4/9 = 0.444444) \; 2nq - Half note quintuplet
+(2/5 = 0.4) \; 4nd - Quarter note duplet/dotted (3/8 = 0.375) \; 2nt
+- Half note triplet (1/3 = 0.3333) \; 2ns - Half note septuplet (2/7
+= 0.285714) \; 4n - Quarter note (1/4 = 0.25) \; 4nn - Quarter note
+nonuplet (2/9 = 0.222222) \; 4nq - Quarter note quintuplet (1/5 = 0.2)
+\; 8nd - Eighth note duplet/dotted (3/16 = 1.1875) \; 4nt - Quarter
+note triplet (1/6 = 0.166667) \; 4ns - Quarter note septuplet (1/7
+= 0.166667) \; 8n - Eighth note (1/8 = 0.125) \; 8nn - Eighth note
+nonuplet (1/9 = 0.111111) \; 8nq - Eighth note quintuplet (1/10 = 0.1)
+\; 16nd - Sixteenth note duplet/dotted (3/16 = 0.09375) \; 8nt - Eighth
+note triplet (1/12 = 0.0833333) \; 8ns - Eighth note septuplet (1/14
+= 0.0714286) \; 16n - Sixteenth note (1/16 = 0.0625) \; 16nn - Sixteenth
+note nonuplet (1/18 = 0.0555556) \; 16nq - Sixteenth note quintuplet
+(1/20 = 0.05) \; 32nd - Thirty-second note duplet/dotted (3/64 = 0.046875)
+\; 16nt - Sixteenth note triplet (1/24 = 0.0416667) \; 16ns - Sixteenth
+note septuplet (1/48 = 0.0357143) \; 32n - Thirty-second note (1/32
+= 0.03125) \; 32nn - Thirty-second note nonuplet (1/36 = 0.0277778)
+\; 32q - Thirty-second note quintuplet (1/40 = 0.025) \; 64nd - Sixty-fourth
+note duplet/dotted (3/128 = 0.0234375) \; 32nt - Thirty-second note
+triplet (1/48 = 0.0208333) \; 32ns - Thirty-second note septuplet (1/56
+= 0.0178571) \; 64n - Sixty-fourth note (1/64 = 0.015625) \; 64nn -
+Sixty-fourth note nonuplet (1/72 = 0.0138889) \; 64nq - Sixty-fourth
+note quintuplet (1/80 = 0.0125) \; 64ns - Sixty-fourth note septuplet
+(1/112 = 0.00892857) \; 128n - One-hundred-twenty-eighth note (1/128
+= 0.0078125) \;;
+#X text 47 8 Here's a table with the main note durations in order of
+longer to shorter durations \, with fracions and float values:, f
+45;
+#X restore 471 264 pd table;
+#X listbox 207 257 11 0 0 0 - - - 0;
+#X obj 207 228 else/note2dur;
+#X msg 120 193 1n;
+#X msg 149 193 2n;
+#X msg 207 193 8n;
+#X msg 236 193 16n;
+#X text 48 193 base notes;
+#X text 183 303 symbol;
+#X text 227 303 - in note duration syntax to convert;
+#X text 147 338 float/symbol;
+#X text 227 338 - converted duration to fraction or float;
+#X text 188 369 -f: sets output to float (default fraction);
+#N canvas 491 122 432 355 common-tulpets 0;
+#X listbox 178 305 11 0 0 0 - - - 0;
+#X obj 178 276 else/note2dur;
+#X msg 172 171 4nt;
+#X msg 182 196 4nq;
+#X msg 192 220 4ns;
+#X msg 198 244 4nn;
+#X listbox 282 301 11 0 0 0 - - - 0;
+#X obj 282 272 else/note2dur;
+#X msg 276 167 16nt;
+#X msg 286 192 16nq;
+#X msg 296 216 16ns;
+#X msg 302 240 16nn;
+#X listbox 78 305 11 0 0 0 - - - 0;
+#X obj 78 276 else/note2dur;
+#X msg 72 171 2nt;
+#X msg 82 196 2nq;
+#X msg 92 220 2ns;
+#X msg 98 244 2nn;
+#X msg 62 151 2nd;
+#X msg 162 151 4nd;
+#X msg 266 147 16nd;
+#X text 70 23 Examples of common tuplets abbreviated by letters:,
+f 38;
+#X text 161 50 'd' for duplet \; 't' for triplet \; 'q' for quintuplet
+\; 's' for septuplet \; 'n' for nonuplet.;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 3 0 1 0;
+#X connect 4 0 1 0;
+#X connect 5 0 1 0;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X connect 9 0 7 0;
+#X connect 10 0 7 0;
+#X connect 11 0 7 0;
+#X connect 13 0 12 0;
+#X connect 14 0 13 0;
+#X connect 15 0 13 0;
+#X connect 16 0 13 0;
+#X connect 17 0 13 0;
+#X connect 18 0 13 0;
+#X connect 19 0 1 0;
+#X connect 20 0 7 0;
+#X restore 417 180 pd common-tulpets;
+#N canvas 708 115 566 370 more-tulpets 0;
+#X listbox 92 322 11 0 0 0 - - - 0;
+#X obj 92 293 else/note2dur;
+#X text 40 22 You can explicitly specify what the exact tuplet is
+in the [x:y] format \, where [3:2] is a triplet \, for instance. Since
+you already can use abbreviations for the most common tuplets \, this
+is useful when you wanna go crazier., f 81;
+#X msg 90 113 4nt;
+#X text 119 112 same as above;
+#X msg 70 91 4n[3:2];
+#X msg 102 141 4n[7:5];
+#X msg 111 172 8n[11:8];
+#X text 156 135 (7 quarter notes in the space of 5), f 18;
+#X text 171 165 (11 8th notes in the space of 8), f 16;
+#X symbolatom 133 255 15 0 0 0 - - - 0;
+#X text 234 255 <= try one yourself;
+#X msg 121 205 4n.[7:4];
+#X text 180 204 <== dotted tuplets are also possible as in here (you
+can't use 's' in this case and you can use 'd' instead of "." as well
+as ".."/"dd" for double dotted), f 54;
+#X connect 1 0 0 0;
+#X connect 3 0 1 0;
+#X connect 5 0 1 0;
+#X connect 6 0 1 0;
+#X connect 7 0 1 0;
+#X connect 10 0 1 0;
+#X connect 12 0 1 0;
+#X restore 429 222 pd more-tulpets;
+#X msg 294 193 128n;
+#X msg 264 193 64n;
+#X msg 178 193 4n;
+#X text 46 86 [note2dur] converts from a note duration syntax to a
+fractional notation or a float. The syntax is: '1n' for whole note
+\, '2n' for half note \, '4n' for quarter note \, '8n' for eighth note
+(and so on down to 128n). Dotted notes are possible and you can add
+tuplets to the symbol in the [x:y] format or you can add the following
+letters to specify most common tuplets: 'd' for duplet \, 't' for triplet
+\, 'q' for quintuplet \, 's' for septuplet and 'n' for nonuplet. Tied
+notes are also possible with "_". Details in the examples below.,
+f 80;
+#N canvas 491 122 446 307 dotted-notes 0;
+#X listbox 192 242 11 0 0 0 - - - 0;
+#X obj 192 213 else/note2dur;
+#X msg 162 120 4nd;
+#X msg 203 147 4n.;
+#X msg 192 120 4ndd;
+#X msg 232 147 4n..;
+#X text 51 23 Dotted notes are possible with "." \, which is also the
+same as 'd' (for duplet) \, so you can consider 'd' as an abreviattion
+for 'dotted' as well. Double dotted notes are possible with ".." or
+"dd" (for 'double dotted).;
+#X listbox 80 244 11 0 0 0 - - - 0;
+#X obj 80 215 else/note2dur;
+#X listbox 306 237 11 0 0 0 - - - 0;
+#X obj 306 208 else/note2dur;
+#X msg 50 122 2nd;
+#X msg 80 122 2ndd;
+#X msg 91 149 2n.;
+#X msg 120 149 2n..;
+#X msg 276 115 8nd;
+#X msg 306 115 8ndd;
+#X msg 317 142 8n.;
+#X msg 346 142 8n..;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 3 0 1 0;
+#X connect 4 0 1 0;
+#X connect 5 0 1 0;
+#X connect 8 0 7 0;
+#X connect 10 0 9 0;
+#X connect 11 0 8 0;
+#X connect 12 0 8 0;
+#X connect 13 0 8 0;
+#X connect 14 0 8 0;
+#X connect 15 0 10 0;
+#X connect 16 0 10 0;
+#X connect 17 0 10 0;
+#X connect 18 0 10 0;
+#X restore 429 201 pd dotted-notes;
+#N canvas 627 83 462 343 ties 0;
+#X obj 117 243 else/note2dur;
+#X symbolatom 191 204 15 0 0 0 - - - 0;
+#X text 288 204 <= try one yourself;
+#X text 64 16 You can tie as many notes you want with "_" \, the overall
+duration will be given.;
+#X msg 115 90 4n_16n;
+#X msg 137 114 1n_1n_4n_32n;
+#X msg 172 177 4n[5:7]_4n[6:7];
+#X msg 157 144 8nt_8ns;
+#X msg 93 59 4n[5:7];
+#X symbolatom 117 278 15 0 0 0 - - - 0;
+#X connect 0 0 9 0;
+#X connect 1 0 0 0;
+#X connect 4 0 0 0;
+#X connect 5 0 0 0;
+#X connect 6 0 0 0;
+#X connect 7 0 0 0;
+#X connect 8 0 0 0;
+#X restore 477 243 pd ties;
+#X connect 19 0 18 0;
+#X connect 20 0 19 0;
+#X connect 21 0 19 0;
+#X connect 22 0 19 0;
+#X connect 23 0 19 0;
+#X connect 32 0 19 0;
+#X connect 33 0 19 0;
+#X connect 34 0 19 0;

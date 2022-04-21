@@ -1,0 +1,105 @@
+#N canvas 619 23 560 464 10;
+#X obj 2 281 cnv 3 552 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 346 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 407 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 90 383 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 324 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 352 cnv 17 3 28 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 287 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 2 434 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 155 288 -;
+#X text 115 288 float;
+#X text 155 325 -;
+#X text 115 325 float;
+#X text 155 305 -;
+#X text 121 305 bang;
+#X text 155 354 -;
+#X text 155 384 -;
+#X text 115 384 float;
+#X text 180 413 (none);
+#X text 170 325 note velocity, f 54;
+#N canvas 111 227 240 305 random_notes 0;
+#X obj 58 207 makenote;
+#X obj 103 233 outlet;
+#X obj 43 233 outlet;
+#X obj 58 42 inlet;
+#X obj 58 81 metro;
+#X obj 139 44 inlet;
+#X obj 58 122 expr random(40 \, 70) \; random(50 \, 127) \; random
+(100 \, 1500) \; random (200 \, 2000);
+#X connect 0 0 2 0;
+#X connect 0 1 1 0;
+#X connect 3 0 4 0;
+#X connect 4 0 6 0;
+#X connect 5 0 6 0;
+#X connect 6 0 0 0;
+#X connect 6 1 0 1;
+#X connect 6 2 0 2;
+#X connect 6 3 4 1;
+#X restore 212 152 pd random_notes;
+#X obj 212 128 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 318 155 notein;
+#X obj 299 129 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 232 128 <= metro;
+#X text 170 305 resets by sending note-offs and erasing events' memory
+;
+#X text 31 240 (voice number \, event number \, pitch \, velocity \,
+duration), f 28;
+#X obj 212 245 else/display;
+#X obj 299 214 else/display;
+#X text 327 219 number of active voices;
+#X text 170 288 midi pitch, f 54;
+#X text 121 354 list;
+#X text 170 384 number of active voices;
+#X text 170 354 voice number (from 0) \, event number \, pitch \, velocity
+\, duration (delta time for note on and duration for note off), f
+62;
+#X obj 2 2 cnv 15 301 42 empty empty noteinfo 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 2 graph;
+#X obj 23 39 cnv 4 4 4 empty empty Detailed\\\ MIDI\\\ Note\\\ information
+0 28 2 18 #e0e0e0 #000000 0;
+#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 2 pd;
+#X obj 345 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 52 83 [noteinfo] sends number of active voices in the right
+outlet and a list of MIDI note information to the left., f 72;
+#X text 144 152 reset;
+#X obj 185 152 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 212 191 else/noteinfo, f 15;
+#X connect 19 0 47 0;
+#X connect 19 1 47 1;
+#X connect 20 0 19 0;
+#X connect 21 0 47 0;
+#X connect 21 1 47 1;
+#X connect 22 0 19 1;
+#X connect 46 0 47 0;
+#X connect 47 0 26 0;
+#X connect 47 1 27 0;

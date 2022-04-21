@@ -1,0 +1,102 @@
+#N canvas 551 69 565 463 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 94 41 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 21 41 cnv 4 4 4 empty empty Respond 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 4 cnv 15 301 42 empty empty click 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 162 41 cnv 4 4 4 empty empty on 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 192 41 cnv 4 4 4 empty empty parent 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 202 282 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 8 315 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 348 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 382 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 438 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 111 358 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 149 360 bang;
+#X text 186 359 - bang when clicked on in the parent patch;
+#X text 144 325 (none);
+#N canvas 280 23 338 256 a_subpatch 0;
+#X obj 128 187 outlet;
+#X obj 128 139 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 128 96 else/click 1;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X restore 202 253 pd a_subpatch;
+#X obj 115 41 cnv 4 4 4 empty empty clicks 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 53 96 [click] sends a bang when you put it in an abstraction
+or a subpatch and click on the parent. This is useful for making non
+graphical abstractions respond to a click in the same way compiled
+objects can., f 73;
+#X text 118 396 1) float -;
+#N canvas 583 173 780 341 modes 0;
+#X text 65 78 The default mode is "abstraction" mode. In this mode
+\, the parent patch of an abstraction that contains [click] needs to
+be clicked \, in order for it to respond to.;
+#X text 66 126 Note \, however \, that the object can be inside any
+layers of subpatches inside an abstraction \, it doesn't matter.;
+#X text 67 38 A "0" argument (the default) sets the mode to "abstraction"
+mode \, whil a non-zero argument sets to "subpatch" mode.;
+#X text 67 174 The "subatch" mode might have a misleading name \, as
+it'll actually respond to a click on the "owner" parent \, that is
+the patch window that contains the subwindow with a [click] object.
+;
+#X text 69 229 So the subwindow can actually be either an abstraction
+(if the [click] object is in the main window of the abstraction) or
+a subpatch. But you should really only use this if you want a subpatch
+to respond to a click \, as this is the only mode that'll make it happen.
+;
+#N canvas 4 23 450 300 subpatch 0;
+#X obj 227 130 else/click;
+#X obj 227 162 outlet;
+#X connect 0 0 1 0;
+#X coords 0 -1 1 1 100 60 1 100 100;
+#X restore 555 143 pd subpatch;
+#X obj 555 216 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X text 523 60 Note that graphical subpatches or abstractions do not
+respond to clicks \, so the [click] object doesn't respond either.
+, f 33;
+#X connect 5 0 6 0;
+#X restore 471 281 pd modes;
+#X text 53 137 See below how it sends a bang when you click on the
+subpatch. Note that you can still open the subpatch with right click
+and then "open"., f 73;
+#X text 290 252 <= click me;
+#X obj 258 216 else/player~;
+#X text 189 396 sets mode \, 0 (default) is "abstraction" mode \, non-zero
+is "subpatch" mode., f 45;
+#X obj 140 216 else/play.file~;
+#X obj 356 216 else/rec.file~;
+#X text 112 182 These objects in else use [click] \, so click on them:
+;
+#X connect 23 0 14 0;

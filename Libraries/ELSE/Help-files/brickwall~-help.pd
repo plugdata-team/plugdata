@@ -1,0 +1,142 @@
+#N canvas 487 74 561 453 10;
+#X obj 5 309 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 361 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 392 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 117 369 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 5 426 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 4 5 cnv 15 301 42 empty empty brickwall~ 20 20 2 37 #e0e0e0
+#000000 0;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 5 graph;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 42 cnv 4 4 4 empty empty Brickwall 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 306 5 graph;
+#X obj 109 42 cnv 4 4 4 empty empty filter 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 193 243 else/out~;
+#X obj 193 182 noise~;
+#X text 177 317 signal;
+#X text 222 317 - signal to be filtered, f 43;
+#X text 184 337 float;
+#X text 222 337 - cutoff frequency in hertz, f 43;
+#X obj 117 318 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 117 340 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 174 370 signal;
+#X text 222 370 - the filtered signal;
+#X text 120 402 1) float;
+#N canvas 782 105 568 529 anti-aliasing 0;
+#X obj 306 346 cnv 15 198 138 empty empty empty 20 12 0 14 #dcdcdc
+#404040 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-band-limited 100 float 0;
+#X coords 0 1.2 99 -1.2 200 140 1 0 0;
+#X restore 305 345 graph;
+#X text 291 347 1;
+#X text 285 467 -1;
+#X text 291 407 0;
+#N canvas 232 59 321 281 plot 0;
+#X obj 85 111 metro 441;
+#X obj 85 60 loadbang;
+#X obj 85 87 tgl 15 0 empty empty empty 17 7 0 10 #c4c4fc #000000 #000000
+0 1;
+#X obj 56 164 tabwrite~ \$0-band-limited;
+#X obj 56 28 inlet~;
+#X connect 0 0 3 0;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 4 0 3 0;
+#X restore 262 182 pd plot;
+#N canvas 232 59 321 281 plot 0;
+#X obj 85 111 metro 441;
+#X obj 85 60 loadbang;
+#X obj 85 87 tgl 15 0 empty empty empty 17 7 0 10 #c4c4fc #000000 #000000
+0 1;
+#X obj 56 28 inlet~;
+#X obj 56 164 tabwrite~ \$0-non-limited;
+#X obj 193 108 s \$0-Hz;
+#X msg 193 84 500;
+#X connect 0 0 4 0;
+#X connect 1 0 2 0;
+#X connect 1 0 6 0;
+#X connect 2 0 0 0;
+#X connect 3 0 4 0;
+#X connect 6 0 5 0;
+#X restore 119 187 pd plot;
+#X obj 61 346 cnv 15 198 138 empty empty empty 20 12 0 14 #b8b4b8 #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-non-limited 100 float 0;
+#X coords 0 1.2 99 -1.2 200 140 1 0 0;
+#X restore 60 345 graph;
+#X text 46 347 1;
+#X text 40 464 -1;
+#X text 46 407 0;
+#X obj 238 105 nbx 5 15 -1e+37 1e+37 0 0 empty \$0-Hz empty 0 -8 0
+10 #dcdcdc #000000 #000000 0 256;
+#N canvas 880 267 387 341 Anti-Aliasing 0;
+#X obj 58 278 outlet~;
+#X obj 58 48 inlet~ lin;
+#X obj 229 105 block~ 64 1 16;
+#X text 181 168 <= Anti-Aliasing filter;
+#X text 212 84 Oversampling (16x);
+#X obj 58 167 else/brickwall~;
+#X text 104 214 note this is the "global" nyquist \, not the upsampled
+running in this subpatch., f 34;
+#X text 209 184 (default frequency is 0.75 * Nyquist), f 19;
+#X obj 58 114 else/saw~;
+#X connect 1 0 8 0;
+#X connect 5 0 0 0;
+#X connect 8 0 5 0;
+#X restore 238 150 pd Anti-Aliasing;
+#X text 51 35 [brickwall~] is really useful as an anti-aliasing filter
+when you do the "upsampling + filtering" technique. See the subpatch
+[pd Anti-Aliasing] below and compare the results., f 72;
+#X obj 105 150 else/saw~;
+#X obj 438 242 else/bl.saw~;
+#X text 356 201 This object is used in many abstractions in ELSE \,
+like [bl.saw~]:, f 27;
+#X obj 195 230 else/out~;
+#X obj 62 231 else/out~;
+#X connect 12 0 13 0;
+#X connect 12 0 15 0;
+#X connect 13 0 5 0;
+#X connect 13 0 18 0;
+#X connect 15 0 6 0;
+#X connect 15 0 19 0;
+#X restore 426 271 pd anti-aliasing;
+#X obj 304 183 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 193 207 else/brickwall~ 500;
+#X text 62 124 By default \, its cutoff frequency is 0.75 * Nyquist
+\, but you can change it with the 1st argument or the second inlet.
+;
+#X text 185 401 - cutoff in hertz (default 0.75 * Nyquist);
+#X text 63 91 [brickwall~] a 10th order butterworth lowpass filter
+\, which is filter with a steep cutoff slope (60 dB by octave).;
+#X connect 18 0 30 0;
+#X connect 29 0 30 1;
+#X connect 30 0 17 0;

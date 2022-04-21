@@ -1,0 +1,114 @@
+#N canvas 581 23 563 658 10;
+#X obj 4 326 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 429 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 572 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 631 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 114 438 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 184 438 signal;
+#X obj 3 4 cnv 15 301 42 empty empty oscbank~ 20 20 2 37 #e0e0e0 #000000
+0;
+#X obj 307 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 4 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 306 4 pd;
+#X obj 346 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 41 cnv 4 4 4 empty empty Bank 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 459 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 96 41 cnv 4 4 4 empty empty oscillators 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 114 333 cnv 17 3 90 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 69 41 cnv 4 4 4 empty empty of 0 28 2 18 #e0e0e0 #000000 0;
+#X text 160 362 amp <list>;
+#X text 154 393 ramp <list>;
+#N canvas 725 201 472 377 example 0;
+#X obj 82 289 else/out~;
+#X obj 158 115 loadbang;
+#X text 232 101 click on the messages below to alter between them,
+f 27;
+#X obj 82 152 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X msg 158 138 ratio 1 2.5 3 3.7 4.2 5.1 5.9 6 \, phase 0 0.5 0.25
+0 0.1 0.9 0.75 0.1 \, amp 0.9 0.5 0.9 1 0.8 0.9 0.7 1, f 38;
+#X msg 172 185 ratio 0.5 1.4 2.9 3.1 3.3 4.9 5.8 6.9 \, phase 0.5 0
+0.75 0.4 0.7 0 0.25 0.5 \, amp 0.8 1 0.7 1 0.9 0.8 0.9 1, f 38;
+#X obj 82 253 else/oscbank~ 8 110 2000;
+#X text 37 33 A ramp time as the third argument sets a transition time
+in ms between parameter changes of frequency and amplitude. By default
+\, this is set to 10 ms. You can also send a list of ramp time for
+each oscillator in the bank., f 65;
+#X text 236 252 <-- arguments:;
+#X text 260 268 - number of oscillators;
+#X text 260 284 - frequency;
+#X text 260 299 - ramp time;
+#X connect 1 0 4 0;
+#X connect 3 0 6 0;
+#X connect 4 0 6 0;
+#X connect 5 0 6 0;
+#X connect 6 0 0 0;
+#X restore 444 295 pd example;
+#X text 239 438 - the oscillator bank output;
+#X text 148 377 phase <list>;
+#X text 148 580 1) float - number of oscillators (default 1), f 53
+;
+#X text 25 244 see also:;
+#X obj 4 463 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 148 347 ratio <list>;
+#X text 238 362 - list of amplitudes for all oscillators;
+#X text 238 347 - list of ratios for all oscillators;
+#X text 238 377 - list of phases (0-1) for all oscillators;
+#X text 238 393 - list of ramp time for all oscillators;
+#X obj 189 263 else/out~;
+#X msg 258 175 ratio 0.51 1 1.9 2.3 \, amp 0.9 0.5 0.5 0.6, f 21;
+#X obj 189 181 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 148 332 float/signal;
+#X text 73 471 -ratio <list>: sets list of ratios for all oscillators
+(default all 1), f 73;
+#X text 73 487 -amp <list>: sets list of amplitudes for all oscillators
+(default all 1), f 73;
+#X text 73 503 -phase <list>: sets list of phases for all oscillators
+(default all 0), f 73;
+#X text 73 518 -ramp <list>: sets list of ramp times for all oscillators
+, f 73;
+#X text 148 611 3) float - ramp time in ms (default 10), f 53;
+#X text 73 547 -rampall <float>: sets a ramp time for all oscillators
+(default all 10), f 73;
+#X text 130 408 rampall <float>;
+#X text 238 408 - sets ramp time for all oscillators;
+#X obj 26 292 else/resonbank~;
+#X obj 26 268 else/oscbank2~;
+#X text 73 533 -freq <float>: sets fundamental frequency in hz (default
+0), f 73;
+#X text 148 596 2) float - fundamental frequency in hz (default 0)
+, f 53;
+#X text 238 332 - fundamental frequency in hz;
+#X obj 189 215 else/oscbank~ -freq 330 -ratio 1 0.7 1.3 2.7 -amp 0.9
+0.5 0.5 0.6, f 34;
+#X text 62 84 [oscbank~] is a bank made of [sine~] objects. You can
+set any number of oscillators and control their parameters. Unlike
+[oscbank2~] \, you have a fundamental frequency input and the frequency
+of each oscillator is specified as a ratio of that frequency. If you
+use flags \, the number of elements in the list (such as amplitude
+list) sets the number of oscillators in the bank \, and you must not
+use regular arguments in this case., f 71;
+#X connect 32 0 48 0;
+#X connect 33 0 48 0;
+#X connect 48 0 31 0;

@@ -1,0 +1,133 @@
+#N canvas 497 23 565 615 10;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X obj 344 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 584 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 6 343 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 459 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 529 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 97 352 cnv 17 3 48 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 97 469 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 182 352 signal;
+#X text 237 352 - incoming signal to smooth out;
+#X text 180 468 signal;
+#X text 169 538 1) float;
+#X text 169 559 2) float;
+#X obj 97 408 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 97 432 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 187 407 float;
+#X text 237 468 - smoothed out/filtered signal;
+#X text 187 431 float;
+#X obj 25 255 else/glide~;
+#X text 23 234 see also:;
+#X obj 491 69 else/setdsp~;
+#X text 236 407 - ramp-up time in ms;
+#X text 237 431 - ramp-down time in ms;
+#X text 237 538 - ramp-up time in ms (default 0);
+#X text 237 559 - ramp-down time in ms (default 0);
+#X obj 155 266 else/out~;
+#X obj 155 222 *~;
+#X obj 116 149 else/brown~;
+#X obj 275 219 vsl 18 100 0 1 0 0 ewtwet wefwert empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 275 191 else/sig2float~;
+#X text 298 312 0;
+#X text 298 213 1;
+#X obj 213 132 else/pulse~ 0.5;
+#X text 60 91 [glide2~] is just like [glide~] but has distinct ramp
+times for both up and down.;
+#X obj 23 40 cnv 4 4 4 empty empty Signal 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 80 40 cnv 4 4 4 empty empty glide/portamento 0 28 2 18 #e0e0e0
+#000000 0;
+#X obj 2 4 cnv 15 301 42 empty empty glide2~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 6 496 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 90 503 -exp <float>: sets exponential factor (default '1' \,
+linear);
+#X text 188 368 reset;
+#X text 238 368 - resets glide to input value;
+#X text 152 384 exp <float>;
+#X text 238 384 - sets exponential factor;
+#N canvas 699 216 522 312 example 0;
+#X obj 80 185 osc~;
+#X obj 80 232 else/out~;
+#X text 218 143 <= values are glided \, generating a portamento;
+#X obj 80 54 else/dust~ 1;
+#X text 165 53 <= random triggers;
+#X text 212 97 <= random values in 200-800 range;
+#X obj 80 97 else/rand.f~ 200 800;
+#X obj 80 143 else/glide2~ 1000 500;
+#X connect 0 0 1 0;
+#X connect 3 0 6 0;
+#X connect 6 0 7 0;
+#X connect 7 0 0 0;
+#X restore 473 281 pd example;
+#N canvas 561 138 532 514 exponential 0;
+#X obj 86 323 cnv 15 398 138 empty empty empty 20 12 0 14 #e0e0e0 #404040
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X array \$0-exp 441 float 0;
+#X coords 0 1 440 0 400 140 1 0 0;
+#X restore 85 322 graph;
+#X obj 74 38 bng 20 250 50 1 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 75 257 tabwrite~ \$0-exp;
+#X msg 111 124 4;
+#X msg 141 124 -4;
+#X floatatom 141 153 5 0 0 0 - - - 0;
+#X msg 172 124 0.25;
+#X msg 212 124 -0.25;
+#X obj 375 197 else/rescale~;
+#X obj 90 83 else/timed.gate~ 7;
+#X msg 141 176 exp \$1;
+#X obj 385 39 else/setdsp~;
+#X text 287 142 You can set exponential factors \, much like as in
+[rescale~]. Check it out as well., f 33;
+#X obj 90 206 else/glide2~ -exp 4 7 3;
+#X connect 2 0 3 0;
+#X connect 2 0 10 0;
+#X connect 4 0 6 0;
+#X connect 5 0 6 0;
+#X connect 6 0 11 0;
+#X connect 7 0 6 0;
+#X connect 8 0 6 0;
+#X connect 10 0 14 0;
+#X connect 11 0 14 0;
+#X connect 14 0 3 0;
+#X restore 450 304 pd exponential;
+#X obj 213 160 else/glide2~ 1000 500;
+#X obj 25 277 else/lag2~;
+#X obj 25 297 else/slew2~;
+#X connect 32 0 31 0;
+#X connect 33 0 32 0;
+#X connect 35 0 34 0;
+#X connect 38 0 52 0;
+#X connect 52 0 32 1;
+#X connect 52 0 35 0;

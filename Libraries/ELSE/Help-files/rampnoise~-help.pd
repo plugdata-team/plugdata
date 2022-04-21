@@ -1,0 +1,106 @@
+#N canvas 536 23 564 526 10;
+#X obj 250 229 hsl 128 15 1 44100 1 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 247 317 else/out~;
+#X obj 2 3 cnv 15 301 42 empty empty rampnoise~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 23 40 cnv 4 4 4 empty empty Ramp 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 75 40 cnv 4 4 4 empty empty noise 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 2 499 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 3 433 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 470 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 91 443 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 159 444 signal;
+#X text 148 479 1) float;
+#X obj 247 258 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 263 228 frequency in Hz;
+#X text 216 479 - frequency in hertz (default 0);
+#X text 216 445 - bandlimited step noise;
+#X text 38 297 see also:;
+#X obj 39 324 else/lfnoise~;
+#X obj 39 348 else/stepnoise~;
+#X obj 247 284 else/rampnoise~ 400;
+#X text 83 163 The [rampnoise~] object produces frequencies limited
+to a band from 0 up to the frequency it is running. It can go up to
+the sample rate \, and when that happens \, it's basically a white
+noise generator.;
+#N canvas 806 202 450 300 control 0;
+#X obj 153 163 osc~;
+#X obj 153 200 else/out~;
+#X obj 153 133 else/rescale~ 200 800;
+#X text 50 33 [rampnoise~] can be used to control parameters of other
+objects. Here we control the frequency of an oscillator.;
+#X obj 153 102 else/rampnoise~ 10;
+#X connect 0 0 1 0;
+#X connect 2 0 0 0;
+#X connect 4 0 2 0;
+#X restore 478 348 pd control;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 683 203 451 408 seed 0;
+#X text 271 72 <= set seed;
+#X obj 84 196 else/sig2float~;
+#X obj 234 199 else/sig2float~;
+#X obj 84 234 vsl 15 128 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 234 234 vsl 15 128 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 84 162 else/rampnoise~ 1;
+#X obj 234 162 else/rampnoise~ 1;
+#X msg 234 121 seed \$1;
+#X floatatom 234 97 5 0 0 0 - - - 0;
+#X msg 234 73 1023;
+#X text 81 18 Sync [rampnoise~] objects with a seed value. The default
+is a unique value for each instance based on the system time., f 48
+;
+#X obj 313 280 else/setdsp~;
+#X connect 1 0 3 0;
+#X connect 2 0 4 0;
+#X connect 5 0 1 0;
+#X connect 6 0 2 0;
+#X connect 7 0 5 0;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X connect 9 0 8 0;
+#X restore 495 324 pd seed;
+#X obj 91 391 cnv 17 3 37 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 381 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X text 123 391 float/signal;
+#X text 215 390 - frequency input in hertz;
+#X text 123 411 seed <float>;
+#X text 216 412 - sets seed;
+#X text 83 88 [rampnoise~] is a low frequency (band limited) noise
+generator with interpolation \, therefore it ramps from one random
+value to another \, resulting in random ramps. Random values are between
+-1 and 1 at a rate in hertz (negative frequencies accepted). Use the
+seed message if you want a reproducible output., f 59;
+#X connect 0 0 12 0;
+#X connect 12 0 19 0;
+#X connect 19 0 1 0;

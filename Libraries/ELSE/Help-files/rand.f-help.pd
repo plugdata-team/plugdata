@@ -1,0 +1,83 @@
+#N canvas 469 23 565 476 10;
+#X obj 2 3 cnv 15 301 42 empty empty rand.f 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 23 40 cnv 4 4 4 empty empty Random 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 145 40 cnv 4 4 4 empty empty number 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 213 39 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 98 40 cnv 4 4 4 empty empty float 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 448 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 4 354 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 391 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 111 364 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 113 268 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 258 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X msg 139 169 seed \$1;
+#X obj 139 150 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 145 288 seed <float>;
+#X text 237 287 - sets seed value;
+#X text 237 365 - random values;
+#X text 99 400 1) list -;
+#X obj 111 310 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 111 331 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 237 311 - lowest random value;
+#X text 236 332 - highest random value;
+#X obj 264 164 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 328 165 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 272 143 low;
+#X text 339 145 high;
+#X text 164 399 floats set random's range \, 2 floats sets minimum
+and maximum - no arguments loads default values (0 and 1). 1 float
+sets maximum value (and lowest value is set to 0).;
+#X obj 215 150 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 201 268 bang;
+#X text 194 311 float;
+#X text 194 332 float;
+#X text 195 364 float;
+#X text 237 267 - generate random number;
+#X obj 215 196 else/rand.f 0 100;
+#X obj 215 221 else/display;
+#X text 71 88 [rand.f] generates random float values for a given range
+when triggered with a bang. Use the seed message if you want a reproducible
+output., f 56;
+#X connect 20 0 41 0;
+#X connect 21 0 20 0;
+#X connect 30 0 41 1;
+#X connect 31 0 41 2;
+#X connect 35 0 41 0;
+#X connect 41 0 42 0;

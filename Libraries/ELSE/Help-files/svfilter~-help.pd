@@ -1,0 +1,106 @@
+#N canvas 520 48 559 564 10;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty State-variable 0 28 2 18 #e0e0e0
+#000000 0;
+#X obj 134 40 cnv 4 4 4 empty empty pedal 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1;
+#X restore 305 3 graph;
+#X obj 3 4 cnv 15 301 42 empty empty svfilter~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 3 537 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 5 321 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 407 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 495 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 122 328 cnv 17 3 32 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 414 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 387 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 182 329 signal;
+#X obj 122 366 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 434 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 454 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 106 501 1) float;
+#X text 106 516 2) float;
+#X obj 206 153 noise~;
+#X obj 273 140 hsl 160 15 500 5000 0 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X text 181 415 signal;
+#X text 181 435 signal;
+#X text 181 455 signal;
+#X obj 122 474 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 181 475 signal;
+#X text 146 366 float/signal;
+#X text 146 387 float/signal;
+#X obj 166 138 vradio 15 1 0 4 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X text 116 137 lowpass;
+#X text 110 153 highpass;
+#X text 110 168 bandpass;
+#X text 242 415 - lowpass filter signal;
+#X text 242 435 - highpass filter signal;
+#X text 242 455 - bandpass filter signal;
+#X text 242 475 - notch filter signal;
+#X obj 338 162 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 350 162 Q/resonance (0-1);
+#X text 176 501 - cutoff/center frequency (Hz), f 60;
+#X text 280 139 cutoff/center frequency;
+#X text 243 388 - sets Q/resonance (0-1);
+#X text 243 367 - sets cutoff/center frequency;
+#X text 243 329 - signal to be filtered;
+#X text 188 348 clear;
+#X text 243 349 - clears the filter in case of a blow-up;
+#X text 176 517 - sets Q/resonance from 0-1 (default 0.01), f 60;
+#X obj 166 204 + 1;
+#X obj 206 261 else/out~;
+#X obj 206 231 else/xselect~ 4 1000 1;
+#X text 51 84 [svfilter~] implements Chamberlin's state-variable filter
+algorithm \, which outputs lowpass \, highpass \, bandpass \, and bandstop
+simultaneously in parallel (in this order from left to right)., f
+70;
+#X obj 206 204 else/svfilter~ 800 0.5;
+#X obj 335 183 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 270 163 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 110 183 bandstop;
+#X connect 25 0 56 0;
+#X connect 26 0 58 0;
+#X connect 34 0 52 0;
+#X connect 42 0 57 0;
+#X connect 52 0 54 0;
+#X connect 54 0 53 0;
+#X connect 56 0 54 0;
+#X connect 56 1 54 1;
+#X connect 56 2 54 2;
+#X connect 56 3 54 3;
+#X connect 57 0 56 2;
+#X connect 58 0 56 1;

@@ -1,0 +1,179 @@
+#N canvas 582 60 561 541 10;
+#X obj 4 310 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 405 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 465 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 85 414 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 86 318 cnv 17 3 58 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 513 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Envelope 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 102 40 cnv 4 4 4 empty empty waveforms 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty envelope~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 110 199 else/graph~ 441 9 0 1 250 90;
+#X text 110 318 float/signal;
+#X text 190 318 - phase input;
+#X text 146 414 signal;
+#X text 190 414 - envelope waveform;
+#X obj 110 140 phasor~ 250;
+#X obj 485 98 else/setdsp~;
+#X text 134 352 anything;
+#X text 94 278 0;
+#X text 94 197 1;
+#X obj 110 168 else/envelope~;
+#X obj 4 437 cnv 3 550 3 empty empty flag 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 85 382 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 152 382 float;
+#X text 190 382 - phase offset, f 58;
+#X text 136 447 -phase <float>: phase offset (default 0);
+#X text 106 335 phase <float> - phase offset (from 0 to 1);
+#X text 190 352 -;
+#X text 118 474 1) anything -;
+#X text 205 473 envelope symbol and optional arguments: sin (default)
+\, hann \, tri \, vsaw <float> \, gauss <float> and trapezoid <float
+\, float>, f 54;
+#X text 203 169 (default: 'sin': half of a sine wave);
+#X text 62 89 [envelope~] provides 6 different envelopes \, which are
+generated via a phase input., f 54;
+#N canvas 779 36 763 682 all 0;
+#X obj 78 249 else/graph~ 441 9 0 1 250 90;
+#X obj 78 50 phasor~ 250;
+#X msg 93 76 sin;
+#X msg 101 98 hann;
+#X msg 109 119 tri;
+#X obj 78 218 else/envelope~;
+#X msg 116 140 vsaw 0.8;
+#X text 62 328 0;
+#X text 62 247 1;
+#X text 67 11 You can change the envelope type with messages.;
+#X msg 129 183 trap 0.4 0.7;
+#X text 123 75 (default) - half of a sine wave cycle;
+#X text 135 98 hann window;
+#X text 138 119 triangular;
+#X text 196 160 gaussian;
+#X text 212 182 trapezoid;
+#X msg 122 161 gauss 0.333;
+#X text 174 139 variable saw;
+#X obj 439 225 else/graph~ 441 9 0 1 250 90;
+#X obj 439 92 phasor~ 250;
+#X text 423 304 0;
+#X text 423 223 1;
+#X obj 439 194 else/envelope~ vsaw 0.1;
+#X msg 458 164 vsaw \$1;
+#X obj 461 122 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 458 144 5 0 0 0 - - - 0;
+#X obj 80 569 else/graph~ 441 9 0 1 250 90;
+#X obj 80 436 phasor~ 250;
+#X text 64 648 0;
+#X text 64 567 1;
+#X obj 102 466 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 99 488 5 0 0 0 - - - 0;
+#X msg 99 508 gauss \$1;
+#X obj 80 538 else/envelope~ gauss 0.333;
+#X text 431 27 The vsaw option has a default value of 0.5 \, this parameter
+controls the phase point with the maximum value., f 44;
+#X obj 446 560 else/graph~ 441 9 0 1 250 90;
+#X obj 446 437 phasor~ 250;
+#X text 430 639 0;
+#X text 430 558 1;
+#X obj 529 442 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 526 464 5 0 0 0 - - - 0;
+#X obj 446 529 else/envelope~ trap 0.25 0.75;
+#X obj 471 488 else/pack2 trap f f;
+#X obj 605 465 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 602 487 5 0 0 0 - - - 0;
+#X text 426 366 The trap option has a default value of 0.1 and 0.9
+\, these parameters control \, respectively \, the phase points where
+the upwards ramp ends and the downwards curve starts., f 47;
+#X text 26 367 The gauss option has a default value of 0.25 \, this
+parameter controls the width of the curve. The higher the value \,
+the narrower the shape is. Usable values are usually from 0 to 1 \,
+but can be higher in the case of low frequencies.;
+#X connect 1 0 5 0;
+#X connect 2 0 5 0;
+#X connect 3 0 5 0;
+#X connect 4 0 5 0;
+#X connect 5 0 0 0;
+#X connect 6 0 5 0;
+#X connect 10 0 5 0;
+#X connect 16 0 5 0;
+#X connect 19 0 22 0;
+#X connect 22 0 18 0;
+#X connect 23 0 22 0;
+#X connect 24 0 25 0;
+#X connect 25 0 23 0;
+#X connect 27 0 33 0;
+#X connect 30 0 31 0;
+#X connect 31 0 32 0;
+#X connect 32 0 33 0;
+#X connect 33 0 26 0;
+#X connect 36 0 41 0;
+#X connect 39 0 40 0;
+#X connect 40 0 42 1;
+#X connect 41 0 35 0;
+#X connect 42 0 41 0;
+#X connect 43 0 44 0;
+#X connect 44 0 42 2;
+#X restore 490 231 pd all types;
+#X f 6;
+#N canvas 792 146 575 439 phase 0;
+#X obj 163 202 else/graph~ 441 9 0 1 250 90;
+#X obj 163 58 phasor~ 250;
+#X obj 163 173 else/envelope~;
+#X obj 161 292 else/graph~ 441 9 0 1 250 90;
+#X obj 77 138 else/envelope~ -phase 0.5;
+#X msg 224 88 0;
+#X msg 233 110 0.5;
+#X text 286 84 You can set a phase offset with a flag \, a message
+to the main inlet or a float via the right inlet., f 34;
+#X obj 80 19 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X msg 77 65 phase \$1;
+#X floatatom 77 42 5 0 0 0 - - - 0;
+#X connect 1 0 2 0;
+#X connect 1 0 4 0;
+#X connect 2 0 0 0;
+#X connect 4 0 3 0;
+#X connect 5 0 4 1;
+#X connect 6 0 4 1;
+#X connect 8 0 10 0;
+#X connect 9 0 4 0;
+#X connect 10 0 9 0;
+#X restore 479 267 pd phase;
+#X text 202 353 set envelope type and arguments: <sin> \, <hann> \,
+<tri> \, <vsaw \, float> \, <gauss float> and <trap float float>;
+#X connect 23 0 28 0;
+#X connect 28 0 18 0;

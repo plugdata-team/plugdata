@@ -1,0 +1,161 @@
+#N canvas 497 23 565 534 10;
+#X obj 2 503 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 3 285 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 380 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 471 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 94 389 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 156 293 signal;
+#X obj 95 294 cnv 17 3 47 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 200 293 - the signal to be averaged;
+#X text 156 389 signal;
+#X text 144 479 1) float;
+#X text 200 389 - the moving average over the last 'n' samples;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 42 cnv 4 4 4 empty empty Moving 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 90 42 cnv 4 4 4 empty empty average 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 306 5 graph;
+#X obj 4 5 cnv 15 301 42 empty empty mov.avg~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 5 graph;
+#X obj 154 42 cnv 4 4 4 empty empty filter 0 28 2 18 #e0e0e0 #000000
+0;
+#N canvas 787 108 557 486 more_details 0;
+#X obj 53 186 noise~;
+#X obj 263 311 else/graph~;
+#X obj 53 312 else/graph~;
+#X msg 282 236 size 10;
+#X msg 263 206 size 100;
+#X text 51 15 A moving/running average outputs an arithmetic mean between
+a given number of samples. At each sample \, the average of the last
+'n' sample is given., f 61;
+#X obj 392 245 nbx 3 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X obj 395 200 hsl 150 15 1 100 1 0 adsfadsg ahhah empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X text 400 199 'n' samples to average;
+#X obj 392 223 int;
+#X text 51 56 The first argument specifies 'n' number of samples to
+average. This also sets the buffer size if no size flag is given. Float
+or signals into the right inlet also sets 'n'. The default and minimum
+value is "1" \, which makes it the same as the input signal., f 61
+;
+#X text 51 119 By default \, the buffers size 100 samples long. You
+can also set the maximum value with the -size flag or message., f
+61;
+#X obj 460 37 else/setdsp~;
+#X obj 263 275 else/mov.avg~ -size 10;
+#X connect 0 0 2 0;
+#X connect 0 0 13 0;
+#X connect 3 0 13 0;
+#X connect 4 0 13 0;
+#X connect 6 0 13 1;
+#X connect 7 0 9 0;
+#X connect 9 0 6 0;
+#X connect 13 0 1 0;
+#X restore 441 230 pd more_details;
+#X obj 3 415 cnv 3 550 3 empty empty flag 8 12 0 13 #dcdcdc #000000
+0;
+#X text 162 309 clear;
+#X text 200 309 - clears filter's memory;
+#X text 200 423 -;
+#X text 200 347 -;
+#X text 120 325 size <float>;
+#X text 200 325 - sets new maximum size and clears filter's memory
+;
+#X obj 222 162 else/ramp~;
+#X msg 178 197 clear;
+#X obj 235 199 print~ Ramp;
+#X obj 94 346 cnv 17 3 31 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 120 347 float/signal;
+#N canvas 736 257 450 273 lowpass 0;
+#X obj 91 76 noise~;
+#X obj 91 180 else/out~;
+#X obj 215 179 else/out~;
+#X obj 290 109 nbx 5 14 1 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 279 88 'n' samples;
+#X obj 215 133 else/mov.avg~;
+#X text 47 19 [mov.avg~] is nothing but a moving average filter \,
+which is a kind of lowpass filter. Listen to it below.;
+#X connect 0 0 1 0;
+#X connect 0 0 5 0;
+#X connect 3 0 5 1;
+#X connect 5 0 2 0;
+#X restore 471 252 pd lowpass;
+#X obj 167 254 print~ Moving-Average;
+#X text 200 479 - sets initial 'n' samples (default 1);
+#X text 114 423 -size <float>;
+#X text 214 422 sets buffer size and maximum 'n' samples (default 100
+or argument's value if given), f 53;
+#X obj 167 129 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 213 347 'n' number of last samples to apply the average to
+(if different than the last \, the filter is cleared), f 51;
+#X obj 500 70 else/setdsp~;
+#X obj 222 227 else/mov.avg~ 2;
+#X text 62 90 [mov.avg~] gives you a signal running/moving average
+over the last 'n' given samples. This is also a type of lowpass filter.
+;
+#X text 325 192 Average of the last two samples <========, f 11;
+#X text 200 449 -;
+#X text 167 449 -abs;
+#X text 214 450 sets to absolute average mode, f 53;
+#N canvas 785 167 406 368 abs 0;
+#X obj 38 121 noise~;
+#X obj 85 195 else/graph~;
+#X obj 190 129 nbx 3 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X obj 193 84 hsl 150 15 1 100 1 0 adsfadsg ahhah empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X text 198 83 'n' samples to average;
+#X obj 190 107 int;
+#X obj 330 171 else/setdsp~;
+#X obj 85 159 else/mov.avg~ -abs;
+#X msg 85 120 abs \$1;
+#X obj 85 91 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000
+0 1;
+#X text 25 21 The absolute average is considered in absolute mode.
+This means the absolute of the input is taken. The absolute mode is
+ste with the -abs flag or the "abs" message., f 61;
+#X connect 0 0 7 0;
+#X connect 2 0 7 1;
+#X connect 3 0 5 0;
+#X connect 5 0 2 0;
+#X connect 7 0 1 0;
+#X connect 8 0 7 0;
+#X connect 9 0 8 0;
+#X restore 495 207 pd abs;
+#X connect 32 0 34 0;
+#X connect 32 0 45 0;
+#X connect 33 0 45 0;
+#X connect 42 0 33 0;
+#X connect 42 0 34 0;
+#X connect 42 0 38 0;
+#X connect 42 0 32 0;
+#X connect 45 0 38 0;
