@@ -511,6 +511,7 @@ class PlugDataWindow : public DocumentWindow
 
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
 
+        setOpaque(false);
         setContentOwned(new MainContentComponent(*this), true);
         
         const auto windowScreenBounds = [this]() -> Rectangle<int>
@@ -551,6 +552,10 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder->stopPlaying();
         clearContentComponent();
         pluginHolder = nullptr;
+    }
+    
+    BorderSize<int> getContentComponentBorder() override {
+        return {2, 2, 2, 2};
     }
 
     AudioProcessor* getAudioProcessor() const noexcept
