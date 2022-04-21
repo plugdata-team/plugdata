@@ -15,7 +15,7 @@
 #ifndef PLUGDATA_STANDALONE
 #define PLUGDATA_ROUNDED 0
 #else
-#define PLUGDATA_ROUNDED 0
+#define PLUGDATA_ROUNDED 1
 #endif
 
 enum CommandIDs
