@@ -554,6 +554,8 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
     
+    
+    
     AudioProcessor* getAudioProcessor() const noexcept
     {
         return pluginHolder->processor.get();

@@ -15,7 +15,7 @@
 #ifndef PLUGDATA_STANDALONE
 #define PLUGDATA_ROUNDED 0
 #else
-#define PLUGDATA_ROUNDED 1
+#define PLUGDATA_ROUNDED 0
 #endif
 
 enum CommandIDs
@@ -138,10 +138,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     OwnedArray<TextButton> toolbarButtons;
     SafePointer<Component> settingsDialog = nullptr;
-    
-#if !PLUGDATA_ROUNDED
-    ResizableCornerComponent resizer = ResizableCornerComponent(this, nullptr);
-#endif
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 

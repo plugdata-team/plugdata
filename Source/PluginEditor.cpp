@@ -22,6 +22,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
 #if PLUGDATA_ROUNDED
     setResizable(true, false);
+#else
+    setResizable(true, true);
 #endif
     
     addKeyListener(&statusbar);
@@ -209,12 +211,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     addAndMakeVisible(toolbarButton(Hide));
 
-    // window size limits
-#if !PLUGDATA_ROUNDED
-    resizer.setAlwaysOnTop(true);
-    addAndMakeVisible(resizer);
-#endif
-    
     setSize(pd.lastUIWidth, pd.lastUIHeight);
 
     tabbar.toFront(false);
@@ -358,11 +354,6 @@ void PlugDataPluginEditor::resized()
     
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
-
-#if !PLUGDATA_ROUNDED
-    resizer.setBounds(getWidth() - 16, getHeight() - 16, 16, 16);
-    resizer.toFront(false);
-#endif
 
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
