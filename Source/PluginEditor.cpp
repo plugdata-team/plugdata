@@ -210,7 +210,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(toolbarButton(Hide));
 
     // window size limits
-#if !defined(PLUGDATA_STANDALONE) && !JUCE_MAC
+#if !(defined(PLUGDATA_STANDALONE) && JUCE_MAC)
     resizer.setAlwaysOnTop(true);
     addAndMakeVisible(resizer);
 #endif
