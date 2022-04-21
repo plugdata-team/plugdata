@@ -1,0 +1,12 @@
+#N canvas 669 262 509 255 10;
+#X obj 87 99 expr~ cos($v2) * $v1 \; sin($v2) * $v1;
+#X obj 87 161 outlet~;
+#X obj 210 161 outlet~;
+#X obj 210 39 inlet~;
+#X obj 87 40 inlet~;
+#X text 247 106 Part of ELSE \; https://github.com/porres/pd-else;
+#X text 249 87 Alexandre Torres Porres (2018);
+#X connect 0 0 1 0;
+#X connect 0 1 2 0;
+#X connect 3 0 0 1;
+#X connect 4 0 0 0;
