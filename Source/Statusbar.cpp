@@ -436,6 +436,7 @@ void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer&
 
     for (int ch = 0; ch < channels; ch++)
     {
+        // TODO: this logic for > 2 channels makes no sense!!
         auto localLevel = level[ch & 1].load();
 
         for (int n = 0; n < buffer.getNumSamples(); n++)

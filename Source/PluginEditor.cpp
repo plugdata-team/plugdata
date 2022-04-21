@@ -726,8 +726,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
         case CommandIDs::Redo:
         {
-            // TODO: Fix threading issue!!
-
             result.setInfo("Redo", "Redo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             result.setActive(canRedo);
