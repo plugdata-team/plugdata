@@ -1,12 +1,12 @@
-#N canvas 758 235 538 504 12;
+#N canvas 503 61 538 504 12;
 #X declare -path else;
 #X obj 62 294 t b b f;
 #X obj 85 365 expr s_\$0[$f1] + (t_\$0[$f1]-s_\$0[$f1]) * $f2, f 27
 ;
 #X obj 333 196 array define s_\$0;
 #X obj 333 226 array define t_\$0;
-#X obj 85 333 loop;
-#X obj 62 413 group;
+#X obj 85 333 else/loop;
+#X obj 62 413 else/group;
 #X obj 62 467 outlet;
 #X obj 214 36 inlet;
 #X text 260 294 Part of ELSE \; https://github.com/porres/pd-else;
@@ -16,11 +16,11 @@
 #X obj 214 109 route float list;
 #X obj 145 296 r \$0-size;
 #X obj 62 73 route float exp start target;
-#N canvas 1259 340 439 365 init 0;
+#N canvas 789 176 439 365 init 0;
 #X obj 75 214 list split 1;
 #X obj 73 93 pdcontrol;
 #X msg 73 60 args;
-#X obj 73 129 break -;
+#X obj 73 129 else/break -;
 #X obj 75 289 s \$0-exp-arg;
 #X obj 265 188 array size t_\$0;
 #X obj 257 218 array size s_\$0;
@@ -61,7 +61,7 @@
 #X obj 283 59 inlet;
 #X obj 193 224 > 0.5;
 #X obj 64 59 inlet;
-#X obj 283 390 router;
+#X obj 283 390 else/router;
 #X obj 193 288 t f f;
 #X obj 195 319 !=;
 #X obj 121 59 inlet;
@@ -80,7 +80,7 @@
 #X obj 329 297 s \$0-size;
 #X obj 206 258 v pos_\$0;
 #X obj 145 190 float;
-#X obj 121 388 router;
+#X obj 121 388 else/router;
 #X obj 227 491 list;
 #X obj 195 418 t l b;
 #X obj 196 558 array set s_\$0;
@@ -122,7 +122,7 @@
 #X restore 175 166 pd set;
 #X obj 94 239 r \$0-exp;
 #X obj 62 264 pow 1;
-#X obj 348 364 declare -path else;
+#X obj 347 83 declare -path else;
 #X connect 0 0 5 0;
 #X connect 0 1 4 0;
 #X connect 0 2 1 1;

@@ -216,19 +216,18 @@ void *buffer_init(t_class *owner, t_symbol *bufname, int numchans, int singlemod
     if(!bufname)
         bufname = &s_;
     c->c_bufname = bufname;
-    singlemode = singlemode > 0 ? 1 : 0;
-// single mode forces numchans = 1
+    singlemode = singlemode > 0 ? 1 : 0; // single mode forces numchans = 1
     numchans = (numchans < 1 || singlemode) ? 1 : (numchans > buffer_MAXCHANS ? buffer_MAXCHANS : numchans);
-    if (!(vectors = (t_float **)getbytes(numchans* sizeof(*vectors))))
-		return (0);
+    if(!(vectors = (t_float **)getbytes(numchans* sizeof(*vectors))))
+		return(0);
 	if(!(channames = (t_symbol **)getbytes(numchans * sizeof(*channames)))){
 		freebytes(vectors, numchans * sizeof(*vectors));
-        return (0);
+        return(0);
     };
     c->c_single = singlemode;
     c->c_owner = owner;
     c->c_npts = 0;
-    c->c_vectors = vectors;
+    c->c_vectors = (t_word**)vectors;
     c->c_channames = channames;
     c->c_disabled = 0;
     c->c_playable = 0;
@@ -236,7 +235,7 @@ void *buffer_init(t_class *owner, t_symbol *bufname, int numchans, int singlemod
     c->c_numchans = numchans;
     if(bufname != &s_)
         buffer_initarray(c, bufname, 0);
-    return (c);
+    return(c);
 }
 
 void buffer_enable(t_buffer *c, t_floatarg f){

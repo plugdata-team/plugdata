@@ -1,4 +1,4 @@
-#N canvas 456 218 1040 458 10;
+#N canvas 204 62 1040 458 10;
 #X declare -path else;
 #N canvas 660 137 340 350 plot 0;
 #N canvas 902 365 351 322 init 0;
@@ -106,46 +106,44 @@
 #X connect 8 4 12 1;
 #X restore 184 240 pd get-freq;
 #X obj 26 255 table sin2W_\$0 400;
-#X obj 26 238 table cos2W_\$0 400;
-#X obj 27 205 table sinW_\$0 400;
+#X obj 26 239 table cos2W_\$0 400;
+#X obj 27 204 table sinW_\$0 400;
 #X obj 27 188 table cosW_\$0 400;
-#X obj 219 182 pi;
-#X obj 236 49 sr~;
 #X obj 90 59 trigger bang bang bang;
-#X obj 18 128 unpack s s;
+#X obj 16 127 unpack s s;
 #X obj 16 149 s \$0-a;
-#X obj 17 94 pack2 \$0-amp \$0-fase, f 15;
-#X obj 68 152 s \$0-ph;
+#X obj 73 152 s \$0-ph;
 #X obj 278 209 s \$0-pi;
-#X obj 90 23 lb -init;
+#X obj 236 49 else/sr~;
+#X obj 17 94 else/pack2 \$0-amp \$0-fase, f 15;
+#X obj 219 182 else/pi;
+#X obj 90 23 else/lb;
 #X connect 2 0 8 0;
 #X connect 3 0 0 0;
 #X connect 5 0 4 0;
 #X connect 6 0 5 0;
-#X connect 13 0 7 0;
-#X connect 13 0 20 0;
-#X connect 14 0 1 0;
-#X connect 15 0 18 0;
-#X connect 15 1 2 0;
-#X connect 15 1 3 0;
-#X connect 15 2 6 0;
-#X connect 15 2 13 0;
-#X connect 15 2 14 0;
-#X connect 16 0 17 0;
-#X connect 16 1 19 0;
-#X connect 18 0 16 0;
-#X connect 21 0 15 0;
+#X connect 13 0 19 0;
+#X connect 13 1 2 0;
+#X connect 13 1 3 0;
+#X connect 13 2 6 0;
+#X connect 13 2 18 0;
+#X connect 13 2 20 0;
+#X connect 14 0 15 0;
+#X connect 14 1 16 0;
+#X connect 18 0 1 0;
+#X connect 19 0 14 0;
+#X connect 20 0 7 0;
+#X connect 20 0 17 0;
+#X connect 21 0 13 0;
 #X restore 227 150 pd init \; tables;
 #N canvas 436 43 788 438 H(z) 0;
-#X obj 123 43 inlet;
-#X obj 239 45 inlet;
-#X text 170 44 index;
+#X obj 79 42 inlet;
+#X obj 195 44 inlet;
+#X text 126 43 index;
 #X obj 171 301 /;
 #X obj 300 287 -;
 #X obj 123 113 list;
-#X text 278 45 coeficientes;
-#X obj 343 234 car2pol;
-#X obj 121 238 car2pol;
+#X text 234 44 coeficientes;
 #X msg 520 267 const 0;
 #X obj 520 244 r \$0-init;
 #X obj 504 315 s \$0-amp;
@@ -158,31 +156,32 @@
 \; ($f5 * sinW_\$0[$f1]) + ($f6 * sin2W_\$0[$f1]) \; 1 - ($f2 * cosW_\$0[$f1])
 - ($f3 * cos2W_\$0[$f1]) \; 0 - ($f2 * sinW_\$0[$f1]) - ($f3 * sin2W_\$0[$f1])
 , f 57;
-#X obj 171 325 lin2db;
-#X connect 0 0 13 0;
+#X obj 121 238 else/car2pol;
+#X obj 343 234 else/car2pol;
+#X obj 171 325 else/lin2db;
+#X connect 0 0 11 0;
 #X connect 1 0 5 1;
 #X connect 3 0 18 0;
-#X connect 4 0 15 0;
-#X connect 5 0 17 0;
-#X connect 7 0 3 1;
-#X connect 7 1 4 1;
-#X connect 8 0 3 0;
-#X connect 8 1 4 0;
-#X connect 9 0 11 0;
-#X connect 9 0 12 0;
-#X connect 10 0 9 0;
-#X connect 13 0 14 0;
-#X connect 13 1 5 0;
-#X connect 17 0 8 0;
-#X connect 17 1 8 1;
-#X connect 17 2 7 0;
-#X connect 17 3 7 1;
-#X connect 18 0 16 0;
+#X connect 4 0 13 0;
+#X connect 5 0 15 0;
+#X connect 7 0 9 0;
+#X connect 7 0 10 0;
+#X connect 8 0 7 0;
+#X connect 11 0 12 0;
+#X connect 11 1 5 0;
+#X connect 15 0 16 0;
+#X connect 15 1 16 1;
+#X connect 15 2 17 0;
+#X connect 15 3 17 1;
+#X connect 16 0 3 0;
+#X connect 16 1 4 0;
+#X connect 17 0 3 1;
+#X connect 17 1 4 1;
+#X connect 18 0 14 0;
 #X restore 161 236 pd H(z);
 #X obj 101 151 trigger bang list;
-#X obj 101 178 loop 400;
-#X obj 83 39 inlet;
-#X obj 146 71 s \$0-init;
+#X obj 82 19 inlet;
+#X obj 145 51 s \$0-init;
 #N canvas 473 23 604 534 tabwrite-amp 0;
 #X obj 136 55 inlet;
 #X obj 76 159 expr $f2 + $s3[$f1];
@@ -213,12 +212,12 @@
 #X obj 61 120 t f f;
 #X obj 67 226 swap;
 #N canvas 64 23 450 300 wrap 0;
-#X obj 209 120 t f f;
-#X obj 198 144 * -1;
-#X obj 213 96 r \$0-pi;
+#X obj 179 112 t f f;
+#X obj 171 143 * -1;
+#X obj 183 88 r \$0-pi;
 #X obj 137 49 inlet;
-#X obj 153 207 outlet;
-#X obj 139 166 wrap2;
+#X obj 138 206 outlet;
+#X obj 140 166 else/wrap2;
 #X connect 0 0 1 0;
 #X connect 0 1 5 2;
 #X connect 1 0 5 1;
@@ -238,46 +237,47 @@
 #X connect 5 0 4 1;
 #X connect 6 0 1 2;
 #X restore 200 266 pd tabwrite-phase;
-#X obj 83 69 t b l b;
-#X msg 52 99 clear;
-#X obj 101 116 group 5;
-#X connect 1 0 6 0;
-#X connect 1 1 7 0;
-#X connect 2 0 3 0;
+#X obj 82 49 t b l b;
+#X msg 52 79 clear;
+#X obj 101 178 else/loop 400;
+#X obj 101 116 else/group 5;
+#X connect 1 0 5 0;
+#X connect 1 1 6 0;
+#X connect 2 0 9 0;
 #X connect 2 1 1 1;
-#X connect 3 0 1 0;
-#X connect 4 0 8 0;
-#X connect 8 0 9 0;
-#X connect 8 1 10 0;
-#X connect 8 2 5 0;
-#X connect 9 0 10 0;
+#X connect 3 0 7 0;
+#X connect 7 0 8 0;
+#X connect 7 1 10 0;
+#X connect 7 2 4 0;
+#X connect 8 0 10 0;
+#X connect 9 0 1 0;
 #X connect 10 0 2 0;
 #X restore 29 198 pd plot;
-#X obj 101 103 cnv 15 898 283 empty empty empty 18 9 1 15 -262144 -1
+#X obj 101 103 cnv 15 898 283 empty empty empty 18 9 1 15 #fcfcfc #000000
 0;
-#X obj 153 109 cnv 15 805 235 empty empty empty 20 12 0 14 -1 -66577
+#X obj 153 109 cnv 15 805 235 empty empty empty 20 12 0 14 #000000
+#404040 0;
+#X obj 488 366 cnv 15 15 15 empty empty Kilohertz 18 9 1 16 #fcfcfc
+#000000 0;
+#X obj 157 314 cnv 15 798 27 empty empty empty 20 12 0 14 #f8f8f8 #404040
 0;
-#X obj 488 366 cnv 15 15 15 empty empty Kilohertz 18 9 1 16 -262144
--1 0;
-#X obj 157 314 cnv 15 798 27 empty empty empty 20 12 0 14 -257983 -66577
+#X obj 157 258 cnv 15 798 27 empty empty empty 20 12 0 14 #f8f8f8 #404040
 0;
-#X obj 157 258 cnv 15 798 27 empty empty empty 20 12 0 14 -257983 -66577
+#X obj 157 286 cnv 15 798 27 empty empty empty 20 12 0 14 #e8e8ec #404040
 0;
-#X obj 157 286 cnv 15 798 27 empty empty empty 20 12 0 14 -241340 -66577
-0;
-#X obj 157 230 cnv 15 798 27 empty empty empty 20 12 0 14 -241340 -66577
+#X obj 157 230 cnv 15 798 27 empty empty empty 20 12 0 14 #e8e8ec #404040
 0;
 #N canvas 391 118 975 563 (subpatch) 0;
 #X array \$0-fase 400 float 0;
 #X coords 0 3.14159 399 -3.14159 800 111 1 0 0;
 #X restore 156 230 graph;
-#X obj 157 198 cnv 15 798 27 empty empty empty 20 12 0 14 -257983 -66577
+#X obj 157 198 cnv 15 798 27 empty empty empty 20 12 0 14 #f8f8f8 #404040
 0;
-#X obj 157 142 cnv 15 798 27 empty empty empty 20 12 0 14 -257983 -66577
+#X obj 157 142 cnv 15 798 27 empty empty empty 20 12 0 14 #f8f8f8 #404040
 0;
 #X text 261 344 0.05;
 #X text 161 344 0.02;
-#X obj 157 170 cnv 15 798 27 empty empty empty 20 12 0 14 -241340 -66577
+#X obj 157 170 cnv 15 798 27 empty empty empty 20 12 0 14 #e8e8ec #404040
 0;
 #X text 862 343 10;
 #X text 939 344 20;
@@ -289,9 +289,10 @@
 #X text 338 344 0.1;
 #X text 960 216 -24;
 #X text 967 164 0;
-#X obj 114 176 cnv 15 15 15 empty empty dB 0 9 1 17 -262144 -1 0;
+#X obj 114 176 cnv 15 15 15 empty empty dB 0 9 1 17 #fcfcfc #000000
+0;
 #X text 961 193 -12;
-#X obj 157 114 cnv 15 798 27 empty empty empty 20 12 0 14 -241340 -66577
+#X obj 157 114 cnv 15 798 27 empty empty empty 20 12 0 14 #e8e8ec #404040
 0;
 #N canvas 64 23 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 100 227 1;
@@ -324,26 +325,28 @@
 #X array \$0-amp 400 float 0;
 #X coords 0 1 399 -1 800 113 1 0 0;
 #X restore 156 113 graph;
-#X obj 106 162 cnv 15 15 15 empty empty Amp 0 0 1 17 -262144 -1 0;
-#X obj 102 276 cnv 15 15 15 empty empty Phase 0 0 1 17 -262144 -1 0
-;
+#X obj 106 162 cnv 15 15 15 empty empty Amp 0 0 1 17 #fcfcfc #000000
+0;
+#X obj 102 276 cnv 15 15 15 empty empty Phase 0 0 1 17 #fcfcfc #000000
+0;
 #X text 958 332 -pi;
 #X text 957 306 -pi/2;
 #X text 960 276 0;
 #X text 960 249 pi/2;
 #X text 961 227 pi;
-#X obj 109 296 cnv 15 15 15 empty empty rad 0 0 1 17 -262144 -1 0;
+#X obj 109 296 cnv 15 15 15 empty empty rad 0 0 1 17 #fcfcfc #000000
+0;
 #X text 962 134 12;
 #X text 964 109 24;
 #X obj 18 156 inlet;
-#X obj 108 101 cnv 8 888 8 empty empty empty 18 9 1 15 -262144 -1 0
-;
+#X obj 108 101 cnv 8 888 8 empty empty empty 18 9 1 15 #fcfcfc #000000
+0;
 #X obj 18 235 outlet;
-#X obj 108 381 cnv 8 888 8 empty empty empty 18 9 1 15 -262144 -1 0
-;
+#X obj 108 381 cnv 8 888 8 empty empty empty 18 9 1 15 #fcfcfc #000000
+0;
 #X text 173 45 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 175 26 Alexandre Torres Porres (2017);
-#X obj 556 49 declare -path else;
+#X obj 442 43 declare -path else;
 #X connect 47 0 0 0;
 #X connect 47 0 49 0;
 #X coords 0 -1 1 1 900 290 1 100 100;

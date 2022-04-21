@@ -1,4 +1,4 @@
-#N canvas 502 131 620 250 10;
+#N canvas 471 44 620 250 10;
 #X declare -path else;
 #X obj 31 12 inlet;
 #X obj 245 50 list length;
@@ -14,9 +14,9 @@
 #X text 363 100 Alexandre Torres Porres (2018);
 #X obj 31 58 route float list;
 #X obj 77 88 t b l;
-#X obj 145 74 sort;
 #X obj 145 97 trigger l l;
-#X obj 407 60 declare -path else;
+#X obj 145 74 else/sort;
+#X obj 402 70 declare -path else;
 #X connect 0 0 11 0;
 #X connect 1 0 2 0;
 #X connect 1 0 6 0;
@@ -25,7 +25,7 @@
 #X connect 11 0 8 0;
 #X connect 11 1 12 0;
 #X connect 12 0 3 0;
-#X connect 12 1 13 0;
-#X connect 13 0 14 0;
-#X connect 14 0 5 0;
-#X connect 14 1 1 0;
+#X connect 12 1 14 0;
+#X connect 13 0 5 0;
+#X connect 13 1 1 0;
+#X connect 14 0 13 0;

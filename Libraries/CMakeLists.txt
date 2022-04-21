@@ -191,9 +191,12 @@ list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 # ELSE SOURCES
 #------------------------------------------------------------------------------#
 file(GLOB_RECURSE ELSE_SOURCES
-    ./ELSE/*.c)
+    ./ELSE/Source/*.c
+    ./ELSE/Aliases/*.c
+    ./ELSE/shared/*.c)
 
-include_directories(ELSE/)
+include_directories(ELSE/Source/)
+include_directories(ELSE/Aliases/)
 include_directories(ELSE/shared)
 source_group(ELSE FILES ${ELSE_SOURCES})
 list(APPEND SOURCE_FILES ${ELSE_SOURCES})
