@@ -1,8 +1,9 @@
-#N canvas 595 265 805 447 10;
+#N canvas 561 265 805 447 10;
 #X declare -path else;
-#X obj 101 101 cnv 10 12 20 empty \$0-display 0 2 10 0 12 -199730 -69635
+#X obj 101 101 cnv 10 12 20 empty \$0-display 0 2 10 0 12 #c0c0c4 #440008
 0;
-#X obj 101 101 cnv 1 6 1 empty empty empty 20 12 0 14 -1 -66577 0;
+#X obj 101 101 cnv 1 6 1 empty empty empty 20 12 0 14 #000000 #404040
+0;
 #X obj 101 136 namecanvas \$0-canvas, f 11;
 #N canvas 472 259 682 472 init 0;
 #X obj 122 142 float \$1;
@@ -43,11 +44,10 @@
 #X obj 376 357 s \$0-bang;
 #X obj 380 275 expr $f2 < $f1 \; $f2 > $f1 \; $f2;
 #X obj 352 235 expr 64 / $f1 \; if(\$2 <= 0 \, 100 \, \$2);
-#X obj 352 209 sr~ -khz;
 #X obj 50 429 outlet;
-#X obj 71 15 lb -init;
-#X obj 71 44 delay 0;
 #X obj 73 75 t b b b;
+#X obj 352 209 else/sr~ -khz;
+#X obj 73 34 else/lb;
 #X connect 0 0 2 0;
 #X connect 1 0 6 0;
 #X connect 1 0 9 0;
@@ -75,12 +75,11 @@
 #X connect 19 2 17 1;
 #X connect 20 0 19 0;
 #X connect 20 1 19 1;
-#X connect 21 0 20 0;
-#X connect 23 0 24 0;
-#X connect 24 0 25 0;
-#X connect 25 0 22 0;
-#X connect 25 1 0 0;
-#X connect 25 2 11 0;
+#X connect 22 0 21 0;
+#X connect 22 1 0 0;
+#X connect 22 2 11 0;
+#X connect 23 0 20 0;
+#X connect 24 0 22 0;
 #X restore 343 81 pd init;
 #X obj 309 215 list prepend;
 #X obj 397 185 r \$0-fixed;
@@ -136,7 +135,8 @@
 #X connect 6 0 5 0;
 #X connect 7 0 2 0;
 #X restore 339 277 pd fixed;
-#X obj 101 120 cnv 1 6 2 empty empty empty 20 12 0 14 -1 -66577 0;
+#X obj 101 120 cnv 1 6 2 empty empty empty 20 12 0 14 #000000 #404040
+0;
 #X obj 217 32 inlet~;
 #X obj 216 357 outlet~;
 #X obj 259 80 snapshot~;
@@ -144,8 +144,6 @@
 #X obj 280 47 r \$0-bang;
 #X text 514 185 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 516 166 Alexandre Torres Porres (2017);
-#X obj 309 182 changed;
-#X obj 309 160 any2symbol;
 #N canvas 59 23 472 563 check 0;
 #X obj 134 41 inlet;
 #X obj 142 464 outlet;
@@ -186,22 +184,24 @@
 #X obj 259 132 spigot;
 #X msg 364 133 0;
 #X msg 324 131 1;
-#X obj 519 273 declare -path else;
-#X connect 3 0 20 0;
+#X obj 309 160 else/any2symbol;
+#X obj 309 182 else/changed;
+#X obj 522 233 declare -path else;
+#X connect 3 0 18 0;
 #X connect 4 0 6 0;
 #X connect 5 0 4 1;
 #X connect 6 0 7 0;
 #X connect 6 1 8 0;
 #X connect 10 0 11 0;
 #X connect 10 0 12 0;
-#X connect 12 0 19 0;
+#X connect 12 0 17 0;
 #X connect 14 0 12 0;
-#X connect 17 0 4 0;
-#X connect 18 0 17 0;
-#X connect 19 0 21 0;
-#X connect 20 0 23 0;
-#X connect 20 1 22 0;
-#X connect 21 0 18 0;
-#X connect 22 0 18 0;
-#X connect 23 0 21 1;
+#X connect 17 0 19 0;
+#X connect 18 0 21 0;
+#X connect 18 1 20 0;
+#X connect 19 0 22 0;
+#X connect 20 0 22 0;
+#X connect 21 0 19 1;
+#X connect 22 0 23 0;
+#X connect 23 0 4 0;
 #X coords 0 1 1 -1 14 22 2 100 100;

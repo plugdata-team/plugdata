@@ -1,4 +1,5 @@
 #N canvas 531 129 694 386 10;
+#X declare -path else;
 #X obj 55 29 inlet;
 #X obj 288 135 text size \$0-markov;
 #X obj 288 158 t b f;
@@ -63,7 +64,7 @@
 #X obj 160 146 f \$1;
 #X obj 74 17 inlet;
 #X obj 74 72 b;
-#X floatatom 232 312 5 0 0 0 - - -;
+#X floatatom 232 312 5 0 0 0 - - - 0;
 #X text 280 283 no circular;
 #X connect 1 0 0 0;
 #X connect 2 0 7 0;
@@ -327,6 +328,7 @@
 #X restore 331 110 pd clear;
 #X text 454 227 Based on a patch from the pd forum by ingox, f 23
 ;
+#X obj 521 113 declare -path else;
 #X connect 0 0 7 0;
 #X connect 1 0 2 0;
 #X connect 2 0 3 0;

@@ -222,16 +222,16 @@
 #X connect 8 0 5 0;
 #X restore 428 187 pd gain~;
 #X obj 154 103 hsl 82 8 0 127 0 0 \$0-djhd \$0-djhdahkadgkha empty
--2 -8 0 10 -228856 -228856 -228856 0 1;
-#X obj 161 197 cnv 1 18 1 empty empty empty 20 12 0 14 -233017 -66577
+-2 -8 0 10 #dcdcdc #dcdcdc #dcdcdc 0 1;
+#X obj 161 197 cnv 1 18 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
 #X obj 151 107 vsl 43 150 0 1 0 0 \$0-slider1 \$0-set-slider1 empty
-24 9 0 14 -228856 -1 -1 0 1;
+24 9 0 14 #dcdcdc #000000 #000000 0 1;
 #X obj 195 107 vsl 43 150 0 1 0 0 \$0-slider2 \$0-set-slider2 empty
-24 9 0 14 -228856 -1 -1 0 1;
-#X obj 152 104 cnv 1 85 1 empty empty empty 20 12 0 14 -233017 -66577
+24 9 0 14 #dcdcdc #000000 #000000 0 1;
+#X obj 152 104 cnv 1 85 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 158 101 cnv 1 42 2 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 158 101 cnv 1 42 2 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
 #N canvas 273 66 516 311 set_GUI 0;
 #X obj 59 20 inlet;
@@ -248,7 +248,7 @@
 #X obj 278 171 s \$0-panR-set;
 #X obj 59 164 s \$0-set-slider1;
 #X obj 88 124 s \$0-set-slider2;
-#X obj 416 161 lb -init;
+#X obj 416 161 else/lb;
 #X connect 0 0 5 0;
 #X connect 1 0 12 0;
 #X connect 4 0 3 0;
@@ -262,7 +262,7 @@
 #X connect 9 0 11 0;
 #X connect 14 0 4 0;
 #X restore 449 103 pd set_GUI;
-#X obj 199 101 cnv 1 32 2 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 199 101 cnv 1 32 2 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
 #N canvas 262 23 503 388 pan 0;
 #X obj 215 99 r \$0-panL;
@@ -273,45 +273,45 @@
 #X obj 144 49 inlet~;
 #X obj 81 276 outlet~;
 #X obj 143 277 outlet~;
-#X obj 341 124 float2sig~ 20;
-#X obj 215 131 float2sig~ 20;
-#X obj 80 218 pan2~;
-#X obj 152 217 pan2~;
-#X connect 0 0 9 0;
-#X connect 1 0 10 1;
-#X connect 2 0 11 1;
-#X connect 3 0 8 0;
-#X connect 4 0 10 0;
-#X connect 5 0 11 0;
-#X connect 8 0 2 0;
-#X connect 9 0 1 0;
-#X connect 10 0 6 0;
-#X connect 10 1 7 0;
-#X connect 11 0 6 0;
-#X connect 11 1 7 0;
+#X obj 80 219 else/pan2~;
+#X obj 152 219 else/pan2~;
+#X obj 215 131 else/float2sig~ 20;
+#X obj 341 124 else/float2sig~ 20;
+#X connect 0 0 10 0;
+#X connect 1 0 8 1;
+#X connect 2 0 9 1;
+#X connect 3 0 11 0;
+#X connect 4 0 8 0;
+#X connect 5 0 9 0;
+#X connect 8 0 6 0;
+#X connect 8 1 7 0;
+#X connect 9 0 6 0;
+#X connect 9 1 7 0;
+#X connect 10 0 1 0;
+#X connect 11 0 2 0;
 #X restore 395 217 pd pan;
 #X obj 151 260 nbx 4 14 -100 100 0 0 \$0-panL \$0-panL-set empty 0
--8 2 12 -228856 -1 -1 0 256;
+-8 2 12 #dcdcdc #000000 #000000 0 256;
 #X obj 195 260 nbx 4 14 -100 100 0 0 \$0-panR \$0-panR-set empty 0
--8 2 12 -228856 -1 -1 0 256;
-#X obj 190 261 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+-8 2 12 #dcdcdc #000000 #000000 0 256;
+#X obj 190 261 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 192 261 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 192 261 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 192 262 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 192 262 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 235 261 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 235 261 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 237 261 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 237 261 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 237 262 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 237 262 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 158 274 cnv 1 73 2 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 158 274 cnv 1 73 2 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 194 101 cnv 1 1 175 empty empty empty 20 12 0 14 -1 -66577 0
-;
+#X obj 194 101 cnv 1 1 175 empty empty empty 20 12 0 14 #000000 #404040
+0;
 #X obj 356 41 inlet~ fwd, f 6;
-#X obj 519 146 declare -path else;
+#X obj 502 72 declare -path else;
 #X connect 1 0 13 0;
 #X connect 2 0 4 0;
 #X connect 4 0 13 1;

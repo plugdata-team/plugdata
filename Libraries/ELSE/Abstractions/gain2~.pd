@@ -1,20 +1,20 @@
-#N canvas 742 248 486 301 10;
+#N canvas 729 81 486 301 10;
 #X declare -path else;
 #X text 226 125 Alexandre Torres Porres (2016);
 #X text 224 144 Part of ELSE \; https://github.com/porres/pd-else;
 #X obj 33 251 outlet~;
 #X obj 150 105 vsl 26 91 0 1 0 0 \$0-slider \$0-set-slider empty 24
-9 0 14 -228856 -1 -1 0 1;
+9 0 14 #dcdcdc #000000 #000000 0 1;
 #X text 226 105 [gain~]: Mono Gain;
 #X obj 231 252 outlet;
 #X obj 150 220 r \$0-slider;
-#X obj 151 103 cnv 1 24 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 151 103 cnv 1 24 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 157 101 cnv 1 10 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 157 101 cnv 1 10 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 151 198 cnv 1 24 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 151 198 cnv 1 24 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#N canvas 1076 422 402 409 gain~ 0;
+#N canvas 964 337 402 409 gain~ 0;
 #X obj 37 336 outlet~;
 #N canvas 930 375 329 221 max_gain 0;
 #X obj 46 35 inlet~;
@@ -36,20 +36,21 @@
 #X obj 91 21 inlet~;
 #X obj 91 292 *~;
 #X obj 91 337 outlet~, f 9;
-#N canvas 417 80 450 331 quartic 0;
-#X obj 100 158 *~;
-#X obj 100 186 *~;
-#X obj 100 252 outlet~;
-#X obj 100 217 *~;
-#X obj 221 54 r \$0-mode;
-#X msg 250 104 0;
-#X obj 269 157 switch~;
-#X msg 221 104 1;
-#X obj 197 179 line~;
-#X msg 197 157 \$1 50;
-#X obj 273 132 pipe 50;
-#X obj 221 79 sel 0;
-#X obj 100 92 inlet~;
+#N canvas 417 80 357 354 quartic 0;
+#X obj 77 167 *~;
+#X obj 77 195 *~;
+#X obj 77 291 outlet~;
+#X obj 77 256 *~;
+#X obj 198 63 r \$0-mode;
+#X msg 227 113 0;
+#X obj 250 182 switch~;
+#X msg 198 113 1;
+#X obj 173 205 line~;
+#X msg 173 183 \$1 50;
+#X obj 250 141 pipe 50;
+#X obj 198 88 sel 0;
+#X obj 77 21 inlet~;
+#X obj 130 114 r \$0-init;
 #X connect 0 0 1 0;
 #X connect 0 0 1 1;
 #X connect 1 0 3 0;
@@ -66,6 +67,8 @@
 #X connect 11 1 5 0;
 #X connect 12 0 0 0;
 #X connect 12 0 0 1;
+#X connect 13 0 6 0;
+#X connect 13 0 9 0;
 #X restore 117 201 pd quartic;
 #N canvas 743 262 450 300 dB 0;
 #X obj 159 235 outlet~;
@@ -146,12 +149,12 @@
 #X connect 15 0 12 0;
 #X restore 33 182 pd gain~;
 #X obj 105 38 inlet~;
-#X obj 167 101 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 167 101 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
 #X obj 85 251 outlet~;
-#X obj 157 200 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 157 200 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
-#X obj 167 200 cnv 1 1 1 empty empty empty 20 12 0 14 -233017 -66577
+#X obj 167 200 cnv 1 1 1 empty empty empty 20 12 0 14 #e0e0e0 #404040
 0;
 #X obj 13 36 inlet~ fwd;
 #N canvas 782 232 281 300 init 0;
@@ -200,7 +203,6 @@
 #X obj 384 563 s \$0-ramp;
 #X msg 124 588 set \$1;
 #X obj 178 588 s \$0-slider-init;
-#X obj 131 519 del 0;
 #X connect 0 0 17 0;
 #X connect 1 0 27 0;
 #X connect 4 0 3 0;
@@ -235,49 +237,44 @@
 #X connect 36 0 37 0;
 #X connect 37 0 4 0;
 #X connect 37 0 38 0;
-#X connect 38 0 44 0;
+#X connect 38 0 40 0;
 #X connect 40 0 42 0;
 #X connect 40 0 43 0;
 #X connect 42 0 39 0;
-#X connect 44 0 40 0;
 #X restore 70 204 pd route;
 #N canvas 429 237 398 303 set-args 0;
 #X obj 125 77 r \$0-set-mode_arg;
 #X obj 95 54 r \$0-set-max_arg;
 #X obj 95 227 outlet;
-#X obj 95 183 pack2 1 0 20 0 0;
 #X obj 218 146 r \$0-set-value_arg;
 #X obj 187 124 r \$0-set-init_arg;
 #X obj 156 100 r \$0-set-ramp_arg;
-#X floatatom 206 231 5 0 0 0 - - -;
-#X connect 0 0 3 1;
-#X connect 1 0 3 0;
-#X connect 3 0 2 0;
-#X connect 4 0 3 4;
-#X connect 5 0 3 3;
-#X connect 5 0 7 0;
-#X connect 6 0 3 2;
+#X obj 95 183 else/pack2 1 0 20 0 0;
+#X connect 0 0 6 1;
+#X connect 1 0 6 0;
+#X connect 3 0 6 4;
+#X connect 4 0 6 3;
+#X connect 5 0 6 2;
+#X connect 6 0 2 0;
 #X restore 91 139 pd set-args;
-#X obj 121 100 s \$0-arg-list;
-#X msg 121 75 1 0 20 0 0;
-#X obj 70 167 args -;
-#X obj 70 46 lb -init 2;
-#X connect 1 0 4 0;
-#X connect 3 0 2 0;
-#X connect 4 0 0 0;
-#X connect 5 0 4 0;
-#X connect 5 1 3 0;
+#X obj 71 167 else/args -;
+#X obj 121 69 else/message \; \$0-to-max 1 \; \$0-toramp 20 \; \$0-init
+1;
+#X obj 70 45 else/lb 2;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 4 0 2 0;
+#X connect 4 1 3 0;
 #X restore 203 73 pd init;
 #N canvas 457 395 385 241 set_GUI 0;
 #X obj 74 23 inlet;
-#X obj 124 66 canvas.setname \$0-cnv 2;
 #N canvas 581 229 344 388 value 0;
 #X obj 155 41 inlet;
 #X obj 145 299 s \$0-set-slider;
 #X msg 37 247 0;
 #X obj 37 38 inlet;
-#X obj 37 152 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 37 152 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
 #X obj 155 78 s \$0-set-slider;
 #X obj 37 181 select 1 0;
 #X obj 145 124 r \$0-slider-init;
@@ -390,16 +387,17 @@
 #X connect 8 0 2 0;
 #X restore 241 130 pd init;
 #X obj 74 107 route bang set mode gain ramp init;
-#X connect 0 0 7 0;
-#X connect 7 0 2 0;
-#X connect 7 1 2 1;
-#X connect 7 2 3 0;
-#X connect 7 3 4 0;
-#X connect 7 4 5 0;
-#X connect 7 5 6 0;
+#X obj 124 66 else/canvas.setname \$0-cnv 2;
+#X connect 0 0 6 0;
+#X connect 6 0 1 0;
+#X connect 6 1 1 1;
+#X connect 6 2 2 0;
+#X connect 6 3 3 0;
+#X connect 6 4 4 0;
+#X connect 6 5 5 0;
 #X restore 120 73 pd set_GUI;
 #X obj 236 219 r \$0-slider-init;
-#X obj 308 63 declare -path else;
+#X obj 291 45 declare -path else;
 #X connect 6 0 5 0;
 #X connect 10 0 2 0;
 #X connect 10 1 13 0;

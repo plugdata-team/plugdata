@@ -5,7 +5,6 @@
 #X obj 105 192 *~;
 #X obj 23 78 hip~ 3;
 #X obj 105 77 hip~ 3;
-#X obj 364 58 block~ 64;
 #N canvas 627 117 636 328 set_GUI 0;
 #X obj 66 225 s \$0-set-slider;
 #X obj 98 18 inlet;
@@ -27,7 +26,7 @@
 #X text 462 79 Load args;
 #X obj 194 164 s \$0-mute-bng-set;
 #X obj 98 52 route set on off mute mode gain ramp;
-#X obj 464 112 lb -init;
+#X obj 464 112 else/lb;
 #X connect 1 0 19 0;
 #X connect 2 0 0 0;
 #X connect 4 0 3 0;
@@ -50,19 +49,19 @@
 #X restore 273 77 pd set_GUI;
 #N canvas 965 168 332 251 GUI 0;
 #X obj 103 116 hsl 89 20 0 1 0 0 \$0-slider \$0-set-slider volume 17
-9 0 14 -228856 -1 -1 0 1;
+9 0 14 #dcdcdc #000000 #000000 0 1;
 #N canvas 565 338 514 332 DSP 0;
 #X obj 100 100 tgl 16 0 \$0-dsp-toggle \$0-dsp-toggle-set empty 19
-8 0 12 -228856 -128992 -262144 0 1;
-#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 -228856 -91542
+8 0 12 #dcdcdc #7c7c7c #fcfcfc 0 1;
+#X obj 117 101 cnv 5 24 14 empty \$0-cnv_dsp dsp 2 6 0 12 #dcdcdc #585854
 0;
 #X coords 0 -1 1 1 42 16 2 100 100;
 #X restore 100 100 pd DSP;
 #N canvas 335 32 409 332 mute 0;
-#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 -228856
--91542 0;
-#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 -228856
--128992 -262144 0 1;
+#X obj 101 101 cnv 5 34 14 empty \$0-cnv_mute mute 4 6 0 12 #dcdcdc
+#585854 0;
+#X obj 64 133 tgl 16 0 \$0-mute \$0-mute-set empty 19 7 0 12 #dcdcdc
+#7c7c7c #fcfcfc 0 1;
 #X obj 130 162 select 0 1;
 #N canvas 612 446 324 271 set_tgl_color 0;
 #X obj 47 30 inlet;
@@ -218,8 +217,8 @@
 #X restore 310 198 pd on;
 #X obj 267 233 s \$0-set-slider;
 #X obj 136 100 bng 16 500 250 0 \$0-mute-bng \$0-mute-bng-set empty
-17 7 0 10 -228856 -1 -1;
-#X obj 64 48 lb -init;
+17 7 0 10 #dcdcdc #000000 #000000;
+#X obj 64 48 else/lb;
 #X connect 1 0 2 0;
 #X connect 1 0 3 0;
 #X connect 2 0 5 0;
@@ -318,7 +317,7 @@
 #X msg 135 117 0;
 #X obj 108 85 delay 5;
 #X obj 59 149 outlet;
-#X obj 168 45 lb -init;
+#X obj 168 45 else/lb;
 #X connect 0 0 1 0;
 #X connect 1 0 6 0;
 #X connect 3 0 2 0;
@@ -561,7 +560,7 @@
 #X connect 10 0 8 0;
 #X restore 354 137 pd on;
 #X obj 295 217 s \$0-set-slider;
-#X obj 206 114 lb -init;
+#X obj 206 114 else/lb;
 #X connect 0 0 4 0;
 #X connect 0 0 8 0;
 #X connect 1 0 2 0;
@@ -598,23 +597,23 @@
 #X obj 209 77 hip~ 3;
 #X text 271 187 Alexandre Torres Porres (2019);
 #X obj 23 36 inlet~ fwd;
-#X obj 365 163 declare -path else;
-#X connect 0 0 11 0;
+#X obj 355 65 declare -path else;
+#X connect 0 0 10 0;
 #X connect 1 0 4 0;
-#X connect 2 0 11 1;
+#X connect 2 0 10 1;
 #X connect 3 0 0 0;
 #X connect 4 0 2 0;
-#X connect 8 0 9 0;
-#X connect 9 0 2 1;
-#X connect 9 0 0 1;
-#X connect 9 0 13 1;
-#X connect 9 0 15 1;
-#X connect 12 0 16 0;
-#X connect 13 0 11 2;
-#X connect 14 0 17 0;
-#X connect 15 0 11 3;
-#X connect 16 0 13 0;
-#X connect 17 0 15 0;
-#X connect 19 0 3 0;
-#X connect 19 1 6 0;
+#X connect 7 0 8 0;
+#X connect 8 0 2 1;
+#X connect 8 0 0 1;
+#X connect 8 0 12 1;
+#X connect 8 0 14 1;
+#X connect 11 0 15 0;
+#X connect 12 0 10 2;
+#X connect 13 0 16 0;
+#X connect 14 0 10 3;
+#X connect 15 0 12 0;
+#X connect 16 0 14 0;
+#X connect 18 0 3 0;
+#X connect 18 1 5 0;
 #X coords 0 0 1 1 94 51 1 360 90;
