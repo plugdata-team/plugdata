@@ -1,0 +1,115 @@
+#N canvas 567 23 563 566 12;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Control 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 85 40 cnv 4 4 4 empty empty pulse 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty pulse 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 3 292 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 396 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 465 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 135 405 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 539 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 136 302 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 271 303 frequency in hz;
+#X obj 135 344 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 271 368 phase sync (ressets internal phase);
+#X text 164 475 1) float;
+#X text 230 475 - frequency in hertz (default 0);
+#X text 164 495 2) float;
+#X text 201 345 float -;
+#X text 201 302 float -;
+#X obj 195 166 nbx 4 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X text 168 164 Hz;
+#X obj 195 222 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 135 368 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 201 368 float -;
+#X text 271 344 pulse width (from 0 to 1);
+#X text 201 405 float -;
+#X text 269 405 toggle output;
+#X text 230 515 - initial phase offset (default 0);
+#X text 164 515 3) float;
+#X text 230 495 - pulse width (default 0);
+#X text 313 154 <= resets phase.;
+#X msg 276 155 0;
+#X obj 195 249 else/display;
+#X text 59 93 This is much like the [pulse~] oscillator but operates
+in a control rate (with a default resolution of 1 ms) and the output
+is like a toggle switch.;
+#X text 152 322 rate <float> -;
+#X text 271 323 rate period in ms;
+#X obj 3 430 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 104 440 -rate <float>;
+#X text 209 440 - rate period in ms (default 1 \, min 0.1);
+#X obj 195 196 else/pulse 1;
+#N canvas 414 239 721 374 rate 0;
+#X obj 204 159 else/display;
+#X obj 204 127 else/sr~ -ms;
+#X text 36 36 [pulse] is an actual oscillator with a running phase
+\, which runs at a given rate. A signal oscillator runs at the sample
+rate which has a period in ms given by the [sr~] object., f 55;
+#X text 37 205 By default \, [pulse] runs at a rate whose period is
+1 ms and the minimum rate is 0.1 ms. The maximum frequency that [pulse]
+can run is half the frequency of the given rate (500 hz default).,
+f 55;
+#X obj 498 214 else/status;
+#X obj 513 250 timer;
+#X obj 498 139 else/pulse 3 -rate 20;
+#X msg 498 112 rate \$1;
+#X obj 498 86 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 501 60 hsl 128 15 0.1 100 1 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 498 175 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 513 283 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X text 37 279 You can change the rate with the -rate flag or the "rate"
+message. This affects the period resolution, f 55;
+#X connect 1 0 0 0;
+#X connect 4 0 5 0;
+#X connect 4 1 5 1;
+#X connect 5 0 11 0;
+#X connect 6 0 10 0;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X connect 9 0 8 0;
+#X connect 10 0 4 0;
+#X restore 442 244 pd rate;
+#X text 41 221 see also:;
+#X obj 43 246 else/pulse~;
+#X connect 26 0 46 0;
+#X connect 28 0 39 0;
+#X connect 38 0 46 2;
+#X connect 46 0 28 0;

@@ -1,0 +1,74 @@
+#N canvas 413 33 567 377 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 41 cnv 4 4 4 empty empty Compare 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 188 41 cnv 4 4 4 empty empty spread 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 4 graph;
+#X obj 3 4 cnv 15 301 42 empty empty spread 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X obj 7 351 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 7 250 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 283 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 317 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 118 293 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 118 258 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 237 190 else/display;
+#X obj 149 41 cnv 4 4 4 empty empty and 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 186 191 else/display;
+#X obj 288 189 else/display;
+#X text 204 258 any message to be routed completely;
+#X obj 339 189 else/display;
+#X text 151 258 float -;
+#X text 57 90 Similar to [moses] \, [spread] compares an incoming float
+to the arguments and spreads to different outputs if smaller or greater
+than the arguments. The main difference to moses is that it takes multiple
+arguments., f 74;
+#X text 152 292 float -;
+#X text 180 326 1) list -;
+#X text 175 220 < 10;
+#X text 228 215 >= 10 < 20, f 5;
+#X text 282 215 >= 20 < 40, f 5;
+#X text 332 215 >= 40;
+#X obj 99 41 cnv 4 4 4 empty empty floats 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 29 178 see also:;
+#X obj 44 203 moses;
+#X text 200 292 output to an outlet as the result of the comparison
+;
+#X obj 246 41 cnv 4 4 4 empty empty them 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 186 138 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 186 167 else/spread 10 20 40, f 26;
+#X text 241 326 floats to compare to (default 0);
+#X connect 37 0 38 0;
+#X connect 38 0 20 0;
+#X connect 38 1 18 0;
+#X connect 38 2 21 0;
+#X connect 38 3 23 0;

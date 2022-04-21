@@ -1,0 +1,335 @@
+#N struct 1086-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1135-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1180-point float x0 float y0 float size float fg float in
+float grid;
+#N canvas 642 23 563 659 10;
+#X obj 3 434 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 527 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 559 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 122 535 cnv 17 3 17 empty empty 0-7 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X obj 123 441 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 632 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 112 40 cnv 4 4 4 empty empty panning 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 21 40 cnv 4 4 4 empty empty Octaphonic 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 189 535 signal;
+#X text 188 441 signal;
+#X obj 123 462 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 152 463 float/signal;
+#X obj 3 4 cnv 15 301 42 empty empty pan8~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X text 240 441 - signal input;
+#X obj 123 483 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 152 484 float/signal;
+#X text 69 88 [pan8~] is an 8-channel equal power (sin/cos) panner.
+It has two modes of operation and a spread parameter.;
+#N canvas 868 162 428 676 mode-0 0;
+#X obj 53 130 else/setdsp~;
+#X text 39 28 Mode 0 has this speakers settings:;
+#X floatatom 137 312 8 0 0 0 - - - 0;
+#X floatatom 194 312 8 0 0 0 - - - 0;
+#X text 142 295 x;
+#X text 198 295 y;
+#X floatatom 251 312 8 -1 1 0 - - - 0;
+#N canvas 638 23 399 387 set 0;
+#X obj 105 290 pack;
+#X msg 105 245 1 \$1;
+#X obj 105 220 expr ($f1/8) * twopi;
+#X obj 105 118 hradio 15 1 0 8 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 105 153 * -1;
+#X text 107 102 1;
+#X text 122 102 2;
+#X text 137 102 3;
+#X text 152 102 4;
+#X text 167 102 5;
+#X text 182 102 6;
+#X text 197 102 7;
+#X text 212 102 8;
+#X obj 105 267 else/pol2car;
+#X obj 105 320 outlet;
+#X obj 265 237 v twopi;
+#X obj 105 199 else/wrap2 0 8;
+#X obj 105 176 + 5.5;
+#X obj 221 285 else/initmess 0 0;
+#X obj 265 211 else/pi 2;
+#X connect 0 0 14 0;
+#X connect 1 0 13 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 0;
+#X connect 4 0 17 0;
+#X connect 13 0 0 0;
+#X connect 13 1 0 1;
+#X connect 16 0 2 0;
+#X connect 17 0 16 0;
+#X connect 18 0 14 0;
+#X connect 19 0 15 0;
+#X coords 0 -1 1 1 132 42 2 100 100;
+#X restore 136 81 pd set;
+#X obj 254 284 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 293 283 spread;
+#X obj 80 258 noise~;
+#X text 279 99 <= set speaker;
+#X obj 80 390 else/pan8~, f 29;
+#X obj 80 421 else/meter8~;
+#X obj 137 278 unpack;
+#X text 273 482 <= [else/meter8~];
+#X obj 109 593 else/out8~;
+#X obj 137 337 else/f2s~ 50;
+#X obj 194 359 else/f2s~ 50;
+#X obj 136 141 else/circle 127 -1 1 -1 1 0 225 225 225 250 250 250
+1 0 0 1 1 0 0 0 empty empty 1;
+#X text 137 173 3;
+#X text 219 256 8;
+#X text 171 256 1;
+#X text 136 221 2;
+#X text 170 139 4;
+#X text 218 139 5;
+#X text 254 174 6;
+#X text 253 222 7;
+#X connect 2 0 17 0;
+#X connect 3 0 18 0;
+#X connect 6 0 12 3;
+#X connect 7 0 19 0;
+#X connect 8 0 6 0;
+#X connect 10 0 12 0;
+#X connect 12 0 13 0;
+#X connect 12 1 13 1;
+#X connect 12 2 13 2;
+#X connect 12 3 13 3;
+#X connect 12 4 13 4;
+#X connect 12 5 13 5;
+#X connect 12 6 13 6;
+#X connect 12 7 13 7;
+#X connect 13 0 16 0;
+#X connect 13 1 16 1;
+#X connect 13 2 16 2;
+#X connect 13 3 16 3;
+#X connect 13 4 16 4;
+#X connect 13 5 16 5;
+#X connect 13 6 16 6;
+#X connect 13 7 16 7;
+#X connect 14 0 2 0;
+#X connect 14 1 3 0;
+#X connect 17 0 12 1;
+#X connect 18 0 12 2;
+#X connect 19 0 14 0;
+#X restore 478 380 pd mode-0;
+#N canvas 884 123 451 669 mode-1 0;
+#N canvas 371 23 399 387 set 0;
+#X obj 105 290 pack;
+#X msg 105 245 1 \$1;
+#X obj 105 220 expr ($f1/8) * twopi;
+#X obj 105 118 hradio 15 1 0 8 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 105 153 * -1;
+#X obj 105 199 mod 8;
+#X obj 105 176 + 2;
+#X text 107 102 1;
+#X text 122 102 2;
+#X text 137 102 3;
+#X text 152 102 4;
+#X text 167 102 5;
+#X text 182 102 6;
+#X text 197 102 7;
+#X text 212 102 8;
+#X obj 105 267 else/pol2car;
+#X obj 105 320 outlet;
+#X obj 265 237 v twopi;
+#X obj 221 286 else/initmess 0 0;
+#X obj 265 211 else/pi 2;
+#X connect 0 0 16 0;
+#X connect 1 0 15 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 0;
+#X connect 4 0 6 0;
+#X connect 5 0 2 0;
+#X connect 6 0 5 0;
+#X connect 15 0 0 0;
+#X connect 15 1 0 1;
+#X connect 18 0 16 0;
+#X connect 19 0 17 0;
+#X coords 0 -1 1 1 132 42 2 100 100;
+#X restore 122 86 pd set;
+#X text 263 98 <= set speaker;
+#X floatatom 122 327 8 0 0 0 - - - 0;
+#X floatatom 179 327 8 0 0 0 - - - 0;
+#X text 127 310 x;
+#X text 183 310 y;
+#X floatatom 236 327 8 -1 1 0 - - - 0;
+#X obj 239 299 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 278 298 spread;
+#X obj 65 273 noise~;
+#X obj 65 426 else/meter8~;
+#X obj 122 293 unpack;
+#X text 258 487 <= [else/meter8~];
+#X obj 65 395 else/pan8~ -mode 1, f 29;
+#X obj 95 601 else/out8~;
+#X obj 122 351 else/f2s~ 50;
+#X obj 179 373 else/f2s~ 50;
+#X text 39 28 Mode 1 has this speakers settings:;
+#X obj 41 149 else/setdsp~;
+#X obj 122 147 else/circle 127 -1 1 -1 1 0 225 225 225 250 250 250
+1 0 0 1 1 0 0 0 empty empty 1;
+#X text 249 202 3;
+#X text 228 153 2;
+#X text 179 133 1;
+#X text 131 154 8;
+#X text 111 203 7;
+#X text 131 250 6;
+#X text 227 251 4;
+#X text 179 273 5;
+#X connect 0 0 19 0;
+#X connect 2 0 15 0;
+#X connect 3 0 16 0;
+#X connect 6 0 13 3;
+#X connect 7 0 6 0;
+#X connect 9 0 13 0;
+#X connect 10 0 14 0;
+#X connect 10 1 14 1;
+#X connect 10 2 14 2;
+#X connect 10 3 14 3;
+#X connect 10 4 14 4;
+#X connect 10 5 14 5;
+#X connect 10 6 14 6;
+#X connect 10 7 14 7;
+#X connect 11 0 2 0;
+#X connect 11 1 3 0;
+#X connect 13 0 10 0;
+#X connect 13 1 10 1;
+#X connect 13 2 10 2;
+#X connect 13 3 10 3;
+#X connect 13 4 10 4;
+#X connect 13 5 10 5;
+#X connect 13 6 10 6;
+#X connect 13 7 10 7;
+#X connect 15 0 13 1;
+#X connect 16 0 13 2;
+#X connect 19 0 11 0;
+#X restore 478 402 pd mode-1;
+#X text 242 535 - channel outputs;
+#X obj 123 504 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 194 505 float;
+#X obj 3 590 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 186 567 (none);
+#X text 149 597 -spread: sets spread parameter (default 0);
+#X text 160 610 -mode: sets mode <0> or <1> (default 0);
+#X text 240 463 - X horizontal value: from -1 (Left) to 1 (Right);
+#X text 240 484 - Y vertical value: from -1 (Back) to 1 (Front);
+#X text 240 505 - spread parameter (from -1 to 1);
+#X obj 498 63 else/setdsp~;
+#X floatatom 189 314 5 0 0 0 - - - 0;
+#X floatatom 246 313 5 0 0 0 - - - 0;
+#X obj 80 374 env~;
+#X obj 119 374 env~;
+#X obj 158 374 env~;
+#X obj 197 374 env~;
+#X obj 197 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 132 224 noise~;
+#X obj 158 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 119 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 80 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 172 312 X;
+#X text 281 314 Y;
+#X obj 236 374 env~;
+#X obj 275 374 env~;
+#X obj 314 374 env~;
+#X obj 353 374 env~;
+#X obj 353 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 314 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 275 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 236 398 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 189 292 unpack;
+#X text 87 413 1;
+#X text 128 413 2;
+#X text 166 413 3;
+#X text 207 413 4;
+#X text 244 413 5;
+#X text 285 413 6;
+#X text 324 413 7;
+#X text 366 413 8;
+#X floatatom 303 316 8 -1 1 0 - - - 0;
+#X obj 306 295 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 345 294 spread;
+#X text 342 232 The spread parameter controls how much the sound spreads
+to the adjacent speakers., f 21;
+#X obj 132 337 else/pan8~, f 29;
+#X text 189 177 3;
+#X text 271 260 8;
+#X text 223 260 1;
+#X text 188 225 2;
+#X text 222 143 4;
+#X text 270 143 5;
+#X text 306 178 6;
+#X text 305 226 7;
+#X text 331 174 <= [else/circle];
+#X obj 189 146 else/circle 127 -1 1 -1 1 0 225 225 225 250 250 250
+1 0 0 1 1 0 63.5 63.5 empty empty 1;
+#X connect 39 0 73 1;
+#X connect 40 0 73 2;
+#X connect 41 0 49 0;
+#X connect 42 0 48 0;
+#X connect 43 0 47 0;
+#X connect 44 0 45 0;
+#X connect 46 0 73 0;
+#X connect 52 0 59 0;
+#X connect 53 0 58 0;
+#X connect 54 0 57 0;
+#X connect 55 0 56 0;
+#X connect 60 0 39 0;
+#X connect 60 1 40 0;
+#X connect 69 0 73 3;
+#X connect 70 0 69 0;
+#X connect 73 0 41 0;
+#X connect 73 1 42 0;
+#X connect 73 2 43 0;
+#X connect 73 3 44 0;
+#X connect 73 4 52 0;
+#X connect 73 5 53 0;
+#X connect 73 6 54 0;
+#X connect 73 7 55 0;
+#X connect 83 0 60 0;

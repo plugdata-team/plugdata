@@ -1,0 +1,99 @@
+#N canvas 494 77 570 430 10;
+#X obj 3 277 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 310 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 358 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 137 320 cnv 17 3 30 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 391 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 4 5 cnv 15 301 42 empty empty canvas.gop 20 20 2 37 #e0e0e0
+#000000 0;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 5 graph;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 42 cnv 4 4 4 empty empty Report 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 306 5 graph;
+#X obj 82 42 cnv 4 4 4 empty empty 'GOP' 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 132 42 cnv 4 4 4 empty empty information 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 152 367 1) float - depth \, default 0 (current window);
+#N canvas 938 298 503 386 subpatch 0;
+#X obj 110 167 else/display;
+#X obj 110 113 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 110 140 else/canvas.gop;
+#X text 135 113 get GOP information;
+#X obj 110 218 unpack float float float float float float float;
+#X obj 110 256 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 157 256 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 205 256 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 252 256 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 300 256 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 347 256 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 395 256 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 115 276 GOP;
+#X text 157 276 xsize;
+#X text 203 276 ysize;
+#X text 257 276 x1;
+#X text 308 276 y1;
+#X text 353 276 x2;
+#X text 407 276 y2;
+#X connect 0 0 4 0;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 4 0 5 0;
+#X connect 4 1 6 0;
+#X connect 4 2 7 0;
+#X connect 4 3 8 0;
+#X connect 4 4 9 0;
+#X connect 4 5 10 0;
+#X connect 4 6 11 0;
+#X coords 0 -1 1 1 200 100 2 100 100;
+#X restore 309 158 pd subpatch;
+#X obj 105 220 else/display;
+#X obj 137 287 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 173 288 bang -;
+#X obj 105 169 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 224 287 query for position;
+#X text 170 322 list -;
+#X obj 105 193 else/canvas.gop;
+#X text 64 88 The [canvas.gop] object outputs the information of a
+"graph on parent" (aka 'GOP') \, which is a subpatch with a visible
+graph in the parent. It can also query the GOP info with the depth
+argument (1 goes up to the parent patch \, 2 queries the parent's parent
+and so on)., f 71;
+#X text 128 161 for no GOP canvases \, output are zeros, f 20;
+#X text 221 321 GOP info: <gop status \, x size \, y size \, coords
+(x1 \, y1 \, x2 \, y2), f 37;
+#X connect 23 0 26 0;
+#X connect 26 0 20 0;

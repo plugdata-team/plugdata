@@ -1,0 +1,206 @@
+#N canvas 561 24 564 554 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 41 cnv 4 4 4 empty empty Route 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 138 41 cnv 4 4 4 empty empty message 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 4 graph;
+#X obj 3 4 cnv 15 301 42 empty empty routeall 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X obj 7 526 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 7 376 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 426 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 490 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 108 435 cnv 17 3 24 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 108 384 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 108 465 cnv 17 3 17 empty empty n+1 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X msg 218 258 1 2 3;
+#X obj 75 41 cnv 4 4 4 empty empty all 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 282 340 else/display;
+#X obj 105 41 cnv 4 4 4 empty empty the 0 28 2 18 #e0e0e0 #000000 0
+;
+#X text 146 499 1) anything -;
+#X obj 206 317 else/routeall a 1, f 26;
+#X obj 206 341 else/display;
+#X obj 359 339 else/display;
+#X msg 127 245 symbol a;
+#X msg 175 268 a;
+#X msg 264 258 1;
+#X floatatom 271 284 5 0 0 0 - - - 0;
+#X msg 206 226 list a b;
+#X msg 321 286 unmatched;
+#X text 163 465 anything -;
+#X text 234 465 any unmatched message;
+#X text 162 434 anything -;
+#X text 233 434 if an input message matches an argument \, the corresponding
+outlet sends that message., f 44;
+#X text 161 384 anything -;
+#X text 232 384 any message to be routed completely;
+#X text 234 499 arguments to match the 1st element of a message;
+#X text 58 151 Each argument has its corresponding outlet. The object
+searches for a match between the first element of a message and an
+argument (from first to last). As soon as a match is found \, it sends
+the message to the corresponding output - this means that it stops
+looking for other matches. If no match is found \, the message is sent
+to the rightmost outlet., f 74;
+#N canvas 347 120 845 501 selectors 0;
+#X text 30 112 If you give the [routeall] object a selector as an argument
+\, it will be able to match and route accordingly.;
+#X obj 101 178 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X symbolatom 118 202 10 0 0 0 - - - 0;
+#X obj 212 252 else/display;
+#X obj 101 253 else/display;
+#X obj 101 229 else/routeall float;
+#X text 160 178 implicit "float" selector;
+#X text 187 200 explicit "symbol" selector;
+#X text 29 19 Messages in Pure Data have selectors (bang \, float \,
+list \, symbol). Some are implicit \, for instance \, the message "5"
+has the "float" selector implicitly. A list that starts with numbers
+also has the "list" selector implicitly. On the other hand \, a list
+that starts with a symbol needs the "list" selector explicitly to be
+considered a list \, and so does symbol messages.;
+#X obj 61 444 else/display;
+#X obj 61 416 else/routeall 1 list;
+#X msg 86 357 1 2 3;
+#X msg 61 331 list a b;
+#X msg 99 388 a b;
+#X obj 119 445 else/display;
+#X obj 202 409 else/display;
+#X text 120 329 matches the list argument;
+#X text 129 359 also a list \, but matches the "1" argument first;
+#X text 129 388 unmatched;
+#X obj 535 214 else/display;
+#X obj 461 215 else/display;
+#X obj 461 178 else/routeall a symbol;
+#X msg 461 106 symbol a;
+#X msg 480 129 a;
+#X msg 498 153 symbol b;
+#X obj 718 214 else/display;
+#X obj 644 215 else/display;
+#X msg 644 106 list a b;
+#X msg 663 128 a b;
+#X obj 644 178 else/routeall a list;
+#X msg 681 153 list 1 2;
+#X text 426 17 [routeall] can also match a symbol or a list message
+to an argument that corresponds to the symbol or first element on a
+list (and pass it through with the symbol or list selector). Thus \,
+below to the left \, both "symbol a" and "a" will be output through
+the leftmost outlet \, as well as "list a b" and "a b" below on the
+right.;
+#X msg 534 330 list;
+#X text 607 355 a list with 1 float is converted to a float, f 22
+;
+#X msg 561 360 list 1;
+#X obj 479 429 else/display;
+#X msg 573 390 list a;
+#X text 618 384 a list with 1 symbol is converted to a symbol, f 23
+;
+#X obj 561 433 else/routeall bang float symbol;
+#X text 434 273 In Pd \, there are special cases of list messages where
+they are converted to other message types - [routeall] also considers
+such messages not as lists.;
+#X text 569 325 a list without elements is converted to a bang, f
+23;
+#X obj 561 459 else/display;
+#X obj 622 459 else/display;
+#X obj 683 459 else/display;
+#X connect 1 0 5 0;
+#X connect 2 0 5 0;
+#X connect 5 0 4 0;
+#X connect 5 1 3 0;
+#X connect 10 0 9 0;
+#X connect 10 1 14 0;
+#X connect 10 2 15 0;
+#X connect 11 0 10 0;
+#X connect 12 0 10 0;
+#X connect 13 0 10 0;
+#X connect 21 0 20 0;
+#X connect 21 1 19 0;
+#X connect 22 0 21 0;
+#X connect 23 0 21 0;
+#X connect 24 0 21 0;
+#X connect 27 0 29 0;
+#X connect 28 0 29 0;
+#X connect 29 0 26 0;
+#X connect 29 1 25 0;
+#X connect 30 0 29 0;
+#X connect 32 0 35 0;
+#X connect 32 0 38 0;
+#X connect 34 0 35 0;
+#X connect 34 0 38 0;
+#X connect 36 0 35 0;
+#X connect 36 0 38 0;
+#X connect 38 0 41 0;
+#X connect 38 1 42 0;
+#X connect 38 2 43 0;
+#X restore 463 337 pd selectors;
+#N canvas 983 274 382 310 right-inlet 0;
+#X msg 101 122 1 2 3;
+#X obj 164 225 else/display;
+#X obj 88 226 else/display;
+#X obj 241 224 else/display;
+#X msg 88 99 list a b;
+#X msg 112 145 a 2 3;
+#X msg 241 174 1;
+#X obj 241 147 loadbang;
+#X obj 88 202 else/routeall b 2, f 26;
+#X msg 122 167 b 1 3;
+#X text 81 38 The right inlet sets element number to match in the incoming
+message - note it is indexed from 0!, f 39;
+#X connect 0 0 8 0;
+#X connect 4 0 8 0;
+#X connect 5 0 8 0;
+#X connect 6 0 8 1;
+#X connect 7 0 6 0;
+#X connect 8 0 2 0;
+#X connect 8 1 1 0;
+#X connect 8 2 3 0;
+#X connect 9 0 8 0;
+#X restore 451 312 pd right-inlet;
+#X text 57 90 [routeall] routes messages and - unlike [route] - keeps
+its first element! Also differently from [route] \, the [routeall]
+object matches a symbol to a symbol or a list message! Another difference
+is that [routeall] takes both float and symbol messages at once! Moreover
+\, it can match to other elements in the message than the first.,
+f 74;
+#X obj 108 406 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 179 406 float -;
+#X text 232 406 set element number to match (default 0);
+#X connect 19 0 24 0;
+#X connect 24 0 25 0;
+#X connect 24 1 21 0;
+#X connect 24 2 26 0;
+#X connect 27 0 24 0;
+#X connect 28 0 24 0;
+#X connect 29 0 24 0;
+#X connect 30 0 24 0;
+#X connect 31 0 24 0;
+#X connect 32 0 24 0;

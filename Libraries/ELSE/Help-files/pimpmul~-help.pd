@@ -1,0 +1,131 @@
+#N canvas 575 23 561 498 10;
+#X obj 4 318 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 378 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 441 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 470 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 122 387 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 326 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 192 326 signal;
+#X text 192 387 signal;
+#X obj 291 246 else/out~;
+#X obj 23 40 cnv 4 4 4 empty empty [pimp~] 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 91 40 cnv 4 4 4 empty empty multiplier 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 122 348 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 156 348 float/signal;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 304 3 graph;
+#X obj 2 3 cnv 15 301 42 empty empty pimpmul~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X text 58 90 [pimpmul~] is a "pimp~" multiplier. The [pimp~] object
+from ELSE is both a [phasor~] and an [imp~] oscillator. Use [pimpul~]
+to keep [phasor~] or [pimp~] objects in sync with different frequency
+ratios., f 72;
+#X obj 309 189 else/pimp~ 1;
+#X obj 186 218 else/pimpmul~ 0.75;
+#X obj 291 165 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 294 143 hsl 128 14 0.1 5 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 186 245 else/s2f~;
+#X obj 143 154 vsl 15 128 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 172 164 <= phase;
+#X text 342 164 <= frequency multiplier;
+#X text 241 326 - phase signal to multiply;
+#X obj 122 413 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 192 413 signal;
+#X text 240 412 - impulse at period transitoins;
+#X text 241 387 - muliplied phase signal;
+#N canvas 615 27 660 365 example 0;
+#X obj 381 241 hsl 200 16 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 355 241 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 201 57 0;
+#X msg 169 57 0.5;
+#X obj 134 279 else/out~;
+#X obj 221 242 else/resonant~ 500 1000, f 14;
+#X obj 272 202 else/trig2bang~;
+#X obj 291 176 else/trig2bang~;
+#X obj 407 171 else/s2f~;
+#X obj 484 171 else/s2f~;
+#X obj 134 127 else/pimpmul~ 2;
+#X obj 63 160 else/resonant~ 250 1000, f 14;
+#X obj 135 88 else/pimp~ 1;
+#X obj 382 261 hsl 200 16 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 356 260 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 235 82 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 238 55 hsl 128 17 0.1 5 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 90 57 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 93 30 hsl 128 17 0.5 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 313 83 Multiplier;
+#X text 27 58 Frequency;
+#X text 423 53 This example better shows how the object keeps in sync
+when changing the frequency or the multiplier., f 30;
+#X connect 2 0 12 1;
+#X connect 3 0 12 1;
+#X connect 5 0 4 1;
+#X connect 6 0 14 0;
+#X connect 7 0 1 0;
+#X connect 8 0 13 0;
+#X connect 9 0 0 0;
+#X connect 10 0 8 0;
+#X connect 10 1 5 0;
+#X connect 10 1 6 0;
+#X connect 11 0 4 0;
+#X connect 12 0 9 0;
+#X connect 12 0 10 0;
+#X connect 12 1 7 0;
+#X connect 12 1 11 0;
+#X connect 15 0 10 1;
+#X connect 16 0 15 0;
+#X connect 17 0 12 0;
+#X connect 18 0 17 0;
+#X restore 468 268 pd example;
+#X text 168 449 1) float - initial multiplier (default 0);
+#X text 19 261 see also:;
+#X obj 19 280 else/pimp~;
+#X floatatom 143 291 5 0 0 0 - - - 0;
+#X text 240 347 - frequency multiplier;
+#X connect 24 0 25 0;
+#X connect 24 1 8 1;
+#X connect 25 0 28 0;
+#X connect 25 1 8 0;
+#X connect 26 0 25 1;
+#X connect 27 0 26 0;
+#X connect 28 0 29 0;
+#X connect 29 0 41 0;

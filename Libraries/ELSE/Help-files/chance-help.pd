@@ -1,0 +1,182 @@
+#N canvas 609 32 566 502 10;
+#X obj 4 3 cnv 15 301 42 empty empty chance 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 4 3 graph;
+#X obj 25 40 cnv 4 4 4 empty empty Weighted 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 103 39 cnv 4 4 4 empty empty random 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 5 471 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 6 327 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 431 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 124 337 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 124 258 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 6 248 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X msg 216 164 seed \$1;
+#X obj 216 145 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 180 148 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 180 220 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 204 258 bang;
+#X text 248 257 - a bang to be passed or not;
+#X text 204 336 bang;
+#X text 248 336 - random bangs;
+#X obj 238 220 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 6 384 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 156 273 seed <float>;
+#X text 248 272 - sets seed value;
+#X text 214 221 25%;
+#X obj 297 220 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 273 221 25%;
+#X text 154 221 50%;
+#X obj 180 190 else/chance 50 25 25;
+#X obj 124 359 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 198 359 float;
+#N canvas 566 79 737 546 default 0;
+#X obj 111 76 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 111 148 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 180 148 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 85 149 50%;
+#X obj 111 118 else/chance, f 12;
+#X text 156 149 50%;
+#X obj 143 445 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 143 507 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 230 507 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 143 477 else/chance 70, f 15;
+#X obj 91 222 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 91 294 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 160 294 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 91 264 else/chance, f 12;
+#X text 190 237 <= sets chance of left output;
+#X msg 160 237 30;
+#X obj 160 214 loadbang;
+#X text 65 295 30%;
+#X text 136 295 70%;
+#X text 208 253 chance of right output is 100-input, f 20;
+#X floatatom 230 448 5 0 0 0 - - - 0;
+#X obj 463 372 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 463 476 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 521 476 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 463 444 else/chance 30 40 30;
+#X obj 580 476 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 491 411 10 20 50;
+#X obj 470 121 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 470 223 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 557 223 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 470 193 else/chance 7 1;
+#X msg 495 159 50 50;
+#X text 54 18 If no argument is given \, the chances are 50/50! Moreover
+\, you get a float inlet to set the chance as a percentage value.,
+f 51;
+#X text 41 343 If just one float is given \, it is considered as a
+percentage value and the second bang outlet has "100 - argument" number
+of chances. You also have an inlet to update the argument for the percentage
+value that the output will be from the left outlet., f 47;
+#X text 414 24 When you give it two or more arguments \, then [chance]
+takes a list that updates all arguments. Values are not percentage
+anymore \, so below you have \, by default \, "7 out of 8" on the left
+outlet and "1 out of 8 on the right outlet., f 40;
+#X text 536 157 <= sets to 50/50;
+#X text 415 287 Below \, by default \, we have 30 \, 40 and 30 out
+of 100 chances (so it's like a percentage). But the message sets to
+10 \, 20 and 50 out of 80 chances., f 44;
+#X connect 0 0 4 0;
+#X connect 4 0 1 0;
+#X connect 4 1 2 0;
+#X connect 6 0 9 0;
+#X connect 9 0 7 0;
+#X connect 9 1 8 0;
+#X connect 10 0 13 0;
+#X connect 13 0 11 0;
+#X connect 13 1 12 0;
+#X connect 15 0 13 1;
+#X connect 16 0 15 0;
+#X connect 20 0 9 1;
+#X connect 21 0 24 0;
+#X connect 24 0 22 0;
+#X connect 24 1 23 0;
+#X connect 24 2 25 0;
+#X connect 26 0 24 0;
+#X connect 27 0 30 0;
+#X connect 30 0 28 0;
+#X connect 30 1 29 0;
+#X connect 31 0 30 0;
+#X restore 475 194 pd default;
+#X text 118 440 1) list -;
+#X text 183 440 list of probabilities (default 50 50). Check [pd default]
+for more info if only one float is given;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 3 graph;
+#X text 134 393 -seed <float>: seed value (default: internal);
+#X text 176 410 -index: sets to index mode;
+#X text 70 87 When [chance] receives a bang \, it outputs to an outlet
+according to its chance (probability weight). The total number is the
+sum of all arguments. It also has an index mode where it outputs the
+outlet index number instead., f 66;
+#N canvas 933 255 433 259 index 0;
+#X obj 129 106 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 129 169 else/display;
+#X obj 129 139 else/chance -index 50 25 25;
+#X text 61 28 With the -index flag \, the index number is output (from
+1). Below there's a 50% chance of "1" being output and 25% chance for
+each "2" and "3"., f 49;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X restore 486 216 pd index;
+#X text 248 359 - index number if in index mode;
+#X obj 124 298 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 198 298 float;
+#X text 248 298 - sets chance number if only one argument;
+#X connect 10 0 26 0;
+#X connect 11 0 10 0;
+#X connect 12 0 26 0;
+#X connect 26 0 13 0;
+#X connect 26 1 18 0;
+#X connect 26 2 23 0;

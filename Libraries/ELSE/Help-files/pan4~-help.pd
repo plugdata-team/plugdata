@@ -1,0 +1,257 @@
+#N struct 1007-point float x0 float y0 float xs float ys float fg float
+in float gridx float gridy;
+#N struct 1020-point float x0 float y0 float xs float ys float fg float
+in float gridx float gridy;
+#N canvas 590 23 561 567 10;
+#X obj 3 332 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 402 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 495 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 122 410 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 123 339 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 538 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 135 40 cnv 4 4 4 empty empty panning 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 21 40 cnv 4 4 4 empty empty Quadraphonic 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 207 34 366 264 (subpatch) 0;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
+#fcfcfc 0 1;
+#X obj 215 68 route dsp;
+#X obj 215 37 receive pd;
+#N canvas 977 77 379 291 set_color 0;
+#X obj 47 30 inlet;
+#X obj 147 200 s \$0-cnv;
+#X obj 47 83 select 0 1;
+#X obj 47 220 s \$0-tgl-r;
+#N canvas 0 22 712 637 off 0;
+#X obj 490 220 * -1;
+#X obj 424 300 +;
+#X obj 409 325 +;
+#X obj 347 219 * -65536;
+#X obj 424 220 * -256;
+#X obj 409 356 - 1;
+#X obj 390 189 unpack f f f;
+#X obj 225 295 +;
+#X obj 210 320 +;
+#X obj 148 214 * -65536;
+#X obj 225 215 * -256;
+#X obj 291 215 * -1;
+#X obj 210 351 - 1;
+#X obj 191 184 unpack f f f;
+#X obj 379 423 pack;
+#X msg 395 152 124 124 124;
+#X msg 203 154 220 220 220;
+#X obj 238 121 t b b;
+#X obj 238 81 inlet;
+#X obj 378 485 outlet;
+#X connect 0 0 1 1;
+#X connect 1 0 2 1;
+#X connect 2 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 5 0 14 1;
+#X connect 6 0 3 0;
+#X connect 6 1 4 0;
+#X connect 6 2 0 0;
+#X connect 7 0 8 1;
+#X connect 8 0 12 0;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 11 0 7 1;
+#X connect 12 0 14 0;
+#X connect 13 0 9 0;
+#X connect 13 1 10 0;
+#X connect 13 2 11 0;
+#X connect 14 0 19 0;
+#X connect 15 0 6 0;
+#X connect 16 0 13 0;
+#X connect 17 0 16 0;
+#X connect 17 1 15 0;
+#X connect 18 0 17 0;
+#X restore 47 113 pd off;
+#X msg 47 180 color \$1 \$2 0;
+#X msg 147 131 -4.86997e+06 -1.34937e+07;
+#X msg 147 171 color \$1 0 \$2;
+#X connect 0 0 2 0;
+#X connect 2 0 4 0;
+#X connect 2 1 6 0;
+#X connect 4 0 5 0;
+#X connect 4 0 7 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 1 0;
+#X restore 215 165 pd set_color;
+#X obj 135 122 r \$0-tgl-s;
+#N canvas 121 482 450 300 (subpatch) 0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
+0;
+#X coords 0 -1 1 1 42 27 1 100 100;
+#X restore 51 144 pd;
+#X obj 226 139 s \$0-tgl-r;
+#X msg 226 115 set \$1;
+#X msg 135 177 \; pd dsp \$1;
+#N canvas 256 32 278 194 load_check 0;
+#X obj 136 53 sig~ 1;
+#X obj 74 24 loadbang;
+#X obj 136 86 snapshot~;
+#X obj 91 52 del 5;
+#X obj 136 151 outlet;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 74 126 switch~;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 3 0 5 0;
+#X connect 5 0 6 0;
+#X restore 51 72 pd load_check;
+#X connect 1 0 3 0;
+#X connect 1 0 7 0;
+#X connect 2 0 1 0;
+#X connect 4 0 8 0;
+#X connect 4 0 3 0;
+#X connect 7 0 6 0;
+#X connect 9 0 0 0;
+#X coords 0 -1 1 1 44 72 2 50 100;
+#X restore 505 71 pd;
+#X text 189 410 signal;
+#X text 188 339 signal;
+#X obj 123 360 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 152 361 float/signal;
+#X obj 3 4 cnv 15 301 42 empty empty pan4~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X text 240 339 - signal input;
+#X obj 122 431 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 189 431 signal;
+#X obj 123 381 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 152 382 float/signal;
+#X text 240 361 - X pan value: from -1 (Left) to 1 (Right);
+#X text 240 382 - Y pan value: from -1 (Back) to 1 (Front);
+#X text 149 502 1) float - initial X pan value (default 0);
+#X obj 122 452 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 189 452 signal;
+#X obj 122 473 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 189 473 signal;
+#X text 242 452 - Left-Back channel;
+#X text 242 473 - Right-Back channel;
+#X text 149 517 2) float - initial Y pan value (default 0);
+#X floatatom 250 207 5 0 0 0 - - - 0;
+#X floatatom 309 206 5 0 0 0 - - - 0;
+#X obj 192 254 env~;
+#X obj 231 254 env~;
+#X obj 270 254 env~;
+#X obj 309 254 env~;
+#X obj 309 279 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 192 154 noise~;
+#X obj 270 279 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 231 278 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 192 278 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 230 295 left;
+#X text 230 309 front;
+#X text 269 309 front;
+#X text 269 295 right;
+#X text 190 295 left;
+#X text 309 295 right;
+#X text 191 309 back;
+#X text 310 309 back;
+#X text 73 88 [pan4~] is a 4-channel equal power (sin/cos) panner.
+;
+#X text 235 205 X;
+#X text 295 205 Y;
+#X obj 192 227 else/pan4~, f 20;
+#X text 242 410 - Left-Back channel;
+#X text 242 431 - Left-Front channel;
+#X obj 250 187 unpack f f;
+#N canvas 716 75 433 576 example 0;
+#X floatatom 189 255 5 0 0 0 - - - 0;
+#X floatatom 245 254 5 0 0 0 - - - 0;
+#X obj 97 198 noise~;
+#X text 174 253 X;
+#X text 231 253 Y;
+#X obj 134 322 else/pan4~, f 19;
+#X obj 141 352 else/meter4~;
+#X obj 92 84 else/setdsp~;
+#X obj 135 503 else/out4~;
+#X text 108 21 Use it with [meter4~] and [out4~];
+#X obj 189 57 else/initmess set 0 0;
+#X obj 189 279 else/f2s~ 10;
+#X obj 189 235 unpack;
+#X obj 245 299 else/f2s~ 10;
+#X text 178 206 1;
+#X text 179 82 2;
+#X text 317 80 3;
+#X text 316 208 4;
+#X obj 189 85 else/slider2d 127 127 -1 1 -1 1 0 210 210 210 0 0 0 1
+0 0 119 55 empty empty;
+#X connect 0 0 11 0;
+#X connect 1 0 13 0;
+#X connect 2 0 5 0;
+#X connect 5 0 6 0;
+#X connect 5 1 6 1;
+#X connect 5 2 6 2;
+#X connect 5 3 6 3;
+#X connect 6 0 8 0;
+#X connect 6 1 8 1;
+#X connect 6 2 8 2;
+#X connect 6 3 8 3;
+#X connect 10 0 18 0;
+#X connect 11 0 5 1;
+#X connect 12 0 0 0;
+#X connect 12 1 1 0;
+#X connect 13 0 5 2;
+#X connect 18 0 12 0;
+#X restore 467 289 pd example;
+#X obj 250 115 else/slider2d 64 64 -1 1 -1 1 1 210 210 210 0 0 0 1
+0 0 64 0 empty empty;
+#X connect 38 0 60 1;
+#X connect 39 0 60 2;
+#X connect 40 0 48 0;
+#X connect 41 0 47 0;
+#X connect 42 0 46 0;
+#X connect 43 0 44 0;
+#X connect 45 0 60 0;
+#X connect 60 0 40 0;
+#X connect 60 1 41 0;
+#X connect 60 2 42 0;
+#X connect 60 3 43 0;
+#X connect 63 0 38 0;
+#X connect 63 1 39 0;
+#X connect 65 0 63 0;

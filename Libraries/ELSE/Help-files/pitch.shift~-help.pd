@@ -1,0 +1,65 @@
+#N canvas 630 23 563 552 12;
+#X obj 200 281 else/out~;
+#X obj 259 207 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 41 cnv 4 4 4 empty empty Pitch 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 72 41 cnv 4 4 4 empty empty shifter 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 4 graph;
+#X obj 3 4 cnv 15 301 42 empty empty pitch.shift~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X text 320 205 transposition;
+#X obj 7 354 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 432 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 470 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 89 441 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 362 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 116 482 1) float;
+#X text 180 481 -;
+#X text 169 361 signal - input to pitch shifter;
+#X obj 90 385 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 176 384 float - transposition in cents;
+#X obj 90 406 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 176 405 float - grain size in ms;
+#X text 170 440 signal - output of pitch shifter;
+#X text 193 482 transposition in cents (default 0), f 44;
+#X text 180 501 -;
+#X text 116 502 2) float;
+#X text 193 502 grain size in ms (default 75 \, minimum 5), f 44;
+#X obj 5 526 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 201 168 else/play.file~ violin.wav 1 1;
+#X obj 201 239 else/pitch.shift~;
+#X text 76 97 [pitch.shift~] is a pitch shifter abstraction based on
+granulation. You can set a transposition factor in cents and a grain
+size in ms., f 56;
+#X connect 1 0 34 1;
+#X connect 33 0 34 0;
+#X connect 34 0 0 0;

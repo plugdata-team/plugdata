@@ -1,0 +1,66 @@
+#N canvas 480 23 562 479 10;
+#X obj 4 301 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 362 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 421 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 128 373 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 451 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 306 5 pd;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 42 cnv 4 4 4 empty empty Threshold 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 108 42 cnv 4 4 4 empty empty detection 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 128 340 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 128 314 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 155 431 1) float - initial threshold (default 0), f 49;
+#X obj 4 5 cnv 15 301 42 empty empty above 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 5 graph;
+#X obj 214 268 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 289 268 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 128 397 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 49 93 [above] sends a bang on its left output when it detects
+a float raising above and over a threshold. Conversely \, it outputs
+a bang in its right outlet when the signal falls back to the threshold
+or below it. You can set the threshold value with the argument or the
+2nd inlet., f 64;
+#X obj 217 178 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 214 236 else/above 64;
+#X obj 214 209 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 171 341 float - set threshold, f 37;
+#X text 176 373 bang - when raises above a threshold;
+#X text 176 397 bang - when falls back or below a threshold;
+#X text 171 313 float - input float, f 37;
+#X connect 24 0 26 0;
+#X connect 25 0 20 0;
+#X connect 25 1 21 0;
+#X connect 26 0 25 0;

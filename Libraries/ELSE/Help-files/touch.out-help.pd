@@ -1,0 +1,98 @@
+#N canvas 514 43 561 447 10;
+#X obj 22 40 cnv 4 4 4 empty empty Midi 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 65 40 cnv 4 4 4 empty empty aftertouch 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 2 3 cnv 15 301 42 empty empty touch.out 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 1 243 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 309 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 375 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 153 254 cnv 17 3 17 empty empty L 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 1 412 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 208 385 -;
+#X text 149 385 1) float;
+#X text 197 256 float;
+#X obj 150 40 cnv 4 4 4 empty empty output 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 153 319 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 237 319 -;
+#X text 197 319 float;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 1 346 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 252 319 raw MIDI stream, f 31;
+#X text 222 385 sets channel number (default 1);
+#X text 24 181 see also:;
+#X obj 217 213 midiout;
+#X obj 217 147 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 310 146 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 307 127 ch;
+#X text 237 281 -;
+#X text 197 281 float;
+#X obj 153 278 cnv 17 3 17 empty empty R 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 237 256 - Leftmost inlet(s): MIDI Aftertouch;
+#X text 252 281 Rightmost intlet: MIDI channel;
+#X text 188 355 sets the object to output polyphonic aftertouch;
+#X text 134 356 -poly: -;
+#N canvas 829 313 465 288 poly 0;
+#X text 100 223 Polyphonic aftertouch is very rare in today's controllers
+\, but it used to be a real thing., f 45;
+#X text 25 14 With the -poly flag \, the polyphonic aftertouch message
+is formatted \, where you have separate aftertouch values for each pitch
+\, so there's an extra inlet., f 67;
+#X obj 269 87 nbx 3 14 1 16 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 210 87 nbx 3 14 0 127 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 152 87 nbx 3 14 0 127 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 263 174 else/display;
+#X obj 207 174 else/display;
+#X obj 152 174 else/display;
+#X obj 152 114 else/touch.out -poly;
+#X obj 152 146 else/touch.in -poly;
+#X connect 2 0 8 2;
+#X connect 3 0 8 1;
+#X connect 4 0 8 0;
+#X connect 8 0 9 0;
+#X connect 9 0 7 0;
+#X connect 9 1 6 0;
+#X connect 9 2 5 0;
+#X restore 487 203 pd poly;
+#X obj 31 203 else/touch.in;
+#X obj 217 180 else/touch.out 4;
+#X text 69 85 [touch.out] formats and sends raw MIDI aftertouch messages.
+An argument sets channel number (the default is 1)., f 66;
+#X text 216 127 pressure;
+#X connect 29 0 41 0;
+#X connect 30 0 41 1;
+#X connect 41 0 28 0;

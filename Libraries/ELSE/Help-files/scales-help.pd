@@ -1,0 +1,113 @@
+#N canvas 536 23 560 551 10;
+#X obj 173 281 display;
+#X obj 173 216 else/scales 5;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Generate 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 3 cnv 15 301 42 empty empty scales 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 94 40 cnv 4 4 4 empty empty scales 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 4 314 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 406 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 90 414 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 322 cnv 17 3 57 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 525 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 210 249 display;
+#X obj 90 436 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 383 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X msg 142 118 C;
+#X text 207 384 float -;
+#X text 259 384 sets octave number;
+#X floatatom 248 191 5 -1 8 0 - - - 0;
+#X text 284 190 octave (from -1 to 8);
+#X text 56 118 same as 'C 1';
+#X msg 195 165 4 C;
+#X text 224 165 start at 4th degree of C;
+#X obj 203 191 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 173 118 C 1;
+#X msg 183 139 C 2;
+#X text 256 320 note name and its degree (optional \, default 1);
+#X text 117 320 anything <symbol \, f> -;
+#X text 117 335 list <float \, symbol> -;
+#X text 256 335 degree start point and tonic;
+#X text 213 364 bang -;
+#X text 256 364 generate scale;
+#X text 209 414 list;
+#X text 243 414 - scale as note names;
+#N canvas 294 118 437 342 scales 0;
+#X text 202 94 major (default);
+#X text 306 179 harmonic minor;
+#X msg 78 94 scale 2 2 1 2 2 2 1;
+#X msg 97 123 scale 2 1 2 2 2 2 1;
+#X obj 78 281 outlet;
+#X text 62 27 Scales are set as a list of semitones that define each
+step of the scale., f 41;
+#X text 65 74 (tone tone semitone tone tone semitone);
+#X obj 111 207 else/cents2scale;
+#X text 222 122 melodic minor;
+#X obj 111 230 else/insert scale;
+#X text 115 157 for input in cents \, use [cents2scale];
+#X msg 111 179 0 200 300 500 700 800 1100 1200;
+#X connect 2 0 4 0;
+#X connect 3 0 4 0;
+#X connect 7 0 9 0;
+#X connect 9 0 4 0;
+#X connect 11 0 7 0;
+#X restore 84 169 pd scales;
+#X obj 4 480 cnv 3 550 3 empty empty args 8 12 0 13 #dcdcdc #000000
+0;
+#X text 243 436 - scale as MIDI pitches;
+#X text 165 350 scale <list> -;
+#X obj 271 215 display;
+#X text 49 85 [scales] generates scales (as note names \, MIDI pitches
+and cents)., f 66;
+#X obj 90 458 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 209 436 list;
+#X text 209 458 list;
+#X text 243 458 - scale as cents;
+#X text 136 487 1) float - sets octave number to start from (default
+4);
+#X text 135 505 2) list> - sets scale (default: 2 2 1 2 2 2 1 "major")
+;
+#X text 256 350 sets scale;
+#X text 201 117 start at C as the 1st degree of the scale;
+#X text 211 138 start at C as the 2nd degree of the scale;
+#X connect 1 0 0 0;
+#X connect 1 1 19 0;
+#X connect 1 2 45 0;
+#X connect 22 0 1 0;
+#X connect 25 0 1 1;
+#X connect 28 0 1 0;
+#X connect 30 0 1 0;
+#X connect 31 0 1 0;
+#X connect 32 0 1 0;
+#X connect 41 0 1 0;

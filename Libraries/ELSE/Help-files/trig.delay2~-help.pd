@@ -1,0 +1,69 @@
+#N canvas 466 36 561 455 10;
+#X obj 5 306 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 361 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 395 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 109 370 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 5 428 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 351 184 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 408 184 ms;
+#X obj 109 314 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 109 336 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 168 371 signal;
+#X obj 24 40 cnv 4 4 4 empty empty Trigger 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 87 40 cnv 4 4 4 empty empty delay 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 4 3 cnv 15 301 42 empty empty trig.delay2~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 346 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 459 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 168 314 signal;
+#X text 132 336 float/signal;
+#X text 214 314 - trigger signal (negative to positive transition)
+;
+#X obj 185 156 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 351 165 delay time;
+#X text 214 336 - delay time in ms;
+#X text 214 371 - delayed trigger;
+#X text 160 404 1) float - delay time in ms (default 0);
+#X text 455 254 see also:;
+#X obj 185 180 else/impseq~;
+#X obj 228 211 else/trig.delay2~ 500;
+#X obj 438 276 else/trig.delay~;
+#X obj 185 242 else/out~;
+#X text 68 88 After receiving a trigger (non-positive to positive transition)
+\, [trig.delay2~] sends an impulse delayed by a given time in ms. After
+receiving a trigger to delay \, following triggers received before
+its delayed output are ignored., f 64;
+#X connect 5 0 32 1;
+#X connect 25 0 31 0;
+#X connect 31 0 32 0;
+#X connect 31 0 34 0;
+#X connect 32 0 34 1;

@@ -1,0 +1,143 @@
+#N canvas 528 56 564 526 10;
+#X obj 4 265 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 399 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 451 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 107 272 cnv 17 3 99 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 106 408 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 107 377 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 106 429 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 500 cnv 1 550 1 empty empty empty 0 0 0 4 #fcfcfc #fcfcfc
+0;
+#X obj 4 499 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 171 272 bang;
+#X text 165 378 float;
+#X text 172 429 bang;
+#X text 165 409 float;
+#X obj 212 151 bng 20 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
+#000000;
+#X floatatom 299 181 5 0 0 0 - - - 0;
+#X text 164 228 random numbers, f 7;
+#X obj 299 234 bng 18 250 50 0 empty empty empty 0 -6 0 8 #d0d0d0 #404040
+#000000;
+#X msg 250 156 restart;
+#X text 153 344 restart;
+#X obj 306 9 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 8 pd;
+#X obj 345 16 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 16 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 16 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 17 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 31 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 31 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 332 180 'n';
+#X obj 114 45 cnv 4 4 4 empty empty random 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 183 45 cnv 4 4 4 empty empty sequences 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 212 231 else/display 3;
+#X text 319 236 finished;
+#X text 206 409 - random output, f 38;
+#X text 132 459 1) float - sets size (default 1), f 65;
+#X text 206 272 - generates a randm output, f 53;
+#X text 141 358 n <float>;
+#X text 206 358 - clears the memory and sets a new 'n' size, f 53
+;
+#X text 206 378 - clears the memory and sets a new 'n' size;
+#X text 132 477 2) list;
+#X text 186 477 - sets number of occurrences for each element (default
+1);
+#X text 135 300 eq <float>;
+#X text 206 300 - sets an equal number of occurrences for all elements
+;
+#X text 129 314 inc <float>;
+#X text 206 314 - increase by 1 the occurrence of an element, f 53
+;
+#X text 171 286 list;
+#X text 206 286 - sets number of occurrences for each element, f 53
+;
+#X text 135 330 set <f \, f>;
+#X text 206 330 - sets element and occurrence, f 53;
+#X obj 212 201 else/rand.seq 5;
+#X text 64 89 [rand.seq] generates a sequence of random integer numbers
+in a range defined by the 'n' size (from 0 to n-1). You can set how
+many times an integer is output \, the default is once \, where it
+generates an unrepeated random sequence.;
+#X text 206 344 - clears memory and restarts a new series, f 53;
+#X text 206 429 - right after the sequence finishes;
+#N canvas 705 251 633 397 example 0;
+#X obj 398 257 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X obj 285 243 until;
+#X obj 285 197 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X floatatom 378 224 5 0 12 0 - - - 0;
+#X obj 398 338 else/display;
+#X obj 83 134 tabread notes;
+#X floatatom 83 110 5 0 0 0 - - - 0;
+#X obj 265 119 array set notes;
+#X obj 143 174 table notes 5;
+#X obj 83 190 mtof;
+#X obj 83 219 makenote 1 5;
+#X obj 230 120 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 83 251 else/pluck~ 0 3000 10000;
+#X msg 265 89 30 34 39 41 46;
+#X obj 83 298 else/out~;
+#X obj 83 57 else/tempo 60 50 -on;
+#X obj 83 157 else/display;
+#X obj 285 267 else/rand.seq 12;
+#X obj 83 87 else/rand.seq 5 4 1 3 2 1;
+#X obj 265 66 loadbang;
+#X text 93 26 play random notes with different weights.;
+#X text 305 196 generate a random series;
+#X obj 398 311 else/group;
+#X connect 0 0 1 1;
+#X connect 0 0 22 0;
+#X connect 1 0 17 0;
+#X connect 2 0 1 0;
+#X connect 3 0 17 1;
+#X connect 5 0 16 0;
+#X connect 6 0 5 0;
+#X connect 9 0 10 0;
+#X connect 10 0 12 0;
+#X connect 10 1 12 1;
+#X connect 12 0 14 0;
+#X connect 13 0 7 0;
+#X connect 15 0 18 0;
+#X connect 16 0 9 0;
+#X connect 17 0 22 0;
+#X connect 17 1 0 0;
+#X connect 18 0 6 0;
+#X connect 18 1 11 0;
+#X connect 19 0 13 0;
+#X connect 22 0 4 0;
+#X restore 465 225 pd example;
+#X obj 34 45 cnv 4 4 4 empty empty Weighted 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 8 cnv 15 301 42 empty empty rand.seq 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 8 graph;
+#X connect 13 0 48 0;
+#X connect 14 0 48 1;
+#X connect 17 0 48 0;
+#X connect 48 0 30 0;
+#X connect 48 1 16 0;

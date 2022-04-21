@@ -1,0 +1,50 @@
+#N canvas 618 29 566 401 12;
+#X obj 306 7 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 6 pd;
+#X obj 345 14 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+0;
+#X obj 58 43 cnv 4 4 4 empty empty canvas 0 28 2 18 -233017 -1 0;
+#X obj 21 43 cnv 4 4 4 empty empty Set 0 28 2 18 -233017 -1 0;
+#X obj 458 14 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+0;
+#X obj 478 14 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+0;
+#X obj 515 14 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+0;
+#X obj 464 29 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+0;
+#X obj 502 29 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+0;
+#X obj 3 7 cnv 15 301 42 empty empty canvas.setname 20 20 2 37 -233017
+-1 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 6 graph;
+#X obj 114 43 cnv 4 4 4 empty empty name 0 28 2 18 -233017 -1 0;
+#X obj 8 262 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 292 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 321 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 7 375 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 236 350 - depth level (default 0);
+#X text 164 351 2) float;
+#X text 164 330 1) symbol;
+#X obj 104 218 s \$0-cnv;
+#X text 199 269 none;
+#X text 200 299 none;
+#X text 45 92 [canvas.setname] sets a symbol name to a canvas so you
+can send it messages. It's the same as [namecanvas] but it also allows
+you to set the name of a parent patch with the second optional depth
+argument - (1) is parent patch (2) is parent's parent patch and so
+on..., f 64;
+#X obj 267 178 else/canvas.setname \$0-cnv;
+#X text 37 192 click =>;
+#X msg 104 192 obj 275 225 f;
+#X text 236 330 - canvas name (default none);
+#X connect 26 0 20 0;

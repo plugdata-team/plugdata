@@ -1,0 +1,73 @@
+#N canvas 568 32 562 568 10;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Noise 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 73 40 cnv 4 4 4 empty empty gate 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 3 3 cnv 15 301 42 empty empty noisegate~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 4 376 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 436 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 500 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 543 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 139 445 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 139 384 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 181 384 signal;
+#X text 181 445 signal;
+#X obj 139 409 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 471 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 145 507 1) float - threshold in dBFS (default -100);
+#X text 145 525 2) float - attack/release time in ms (default 10);
+#X text 115 479 -size <float>;
+#X text 187 409 float;
+#X obj 285 249 else/out~;
+#X obj 420 178 nbx 5 14 -100 0 1 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 285 126 else/player~ violin.wav 1 1, f 14;
+#X obj 163 168 else/meter~;
+#X text 61 86 [noisegate~] is a noise gate abstraction. It takes a
+threshold in dBFS in which it only audio through that has a RMS value
+over that threshold., f 62;
+#X text 415 161 threshold;
+#X text 385 176 dBFS;
+#X text 230 384 - signal to be gated;
+#X text 229 408 - threshold in dBFS;
+#X text 230 445 - gated signal;
+#X text 201 479 - sets analysis window size in samples (default 512)
+;
+#X obj 163 315 else/out~;
+#X text 102 332 original;
+#X obj 285 204 else/noisegate~ -20 200;
+#X text 385 264 gated;
+#X connect 27 0 39 1;
+#X connect 28 0 29 0;
+#X connect 28 0 39 0;
+#X connect 29 0 37 0;
+#X connect 39 0 26 0;

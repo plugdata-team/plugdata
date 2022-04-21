@@ -1,0 +1,83 @@
+#N canvas 528 86 567 407 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+0;
+#X obj 94 41 cnv 4 4 4 empty empty to 0 28 2 18 -233017 -1 0;
+#X obj 21 41 cnv 4 4 4 empty empty Respond 0 28 2 18 -233017 -1 0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+0;
+#X obj 3 4 cnv 15 301 42 empty empty properties 20 20 2 37 -233017
+-1 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 196 41 cnv 4 4 4 empty empty on 0 28 2 18 -233017 -1 0;
+#X obj 226 41 cnv 4 4 4 empty empty parent 0 28 2 18 -233017 -1 0;
+#X obj 193 229 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 8 259 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 292 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 326 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 7 382 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 111 302 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 149 304 bang;
+#X text 144 269 (none);
+#N canvas 280 23 338 256 a_subpatch 0;
+#X obj 128 187 outlet;
+#X obj 128 139 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 128 96 else/properties 1;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X restore 193 200 pd a_subpatch;
+#X obj 115 41 cnv 4 4 4 empty empty properties 0 28 2 18 -233017 -1
+0;
+#X text 118 340 1) float -;
+#N canvas 485 293 483 336 modes 0;
+#X text 68 129 Note \, however \, that the object can be inside any
+layers of subpatches inside an abstraction \, it doesn't matter.;
+#X text 69 35 A "0" argument (the default) sets the mode to "abstraction"
+mode \, whil a non-zero argument sets to "subpatch" mode.;
+#X text 67 75 The default mode is "abstraction" mode. In this mode
+\, the parent patch of an abstraction that contains [properties] needs
+to be asked for properties \, in order for it to respond to., f 58
+;
+#X text 69 171 The "subatch" mode might have a misleading name \, as
+it'll actually respond to a click on the "owner" parent \, that is
+the patch window that contains the subwindow with a [properties] object.
+;
+#X text 71 234 So the subwindow can actually be either an abstraction
+(if the [properties] object is in the main window of the abstraction)
+or a subpatch. But you should really only use this if you want a subpatch
+to respond to a properties query \, as this is the only mode that'll
+make it happen.;
+#X restore 478 224 pd modes;
+#X text 189 340 sets mode \, 0 (default) is "abstraction" mode \, non-zero
+is "subpatch" mode., f 45;
+#X text 53 96 [properties] sends a bang when you put it in an abstraction
+or a subpatch and ask for properties on the parent patch (by selecting
+the "properties" option after right clicking). This is useful for making
+properties for graphical suboatches or abstractions., f 73;
+#X text 53 149 See below how it sends a bang when you click on the
+subpatch., f 73;
+#X text 281 199 <= ask for my properties;
+#X text 186 303 - bang when asked for properties in the parent patch
+;
+#X connect 22 0 14 0;

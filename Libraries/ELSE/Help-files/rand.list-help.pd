@@ -1,0 +1,69 @@
+#N canvas 490 50 563 365 10;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 42 cnv 4 4 4 empty empty Choose 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 306 5 graph;
+#X obj 86 42 cnv 4 4 4 empty empty randomly 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 163 42 cnv 4 4 4 empty empty from 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 4 5 cnv 15 301 42 empty empty rand.list 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 5 graph;
+#X obj 6 337 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 9 222 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 9 281 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 9 310 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 130 228 cnv 17 3 30 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 182 133 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 129 288 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 206 42 cnv 4 4 4 empty empty a 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 226 42 cnv 4 4 4 empty empty list 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 182 189 else/display 4;
+#X text 197 229 bang -;
+#X text 240 229 choose an element from a given list randomly, f 46
+;
+#X text 75 88 [rand.list] takes a list of floats and randomly chooses
+from it., f 48;
+#X text 138 133 choose;
+#X text 161 244 set <list> -;
+#X text 240 244 sets a new list, f 46;
+#X obj 129 261 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 197 260 list -;
+#X text 240 260 sets a new list, f 46;
+#X text 191 289 float -;
+#X text 240 289 random element from list, f 46;
+#X text 179 317 1) list - initial list (default 0);
+#X msg 347 135 1 5 10 30 70 90;
+#X obj 182 163 else/rand.list 13 60 500 700;
+#X msg 214 135 set 11 23 35 47;
+#X connect 18 0 36 0;
+#X connect 35 0 36 1;
+#X connect 36 0 22 0;
+#X connect 37 0 36 0;

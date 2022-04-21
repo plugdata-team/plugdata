@@ -1,0 +1,87 @@
+#N canvas 511 81 563 438 10;
+#X obj 7 409 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 7 235 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 269 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 304 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 335 cnv 3 550 3 empty empty more_info 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 157 244 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 157 279 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 235 131 else/brown~;
+#X text 131 343 Brown noise distinguishes from white noise (which the
+native Pd object [noise~] generates). White noise has constant spectral
+power per hertz of bandwidth \, while brown noise drops 6dB per octave.
+Subjectively \, brown noise sounds less hissy than white noise.;
+#X obj 235 167 else/out~;
+#X obj 23 40 cnv 4 4 4 empty empty Brown 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 127 40 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 81 40 cnv 4 4 4 empty empty noise 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty brown~ 20 20 2 37 #e0e0e0 #000000
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 198 244 float - sets seed;
+#X text 192 279 signal - brown noise;
+#N canvas 559 236 694 278 seed 0;
+#X obj 368 144 else/downsample~ 1;
+#X obj 368 110 else/brown~;
+#X obj 368 188 else/display~;
+#X obj 518 147 else/downsample~ 1;
+#X obj 518 110 else/brown~;
+#X obj 518 188 else/display~;
+#X msg 518 52 507;
+#X text 549 51 <= set seed;
+#X obj 48 144 else/downsample~ 1;
+#X obj 48 187 else/display~;
+#X obj 198 143 else/downsample~ 1;
+#X obj 198 187 else/display~;
+#X text 61 58 Sync [brown~] objects with a seed value;
+#X obj 48 106 else/brown~ 1039;
+#X obj 198 106 else/brown~ 1039;
+#X obj 368 54 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 3 0 5 0;
+#X connect 4 0 3 0;
+#X connect 6 0 4 0;
+#X connect 6 0 1 0;
+#X connect 8 0 9 0;
+#X connect 10 0 11 0;
+#X connect 13 0 8 0;
+#X connect 14 0 10 0;
+#X connect 15 0 4 0;
+#X connect 15 0 1 0;
+#X restore 484 197 pd seed;
+#X text 180 312 1) float - sets seed;
+#X text 75 91 [brown~] is based on SuperCollider's "BrownNoise" UGEN
+and generates brown noise (aka brownian noise or red noise) and outputs
+it.;
+#X connect 7 0 9 0;

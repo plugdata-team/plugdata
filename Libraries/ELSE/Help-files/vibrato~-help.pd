@@ -1,0 +1,66 @@
+#N canvas 507 23 566 527 10;
+#X obj 190 264 else/out~;
+#X obj 248 198 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 306 7 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 14 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 43 cnv 4 4 4 empty empty Vibrato 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 14 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 14 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 14 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 29 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 29 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 6 graph;
+#X obj 3 6 cnv 15 301 42 empty empty vibrato~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 6 graph;
+#X obj 7 334 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 411 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 446 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 149 420 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 150 342 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 136 455 1) float;
+#X text 200 454 -;
+#X obj 150 364 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 150 385 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 200 474 -;
+#X text 136 475 2) float;
+#X obj 5 499 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 307 198 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 254 178 rate;
+#X text 314 178 depth;
+#X obj 190 224 else/vibrato~ 3 30, f 20;
+#X text 69 93 [vibrato~] is a pitch shifter abstraction with an LFO
+controlling the pitch deviation in cents., f 54;
+#X text 189 341 signal - input to vibrato;
+#X text 196 363 float - rate in hertz;
+#X text 196 384 float - transposition depth in cents;
+#X text 190 419 signal - output of vibrato;
+#X text 213 455 rate in hertz (default 0), f 40;
+#X text 213 475 transposition depth in cents (default 0);
+#X obj 190 147 else/play.file~ violin.wav 1 1;
+#X connect 1 0 28 1;
+#X connect 25 0 28 2;
+#X connect 28 0 0 0;
+#X connect 36 0 28 0;

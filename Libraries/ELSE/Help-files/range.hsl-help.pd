@@ -1,0 +1,91 @@
+#N canvas 456 23 562 572 10;
+#X obj 84 39 cnv 4 4 4 empty empty horizontal 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 163 39 cnv 4 4 4 empty empty slider 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 305 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 2 pd;
+#X obj 344 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 4 296 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 463 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 497 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 546 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 84 303 cnv 17 3 153 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 84 472 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 195 473 list;
+#X text 193 316 list;
+#X text 109 330 set <float \, float>;
+#X text 193 302 bang;
+#X text 227 302 - outputs last values, f 52;
+#X obj 32 39 cnv 4 4 4 empty empty Range 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 228 472 - min/max range values;
+#X obj 2 2 cnv 15 301 42 empty empty range.hsl 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 2 graph;
+#X text 139 344 width <float>;
+#X text 133 358 height <float>;
+#X text 227 316 - sets range values and outputs it, f 52;
+#X text 227 330 - sets range values, f 52;
+#X text 97 372 range <float \, float>;
+#X text 145 386 mode <float>;
+#X text 227 387 - sets mode (0: shift/1: select/2: expand/3: expand)
+;
+#X floatatom 254 267 7 0 0 0 - - - 0;
+#X floatatom 197 267 7 0 0 0 - - - 0;
+#X obj 197 241 unpack f f;
+#X obj 197 125 vradio 15 1 0 4 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X msg 197 193 mode \$1;
+#X text 216 124 shift (default), f 31;
+#X text 216 140 select (hotkey shift), f 31;
+#X text 216 155 extend (hotkey command/control);
+#X text 216 170 expand (hotkey alt/option), f 31;
+#X text 115 400 bgcolor <f \, f \, f>;
+#X text 115 414 fgcolor <f \, f \, f>;
+#X text 139 428 send <symbol>;
+#X text 121 443 receive <symbol>;
+#X text 71 86 [range.hsl] is a range horizontal slider GUI abstraction
+\, (based on an object by .mmb). It has 4 modes of operation \, see
+below.;
+#X text 227 415 - sets rgb foreground color (default none), f 52;
+#X text 227 401 - sets rgb background color (default 255 255 255),
+f 52;
+#X text 227 373 - sets min/max range values (default 0 127), f 52
+;
+#X text 227 344 - sets width size (default 127), f 52;
+#X text 227 358 - sets height size (default 127), f 52;
+#X text 100 504 -width <float> | -height <float> | -range <f \, f>
+| -mode <float> | -bgcolor <f \, f \, f> | -fgcolor <f \, f \, f> |
+-send <symbol> | -receive <symbol>, f 66;
+#X text 227 429 - sets send symbol (default empty), f 52;
+#X text 227 444 - sets receive symbol (default empty), f 52;
+#X obj 197 216 else/range.hsl 135 17 0 127 0 255 255 255 96 96 96 x
+x;
+#X connect 34 0 33 0;
+#X connect 34 1 32 0;
+#X connect 35 0 36 0;
+#X connect 36 0 54 0;
+#X connect 54 0 34 0;

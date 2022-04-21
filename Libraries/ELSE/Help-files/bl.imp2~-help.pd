@@ -1,0 +1,78 @@
+#N canvas 517 56 564 548 10;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 211 40 cnv 4 4 4 empty empty impulse 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 283 40 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 520 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 229 187 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 289 186 <= hz;
+#X obj 3 3 cnv 15 301 42 empty empty bl.imp2~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 22 40 cnv 4 4 4 empty empty Bandlimited 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 60 140 Because this is an abstraction and Pd is still limited
+in the way it handles it \, this object does not have any arguments.
+, f 67;
+#X text 452 243 see also:;
+#X obj 229 249 else/out~;
+#X obj 452 265 else/imp2~;
+#X obj 3 411 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 447 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 122 420 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 200 420 signal -;
+#X text 261 420 two sided impulse signal;
+#X obj 3 315 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 123 323 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 345 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 365 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 122 386 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 164 387 float/signal - phase offset (modulation input);
+#X text 165 345 float/signal - pulse width (from 0 to 1);
+#X text 164 324 float/signal - frequency in hz;
+#X text 164 367 float/signal - phase sync (ressets internal phase)
+;
+#X obj 125 40 cnv 4 4 4 empty empty two-sided 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 60 87 [bl.imp2~] is a two sided impulse oscillator like [else/imp2~]
+\, but it is bandlimited with the upsampling/filtering technique. This
+makes the object quite inefficient CPU wise \, but is an easy way to
+implement a bandlimited oscillator., f 67;
+#X text 182 457 1) float;
+#X text 182 476 2) float;
+#X text 182 494 3) float;
+#X text 241 494 - initial phase offset (default 0);
+#X text 241 476 - initial width (default 0.5);
+#X text 241 457 - frequency in hertz (default 0);
+#X obj 229 215 else/bl.imp2~ 400 0.2;
+#X connect 11 0 42 0;
+#X connect 42 0 18 0;

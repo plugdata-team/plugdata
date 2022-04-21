@@ -1,0 +1,75 @@
+#N canvas 487 35 565 493 10;
+#X obj 4 466 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 5 303 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 377 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 432 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 135 312 cnv 17 3 33 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 206 312 signal;
+#X obj 134 351 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 134 386 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 206 387 signal;
+#X text 170 353 float/signal;
+#X obj 134 408 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 206 409 signal;
+#X text 211 331 clear;
+#X text 95 112 It has two outlets for lowpass (left) and highpass (right)
+filters that you can use separately or in combination to form a crossover
+filter.;
+#X obj 195 173 noise~;
+#X obj 309 158 hsl 128 15 200 2000 0 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 306 179 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 258 331 - clears filter's memory;
+#X text 258 312 - signal to be filtered;
+#X text 258 353 - cutoff frequency;
+#X text 258 387 - lowpass output;
+#X text 258 409 - highpass output;
+#X text 134 442 1) float;
+#X text 138 222 lowpass =>;
+#X text 305 219 <= highpass;
+#X text 348 158 cutoff;
+#X text 198 441 - cutoff frequency (default 1000);
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 25 41 cnv 4 4 4 empty empty Crossover 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 4 cnv 15 301 42 empty empty crossover~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X obj 110 41 cnv 4 4 4 empty empty filter 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 94 92 [crossover~] is a of 3rd order butterworth crossover
+filter.;
+#X obj 195 201 else/crossover~ 500;
+#X obj 208 236 else/out~;
+#X connect 14 0 40 0;
+#X connect 15 0 16 0;
+#X connect 16 0 40 1;
+#X connect 40 0 41 0;
+#X connect 40 1 41 1;
