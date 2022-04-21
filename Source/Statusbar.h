@@ -64,7 +64,7 @@ struct StatusbarSource
 {
     StatusbarSource();
 
-    void processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut);
+    void processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
 
     void prepareToPlay(int numChannels);
 
