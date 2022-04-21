@@ -165,6 +165,7 @@ void GUIComponent::paint(Graphics& g)
         // make sure text is readable
         getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
         getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
         g.setColour(box->findColour(PlugDataColour::canvasColourId));
     }
     
