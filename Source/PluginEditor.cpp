@@ -276,26 +276,32 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::canvasColourId));
     g.fillRect(getLocalBounds().reduced(0, 10));
     
-#if PLUGDATA_STANDALONE
-    // Toolbar background
-    g.setColour(baseColour);
-    g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-    g.fillRoundedRectangle(0, 0, getWidth(), toolbarHeight, 6.0f);
-    
-    // Statusbar background
-    g.setColour(baseColour);
-    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
-    g.fillRoundedRectangle(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
-    
+#if defined(PLUGDATA_STANDALONE) && JUCE_MAC
+    const bool rounded = true;
 #else
-    // Toolbar background
-    g.setColour(baseColour);
-    g.fillRect(0, 0, getWidth(), toolbarHeight);
-
-    // Statusbar background
-    g.setColour(baseColour);
-    g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+    const bool rounded = false;
 #endif
+    
+    if(rounded) {
+        // Toolbar background
+        g.setColour(baseColour);
+        g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
+        g.fillRoundedRectangle(0, 0, getWidth(), toolbarHeight, 6.0f);
+        
+        // Statusbar background
+        g.setColour(baseColour);
+        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
+        g.fillRoundedRectangle(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
+    }
+    else {
+        // Toolbar background
+        g.setColour(baseColour);
+        g.fillRect(0, 0, getWidth(), toolbarHeight);
+
+        // Statusbar background
+        g.setColour(baseColour);
+        g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
+    }
 }
 
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
