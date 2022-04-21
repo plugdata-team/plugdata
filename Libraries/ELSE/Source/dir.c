@@ -5,7 +5,7 @@
 #include <string.h>
 #include <math.h>
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include "dirent_msvc.h"
 #else
 #include <dirent.h>
