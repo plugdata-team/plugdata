@@ -680,10 +680,6 @@ class PlugDataWindow : public DocumentWindow
         setFullScreen(!isFullScreen());
     }
     
-    void paint(Graphics& g) override
-    {
-        g.fillAll(getLookAndFeel().findColour(ResizableWindow::backgroundColourId));
-    }
 
     void resized() override
     {
