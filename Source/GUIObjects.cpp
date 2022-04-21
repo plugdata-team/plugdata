@@ -2497,9 +2497,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         state.addListener(this);
         
         addAndMakeVisible(keyboard);
-        
-        
-        
+
         auto* x = (t_keyboard*)gui.getPointer();
         x->x_width = width * 0.595f;
         
@@ -2515,24 +2513,6 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     }
     
     void checkBoxBounds() override {
-        // Apply size limits
-        int w = jlimit(50, maxSize, box->getWidth());
-        int h = jlimit(70, maxSize, box->getHeight());
-        
-        if(w != box->getWidth() || h != box->getHeight()) {
-            box->setSize(w, h);
-        }
-    }
-    
-    
-    void resized() override
-    {
-        /*
-         
-         
-         keyboard.setKeyWidth(getWidth() / (numKeys * 0.595f));
-         int width = keyboard.getKeyPosition(rangeMax.getValue(), keyboard.getKeyWidth()).getEnd();
-         } */
         int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
         float ratio = numKeys / 9.55f;
         
@@ -2547,8 +2527,11 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
             }
         }
         
-        
-        //keyboard.setBounds(Rectangle<int>(0, 0, width, width / 10.0f));
+    }
+    
+    
+    void resized() override
+    {
         keyboard.setBounds(getLocalBounds());
     }
     

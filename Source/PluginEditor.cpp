@@ -372,7 +372,6 @@ void PlugDataPluginEditor::resized()
     resizer.toFront(false);
 #endif
 
-
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
 
