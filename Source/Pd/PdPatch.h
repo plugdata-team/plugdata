@@ -125,7 +125,7 @@ class Patch
         {"vradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
         {"cnv", "15 100 60 empty empty empty 20 12 0 14 bgColour lblColour"},
         {"vu", "15 120 empty empty -1 -8 0 10 bgColour lblColour 1 0"},
-        {"floatatom", "348 229 6 -3.40282e+38 3.40282e+38 0 empty - - 12"}
+        {"floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12"}
     };
 
     friend class Instance;

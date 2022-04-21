@@ -733,7 +733,7 @@ Rectangle<int> Gui::getBounds() const noexcept
     else if (isAtom())
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-
+        
         w = gatom->a_text.te_width * sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0);
         return {x, y, w, h};
     }
