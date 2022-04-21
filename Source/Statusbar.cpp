@@ -421,11 +421,20 @@ static bool hasRealEvents(MidiBuffer& buffer)
     return false;
 }
 
-void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut)
+void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
+    
     auto** channelData = buffer.getArrayOfReadPointers();
+    
+    if(channels == 1) {
+        level[1] = 0;
+    }
+    else if(channels == 0) {
+        level[0] = 0;
+        level[1] = 0;
+    }
 
-    for (int ch = 0; ch < buffer.getNumChannels(); ch++)
+    for (int ch = 0; ch < channels; ch++)
     {
         auto localLevel = level[ch & 1].load();
 
