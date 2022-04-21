@@ -764,6 +764,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ComboBox::textColourId, textColour);
         setColour(TableListBox::textColourId, textColour);
         setColour(Label::textColourId, textColour);
+        setColour(Label::textWhenEditingColourId, textColour);
         setColour(ListBox::textColourId, textColour);
         setColour(TextEditor::textColourId, textColour);
         setColour(PropertyComponent::labelTextColourId, textColour);
