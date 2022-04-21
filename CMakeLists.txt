@@ -17,11 +17,11 @@ set(HARDENED_RUNTIME_OPTIONS "com.apple.security.device.audio-input")
 set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
-project(PlugData VERSION 0.4.2 LANGUAGES C CXX)
+project(PlugData VERSION 0.5 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/)
 
-set(PLUGDATA_VERSION                    "0.4.2")
+set(PLUGDATA_VERSION                    "0.5")
 set(PLUGDATA_COMPANY_NAME               "Octagon")
 set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/timothyschoen/plugdata")
