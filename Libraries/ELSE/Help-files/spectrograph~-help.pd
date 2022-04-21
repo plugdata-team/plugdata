@@ -1,0 +1,224 @@
+#N canvas 468 36 558 596 10;
+#X obj 1 310 cnv 3 550 3 empty \$0-pddp.cnv.inlets inlets 8 12 0 13
+#dcdcdc #000000 0;
+#X obj 1 424 cnv 3 550 3 empty \$0-pddp.cnv.outlets outlets 8 12 0
+13 #dcdcdc #000000 0;
+#X obj 1 451 cnv 3 550 3 empty \$0-pddp.cnv.argument arguments 8 12
+0 13 #dcdcdc #000000 0;
+#X obj 110 316 cnv 17 3 104 empty \$0-pddp.cnv.let.0 0 5 9 0 16 #dcdcdc
+#9c9c9c 0;
+#X text 207 318 signal;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 304 3 pd;
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 22 40 cnv 4 4 4 empty empty Spectral 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 87 40 cnv 4 4 4 empty empty graph 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 200 431 (none);
+#X text 255 318 - incoming signal to graph;
+#X obj 2 3 cnv 15 301 42 empty empty spectrograph~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X text 171 347 size <float>;
+#X msg 396 162 size \$1;
+#X obj 410 188 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 410 209 db \$1;
+#X msg 455 209 log \$1;
+#X obj 455 188 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 431 136 1024;
+#X msg 396 135 256;
+#N canvas 207 34 366 264 (subpatch) 0;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#fcfcfc 0 1;
+#X obj 215 68 route dsp;
+#X obj 215 37 receive pd;
+#N canvas 977 77 379 291 set_color 0;
+#X obj 47 30 inlet;
+#X obj 147 200 s \$0-cnv;
+#X obj 47 83 select 0 1;
+#X obj 47 220 s \$0-tgl-r;
+#N canvas 0 22 712 637 off 0;
+#X obj 490 220 * -1;
+#X obj 424 300 +;
+#X obj 409 325 +;
+#X obj 347 219 * -65536;
+#X obj 424 220 * -256;
+#X obj 409 356 - 1;
+#X obj 390 189 unpack f f f;
+#X obj 225 295 +;
+#X obj 210 320 +;
+#X obj 148 214 * -65536;
+#X obj 225 215 * -256;
+#X obj 291 215 * -1;
+#X obj 210 351 - 1;
+#X obj 191 184 unpack f f f;
+#X obj 379 423 pack;
+#X msg 395 152 124 124 124;
+#X msg 203 154 220 220 220;
+#X obj 238 121 t b b;
+#X obj 238 81 inlet;
+#X obj 378 485 outlet;
+#X connect 0 0 1 1;
+#X connect 1 0 2 1;
+#X connect 2 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 5 0 14 1;
+#X connect 6 0 3 0;
+#X connect 6 1 4 0;
+#X connect 6 2 0 0;
+#X connect 7 0 8 1;
+#X connect 8 0 12 0;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 11 0 7 1;
+#X connect 12 0 14 0;
+#X connect 13 0 9 0;
+#X connect 13 1 10 0;
+#X connect 13 2 11 0;
+#X connect 14 0 19 0;
+#X connect 15 0 6 0;
+#X connect 16 0 13 0;
+#X connect 17 0 16 0;
+#X connect 17 1 15 0;
+#X connect 18 0 17 0;
+#X restore 47 113 pd off;
+#X msg 47 180 color \$1 \$2 0;
+#X msg 147 131 -4.86997e+06 -1.34937e+07;
+#X msg 147 171 color \$1 0 \$2;
+#X connect 0 0 2 0;
+#X connect 2 0 4 0;
+#X connect 2 1 6 0;
+#X connect 4 0 5 0;
+#X connect 4 0 7 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 1 0;
+#X restore 215 165 pd set_color;
+#X obj 135 122 r \$0-tgl-s;
+#N canvas 121 482 450 300 (subpatch) 0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+0;
+#X coords 0 -1 1 1 42 27 1 100 100;
+#X restore 51 144 pd;
+#X obj 226 139 s \$0-tgl-r;
+#X msg 226 115 set \$1;
+#X msg 135 177 \; pd dsp \$1;
+#N canvas 256 32 278 194 load_check 0;
+#X obj 136 53 sig~ 1;
+#X obj 74 24 loadbang;
+#X obj 136 86 snapshot~;
+#X obj 91 52 del 5;
+#X obj 136 151 outlet;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 74 126 switch~;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 3 0 5 0;
+#X connect 5 0 6 0;
+#X restore 51 72 pd load_check;
+#X connect 1 0 3 0;
+#X connect 1 0 7 0;
+#X connect 2 0 1 0;
+#X connect 4 0 8 0;
+#X connect 4 0 3 0;
+#X connect 7 0 6 0;
+#X connect 9 0 0 0;
+#X coords 0 -1 1 1 44 72 2 50 100;
+#X restore 499 61 pd;
+#X obj 396 248 s \$0-set;
+#X obj 129 129 r \$0-set;
+#X text 200 458 (none);
+#X text 183 362 db <float>;
+#X obj 1 565 cnv 15 552 21 empty \$0-pddp.cnv.footer empty 20 12 0
+14 #dcdcdc #404040 0;
+#X obj 1 475 cnv 3 550 3 empty \$0-pddp.cnv.argument flags 8 12 0 13
+#dcdcdc #000000 0;
+#X text 106 481 -size <float>;
+#X text 70 526 -dim <float \, float>;
+#X text 118 496 -db <float>;
+#X text 177 377 log <float>;
+#X text 112 511 -log <float>;
+#X text 191 526 - set horizontal/vertical dimensions (default 300 140)
+;
+#X text 191 496 - non zero sets to dB amp scale (default linear),
+f 51;
+#X text 191 511 - non zero sets to log freq scale (default linear)
+, f 51;
+#X text 191 481 - FFT size (default 1024 \, min 128), f 51;
+#X text 250 392 - set horizontal/vertical dimensions;
+#X text 255 377 - non zero sets to log freq scale;
+#X text 255 362 - non zero sets to dB amp scale;
+#X text 254 347 - sets FFT size;
+#X text 135 392 dim <float \, float>;
+#X text 366 285 Nyquist;
+#X text 27 285 0 Hz;
+#X text 46 87 [spectrograph~] is an abstraction for visualizing FFT
+amplitudes from 0hz to Nyquist. It uses a hann table for the abalysis.
+, f 64;
+#X obj 60 126 noise~;
+#N canvas 988 95 431 534 rate 0;
+#X obj 70 19 noise~;
+#X msg 102 175 rate \$1;
+#X obj 115 212 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 139 213 <= graphs when rate == 0;
+#X text 66 440 When you set the graph rate to 0 \, it stops graphing
+\, but you can then use the bang message to graph the input., f 52
+;
+#X msg 102 88 0;
+#X msg 114 113 100;
+#X msg 89 66 500;
+#X text 130 87 stops graphing and allows bangs;
+#X text 145 113 default;
+#X text 119 65 graph rate rate in ms;
+#X floatatom 102 142 5 0 1000 0 - - - 0;
+#X obj 72 273 else/spectrograph~ 1024 0 0 300 140 100;
+#X connect 0 0 12 0;
+#X connect 1 0 12 0;
+#X connect 2 0 12 0;
+#X connect 5 0 11 0;
+#X connect 6 0 11 0;
+#X connect 7 0 11 0;
+#X connect 11 0 1 0;
+#X restore 493 282 pd rate;
+#X text 219 332 bang;
+#X text 255 332 - graphs when rate is 0;
+#X text 171 407 rate <float>;
+#X text 250 407 - sets graph rate in ms;
+#X text 106 540 -rate <float>;
+#X text 191 540 - sets graph rate in ms (default 100), f 51;
+#X obj 60 158 else/spectrograph~ 1024 0 0 300 140 100;
+#X connect 20 0 28 0;
+#X connect 21 0 22 0;
+#X connect 22 0 28 0;
+#X connect 23 0 28 0;
+#X connect 24 0 23 0;
+#X connect 25 0 20 0;
+#X connect 26 0 20 0;
+#X connect 29 0 59 0;
+#X connect 51 0 59 0;

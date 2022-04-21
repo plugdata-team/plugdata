@@ -1,0 +1,94 @@
+#N canvas 661 51 561 432 10;
+#X obj 1 333 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 365 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 101 344 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 1 400 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 203 167 Real;
+#X text 377 167 Imaginary;
+#X obj 243 168 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 318 168 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 4 5 cnv 15 301 42 empty empty mag 20 20 2 37 #e0e0e0 #000000
+0;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 5 graph;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 42 cnv 4 4 4 empty empty Get 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 306 5 graph;
+#X obj 131 42 cnv 4 4 4 empty empty magnitues 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 56 42 cnv 4 4 4 empty empty spectrum 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 133 377 1) symbol - "power" sets to power magnitude spectrum
+;
+#N canvas 660 271 470 195 power 0;
+#X text 123 75 Real;
+#X text 303 75 Imaginary;
+#X obj 163 76 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 244 76 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 43 17 the "power" argument gets the power magnitude result
+\, that is the sum of the squares of the real and imaginary part.;
+#X text 59 131 Power Amplitude;
+#X text 222 129 Imaginary;
+#X obj 163 130 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 163 98 else/mag power;
+#X connect 2 0 8 0;
+#X connect 3 0 8 1;
+#X connect 8 0 7 0;
+#X restore 465 223 pd power;
+#X text 189 345 - magnitude, f 32;
+#X text 35 179 see also:;
+#X text 69 91 [mag] gets the spectrum magnitudes (amplitudes) from
+cartesian coordinates (real / imaginary). This is much like the amplitude
+output of [car2pol] \, but you can also get the power magnitudes instead
+with the 1st argument., f 63;
+#X obj 243 191 else/mag, f 13;
+#X obj 37 224 else/car2pol;
+#X obj 243 191 else/mag, f 13;
+#X obj 1 254 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 100 263 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 100 307 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 134 281 float;
+#X text 134 309 float;
+#X text 188 281 - real part from the cartesian coordinates, f 43;
+#X text 189 309 - imaginary part from the cartesian coordinates, f
+48;
+#X text 140 264 bang;
+#X text 188 264 - converts the last received coordinates pair;
+#X text 139 345 float;
+#X obj 243 224 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 176 217 Magnitude (ampltude), f 10;
+#X obj 37 201 else/mag~;
+#X connect 6 0 26 0;
+#X connect 6 0 28 0;
+#X connect 7 0 26 1;
+#X connect 26 0 39 0;

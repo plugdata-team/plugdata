@@ -1,0 +1,119 @@
+#N canvas 395 23 561 522 10;
+#X obj 4 295 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 396 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 428 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 96 404 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 496 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 96 303 cnv 17 3 60 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 96 372 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 228 373 - gate time in ms;
+#X text 176 437 1) float - gate time in ms (default 0 \, no gate);
+#X obj 80 41 cnv 4 4 4 empty empty timed 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 130 41 cnv 4 4 4 empty empty gate 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 14 41 cnv 4 4 4 empty empty Control 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 4 cnv 15 301 42 empty empty timed.gate 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 229 405 - timed gate;
+#X text 187 302 float;
+#X text 227 302 - control trigger with the gate value;
+#X msg 171 150 0.1;
+#X msg 206 150 -0.9;
+#X msg 248 150 13;
+#X obj 317 175 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 374 171 ms;
+#X text 317 156 gate time;
+#N canvas 739 186 385 355 more 0;
+#X obj 117 122 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 111 240 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 141 239 1.5;
+#X text 24 18 A bang will trigger the object to generate a gate. By
+default \, the initial gate value is "1" \, but you can change that
+with the second argument. A bang will also output the last received
+gate value from a signal or float input., f 53;
+#X obj 117 146 else/timed.gate 1000;
+#X obj 117 176 else/display;
+#X obj 111 294 else/display;
+#X obj 111 264 else/timed.gate 1000 0.5;
+#X connect 0 0 4 0;
+#X connect 1 0 7 0;
+#X connect 2 0 7 0;
+#X connect 4 0 5 0;
+#X connect 7 0 6 0;
+#X restore 487 219 pd more \; examples;
+#X text 176 456 2) float - initial gate amplitude (default 1);
+#X text 193 317 bang;
+#X text 227 317 - control trigger with the last/initial gate value
+;
+#X text 227 347 - non-zero sets to retrigger mode;
+#X text 176 472 3) float - non-zero sets to retrigger mode;
+#N canvas 757 226 402 311 retrigger 0;
+#X msg 172 175 retrigger \$1;
+#X obj 172 153 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 35 24 By default \, a gate needs to finish before another one
+is triggered \, but you can change to "retrigger" mode \, where a new
+timed gate starts before the last was finished., f 53;
+#X text 35 87 You can set to retrigger mode with the retrigger message
+or the third argument., f 53;
+#X obj 110 241 else/display;
+#X obj 110 167 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 110 210 else/timed.gate 1000;
+#X connect 0 0 6 0;
+#X connect 1 0 0 0;
+#X connect 5 0 6 0;
+#X connect 6 0 4 0;
+#X restore 459 255 pd retrigger;
+#X obj 254 176 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 227 332 - gate time in ms;
+#X text 115 347 retrigger <float>;
+#X text 157 332 ms <float>;
+#X text 58 89 When receiving a bang or a float \, [timed.gate] sends
+a timed gate (with the value of the float for the given duration \,
+0 otherwise).;
+#X text 187 373 float;
+#X obj 206 200 else/timed.gate 500;
+#X obj 206 230 else/display;
+#X obj 206 263 print;
+#X text 187 405 float;
+#X connect 25 0 44 0;
+#X connect 26 0 44 0;
+#X connect 27 0 44 0;
+#X connect 28 0 44 1;
+#X connect 38 0 44 0;
+#X connect 44 0 45 0;
+#X connect 45 0 46 0;

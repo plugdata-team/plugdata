@@ -1,0 +1,73 @@
+#N canvas 500 78 567 513 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 121 41 cnv 4 4 4 empty empty sawtooth 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 203 41 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 480 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 229 188 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 289 187 <= hz;
+#X obj 3 4 cnv 15 301 42 empty empty bl.saw~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X obj 22 41 cnv 4 4 4 empty empty Bandlimited 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 60 141 Because this is an abstraction and Pd is still limited
+in the way it handles it \, this object does not have any arguments.
+, f 67;
+#X text 452 244 see also:;
+#X obj 229 248 else/out~;
+#X obj 3 427 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 452 266 else/saw~;
+#X obj 3 317 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 391 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 122 400 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 123 325 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 165 326 float/signal -;
+#X text 269 326 frequency in hz;
+#X obj 122 347 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 165 368 float/signal -;
+#X obj 122 367 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 201 400 signal -;
+#X text 270 368 phase offset (modulation input);
+#X text 270 348 phase sync (ressets internal phase);
+#X text 165 348 float/signal -;
+#X text 267 400 sawtooth wave signal;
+#X text 60 88 [bl.saw~] is a sawtooth oscillator like [else/saw~] \,
+but it is bandlimited with the upsampling/filtering technique. This
+makes the object quite inefficient CPU wise \, but is an easy way to
+implement a bandlimited oscillator., f 67;
+#X text 159 439 1) float;
+#X text 218 458 - initial phase offset (default 0);
+#X text 218 439 - frequency in hertz (default 0);
+#X text 159 458 2) float;
+#X obj 229 213 else/bl.saw~ 400;
+#X connect 11 0 40 0;
+#X connect 40 0 18 0;

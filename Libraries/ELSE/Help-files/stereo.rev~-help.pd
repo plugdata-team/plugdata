@@ -1,0 +1,203 @@
+#N canvas 424 23 560 557 10;
+#X obj 3 270 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 406 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 459 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 126 414 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 126 278 cnv 17 3 95 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 531 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 197 280 signal;
+#X text 197 414 signal;
+#X text 252 414 - left channel output;
+#X obj 126 435 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 197 434 signal;
+#X text 252 434 - right channel output;
+#N canvas 509 173 823 458 example 0;
+#X obj 319 260 catch~ \$0-input;
+#X obj 671 171 throw~ \$0-input;
+#X obj 671 35 adc~ 1;
+#X obj 70 164 *~;
+#X obj 70 193 throw~ \$0-input;
+#X obj 266 143 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 266 171 else/impseq~;
+#X obj 266 206 throw~ \$0-input;
+#X obj 85 93 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 85 135 else/decay2~ 50 1000;
+#N canvas 780 129 455 228 tone 0;
+#X obj 71 94 mtof;
+#X obj 71 43 inlet;
+#X obj 71 158 outlet~;
+#X obj 71 121 else/oscbank~ 6 -ratio 1 3 5.01 7.02 9.03 11.04 -amp
+1 0.3 0.2 0.15 0.1 0.1, f 47;
+#X obj 71 70 else/rand.i 36 84;
+#X connect 0 0 3 0;
+#X connect 1 0 4 0;
+#X connect 3 0 2 0;
+#X connect 4 0 0 0;
+#X restore 23 134 pd tone;
+#X obj 671 60 else/gain~;
+#X obj 374 114 throw~ \$0-input;
+#X msg 330 53 open;
+#X text 79 39 Test the reverb with many sound input sources, f 25
+;
+#X obj 36 307 noise~;
+#X obj 165 378 *~;
+#X obj 165 407 throw~ \$0-input;
+#X obj 180 329 else/decay~ 200;
+#X obj 180 239 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 36 338 else/lowpass~ 0 5;
+#X text 287 144 impulse;
+#X text 350 26 sample;
+#X text 711 99 audio input;
+#X text 108 93 tone;
+#X text 99 239 noise burst;
+#N canvas 311 360 450 300 init 0;
+#X obj 112 43 inlet;
+#X obj 112 95 f \$0;
+#X obj 112 72 else/lb;
+#X msg 112 118 \; \$1-decay 3 \; \$1-damping 0.25 \; \$1-size 0.475
+\; \$1-wet 0.75;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X restore 515 147 pd init;
+#X obj 515 126 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 535 127 reload args;
+#X obj 374 51 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 399 53 play/stop;
+#X obj 462 190 hsl 128 15 0.1 100 1 0 empty \$0-decay empty -2 -8 0
+10 #dcdcdc #000000 #000000 0 1;
+#X floatatom 459 214 5 0 0 0 - - - 0;
+#X obj 530 218 hsl 128 15 0 1 0 0 empty \$0-damping empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X floatatom 527 243 5 0 0 0 - - - 0;
+#X obj 595 250 hsl 128 15 0 1 0 0 empty \$0-size empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 592 273 5 0 0 0 - - - 0;
+#X text 563 217 damping;
+#X msg 527 265 damp \$1;
+#X text 632 250 room-size;
+#X msg 592 299 size \$1;
+#X msg 663 364 clear;
+#X msg 459 238 decay \$1;
+#X text 503 189 decay;
+#X obj 319 343 else/stereo.rev~;
+#X obj 661 285 hsl 128 15 0 1 0 0 empty \$0-wet empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 658 308 5 0 0 0 - - - 0;
+#X msg 658 334 wet \$1;
+#X text 711 285 wet;
+#X obj 412 311 *~ -1;
+#X obj 374 87 else/play.file~ bubul.wav -loop;
+#X obj 85 301 else/rand.f 500 3000, f 12;
+#X obj 592 415 s \$0-set;
+#X obj 339 312 r \$0-set;
+#X obj 322 377 else/out~;
+#X connect 0 0 49 0;
+#X connect 0 0 44 0;
+#X connect 2 0 11 0;
+#X connect 3 0 4 0;
+#X connect 5 0 6 0;
+#X connect 6 0 7 0;
+#X connect 8 0 10 0;
+#X connect 8 0 9 0;
+#X connect 9 0 3 1;
+#X connect 10 0 3 0;
+#X connect 11 0 1 0;
+#X connect 13 0 50 0;
+#X connect 15 0 20 0;
+#X connect 16 0 17 0;
+#X connect 18 0 16 1;
+#X connect 19 0 18 0;
+#X connect 19 0 51 0;
+#X connect 20 0 16 0;
+#X connect 27 0 26 0;
+#X connect 29 0 50 0;
+#X connect 31 0 32 0;
+#X connect 32 0 42 0;
+#X connect 33 0 34 0;
+#X connect 34 0 38 0;
+#X connect 35 0 36 0;
+#X connect 36 0 40 0;
+#X connect 38 0 52 0;
+#X connect 40 0 52 0;
+#X connect 41 0 52 0;
+#X connect 42 0 52 0;
+#X connect 44 0 54 0;
+#X connect 44 1 54 1;
+#X connect 45 0 46 0;
+#X connect 46 0 47 0;
+#X connect 47 0 52 0;
+#X connect 49 0 44 1;
+#X connect 50 0 12 0;
+#X connect 51 0 20 1;
+#X connect 53 0 44 0;
+#X restore 466 244 pd example;
+#X obj 3 3 cnv 15 301 42 empty empty stereo.rev~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 30 40 cnv 4 4 4 empty empty Stereo 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 161 314 damp <float>;
+#X text 161 330 size <float>;
+#X text 203 359 clear;
+#X text 256 360 - clears delay buffers, f 33;
+#X text 155 296 decay <float>;
+#X text 256 296 - decay time in seconds, f 33;
+#X text 256 314 - high frequency damping in hertz;
+#X text 256 330 - room size (0-1), f 33;
+#X text 129 481 2) float - room size (0-1) - (default 0.5), f 57;
+#X obj 85 40 cnv 4 4 4 empty empty reverb 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 214 138 else/play.file~ stereo.wav 1 1, f 31;
+#X text 129 496 3) float - high frequnecy damping - (default 0), f
+57;
+#X text 256 345 - room size (0-1), f 33;
+#X text 167 345 wet <float>;
+#X text 129 466 1) float - decay in seconds (default 1), f 57;
+#X obj 214 176 else/stereo.rev~;
+#X text 65 202 see also:;
+#X obj 62 221 else/mono.rev~;
+#X text 53 88 [mono.rev~] is a stereo input/output reverb abstraction
+\, a variant of [mono.rev~] with two independent reverb channels.;
+#X obj 126 382 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 197 384 signal;
+#X text 256 280 - left input signal;
+#X text 256 384 - right input signal;
+#X obj 217 207 else/out~;
+#X text 129 511 4) float - wet ratio - (default 0.5), f 57;
+#X connect 34 0 39 0;
+#X connect 34 1 39 1;
+#X connect 39 0 47 0;
+#X connect 39 1 47 1;

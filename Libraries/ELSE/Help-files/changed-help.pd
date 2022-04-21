@@ -1,0 +1,109 @@
+#N canvas 616 37 565 518 10;
+#X obj 5 332 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 403 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 461 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 491 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 115 412 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 115 340 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 24 41 cnv 4 4 4 empty empty Pass 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 105 41 cnv 4 4 4 empty empty when 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 65 41 cnv 4 4 4 empty empty data 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 307 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 306 4 pd;
+#X obj 346 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 459 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 143 341 anything;
+#X text 151 412 anything;
+#X msg 245 200 1 3;
+#X symbolatom 285 218 10 0 0 0 - - - 0;
+#X obj 285 198 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 151 41 cnv 4 4 4 empty empty changed 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 207 341 - any message to pass through, f 44;
+#X text 207 412 - any message that's different from the previous;
+#X obj 133 207 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 133 186 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 178 149 bng 25 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 167 358 bang;
+#X text 207 381 - set a current message inside the object, f 44;
+#X msg 213 151 hi there;
+#X msg 231 176 list one 2 3;
+#X text 106 154 outputs =>;
+#X obj 115 436 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 213 298 else/display;
+#X text 115 469 1) anything -;
+#X text 203 469 initializes first message (default: empty symbol atom)
+;
+#X obj 213 269 else/changed hi there;
+#X text 207 358 - force the last data to be output, f 44;
+#X msg 336 246 hi there;
+#X text 400 245 <= sets message;
+#X obj 115 380 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 143 381 anything;
+#X obj 3 4 cnv 15 301 42 empty empty changed 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 4 4 graph;
+#X text 151 436 anything;
+#X text 207 436 - unchanged message;
+#X obj 336 298 else/display;
+#N canvas 1091 202 272 210 no-repeat 0;
+#X obj 70 105 random 4;
+#X obj 70 126 else/changed;
+#X obj 70 84 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 139 152 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 39 24 You can use [changed] to filter out a repeated random
+number and trigger a new value., f 32;
+#X obj 70 152 else/display;
+#X connect 0 0 1 0;
+#X connect 1 0 5 0;
+#X connect 1 1 3 0;
+#X connect 2 0 0 0;
+#X connect 3 0 0 0;
+#X restore 426 288 pd no-repeat \; example;
+#X text 62 87 [changed] passes its data input through only when it
+changed from the last receive message or the message that was set via
+arguments or messages. Unlike [change] from Pd Vanilla \, it accepts
+any kind of messages., f 67;
+#X connect 19 0 37 0;
+#X connect 20 0 37 0;
+#X connect 21 0 20 0;
+#X connect 25 0 37 0;
+#X connect 26 0 25 0;
+#X connect 27 0 37 0;
+#X connect 30 0 37 0;
+#X connect 31 0 37 0;
+#X connect 37 0 34 0;
+#X connect 37 1 47 0;
+#X connect 39 0 37 1;

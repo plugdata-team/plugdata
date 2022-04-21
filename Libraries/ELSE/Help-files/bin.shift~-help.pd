@@ -1,0 +1,103 @@
+#N canvas 577 89 561 468 10;
+#X obj 1 439 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 2 281 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 355 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 389 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 120 364 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 182 289 signal;
+#X obj 121 290 cnv 17 3 32 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 182 364 signal;
+#X text 170 397 1) float;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+0;
+#X obj 23 41 cnv 4 4 4 empty empty Shift 0 28 2 18 -233017 -1 0;
+#X obj 70 41 cnv 4 4 4 empty empty bins 0 28 2 18 -233017 -1 0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 4 graph;
+#X obj 3 4 cnv 15 301 42 empty empty bin.shift~ 20 20 2 37 -233017
+-1 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 4 graph;
+#X obj 487 65 else/setdsp~;
+#X obj 252 215 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 226 364 - the bin shifted signal;
+#X text 226 397 - sets shift number (default 0);
+#X text 226 289 - the signal to be shifted;
+#X text 188 329 float;
+#X text 226 329 - sets number of bins to shift;
+#X text 63 89 [bin.shift~] is meant to be user for spectral processing
+\, where you can shift samples (or frequency bins). It is similar to
+Pd Vanilla's [lrshift~] object \, which acts in any block size and
+shifts samples to the left or right., f 64;
+#X obj 252 163 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 5 256;
+#X obj 71 196 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 71 246 print~ input;
+#X obj 252 244 print~ output;
+#X obj 121 330 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 301 162 <= positive shifts to the right;
+#X text 319 177 negative shifts to the left, f 28;
+#X obj 127 209 else/bin.shift~ 4;
+#X obj 127 154 else/ramp~ 1 1 65;
+#X text 146 304 wrap <float>;
+#X text 226 304 - non zero sets to wrap mode;
+#X text 170 415 2) float;
+#X text 226 415 - non zero sets to wrap mode (default 0);
+#N canvas 687 26 428 385 wrap_mode 0;
+#X obj 299 256 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 299 204 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 73 217 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 73 267 print~ input;
+#X obj 299 285 print~ output;
+#X obj 129 185 else/ramp~ 1 1 65;
+#X obj 129 230 else/bin.shift~ 4 1;
+#X msg 90 145 wrap \$1;
+#X obj 90 119 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X text 78 54 In wrap mode \, samples outside the bounds are not zeroed
+out \, but wrapped. You can set it to wrap mode via the second argument
+or the wrap message., f 50;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 1 0 6 1;
+#X connect 2 0 3 0;
+#X connect 5 0 3 0;
+#X connect 5 0 6 0;
+#X connect 6 0 4 0;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X restore 443 243 pd wrap_mode;
+#X connect 22 0 32 0;
+#X connect 29 0 22 0;
+#X connect 29 0 36 1;
+#X connect 29 0 30 0;
+#X connect 30 0 31 0;
+#X connect 36 0 32 0;
+#X connect 37 0 31 0;
+#X connect 37 0 36 0;

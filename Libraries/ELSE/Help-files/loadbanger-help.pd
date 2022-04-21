@@ -1,0 +1,156 @@
+#N canvas 450 29 564 450 10;
+#X obj 6 290 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 326 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 389 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 102 335 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 6 423 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 308 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 307 5 pd;
+#X obj 347 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 25 42 cnv 4 4 4 empty empty Multiple 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 460 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 480 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 517 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 466 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 504 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 98 42 cnv 4 4 4 empty empty loadbangs 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 127 193 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 5 5 cnv 15 301 42 empty empty loadbanger 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 4 5 graph;
+#X obj 102 299 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 104 257 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 160 193 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 161 335 bang;
+#X text 196 335 - bang messages at loading or when activated;
+#X text 132 299 anything;
+#X obj 243 255 print lb-1;
+#X obj 127 257 print lb-2;
+#X obj 220 256 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 132 399 1) float - number of outputs (default 1);
+#X obj 6 361 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 337 183 else/lb;
+#X obj 337 230 metro 500;
+#X obj 337 257 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 337 207 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 127 223 else/loadbanger 2;
+#X text 52 209 click on it =====>, f 9;
+#X text 196 299 - any message triggers bangs;
+#X text 400 182 (abbreviation);
+#N canvas 866 173 500 412 abstractions 0;
+#X text 63 111 This makes it possible to create abstractions with variable
+inlets/outlets via dynamic patching \, which simply does not work if
+you're using [loadbang] instead.;
+#X text 61 34 So \, by default \, [loadbanger] uses the "load" type
+of bang when loading the patch. As said before \, if you change it
+to "-init" mode \, the bang will be sent first in subpatches and abstractions.
+Not only that \, but the bang is sent also before the connections are
+made in the parent patch.;
+#X text 75 306 Important Note: If you're using [loadbanger] inside
+an abstraction and need it to send a control data throughout an outlet
+to a parent patch \, you cannot use the -init flag. That's because
+\, as stated \, these are triggered before the connections are made
+\, so a value is not sent out.;
+#X text 66 164 In ELSE \, these abstraction uses [loadbanger] with
+the "-init" flag for that purpose \, so it can have a variable number
+of inlets/outlets depending on the first optional float argument (1
+by default).;
+#X obj 192 252 else/play.file~ 2;
+#X obj 323 252 else/player~ 3;
+#X obj 84 252 else/rec.file~;
+#X restore 436 250 pd abstractions \; dynamic patching;
+#X text 157 370 -init: sets loadbang to "init mode";
+#N canvas 538 214 828 291 -init 0;
+#X text 19 18 Pure Data can send two different kind of bangs when loading
+the patch. The [loadbang] object in Pd Vanilla sends a bang when the
+patch has been loaded. Let's name this type of bang as "load"., f
+61;
+#X text 19 119 [loadbanger] works with both kinds of bangs. By default
+\, it sends the "load" bang \, but if you can change to "init mode"
+with the "-init" flag., f 61;
+#X text 19 220 If you check pd's terminal window after loading this
+help file \, you'll see that the [loadbanger] object with the -init
+flag is sent before the others., f 61;
+#X text 19 68 But there is also another type of bang that Pd can send
+\, aka "init" bang. This second type is sent before "load". A famous
+external that just uses this kind of bang is [initbang] from the iemguts
+library., f 61;
+#X obj 772 227 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 704 227 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 637 227 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 637 201 else/loadbanger -init 3;
+#X obj 579 227 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 514 228 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 450 228 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 450 202 trigger bang bang bang;
+#X obj 450 172 loadbang;
+#X obj 486 55 print next;
+#X obj 630 57 print first;
+#X obj 630 28 else/loadbanger -init;
+#X obj 486 27 else/loadbanger;
+#X text 19 158 As said \, "init" bangs are sent before "load" bangs.
+It is also sent first inside subpatches and abstractions than in parent
+patches. In the case of abstractions \, this is mostly useful for dynamic
+patching \, because you can initialize it with a dynamic number of
+inlets/outlets., f 61;
+#X text 429 91 Another difference from these "two" types of bangs is
+that a "load" bang is sent again if you reinstantiate or duplicate
+the object. The [loadbanger] object will also do that with a 'load'
+bang when reinstantiating/duplicating if it is in "init" mode. You
+can test that in this subpatch.;
+#X connect 7 0 6 0;
+#X connect 7 1 5 0;
+#X connect 7 2 4 0;
+#X connect 11 0 10 0;
+#X connect 11 1 9 0;
+#X connect 11 2 8 0;
+#X connect 12 0 11 0;
+#X connect 15 0 14 0;
+#X connect 16 0 13 0;
+#X restore 485 225 pd -init;
+#X text 71 90 [loadbanger] (or [lb]) sends "bangs" (from right to left)
+when loading the patch and also sends bangs when receiving any message
+or clicked on. The number of outputs is defined by the argument (1
+by default). [lb] can also be useful for dynamic patching (for creating
+inlets/outlets) in init mode.;
+#X connect 15 0 33 0;
+#X connect 20 0 33 0;
+#X connect 29 0 32 0;
+#X connect 30 0 31 0;
+#X connect 32 0 30 0;
+#X connect 33 0 19 0;
+#X connect 33 0 25 0;
+#X connect 33 1 24 0;
+#X connect 33 1 26 0;

@@ -1,0 +1,84 @@
+#N canvas 578 51 560 478 10;
+#X obj 3 316 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 363 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 420 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 85 372 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 86 325 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 453 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 4 4 cnv 15 301 42 empty empty midi.clock 20 20 2 37 #e0e0e0
+#000000 0;
+#X obj 307 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 4 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 306 4 pd;
+#X obj 346 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 24 41 cnv 4 4 4 empty empty MIDI 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 74 41 cnv 4 4 4 empty empty clock 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 459 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 164 270 bng 16 50 10 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X text 154 324 float;
+#X text 137 343 external;
+#X text 190 343 - sets to external clock;
+#X text 160 372 bang;
+#X text 190 372 - bang at each clock tick;
+#X text 190 324 - sets BPM and also sets to internal clock;
+#X text 148 429 1) float) sets BPM and also sets to internal clock
+;
+#X obj 85 395 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 154 395 float;
+#X text 190 395 - time interval in BPM from external source;
+#X obj 269 270 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 78 140 By default \, [clock] is set to an external input \,
+which comes from the MIDI device specified in Pd's MIDI configuration.
+But if you give it a float argument \, it sets to internal clock at
+the BPM specified by the float., f 69;
+#X text 240 289 BPM (from external source);
+#X msg 183 222 external;
+#X obj 164 199 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 225 199 sets BPM and also sets to internal clock;
+#X text 242 221 sets to external clock;
+#X text 154 290 clock;
+#N canvas 697 200 446 241 clock-out 0;
+#X obj 180 159 midiout;
+#X msg 180 132 248;
+#X text 43 40 For a MIDI clock output \, all you need is to send "248"
+to the MIDI out object;
+#X obj 180 104 else/midi.clock 60;
+#X connect 1 0 0 0;
+#X connect 3 0 1 0;
+#X restore 457 278 pd clock-out;
+#X obj 164 245 else/midi.clock 60;
+#X text 78 89 [midi.clock] is a MIDI clock abstraction. It works with
+an internal or external clock (from an external MIDI device). It sends
+a bang at each MIDI clock and also sends a time interval (in BPM) from
+external clock sources., f 69;
+#X connect 32 0 38 0;
+#X connect 33 0 38 0;
+#X connect 38 0 18 0;
+#X connect 38 1 29 0;

@@ -1,0 +1,125 @@
+#N canvas 446 23 558 623 10;
+#X obj 226 180 hsl 128 15 44.1 44100 1 0 empty empty empty -2 -8 0
+10 #dcdcdc #000000 #000000 0 1;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Latoocarfian 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 125 40 cnv 4 4 4 empty empty chaotic 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 584 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 3 311 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 381 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 411 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 96 388 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 95 321 cnv 17 3 52 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 180 388 signal;
+#X text 167 417 1) float;
+#X obj 223 202 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 144 321 float/signal;
+#X obj 2 3 cnv 15 301 42 empty empty latoocarfian~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X text 227 321 - frequency in hertz (negative values accepted);
+#X obj 186 40 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 279 201 rate in Hz;
+#X obj 223 250 else/out~;
+#X text 192 358 list;
+#N canvas 894 143 430 452 parameters 0;
+#X text 25 19 By default \, the initial k \, x and y values are 1 \,
+0.5 and 0 \, respectively \, but can be changed via arguments or messages.
+;
+#X obj 64 68 hsl 128 15 44.1 44100 1 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 61 92 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 91 69 rate in Hz;
+#X obj 106 310 else/out~;
+#X floatatom 106 141 5 0 0 0 - - - 0;
+#X floatatom 163 142 5 0 0 0 - - - 0;
+#X text 96 121 y[n-1];
+#X text 162 121 x[n-1];
+#X text 205 140 list sets initial values of y[n-1] and x[n-1], f 24
+;
+#X msg 116 250 coefs \$1 \$2 \$3 \$4;
+#X text 232 243 sets coefficients 'a' \, 'b' \, 'c' & 'd', f 21;
+#X obj 106 278 else/latoocarfian~;
+#X text 44 391 The object can give chaotic output \, converge to a
+single value or oscillate in a cycle. According to the reference \,
+'a' and 'b' should be from -3 to +3 \, and 'c' and 'd' from 0.5 to
+1.5.;
+#X floatatom 176 203 5 0 0 0 - - - 0;
+#X floatatom 237 203 5 0 0 0 - - - 0;
+#X floatatom 298 203 5 0 0 0 - - - 0;
+#X floatatom 359 203 5 0 0 0 - - - 0;
+#X text 212 202 a;
+#X text 271 202 b;
+#X text 332 202 c;
+#X text 395 203 d;
+#X obj 116 222 else/pack2 coeffs float float float float;
+#X obj 106 162 else/pack2;
+#X connect 1 0 2 0;
+#X connect 2 0 12 0;
+#X connect 5 0 23 0;
+#X connect 6 0 23 1;
+#X connect 10 0 12 0;
+#X connect 12 0 4 0;
+#X connect 14 0 22 1;
+#X connect 15 0 22 2;
+#X connect 16 0 22 3;
+#X connect 17 0 22 4;
+#X connect 22 0 10 0;
+#X connect 23 0 12 0;
+#X restore 447 281 pd parameters;
+#X text 83 150 The output rate of the equation is given in hertz (default:
+nyquist).;
+#X text 167 433 2) float;
+#X text 167 449 3) float;
+#X text 167 465 4) float;
+#X obj 7 532 cnv 3 550 3 empty empty more_info 8 12 0 13 #dcdcdc #000000
+0;
+#X text 227 417 - sets frequency in hertz (default: nyquist);
+#X obj 223 225 else/latoocarfian~;
+#X text 227 433 - sets a (default: 1);
+#X text 84 91 [latoocarfian~] is a chaotic generator using the difference
+equations \; x[n] = sin(a * y[n-1]) + d * sin(a * x[n-1]) \; y[n] =
+sin(b * x[n]) + c * sin(b * y[n-1]) \;;
+#X text 227 359 - 2 floats set x[n-1] and y[n-1] \, respectively;
+#X text 227 389 - latoocarfian chaotic signal;
+#X text 227 497 - sets initial value of y[n-1] (default: 0.5);
+#X text 227 513 - sets initial value of x[n-1] (default: 0.5);
+#X text 167 481 5) float;
+#X text 227 449 - sets b (default: 3);
+#X text 227 465 - sets c (default: 0.5);
+#X text 227 481 - sets d (default: 0.5);
+#X text 167 497 6) float;
+#X text 167 513 7) float;
+#X text 227 340 - list sets values of 'a' \, 'b' \, 'c' and 'd';
+#X text 149 538 Object based on SuperCollider's "LatoocarfianN" UGEN.
+The reference is "Chaos In Wonderland" (pg. 26) by Clifford Pickover.
+;
+#X text 102 339 coeffs <f \, f \, f \, f>;
+#X connect 0 0 17 0;
+#X connect 17 0 33 0;
+#X connect 33 0 24 0;

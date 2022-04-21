@@ -1,0 +1,69 @@
+#N canvas 486 25 561 456 10;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 22 40 cnv 4 4 4 empty empty Schmitt 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 90 40 cnv 4 4 4 empty empty trigger 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1;
+#X restore 304 3 graph;
+#X obj 2 2 cnv 15 301 42 empty empty schmitt 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 2 428 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 4 260 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 344 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 380 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 106 270 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 106 293 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 106 317 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 106 352 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 207 293 - low threshold level;
+#X text 206 317 - high threshold level;
+#X text 137 387 1) float;
+#X text 137 403 2) float;
+#X text 207 387 - sets low threshold (default 0);
+#X text 207 269 - values to analyze;
+#X text 207 351 - 1/0 depending on the analysis;
+#X text 207 403 - sets high threshold (default 1);
+#X obj 200 225 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 155 268 float;
+#X text 155 293 float;
+#X text 155 317 float;
+#X text 156 351 float;
+#X obj 203 144 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 200 169 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 200 195 else/schmitt -0.5 0.5;
+#X text 63 89 [schmitt] is a Schmitt trigger. When the input is greater
+than or equal to the high threshold level \, the output is 1 and becomes
+0 when the signal is equal to or less than the reset level (low threshold).
+, f 69;
+#X connect 33 0 34 0;
+#X connect 34 0 35 0;
+#X connect 35 0 28 0;

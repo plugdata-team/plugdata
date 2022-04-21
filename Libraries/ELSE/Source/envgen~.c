@@ -1,7 +1,9 @@
 // porres 2018-2022
 
 #include "m_pd.h"
+#include <stdlib.h>
 #include <math.h>
+
 
 #define MAX_SEGS  64 // maximum line segments
 
@@ -246,7 +248,7 @@ static void envgen_init(t_envgen *x, int ac, t_atom *av){
         }
         int exp = (ac % 3) + 1;
         int nlines = (int)(ac/3);
-        t_atom temp_at[ac-nlines];
+        t_atom* temp_at = malloc(sizeof(t_atom) * ac-nlines);
         int j = 0, k = 0;
         for(i = 0; i < ac; i++){
             if(i % 3 == exp){
@@ -262,6 +264,7 @@ static void envgen_init(t_envgen *x, int ac, t_atom *av){
 //        x->x_av = getbytes(x->x_ac * sizeof(*(x->x_av)));
         copy_atoms(temp_at, x->x_av, x->x_ac);
         envgen_attack(x, x->x_ac, x->x_av);
+        freebytes(temp_at, sizeof(t_atom) * ac-nlines);
     }
 }
 
@@ -441,7 +444,7 @@ static void *envgen_new(t_symbol *s, int ac, t_atom *av){
                         goto errstate;
                     int exp = (z % 3) + 1;
                     int nlines = (int)(z/3);
-                    t_atom temp_at[z-nlines];
+                    t_atom* temp_at = malloc(z-nlines * sizeof(t_atom));
                     int j = 0, k = 0;
                     for(i = 0; i < ac; i++){
                         if(i % 3 == exp){
@@ -456,6 +459,7 @@ static void *envgen_new(t_symbol *s, int ac, t_atom *av){
                     x->x_exp = 1;
 //                    x->x_av = getbytes(k*sizeof(*(x->x_av)));
                     copy_atoms(temp_at, x->x_av, x->x_ac = k);
+                    freebytes(temp_at, z-nlines * sizeof(t_atom));
                     ac-=z, av+=z;
                 }
                 else

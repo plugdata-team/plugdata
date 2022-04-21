@@ -1,0 +1,72 @@
+#N canvas 507 23 564 486 10;
+#X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 459 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 306 5 graph;
+#X obj 17 42 cnv 4 4 4 empty empty Power 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 75 42 cnv 4 4 4 empty empty function 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 4 5 cnv 15 301 42 empty empty power~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 5 graph;
+#X obj 6 458 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 9 340 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 9 395 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 9 428 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X text 128 404 signal;
+#X obj 97 350 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 97 371 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 97 405 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 247 175 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 128 349 float/signal;
+#X text 128 349 float/signal;
+#X text 128 372 float/signal;
+#X obj 492 73 else/setdsp~;
+#X text 210 404 - the signal raised to the given power;
+#X obj 250 155 hsl 128 15 0.1 10 1 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 160 164 osc~ 440;
+#X obj 160 197 else/power~ 0.1;
+#X text 211 349 - signal input;
+#X text 212 371 - exponential factor;
+#X text 307 175 exponential factor;
+#X text 156 436 1) float - exponential factor (default 1);
+#X obj 145 42 cnv 4 4 4 empty empty waveshaper 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 46 89 [power~] is a power functiona waveshaper for signals
+that extends the usual definition of exponentiation and returns -pow(-a
+\, b) when you have a negative signal input. This allows not only the
+output of negative values but also the exponentiation of negative values
+by noninteger exponents., f 68;
+#X text 442 271 see also:;
+#X obj 437 293 else/drive~;
+#X obj 160 228 else/oscope~ 200 100 2 3 128 -1 1 150 0 0 0 30 30 30
+190 190 190 160 160 160 0 empty;
+#X connect 20 0 28 1;
+#X connect 26 0 20 0;
+#X connect 27 0 28 0;
+#X connect 28 0 37 0;

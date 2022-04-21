@@ -1,0 +1,92 @@
+#N canvas 545 23 561 614 10;
+#X text 149 532 1) float;
+#X text 149 550 2) float;
+#X text 205 566 - sets maximum value (default 127);
+#X text 205 550 - sets minimum value (default 0);
+#X obj 119 290 cnv 17 3 115 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X obj 119 410 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 119 464 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 119 432 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 210 290 -;
+#X text 179 290 bang;
+#X text 210 311 -;
+#X text 172 311 float;
+#X text 210 411 -;
+#X text 172 411 float;
+#X text 210 433 -;
+#X text 172 433 float;
+#X text 172 467 float;
+#X text 132 348 seed <float> -;
+#X text 138 369 set <float> -;
+#X text 225 348 seeds the internal random number generator, f 50;
+#X text 225 369 sets the current value (without output), f 50;
+#X text 225 290 triggers a random output, f 50;
+#X text 225 311 sets new current value and outputs it, f 50;
+#X text 149 566 3) float;
+#X text 210 467 - random number output as result of the random walk
+;
+#X text 225 411 sets lower bound, f 50;
+#X text 225 433 sets upper bound, f 50;
+#X text 150 387 p <float> -;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 3 graph;
+#X obj 22 40 cnv 4 4 4 empty empty Drunkard's 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 111 40 cnv 4 4 4 empty empty walk 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty drunkard 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 153 40 cnv 4 4 4 empty empty algorithm 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 4 586 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 6 281 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 455 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 521 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 490 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 89 501 -seed <float> - sets seed | -p <float> - sets probability
+(default 70), f 70;
+#X text 225 387 sets probability of a positive step in %, f 50;
+#X text 205 532 - sets step range (default 1);
+#X obj 209 222 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 132 328 step <float> -;
+#X text 225 328 sets step range, f 50;
+#X obj 206 136 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X floatatom 206 249 9 0 0 0 - - - 12;
+#X text 66 95 [drunkard] generates random numbers within a given step
+range from the last output. When reaching the bounds \, the values
+get wrapped., f 68;
+#X obj 206 193 else/drunkard -p 100 0.1;
+#X obj 206 164 metro 200;
+#X connect 49 0 53 0;
+#X connect 52 0 56 0;
+#X connect 55 0 49 0;
+#X connect 56 0 55 0;

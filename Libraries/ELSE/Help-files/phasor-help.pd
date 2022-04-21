@@ -1,0 +1,100 @@
+#N canvas 512 23 561 488 12;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Control 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 85 40 cnv 4 4 4 empty empty phasor 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty phasor 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 3 251 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 341 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 409 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 107 350 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 462 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 107 313 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 242 314 phase sync (ressets internal phase);
+#X text 164 419 1) float;
+#X text 230 438 - initial phase offset (default 0);
+#X text 230 419 - frequency in hertz (default 0);
+#X text 164 438 2) float;
+#X text 171 314 float -;
+#X obj 194 149 nbx 4 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X text 167 147 Hz;
+#X msg 282 148 0;
+#X text 320 147 <= resets phase.;
+#X msg 299 179 0.5;
+#N canvas 971 247 651 298 rate 0;
+#X obj 196 104 else/display;
+#X obj 196 72 else/sr~ -ms;
+#X msg 432 104 rate \$1;
+#X obj 432 78 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 435 52 hsl 128 15 0.1 200 1 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 432 212 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X text 28 221 You can change the rate with the -rate flag or the "rate"
+message. This affects the period resolution, f 50;
+#X text 28 22 [phasor~] runs at the sample rate which has a period
+in ms given by the [sr~] object., f 50;
+#X text 29 150 By default \, [phasor] runs at a rate whose period is
+1 ms and the minimum rate is 0.1 ms. The maximum frequency that [phasor]
+can run is half the frequency of the given rate (500 hz default).,
+f 50;
+#X obj 435 173 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 432 136 else/phasor 0.5 -rate 20;
+#X connect 1 0 0 0;
+#X connect 2 0 10 0;
+#X connect 3 0 2 0;
+#X connect 4 0 3 0;
+#X connect 9 0 5 0;
+#X connect 10 0 9 0;
+#X restore 469 217 pd rate;
+#X obj 3 374 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 104 384 -rate <float>;
+#X text 209 384 - rate period in ms (default 1 \, min 0.1);
+#X obj 109 266 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 241 267 frequency in hz;
+#X text 171 266 float -;
+#X text 122 286 rate <float> -;
+#X text 241 287 rate period in ms;
+#X obj 194 179 else/phasor 1;
+#X obj 197 217 hsl 128 18 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 171 350 float -;
+#X text 239 350 "phase" value from 0 to 127;
+#X text 58 93 This is like the [phasor~] but operates in a control
+rate (with a maximum resolution of 1 ms).;
+#X connect 24 0 38 0;
+#X connect 26 0 38 1;
+#X connect 28 0 38 1;
+#X connect 38 0 39 0;

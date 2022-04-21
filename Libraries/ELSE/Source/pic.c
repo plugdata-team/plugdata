@@ -2,7 +2,13 @@
 
 #include <m_pd.h>
 #include <g_canvas.h>
+
+#ifdef _WIN32
+#include <io.h>
+#else
 #include <unistd.h>
+#endif
+
 #include <string.h>
 
 #ifdef _MSC_VER

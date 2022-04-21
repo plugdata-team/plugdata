@@ -1,0 +1,79 @@
+#N canvas 492 64 558 427 10;
+#X obj 22 42 cnv 4 4 4 empty empty Midi 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 65 42 cnv 4 4 4 empty empty control 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 2 5 cnv 15 301 42 empty empty ctl.out 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 5 graph;
+#X obj 1 241 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 325 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 362 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 1 401 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 202 372 -;
+#X obj 124 42 cnv 4 4 4 empty empty output 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 170 335 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 254 334 -;
+#X text 214 335 float;
+#X obj 305 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 5 pd;
+#X obj 344 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X text 269 334 raw MIDI stream, f 31;
+#X text 27 176 see also:;
+#X obj 231 211 midiout;
+#X obj 222 149 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 271 148 nbx 3 14 0 127 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 271 129 #;
+#X text 221 129 value;
+#X obj 321 148 nbx 2 14 1 16 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 314 129 channel;
+#X obj 171 249 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 215 251 float;
+#X text 255 274 -;
+#X text 215 274 float;
+#X obj 171 271 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 171 295 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 255 297 -;
+#X text 215 297 float;
+#X text 268 274 control number, f 31;
+#X text 256 251 - control value;
+#X text 269 297 MIDI channel;
+#X obj 34 198 else/ctl.in;
+#X obj 231 182 else/ctl.out 4;
+#X text 89 87 [ctl.out] formats and sends raw MIDI control messages.
+An argument sets channel number (the default is 1).;
+#X text 143 372 1) list;
+#X text 216 371 1 float sets channel number (default 1). Two floats
+set control# (default 1) and channel, f 51;
+#X connect 24 0 42 0;
+#X connect 25 0 42 1;
+#X connect 28 0 42 2;
+#X connect 42 0 23 0;

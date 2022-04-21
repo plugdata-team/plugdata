@@ -1,0 +1,74 @@
+#N canvas 716 63 562 535 10;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Normalizer 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 3 cnv 15 301 42 empty empty norm~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 4 357 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 415 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 478 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 509 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 139 424 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 139 365 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 181 365 signal;
+#X text 181 424 signal;
+#X obj 139 388 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 448 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 115 456 -size <float>;
+#X text 187 388 float;
+#X obj 328 147 nbx 5 14 -100 0 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 182 128 else/player~ violin.wav 1 1, f 14;
+#X text 293 145 dBFS;
+#X obj 182 208 else/meter2~;
+#X obj 265 209 else/out~;
+#X text 230 365 - signal to be normalized;
+#X msg 273 280 \$3;
+#X obj 273 330 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 273 305 else/rint;
+#X text 175 484 1) float - normalize level in dBFS (default 0);
+#X text 229 387 - normalize level in dBFS;
+#X text 230 424 - normalized signal;
+#X text 201 456 - sets analysis window size in samples (default 1024)
+;
+#X text 290 127 normalize level;
+#X obj 247 173 else/norm~ -20;
+#X text 70 86 [norm~] is a normalizer abstraction based on [mov.rms~].
+It takes a normalization value in dBFS and a window analysis size.
+, f 56;
+#X connect 23 0 37 1;
+#X connect 24 0 26 0;
+#X connect 24 0 37 0;
+#X connect 26 2 29 0;
+#X connect 29 0 31 0;
+#X connect 31 0 30 0;
+#X connect 37 0 26 1;
+#X connect 37 0 27 0;

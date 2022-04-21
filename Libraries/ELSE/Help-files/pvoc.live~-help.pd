@@ -1,0 +1,78 @@
+#N canvas 476 25 565 519 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 4 graph;
+#X obj 22 41 cnv 4 4 4 empty empty Pitc-Shift 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 4 cnv 15 301 42 empty empty pvoc.live~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X obj 174 232 else/out~;
+#X obj 256 174 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 339 174 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 4 489 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 6 297 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 386 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 423 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 130 396 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 130 306 cnv 17 3 30 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 130 340 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 130 363 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 102 41 cnv 4 4 4 empty empty Time-Stretch 0 28 2 18 #e0e0e0
+#000000 0;
+#X text 254 155 speed (%);
+#X text 339 156 cents;
+#X text 476 214 see also:;
+#X text 175 307 signal - audio signal input, f 51;
+#X text 181 341 float - sets speed, f 50;
+#X text 181 364 float - sets transposition in cents, f 50;
+#X text 187 322 bang - resets to the beginning of the delay line,
+f 49;
+#X text 148 450 2) float - sets playing speed (default 100), f 61
+;
+#X text 148 466 3) float - sets transposition in cents (default 0)
+, f 61;
+#X obj 174 132 else/play.file~ 1 violin.wav 1 1;
+#X obj 141 154 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 175 397 signal - processed output;
+#X obj 174 197 else/pvoc.live~ 6000 50 -600;
+#X text 52 89 [pvoc.live~] is like [pvoc.player~] \, but for live input.
+It provides independent time stretching and pitch shifting via granulation.
+, f 69;
+#X text 86 154 reset =>;
+#X text 148 432 1) float - sets buffer size in ms (default 5000),
+f 61;
+#X obj 418 260 else/stretch.shift~;
+#X obj 429 238 else/pvoc.player~;
+#X connect 12 0 35 1;
+#X connect 13 0 35 2;
+#X connect 32 0 35 0;
+#X connect 33 0 35 0;
+#X connect 35 0 11 0;

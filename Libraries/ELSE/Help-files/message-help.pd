@@ -1,0 +1,112 @@
+#N canvas 577 57 561 433 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 89 41 cnv 4 4 4 empty empty messages 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 4 cnv 15 301 42 empty empty message 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 4 graph;
+#X obj 4 248 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 319 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 352 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 175 329 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 176 257 cnv 17 3 32 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 408 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 202 329 anything;
+#X obj 4 380 cnv 3 550 3 empty empty click 8 12 0 13 #dcdcdc #000000
+0;
+#X text 256 329 - the message;
+#X text 176 388 clicking on the outputs the message;
+#X obj 235 217 else/display;
+#X text 182 190 click =>;
+#X obj 235 164 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#N canvas 747 184 411 458 syntax 0;
+#X text 30 20 Like a regular message box \, a comma will split the
+message in different ones inside the same box.;
+#X obj 122 62 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 122 122 print Message;
+#X obj 110 208 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 122 92 else/message 1 \, 2 \, 3;
+#X obj 239 214 receive \$0-a;
+#X obj 239 242 print Receive;
+#X obj 110 238 else/message \; \$0-a 1 \, 2 \, 3;
+#X obj 125 409 print Message;
+#X obj 125 379 else/message, f 13;
+#X obj 247 401 else/display;
+#X msg 200 346 1 \\\, 2 \\\, 3;
+#X obj 95 345 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X msg 125 346 \\\; \\\$0-f 8;
+#X obj 247 375 r \$0-f;
+#X text 64 163 It can also deal with semicolons \, which turn the message
+box into a send object., f 40;
+#X text 86 303 You can use backslashes to escape commas \, semicolons
+and dollar signs., f 37;
+#X connect 1 0 4 0;
+#X connect 3 0 7 0;
+#X connect 4 0 2 0;
+#X connect 5 0 6 0;
+#X connect 9 0 8 0;
+#X connect 11 0 9 1;
+#X connect 12 0 9 0;
+#X connect 13 0 9 0;
+#X connect 14 0 10 0;
+#X restore 477 219 pd syntax;
+#X text 172 359 1) anything -;
+#X text 226 258 bang;
+#X obj 35 41 cnv 4 4 4 empty empty Store 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 235 189 else/message a b c;
+#X text 31 190 see also:;
+#X obj 28 212 else/initmess;
+#X text 256 258 - outputs the message;
+#X text 202 274 anything;
+#X text 256 274 - sets and outputs the message;
+#X obj 175 295 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 202 296 anything;
+#X msg 350 165 1 2 3;
+#X text 71 87 The [message] object stores and outputs any kind of message
+in Pd. As an object \, \$1/\$2 loads arguments when used in an abstraction
+\, so the syntax is not the same as a message box. Nonetheless \, it
+deals with comma and semicolons in the same way as regular message
+boxes do. See [pd syntax] for more details., f 69;
+#X msg 361 190 bang;
+#X msg 270 164 list x y;
+#X symbolatom 182 163 7 0 0 0 - - - 0;
+#X floatatom 340 143 5 0 0 0 - - - 0;
+#X text 256 296 - sets the message (bang message also allowed);
+#X text 257 359 message output (default "bang");
+#X connect 23 0 28 0;
+#X connect 28 0 21 0;
+#X connect 36 0 28 1;
+#X connect 38 0 28 1;
+#X connect 39 0 28 0;
+#X connect 40 0 28 0;
+#X connect 41 0 28 1;

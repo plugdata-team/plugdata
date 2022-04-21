@@ -1,0 +1,58 @@
+#N canvas 714 23 567 486 10;
+#X obj 307 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 346 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 459 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 306 4 graph;
+#X obj 23 41 cnv 4 4 4 empty empty Expander 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 4 4 cnv 15 301 42 empty empty expand~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 4 graph;
+#X obj 5 457 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 7 271 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 353 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 386 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 107 362 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 107 278 cnv 17 3 70 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 146 423 3) float;
+#X text 146 393 1) float;
+#X text 181 275 signal - input signal, f 48;
+#X text 133 289 thresh <float> - sets threshold in dB, f 56;
+#X text 139 303 ratio <float> - sets attenuation ratio, f 55;
+#X text 133 317 attack <float> - sets attack time in ms, f 56;
+#X text 127 331 release <float> - sets release time in ms, f 57;
+#X text 146 408 2) float;
+#X text 211 423 - attack time in ms (default 10), f 46;
+#X text 211 408 - attenuation ratio (default 1), f 46;
+#X obj 184 206 else/out~;
+#X text 211 438 - release time in ms (default 10), f 46;
+#X text 211 393 - threshold in dB (default -10), f 46;
+#X text 181 363 signal - compressed signal, f 46;
+#X text 146 438 4) float;
+#X obj 184 140 else/play.file~ 1 kantele.wav 1 1;
+#X text 66 94 [expand~] is an abstraction that performs expanding.
+It attenuates an input signal below a given threshold.;
+#X obj 184 167 else/expand~ -15 5 10 10 0;
+#X connect 32 0 34 0;
+#X connect 34 0 27 0;

@@ -1,0 +1,90 @@
+#N canvas 505 49 560 528 10;
+#X obj 4 307 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 409 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 461 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 116 418 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 117 315 cnv 17 3 67 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 504 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 2 pd;
+#X obj 345 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 39 cnv 4 4 4 empty empty Bang 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 70 39 cnv 4 4 4 empty empty divider 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 2 cnv 15 301 42 empty empty bangdiv 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 2 graph;
+#X text 168 469 1) float - divide value (default 1);
+#X text 143 332 div <float>;
+#X text 131 350 start <float>;
+#X text 168 486 2) float - start count value (default 0);
+#X text 222 350 - sets the start value;
+#X text 222 332 - sets the division value (minimum: 1);
+#X text 127 278 divided count;
+#X msg 297 178 start \$1;
+#X msg 242 178 div \$1;
+#X floatatom 297 156 5 0 0 0 - - - 0;
+#X floatatom 242 156 5 0 0 0 - - - 0;
+#X obj 214 275 else/display;
+#X obj 214 159 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 214 249 else/count;
+#X text 61 85 [bangdiv] outputs bangs when receiving bangs \, but doesn't
+discards a number of bangs corresponding to a division value. The first
+bang in the count is output. A starting value lets you start in the
+middle of a count. If the start value is negative \, it adds that many
+counts to the first time a bang is output., f 69;
+#X text 185 315 bang;
+#X text 222 315 - bang to be divided;
+#X text 179 368 reset;
+#X text 222 367 - resets the counter to the start value;
+#X text 185 418 bang;
+#X text 222 418 - divided bangs;
+#X obj 294 250 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 316 251 rest;
+#X obj 116 439 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 185 439 bang;
+#X text 222 439 - when we have a rest;
+#X msg 165 170 reset;
+#X obj 213 219 else/bangdiv 4;
+#X obj 116 386 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 179 386 float;
+#X text 222 386 - sets the division value (minimum: 1);
+#X floatatom 376 183 5 0 0 0 - - - 0;
+#X connect 25 0 45 0;
+#X connect 26 0 45 0;
+#X connect 27 0 25 0;
+#X connect 28 0 26 0;
+#X connect 30 0 45 0;
+#X connect 31 0 29 0;
+#X connect 44 0 31 0;
+#X connect 44 0 45 0;
+#X connect 45 0 31 0;
+#X connect 45 1 39 0;
+#X connect 49 0 45 1;

@@ -1,0 +1,110 @@
+#N canvas 493 23 560 451 10;
+#X obj 4 262 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 354 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 389 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 93 363 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 422 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Report 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 80 40 cnv 4 4 4 empty empty last 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 112 40 cnv 4 4 4 empty empty value 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 196 113 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 196 140 random 100;
+#X obj 3 3 cnv 15 301 42 empty empty lastvalue 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 93 270 cnv 17 3 42 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 192 363 - last input value;
+#X text 61 88 [lastvalue] reports the last input value;
+#X text 152 269 float;
+#X text 151 363 float;
+#X obj 93 318 cnv 17 3 30 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 152 318 float;
+#X obj 196 166 else/display 2;
+#X obj 196 230 else/display 2;
+#X text 92 169 current value =>;
+#X text 110 233 last value =>;
+#X floatatom 289 173 5 0 0 0 - - - 0;
+#X text 327 172 <= set last value;
+#X text 126 399 1) float - initial last value (default none);
+#X text 158 333 bang;
+#X text 192 318 - sets last value;
+#X text 192 333 - sets last value to none;
+#N canvas 940 102 422 464 argument 0;
+#X obj 129 140 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 129 167 random 100;
+#X obj 129 193 else/display 2;
+#X obj 129 334 else/display 2;
+#X text 25 196 current value =>;
+#X text 43 337 last value =>;
+#X floatatom 210 215 5 0 0 0 - - - 0;
+#X text 248 214 <= set last value;
+#X obj 129 301 else/lastvalue;
+#X obj 224 250 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 245 248 <= set to none;
+#X text 51 21 If there's no argument \, by default \, the last value
+is "none". This means that the first input does not output anything.
+A bang into the right inlet resets the object so the next input also
+does not cause an output., f 51;
+#X text 54 387 An argument sets the initial last value \, which will
+be the first output., f 50;
+#X msg 147 261 reset 10;
+#X msg 142 231 reset;
+#X text 51 87 The 'reset' message also sets the last value. If no float
+is given \, it sets to 'none'., f 51;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 8 0;
+#X connect 6 0 8 1;
+#X connect 8 0 3 0;
+#X connect 9 0 8 1;
+#X connect 13 0 8 0;
+#X connect 14 0 8 0;
+#X restore 461 233 pd argument;
+#X text 305 197 <= argument is last (first) value;
+#X text 192 269 - stotes value and outputs last value;
+#X text 104 297 reset <float>;
+#X text 192 297 - resets object and sets last value \, no float sets
+to none;
+#X obj 196 198 else/lastvalue 4;
+#X obj 237 171 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 158 283 bang;
+#X text 192 283 - outputs last stored value;
+#X connect 16 0 17 0;
+#X connect 17 0 27 0;
+#X connect 27 0 42 0;
+#X connect 31 0 42 1;
+#X connect 42 0 28 0;
+#X connect 43 0 42 0;

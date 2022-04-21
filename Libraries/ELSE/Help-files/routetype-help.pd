@@ -1,0 +1,239 @@
+#N canvas 511 23 563 556 10;
+#X obj 112 236 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 39 cnv 4 4 4 empty empty Route 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 75 39 cnv 4 4 4 empty empty message 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 2 graph;
+#X obj 3 2 cnv 15 301 42 empty empty routetype 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 2 graph;
+#X obj 7 531 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 7 379 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 413 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 481 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 93 422 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 93 387 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 94 214 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 145 39 cnv 4 4 4 empty empty types 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 103 490 1) anything -;
+#X obj 94 447 cnv 17 3 17 empty empty n+1 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X text 137 423 anything -;
+#X text 206 423 any message that corresponds to a type defined by the
+argument, f 51;
+#X obj 94 339 else/display;
+#X obj 161 338 else/display;
+#X obj 229 338 else/display;
+#X msg 32 237 symbol x;
+#X msg 143 236 1 2;
+#X obj 297 338 else/display;
+#X obj 365 338 else/display;
+#X msg 163 286 any other;
+#X msg 153 261 list a b;
+#X text 138 448 anything -;
+#X text 137 387 anything - any message to be routed according to its
+type;
+#X text 68 143 These 5 types are given as arguments \, and there's
+an outlet corresponding to each given argument that sends out the message
+type according to the argumentm(bang" \, "float" \, "list" \, "symbol"
+or "any").;
+#N canvas 616 370 771 334 unmatch 0;
+#X obj 119 100 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 101 78 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 101 205 else/display;
+#X obj 160 204 else/display;
+#X msg 164 154 symbol x;
+#X msg 145 101 1 2;
+#X msg 157 134 any other;
+#X obj 526 160 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 508 138 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 508 265 else/display;
+#X msg 446 161 symbol x;
+#X msg 557 160 1 2;
+#X msg 577 210 any other;
+#X msg 567 185 list a b;
+#X obj 508 242 else/routetype;
+#X obj 101 182 else/routetype bang float list;
+#X obj 278 204 else/display;
+#X text 279 229 unmatched;
+#X obj 219 205 else/display;
+#X text 223 144 <= unmatched;
+#X text 178 89 <= matched;
+#X text 36 261 Clearly \, if you give it 4 argument with message types
+\, then the remaining outlet can only be the one remaining message
+type.;
+#X text 384 81 If no arguments are given \, only the unmatched outlet
+is created \, and all messages are sent through!;
+#X text 38 20 If you give less than 6 arguments \, there's an extra
+rightmost outlet that will send the message types that were not matched.
+, f 62;
+#X connect 0 0 15 0;
+#X connect 1 0 15 0;
+#X connect 4 0 15 0;
+#X connect 5 0 15 0;
+#X connect 6 0 15 0;
+#X connect 7 0 14 0;
+#X connect 8 0 14 0;
+#X connect 10 0 14 0;
+#X connect 11 0 14 0;
+#X connect 12 0 14 0;
+#X connect 13 0 14 0;
+#X connect 14 0 9 0;
+#X connect 15 0 2 0;
+#X connect 15 1 3 0;
+#X connect 15 2 18 0;
+#X connect 15 3 16 0;
+#X restore 477 255 pd unmatch;
+#N canvas 606 165 537 518 anything 0;
+#X obj 149 445 else/display;
+#X obj 234 444 else/display;
+#X obj 319 446 else/display;
+#X msg 58 212 a b;
+#X msg 36 189 list a b;
+#X obj 58 241 trigger anything list;
+#X obj 308 241 trigger anything symbol;
+#X msg 308 210 x;
+#X msg 286 187 symbol x;
+#X text 68 17 The "Anything" message type of [routetype] is similar
+to what "anything" means for the [trigger] object \, where it is a
+type that is not the same as the other ones (bang \, float \, list
+\, symbol). That means it is a message without a selector \, such as
+"a" (instead of "symbol a") and "a b" (instead of "list a b")., f
+62;
+#X text 70 97 Note that [trigger] can convert some message types \,
+but not all. In the case of "anythings" \, its help file states that
+it can only convert that into a "bang". So \, for instance \, we have
+errors below when trying to convert anything to a list or symbol.;
+#X text 337 211 see error in terminal window;
+#X text 85 213 see error in terminal window;
+#X msg 149 333 list a b;
+#X msg 205 388 a b;
+#X msg 165 359 symbol x;
+#X msg 236 388 x;
+#X obj 149 422 else/routetype list symbol anything, f 43;
+#X text 262 387 anythings;
+#X text 225 360 symbol;
+#X text 208 333 list;
+#X obj 443 269 else/display;
+#X obj 308 268 else/display;
+#X obj 181 268 else/display;
+#X obj 58 268 else/display;
+#X connect 3 0 5 0;
+#X connect 4 0 5 0;
+#X connect 5 0 24 0;
+#X connect 5 1 23 0;
+#X connect 6 0 22 0;
+#X connect 6 1 21 0;
+#X connect 7 0 6 0;
+#X connect 8 0 6 0;
+#X connect 13 0 17 0;
+#X connect 14 0 17 0;
+#X connect 15 0 17 0;
+#X connect 16 0 17 0;
+#X connect 17 0 0 0;
+#X connect 17 1 1 0;
+#X connect 17 2 2 0;
+#X restore 477 275 pd anything;
+#X text 65 88 [routetype] routes messages according to its type \,
+such as "bang" \, "float" \, "list" and "symbol". There is also the
+"anything" type \, which is can be defined as "any other" message that
+is not the former ones., f 66;
+#N canvas 691 267 458 320 routeall 0;
+#X obj 89 159 else/routeall bang float symbol list;
+#X msg 89 129 x;
+#X obj 302 184 else/display;
+#X text 302 212 unmatched;
+#X text 57 253 Hence \, the [routetype] object can be much more convenient
+for routing message types.;
+#X text 36 25 The [routeall] object can behave very similarly to [routetype].
+There are a few differences though between the two. The main difference
+is that you can't have an "anything" message type \, unless you specify
+all message selectors and expect "anythings" as the unmathed input.
+Moreover \, [routetype] can handle pointers., f 63;
+#X connect 0 4 2 0;
+#X connect 1 0 0 0;
+#X restore 477 295 pd routeall;
+#N canvas 672 257 458 320 list 0;
+#X msg 102 103 list;
+#X text 180 125 a list with 1 float is converted to a float, f 22
+;
+#X msg 134 132 list 1;
+#X obj 69 218 else/display;
+#X msg 151 162 list a;
+#X text 196 156 a list with 1 symbol is converted to a symbol, f 23
+;
+#X text 35 31 In Pd \, there are special cases of list messages where
+they are converted to other message types - [routeall] also considers
+such messages not as lists.;
+#X text 137 98 a list without elements is converted to a bang, f 23
+;
+#X obj 151 241 else/display;
+#X obj 224 241 else/display;
+#X obj 151 215 else/routetype list float;
+#X obj 298 241 else/display;
+#X msg 161 189 list a b;
+#X text 217 188 a list indeed;
+#X connect 0 0 3 0;
+#X connect 0 0 10 0;
+#X connect 2 0 3 0;
+#X connect 2 0 10 0;
+#X connect 4 0 3 0;
+#X connect 4 0 10 0;
+#X connect 10 0 8 0;
+#X connect 10 1 9 0;
+#X connect 10 2 11 0;
+#X connect 12 0 10 0;
+#X connect 12 0 3 0;
+#X restore 477 315 pd list;
+#X text 207 448 if less than the 6 types are given as arguments \,
+an extra outlet sends the uncorresponding messages;
+#X text 189 490 list of message types to route (bang/b \, float/f \,
+symbol/s \, list/l \, anything/a \, pointer/p). If no argument is given
+\, all message types are sent to the outlet;
+#X obj 94 316 else/routetype bang float symbol list anything pointer
+, f 57;
+#X obj 257 277 else/routetype b f s l a p;
+#X text 259 253 Can be abbreviated as:;
+#X connect 0 0 44 0;
+#X connect 19 0 44 0;
+#X connect 28 0 44 0;
+#X connect 29 0 44 0;
+#X connect 32 0 44 0;
+#X connect 33 0 44 0;
+#X connect 44 0 25 0;
+#X connect 44 1 26 0;
+#X connect 44 2 27 0;
+#X connect 44 3 30 0;
+#X connect 44 4 31 0;

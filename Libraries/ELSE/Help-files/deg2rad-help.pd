@@ -1,0 +1,79 @@
+#N canvas 567 46 560 429 10;
+#X obj 4 255 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 305 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 371 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 136 314 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 137 264 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 401 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 143 161 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Degrees 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 89 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 112 40 cnv 4 4 4 empty empty radians 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 173 40 cnv 4 4 4 empty empty conversion 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 2 3 cnv 15 301 42 empty empty deg2rad 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X text 165 314 float;
+#X obj 170 187 else/deg2rad 180;
+#X obj 170 161 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X obj 170 214 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X obj 313 161 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 340 161 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X obj 340 214 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X text 171 281 bang;
+#X text 201 281 - convert the last value;
+#X text 165 265 float;
+#X text 201 265 - input degree value to convert to radians;
+#X text 157 380 1) float - initial degree value (default 0);
+#X text 201 314 - the converted value in radians;
+#X obj 4 339 cnv 3 550 3 empty empty -flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 24 189 see also:;
+#X obj 24 211 else/rad2deg;
+#X text 63 88 [deg2rad] converts degrees (0 to 360) to radians (0 to
+2*pi). You can also convert negative values from 0 to -360 (0 to -2*pi)
+\, unless you give it the -pos \, so values are wrapped to positive.
+Values outside the input range are wrapped., f 69;
+#X obj 340 187 else/deg2rad -pos;
+#X text 117 348 -pos: wrap to positive only (default: allow also negative)
+;
+#X connect 6 0 22 0;
+#X connect 22 0 24 0;
+#X connect 23 0 22 0;
+#X connect 25 0 38 0;
+#X connect 26 0 38 0;
+#X connect 38 0 27 0;

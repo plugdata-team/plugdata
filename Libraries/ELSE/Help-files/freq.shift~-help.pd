@@ -1,0 +1,97 @@
+#N canvas 447 32 562 480 10;
+#X obj 5 451 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 6 299 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 376 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 416 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 110 309 cnv 17 3 33 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 172 309 signal;
+#X obj 109 350 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 109 387 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 172 388 signal;
+#X text 136 352 float/signal;
+#X text 178 328 clear;
+#X text 161 428 1) float;
+#X text 225 309 - signal to be shifted in frequency;
+#X text 225 352 - the requency shift value;
+#X obj 294 147 hsl 128 15 -220 220 0 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 291 168 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 309 147 frequency shift;
+#X obj 174 161 osc~ 440;
+#X obj 3 2 cnv 15 301 42 empty empty freq.shift~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 2 graph;
+#X obj 27 39 cnv 4 4 4 empty empty Frequency 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 114 39 cnv 4 4 4 empty empty shifter 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 307 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 306 3 pd;
+#X obj 346 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 459 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 479 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 516 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 465 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 503 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 174 230 else/out~;
+#X obj 291 230 else/out~;
+#X text 225 328 - clears filter's memory;
+#X text 121 209 shift =>;
+#X text 314 204 <= opposite shift;
+#N canvas 699 174 483 410 details 0;
+#X obj 152 249 hilbert~;
+#X obj 163 289 complex-mod~;
+#X msg 197 223 bang;
+#X text 232 220 <= clear filter memory;
+#X obj 152 186 osc~ 440;
+#X obj 232 260 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 282 259 <= frequency shift;
+#X text 65 29 [freq.shift~] is a frequency shifter (not a pitch shifter!)
+implemented via complex amplitude modulation. This is also known as
+a single-sideband modulation \, as opposed to a ring modulation that
+has two sidebands. Therefore \, the left outlet is the frequency shifted
+signal and the right outlet carries the second sideband in the opposite
+direction as there'd be in the case of a ring modulation.;
+#X text 66 118 [freq.shift~] is the same as a conjunction of the [hilbert~]
+and [complex-mod~] abstractions available as "extra" in Pd Vanilla.
+;
+#X obj 157 322 else/out~;
+#X connect 0 0 1 0;
+#X connect 0 1 1 1;
+#X connect 1 0 9 0;
+#X connect 1 1 9 1;
+#X connect 2 0 0 1;
+#X connect 4 0 0 0;
+#X connect 5 0 1 2;
+#X restore 469 258 pd details;
+#X text 225 388 - frequency shifted signal;
+#X text 225 427 - the frequency shift value in hertz (default 0);
+#X obj 174 187 else/freq.shift~ 200;
+#X text 78 89 [freq.shift~] has two outputs \, the left outlet is the
+frequency shifted signal and the right outlet is the signal shifted
+in the opposite direction., f 63;
+#X connect 14 0 15 0;
+#X connect 15 0 38 1;
+#X connect 17 0 38 0;
+#X connect 38 0 30 0;
+#X connect 38 1 31 0;

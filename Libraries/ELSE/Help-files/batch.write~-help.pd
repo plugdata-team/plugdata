@@ -1,0 +1,80 @@
+#N canvas 502 67 565 455 10;
+#X obj 7 428 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 7 279 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 346 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 379 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 90 355 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 324 cnv 17 3 17 empty empty 0-n 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X text 128 302 set <symbol> -;
+#X text 116 387 1) symbol;
+#X text 116 404 2) float;
+#X obj 90 285 cnv 17 3 32 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 163 324 signal - signal inputs to record for each channel;
+#X text 163 355 bang - outputs a bang when stops recording;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 120 41 cnv 4 4 4 empty empty write 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 22 41 cnv 4 4 4 empty empty Table 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 4 graph;
+#X obj 3 4 cnv 15 301 42 empty empty batch.write~ 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X obj 58 247 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 492 78 else/setdsp~;
+#X obj 70 41 cnv 4 4 4 empty empty batch 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 72 190 else/brown~;
+#X obj 223 189 noise~;
+#X obj 58 219 else/batch.write~ \$0-batch 2;
+#X obj 223 137 else/sample~ \$0-batch -ch 2;
+#X obj 58 158 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X text 176 285 bang -;
+#X text 221 285 record the whole array., f 52;
+#X text 221 302 sets array name, f 52;
+#X text 59 85 [batch.write~] is a convenient abstraction based on [tabwriter~]
+and the 'fast-forward' message to pd that batch records to arrays (from
+an object like [sample~])., f 65;
+#X text 182 404 - number of channels to record (default 1 \, max 64)
+, f 52;
+#X text 479 226 see also:;
+#X obj 448 245 else/batch.rec~;
+#X obj 293 215 else/out~;
+#X obj 304 190 else/tabplayer~ \$0-batch 2;
+#X text 167 137 click =>;
+#X text 81 160 <= record;
+#X msg 304 167 play;
+#X text 182 387 - array name to write to (default none);
+#X connect 27 0 29 0;
+#X connect 28 0 29 1;
+#X connect 29 0 24 0;
+#X connect 31 0 29 0;
+#X connect 40 0 39 0;
+#X connect 40 1 39 1;
+#X connect 43 0 40 0;

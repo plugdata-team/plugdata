@@ -1,0 +1,135 @@
+#N canvas 560 66 560 542 10;
+#X obj 3 3 cnv 15 301 42 empty empty limit 20 20 2 37 #e0e0e0 #000000
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Limit 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 73 40 cnv 4 4 4 empty empty message 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 144 40 cnv 4 4 4 empty empty with 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 192 40 cnv 4 4 4 empty empty time 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 2 352 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 408 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 464 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 91 361 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 91 419 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 91 383 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 128 156 tgl 20 0 empty empty empty 17 7 0 10 #d0d0d0 #000000
+#000000 0 1;
+#X obj 2 512 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 173 383 -;
+#X text 133 383 float;
+#X text 173 361 -;
+#X text 115 361 anything;
+#X text 173 419 -;
+#X text 115 419 anything;
+#X text 173 471 -;
+#X text 115 471 1) float;
+#X obj 128 214 random 100;
+#X obj 128 190 metro 50;
+#X obj 128 240 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X floatatom 363 263 5 0 0 0 - - - 0;
+#X text 360 243 change time limit;
+#X text 188 361 any message input message to be speed limited;
+#X text 188 383 changes the time limit (in ms), f 32;
+#X text 401 263 milliseconds;
+#X text 188 419 the last input in the time interval after last output
+, f 54;
+#X text 187 471 initial time limit (default 0 - no limit);
+#X obj 204 317 else/display;
+#X msg 270 263 1 2 3;
+#X msg 223 217 x;
+#X msg 258 217 a b c;
+#X msg 263 242 symbol dog;
+#X msg 204 195 list one 2 3;
+#X text 70 87 [limit] only allows messages through if a given time
+has elapsed since the previous input/output. Otherwise \, it waits
+until that time passes and then sends the last received message since
+the previous output (ignoring the others).;
+#X obj 204 288 else/limit 1000, f 27;
+#N canvas 794 278 505 358 ignore 0;
+#X obj 77 126 tgl 20 0 empty empty empty 17 7 0 10 #d0d0d0 #000000
+#000000 0 1;
+#X obj 77 184 random 100;
+#X obj 77 160 metro 50;
+#X obj 77 210 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X floatatom 312 233 5 0 0 0 - - - 0;
+#X text 309 213 change time limit;
+#X text 350 233 milliseconds;
+#X obj 153 287 else/display;
+#X msg 219 233 1 2 3;
+#X msg 172 187 x;
+#X msg 207 187 a b c;
+#X msg 212 212 symbol dog;
+#X msg 153 165 list one 2 3;
+#X obj 153 258 else/limit 1000 1, f 27;
+#X obj 312 285 else/display;
+#X text 65 19 The second argument sets to ignore mode. In this case
+\, messages received before the time limit are ignored and not sent
+after the period is done. The ignored messages are then sent to the
+right outlet. Also \, when it receives a message before the time limit
+\, the clock restarts and only passes a message to the left outlet
+when the time interval between two event is greater than the limit.
+, f 63;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X connect 3 0 13 0;
+#X connect 4 0 13 1;
+#X connect 8 0 13 0;
+#X connect 9 0 13 0;
+#X connect 10 0 13 0;
+#X connect 11 0 13 0;
+#X connect 12 0 13 0;
+#X connect 13 0 7 0;
+#X connect 13 1 14 0;
+#X restore 468 312 pd ignore;
+#X text 173 488 -;
+#X text 115 488 2) float;
+#X text 187 488 non zero sets to ignore mode (default 0);
+#X obj 91 442 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 173 442 -;
+#X text 115 442 anything;
+#X text 188 442 ignored messages (in ignore mode), f 54;
+#X connect 20 0 31 0;
+#X connect 30 0 32 0;
+#X connect 31 0 30 0;
+#X connect 32 0 47 0;
+#X connect 33 0 47 1;
+#X connect 41 0 47 0;
+#X connect 42 0 47 0;
+#X connect 43 0 47 0;
+#X connect 44 0 47 0;
+#X connect 45 0 47 0;
+#X connect 47 0 40 0;

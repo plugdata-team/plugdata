@@ -1,0 +1,114 @@
+#N canvas 521 89 561 403 10;
+#X obj 24 41 cnv 4 4 4 empty empty Break 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 79 41 cnv 4 4 4 empty empty lists 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 4 cnv 15 301 42 empty empty break 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 4 graph;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 279 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 311 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 343 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 375 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 209 214 else/break -;
+#X obj 209 248 print Break;
+#X msg 208 146 no separators at all;
+#X text 177 288 anything - any message to be broken apart;
+#X text 177 320 anything - broken lists;
+#X msg 237 180 1 2 3 -size 2048 -amp 1 -phase 0;
+#N canvas 889 247 429 368 symbol 0;
+#X msg 86 192 symbol that;
+#X obj 75 305 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 120 305 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 155 325 symbol;
+#X obj 165 305 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 62 323 -this;
+#X text 112 323 that;
+#X text 61 16 [break] can also break a symbol message. If a symbol
+has the separator character \, it will be broken apart and passed through
+not as a symbol message anymore. That means it loses its "symbol" selector.
+, f 52;
+#X text 62 76 One way to test this is with the [route] object \, which
+won't be able to route a symbol message., f 52;
+#X text 158 162 <= loses symbol selector and is routed;
+#X msg 75 163 symbol @this;
+#X obj 75 227 else/break @;
+#X obj 75 271 route @this that symbol;
+#X text 162 191 <= doesn't lose it and isn't routed;
+#X text 64 111 See below:;
+#X connect 0 0 11 0;
+#X connect 10 0 11 0;
+#X connect 11 0 12 0;
+#X connect 12 0 1 0;
+#X connect 12 1 2 0;
+#X connect 12 2 4 0;
+#X restore 477 219 pd symbol;
+#X obj 159 175 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 79 162 floats go through =>, f 10;
+#N canvas 899 67 514 395 [args] 0;
+#X obj 131 93 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 131 167 else/display;
+#X text 87 169 args;
+#X obj 131 248 route -freq -amp;
+#X obj 177 278 else/display;
+#X obj 131 313 else/display;
+#X obj 131 214 else/break -;
+#X text 154 92 <= get arguments;
+#X obj 131 121 else/args-example -freq 100 200 -amp 1 0.5;
+#X text 268 219 <= this would also be inside the abstraction \, of
+course, f 23;
+#X text 40 37 You can use break to split an argument list from [args]
+and furtherly route it.;
+#X connect 0 0 8 0;
+#X connect 1 0 6 0;
+#X connect 3 0 5 0;
+#X connect 3 1 4 0;
+#X connect 6 0 3 0;
+#X connect 8 0 1 0;
+#X restore 477 242 pd [args];
+#X text 170 350 1) symbol - separator symbol;
+#X text 80 92 [break] can break a list with a given symbol separator
+set via the argument., f 55;
+#N canvas 799 151 469 288 more 0;
+#X obj 132 203 print Break;
+#X obj 132 164 else/break ||;
+#X text 58 42 You can set a symbol argument of any size and if an element
+in a list matches to that symbol \, the message is also broken. Otherwise
+\, if the first character(s) of the element match the symbol \, the
+list gets broken as well., f 61;
+#X msg 131 126 1 2 3 ||=> 4 5 6 || 7 8 9 ||=> end ||;
+#X connect 1 0 0 0;
+#X connect 3 0 1 0;
+#X restore 489 196 pd more;
+#X connect 16 0 17 0;
+#X connect 18 0 16 0;
+#X connect 21 0 16 0;
+#X connect 23 0 16 0;

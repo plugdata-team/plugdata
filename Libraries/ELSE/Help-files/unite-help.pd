@@ -1,0 +1,116 @@
+#N canvas 603 51 562 449 10;
+#X obj 4 297 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 356 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 391 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 116 365 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 424 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 39 cnv 4 4 4 empty empty Unite 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 72 39 cnv 4 4 4 empty empty messages 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 116 307 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 151 308 anything;
+#X text 164 365 symbol;
+#X text 218 365 - the converted symbol message;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 2 pd;
+#X obj 147 39 cnv 4 4 4 empty empty into 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 204 39 cnv 4 4 4 empty empty symbol 0 28 2 18 #e0e0e0 #000000
+0;
+#X msg 247 145 1 2 3 4;
+#X obj 206 164 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X floatatom 257 170 5 0 0 0 - - - 0;
+#X obj 236 236 else/display;
+#X msg 227 120 list a b c;
+#X symbolatom 236 270 10 0 0 0 - - - 0;
+#X msg 315 171 hi there;
+#X text 158 400 1) symbol - separator (default space);
+#N canvas 924 177 531 511 separator 0;
+#X msg 122 254 1 2 3 4;
+#X msg 102 229 list a b c;
+#X symbolatom 117 458 10 0 0 0 - - - 0;
+#X msg 136 279 hi there;
+#X obj 117 417 else/unite \\\\, f 25;
+#X symbolatom 264 389 10 0 0 0 - - - 0;
+#X text 330 209 <= a comma.;
+#X text 313 178 <= a backslash;
+#X msg 222 133 symbol \ ;
+#X msg 245 179 symbol \\\\;
+#X msg 263 210 symbol \\\,;
+#X msg 276 240 symbol -;
+#X msg 288 268 symbol /;
+#X msg 296 305 symbol _;
+#X text 285 133 <= this s a space escaped;
+#X text 308 147 with a backslash;
+#X msg 302 333 symbol empty;
+#X text 387 332 <= no separator;
+#X msg 311 361 symbol;
+#X text 360 361 <= no separator;
+#X text 57 34 When you join lists into a symbol \, you can set a new
+"separator" character instead of a space (default). The argument sets
+a new separator and you can also do it via the second inlet. It accepts
+any symbol (even if with more than one character) - the exception is
+"symbol empty" \, which sets an empty separator (that is no separator).
+An empty symbol also sets no separator., f 66;
+#X connect 0 0 4 0;
+#X connect 1 0 4 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 0;
+#X connect 5 0 4 1;
+#X connect 8 0 5 0;
+#X connect 9 0 5 0;
+#X connect 10 0 5 0;
+#X connect 11 0 5 0;
+#X connect 12 0 5 0;
+#X connect 13 0 5 0;
+#X connect 16 0 5 0;
+#X connect 18 0 5 0;
+#X restore 459 251 pd separator;
+#X obj 116 329 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 39 191 see also:;
+#X obj 42 212 else/separate;
+#X obj 236 209 else/unite;
+#X text 163 330 symbol;
+#X text 218 330 - set separator;
+#X obj 42 235 else/any2symbol;
+#X obj 184 39 cnv 4 4 4 empty empty a 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 3 2 cnv 15 301 42 empty empty unite 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 2 graph;
+#X text 72 87 [unite] unites and converts messages into a symbol message.
+;
+#X text 218 308 - any message to be unted/converted into a symbol;
+#X obj 42 258 else/format;
+#X connect 21 0 33 0;
+#X connect 22 0 33 0;
+#X connect 23 0 33 0;
+#X connect 24 0 26 0;
+#X connect 25 0 33 0;
+#X connect 27 0 33 0;
+#X connect 33 0 24 0;

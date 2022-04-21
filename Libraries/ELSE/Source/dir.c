@@ -4,7 +4,12 @@
 #include "g_canvas.h"
 #include <string.h>
 #include <math.h>
+
+#ifdef _WIN32
+#include <io.h>
+#else
 #include <dirent.h>
+#endif
 
 #define MAXN 32768   // max n of files
 

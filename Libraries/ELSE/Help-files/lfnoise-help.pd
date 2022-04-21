@@ -1,0 +1,115 @@
+#N canvas 453 23 561 508 10;
+#X obj 23 41 cnv 4 4 4 empty empty Control 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 480 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 3 324 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 394 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 426 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 81 401 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 81 332 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 4 cnv 15 301 42 empty empty lfnoise 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 4 graph;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 209 151 hsl 128 15 0.1 1 1 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 206 177 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 233 151 rate in Hz;
+#X obj 89 41 cnv 4 4 4 empty empty LFNoise 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 146 402 float;
+#X text 146 334 float;
+#X obj 206 228 vsl 22 80 0 127 0 0 dsfsdgs sddfjhgj empty 0 -9 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 81 372 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 187 334 - frequency in hertz up to 100 (negative values accepted)
+;
+#X text 187 351 -;
+#X text 127 432 1) float;
+#X text 127 446 2) float;
+#X text 127 461 3) float;
+#N canvas 782 234 419 532 rescale 0;
+#X text 46 17 The output range if from 0 to 127 \, which is the whole
+MIDI default range. Use the [rescale] object if you want a different
+range for the output., f 53;
+#X obj 127 109 vsl 22 80 0 127 0 0 dsfsdgs sddfjhgj empty 0 -9 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 127 200 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 127 254 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 187 255 cutoff in hertz;
+#X obj 127 365 biquad~;
+#X obj 127 394 else/plate.rev~ 50 0.9 0.9 0.9 0.7, f 18;
+#X obj 127 83 else/lfnoise 0.5 1;
+#X obj 160 335 else/bl.saw~;
+#X obj 160 312 sig~ 35;
+#X obj 127 227 else/rescale 200 700;
+#X obj 127 282 else/bicoeff lowpass 500 20;
+#X obj 137 437 else/out~;
+#X connect 1 0 2 0;
+#X connect 2 0 10 0;
+#X connect 3 0 11 0;
+#X connect 5 0 6 0;
+#X connect 6 0 12 0;
+#X connect 6 1 12 1;
+#X connect 7 0 1 0;
+#X connect 8 0 5 0;
+#X connect 9 0 8 0;
+#X connect 10 0 3 0;
+#X connect 11 0 5 0;
+#X restore 471 283 pd rescale;
+#X obj 299 176 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 319 174 <= reset to a new random value;
+#X obj 206 199 else/lfnoise 2 0;
+#X text 91 351 interp <float>;
+#X text 187 432 - frequency in hertz (default 0), f 55;
+#X text 187 446 - interrpolation off (0 \, default) or on (1), f 55
+;
+#X text 187 461 - seed (default internal), f 55;
+#X msg 121 170 interp \$1;
+#X obj 121 148 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 151 374 bang;
+#X text 187 374 - reset to a new random value;
+#X text 199 350 non sexro sets to linear interpolation;
+#X text 187 403 - LFNoise's waveform in the range from 0 - 127;
+#X obj 336 262 else/lfo;
+#X obj 336 284 else/lfnoise~;
+#X text 336 236 see also:;
+#X text 64 89 [lfnoise] is a control rate LFNoise with some common
+waveforms. It doesn't need the DSP on to function. Give it a seed value
+if you want a reproducible output., f 66;
+#X connect 17 0 18 0;
+#X connect 18 0 33 0;
+#X connect 31 0 33 1;
+#X connect 33 0 23 0;
+#X connect 38 0 33 0;
+#X connect 39 0 38 0;

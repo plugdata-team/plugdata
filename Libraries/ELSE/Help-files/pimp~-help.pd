@@ -1,0 +1,382 @@
+#N canvas 565 29 562 528 10;
+#X obj 3 391 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 446 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 104 400 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 3 497 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 23 42 cnv 4 4 4 empty empty Phasor~ 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 90 42 cnv 4 4 4 empty empty + 0 28 2 18 #e0e0e0 #000000 0;
+#N canvas 207 34 366 264 (subpatch) 0;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#fcfcfc 0 1;
+#X obj 215 68 route dsp;
+#X obj 215 37 receive pd;
+#N canvas 977 77 379 291 set_color 0;
+#X obj 47 30 inlet;
+#X obj 147 200 s \$0-cnv;
+#X obj 47 83 select 0 1;
+#X obj 47 220 s \$0-tgl-r;
+#N canvas 0 22 712 637 off 0;
+#X obj 490 220 * -1;
+#X obj 424 300 +;
+#X obj 409 325 +;
+#X obj 347 219 * -65536;
+#X obj 424 220 * -256;
+#X obj 409 356 - 1;
+#X obj 390 189 unpack f f f;
+#X obj 225 295 +;
+#X obj 210 320 +;
+#X obj 148 214 * -65536;
+#X obj 225 215 * -256;
+#X obj 291 215 * -1;
+#X obj 210 351 - 1;
+#X obj 191 184 unpack f f f;
+#X obj 379 423 pack;
+#X msg 395 152 124 124 124;
+#X msg 203 154 220 220 220;
+#X obj 238 121 t b b;
+#X obj 238 81 inlet;
+#X obj 378 485 outlet;
+#X connect 0 0 1 1;
+#X connect 1 0 2 1;
+#X connect 2 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 5 0 14 1;
+#X connect 6 0 3 0;
+#X connect 6 1 4 0;
+#X connect 6 2 0 0;
+#X connect 7 0 8 1;
+#X connect 8 0 12 0;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 11 0 7 1;
+#X connect 12 0 14 0;
+#X connect 13 0 9 0;
+#X connect 13 1 10 0;
+#X connect 13 2 11 0;
+#X connect 14 0 19 0;
+#X connect 15 0 6 0;
+#X connect 16 0 13 0;
+#X connect 17 0 16 0;
+#X connect 17 1 15 0;
+#X connect 18 0 17 0;
+#X restore 47 113 pd off;
+#X msg 47 180 color \$1 \$2 0;
+#X msg 147 131 -4.86997e+06 -1.34937e+07;
+#X msg 147 171 color \$1 0 \$2;
+#X connect 0 0 2 0;
+#X connect 2 0 4 0;
+#X connect 2 1 6 0;
+#X connect 4 0 5 0;
+#X connect 4 0 7 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 1 0;
+#X restore 215 165 pd set_color;
+#X obj 135 122 r \$0-tgl-s;
+#N canvas 121 482 450 300 (subpatch) 0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+0;
+#X coords 0 -1 1 1 42 27 1 100 100;
+#X restore 51 144 pd;
+#X obj 226 139 s \$0-tgl-r;
+#X msg 226 115 set \$1;
+#X msg 135 177 \; pd dsp \$1;
+#N canvas 256 32 278 194 load_check 0;
+#X obj 136 53 sig~ 1;
+#X obj 74 24 loadbang;
+#X obj 136 86 snapshot~;
+#X obj 91 52 del 5;
+#X obj 136 151 outlet;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 74 126 switch~;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 3 0 5 0;
+#X connect 5 0 6 0;
+#X restore 51 72 pd load_check;
+#X connect 1 0 3 0;
+#X connect 1 0 7 0;
+#X connect 2 0 1 0;
+#X connect 4 0 8 0;
+#X connect 4 0 3 0;
+#X connect 7 0 6 0;
+#X connect 9 0 0 0;
+#X coords 0 -1 1 1 44 72 2 50 100;
+#X restore 505 71 pd;
+#X text 188 400 signal -;
+#X obj 104 421 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 188 421 signal -;
+#X text 249 400 phase signal;
+#X text 171 455 1) float;
+#X text 239 455 - frequency in hertz;
+#X text 171 475 2) float;
+#N canvas 423 188 884 607 sync 0;
+#X obj 137 320 cnv 15 198 118 empty empty empty 20 12 0 14 #e0e0e0
+#404040 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X array sync-phase-\$0 30000 float 0;
+#X coords 0 1.025 29999 -0.025 200 120 2 0 0;
+#X restore 136 319 graph;
+#N canvas 286 96 450 300 graph 0;
+#X obj 194 26 inlet~;
+#X obj 118 80 metro 900;
+#X obj 197 128 tabwrite~ sync-phase-\$0;
+#X obj 98 29 loadbang;
+#X connect 0 0 2 0;
+#X connect 1 0 2 0;
+#X connect 3 0 1 0;
+#X restore 282 233 pd graph;
+#X text 491 14 An impulse oscillator as the input forces hard sync
+to the phase output., f 48;
+#X text 702 99 Master;
+#X text 743 134 Slave;
+#X obj 625 171 cos~;
+#X obj 625 209 else/out~;
+#X obj 584 73 nbx 5 14 110 200 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 625 133 else/pimp~ 200;
+#X obj 584 99 else/pimp~ 110;
+#X text 494 281 NOTE:;
+#X msg 41 134 0;
+#X msg 72 133 0.25;
+#X msg 144 133 0.75;
+#X msg 184 133 1;
+#X msg 112 133 0.5;
+#X text 215 132 <= reset =>;
+#X obj 130 215 else/out~;
+#X obj 61 180 else/pimp~ 1;
+#X obj 282 198 else/pimp~ 2;
+#X text 33 13 The second inlet resets the phase ands behaves in the
+same way as in [phasor~]. A number input resets the oscillator and
+restarts the cycle with an initial phase that corresponds to the input
+number \, so the internal phase is synced to the given value. The phase
+values are from 0 to 1 and values beyond that are wrapped within this
+range.;
+#X text 34 473 Additionally \, you can reset the oscillator with an
+impulse signal. Inputs that are > 0 and <= 1 reset the phase Pdexpects
+an impulse signal for syncing. The impulse values need to be > 0 and
+<= 1 (otherwise ignored). Because phase is cyclical \, the value of
+1 represents the "phase 0" of the cycle \, where the impulse occurs.
+Send it impulses above and check the result. Use a multiplier to reset
+to another phase value.;
+#X obj 568 473 else/pimp~ 1 0.5;
+#X obj 661 523 else/out~;
+#X msg 661 446 0;
+#X msg 694 446 0.5;
+#X msg 614 446 0;
+#X text 518 308 The "phase sync" inlet is quite different from the
+"phase offset" inlet. This means that the are completely independent.
+For example \, the [pimp~] below has the initial offset of 0.5 \, so
+if you sync the phase to "0" \, it still has that offset (thus \, a
+phase offset change to "0" goes back half a cycle., f 44;
+#X text 565 446 sync =>;
+#X text 725 445 <= offset;
+#X msg 422 131 0.25;
+#X msg 348 130 0.75;
+#X msg 316 130 1;
+#X msg 388 130 0.5;
+#X obj 316 162 else/impseq~;
+#X connect 6 0 7 0;
+#X connect 8 0 10 0;
+#X connect 9 0 6 0;
+#X connect 10 1 9 1;
+#X connect 12 0 19 1;
+#X connect 13 0 19 1;
+#X connect 14 0 19 1;
+#X connect 15 0 19 1;
+#X connect 16 0 19 1;
+#X connect 19 1 18 0;
+#X connect 20 0 2 0;
+#X connect 23 1 24 0;
+#X connect 25 0 23 2;
+#X connect 26 0 23 2;
+#X connect 27 0 23 1;
+#X connect 31 0 35 0;
+#X connect 32 0 35 0;
+#X connect 33 0 35 0;
+#X connect 34 0 35 0;
+#X connect 35 0 20 1;
+#X restore 495 251 pd sync;
+#X obj 215 173 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 215 201 else/pimp~ 1, f 17;
+#X obj 314 249 else/out~;
+#X obj 215 261 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 176 194 vsl 20 90 0 1 0 0 dsfsk sfg empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 110 42 cnv 4 4 4 empty empty imp~ 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 327 221 <= impulse;
+#X text 116 229 phase =>;
+#X obj 3 4 cnv 15 301 42 empty empty pimp~ 20 20 2 37 #e0e0e0 #000000
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 335 133 898 344 phase 0;
+#X obj 478 111 cnv 15 140 65 empty empty empty 20 12 0 14 #e0e0e0 #404040
+0;
+#X obj 639 79 cnv 15 100 110 empty empty empty 20 12 0 14 #e0e0e0 #404040
+0;
+#X obj 490 246 else/out~;
+#X obj 490 206 cos~;
+#X obj 490 150 else/pimp~ 200;
+#X obj 648 251 else/out~;
+#X obj 648 211 cos~;
+#X obj 648 142 +~;
+#X obj 648 166 wrap~;
+#X obj 648 89 phasor~ 200;
+#X obj 663 113 osc~ 50.1;
+#X obj 530 122 osc~ 50.1;
+#X text 477 93 Phase Modulation:;
+#X text 746 133 <= same as this;
+#X obj 114 243 else/out~;
+#X obj 114 207 +~;
+#X text 369 106 1;
+#X obj 237 106 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 234 130 4 0 0 0 - - - 0;
+#X text 217 106 0;
+#X obj 234 154 else/float2sig~ 10;
+#X obj 114 142 else/imp~ 1 0.5;
+#X obj 129 180 else/impulse~ 1;
+#X text 16 19 The second argument sets an initial phase (or "phase
+offset"). This is also settable with the third inlet. This allows you
+to control two objects with the same frequency falling in and out of
+phase. Another feature is phase modulation., f 53;
+#X text 418 23 The phase input values are wrapped into the 0-1 range
+\, since the phase cycle is from 0 to 1 (where 1 is also the start
+of another cycle).;
+#X connect 3 0 2 0;
+#X connect 4 0 3 0;
+#X connect 6 0 5 0;
+#X connect 7 0 8 0;
+#X connect 8 0 6 0;
+#X connect 9 0 7 0;
+#X connect 10 0 7 1;
+#X connect 11 0 4 1;
+#X connect 15 0 14 0;
+#X connect 17 0 18 0;
+#X connect 18 0 20 0;
+#X connect 20 0 22 2;
+#X connect 21 0 15 0;
+#X connect 22 0 15 1;
+#X restore 447 275 pd phase offset;
+#X text 239 475 - initial phase offset;
+#X text 165 272 0;
+#X text 165 190 1;
+#X text 249 421 impulse signal (at period transitions);
+#X text 63 89 [pimp~] is a combination of [phasor~] and [else/imp~]
+(alias of [else/impulse~]). It's [imp~] with an extra phase output
+(left outlet). The impulse happens at every phase period start (in
+both negative or positive frequencies/directions). It also has inlets
+for phase sync and phase modulation like [imp~].;
+#X obj 3 311 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 105 321 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 147 322 float/signal -;
+#X text 251 322 frequency in hz;
+#X obj 104 343 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 147 364 float/signal -;
+#X obj 104 363 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 252 364 phase offset (modulation input);
+#X text 252 344 phase sync (ressets internal phase);
+#X text 147 344 float/signal -;
+#N canvas 461 182 707 329 example 0;
+#X obj 309 201 else/sh~;
+#X obj 309 146 noise~;
+#X obj 309 274 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#N canvas 1046 306 123 217 snapshot~ 0;
+#X obj 29 107 snapshot~;
+#X obj 46 79 metro 100;
+#X obj 46 53 loadbang;
+#X obj 29 146 outlet;
+#X obj 29 25 inlet~;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 0 0;
+#X restore 309 244 pd snapshot~;
+#X obj 123 123 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 126 98 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 432 145 cnv 15 198 138 empty empty empty 20 12 0 14 #e0e0e0
+#404040 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X array \$0-phase 441 float 0;
+#X coords 0 1 440 0 200 140 1 0 0;
+#X restore 431 144 graph;
+#X text 637 274 0;
+#X text 635 137 1;
+#X obj 49 226 metro 100;
+#X obj 49 201 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 49 177 loadbang;
+#X obj 123 273 tabwrite~ \$0-phase;
+#X text 151 97 frequency;
+#X obj 192 202 else/out~;
+#X obj 123 150 else/pimp~ 1;
+#X text 14 15 [pimp~] is very convenient for both driving a process
+with its phase output (such as reading a sample or envelope) and also
+triggering at period transitions other objects or processes (such as
+with [sh~] below)., f 54;
+#X text 357 15 Since it deals with negative frequencies \, the impulse
+is only sent when leaping from one phase cycle to the next (in either
+direction). Try smoothly changing the frequency from positive to negative
+in the slider to the left \, pay close attention to the phase output
+below and litsen to when the impulse happens., f 53;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 3 0 2 0;
+#X connect 4 0 16 0;
+#X connect 5 0 4 0;
+#X connect 10 0 13 0;
+#X connect 11 0 10 0;
+#X connect 12 0 11 0;
+#X connect 16 0 13 0;
+#X connect 16 1 15 0;
+#X connect 16 1 0 1;
+#X restore 476 227 pd example;
+#X obj 215 232 else/s2f~;
+#X text 18 260 see also:;
+#X obj 18 279 else/pimpmul~;
+#X connect 15 0 16 0;
+#X connect 16 0 50 0;
+#X connect 16 1 17 0;
+#X connect 18 0 19 0;
+#X connect 50 0 18 0;

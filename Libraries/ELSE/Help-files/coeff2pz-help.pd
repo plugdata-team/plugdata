@@ -1,0 +1,74 @@
+#N canvas 433 24 560 455 10;
+#X obj 4 275 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 308 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 387 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 116 317 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 116 283 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 420 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 170 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 24 40 cnv 4 4 4 empty empty Biquad 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 82 40 cnv 4 4 4 empty empty coefficients 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty coeff2pz 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 196 225 else/display;
+#X obj 282 40 cnv 4 4 4 empty empty conversion 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 171 318 list;
+#X text 174 283 list;
+#X obj 116 339 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 171 340 list;
+#X obj 116 361 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 165 362 float;
+#X text 218 396 (none);
+#X text 28 195 see also:;
+#X obj 196 159 else/coeff2pz;
+#X msg 196 129 1 -0.5 0.2 0.2 1;
+#X obj 311 159 else/display;
+#X obj 233 195 else/display;
+#X text 343 162 Overall gain;
+#X text 164 197 Zeros ===>;
+#X text 142 229 Poles =>;
+#X text 204 283 - biquad coefficients to convert;
+#X text 201 362 - overall gain of the filter response;
+#X text 201 340 - Coordinates of 2 Zeros;
+#X text 201 318 - Coordinates of 2 Poles;
+#X obj 28 219 else/pz2coeff;
+#X obj 192 40 cnv 4 4 4 empty empty Poles/Zeros 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 62 89 [coeff2pz] converts an input of biquad coefficients to
+of 2 poles/zeros coordinates., f 67;
+#X connect 29 0 19 0;
+#X connect 29 1 32 0;
+#X connect 29 2 31 0;
+#X connect 30 0 29 0;

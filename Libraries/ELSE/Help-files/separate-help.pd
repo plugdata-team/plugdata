@@ -1,0 +1,146 @@
+#N canvas 484 23 559 420 10;
+#X obj 2 270 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 322 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 355 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 90 331 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 2 392 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 136 367 1) symbol - sets the separator character (default "space")
+;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Separate 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 96 40 cnv 4 4 4 empty empty symbols 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty separate 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X text 38 193 see also:;
+#X obj 241 229 else/display;
+#X symbolatom 241 178 10 0 0 0 - - - 0;
+#X text 195 332 list;
+#X text 232 332 - list with separated elements from a symbol;
+#X text 70 88 [separate] allows you to separate a symbol into a list
+with different elements by setting the character that separates one
+element from the others. The default separator is a "space"., f 63
+;
+#X text 233 300 - set separator symbol;
+#X obj 241 148 else/initmess symbol 1\ 2\ 3\ 4;
+#X obj 241 202 else/separate;
+#X text 136 149 symbols with ==> escaped spaces, f 16;
+#N canvas 845 97 448 569 examples 0;
+#X obj 185 189 else/display;
+#X obj 185 158 else/separate /;
+#X obj 185 251 else/display;
+#X text 134 69 Get a file name:;
+#X text 106 257 filename =>;
+#X obj 109 97 openpanel;
+#X obj 109 71 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 185 226 else/pick -1;
+#X obj 122 448 else/display;
+#X obj 122 511 else/display;
+#X text 43 517 filename =>;
+#X obj 122 486 else/pick -1;
+#X obj 122 412 else/separate \\\\;
+#X text 85 21 Get a file name from a path:;
+#X text 230 413 <= escaped backslash separator;
+#X msg 153 382 separator \\\\;
+#X text 109 304 If you have backslashes \, be sure to escape them with
+another backslash., f 43;
+#X msg 122 351 C:\\\\my\\\\new\\\\folder\\\\pd\\\\patch.pd;
+#X msg 185 97 Users/you/pd/patch.pd;
+#X connect 0 0 7 0;
+#X connect 1 0 0 0;
+#X connect 5 0 1 0;
+#X connect 6 0 5 0;
+#X connect 7 0 2 0;
+#X connect 8 0 11 0;
+#X connect 11 0 9 0;
+#X connect 12 0 8 0;
+#X connect 15 0 12 0;
+#X connect 17 0 12 0;
+#X connect 18 0 1 0;
+#X restore 465 230 pd examples;
+#N canvas 683 99 683 434 separator 0;
+#X symbolatom 203 210 20 0 0 0 - - - 0;
+#X msg 203 161 symbol 179.101.88.112;
+#X msg 214 185 symbol 255.255.0.0;
+#X symbolatom 147 96 20 0 0 0 - - - 0;
+#X msg 147 47 symbol 19/11/8/12;
+#X msg 159 71 symbol 1/2/3/4;
+#X obj 203 128 loadbang;
+#X obj 203 365 else/display;
+#X msg 225 248 symbol a\ b\ c\ d;
+#X symbolatom 225 276 20 0 0 0 - - - 0;
+#X text 449 168 <= space as;
+#X text 467 178 separator;
+#X obj 203 329 else/separate empty, f 31;
+#X msg 71 98 symbol;
+#X text 69 43 empty symbol becomes a bang, f 7;
+#X msg 386 170 symbol \ ;
+#X msg 400 192 symbol .;
+#X msg 410 213 symbol /;
+#X msg 426 258 symbol;
+#X symbolatom 386 292 10 0 0 0 - - - 0;
+#X text 299 39 By default \, [separate] loads a space character as
+a separator. You can change that with the separator message. The separator
+needs to be a symbol \, and can be any kind of symbol (with more than
+one character). The exception is the "empty" symbol \, which loads
+an empty separator and thus separates all characters from the input
+symbol. This is also set with an empty symbol., f 55;
+#X text 471 258 <= empty symbol also sets empty separator, f 21;
+#X msg 419 235 symbol empty;
+#X text 501 236 <= empty separator;
+#X connect 0 0 12 0;
+#X connect 1 0 0 0;
+#X connect 2 0 0 0;
+#X connect 3 0 12 0;
+#X connect 4 0 3 0;
+#X connect 5 0 3 0;
+#X connect 6 0 1 0;
+#X connect 8 0 9 0;
+#X connect 9 0 12 0;
+#X connect 12 0 7 0;
+#X connect 13 0 12 0;
+#X connect 15 0 19 0;
+#X connect 16 0 19 0;
+#X connect 17 0 19 0;
+#X connect 18 0 19 0;
+#X connect 19 0 12 1;
+#X connect 22 0 19 0;
+#X restore 459 207 pd separator;
+#X text 233 279 - the symbol to be converted to a list;
+#X obj 42 215 else/unite;
+#X obj 42 239 else/symbol2any;
+#X text 183 300 symbol;
+#X obj 90 300 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 90 278 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 129 279 symbol/anything;
+#X connect 20 0 26 0;
+#X connect 25 0 20 0;
+#X connect 26 0 19 0;

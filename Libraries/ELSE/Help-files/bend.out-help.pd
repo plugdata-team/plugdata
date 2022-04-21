@@ -1,0 +1,90 @@
+#N canvas 534 65 565 439 10;
+#X obj 23 40 cnv 4 4 4 empty empty Midi 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 66 40 cnv 4 4 4 empty empty pitch 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty bend.out 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 2 257 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 314 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 2 377 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 154 268 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 2 410 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 209 387 -;
+#X text 151 387 1) float;
+#X text 198 270 float;
+#X obj 153 40 cnv 4 4 4 empty empty output 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 154 324 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 238 324 -;
+#X text 198 324 float;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 110 40 cnv 4 4 4 empty empty bend 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 238 293 -;
+#X text 198 293 float;
+#X text 253 293 MIDI channel, f 31;
+#X obj 154 290 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 2 349 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#N canvas 812 241 440 251 raw 0;
+#X text 38 18 With the -raw flag \, the input pitch bend values are
+from 0 to 16383 \, whereas the default behaviour is a normalized output
+(floats from -1 to 1), f 57;
+#X obj 187 103 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 187 130 else/bend.out -raw;
+#X obj 187 158 else/bend.in -raw;
+#X obj 187 192 else/display;
+#X connect 1 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X restore 505 224 pd raw;
+#X text 238 270 - pitch bend values;
+#X text 253 324 raw MIDI stream, f 31;
+#X text 223 387 sets channel number (default 1);
+#X text 164 358 -raw: sets to raw input mode (from 0-16383);
+#X obj 203 231 midiout;
+#X obj 206 141 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 203 171 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 329 170 MIDI Channel;
+#X obj 290 170 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 25 201 see also:;
+#X obj 32 223 else/bend.in;
+#X obj 203 201 else/bend.out 4;
+#X text 70 85 [bend.out] formats and sends raw MIDI pitch bend messages.
+By default \, it takes normalized values (floats from -1 to 1). An
+argument sets channel number (the default is 1)., f 66;
+#X connect 36 0 37 0;
+#X connect 37 0 42 0;
+#X connect 39 0 42 1;
+#X connect 42 0 35 0;

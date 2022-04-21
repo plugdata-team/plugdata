@@ -1,0 +1,463 @@
+#N struct 1204-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1227-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1246-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1267-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1286-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1307-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1328-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1376-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1396-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1423-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1442-point float x0 float y0 float size float fg float in
+float grid;
+#N struct 1461-point float x0 float y0 float size float fg float in
+float grid;
+#N canvas 503 39 559 578 10;
+#X obj 2 4 cnv 15 301 42 empty empty circle 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 4 graph;
+#X obj 23 41 cnv 4 4 4 empty empty Circular 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 92 41 cnv 4 4 4 empty empty slider 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X obj 344 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 457 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 477 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 514 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 463 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 501 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 6 253 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 477 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 510 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 548 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 80 261 cnv 17 3 212 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 80 486 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 192 486 list;
+#X text 192 273 list;
+#X text 108 287 set <float \, float>;
+#X text 232 287 - sets x and y, f 52;
+#X text 232 273 - sets x \, y and outputs it, f 52;
+#X text 144 301 size <float>;
+#X text 232 301 - sets size, f 52;
+#X text 96 316 range <float \, float>;
+#X text 192 259 bang;
+#X text 232 259 - outputs last values, f 52;
+#X text 232 485 - x/y values;
+#X text 232 316 - sets range (minimum and maximum values of x and y)
+;
+#X text 232 331 - sets range (minimum and maximum values of x), f
+52;
+#X text 232 346 - sets range (minimum and maximum values of y), f
+52;
+#X text 90 331 xrange <float \, float>;
+#X text 90 346 yrange <float \, float>;
+#X text 144 360 line <float>;
+#X text 232 360 - non zero sets line visibility, f 52;
+#X text 114 430 fgcolor <f \, f \, f>;
+#X text 232 430 - sets frontground color in RGB, f 52;
+#X text 144 374 grid <float>;
+#X text 232 374 - non zero sets grid visibility, f 52;
+#N canvas 774 104 396 372 set-values 0;
+#X obj 137 310 else/display;
+#X text 28 23 If you send it a list of x/y coordinates \, the [circle]
+object will clip it inside its range and output it.;
+#X text 28 59 The "set" message behaves similarly \, it just doesn't
+output the incoming value., f 56;
+#X msg 160 139 set 0 0;
+#X msg 137 108 0.5 0.5;
+#X obj 137 169 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
+0 0 0 1 0 0 63.5 63.5 empty empty 1;
+#X connect 3 0 5 0;
+#X connect 4 0 5 0;
+#X connect 5 0 0 0;
+#X restore 38 145 pd set-values;
+#N canvas 633 23 507 435 range 0;
+#X obj 105 359 else/display;
+#X obj 73 173 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 294 377 else/display;
+#X msg 283 128 xrange 0 127;
+#X msg 294 151 xrange -1 1;
+#X msg 320 178 yrange 0 127;
+#X msg 328 198 yrange -1 1;
+#X text 67 29 By default \, the slider output range is from -1 to 1
+\, but you can change it with the -range flag or the range message
+\, which sets the range for both x and y dimensions. But you can also
+set independent range for both x and y with the -xrange \, -yrange
+or xrange \, yrange messages. Note that a bang rescales the last output
+according to the new range., f 64;
+#X msg 105 166 range 0 127;
+#X msg 192 166 range -1 1;
+#X obj 105 219 else/circle 127 0 127 0 127 1 255 255 255 255 255 255
+0 0 0 1 0 0 63.5 63.5 empty empty 1;
+#X obj 294 232 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
+0 0 0 1 0 0 63.5 63.5 empty empty 1;
+#X connect 1 0 10 0;
+#X connect 3 0 11 0;
+#X connect 4 0 11 0;
+#X connect 5 0 11 0;
+#X connect 6 0 11 0;
+#X connect 8 0 10 0;
+#X connect 9 0 10 0;
+#X connect 9 0 11 0;
+#X connect 10 0 0 0;
+#X connect 11 0 2 0;
+#X restore 128 145 pd range;
+#N canvas 465 252 313 441 resize 0;
+#X obj 83 375 else/display;
+#X msg 83 197 size \$1;
+#X obj 86 138 hsl 100 15 18 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 83 168 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 74 29 You can set the size with the '-size' flag or with the
+'size' message., f 25;
+#X obj 83 230 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255 0
+0 0 1 0 0 63.5 63.5 empty empty 1;
+#X obj 83 105 else/initmess 127;
+#X connect 1 0 5 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X connect 5 0 0 0;
+#X connect 6 0 2 0;
+#X restore 128 165 pd resize;
+#N canvas 906 124 736 630 colors 0;
+#X text 58 88 Colors are in RGB.;
+#X obj 170 198 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #fc0000
+#fcfcfc #000000 0 0;
+#X obj 191 198 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #00fc00
+#fcfcfc #000000 0 0;
+#X obj 212 198 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #0400fc
+#fcfcfc #000000 0 0;
+#X obj 50 198 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #fc0000
+#fcfcfc #000000 0 0;
+#X obj 71 198 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #00fc00
+#fcfcfc #000000 0 0;
+#X obj 92 198 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #0400fc
+#fcfcfc #000000 0 0;
+#X obj 149 350 else/pack2 bgcolor1 255 255 255, f 11;
+#X obj 268 193 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #fc0000
+#fcfcfc #000000 0 0;
+#X obj 289 193 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #00fc00
+#fcfcfc #000000 0 0;
+#X obj 310 193 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #0400fc
+#fcfcfc #000000 0 0;
+#X obj 247 350 else/pack2 bgcolor2 255 255 255, f 11;
+#X obj 418 196 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #fc0000
+#fcfcfc #000000 0 0;
+#X obj 439 196 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #00fc00
+#fcfcfc #000000 0 0;
+#X obj 460 196 vsl 15 128 0 255 0 0 nope nada empty 0 -9 0 10 #0400fc
+#fcfcfc #000000 0 0;
+#X obj 397 353 else/pack2 bgcolor 255 255 255, f 11;
+#X text 423 123 set both backgrounds, f 21;
+#X text 57 24 You can set background colors (different colors for inside
+and outside the circle) and frontground colors with 'bgcolor1' (inside
+circle) / 'bgcolor2' (outside circle) / 'fgcolor' messages and '-bgcolor1'
+/ '-bgcolor2' / '-fgcolor' flags. You can also set both background
+colors with the '-fgcolor' flag or 'fgcolor' message., f 83;
+#X obj 71 146 else/initmess 0;
+#X obj 29 350 else/pack2 fgcolor 0 0 0, f 11;
+#X obj 268 146 else/initmess 255;
+#X obj 418 146 else/initmess 255;
+#X obj 247 433 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
+0 0 0 1 0 0 63.5 63.5 empty empty 1;
+#X connect 1 0 7 1;
+#X connect 2 0 7 2;
+#X connect 3 0 7 3;
+#X connect 4 0 19 1;
+#X connect 5 0 19 2;
+#X connect 6 0 19 3;
+#X connect 7 0 22 0;
+#X connect 8 0 11 1;
+#X connect 9 0 11 2;
+#X connect 10 0 11 3;
+#X connect 11 0 22 0;
+#X connect 12 0 15 1;
+#X connect 13 0 15 2;
+#X connect 14 0 15 3;
+#X connect 15 0 22 0;
+#X connect 18 0 4 0;
+#X connect 18 0 6 0;
+#X connect 18 0 5 0;
+#X connect 19 0 22 0;
+#X connect 20 0 1 0;
+#X connect 20 0 3 0;
+#X connect 20 0 2 0;
+#X connect 20 0 8 0;
+#X connect 20 0 9 0;
+#X connect 20 0 10 0;
+#X connect 21 0 12 0;
+#X connect 21 0 13 0;
+#X connect 21 0 14 0;
+#X restore 62 165 pd colors;
+#X text 248 143 click and drag =>;
+#X text 283 228 x/y values:;
+#N canvas 465 252 305 377 jump 0;
+#X obj 88 289 else/display;
+#X text 78 34 You can set the size with the '-size' flag or with the
+'size' message., f 25;
+#X msg 88 119 jump \$1;
+#X obj 88 95 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000
+0 1;
+#X obj 88 144 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255 0
+0 0 1 1 0 63.5 63.5 empty empty 1;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 4 0 0 0;
+#X restore 74 186 pd jump;
+#N canvas 858 191 410 355 init 0;
+#X obj 140 269 else/display;
+#X text 76 33 With the 'init' message or '-init' flag \, the GUI operates
+in 'init mode' \, where it outputs the last saved value when you load
+the patch., f 46;
+#X msg 140 91 0.5 0.5;
+#X obj 140 124 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
+0 0 0 1 0 1 127 127 empty empty 1;
+#X connect 2 0 3 0;
+#X connect 3 0 0 0;
+#X restore 128 205 pd init;
+#N canvas 689 272 614 254 flags 0;
+#X text 94 33 -size <float>: sets x/y size (default: 127), f 71;
+#X text 94 77 -line <float>: non zero sets line visibility (default:
+1), f 71;
+#X text 94 153 -fgcolor <f \, f \, f>: sets frontground color in RGB
+(default 0 0 0), f 76;
+#X text 94 92 -grid <float>: non zero sets grid visibility (default:
+0), f 71;
+#X text 94 184 -init <float>: non zero sets to init mode (default 0)
+, f 76;
+#X obj 26 21 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 26 208 cnv 3 550 3 empty empty empty 8 12 0 13 #dcdcdc #000000
+0;
+#X text 94 47 -range: sets x/y range <float \, float> (default: -1
+\, 1), f 71;
+#X text 94 62 -xrange / -yrange (set x/y range independently), f 71
+;
+#X text 94 106 -bgcolor1 <f \, f \, f>: sets in bounds back color in
+RGB (default 255 255 255), f 76;
+#X text 94 121 -bgcolor2 <f \, f \, f>: sets out of bounds color in
+RGB (default 255 255 255), f 76;
+#X text 94 136 -bgcolor <f \, f \, f>: sets both background colors
+in RGB (default 255 255 255), f 76;
+#X text 94 168 -clip <float>: non zero sets to clip mode (default 1)
+, f 76;
+#X restore 173 523 pd flags;
+#X text 232 523 <= click to open;
+#X text 144 444 init <float>;
+#X text 232 444 - non zero sets to init mode, f 52;
+#N canvas 809 145 426 641 example 0;
+#N canvas 371 23 399 387 set 0;
+#X obj 105 290 pack;
+#X msg 105 245 1 \$1;
+#X obj 105 220 expr ($f1/8) * twopi;
+#X obj 105 118 hradio 15 1 0 8 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 105 153 * -1;
+#X obj 105 199 mod 8;
+#X obj 105 176 + 2;
+#X text 107 102 1;
+#X text 122 102 2;
+#X text 137 102 3;
+#X text 152 102 4;
+#X text 167 102 5;
+#X text 182 102 6;
+#X text 197 102 7;
+#X text 212 102 8;
+#X obj 105 267 else/pol2car;
+#X obj 105 320 outlet;
+#X obj 265 237 v twopi;
+#X obj 221 286 else/initmess 0 0;
+#X obj 265 211 else/pi 2;
+#X connect 0 0 16 0;
+#X connect 1 0 15 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 0;
+#X connect 4 0 6 0;
+#X connect 5 0 2 0;
+#X connect 6 0 5 0;
+#X connect 15 0 0 0;
+#X connect 15 1 0 1;
+#X connect 18 0 16 0;
+#X connect 19 0 17 0;
+#X coords 0 -1 1 1 132 42 2 100 100;
+#X restore 137 63 pd set;
+#X text 278 75 <= set speaker;
+#X floatatom 137 304 8 0 0 0 - - - 0;
+#X floatatom 194 304 8 0 0 0 - - - 0;
+#X text 142 287 x;
+#X text 198 287 y;
+#X floatatom 251 304 8 -1 1 0 - - - 0;
+#X obj 254 276 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 293 275 spread;
+#X obj 80 250 noise~;
+#X obj 80 403 else/meter8~;
+#X obj 137 270 unpack;
+#X text 273 464 <= [else/meter8~];
+#X obj 80 372 else/pan8~ -mode 1, f 29;
+#X obj 122 578 else/out8~;
+#X obj 137 328 else/f2s~ 50;
+#X obj 194 350 else/f2s~ 50;
+#X text 64 23 Here's an example to use it with [pan8~].;
+#X obj 137 124 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
+0 0 0 1 0 0 0 0 empty empty 1;
+#X text 265 179 3;
+#X text 244 130 2;
+#X text 195 110 1;
+#X text 147 131 8;
+#X text 127 180 7;
+#X text 147 227 6;
+#X text 243 228 4;
+#X text 195 250 5;
+#X obj 56 123 else/setdsp~;
+#X connect 0 0 18 0;
+#X connect 2 0 15 0;
+#X connect 3 0 16 0;
+#X connect 6 0 13 3;
+#X connect 7 0 6 0;
+#X connect 9 0 13 0;
+#X connect 10 0 14 0;
+#X connect 10 1 14 1;
+#X connect 10 2 14 2;
+#X connect 10 3 14 3;
+#X connect 10 4 14 4;
+#X connect 10 5 14 5;
+#X connect 10 6 14 6;
+#X connect 10 7 14 7;
+#X connect 11 0 2 0;
+#X connect 11 1 3 0;
+#X connect 13 0 10 0;
+#X connect 13 1 10 1;
+#X connect 13 2 10 2;
+#X connect 13 3 10 3;
+#X connect 13 4 10 4;
+#X connect 13 5 10 5;
+#X connect 13 6 10 6;
+#X connect 13 7 10 7;
+#X connect 15 0 13 1;
+#X connect 16 0 13 2;
+#X connect 18 0 11 0;
+#X restore 128 224 pd example;
+#N canvas 757 48 563 405 send/receive 0;
+#X msg 354 74 receive \\\$0-circle-rcv \, send \\\$0-circle-snd, f
+25;
+#X text 74 53 You can also set send/receive names with the 'send'/'receive'
+messages or '-send'/'-receive' flags., f 31;
+#X msg 372 123 receive \\\$0-rcv \, send \\\$0-snd, f 16;
+#X obj 169 243 send \$0-circle-rcv;
+#X obj 169 269 receive \$0-circle-snd;
+#X obj 65 250 send \$0-rcv;
+#X obj 65 276 receive \$0-snd;
+#X msg 386 181 receive empty \, send empty, f 16;
+#X text 76 154 Setting these to 'empty' removes the send/receive symbols.
+, f 32;
+#X msg 169 215 0 0;
+#X msg 65 222 0 0;
+#X obj 354 234 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
+0 0 0 1 0 0 63.5 63.5 empty empty 0;
+#X text 76 110 Make sure to escape "\$0" properly with backlashes (as
+in: "\\\$0")., f 24;
+#X obj 169 301 else/display;
+#X obj 65 309 else/display;
+#X connect 0 0 11 0;
+#X connect 2 0 11 0;
+#X connect 4 0 13 0;
+#X connect 6 0 14 0;
+#X connect 7 0 11 0;
+#X connect 9 0 3 0;
+#X connect 10 0 5 0;
+#X restore 26 224 pd send/receive;
+#X text 272 169 press shift for fine tuning, f 11;
+#X obj 359 224 else/display;
+#X obj 359 62 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#N canvas 814 36 341 570 mode-grid 0;
+#X obj 109 487 else/display;
+#X obj 181 281 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 181 309 grid \$1;
+#X msg 109 283 mode \$1;
+#X obj 109 206 vradio 15 1 0 3 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X floatatom 109 260 3 0 0 0 - - - 0;
+#X text 46 34 There are 3 modes of display \, by default is "cartesian"
+(mode 1) \, but you can also set it to "polar" (mode 2). Alternatively
+\, you camn switch both modes off and just have a single point (mode
+0). You can set the mode with the 'mode' message or '-mode' flag.,
+f 40;
+#X text 128 205 none;
+#X text 129 220 cartesian;
+#X text 130 236 polar;
+#X text 45 123 There's also a grid visibility option (visible by default).
+You can set it with the 'grid' message or '-grid' flag., f 40;
+#X obj 109 345 else/circle 127 -1 1 -1 1 0 255 255 255 255 255 255
+0 0 0 0 0 0 63.5 63.5 empty empty 1;
+#X connect 1 0 2 0;
+#X connect 2 0 11 0;
+#X connect 3 0 11 0;
+#X connect 4 0 5 0;
+#X connect 5 0 3 0;
+#X connect 11 0 0 0;
+#X restore 128 186 pd mode-grid;
+#X text 49 87 [circle] is a two dimensional slider GUI abstraction
+(see also [else/slider2d)., f 40;
+#X text 108 388 bgcolor1 <f \, f \, f>;
+#X text 108 402 bgcolor2 <f \, f \, f>;
+#X text 232 388 - sets background color inside circle in RGB, f 52
+;
+#X text 232 402 - sets background color outside circle in RGB, f 52
+;
+#X obj 359 90 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255 0
+0 0 1 0 0 63.5 63.5 empty empty 1;
+#N canvas 700 46 382 360 clip 0;
+#X obj 117 149 else/circle 127 -1 1 -1 1 1 255 255 255 255 255 255
+0 0 0 1 0 0 63.5 63.5 empty empty 0;
+#X msg 117 125 clip \$1;
+#X obj 117 100 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 53 33 With the 'clip' message or '-clip' flag \, you can set
+it to clip inside the circle bounds. A value of "1" clips (default)
+and "0" does not., f 46;
+#X obj 117 290 else/display;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X restore 74 205 pd clip;
+#X text 114 416 bgcolor <f \, f \, f>;
+#X text 232 416 - sets both background colors in RGB, f 52;
+#X text 144 458 clip <float>;
+#X text 232 458 - non zero clips inside the circle, f 52;
+#X connect 56 0 63 0;
+#X connect 63 0 55 0;
+#X coords 0 578 1 577 85 60 0;

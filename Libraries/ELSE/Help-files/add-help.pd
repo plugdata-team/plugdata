@@ -1,0 +1,58 @@
+#N canvas 468 31 567 424 10;
+#X obj 6 270 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 335 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 119 277 cnv 17 3 49 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 6 394 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 5 3 cnv 15 301 42 empty empty add 20 20 2 37 -233017 -1 0;
+#X obj 308 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 4 3 graph;
+#X obj 347 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+0;
+#X obj 25 40 cnv 4 4 4 empty empty Number 0 28 2 18 -233017 -1 0;
+#X obj 93 40 cnv 4 4 4 empty empty accumulator 0 28 2 18 -233017 -1
+0;
+#X obj 460 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+0;
+#X obj 480 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+0;
+#X obj 517 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+0;
+#X obj 466 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+0;
+#X obj 504 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+0;
+#X text 230 277 - value to accumulate;
+#X text 230 345 - the accumulated value;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 307 3 graph;
+#X obj 227 172 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 187 172 reset;
+#X text 150 310 set <float>;
+#X text 192 294 bang;
+#X text 230 294 - ressets sum to starting point;
+#X text 230 310 - sets starting sum;
+#X text 166 372 1) float - starting sum (default 0);
+#X obj 254 203 else/add 10;
+#X obj 254 148 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 -2 256;
+#X obj 254 231 else/display;
+#X text 186 345 float;
+#X text 186 277 float;
+#X text 64 92 [add] starts accumulating input values to a starting
+sum value (0 by default). The starting sum can be set as an argument
+or the 'set' message. You can resset the to the starting sum point
+with a bang., f 64;
+#X obj 6 365 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X connect 18 0 25 0;
+#X connect 25 0 27 0;
+#X connect 26 0 25 0;

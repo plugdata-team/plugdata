@@ -1,0 +1,81 @@
+#N canvas 722 103 560 400 10;
+#X obj 306 7 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#X obj 345 14 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+0;
+#X obj 23 43 cnv 4 4 4 empty empty Message 0 28 2 18 -233017 -1 0;
+#X obj 458 14 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+0;
+#X obj 478 14 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+0;
+#X obj 515 14 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+0;
+#X obj 464 29 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+0;
+#X obj 502 29 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1;
+#X restore 305 6 graph;
+#X obj 94 43 cnv 4 4 4 empty empty gate 0 28 2 18 -233017 -1 0;
+#X obj 2 230 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 292 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 344 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 91 238 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 91 299 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 2 388 cnv 1 550 1 empty empty empty 0 0 0 4 -262144 -262144
+0;
+#X obj 2 371 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 221 352 -;
+#X text 162 352 1) float;
+#X obj 91 321 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 91 259 cnv 17 3 30 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 222 138 bng 22 250 50 0 empty empty empty 0 -6 0 8 -216373 -1
+-1;
+#X obj 3 5 cnv 15 301 42 empty empty nmess 20 20 2 37 -233017 -1 0
+;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 6 graph;
+#X obj 291 138 bng 22 250 50 0 empty empty empty 0 -6 0 8 -216373 -1
+-1;
+#X text 154 258 bang;
+#X text 148 272 float;
+#X text 189 258 - resets and reopens gate, f 41;
+#X obj 327 143 nbx 3 14 0 5 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 1 256;
+#X text 130 239 anything;
+#X text 189 239 - a message to be gated, f 41;
+#X text 189 272 - resets and sets 'n' number of messages, f 41;
+#X text 130 300 anything;
+#X text 130 321 anything;
+#X text 189 300 - output a message if the gate is opened;
+#X text 189 322 - output a message if the gate is closed;
+#X obj 291 198 else/display;
+#X obj 222 199 else/display;
+#X floatatom 197 142 3 0 0 0 - - -;
+#X msg 252 142 1 2;
+#X obj 222 174 else/nmess 4;
+#X msg 166 142 hi;
+#X text 74 87 [nmess] allows 'n' number of messages to be gated through
+the left outlet (it goes to the right outlet otherwise). A bang in
+the right inlet resets and reopens the gate., f 57;
+#X text 367 141 <= set 'n' and reset;
+#X text 305 172 <= 'n';
+#X text 235 352 sets 'n' number of messages (default 0);
+#X connect 21 0 40 0;
+#X connect 24 0 40 1;
+#X connect 28 0 40 1;
+#X connect 38 0 40 0;
+#X connect 39 0 40 0;
+#X connect 40 0 37 0;
+#X connect 40 1 36 0;
+#X connect 41 0 40 0;

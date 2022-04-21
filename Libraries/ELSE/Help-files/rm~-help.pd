@@ -1,0 +1,61 @@
+#N canvas 558 34 563 457 10;
+#X obj 224 149 else/player~ violin.wav 1 1;
+#X obj 306 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 458 13 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 13 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 5 graph;
+#X obj 22 42 cnv 4 4 4 empty empty Ring 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 3 5 cnv 15 301 42 empty empty rm~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 5 graph;
+#X obj 1 297 cnv 3 550 3 empty \$0-pddp.cnv.inlets inlets 8 12 0 13
+#dcdcdc #000000 0;
+#X obj 120 305 cnv 17 3 17 empty \$0-pddp.cnv.let.0 0 5 9 0 16 #dcdcdc
+#9c9c9c 0;
+#X obj 120 327 cnv 17 3 17 empty \$0-pddp.cnv.let.1 1 5 9 0 16 #dcdcdc
+#9c9c9c 0;
+#X text 162 305 signal;
+#X text 168 327 float;
+#X obj 224 228 else/out~;
+#X obj 1 355 cnv 3 550 3 empty \$0-pddp.cnv.outlets outlets 8 12 0
+13 #dcdcdc #000000 0;
+#X obj 120 367 cnv 17 3 17 empty \$0-pddp.cnv.let.0 0 5 9 0 16 #dcdcdc
+#9c9c9c 0;
+#X text 162 367 signal;
+#X obj 1 394 cnv 3 550 3 empty \$0-pddp.cnv.argument arguments 8 12
+0 13 #dcdcdc #000000 0;
+#X text 150 401 1) float;
+#X obj 1 427 cnv 15 552 21 empty \$0-pddp.cnv.footer empty 20 12 0
+14 #dcdcdc #404040 0;
+#X text 212 305 - input signal to be processed, f 45;
+#X obj 68 42 cnv 4 4 4 empty empty Modulator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 224 198 else/rm~ 150;
+#X obj 293 175 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 212 327 - modulation frequency, f 45;
+#X text 212 401 - modulation frequency (default 0), f 45;
+#X text 88 91 [rm~] is a Ring Modulation abstraction. It takes a modulation
+frequency input as the argument or via the control right inlet. O modulation
+frequency of 0 Hz bypasses the input signal., f 63;
+#X text 353 175 Mod frequency;
+#X text 212 367 - ring modulated signal;
+#X connect 0 0 26 0;
+#X connect 26 0 17 0;
+#X connect 27 0 26 1;

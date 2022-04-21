@@ -1,0 +1,96 @@
+#N canvas 595 42 563 414 10;
+#X obj 4 234 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 286 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 349 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 122 295 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 383 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 3 3 cnv 15 301 42 empty empty cents2frac 20 20 2 37 #e0e0e0
+#000000 0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 3 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Cents/Fraction 0 28 2 18 #e0e0e0
+#000000 0;
+#X obj 137 40 cnv 4 4 4 empty empty conversion 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 122 242 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 136 198 else/display;
+#X text 179 295 list;
+#X text 179 245 list;
+#X text 19 154 see also:;
+#X text 212 295 - converted fractional value(s);
+#X obj 4 322 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 135 331 -list: sets to list mode (output fraction as a list)
+;
+#N canvas 917 210 357 298 list 0;
+#X obj 125 235 else/display;
+#X floatatom 125 175 5 0 0 0 - - - 0;
+#X text 43 21 With the -list flag the fraction is output as a list
+of numberator and denominator., f 42;
+#X msg 125 84 498;
+#X obj 125 202 else/cents2frac -list;
+#X msg 140 109 702;
+#X msg 151 135 204;
+#X connect 1 0 4 0;
+#X connect 3 0 1 0;
+#X connect 4 0 0 0;
+#X connect 5 0 1 0;
+#X connect 6 0 1 0;
+#X restore 501 200 pd list;
+#X text 137 261 res <float>;
+#X text 212 261 - set conversion resolution;
+#N canvas 946 206 365 358 resolution 0;
+#X obj 125 285 else/display;
+#X floatatom 125 175 5 0 0 0 - - - 0;
+#X msg 151 203 res 1000;
+#X msg 161 226 res 100;
+#X text 22 26 The resolution parameter sets the maximum numberator.
+It then approximates to a simpler ratio/fraction. You can change the
+resolution with an argument (1000 by default) or the 'res' message.
+10 is the minimum allowed value., f 52;
+#X obj 125 252 else/cents2frac 100;
+#X msg 125 114 700;
+#X msg 136 145 750;
+#X connect 1 0 5 0;
+#X connect 2 0 5 0;
+#X connect 3 0 5 0;
+#X connect 5 0 0 0;
+#X connect 6 0 1 0;
+#X connect 7 0 1 0;
+#X restore 464 180 pd resolution;
+#X text 158 358 1) float - conversion resolution (default 1000 \, min
+10);
+#X text 61 86 Use [cents2frac] to convert a list of cents to intervals
+defined as fraction symbols or lists., f 65;
+#X msg 136 134 0 203.91 386.314 551.318 701.955 840.528 968.826 1088.27
+1200, f 61;
+#X text 212 245 - cents value(s);
+#X obj 14 179 else/frac2cents;
+#X obj 14 203 else/dec2frac;
+#X obj 136 165 else/cents2frac 4;
+#X connect 31 0 35 0;
+#X connect 35 0 18 0;

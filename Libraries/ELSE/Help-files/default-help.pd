@@ -1,0 +1,72 @@
+#N canvas 592 77 566 407 10;
+#X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 0 0;
+#X restore 305 4 pd;
+#X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 103 41 cnv 4 4 4 empty empty message 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 4 cnv 15 301 42 empty empty default 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 4 graph;
+#X obj 4 248 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 319 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 352 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 135 329 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 136 257 cnv 17 3 32 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 378 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 162 329 anything;
+#X obj 229 220 else/display;
+#X obj 229 167 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 162 359 1) anything -;
+#X text 186 258 bang;
+#X obj 35 41 cnv 4 4 4 empty empty Default 0 28 2 18 #e0e0e0 #000000
+0;
+#X text 162 274 anything;
+#X obj 135 295 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 162 296 anything;
+#X msg 344 168 1 2 3;
+#X msg 355 193 bang;
+#X msg 255 167 list x y;
+#X symbolatom 196 142 7 0 0 0 - - - 0;
+#X floatatom 334 146 5 0 0 0 - - - 0;
+#X text 216 296 - stores the message;
+#X floatatom 158 141 5 0 0 0 - - - 0;
+#X text 216 258 - outputs the stored message;
+#X text 216 274 - outputs the message without storing it;
+#X text 216 329 - the stored message;
+#X text 247 359 initially stored message (default: "bang");
+#X text 59 87 The [default] sets a default message as the argument
+or via the right inlet. A bang outputs the default message \, other
+messages are sent through without being stored., f 69;
+#X obj 229 192 else/default a b c;
+#X connect 19 0 38 0;
+#X connect 26 0 38 1;
+#X connect 27 0 38 1;
+#X connect 28 0 38 0;
+#X connect 29 0 38 0;
+#X connect 30 0 38 1;
+#X connect 32 0 38 0;
+#X connect 38 0 18 0;
