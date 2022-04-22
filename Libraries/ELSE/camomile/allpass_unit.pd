@@ -1,0 +1,15 @@
+#N canvas 652 106 487 308 10;
+#X declare -path else;
+#X obj 69 18 inlet~;
+#X obj 69 252 outlet~;
+#X obj 118 90 r~ \$1-freq;
+#X obj 168 117 r~ \$1-q;
+#X text 240 138 Part of ELSE \; https://github.com/porres/pd-else;
+#X text 242 119 Alexandre Torres Porres (2019);
+#X text 270 71 Abstraction used in allpass.filt~, f 19;
+#X obj 69 148 allpass.2nd~;
+#X obj 202 203 declare -path else;
+#X connect 0 0 7 0;
+#X connect 2 0 7 1;
+#X connect 3 0 7 2;
+#X connect 7 0 1 0;

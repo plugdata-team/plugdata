@@ -1,0 +1,93 @@
+#N canvas 461 23 562 806 10;
+#X obj 6 778 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 9 542 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 640 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 681 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 102 554 cnv 17 3 53 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 102 653 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 148 556 signal;
+#X obj 102 613 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 148 611 signal;
+#X text 148 651 signal;
+#X text 202 652 - the triangle wavetable output based on args;
+#X text 137 694 1) float;
+#X floatatom 168 263 6 0 0 0 - - -;
+#X floatatom 218 286 6 0 0 0 - - -;
+#X obj 334 347 line~;
+#X obj 337 270 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 334 298 5 0 0 0 - - -;
+#X obj 171 222 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -249661
+-1 -1 0 1;
+#X obj 221 245 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -249661
+-1 -1 0 1;
+#X text 423 511 -1;
+#X text 426 465 0;
+#X text 426 413 1;
+#X text 202 611 - variable duty (peak position) from 0-1;
+#X obj 199 417 cyclone/scope~ 220 106 3 3 128 -1 1 0 0 0 0 205 229
+232 74 79 77 96 98 102 0 empty;
+#X text 203 693 - peak position from 0 to 1 (default 0.5);
+#X msg 334 321 \$1 50;
+#X obj 89 286 phasor~ 229;
+#X obj 8 726 cnv 3 550 3 empty empty attributes 8 12 0 13 -228856 -1
+0;
+#X text 174 748 @hi <f> (default 1) - same as "hi" message;
+#X msg 168 285 lo \$1;
+#X msg 218 308 hi \$1;
+#X obj 133 374 cyclone/triangle~ @lo -0.5 @hi 0.5;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 69 87 [triangle~] is a triangular wavetable that is read with
+phase values from 0 to 1 into the first inlet- a [phasor~] input turns
+it into a wavetable oscillator.;
+#X text 70 131 A second inlet changes the position of the peak value
+(variable duty \, from 0 to 1) \, going from sawtooth like waveforms
+to triangular ones.;
+#X text 69 175 The default lo/hi points are -1 and 1 \, but may be
+changed using the lo/hi messages to any given range.;
+#X text 124 573 lo <float>;
+#X text 124 590 hi <float>;
+#X text 202 589 - changes highest point (default 1);
+#X text 202 556 - phase input signal;
+#X text 202 574 - changes lowest point (default -1);
+#X text 174 733 @lo <f> (default -1) - same as "lo" message;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Variable duty triangular wavetable;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 triangle~;
+#X obj 90 446 ./out~;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 12 0 29 0;
+#X connect 13 0 30 0;
+#X connect 14 0 31 1;
+#X connect 15 0 16 0;
+#X connect 16 0 25 0;
+#X connect 17 0 12 0;
+#X connect 18 0 13 0;
+#X connect 25 0 14 0;
+#X connect 26 0 31 0;
+#X connect 29 0 31 0;
+#X connect 30 0 31 0;
+#X connect 31 0 23 0;
+#X connect 31 0 49 0;
+#X connect 31 0 49 1;

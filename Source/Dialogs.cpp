@@ -34,11 +34,12 @@ struct BlackoutComponent : public Component
     }
     
     void paint(Graphics& g) {
-        g.fillAll(Colours::black.withAlpha(0.5f));
+        g.setColour(Colours::black.withAlpha(0.5f));
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
     }
     
     void resized() {
-        setBounds(parent->getLocalBounds());
+        setBounds(parent->getLocalBounds().reduced(4));
     }
     
     void mouseDown(const MouseEvent& e) {

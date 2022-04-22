@@ -1,0 +1,138 @@
+#N canvas 461 23 563 640 10;
+#X obj 6 613 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 6 459 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 539 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 575 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 107 469 cnv 17 3 34 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 107 549 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 136 467 signal;
+#X obj 107 510 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 136 509 signal;
+#X text 136 549 signal;
+#X text 123 586 1) float;
+#X text 142 487 float;
+#X text 196 509 - trigger signal;
+#X text 196 549 - sampled and held signal according to trigger signal
+;
+#X text 196 586 - threshold value (default 0);
+#X floatatom 189 244 8 0 0 0 - - -;
+#X obj 132 230 noise~;
+#X obj 132 348 cyclone/cycle~;
+#X obj 287 237 cyclone/triangle~ 1;
+#X obj 287 287 cyclone/snapshot~ 1;
+#X obj 287 318 vsl 20 70 -1 1 0 0 empty empty empty 0 -9 0 10 -249661
+-1 -1 0 1;
+#X obj 287 214 phasor~ 0.7;
+#X obj 328 318 vsl 20 70 -0.99 0.99 0 0 empty empty empty 0 -9 0 10
+-228856 -1 -1 0 1;
+#X obj 189 217 r \$0-thresh;
+#X obj 328 397 s \$0-thresh;
+#X obj 132 317 expr~ $v1 * 300 + 800;
+#X text 86 170 Sample and hold random values from a noise input \,
+rescaled to 500 - 1100 Hz range:;
+#X text 308 383 -1;
+#X text 313 309 1;
+#X text 314 346 0;
+#X text 196 468 - input signal to sample and hold;
+#X text 362 349 <= set threshold;
+#X text 300 260 <= trigger signal;
+#X text 72 255 input =>;
+#X obj 132 280 cyclone/sah~ -0.5;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#X text 85 91 When a trigger signal raises above a given threshold
+\, [sah~] captures a value ("samples") from the input and continually
+outputs it ("hold") until the trigger signal rises again above the
+threshold after having dropped below it. This usually synchronizes
+one signal to the behavior of another.;
+#X text 196 488 - sets treshold value;
+#X obj 16 59 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Sample and hold;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 sah~;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#N canvas 220 68 493 689 arpeggiator 0;
+#X obj 87 478 cyclone/cycle~;
+#X floatatom 96 258 0 0 0 0 - - -;
+#X floatatom 261 247 5 0 0 0 - - -;
+#X obj 264 223 hsl 128 15 50 150 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 99 235 hsl 128 15 15 25 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 126 343 cyclone/sah~;
+#X text 313 310 phasor~;
+#X text 291 540 sampled & held;
+#X text 310 554 phasor~;
+#X text 397 520 0;
+#X text 397 434 1;
+#X text 399 416 0;
+#X text 399 333 1;
+#X obj 96 287 phasor~ 20;
+#X obj 261 270 cyclone/train~ 77;
+#X obj 34 11 cnv 15 260 30 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 276 336 cyclone/scope~ 116 89 34 3 128 0 1 0 0 0 0 205 229 232
+74 79 77 96 98 102 0 empty;
+#X obj 278 441 cyclone/scope~ 116 89 34 3 128 0 1 0 0 0 0 205 229 232
+74 79 77 96 98 102 0 empty;
+#X obj 87 442 cyclone/scale~ 0 1 200 1000;
+#X text 73 60 Here we're passing the signal of a [phasor~] (a periodic
+ramp from 0-1) through the [sah~] object. The trigger signal is from
+the [train~] object \, which goes from 0 to 1 at a period given in
+ms \, and from 1 to 0 at half this period. When [train~] goes from
+0 to 1 \, it triggers the [sah~] object.;
+#X text 74 147 When the period of the [phasor~] and [train~] are out
+of synchrony \, you may get interesting arpeggio effects. You can try
+other waveforms for the input to the [sah~].;
+#X text 56 604 The [samphold~] object in Pd vanilla was designed to
+work with [phasor~]. Conversely \, [sah~] doesn't work well with [phasor~]
+and works better synchronizing with a signal like a square wave \,
+or an impulse for example.;
+#X obj 40 15 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X obj 87 523 ./out~, f 14;
+#X connect 0 0 23 0;
+#X connect 0 0 23 1;
+#X connect 1 0 13 0;
+#X connect 2 0 14 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 5 0 17 0;
+#X connect 5 0 18 0;
+#X connect 13 0 5 0;
+#X connect 13 0 16 0;
+#X connect 14 0 5 1;
+#X connect 18 0 0 0;
+#X restore 448 410 pd arpeggiator \; example;
+#X obj 104 387 ./out~;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 15 0 34 0;
+#X connect 16 0 34 0;
+#X connect 17 0 43 0;
+#X connect 17 0 43 1;
+#X connect 18 0 19 0;
+#X connect 18 0 34 1;
+#X connect 19 0 20 0;
+#X connect 21 0 18 0;
+#X connect 22 0 24 0;
+#X connect 23 0 15 0;
+#X connect 25 0 17 0;
+#X connect 34 0 25 0;

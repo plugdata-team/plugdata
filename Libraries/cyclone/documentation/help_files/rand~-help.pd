@@ -1,0 +1,70 @@
+#N canvas 450 111 567 558 10;
+#X obj 6 532 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 6 420 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 460 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 497 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 110 431 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 110 470 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X floatatom 254 185 0 0 0 0 - - -;
+#X text 177 471 signal;
+#X text 165 506 1) float;
+#X obj 257 164 hsl 128 15 41.1 44100 1 0 empty empty empty -2 -8 0
+10 -228856 -1 -1 0 1;
+#X text 233 471 - interpolated random noise signal;
+#N canvas 832 411 415 355 random 0;
+#X obj 136 179 expr~ $v1 * 300 + 800;
+#X obj 27 10 cnv 15 210 30 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 25 59 you can use [rand~] at a low frequency to generate random
+ramps up and down to control several parameters. Below \, it generates
+random glissandi.;
+#X obj 136 219 osc~;
+#X obj 136 143 cyclone/rand~ 1;
+#X obj 31 15 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X obj 111 264 ./out~;
+#X connect 0 0 3 0;
+#X connect 3 0 6 0;
+#X connect 3 0 6 1;
+#X connect 4 0 0 0;
+#X restore 429 371 pd random control;
+#X text 142 431 float/signal;
+#X obj 254 208 cyclone/rand~ 441;
+#X obj 89 263 cyclone/scope~ 130 130 16 3 128 -1 1 50 0 0 0 205 229
+232 74 79 77 96 98 102 0 empty;
+#X text 233 431 - sets frequency;
+#X text 75 102 [rand~] generates random values between -1 and 1 at
+a given frequency \, interpolating linearly between the generated values.
+The resulting sound is a bandlimited noise.;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 233 506 - sets intial frequency (default 0);
+#X obj 16 59 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Interpolated bandlimited noise;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 rand~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 254 270 ./out~;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 6 0 13 0;
+#X connect 9 0 6 0;
+#X connect 13 0 14 0;
+#X connect 13 0 26 0;
+#X connect 13 0 26 1;

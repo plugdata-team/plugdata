@@ -1,0 +1,205 @@
+!- reverse minus
+!-~ signal reverse minus
+!/ reverse division
+!/~ reverse signal division
+!=~ signal not equals
+%~ signal modulo
++=~ signal accumulator
+<=~ signal less than or equal to
+<~ signal less than
+==~ signal equal to
+>=~ signal greater than or equal to
+>~ signal greater than
+accum accumulate to a value
+acos arc cosine function
+acos~ signal arc cosine function
+acosh hyperbolic arc cosine function
+acosh~ signal hyperbolic ard cosine function
+active report window activity
+allpass~ allpass filter
+anal number pairs histogram
+append append messages to the input
+asin arc sine function
+asin~ signal arc sine function
+asinh arc sine function
+asinh~ signal arc sine function
+atan~ signal arc tangent function
+atan2~ signal two arguments arc tangent function
+atanh hyperbolic arc tangent function
+atanh~ signal hyperbolic arc tangent function
+atodb linear amplitude to dBFS conversion
+atodb~ signal linear amplitude to dBFS conversion
+average~ multi-mode signal moving average
+avg~ signal absolute average
+bangbang output a bang from many outlets
+bitand~ signal bitwise-AND
+bitnot~ signal bitwise-NOT
+bitor~ signal bitwise-OR
+bitsafe~ replace nan/inf signals with 0
+bitshift~ signal bit-shifting
+bitxor~ signal bitwise-XOR
+bondo sync a group of messages
+borax repor note on/off info
+bucket pass numbers from outlet to outlet
+buddy sync arriving messages
+buffer~ audio buffer
+buffir~ convolve with a buffer
+capture store data as text
+capture~ store samples into text
+cartopol cartesian to polar conversion
+cartopol~ signal cartesian to polar conversion
+change~ detect signal change & direction
+click~ generate impulse from a bang
+clip constrain values to a given range
+clip~ constrain a signal to a given range
+coll store/edit message collections
+comb~ comb filter
+comment comment box
+cosh hyperbolic cosine function
+cosh~ signal hyperbolic cosine function
+cosx~ signal cosine function (radian input)
+count~ counter at the sample rate
+counter counts over a range
+cross~ crossover filter
+curve~ curved ramp generator
+cycle round-robin messages to outlets
+cycle~ wavetable oscillator
+dbtoa dBFS to linear amplitude conversion 
+dbtoa~ signal dBFS to linear amplitude conversion
+decide randomly output 0 or 1
+decode send 0/1 to a specific outlet
+degrade~ signal quality reducer
+delay~ delay a signal
+delta~ difference between samples
+deltaclip~ limit amplitude change between samples
+downsamp~ downsample a signal
+drunk random drunk walk
+edge~ report zero/non-zero transitions for signals
+equals~ alias of ==~
+flush flush hanging note-ons
+forward send remote messages
+frameaccum~ FFT frame accumulation
+framedelta~ FFT frame deviation
+fromsymbol convert symbols to anything
+funbuff store pairs of integers
+funnel tag data based on inlet
+gate route input message to an outlet
+gate~ route input signal to an outlet
+grab grabs the output of another object
+greaterthan~ alias of >~
+greaterthaneq~ alias of >=~
+histo create a histogram of numbers
+index~ non-interpolating array reader
+iter split messages sequentially
+join join items into a list
+kink~ phase distorter
+lessthan~ alias of <~
+lessthaneq~ alias of <=~
+line~ linear ramp generator
+linedrive exponential scaler for [line~]
+listfunnel index and output list elements
+loadmess send messages at loading a patch
+lookup~ transfer function lookup table
+lores~ lowpass resonant filter
+match output a matching input
+matrix~ signal routing/mixing matrix
+maximum get maximum of two or more values
+maximum~ signal maximum of two values
+mean moving mean average
+midiflush flush hanging note-ons on raw MIDI data
+midiformat format MIDI messages
+midiparse retrieve MIDI messages
+minimum get minimum of two or more values
+minimum~ signal mainimum of two values
+minmax~ minimum/maximum values of a signal
+modulo~ alias of %~
+mousefilter filter data when pressing the mouse button
+mousestate retrieve mouse data
+mstosamps~ milliseconds to samples time conversion
+mtr multi-track data recorder
+next detect separation of messages
+notequals~ alias of !=~
+number~ signal generator/monitor
+offer store number pairs once
+onebang gate a bang with a bang
+onepole~ one pole lowpass filter
+overdrive~ analog overdrive simulation
+pak output a list when any element changes
+past check if input increased past a threshold
+peak output numbers greater than the previous
+peakamp~ Signal's peak amplitude
+peek~ read/write to arrays/buffer~
+phaseshift~ 2nd order allpass filter
+phasewrap~ wrap between π & -π
+pink~ pink noise
+play~ array/buffer~ player
+plusequals~ alias of +=~
+poke~ write to an array/buffer~
+poltocar polar to cartesian conversion
+poltocar~ signal polar to cartesian conversion
+pong range limiter (fold, wrap & clip)
+pong~ signal range limiter (fold, wrap & clip)
+pow~ signal power function
+prepend prepend messages to the input
+prob probability matrix
+pv private (local) variables
+rampsmooth~ smooth signals linearly
+rand~ interpolated bandlimited noise
+rdiv alias of !/
+rdiv~ alias of !/~
+record~ record signals to arrays/buffer~
+reson~ bandpass resonant filter
+rminus alias of !-
+rminus~ alias of !-~
+round round floats/lists
+round~ round signals
+sah~ sample and hold
+sampstoms~ samples to milliseconds time conversion
+scale map numbers to an output range
+scale~ map signals to an output range
+scope~ oscilloscope display
+selector~ route a signal inlet to the outlet
+seq MIDI sequencer
+sinh hyperbolic sine function
+sinh~ signal hyperbolic sine function 
+sinx~ signal sine function (radian input)
+slide~ smooth signals logarithmically
+snapshot~ convert a signal to floats
+speedlim limit the speed of messages
+spell convert input to ASCII values
+spike~ report zero to non-zero transition intervals
+split split numbers according to a range
+spray distribute values to outlets
+sprintf message formatter
+substitute substitute elements in messages
+sustain sustain pedal emulator
+svf~ state variable filter
+switch route a control inlet to the outlet
+table store/edit an array
+tanh hyperbolic tangent function
+tanh~ signal hyperbolic tangent function
+tanx~ signal tangent function (radian input)
+teeth~ teeth comb filter
+thresh combine data received close together
+thresh~ detect signals above a threshold
+togedge report zero/non-zero transitions
+tosymbol convert anything to a symbol
+train~ pulse-train generator and metronome
+trapezoid~ trapezoidal wavetable
+triangle~ variable duty triangular wavetable
+trough output numbers smaller than the previous
+trunc~ truncate signal values
+universal send messages to all objects of the same type
+unjoin break a list into separate messages
+urn unrepeated random numbers
+uzi bang loop/counter
+vectral~ smooth/filter FFT frames
+wave~ wavetable reader
+xbendin retrieve pitch bend messages
+xbendin2 retrieve pitch bend messages
+xbendout send pitch bend messages
+xbendout2 send pitch bend messages
+xnotein retrieve note on/off velocity
+xnoteout send note on/off velocity
+zerox~ detect zero crossings
+zl list processor

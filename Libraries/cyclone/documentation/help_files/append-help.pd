@@ -1,0 +1,81 @@
+#N canvas 477 146 564 433 10;
+#X obj 5 279 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 331 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 371 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 85 342 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 85 291 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 279 257 print;
+#X obj 4 407 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 190 292 -;
+#X text 133 292 anything;
+#X text 134 342 anything;
+#X text 115 381 1) anything;
+#X obj 4 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 4 3 graph;
+#X obj 307 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 306 3 pd;
+#X text 97 309 set <anything>;
+#X text 190 309 - updates argument (message to append to the input
+message);
+#X text 190 342 - the combined message;
+#X text 190 381 - sets message to append to the input (default "nothing")
+;
+#X text 52 87 [append] will add messages set as argument to the end
+of any message sent to the input.;
+#X text 205 292 a message that will be combined to the stored message
+;
+#X obj 18 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 append;
+#X obj 19 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Append a message to the incoming message;
+#X obj 324 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 365 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#N canvas 836 207 424 229 name 0;
+#X text 199 175 <= from Pd Vanilla;
+#X text 31 138 And still create the vanilla object from vanilla without
+namespaces as:;
+#X text 32 19 Pd also has a vanilla object named [append]. Cyclone
+avoids name clashing and overwritting an internal in Pd Vanilla \,
+but for that you need to use the cyclone namespace ("cyclone/" before
+the object name) \, as it's the common practice for cyclone's documentation.
+So you create it as:;
+#X obj 149 100 cyclone/append;
+#X obj 156 175 append;
+#X restore 455 252 pd name clash;
+#X obj 253 169 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 205 155 bangs are ignored, f 9;
+#X obj 279 233 cyclone/append C D;
+#X msg 297 152 A B;
+#X msg 315 180 set 3 4;
+#X symbolatom 278 125 10 0 0 0 - - -;
+#X msg 322 206 set;
+#X text 352 206 sets to nothing;
+#X obj 81 236 print;
+#X msg 81 163 4 5;
+#X obj 122 164 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 81 205 cyclone/append y z;
+#X connect 26 0 28 0;
+#X connect 28 0 5 0;
+#X connect 29 0 28 0;
+#X connect 30 0 28 0;
+#X connect 31 0 28 0;
+#X connect 32 0 28 0;
+#X connect 35 0 37 0;
+#X connect 36 0 37 0;
+#X connect 37 0 34 0;

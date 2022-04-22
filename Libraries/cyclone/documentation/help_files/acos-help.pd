@@ -1,0 +1,58 @@
+#N canvas 500 124 562 430 10;
+#X obj 2 264 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 320 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 360 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 88 331 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 301 144 bng 20 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 88 274 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 115 191 cyclone/acos;
+#X text 125 274 bang, f 5;
+#X text 119 295 float, f 6;
+#X text 119 332 float, f 6;
+#X text 100 373 1) float, f 9;
+#X obj 2 421 cnv 3 550 3 empty empty empty 0 0 0 4 -262144 -1 0;
+#X obj 2 402 cnv 15 552 20 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 115 165 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 115 221 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 301 217 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 173 295 - input to arc-cosine function, f 60;
+#X text 173 274 - output the arc-cosine of stored value, f 60;
+#X text 173 332 - the arc-cosine of the input, f 60;
+#X obj 118 142 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 172 373 - initially stored value (default 0), f 60;
+#X text 72 95 [acos] calculates the arc-cosine of a given number.;
+#X obj 301 181 cyclone/acos 0.5;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 acos;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Arc-cosine function;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X connect 4 0 26 0;
+#X connect 6 0 18 0;
+#X connect 17 0 6 0;
+#X connect 23 0 17 0;
+#X connect 26 0 19 0;

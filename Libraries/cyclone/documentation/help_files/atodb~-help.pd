@@ -1,0 +1,55 @@
+#N canvas 414 145 560 502 10;
+#X obj 4 347 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 395 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 436 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 113 404 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 113 361 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 158 404 signal;
+#X text 159 445 (none);
+#X obj 4 474 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 172 188 hsl 180 15 1e-05 1 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 169 275 cyclone/atodb~;
+#X text 210 187 Linear Amplitude;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 215 361 - linear amplitude value;
+#X text 156 361 signal;
+#X obj 169 242 sig~;
+#X text 216 405 - converted dBFS amplitude value;
+#X text 61 95 Use the [atodb~] to convert a signal representing a linear
+amplitude value to a deciBel Full Scale (dBFS) equivalent.;
+#X text 62 129 Conversion formula: dbFS = log10(amp) * 20 (minimum
+output value is -999)., f 42;
+#X text 285 308 dBFS;
+#X obj 169 217 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Linear amplitude to dBFS conversion for signals;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 atodb~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 169 307 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 500 69 cyclone/setdsp~;
+#X connect 8 0 22 0;
+#X connect 9 0 27 0;
+#X connect 17 0 9 0;
+#X connect 22 0 17 0;

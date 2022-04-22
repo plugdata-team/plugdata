@@ -1,0 +1,97 @@
+#N canvas 607 88 562 472 10;
+#X obj 6 445 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 9 293 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 9 348 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 9 410 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X text 134 420 (none);
+#X text 138 302 signal;
+#X text 138 325 signal;
+#X text 138 358 signal;
+#X text 138 381 signal;
+#X obj 107 303 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 107 324 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 107 360 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 107 382 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 4 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 4 3 graph;
+#X obj 307 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 306 3 pd;
+#X text 79 95 Use the [cartopol~] object to convert signal values representing
+cartesian coordinates to a signal composed of polar coordinates - useful
+for spectral processing.;
+#N canvas 797 310 534 482 spectral_processing 0;
+#X obj 110 239 cnv 15 300 100 empty empty polar: 6 10 0 14 -233017
+-66577 0;
+#X obj 205 210 cyclone/cartopol~;
+#X obj 205 369 cyclone/poltocar~;
+#X obj 241 147 rfft~;
+#X obj 230 426 rifft~;
+#X text 323 370 back to cartesian;
+#X text 287 170 <= imaginary;
+#X text 123 283 amplitude =>;
+#X text 317 282 <= phase;
+#X text 229 269 spectral;
+#X text 223 288 processing;
+#X text 229 306 in here;
+#X text 178 172 real =>;
+#X text 319 210 to polar form;
+#X text 230 252 Do some;
+#X text 88 22 [poltocar~] is useful for spectral processing in the
+more intuitive polar form (with amplitude and phase values). This is
+because when performing spectral analysis in Pd \, the signal is in
+the cartesian form \, so we need [cartopol~] and [poltocar~] to convert
+to and from the polar form in order to perform the FFT and iFFT. Here's
+the general idea:;
+#X connect 1 0 2 0;
+#X connect 1 1 2 1;
+#X connect 2 0 4 0;
+#X connect 2 1 4 1;
+#X connect 3 0 1 0;
+#X connect 3 1 1 1;
+#X restore 408 265 pd spectral_processing;
+#X text 200 358 - real part of the signal in the cartesian form;
+#X text 200 381 - imaginary part of the signal in the cartesian form
+;
+#X text 202 324 - phase (in radians) of the signal in the polar form
+;
+#X text 201 302 - amplitude of the signal in the polar form;
+#X text 135 271 Real;
+#X text 251 271 Imaginary;
+#X text 125 151 Amplitude;
+#X text 263 151 Phase;
+#X obj 116 207 cyclone/poltocar~, f 21;
+#X obj 19 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal polar to cartesian conversion;
+#X obj 18 2 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 poltocar~;
+#X obj 324 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 365 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 239 247 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 239 172 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 116 170 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 116 247 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 27 0 35 0;
+#X connect 27 1 32 0;
+#X connect 33 0 27 1;
+#X connect 34 0 27 0;

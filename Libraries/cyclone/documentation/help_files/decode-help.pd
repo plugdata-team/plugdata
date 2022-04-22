@@ -1,0 +1,144 @@
+#N canvas 615 63 559 519 10;
+#X obj 4 324 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 419 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 455 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 105 333 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 105 373 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 104 428 cnv 17 3 17 empty empty n 5 9 0 16 -228856 -162280 0
+;
+#X obj 105 397 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
+;
+#X obj 2 511 cnv 3 550 3 empty empty empty 0 0 0 4 -262144 -1 0;
+#X obj 2 491 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 181 375 -;
+#X text 181 398 -;
+#X text 181 430 -;
+#X text 141 430 float;
+#X text 181 465 -;
+#X text 123 465 1) float;
+#X text 141 334 float;
+#X obj 2 5 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X text 69 130 If the input is higher than the number of given outlets
+\, then "1" is sent to the rightmost outlet. But if it's less than
+0 \, then "1" is sent to the leftmost outlet.;
+#X text 146 353 bang;
+#X text 181 353 - resends last output;
+#X text 140 375 float;
+#X text 140 398 float;
+#X text 181 334 - a number to search for a matching outlet;
+#X text 195 465 sets the number of outlets (default 1);
+#X obj 187 219 cnv 15 320 37 empty empty empty 20 12 0 14 -249661 -66577
+0;
+#X obj 236 294 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 189 294 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 143 294 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 143 233 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X msg 83 189 -1;
+#X msg 113 189 0;
+#X msg 143 189 1;
+#X msg 173 189 2;
+#X msg 205 189 3;
+#X obj 93 296 cyclone/comment 100 11 helvetica empty 0 0 0 0 1 255
+255 255 0 0 0 or less;
+#X obj 257 296 cyclone/comment 100 11 helvetica empty 0 0 0 0 1 255
+255 255 0 0 2 or more;
+#X obj 143 265 cyclone/decode 3;
+#X obj 236 240 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 189 221 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X text 255 239 All off (master);
+#X text 208 220 All on (submaster);
+#N canvas 774 145 442 361 master_switches 0;
+#X obj 175 223 tgl 20 0 empty empty empty 0 -6 0 8 -228856 -1 -1 0
+1;
+#X obj 222 250 tgl 20 0 empty empty empty 0 -6 0 8 -228856 -1 -1 0
+1;
+#X obj 201 226 cyclone/comment 425 11 helvetica empty 0 0 0 0 0 255
+255 255 0 0 comment;
+#X obj 245 253 cyclone/comment 425 11 helvetica empty 0 0 0 0 0 255
+255 255 0 0 comment;
+#X obj 166 308 tgl 15 0 sdg sdfgsdf empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 147 308 tgl 15 0 gsffgfsd sdfgw empty 17 7 0 10 -228856 -1 -1
+0 1;
+#X obj 129 308 tgl 15 0 dsfd sdgsfg empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 129 220 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 129 196 hradio 15 1 0 7 empty empty empty 0 -8 0 10 -228856
+-1 -1 6;
+#X obj 129 277 cyclone/decode 6;
+#X obj 222 308 tgl 15 0 wrqw dzgfhs empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 203 308 tgl 15 0 jfhd dfgjd empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 184 308 tgl 15 0 dfgs sdfhgsdfhs empty 17 7 0 10 -228856 -1
+-1 0 1;
+#X text 52 37 The secondary inlets have priority control over the output.
+;
+#X text 52 55 The right inlet is the master disable switch. If it is
+on \, all outlets are switched off.;
+#X text 52 88 The middle inlet is a submaster switch. If the right
+inlet switch is off \, this enables all unmatched outlets to be switched
+on or off.;
+#X text 52 136 Therefore \, the left inlet can turn on a single outlet
+on or off only if the submaster and master switches are off!;
+#X connect 0 0 9 1;
+#X connect 1 0 9 2;
+#X connect 7 0 9 0;
+#X connect 8 0 7 0;
+#X connect 9 0 6 0;
+#X connect 9 1 5 0;
+#X connect 9 2 4 0;
+#X connect 9 3 12 0;
+#X connect 9 4 11 0;
+#X connect 9 5 10 0;
+#X restore 389 227 pd master_switches;
+#X text 358 226 ==>;
+#X text 196 375 submaster "all on" switch;
+#X text 196 398 master "disable" switch;
+#X text 69 87 [decode] receives a number and looks for a corresponding
+outlet (numbered from left to right \, starting at 0) to swicth it
+on (output: 1) and the others off (output: 0).;
+#X text 196 430 1 or 0 based on the input;
+#X obj 20 58 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 Switch an outlet according to input;
+#X obj 16 5 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 decode;
+#X obj 322 29 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 5 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 cyclone;
+#X obj 175 296 cyclone/comment 100 11 helvetica empty 0 0 0 0 1 255
+255 255 0 0 1;
+#X connect 31 0 39 0;
+#X connect 32 0 31 0;
+#X connect 33 0 31 0;
+#X connect 34 0 31 0;
+#X connect 35 0 31 0;
+#X connect 36 0 31 0;
+#X connect 39 0 30 0;
+#X connect 39 1 29 0;
+#X connect 39 2 28 0;
+#X connect 40 0 39 2;
+#X connect 41 0 39 1;

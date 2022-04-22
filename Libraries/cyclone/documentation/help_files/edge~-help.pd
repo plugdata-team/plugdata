@@ -1,0 +1,83 @@
+#N canvas 755 312 563 521 10;
+#X obj 4 497 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 6 370 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 406 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 465 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 119 380 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 150 380 signal;
+#X obj 119 416 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 151 474 (none);
+#X obj 119 439 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 162 416 bang;
+#X text 162 439 bang;
+#X obj 187 267 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 433 255 vsl 20 88 -1 1 0 0 gdfgddf fdhdgjsjjs empty 0 -9 0 10
+-228856 -1 -1 4350 1;
+#X obj 112 226 cyclone/edge~;
+#X obj 112 195 sig~;
+#X msg 81 158 1;
+#X msg 112 158 0;
+#X msg 143 158 -1;
+#X text 99 299 zero to non-zero, f 8;
+#X text 176 299 non zero to zero, f 8;
+#X obj 112 267 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 378 305 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 303 305 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Detect signal transitions;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 edge~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 329 226 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X text 74 92 [edge~] detects signal transitions from zero to non-zero
+and vice versa and reports bangs accordingly.;
+#X msg 303 152 1 \, 0 500 0 200 -1 500 0 500 0 200 1 500, f 21;
+#X obj 462 291 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 0;
+#X obj 463 247 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 1;
+#X obj 457 336 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 -1;
+#X obj 303 270 cyclone/edge~;
+#X obj 303 195 cyclone/line~;
+#X text 205 380 - the signal to analyse;
+#X text 205 416 - at zero to non-zero transition;
+#X text 205 439 - at non-zero to zero transition;
+#X obj 497 71 cyclone/setdsp~;
+#X connect 13 0 20 0;
+#X connect 13 1 11 0;
+#X connect 14 0 13 0;
+#X connect 15 0 14 0;
+#X connect 16 0 14 0;
+#X connect 17 0 14 0;
+#X connect 31 1 12 0;
+#X connect 33 0 38 0;
+#X connect 37 0 22 0;
+#X connect 37 1 21 0;
+#X connect 38 0 31 0;
+#X connect 38 0 37 0;

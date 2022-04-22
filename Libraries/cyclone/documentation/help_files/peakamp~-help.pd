@@ -1,0 +1,78 @@
+#N canvas 453 80 565 570 10;
+#X obj 7 544 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 7 358 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 442 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 479 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 120 368 cnv 17 3 37 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 120 415 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 152 367 signal;
+#X text 207 367 - signal to measure peak amplitude;
+#X text 164 386 bang;
+#X text 157 452 float;
+#X obj 120 452 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 158 415 float;
+#X text 113 492 1) float;
+#X obj 222 225 *~;
+#X obj 282 179 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 279 202 0 0 0 0 - - -;
+#X obj 222 311 nbx 8 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
+-228856 -1 -1 0 256;
+#X text 207 386 - reports a peak value;
+#X text 207 415 - time interval in ms to report peak values;
+#X text 207 452 - reported peak amplitude;
+#X obj 222 271 cyclone/peakamp~ 25;
+#X obj 89 231 bng 20 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 89 311 nbx 8 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
+-228856 -1 -1 0 256;
+#X obj 89 271 cyclone/peakamp~;
+#X obj 222 191 noise~;
+#X floatatom 356 273 6 0 0 0 - - -;
+#X obj 359 249 hsl 128 15 0 500 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 397 274 clock time;
+#X text 79 213 report;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 91 99 Use the [peakamp~] object to report the absolute value
+of the peak amplitude of a signal since the last time it was reported.
+It outputs the peak amplitude when banged or via its own internal clock.
+;
+#X text 185 490 - sets the internal clock \, the interval in milliseconds
+to output the peak amplitude. If it is 0 (default) \, the clock isn't
+used and it only outputs when receiving a bang.;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal's peak amplitude;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 peakamp~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 13 0 20 0;
+#X connect 13 0 23 0;
+#X connect 14 0 15 0;
+#X connect 15 0 13 1;
+#X connect 20 0 16 0;
+#X connect 21 0 23 0;
+#X connect 23 0 22 0;
+#X connect 24 0 13 0;
+#X connect 25 0 20 1;
+#X connect 26 0 25 0;

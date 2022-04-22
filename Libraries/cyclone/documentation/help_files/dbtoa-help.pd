@@ -1,0 +1,76 @@
+#N canvas 520 107 563 532 10;
+#X obj 4 352 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 422 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 473 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 103 436 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 103 361 cnv 17 3 53 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 155 482 (none);
+#X obj 4 507 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 163 306 nbx 8 20 -1e+37 1e+37 0 0 empty empty empty 133 11 0
+16 -228856 -1 -1 1e-05 256;
+#X obj 92 191 nbx 5 14 -100 0 1 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 -100 256;
+#X obj 95 161 hsl 180 15 -100 0 0 1 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 131 436 float/list;
+#X text 168 378 bang;
+#X text 174 395 set;
+#X text 209 395 - sets next float value to be converted via bang;
+#X text 209 378 - outputs the last converted float value;
+#X text 182 191 last output;
+#X text 249 223 sets next value to be converted via bang;
+#X obj 163 191 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X msg 195 223 set -60;
+#X text 132 361 float/list;
+#X text 209 361 - dBFS amplitude value(s);
+#X text 207 436 - Linear amplitude value(s);
+#N canvas 868 314 292 240 lists 0;
+#X obj 87 155 cyclone/tosymbol;
+#X symbolatom 87 186 20 0 0 0 - - -;
+#X obj 87 69 loadbang;
+#X text 66 35 it also works with lists:;
+#X obj 87 123 cyclone/dbtoa;
+#X msg 87 95 0 10 -20;
+#X connect 0 0 1 0;
+#X connect 2 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 4 0;
+#X restore 476 304 pd lists;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 163 267 cyclone/dbtoa;
+#X text 98 92 Use [dbtoa] to convert decibel values to corresponding
+linear amplitude.;
+#X text 98 125 Conversion expression: amp = pow(10 \, dBFS / 20);
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Convert dBFS to linear amplitude;
+#X obj 38 188 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 dBFS;
+#X obj 293 306 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 Linear Amplitude;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 dbtoa;
+#X connect 8 0 27 0;
+#X connect 9 0 8 0;
+#X connect 17 0 27 0;
+#X connect 18 0 27 0;
+#X connect 27 0 7 0;

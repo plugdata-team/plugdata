@@ -1,0 +1,73 @@
+#N canvas 509 119 562 548 10;
+#X obj 3 524 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 3 413 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 451 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 488 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 131 463 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 160 462 signal;
+#X text 160 425 signal;
+#X text 260 499 (none);
+#X obj 40 186 *~ 3.14159;
+#X obj 231 199 -~ 3.14195;
+#X obj 231 179 *~ 6.28319;
+#X obj 131 426 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 231 153 phasor~ 2;
+#X text 177 314 0;
+#X text 176 379 -pi/2;
+#X text 177 255 pi/2;
+#X text 368 314 0;
+#X text 367 379 -pi/2;
+#X text 368 255 pi/2;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 40 217 cyclone/atan~;
+#X obj 231 228 cyclone/atan~;
+#X obj 40 156 osc~ 2;
+#X text 214 461 - the arc-tangent of the input;
+#X text 212 426 - input to arc-tangent function;
+#X obj 40 260 cyclone/scope~ 130 130 256 3 128 -1.57 1.57 0 0 0 0 205
+229 232 74 79 77 96 98 102 0 empty;
+#X obj 231 262 cyclone/scope~ 130 130 256 3 128 -1.57 1.57 0 0 0 0
+205 229 232 74 79 77 96 98 102 0 empty;
+#X text 66 97 Use [atan~] to output the arc-tangent of each input sample
+(probably only useful for mathematical calculations).;
+#X text 110 188 * pi;
+#X text 301 180 * 2pi;
+#X text 305 198 - pi;
+#X obj 424 304 cyclone/atan~;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 atan~;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal arc-tangent function;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 364 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 424 345 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 424 262 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 496 69 ./setdsp~;
+#X connect 8 0 23 0;
+#X connect 9 0 24 0;
+#X connect 10 0 9 0;
+#X connect 12 0 10 0;
+#X connect 23 0 28 0;
+#X connect 24 0 29 0;
+#X connect 25 0 8 0;
+#X connect 34 0 39 0;
+#X connect 40 0 34 0;

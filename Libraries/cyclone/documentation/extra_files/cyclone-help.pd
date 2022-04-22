@@ -1,0 +1,139 @@
+#N canvas 865 39 560 721 10;
+#X declare -lib cyclone -path cyclone;
+#X obj 3 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 323 28 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 364 4 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 cyclone;
+#X obj 11 3 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 cyclone;
+#X obj 19 56 cyclone/comment 425 18 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 The Cyclone library;
+#X obj 158 12 cyclone/comment 425 23 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 (library);
+#X msg 157 447 about;
+#X text 63 150 For more information on the loaded objects \, check:
+;
+#N canvas 604 130 484 477 operators 0;
+#X text 34 145 Comparatives:;
+#X text 45 368 Accumulator:;
+#X text 215 100 same as;
+#X text 215 124 same as;
+#X text 215 148 same as;
+#X text 215 171 same as;
+#X text 215 196 same as;
+#X text 215 220 same as;
+#X text 217 253 same as;
+#X text 217 334 same as;
+#X text 217 315 same as;
+#X text 217 293 same as;
+#X text 217 273 same as;
+#X text 217 369 same as;
+#X text 37 286 Math objects:;
+#X obj 274 100 cyclone/equals~;
+#X obj 274 124 cyclone/notequals~;
+#X obj 274 148 cyclone/lessthan~;
+#X obj 274 171 cyclone/lessthaneq~;
+#X obj 274 196 cyclone/greaterthan~;
+#X obj 274 220 cyclone/greaterthaneq~;
+#X obj 276 253 cyclone/modulo~;
+#X obj 276 314 cyclone/rminus;
+#X obj 276 334 cyclone/rminus~;
+#X obj 276 273 cyclone/rdiv;
+#X obj 276 293 cyclone/rdiv~;
+#X obj 277 369 cyclone/plusequals~;
+#X obj 273 68 cyclone/comment 425 18 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 comment;
+#X obj 78 68 cyclone/comment 425 18 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 comment;
+#X obj 133 99 cyclone/==~;
+#X obj 133 123 cyclone/!=~;
+#X obj 133 148 cyclone/<~;
+#X obj 133 171 cyclone/<=~;
+#X obj 133 197 cyclone/>~;
+#X obj 133 220 cyclone/>=~;
+#X obj 134 253 cyclone/%~;
+#X obj 134 314 cyclone/!-;
+#X obj 134 334 cyclone/!-~;
+#X obj 134 273 cyclone/!/;
+#X obj 134 293 cyclone/!/~;
+#X obj 133 368 cyclone/+=~;
+#X text 29 17 You can also find alphanumeric versions of these objects
+(whith the same name alias as in Max/MSP) as single separate binaries
+\, they are:, f 70;
+#X text 89 415 Note that even though the non-alphanumeric versions
+come from a single binary pack \, it is also possible to load them
+with the "cyclone/" prefix., f 56;
+#X restore 375 149 pd operators;
+#X text 63 311 Check declare's help file for more information.;
+#X text 63 178 Check "All About Cyclone" =>;
+#X obj 246 178 cyclone/All_about_cyclone;
+#X obj 3 697 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 4 582 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 630 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 665 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 123 590 cnv 17 3 32 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 123 639 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 242 674 (none);
+#X text 157 589 about;
+#X text 145 606 version;
+#X text 207 589 - prints library information on the terimnal;
+#X text 163 639 list;
+#X text 207 606 - outputs version informaton as a list;
+#X text 207 640 - version (major \, minor \, bugfix);
+#X text 63 98 The cyclone's single binary pack contains the cyclone
+operators \, which are: [!-] \, [!-~] \, [!/] \, [!/~] \, [!=~] \,
+[%~] \, [+=~] \, [<=~] \, [<~] \, [==~] \, [>=~] and [>~]. These objects
+with non-alphanumeric names need to be loaded as a library to avoid
+issues., f 71;
+#X msg 202 447 version;
+#X text 61 373 The binary is also loaded as the cyclone object. This
+also loads the library \, but you shouldn't load it this way! The object
+only accepts the "about" message \, which prints basic information
+(objects \, version \, release date) on the terminal and the "version"
+message that outputs the cyclone version as a list of major \, minor
+\, bugfix., f 71;
+#X symbolatom 202 551 20 0 0 0 - - -;
+#X obj 202 475 cyclone/cyclone;
+#X obj 214 501 print version;
+#X obj 202 526 cyclone/sprintf symout cyclone %d.%d-%d;
+#X text 63 203 The cyclone library also automatically loads cyclone's
+path to Pd so you can load the separate binaries (but this doesn't
+gurantee search priority). Objects from the cyclone library are mostly
+a set of separate binaries \, but also contains a few abstractions.
+You can load the cyclone library via "Startup" and "Path" (to guarantee
+search priority). Alternatively \, you can use [declare] as follows:
+, f 71;
+#X obj 185 284 declare -lib cyclone -path cyclone;
+#X obj 307 348 bng 15 250 50 0 \$0-install dummy empty 17 7 0 10 -228856
+-1 -1;
+#X text 65 336 Click and open "how to install" link from the repository
+for more details =>, f 39;
+#N canvas 568 76 464 173 link 0;
+#X obj 47 115 pdcontrol;
+#X obj 47 63 r \$0-install;
+#X msg 47 87 browse https://github.com/porres/pd-cyclone/wiki/How-To-Install
+, f 63;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X restore 356 346 pd link;
+#X connect 9 0 32 0;
+#X connect 29 0 32 0;
+#X connect 32 0 33 0;
+#X connect 32 0 34 0;
+#X connect 34 0 31 0;

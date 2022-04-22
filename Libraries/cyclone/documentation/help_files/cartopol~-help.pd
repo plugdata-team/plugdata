@@ -1,0 +1,102 @@
+#N canvas 478 89 560 499 10;
+#X obj 6 473 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 6 276 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 333 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 396 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X text 132 404 (none);
+#X text 131 284 signal;
+#X text 131 308 signal;
+#X text 131 344 signal;
+#X text 131 368 signal;
+#X obj 100 285 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 100 309 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 100 346 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 100 369 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 188 308 - imaginary part of the complex signal in cartesian
+form;
+#X text 188 284 - real part of the complex signal in cartesian form
+;
+#X text 77 163 Real;
+#X text 349 163 Imaginary;
+#X text 46 239 Amplitude;
+#X text 348 239 Phase;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 79 95 Use the [cartopol~] object to convert signal values representing
+cartesian coordinates to a signal composed of polar coordinates - useful
+for spectral processing.;
+#X text 188 343 - amplitude output of the polar form;
+#X text 189 368 - phase in radians (-pi to pi) output of the polar
+form;
+#X obj 6 429 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X obj 110 198 cyclone/cartopol~, f 21;
+#X text 125 437 If the right outlet ins't connected to anything \,
+the object won't compute the phase \, saving you some CPU.;
+#X obj 19 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal cartesian to polar conversion;
+#X obj 16 2 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 cartopol~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 233 238 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 110 238 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 110 162 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 233 163 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#N canvas 323 228 534 482 spectral 0;
+#X obj 99 239 cnv 15 300 100 empty empty polar: 6 10 0 14 -233017 -66577
+0;
+#X obj 194 210 cyclone/cartopol~;
+#X obj 194 369 cyclone/poltocar~;
+#X obj 230 147 rfft~;
+#X obj 219 426 rifft~;
+#X text 312 370 back to cartesian;
+#X text 276 170 <= imaginary;
+#X text 112 283 amplitude =>;
+#X text 306 282 <= phase;
+#X text 218 269 spectral;
+#X text 212 288 processing;
+#X text 218 306 in here;
+#X text 167 172 real =>;
+#X text 308 210 to polar form;
+#X text 219 252 Do some;
+#X text 85 32 [cartopol~] is useful for spectral processing in the
+more intuitive polar form (with amplitude and phase values). This is
+because when performing spectral analysis in Pd \, the signal is in
+the cartesian form \, so we need [cartopol~] and [poltocar~] to convert
+to and from the polar form in order to perform the FFT and iFFT. Here's
+the general idea:, f 62;
+#X connect 1 0 2 0;
+#X connect 1 1 2 1;
+#X connect 2 0 4 0;
+#X connect 2 1 4 1;
+#X connect 3 0 1 0;
+#X connect 3 1 1 1;
+#X restore 457 227 pd spectral \; processing;
+#X obj 500 69 cyclone/setdsp~;
+#X connect 27 0 34 0;
+#X connect 27 1 33 0;
+#X connect 35 0 27 0;
+#X connect 36 0 27 1;
