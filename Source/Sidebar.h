@@ -37,6 +37,7 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
 
+// Used by Console and Box for estimating best text height for a set width
 static int getNumLines(const String& text, int width)
 {
     auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
