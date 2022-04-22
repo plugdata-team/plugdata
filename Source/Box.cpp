@@ -177,11 +177,11 @@ void Box::updateBounds(bool newObject)
         setEditable(true);
         setSize(100, height);
     }
+    
     if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
     {
-        auto bestWidth = font.getStringWidth(currentText) + widthOffset;
-        int numLines = std::max(StringArray::fromTokens(currentText, "\n", "\'").size(), 1);
-        setSize(bestWidth + doubleMargin, (numLines * 18) + doubleMargin);
+        int numLines = getNumLines(currentText, getWidth());
+        setSize(getWidth(), (numLines * font.getHeight()) + doubleMargin + 8);
     }
 
     resized();

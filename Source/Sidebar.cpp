@@ -499,31 +499,6 @@ struct Console : public Component
             update();
         }
 
-        int getNumLines(const String& text)
-        {
-            auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
-
-            int numLines = 1;
-
-            Array<int> glyphs;
-            Array<float> xOffsets;
-            font.getGlyphPositions(text, glyphs, xOffsets);
-
-            for (int i = 0; i < xOffsets.size(); i++)
-            {
-                if ((xOffsets[i] + 12) >= static_cast<float>(getWidth()))
-                {
-                    for (int j = i + 1; j < xOffsets.size(); j++)
-                    {
-                        xOffsets.getReference(j) -= xOffsets[i];
-                    }
-                    numLines++;
-                }
-            }
-
-            return numLines;
-        }
-
         void mouseDown(const MouseEvent& e) override
         {
             int totalHeight = 0;
@@ -532,7 +507,7 @@ struct Console : public Component
             {
                 auto& message = pd->consoleMessages[row];
 
-                int numLines = getNumLines(message.first);
+                int numLines = getNumLines(message.first, getWidth());
                 int height = numLines * 22 + 2;
 
                 const Rectangle<int> r(0, totalHeight, getWidth(), height);
@@ -564,7 +539,7 @@ struct Console : public Component
             {
                 auto& message = pd->consoleMessages[row];
 
-                int numLines = getNumLines(message.first);
+                int numLines = getNumLines(message.first, getWidth());
                 int height = numLines * 22 + 2;
 
                 const Rectangle<int> r(2, totalHeight, getWidth(), height);
@@ -616,7 +591,7 @@ struct Console : public Component
 
             for (auto& message : pd->consoleMessages)
             {
-                int numLines = getNumLines(message.first);
+                int numLines = getNumLines(message.first, getWidth());
                 int height = numLines * 22 + 2;
 
                 if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors)) continue;

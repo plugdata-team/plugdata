@@ -388,6 +388,8 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
 {
     updateLabel();
     
+    if(!resized) return;
+    
     if(recursiveResize) {
         recursiveResize = false;
         return; // break out of recursion: but doesn't protect against async recursion!!
@@ -2610,8 +2612,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
             int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
             keyboardObject->x_octaves = range / 12;
             keyboardObject->x_semitones = range % 12;
-            
-            resized();
+            checkBoxBounds();
         }
     }
     
