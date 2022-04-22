@@ -2504,7 +2504,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         rangeMin = x->x_low_c;
         rangeMax = x->x_low_c + (x->x_octaves * 12) + x->x_semitones;
         
-        if(static_cast<int>(rangeMax.getValue()) == 0) {
+        if(static_cast<int>(rangeMin.getValue()) == 0 || static_cast<int>(rangeMax.getValue()) == 0) {
             rangeMin = 36;
             rangeMax = 86;
         }
@@ -2597,7 +2597,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
             keyboardObject->x_semitones = range % 12;
             
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
-            resized();
+            checkBoxBounds();
         }
         else if (value.refersToSameSourceAs(rangeMax))
         {
