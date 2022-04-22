@@ -751,6 +751,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(AlertWindow::backgroundColourId, firstColour);
         getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
         
+       
         setColour(TooltipWindow::backgroundColourId, firstColour.withAlpha(0.8f));
         setColour(PopupMenu::backgroundColourId, firstColour.withAlpha(0.95f));
         
@@ -760,6 +761,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(Slider::trackColourId, firstColour);
         setColour(TextEditor::backgroundColourId, secondColour);
 
+        setColour(TooltipWindow::textColourId, textColour);
         setColour(TextButton::textColourOffId, textColour);
         setColour(ComboBox::textColourId, textColour);
         setColour(TableListBox::textColourId, textColour);
@@ -777,6 +779,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ToggleButton::tickDisabledColourId, textColour);
         setColour(ComboBox::arrowColourId, textColour);
         
+        setColour(TooltipWindow::outlineColourId, outlineColour);
         setColour(ComboBox::outlineColourId, outlineColour);
         setColour(TextEditor::outlineColourId, outlineColour);
     }
