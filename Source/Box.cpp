@@ -177,7 +177,7 @@ void Box::updateBounds(bool newObject)
         setEditable(true);
         setSize(100, height);
     }
-
+    
     resized();
 }
 
