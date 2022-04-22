@@ -26,6 +26,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     setResizable(true, true);
 #endif
     
+    tooltipWindow->setOpaque(false);
+    
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
 

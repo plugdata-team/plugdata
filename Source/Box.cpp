@@ -496,7 +496,6 @@ void Box::mouseUp(const MouseEvent& e)
     }
 
     cnv->handleMouseUp(this, e);
-    cnv->checkBounds();
     
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
@@ -514,7 +513,15 @@ void Box::mouseUp(const MouseEvent& e)
                 b.reduce(margin, margin);
                 pdObject->setBounds(b);
                 
+                // To make sure it happens after setting object bounds
+                MessageManager::callAsync([this](){
+                    cnv->checkBounds();
+                });
+                
             });
+    }
+    else {
+        cnv->checkBounds();
     }
 
 
