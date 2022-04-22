@@ -96,7 +96,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     Justification justification = Justification::centred;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border{1, 2, 1, 2};
-    float minimumHorizontalScale = 0;
+    float minimumHorizontalScale = 0.8f;
     bool editSingleClick = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)

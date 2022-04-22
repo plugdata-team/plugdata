@@ -37,6 +37,31 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
 
+static int getNumLines(const String& text, int width)
+{
+    auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
+
+    int numLines = 1;
+
+    Array<int> glyphs;
+    Array<float> xOffsets;
+    font.getGlyphPositions(text, glyphs, xOffsets);
+
+    for (int i = 0; i < xOffsets.size(); i++)
+    {
+        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '/n')
+        {
+            for (int j = i + 1; j < xOffsets.size(); j++)
+            {
+                xOffsets.getReference(j) -= xOffsets[i];
+            }
+            numLines++;
+        }
+    }
+
+    return numLines;
+}
+
 struct Sidebar : public Component
 {
     explicit Sidebar(pd::Instance* instance);
