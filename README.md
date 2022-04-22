@@ -54,16 +54,6 @@ Known issues:
   - text define
 - There may still be some more bugs
 
-## Roadmap
-
-v0.5:
-- Grid
-- Tidy up feature
-- Command line arguments
-- Ensure all object properties are supported
-- Expand pddocs with more descriptions
-
-
 Future plans:
 - Support for GEM or Ofelia
 
