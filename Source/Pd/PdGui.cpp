@@ -755,7 +755,7 @@ void Gui::setBounds(Rectangle<int> bounds)
 
     if (w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
 
-    if (type != Type::Keyboard && type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM() && !isAtom())
+    if (type != Type::Keyboard && type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM() && !isAtom() && type != Type::Number)
     {
         Object::setBounds(bounds);
         return;
