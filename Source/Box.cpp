@@ -493,6 +493,7 @@ void Box::mouseUp(const MouseEvent& e)
     }
 
     cnv->handleMouseUp(this, e);
+    cnv->checkBounds();
 
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
@@ -501,6 +502,8 @@ void Box::mouseUp(const MouseEvent& e)
 
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
     {
+        originalBounds.setBounds(0, 0, 0, 0);
+        
         cnv->pd->enqueueFunction(
             [this]()
             {
@@ -509,9 +512,6 @@ void Box::mouseUp(const MouseEvent& e)
                 pdObject->setBounds(b);
             });
 
-        cnv->checkBounds();
-
-        originalBounds.setBounds(0, 0, 0, 0);
     }
 
     selectionChanged = false;
