@@ -2107,6 +2107,12 @@ struct CommentComponent : public GUIComponent
     {
     }
     
+    void checkBoxBounds() override
+    {
+        int numLines = getNumLines(gui.getText(), box->getWidth() - Box::doubleMargin);
+        box->setSize(box->getWidth(), (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
+    }
+    
     std::pair<int, int> getBestSize() override
     {
         return {120, 4};
