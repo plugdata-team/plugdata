@@ -73,7 +73,7 @@ struct Library : public Timer
     std::unordered_map<String, StringArray> objectKeywords;
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
-    Trie searchTree;
+    std::unique_ptr<Trie> searchTree;
 
     File appDataDir;
 
