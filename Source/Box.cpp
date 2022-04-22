@@ -347,8 +347,11 @@ void Box::resized()
         
         // Recursive resize is a bit tricky, but since these variables are very predictable,
         // It won't be a problem
-        if(getWidth() < minimumWidth || getHeight() != Box::height) {
+        if(getWidth() < minimumWidth) {
             setSize(minimumWidth,  Box::height);
+        }
+        else if(getHeight() != Box::height) {
+            setSize(getWidth(),  Box::height);
         }
     }
 
@@ -494,7 +497,7 @@ void Box::mouseUp(const MouseEvent& e)
 
     cnv->handleMouseUp(this, e);
     cnv->checkBounds();
-
+    
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
         cnv->connectingEdge = nullptr;
@@ -510,9 +513,10 @@ void Box::mouseUp(const MouseEvent& e)
                 auto b = getBounds() - cnv->canvasOrigin;
                 b.reduce(margin, margin);
                 pdObject->setBounds(b);
+                
             });
-
     }
+
 
     selectionChanged = false;
 }
@@ -592,6 +596,7 @@ void Box::hideEditor()
 
         if (auto* peer = getPeer()) peer->dismissPendingTextInput();
 
+        // not needed?
         outgoingEditor->setInputFilter(nullptr, false);
 
         if (graphics && !graphics->fakeGui())
