@@ -272,6 +272,10 @@ void Box::paint(Graphics& g)
     auto rect = getLocalBounds().reduced(margin);
     auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
 
+    if(pdObject && pdObject->getType() == pd::Type::Panel) {
+        outlineColour = Colours::transparentBlack;
+    }
+    
     bool selected = cnv->isSelected(this);
 
     if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
