@@ -1,0 +1,133 @@
+#N canvas 512 52 563 538 10;
+#X obj 3 512 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 3 313 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 421 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 456 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 125 372 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 125 395 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
+;
+#X obj 125 430 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 125 322 cnv 17 3 45 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 210 354 clear - clears the buffer;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 205 431 signal - the filtered signal;
+#X text 153 464 1) float - maximum delay time in ms (default 10);
+#X text 153 477 2) float - delay time in ms (default 0);
+#X text 153 489 3) float - gain coefficient (default 0);
+#X text 204 321 signal - signal input to filter;
+#X obj 133 151 noise~;
+#X obj 180 183 *~;
+#X obj 195 151 cyclone/train~ 1000 0.1;
+#X floatatom 260 193 5 0 100 0 - adfsa -;
+#X floatatom 339 193 5 -1 1 0 - adfsa -;
+#X obj 347 176 cyclone/comment 11 15 helvetica empty 0 0 0 0 0 255
+255 255 0 0 a;
+#X obj 267 178 cyclone/comment 0 13 helvetica empty 0 0 0 0 0 255 255
+255 0 0 D;
+#X obj 180 214 cyclone/allpass~ 100 10 0.7;
+#X text 214 337 list;
+#X text 246 337 - updates all 3 arguments;
+#X text 168 374 float/signal - D: delay time (im ms);
+#X text 168 397 float/signal - a: gain coefficient;
+#N canvas 580 118 535 477 Filter 0;
+#X text 388 121 a = gain coefficient;
+#X text 388 136 D = Delay time in ms;
+#X obj 100 76 cnv 15 260 120 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#X text 150 89 |;
+#X text 150 101 |;
+#X text 150 113 |;
+#X text 131 124 |;
+#X text 173 124 |;
+#X text 173 144 |;
+#X text 131 144 |;
+#X text 134 115 _______;
+#X text 134 144 _______;
+#X text 179 133 -----;
+#X text 150 116 v;
+#X text 205 115 |;
+#X text 205 127 |;
+#X text 205 91 |;
+#X text 205 103 |;
+#X text 205 90 ^;
+#X text 291 89 |;
+#X text 291 101 |;
+#X text 291 113 |;
+#X text 272 124 |;
+#X text 314 124 |;
+#X text 314 144 |;
+#X text 272 144 |;
+#X text 275 115 _______;
+#X text 275 144 _______;
+#X text 291 116 v;
+#X text 236 115 |;
+#X text 236 127 |;
+#X text 236 91 |;
+#X text 236 103 |;
+#X text 236 90 ^;
+#X text 312 82 >;
+#X text 238 133 -(*a)-;
+#X text 131 134 | z^-D |;
+#X text 272 134 | z^-D |;
+#X text 114 172 y(n) = -a * x(n) + x(n-D) + a * y(n-D);
+#X text 110 81 x[n] ---(*-a)--(+)--(+)----------- y[n];
+#X obj 254 48 cyclone/comment 0 16 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X floatatom 233 334 5 0 100 0 - - -;
+#X obj 154 316 noise~;
+#X text 237 314 d1;
+#X text 169 280 updates all arguments;
+#X floatatom 313 335 5 0 100 0 - - -;
+#X obj 316 311 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 71 12 Here's the filter diagram and equation for the allpass~
+filter:;
+#X msg 106 280 20 13 0.9;
+#X obj 154 356 cyclone/allpass~ 100 50 0.8;
+#X text 348 310 gain (a);
+#X text 63 217 If the delay time lies between two samples \, a simple
+linear interpolation is performed.;
+#X obj 136 393 ./out~;
+#X connect 41 0 49 1;
+#X connect 42 0 49 0;
+#X connect 45 0 49 2;
+#X connect 46 0 45 0;
+#X connect 48 0 49 0;
+#X connect 49 0 52 0;
+#X connect 49 0 52 1;
+#X restore 420 276 pd Filter Equation;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 allpass~;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 All Pass filter;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X text 78 87 Use [allpass~] for filtering and delay effects. The All
+Pass filter passes all frequencies without altering the gain - but
+changes the frequencies' phase.;
+#X obj 137 246 ./out~;
+#X connect 18 0 19 0;
+#X connect 19 0 25 0;
+#X connect 20 0 19 1;
+#X connect 21 0 25 1;
+#X connect 22 0 25 2;
+#X connect 25 0 36 1;
+#X connect 25 0 36 0;

@@ -1,0 +1,76 @@
+#N canvas 459 23 568 659 10;
+#X obj 6 633 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 6 427 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 494 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 531 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 89 505 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 152 505 signal;
+#X text 140 542 1) float;
+#X obj 283 227 osc~ 2;
+#X obj 376 229 osc~ 3.14;
+#X obj 283 258 cyclone/minimum~;
+#X text 212 438 - value to compare minimum with argument or right inlet
+;
+#X text 212 465 - value to compare minimum with left inlet;
+#X obj 88 438 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 88 466 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 151 438 signal;
+#X text 116 466 float/signal;
+#X text 78 156 [minimum~] outputs a signal which is the minimum of
+two input signals \, or the minimum of an input signal and a given
+argument.;
+#X obj 283 296 cyclone/scope~ 186 112 256 3 128 -1 1 0 0 0 0 205 229
+232 74 79 77 96 98 102 0 empty;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 73 93 cnv 15 350 45 empty empty empty 20 12 0 14 -248754 -66577
+0;
+#X obj 2 572 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X text 88 588 you can use;
+#X text 201 589 from vanilla instead \, the only difference is that
+an argument turns the secondary inlet to a control inlet;
+#X obj 165 589 min~;
+#X text 93 118 Too similar to Pd Vanilla's [min~] (see "more info")
+;
+#X text 212 543 - value to compare minimum with (default 0);
+#X text 212 505 - The minimum value (smaller of the two);
+#X obj 188 273 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 71 319 cyclone/minimum~ 5, f 20;
+#X obj 93 98 cyclone/comment 0 15 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Redundanct object;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal minimum of two values;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 minimum~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 71 372 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 71 272 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 7 0 9 0;
+#X connect 8 0 9 1;
+#X connect 9 0 17 0;
+#X connect 30 0 31 1;
+#X connect 31 0 37 0;
+#X connect 38 0 31 0;

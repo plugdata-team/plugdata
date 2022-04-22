@@ -1,0 +1,194 @@
+#N canvas 741 84 560 510 10;
+#X obj 3 336 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 400 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 437 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 84 410 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 84 344 cnv 17 3 50 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X msg 230 190 clear;
+#X msg 231 211 reset;
+#X msg 128 176 1;
+#X msg 157 176 2;
+#X msg 186 176 3;
+#X obj 2 485 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 117 343 float;
+#X text 100 446 1) float, f 9;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 186 266 unpack float float float;
+#X text 117 360 clear;
+#X text 117 377 reset;
+#X text 174 307 previous;
+#X text 325 307 occurrence;
+#X obj 223 170 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 186 291 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 256 291 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 327 291 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 250 307 current;
+#X text 123 411 list;
+#X text 166 343 - the anal input data, f 60;
+#N canvas 867 227 449 338 examples 0;
+#X obj 189 84 notein;
+#X obj 189 114 stripnote;
+#X obj 210 179 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 189 151 cyclone/anal;
+#X obj 189 203 cyclone/prob;
+#C restore;
+#N canvas 880 50 569 608 markov_chain 0;
+#X obj 330 132 bng 20 250 50 0 empty empty empty 17 7 0 10 -216373
+-66577 -1;
+#X msg 330 324 clear;
+#X obj 330 401 cyclone/prob;
+#C restore;
+#X obj 216 400 unpack f f f, f 13;
+#X floatatom 216 422 5 0 0 0 - - -;
+#X floatatom 253 422 5 0 0 0 - - -;
+#X floatatom 291 422 3 0 0 0 - - -;
+#X obj 350 358 bng 25 250 50 0 empty empty empty 17 7 0 10 -216373
+-66577 -1;
+#X obj 399 434 bng 15 250 50 0 empty empty empty 17 7 0 10 -216373
+-66577 -1;
+#X obj 330 460 % 128;
+#X obj 330 560 noteout;
+#X obj 88 87 nbx 3 14 0 127 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X obj 330 485 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 330 524 makenote 100 500;
+#X text 212 35 By default \, [anal] creates a table of transition probabilities
+from one note to another (1st order Markov chain). This patch shows
+how we can use it to create transition probabilities from two notes
+to a third note (2nd order markov chain)., f 50;
+#X obj 189 223 t f f;
+#X obj 216 291 +;
+#X obj 216 316 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 88 26 notein;
+#X obj 88 57 stripnote;
+#X obj 330 427 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 358 134 <= restart;
+#X text 383 362 <= BANG;
+#X obj 162 441 cyclone/comment 170 11 helvetica empty 0 200 0 0 0 255
+255 255 0 0 weed out the "previous" note that was stored in the high
+7-bits;
+#X obj 112 293 cyclone/comment 101 11 helvetica empty 0 200 0 0 0 255
+255 255 0 0 encode current and previous values into one big number
+;
+#X obj 71 346 cyclone/comment 139 11 helvetica empty 0 200 0 0 0 255
+255 255 0 0 max size = 16384 (128*128) because we're shoving 2 MIDI
+values into 1;
+#X obj 63 397 cyclone/comment 169 11 helvetica empty 0 200 0 0 0 255
+255 255 0 0 output: transitions from 2-note pairs to other 2-note pairs
+;
+#X obj 83 252 cyclone/comment 130 11 helvetica empty 0 200 0 0 0 255
+255 255 0 0 store previous note in the high 7-bits of our value;
+#X obj 82 489 cyclone/comment 250 11 helvetica empty 0 200 0 0 0 255
+255 255 0 0 Now the playback is comprised of transition probabilities
+based on the two preceeding notes! This should yield results that sound
+less random than if we're just looking at one note at a time.;
+#X obj 231 250 * 128;
+#X msg 285 324 reset;
+#X obj 189 195 cyclone/gate 2;
+#X obj 88 138 t f b;
+#X obj 231 272 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 92 187 cyclone/comment 91 11 helvetica empty 0 200 0 0 0 255
+255 255 0 0 send first number to the right oultet;
+#X obj 216 354 cyclone/anal 16384;
+#X msg 189 149 2;
+#X msg 232 149 1;
+#X obj 133 118 cyclone/onebang 1;
+#X connect 0 0 1 0;
+#X connect 0 0 30 0;
+#X connect 0 0 38 1;
+#X connect 1 0 2 0;
+#X connect 2 0 20 0;
+#X connect 2 1 8 0;
+#X connect 3 0 4 0;
+#X connect 3 1 5 0;
+#X connect 3 2 6 0;
+#X connect 7 0 2 0;
+#X connect 9 0 12 0;
+#X connect 11 0 32 0;
+#X connect 12 0 13 0;
+#X connect 13 0 10 0;
+#X connect 13 1 10 1;
+#X connect 15 0 29 0;
+#X connect 15 1 16 0;
+#X connect 16 0 17 0;
+#X connect 17 0 35 0;
+#X connect 18 0 19 0;
+#X connect 18 1 19 1;
+#X connect 19 0 11 0;
+#X connect 20 0 9 0;
+#X connect 29 0 33 0;
+#X connect 30 0 35 0;
+#X connect 31 0 15 0;
+#X connect 31 1 29 0;
+#X connect 32 0 31 1;
+#X connect 32 1 38 0;
+#X connect 33 0 16 1;
+#X connect 35 0 3 0;
+#X connect 35 0 2 0;
+#X connect 36 0 31 0;
+#X connect 37 0 31 0;
+#X connect 38 0 36 0;
+#X connect 38 1 37 0;
+#X restore 139 264 pd markov_chain (2nd order);
+#X text 34 33 feed the received two note sequences to [prob] for a
+1st order markov-chain;
+#X connect 0 0 1 0;
+#X connect 1 0 3 0;
+#X connect 2 0 4 0;
+#X connect 3 0 4 0;
+#X restore 451 290 pd examples;
+#X text 81 85 [anal] reports how many times it received a number pair.
+The output is designed to serve as input to [cyclone/prob] and is composed
+of: 1) the previously received number \, 2) current input number \,
+3) occurence (how many times this number pair has been received).,
+f 61;
+#X text 166 412 - three floats: <previous number \, current number
+\, occurence>;
+#X obj 322 28 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 16 4 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 anal;
+#X obj 17 56 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 Number pairs histogram;
+#X obj 363 4 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 cyclone;
+#X obj 186 236 cyclone/anal 32;
+#X text 166 377 - completely erase memory, f 60;
+#X text 166 359 - clears analysis but remembers last input, f 60;
+#X text 168 446 - Maximum input \, values accepted are between 0 and
+this;
+#X text 180 461 number (default 128 \, max 16384), f 53;
+#X connect 5 0 36 0;
+#X connect 6 0 36 0;
+#X connect 7 0 36 0;
+#X connect 8 0 36 0;
+#X connect 9 0 36 0;
+#X connect 17 0 23 0;
+#X connect 17 1 24 0;
+#X connect 17 2 25 0;
+#X connect 22 0 36 0;
+#X connect 36 0 17 0;

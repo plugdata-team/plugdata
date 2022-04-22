@@ -1,0 +1,147 @@
+#N canvas 490 107 558 558 10;
+#X obj 2 284 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 436 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 468 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 81 445 cnv 17 3 17 empty empty n 5 9 0 16 -228856 -162280 0
+;
+#X obj 81 294 cnv 17 3 136 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 88 149 bng 17 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 2 531 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 132 330 bang;
+#X text 126 298 float;
+#X text 126 447 float;
+#X text 105 476 1) float;
+#X text 105 494 2) float;
+#X obj 2 5 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X obj 88 254 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 123 254 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 158 254 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 193 254 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 88 199 nbx 2 14 -9 99 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X text 174 476 - sets number of outlets (default 1), f 60;
+#N canvas 823 75 440 285 output-flag 0;
+#X obj 225 44 bng 17 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 225 94 nbx 2 14 -9 99 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X obj 225 68 random 100;
+#X obj 258 186 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 293 186 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 328 186 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 363 186 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 258 154 cyclone/bucket 4 1;
+#X obj 82 191 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 117 191 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 152 191 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 187 191 nbx 2 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 82 159 cyclone/bucket 4 0;
+#X text 122 229 (default);
+#X obj 16 50 cnv 15 180 30 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#X text 31 92 set as 2nd arguments;
+#X text 75 213 <0> holds to next round;
+#X text 248 212 <1> outputs immediately;
+#X obj 22 55 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 output flag;
+#X connect 0 0 2 0;
+#X connect 1 0 12 0;
+#X connect 1 0 7 0;
+#X connect 2 0 1 0;
+#X connect 7 0 3 0;
+#X connect 7 1 4 0;
+#X connect 7 2 5 0;
+#X connect 7 3 6 0;
+#X connect 12 0 8 0;
+#X connect 12 1 9 0;
+#X connect 12 2 10 0;
+#X connect 12 3 11 0;
+#X restore 450 250 pd output-flag;
+#X text 138 380 l2r;
+#X text 138 397 r2l;
+#X text 177 380 - or 'L2R'/'ltor': sets shift from left to right (default)
+;
+#X text 177 397 - or 'R2L'/'rtol': sets shift from right to left;
+#X text 90 314 set <float>;
+#X text 132 414 roll;
+#X text 132 363 thaw;
+#X text 120 346 freeze;
+#X msg 310 136 freeze;
+#X msg 317 160 thaw;
+#X msg 331 188 l2r;
+#X msg 337 210 r2l;
+#X msg 372 217 roll;
+#X msg 237 172 set \$1;
+#X floatatom 237 151 5 0 0 0 - - -;
+#X obj 310 251 send bucket;
+#X obj 287 174 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 140 197 r bucket;
+#X text 177 298 - the input number, f 60;
+#X text 177 314 - sets input value and outputs it to all outlets;
+#X text 177 330 - outputs all stored values without shifting, f 60
+;
+#X text 177 346 - suspends output \, but continues to shift input internally
+;
+#X text 177 363 - resumes the output after being freezed, f 51;
+#X text 177 414 - shifts stores values in loop (according to direction)
+;
+#X text 177 447 - numbers being passed;
+#X obj 88 224 cyclone/bucket 4 1;
+#X obj 88 173 random 100;
+#X text 174 494 - output flag: <0> (default) holds the input and passes
+it on the next round \, <1> outputs the input immediately;
+#X text 49 87 As [bucket] is input with floats \, it outputs them shiftting
+from outlet to outlet in a rotational pattern (or "passing the bucket"
+as in a ucket brigade).;
+#X obj 17 57 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 Pass numbers from outlet to outlet;
+#X obj 16 5 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 bucket;
+#X obj 322 29 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 5 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 cyclone;
+#X connect 5 0 49 0;
+#X connect 20 0 48 0;
+#X connect 31 0 38 0;
+#X connect 32 0 38 0;
+#X connect 33 0 38 0;
+#X connect 34 0 38 0;
+#X connect 35 0 38 0;
+#X connect 36 0 38 0;
+#X connect 37 0 36 0;
+#X connect 39 0 38 0;
+#X connect 40 0 48 0;
+#X connect 48 0 16 0;
+#X connect 48 1 17 0;
+#X connect 48 2 18 0;
+#X connect 48 3 19 0;
+#X connect 49 0 20 0;

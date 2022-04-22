@@ -1,0 +1,88 @@
+#N canvas 569 56 564 613 10;
+#X obj 6 587 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 6 412 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 499 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 536 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 94 509 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 161 425 signal;
+#X text 160 508 signal;
+#X obj 95 425 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 94 447 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 93 469 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
+;
+#X obj 179 167 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 176 191 5 0 0 0 - - -;
+#X obj 232 198 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 229 220 5 0 0 0 - - -;
+#X text 124 470 float/signal;
+#X text 150 544 1) float;
+#X text 150 565 2) float;
+#X text 125 448 float/signal;
+#X obj 124 245 cyclone/clip~ -1 1;
+#X text 274 198 maximum;
+#X text 218 166 minimum;
+#X obj 195 287 scope~ 194 111 10 3 128 -1 1 0 0 0 0 205 229 232 74
+79 77 96 98 102 0 empty;
+#X text 398 281 1;
+#X text 397 335 0;
+#X text 392 388 -1;
+#X obj 99 180 osc~ 240;
+#X obj 3 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X text 216 508 - clipped signal;
+#X text 216 565 - sets maximum value (default 0);
+#X text 216 543 - sets minimun value (default 0);
+#X text 216 425 - signal to be clipped/constrained;
+#X text 214 448 - minimum constrain value;
+#X text 214 470 - maximum constrain value;
+#X text 68 92 Use the [cyclone/clip~]* object to constrain input signals
+between two specified values (minimum and maximum). If the maximum
+value is less than the minimum \, it becomes the minimum value and
+vice-versa.;
+#X obj 20 54 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 Constrain a signal to a given range;
+#X obj 17 2 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 clip~;
+#X obj 323 28 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 364 4 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 cyclone;
+#X obj 81 314 ./out~;
+#X obj 501 69 cyclone/setdsp~;
+#N canvas 836 207 415 225 name 0;
+#X text 198 172 <= from Pd Vanilla;
+#X text 30 135 And still create the vanilla object from vanilla without
+namespaces as:;
+#X text 31 16 Pd also has a vanilla object named [clip~]. Cyclone avoids
+name clashing and overwritting an internal in Pd Vanilla \, but for
+that you need to use the cyclone namespace ("cyclone/" before the object
+name) \, as it's the common practice for cyclone's documentation. So
+you create it as:;
+#X obj 148 97 cyclone/clip~;
+#X obj 161 172 clip~;
+#X restore 458 379 pd name clash;
+#X connect 10 0 11 0;
+#X connect 11 0 18 1;
+#X connect 12 0 13 0;
+#X connect 13 0 18 2;
+#X connect 18 0 21 0;
+#X connect 18 0 41 0;
+#X connect 18 0 41 1;
+#X connect 25 0 18 0;

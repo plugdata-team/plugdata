@@ -1,0 +1,113 @@
+#N canvas 433 73 561 726 10;
+#X obj 5 698 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 5 356 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 484 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 529 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 94 368 cnv 17 3 50 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 93 498 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 162 430 float;
+#X obj 94 453 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
+;
+#X obj 94 429 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 162 454 float;
+#X floatatom 402 269 0 -100 100 0 - - -;
+#X floatatom 313 269 0 -100 100 0 - - -;
+#X text 142 536 1) float;
+#X text 142 554 2) float;
+#X obj 5 581 cnv 3 550 3 empty empty attributes 8 12 0 13 -228856 -1
+0;
+#X text 216 429 - set low value of range;
+#X text 217 454 - set high value of range;
+#X text 214 498 - original \, clipped \, wrapped \, or folded number
+;
+#X text 133 369 float/list;
+#X text 133 498 float/list;
+#X msg 193 218 range -0.5 0.5;
+#X text 209 554 - high range value (default 0);
+#X text 209 536 - low range value (default 0);
+#X text 215 370 - value(s) to clip \, fold or wrap;
+#X obj 162 273 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X msg 57 143 none;
+#X obj 131 173 symbol;
+#X msg 131 217 mode \$1;
+#X msg 93 142 clip;
+#X msg 169 141 wrap;
+#X msg 131 141 fold;
+#X symbolatom 131 195 8 0 0 0 - - -;
+#X obj 162 244 trigger b a;
+#X text 70 216 set mode;
+#X text 285 218 set range;
+#X text 308 249 low range;
+#X text 399 250 high range;
+#X obj 225 327 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 158 594 @mode;
+#X text 152 612 @range;
+#X text 209 611 - followed by two numbers set low and high range.;
+#X text 209 593 - <fold> \, <wrap> \, <clip> & <none>: sets the object
+mode;
+#X text 115 386 mode <symbol>;
+#X text 121 401 range <f \, f>;
+#X text 215 386 - sets mode to: none (default) \, clip \, wrap or fold
+;
+#X text 215 403 - sets low and high values of range;
+#X obj 4 642 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X obj 225 297 cyclone/pong -10 10 @mode wrap;
+#N canvas 960 232 450 300 lists 0;
+#X obj 113 187 cyclone/tosymbol;
+#X symbolatom 113 218 6 0 0 0 - - -;
+#X obj 113 101 loadbang;
+#X text 92 67 it also works with lists:;
+#X obj 113 155 cyclone/pong 0 10 @mode wrap;
+#X msg 113 127 15 -1 20;
+#X connect 0 0 1 0;
+#X connect 2 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 4 0;
+#X restore 483 313 pd lists;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 95 90 Use [pong] to fold \, wrap or clip its input within a
+given low-high range.;
+#X text 140 648 maximum range is always the highest value & minimum
+range is always the lowest value. Wrap mode is useful for modulo arithmetic.
+;
+#X obj 18 57 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Range limiter (fold \, wrap & clip);
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 pong;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X connect 10 0 47 2;
+#X connect 11 0 47 1;
+#X connect 20 0 32 0;
+#X connect 24 0 47 0;
+#X connect 25 0 26 0;
+#X connect 26 0 31 0;
+#X connect 27 0 32 0;
+#X connect 28 0 26 0;
+#X connect 29 0 26 0;
+#X connect 30 0 26 0;
+#X connect 31 0 27 0;
+#X connect 32 0 24 0;
+#X connect 32 1 47 0;
+#X connect 47 0 37 0;

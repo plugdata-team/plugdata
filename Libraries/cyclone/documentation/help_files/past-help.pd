@@ -1,0 +1,94 @@
+#N canvas 473 23 558 513 10;
+#X obj 2 308 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 400 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 437 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 101 318 cnv 17 3 75 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 101 411 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 2 475 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X msg 246 190 set 25;
+#X msg 252 219 clear;
+#X obj 184 279 bng 20 250 50 0 empty empty empty 17 7 0 10 -216373
+-1 -1;
+#X text 178 341 -;
+#X text 144 341 list;
+#X text 178 411 -;
+#X text 145 411 bang;
+#X obj 2 5 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X text 90 449 1) float/list;
+#X text 112 378 set <list> -;
+#X text 142 360 clear -;
+#X text 142 320 float -;
+#X text 193 360 clears the memory so a next input may trigger a bang
+;
+#X obj 187 166 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 184 193 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 20 58 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Check if input increases past a threshold;
+#X obj 16 5 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 past;
+#X obj 322 29 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 5 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 184 254 cyclone/past 63.5;
+#X text 179 449 - value(s) of initial threshold(s) - required (no defaults)
+;
+#X text 104 179 compare to threshold =>, f 12;
+#X text 292 191 sets new threshold;
+#X text 294 214 clears last input \, so a new input may trigger if
+>= the threshold, f 33;
+#X text 296 254 <= initial threshold;
+#N canvas 879 212 401 310 lists 0;
+#X obj 163 258 bng 20 250 50 0 empty empty empty 17 7 0 10 -216373
+-1 -1;
+#X msg 106 178 clear;
+#X obj 163 227 cyclone/past 4 128 1 256;
+#X text 19 20 The numbers of an input list can be compared to a list
+of thresholds set via arguments or a "set" message \, but only if they
+have the same length.;
+#X msg 163 155 8 256 2 512;
+#X msg 186 187 8 256 1 512;
+#X text 20 73 A bang is output if all elements in the list are greater
+than (or 'past') the corresponding thresholds. If any of the input
+values fall bacl equal to or below a corresponding threshold \, another
+bang may be output again when the values are greater.;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 4 0 2 0;
+#X connect 5 0 2 0;
+#X restore 485 275 pd lists;
+#X text 193 320 value to check if went past the threshold, f 52;
+#X text 193 341 values to check if went past a list of thresholds,
+f 52;
+#X text 193 378 sets threshold to one or more values, f 52;
+#N canvas 215 117 450 300 related 0;
+#X text 101 84 related to [threshold~] / [thresh~];
+#X restore 246 478 pd related;
+#X text 70 93 [past] bangs when an input is greater than a threshold
+value and the last value was below or equal to it. The input needs
+to fall back to a value equal or below the threshold for another bang
+to be output when it goes past it again.;
+#X text 193 411 if input is > threshold value(s) but last input wasn't
+;
+#X connect 6 0 28 0;
+#X connect 7 0 28 0;
+#X connect 22 0 23 0;
+#X connect 23 0 28 0;
+#X connect 28 0 8 0;

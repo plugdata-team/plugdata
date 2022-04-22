@@ -1,0 +1,78 @@
+#N canvas 479 102 560 518 10;
+#X text 52 93 [lessthan~] or [<~] <~ outputs a 1 signal when the left
+input is less-than the right input or argument and a 0 when it is greater-than
+or equal-to the right input or argument.;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 4 491 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 4 401 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 92 350 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 4 339 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 92 373 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 125 374 float/signal;
+#X obj 92 350 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 162 350 signal;
+#X text 216 373 - value for comparison with left inlet;
+#X text 216 349 - value is compared to right inlet's or argument;
+#X obj 7 444 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X text 176 454 - value for comparison with left inlet's input (default
+0);
+#X text 110 454 1) float;
+#X obj 92 414 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 161 413 signal;
+#X text 212 413 - 1 or 0 (depending on the result of the comparison)
+;
+#X obj 273 242 cyclone/snapshot~ 1;
+#X obj 173 277 tgl 40 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 273 277 tgl 40 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 273 186 sig~ 30;
+#X obj 273 163 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 390 163 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 273 212 cyclone/lessthan~ 30;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 "Is less than" comparison for signals;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 <~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 69 243 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 69 160 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 126 185 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X obj 451 297 cyclone-help;
+#X text 449 276 Please check:;
+#X obj 69 210 cyclone/<~;
+#X connect 21 0 23 0;
+#X connect 24 0 27 0;
+#X connect 25 0 24 0;
+#X connect 26 0 27 1;
+#X connect 27 0 21 0;
+#X connect 32 1 22 0;
+#X connect 33 0 38 0;
+#X connect 34 0 38 1;
+#X connect 38 0 32 0;

@@ -1,0 +1,87 @@
+#N canvas 449 23 568 543 10;
+#X obj 3 515 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 3 386 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 425 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 483 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 105 455 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 174 434 signal;
+#X text 173 491 (none);
+#X text 180 458 float;
+#X obj 105 434 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 226 434 - converted duration in ms;
+#X text 226 460 - converted duration in ms;
+#X obj 106 396 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 139 397 float/signal;
+#X text 46 213 float input;
+#X text 96 351 miliseconds;
+#X text 307 362 miliseconds;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 86 98 Use the [sampstoms~] object to convert a time value in
+samples to milliseconds (depending on the sample rate).;
+#X text 86 132 [sampstoms~] works with floats and signal. A signal
+input converts only to the signal outlet \, but a float input converts
+to both float and signal output. When a signal input is present \,
+the float input is ignored.;
+#X text 225 397 - number of samples;
+#N canvas 221 147 444 223 example 0;
+#X floatatom 243 134 5 0 0 0 - - -;
+#X floatatom 138 77 5 0 0 0 - - -;
+#X text 42 22 convert period time from samples to ms to use it on [train~]
+;
+#X obj 243 161 cyclone/train~;
+#X text 283 134 ms;
+#X text 179 77 samples;
+#X obj 138 104 cyclone/sampstoms~;
+#X connect 0 0 3 0;
+#X connect 1 0 6 0;
+#X connect 6 1 0 0;
+#X restore 470 326 pd example \; train~;
+#X text 342 249 signal input;
+#X obj 252 251 cyclone/line~;
+#X obj 169 323 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 52 238 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 375 334 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X msg 252 221 0 \, 1000 1000;
+#X obj 52 281 cyclone/sampstoms~, f 20;
+#X obj 252 305 cyclone/sampstoms~, f 21;
+#X text 263 277 <= number of samples;
+#X text 62 258 <= number of samples;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Convert samples to milliseconds;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 sampstoms~;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 252 332 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 52 321 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 25 0 31 0;
+#X connect 27 0 30 0;
+#X connect 29 0 25 0;
+#X connect 30 0 39 0;
+#X connect 30 1 26 0;
+#X connect 31 0 38 0;
+#X connect 31 1 28 0;

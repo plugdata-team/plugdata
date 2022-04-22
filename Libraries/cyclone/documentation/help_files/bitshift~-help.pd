@@ -1,0 +1,87 @@
+#N canvas 518 84 564 588 10;
+#X obj 8 566 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 7 333 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 447 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 479 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 82 456 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 133 456 signal;
+#X text 133 341 signal;
+#X text 121 503 2) float;
+#X obj 82 342 cnv 17 3 97 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 139 379 float;
+#X msg 44 227 mode \$1;
+#X obj 44 200 tgl 20 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 121 485 1) float;
+#X text 189 456 - output of bit shifted signal;
+#X text 189 486 - number of bits to shift (default 0);
+#X msg 140 231 shift \$1;
+#X text 66 90 [bitshift~] takes a signal and performs Bitwise Shifting
+(shift bit values to the left or right) depending on a shift value
+(positive values shift that number of bits to the left \, while negative
+values shift to the right). The operation is done in two modes (see
+below).;
+#X text 109 359 mode <0/1>;
+#X text 189 358 - sets mode (details above);
+#X obj 269 209 cnv 15 265 80 empty empty empty 20 12 0 14 -253822 -66577
+0;
+#X text 276 212 Modes:;
+#X text 282 229 0: (default) doesn't convert to int;
+#N canvas 617 357 476 167 signal_conversion_to_int 0;
+#X text 62 35 Signals are 32 bit floating point by default and their
+32 bit representation is used for comparison. When converting a signal
+to integer \, depending on the mode \, what happens is that the floating
+point value is converted/truncated to an integer \, and the 32 bit
+signed integer representation of this value is used for the operation.
+;
+#X restore 359 265 pd signal_conversion_to_int;
+#X text 282 242 1: converts input signal to int;
+#X text 91 398 shift <float>;
+#X obj 117 261 cyclone/bitshift~ -2;
+#X text 189 398 - specifies the number and direction of the shift -
+positive values shift that number of bits to the left while negative
+shift to the right;
+#X text 189 379 - sets conversion mode [0 or 1];
+#X text 191 504 - sets conversion mode: 0 (default) or 1;
+#X text 189 342 - signal to Bit-Shift;
+#X obj 140 207 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+-228856 -1 -1 0 256;
+#X obj 8 523 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X text 122 531 [bitshift~] can produce NaNs and +/-INFs - but denormals
+are zeroed out.;
+#X obj 18 57 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal Bit-Shifting;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 bitshift~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 117 297 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 117 176 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 500 69 cyclone/setdsp~;
+#X connect 10 0 29 0;
+#X connect 11 0 10 0;
+#X connect 19 0 29 0;
+#X connect 29 0 41 0;
+#X connect 34 0 19 0;
+#X connect 42 0 29 0;

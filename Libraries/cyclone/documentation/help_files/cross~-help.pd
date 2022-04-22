@@ -1,0 +1,67 @@
+#N canvas 482 112 560 535 10;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 4 508 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 5 326 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 407 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 467 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 95 336 cnv 17 3 33 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 176 336 signal;
+#X obj 94 377 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 94 418 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 176 419 signal;
+#X text 140 379 float/signal;
+#X obj 94 440 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 176 441 signal;
+#X text 181 355 clear;
+#X text 94 92 [cross~] is a of 3rd order butterworth crossover filter.
+;
+#X text 95 112 It has two outlets for lowpass (left) and highpass (rigth)
+filters that you can use separately or in combination to form a crossover
+filter.;
+#X obj 175 211 cyclone/cross~ 500;
+#X obj 175 183 noise~;
+#X obj 283 168 hsl 128 15 200 2000 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 280 189 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 0 256;
+#X text 228 355 - clears filter's memory;
+#X text 228 336 - signal to be filtered;
+#X text 228 379 - cutoff frequency;
+#X text 228 419 - lowpass output;
+#X text 228 441 - highpass output;
+#X text 164 479 1) float;
+#X text 120 232 lowpass =>;
+#X text 274 229 <= highpass;
+#X text 322 168 cutoff;
+#X text 228 478 - cutoff frequency (default 1000);
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Crossover filter;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 cross~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 197 247 ./out~;
+#X connect 19 0 37 0;
+#X connect 19 1 37 1;
+#X connect 20 0 19 0;
+#X connect 21 0 22 0;
+#X connect 22 0 19 1;

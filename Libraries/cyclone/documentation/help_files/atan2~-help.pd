@@ -1,0 +1,85 @@
+#N canvas 536 30 558 495 10;
+#X obj 2 457 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 2 309 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 377 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 414 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 79 386 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 142 386 signal;
+#X obj 79 322 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 80 345 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 132 423 1) float;
+#N canvas 892 223 436 398 calculating 0;
+#X obj 273 196 cyclone/atan2~;
+#X obj 40 202 cyclone/cartopol~;
+#X text 36 31 Calculating the phase value from a real and imaginary
+part (cartesian coordinates):;
+#X text 32 304 The purpose of using two arguments instead of one is
+to gather information on the signs of the inputs in order to return
+the appropriate quadrant of the computed angle \, which is not possible
+for the single-argument arctangent function.;
+#X text 287 86 Imaginary;
+#X text 159 87 Real;
+#X obj 273 244 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 139 244 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 131 107 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 273 107 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X connect 0 0 6 0;
+#X connect 1 1 7 0;
+#X connect 8 0 1 0;
+#X connect 8 0 0 1;
+#X connect 9 0 1 1;
+#X connect 9 0 0 0;
+#X restore 422 270 pd calculating phase;
+#X text 111 347 float/signal - "b" value input to an arc-tangent function
+;
+#X text 112 322 float/signal - "a" value input to an arc-tangent function
+;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 142 238 cyclone/atan2~;
+#X text 190 423 - value of "b" (not documented in Max);
+#X text 54 99 Use the [atan2~] object to output the arc-tangent of
+two given values ("a" and "b") calculated as: Arc-tangent (a/b).;
+#X text 54 134 Useful for mathematical calculations such as finding
+the phase from cartesian coordinates.;
+#X text 256 273 Arc-tangent (a/b);
+#X text 189 386 - result of arctan(a/b) in radians;
+#X text 116 178 "a";
+#X text 198 207 "b";
+#X obj 17 59 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal arctan(a/b) function;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 atan2~;
+#X obj 142 177 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 223 207 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 142 273 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 500 69 cyclone/setdsp~;
+#X connect 16 0 30 0;
+#X connect 28 0 16 0;
+#X connect 29 0 16 1;

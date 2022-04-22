@@ -1,0 +1,82 @@
+#N canvas 609 63 559 589 10;
+#X obj 8 476 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 8 517 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 86 488 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 86 377 cnv 17 3 60 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 8 367 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 86 377 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 134 378 signal;
+#X text 146 406 bang;
+#X msg 254 264 set 10;
+#X text 135 487 signal;
+#X text 120 527 1) float;
+#X obj 70 290 cyclone/plusequals~;
+#X text 187 406 - resets initial stored value to 0;
+#X text 188 376 - signal value is accumulated. Accumulated value is
+output only if a signal is connected;
+#X obj 86 256 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 5 552 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 85 443 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 134 443 signal;
+#X text 105 423 set <float>;
+#X text 187 423 - sets the stored value to that number;
+#X text 186 443 - signal different than 0 resets initial stored value
+to 0;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 190 487 - each sample is the sum of all previous input samples
+;
+#X text 186 527 - sets the initial stored value for the sum (default
+0);
+#X obj 70 220 sig~ 0.0001;
+#X text 72 92 [plusequals~] or [+=~] accumulates the received values.
+Each input sample is added to the previous ones for a running sum.
+So \, started at 0 \, a signal consisting of 1 values outputs the sequence
+(1 \, 2 \, 3 \, 4 \, etc...).;
+#X text 106 255 <= reset =>;
+#X text 73 154 The internal sum can be reset to 0 with a bang (left
+inlet) or a signal different than 0 in the right inlet (with sample
+accuracy) - or also set to any value (with the set message).;
+#X obj 181 225 cyclone/train~ 2000 0;
+#X text 321 224 <= impulse (value of 1;
+#X text 362 240 every 2 seconds);
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal accumulator;
+#X obj 13 7 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 +=~;
+#X obj 364 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 70 326 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 254 326 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X obj 455 325 cyclone-help;
+#X text 450 304 Please check:;
+#X obj 254 291 cyclone/+=~;
+#X connect 8 0 43 0;
+#X connect 11 0 38 0;
+#X connect 14 0 11 0;
+#X connect 27 0 11 0;
+#X connect 31 0 11 1;
+#X connect 31 0 43 0;
+#X connect 43 0 39 0;

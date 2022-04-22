@@ -1,0 +1,68 @@
+#N canvas 473 98 559 496 10;
+#X obj 4 469 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 4 320 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 398 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 441 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 100 329 cnv 17 3 40 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 100 408 cnv 17 3 26 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 127 328 signal;
+#X text 186 328 - input signal to detect transitions;
+#X obj 100 375 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 132 375 float;
+#X text 132 407 float;
+#X text 187 449 (none);
+#X floatatom 257 206 0 0 0 0 - - -;
+#X obj 176 232 cyclone/spike~;
+#X text 232 259 ms;
+#X text 185 375 - set refractory period \, the maximal reporting rate
+, f 58;
+#X text 287 205 set refractory frequency;
+#X obj 176 170 cyclone/train~ 500;
+#X obj 176 288 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 138 188 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 139 345 bang;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 72 92 [spike~] reports intervals of zero to non-zero transitions
+from the signal input. The refractory period is set at the second inlet
+\, which defines how soon after detecting a transition the spike~ object
+will report the next instance.;
+#X obj 19 54 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Report zero to non-zero transition intervals;
+#X obj 16 2 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 spike~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 176 260 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 185 345 -;
+#X text 197 345 restarts the countdown of the refractory period from
+the time at which the bang was received;
+#X text 185 407 -;
+#X text 197 407 interval in ms since last 0 to non-0 transition (including
+the refractory period \, if one is set);
+#X obj 499 69 cyclone/setdsp~;
+#X connect 12 0 13 1;
+#X connect 13 0 30 0;
+#X connect 17 0 13 0;
+#X connect 19 0 13 0;
+#X connect 30 0 18 0;

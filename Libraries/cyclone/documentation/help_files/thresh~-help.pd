@@ -1,0 +1,81 @@
+#N canvas 362 59 563 611 10;
+#X obj 346 331 tgl 35 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 2 583 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 4 415 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 499 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 535 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 96 425 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 96 448 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 171 423 signal;
+#X obj 96 472 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
+;
+#X obj 96 507 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 169 506 signal;
+#X text 227 448 - low threshold level;
+#X text 226 472 - high threshold level;
+#X text 227 423 - a signal whose level you want to detect;
+#X text 227 506 - 1/0 depending on signal detect;
+#X text 134 448 float/signal;
+#X text 134 472 float/signal;
+#X text 385 223 low;
+#X text 387 245 hi;
+#X obj 323 222 sig~ -0.5;
+#X obj 329 244 sig~ 0.5;
+#X obj 242 222 osc~ 0.5;
+#X obj 204 297 vsl 20 100 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 4950 1;
+#X text 192 341 0;
+#X text 192 290 1;
+#X text 180 315 0.5;
+#X text 174 366 -0.5;
+#X text 186 389 -1;
+#X text 157 542 1) float;
+#X text 157 558 2) float;
+#X obj 242 272 cyclone/thresh~;
+#X obj 2 5 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X text 74 96 [thresh~] is a "Schmitt trigger". When the input is greater
+than or equal to the high threshold level \, the output is 1 and becomes
+0 when the signal is equal to or less than the reset level (low threshold).
+;
+#X text 74 152 If low and high threshold are the same \, the output
+is 1 until a sample in the input signal is less than the reset level
+(thus it works in the same way as [>=~]).;
+#X text 227 558 - sets high threshold (default 0);
+#X text 227 542 - sets low threshold (default 0);
+#X obj 17 58 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Detect signal above a threshold;
+#X obj 16 5 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 thresh~;
+#X obj 322 29 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 5 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 242 303 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 100 265 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 19 0 30 1;
+#X connect 20 0 30 2;
+#X connect 21 0 30 0;
+#X connect 21 0 44 0;
+#X connect 30 0 43 0;
+#X connect 43 1 0 0;
+#X connect 44 1 22 0;

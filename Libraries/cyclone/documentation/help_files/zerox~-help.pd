@@ -1,0 +1,116 @@
+#N canvas 396 52 561 593 10;
+#X obj 5 566 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 5 408 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 463 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 84 419 cnv 17 3 36 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 84 473 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 129 418 signal;
+#X text 129 472 signal;
+#X obj 84 497 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 129 497 signal;
+#X obj 162 242 cyclone/zerox~;
+#X obj 5 529 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X text 118 540 1) float;
+#X text 99 439 set <float>;
+#X text 183 439 - set impulse value sent to right outlet;
+#X msg 221 206 set 0.5;
+#X msg 217 182 set 1;
+#X obj 162 181 osc~ 1;
+#X obj 106 279 cyclone/snapshot~ 1;
+#X obj 106 310 vsl 20 80 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X text 131 383 -1, f 3;
+#X text 134 301 1, f 3;
+#X text 134 344 0;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 75 88 [zerox~] functions as a zero-crossing detector and/or
+a zero-crossing counter (for transient detection).;
+#X text 76 122 Left outlet ouputs a value that corresponds to the number
+of zero crossings per signal block - so it depends on the block size.
+Right outlet send an impulse at every zero crossing.;
+#X text 183 418 - signal to be analyzed;
+#X text 191 539 - float sets impulse value from 0-1 (default 1);
+#X text 182 497 - a click (impulse) whenever a zero-crossing is detected
+;
+#X text 182 472 - the number of zero crossings per signal block;
+#N canvas 654 222 488 400 frequency 0;
+#X obj 279 114 loadbang;
+#X obj 279 136 samplerate~;
+#X obj 193 262 *~ 0.5;
+#X obj 142 175 cyclone/zerox~ 1;
+#X obj 142 125 osc~ 1000;
+#X obj 193 290 cyclone/snapshot~ 1;
+#X floatatom 279 186 0 0 0 0 - - -;
+#X obj 193 230 *~;
+#X text 225 229 multiply by block frequency;
+#X text 237 262 half the zero crossings;
+#X text 192 345 frequency estimate;
+#X obj 25 11 cnv 15 160 30 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 77 58 An example on how to use [zerox~] to estimate frequency
+;
+#X obj 279 160 / 64;
+#X obj 31 16 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X obj 193 322 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X connect 0 0 1 0;
+#X connect 1 0 13 0;
+#X connect 2 0 5 0;
+#X connect 3 0 7 0;
+#X connect 4 0 3 0;
+#X connect 5 0 15 0;
+#X connect 6 0 7 1;
+#X connect 7 0 2 0;
+#X connect 13 0 6 0;
+#X restore 448 314 pd frequency \; estimate;
+#N canvas 326 74 412 385 transient 0;
+#X obj 147 122 adc~ 1;
+#X obj 251 217 vsl 20 128 0 32 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X text 32 62 Look at the difference between "ssss" and "aaa" or any
+noisy/tansient input as opposed to a tonal and stable one.;
+#X obj 25 11 cnv 15 180 30 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 147 154 cyclone/zerox~;
+#X obj 31 16 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X obj 147 185 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X connect 0 0 4 0;
+#X connect 4 0 6 0;
+#X connect 6 1 1 0;
+#X restore 449 357 pd transient \; detection;
+#X obj 19 54 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Detect zero crossings;
+#X obj 16 2 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 zerox~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 243 323 ./out~;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 9 1 38 0;
+#X connect 9 1 38 1;
+#X connect 14 0 9 0;
+#X connect 15 0 9 0;
+#X connect 16 0 9 0;
+#X connect 16 0 17 0;
+#X connect 17 0 18 0;
