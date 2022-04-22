@@ -83,7 +83,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     String currentText;
     
     Point<int> mouseDownPos;
-
+    Font font{15.0f};
+    
    private:
     void initialise();
     bool hitTest(int x, int y) override;
@@ -92,7 +93,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     Rectangle<int> originalBounds;
 
-    Font font{15.0f};
+
     Justification justification = Justification::centred;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border{1, 2, 1, 2};

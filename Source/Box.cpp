@@ -177,12 +177,6 @@ void Box::updateBounds(bool newObject)
         setEditable(true);
         setSize(100, height);
     }
-    
-    if (graphics && graphics->getGui().getType() == pd::Type::Comment && !getCurrentTextEditor())
-    {
-        int numLines = getNumLines(currentText, getWidth());
-        setSize(getWidth(), (numLines * font.getHeight()) + doubleMargin + 8);
-    }
 
     resized();
 }
