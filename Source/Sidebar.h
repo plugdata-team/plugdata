@@ -50,7 +50,7 @@ static int getNumLines(const String& text, int width)
 
     for (int i = 0; i < xOffsets.size(); i++)
     {
-        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '/n')
+        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n')
         {
             for (int j = i + 1; j < xOffsets.size(); j++)
             {
