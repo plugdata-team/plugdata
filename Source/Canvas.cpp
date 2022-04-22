@@ -1464,16 +1464,20 @@ Canvas::GridSnap Canvas::shouldSnapToGrid(const Box* toDrag) {
     for(auto* connection : toDrag->getConnections()) {
         auto inletBounds = connection->inlet->getCanvasBounds();
         auto outletBounds = connection->outlet->getCanvasBounds();
-        
+
         // Don't snap if the cord is upside-down
         if(inletBounds.getY() < outletBounds.getY()) continue;
         
-        int snapDistance = inletBounds.getCentreX() - outletBounds.getCentreX();
+        int snapDistance = inletBounds.getX() - outletBounds.getX();
+        
+        // Check if the inlet or outlet is being moved, and invert if needed
+        if(connection->inlet->box == toDrag) snapDistance = -snapDistance;
         
         if(trySnap(snapDistance)) {
             auto gridLine = Line<int>(inletBounds.getX() - 2, outletBounds.getBottom() + 2, inletBounds.getX() - 2,  inletBounds.getY() - 2);
             return {GridSnap::HorizontalSnap, totalSnaps, {snapDistance, 0}, gridLine};
         }
+        
         // If we're close, don't snap for other reasons
         if(abs(snapDistance) < tolerance * 2.0f) {
             return GridSnap();
