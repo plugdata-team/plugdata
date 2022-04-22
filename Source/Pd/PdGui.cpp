@@ -197,6 +197,11 @@ Type Gui::getType(void* ptr) noexcept
     {
         type = Type::Keyboard;
     }
+    else if (name == "pic")
+    {
+        type = Type::Picture;
+    }
+
 
     else if (name == "gatom")
     {
