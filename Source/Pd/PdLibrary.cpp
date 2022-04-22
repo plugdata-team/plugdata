@@ -238,7 +238,7 @@ void Library::updateLibrary()
 
     auto pathTree = settingsTree.getChildWithName("Paths");
 
-    searchTree = Trie();
+    searchTree = std::make_unique<Trie>();
 
     int i;
     t_class* o = pd_objectmaker;
@@ -255,10 +255,10 @@ void Library::updateLibrary()
     {
         String name(m->me_name->s_name);
 
-        searchTree.insert(m->me_name->s_name);
+        searchTree->insert(m->me_name->s_name);
     }
 
-    searchTree.insert("graph");
+    searchTree->insert("graph");
 
     for (auto path : pathTree)
     {
@@ -267,7 +267,7 @@ void Library::updateLibrary()
         for (auto& iter : RangedDirectoryIterator(filePath, false))
         {
             auto file = iter.getFile();
-            if (file.getFileExtension() == ".pd") searchTree.insert(file.getFileNameWithoutExtension().toStdString());
+            if (file.getFileExtension() == ".pd") searchTree->insert(file.getFileNameWithoutExtension().toStdString());
         }
     }
 }
@@ -302,7 +302,7 @@ void Library::parseDocumentation(const String& path)
 Suggestions Library::autocomplete(std::string query)
 {
     Suggestions result;
-    searchTree.autocomplete(std::move(query), result);
+    searchTree->autocomplete(std::move(query), result);
     return result;
 }
 
