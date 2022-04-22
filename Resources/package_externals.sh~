@@ -2,10 +2,8 @@
 rm Abstractions.zip
 
 mkdir Abstractions
-cp ../Libraries/pure-data/extra/*.pd ./Abstractions
 cp ../Libraries/ELSE/camomile/*.pd ./Abstractions
 cp playhead.pd ./Abstractions
-
 
 cp -R ../Libraries/pure-data/doc ./Documentation
 cp -R ./pddoc ./Documentation/pddoc
