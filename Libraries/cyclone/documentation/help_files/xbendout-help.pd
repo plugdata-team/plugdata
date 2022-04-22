@@ -1,0 +1,72 @@
+#N canvas 552 45 558 527 10;
+#X obj 2 258 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 321 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 358 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 129 331 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 129 269 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 2 496 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 208 333 -;
+#X text 168 271 float;
+#X text 150 368 1) float;
+#X obj 162 230 midiout;
+#X obj 165 141 hsl 128 15 0 16383 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 2 5 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X obj 162 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 306 170 MIDI Channel;
+#X text 208 368 - sets initial channel number;
+#X text 168 333 float;
+#X text 442 158 see also;
+#X text 208 294 -;
+#X text 168 294 float;
+#X text 223 294 sets channel number, f 41;
+#X text 223 333 raw MIDI data stream, f 41;
+#X obj 129 293 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 423 183 cyclone/xbendout2;
+#X obj 162 198 cyclone/xbendout 1;
+#X text 418 210 another version of;
+#X text 426 227 the same object;
+#X text 208 271 - 14-bit pitch bend values (0-16383);
+#X text 201 141 14-bit;
+#X text 80 171 (0 - 16383);
+#X text 68 92 [xbendout] formats and sends messages that occupy both
+bytes of the MIDI pitch bend message (14 bit from 0 - 16383).;
+#X obj 16 5 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 xbendout;
+#X obj 322 29 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 5 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 17 58 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Send 14-bit pitch bend messages;
+#X obj 267 170 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 2 392 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X text 125 446 On the other hand \, if you are using Purr Data instead
+\, then [bendin]/[bendout] have been fixed \, so you can can just use
+them instead and consider this object deprecated.;
+#X text 125 402 This object can be a good alternative to [bendout]
+object in pd vanilla \, since the [bendin]/[bendout] objects there
+have different range values and may be considered deprecated.;
+#X connect 10 0 15 0;
+#X connect 15 0 26 0;
+#X connect 26 0 9 0;
+#X connect 37 0 26 1;

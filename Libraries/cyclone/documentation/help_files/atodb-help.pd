@@ -1,0 +1,77 @@
+#N canvas 459 58 560 678 10;
+#X obj 3 499 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 577 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 614 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 82 586 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 83 507 cnv 17 3 60 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 150 623 (none);
+#X obj 3 651 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 192 199 Linear Amplitude;
+#X obj 133 199 nbx 5 14 1e-05 1 1 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 1e-05 256;
+#X obj 136 173 hsl 180 15 1e-05 1 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 181 229 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 200 229 last output;
+#X msg 197 258 set 0.5;
+#X text 255 259 sets next value to be converted via bang;
+#X obj 182 355 vu 15 120 empty empty -1 -8 0 10 -66577 -1 1 0;
+#X text 161 528 bang;
+#X text 167 546 set;
+#X text 206 528 - outputs the last converted float value;
+#X floatatom 181 322 0 0 0 0 - - -;
+#X msg 106 236 0;
+#X obj 181 293 cyclone/atodb;
+#X text 125 509 float/list;
+#X text 206 509 - linear amplitude value(s);
+#X text 79 132 Conversion expression: dbFS = log10(amp) * 20;
+#X text 202 586 - converted dBFS amplitude value(s);
+#N canvas 737 326 450 300 lists 0;
+#X obj 113 187 cyclone/tosymbol;
+#X symbolatom 113 218 20 0 0 0 - - -;
+#X obj 113 101 loadbang;
+#X text 92 67 it also works with lists:;
+#X obj 113 155 cyclone/atodb;
+#X msg 113 127 0.5 1 2;
+#X connect 0 0 1 0;
+#X connect 2 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 4 0;
+#X restore 489 460 pd lists;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 78 85 Use [atodb] to convert a linear amplitude value to a
+deciBel Full Scale (dBFS) equivalent. Negative values convert to -inf
+as if the input is "0".;
+#X text 125 586 float/list;
+#X text 206 546 - sets the float value to be converted via bang;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Convert linear amplitude to dBFS;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 atodb;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X connect 8 0 20 0;
+#X connect 9 0 8 0;
+#X connect 10 0 20 0;
+#X connect 12 0 20 0;
+#X connect 18 0 14 0;
+#X connect 19 0 20 0;
+#X connect 20 0 18 0;

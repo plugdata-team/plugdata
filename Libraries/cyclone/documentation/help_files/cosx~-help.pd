@@ -1,0 +1,65 @@
+#N canvas 524 110 562 594 10;
+#X obj 4 568 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 3 385 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 423 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 460 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 4 494 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X obj 82 434 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 115 398 signal;
+#X text 115 434 signal;
+#X text 115 471 (none);
+#X obj 195 173 *~ 6.28319;
+#X obj 82 398 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 195 201 cyclone/cosx~;
+#X text 171 434 - output of cosine function;
+#X obj 195 141 phasor~ 2;
+#X text 171 353 -1;
+#X text 175 291 0;
+#X text 177 228 1;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 267 174 * 2pi;
+#X text 171 398 - input to cosine function (in radians);
+#X text 129 503 Like [cyclone/sinx~] & [cyclone/tanx~] \, it expects
+input values in radians. Thus \, unlike [cos~] (from vanilla and max/msp)
+\, it's not designed to work with [phasor~]'s output (from 0 to 1).
+;
+#X obj 391 287 cyclone/cosx~;
+#X text 62 93 Properly designed for mathematical operations \, [cosx~]
+it expects an input in radians to calculate the cosine of each input
+sample.;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal cosine function (radian input);
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 cosx~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 391 245 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 391 328 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 497 71 cyclone/setdsp~;
+#X obj 195 232 cyclone/scope~ 130 130 256 3 128 -1 1 0 0 0 0 205 229
+232 74 79 77 96 98 102 0 empty;
+#X connect 9 0 11 0;
+#X connect 11 0 33 0;
+#X connect 13 0 9 0;
+#X connect 24 0 31 0;
+#X connect 30 0 24 0;

@@ -1,0 +1,69 @@
+#N canvas 426 75 565 580 10;
+#X obj 8 557 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 8 347 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 8 390 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 8 523 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 109 359 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 110 401 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 135 359 signal;
+#X text 135 401 signal;
+#X text 141 532 (none);
+#X obj 197 198 bng 20 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 197 277 cyclone/framedelta~;
+#X obj 395 269 cyclone/framedelta~;
+#X obj 395 295 cyclone/phasewrap~;
+#X text 90 199 start counter =>;
+#X text 138 445 For each signal block \, the first sample of its output
+will be the first sample in the current block minus the first sample
+in the previous block \, the second sample of its output will be the
+second sample in the current block minus the second sample in the previous
+block \, and so on.;
+#X obj 9 433 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 81 92 The [framedelta~] object was designed specially to compute
+a running phase deviation of a FFT analysis by subtracting values in
+each position of its previously received signal block from the current
+signal block. When used in a FFT subpatch \, it can keep a running
+phase deviation of the FFT because the FFT size is equal to the block
+size.;
+#X obj 197 229 cyclone/count~;
+#X text 199 401 - Deviation between successive FFT frames;
+#X text 199 359 - The input on which the deviation will be computed
+;
+#X text 365 217 properly check phase deviation;
+#X text 391 235 with [phasewrap~];
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 FFT frame deviation;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 framedelta~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 65 290 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 197 310 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 497 71 cyclone/setdsp~;
+#X connect 9 0 21 0;
+#X connect 10 0 31 0;
+#X connect 11 0 12 0;
+#X connect 21 0 10 0;
+#X connect 21 0 30 0;

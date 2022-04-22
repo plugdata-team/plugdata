@@ -1,0 +1,161 @@
+#N canvas 426 92 561 641 10;
+#X obj 7 605 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 7 371 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 509 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 546 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 89 384 cnv 17 3 87 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 89 476 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 154 385 signal;
+#X text 154 519 signal;
+#X text 135 558 1) float;
+#X obj 89 519 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 118 477 float/signal;
+#X text 205 519 - output of low-pass filter;
+#X floatatom 273 216 7 0 0 0 - - -;
+#X obj 273 265 line~;
+#X msg 273 240 \$1 10;
+#X obj 276 191 hsl 128 15 100 10000 1 1 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X text 316 190 cutoff;
+#X text 135 577 2) symbol;
+#X text 206 384 - signal to be filtered;
+#X text 205 477 - cutoff frequency;
+#X obj 139 199 phasor~ 250;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 95 136 This filter is very efficient and useful for gently
+rolling off harsh high end and for smoothing out control signals.;
+#X text 206 577 - frequency mode: <Hz> (default) \, <linear> or <radians>
+;
+#X text 154 421 linear;
+#X text 148 438 radians;
+#X text 160 456 clear;
+#X text 205 402 - sets frequency input mode to 'hertz';
+#X text 205 420 - sets frequency input mode to 'linear';
+#X text 205 438 - sets frequency input mode to 'radians';
+#X text 205 456 - clears filter's memory;
+#X text 96 90 Similar to Pd vanilla's [lop~] \, [onepole~] implements
+the simplest of IIR filters \, providing a 6dB per octave attenuation.
+;
+#N canvas 179 23 979 555 frequency 0;
+#X obj 42 37 cnv 15 182 30 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 509 32 linear:;
+#X text 55 150 hz:;
+#X text 502 248 radians:;
+#X text 89 88 [onepole~] has three different modes (set by messages
+or argument) for mapping input values onto cutoff frequency. These
+are mainly for convenience \, but they may also slightly improve efficiency.
+;
+#X text 565 264 where k represents the cutoff frequency in radians.
+;
+#X text 564 249 The filter equation is: y[n] = y[-1] + k * (x[n] -
+y[-1]) \,;
+#X text 89 150 - The 'hz' mode is simply an input in hertz \, as in
+our main example in the parent patch.;
+#X obj 621 108 noise~;
+#X floatatom 787 139 7 0 0 0 - - -;
+#X obj 771 111 hsl 128 15 0 1 0 1 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 811 110 cutoff;
+#X obj 621 140 cyclone/onepole~ 0 linear;
+#X text 837 138 linear;
+#X text 567 288 - The 'radians' mode lets you set the center frequency
+of the equation directly \, while the input has the same range as linear
+(0-1) \, the output has a curved frequency response that is closer
+to the exponential pitch scale of the human ear. Compare the difference
+below.;
+#X obj 630 408 noise~;
+#X floatatom 802 439 7 0 0 0 - - -;
+#X obj 786 411 hsl 128 15 0 1 0 1 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 826 410 cutoff;
+#X obj 630 440 cyclone/onepole~ 0 radians;
+#X text 852 438 radians;
+#X obj 182 376 noise~;
+#X obj 330 321 samplerate~;
+#X obj 330 296 loadbang;
+#X obj 330 346 / 4;
+#X floatatom 330 372 6 0 0 0 - - -;
+#X floatatom 249 301 7 0 0 0 - - -;
+#X obj 252 268 hsl 128 15 0 1 0 1 empty empty empty -2 -8 0 10 -228856
+-1 -1 12700 1;
+#X text 294 268 cutoff;
+#X obj 275 365 *;
+#X obj 182 408 cyclone/onepole~;
+#X floatatom 297 398 7 0 0 0 - - -;
+#X text 91 190 But please note that the effective cutoff frequency
+in hertz is the sample rate frequency divided by 4 \, or half the Nyquist
+frequency.;
+#X text 568 32 - The 'linear' mode is just a scaled version of the
+standard hertz mode with values in the 0-1 range instead 0 and half
+the Nyquist.;
+#X text 345 398 hertz;
+#X msg 546 380 linear;
+#X msg 600 380 radians;
+#X obj 48 42 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X obj 608 474 ./out~;
+#X obj 160 442 ./out~;
+#X obj 599 174 ./out~;
+#X connect 8 0 12 0;
+#X connect 10 0 9 0;
+#X connect 10 0 12 1;
+#X connect 12 0 40 0;
+#X connect 12 0 40 1;
+#X connect 15 0 19 0;
+#X connect 17 0 16 0;
+#X connect 17 0 19 1;
+#X connect 19 0 38 0;
+#X connect 19 0 38 1;
+#X connect 21 0 30 0;
+#X connect 22 0 24 0;
+#X connect 23 0 22 0;
+#X connect 24 0 25 0;
+#X connect 25 0 29 1;
+#X connect 26 0 29 0;
+#X connect 27 0 26 0;
+#X connect 29 0 30 1;
+#X connect 29 0 31 0;
+#X connect 30 0 39 0;
+#X connect 30 0 39 1;
+#X connect 35 0 19 0;
+#X connect 36 0 19 0;
+#X restore 434 313 pd frequency \; input modes;
+#X obj 139 254 cyclone/onepole~;
+#X text 323 215 hz;
+#X text 178 402 Hz;
+#X text 205 556 - cutoff frequency (default 1);
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 onepole~;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 One pole lowpass filter;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 139 225 cyclone/triangle~ 0;
+#X obj 113 296 ./out~;
+#X connect 12 0 14 0;
+#X connect 13 0 36 1;
+#X connect 14 0 13 0;
+#X connect 15 0 12 0;
+#X connect 20 0 44 0;
+#X connect 36 0 45 0;
+#X connect 36 0 45 1;
+#X connect 44 0 36 0;

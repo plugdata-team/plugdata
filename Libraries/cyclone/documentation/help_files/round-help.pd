@@ -1,0 +1,92 @@
+#N canvas 433 23 561 652 10;
+#X obj 3 627 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 3 415 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 511 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 548 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 83 520 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 127 562 1) float;
+#X obj 72 474 cnv 17 3 25 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 73 422 cnv 17 3 45 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 3 586 cnv 3 550 3 empty empty attributes 8 12 0 13 -228856 -1
+0;
+#X text 115 521 float/list;
+#X text 145 474 float;
+#X floatatom 302 309 0 0 0 0 - - -;
+#X text 116 420 float/list;
+#X text 192 419 - value(s) to round;
+#X obj 305 284 hsl 128 15 0 10 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 86 306 nbx 6 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 86 279 trigger b a;
+#X msg 86 251 nearest \$1;
+#X obj 86 219 tgl 25 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X text 190 521 - approximated value(s);
+#X text 192 562 - value to round to (default = 0 \, no rounding);
+#X text 193 597 - sets mode: non zero = round (default) \, 0 = truncate
+;
+#X text 125 224 (1 = round \, 0 truncate);
+#X obj 149 338 cyclone/round 1 @nearest 0;
+#X obj 149 369 nbx 6 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+-228856 -1 -1 0 256;
+#X text 190 474 - value to round to (whose multple values will be approximated
+to);
+#N canvas 617 207 311 298 lists 0;
+#X msg 87 117 0.5 5 8;
+#X obj 87 177 cyclone/tosymbol;
+#X symbolatom 87 208 15 0 0 0 - - -;
+#X floatatom 174 117 5 0 0 0 - - -;
+#X obj 87 145 cyclone/round 3;
+#X obj 87 91 loadbang;
+#X text 66 57 it also works with lists:;
+#X connect 0 0 4 0;
+#X connect 1 0 2 0;
+#X connect 3 0 4 1;
+#X connect 4 0 1 0;
+#X connect 5 0 0 0;
+#X restore 477 378 pd lists;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 105 95 [round] approximates positive and negative numbers to
+an integer multiple of any given number that is greater or equal to
+0 (0 makes no approximation - so the original input is output unchanged).
+;
+#X text 104 153 It works in two modes \, rounding to the nearest multiple
+(default) or to the approximating to the truncated multiple value.
+;
+#X text 85 440 nearest <float>;
+#X text 128 597 @nearest;
+#X text 192 439 - "nearest" followed by 0 sets to "truncate mode" \,
+non zero number sets to "round to nearest mode" (default);
+#X obj 20 60 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Rounds floats/lists;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 round;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X connect 11 0 23 1;
+#X connect 14 0 11 0;
+#X connect 15 0 23 0;
+#X connect 16 0 15 0;
+#X connect 16 1 23 0;
+#X connect 17 0 16 0;
+#X connect 18 0 17 0;
+#X connect 23 0 24 0;

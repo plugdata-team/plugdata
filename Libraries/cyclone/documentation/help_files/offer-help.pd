@@ -1,0 +1,90 @@
+#N canvas 436 103 560 535 10;
+#X obj 2 308 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 439 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 473 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 88 316 cnv 17 3 94 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 87 448 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 278 482 (none);
+#X obj 86 414 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 150 242 cyclone/offer;
+#X obj 3 528 cnv 1 550 1 empty empty empty 0 0 0 4 -262144 -262144
+0;
+#X obj 3 507 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X msg 346 210 clear;
+#X obj 286 247 cyclone/offer;
+#X text 124 317 float;
+#X text 130 360 list;
+#X text 124 414 float;
+#X text 124 449 float;
+#X text 124 394 clear;
+#X text 174 414 - 'y' value \, before setting 'x' in the left inlet
+, f 60;
+#X text 174 449 - 'y' value correspoding to a given 'x', f 60;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 150 277 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 150 165 trigger b b;
+#X text 247 198 y;
+#X text 175 199 x;
+#X text 52 194 retrieve;
+#X text 52 208 & delete;
+#X msg 112 199 8;
+#X obj 150 141 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 286 277 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 174 394 - clears the stored pairs, f 60;
+#X text 130 377 bang;
+#X obj 301 182 hradio 15 1 0 4 empty empty empty 0 -8 0 10 -228856
+-1 -1 3;
+#X floatatom 301 207 5 0 0 0 - - -;
+#X msg 150 199 8;
+#X msg 213 199 23;
+#X msg 286 153 0 10 \, 1 11 \, 2 12 \, 3 13;
+#X text 58 86 [offer] stores a x/y integer number pair and accesses
+the 'y' value from the corresponding 'x' (after retrieving \, the pair
+is deleted).;
+#X text 370 181 <= retrieve & delete;
+#X text 174 317 - 'x' value: outputs the corresponing 'y' value and
+deletes the x/y pair. Sets the 'x' value of a x/y pair if the 'y' value
+was previously set in the right inlet.;
+#X text 174 360 - two integers: the x/y pair of values to store, f
+60;
+#X text 174 377 - outputs every stored 'y' values (without deleting)
+;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Store one-time number pairs;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 offer;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X connect 7 0 23 0;
+#X connect 10 0 11 0;
+#X connect 11 0 31 0;
+#X connect 24 0 36 0;
+#X connect 24 1 37 0;
+#X connect 29 0 7 0;
+#X connect 30 0 24 0;
+#X connect 34 0 35 0;
+#X connect 35 0 11 0;
+#X connect 36 0 7 0;
+#X connect 37 0 7 1;
+#X connect 38 0 11 0;

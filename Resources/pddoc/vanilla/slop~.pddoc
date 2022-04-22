@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pddoc version="1.0">
+    <object name="slop~">
+        <title>slop~</title>
+        <meta>
+            <authors>
+                <author>Miller Smith Puckette</author>
+            </authors>
+            <description>slew-limiting (nonlinear) low pass filter</description>
+            <license>BSD</license>
+            <library>puredata</library>
+            <category>audio filters</category>
+            <keywords>audio filters slop~</keywords>
+            <since>0.50</since>
+        </meta>
+        <info>
+            <par>-</par>
+        </info>
+        <arguments>
+            <argument name="ARG_NAME" type="symbol">-</argument>
+        </arguments>
+        <methods>
+            <method name="NAME">
+            <param type="float" name="V" required="true">-</param></method>
+        </methods>
+        <inlets>
+            <inlet>
+                <xinfo on="bang">output value</xinfo>
+                <xinfo on="float">-</xinfo>
+                <xinfo on="symbol">-</xinfo>
+            </inlet>
+        </inlets>
+        <outlets>
+            <outlet>output</outlet>
+        </outlets>
+        <example>
+            <pdascii>
+<![CDATA[
+
+[slop~]
+
+]]>
+            </pdascii>
+        </example>
+    </object>
+</pddoc>

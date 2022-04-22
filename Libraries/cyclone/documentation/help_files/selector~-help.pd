@@ -1,0 +1,88 @@
+#N canvas 482 23 562 535 10;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 16 5 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 selector~;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Select one of 'n' inputs to an outlet;
+#X obj 4 506 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 5 417 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 453 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 105 392 cnv 17 3 17 empty empty n 5 9 0 16 -228856 -162280 0
+;
+#X text 176 429 signal;
+#X text 156 478 2) float;
+#X obj 5 351 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 105 362 cnv 17 3 26 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 139 361 float/signal;
+#X text 175 393 signal;
+#X text 156 461 1) float;
+#X obj 249 193 osc~ 660;
+#X obj 208 167 osc~ 440;
+#X floatatom 167 222 3 0 0 0 - - -;
+#X obj 167 154 vradio 15 1 0 4 empty empty empty 0 -8 0 10 -228856
+-1 -1 3;
+#X text 133 153 none;
+#X text 103 169 1st inlet;
+#X text 103 184 2nd inlet;
+#X text 103 198 3rd inlet;
+#N canvas 787 211 416 415 signal-rate 0;
+#X obj 152 145 *~ 3;
+#X obj 152 106 phasor~ 0.5;
+#X obj 274 234 noise~;
+#X obj 152 267 cyclone/selector~ 2;
+#X text 37 22 You can set the inlet number with a signal input \, this
+allows [selector~] to be controlle with sample accuracy. Signal values
+are truncated to integers.;
+#X obj 207 234 osc~ 440;
+#X obj 177 189 number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 129 321 ./out~;
+#X connect 0 0 3 0;
+#X connect 0 0 6 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 2;
+#X connect 3 0 7 0;
+#X connect 3 0 7 1;
+#X connect 5 0 3 1;
+#X restore 447 319 pd signal-rate;
+#X obj 105 427 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 228 429 - the selected input;
+#X text 78 90 [selector~] selects one input signal from the 'n' specified
+inlets or none of them to an outlet. If no input is selected \, it
+outputs zero values.;
+#X text 228 479 - initially selected inlet (default 0 - none);
+#X obj 140 285 ./out~;
+#X obj 167 247 cyclone/selector~ 3 1;
+#X text 228 459 - input channels to select (1 to 500 \, default 1)
+;
+#X text 228 361 -;
+#X text 239 361 inlet number to select - values are truncated to integers
+and clipped from 0 to number of channels, f 49;
+#X text 228 393 - input signal channels to be selected;
+#X obj 290 218 cyclone/pink~;
+#X connect 19 0 33 2;
+#X connect 20 0 33 1;
+#X connect 21 0 33 0;
+#X connect 22 0 21 0;
+#X connect 33 0 32 0;
+#X connect 33 0 32 1;
+#X connect 38 0 33 3;

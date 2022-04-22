@@ -1,0 +1,83 @@
+#N canvas 524 115 561 580 10;
+#X obj 4 555 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 4 442 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 482 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 521 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 136 453 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 136 493 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 164 453 signal;
+#X text 164 493 signal;
+#X text 165 530 (none);
+#X obj 103 214 -~ 3.14159;
+#X obj 103 191 *~ 6.28319;
+#X obj 103 245 cyclone/tanh~;
+#X text 231 453 - input to hyperbolic tangent function;
+#X text 231 493 - output of hyperbolic tangent function;
+#X obj 103 165 phasor~ 2;
+#X obj 103 280 cyclone/scope~ 153 137 512 3 128 -1 1 0 0 0 0 205 229
+232 74 79 77 96 98 102 0 empty;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 180 192 * 2pi;
+#X text 181 214 - pi;
+#X text 79 407 -1;
+#X text 84 275 1;
+#X text 66 97 [tanh~] calculates the hyperbolic tangent function of
+input sample. It is also useful for waveshaping \, where it simulates
+analog distortion.;
+#X obj 365 192 number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 365 234 cyclone/tanh~;
+#X text 82 341 0;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal hyperbolic tangent function;
+#X obj 15 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 tanh~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#N canvas 774 137 416 375 waveshaping 0;
+#X obj 232 172 +~ 11;
+#X obj 232 145 *~ 10;
+#X obj 163 236 cyclone/tanh~;
+#X obj 163 200 *~;
+#X text 31 19 [tanh~] will clip values between -1 and 1 \, but will
+do so not as "hard clipping" (which would be the case with the [clip~]
+object). It can actually be considered a waveshaper for soft clipping.
+This generates a distortion which is more closely related to how analog
+circuitry does clip a signal in overdrive.;
+#X obj 163 161 osc~ 110;
+#X obj 232 121 osc~ 0.5, f 18;
+#X obj 136 288 ./out~;
+#X connect 0 0 3 1;
+#X connect 1 0 0 0;
+#X connect 2 0 7 0;
+#X connect 2 0 7 1;
+#X connect 3 0 2 0;
+#X connect 5 0 3 0;
+#X connect 6 0 1 0;
+#X restore 410 381 pd waveshaping \; analog distortion;
+#X obj 365 275 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 9 0 11 0;
+#X connect 10 0 9 0;
+#X connect 11 0 15 0;
+#X connect 14 0 10 0;
+#X connect 25 0 26 0;
+#X connect 26 0 33 0;

@@ -1,0 +1,232 @@
+#N canvas 691 75 565 568 10;
+#X obj 3 249 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 428 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X text 170 434 (none);
+#X obj 3 537 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 121 152 <= the default comment box from [cyclone/comment];
+#X obj 156 189 cyclone/comment 259 20 Times empty 3 150 0 0 1 230 235
+240 1 1 Hello \, I'm a comment from the [cyclone/comment] object!!!
+;
+#X obj 3 454 cnv 3 550 3 empty empty flags 8 12 0 13 -228856 -1 0;
+#X obj 74 255 cnv 17 3 168 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 122 254 set <anything>;
+#X text 214 254 - sets comment, f 54;
+#X text 110 296 fontsize <float>;
+#X text 214 296 - sets font size, f 54;
+#X text 104 310 fontname <symbol>;
+#X text 110 408 receive <symbol>;
+#X text 214 310 - sets font type, f 54;
+#X text 214 408 - sets receive symbol, f 54;
+#X text 92 366 textcolor <f \, f \, f>;
+#X text 104 268 append <anything>;
+#X text 214 268 - appends a message to the comment, f 54;
+#X text 214 282 - prepends a message to the comment, f 54;
+#X text 110 324 fontface <float>;
+#X text 214 324 - sets face: 0-normal \, 1-bold \, 2-italic \, 3-bold+italic
+;
+#X text 104 338 underline <float>;
+#X text 214 338 - non zero sets underline, f 54;
+#X text 104 380 bgcolor <f \, f \, f>;
+#X text 146 394 bg <float>;
+#X text 214 394 - background flag (0 supresses background), f 54;
+#X text 214 366 - sets RGB text color (values from 0 to 255), f 54
+;
+#X text 214 380 - sets RGB background color (values from 0 to 255)
+, f 54;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 18 57 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 Comment GUI;
+#X obj 16 4 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X obj 322 28 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 cyclone;
+#X text 80 352 textjustification <f>;
+#N canvas 534 83 891 557 details 0;
+#X obj 159 295 cyclone/comment 425 50 times empty 0 0 0 0 0 100 150
+100 0 0 comment;
+#X msg 159 8 fontsize 50;
+#X msg 165 28 fontsize 30;
+#X msg 192 118 fontname helvetica;
+#X msg 216 186 textcolor 0 0 0;
+#X msg 220 205 textcolor 150 100 50;
+#X msg 643 132 textcolor 200 0 0;
+#X msg 655 154 textcolor 0 0 0;
+#X obj 493 323 cyclone/comment 380 50 Dejavu\ Sans\ Mono \$0-comment
+0 0 0 0 0 255 255 255 0 0 comment;
+#X msg 668 194 set hi \, append there;
+#X msg 678 217 set comment \, prepend this;
+#X msg 689 240 set Comment;
+#X obj 639 282 s \$0-comment;
+#X msg 56 236 fontface \$1;
+#X obj 56 149 vradio 15 1 0 4 empty empty empty 0 -8 0 10 -228856 -1
+-1 0;
+#X floatatom 56 215 3 0 0 0 - - -;
+#X text 74 148 normal;
+#X text 74 163 bold;
+#X text 74 179 italic;
+#X text 74 194 bold+italic;
+#X msg 546 196 underline \$1;
+#X obj 546 172 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X msg 222 234 bgcolor 100 150 100;
+#X msg 226 254 bgcolor 190 90 200;
+#X msg 364 259 bg \$1;
+#X obj 364 236 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X text 42 50 You can edit the properties of [comment] with messages.
+, f 15;
+#X text 39 375 After setting a background color you can use the 'bg'
+flag to turn it off or on again., f 62;
+#X text 470 462 This object is fully compliant to Max 5 but not fully
+compliant to Max6+ versions (with all that 'bubble' stuff and more).
+It also has inconsistencies like different attributes than the original
+object in Max (@receive \, @text and @bg)., f 65;
+#X msg 187 99 fontname arial\ black;
+#X msg 182 80 fontname arial;
+#X msg 177 61 fontname times;
+#X msg 197 137 fontname Dejavu\ Sans\ Mono;
+#X obj 493 260 loadbang;
+#X msg 493 285 receive \\\$0-comment;
+#X text 408 39 When in edit mode \, [comment] shows its inlet and an
+outline. The [comment] object below has a receive symbol \, so you
+can send messages to it via a [send] object. In this case \, the inlet
+is supressed \, so we don't see it. Besides the properties window \,
+the receive symbol can be set with the receive message or the @receive
+attribute. If you set a receive name as "empty" then it it can't receive
+messages anymore and the inlet is show again., f 74;
+#X text 470 407 Note: when in edit mode \, you can click on the object
+to select it and then press <F5> to copy the comment from [cyclone/comment]
+into a Pd's comment box. So far \, this is the only way to copy the
+text from comment into Pd (control+c / control+v doesn't work)., f
+65;
+#X msg 202 156 fontname Menlo;
+#X text 39 461 Cyclone's [comment] will attempt to open a font name
+that corresponds to your given name. If such a font name doesn't exist
+\, it'll open some other font you have on your system instead that
+it thinks is best for what you requested \, and you'll have no idea
+which one it is. So just be sure you have the fonts you want properly
+installed., f 62;
+#X text 39 404 [comment] uses "Dejavu Sans Mono" as its default font
+\, just like Pd. But \, as of version 0.51-3 \, Pd uses 'Menlo' as
+its default font for macOS \, so [comment] also defaults to this font
+in macOS., f 62;
+#X connect 1 0 0 0;
+#X connect 2 0 0 0;
+#X connect 3 0 0 0;
+#X connect 4 0 0 0;
+#X connect 5 0 0 0;
+#X connect 6 0 12 0;
+#X connect 7 0 12 0;
+#X connect 9 0 12 0;
+#X connect 10 0 12 0;
+#X connect 11 0 12 0;
+#X connect 13 0 0 0;
+#X connect 14 0 15 0;
+#X connect 15 0 13 0;
+#X connect 20 0 12 0;
+#X connect 21 0 20 0;
+#X connect 22 0 0 0;
+#X connect 23 0 0 0;
+#X connect 24 0 0 0;
+#X connect 25 0 24 0;
+#X connect 29 0 0 0;
+#X connect 30 0 0 0;
+#X connect 31 0 0 0;
+#X connect 32 0 0 0;
+#X connect 33 0 34 0;
+#X connect 34 0 8 0;
+#X connect 37 0 0 0;
+#X restore 479 166 pd details;
+#N canvas 800 75 549 514 more 0;
+#X obj 188 340 cyclone/comment 151 20 dejavu\ sans\ mono empty 0 0
+0 0 0 200 200 200 1 1 comment can be justified in different ways;
+#X msg 188 305 textjustification \$1;
+#X obj 188 223 vradio 15 1 0 3 empty empty empty 0 -8 0 10 -228856
+-1 -1 1;
+#X floatatom 188 280 3 0 0 0 - - -;
+#X text 206 222 left;
+#X text 206 237 center;
+#X text 206 253 right;
+#X text 79 47 By default \, [comment] has a maximum width limit of
+425 pixels (like Pd's comment). If it exceeds this limit \, the comment
+will break into a new line with the last word that did not fit. But
+when in edit mode you can see a bar to the right that allows you to
+resize the object. If you click and drag it \, you'll set a new maximum
+width to the point where you release the mouse button., f 66;
+#X text 79 128 And when you have more than one line \, you can set
+three kinds of justification parametrers: left (0: default) \, center
+(1) and right (2). This does not affect comments with just one line.
+, f 66;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 491 186 pd more \; details;
+#X obj 66 154 cyclone/comment 425 10 dejavu\ sans\ mono empty 0 0 0
+0 0 255 255 255 0 0 comment;
+#X text 56 82 [comment] is a GUI meant to be only a comment (a label
+or a note) that can be typed directly into it when in Edit mode. It
+is widely used in cyclone's documentation and (unlike pd vanilla's
+comments) allows you to set font \, size \, color \, background color
+\, bold \, italic \, underline and justification. This object is not
+being fully compliant to Max6+ versions!, f 74;
+#X text 98 282 prepend <anything>;
+#X text 40 185 right click for properties =====>, f 18;
+#N canvas 932 96 604 504 +\ examples 0;
+#X msg 205 24 set 1 \\\, 2;
+#X msg 417 62 prepend 1 \\\, 2 \\\,;
+#X msg 398 24 set 3 \\\, 4!;
+#X msg 223 62 append \\\, 3 \\\, 4!;
+#X obj 205 97 cyclone/comment 120 16 dejavu\ sans\ mono empty 0 0 0
+0 0 255 255 255 0 0 1 \, 2 \, 3 \, 4!;
+#X obj 398 97 cyclone/comment 120 16 dejavu\ sans\ mono empty 0 0 0
+0 0 255 255 255 0 0 1 \, 2 \, 3 \, 4!;
+#X text 59 36 Note you can use backslash to escape symbols like '$'
+\, commas and semicolons., f 19;
+#X msg 64 212 set カラオケ, f 11;
+#X obj 64 242 cyclone/comment 243 60 dejavu\ sans\ mono empty 0 20
+25 30 1 225 215 215 1 0 カラオケ;
+#X obj 351 194 cyclone/comment 151 50 dejavu\ sans\ mono empty 0 160
+40 50 0 225 215 215 0 0 عَلَيْكُمْ ٱلسَّلَامُ;
+#X msg 359 346 set 晚安, f 8;
+#X obj 359 371 cyclone/comment 166 80 dejavu\ sans\ mono empty 1 200
+205 210 1 75 85 95 1 0 晚安;
+#X msg 90 335 set हिन्दी;
+#X obj 90 365 cyclone/comment 425 80 dejavu\ sans\ mono empty 0 200
+100 100 0 200 200 200 0 0 हिन्दी;
+#X msg 351 156 set عَلَيْكُمْ \, append ٱلسَّلَامُ
+;
+#X text 86 143 Comment also takes characters from different alphabets
+like elsewhere in Pd (such as in messages or comments)., f 29;
+#X connect 0 0 4 0;
+#X connect 1 0 5 0;
+#X connect 2 0 5 0;
+#X connect 3 0 4 0;
+#X connect 7 0 8 0;
+#X connect 10 0 11 0;
+#X connect 12 0 13 0;
+#X connect 14 0 9 0;
+#X restore 455 220 pd +\ examples;
+#X text 214 352 - sets justification (0: left \, 1: center \, 2: right)
+, f 54;
+#X text 66 461 @fontname <symbol> (default: 'dejavu sans mono' or 'menlo'
+for mac) | @fontface <float> (default 0) @fontsize <float> (default
+patch's) | @textjustification <float> (default 0) @textcolor <f \,
+f \, f> (default 0 0 0) | @bgcolor <f \, f \, f> (default 255 255 255)
+@bg <float> (default 0) | @text <anything>: sets comment (default "comment")
+@underline <float> (default 0) | @receive <symbol> (default 'empty')
+, f 77;

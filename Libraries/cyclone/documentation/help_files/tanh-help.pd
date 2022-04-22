@@ -1,0 +1,60 @@
+#N canvas 481 199 558 404 10;
+#X obj 2 248 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 305 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 345 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 2 399 cnv 1 550 1 empty empty empty 0 0 0 4 -262144 -262144
+0;
+#X obj 2 378 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 61 92 [tanh] calculates the hyperbolic tangent function of
+a given number.;
+#X obj 98 316 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 98 259 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 135 259 bang, f 5;
+#X text 129 280 float, f 6;
+#X text 129 317 float, f 6;
+#X text 110 354 1) float, f 9;
+#X text 183 280 - input to arc-cosine function, f 60;
+#X text 183 259 - output the arc-cosine of stored value, f 42;
+#X text 183 317 - the arc-cosine of the input, f 60;
+#X text 182 354 - initially stored value (default 0), f 60;
+#X obj 327 132 bng 20 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 141 153 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 141 209 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 327 205 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 144 130 hsl 128 15 -7.6 7.6 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 141 179 cyclone/tanh;
+#X obj 327 169 cyclone/tanh 2.5;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Hyperbolic tangent function;
+#X obj 15 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 tanh;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X connect 20 0 26 0;
+#X connect 21 0 25 0;
+#X connect 24 0 21 0;
+#X connect 25 0 22 0;
+#X connect 26 0 23 0;

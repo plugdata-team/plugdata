@@ -1,0 +1,107 @@
+#N canvas 484 92 569 565 10;
+#X obj 6 538 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 6 367 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 433 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 6 472 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 108 377 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 108 404 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 108 445 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 169 444 signal;
+#X text 156 482 1) float;
+#X text 228 482 - sets base value (default 0);
+#X text 134 377 float/signal;
+#X text 134 405 float/signal;
+#X text 228 377 - sets the exponent;
+#X text 228 404 - sets the base value;
+#X obj 135 302 cyclone/pow~, f 21;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 69 96 [cyclone/pow~] has the inlets'functionality reversed
+in comparison to pd vanilla's [pow~] \, other than that \, it's quite
+the same!;
+#X text 70 139 [cyclone/pow~] raises the base value (set in the right
+inlet) to the power of the exponent (set in the left inlet). Either
+inlet can receive a signal or float.;
+#X text 228 444 - the base raised to the exponent;
+#X text 69 184 [cyclone/pow~] can be useful for generating curves from
+[line~] as in the example below to the right.;
+#N canvas 810 209 379 386 example 0;
+#X obj 116 234 cyclone/cycle~;
+#X obj 116 125 cyclone/pow~ 4;
+#X obj 116 197 *~ 220;
+#X obj 116 95 vline~;
+#X msg 116 64 0 \, 1 1000 \, 0 1000 1000;
+#X text 113 44 click for pitch glissando;
+#X text 279 188 4;
+#X text 279 278 1;
+#X obj 256 195 vsl 20 90 1 4 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 152 161 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 99 273 ./out~;
+#X connect 0 0 10 0;
+#X connect 0 0 10 1;
+#X connect 1 0 2 0;
+#X connect 1 0 9 0;
+#X connect 2 0 0 0;
+#X connect 3 0 1 0;
+#X connect 4 0 3 0;
+#X connect 9 1 8 0;
+#X restore 485 307 pd example;
+#X obj 258 268 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X msg 258 238 10;
+#X msg 290 241 2;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal power function;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 pow~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 135 333 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 135 268 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#N canvas 836 207 420 324 name 0;
+#X text 196 170 <= from Pd Vanilla;
+#X text 29 222 Other ways to load [biquad~] is with a capital letter
+\, either with or without such as:;
+#X text 28 133 And still create the vanilla object from vanilla without
+namespaces as:;
+#X text 205 274 and;
+#X text 29 14 Pd also has a vanilla object named [pow~]. Cyclone avoids
+name clashing and overwritting an internal in Pd Vanilla \, but for
+that you need to use the cyclone namespace ("cyclone/" before the object
+name) \, as it's the common practice for cyclone's documentation. So
+you create it as:;
+#X obj 146 95 cyclone/pow~;
+#X obj 160 170 pow~;
+#X obj 255 274 Pow~, f 9;
+#X obj 94 274 cyclone/Pow~;
+#X restore 466 334 pd name clash;
+#X obj 2 506 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X text 170 514 inf/nan output values become "0";
+#X connect 14 0 31 0;
+#X connect 24 0 14 1;
+#X connect 25 0 24 0;
+#X connect 26 0 24 0;
+#X connect 32 0 14 0;

@@ -1,0 +1,173 @@
+#N canvas 499 107 558 584 10;
+#X obj 3 558 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 5 288 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 432 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 464 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 109 347 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 109 367 cnv 17 3 17 empty empty 2 5 9 0 16 -228856 -162280 0
+;
+#X obj 109 407 cnv 17 3 17 empty empty 4 5 9 0 16 -228856 -162280 0
+;
+#X obj 109 440 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 109 387 cnv 17 3 17 empty empty 3 5 9 0 16 -228856 -162280 0
+;
+#X obj 109 387 cnv 17 3 17 empty empty 3 5 9 0 16 -228856 -162280 0
+;
+#X text 177 441 signal;
+#X text 233 442 - output from comb filter;
+#X text 165 471 1) float;
+#X text 165 488 2) float;
+#X text 165 505 3) float;
+#X text 165 522 4) float;
+#X text 165 537 5) float;
+#X text 141 348 float/signal;
+#X text 141 367 float/signal;
+#X text 141 387 float/signal;
+#X text 141 407 float/signal;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 233 471 - maximum delay time in ms (default 10 ms);
+#X text 233 348 - D: delay time in ms;
+#X text 233 387 - b: feedforward gain coefficient;
+#X text 233 407 - c: feedback gain coefficient;
+#X text 233 486 - D: delay time in ms (default 0);
+#X text 233 520 - b: feedforward gain coefficient (default 0);
+#X text 233 535 - c: feedback gain coefficient (default 0);
+#X text 233 367 - a: input gain coefficient;
+#X text 233 503 - a: input gain coefficient (default 0);
+#X obj 161 125 noise~;
+#X obj 208 157 *~;
+#X obj 223 125 cyclone/train~ 1000 0.1;
+#X floatatom 247 168 5 0 100 0 - adfsa -;
+#X floatatom 327 167 5 -1 1 0 - adfsa -;
+#X floatatom 367 167 5 -1 1 0 - adfsa -;
+#X floatatom 287 168 5 -1 1 0 - adfsa -;
+#X obj 109 297 cnv 17 3 43 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 177 296 signal;
+#X text 189 312 list;
+#X text 233 327 - clears buffer;
+#X text 183 327 clear;
+#X text 233 296 - signal to pass through comb filter;
+#X text 233 312 - updates all 5 arguments;
+#N canvas 758 83 589 567 filter_equation 0;
+#X obj 37 100 cnv 15 270 120 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 84 113 |;
+#X text 84 125 |;
+#X text 84 137 |;
+#X text 65 148 |;
+#X text 107 148 |;
+#X text 107 168 |;
+#X text 65 168 |;
+#X text 68 139 _______;
+#X text 68 168 _______;
+#X text 84 140 v;
+#X text 146 140 |;
+#X text 146 151 |;
+#X text 146 121 |;
+#X text 146 130 |;
+#X text 146 116 ^;
+#X text 230 114 |;
+#X text 230 126 |;
+#X text 230 138 |;
+#X text 211 149 |;
+#X text 253 149 |;
+#X text 253 169 |;
+#X text 211 169 |;
+#X text 214 140 _______;
+#X text 214 169 _______;
+#X text 230 141 v;
+#X text 176 142 |;
+#X text 176 152 |;
+#X text 176 120 |;
+#X text 176 130 |;
+#X text 176 115 ^;
+#X text 253 106 >;
+#X text 113 157 -(*b)-;
+#X text 177 158 -(*c)-;
+#X text 44 107 x[n] -----(*a)--(+)--(+)----------- y[n];
+#X text 65 158 | z^-D |;
+#X text 46 192 y[n] = a * x[n] + b * x[n-D] + c * y[n-D];
+#X text 211 159 | z^-D |;
+#X text 334 126 D = delay time;
+#X text 334 139 a = input gain coefficient;
+#X text 334 153 b = feedforward gain coefficient;
+#X text 334 166 c = feedback gain coefficient;
+#X floatatom 239 411 5 0 100 0 - - -;
+#X obj 186 372 noise~;
+#X text 243 391 d1;
+#X text 108 309 updates all arguments;
+#X floatatom 292 410 5 0 100 0 - - -;
+#X floatatom 345 410 5 0 0 0 - - -;
+#X floatatom 399 411 5 0 0 0 - - -;
+#X obj 295 333 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 348 358 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 402 384 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 427 383 feedback (c);
+#X text 371 358 feedforward (b);
+#X text 327 332 input (a);
+#X obj 186 439 cyclone/comb~ 100 50 0.25 0.33 0.925;
+#X msg 106 331 20 13 0.55 0.43 0.95;
+#X obj 61 75 cyclone/comment 0 16 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 comment;
+#X text 103 250 If the delay time lies between two samples \, a simple
+linear interpolation is performed.;
+#X obj 168 476 ./out~;
+#X text 50 33 Here's the equation for the comb~ filter:, f 46;
+#X connect 42 0 55 1;
+#X connect 43 0 55 0;
+#X connect 46 0 55 2;
+#X connect 47 0 55 3;
+#X connect 48 0 55 4;
+#X connect 49 0 46 0;
+#X connect 50 0 47 0;
+#X connect 51 0 48 0;
+#X connect 55 0 59 0;
+#X connect 55 0 59 1;
+#X connect 56 0 55 0;
+#X restore 425 250 pd filter_equation;
+#X obj 208 189 cyclone/comb~ 500 500 0 1 0;
+#X obj 295 151 cyclone/comment 11 15 helvetica empty 0 0 0 0 0 255
+255 255 0 0 a;
+#X obj 336 151 cyclone/comment 31 15 helvetica empty 0 0 0 0 0 255
+255 255 0 0 b;
+#X obj 376 151 cyclone/comment 31 15 helvetica empty 0 0 0 0 0 255
+255 255 0 0 c;
+#X obj 18 57 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Comb filter;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 comb~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X text 78 87 [comb~] is a comb filter \, use it for filtering and
+delay effects.;
+#X obj 165 220 out~;
+#X connect 34 0 35 0;
+#X connect 35 0 49 0;
+#X connect 36 0 35 1;
+#X connect 37 0 49 1;
+#X connect 38 0 49 3;
+#X connect 39 0 49 4;
+#X connect 40 0 49 2;
+#X connect 49 0 58 1;
+#X connect 49 0 58 0;

@@ -1,0 +1,49 @@
+#N canvas 373 176 566 457 10;
+#X obj 7 429 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 7 236 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 275 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 315 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 7 351 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
+0;
+#X obj 117 246 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 117 287 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 148 246 signal;
+#X text 148 287 signal;
+#X text 147 324 (none);
+#X text 201 287 - pink noise;
+#X obj 237 129 cyclone/pink~;
+#X text 123 361 pink~ generates pink noise \, as distinguished from
+white noise (which the native Pd object [noise~] generates). White
+noise has constant spectral power per hertz of bandwidth \, while pink
+noise has constant power per octave. Subjectively \, pink noise sounds
+less hissy than white noise.;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 114 96 [pink~] generates pink noise and sends it to its outlet
+;
+#X text 201 246 - ignored;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Pink noise generator;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 pink~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 220 169 ./out~;
+#X connect 11 0 23 0;
+#X connect 11 0 23 1;

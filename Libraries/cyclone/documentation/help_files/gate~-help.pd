@@ -1,0 +1,88 @@
+#N canvas 535 104 560 521 10;
+#X obj 4 494 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 5 402 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 5 442 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 97 413 cnv 17 3 17 empty empty n 5 9 0 16 -228856 -162280 0
+;
+#X text 167 413 signal;
+#X text 155 467 2) float;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 101 261 cyclone/scope~ 91 63 9 3 128 -1 1 0 0 0 0 205 229 232
+74 79 77 96 98 102 0 empty;
+#X obj 208 261 cyclone/scope~ 91 63 9 3 128 -1 1 0 0 0 0 205 229 232
+74 79 77 96 98 102 0 empty;
+#X obj 318 261 cyclone/scope~ 91 63 9 3 128 -1 1 0 0 0 0 205 229 232
+74 79 77 96 98 102 0 empty;
+#X floatatom 159 215 5 0 0 0 - - -;
+#X obj 159 147 vradio 15 1 0 4 empty empty empty 0 -8 0 10 -228856
+-1 -1 2;
+#X obj 258 208 osc~ 40;
+#X text 177 146 none;
+#X text 177 161 1st outlet;
+#X text 177 177 2nd outlet;
+#X text 177 193 3rd outlet;
+#X obj 5 341 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 97 350 cnv 17 3 27 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 97 382 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 131 349 float/signal;
+#N canvas 726 248 416 406 signal-rate 0;
+#X obj 152 252 cyclone/gate~ 2;
+#X obj 152 145 *~ 3;
+#X obj 152 106 phasor~ 0.5;
+#X text 37 22 You can set the outlet number with a signal input \,
+this allows gate to be controlle with sample accuracy. Signal values
+are truncated to integers.;
+#X obj 239 214 noise~;
+#X obj 169 181 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 170 290 ./out~;
+#X connect 0 0 6 0;
+#X connect 0 1 6 1;
+#X connect 1 0 0 0;
+#X connect 1 0 5 0;
+#X connect 2 0 1 0;
+#X connect 4 0 0 1;
+#X restore 452 302 pd signal-rate;
+#X text 167 382 signal;
+#X text 220 382 - signal to be routed;
+#X obj 159 236 cyclone/gate~ 3 1;
+#X text 155 450 1) float;
+#X text 220 413 - 'n' outlets for routing input signal;
+#X text 221 468 - initial outlet to route to (default 0 - none);
+#X text 220 448 - 'n' number of outlets (1 to 500 \, default 1);
+#X text 58 89 [gate~] routes an input signal from the second inlet
+to one of 'n' specified outlets or none of them. If an outlet is not
+selected \, it outputs zero values.;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Route a signal to 'n' outlet(s);
+#X obj 16 5 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 gate~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X text 220 349 -;
+#X text 231 349 outlet number to route to - values are truncated to
+integers and clipped from 0 to number of outlets, f 52;
+#X obj 497 71 cyclone/setdsp~;
+#X connect 13 0 27 0;
+#X connect 14 0 13 0;
+#X connect 15 0 27 1;
+#X connect 27 0 10 0;
+#X connect 27 1 11 0;
+#X connect 27 2 12 0;

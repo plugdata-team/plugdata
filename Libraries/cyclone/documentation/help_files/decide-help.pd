@@ -1,0 +1,80 @@
+#N canvas 870 139 561 450 10;
+#X obj 2 239 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 328 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 387 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 98 250 cnv 17 3 32 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 98 287 cnv 17 3 32 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 98 337 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 172 249 -;
+#X text 139 249 bang;
+#X text 172 289 -;
+#X text 133 289 float;
+#X text 172 339 -;
+#X text 132 339 float;
+#X text 172 398 -;
+#X text 114 398 1) float;
+#X obj 2 443 cnv 3 550 3 empty empty empty 0 0 0 4 -262144 -1 0;
+#X obj 2 423 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 172 267 -;
+#X text 133 267 float;
+#X obj 2 5 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X text 89 87 [decide] alternates randomly from 1 to 0 (the sequence
+depends on the seed value).;
+#X text 187 249 randomly choose between 0 or 1, f 55;
+#X obj 326 155 cyclone/decide;
+#X obj 326 208 bng 17 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 354 208 bng 17 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 326 183 select 0 1;
+#X obj 291 183 tgl 17 0 empty empty empty 0 -6 0 8 -228856 -1 -1 0
+1;
+#X floatatom 291 209 2 0 0 0 - - -;
+#X text 187 289 sets the seed for the random number generator. 0 will
+use a random seed \, any other integer float is the seed, f 55;
+#X text 187 339 0 or 1 \, chosen randomly, f 55;
+#X obj 166 177 metro 300;
+#X obj 166 149 tgl 17 0 empty empty empty 0 -6 0 8 -228856 -1 -1 0
+1;
+#X obj 326 124 bng 20 250 50 0 empty \$0-bang empty 17 7 0 10 -228856
+-1 -1;
+#X obj 166 200 s \$0-bang;
+#X obj 17 58 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0
+0 0 255 255 255 0 0 Randomly output 0 or 1;
+#X obj 16 5 cyclone/comment 425 33 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 decide;
+#X obj 322 29 cyclone/comment 425 13 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 5 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
+228 220 0 255 255 255 0 0 cyclone;
+#X obj 98 359 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 172 361 -;
+#X text 132 361 float;
+#X text 187 361 sets seed, f 55;
+#X text 188 267 same as bang;
+#X text 186 398 sets the seed (default a random internal one);
+#X connect 24 0 27 0;
+#X connect 24 0 28 0;
+#X connect 27 0 25 0;
+#X connect 27 1 26 0;
+#X connect 28 0 29 0;
+#X connect 32 0 35 0;
+#X connect 33 0 32 0;
+#X connect 34 0 24 0;

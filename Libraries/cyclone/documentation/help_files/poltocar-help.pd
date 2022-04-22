@@ -1,0 +1,69 @@
+#N canvas 408 133 566 520 10;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X obj 2 316 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 394 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 458 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 101 325 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 101 369 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 101 428 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 101 405 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 2 513 cnv 3 550 3 empty empty empty 0 0 0 4 -262144 -1 0;
+#X obj 2 493 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 129 468 (none);
+#X text 135 343 float;
+#X text 135 371 float;
+#X text 135 406 float;
+#X text 135 429 float;
+#X text 116 152 Amplitude;
+#X text 322 153 Phase;
+#X obj 181 269 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 274 268 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 146 267 Real;
+#X text 359 268 Imaginary;
+#X obj 181 152 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 262 152 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 141 326 bang;
+#X text 189 326 - converts the last received coordinates pair;
+#X obj 205 194 t bang float;
+#X obj 181 226 cyclone/poltocar;
+#X text 85 88 [poltocar] converts polar coordinates (amplitude / phase)
+to cartesian coordinates (real / imaginary).;
+#X text 189 343 - amplitude from the polar coordinates, f 43;
+#X text 190 371 - phase (in radians) from the polar coordinates;
+#X text 190 406 - real part of the cartesian form;
+#X text 190 429 - imaginary part of the cartesian form, f 51;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Polar to cartesian conversion;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 poltocar;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X connect 24 0 29 0;
+#X connect 25 0 28 0;
+#X connect 28 0 29 0;
+#X connect 28 1 29 1;
+#X connect 29 0 20 0;
+#X connect 29 1 21 0;

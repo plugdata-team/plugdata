@@ -1,0 +1,105 @@
+#N canvas 481 130 558 462 10;
+#X obj 2 291 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 352 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 2 393 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 77 302 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 77 364 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 77 326 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 2 437 cnv 1 550 1 empty empty empty 0 0 0 4 -262144 -262144
+0;
+#X obj 2 433 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 168 365 -;
+#X text 168 327 -;
+#X text 128 327 float;
+#X text 159 407 -;
+#X text 100 407 1) float, f 9;
+#X obj 2 5 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 4 graph;
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 4 pd;
+#X text 172 407 initial time in ms (default 10), f 60;
+#X text 101 304 float/list -;
+#X text 181 304 to be combined into a list with another input close
+in time;
+#X text 183 327 time interval for combining items to a list;
+#X text 98 365 float/list;
+#X obj 176 261 print;
+#X obj 95 184 cyclone/uzi 20;
+#X obj 95 159 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 207 192 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 176 234 cyclone/thresh 50;
+#X text 271 192 <= click and drag for a;
+#X text 303 209 short period;
+#X text 121 159 <= outputs a counter list;
+#X text 67 85 [thresh] collects numbers and lists into a single list
+if they come within a certain given amount of time. Each item or list
+is appended to the previous stored items. The time count is reset at
+each incoming item.;
+#N canvas 784 184 563 461 examples 0;
+#X obj 85 180 cyclone/thresh 50;
+#X obj 85 52 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 96 114 delay 45;
+#X obj 142 269 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 85 269 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 85 139 random 1000;
+#X obj 85 241 unpack f f;
+#X msg 112 85 45;
+#X msg 172 85 55;
+#X floatatom 184 151 5 0 0 0 - - -;
+#X msg 141 85 50;
+#X msg 281 298 1 2 3 \, 4 \, 5 \, 6 \, 7 8 9 10 \, 11 12, f 15;
+#X obj 281 351 cyclone/thresh;
+#X obj 281 392 print;
+#X text 238 261 lists and numbers packed together;
+#X text 222 148 <= set another time interval;
+#X text 208 84 <= change delay time;
+#X text 111 53 <= check if delayed messages can be packed together
+;
+#X obj 99 211 print;
+#X connect 0 0 6 0;
+#X connect 0 0 18 0;
+#X connect 1 0 2 0;
+#X connect 1 0 5 0;
+#X connect 2 0 5 0;
+#X connect 5 0 0 0;
+#X connect 6 0 4 0;
+#X connect 6 1 3 0;
+#X connect 7 0 2 1;
+#X connect 8 0 2 1;
+#X connect 9 0 0 1;
+#X connect 10 0 2 1;
+#X connect 11 0 12 0;
+#X connect 12 0 13 0;
+#X restore 459 259 pd examples;
+#X obj 20 58 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Combine data received close together;
+#X obj 16 5 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 thresh;
+#X obj 322 29 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 5 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X text 183 365 list of elements stored within a time interval, f
+60;
+#X connect 23 2 26 0;
+#X connect 24 0 23 0;
+#X connect 25 0 26 0;
+#X connect 26 0 22 0;

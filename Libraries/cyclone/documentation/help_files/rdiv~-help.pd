@@ -1,0 +1,72 @@
+#N canvas 453 114 563 481 10;
+#X obj 7 364 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 7 410 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 115 376 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 115 313 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 7 300 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 115 335 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X obj 115 313 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 121 420 1) float -;
+#X text 181 312 signal;
+#X text 144 337 float/signal;
+#X text 180 375 signal;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 61 94 [rdiv~] or [!/~] divides a number by the incoming value
+on the left inlet. Functions like the [/~] object \, but the inlets'
+functions are reversed.;
+#X obj 5 452 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X text 231 312 - the divisor;
+#X text 231 337 - the dividend;
+#X text 231 375 - the division of the two numbers;
+#X text 195 420 sets an initial value for the dividend (default 0)
+;
+#X obj 368 170 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 251 212 cyclone/rdiv~ 10, f 20;
+#X text 468 180 similar to:;
+#X obj 451 201 expr~ 10 / $v1;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Reversed inlets division for signals;
+#X obj 15 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 !/~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 251 260 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 251 169 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 48 170 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 111 195 cyclone/number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 48 253 cyclone/number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 499 69 cyclone/setdsp~;
+#X obj 457 262 cyclone-help;
+#X text 452 241 Please check:;
+#X obj 48 220 cyclone/!/~;
+#X connect 21 0 22 1;
+#X connect 22 0 29 0;
+#X connect 30 0 22 0;
+#X connect 31 0 37 0;
+#X connect 32 0 37 1;
+#X connect 37 0 33 0;

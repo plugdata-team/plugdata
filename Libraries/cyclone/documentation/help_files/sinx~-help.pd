@@ -1,0 +1,60 @@
+#N canvas 422 105 560 536 10;
+#X obj 4 507 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 4 390 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 431 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 4 468 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 123 403 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 123 440 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X text 157 440 signal;
+#X text 157 403 signal;
+#X text 156 478 (none);
+#X obj 131 178 *~ 6.28319;
+#X obj 131 210 cyclone/sinx~;
+#X obj 131 153 phasor~ 2;
+#X text 212 405 - input to sine function (must be given in radians)
+;
+#X text 212 441 - output of sine function;
+#X obj 131 241 cyclone/scope~ 186 126 256 3 128 -1 1 0 0 0 0 205 229
+232 74 79 77 96 98 102 0 empty;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 203 177 * 2pi;
+#X obj 392 249 number~ 1;
+#A saved 1 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 392 332 number~;
+#A saved 0 0 100 -inf inf #2a3434 #ffffff #b6fefd;
+#X obj 392 290 cyclone/sinx~;
+#X text 58 88 Like [cyclone/cosx~] & [cyclone/tanx~] \, [sinx~] is
+properly designed for mathematical operations. Thus \, it expects an
+input in radians to calculate the sine of each input sample.;
+#X text 107 358 -1;
+#X text 111 297 0;
+#X text 113 237 1;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Signal sine function (radian input);
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 sinx~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 499 69 cyclone/setdsp~;
+#X connect 9 0 10 0;
+#X connect 10 0 14 0;
+#X connect 11 0 9 0;
+#X connect 20 0 22 0;
+#X connect 22 0 21 0;

@@ -1,0 +1,60 @@
+#N canvas 515 108 558 535 10;
+#X obj 3 510 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+0;
+#X obj 3 377 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 433 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
+;
+#X obj 3 470 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+0;
+#X obj 85 409 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+;
+#X text 153 386 signal;
+#X obj 86 442 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 85 386 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+;
+#X obj 131 210 noise~;
+#X floatatom 230 222 5 1 10000 0 - - -;
+#X text 82 93 [downsamp~] samples and holds a signal received in the
+left inlet at a rate expressed in samples. No interpolation of the
+output is performed.;
+#X text 117 411 float/signal;
+#X text 208 412 - rate (in samples) used to downsample the input signal
+;
+#X obj 321 332 cyclone/mstosamps~;
+#X text 209 385 - signal to be downsampled;
+#X obj 131 248 cyclone/downsamp~;
+#X text 269 219 <= downsample rate in samples;
+#X text 83 141 You can specify the number of samples with floating-point
+values \, but the downsamp~ object will sample the input at most as
+frequently as the current sampling rate (1 sample).;
+#X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 554 42 1 0 0;
+#X restore 2 3 graph;
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 304 3 pd;
+#X text 302 286 note you can convert ms to;
+#X text 304 303 samples with [mstosamps~];
+#X text 202 443 - downsampled signal;
+#X text 153 442 signal;
+#X text 141 482 1) float;
+#X text 208 482 - rate as number of samples (default 1).;
+#X obj 17 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
+0 255 255 255 0 0 Downsample a signal;
+#X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0
+255 255 255 0 0 downsamp~;
+#X obj 322 28 cyclone/comment 0 13 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 Objects cloned from Max/MSP;
+#X obj 363 4 cyclone/comment 0 24 DejaVu\ Sans\ Mono empty 0 224 228
+220 0 255 255 255 0 0 cyclone;
+#X obj 112 297 ./out~;
+#X connect 8 0 15 0;
+#X connect 9 0 15 1;
+#X connect 15 0 32 0;
+#X connect 15 0 32 1;

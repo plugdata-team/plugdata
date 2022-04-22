@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pddoc version="1.0">
+    <object name="tabread4">
+        <title>tabread4</title>
+        <meta>
+            <authors>
+                <author>Miller Smith Puckette</author>
+            </authors>
+            <description>read a number from a table with interpolation</description>
+            <license>BSD</license>
+            <library>puredata</library>
+            <category>arrays</category>
+            <keywords>arrays tabread4</keywords>
+            <since>0.43</since>
+        </meta>
+        <info>
+            <par>-</par>
+        </info>
+        <arguments>
+            <argument name="ARG_NAME" type="symbol">-</argument>
+        </arguments>
+        <methods>
+            <method name="NAME">
+            <param type="float" name="V" required="true">-</param></method>
+        </methods>
+        <inlets>
+            <inlet>
+                <xinfo on="bang">output value</xinfo>
+                <xinfo on="float">-</xinfo>
+                <xinfo on="symbol">-</xinfo>
+            </inlet>
+        </inlets>
+        <outlets>
+            <outlet>output</outlet>
+        </outlets>
+        <example>
+            <pdascii>
+<![CDATA[
+
+[tabread4]
+
+]]>
+            </pdascii>
+        </example>
+    </object>
+</pddoc>
