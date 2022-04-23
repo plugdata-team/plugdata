@@ -397,9 +397,6 @@ struct PlugDataLook : public LookAndFeel_V4
         auto rect = button.getLocalBounds();
         
         auto baseColour = findColour(ComboBox::backgroundColourId);
-        
-        auto highlightColour = findColour(Slider::thumbColourId);
-        
         g.setColour(baseColour);
         g.fillRect(rect);
     }
@@ -685,8 +682,6 @@ struct PlugDataLook : public LookAndFeel_V4
         
         void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
-            auto bounds = button.getLocalBounds().toFloat();
-            
             auto baseColour = findColour(TextButton::buttonColourId);
             
             auto highlightColour = findColour(TextButton::buttonOnColourId);

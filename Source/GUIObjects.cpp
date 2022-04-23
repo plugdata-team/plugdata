@@ -706,7 +706,7 @@ struct BangComponent : public GUIComponent
             startEdition();
             setValueOriginal(1);
             stopEdition();
-            update();
+            update(); // ?
         };
         
         initialise(newObject);
@@ -761,13 +761,7 @@ struct BangComponent : public GUIComponent
     {
         bangButton.setBounds(getLocalBounds().reduced(1));
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
-    
+
     ObjectParameters defineParameters() override
     {
         return {
@@ -868,12 +862,7 @@ struct ToggleComponent : public GUIComponent
     {
         toggleButton.setToggleState((getValueOriginal() > std::numeric_limits<float>::epsilon()), dontSendNotification);
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
+
 };
 
 
@@ -911,8 +900,6 @@ struct MessageComponent : public GUIComponent
         // message box behaviour
         if (!gui.isAtom())
         {
-            input.getLookAndFeel().setColour(TextEditor::backgroundColourId, Colours::transparentBlack);
-            
             // For the autoresize while typing feature
             input.onEditorShow = [this]()
             {
@@ -1020,14 +1007,6 @@ struct MessageComponent : public GUIComponent
             }
         }
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        updateValue();  // make sure text is loaded
-        
-        auto bounds = gui.getBounds();
-        return {bounds.getWidth(), bounds.getHeight()};
-    };
     
     void mouseDown(const MouseEvent& e) override
     {
@@ -1159,12 +1138,6 @@ struct NumboxComponent : public GUIComponent
     {
         input.setText(formatNumber(getValueOriginal()), dontSendNotification);
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
     
     void mouseDown(const MouseEvent& e) override
     {
@@ -1437,12 +1410,6 @@ struct ListComponent : public GUIComponent, public Timer
         }
     }
     
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
-    
 private:
     Label label;
 };
@@ -1514,12 +1481,6 @@ struct SliderComponent : public GUIComponent
     {
         slider.setValue(getValueScaled(), dontSendNotification);
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
     
     ObjectParameters defineParameters() override
     {
@@ -1659,12 +1620,6 @@ struct RadioComponent : public GUIComponent
     
     OwnedArray<TextButton> radioButtons;
     
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
-    
     ObjectParameters defineParameters() override
     {
         return {{"Options", tInt, cGeneral, &numButtons, {}}};
@@ -1781,7 +1736,6 @@ public:
         const auto w = static_cast<float>(getWidth());
         const auto x = static_cast<float>(e.x);
         
-        const std::array<float, 2> scale = array.getScale();
         lastIndex = static_cast<size_t>(std::round(std::clamp(x / w, 0.f, 1.f) * s));
         
         mouseDrag(e);
@@ -1808,7 +1762,7 @@ public:
         float min = index == interpStart ? current : start;
         float max = index == interpStart ? start : current;
         
-        const CriticalSection* cs = pd->getCallbackLock();
+        //const CriticalSection* cs = pd->getCallbackLock();
         
         // Fix to make sure we don't leave any gaps while dragging
         for (int n = interpStart; n <= interpEnd; n++)
@@ -1912,12 +1866,6 @@ public:
     {
         array.setBounds(getLocalBounds());
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
     
 private:
     pd::Array graph;
@@ -2031,12 +1979,6 @@ public:
     {
     }
     
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
-    
     pd::Patch* getPatch() override
     {
         return &subpatch;
@@ -2073,11 +2015,6 @@ struct Subpatch : public GUIComponent
         closeOpenedSubpatchers();
     }
     
-    std::pair<int, int> getBestSize() override
-    {
-        return {0, Box::height};
-    };
-    
     pd::Patch* getPatch() override
     {
         return &subpatch;
@@ -2112,11 +2049,6 @@ struct CommentComponent : public GUIComponent
         int numLines = getNumLines(gui.getText(), box->getWidth() - Box::doubleMargin);
         box->setSize(box->getWidth(), (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        return {120, 4};
-    };
     
     bool fakeGui() override
     {
@@ -2215,23 +2147,17 @@ struct VUMeter : public GUIComponent
     
     void updateValue() override
     {
-        auto rms = gui.getValue();
-        auto peak = gui.getPeak();
         repaint();
     };
     
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
 };
 
 struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        box->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+        
+        box->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
         initialise(newObject);
     }
     
@@ -2265,12 +2191,7 @@ struct PanelComponent : public GUIComponent
         params.push_back({"Label Height", tInt, cLabel, &labelHeight, {}});
         return params;
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
+
 };
 
 // ELSE mousepad
@@ -2378,12 +2299,7 @@ struct MousePad : public GUIComponent
     {
         isLocked = locked;
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
+
 };
 
 // Else "mouse" component
@@ -2439,10 +2355,11 @@ struct MouseComponent : public GUIComponent
         pd_typedmess((t_pd*)gui.getPointer(), gensym("_getscreen"), 2, args);
     }
     
+    /*
     std::pair<int, int> getBestSize() override
     {
         return {0, 3};
-    };
+    }; */
     
     bool fakeGui() override
     {
@@ -2577,13 +2494,6 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
                                       });
     };
     
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {b.getWidth(), b.getHeight()};
-    };
-    
-    
     ObjectParameters defineParameters() override
     {
         return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
@@ -2682,12 +2592,6 @@ struct PictureComponent : public GUIComponent
         initialise(newObject);
         
     }
-    
-    std::pair<int, int> getBestSize() override
-    {
-        auto b = gui.getBounds();
-        return {std::max(50, b.getWidth()), std::max(50, b.getHeight())};
-    };
     
     ObjectParameters defineParameters() override
     {

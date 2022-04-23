@@ -368,8 +368,6 @@ void PlugDataPluginEditor::resized()
 
 void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
 {
-    auto mods = ModifierKeys::getCurrentModifiers();
-
     if (e.mods.isCommandDown())
     {
         mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
