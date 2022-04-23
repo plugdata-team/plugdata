@@ -27,8 +27,6 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     ~GUIComponent() override;
 
-    virtual std::pair<int, int> getBestSize() = 0;
-
     virtual void updateValue();
 
     virtual void update(){};
@@ -114,6 +112,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     Value labelText;
     
     const int atomSizes[7] = {12, 8, 10, 12, 16, 24, 36};
+    
 };
 
 struct _fielddesc
