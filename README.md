@@ -82,7 +82,7 @@ PD COMPATIBILITY:
 
 BUGS:
 - Fix externals on Windows
-- Fix tabs closing when closing plugin editor in DAW
+- Fix help-file and abstraction tabs sometimes closing when exiting plugin editor in DAW
 - Fix signing/notarising problem with some plugin hosts on Mac
 - Fix no window outline on some Linux distros
 - Set maximum number of console messages
