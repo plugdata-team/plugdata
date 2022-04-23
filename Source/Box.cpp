@@ -134,48 +134,40 @@ void Box::mouseMove(const MouseEvent& e)
 void Box::updateBounds(bool newObject)
 {
     auto type = currentText.upToFirstOccurrenceOf(" ", false, false);
-    int width = 0;
-    
     if (pdObject)
     {
         auto bounds = pdObject->getBounds() - Point<int>(margin, margin);
         bounds.translate(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
 
-        width = bounds.getWidth() + doubleMargin;
-
         if (bounds.getPosition().getDistanceFrom(getPosition()) >= 2.0f)
         {
             setTopLeftPosition(bounds.getPosition());
         }
+        
+        if (graphics && !graphics->fakeGui())
+        {
+            addAndMakeVisible(graphics.get());
+            auto b = pdObject->getBounds();
+            setSize(b.getWidth() + doubleMargin, b.getHeight() + doubleMargin);
+            graphics->resized();
+            graphics->toBack();
+            hideLabel = true;
+            setEditable(false);
+        }
+        else
+        {
+            setEditable(true);
+            hideLabel = false;
+            
+            int width = bounds.getWidth() <= 0 ? font.getStringWidth(currentText) + widthOffset : bounds.getWidth() + doubleMargin;
+            
+            setSize(width, height);
+        }
     }
-    // width didn't get assigned, or was zero
-    if (width <= doubleMargin)
-    {
-        width = font.getStringWidth(currentText) + widthOffset;
-    }
-
-    if (graphics && !graphics->fakeGui())
-    {
-        addAndMakeVisible(graphics.get());
-        auto [w, h] = graphics->getBestSize();
-        setSize(w + doubleMargin, h + doubleMargin);
-        graphics->resized();
-        graphics->toBack();
-        hideLabel = true;
-        setEditable(false);
-    }
-    else if (!graphics || (graphics && graphics->fakeGui()))
-    {
-        setEditable(true);
-        hideLabel = false;
-        setSize(width, height);
-    }
-
-    if (type.isEmpty() && !pdObject)
-    {
+    else {
         hideLabel = false;
         setEditable(true);
-        setSize(100, height);
+        setSize(100, Box::height);
     }
     
     resized();
@@ -272,10 +264,6 @@ void Box::paint(Graphics& g)
     auto rect = getLocalBounds().reduced(margin);
     auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
 
-    if(pdObject && pdObject->getType() == pd::Type::Panel) {
-        outlineColour = Colours::transparentBlack;
-    }
-    
     bool selected = cnv->isSelected(this);
 
     if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
@@ -323,8 +311,6 @@ void Box::paint(Graphics& g)
         auto textArea = border.subtractedFrom(rect);
 
         g.drawFittedText(currentText, textArea, justification, jmax(1, static_cast<int>((static_cast<float>(textArea.getHeight()) / font.getHeight()))), minimumHorizontalScale);
-
-
     }
 }
 

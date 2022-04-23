@@ -225,8 +225,7 @@ void Object::toFront() {
     auto* cnv = static_cast<t_canvas*>(patch->getPointer());
     t_gobj* y = static_cast<t_gobj*>(getPointer());
     
-    t_gobj *y_prev, *y_next;
-    t_gobj *y_begin = cnv->gl_list;
+    t_gobj *y_prev = nullptr, *y_next = nullptr;
     
         /* if there is an object before ours (in other words our index is > 0) */
     if (int idx = glist_getindex(cnv, y))

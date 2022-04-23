@@ -816,8 +816,6 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         bool isSubpatch = box && (box->graphics && (box->graphics->getGui().getType() == pd::Type::GraphOnParent || box->graphics->getGui().getType() == pd::Type::Subpatch));
 
-        bool isGui = hasSelection && !multiple && box->graphics && !box->graphics->fakeGui();
-
         // Create popup menu
         popupMenu.clear();
 
@@ -905,8 +903,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
     if (isGraph || locked == var(true)) return;
-
-    auto* source = e.originalComponent;
 
     auto viewportEvent = e.getEventRelativeTo(viewport);
 
@@ -1054,9 +1050,6 @@ Array<DrawableTemplate*> Canvas::findDrawables()
             if (box->graphics && box->graphics->getGui().getType() == pd::Type::GraphOnParent)
             {
                 auto* canvas = box->graphics->getCanvas();
-
-                auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
-                auto bounds = canvas->getParentComponent()->getLocalBounds().withPosition(pos);
 
                 auto subdrawables = canvas->findDrawables();
                 result.addArray(subdrawables);
@@ -1403,8 +1396,11 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
     for(auto* box : getSelectionOfType<Box>()) {
         box->mouseDownPos = box->getPosition();
     }
-
-    component->repaint();
+    
+    if(component) {
+        component->repaint();
+    }
+    
 }
 
 // Call from component's mouseUp

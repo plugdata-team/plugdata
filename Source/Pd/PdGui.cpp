@@ -1049,8 +1049,6 @@ void Gui::setLabelPosition(Point<int> position) noexcept
 {
     if (isIEM())
     {
-        int fontHeight = getFontHeight();
-        
         auto* iem = static_cast<t_iemgui*>(ptr);
         iem->x_ldx = position.x;
         iem->x_ldy = position.y;

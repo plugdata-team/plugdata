@@ -267,10 +267,7 @@ void Connection::mouseDown(const MouseEvent& e)
 void Connection::mouseDrag(const MouseEvent& e)
 {
     if (currentPlan.empty()) return;
-
-    auto pstart = outlet->getCanvasBounds().getCentre() - origin;
-    auto pend = inlet->getCanvasBounds().getCentre() - origin;
-
+    
     bool curvedConnection = cnv->pd->settingsTree.getProperty("ConnectionStyle");
     if (curvedConnection && dragIdx != -1)
     {
