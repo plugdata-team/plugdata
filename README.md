@@ -57,8 +57,8 @@ Known issues:
 
 ## Roadmap
 
-These are all the things I'm hoping to implement before version 0.6
-I might release some smaller versions inbetween if any serious bugs are being found
+These are all the things I'm hoping to implement before version 0.6.
+I might release some smaller versions inbetween if any serious bugs are being found.
 
 FEATURES:
 - Allow multiple opened projects
