@@ -143,8 +143,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     TextButton seperators[2];
     
-    inline static std::atomic<bool> useLightTheme = false;
-    
     enum ToolbarButtonType
     {
         New = 0,
@@ -156,8 +154,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
         Add,
         Settings,
         Hide,
-        Pin,
-        NumButtons
+        Pin
     };
 
     TextButton* toolbarButton(ToolbarButtonType type)

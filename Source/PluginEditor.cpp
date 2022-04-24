@@ -209,14 +209,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Pin)->setClickingTogglesState(true);
     toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     toolbarButton(Pin)->setConnectedEdges(12);
-    toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
+    toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState());
+        
+    };
 
     addAndMakeVisible(toolbarButton(Hide));
-
+    
     setSize(pd.lastUIWidth, pd.lastUIHeight);
 
     tabbar.toFront(false);
     sidebar.toFront(false);
+
 
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
@@ -309,6 +312,7 @@ void PlugDataPluginEditor::resized()
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
+    
 
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
