@@ -480,15 +480,14 @@ Patch Instance::openPatch(const File& toOpen)
 
         closePatch();
         setThis();
-        
-        // TODO: crash because pd_this gets set wrong? probably threading related
 
         m_patch = libpd_create_canvas(file, dir);
 
         currentFile = toOpen;
         
     });
-
+    
+    waitForStateUpdate();
     
     
     return getPatch();

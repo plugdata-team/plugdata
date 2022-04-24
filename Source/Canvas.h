@@ -19,7 +19,6 @@ class SuggestionComponent;
 struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
-class PlugDataPluginProcessor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
     
@@ -119,7 +118,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Viewport* viewport = nullptr;
 
     OwnedArray<DrawableTemplate> templates;
-    Point<int> mousePanDownPos;
     
     bool connectingWithDrag = false;
     SafePointer<Edge> connectingEdge;

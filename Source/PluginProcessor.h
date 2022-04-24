@@ -93,11 +93,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void process(AudioSampleBuffer&, MidiBuffer&);
 
-    void setBypass(bool bypass)
-    {
-        *enabled = !bypass;
-    }
-
     void setCallbackLock(const CriticalSection* lock)
     {
         audioLock = lock;
@@ -137,8 +132,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;
-
-
 
     // All opened patches
     Array<pd::Patch> patches;

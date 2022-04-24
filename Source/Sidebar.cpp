@@ -7,8 +7,69 @@
 #include <JuceHeader.h>
 #include "Pd/PdInstance.h"
 #include "LookAndFeel.h"
+#include "PluginProcessor.h"
 
 #include "Sidebar.h"
+
+// MARK: Document Browser
+
+class DocumentBrowser : public Component
+{
+public:
+
+    DocumentBrowser(PlugDataAudioProcessor* processor) :
+    filter("*.pd", "*", "pure-data files"),
+    updateThread("browserThread"),
+    directory(&filter, updateThread),
+    fileList(directory),
+    pd(processor)
+    {
+        directory.setDirectory(File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData"), true, true);
+
+        updateThread.startThread();
+        directory.refresh();
+        
+        addAndMakeVisible(fileList);
+        
+        fileList.addMouseListener(this, true);
+        // use createSymbolicLink on drag/drop
+    }
+    
+
+    ~DocumentBrowser() {
+        fileList.removeMouseListener(this);
+        updateThread.stopThread(1000);
+    }
+    
+    void mouseDoubleClick(const MouseEvent& e) override
+    {
+        auto file = fileList.getSelectedFile();
+        
+        if(file.existsAsFile()) {
+            pd->loadPatch(file);
+        }
+        
+    }
+
+    void resized() override {
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 28));
+        
+    }
+    
+    void paint(Graphics& g) override {
+        g.fillAll(findColour(PlugDataColour::toolbarColourId));
+    }
+    
+private:
+    WildcardFileFilter filter;
+    TimeSliceThread updateThread;
+    DirectoryContentsList directory;
+    FileTreeComponent fileList;
+    
+    PlugDataAudioProcessor* pd;
+
+};
+
 
 // MARK: Inspector
 
@@ -635,14 +696,18 @@ struct Console : public Component
     std::array<TextButton, 5> buttons = {TextButton(Icons::Clear), TextButton(Icons::Restore), TextButton(Icons::Error), TextButton(Icons::Message), TextButton(Icons::AutoScroll)};
 };
 
-Sidebar::Sidebar(pd::Instance* instance)
+Sidebar::Sidebar(PlugDataAudioProcessor* instance)
 {
     // Can't use RAII because unique pointer won't compile with forward declarations
     console = new Console(instance);
     inspector = new Inspector;
+    browser = new DocumentBrowser(instance);
 
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
+    addChildComponent(browser);
+    
+    browser->setAlwaysOnTop(true);
 
     setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 40);
 }
@@ -651,6 +716,7 @@ Sidebar::~Sidebar()
 {
     delete console;
     delete inspector;
+    delete browser;
 }
 
 void Sidebar::paint(Graphics& g)
@@ -682,6 +748,7 @@ void Sidebar::resized()
 
     console->setBounds(bounds);
     inspector->setBounds(bounds);
+    browser->setBounds(bounds);
 }
 
 void Sidebar::mouseDown(const MouseEvent& e)
@@ -734,6 +801,11 @@ void Sidebar::mouseExit(const MouseEvent& e)
     setMouseCursor(MouseCursor::NormalCursor);
 }
 
+void Sidebar::showBrowser(bool show)
+{
+    browser->setVisible(show);
+}
+
 void Sidebar::showSidebar(bool show)
 {
     sidebarHidden = !show;
@@ -773,6 +845,7 @@ void Sidebar::showParameters(ObjectParameters& params)
 
     if (!pinned)
     {
+        browser->setVisible(false);
         inspector->setVisible(true);
         console->setVisible(false);
     }
@@ -784,12 +857,14 @@ void Sidebar::showParameters()
 
     if (!pinned)
     {
+        browser->setVisible(false);
         inspector->setVisible(true);
         console->setVisible(false);
     }
 }
 void Sidebar::hideParameters()
 {
+    
     if (!pinned)
     {
         inspector->setVisible(false);

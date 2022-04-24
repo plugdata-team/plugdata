@@ -46,8 +46,11 @@ struct Icons
     inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
     
     inline static const CharPointer_UTF8 Pin = CharPointer_UTF8("\xef\x82\x8d");
-    
     inline static const CharPointer_UTF8 Keyboard = CharPointer_UTF8("\xef\x84\x9c");
+    
+    inline static const CharPointer_UTF8 Folder = CharPointer_UTF8 ("\xef\x81\xbb");
+    inline static const CharPointer_UTF8 OpenedFolder = CharPointer_UTF8 ("\xef\x81\xbc");
+    inline static const CharPointer_UTF8 File = CharPointer_UTF8 ("\xef\x85\x9c");
 
 };
 
@@ -716,6 +719,74 @@ struct PlugDataLook : public LookAndFeel_V4
         g.fillPath(corner);
     }
     
+    void drawFileBrowserRow (Graphics& g, int width, int height,
+                                             const File&, const String& filename, Image* icon,
+                                             const String& fileSizeDescription,
+                                             const String& fileTimeDescription,
+                                             bool isDirectory, bool isItemSelected,
+                                             int /*itemIndex*/, DirectoryContentsDisplayComponent& dcc) override
+    {
+        auto fileListComp = dynamic_cast<Component*> (&dcc);
+
+        if (isItemSelected)
+            g.fillAll (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::highlightColourId)
+                                               : findColour (DirectoryContentsDisplayComponent::highlightColourId));
+
+        const int x = 32;
+
+        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setFont(iconFont);
+        
+        if(isDirectory) {
+            g.drawFittedText(Icons::Folder, Rectangle<int> (2, 2, x - 4, height - 4), Justification::centred, 1);
+        }
+        else {
+            g.drawFittedText(Icons::File, Rectangle<int> (2, 2, x - 4, height - 4), Justification::centred, 1);
+        }
+
+
+        if (isItemSelected)
+            g.setColour (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::highlightedTextColourId)
+                                                 : findColour (DirectoryContentsDisplayComponent::highlightedTextColourId));
+        else
+            g.setColour (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::textColourId)
+                                                 : findColour (DirectoryContentsDisplayComponent::textColourId));
+
+        g.setFont (defaultFont.withHeight(height * 0.7f));
+
+        if (width > 450 && ! isDirectory)
+        {
+            auto sizeX = roundToInt (width * 0.7f);
+            auto dateX = roundToInt (width * 0.8f);
+
+            g.drawFittedText (filename,
+                              x, 0, sizeX - x, height,
+                              Justification::centredLeft, 1);
+
+            g.setFont (height * 0.5f);
+            g.setColour (Colours::darkgrey);
+
+            if (! isDirectory)
+            {
+                g.drawFittedText (fileSizeDescription,
+                                  sizeX, 0, dateX - sizeX - 8, height,
+                                  Justification::centredRight, 1);
+
+                g.drawFittedText (fileTimeDescription,
+                                  dateX, 0, width - 8 - dateX, height,
+                                  Justification::centredRight, 1);
+            }
+        }
+        else
+        {
+            g.drawFittedText (filename,
+                              x, 0, width - x, height,
+                              Justification::centredLeft, 1);
+
+        }
+    }
+  
+    
     LookAndFeel* getPdLook()
     {
         return new PdLook;
@@ -736,6 +807,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(TextButton::textColourOnId, highlightColour);
         setColour(Slider::thumbColourId, highlightColour);
         setColour(ScrollBar::thumbColourId, highlightColour);
+        setColour(DirectoryContentsDisplayComponent::highlightColourId, highlightColour);
 
         setColour(TextButton::buttonColourId, firstColour);
         setColour(TextButton::buttonOnColourId, firstColour);
@@ -745,7 +817,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ScrollBar::trackColourId, firstColour);
         setColour(AlertWindow::backgroundColourId, firstColour);
         getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
-        
+        setColour(TreeView::backgroundColourId, firstColour);
        
         setColour(TooltipWindow::backgroundColourId, firstColour.withAlpha(0.8f));
         setColour(PopupMenu::backgroundColourId, firstColour.withAlpha(0.95f));
@@ -755,6 +827,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(Slider::backgroundColourId, secondColour);
         setColour(Slider::trackColourId, firstColour);
         setColour(TextEditor::backgroundColourId, secondColour);
+
 
         setColour(TooltipWindow::textColourId, textColour);
         setColour(TextButton::textColourOffId, textColour);
@@ -773,6 +846,9 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ToggleButton::tickColourId, textColour);
         setColour(ToggleButton::tickDisabledColourId, textColour);
         setColour(ComboBox::arrowColourId, textColour);
+        setColour(DirectoryContentsDisplayComponent::textColourId, textColour);
+        setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
+        setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, Colours::white);
         
         setColour(TooltipWindow::outlineColourId, outlineColour);
         setColour(ComboBox::outlineColourId, outlineColour);
@@ -788,6 +864,8 @@ struct PlugDataLook : public LookAndFeel_V4
             setColours(Colour(23, 23, 23), Colour(32, 32, 32), Colour(255, 255, 255), Colour(66, 162, 200),  Colour(130, 130, 130), Colour(225, 225, 225));
         }
     }
+    
+    std::unique_ptr<Drawable> folderImage;
 };
 
 

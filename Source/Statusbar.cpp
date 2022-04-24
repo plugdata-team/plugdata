@@ -156,6 +156,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     presentationButton = std::make_unique<TextButton>(Icons::Presentation);
     gridButton = std::make_unique<TextButton>(Icons::Grid);
     themeButton = std::make_unique<TextButton>(Icons::Theme);
+    browserButton = std::make_unique<TextButton>(Icons::Folder);
     
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
@@ -227,6 +228,18 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     themeButton->getToggleStateValue().referTo(theme);
     themeButton->setClickingTogglesState(true);
     addAndMakeVisible(themeButton.get());
+    
+    browserButton->setTooltip("Open documentation browser");
+    browserButton->setConnectedEdges(12);
+    browserButton->setName("statusbar:browser");
+    browserButton->onClick = [this]() {
+        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
+        editor->sidebar.showBrowser(browserButton->getToggleState());
+    };
+    
+    browserButton->setClickingTogglesState(true);
+    addAndMakeVisible(browserButton.get());
+    
     
     gridButton->setTooltip("Enable grid");
     gridButton->setConnectedEdges(12);
@@ -309,9 +322,9 @@ void Statusbar::resized()
     
     presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-    
-    position(5); // Seperator
     themeButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    position(5); // Seperator
+    browserButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     
     pos = 0; // reset position for elements on the left
     
