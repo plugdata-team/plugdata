@@ -9,6 +9,8 @@
 
 struct Console;
 struct Inspector;
+struct DocumentBrowser;
+struct PlugDataAudioProcessor;
 
 namespace pd
 {
@@ -65,7 +67,7 @@ static int getNumLines(const String& text, int width)
 
 struct Sidebar : public Component
 {
-    explicit Sidebar(pd::Instance* instance);
+    explicit Sidebar(PlugDataAudioProcessor* instance);
 
     ~Sidebar() override;
 
@@ -82,6 +84,8 @@ struct Sidebar : public Component
     void showParameters(ObjectParameters& params);
     void showParameters();
     void hideParameters();
+    
+    void showBrowser(bool show);
 
     bool isShowingConsole() const noexcept;
 
@@ -97,7 +101,8 @@ struct Sidebar : public Component
 
     Console* console;
     Inspector* inspector;
-
+    DocumentBrowser* browser;
+    
     static constexpr int dragbarWidth = 5;
     int dragStartWidth = 0;
     bool draggingSidebar = false;
