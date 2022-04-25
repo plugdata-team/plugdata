@@ -127,6 +127,8 @@ void PlugDataWindow::closeButtonPressed()
 {
     pluginHolder->savePluginState();
     
+    // Show an ask to save dialog for each patch that is dirty
+    // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
         checkCanvas = [this, editor](int i) mutable {
             auto* cnv = editor->canvases[i];
@@ -164,6 +166,9 @@ void PlugDataWindow::closeButtonPressed()
             }
             else if (!isLast) {
                 checkCanvas(i);
+            }
+            else {
+                JUCEApplication::quit();
             }
         };
         
