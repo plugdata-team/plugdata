@@ -50,7 +50,7 @@ struct BlackoutComponent : public Component
 
 struct SaveDialog : public Component
 {
-    SaveDialog(Component* editor)
+    SaveDialog(Component* editor, const String& filename) : savelabel("savelabel", "Save Changes to " + filename + "?")
     {
         setSize(400, 200);
         addAndMakeVisible(savelabel);
@@ -116,7 +116,7 @@ struct SaveDialog : public Component
     
     std::unique_ptr<BlackoutComponent> background;
     
-    Label savelabel = Label("savelabel", "Save Changes?");
+    Label savelabel;
 
     TextButton cancel = TextButton("Cancel");
     TextButton dontsave = TextButton("Don't Save");
@@ -412,6 +412,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
         removeButton.setBounds(34, y, 30, 30);
     }
 
+
    private:
     FileChooser openChooser = FileChooser("Choose path", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "");
 
@@ -585,9 +586,9 @@ struct SettingsDialog : public Component
     std::unique_ptr<Button> closeButton;
 };
 
-void Dialogs::showSaveDialog(Component* centre, std::function<void(int)> callback)
+void Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
 {
-    auto* dialog = new SaveDialog(centre);
+    auto* dialog = new SaveDialog(centre, filename);
     dialog->cb = std::move(callback);
 
     centre->getTopLevelComponent()->addAndMakeVisible(dialog);

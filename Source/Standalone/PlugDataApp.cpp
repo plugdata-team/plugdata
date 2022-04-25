@@ -21,6 +21,8 @@
 
 #include <JuceHeader.h>
 #include "PlugDataWindow.h"
+#include "../Canvas.h"
+#include "../PluginProcessor.h"
 
 class PlugDataApp : public JUCEApplication
 {
@@ -63,7 +65,7 @@ class PlugDataApp : public JUCEApplication
         auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
         if (file.existsAsFile())
         {
-            auto* pd = dynamic_cast<PatchLoader*>(mainWindow->getAudioProcessor());
+            auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
 
             if (pd)
             {
@@ -117,6 +119,56 @@ class PlugDataApp : public JUCEApplication
    protected:
     ApplicationProperties appProperties;
     std::unique_ptr<PlugDataWindow> mainWindow;
+};
+
+
+
+void PlugDataWindow::closeButtonPressed()
+{
+    pluginHolder->savePluginState();
+    
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
+        checkCanvas = [this, editor](int i) mutable {
+            auto* cnv = editor->canvases[i];
+            bool isLast = i == editor->canvases.size() - 1;
+            editor->tabbar.setCurrentTabIndex(i);
+            
+            i++;
+            
+            if(cnv->patch.isDirty()) {
+                Dialogs::showSaveDialog(editor, cnv->patch.getTitle(),
+                                        [this, editor, cnv, i, isLast](int result) mutable
+            {
+                if (result == 2)
+                {
+                    editor->saveProject([this, cnv, editor, i, isLast]() mutable {
+                        if(isLast) {
+                            JUCEApplication::quit();
+                        }
+                        else {
+                            checkCanvas(i);
+                        }
+                    });
+                }
+                else if (result == 1) {
+                    if(isLast) {
+                        JUCEApplication::quit();
+                    }
+                    else {
+                        checkCanvas(i);
+                    }
+                }
+                    // last option: cancel, where we end the chain
+                });
+
+            }
+            else if (!isLast) {
+                checkCanvas(i);
+            }
+        };
+        
+        checkCanvas(0);
+    }
 };
 
 JUCE_CREATE_APPLICATION_DEFINE(PlugDataApp);

@@ -155,25 +155,10 @@ class Instance
 
     Patch openPatch(const File& toOpen);
 
-    void savePatch(const File& location);
-    void savePatch();
-
-    File getCurrentFile()
-    {
-        return currentFile;
-    }
-    void setCurrentFile(File newFile)
-    {
-        currentFile = newFile;
-    }
     
     virtual Colour getForegroundColour() = 0;
     virtual Colour getBackgroundColour() = 0;
 
-    bool isDirty();
-
-    void closePatch();
-    Patch getPatch();
 
     void setThis();
     Array getArray(std::string const& name);
@@ -208,8 +193,6 @@ class Instance
 
    private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
-
-    File currentFile;
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;

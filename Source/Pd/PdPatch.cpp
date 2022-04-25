@@ -60,7 +60,7 @@ extern "C"
 namespace pd
 {
 
-Patch::Patch(void* patchPtr, Instance* parentInstance)  : ptr(patchPtr), instance(parentInstance)
+Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)  : ptr(patchPtr), instance(parentInstance), currentFile(patchFile)
 {
     
     if (auto* cnv = getPointer())
@@ -90,7 +90,43 @@ Rectangle<int> Patch::getBounds() const noexcept
 
 void Patch::close()
 {
-    canvas_free(getPointer());
+    libpd_closefile(ptr);
+}
+
+
+bool Patch::isDirty()
+{
+    return getPointer()->gl_dirty;
+}
+
+void Patch::savePatch(const File& location)
+{
+    String fullPathname = location.getParentDirectory().getFullPathName();
+    String filename = location.getFileName();
+
+    auto* dir = gensym(fullPathname.toRawUTF8());
+    auto* file = gensym(filename.toRawUTF8());
+    libpd_savetofile(getPointer(), file, dir);
+
+    setTitle(filename);
+
+    canvas_dirty(getPointer(), 0);
+    currentFile = location;
+}
+
+void Patch::savePatch()
+{
+    String fullPathname = currentFile.getParentDirectory().getFullPathName();
+    String filename = currentFile.getFileName();
+
+    auto* dir = gensym(fullPathname.toRawUTF8());
+    auto* file = gensym(filename.toRawUTF8());
+
+    libpd_savetofile(getPointer(), file, dir);
+
+    setTitle(filename);
+
+    canvas_dirty(getPointer(), 0);
 }
 
 void Patch::setCurrent(bool lock)
