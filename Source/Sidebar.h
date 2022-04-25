@@ -72,7 +72,6 @@ struct Sidebar : public Component
     ~Sidebar() override;
 
     void paint(Graphics& g) override;
-    void paintOverChildren(Graphics& g) override;
     void resized() override;
 
     void mouseDown(const MouseEvent& e) override;
@@ -96,14 +95,15 @@ struct Sidebar : public Component
 
     void updateConsole();
 
+    static constexpr int dragbarWidth = 5;
+    
    private:
     ObjectParameters lastParameters;
 
     Console* console;
     Inspector* inspector;
     DocumentBrowser* browser;
-    
-    static constexpr int dragbarWidth = 5;
+
     int dragStartWidth = 0;
     bool draggingSidebar = false;
     bool sidebarHidden = false;

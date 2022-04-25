@@ -109,35 +109,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButtons[0]->setTooltip("New Project");
     toolbarButtons[0]->onClick = [this]()
     {
-        auto createFunc = [this]()
-        {
-            tabbar.clearTabs();
-            canvases.clear();
-            pd.patches.clear();
+        auto* patch = pd.loadPatch(pd::Instance::defaultPatch);
+        patch->setTitle("Untitled Patcher");
 
-            pd.loadPatch(pd::Instance::defaultPatch);
-            pd.getPatch().setTitle("Untitled Patcher");
-        };
-
-        if (pd.isDirty())
-        {
-            Dialogs::showSaveDialog(this,
-                                    [this, createFunc](int result)
-                                    {
-                                        if (result == 2)
-                                        {
-                                            saveProject([createFunc]() mutable { createFunc(); });
-                                        }
-                                        else if (result == 1)
-                                        {
-                                            createFunc();
-                                        }
-                                    });
-        }
-        else
-        {
-            createFunc();
-        }
     };
 
     // Open button
@@ -307,7 +281,7 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
     
 void PlugDataPluginEditor::resized()
 {
-    tabbar.setBounds(0, toolbarHeight, getWidth() - sidebar.getWidth(), getHeight() - toolbarHeight - statusbar.getHeight());
+    tabbar.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - statusbar.getHeight());
 
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
 
@@ -422,32 +396,13 @@ void PlugDataPluginEditor::openProject()
         {
             pd.settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
 
-            tabbar.clearTabs();
             pd.loadPatch(openedFile);
         }
     };
-    
-    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
 
-    if (pd.isDirty())
-    {
-        Dialogs::showSaveDialog(this, [this, openFunc](int result)
-        {
-            if (result == 2)
-            {
-                saveProject([this, openFunc]() mutable { openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc); });
-            }
-            else if (result != 0)
-            {
-                
-                openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
-            }
-        });
-    }
-    else
-    {
-        openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
-    }
+    openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
+    
+    openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
 void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
@@ -464,8 +419,8 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
                                      pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
 
                                      result.deleteFile();
-
-                                     pd.savePatch(result);
+                                     
+                                     getCurrentCanvas()->patch.savePatch(result);
                                  }
 
                                  nestedCallback();
@@ -474,9 +429,9 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
 
 void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
 {
-    if (pd.getCurrentFile().existsAsFile())
+    if (getCurrentCanvas()->patch.getCurrentFile().existsAsFile())
     {
-        getCurrentCanvas()->pd->savePatch();
+        getCurrentCanvas()->patch.savePatch();
         nestedCallback();
     }
     else
@@ -529,8 +484,6 @@ Canvas* PlugDataPluginEditor::getCanvas(int idx)
 
 void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 {
-    pd.patches.addIfNotAlreadyThere(cnv->patch);
-
     tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
     int tabIdx = tabbar.getNumTabs() - 1;
@@ -567,32 +520,54 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         }
 
         if (idx == -1) return;
-
-        if (tabbar.getCurrentTabIndex() == idx)
+        
+        auto deleteFunc = [this, deleteWhenClosed, idx]() mutable
         {
-            tabbar.setCurrentTabIndex(0, false);
-        }
-
-        MessageManager::callAsync([this, idx, deleteWhenClosed]() mutable {
             auto* cnv = getCanvas(idx);
-
-            pd.patches.removeFirstMatchingValue(cnv->patch);
-
+            auto* patch = &cnv->patch;
+    
             if (deleteWhenClosed)
             {
-                cnv->patch.close();
+                patch->close();
             }
-            
-            tabbar.setCurrentTabIndex(0, true);
             
             canvases.removeObject(cnv);
             tabbar.removeTab(idx);
+            pd.patches.removeObject(patch);
+            
+            int numTabs = tabbar.getNumTabs();
+            tabbar.setCurrentTabIndex(numTabs - 1, true);
 
-            if (tabbar.getNumTabs() == 1)
+            if (numTabs == 1)
             {
                 tabbar.getTabbedButtonBar().setVisible(false);
                 tabbar.setTabBarDepth(1);
             }
+        };
+
+        MessageManager::callAsync([this, deleteFunc, idx]() mutable {
+            auto* cnv = getCanvas(idx);
+            if (cnv->patch.isDirty())
+            {
+                Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
+                                        [this, deleteFunc](int result) mutable
+                                        {
+                                            if (result == 2)
+                                            {
+                                                saveProject([deleteFunc]() mutable { deleteFunc(); });
+                                            }
+                                            else if (result == 1)
+                                            {
+                                                deleteFunc();
+                                            }
+                                        });
+            }
+            else
+            {
+                deleteFunc();
+            }
+
+            
         });
     };
 
@@ -602,8 +577,6 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     closeButton->setColour(ComboBox::outlineColourId, Colour());
     closeButton->setConnectedEdges(12);
     tabButton->setExtraComponent(closeButton, TabBarButton::beforeText);
-
-    closeButton->setVisible(tabIdx != 0);
     closeButton->setSize(28, 28);
 
     tabbar.repaint();

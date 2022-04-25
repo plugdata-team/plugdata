@@ -21,6 +21,7 @@ extern "C"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 
+#include "Pd/PdPatch.h"
 // False GATOM
 typedef struct _fake_gatom
 {
@@ -70,7 +71,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
             labelHeight = 1;
         }
         else {
-            int idx = static_cast<int>(std::find(atomSizes, atomSizes + 8, h) - atomSizes);
+            int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
             labelHeight = idx + 1;
         }
         
@@ -465,9 +466,10 @@ void GUIComponent::closeOpenedSubpatchers()
         auto* cnv = main.getCanvas(n);
         if (cnv && cnv->patch == *getPatch())
         {
-            tabbar->removeTab(n);
-            main.pd.patches.removeFirstMatchingValue(cnv->patch);
+            auto* deleted_patch = &cnv->patch;
             main.canvases.removeObject(cnv);
+            tabbar->removeTab(n);
+            main.pd.patches.removeObject(deleted_patch, false);
         }
     }
     

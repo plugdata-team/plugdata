@@ -59,6 +59,7 @@ struct TabComponent : public TabbedComponent
 
     TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
+        
     }
 
     void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
