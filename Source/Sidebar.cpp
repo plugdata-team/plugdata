@@ -1195,6 +1195,10 @@ void Sidebar::showBrowser(bool show)
     pinned = show;
 }
 
+bool Sidebar::isShowingBrowser() {
+    return browser->isVisible();
+};
+
 void Sidebar::showSidebar(bool show)
 {
     sidebarHidden = !show;
