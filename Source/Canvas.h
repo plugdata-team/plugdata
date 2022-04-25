@@ -13,8 +13,6 @@
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
 
-extern JUCEApplicationBase* juce_CreateApplication();
-
 class SuggestionComponent;
 struct GraphArea;
 class Edge;

@@ -118,16 +118,6 @@ public:
         searchResult.clear();
     }
     
-    Array<File> collectChildFiles() {
-        Array<File> result;
-        for(int i = 0; i < searchPath.getNumFiles(); i++) {
-            auto file = searchPath.getFile(i);
-            
-            auto numChildren = file.getNumberOfChildFiles(File::TypesOfFileToFind::findFilesAndDirectories);
-            
-            
-        }
-    }
     
     void updateResults(String query) {
         clearSearchResults();
@@ -374,13 +364,22 @@ struct DocumentBrowser : public Component, public Timer
         addAndMakeVisible(searchComponent);
         
         if(!fileList.getSelectedFile().exists()) fileList.moveSelectedRow(1);
-        
-        startTimer(500);
     }
     
     ~DocumentBrowser() {
         fileList.removeMouseListener(this);
         updateThread.stopThread(1000);
+    }
+    
+    void visibilityChanged() override
+    {
+        if(isVisible()) {
+            timerCallback();
+            startTimer(500);
+        }
+        else {
+            stopTimer();
+        }
     }
 
     void timerCallback() override
