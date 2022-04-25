@@ -71,10 +71,7 @@ static t_int *xgate_perform(t_int *w){
 static void xgate_dsp(t_xgate *x, t_signal **sp) {
     x->x_sr_khz = sp[0]->s_sr * 0.001;
     int i, count = x->x_outlets + 3;
-    t_int *sigvec;
-    sigvec  = (t_int*)calloc(count, sizeof(t_int*));
-    for(i = 0; i < count; i++)
-        sigvec[i] = (t_int)calloc(sizeof(t_int), 1); // init sigvec
+    t_int* sigvec = (t_int*)calloc(count, sizeof(t_int));
     sigvec[0] = (t_int)x; // 1st => object
     sigvec[1] = (t_int)sp[0]->s_n; // 2nd => block (n)
     for(i = 2; i < count; i++) // in/outs

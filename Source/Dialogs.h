@@ -17,5 +17,5 @@ struct Dialogs
 
     static Component::SafePointer<Component> createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree);
 
-    static void showObjectMenu(PlugDataPluginEditor* parent, Component* target, const std::function<void(String)>& cb);
+    static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
 };

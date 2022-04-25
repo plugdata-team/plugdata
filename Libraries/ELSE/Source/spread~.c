@@ -63,11 +63,9 @@ t_int *spread_perform(t_int *w){
 
 void spread_dsp(t_spread *x, t_signal **sp){
 	long i;
-    t_int *sigvec;
     int pointer_count = x->inChans + x->outChans + 2;
-    sigvec  = (t_int *)calloc(pointer_count, sizeof(t_int *));
-	for(i = 0; i < pointer_count; i++)
-		sigvec[i] = (t_int)calloc(sizeof(t_int),1);
+    t_int* sigvec = (t_int*)calloc(pointer_count, sizeof(t_int));
+
 	sigvec[0] = (t_int)x; // first pointer is to the object
 	sigvec[pointer_count - 1] = (t_int)sp[0]->s_n; // last pointer is to vector size (N)
 	for(i = 1; i < pointer_count - 1; i++) // attach inlet and all outlets

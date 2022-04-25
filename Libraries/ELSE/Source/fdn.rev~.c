@@ -386,7 +386,7 @@ static void *fdn_new(t_symbol *s, int ac, t_atom *av){
     x->x_ctl.c_bufsize = size;
     x->x_ctl.c_buf = (float *)malloc(sizeof(float) * size);
     x->x_ctl.c_tap = (t_int *)malloc((order + 1) * sizeof(t_int));
-    x->x_ctl.c_time_ms = (t_float *)malloc(order * sizeof(t_int));
+    x->x_ctl.c_time_ms = (t_float *)malloc(order * sizeof(t_float));
     x->x_ctl.c_gain_in = (t_float *)malloc(order * sizeof(t_float));
     x->x_ctl.c_gain_state = (t_float *)malloc(order * sizeof(t_float));
     x->x_ctl.c_vectorbuffer = (t_float *)malloc(order * 2 * sizeof(float));

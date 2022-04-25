@@ -215,32 +215,9 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 
 void PlugDataPluginEditor::showNewObjectMenu()
 {
-    std::function<void(String)> callback = [this](String result)
-    {
-        auto* cnv = getCurrentCanvas();
 
-        auto position = cnv->getMouseXYRelative();
 
-        if (result == "array")
-        {
-            Dialogs::showArrayDialog(this,
-                                     [this](int result, const String& name, const String& size)
-                                     {
-                                         if (result)
-                                         {
-                                             auto* cnv = getCurrentCanvas();
-                                             auto* box = new Box(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
-                                             cnv->boxes.add(box);
-                                         }
-                                     });
-        }
-        else
-        {
-            cnv->boxes.add(new Box(cnv, result, cnv->viewport->getViewArea().getCentre()));
-        }
-    };
-
-    Dialogs::showObjectMenu(this, toolbarButton(Add), callback);
+    Dialogs::showObjectMenu(this, toolbarButton(Add));
 }
 
 void PlugDataPluginEditor::paint(Graphics& g)
@@ -836,14 +813,73 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(pd.locked == var(false));
             break;
         }
-        case CommandIDs::NewSlider:
+        case CommandIDs::NewSymbolAtom:
         {
-            result.setInfo("New Slider", "Create new slider", "Objects", 0);
+            result.setInfo("New Symbolatom", "Create new symbolatom", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewListAtom:
+        {
+            result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewVerticalSlider:
+        {
+            result.setInfo("New Vertical Slider", "Create new vertical slider", "Objects", 0);
             result.addDefaultKeypress(83, ModifierKeys::noModifiers);
             result.setActive(pd.locked == var(false));
             break;
         }
-
+        case CommandIDs::NewHorizontalSlider:
+        {
+            result.setInfo("New Horizontal Slider", "Create new horizontal slider", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewVerticalRadio:
+        {
+            result.setInfo("New Vertical Radio", "Create new vertical radio", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewHorizontalRadio:
+        {
+            result.setInfo("New Horizontal Radio", "Create new horizontal radio", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewArray:
+        {
+            result.setInfo("New Array", "Create new array", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewGraphOnParent:
+        {
+            result.setInfo("New GraphOnParent", "Create new graph on parent", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewCanvas:
+        {
+            result.setInfo("New Canvas", "Create new canvas object", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewKeyboard:
+        {
+            result.setInfo("New Keyboard", "Create new keyboard", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
+        case CommandIDs::NewVUMeter:
+        {
+            result.setInfo("New VUMeter", "Create new VU meter", "Objects", 0);
+            result.setActive(pd.locked == var(false));
+            break;
+        }
         default:
             break;
     }
@@ -961,50 +997,37 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             cnv->redo();
             return true;
         }
-
-        case CommandIDs::NewObject:
+        case CommandIDs::NewArray:
         {
-            cnv->boxes.add(new Box(cnv, "", lastPosition));
-            return true;
-        }
-        case CommandIDs::NewComment:
-        {
-            cnv->boxes.add(new Box(cnv, "comment", lastPosition));
-            return true;
-        }
-        case CommandIDs::NewBang:
-        {
-            cnv->boxes.add(new Box(cnv, "bng", lastPosition));
-            return true;
-        }
-        case CommandIDs::NewMessage:
-        {
-            cnv->boxes.add(new Box(cnv, "msg", lastPosition));
-            return true;
-        }
-        case CommandIDs::NewToggle:
-        {
-            cnv->boxes.add(new Box(cnv, "tgl", lastPosition));
-            return true;
-        }
-        case CommandIDs::NewNumbox:
-        {
-            cnv->boxes.add(new Box(cnv, "nbx", lastPosition));
-            return true;
-        }
-        case CommandIDs::NewFloatAtom:
-        {
-            cnv->boxes.add(new Box(cnv, "floatatom", lastPosition));
-            return true;
-        }
-        case CommandIDs::NewSlider:
-        {
-            cnv->boxes.add(new Box(cnv, "vsl", lastPosition));
+            Dialogs::showArrayDialog(this,
+                                     [this](int result, const String& name, const String& size)
+                                     {
+                                         if (result)
+                                         {
+                                             auto* cnv = getCurrentCanvas();
+                                             auto* box = new Box(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
+                                             cnv->boxes.add(box);
+                                         }
+                                     });
             return true;
         }
 
+            
         default:
+        {
+            const std::vector<std::string> objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listatom", "array", "graph", "cnv", "keyboard", "vu"};
+            
+            jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
+            
+            int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
+            if(isPositiveAndBelow(idx, objectNames.size())) {
+                cnv->boxes.add(new Box(cnv, objectNames[idx], lastPosition));
+                return true;
+            }
+            
             return false;
+        }
     }
-    return true;
+    
+    return false;
 }
