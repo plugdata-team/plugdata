@@ -1468,6 +1468,9 @@ Canvas::GridSnap Canvas::shouldSnapToGrid(const Box* toDrag) {
         // Don't snap if the cord is upside-down
         if(inletBounds.getY() < outletBounds.getY()) continue;
         
+        // Skip if both objects are selected
+        if(isSelected(connection->inlet->box == toDrag ? connection->outlet->box : connection->outlet->box)) continue;
+        
         int snapDistance = inletBounds.getX() - outletBounds.getX();
         
         // Check if the inlet or outlet is being moved, and invert if needed
@@ -1486,7 +1489,8 @@ Canvas::GridSnap Canvas::shouldSnapToGrid(const Box* toDrag) {
 
     // Find snap points based on box alignment
     for(auto* box : boxes) {
-        if(box == toDrag) continue; // if the box is the one we're dragging
+        if(isSelected(box)) continue; // don't look at selected objects
+        
         if(!viewport->getViewArea().intersects(box->getBounds())) continue; // if the box is out of viewport bounds
         
         auto b1 = box->getBounds().reduced(Box::margin);

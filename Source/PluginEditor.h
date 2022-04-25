@@ -47,9 +47,18 @@ enum CommandIDs
     NewMessage,
     NewToggle,
     NewNumbox,
+    NewVerticalSlider,
+    NewHorizontalSlider,
+    NewVerticalRadio,
+    NewHorizontalRadio,
     NewFloatAtom,
-    NewSlider,
-
+    NewSymbolAtom,
+    NewListAtom,
+    NewArray,
+    NewGraphOnParent,
+    NewCanvas,
+    NewKeyboard,
+    NewVUMeter,
     NumItems
 };
 
