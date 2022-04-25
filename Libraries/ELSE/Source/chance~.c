@@ -69,12 +69,10 @@ t_int *chance_perform(t_int *w){
 
 void chance_dsp(t_chance *x, t_signal **sp){
     int n_sig = x->x_n_outlets + 3; // outs + 3 (ob / in / block size)
-    t_int *sigvec  = (t_int*)calloc(n_sig, sizeof(t_int *));
-    int i;
-	for(i = 0; i < n_sig; i++)
-		sigvec[i] = (t_int) calloc(sizeof(t_int), 1);
+    t_int* sigvec = (t_int*)calloc(n_sig, sizeof(t_int));
+    
 	sigvec[0] = (t_int)x; // object
-    for(i = 1; i < n_sig - 1; i++) // I/O
+    for(int i = 1; i < n_sig - 1; i++) // I/O
         sigvec[i] = (t_int)sp[i-1]->s_vec;
     sigvec[n_sig - 1] = (t_int)sp[0]->s_n; // block size (n)
     dsp_addv(chance_perform, n_sig, (t_int *)sigvec);

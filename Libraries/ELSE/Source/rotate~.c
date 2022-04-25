@@ -59,11 +59,10 @@ static t_int *rotate_perform(t_int *w){
 
 static void rotate_dsp(t_rotate *x, t_signal **sp){
     t_int i;
-    t_int *sigvec;
+
     int pointer_count = (x->x_ch * 2) + 3; // I/O chs + obj + panner + blocksize
-    sigvec  = (t_int *) calloc(pointer_count, sizeof(t_int *));
-    for(i = 0; i < pointer_count; i++)
-        sigvec[i] = (t_int) calloc(sizeof(t_int), 1);
+    t_int* sigvec = (t_int*)calloc(pointer_count, sizeof(t_int));
+
     sigvec[0] = (t_int)x; // object
     sigvec[pointer_count - 1] = (t_int)sp[0]->s_n; // block size
     for(i = 1; i < pointer_count - 1; i++) // inlet and outlets

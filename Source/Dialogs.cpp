@@ -610,11 +610,11 @@ Component::SafePointer<Component> Dialogs::createSettingsDialog(AudioProcessor& 
     return new SettingsDialog(processor, manager, settingsTree);
 }
 
-void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, const std::function<void(String)>& cb)
+void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
 {
     PopupMenu menu;
 
-    // Custom functions because JUCE adds "shortcut:" before some keycommands, which looks terrible!
+    // Custom function because JUCE adds "shortcut:" before some keycommands, which looks terrible!
     auto createCommandItem = [parent](const CommandID commandID, const String& displayName)
     {
         ApplicationCommandInfo info(*parent->getCommandForID(commandID));
@@ -651,70 +651,26 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target, co
     menu.addItem(createCommandItem(CommandIDs::NewMessage, "Message"));
     menu.addItem(createCommandItem(CommandIDs::NewBang, "Bang"));
     menu.addItem(createCommandItem(CommandIDs::NewToggle, "Toggle"));
-    menu.addItem(createCommandItem(CommandIDs::NewSlider, "Vertical Slider"));
-    menu.addItem(5, "Horizontal Slider");
-    menu.addItem(8, "Vertical Radio");
-    menu.addItem(7, "Horizontal Radio");
+    menu.addItem(createCommandItem(CommandIDs::NewVerticalSlider, "Vertical Slider"));
+    menu.addItem(createCommandItem(CommandIDs::NewHorizontalSlider, "Horizontal Slider"));
+    menu.addItem(createCommandItem(CommandIDs::NewVerticalRadio, "Vertical Radio"));
+    menu.addItem(createCommandItem(CommandIDs::NewHorizontalRadio, "Horizontal Radio"));
 
     menu.addSeparator();
 
     menu.addItem(createCommandItem(CommandIDs::NewFloatAtom, "Float Atom"));
-    menu.addItem(10, "Symbol Atom");
-    menu.addItem(16, "List Atom");
+    menu.addItem(createCommandItem(CommandIDs::NewSymbolAtom, "Symbol Atom"));
+    menu.addItem(createCommandItem(CommandIDs::NewListAtom, "List Atom"));
 
     menu.addSeparator();
 
-    menu.addItem(11, "Array");
-    menu.addItem(12, "GraphOnParent");
+    menu.addItem(createCommandItem(CommandIDs::NewArray, "Array"));
+    menu.addItem(createCommandItem(CommandIDs::NewGraphOnParent, "GraphOnParent"));
     menu.addItem(createCommandItem(CommandIDs::NewComment, "Comment"));
-    menu.addItem(14, "Canvas");
+    menu.addItem(createCommandItem(CommandIDs::NewCanvas, "Canvas"));
     menu.addSeparator();
-    menu.addItem(15, "Keyboard");
-    menu.addItem(17, "VU Meter");
+    menu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
+    menu.addItem(createCommandItem(CommandIDs::NewVUMeter, "VU Meter"));
 
-    auto callback = [cb](int choice)
-    {
-        if (choice < 1) return;
-
-        String boxName;
-
-        switch (choice)
-        {
-            case 5:
-                boxName = "hsl";
-                break;
-            case 7:
-                boxName = "hradio";
-                break;
-            case 8:
-                boxName = "vradio";
-                break;
-            case 10:
-                boxName = "symbolatom";
-                break;
-            case 16:
-                boxName = "listbox";
-                break;
-            case 11:
-                boxName = "array";
-                break;
-            case 12:
-                boxName = "graph";
-                break;
-            case 14:
-                boxName = "cnv";
-                break;
-            case 15:
-                boxName = "keyboard";
-                break;
-            case 17:
-                boxName = "vu";
-                break;
-            default:
-                return;
-        }
-        cb(boxName);
-    };
-
-    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent), ModalCallbackFunction::create(callback));
+    menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent));
 }
