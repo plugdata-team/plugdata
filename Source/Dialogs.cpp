@@ -50,7 +50,7 @@ struct BlackoutComponent : public Component
 
 struct SaveDialog : public Component
 {
-    SaveDialog(Component* editor, const String& filename) : savelabel("savelabel", "Save Changes to " + filename + "?")
+    SaveDialog(Component* editor, const String& filename) : savelabel("savelabel", "Save Changes to \"" + filename + "\"?")
     {
         setSize(400, 200);
         addAndMakeVisible(savelabel);
