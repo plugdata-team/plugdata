@@ -764,6 +764,15 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(pd.locked == var(false));
             break;
         }
+        case CommandIDs::ShowBrowser:
+        {
+            result.setInfo("Show Browser", "Open documentation browser panel", "Edit", 0);
+            result.addDefaultKeypress(66, ModifierKeys::commandModifier);
+            result.setActive(true);
+            break;
+        }
+            
+            
         case CommandIDs::NewObject:
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
@@ -951,6 +960,11 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                 cnv->setSelected(con, true);
             }
             return true;
+        }
+        case CommandIDs::ShowBrowser:
+        {
+            sidebar.showBrowser(!sidebar.isShowingBrowser());
+            statusbar.browserButton->setToggleState(sidebar.isShowingBrowser(), dontSendNotification);
         }
         case CommandIDs::Lock:
         {

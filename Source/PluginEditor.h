@@ -40,6 +40,8 @@ enum CommandIDs
     Delete,
     Duplicate,
     SelectAll,
+    
+    ShowBrowser,
 
     NewObject,
     NewComment,

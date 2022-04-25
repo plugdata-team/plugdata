@@ -450,7 +450,9 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
 void Patch::copy()
 {
     instance->enqueueFunction([this]() {
-        auto copied = String(CharPointer_UTF8(libpd_copy(getPointer())));
+        int size;
+        const char* text = libpd_copy(getPointer(), &size);
+        auto copied = String(CharPointer_UTF8(text), size);
         MessageManager::callAsync([copied]() mutable {
             SystemClipboard::copyTextToClipboard(copied);
         });

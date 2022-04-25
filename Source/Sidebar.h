@@ -85,6 +85,7 @@ struct Sidebar : public Component
     void hideParameters();
     
     void showBrowser(bool show);
+    bool isShowingBrowser();
 
     bool isShowingConsole() const noexcept;
 
