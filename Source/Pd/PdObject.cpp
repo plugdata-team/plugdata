@@ -123,7 +123,7 @@ Patch Object::getHelp() const
         sys_lock();
         auto* pdPatch = glob_evalfile(nullptr, gensym(realname), gensym(usedir));
         sys_unlock();
-        return {pdPatch, instance};
+        return {pdPatch, instance, File(usedir).getChildFile(realname)};
     }
 
     /* 2. "help-objectname.pd" */
@@ -136,7 +136,7 @@ Patch Object::getHelp() const
         sys_lock();
         auto* pdPatch = glob_evalfile(nullptr, gensym(realname), gensym(usedir));
         sys_unlock();
-        return {pdPatch, instance};
+        return {pdPatch, instance, File(usedir).getChildFile(realname)};
     }
 
     return {nullptr, nullptr};

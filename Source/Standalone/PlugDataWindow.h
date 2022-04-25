@@ -23,29 +23,17 @@
 
 #pragma once
 
-#include <juce_audio_plugin_client/utility/juce_CreatePluginFilter.h>
+#include <JuceHeader.h>
+
+
 #include "../PluginEditor.h"
 
 #include <memory>
 
-namespace juce
-{
-
-/**
-    An object that creates and plays a standalone instance of an AudioProcessor.
-
-    The object will create your processor using the same createPluginFilter()
-    function that the other plugin wrappers use, and will run it through the
-    computer's audio/MIDI devices using AudioDeviceManager and AudioProcessorPlayer.
-
-    @tags{Audio}
-*/
-
-struct PatchLoader
-{
-    virtual void loadPatch(File file) = 0;
-    virtual void loadPatch(String content) = 0;
+namespace pd {
+class Patch;
 };
+
 
 class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, private Value::Listener
 {
@@ -103,7 +91,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
 #if JUCE_DEBUG
-        reloadPluginState();
+        //reloadPluginState();
 #endif
         startPlaying();
 
@@ -593,30 +581,8 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder->startPlaying();
     }
 
-    void closeButtonPressed() override
-    {
-        pluginHolder->savePluginState();
-        
-        
-        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
-            
-
-            Dialogs::showSaveDialog(editor,
-                                    [editor](int result)
-                                    {
-                                        if (result == 2)
-                                        {
-                                            editor->saveProject([]() mutable { JUCEApplicationBase::quit(); });
-                                        }
-                                        else if (result == 1) {
-                                            JUCEApplicationBase::quit();
-                                        }
-            });
-        }
-
-        ;
-    }
-
+    void closeButtonPressed() override; // implemented in PlugDataApp.cpp
+    
     void maximiseButtonPressed() override
     {
         setFullScreen(!isFullScreen());
@@ -776,7 +742,8 @@ class PlugDataWindow : public DocumentWindow
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
 
-
+    std::function<void(int)> checkCanvas;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
 
@@ -795,5 +762,3 @@ inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
 
     return nullptr;
 }
-
-}  // namespace juce

@@ -163,7 +163,6 @@ Instance::Instance(std::string const& symbol)
 
 Instance::~Instance()
 {
-    closePatch();
 
     pd_free(static_cast<t_pd*>(m_message_receiver));
     pd_free(static_cast<t_pd*>(m_midi_receiver));
@@ -471,79 +470,29 @@ void Instance::sendMessagesFromQueue()
 
 Patch Instance::openPatch(const File& toOpen)
 {
-    enqueueFunction([this, toOpen]() mutable {
+    
+    t_canvas* cnv;
+    
+    enqueueFunction([this, toOpen, &cnv]() mutable {
         String dirname = toOpen.getParentDirectory().getFullPathName();
         auto* dir = dirname.toRawUTF8();
 
         String filename = toOpen.getFileName();
         auto* file = filename.toRawUTF8();
 
-        closePatch();
         setThis();
 
-        m_patch = libpd_create_canvas(file, dir);
-
-        currentFile = toOpen;
-        
+        cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));        
     });
     
-    waitForStateUpdate();
-    
-    
-    return getPatch();
-}
-
-void Instance::savePatch(const File& location)
-{
-    String fullPathname = location.getParentDirectory().getFullPathName();
-    String filename = location.getFileName();
-
-    auto* dir = gensym(fullPathname.toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
-    libpd_savetofile(getPatch().getPointer(), file, dir);
-
-    getPatch().setTitle(filename);
-
-    canvas_dirty(getPatch().getPointer(), 0);
-    currentFile = location;
-}
-
-void Instance::savePatch()
-{
-    String fullPathname = currentFile.getParentDirectory().getFullPathName();
-    String filename = currentFile.getFileName();
-
-    auto* dir = gensym(fullPathname.toRawUTF8());
-    auto* file = gensym(filename.toRawUTF8());
-
-    libpd_savetofile(getPatch().getPointer(), file, dir);
-
-    getPatch().setTitle(filename);
-
-    canvas_dirty(getPatch().getPointer(), 0);
-}
-
-bool Instance::isDirty()
-{
-    if (!m_patch) return false;
-
-    return getPatch().getPointer()->gl_dirty;
-}
-
-void Instance::closePatch()
-{
-    if (m_patch)
-    {
-        libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-        libpd_closefile(m_patch);
-        m_patch = nullptr;
+    while(!cnv) {
+        waitForStateUpdate();
     }
+    
+    return Patch(cnv, this, toOpen);
 }
 
-Patch Instance::getPatch()
-{
-    return Patch(m_patch, this);
-}
+
 
 Array Instance::getArray(std::string const& name)
 {

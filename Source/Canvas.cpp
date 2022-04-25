@@ -421,7 +421,7 @@ struct GraphArea : public Component, public ComponentDragger
     }
 };
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch p, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(std::move(p)), storage(patch.getPointer(), pd)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
 {
     isGraph = graph;
     isGraphChild = graphChild;
@@ -741,8 +741,10 @@ void Canvas::mouseDown(const MouseEvent& e)
                 return;
             }
         }
+        
+        auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
         bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
-        auto* newCanvas = main.canvases.add(new Canvas(main, *subpatch, false, isGraphChild));
+        auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, false, isGraphChild));
 
         main.addTab(newCanvas);
         newCanvas->checkBounds();
@@ -879,7 +881,9 @@ void Canvas::mouseDown(const MouseEvent& e)
                         return;
                     }
 
-                    auto* newCnv = main.canvases.add(new Canvas(main, helpPatch));
+                    auto* patch = main.pd.patches.add(new pd::Patch(helpPatch));
+                    auto* newCnv = main.canvases.add(new Canvas(main, *patch));
+                    
                     main.addTab(newCnv, true);
 
                     break;

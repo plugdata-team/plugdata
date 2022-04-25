@@ -38,7 +38,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     };
     
    public:
-    Canvas(PlugDataPluginEditor& parent, pd::Patch patch, bool isGraph = false, bool isGraphChild = false);
+    Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, bool isGraph = false, bool isGraphChild = false);
 
     ~Canvas() override;
 
@@ -123,7 +123,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     SafePointer<Edge> connectingEdge;
     SafePointer<Edge> nearestEdge;
 
-    pd::Patch patch;
+    pd::Patch& patch;
 
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;

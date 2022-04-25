@@ -27,7 +27,7 @@ class Instance;
 class Patch
 {
    public:
-    Patch(void* ptr, Instance* instance);
+    Patch(void* ptr, Instance* instance, File currentFile = File());
 
     
     //! @brief The compare equal operator.
@@ -55,6 +55,8 @@ class Patch
 
     void selectObject(Object*);
     void deselectAll();
+    
+    bool isDirty();
 
     void setZoom(int zoom);
 
@@ -72,6 +74,20 @@ class Patch
     };
 
     void setCurrent(bool lock = false);
+    
+    bool isDirty() const;
+    
+    void savePatch(const File& location);
+    void savePatch();
+    
+    File getCurrentFile()
+    {
+        return currentFile;
+    }
+    void setCurrentFile(File newFile)
+    {
+        currentFile = newFile;
+    }
 
     bool canConnect(Object* src, int nout, Object* sink, int nin);
     bool createConnection(Object* src, int nout, Object* sink, int nin);
@@ -110,6 +126,8 @@ class Patch
     Instance* instance = nullptr;
     
    private:
+    File currentFile;
+    
     void* ptr = nullptr;
 
 

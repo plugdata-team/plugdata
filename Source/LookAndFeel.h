@@ -284,12 +284,12 @@ struct PlugDataLook : public LookAndFeel_V4
         int w = button.getWidth();
         int h = button.getHeight();
         
-        g.setColour(button.findColour(ComboBox::outlineColourId));
+        g.setColour(button.findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(Line<float>(0, h - 1, w, h - 1), 0.5f);
         
         if (button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1)
         {
-            g.drawLine(Line<float>(w, 0, w, h - 1), 1.0f);
+            g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h - 1), 1.0f);
         }
         
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
@@ -368,6 +368,16 @@ struct PlugDataLook : public LookAndFeel_V4
             }
         }
     }
+    
+    void drawTreeviewPlusMinusBox (Graphics& g, const Rectangle<float>& area,
+                                                   Colour backgroundColour, bool isOpen, bool isMouseOver) override
+    {
+        Path p;
+        p.addTriangle (0.0f, 0.0f, 1.0f, isOpen ? 0.0f : 0.5f, isOpen ? 0.5f : 0.0f, 1.0f);
+        g.setColour (findColour(PlugDataColour::textColourId).withAlpha (isMouseOver ? 0.7f : 1.0f));
+        g.fillPath (p, p.getTransformToScaleToFit (area.reduced (2, area.getHeight() / 4), true));
+    }
+
     
     void drawTableHeaderColumn(Graphics& g, TableHeaderComponent& header, const String& columnName, int columnId, int width, int height, bool isMouseOver, bool isMouseDown, int columnFlags) override
     {
@@ -608,6 +618,8 @@ struct PlugDataLook : public LookAndFeel_V4
         g.setFont({(float)height * 0.6f, Font::bold});
         g.drawText(name, textX, 0, width - textX - 4, height, Justification::centredLeft, true);
     }
+    
+    
     
     struct PdLook : public LookAndFeel_V4
     {

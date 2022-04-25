@@ -16,7 +16,7 @@
 class PlugDataLook;
 
 class PlugDataPluginEditor;
-class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer, public PatchLoader
+class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer
 {
    public:
     PlugDataAudioProcessor();
@@ -123,8 +123,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void messageEnqueued() override;
 
-    void loadPatch(String patch) override;
-    void loadPatch(File patch) override;
+    pd::Patch* loadPatch(String patch);
+    pd::Patch* loadPatch(File patch);
 
     void titleChanged() override;
     
@@ -134,7 +134,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     Colour getBackgroundColour() override;
 
     // All opened patches
-    Array<pd::Patch> patches;
+    OwnedArray<pd::Patch> patches;
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
