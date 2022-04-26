@@ -91,6 +91,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void removeSelectedComponent(Component* component);
     void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
 
+    void updateSidebarSelection();
     void updateDrawables();
     Array<DrawableTemplate*> findDrawables();
 

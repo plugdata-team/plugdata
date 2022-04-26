@@ -86,8 +86,7 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     
     setWantsKeyboardFocus(true);
     
-    setLookAndFeel(dynamic_cast<PlugDataLook*>(&getLookAndFeel())->getPdLook());
-    
+    setLookAndFeel(dynamic_cast<PlugDataLook*>(&LookAndFeel::getDefaultLookAndFeel())->getPdLook());
 }
 
 GUIComponent::~GUIComponent()
@@ -142,6 +141,9 @@ void GUIComponent::initialise(bool newObject)
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
         
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
+    }
+    else {
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
     }
 
     
@@ -875,8 +877,6 @@ struct MessageComponent : public GUIComponent
     bool isLocked = false;
     bool shouldOpenEditor = false;
     
-    Label input;
-    
     std::string lastMessage;
     
     MessageComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
@@ -924,6 +924,7 @@ struct MessageComponent : public GUIComponent
         if(gui.isAtom())  {
             input.setFont(gui.getFontHeight() + 2);
         }
+        
         
         box->addMouseListener(this, false);
     }
@@ -1060,9 +1061,7 @@ struct MessageComponent : public GUIComponent
 };
 
 struct NumboxComponent : public GUIComponent
-{
-    Label input;
-    
+{    
     float dragValue = 0.0f;
     bool shift = false;
     int decimalDrag = 0;
@@ -1261,6 +1260,9 @@ struct NumboxComponent : public GUIComponent
         }
     }
     
+
+
+    
     void paintOverChildren(Graphics& g) override
     {
         GUIComponent::paintOverChildren(g);
@@ -1290,9 +1292,7 @@ struct ListComponent : public GUIComponent, public Timer
         label.setBorderSize(BorderSize<int>(2, 6, 2, 2));
         label.setText(String(getValueOriginal()), dontSendNotification);
         label.setEditable(true, false);
-        // label.setInterceptsMouseClicks(false, false);
         
-        label.setColour(Label::textColourId, gui.getForegroundColour());
         setInterceptsMouseClicks(true, false);
         addAndMakeVisible(label);
         
@@ -1466,7 +1466,7 @@ struct SliderComponent : public GUIComponent
     
     void checkBoxBounds() override {
         // Apply size limits
-        int w = jlimit(isVertical ? 15 : 50, maxSize, box->getWidth());
+        int w = jlimit(isVertical ? 23 : 50, maxSize, box->getWidth());
         int h = jlimit(isVertical ? 77 : 25, maxSize, box->getHeight());
         
         if(w != box->getWidth() || h != box->getHeight()) {
@@ -1554,7 +1554,8 @@ struct RadioComponent : public GUIComponent
     void resized() override
     {
         int size = isVertical ? getWidth() : getHeight();
-        size = std::max(size, 14);
+        int minSize = 12;
+        size = std::max(size, minSize);
         
         for(int i = 0; i < radioButtons.size(); i++) {
             if(isVertical) radioButtons[i]->setBounds(0, i * size, size, size);
@@ -1563,16 +1564,11 @@ struct RadioComponent : public GUIComponent
         
         // Fix aspect ratio
         if(isVertical) {
-            //if(getHeight() - Box::doubleMargin != size * radioButtons.size()) {
-                box->setSize(box->getWidth(), size * radioButtons.size() + Box::doubleMargin);
-            //}
+            box->setSize(std::max(box->getWidth(), minSize + Box::doubleMargin), size * radioButtons.size() + Box::doubleMargin);
         }
         else
         {
-            //if(getWidth() - Box::doubleMargin != size * radioButtons.size()) {
-            //    box->setSize(size * radioButtons.size() + Box::margin, box->getHeight());
-            //}
-            box->setSize(size * radioButtons.size() + Box::doubleMargin, box->getHeight());
+            box->setSize(size * radioButtons.size() + Box::doubleMargin, std::max(box->getHeight(), minSize + Box::doubleMargin));
         }
         
     }
@@ -1584,6 +1580,17 @@ struct RadioComponent : public GUIComponent
         if (selected < radioButtons.size())
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
+        }
+    }
+    
+    // To make it trigger on mousedown instead of mouseup
+    void mouseDown(const MouseEvent& e) override
+    {
+        for (int i = 0; i < numButtons; i++)
+        {
+            if(radioButtons[i]->getBounds().contains(e.getEventRelativeTo(this).getPosition())) {
+                radioButtons[i]->triggerClick();
+            }
         }
     }
     
@@ -1600,6 +1607,7 @@ struct RadioComponent : public GUIComponent
             radioButtons[i]->setRadioGroupId(1001);
             radioButtons[i]->setClickingTogglesState(true);
             radioButtons[i]->setName("radiobutton");
+            radioButtons[i]->setInterceptsMouseClicks(false, false);
             addAndMakeVisible(radioButtons[i]);
             
             radioButtons[i]->onClick = [this, i]() mutable
@@ -1960,6 +1968,7 @@ public:
         auto b = getPatch()->getBounds();
         // canvas->checkBounds();
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
+        canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
     }
     
     void updateValue() override

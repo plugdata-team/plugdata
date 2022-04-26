@@ -29,6 +29,11 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
         showEditor();
         toFront(false);
     }
+    else if(name == "msg" || name == "comment")
+    {
+        setType(name);
+        graphics->showEditor();
+    }
     else
     {
         setType(name);
