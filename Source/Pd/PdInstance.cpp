@@ -471,7 +471,7 @@ void Instance::sendMessagesFromQueue()
 Patch Instance::openPatch(const File& toOpen)
 {
     
-    t_canvas* cnv;
+    t_canvas* cnv = nullptr;
     
     enqueueFunction([this, toOpen, &cnv]() mutable {
         String dirname = toOpen.getParentDirectory().getFullPathName();

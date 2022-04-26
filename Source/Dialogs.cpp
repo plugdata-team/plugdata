@@ -289,6 +289,8 @@ class SearchPathComponent : public Component, public TableListBoxModel
         table.setRowHeight(30);
         table.setOutlineThickness(0);
         table.deselectAllRows();
+        
+        table.setColour(TableListBox::backgroundColourId, Colours::transparentBlack);
 
         table.getHeader().setStretchToFitActive(true);
         table.setHeaderHeight(0);
@@ -366,7 +368,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
         }
         else
         {
-            g.setColour((row % 2) ? findColour(PlugDataColour::toolbarColourId) : findColour(PlugDataColour::canvasColourId));
+            g.setColour(findColour(row & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
         }
 
         g.fillRect(1, 0, w - 3, h);
@@ -410,6 +412,26 @@ class SearchPathComponent : public Component, public TableListBoxModel
 
         addButton.setBounds(6, y, 30, 30);
         removeButton.setBounds(34, y, 30, 30);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        
+        int itemHeight = table.getRowHeight();
+        int totalHeight = std::max(table.getViewport()->getViewedComponent()->getHeight(), getHeight());
+        for(int i = 0; i < (totalHeight / itemHeight) + 1; i++)
+        {
+            int y = i * itemHeight - table.getViewport()->getViewPositionY();
+            int height = itemHeight;
+            
+            if(y + itemHeight > getHeight() - 28) {
+                height = (getHeight() - 28) - (y - itemHeight);
+            }
+            if(height <= 0) break;
+            
+            g.setColour(findColour(i & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
+            g.fillRect(0, y, getWidth(), height);
+        }
     }
 
 
@@ -458,6 +480,7 @@ struct SettingsComponent : public Component
         }
 
         toolbarButtons[0]->setToggleState(true, sendNotification);
+
     }
 
     void showPanel(int idx)
@@ -579,6 +602,11 @@ struct SettingsDialog : public Component
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(1.0f, SettingsComponent::toolbarHeight, static_cast<float>(getWidth() - 2), SettingsComponent::toolbarHeight);
+        
+        if (settingsComponent.currentPanel > 0)
+        {
+            g.drawLine(1.0f, getHeight() - 33, static_cast<float>(getWidth() - 2), getHeight() - 33);
+        }
         
     }
 
