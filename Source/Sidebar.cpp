@@ -21,13 +21,17 @@ public:
     {
         table.setModel(this);
         table.setColour(ListBox::backgroundColourId, findColour(ResizableWindow::backgroundColourId));
-        table.setRowHeight(30);
+        table.setRowHeight(25);
         table.setOutlineThickness(0);
         table.deselectAllRows();
         
         table.getHeader().setStretchToFitActive(true);
         table.setHeaderHeight(0);
         table.getHeader().addColumn("Results", 1, 800, 50, 800, TableHeaderComponent::defaultFlags);
+        
+        table.getViewport()->setScrollBarsShown(true, false, false, false);
+        
+        input.setName("sidebar::searcheditor");
         
         input.onTextChange = [this](){
             bool notEmpty = input.getText().isNotEmpty();
@@ -42,6 +46,7 @@ public:
             input.giveAwayKeyboardFocus();
             table.setVisible(false);
             setInterceptsMouseClicks(false, true);
+            input.repaint();
         };
         
         closeButton.setAlwaysOnTop(true);
@@ -53,8 +58,9 @@ public:
         table.addMouseListener(this, true);
         table.setVisible(false);
         
+
         input.setJustification(Justification::centredLeft);
-        input.setBorder({1, 20, 1, 1});
+        input.setBorder({1, 23, 3, 1});
         
         setInterceptsMouseClicks(false, true);
     }
@@ -63,10 +69,10 @@ public:
     {
         int row = table.getSelectedRow();
         
-        if(dynamic_cast<TreeViewItem*>(e.originalComponent) == nullptr) return; // not clicked on item
-        
         if(isPositiveAndBelow(row, searchResult.size())) {
-            openFile(searchResult.getReference(row));
+            if(table.getRowPosition(row, true).contains(e.getEventRelativeTo(&table).getPosition())) {
+                openFile(searchResult.getReference(row));
+            }
         }
     }
     
@@ -75,6 +81,10 @@ public:
         g.setColour(findColour(PlugDataColour::textColourId));
         
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
+        
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(0, 28, getWidth(), 28);
+        g.drawLine(0.5f, 0, 0.5f, getHeight());
     }
     
     
@@ -87,7 +97,7 @@ public:
         }
         else
         {
-            g.setColour((row % 2) ? findColour(PlugDataColour::toolbarColourId) : findColour(PlugDataColour::canvasColourId));
+            g.setColour(findColour(row & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
         }
         
         g.fillRect(1, 0, w - 3, h);
@@ -99,8 +109,11 @@ public:
         g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
         const String item = searchResult[rowNumber].getFileName();
         
-        g.drawText(item, 4, 0, width - 4, height, Justification::centredLeft, true);
+        g.setFont(Font());
+        g.drawText(item, 24, 0, width - 4, height, Justification::centredLeft, true);
         
+        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
+        g.drawText(Icons::File, 8, 2, 24, 24, Justification::centredLeft);
     }
     
     int getNumRows() override
@@ -158,10 +171,6 @@ public:
         if(table.getSelectedRow() == -1) table.selectRow(0, true, true);
     }
     
-    void paint(Graphics& g) override {
-        input.setColour(TextEditor::outlineColourId, findColour(PlugDataColour::toolbarOutlineColourId));
-    }
-    
     bool isSearchingAndHasSelection() {
         return table.isVisible() && isPositiveAndBelow(table.getSelectedRow(), searchResult.size());
     }
@@ -178,9 +187,9 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop(30);
+        auto inputBounds = tableBounds.removeFromTop(28);
         
-        input.setBounds(inputBounds.withRight(inputBounds.getRight() + 1).withY(-1.0f));
+        input.setBounds(inputBounds);
         
         closeButton.setBounds(inputBounds.removeFromRight(30));
         
@@ -203,12 +212,15 @@ private:
 struct DocumentBrowser : public Component, public Timer
 {
     
-    struct FileTree : public FileTreeComponent, public FileBrowserListener
+    struct FileTree : public FileTreeComponent, public FileBrowserListener, public ScrollBar::Listener
     {
         
         FileTree(DirectoryContentsList& directory, DocumentBrowser* parent) : FileTreeComponent(directory), browser(parent) {
             
+            setItemHeight(23);
+            
             addListener(this);
+            getViewport()->getVerticalScrollBar().addListener(this);
         }
         
         // Paint file drop outline
@@ -218,14 +230,48 @@ struct DocumentBrowser : public Component, public Timer
                 g.setColour(findColour(PlugDataColour::highlightColourId));
                 g.drawRect(getLocalBounds().reduced(1), 2.0f);
             }
-
         }
+        
+        void scrollBarMoved (ScrollBar *scrollBarThatHasMoved, double newRangeStart) override
+        {
+            repaint();
+        }
+        
+        void paint(Graphics& g) override {
+            
+            // Paint the rest of the stripes and make sure that the stripes extend to the left
+            int itemHeight = getItemHeight();
+            int totalHeight = std::max(getViewport()->getViewedComponent()->getHeight(), getHeight());
+            for(int i = 0; i < (totalHeight / itemHeight) + 1; i++)
+            {
+                
+                int y = i * itemHeight - getViewport()->getViewPositionY();
+                int height = itemHeight;
+                
+                if(y + itemHeight > getHeight() - 28) {
+                    height = (getHeight() - 28) - (y - itemHeight);
+                }
+                if(height <= 0) break;
+                
+                if(getNumSelectedItems() == 1 && getSelectedItem(0) == getItemOnRow(i)) {
+                    g.setColour(findColour(PlugDataColour::highlightColourId));
+                }
+                else {
+                    g.setColour(findColour(i & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
+                }
+                
+                g.fillRect(0, y, getWidth(), height);
+            }
+        }
+
         
         /** Callback when the user double-clicks on a file in the browser. */
         void fileDoubleClicked (const File& file) override {
             browser->pd->loadPatch(file);
         }
-        void selectionChanged() override {};
+        void selectionChanged() override {
+            browser->repaint();
+        };
         void fileClicked (const File&, const MouseEvent&) override {};
         void browserRootChanged (const File&) override {};
         
@@ -258,8 +304,7 @@ struct DocumentBrowser : public Component, public Timer
                 }
             }
             
-            browser->directory.refresh();
-            browser->fileList.refresh();
+            browser->timerCallback();
             
             isDraggingFile = false;
             repaint();
@@ -301,7 +346,7 @@ struct DocumentBrowser : public Component, public Timer
         directory.setDirectory(location, true, true);
         
         updateThread.startThread();
-        directory.refresh();
+        timerCallback();
         
         addAndMakeVisible(fileList);
 
@@ -363,6 +408,7 @@ struct DocumentBrowser : public Component, public Timer
         
         addAndMakeVisible(searchComponent);
         
+        
         if(!fileList.getSelectedFile().exists()) fileList.moveSelectedRow(1);
     }
     
@@ -386,9 +432,19 @@ struct DocumentBrowser : public Component, public Timer
     {
         if(directory.getDirectory().getLastModificationTime() > lastUpdateTime)
         {
+            
+            
             lastUpdateTime = directory.getDirectory().getLastModificationTime();
             directory.refresh();
             fileList.refresh();
+       
+            
+            for(int i = 0; i < fileList.getNumRowsInTree(); i++) {
+                auto* item = fileList.getItemOnRow(i);
+                item->setDrawsInLeftMargin(true);
+            }
+            
+        
         }
     }
     
@@ -401,7 +457,7 @@ struct DocumentBrowser : public Component, public Timer
     
     
     void resized() override {
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 56).withY(28).withLeft(5));
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(30).withLeft(5));
         
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
         
@@ -434,7 +490,7 @@ struct DocumentBrowser : public Component, public Timer
         g.fillRect(getWidth() - Sidebar::dragbarWidth, 0, Sidebar::dragbarWidth + 1, getHeight());
         
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(1, 0, 1, getHeight() - 27.5f);
+        g.drawLine(0, 0, 0, getHeight() - 27.5f);
     }
     
 
@@ -1122,7 +1178,7 @@ void Sidebar::paint(Graphics& g)
     g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
     
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(1, 0, 1, getHeight() - 27.5f);
+    g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 }
 
 void Sidebar::resized()
