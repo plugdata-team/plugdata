@@ -421,10 +421,18 @@ struct GraphArea : public Component, public ComponentDragger
     }
 };
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, bool graph, bool graphChild) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph, bool graphChild) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
 {
-    isGraph = graph;
     isGraphChild = graphChild;
+    
+    // Check if canvas belongs to a graph
+    if(parentGraph) {
+        parentGraph->addAndMakeVisible(this);
+        isGraph = true;
+    }
+    else {
+        isGraph = false;
+    }
 
     suggestor = new SuggestionComponent;
 
@@ -744,7 +752,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         
         auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
         bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
-        auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, false, isGraphChild));
+        auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
 
         main.addTab(newCanvas);
         newCanvas->checkBounds();

@@ -432,12 +432,9 @@ struct DocumentBrowser : public Component, public Timer
     {
         if(directory.getDirectory().getLastModificationTime() > lastUpdateTime)
         {
-            
-            
             lastUpdateTime = directory.getDirectory().getLastModificationTime();
             directory.refresh();
             fileList.refresh();
-       
             
             for(int i = 0; i < fileList.getNumRowsInTree(); i++) {
                 auto* item = fileList.getItemOnRow(i);

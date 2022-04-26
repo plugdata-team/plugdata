@@ -117,7 +117,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     Value labelText;
     
-    const int atomSizes[7] = {12, 8, 10, 12, 16, 24, 36};
+    const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
     
 };
 

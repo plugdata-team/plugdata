@@ -29,7 +29,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
         showEditor();
         toFront(false);
     }
-    else if(name == "msg" || name == "comment")
+    else if(name == "msg")
     {
         setType(name);
         graphics->showEditor();
@@ -70,12 +70,6 @@ void Box::initialise()
 
 void Box::valueChanged(Value& v)
 {
-    /*
-     if (currentText != textValue.toString()) {
-     currentText = textValue.toString();
-     setType(currentText);
-     } */
-
     // Hide certain objects in GOP
     if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
     {
@@ -153,7 +147,10 @@ void Box::updateBounds(bool newObject)
         {
             addAndMakeVisible(graphics.get());
             auto b = pdObject->getBounds();
-            setSize(b.getWidth() + doubleMargin, b.getHeight() + doubleMargin);
+            
+            int width = b.getWidth() <= 0 ? font.getStringWidth(currentText) + widthOffset : b.getWidth() + doubleMargin;
+            
+            setSize(width, b.getHeight() + doubleMargin);
             graphics->resized();
             graphics->toBack();
             hideLabel = true;
@@ -243,12 +240,6 @@ void Box::setType(const String& newType, bool exists)
     updatePorts();
     updateBounds(!exists);
 
-    // Hide "comment" in front of name
-    if (newType.startsWith("comment "))
-    {
-        currentText = currentText.fromFirstOccurrenceOf("comment ", false, false);
-    }
-
     cnv->updateDrawables();
     cnv->main.updateCommandStatus();
 }
@@ -285,7 +276,7 @@ void Box::paint(Graphics& g)
         for (auto& rect : getCorners()) g.fillRoundedRectangle(rect, 2.0f);
     }
 
-    if (!graphics || (graphics && graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
+    if (!graphics || (graphics && graphics->fakeGui()))
     {
         
         g.setColour(findColour(ResizableWindow::backgroundColourId));
@@ -328,7 +319,7 @@ void Box::resized()
     
     // graphical objects manage their own size limits
     // For text object, make sure the width at least fits the text
-    if (!graphics || (graphics->fakeGui() && graphics->getGui().getType() != pd::Type::Comment))
+    if (!graphics || graphics->fakeGui())
     {
         int ioletWidth = std::max(numInputs, numOutputs) * 15 + 15;
         int textWidth = font.getStringWidth(currentText) + widthOffset;
@@ -544,12 +535,9 @@ void Box::showEditor()
         editor->setColour (Label::outlineWhenEditingColourId, findColour (TextEditor::focusedOutlineColourId));
         
         editor->setAlwaysOnTop(true);
-
-        bool multiLine = pdObject && pdObject->getType() == pd::Type::Comment;
-
-        // Allow multiline for comment objects
-        editor->setMultiLine(multiLine, false);
-        editor->setReturnKeyStartsNewLine(multiLine);
+        
+        editor->setMultiLine(false);
+        editor->setReturnKeyStartsNewLine(false);
         editor->setBorder(border);
         editor->setJustification(Justification::centred);
 
@@ -560,10 +548,7 @@ void Box::showEditor()
             }
         };
 
-        if (!(graphics && graphics->getGui().getType() == pd::Type::Comment))
-        {
-            cnv->showSuggestions(this, editor.get());
-        }
+        cnv->showSuggestions(this, editor.get());
 
         editor->setSize(10, 10);
         addAndMakeVisible(editor.get());
@@ -625,11 +610,6 @@ void Box::hideEditor()
         if (changed || !pdObject)
         {
             setType(newText);
-        }
-
-        if (graphics && graphics->getGui().getType() == pd::Type::Comment)
-        {
-            updateBounds(false);
         }
     }
 }
