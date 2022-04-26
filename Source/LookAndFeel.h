@@ -215,8 +215,14 @@ struct PlugDataLook : public LookAndFeel_V4
     int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
     {
         auto& buttonBar = button.getTabbedButtonBar();
-        return buttonBar.getWidth() / buttonBar.getNumTabs();
+        return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
     }
+    
+    int getTabButtonOverlap (int tabDepth) override
+    {
+        return 1;
+    }
+
     
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
     {
@@ -279,17 +285,18 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         
         g.setColour(findColour(button.getToggleState() ? ResizableWindow::backgroundColourId : ComboBox::backgroundColourId));
-        g.fillRect(button.getLocalBounds().reduced(0, 1));
+        
+        g.fillRect(button.getLocalBounds().withTop(1));
         
         int w = button.getWidth();
         int h = button.getHeight();
         
         g.setColour(button.findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(Line<float>(0, h - 1, w, h - 1), 0.5f);
+        g.drawLine(Line<float>(0, h - 1, w, h - 1), 1.0f);
         
         if (button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1)
         {
-            g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h - 1), 1.0f);
+            g.drawLine(Line<float>(w - 1, 1, w - 1, h - 1), 1.0f);
         }
         
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
@@ -351,6 +358,8 @@ struct PlugDataLook : public LookAndFeel_V4
     
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
+        if(textEditor.getName() == "sidebar::searcheditor") return;
+        
         if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
         {
             if (textEditor.isEnabled())
@@ -825,12 +834,11 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(TextButton::buttonOnColourId, firstColour);
         setColour(ComboBox::backgroundColourId, firstColour);
         setColour(ListBox::backgroundColourId, firstColour);
-        setColour(ScrollBar::backgroundColourId, firstColour);
+
         setColour(ScrollBar::trackColourId, firstColour);
         setColour(AlertWindow::backgroundColourId, firstColour);
         getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
-        setColour(TreeView::backgroundColourId, firstColour);
-       
+
         setColour(TooltipWindow::backgroundColourId, firstColour.withAlpha(0.8f));
         setColour(PopupMenu::backgroundColourId, firstColour.withAlpha(0.95f));
         
@@ -865,6 +873,9 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(TooltipWindow::outlineColourId, outlineColour);
         setColour(ComboBox::outlineColourId, outlineColour);
         setColour(TextEditor::outlineColourId, outlineColour);
+        
+        setColour(ScrollBar::backgroundColourId, Colours::transparentBlack);
+        setColour(TreeView::backgroundColourId, Colours::transparentBlack);
     }
     
     void setTheme(bool useLightTheme)

@@ -252,7 +252,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 {
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(0, toolbarHeight, static_cast<float>(getWidth()), toolbarHeight);
+    g.drawLine(0, toolbarHeight + 1, static_cast<float>(getWidth()), toolbarHeight + 1);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
 }
     
@@ -260,7 +260,7 @@ void PlugDataPluginEditor::resized()
 {
     tabbar.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - statusbar.getHeight());
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight, sidebar.getWidth(), getHeight() - toolbarHeight);
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + 1, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
     

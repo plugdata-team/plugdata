@@ -1554,6 +1554,7 @@ struct RadioComponent : public GUIComponent
     void resized() override
     {
         int size = isVertical ? getWidth() : getHeight();
+        size = std::max(size, 14);
         
         for(int i = 0; i < radioButtons.size(); i++) {
             if(isVertical) radioButtons[i]->setBounds(0, i * size, size, size);
