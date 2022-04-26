@@ -67,13 +67,9 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
         labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
         
         int h = gui.getFontHeight();
-        if(h == 0) {
-            labelHeight = 1;
-        }
-        else {
-            int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
-            labelHeight = idx + 1;
-        }
+
+        int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
+        labelHeight = idx + 1;
         
         
     }
@@ -144,6 +140,7 @@ void GUIComponent::initialise(bool newObject)
     }
     else {
         getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
+        getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
     }
 
     
@@ -413,6 +410,9 @@ void GUIComponent::updateLabel()
     
     int fontHeight = gui.getFontHeight();
     
+    if(fontHeight == 0) {
+        fontHeight = glist_getfont(box->cnv->patch.getPointer());
+    }
     if(gui.isAtom()) fontHeight += 2;
     
     const String text = gui.getLabelText();
@@ -922,7 +922,11 @@ struct MessageComponent : public GUIComponent
         initialise(newObject);
         
         if(gui.isAtom())  {
-            input.setFont(gui.getFontHeight() + 2);
+            auto fontHeight = gui.getFontHeight();
+            if(fontHeight == 0) {
+                fontHeight = glist_getfont(box->cnv->patch.getPointer());
+            }
+            input.setFont(fontHeight);
         }
         
         
@@ -1049,7 +1053,12 @@ struct MessageComponent : public GUIComponent
         {
             updateLabel();
             box->updateBounds(false); // update box size based on new font
-            input.setFont(gui.getFontHeight() + 2);
+            
+            auto fontHeight = gui.getFontHeight();
+            if(fontHeight == 0) {
+                fontHeight = glist_getfont(box->cnv->patch.getPointer());
+            }
+            input.setFont(fontHeight);
         }
         else {
             GUIComponent::valueChanged(v);
@@ -1097,7 +1106,12 @@ struct NumboxComponent : public GUIComponent
             input.setBorderSize({1, 15, 1, 1});
         }
         else {
-            input.setFont(gui.getFontHeight() + 2);
+            
+            auto fontHeight = gui.getFontHeight();
+            if(fontHeight == 0) {
+                fontHeight = glist_getfont(box->cnv->patch.getPointer());
+            }
+            input.setFont(fontHeight);
         }
         
         addAndMakeVisible(input);
@@ -1252,7 +1266,11 @@ struct NumboxComponent : public GUIComponent
         {
             updateLabel();
             box->updateBounds(false); // update box size based on new font
-            input.setFont(gui.getFontHeight() + 2);
+            auto fontHeight = gui.getFontHeight();
+            if(fontHeight == 0) {
+                fontHeight = glist_getfont(box->cnv->patch.getPointer());
+            }
+            input.setFont(fontHeight);
         }
         else
         {
@@ -1367,6 +1385,9 @@ struct ListComponent : public GUIComponent, public Timer
     
     void paint(Graphics& g) override
     {
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
+        getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
+        
         g.fillAll(box->findColour(PlugDataColour::highlightColourId));
         
         static auto const border = 1.0f;
@@ -1382,7 +1403,7 @@ struct ListComponent : public GUIComponent, public Timer
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
         
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(box->findColour(PlugDataColour::canvasColourId));
         g.fillPath(p);
         g.strokePath(p, PathStrokeType(border));
     }
@@ -1957,8 +1978,7 @@ public:
     {
         if (!canvas)
         {
-            canvas = std::make_unique<Canvas>(box->cnv->main, subpatch, true);
-            addAndMakeVisible(canvas.get());
+            canvas = std::make_unique<Canvas>(box->cnv->main, subpatch, this);
             
             // Make sure that the graph doesn't become the current canvas
             box->cnv->patch.setCurrent(true);
@@ -2045,15 +2065,70 @@ struct CommentComponent : public GUIComponent
 {
     CommentComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
     {
-        setInterceptsMouseClicks(false, false);
-        setVisible(false);
+        addAndMakeVisible(input);
+        input.setText(gui.getText(), dontSendNotification);
+        input.setInterceptsMouseClicks(false, false);
         
-        box->setEditable(true);
-        box->hideLabel = false;
+        setInterceptsMouseClicks(false, false);
+        
+        
+        input.onTextChange = [this, box](){
+            
+            String name = input.getText();
+            box->cnv->pd->enqueueFunction([this, box, name]() mutable {
+                auto* newName = name.toRawUTF8();
+                libpd_renameobj(box->cnv->patch.getPointer(), static_cast<t_gobj*>(gui.getPointer()), newName, input.getText().getNumBytesAsUTF8());
+                
+                MessageManager::callAsync([box](){
+                    box->updateBounds(false);
+                });
+            });
+        };
+        
+        input.onEditorShow = [this](){
+            auto* editor = input.getCurrentTextEditor();
+            if(editor) {
+                editor->setMultiLine(true, true);
+                editor->setReturnKeyStartsNewLine(true);
+                
+            }
+        };
+    
+        
+        
+        initialise(newObject);
+        
+        // Our component doesn't intercept mouse events, so dragging will be okay
+        box->addMouseListener(this, false);
     }
     
-    void paint(Graphics& g) override
+    void mouseDown(const MouseEvent& e) override
     {
+        if (box->cnv->isSelected(box) && !box->selectionChanged)
+        {
+            shouldOpenEditor = true;
+        }
+    }
+    
+    void mouseUp(const MouseEvent& e) override
+    {
+        // Edit messages when unlocked, edit atoms when locked
+        if (!isLocked && shouldOpenEditor && !e.mouseWasDraggedSinceMouseDown())
+        {
+            input.showEditor();
+            shouldOpenEditor = false;
+        }
+    }
+    
+    
+    void lock(bool locked) override
+    {
+        isLocked = locked;
+    }
+    
+    void resized() override
+    {
+        input.setBounds(getLocalBounds());
     }
     
     void checkBoxBounds() override
@@ -2061,11 +2136,9 @@ struct CommentComponent : public GUIComponent
         int numLines = getNumLines(gui.getText(), box->getWidth() - Box::doubleMargin);
         box->setSize(box->getWidth(), (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
     }
-    
-    bool fakeGui() override
-    {
-        return true;
-    }
+
+    bool shouldOpenEditor = false;
+    bool isLocked = false;
 };
 
 struct VUMeter : public GUIComponent
@@ -2366,12 +2439,6 @@ struct MouseComponent : public GUIComponent
         
         pd_typedmess((t_pd*)gui.getPointer(), gensym("_getscreen"), 2, args);
     }
-    
-    /*
-    std::pair<int, int> getBestSize() override
-    {
-        return {0, 3};
-    }; */
     
     bool fakeGui() override
     {

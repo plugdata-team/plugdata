@@ -20,18 +20,14 @@
             <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="signal">Signal in</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet>Absolute signal out</outlet>
         </outlets>
         <example>
             <pdascii>
