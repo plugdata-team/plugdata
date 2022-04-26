@@ -113,6 +113,14 @@ void Edge::mouseDrag(const MouseEvent& e)
     }
 }
 
+void Edge::mouseUp(const MouseEvent& e)
+{
+    if(box->cnv->nearestEdge) {
+        box->cnv->nearestEdge->isHovered = false;
+        box->cnv->nearestEdge = nullptr;
+    }
+}
+
 void Edge::mouseMove(const MouseEvent& e)
 {
 }

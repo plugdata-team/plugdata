@@ -55,6 +55,8 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     virtual pd::Patch* getPatch();
     virtual Canvas* getCanvas();
     virtual bool fakeGui();
+    
+    void showEditor() { input.showEditor(); }
 
     std::unique_ptr<Label> label;
 
@@ -90,7 +92,11 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     static inline constexpr int maxSize = 1000000;
 
+    
     PlugDataAudioProcessor& processor;
+    
+    Label input;
+    
     pd::Gui gui;
     std::atomic<bool> edited;
     float value = 0;
