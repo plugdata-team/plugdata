@@ -652,7 +652,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
         
         auto* patch = patches.add(new pd::Patch(openPatch(patchFile)));
         
-        auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, false));
+        auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
         
         patch->setTitle("Untitled Patcher");
         
@@ -663,7 +663,7 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
     {
         for (auto* patch : patches)
         {
-            auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, false));
+            auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
             editor->addTab(cnv);
         }
     }
@@ -783,7 +783,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(File patchFile)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         const MessageManagerLock mmLock;
-        auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, false));
+        auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
         cnv->synchronise();
         editor->addTab(cnv);
     }

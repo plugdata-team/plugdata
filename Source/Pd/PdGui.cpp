@@ -973,6 +973,10 @@ Rectangle<int> Gui::getLabelBounds(Rectangle<int> objectBounds) const noexcept
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         
         int fontHeight = getFontHeight() + 2;
+        if(fontHeight == 0) {
+            fontHeight = glist_getfont(patch->getPointer());
+        }
+        
         int labelLength = Font(fontHeight).getStringWidth(getLabelText());
         int labelPosition = gatom->a_wherelabel;
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);

@@ -885,7 +885,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         }
         case CommandIDs::NewVUMeter:
         {
-            result.setInfo("New VUMeter", "Create new VU meter", "Objects", 0);
+            result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
             result.setActive(pd.locked == var(false));
             break;
         }
