@@ -1029,7 +1029,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             
         default:
         {
-            const std::vector<std::string> objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listatom", "array", "graph", "cnv", "keyboard", "vu"};
+            const std::vector<std::string> objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu"};
             
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
             

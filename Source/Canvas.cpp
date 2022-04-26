@@ -758,7 +758,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
         {
             auto* box = dynamic_cast<Box*>(source);
-
+            // TODO: Move to Subpatch implementation
             if (box && box->graphics && box->graphics->getGui().getType() == pd::Type::Subpatch)
             {
                 openSubpatch(box);
@@ -800,6 +800,11 @@ void Canvas::mouseDown(const MouseEvent& e)
             {
                 deselectAll();
             }
+        }
+        
+        if (auto* box = dynamic_cast<Box*>(source))
+        {
+            updateSidebarSelection();
         }
     }
     // Right click
@@ -984,9 +989,14 @@ void Canvas::mouseUp(const MouseEvent& e)
         auto pos = e.getEventRelativeTo(this).getPosition();
         auto* nearest = Edge::findNearestEdge(this, pos, !connectingEdge->isInlet, connectingEdge->box);
 
-        if (nearest) nearest->createConnection();
+        if (nearest)
+        {
+            nearest->createConnection();
+            nearest->isHovered = false;
+        }
 
         connectingEdge = nullptr;
+        nearestEdge = nullptr;
         connectingWithDrag = false;
 
         repaint();
@@ -995,6 +1005,15 @@ void Canvas::mouseUp(const MouseEvent& e)
         connectingWithDrag = false;
     }
 
+    updateSidebarSelection();
+
+    main.updateCommandStatus();
+
+    lasso.endLasso();
+}
+
+void Canvas::updateSidebarSelection()
+{
     auto lassoSelection = getSelectionOfType<Box>();
 
     if (lassoSelection.size() == 1)
@@ -1015,10 +1034,6 @@ void Canvas::mouseUp(const MouseEvent& e)
     {
         main.sidebar.hideParameters();
     }
-
-    main.updateCommandStatus();
-
-    lasso.endLasso();
 }
 
 // Updates pd objects that use the drawing feature
