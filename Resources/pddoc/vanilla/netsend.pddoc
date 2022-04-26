@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>send messages over the network</description>
+            <description>Send messages over the network</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>misc</category>
@@ -17,7 +17,6 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
             <method name="NAME">
@@ -25,13 +24,16 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="connect [list]">Sets host and port number</xinfo>
+                <xinfo on="disconnect">Close the connection</xinfo>
+                <xinfo on="timeout [float]">TCP connect timeout in ms</xinfo>
+                <xinfo on="send [anything]">Sends messages over the network</xinfo>\
+                <xinfo on="list">Works like 'send'</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet>Nonzero if connection is open, zero otherwise</outlet>
+            <outlet>Messages sent back from netreceive objects</outlet>
         </outlets>
         <example>
             <pdascii>
