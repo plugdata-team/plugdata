@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <pddoc version="1.0">
-    <object name="metro">
-        <title>metro</title>
+    <object name="abs~">
+        <title>abs~</title>
         <meta>
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>send a message periodically</description>
+            <description>absolute value</description>
             <license>BSD</license>
             <library>puredata</library>
-            <category>time</category>
-            <keywords>time metro</keywords>
-            <since>0.48</since>
+            <category>audio math</category>
+            <keywords>audio math abs~</keywords>
+            <since>0.42</since>
         </meta>
         <info>
             <par>-</par>
         </info>
         <arguments>
-            <argument name="Interval in milliseconds" type="float">-</argument>
+            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
             <method name="NAME">
@@ -25,21 +25,17 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">Reset metronome</xinfo>
-                <xinfo on="float">Start/Stop metronome</xinfo>
-            </inlet>
-            <inlet>
-                <xinfo on="float">Interval in milliseconds</xinfo>
+                <xinfo on="signal">Signal in</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet out="bang">Metronome ticks</outlet>
+            <outlet>Absolute signal out</outlet>
         </outlets>
         <example>
             <pdascii>
 <![CDATA[
 
-[metro]
+[abs~]
 
 ]]>
             </pdascii>

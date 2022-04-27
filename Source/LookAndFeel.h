@@ -38,20 +38,19 @@ struct Icons
     inline static const CharPointer_UTF8 ZoomIn = CharPointer_UTF8("\xef\x80\x8e");
     inline static const CharPointer_UTF8 ZoomOut = CharPointer_UTF8("\xef\x80\x90");
     
-    inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
-    inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
-    inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
-    inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
-    
-    inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
-    
     inline static const CharPointer_UTF8 Pin = CharPointer_UTF8("\xef\x82\x8d");
     inline static const CharPointer_UTF8 Keyboard = CharPointer_UTF8("\xef\x84\x9c");
     
     inline static const CharPointer_UTF8 Folder = CharPointer_UTF8 ("\xef\x81\xbb");
     inline static const CharPointer_UTF8 OpenedFolder = CharPointer_UTF8 ("\xef\x81\xbc");
     inline static const CharPointer_UTF8 File = CharPointer_UTF8 ("\xef\x85\x9c");
-
+    
+    inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
+    inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
+    inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
+    inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
+    
+    inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
 };
 
 enum PlugDataColour

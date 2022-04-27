@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>complex forward discrete Fourier transform</description>
+            <description>Complex forward Fourier transform</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>audio math</category>
@@ -25,13 +25,17 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="signal">Real part of signal to transform</xinfo>
             </inlet>
+            <inlet>
+                <xinfo on="signal">Imaginary part of signal to transform</xinfo>
+            </inlet>
+
+
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet out="signal">Real part of transformed signal</outlet>
+            <outlet out="signal">Imaginary part of transformed signal</outlet>
         </outlets>
         <example>
             <pdascii>
