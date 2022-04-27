@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>plot an array field</description>
+            <description>Draw array elements of scalars</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>data templates</category>
@@ -17,21 +17,34 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+            <argument name="curve" type="symbol">-</argument>
+            <argument name="field" type="symbol">-</argument>
+            <argument name="color" type="float">-</argument>
+            <argument name="line width" type="float">-</argument>
+            <argument name="relative x and y location" type="list">-</argument>
+            <argument name="x spacing" type="float">-</argument>
+
+            <argument name="Sets to Bezier curve plot" type="symbol" flag="-c"></argument>
+            <argument name="Makes it invisible initially" type="symbol" flag="-n"></argument>
+            <argument name="Constant of field name to make it visible/invisible" type="symbol" flag="-v [float/symbol]"></argument>
+            <argument name="Constant of field name to scalars visible/invisible" type="symbol" flag="-vs [float/symbol]"></argument>
+            <argument name="Constant of field name to enable/disable mouse actions" type="symbol" flag="-e [float/symbol]"></argument>
+            <argument name="Sets a different field name for x" type="symbol" flag="-x [symbol]"></argument>
+            <argument name="Sets a different field name for y" type="symbol" flag="-y [symbol]"></argument>
+            <argument name="Sets a different field name for w" type="symbol" flag="-w [symbol]"></argument>
+
         </arguments>
+        
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
+
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="float">Sets visibility</xinfo>
             </inlet>
         </inlets>
+
         <outlets>
-            <outlet>output</outlet>
         </outlets>
         <example>
             <pdascii>

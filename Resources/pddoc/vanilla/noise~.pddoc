@@ -20,13 +20,19 @@
         </arguments>
         <methods>
         </methods>
+        
         <inlets>
             <inlet>
                 <xinfo on="seed [float]">Set seed</xinfo>
             </inlet>
         </inlets>
+
         <outlets>
-            <outlet>Signal</outlet>
+
+            <outlet>
+                <xinfo out="signal">Signal</xinfo>
+            </outlet>
+
         </outlets>
         <example>
             <pdascii>
