@@ -121,7 +121,7 @@ void Canvas::paint(Graphics& g)
         const int gridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
 
-        g.setColour(findColour(PlugDataColour::toolbarColourId).contrasting(0.4));
+        g.setColour(findColour(PlugDataColour::canvasColourId).contrasting(0.42));
 
         for (int x = canvasOrigin.getX() + gridSize; x < clipBounds.getRight(); x += gridSize)
         {
