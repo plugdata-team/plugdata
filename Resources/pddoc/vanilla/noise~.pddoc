@@ -23,6 +23,7 @@
             <method name="NAME">
             <param type="float" name="V" required="true">-</param></method>
         </methods>
+        
         <inlets>
             <inlet>
                 <xinfo on="bang">output value</xinfo>
@@ -30,8 +31,11 @@
                 <xinfo on="symbol">-</xinfo>
             </inlet>
         </inlets>
+
         <outlets>
-            <outlet>output</outlet>
+            <outlet>
+                <xinfo out="signal">Signal</xinfo>
+            </outlet>
         </outlets>
         <example>
             <pdascii>

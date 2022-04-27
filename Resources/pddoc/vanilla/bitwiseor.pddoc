@@ -1,43 +1,43 @@
 <?xml version="1.0" encoding="utf-8"?>
 <pddoc version="1.0">
-    <object name="bitwiseor">
-        <title>bitwiseor</title>
+    <object name="|">
+        <title>|</title>
         <meta>
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>bit twiddling</description>
+            <description>Perform "or" on each bit of the inputs considered as binary numbers</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>math</category>
-            <keywords>math bitwiseor</keywords>
+            <keywords>math or bitwise operator</keywords>
             <since>0.47</since>
         </meta>
         <info>
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+            <argument name="Initialize value of right inlet" type="float">-</argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="bang">Output the operation</xinfo>
+                <xinfo on="float">Value</xinfo>
+                <xinfo on="float">Value</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet>
+                <xinfo out="float">Result</xinfo>
+            </outlet>
         </outlets>
         <example>
             <pdascii>
 <![CDATA[
 
-[bitwiseor]
+[or]
 
 ]]>
             </pdascii>
