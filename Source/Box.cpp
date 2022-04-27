@@ -669,6 +669,7 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
     {
         editor->giveAwayKeyboardFocus();
     }
+    
 }
 
 void Box::textEditorTextChanged(TextEditor& ed)
