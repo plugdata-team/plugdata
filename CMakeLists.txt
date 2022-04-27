@@ -65,18 +65,37 @@ endif()
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
+    ${SOURCES_DIRECTORY}/Components/*.h
+    ${SOURCES_DIRECTORY}/Components/*.cpp
+    ${SOURCES_DIRECTORY}/Objects/*.h
+    ${SOURCES_DIRECTORY}/Objects/*.cpp
+    ${SOURCES_DIRECTORY}/Sidebar/*.h
+    ${SOURCES_DIRECTORY}/Sidebar/*.cpp
+    ${SOURCES_DIRECTORY}/Dialogs/*.h
+    ${SOURCES_DIRECTORY}/Dialogs/*.cpp
+    ${SOURCES_DIRECTORY}/Pd/*.cpp
+    ${SOURCES_DIRECTORY}/Pd/*.h
 )
-source_group("Source" FILES ${PlugDataSources})
+foreach(core_SOURCE ${PlugDataSources})
+		# Get the path of the file relative to the current source directory
+		file(RELATIVE_PATH core_SOURCE_relative "${SOURCES_DIRECTORY}" "${core_SOURCE}")
+
+		# Get the relative folder path
+		get_filename_component(core_SOURCE_dir "${core_SOURCE_relative}" PATH)
+
+		# Convert forward slashes to backslashes to get source group identifiers
+		string(REPLACE "/" "\\" core_SOURCE_group "${core_SOURCE_dir}")
+
+		source_group("Source\\${core_SOURCE_group}" FILES "${core_SOURCE}")
+endforeach()
 
 file(GLOB PlugDataStandaloneSources
     ${SOURCES_DIRECTORY}/Standalone/*.cpp
     ${SOURCES_DIRECTORY}/Standalone/*.h)
 source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
 
-file(GLOB_RECURSE PlugDataPdSources
-    ${SOURCES_DIRECTORY}/Pd/*.cpp
-    ${SOURCES_DIRECTORY}/Pd/*.h)
-source_group("Source\\Pd" FILES ${PlugDataPdSources})
+
+#source_group("Source\\Pd" FILES ${PlugDataPdSources})
 
 file(GLOB_RECURSE PlugDataLV2Sources
     ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/juce_LV2_Wrapper.cpp
@@ -194,24 +213,24 @@ endif()
 
 
 juce_generate_juce_header(PlugDataStandalone)
-set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 17)
-target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${PlugDataStandaloneSources} ${ELSESources})
+set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 20)
+target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources} ${ELSESources})
 
 
 juce_generate_juce_header(PlugData)
-set_target_properties(PlugData PROPERTIES CXX_STANDARD 17)
-target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${PlugDataStandaloneSources} ${ELSESources})
+set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
+target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources} ${ELSESources})
 
 juce_generate_juce_header(PlugDataFx)
-set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 17)
-target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
+set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 20)
+target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${ELSESources})
 
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
 
-set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 17)
+set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
 set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${PlugDataPdSources} ${ELSESources})
+target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${ELSESources})
 endif()
 
 add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
@@ -270,16 +289,18 @@ target_compile_definitions(PlugDataMidi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS
 endif()
 
 
-list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
-list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
-list(APPEND LIBPD_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
 
-target_include_directories(PlugDataStandalone PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
-target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
-target_include_directories(PlugDataFx PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
+list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
+
+target_include_directories(PlugDataStandalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+target_include_directories(PlugDataFx PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 
 if(APPLE)
-target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${LIBPD_INCLUDE_DIRECTORY}>")
+target_include_directories(PlugDataMidi PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 endif()
 
 file(GLOB PlugDataBinaryDataSources

@@ -339,6 +339,13 @@ void Box::resized()
         int width = std::max(getWidth(), ioletWidth);
         int height = Box::height + ((getNumLines(currentText, width) - 1) * 28);
         
+        // If an object uses minimum
+        if(width == ioletWidth) {
+            border.setLeft(10);
+        }
+        else{
+            border.setLeft(8);
+        }
         // Recursive resize is a bit tricky, but since these variables are very predictable,
         // it won't be a problem
         if(getWidth() != width || getHeight() != height) {
@@ -661,5 +668,16 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
     if (editor != nullptr)
     {
         editor->giveAwayKeyboardFocus();
+    }
+}
+
+void Box::textEditorTextChanged(TextEditor& ed)
+{
+    // For resize-while-typing behaviour
+    auto width = font.getStringWidth(ed.getText()) + Box::widthOffset;
+
+    if (width > getWidth())
+    {
+        setSize(width, getHeight());
     }
 }
