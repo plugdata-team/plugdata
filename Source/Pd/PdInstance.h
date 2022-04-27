@@ -144,6 +144,7 @@ class Instance
 
     void logMessage(const String& message);
     void logError(const String& error);
+    void limitMessages();
 
     virtual void messageEnqueued(){};
 

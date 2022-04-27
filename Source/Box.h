@@ -89,6 +89,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     bool hitTest(int x, int y) override;
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
+    void textEditorTextChanged(TextEditor& ed) override;
 
     Rectangle<int> originalBounds;
 

@@ -129,12 +129,6 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             {
                 editor->setHighlightedRegion({highlightStart, highlightEnd});
             }
-            auto width = editor->getTextWidth() + 10;
-
-            if (width > box->getWidth())
-            {
-                box->setSize(width, box->getHeight());
-            }
         };
 
         for (int i = 0; i < buttons.size(); i++)
