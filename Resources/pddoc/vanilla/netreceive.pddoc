@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>Receive messages from network</description>
+            <description>receive messages from the network</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>misc</category>
@@ -17,8 +17,7 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="Port number" type="float">-</argument>
-            <argument name="UDP hostname or multicast address" type="symbol">-</argument>
+            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
             <method name="NAME">
@@ -26,15 +25,13 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="listen [float, symbol]">Set the port number</xinfo>
-                <xinfo on="send [anything]">Sends messages back to connected netsend objects</xinfo>
-                <xinfo on="list">Works like 'send'</xinfo>
+                <xinfo on="bang">output value</xinfo>
+                <xinfo on="float">-</xinfo>
+                <xinfo on="symbol">-</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>Messages sent from connected netsend objects</outlet>
-            <outlet>Number of open connections for TCP connections</outlet>
-            <outlet>Address and port</outlet>
+            <outlet>output</outlet>
         </outlets>
         <example>
             <pdascii>

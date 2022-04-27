@@ -1,5 +1,5 @@
 /*
- // Copyright (c) 2021-2022 Timothy Schoen
+ // Copyright (c) 2021-2022 Timothy Schoen and Pierre Guillot
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
@@ -10,7 +10,7 @@
 
 #include "Pd/PdGui.h"
 #include "PluginProcessor.h"
-#include "Sidebar.h"
+#include "Sidebar/Sidebar.h"
 
 class Canvas;
 
@@ -54,7 +54,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     virtual pd::Patch* getPatch();
     virtual Canvas* getCanvas();
-    virtual bool fakeGui();
+    virtual bool noGui();
     
     void showEditor() { input.showEditor(); }
 

@@ -20,8 +20,7 @@
             <argument name="Interval in milliseconds" type="float">-</argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
+            <method name="stop">
         </methods>
         <inlets>
             <inlet>
@@ -33,7 +32,7 @@
             </inlet>
         </inlets>
         <outlets>
-            <outlet out="bang">Metronome ticks</outlet>
+            <outlet>Metronome ticks</outlet>
         </outlets>
         <example>
             <pdascii>

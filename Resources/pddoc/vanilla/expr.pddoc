@@ -24,14 +24,14 @@
             <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
-            <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+            <inlet repeating="1">
+
+                <xinfo on="float">Replaces $f$nth in expression</xinfo>
+                <xinfo on="symbol">Replaces $s$nth in expression</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet out="float/symbol">Result of function</outlet>
         </outlets>
         <example>
             <pdascii>

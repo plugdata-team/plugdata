@@ -143,7 +143,7 @@ void Box::updateBounds(bool newObject)
             setTopLeftPosition(bounds.getPosition());
         }
         
-        if (graphics && !graphics->fakeGui())
+        if (graphics && !graphics->noGui())
         {
             addAndMakeVisible(graphics.get());
             auto b = pdObject->getBounds();
@@ -276,7 +276,7 @@ void Box::paint(Graphics& g)
         for (auto& rect : getCorners()) g.fillRoundedRectangle(rect, 2.0f);
     }
 
-    if (!graphics || (graphics && graphics->fakeGui()))
+    if (!graphics || (graphics && graphics->noGui()))
     {
         
         g.setColour(findColour(ResizableWindow::backgroundColourId));
@@ -319,19 +319,30 @@ void Box::resized()
     
     // graphical objects manage their own size limits
     // For text object, make sure the width at least fits the text
-    if (!graphics || graphics->fakeGui())
+    if (!graphics || graphics->noGui())
     {
+        // Estimate the amount of with needed to fit inlets and outlets
         int ioletWidth = std::max(numInputs, numOutputs) * 15 + 15;
+
+        // Width of text
         int textWidth = font.getStringWidth(currentText) + widthOffset;
-        int minimumWidth = std::max(textWidth, ioletWidth);
+        
+        // Round width of text objects to pd's resolution, make sure that the ideal size is one of the options
+        auto roundToTextWidth = [this](int width, int stringWidth)
+        {
+            int multiple = glist_fontwidth(cnv->patch.getPointer());
+            int offset = stringWidth % multiple;
+            return (((width + multiple - 1) / multiple) * multiple) - offset;
+        };
+        
+        // Calculate height based on number of lines, and width
+        int width = std::max(getWidth(), ioletWidth);
+        int height = Box::height + ((getNumLines(currentText, width) - 1) * 28);
         
         // Recursive resize is a bit tricky, but since these variables are very predictable,
-        // It won't be a problem
-        if(getWidth() < minimumWidth) {
-            setSize(minimumWidth,  Box::height);
-        }
-        else if(getHeight() != Box::height) {
-            setSize(getWidth(),  Box::height);
+        // it won't be a problem
+        if(getWidth() != width || getHeight() != height) {
+            setSize(width, height);
         }
     }
 
@@ -426,11 +437,9 @@ void Box::updatePorts()
         edge->isSignal = isSignal;
         edge->setAlwaysOnTop(true);
         
-        String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(currentText.upToFirstOccurrenceOf(" ", false, false), edge->edgeIdx, input);
+        String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(currentText, edge->edgeIdx, input ? numInputs : numOutputs, input);
         edge->setTooltip(tooltip);
         
-        
-
         // Dont show for graphs or presentation mode
         edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
         edge->repaint();
@@ -499,13 +508,14 @@ void Box::mouseUp(const MouseEvent& e)
                 pdObject->setBounds(b);
                 
                 // To make sure it happens after setting object bounds
-                MessageManager::callAsync([this](){
-                    cnv->checkBounds();
-                });
-                
+                if(!cnv->viewport->getViewArea().contains(getBounds())) {
+                    MessageManager::callAsync([this](){
+                        cnv->checkBounds();
+                    });
+                }
             });
     }
-    else {
+    else if(!cnv->viewport->getViewArea().contains(getBounds())) {
         cnv->checkBounds();
     }
 
@@ -544,7 +554,8 @@ void Box::showEditor()
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);
         editor->setBorder(border);
-        editor->setJustification(Justification::centred);
+        editor->setIndents(0, 0);
+        editor->setJustification(justification);
 
         editor->onFocusLost = [this]() {
             // Necessary so the editor doesn't close when clicking on a suggestion
@@ -585,7 +596,7 @@ void Box::hideEditor()
         // not needed?
         outgoingEditor->setInputFilter(nullptr, false);
 
-        if (graphics && !graphics->fakeGui())
+        if (graphics && !graphics->noGui())
         {
             setVisible(false);
             resized();

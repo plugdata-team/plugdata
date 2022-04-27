@@ -14,7 +14,7 @@ extern "C"
 }
 
 #include "Edge.h"
-#include "GUIObjects.h"
+#include "Objects/GUIObjects.h"
 
 class Canvas;
 class Box : public Component, public Value::Listener, private TextEditor::Listener
@@ -93,9 +93,9 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     Rectangle<int> originalBounds;
 
 
-    Justification justification = Justification::centred;
+    Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border{1, 2, 1, 2};
+    BorderSize<int> border{1, 8, 1, 2};
     float minimumHorizontalScale = 0.8f;
     bool editSingleClick = false;
 
