@@ -274,6 +274,7 @@ void Library::updateLibrary()
 
 void Library::parseDocumentation(const String& path)
 {
+    /* temp disable
     for (auto& iter : RangedDirectoryIterator(path, true))
     {
         auto file = iter.getFile();
@@ -333,7 +334,7 @@ void Library::parseDocumentation(const String& path)
             objectDescriptions[name] = description;
             objectKeywords[name] = StringArray::fromTokens(keywords, false);
         }
-    }
+    } */
 }
 
 Suggestions Library::autocomplete(std::string query)
