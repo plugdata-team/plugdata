@@ -17,11 +17,14 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+            <argument name="Port number" type="float">-</argument>
+            <argument name="UDP hostname or multicast address" type="symbol"></argument>
+
+            <argument name="Sets UDP connection" type="symbol" flag="-u"></argument>
+            <argument name="Sets to binary mode" type="symbol" flag="-b"></argument>
+            <argument name="Flag for from address and port outlet" type="symbol" flag="-f"></argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
             <inlet>
@@ -31,7 +34,15 @@
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet>
+                <xinfo out="anything">Messages sent from connected netsend objects</xinfo>
+            </outlet>
+            <outlet>
+                <xinfo out="float">Number of open connections for TCP connections</xinfo>
+            </outlet>
+            <outlet>
+                <xinfo out="list">Address and port</xinfo>
+            </outlet>
         </outlets>
         <example>
             <pdascii>

@@ -17,11 +17,10 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+            <argument name="Sets UDP connection" type="symbol" flag="-u"></argument>
+            <argument name="Sets to binary mode" type="symbol" flag="-b"></argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
             <inlet>
@@ -30,9 +29,14 @@
                 <xinfo on="symbol">-</xinfo>
             </inlet>
         </inlets>
-        <outlets>
-            <outlet>output</outlet>
-        </outlets>
+            <outlets>
+                <outlet>
+                    <xinfo out="float">Nonzero if connection is open, zero otherwise</xinfo>
+                </outlet>
+                <outlet>
+                    <xinfo out="anything">Messages sent back from netreceive objects</xinfo>
+                </outlet>
+            </outlets>
         <example>
             <pdascii>
 <![CDATA[
