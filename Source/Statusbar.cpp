@@ -183,15 +183,19 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
 
-    connectionStyle.referTo(pd.settingsTree.getPropertyAsValue("ConnectionStyle", nullptr));
-
     connectionStyleButton->setTooltip("Enable segmented connections");
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
     connectionStyleButton->setName("statusbar:connectionstyle");
-    connectionStyleButton->getToggleStateValue().referTo(connectionStyle);
-    
-    connectionStyleButton->onClick = [this]() { connectionPathfind->setEnabled(connectionStyle == var(true)); };
+    connectionStyleButton->onClick = [this]() {
+        bool segmented = connectionStyleButton->getToggleState();
+        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
+        for(auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>())
+        {
+            connection->setSegmented(segmented);
+        }
+        connectionPathfind->setEnabled(segmented);
+    };
 
     addAndMakeVisible(connectionStyleButton.get());
 
@@ -202,7 +206,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     {
         dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true);
     };
-    connectionPathfind->setEnabled(connectionStyle == var(true));
+    connectionPathfind->setEnabled(connectionStyleButton->getToggleState());
     addAndMakeVisible(connectionPathfind.get());
 
     addAndMakeVisible(zoomLabel);
