@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>C-style expression - audio sample</description>
+            <description>C-style expression for audio signals</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>audio math</category>
@@ -25,13 +25,13 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="set [list]">Set values for previous input/output values.</xinfo>
+                <xinfo on="stop/start">Stop/start computation</xinfo>
+                <xinfo on="clear [symbol]">Clear input/output memory, optional symbol specifies specific input (x1) or output (y1)</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet out="signal">Result of function</outlet>
         </outlets>
         <example>
             <pdascii>

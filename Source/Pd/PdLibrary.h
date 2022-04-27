@@ -13,8 +13,15 @@
 namespace pd
 {
 
+using IODescription = juce::Array<std::pair<String, bool>>;
+using IODescriptionMap = std::unordered_map<String, IODescription>;
+
 using Suggestion = std::pair<std::string, bool>;
 using Suggestions = std::vector<Suggestion>;
+
+using ObjectMap = std::unordered_map<String, String>;
+using KeywordMap = std::unordered_map<String, StringArray>;
+
 
 // Define the character size
 #define CHAR_SIZE 128
@@ -66,11 +73,16 @@ struct Library : public Timer
     void parseDocumentation(const String& path);
 
     Suggestions autocomplete(std::string query);
+    
+    String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
     void timerCallback() override;
 
-    std::unordered_map<String, String> objectDescriptions;
-    std::unordered_map<String, StringArray> objectKeywords;
+    ObjectMap objectDescriptions;
+    KeywordMap objectKeywords;
+    IODescriptionMap inletDescriptions;
+    IODescriptionMap outletDescriptions;
+    
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
     std::unique_ptr<Trie> searchTree;

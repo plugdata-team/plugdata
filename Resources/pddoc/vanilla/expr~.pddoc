@@ -23,15 +23,13 @@
             <method name="NAME">
             <param type="float" name="V" required="true">-</param></method>
         </methods>
-        <inlets>
+        <inlets repeating="1">
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="signal">Replaces $v$1 in expression</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet on="signal">Result of function</outlet>
         </outlets>
         <example>
             <pdascii>

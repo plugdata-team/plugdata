@@ -12,7 +12,7 @@
 
 #include "Canvas.h"
 #include "Connection.h"
-#include "Dialogs.h"
+#include "Dialogs/Dialogs.h"
 #include "x_libpd_mod_utils.h"
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
@@ -596,6 +596,21 @@ void PlugDataPluginEditor::updateCommandStatus()
     // TODO: Fix threading issue!!
     if (auto* cnv = getCurrentCanvas())
     {
+        // Update connection style button
+        bool allSegmented = true;
+        bool allNotSegmented = true;
+        bool hasSelection = false;
+        for(auto& connection : cnv->getSelectionOfType<Connection>())
+        {
+            allSegmented = allSegmented && connection->isSegmented();
+            allNotSegmented = allNotSegmented && !connection->isSegmented();
+            hasSelection = true;
+        }
+        
+        statusbar.connectionStyleButton->setEnabled(hasSelection && (allSegmented || allNotSegmented));
+        statusbar.connectionPathfind->setEnabled(hasSelection && allSegmented);
+        statusbar.connectionStyleButton->setToggleState(hasSelection && allSegmented, dontSendNotification);
+        
         auto* patchPtr = cnv->patch.getPointer();
         if(!patchPtr) return;
         
@@ -695,13 +710,13 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
             result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(statusbar.connectionStyle == var(true));
+            result.setActive(true);
             break;
         }
         case CommandIDs::ConnectionStyle:
         {
             result.setInfo("Connection style", "Set connection style", "Edit", 0);
-
+            result.setActive(statusbar.connectionStyleButton->isEnabled());
             break;
         }
         case CommandIDs::ZoomIn:
@@ -965,6 +980,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         {
             sidebar.showBrowser(!sidebar.isShowingBrowser());
             statusbar.browserButton->setToggleState(sidebar.isShowingBrowser(), dontSendNotification);
+            return true;
         }
         case CommandIDs::Lock:
         {
@@ -974,7 +990,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         case CommandIDs::ConnectionPathfind:
         {
             auto* cnv = getCurrentCanvas();
-
+            statusbar.connectionStyleButton->setToggleState(true, sendNotification);
             for (auto* con : cnv->connections)
             {
                 if (cnv->isSelected(con))

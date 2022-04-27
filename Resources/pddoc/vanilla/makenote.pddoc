@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>Schedule delayed "note off" message for a note-on</description>
+            <description>schedule delayed "note off" message for a note-on</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>io</category>
@@ -17,25 +17,21 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="velocity" type="float">-</argument>
-            <argument name="duration" type="float">-</argument>
+            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
+            <method name="NAME">
+            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="float">Pitch</xinfo>
-            </inlet>
-            <inlet>
-                <xinfo on="float">Velocity</xinfo>
-            </inlet>
-            <inlet>
-                <xinfo on="float">Duration</xinfo>
+                <xinfo on="bang">output value</xinfo>
+                <xinfo on="float">-</xinfo>
+                <xinfo on="symbol">-</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>Pitch output</outlet>
-            <outlet>Velocity output</outlet>
+            <outlet>output</outlet>
         </outlets>
         <example>
             <pdascii>

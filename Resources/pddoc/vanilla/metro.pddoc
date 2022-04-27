@@ -33,7 +33,7 @@
             </inlet>
         </inlets>
         <outlets>
-            <outlet>Metronome ticks</outlet>
+            <outlet out="bang">Metronome ticks</outlet>
         </outlets>
         <example>
             <pdascii>
