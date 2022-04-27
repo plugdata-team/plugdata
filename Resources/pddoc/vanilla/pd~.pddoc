@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>run another copy (process) of Pd</description>
+            <description>Run another process of Pd</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>extra</category>
@@ -17,22 +17,41 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+            <argument name="Sets number of input audio channels" type="symbol" flag="-ninsig [float]"></argument>
+            <argument name="Sets number of output audio channels" type="symbol" flag="-noutsig [float]"></argument>
+            <argument name="Sets sample rate" type="symbol" flag="-sr [float]"></argument>
+            <argument name="Sets number of blocks for round-trip" type="symbol" flag="-fifo [float]"></argument>
+            <argument name="Sets Pd's directory" type="symbol" flag="-pddir [symbol]"></argument>
+            <argument name="Sets scheduler's directory" type="symbol" flag="-scheddir [symbol]"></argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
+
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="pd~ start [anything]">Start a new sub-process</xinfo>
+                <xinfo on="pd~ stop">Stops the pd sub-process</xinfo>
+                <xinfo on="anything">Messages to sub-process</xinfo>
+                <xinfo on="signal">Signal</xinfo>
             </inlet>
+
+            <inlet repeating="1">
+                <xinfo on="signal">Signal $nth</xinfo>
+            </inlet>
+
         </inlets>
+
         <outlets>
-            <outlet>output</outlet>
+            <outlet>
+                <xinfo out="anything">Messages from the sub-process</xinfo>
+            </outlet>
+
+            <outlet repeating="1">
+                <xinfo out="signal">Signal $nth</xinfo>
+            </outlet>
         </outlets>
+
+
         <example>
             <pdascii>
 <![CDATA[

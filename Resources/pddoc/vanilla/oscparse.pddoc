@@ -17,22 +17,24 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
+        
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="list">OSC packet to convert to Pd list messages</xinfo>
             </inlet>
         </inlets>
+
         <outlets>
-            <outlet>output</outlet>
+
+            <outlet>
+                <xinfo out="list">Pd list messages from OSC packets</xinfo>
+            </outlet>
+
         </outlets>
+
         <example>
             <pdascii>
 <![CDATA[
