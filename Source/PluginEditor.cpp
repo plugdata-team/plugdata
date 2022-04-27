@@ -965,6 +965,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         {
             sidebar.showBrowser(!sidebar.isShowingBrowser());
             statusbar.browserButton->setToggleState(sidebar.isShowingBrowser(), dontSendNotification);
+            return true;
         }
         case CommandIDs::Lock:
         {

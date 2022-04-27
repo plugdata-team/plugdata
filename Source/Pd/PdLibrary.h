@@ -66,11 +66,16 @@ struct Library : public Timer
     void parseDocumentation(const String& path);
 
     Suggestions autocomplete(std::string query);
+    
+    String getInletOutletTooltip(String boxname, int idx, bool isInlet);
 
     void timerCallback() override;
 
     std::unordered_map<String, String> objectDescriptions;
     std::unordered_map<String, StringArray> objectKeywords;
+    std::unordered_map<String, StringArray> inletDescriptions;
+    std::unordered_map<String, StringArray> outletDescriptions;
+    
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
     std::unique_ptr<Trie> searchTree;
