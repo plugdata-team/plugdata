@@ -561,15 +561,28 @@ void Instance::createPanel(int type, const char* snd, const char* location)
     }
 }
 
+void Instance::limitMessages()
+{
+    // Remove 50 at a time to maintain some performance
+    if(consoleMessages.size() > 2000) {
+        consoleMessages.erase(consoleMessages.begin(), consoleMessages.begin() + 50);
+    }
+    if(consoleHistory.size() > 2000) {
+        consoleHistory.erase(consoleHistory.begin(), consoleHistory.begin() + 50);
+    }
+}
+
 void Instance::logMessage(const String& message)
 {
     consoleMessages.emplace_back(message, 0);
+    limitMessages();
     updateConsole();
 }
 
 void Instance::logError(const String& error)
 {
     consoleMessages.emplace_back(error, 1);
+    limitMessages();
     updateConsole();
 }
 }  // namespace pd

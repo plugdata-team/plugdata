@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>Receive messages from network</description>
+            <description>receive messages from the network</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>misc</category>
@@ -28,9 +28,9 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="listen [float, symbol]">Set the port number</xinfo>
-                <xinfo on="send [anything]">Sends messages back to connected netsend objects</xinfo>
-                <xinfo on="list">Works like 'send'</xinfo>
+                <xinfo on="bang">output value</xinfo>
+                <xinfo on="float">-</xinfo>
+                <xinfo on="symbol">-</xinfo>
             </inlet>
         </inlets>
         <outlets>

@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>Send messages over the network</description>
+            <description>send messages over the network</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>misc</category>
@@ -24,14 +24,11 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="connect [list]">Sets host and port number</xinfo>
-                <xinfo on="disconnect">Close the connection</xinfo>
-                <xinfo on="timeout [float]">TCP connect timeout in ms</xinfo>
-                <xinfo on="send [anything]">Sends messages over the network</xinfo>\
-                <xinfo on="list">Works like 'send'</xinfo>
+                <xinfo on="bang">output value</xinfo>
+                <xinfo on="float">-</xinfo>
+                <xinfo on="symbol">-</xinfo>
             </inlet>
         </inlets>
-        <outlets>
             <outlets>
                 <outlet>
                     <xinfo out="float">Nonzero if connection is open, zero otherwise</xinfo>
@@ -40,7 +37,6 @@
                     <xinfo out="anything">Messages sent back from netreceive objects</xinfo>
                 </outlet>
             </outlets>
-        </outlets>
         <example>
             <pdascii>
 <![CDATA[

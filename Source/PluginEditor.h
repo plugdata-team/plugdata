@@ -8,8 +8,8 @@
 
 #include <JuceHeader.h>
 
-#include "Dialogs.h"
-#include "Sidebar.h"
+#include "Dialogs/Dialogs.h"
+#include "Sidebar/Sidebar.h"
 #include "Statusbar.h"
 
 #ifndef PLUGDATA_STANDALONE
