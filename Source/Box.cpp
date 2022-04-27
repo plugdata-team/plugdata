@@ -425,6 +425,11 @@ void Box::updatePorts()
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;
         edge->setAlwaysOnTop(true);
+        
+        String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(currentText.upToFirstOccurrenceOf(" ", false, false), edge->edgeIdx, input);
+        edge->setTooltip(tooltip);
+        
+        
 
         // Dont show for graphs or presentation mode
         edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
