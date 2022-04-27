@@ -292,6 +292,40 @@ void Library::parseDocumentation(const String& path)
 
             auto keywords = meta->getChildElementAllSubText("keywords", "");
             auto description = meta->getChildElementAllSubText("description", "");
+            
+            
+            auto outlets = StringArray();
+            auto inlets = StringArray();
+            
+            auto inletsTree = object->getChildByName("inlets");
+            auto outletsTree = object->getChildByName("outlets");
+            
+            if(name == "metro") {
+                std::cout << "T" << std::endl;
+            }
+            
+            for(auto* inlet : inletsTree->getChildIterator())
+            {
+                bool repeating = inlet->getNumAttributes() == 1 && inlet->getAttributeName(0) == "repeating";
+                String totalDescription;
+                
+                for(auto* trigger : inlet->getChildIterator())
+                {
+                    totalDescription += "(" + trigger->getStringAttribute("on") + ") " +  trigger->getAllSubText() + "\n";
+                }
+                
+                inlets.add(totalDescription);
+            }
+            
+            for(auto* outlet : outletsTree->getChildIterator())
+            {
+                bool repeating = outlet->getNumAttributes() == 1 && outlet->getAttributeName(0) == "repeating";
+                outlets.add(outlet->getAllSubText());
+            }
+                
+            
+            outletDescriptions[name] = outlets;
+            inletDescriptions[name] = inlets;
 
             objectDescriptions[name] = description;
             objectKeywords[name] = StringArray::fromTokens(keywords, false);
@@ -304,6 +338,18 @@ Suggestions Library::autocomplete(std::string query)
     Suggestions result;
     searchTree->autocomplete(std::move(query), result);
     return result;
+}
+
+String Library::getInletOutletTooltip(String boxname, int idx, bool isInlet)
+{
+    if(isInlet){
+        auto box = inletDescriptions[boxname];
+        return isPositiveAndBelow(idx, box.size()) ? inletDescriptions[boxname][idx] : "";
+    }
+    else {
+        auto box = outletDescriptions[boxname];
+        return isPositiveAndBelow(idx, box.size()) ? outletDescriptions[boxname][idx] : "";
+    }
 }
 
 void Library::timerCallback()
