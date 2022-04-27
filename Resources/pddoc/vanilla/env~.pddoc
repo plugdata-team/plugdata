@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>envelope follower</description>
+            <description>Envelope follower</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>audio filters</category>
@@ -17,7 +17,8 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+          <argument name="Window size in samples" type="float" default="1024">-</argument>
+          <argument name="Period in samples per analysis" type="float" default="Window size / 2">-</argument>
         </arguments>
         <methods>
             <method name="NAME">
@@ -25,13 +26,11 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="signal">Signal to be analyzed</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet out="float">RMS envelope in dB</outlet>
         </outlets>
         <example>
             <pdascii>

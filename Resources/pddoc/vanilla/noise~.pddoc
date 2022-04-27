@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>White noise generator</description>
+            <description>white noise generator</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>audio filters</category>
@@ -17,16 +17,21 @@
             <par>-</par>
         </info>
         <arguments>
+            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
+            <method name="NAME">
+            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="seed [float]">Set seed</xinfo>
+                <xinfo on="bang">output value</xinfo>
+                <xinfo on="float">-</xinfo>
+                <xinfo on="symbol">-</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>Signal</outlet>
+            <outlet>output</outlet>
         </outlets>
         <example>
             <pdascii>
