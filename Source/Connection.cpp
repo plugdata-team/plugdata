@@ -13,13 +13,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
 {
     // Should improve performance
     setBufferedToImage(true);
-    
 
     locked.referTo(parent->locked);
-    connectionStyle.referTo(parent->connectionStyle);
-
-    // Receive mouse events on canvas: maybe not needed because we test for hitbox now?
-    // addMouseListener(cnv, true);
 
     // Make sure it's not 2x the same edge
     if (!outlet || !inlet || outlet->isInlet == inlet->isInlet)
@@ -96,13 +91,6 @@ String Connection::getState()
 void Connection::setState(const String& state)
 {
     auto plan = PathPlan();
-    
-    /*
-    MemoryBlock positionBlock;
-    positionBlock.fromBase64Encoding(cnv->storage.getInfo(getId(), "Offset"));
-    MemoryInputStream positionStream(positionBlock, false);
-    int xOffset = positionStream.readInt();
-    int yOffset = positionStream.readInt(); */
     
     auto block = MemoryBlock();
     auto succeeded = block.fromBase64Encoding(state);
@@ -203,10 +191,9 @@ void Connection::paint(Graphics& g)
 
 void Connection::mouseMove(const MouseEvent& e)
 {
-    bool segmentedConnection = connectionStyle == var(true);
     int n = getClosestLineIdx(e.getPosition() + origin, currentPlan);
 
-    if (segmentedConnection && currentPlan.size() > 2 && n > 0)
+    if (isSegmented() && currentPlan.size() > 2 && n > 0)
     {
         auto line = Line<int>(currentPlan[n - 1], currentPlan[n]);
 
@@ -264,12 +251,22 @@ void Connection::mouseDown(const MouseEvent& e)
     dragIdx = n;
 }
 
+bool Connection::isSegmented()
+{
+    return cnv->storage.getInfo(getId(), "Segmented") == "1";
+}
+void Connection::setSegmented(bool segmented)
+{
+    cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
+    updatePath();
+    repaint();
+}
+
 void Connection::mouseDrag(const MouseEvent& e)
 {
     if (currentPlan.empty()) return;
     
-    bool curvedConnection = cnv->pd->settingsTree.getProperty("ConnectionStyle");
-    if (curvedConnection && dragIdx != -1)
+    if (isSegmented() && dragIdx != -1)
     {
         auto n = dragIdx;
         auto delta = e.getPosition() - e.getMouseDownPosition();
@@ -326,8 +323,10 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
-
-    if (currentPlan.size() <= 2 || connectionStyle == var(false))
+    
+    
+    
+    if (currentPlan.size() <= 2 || cnv->storage.getInfo(getId(), "Style") == "0")
     {
         updatePath();
         return;
@@ -380,9 +379,8 @@ void Connection::updatePath()
     auto pstart = outlet->getCanvasBounds().getCentre() - origin;
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
 
-    bool segmentedConnection = connectionStyle == var(true);
 
-    if (!segmentedConnection)
+    if (!isSegmented())
     {
         toDraw.clear();
 
