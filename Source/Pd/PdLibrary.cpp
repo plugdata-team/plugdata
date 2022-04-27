@@ -292,6 +292,43 @@ void Library::parseDocumentation(const String& path)
 
             auto keywords = meta->getChildElementAllSubText("keywords", "");
             auto description = meta->getChildElementAllSubText("description", "");
+            
+            
+            auto outlets = IODescription();
+            auto inlets = IODescription();
+            
+            auto inletsTree = object->getChildByName("inlets");
+            auto outletsTree = object->getChildByName("outlets");
+            
+            if(name == "metro") {
+                std::cout << "T" << std::endl;
+            }
+            
+            for(auto* inlet : inletsTree->getChildIterator())
+            {
+                bool repeating = inlet->getNumAttributes() == 1 && inlet->getAttributeName(0) == "repeating";
+                String totalDescription;
+                
+                for(auto* trigger : inlet->getChildIterator())
+                {
+                    totalDescription += "(" + trigger->getStringAttribute("on") + ") " +  trigger->getAllSubText() + "\n";
+                }
+            
+                inlets.add({totalDescription, repeating});
+
+            }
+            
+            for(auto* outlet : outletsTree->getChildIterator())
+            {
+                String type = outlet->getStringAttribute("out");
+                String description = outlet->getAllSubText();
+                if(!type.isEmpty()) description = "(" + type + ") " + description;
+                bool repeating = outlet->getNumAttributes() == 1 && outlet->getAttributeName(0) == "repeating";
+                outlets.add({description, repeating});
+            }
+            
+            outletDescriptions[name] = outlets;
+            inletDescriptions[name] = inlets;
 
             objectDescriptions[name] = description;
             objectKeywords[name] = StringArray::fromTokens(keywords, false);
@@ -304,6 +341,40 @@ Suggestions Library::autocomplete(std::string query)
     Suggestions result;
     searchTree->autocomplete(std::move(query), result);
     return result;
+}
+
+String Library::getInletOutletTooltip(String boxname, int idx, int total, bool isInlet)
+{
+    auto name = boxname.upToFirstOccurrenceOf(" ", false, false);
+    auto args = StringArray::fromTokens(boxname.fromFirstOccurrenceOf(" ", false, false), true);
+    
+    auto findInfo = [&name, &args, &total, &idx](IODescriptionMap& map){
+        if(map.count(name)){
+            auto descriptions = map.at(name);
+            
+            // if the amount of inlets is not equal to the amount in the spec, look for repeating inlets
+            if(descriptions.size() < total) {
+                for(int i = 0; i < descriptions.size(); i++) {
+                    if(descriptions[i].second) { // repeating inlet found
+                        for(int j = 0; j < total - descriptions.size(); j++){
+                            descriptions.insert(i, descriptions[i]);
+                        }
+                    }
+                }
+            }
+            
+            auto result = isPositiveAndBelow(idx, descriptions.size()) ? descriptions[idx].first : String();
+            result = result.replace("$mth", String(idx));
+            result = result.replace("$nth", String(idx + 1));
+            result = result.replace("$arg", args[idx]);
+            
+            return result;
+        }
+        
+        return String();
+    };
+    
+    return isInlet ? findInfo(inletDescriptions) : findInfo(outletDescriptions);
 }
 
 void Library::timerCallback()

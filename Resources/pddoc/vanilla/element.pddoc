@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>get an array element</description>
+            <description>Get an array element pointer</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>accessing data</category>
@@ -17,7 +17,8 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+            <argument name="Template name" type="symbol">-</argument>
+            <argument name="Field name" type="symbol">-</argument>
         </arguments>
         <methods>
             <method name="NAME">
@@ -25,13 +26,15 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="float">Set element index and output pointer</xinfo>
+                <xinfo on="set [symbol, symbol]">Set template and field name</xinfo>
+            </inlet>
+            <inlet>
+                <xinfo on="pointer">Pointer to an array</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet out="pointer">Pointer to element in an array</outlet>
         </outlets>
         <example>
             <pdascii>

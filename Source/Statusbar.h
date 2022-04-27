@@ -48,7 +48,6 @@ struct Statusbar : public Component, public Timer, public KeyListener
 
     Value zoomScale;
 
-    Value connectionStyle;
     Value gridEnabled;
     Value theme;
 

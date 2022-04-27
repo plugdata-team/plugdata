@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<pddoc version="1.0">
+    <object name="makenote">
+        <title>makenote</title>
+        <meta>
+            <authors>
+                <author>Miller Smith Puckette</author>
+            </authors>
+            <description>Schedule delayed "note off" message for a note-on</description>
+            <license>BSD</license>
+            <library>puredata</library>
+            <category>io</category>
+            <keywords>io makenote</keywords>
+            <since>0.33</since>
+        </meta>
+        <info>
+            <par>-</par>
+        </info>
+        <arguments>
+            <argument name="velocity" type="float">-</argument>
+            <argument name="duration" type="float">-</argument>
+        </arguments>
+        <methods>
+        </methods>
+        <inlets>
+            <inlet>
+                <xinfo on="float">Pitch</xinfo>
+            </inlet>
+            <inlet>
+                <xinfo on="float">Velocity</xinfo>
+            </inlet>
+            <inlet>
+                <xinfo on="float">Duration</xinfo>
+            </inlet>
+        </inlets>
+        <outlets>
+            <outlet>Pitch output</outlet>
+            <outlet>Velocity output</outlet>
+        </outlets>
+        <example>
+            <pdascii>
+<![CDATA[
+
+[makenote]
+
+]]>
+            </pdascii>
+        </example>
+    </object>
+</pddoc>

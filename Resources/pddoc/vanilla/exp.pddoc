@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>higher math</description>
+            <description>Exponent of float input</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>math</category>
@@ -17,7 +17,6 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
             <method name="NAME">
@@ -25,13 +24,11 @@
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="float">Input value to given function.</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
+            <outlet out="float">Output of given function</outlet>
         </outlets>
         <example>
             <pdascii>

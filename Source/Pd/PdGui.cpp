@@ -478,15 +478,14 @@ std::vector<Atom> Gui::getList() const noexcept
         {
             if (av[i].a_type == A_FLOAT)
             {
-                array.push_back({atom_getfloat(av + i)});
+                array.emplace_back(atom_getfloat(av + i));
             }
-            else if (av[i].a_type == A_SYMBOL)
-            {
-                array.push_back({atom_getsymbol(av + i)->s_name});
+            else if (av[i].a_type == A_SYMBOL) {
+                array.emplace_back(atom_getsymbol(av + i)->s_name);
             }
             else
             {
-                array.push_back({});
+                array.emplace_back();
             }
         }
         return array;
