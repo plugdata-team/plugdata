@@ -6,7 +6,7 @@
             <authors>
                 <author>Miller Smith Puckette</author>
             </authors>
-            <description>add an outlet to a pd</description>
+            <description>Add an outlet to a subwindow</description>
             <license>BSD</license>
             <library>puredata</library>
             <category>subwindows</category>
@@ -17,21 +17,15 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
             <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+                <xinfo on="anything">Anything to send to parent patch</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
         </outlets>
         <example>
             <pdascii>

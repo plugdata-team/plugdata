@@ -17,21 +17,22 @@
             <par>-</par>
         </info>
         <arguments>
-            <argument name="ARG_NAME" type="symbol">-</argument>
+            <argument name="Sets MIDI channel" type="float">-</argument>
         </arguments>
         <methods>
-            <method name="NAME">
-            <param type="float" name="V" required="true">-</param></method>
         </methods>
         <inlets>
-            <inlet>
-                <xinfo on="bang">output value</xinfo>
-                <xinfo on="float">-</xinfo>
-                <xinfo on="symbol">-</xinfo>
+            <inlet>                
+                <xinfo on="float">MIDI note pitch</xinfo>
+            </inlet>
+            <inlet>                
+                <xinfo on="float">MIDI note velocity</xinfo>
+            </inlet>
+            <inlet>                
+                <xinfo on="float">MIDI channel</xinfo>
             </inlet>
         </inlets>
         <outlets>
-            <outlet>output</outlet>
         </outlets>
         <example>
             <pdascii>
