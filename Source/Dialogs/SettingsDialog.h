@@ -132,16 +132,6 @@ class SearchPathComponent : public Component, public TableListBoxModel
     // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
     void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
     {
-        if (rowIsSelected)
-        {
-            g.setColour(findColour(PlugDataColour::highlightColourId));
-        }
-        else
-        {
-            g.setColour(findColour(row & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
-        }
-
-        g.fillRect(1, 0, w - 3, h);
     }
 
     // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
@@ -186,22 +176,10 @@ class SearchPathComponent : public Component, public TableListBoxModel
     
     void paint(Graphics& g) override
     {
-        
-        int itemHeight = table.getRowHeight();
-        int totalHeight = std::max(table.getViewport()->getViewedComponent()->getHeight(), getHeight());
-        for(int i = 0; i < (totalHeight / itemHeight) + 1; i++)
-        {
-            int y = i * itemHeight - table.getViewport()->getViewPositionY();
-            int height = itemHeight;
-            
-            if(y + itemHeight > getHeight() - 28) {
-                height = (getHeight() - 28) - (y - itemHeight);
-            }
-            if(height <= 0) break;
-            
-            g.setColour(findColour(i & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
-            g.fillRect(0, y, getWidth(), height);
-        }
+
+        auto* viewport = table.getViewport();
+        PlugDataLook::paintStripes(g, table.getRowHeight(), viewport->getViewedComponent()->getHeight(), table, table.getSelectedRow(), table.getViewport()->getViewPositionY());
+    
     }
 
 

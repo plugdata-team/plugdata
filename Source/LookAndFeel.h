@@ -747,15 +747,11 @@ struct PlugDataLook : public LookAndFeel_V4
                                              int /*itemIndex*/, DirectoryContentsDisplayComponent& dcc) override
     {
         auto fileListComp = dynamic_cast<Component*> (&dcc);
-
-        if (isItemSelected)
-            g.fillAll (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::highlightColourId)
-                                               : findColour (DirectoryContentsDisplayComponent::highlightColourId));
-
         const int x = 32;
 
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(iconFont);
+        
         
         if(isDirectory) {
             g.drawFittedText(Icons::Folder, Rectangle<int> (2, 2, x - 4, height - 4), Justification::centred, 1);
@@ -772,7 +768,7 @@ struct PlugDataLook : public LookAndFeel_V4
             g.setColour (fileListComp != nullptr ? fileListComp->findColour (DirectoryContentsDisplayComponent::textColourId)
                                                  : findColour (DirectoryContentsDisplayComponent::textColourId));
 
-        g.setFont (defaultFont.withHeight(height * 0.7f));
+        g.setFont (Font());
 
         if (width > 450 && ! isDirectory)
         {
@@ -810,6 +806,32 @@ struct PlugDataLook : public LookAndFeel_V4
     LookAndFeel* getPdLook()
     {
         return new PdLook;
+    }
+    
+    static void paintStripes(Graphics& g, int itemHeight, int totalHeight, Component& owner, int selected, int offset) {
+        totalHeight = std::max(owner.getHeight(), totalHeight);
+        int y = -offset;
+        int i = 0;
+        
+        while(totalHeight) {
+            if(totalHeight < itemHeight) {
+                itemHeight = totalHeight;
+            }
+            
+            if(selected >= 0 && selected == i){
+                g.setColour(owner.findColour(PlugDataColour::highlightColourId));
+            }
+            else {
+                g.setColour(owner.findColour(i & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
+            }
+            
+            g.fillRect(0, y, owner.getWidth(), itemHeight);
+            
+            y += itemHeight;
+            totalHeight -= itemHeight;
+            i++;
+        }
+        
     }
     
     void setColours(Colour firstColour, Colour secondColour, Colour textColour, Colour highlightColour, Colour outlineColour, Colour connectionColour)
