@@ -34,18 +34,10 @@ flags:
   description: sets a different field name for w.
 arguments:
 - type: symbol
-  description: (optional) 'curve' sets to Bezier curve (default polygon).
+  description: (optional) 'curve' sets to Bezier curve 
+  default: polygon
+.
 - type: symbol
   description: field to plot the array.
 - type: float*
-  description: color (default 0).
-- type: float*
-  description: line width (default 1).
-- type: list*
-  description: relative x and y location (default 0 0).
-- type: float*
-  description: x spacing.
-- type: '*'
-  description: can also be field names. 
-draft: false
----
+  description: color 

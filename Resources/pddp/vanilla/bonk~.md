@@ -47,23 +47,8 @@ outlets:
     description: "cooked: instrument number (if there's a template), velocity and temperature."
 flags:	
 - flag: -npts
-  description: window size in points (default 256).
+  description: window size in points 
+  default: 256
+.
 - flag: -hop
-  description: analysis period ("hop size") in points (default 128).
-- flag: -nfilters
-  description: number of filters to use (default 11).
-- flag: -halftones
-  description: filter bandwidth of filters in halftones (default 6).
-- flag: -minbandwidth
-  description: minimum bandwidth in bins (default 1.5).
-- flag: -overlap
-  description: overlap factor between filters (default 1)
-- flag: -firstbin
-  description: center frequency, in bins, of the lowest filter (default 1).
-draft: false
----
-The Bonk object takes an audio signal input and looks for "attacks" defined as sharp changes in the spectral envelope of the incoming sound. Optionally, and less reliably, you can have Bonk check the attack against a collection of stored templates to try to guess which of two or more instruments was hit. Bonk is described theoretically in the 1998 ICMC proceedings, reprinted on msp.ucsd.edu.
-
-Bonk's two outputs are the raw spectrum of the attack (provided as a list of 11 numbers giving the signal "loudness" in the 11 frequency bands used), and the "cooked" output which gives an instrument number (counting up from zero), "velocity" and "color temperature". The instrument number is significant only if bonk~ has a "template set" in memory. The "velocity" is the sum of the square roots of the amplitudes of the bands (normalized so that 100 is an attack of amplitude of about 1). The "temperature" is a sort of 'spectral centroid' that correlates with perceived brilliance.
-
-By default bonk's analysis is carried out on a 256-point window (6 msec at 44.1 kHz) and the analysis period is 128 samples. These and other parameters may be overridden using creation arguments.
+  description: analysis period ("hop size"

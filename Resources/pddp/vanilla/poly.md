@@ -9,7 +9,9 @@ see_also:
 - makenote
 - route
 arguments:
-- description: number of voices (default 1).
+- description: number of voices 
+  default: 1
+.
   type: float
 - description: non-zero sets to voice stealing.
   type: float
@@ -36,4 +38,4 @@ outlets:
     description: note velocitty.
 draft: false
 ---
-The poly object takes a stream of pitch/velocity pairs and outputs triples containing voice number, pitch and velocity. You can pack the output and use the route object to route messages among a bank of voices depending on the first outlet. Another option is to connect it [clone] so you can route to different copies. Poly can be configured to do voice stealing or not (the default.)
+The poly object takes a stream of pitch/velocity pairs and outputs triples containing voice number, pitch and velocity. You can pack the output and use the route object to route messages among a bank of voices depending on the first outlet. Another option is to connect it [clone] so you can route to different copies. Poly can be configured to do voice stealing or not (the default.

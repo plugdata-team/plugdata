@@ -17,8 +17,6 @@ inlets:
     description: signal to send to parent patch.
 arguments:
 - type: symbol
-  description: "downsampling method: 'hold' for sample/hold (default), 'pad' for zero-padded and 'lin' for linear interpolation)."
-
-draft: false
----
-Inlets/outlets are used to receive and get information on a patch window. This can be an abstraction or a subpatch. 
+  description: "downsampling method: 'hold' for sample/hold 
+  default:
+, 'pad' for zero-padded and 'lin' for linear interpolation

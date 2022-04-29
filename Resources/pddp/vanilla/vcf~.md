@@ -35,9 +35,9 @@ outlets:
     description: imaginary output (bandpasse filtered signal).
 arguments:
   - type: float
-    description: initial Q (default 0).
+    description: initial Q 
+  default: 0
+.
 draft: false
 ---
-Vcf~ is a resonant band-pass and low-pass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values). The "Q" or filter sharpness is still only set by control messages. It is more expensive but more powerful than the bp~ bandpass filter.
-
-Vcf~ is implemented as a one-pole complex filter with outlets for the real and imaginary value. These may be used as bandpass and lowpass filter outputs, or combined to allow other possibilities.
+Vcf~ is a resonant band-pass and low-pass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values
