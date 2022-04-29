@@ -30,12 +30,8 @@ flags:
   description: disable dragging vertices when in "run" mode (keeps reporting mouse clicks).
 arguments:
 - type: float* 
-  description: line color, filled shapes have an extra first interior color. (default 0, 0).
+  description: line color, filled shapes have an extra first interior color. 
+  default: 0
+.
 - type: float*
-  description: line width (default 1).
-- type: list*
-  description: (x, y) pairs giving coordinates of each vertice.
-- type: '*'
-  description: all of the above can also be field names.
-draft: false
----
+  description: line width 

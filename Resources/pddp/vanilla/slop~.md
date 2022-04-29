@@ -35,15 +35,8 @@ outlets:
     description: filtered signal.
 arguments:
   - type: float
-    description: cutoff frequency in linear region (default 0).
+    description: cutoff frequency in linear region 
+  default: 0
+.
   - type: float
-    description: maximum downward slew of linear region (default 0).
-  - type: float
-    description: asymptotic downward cutoff frequency (default 0).
-  - type: float
-    description: maximum upward slew of linear region (default 0).
-  - type: float
-    description: asymptotic upward cutoff frequency (default 0).
-draft: false
----
-The slop~ object is a low-pass filter whose frequency response (i.e., reaction speed) can vary according to the filter's state. It can be useful for slew limiting, dynamics processing (companders/limiters/noise gates), and soft saturation. Examples below are explained in the HTML reference (linked above).
+    description: maximum downward slew of linear region 

@@ -24,8 +24,6 @@ outlets:
     description: any message from parent patch when give a 'fwd' argument.
 arguments:
 - type: symbol
-  description: "'fwd' to turn message forwarding on. Alternatively, you can set upsampling method: 'hold' for sample/hold (default), 'pad' for zero-padded and 'lin' for linear interpolation)."
-
-draft: false
----
-Inlets/outlets are used to receive and get information on a patch window. This can be an abstraction or a subpatch. 
+  description: "'fwd' to turn message forwarding on. Alternatively, you can set upsampling method: 'hold' for sample/hold 
+  default:
+, 'pad' for zero-padded and 'lin' for linear interpolation

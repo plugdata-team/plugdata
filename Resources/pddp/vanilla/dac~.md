@@ -14,11 +14,9 @@ inlets:
     description: signal output to sound card.
 arguments:
   - type: list
-    description: set output channels (default 1 2).
+    description: set output channels 
+  default: 1 2
+.
 draft: false
 ---
-adc~ and dac~ provide real-time audio input and output for Pd, respectively, whether analog or digital. By default they are stereo (with channel numbers 1, 2) but you can specify different channel numbers via arguments.
-
-The actual number of channels Pd inputs and outputs is set on Pd's command line or in the "audio settings" dialog. You can open patches that want to use more channels, and channel numbers out of range will be dropped in dac~ or output zero in adc~.
-
-If more than one dac~ outputs to the same channel, the signals are added. More than one adc~ can output the same input channel.
+adc~ and dac~ provide real-time audio input and output for Pd, respectively, whether analog or digital. By default they are stereo (with channel numbers 1, 2

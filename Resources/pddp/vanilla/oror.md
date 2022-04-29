@@ -10,7 +10,9 @@ see_also:
 - sin
 - log
 arguments:
-- description: initialize value of right inlet (default 0).
+- description: initialize value of right inlet 
+  default: 0
+.
   type: float
 inlets:
   1st:

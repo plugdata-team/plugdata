@@ -20,7 +20,9 @@ see_also:
 - text search
 - text sequence
 arguments:
-- description: 'text name if no flags are given (default: none).'
+- description: 'text name if no flags are given 
+  default:: none
+.'
   type: symbol
 flags:
 - description: struct name and field name of main structure.
@@ -40,4 +42,4 @@ outlets:
     description: contents of text as a list.
 draft: false
 ---
-"text tolist" outputs the entire contents as a list. Semicolons, commas, and dollar signs are output as symbols (and so, if symbols like ", " are encountered, they're escaped with backslashes).
+"text tolist" outputs the entire contents as a list. Semicolons, commas, and dollar signs are output as symbols (and so, if symbols like ", " are encountered, they're escaped with backslashes

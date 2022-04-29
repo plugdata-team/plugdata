@@ -20,7 +20,9 @@ see_also:
 - text
 - text sequence
 arguments:
-- description: 'text name if no flags are given (default: none).'
+- description: 'text name if no flags are given 
+  default:: none
+.'
   type: symbol
 - description: search field number optionally preceded by '>'. '>=', '<', '<=', or
     'near'.

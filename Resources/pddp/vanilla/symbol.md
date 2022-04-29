@@ -10,7 +10,9 @@ see_also:
 - int
 - float
 arguments:
-- description: 'initially stored symbol (default: empty symbol).'
+- description: 'initially stored symbol 
+  default:: empty symbol
+.'
   type: symbol
 inlets:
   1st:
@@ -22,15 +24,4 @@ inlets:
     description: stores the symbol received and outputs it.
   2nd:
   - type: symbol
-    description: stores the symbol (no output).
-outlets:
-  1st:
-  - type: symbol
-    description: the stored symbol.
-draft: false
----
-Store a symbol (i.e., string)
-
-The symbol object stores a symbol,  Pd's data type for handling fixed strings (often filenames,  array names,  send/receive names or the names of other objects in pd).
-
-NOTE: unlike "float",  etc.,  there's no "send" message to forward to another object -- that would conflict with the function of converting arbitrary messages to symbols.
+    description: stores the symbol (no output

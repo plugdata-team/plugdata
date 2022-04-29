@@ -17,7 +17,9 @@ outlets:
     description: shifted signal vector.
 arguments:
 - type: float
-  description: shift amount, positive or negative (default 0).
+  description: shift amount, positive or negative 
+  default: 0
+.
 draft: false
 ---
-Acting at whatever vector size the window is running at, lrshift~ shifts samples to the left (toward the beginning sample) or to the right. The argument gives the direction and the amount of the shift. The rightmost (or leftmost) samples are set to zero.
+Acting at whatever vector size the window is running at, lrshift~ shifts samples to the left (toward the beginning sample

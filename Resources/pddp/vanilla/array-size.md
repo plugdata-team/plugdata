@@ -16,7 +16,9 @@ see_also:
 - array max
 - array min
 arguments:
-- description: array name if no flags are given (default = none).
+- description: array name if no flags are given 
+  default: = none
+.
   type: symbol
 flags:
 - description: struct name and field name of main structure.
@@ -40,4 +42,4 @@ outlets:
     description: array size.
 draft: false
 ---
-"array define" maintains an array and can name it so that other objects can find it (and later should have some alternative, anonymous way to be found).
+"array define" maintains an array and can name it so that other objects can find it (and later should have some alternative, anonymous way to be found
