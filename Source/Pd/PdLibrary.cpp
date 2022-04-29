@@ -367,7 +367,7 @@ void Library::parseDocumentation(const String& path)
             for (auto& [type, description] : parseTypeAndDescription(sections["arguments"]))
             {
                 String defaultValue;
-                if (description.count("(default"))
+                if (description.contains("(default"))
                 {
                     defaultValue = formatText(description.fromFirstOccurrenceOf("(default", false, false).upToFirstOccurrenceOf(")", false, false));
                     description = description.upToFirstOccurrenceOf("(default", false, false);
