@@ -16,6 +16,7 @@ inlets:
 arguments:
 - type: symbol
   description: throw~ symbol name 
-  default: empty symboldraft: false
+  default: empty symbol
+draft: false
 ---
 Any number of throw~ objects can add into one catch~ object (but two catch~ objects cannot share the same name.

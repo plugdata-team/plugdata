@@ -17,5 +17,6 @@ see_also:
 - array min
 arguments:
 - description: array name if no flags are given 
-  default: none  type: symbol
+  default: none
+  type: symbol
 - description: initial onset 

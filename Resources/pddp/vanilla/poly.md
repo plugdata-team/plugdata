@@ -10,7 +10,8 @@ see_also:
 - route
 arguments:
 - description: number of voices 
-  default: 1  type: float
+  default: 1
+  type: float
 - description: non-zero sets to voice stealing.
   type: float
 inlets:

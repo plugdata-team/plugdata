@@ -14,6 +14,7 @@ outlets:
 arguments:
 - type: symbol
   description: catch~ name symbol 
-  default: empty symboldraft: false
+  default: empty symbol
+draft: false
 ---
 Any number of throw~ objects can add into one catch~ object (but two catch~ objects cannot share the same name.

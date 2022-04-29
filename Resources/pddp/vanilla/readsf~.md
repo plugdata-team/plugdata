@@ -26,7 +26,8 @@ outlets:
 arguments:
 - type: float
   description: sets number of output channels 
-  default: 1- type: float
+  default: 1
+- type: float
   description: per channel buffer size in bytes.
 draft: false
 ---

@@ -23,7 +23,8 @@ outlets:
 arguments:
   - type: float
     description: initial frequency value in Hz 
-  default: 0draft: false
+  default: 0
+draft: false
 ---
 The phasor~ object outputs phase ramps whose values are from 0 to 1 and it repeats this cycle depending on the frequency input. It looks like a sawtooth signal but it's traditionally used for table lookup via cos~ or tabread4~. The frequency input can be either a float or a signal. Positive frequency values generate upwards ramps and negative values generate downwards ramps.
 

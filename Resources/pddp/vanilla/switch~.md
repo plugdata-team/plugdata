@@ -20,5 +20,6 @@ inlets:
 arguments:
 - type: float
   description: set block size 
-  default: 64- type: float
+  default: 64
+- type: float
   description: set overlap for FFT 

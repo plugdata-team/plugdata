@@ -21,7 +21,8 @@ outlets:
 argumets:
 - type: float
   description: non zero avoids repeated output 
-  default: 0draft: false
+  default: 0
+draft: false
 ---
 The choice object holds a list of vectors, each having up to ten elements. When sent a list of numbers, it outputs the index of the known vector that matches most closely. The quality of the match is the dot product of the two vectors after normalizing them, i.e., the vector whose direction is closest to that of the input wins.
 

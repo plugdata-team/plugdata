@@ -50,5 +50,6 @@ flags:
   description: analyzes waveforms stored in arrays.
 - flag: -npts <float>
   description: set number of points in each analysis window 
-  default: 1024- flag: -hop <float>
+  default: 1024
+- flag: -hop <float>
   description: set number of points between each analysis 

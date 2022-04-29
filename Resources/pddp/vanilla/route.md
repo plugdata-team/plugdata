@@ -9,7 +9,8 @@ see_also:
 - select
 arguments:
 - description: of floats or symbols to route to to 
-  default: 0  type: list
+  default: 0
+  type: list
 inlets:
   1st:
   - type: anything

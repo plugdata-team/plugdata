@@ -20,5 +20,6 @@ see_also:
 - list
 arguments:
 - description: array name 
-  default: = internal numbered 'table#'  type: symbol
+  default: = internal numbered 'table#'
+  type: symbol
 - description: size and also xrange 
