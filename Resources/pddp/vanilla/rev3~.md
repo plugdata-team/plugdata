@@ -42,8 +42,7 @@ outlets:
     description: fourth reverb output.
 arguments:
 - type: float
-  description: level in dB 
+  description: level in dB
   default: 0
-.
 - type: float
-  description: liveness / internal feedback percentage 
+  description: liveness / internal feedback percentage

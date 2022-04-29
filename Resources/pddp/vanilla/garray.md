@@ -13,9 +13,7 @@ methods:
 - description: sets values into array, fisty element is starting index (from 0).
   method: list
 - description: optional float sets a constant value to all indexes 
-  default: 0
-.
-  method: const <float>
+  default: 0  method: const <float>
 - description: resizes the array.
   method: resize <float>
 - description: first element sets array size, remaining elements set amplitude of

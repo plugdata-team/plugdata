@@ -27,9 +27,7 @@ outlets:
 arguments:
   - type: float
     description: initial frequency value in Hz 
-  default: 0
-.
-draft: false
+  default: 0draft: false
 ---
 tabosc4~ is a traditional computer music style wavetable lookup oscillator using 4-point polynomial interpolation. The table should have a power of two points plus three "guard points", one at the beginning and two at the end, which should be wraparound copies of the last point and the first two points, respectively. The "sinesum" and "cosinesum" methods for arrays do this automatically for you if you just want to specify partial strengths.
 

@@ -8,9 +8,8 @@ last_update: '0.33'
 see_also:
 - route
 arguments:
-- description: of floats or symbols to match to 
-  default: 0
-.
+- description: of floats or symbols to match to
+  default: 0  
   type: list
 inlets:
   1st:

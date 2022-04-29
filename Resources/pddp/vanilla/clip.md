@@ -12,7 +12,5 @@ see_also:
 - min
 arguments:
 - description: initial lower limit 
-  default: 0
-.
-  type: float
+  default: 0  type: float
 - description: initial upper limit 

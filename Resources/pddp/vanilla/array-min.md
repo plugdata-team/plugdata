@@ -17,8 +17,7 @@ see_also:
 - array max
 - array min
 arguments:
-- description: array name if no flags are given 
-  default: none
-.
+- description: array name if no flags are given
+  default: none  
   type: symbol
-- description: initial onset 
+- description: initial onset

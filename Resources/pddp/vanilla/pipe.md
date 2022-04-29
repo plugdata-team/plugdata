@@ -13,9 +13,7 @@ arguments:
     and floats set float type and initial value.
   type: list
 - description: sets delay time in ms 
-  default: 0
-.
-  order: last
+  default: 0  order: last
   type: float
 inlets:
   1st:

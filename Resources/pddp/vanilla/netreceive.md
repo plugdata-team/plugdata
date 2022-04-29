@@ -14,7 +14,5 @@ arguments:
   type: symbol
 flags:
 - description: sets UDP connection 
-  default: TCP
-.
-  flag: -u
+  default: TCP  flag: -u
 - description: sets to binary mode 
