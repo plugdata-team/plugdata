@@ -15,7 +15,8 @@ see_also:
 - list tosymbol
 arguments:
 - description: initialize the list to append 
-  default: empty  type: list
+  default: empty
+  type: list
 inlets:
   1st:
   - type: anything

@@ -20,5 +20,6 @@ arguments:
     get, set, quantile, random, max and min. The default value is "define".'
   type: symbol
 - description: array name 
-  default: = internal numbered 'table#'  type: symbol
+  default: = internal numbered 'table#'
+  type: symbol
 - description: size and also xrange 

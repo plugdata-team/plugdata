@@ -9,8 +9,8 @@ see_also:
 - line~
 - vline~
 arguments:
-- description: time grain in ms
-  default: 20 ms  
+- description: time grain in ms 
+  default: 20 ms
   type: float
 inlets:
   1st:

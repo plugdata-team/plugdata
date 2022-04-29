@@ -36,5 +36,6 @@ outlets:
 arguments:
   - type: float
     description: cutoff frequency in linear region 
-  default: 0  - type: float
+  default: 0
+  - type: float
     description: maximum downward slew of linear region 

@@ -3,7 +3,7 @@ title: drawnumber
 description: draw numbers, symbols or texts for Data Structures.
 categories:
 - object
-see_also:
+see_also: 
 - struct
 - drawpolygon
 - plot
@@ -23,7 +23,7 @@ arguments:
 - type: symbol
   description: field name to draw.
 - type: list*
-  description: (x, y) coordinates pair
+  description: (x, y) coordinates pair 
   default: 0 0
 - type: float*
-  description: color
+  description: color 

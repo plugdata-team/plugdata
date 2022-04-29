@@ -11,5 +11,6 @@ see_also:
 - array
 arguments:
 - description: sets array name 
-  default: internal  type: symbol
+  default: internal
+  type: symbol
 - description: sets array size 

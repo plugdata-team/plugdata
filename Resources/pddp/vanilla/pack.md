@@ -12,7 +12,8 @@ arguments:
 - description: list of types (defining the number of inlets). These can be 'float/'f',  'symbol/'s'
     and 'pointer/'p'. A number sets a numeric inlet and initializes the value,  'float/f'
     initialized to 0 
-  default: 0 0  type: list
+  default: 0 0
+  type: list
 inlets:
   1st:
   - type: anything

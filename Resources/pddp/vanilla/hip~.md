@@ -30,6 +30,7 @@ outlets:
 arguments:
   - type: float
     description: rolloff frequency in Hz 
-  default: 0draft: false
+  default: 0
+draft: false
 ---
 hip~ is a one-pole high pass filter with a specified cutoff frequency. Left (audio

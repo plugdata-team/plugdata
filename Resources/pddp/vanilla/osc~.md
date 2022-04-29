@@ -23,6 +23,7 @@ outlets:
 arguments:
   - type: float
     description: initial frequency value in Hz 
-  default: 0draft: false
+  default: 0
+draft: false
 ---
 The osc~ object outputs a cosine wave. The frequency input can be either a float or a signal. The right inlet resets the phase with values from 0 to 1 (where '1' is the same as '0' and '0.5' is half the cycle

@@ -9,7 +9,8 @@ pdcategory: General
 last_update: '0.41'
 arguments:
 - description: initial right inlet value 
-  default: 0  type: float
+  default: 0
+  type: float
 inlets:
   1st:
   - type: bang
