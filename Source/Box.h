@@ -13,6 +13,7 @@ extern "C"
 #include <m_pd.h>
 }
 
+#include "Components/ObjectGrid.h"
 #include "Edge.h"
 #include "Objects/GUIObjects.h"
 
@@ -51,6 +52,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
+    
+    int getBestTextWidth();
 
     void setEditable(bool editable);
     Array<Rectangle<float>> getCorners() const;
@@ -63,6 +66,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     Value commandLocked;
     Value presentationMode;
 
+    ObjectGrid lastObjectGrid;
+    
     Canvas* cnv;
 
     std::unique_ptr<GUIComponent> graphics = nullptr;
@@ -70,7 +75,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     OwnedArray<Edge> edges;
     ResizableBorderComponent::Zone resizeZone;
 
-    static inline constexpr int widthOffset = 32;
+
     static inline constexpr int margin = 8;
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
@@ -92,13 +97,15 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void textEditorTextChanged(TextEditor& ed) override;
 
     Rectangle<int> originalBounds;
+    
 
 
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border{1, 8, 1, 2};
-    float minimumHorizontalScale = 0.8f;
+    BorderSize<int> border{1, 7, 1, 2};
+    float minimumHorizontalScale = 1.0f;
     bool editSingleClick = false;
+    bool wasResized = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

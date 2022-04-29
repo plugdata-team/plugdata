@@ -148,7 +148,7 @@ void Box::updateBounds(bool newObject)
             addAndMakeVisible(graphics.get());
             auto b = pdObject->getBounds();
             
-            int width = b.getWidth() <= 0 ? font.getStringWidth(currentText) + widthOffset : b.getWidth() + doubleMargin;
+            int width = b.getWidth() <= 0 ? getBestTextWidth() : b.getWidth() + doubleMargin;
             
             setSize(width, b.getHeight() + doubleMargin);
             graphics->resized();
@@ -161,7 +161,7 @@ void Box::updateBounds(bool newObject)
             setEditable(true);
             hideLabel = false;
             
-            int width = bounds.getWidth() <= 0 ? font.getStringWidth(currentText) + widthOffset : bounds.getWidth() + doubleMargin;
+            int width = bounds.getWidth() <= 0 ? getBestTextWidth() : bounds.getWidth() + doubleMargin;
             
             setSize(width, height);
         }
@@ -325,7 +325,7 @@ void Box::resized()
         int ioletWidth = std::max(numInputs, numOutputs) * 15 + 15;
 
         // Width of text
-        int textWidth = font.getStringWidth(currentText) + widthOffset;
+        int textWidth = getBestTextWidth();
         
         // Round width of text objects to pd's resolution, make sure that the ideal size is one of the options
         auto roundToTextWidth = [this](int width, int stringWidth)
@@ -495,6 +495,8 @@ void Box::mouseUp(const MouseEvent& e)
     {
         showEditor();
     }
+    
+    if(wasResized) cnv->grid.handleMouseUp(Point<int>());
 
     cnv->handleMouseUp(this, e);
     
@@ -536,12 +538,31 @@ void Box::mouseDrag(const MouseEvent& e)
 
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
-        auto newBounds = resizeZone.resizeRectangleBy(originalBounds, e.getOffsetFromDragStart());
+        wasResized = true;
+        Point<int> dragDistance = e.getOffsetFromDragStart();
+        
+        int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth();
+        if(abs(distance) < ObjectGrid::range) {
+            cnv->grid.forceSnap(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
+        }
+        
+        if(static_cast<bool>(cnv->gridEnabled.getValue())) {
+            dragDistance = cnv->grid.handleMouseDrag(this, dragDistance, cnv->viewport->getViewArea());
+        }
+        
+        auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
+        
         setBounds(newBounds);
-
+        
         return;
     }
-    cnv->handleMouseDrag(e);
+    // Let canvas handle moving
+    else {
+        cnv->handleMouseDrag(e);
+    }
+    
+    
+
 }
 
 void Box::showEditor()
@@ -654,6 +675,10 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
     return editor.get();
 }
 
+int Box::getBestTextWidth() {
+    return round(font.getStringWidthFloat(currentText) + 31.f);
+}
+
 void Box::setEditable(bool editable)
 {
     editSingleClick = editable;
@@ -675,7 +700,7 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
 void Box::textEditorTextChanged(TextEditor& ed)
 {
     // For resize-while-typing behaviour
-    auto width = font.getStringWidth(ed.getText()) + Box::widthOffset;
+    auto width = getBestTextWidth();
 
     if (width > getWidth())
     {

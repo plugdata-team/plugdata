@@ -50,6 +50,8 @@ struct Icons
     inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
     inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
     
+    inline static const CharPointer_UTF8 Parameters = CharPointer_UTF8("\xef\x87\x9e");
+    
     inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
 };
 
@@ -739,6 +741,29 @@ struct PlugDataLook : public LookAndFeel_V4
         g.fillPath(corner);
     }
     
+    void drawTooltip (Graphics& g, const String& text, int width, int height) override
+    {
+        Rectangle<int> bounds (width, height);
+        auto cornerSize = 5.0f;
+
+        g.setColour (findColour (TooltipWindow::backgroundColourId));
+        g.fillRoundedRectangle (bounds.toFloat(), cornerSize);
+
+        g.setColour (findColour (TooltipWindow::outlineColourId));
+        g.drawRoundedRectangle (bounds.toFloat().reduced (0.5f, 0.5f), cornerSize, 0.5f);
+
+        const float tooltipFontSize = 13.0f;
+        const int maxToolTipWidth = 400;
+
+        AttributedString s;
+        s.setJustification (Justification::centred);
+        s.append (text, Font (tooltipFontSize, Font::bold), findColour (TooltipWindow::textColourId));
+
+        TextLayout tl;
+        tl.createLayoutWithBalancedLineLengths (s, (float) maxToolTipWidth);
+        tl.draw(g, { static_cast<float> (width), static_cast<float> (height) });
+    }
+    
     void drawFileBrowserRow (Graphics& g, int width, int height,
                                              const File&, const String& filename, Image* icon,
                                              const String& fileSizeDescription,
@@ -808,7 +833,7 @@ struct PlugDataLook : public LookAndFeel_V4
         return new PdLook;
     }
     
-    static void paintStripes(Graphics& g, int itemHeight, int totalHeight, Component& owner, int selected, int offset) {
+    static void paintStripes(Graphics& g, int itemHeight, int totalHeight, Component& owner, int selected, int offset, bool invert = false) {
         totalHeight = std::max(owner.getHeight(), totalHeight);
         int y = -offset;
         int i = 0;
@@ -822,7 +847,7 @@ struct PlugDataLook : public LookAndFeel_V4
                 g.setColour(owner.findColour(PlugDataColour::highlightColourId));
             }
             else {
-                g.setColour(owner.findColour(i & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
+                g.setColour(owner.findColour((i + invert) & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
             }
             
             g.fillRect(0, y, owner.getWidth(), itemHeight);
