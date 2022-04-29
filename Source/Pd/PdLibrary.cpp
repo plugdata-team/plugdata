@@ -352,22 +352,22 @@ void Library::parseDocumentation(const String& path)
         String contents = f.loadFileAsString();
         auto sections = getSections(contents, {"\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft"});
 
-        if (!sections.contains("title")) return;
+        if (!sections.count("title")) return;
 
         String name = sections["title"];
 
-        if (sections.contains("description"))
+        if (sections.count("description"))
         {
             objectDescriptions[name] = sections["description"];
         }
 
-        if (sections.contains("arguments"))
+        if (sections.count("arguments"))
         {
             Arguments args;
             for (auto& [type, description] : parseTypeAndDescription(sections["arguments"]))
             {
                 String defaultValue;
-                if (description.contains("(default"))
+                if (description.count("(default"))
                 {
                     defaultValue = formatText(description.fromFirstOccurrenceOf("(default", false, false).upToFirstOccurrenceOf(")", false, false));
                     description = description.upToFirstOccurrenceOf("(default", false, false);
@@ -379,7 +379,7 @@ void Library::parseDocumentation(const String& path)
         }
 
         auto numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"};
-        if (sections.contains("inlets"))
+        if (sections.count("inlets"))
         {
             for (auto [number, content] : getSections(sections["inlets"], numbers))
             {
@@ -392,7 +392,7 @@ void Library::parseDocumentation(const String& path)
                 inletDescriptions[name].add({tooltip, number == "nth"});
             }
         }
-        if (sections.contains("outlets"))
+        if (sections.count("outlets"))
         {
             for (auto [number, content] : getSections(sections["outlets"], numbers))
             {
