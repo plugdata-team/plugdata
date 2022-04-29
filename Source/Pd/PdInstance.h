@@ -102,9 +102,9 @@ class Instance
     {
     }
 
-    virtual void receiveGuiUpdate(int type) {};
-    virtual void synchroniseCanvas(void* cnv) {};
-    
+    virtual void receiveGuiUpdate(int type){};
+    virtual void synchroniseCanvas(void* cnv){};
+
     virtual void createPanel(int type, const char* snd, const char* location);
 
     void sendBang(const char* receiver) const;
@@ -156,14 +156,11 @@ class Instance
 
     Patch openPatch(const File& toOpen);
 
-    
     virtual Colour getForegroundColour() = 0;
     virtual Colour getBackgroundColour() = 0;
 
-
     void setThis();
     Array getArray(std::string const& name);
-    
 
     bool checkState(String pdstate);
 
@@ -182,7 +179,6 @@ class Instance
     void* m_message_receiver = nullptr;
     void* m_midi_receiver = nullptr;
     void* m_print_receiver = nullptr;
-
 
     std::atomic<bool> canUndo = false;
     std::atomic<bool> canRedo = false;

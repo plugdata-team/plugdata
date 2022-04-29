@@ -18,7 +18,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
 
     explicit Statusbar(PlugDataAudioProcessor& processor);
     ~Statusbar();
-    
+
     void resized() override;
 
     void timerCallback() override;
@@ -37,7 +37,7 @@ struct Statusbar : public Component, public Timer, public KeyListener
     MidiBlinker* midiBlinker;
 
     std::unique_ptr<TextButton> bypassButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, gridButton, themeButton, browserButton, automationButton;
-    
+
     Label zoomLabel;
 
     Slider volumeSlider;

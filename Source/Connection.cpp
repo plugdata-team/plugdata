@@ -41,9 +41,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
             outlet = nullptr;
             inlet = nullptr;
 
-            MessageManager::callAsync([this](){
-                cnv->connections.removeObject(this);
-            });
+            MessageManager::callAsync([this]() { cnv->connections.removeObject(this); });
 
             return;
         }
@@ -76,33 +74,34 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
 String Connection::getState()
 {
     String pathAsString;
-    
+
     MemoryOutputStream stream;
-    
+
     for (auto& point : currentPlan)
     {
         stream.writeInt(point.x - outlet->getCanvasBounds().getCentre().x);
         stream.writeInt(point.y - outlet->getCanvasBounds().getCentre().y);
     }
-    
+
     return stream.getMemoryBlock().toBase64Encoding();
 }
 
 void Connection::setState(const String& state)
 {
     auto plan = PathPlan();
-    
+
     auto block = MemoryBlock();
     auto succeeded = block.fromBase64Encoding(state);
-    
-    if(succeeded) {
+
+    if (succeeded)
+    {
         auto stream = MemoryInputStream(block, false);
-        
+
         while (!stream.isExhausted())
         {
             auto x = stream.readInt();
             auto y = stream.readInt();
-            
+
             plan.emplace_back(x + outlet->getCanvasBounds().getCentreX(), y + outlet->getCanvasBounds().getCentreY());
         }
     }
@@ -113,9 +112,9 @@ void Connection::setState(const String& state)
 String Connection::getId() const
 {
     MemoryOutputStream stream;
-    
+
     // TODO: check if connection is still valid before requesting idx from box
-    
+
     stream.writeInt(cnv->patch.getIndex(inlet->box->pdObject->getPointer()));
     stream.writeInt(cnv->patch.getIndex(outlet->box->pdObject->getPointer()));
     stream.writeInt(inIdx);
@@ -178,10 +177,10 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
         baseColour = baseColour.brighter(0.6f);
     }
-    
+
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
-    
+
     g.setColour(baseColour.darker(0.2));
     g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::rounded));
 
@@ -265,7 +264,7 @@ void Connection::setSegmented(bool segmented)
 void Connection::mouseDrag(const MouseEvent& e)
 {
     if (currentPlan.empty()) return;
-    
+
     if (isSegmented() && dragIdx != -1)
     {
         auto n = dragIdx;
@@ -311,7 +310,7 @@ void Connection::mouseUp(const MouseEvent& e)
     {
         auto state = getState();
         lastId = getId();
-        
+
         cnv->storage.setInfo(lastId, "Path", state);
         dragIdx = -1;
     }
@@ -319,13 +318,11 @@ void Connection::mouseUp(const MouseEvent& e)
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
-    if(!inlet || !outlet) return;
-    
+    if (!inlet || !outlet) return;
+
     auto pstart = outlet->getCanvasBounds().getCentre();
     auto pend = inlet->getCanvasBounds().getCentre();
-    
-    
-    
+
     if (currentPlan.size() <= 2 || cnv->storage.getInfo(getId(), "Style") == "0")
     {
         updatePath();
@@ -378,7 +375,6 @@ void Connection::updatePath()
 
     auto pstart = outlet->getCanvasBounds().getCentre() - origin;
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
-
 
     if (!isSegmented())
     {
@@ -435,7 +431,7 @@ void Connection::updatePath()
         // Add points in between if we've found a path
         for (int n = 1; n < currentPlan.size() - 1; n++)
         {
-            if (connectionPath.contains(currentPlan[n].toFloat())) continue; // ??
+            if (connectionPath.contains(currentPlan[n].toFloat())) continue;  // ??
 
             connectionPath.lineTo(currentPlan[n].toFloat() - origin.toFloat());
         }
@@ -538,7 +534,7 @@ void Connection::findPath()
     std::reverse(simplifiedPath.begin(), simplifiedPath.end());
 
     currentPlan = simplifiedPath;
-    
+
     auto state = getState();
     lastId = getId();
     cnv->storage.setInfo(lastId, "Path", state);

@@ -61,7 +61,6 @@ class PlugDataApp : public JUCEApplication
     // For opening files with PlugData standalone
     void anotherInstanceStarted(const String& commandLine) override
     {
-        
         auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
         if (file.existsAsFile())
         {
@@ -75,7 +74,6 @@ class PlugDataApp : public JUCEApplication
                 }
             }
         }
-
     }
 
     virtual PlugDataWindow* createWindow()
@@ -86,7 +84,7 @@ class PlugDataApp : public JUCEApplication
     void initialise(const String&) override
     {
         LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);
-        
+
         mainWindow.reset(createWindow());
 
         mainWindow->setVisible(true);
@@ -121,57 +119,66 @@ class PlugDataApp : public JUCEApplication
     std::unique_ptr<PlugDataWindow> mainWindow;
 };
 
-
-
 void PlugDataWindow::closeButtonPressed()
 {
     pluginHolder->savePluginState();
-    
+
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
-        checkCanvas = [this, editor](int i) mutable {
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor()))
+    {
+        checkCanvas = [this, editor](int i) mutable
+        {
             auto* cnv = editor->canvases[i];
             bool isLast = i == editor->canvases.size() - 1;
             editor->tabbar.setCurrentTabIndex(i);
-            
+
             i++;
-            
-            if(cnv->patch.isDirty()) {
+
+            if (cnv->patch.isDirty())
+            {
                 Dialogs::showSaveDialog(editor, cnv->patch.getTitle(),
                                         [this, editor, cnv, i, isLast](int result) mutable
-            {
-                if (result == 2)
-                {
-                    editor->saveProject([this, cnv, editor, i, isLast]() mutable {
-                        if(isLast) {
-                            JUCEApplication::quit();
-                        }
-                        else {
-                            checkCanvas(i);
-                        }
-                    });
-                }
-                else if (result == 1) {
-                    if(isLast) {
-                        JUCEApplication::quit();
-                    }
-                    else {
-                        checkCanvas(i);
-                    }
-                }
-                    // last option: cancel, where we end the chain
-                });
-
+                                        {
+                                            if (result == 2)
+                                            {
+                                                editor->saveProject(
+                                                    [this, cnv, editor, i, isLast]() mutable
+                                                    {
+                                                        if (isLast)
+                                                        {
+                                                            JUCEApplication::quit();
+                                                        }
+                                                        else
+                                                        {
+                                                            checkCanvas(i);
+                                                        }
+                                                    });
+                                            }
+                                            else if (result == 1)
+                                            {
+                                                if (isLast)
+                                                {
+                                                    JUCEApplication::quit();
+                                                }
+                                                else
+                                                {
+                                                    checkCanvas(i);
+                                                }
+                                            }
+                                            // last option: cancel, where we end the chain
+                                        });
             }
-            else if (!isLast) {
+            else if (!isLast)
+            {
                 checkCanvas(i);
             }
-            else {
+            else
+            {
                 JUCEApplication::quit();
             }
         };
-        
+
         checkCanvas(0);
     }
 };

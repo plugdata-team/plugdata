@@ -9,7 +9,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_clock* p_clock;
         struct _keyboard* p_cnv;
     } t_edit_proxy;
-    
+
     typedef struct _keyboard
     {
         t_object x_obj;
@@ -45,128 +45,128 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_symbol* x_bindsym;
         t_outlet* x_out;
     } t_keyboard;
-    
+
     KeyboardComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
-        
+
         state.addListener(this);
-        
+
         addAndMakeVisible(keyboard);
 
         auto* x = (t_keyboard*)gui.getPointer();
         x->x_width = width * 0.595f;
-        
+
         rangeMin = x->x_low_c;
         rangeMax = x->x_low_c + (x->x_octaves * 12) + x->x_semitones;
-        
-        if(static_cast<int>(rangeMin.getValue()) == 0 || static_cast<int>(rangeMax.getValue()) == 0) {
+
+        if (static_cast<int>(rangeMin.getValue()) == 0 || static_cast<int>(rangeMax.getValue()) == 0)
+        {
             rangeMin = 36;
             rangeMax = 86;
         }
-        
+
         initialise(newObject);
     }
-    
-    void checkBoxBounds() override {
+
+    void checkBoxBounds() override
+    {
         int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
         float ratio = numKeys / 9.55f;
-        
+
         auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
-        
-        if(box->getWidth() / ratio != box->getHeight()) {
+
+        if (box->getWidth() / ratio != box->getHeight())
+        {
             box->setSize(box->getHeight() * ratio, box->getHeight());
-            
-            if(getWidth() > 0) {
+
+            if (getWidth() > 0)
+            {
                 keyboard.setKeyWidth(getWidth() / (numKeys * 0.597f));
                 keyboardObject->x_width = getWidth();
             }
         }
-        
     }
-    
-    
+
     void resized() override
     {
         keyboard.setBounds(getLocalBounds());
     }
-    
+
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
         auto* x = (t_keyboard*)gui.getPointer();
-        
+
         box->cnv->pd->enqueueFunction(
-                                      [x, note, velocity]() mutable
-                                      {
-                                          int ac = 2;
-                                          t_atom at[2];
-                                          SETFLOAT(at, note);
-                                          SETFLOAT(at + 1, velocity * 127);
-                                          
-                                          outlet_list(x->x_out, &s_list, ac, at);
-                                          if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-                                      });
+            [x, note, velocity]() mutable
+            {
+                int ac = 2;
+                t_atom at[2];
+                SETFLOAT(at, note);
+                SETFLOAT(at + 1, velocity * 127);
+
+                outlet_list(x->x_out, &s_list, ac, at);
+                if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+            });
     }
-    
+
     void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
         auto* x = (t_keyboard*)gui.getPointer();
-        
+
         box->cnv->pd->enqueueFunction(
-                                      [x, note]() mutable
-                                      {
-                                          int ac = 2;
-                                          t_atom at[2];
-                                          SETFLOAT(at, note);
-                                          SETFLOAT(at + 1, 0);
-                                          
-                                          outlet_list(x->x_out, &s_list, ac, at);
-                                          if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-                                      });
+            [x, note]() mutable
+            {
+                int ac = 2;
+                t_atom at[2];
+                SETFLOAT(at, note);
+                SETFLOAT(at + 1, 0);
+
+                outlet_list(x->x_out, &s_list, ac, at);
+                if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+            });
     };
-    
+
     ObjectParameters defineParameters() override
     {
         return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
     };
-    
-    
+
     void valueChanged(Value& value) override
     {
         auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
-        
+
         if (value.refersToSameSourceAs(rangeMin))
         {
             rangeMin = std::clamp<int>(rangeMin.getValue(), 0, 127);
-            
+
             keyboardObject->x_low_c = static_cast<int>(rangeMin.getValue());
-            
+
             int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
             keyboardObject->x_octaves = range / 12;
             keyboardObject->x_semitones = range % 12;
-            
+
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
             checkBoxBounds();
         }
         else if (value.refersToSameSourceAs(rangeMax))
         {
-            
             rangeMax = std::clamp<int>(rangeMax.getValue(), 0, 127);
             /*
              static_cast<t_keyboard*>(gui.getPointer())->x_octaves = static_cast<int>(value.getValue()); */
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
-            
+
             int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
             keyboardObject->x_octaves = range / 12;
             keyboardObject->x_semitones = range % 12;
             checkBoxBounds();
         }
     }
-    
+
     Value rangeMin;
     Value rangeMax;
-    
+
     MidiKeyboardState state;
     MidiKeyboardComponent keyboard;
 };

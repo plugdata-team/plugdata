@@ -45,8 +45,8 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     void closeOpenedSubpatchers();
 
     static GUIComponent* createGui(const String& name, Box* parent, bool newObject);
-    
-    virtual void checkBoxBounds() {};
+
+    virtual void checkBoxBounds(){};
 
     virtual ObjectParameters defineParameters();
 
@@ -55,8 +55,11 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     virtual pd::Patch* getPatch();
     virtual Canvas* getCanvas();
     virtual bool noGui();
-    
-    void showEditor() { input.showEditor(); }
+
+    void showEditor()
+    {
+        input.showEditor();
+    }
 
     std::unique_ptr<Label> label;
 
@@ -92,11 +95,10 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     static inline constexpr int maxSize = 1000000;
 
-    
     PlugDataAudioProcessor& processor;
-    
+
     Label input;
-    
+
     pd::Gui gui;
     std::atomic<bool> edited;
     float value = 0;
@@ -110,15 +112,14 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     Value primaryColour;
     Value secondaryColour;
     Value labelColour;
-    
+
     Value labelX = Value(0.0f);
     Value labelY = Value(0.0f);
     Value labelHeight = Value(18.0f);
 
     Value labelText;
-    
+
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
-    
 };
 
 struct _fielddesc

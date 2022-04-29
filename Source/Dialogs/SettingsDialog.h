@@ -7,7 +7,7 @@ struct DAWAudioSettings : public Component
         latencySlider.setRange(0, 88200, 1);
         latencySlider.setTextValueSuffix(" Samples");
         latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-        
+
         addAndMakeVisible(tailLengthSlider);
         tailLengthSlider.setRange(0, 10.0f, 0.01f);
         tailLengthSlider.setTextValueSuffix(" Seconds");
@@ -16,14 +16,14 @@ struct DAWAudioSettings : public Component
         addAndMakeVisible(tailLengthLabel);
         tailLengthLabel.setText("Tail Length", dontSendNotification);
         tailLengthLabel.attachToComponent(&tailLengthSlider, true);
-        
+
         addAndMakeVisible(latencyLabel);
         latencyLabel.setText("Latency", dontSendNotification);
         latencyLabel.attachToComponent(&latencySlider, true);
-        
+
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
         latencySlider.onValueChange = [this, proc]() { proc->setLatencySamples(latencySlider.getValue()); };
-        tailLengthSlider.onValueChange = [this, proc]() { proc->tailLength.setValue(tailLengthSlider.getValue());};
+        tailLengthSlider.onValueChange = [this, proc]() { proc->tailLength.setValue(tailLengthSlider.getValue()); };
     }
 
     void resized() override
@@ -34,8 +34,8 @@ struct DAWAudioSettings : public Component
 
     void visibilityChanged() override
     {
-        if(!isVisible()) return;
-        
+        if (!isVisible()) return;
+
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
         latencySlider.setValue(processor.getLatencySamples());
         tailLengthSlider.setValue(static_cast<float>(proc->tailLength.getValue()));
@@ -44,7 +44,7 @@ struct DAWAudioSettings : public Component
     AudioProcessor& processor;
     Label latencyLabel;
     Label tailLengthLabel;
-    
+
     Slider latencySlider;
     Slider tailLengthSlider;
 };
@@ -59,7 +59,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
         table.setRowHeight(24);
         table.setOutlineThickness(0);
         table.deselectAllRows();
-        
+
         table.setColour(TableListBox::backgroundColourId, Colours::transparentBlack);
 
         table.getHeader().setStretchToFitActive(true);
@@ -142,7 +142,6 @@ class SearchPathComponent : public Component, public TableListBoxModel
         const String item = tree.getChild(rowNumber).getProperty("Path").toString();
 
         g.drawText(item, 4, 0, width - 4, height, Justification::centredLeft, true);
-
     }
 
     int getNumRows() override
@@ -173,15 +172,12 @@ class SearchPathComponent : public Component, public TableListBoxModel
         addButton.setBounds(6, y, 30, 30);
         removeButton.setBounds(34, y, 30, 30);
     }
-    
+
     void paint(Graphics& g) override
     {
-
         auto* viewport = table.getViewport();
         PlugDataLook::paintStripes(g, table.getRowHeight(), viewport->getViewedComponent()->getHeight(), table, table.getSelectedRow(), table.getViewport()->getViewPositionY(), true);
-    
     }
-
 
    private:
     FileChooser openChooser = FileChooser("Choose path", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "");
@@ -228,7 +224,6 @@ struct SettingsComponent : public Component
         }
 
         toolbarButtons[0]->setToggleState(true, sendNotification);
-
     }
 
     void showPanel(int idx)
@@ -259,7 +254,6 @@ struct SettingsComponent : public Component
         }
     }
 
-    
     int currentPanel = 0;
     OwnedArray<Component> panels;
     AudioDeviceManager* deviceManager = nullptr;
@@ -283,34 +277,36 @@ struct SettingsDialog : public Component
         setSize(600, 550);
 
         setVisible(false);
-        
+
         addAndMakeVisible(&settingsComponent);
         addAndMakeVisible(closeButton.get());
 
         settingsComponent.addMouseListener(this, false);
-        
+
         closeButton->onClick = [this]()
         {
             dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
-           
-            MessageManager::callAsync([this](){
-                getTopLevelComponent()->removeChildComponent(this);
-                delete this;
-            });
+
+            MessageManager::callAsync(
+                [this]()
+                {
+                    getTopLevelComponent()->removeChildComponent(this);
+                    delete this;
+                });
         };
-        
+
         background.reset(new BlackoutComponent(processor.getActiveEditor(), this, closeButton->onClick));
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
-
     }
 
     ~SettingsDialog() override
     {
         settingsComponent.removeMouseListener(this);
     }
-    
-    void visibilityChanged() override {
+
+    void visibilityChanged() override
+    {
         background->setVisible(isVisible());
     }
 
@@ -319,29 +315,29 @@ struct SettingsDialog : public Component
         closeButton->setBounds(getWidth() - 35, 8, 28, 28);
         settingsComponent.setBounds(getLocalBounds().reduced(1));
     }
-    
+
     void paint(Graphics& g) override
     {
-        //g.fillAll(findColour(PlugDataColour::canvasColourId));
-        
+        // g.fillAll(findColour(PlugDataColour::canvasColourId));
+
         g.setColour(findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarColourId));
-        
+
         auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, SettingsComponent::toolbarHeight);
         g.fillRoundedRectangle(toolbarBounds, 5.0f);
         g.fillRect(toolbarBounds.withTop(10.0f));
-        
+
         if (settingsComponent.currentPanel > 0)
         {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
             g.setColour(findColour(PlugDataColour::toolbarColourId));
-            
+
             g.fillRect(statusbarBounds.withHeight(20));
             g.fillRoundedRectangle(statusbarBounds, 5.0f);
         }
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1), 5.0f, 1.0f);
     }
@@ -350,12 +346,11 @@ struct SettingsDialog : public Component
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(1.0f, SettingsComponent::toolbarHeight, static_cast<float>(getWidth() - 2), SettingsComponent::toolbarHeight);
-        
+
         if (settingsComponent.currentPanel > 0)
         {
             g.drawLine(1.0f, getHeight() - 33, static_cast<float>(getWidth() - 2), getHeight() - 33);
         }
-        
     }
 
     std::unique_ptr<BlackoutComponent> background;

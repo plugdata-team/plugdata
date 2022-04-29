@@ -25,7 +25,7 @@ Edge::Edge(Box* parent, bool inlet) : box(parent)
         createConnection();
     };
 
-    //setBufferedToImage(true);
+    // setBufferedToImage(true);
 }
 
 bool Edge::hasConnection()
@@ -62,8 +62,8 @@ void Edge::paint(Graphics& g)
 
     auto backgroundColour = isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
 
-    if(!box->edgeHovered) backgroundColour = backgroundColour.withAlpha(0.7f);
-    
+    if (!box->edgeHovered) backgroundColour = backgroundColour.withAlpha(0.7f);
+
     if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
     Path path;
@@ -116,8 +116,9 @@ void Edge::mouseDrag(const MouseEvent& e)
 void Edge::mouseUp(const MouseEvent& e)
 {
     TextButton::mouseUp(e);
-    
-    if(box->cnv->nearestEdge) {
+
+    if (box->cnv->nearestEdge)
+    {
         box->cnv->nearestEdge->isHovered = false;
         box->cnv->nearestEdge = nullptr;
     }
@@ -132,14 +133,14 @@ void Edge::mouseEnter(const MouseEvent& e)
     // Only show when not locked
     isHovered = !bool(locked.getValue());
     box->edgeHovered = true;
-    for(auto& edge : box->edges) edge->repaint();
+    for (auto& edge : box->edges) edge->repaint();
 }
 
 void Edge::mouseExit(const MouseEvent& e)
 {
     isHovered = false;
     box->edgeHovered = false;
-    for(auto& edge : box->edges) edge->repaint();
+    for (auto& edge : box->edges) edge->repaint();
 }
 
 void Edge::createConnection()

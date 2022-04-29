@@ -33,11 +33,10 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         void paint(Graphics& g) override
         {
-             auto colour = idx & 1 ? PlugDataColour::toolbarColourId :  PlugDataColour::canvasColourId;
-            
+            auto colour = idx & 1 ? PlugDataColour::toolbarColourId : PlugDataColour::canvasColourId;
+
             getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::highlightColourId : colour), isMouseOver(), isMouseButtonDown());
 
-            
             getLookAndFeel().drawButtonText(g, *this, isMouseOver(), false);
 
             if (objectDescription.isNotEmpty())
@@ -59,7 +58,6 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             if (type == -1) return;
 
-           
             g.setColour((type ? Colours::yellow : findColour(ScrollBar::thumbColourId)).withAlpha(float(0.8)));
             Rectangle<int> iconbound = getLocalBounds().reduced(4);
             iconbound.setWidth(getHeight() - 8);
