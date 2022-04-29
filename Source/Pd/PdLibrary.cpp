@@ -250,17 +250,11 @@ void Library::updateLibrary()
     mlist = o->c_methods;
 #endif
 
-    File outFile("/Users/timschoen/Projecten/PlugData/Resources/pddp/ELSE/all_obj");
-
-    String allNames;
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
-        allNames += name + "\n";
         searchTree->insert(m->me_name->s_name);
     }
-
-    outFile.replaceWithText(allNames);
 
     searchTree->insert("graph");
 
