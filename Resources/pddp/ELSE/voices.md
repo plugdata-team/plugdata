@@ -1,32 +1,27 @@
 ---
 title: voices
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: gimme
+  description:
   default:
-
 inlets:
   1st:
-  - type:
+  - type: float
     description:
   2nd:
-  - type:
+  - type: float
     description:
-
+  3rd:
+  - type: float
+    description:
 outlets:
   1st:
-  - type:
+  - type: list
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE
+  2nd:
+  - type: list
+    description:

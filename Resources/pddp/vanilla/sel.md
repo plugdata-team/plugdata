@@ -1,12 +1,12 @@
 ---
-title: select
+title: sel
 description: test for matching numbers or symbols
 categories:
 - object
 pdcategory: General
 last_update: '0.33'
 see_also:
-- route
+- select
 arguments:
 - description: of floats or symbols to match to
   default: 0

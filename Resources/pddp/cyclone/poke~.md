@@ -1,32 +1,24 @@
 ---
 title: poke~
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: symbol
+  description:
   default:
-
+- type: float
+  description:
+  default:
 inlets:
   1st:
-  - type:
+  - type: signal
     description:
   2nd:
-  - type:
+  - type: float
     description:
-
+  3rd:
+  - type: float
+    description:
 outlets:
-  1st:
-  - type:
-    description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE

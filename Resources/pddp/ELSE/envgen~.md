@@ -1,32 +1,24 @@
 ---
 title: envgen~
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: gimme
+  description:
   default:
-
 inlets:
   1st:
-  - type:
+  - type: ?
     description:
   2nd:
-  - type:
+  - type: ?
     description:
-
 outlets:
   1st:
-  - type:
+  - type: signal
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE
+  2nd:
+  - type: float
+    description:

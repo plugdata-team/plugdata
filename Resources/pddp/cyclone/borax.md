@@ -1,32 +1,45 @@
 ---
 title: borax
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
-  default:
-
 inlets:
   1st:
-  - type:
+  - type: float
     description:
   2nd:
-  - type:
+  - type: bang
     description:
-
+  3rd:
+  - type: bang
+    description:
 outlets:
   1st:
-  - type:
+  - type: float
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE
+  2nd:
+  - type: float
+    description:
+  3rd:
+  - type: float
+    description:
+  4th:
+  - type: float
+    description:
+  5th:
+  - type: float
+    description:
+  6th:
+  - type: float
+    description:
+  7th:
+  - type: float
+    description:
+  8th:
+  - type: float
+    description:
+  9th:
+  - type: float
+    description:

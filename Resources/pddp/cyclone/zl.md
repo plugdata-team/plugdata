@@ -1,32 +1,24 @@
 ---
 title: zl
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: gimme
+  description:
   default:
-
 inlets:
   1st:
-  - type:
+  - type: ?
     description:
   2nd:
-  - type:
+  - type: ?
     description:
-
 outlets:
   1st:
-  - type:
+  - type: anything
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE
+  2nd:
+  - type: anything
+    description:
