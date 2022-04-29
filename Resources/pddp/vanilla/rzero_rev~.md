@@ -32,6 +32,7 @@ outlets:
 arguments:
   - type: float
     description: filter coefficient 
-  default: 0draft: false
+  default: 0
+draft: false
 ---
 Rzero_rev~ filters an audio signal (left inlet

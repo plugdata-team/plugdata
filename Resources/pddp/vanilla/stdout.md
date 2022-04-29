@@ -21,9 +21,9 @@ flags:
 - flag: -f
   description: same as -flush.
 - flag: -flush
-  description: flush the output after each message
-  default: on W32-
-  flag: -nf
+  description: flush the output after each message 
+  default: on W32
+- flag: -nf
   description: same as -noflush.
 - flag: -noflush
   description: do not flush the output after each message.  

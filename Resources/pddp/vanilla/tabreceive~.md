@@ -22,6 +22,7 @@ outlets:
 arguments:
   - type: symbol
     description: receive name symbol 
-  default: empty symboldraft: false
+  default: empty symbol
+draft: false
 ---
 By default a block is 64 samples but this can be changed with the block~ object.

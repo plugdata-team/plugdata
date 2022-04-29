@@ -30,5 +30,6 @@ outlets:
 flags:
 - flag: -ninsig <float>
   description: sets number of input audio channels 
-  default: 2- flag: -noutsig <float>
+  default: 2
+- flag: -noutsig <float>
   description: sets number of output audio channels 

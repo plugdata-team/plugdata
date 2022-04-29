@@ -11,7 +11,8 @@ see_also:
 - expr
 arguments:
 - description: initialize value of right inlet 
-  default: 0  type: float
+  default: 0
+  type: float
 inlets:
   1st:
   - type: bang

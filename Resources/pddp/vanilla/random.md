@@ -9,7 +9,8 @@ see_also:
 - expr
 arguments:
 - description: initial range value 
-  default: 1  type: float
+  default: 1
+  type: float
 inlets:
   1st:
   - type: bang

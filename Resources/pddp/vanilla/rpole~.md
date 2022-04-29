@@ -32,6 +32,7 @@ outlets:
 arguments:
   - type: float
     description: filter coefficient 
-  default: 0draft: false
+  default: 0
+draft: false
 ---
 Rpole~ filters an audio signal (left inlet

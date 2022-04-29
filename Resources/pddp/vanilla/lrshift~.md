@@ -18,6 +18,7 @@ outlets:
 arguments:
 - type: float
   description: shift amount, positive or negative 
-  default: 0draft: false
+  default: 0
+draft: false
 ---
 Acting at whatever vector size the window is running at, lrshift~ shifts samples to the left (toward the beginning sample

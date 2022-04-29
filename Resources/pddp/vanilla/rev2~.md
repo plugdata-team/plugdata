@@ -40,5 +40,6 @@ outlets:
 arguments:
 - type: float
   description: level in dB 
-  default: 0- type: float
+  default: 0
+- type: float
   description: liveness / internal feedback percentage 

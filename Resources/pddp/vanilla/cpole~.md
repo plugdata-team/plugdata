@@ -41,6 +41,7 @@ outlets:
 arguments:
   - type: list
     description: real and imaginary part of coefficient 
-  default: 0 0draft: false
+  default: 0 0
+draft: false
 ---
 Cpole~ filters a complex audio signal (first two inlets

@@ -35,7 +35,8 @@ flags:
 arguments:
 - type: symbol
   description: (optional) 'curve' sets to Bezier curve 
-  default: polygon- type: symbol
+  default: polygon
+- type: symbol
   description: field to plot the array.
 - type: float*
   description: color 
