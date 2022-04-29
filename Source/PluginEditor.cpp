@@ -27,6 +27,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 #endif
     
     tooltipWindow->setOpaque(false);
+    tooltipWindow->setLookAndFeel(&pd.lnf.get());
     
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());

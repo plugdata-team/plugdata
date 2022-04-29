@@ -12,6 +12,7 @@
 #include "Pd/PdPatch.h"
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
+#include "Components/ObjectGrid.h"
 
 class SuggestionComponent;
 struct GraphArea;
@@ -19,23 +20,8 @@ class Edge;
 class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
-    
-    struct GridSnap
-    {
-        enum GridSnapType
-        {
-            NotSnappedToGrid,
-            HorizontalSnap,
-            VerticalSnap
-        };
-        
-        GridSnapType type = GridSnap::NotSnappedToGrid;
-        int idx;
-        Point<int> position;
-        Line<int> gridLine;
-    };
-    
    public:
+    
     Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr, bool isGraphChild = false);
 
     ~Canvas() override;
@@ -80,7 +66,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    GridSnap shouldSnapToGrid(const Box* toDrag);
+    //ObjectGrid shouldSnapToObjectGrid(const Box* toDrag);
 
     void handleMouseDown(Component* component, const MouseEvent& e);
     void handleMouseUp(Component* component, const MouseEvent& e);
@@ -137,8 +123,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool isGraphChild = false;
     bool updatingBounds = false; // used by connection
     
-    DrawablePath gridPath;
-    GridSnap lastGridSnap;
+    ObjectGrid grid;
 
     Point<int> canvasOrigin = {0, 0};
 

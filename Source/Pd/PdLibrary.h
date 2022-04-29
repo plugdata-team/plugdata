@@ -16,8 +16,11 @@ namespace pd
 using IODescription = juce::Array<std::pair<String, bool>>;
 using IODescriptionMap = std::unordered_map<String, IODescription>;
 
-using Suggestion = std::pair<std::string, bool>;
+using Suggestion = std::pair<String, bool>;
 using Suggestions = std::vector<Suggestion>;
+
+using Arguments = std::vector<std::tuple<String, String, String>>;
+using ArgumentMap = std::unordered_map<String, Arguments>;
 
 using ObjectMap = std::unordered_map<String, String>;
 using KeywordMap = std::unordered_map<String, StringArray>;
@@ -82,6 +85,7 @@ struct Library : public Timer
     KeywordMap objectKeywords;
     IODescriptionMap inletDescriptions;
     IODescriptionMap outletDescriptions;
+    ArgumentMap arguments;
     
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
