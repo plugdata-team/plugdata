@@ -11,6 +11,7 @@ pdcategory:
 arguments:
 - description:
   type:
+  default:
 
 inlets:
   1st:

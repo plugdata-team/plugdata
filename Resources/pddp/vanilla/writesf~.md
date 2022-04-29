@@ -25,16 +25,13 @@ inlets:
     description: signal to write to a channel.
 arguments:
 - type: float
-  description: sets number of channels (default 1, max 64).
+  description: sets number of channels 
+  default: 1
+.
 draft: false
 ---
 writesf~ creates a subthread whose task is to write audio streams to disk. You need not provide any disk access time between "open" and "start", but between "stop" and the next "open" you must give the object time to flush all the output to disk.
 
 The "open" message may take flag-style arguments as follows:
 
-- -wave, -aiff, -caf, -next (file extension)
-- -big, -little (sample endianness)
-- -bytes <2, 3, or 4> (bit resolution)
-- -rate <sample rate> (affects the soundfile header but the file will **not** be resampled.)
-
-The soundfile is uncompressed 2- or 3-byte integer ("pcm") or 4-byte floating point. The soundfile format is determined by the file extension (ie. "foo.wav", "foo.aiff", "foo.caf", "foo.snd").
+- -wave, -aiff, -caf, -next (file extension

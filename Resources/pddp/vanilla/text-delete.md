@@ -20,7 +20,9 @@ see_also:
 - text search
 - text sequence
 arguments:
-- description: 'text name if no flags are given (default: none).'
+- description: 'text name if no flags are given 
+  default:: none
+.'
   type: symbol
 flags:
 - description: struct name and field name of main structure.
@@ -28,12 +30,4 @@ flags:
 inlets:
   1st:
   - type: float
-    description: line number to delete (negative deletes all lines).
-  2nd:
-  - type: symbol
-    description: set text name.
-  - type: pointer
-    description: pointer to the text if -s flag is used.
-draft: false
----
-"text delete" deletes the nth line.
+    description: line number to delete (negative deletes all lines

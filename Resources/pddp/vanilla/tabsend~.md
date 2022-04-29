@@ -19,7 +19,9 @@ inlets:
     description: set table name.
 arguments:
   - type: symbol
-    description: send symbol name (default empty symbol).
+    description: send symbol name 
+  default: empty symbol
+.
 draft: false
 ---
 By default a block is 64 samples but this can be changed with the block~ object.

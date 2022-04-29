@@ -10,10 +10,8 @@ see_also:
 - namecanvas
 - array
 arguments:
-- description: sets array name (default internal).
+- description: sets array name 
+  default: internal
+.
   type: symbol
-- description: sets array size (default 100).
-  type: float
-draft: false
----
-Subpatch with array
+- description: sets array size 

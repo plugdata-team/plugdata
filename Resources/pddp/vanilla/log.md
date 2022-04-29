@@ -10,7 +10,9 @@ see_also:
 - div
 - expr
 arguments:
-- description: initialize value of right inlet (default 0).
+- description: initialize value of right inlet 
+  default: 0
+.
   type: float
 inlets:
   1st:
@@ -27,4 +29,4 @@ outlets:
     description: the result of the operation.
 draft: false
 ---
-As in the signal version log~, log takes a base value via an argument or the right inlet, but it defaults to [e](https://en.wikipedia.org/wiki/E_(mathematical_constant)).
+As in the signal version log~, log takes a base value via an argument or the right inlet, but it defaults to [e](https://en.wikipedia.org/wiki/E_(mathematical_constant

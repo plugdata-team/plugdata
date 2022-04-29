@@ -40,18 +40,9 @@ outlets:
     description: filtered signal, imaginary part.
 arguments:
   - type: list
-    description: real and imaginary part of coefficient (default 0 0).
+    description: real and imaginary part of coefficient 
+  default: 0 0
+.
 draft: false
 ---
-Czero_rev~ filters a complex audio signal (first two inlets) via a raw one-zero (non-reccursive) filter, whose coefficients are controlled by creation arguments or by another complex audio signal (remaining two inlets). The impulse response is that of "rzero" reversed in time.
-
-The action of czero_rev~ is:
-
-`y[n] = - a[n] * x[n] + x[n-1]`
-
-where y[n] is the output, x[n] the input, and a[n] the filter coefficient (all complex numbers). The filter is always stable.
-
-The transfer function is `H(Z) = -a + Z^-1`.
-
-Pd also provides a suite of user-friendly filters. This and other raw filters are provided for situations which the user-friendly ones can't handle. See Chapter 8 of http://msp.ucsd.edu/techniques/latest/book-html/node127.html for an introduction to the necessary theory.
-
+Czero_rev~ filters a complex audio signal (first two inlets

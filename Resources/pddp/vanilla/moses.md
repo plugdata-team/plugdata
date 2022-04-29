@@ -9,7 +9,9 @@ see_also:
 - change
 - select
 arguments:
-- description: set initial control value (default 0).
+- description: set initial control value 
+  default: 0
+.
   type: float
 inlets:
   1st:

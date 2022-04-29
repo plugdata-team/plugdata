@@ -20,7 +20,9 @@ see_also:
 - text search
 - text sequence
 arguments:
-- description: 'text name if no flags are given (default: none).'
+- description: 'text name if no flags are given 
+  default:: none
+.'
   type: symbol
 flags:
 - description: struct name and field name of main structure.
