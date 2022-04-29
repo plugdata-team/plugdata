@@ -231,6 +231,7 @@ void Library::initialiseLibrary()
     startTimer(3000);
 }
 
+
 void Library::updateLibrary()
 {
     auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
@@ -249,11 +250,12 @@ void Library::updateLibrary()
 #else
     mlist = o->c_methods;
 #endif
-
+    
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
         searchTree->insert(m->me_name->s_name);
+        
     }
 
     searchTree->insert("graph");
@@ -285,8 +287,9 @@ void Library::parseDocumentation(const String& path)
 
         std::sort(positions.begin(), positions.end(), [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
 
-        std::map<String, String> sections;
+        std::map<String, std::pair<String, int>> sections;
 
+        int i = 0;
         for (auto it = positions.begin(); it < positions.end(); it++)
         {
             auto& [name, currentPosition] = *it;
@@ -303,8 +306,9 @@ void Library::parseDocumentation(const String& path)
             {
                 sectionContent = contents.substring(currentPosition + 1, (*(it + 1)).second);
             }
-
-            sections[name.trim()] = sectionContent.substring(1).trim();
+            
+            sections[name.trim()] = {sectionContent.substring(1).trim().unquoted(), i};
+            i++;
         }
 
         return sections;
@@ -339,8 +343,8 @@ void Library::parseDocumentation(const String& path)
             if (!lines[i * 2].containsNonWhitespaceChars() || !lines[i * 2 + 1].containsNonWhitespaceChars()) continue;
 
             String type = lines[i * 2].fromFirstOccurrenceOf("type:", false, false).trim();
-            String description = formatText(lines[i * 2 + 1].fromFirstOccurrenceOf("description:", false, false));
-
+            String description = formatText(lines[i * 2 + 1].fromFirstOccurrenceOf("description:", false, false).upToFirstOccurrenceOf("default:", false, false));
+            
             result.add({type, description});
         }
 
@@ -354,17 +358,21 @@ void Library::parseDocumentation(const String& path)
 
         if (!sections.count("title")) return;
 
-        String name = sections["title"];
+        String name = sections["title"].first;
 
         if (sections.count("description"))
         {
-            objectDescriptions[name] = sections["description"];
+            objectDescriptions[name] = sections["description"].first;
+        }
+        
+        if(name.contains("&&")) {
+            std::cout << "hey" << std::endl;
         }
 
         if (sections.count("arguments"))
         {
             Arguments args;
-            for (auto& [type, description] : parseTypeAndDescription(sections["arguments"]))
+            for (auto& [type, description] : parseTypeAndDescription(sections["arguments"].first))
             {
                 String defaultValue;
                 if (description.contains("(default"))
@@ -381,28 +389,32 @@ void Library::parseDocumentation(const String& path)
         auto numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"};
         if (sections.count("inlets"))
         {
-            for (auto [number, content] : getSections(sections["inlets"], numbers))
+            auto section = getSections(sections["inlets"].first, numbers);
+            inletDescriptions[name].resize(section.size());
+            for (auto [number, content] : section)
             {
                 String tooltip;
-                for (auto& [type, description] : parseTypeAndDescription(content))
+                for (auto& [type, description] : parseTypeAndDescription(content.first))
                 {
                     tooltip += "(" + type + ") " + description + "\n";
                 }
-
-                inletDescriptions[name].add({tooltip, number == "nth"});
+                
+                inletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};
             }
         }
         if (sections.count("outlets"))
         {
-            for (auto [number, content] : getSections(sections["outlets"], numbers))
+            auto section =  getSections(sections["outlets"].first, numbers);
+            outletDescriptions[name].resize(section.size());
+            for (auto [number, content] : section)
             {
                 String tooltip;
-                for (auto& [type, description] : parseTypeAndDescription(content))
+                for (auto& [type, description] : parseTypeAndDescription(content.first))
                 {
                     tooltip += "(" + type + ") " + description + "\n";
                 }
-
-                outletDescriptions[name].add({tooltip, number == "nth"});
+                
+                outletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};
             }
         }
     };
@@ -416,68 +428,6 @@ void Library::parseDocumentation(const String& path)
             parseFile(file);
         }
     }
-
-    /* temp disable
-    for (auto& iter : RangedDirectoryIterator(path, true))
-    {
-        auto file = iter.getFile();
-
-        if (file.hasFileExtension("pddoc"))
-        {
-            XmlDocument doc(file);
-
-            auto elt = doc.getDocumentElement();
-            // elt->setTagName(file.getFileNameWithoutExtension());
-
-            auto object = elt->getChildByName("object");
-            auto name = object->getStringAttribute("name");
-
-            auto meta = object->getChildByName("meta");
-
-            auto keywords = meta->getChildElementAllSubText("keywords", "");
-            auto description = meta->getChildElementAllSubText("description", "");
-
-
-            auto outlets = IODescription();
-            auto inlets = IODescription();
-
-            auto inletsTree = object->getChildByName("inlets");
-            auto outletsTree = object->getChildByName("outlets");
-
-            if(name == "metro") {
-                std::cout << "T" << std::endl;
-            }
-
-            for(auto* inlet : inletsTree->getChildIterator())
-            {
-                bool repeating = inlet->getNumAttributes() == 1 && inlet->getAttributeName(0) == "repeating";
-                String totalDescription;
-
-                for(auto* trigger : inlet->getChildIterator())
-                {
-                    totalDescription += "(" + trigger->getStringAttribute("on") + ") " +  trigger->getAllSubText() + "\n";
-                }
-
-                inlets.add({totalDescription, repeating});
-
-            }
-
-            for(auto* outlet : outletsTree->getChildIterator())
-            {
-                String type = outlet->getStringAttribute("out");
-                String description = outlet->getAllSubText();
-                if(!type.isEmpty()) description = "(" + type + ") " + description;
-                bool repeating = outlet->getNumAttributes() == 1 && outlet->getAttributeName(0) == "repeating";
-                outlets.add({description, repeating});
-            }
-
-            outletDescriptions[name] = outlets;
-            inletDescriptions[name] = inlets;
-
-            objectDescriptions[name] = description;
-            objectKeywords[name] = StringArray::fromTokens(keywords, false);
-        }
-    } */
 }
 
 Suggestions Library::autocomplete(std::string query)
@@ -538,3 +488,176 @@ void Library::timerCallback()
 }
 
 }  // namespace pd
+
+
+
+/* Code for generating library markdown files, not in usage but useful for later
+ 
+ // wait for pd to initialise
+ Timer::callAfterDelay(1200, [this](){
+     
+     enqueueFunction([this](){
+     t_class* o = pd_objectmaker;
+#if PDINSTANCE
+     t_methodentry* mlist = o->c_methods[pd_this->pd_instanceno];
+#else
+     t_methodentry* mlist = o->c_methods;
+#endif
+     
+ t_methodentry* m;
+
+ int i;
+ for (i = o->c_nmethod, m = mlist; i--; m++)
+ {
+     String name(m->me_name->s_name);
+     StringArray arguments;
+     
+     if(name == "onebang_proxy" || name == "midi") continue;
+     
+     t_atom args[9];
+     int nargs = 3;
+     for(int i = 0; i < 6; i++) {
+         auto atomtype = (t_atomtype)m->me_arg[i];
+         String type;
+         auto* target = args + i + 3;
+         
+         if(atomtype == A_NULL) {
+             break;
+         }
+         
+         nargs++;
+         if(atomtype == A_FLOAT) {
+             type = "float";
+             SETFLOAT(target, 0);
+         }
+         else if(atomtype == A_SYMBOL) {
+             type = "symbol";
+             SETSYMBOL(target, gensym("0"));
+         }
+         else if(atomtype == A_GIMME) {
+             type = "gimme";
+             SETFLOAT(target, 0);
+             arguments.add(type);
+             break;
+         }
+         else if(atomtype == A_POINTER) {
+             type = "pointer";
+             SETPOINTER(target, 0);
+         }
+         else if(atomtype == A_SEMI) {
+             type = "semi";
+             SETSEMI(target);
+         }
+         else if(atomtype == A_COMMA) {
+             type = "comma";
+             SETCOMMA(target);
+         }
+         else if(atomtype == A_DEFFLOAT) {
+             type = "float";
+             SETFLOAT(target, 0);
+         }
+         else if(atomtype == A_DEFSYM) {
+             type = "symbol";
+             SETSYMBOL(target, gensym("0"));
+         }
+         else if(atomtype == A_DOLLSYM) {
+             type = "dollsym";
+             SETDOLLSYM(target, gensym("$1"));
+         }
+         
+         arguments.add(type);
+     }
+     
+     SETFLOAT(args, 20.0f);
+     SETFLOAT(args + 1, 20.0f);
+     SETSYMBOL(args + 2, gensym(name.toRawUTF8()));
+     
+     auto* obj = pd_checkobject(libpd_createobj(patches[0]->getPointer(), gensym("obj"), nargs, args));
+     
+     if(!obj) continue;
+     int nin = libpd_ninlets(obj);
+     int nout = libpd_noutlets(obj);
+     
+     t_inlet* i;
+     t_outlet* i_out;
+     
+     StringArray inletTypes;
+     StringArray outletTypes;
+     
+     if(name == "metro") {
+         std::cout << "hey" << std::endl;
+     }
+     
+     for (i = (t_inlet*)obj->ob_inlet; i; i = i->i_next) {
+         if(!i->i_symfrom) {
+             inletTypes.add("?");
+             continue;
+         }
+         inletTypes.add(i->i_symfrom->s_name);
+     }
+     while(inletTypes.size() && nin > inletTypes.size()) {
+         inletTypes.add(inletTypes.getReference(inletTypes.size() - 1));
+         nin--;
+     }
+     
+     for (i_out = (t_outlet*)obj->ob_outlet; i_out; i_out = i_out->o_next) {
+         if(!i_out->o_sym) {
+             outletTypes.add("?");
+             continue;
+         }
+         outletTypes.add(i_out->o_sym->s_name);
+     }
+     
+     while(outletTypes.size() && nout > outletTypes.size()) {
+         outletTypes.add(outletTypes.getReference(outletTypes.size() - 1));
+         nout--;
+     }
+     
+     auto file = File("/Users/timschoen/Projecten/PlugData/Resources/pddp/NEW/" + name + ".md");
+     
+     String newFile;
+     newFile += "---\n";
+     newFile += "title: " + name + "\n";
+     newFile += "description:\n";
+     newFile += "categories:\n";
+     newFile += " - object\n";
+     newFile += "pdcategory: General\n";
+     newFile += "arguments:\n";
+     
+     StringArray numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"};
+     
+     
+     for(auto& arg : arguments) {
+         
+         newFile += "- type: " + arg + "\n";
+         newFile += "  description:\n";
+         newFile += "  default:\n";
+     }
+
+     int idx = 0;
+     newFile += "inlets:\n";
+     for(auto& inlet : inletTypes) {
+         newFile += "  " + numbers[idx] + ":\n";
+         newFile += "  - type: " + inlet + "\n";
+         newFile += "    description:\n";
+         idx++;
+     }
+     
+     idx = 0;
+     newFile += "outlets:\n";
+     for(auto& outlet : outletTypes) {
+         newFile += "  " + numbers[idx] + ":\n";
+         newFile += "  - type: " + outlet + "\n";
+         newFile += "    description:\n";
+         idx++;
+     }
+
+     file.create();
+     file.replaceWithText(newFile);
+     
+ }
+     
+     });
+ });
+ 
+ */

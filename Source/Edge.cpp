@@ -25,7 +25,7 @@ Edge::Edge(Box* parent, bool inlet) : box(parent)
         createConnection();
     };
 
-    // setBufferedToImage(true);
+    setBufferedToImage(true);
 }
 
 bool Edge::hasConnection()
@@ -120,6 +120,7 @@ void Edge::mouseUp(const MouseEvent& e)
     if (box->cnv->nearestEdge)
     {
         box->cnv->nearestEdge->isHovered = false;
+        box->cnv->nearestEdge->repaint();
         box->cnv->nearestEdge = nullptr;
     }
 }

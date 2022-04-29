@@ -1,32 +1,30 @@
 ---
 title: linedrive
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: float
+  description:
   default:
-
+- type: float
+  description:
+  default:
+- type: float
+  description:
+  default:
+- type: float
+  description:
+  default:
 inlets:
   1st:
-  - type:
+  - type: float
     description:
   2nd:
-  - type:
+  - type: float
     description:
-
 outlets:
   1st:
-  - type:
+  - type: list
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE

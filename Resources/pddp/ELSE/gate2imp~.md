@@ -1,32 +1,12 @@
 ---
 title: gate2imp~
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
-  default:
-
 inlets:
-  1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
-
 outlets:
   1st:
-  - type:
+  - type: signal
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE

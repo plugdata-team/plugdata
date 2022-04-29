@@ -1083,46 +1083,6 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
         box->setTopLeftPosition(box->mouseDownPos + dragDistance);
     }
 
-    /*
-    // If object was snapped last time
-    if(static_cast<bool>(gridEnabled.getValue()) && lastObjectGrid.type != ObjectGrid::NotSnappedToObjectGrid) {
-
-        // Check if we've dragged out of the ObjectGrid snap
-        bool horizontalSnap = lastObjectGrid.type == ObjectGrid::HorizontalSnap;
-        bool horizontalUnsnap = horizontalSnap && abs(lastObjectGrid.position.x - dragDistance.x) > 4;
-        bool verticalUnsnap = !horizontalSnap && abs(lastObjectGrid.position.y - dragDistance.y) > 4;
-
-        if(horizontalUnsnap || verticalUnsnap) {
-            lastObjectGrid = ObjectGrid(); // reset ObjectGrid
-            ObjectGridPath.setPath(Path());  // remove ObjectGrid marker
-        }
-        // Otherwise replace drag distance with the drag distance when we first snapped
-        else if(horizontalSnap) {
-            dragDistance.x = lastObjectGrid.position.x;
-        }
-        else {
-            dragDistance.y = lastObjectGrid.position.y;
-        }
-    }
-
-
-    if(componentBeingDragged && static_cast<bool>(gridEnabled.getValue())) {
-        auto snap = shouldSnapToObjectGrid(componentBeingDragged);
-
-        // If we were not snapped last time and are locked now, or if the point to which we snapped has changed
-        if(snap.type != ObjectGrid::NotSnappedToObjectGrid && (lastObjectGrid.type == ObjectGrid::NotSnappedToObjectGrid || snap.idx != lastObjectGrid.idx)) {
-            snap.position += dragDistance;
-            lastObjectGrid = snap;
-        }
-
-        if(snap.type != ObjectGrid::NotSnappedToObjectGrid) {
-            // Show ObjectGrid indicator
-            auto path = Path();
-            path.addLineSegment(snap.ObjectGridLine.toFloat(), 0.5f);
-            ObjectGridPath.setPath(path);
-        }
-    } */
-
     for (auto& tmpl : templates)
     {
         tmpl->updateIfMoved();

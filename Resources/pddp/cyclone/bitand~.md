@@ -1,32 +1,24 @@
 ---
 title: bitand~
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: float
+  description:
   default:
-
+- type: float
+  description:
+  default:
 inlets:
   1st:
-  - type:
+  - type: signal
     description:
   2nd:
-  - type:
+  - type: signal
     description:
-
 outlets:
   1st:
-  - type:
+  - type: signal
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE

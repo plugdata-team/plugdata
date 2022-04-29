@@ -1,32 +1,21 @@
 ---
 title: separate
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: gimme
+  description:
   default:
-
 inlets:
   1st:
-  - type:
+  - type: symbol
     description:
   2nd:
-  - type:
+  - type: symbol
     description:
-
 outlets:
   1st:
-  - type:
+  - type: ?
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE

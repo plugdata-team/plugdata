@@ -1,32 +1,12 @@
 ---
 title: universal
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: float
+  description:
   default:
-
 inlets:
-  1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
-
 outlets:
-  1st:
-  - type:
-    description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE
