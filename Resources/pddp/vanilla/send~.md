@@ -19,9 +19,7 @@ inlets:
 arguments:
 - type: symbol
   description: send symbol name 
-  default: empty symbol
-.
-draft: false
+  default: empty symboldraft: false
 ---
 A send~ object copies its input to a local buffer which all receive~ objects of the same name read from. They may be in different windows or even different patches. Any number of receives may be associated with one send~ but it is an error to have two send~s of the same name. Receive~ takes "set" messages to switch between send~s.
 

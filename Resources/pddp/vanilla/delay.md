@@ -12,7 +12,5 @@ see_also:
 - timer
 arguments:
 - description: tempo value 
-  default: 1
-.
-  type: float
+  default: 1  type: float
 - description: time unit 

@@ -9,7 +9,5 @@ see_also:
 - stripnote
 arguments:
 - description: initial velocity value 
-  default: 0
-.
-  type: float
+  default: 0  type: float
 - description: initial duration value 

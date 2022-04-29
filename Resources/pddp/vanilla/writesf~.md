@@ -25,9 +25,8 @@ inlets:
     description: signal to write to a channel.
 arguments:
 - type: float
-  description: sets number of channels 
+  description: sets number of channels
   default: 1
-.
 draft: false
 ---
 writesf~ creates a subthread whose task is to write audio streams to disk. You need not provide any disk access time between "open" and "start", but between "stop" and the next "open" you must give the object time to flush all the output to disk.

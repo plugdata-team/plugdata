@@ -17,7 +17,5 @@ outlets:
 arguments:
   - type: float
     description: window size in samples 
-  default: 1024
-.
-  - type: float
+  default: 1024  - type: float
     description: period in samples per analysis 

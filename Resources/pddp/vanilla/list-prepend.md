@@ -14,9 +14,8 @@ see_also:
 - list fromsymbol
 - list tosymbol
 arguments:
-- description: initialize the list to prepend 
-  default: empty
-.
+- description: initialize the list to prepend
+  default: empty  
   type: list
 inlets:
   1st:

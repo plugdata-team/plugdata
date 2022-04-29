@@ -1,9 +1,7 @@
 ---
 title: scalar
 description: create a scalar datum 
-  default: [scalar define]
-.
-categories:
+  default: [scalar define]categories:
 - object
 see_also: 
 - array

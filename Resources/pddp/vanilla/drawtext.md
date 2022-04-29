@@ -24,7 +24,5 @@ arguments:
   description: field name to draw.
 - type: list*
   description: (x, y) coordinates pair 
-  default: 0 0
-.
-- type: float*
+  default: 0 0- type: float*
   description: color 

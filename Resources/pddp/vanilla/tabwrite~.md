@@ -18,7 +18,5 @@ inlets:
     description: signal to write to an array.
   - type: start <float>
     description: starts recording at given sample 
-  default: 0
-.
-  - type: bang
+  default: 0  - type: bang
     description: starts recording into the array (same as 'start 0'
