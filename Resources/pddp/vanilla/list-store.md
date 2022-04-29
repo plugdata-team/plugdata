@@ -15,9 +15,7 @@ see_also:
 - list tosymbol
 arguments:
 - description: initialize the stored list 
-  default: empty
-.
-  type: list
+  default: empty  type: list
 inlets:
   1st:
   - type: list

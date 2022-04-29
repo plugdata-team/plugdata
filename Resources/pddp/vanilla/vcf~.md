@@ -36,8 +36,6 @@ outlets:
 arguments:
   - type: float
     description: initial Q 
-  default: 0
-.
-draft: false
+  default: 0draft: false
 ---
 Vcf~ is a resonant band-pass and low-pass filter that takes either a control or an audio signal to set center frequency, which may thus change continuously in time as in an analog voltage controlled filter (and unlike 'bp~' and 'lop~' that only take control values

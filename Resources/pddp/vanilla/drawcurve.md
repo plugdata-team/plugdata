@@ -31,7 +31,5 @@ flags:
 arguments:
 - type: float* 
   description: line color, filled shapes have an extra first interior color. 
-  default: 0
-.
-- type: float*
+  default: 0- type: float*
   description: line width 

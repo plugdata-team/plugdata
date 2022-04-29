@@ -7,9 +7,7 @@ pdcategory: General
 last_update: '0.27'
 arguments:
 - description: initial value 
-  default: 0
-.
-  type: float
+  default: 0  type: float
 inlets:
   1st:
   - type: bang

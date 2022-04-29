@@ -12,8 +12,7 @@ see_also:
 - metro
 - text sequence
 arguments:
-- description: tempo value 
-  default: 1
-.
+- description: tempo value
+  default: 1  
   type: float
-- description: time unit 
+- description: time unit

@@ -12,9 +12,7 @@ see_also:
 - symbol
 arguments:
 - description: initially stored value 
-  default: 0
-.
-  type: float
+  default: 0  type: float
 inlets:
   1st:
   - type: bang

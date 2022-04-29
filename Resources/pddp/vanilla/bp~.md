@@ -33,7 +33,5 @@ outlets:
 arguments:
   - type: float
     description: initial center frequency in Hz 
-  default: 0
-.
-  - type: float
+  default: 0  - type: float
     description: initial Q 
