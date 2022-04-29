@@ -29,7 +29,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
         showEditor();
         toFront(false);
     }
-    else if(name == "msg")
+    else if (name == "msg")
     {
         setType(name);
         graphics->showEditor();
@@ -142,14 +142,14 @@ void Box::updateBounds(bool newObject)
         {
             setTopLeftPosition(bounds.getPosition());
         }
-        
+
         if (graphics && !graphics->noGui())
         {
             addAndMakeVisible(graphics.get());
             auto b = pdObject->getBounds();
-            
+
             int width = b.getWidth() <= 0 ? getBestTextWidth() : b.getWidth() + doubleMargin;
-            
+
             setSize(width, b.getHeight() + doubleMargin);
             graphics->resized();
             graphics->toBack();
@@ -160,18 +160,19 @@ void Box::updateBounds(bool newObject)
         {
             setEditable(true);
             hideLabel = false;
-            
+
             int width = bounds.getWidth() <= 0 ? getBestTextWidth() : bounds.getWidth() + doubleMargin;
-            
+
             setSize(width, height);
         }
     }
-    else {
+    else
+    {
         hideLabel = false;
         setEditable(true);
         setSize(100, Box::height);
     }
-    
+
     resized();
 }
 
@@ -196,10 +197,10 @@ void Box::setType(const String& newType, bool exists)
         {
             // Clear connections to this object
             // They will be remade by the synchronise call later
-            for(auto* connection : getConnections()) cnv->connections.removeObject(connection);
-            
+            for (auto* connection : getConnections()) cnv->connections.removeObject(connection);
+
             pdObject = pd->renameObject(pdObject.get(), newType);
-            
+
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
             MessageManager::callAsync([this]() { cnv->synchronise(false); });
@@ -265,7 +266,7 @@ void Box::paint(Graphics& g)
     if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
     {
         outlineColour = Colours::red;
-        if(selected) outlineColour = outlineColour.brighter(1.3f);
+        if (selected) outlineColour = outlineColour.brighter(1.3f);
     }
     else if (selected && !cnv->isGraph)
     {
@@ -278,7 +279,6 @@ void Box::paint(Graphics& g)
 
     if (!graphics || (graphics && graphics->noGui()))
     {
-        
         g.setColour(findColour(ResizableWindow::backgroundColourId));
         g.fillRect(getLocalBounds().reduced(margin));
     }
@@ -316,7 +316,7 @@ void Box::resized()
     {
         graphics->setBounds(getLocalBounds().reduced(margin));
     }
-    
+
     // graphical objects manage their own size limits
     // For text object, make sure the width at least fits the text
     if (!graphics || graphics->noGui())
@@ -326,7 +326,7 @@ void Box::resized()
 
         // Width of text
         int textWidth = getBestTextWidth();
-        
+
         // Round width of text objects to pd's resolution, make sure that the ideal size is one of the options
         auto roundToTextWidth = [this](int width, int stringWidth)
         {
@@ -334,21 +334,24 @@ void Box::resized()
             int offset = stringWidth % multiple;
             return (((width + multiple - 1) / multiple) * multiple) - offset;
         };
-        
+
         // Calculate height based on number of lines, and width
         int width = std::max(getWidth(), ioletWidth);
         int height = Box::height + ((getNumLines(currentText, width) - 1) * 28);
-        
+
         // If an object uses minimum
-        if(width == ioletWidth) {
+        if (width == ioletWidth)
+        {
             border.setLeft(10);
         }
-        else{
+        else
+        {
             border.setLeft(8);
         }
         // Recursive resize is a bit tricky, but since these variables are very predictable,
         // it won't be a problem
-        if(getWidth() != width || getHeight() != height) {
+        if (getWidth() != width || getHeight() != height)
+        {
             setSize(width, height);
         }
     }
@@ -357,29 +360,30 @@ void Box::resized()
     {
         newEditor->setBounds(getLocalBounds().reduced(margin));
     }
-    
+
     int edgeSize = 12;
     const int edgeHitBox = 8;
     const int borderWidth = 14;
-    
-    if(getWidth() < 35) {
+
+    if (getWidth() < 35)
+    {
         edgeSize = std::max(edgeSize - (35 - getWidth()), 10);
     }
-    
+
     auto inletBounds = getLocalBounds();
-    if(auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (edgeHitBox * numInputs) - borderWidth))
+    if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (edgeHitBox * numInputs) - borderWidth))
     {
         inletBounds.removeFromLeft(spaceToRemove);
         inletBounds.removeFromRight(spaceToRemove);
     }
-    
+
     auto outletBounds = getLocalBounds();
-    if(auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (edgeHitBox * numOutputs) - borderWidth))
+    if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (edgeHitBox * numOutputs) - borderWidth))
     {
         outletBounds.removeFromLeft(spaceToRemove);
         outletBounds.removeFromRight(spaceToRemove);
     }
-    
+
     int index = 0;
     for (auto& edge : edges)
     {
@@ -387,15 +391,15 @@ void Box::resized()
         const int position = index < numInputs ? index : index - numInputs;
         const int total = isInlet ? numInputs : numOutputs;
         const float yPosition = (isInlet ? margin : getHeight() - margin) - edgeSize / 2.0f;
-        
+
         const auto bounds = isInlet ? inletBounds : outletBounds;
 
-        if(total == 1 && position == 0)
+        if (total == 1 && position == 0)
         {
-            int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - edgeSize / 2.0f: bounds.getX();
+            int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - edgeSize / 2.0f : bounds.getX();
             edge->setBounds(xPosition, yPosition, edgeSize, edgeSize);
         }
-        else if(total > 1)
+        else if (total > 1)
         {
             const double ratio = (bounds.getWidth() - edgeSize) / (double)(total - 1);
             edge->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
@@ -443,10 +447,10 @@ void Box::updatePorts()
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;
         edge->setAlwaysOnTop(true);
-        
+
         String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(currentText, edge->edgeIdx, input ? numInputs : numOutputs, input);
         edge->setTooltip(tooltip);
-        
+
         // Dont show for graphs or presentation mode
         edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
         edge->repaint();
@@ -495,11 +499,11 @@ void Box::mouseUp(const MouseEvent& e)
     {
         showEditor();
     }
-    
-    if(wasResized) cnv->grid.handleMouseUp(Point<int>());
+
+    if (wasResized) cnv->grid.handleMouseUp(Point<int>());
 
     cnv->handleMouseUp(this, e);
-    
+
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
         cnv->connectingEdge = nullptr;
@@ -508,26 +512,25 @@ void Box::mouseUp(const MouseEvent& e)
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
     {
         originalBounds.setBounds(0, 0, 0, 0);
-        
+
         cnv->pd->enqueueFunction(
             [this]()
             {
                 auto b = getBounds() - cnv->canvasOrigin;
                 b.reduce(margin, margin);
                 pdObject->setBounds(b);
-                
+
                 // To make sure it happens after setting object bounds
-                if(!cnv->viewport->getViewArea().contains(getBounds())) {
-                    MessageManager::callAsync([this](){
-                        cnv->checkBounds();
-                    });
+                if (!cnv->viewport->getViewArea().contains(getBounds()))
+                {
+                    MessageManager::callAsync([this]() { cnv->checkBounds(); });
                 }
             });
     }
-    else if(!cnv->viewport->getViewArea().contains(getBounds())) {
+    else if (!cnv->viewport->getViewArea().contains(getBounds()))
+    {
         cnv->checkBounds();
     }
-
 
     selectionChanged = false;
 }
@@ -540,29 +543,29 @@ void Box::mouseDrag(const MouseEvent& e)
     {
         wasResized = true;
         Point<int> dragDistance = e.getOffsetFromDragStart();
-        
+
         int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth();
-        if(abs(distance) < ObjectGrid::range) {
-            cnv->grid.forceSnap(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
+        if (abs(distance) < ObjectGrid::range)
+        {
+            cnv->grid.setSnapped(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
         }
-        
-        if(static_cast<bool>(cnv->gridEnabled.getValue())) {
+
+        if (static_cast<bool>(cnv->gridEnabled.getValue()))
+        {
             dragDistance = cnv->grid.handleMouseDrag(this, dragDistance, cnv->viewport->getViewArea());
         }
-        
+
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
-        
+
         setBounds(newBounds);
-        
+
         return;
     }
     // Let canvas handle moving
-    else {
+    else
+    {
         cnv->handleMouseDrag(e);
     }
-    
-    
-
 }
 
 void Box::showEditor()
@@ -571,23 +574,25 @@ void Box::showEditor()
     {
         editor = std::make_unique<TextEditor>(getName());
         editor->applyFontToAllText(font);
-        
+
         copyAllExplicitColoursTo(*editor);
-        editor->setColour (Label::textWhenEditingColourId, findColour (TextEditor::textColourId));
-        editor->setColour (Label::backgroundWhenEditingColourId, findColour (TextEditor::backgroundColourId));
-        editor->setColour (Label::outlineWhenEditingColourId, findColour (TextEditor::focusedOutlineColourId));
-        
+        editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
+        editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
+        editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+
         editor->setAlwaysOnTop(true);
-        
+
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);
         editor->setBorder(border);
         editor->setIndents(0, 0);
         editor->setJustification(justification);
 
-        editor->onFocusLost = [this]() {
+        editor->onFocusLost = [this]()
+        {
             // Necessary so the editor doesn't close when clicking on a suggestion
-            if(!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
+            if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
+            {
                 hideEditor();
             }
         };
@@ -658,11 +663,15 @@ void Box::hideEditor()
     }
 }
 
-Array<Connection*> Box::getConnections() const {
+Array<Connection*> Box::getConnections() const
+{
     Array<Connection*> result;
-    for(auto* con : cnv->connections) {
-        for(auto* edge : edges) {
-            if(con->inlet == edge || con->outlet == edge) {
+    for (auto* con : cnv->connections)
+    {
+        for (auto* edge : edges)
+        {
+            if (con->inlet == edge || con->outlet == edge)
+            {
                 result.add(con);
             }
         }
@@ -675,7 +684,8 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
     return editor.get();
 }
 
-int Box::getBestTextWidth() {
+int Box::getBestTextWidth()
+{
     return round(font.getStringWidthFloat(currentText) + 31.f);
 }
 
@@ -694,7 +704,6 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
     {
         editor->giveAwayKeyboardFocus();
     }
-    
 }
 
 void Box::textEditorTextChanged(TextEditor& ed)

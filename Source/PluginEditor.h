@@ -40,7 +40,7 @@ enum CommandIDs
     Delete,
     Duplicate,
     SelectAll,
-    
+
     ShowBrowser,
 
     NewObject,
@@ -70,7 +70,6 @@ struct TabComponent : public TabbedComponent
 
     TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
-        
     }
 
     void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
@@ -91,20 +90,20 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
-    
+
     void resized() override;
 
     void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
     void mouseMagnify(const MouseEvent& e, float scaleFactor) override;
-    
+
 #ifdef PLUGDATA_STANDALONE
     // For dragging parent window
     void mouseDrag(const MouseEvent& e) override;
     void mouseDown(const MouseEvent& e) override;
-    
+
     ComponentDragger windowDragger;
 #endif
-    
+
     void openProject();
     void saveProject(const std::function<void()>& nestedCallback = []() {});
     void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
@@ -126,7 +125,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     bool perform(const InvocationInfo& info) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
-    
+
     PlugDataAudioProcessor& pd;
 
     AffineTransform transform;
@@ -141,7 +140,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
    private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
-    
+
 #ifdef PLUGDATA_STANDALONE
     static constexpr int toolbarHeight = 45;
 #else
@@ -154,7 +153,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 
     TextButton seperators[2];
-    
+
     enum ToolbarButtonType
     {
         New = 0,

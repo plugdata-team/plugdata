@@ -67,9 +67,9 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receiveGuiUpdate(int type) override;
 
     void updateConsole() override;
-    
+
     void synchroniseCanvas(void* cnv) override;
-    
+
     void receivePrint(const std::string& message) override
     {
         if (!message.empty())
@@ -127,9 +127,9 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     pd::Patch* loadPatch(File patch);
 
     void titleChanged() override;
-    
+
     void setTheme(bool themeToUse);
-    
+
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;
 
@@ -161,13 +161,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     AudioProcessorValueTreeState parameters;
 
     StatusbarSource statusbarSource;
-    
+
     Value tailLength = Value(0.0f);
 
     SharedResourcePointer<PlugDataLook> lnf;
-    
 
-    
    private:
     void processInternal();
 
@@ -192,7 +190,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
     std::array<float, numParameters> lastParameters = {0};
-    
+
     std::vector<pd::Atom> atoms_playhead;
 
     int minIn = 2;

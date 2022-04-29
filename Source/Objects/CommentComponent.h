@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 struct CommentComponent : public GUIComponent
 {
     CommentComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
@@ -12,40 +11,38 @@ struct CommentComponent : public GUIComponent
         addAndMakeVisible(input);
         input.setText(gui.getText(), dontSendNotification);
         input.setInterceptsMouseClicks(false, false);
-        
+
         setInterceptsMouseClicks(false, false);
-        
-        
-        input.onTextChange = [this, box](){
-            
+
+        input.onTextChange = [this, box]()
+        {
             String name = input.getText();
-            box->cnv->pd->enqueueFunction([this, box, name]() mutable {
-                auto* newName = name.toRawUTF8();
-                libpd_renameobj(box->cnv->patch.getPointer(), static_cast<t_gobj*>(gui.getPointer()), newName, input.getText().getNumBytesAsUTF8());
-                
-                MessageManager::callAsync([box](){
-                    box->updateBounds(false);
+            box->cnv->pd->enqueueFunction(
+                [this, box, name]() mutable
+                {
+                    auto* newName = name.toRawUTF8();
+                    libpd_renameobj(box->cnv->patch.getPointer(), static_cast<t_gobj*>(gui.getPointer()), newName, input.getText().getNumBytesAsUTF8());
+
+                    MessageManager::callAsync([box]() { box->updateBounds(false); });
                 });
-            });
         };
-        
-        input.onEditorShow = [this](){
+
+        input.onEditorShow = [this]()
+        {
             auto* editor = input.getCurrentTextEditor();
-            if(editor) {
+            if (editor)
+            {
                 editor->setMultiLine(true, true);
                 editor->setReturnKeyStartsNewLine(true);
-                
             }
         };
-    
-        
-        
+
         initialise(newObject);
-        
+
         // Our component doesn't intercept mouse events, so dragging will be okay
         box->addMouseListener(this, false);
     }
-    
+
     void mouseDown(const MouseEvent& e) override
     {
         if (box->cnv->isSelected(box) && !box->selectionChanged)
@@ -53,7 +50,7 @@ struct CommentComponent : public GUIComponent
             shouldOpenEditor = true;
         }
     }
-    
+
     void mouseUp(const MouseEvent& e) override
     {
         // Edit messages when unlocked, edit atoms when locked
@@ -63,18 +60,17 @@ struct CommentComponent : public GUIComponent
             shouldOpenEditor = false;
         }
     }
-    
-    
+
     void lock(bool locked) override
     {
         isLocked = locked;
     }
-    
+
     void resized() override
     {
         input.setBounds(getLocalBounds());
     }
-    
+
     void checkBoxBounds() override
     {
         int numLines = getNumLines(gui.getText(), box->getWidth() - Box::doubleMargin);

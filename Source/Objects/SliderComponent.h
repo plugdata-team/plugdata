@@ -4,29 +4,31 @@ struct SliderComponent : public GUIComponent
 {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
-    
+
     Slider slider;
-    
+
     SliderComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
     {
         isVertical = vertical;
         addAndMakeVisible(slider);
-        
+
         isLogarithmic = gui.isLogScale();
-        
-        if (vertical) slider.setSliderStyle(Slider::LinearBarVertical);
-        else          slider.setSliderStyle(Slider::LinearBar);
-        
+
+        if (vertical)
+            slider.setSliderStyle(Slider::LinearBarVertical);
+        else
+            slider.setSliderStyle(Slider::LinearBar);
+
         slider.setRange(0., 1., 0.001);
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
         slider.setScrollWheelEnabled(false);
-        
+
         slider.setVelocityModeParameters(1.0f, 1, 0.0f, false, ModifierKeys::shiftModifier);
-        
+
         slider.setValue(getValueScaled());
-        
+
         slider.onDragStart = [this]() { startEdition(); };
-        
+
         slider.onValueChange = [this]()
         {
             const float val = slider.getValue();
@@ -42,32 +44,34 @@ struct SliderComponent : public GUIComponent
                 setValueScaled(val);
             }
         };
-        
+
         slider.onDragEnd = [this]() { stopEdition(); };
-        
+
         initialise(newObject);
     }
-    
-    void checkBoxBounds() override {
+
+    void checkBoxBounds() override
+    {
         // Apply size limits
         int w = jlimit(isVertical ? 23 : 50, maxSize, box->getWidth());
         int h = jlimit(isVertical ? 77 : 25, maxSize, box->getHeight());
-        
-        if(w != box->getWidth() || h != box->getHeight()) {
+
+        if (w != box->getWidth() || h != box->getHeight())
+        {
             box->setSize(w, h);
         }
     }
-    
+
     void resized() override
     {
         slider.setBounds(getLocalBounds());
     }
-    
+
     void update() override
     {
         slider.setValue(getValueScaled(), dontSendNotification);
     }
-    
+
     ObjectParameters defineParameters() override
     {
         return {
@@ -76,7 +80,7 @@ struct SliderComponent : public GUIComponent
             {"Logarithmic", tBool, cGeneral, &isLogarithmic, {"off", "on"}},
         };
     }
-    
+
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min))

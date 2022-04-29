@@ -3,28 +3,29 @@ struct PanelComponent : public GUIComponent
 {
     PanelComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
     {
-        
         box->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
         initialise(newObject);
     }
-    
-    void checkBoxBounds() override {
+
+    void checkBoxBounds() override
+    {
         // Apply size limits
         int w = jlimit(20, maxSize, box->getWidth());
         int h = jlimit(20, maxSize, box->getHeight());
-        
-        if(w != box->getWidth() || h != box->getHeight()) {
+
+        if (w != box->getWidth() || h != box->getHeight())
+        {
             box->setSize(w, h);
         }
     }
-    
+
     void paint(Graphics& g) override
     {
         g.fillAll(Colour::fromString(secondaryColour.toString()));
     }
-    
+
     void updateValue() override{};
-    
+
     ObjectParameters getParameters() override
     {
         ObjectParameters params;
@@ -38,5 +39,4 @@ struct PanelComponent : public GUIComponent
         params.push_back({"Label Height", tInt, cLabel, &labelHeight, {}});
         return params;
     }
-
 };

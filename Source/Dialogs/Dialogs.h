@@ -14,39 +14,44 @@ struct BlackoutComponent : public Component
 {
     Component* parent;
     Component* dialog;
-    
+
     std::function<void()> onClose;
 
-    BlackoutComponent(Component* p, Component* d, std::function<void()> closeCallback = [](){}) : parent(p->getTopLevelComponent()), dialog(d), onClose(closeCallback) {
-        
+    BlackoutComponent(
+        Component* p, Component* d, std::function<void()> closeCallback = []() {})
+        : parent(p->getTopLevelComponent()),
+          dialog(d),
+          onClose(closeCallback)
+    {
         parent->addAndMakeVisible(this);
-        //toBehind(dialog);
+        // toBehind(dialog);
         setAlwaysOnTop(true);
         dialog->setAlwaysOnTop(true);
-        
+
         resized();
     }
-    
-    void paint(Graphics& g) {
+
+    void paint(Graphics& g)
+    {
         g.setColour(Colours::black.withAlpha(0.5f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
     }
-    
-    void resized() {
+
+    void resized()
+    {
         setBounds(parent->getLocalBounds().reduced(4));
     }
-    
-    void mouseDown(const MouseEvent& e) {
+
+    void mouseDown(const MouseEvent& e)
+    {
         onClose();
     }
-    
 };
-
 
 struct Dialogs : public Component
 {
     Dialogs();
-    
+
     static void showSaveDialog(Component* centre, String filename, std::function<void(int)> callback);
     static void showArrayDialog(Component* centre, std::function<void(int, String, String)> callback);
 

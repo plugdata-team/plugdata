@@ -47,10 +47,10 @@ class Connection : public Component, public ComponentListener
     ~Connection() override;
 
     void paint(Graphics&) override;
-    
+
     bool isSegmented();
     void setSegmented(bool segmented);
-    
+
     void updatePath();
 
     bool hitTest(int x, int y) override;
@@ -78,6 +78,5 @@ class Connection : public Component, public ComponentListener
     bool straightLineIntersectsObject(Line<int> first);
 
    private:
-    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };

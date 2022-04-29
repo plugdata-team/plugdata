@@ -158,8 +158,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     themeButton = std::make_unique<TextButton>(Icons::Theme);
     browserButton = std::make_unique<TextButton>(Icons::Folder);
     automationButton = std::make_unique<TextButton>(Icons::Parameters);
-    
-    
+
     presentationButton->setTooltip("Presentation Mode");
     presentationButton->setClickingTogglesState(true);
     presentationButton->setConnectedEdges(12);
@@ -189,10 +188,11 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionStyleButton->setClickingTogglesState(true);
     connectionStyleButton->setConnectedEdges(12);
     connectionStyleButton->setName("statusbar:connectionstyle");
-    connectionStyleButton->onClick = [this]() {
+    connectionStyleButton->onClick = [this]()
+    {
         bool segmented = connectionStyleButton->getToggleState();
         auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
-        for(auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>())
+        for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>())
         {
             connection->setSegmented(segmented);
         }
@@ -204,10 +204,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     connectionPathfind->setTooltip("Find best connection path");
     connectionPathfind->setConnectedEdges(12);
     connectionPathfind->setName("statusbar:findpath");
-    connectionPathfind->onClick = [this]()
-    {
-        dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true);
-    };
+    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
     connectionPathfind->setEnabled(connectionStyleButton->getToggleState());
     addAndMakeVisible(connectionPathfind.get());
 
@@ -221,46 +218,44 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomIn->setName("statusbar:zoomin");
     zoomIn->onClick = [this]() { zoom(true); };
     addAndMakeVisible(zoomIn.get());
-    
+
     themeButton->setTooltip("Switch dark mode");
     themeButton->setConnectedEdges(12);
     themeButton->setName("statusbar:darkmode");
-    themeButton->onClick = [this]() {
+    themeButton->onClick = [this]()
+    {
         pd.setTheme(themeButton->getToggleState());
         lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
     };
-    
+
     theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
     themeButton->getToggleStateValue().referTo(theme);
     themeButton->setClickingTogglesState(true);
     addAndMakeVisible(themeButton.get());
-    
+
     browserButton->setTooltip("Open documentation browser");
     browserButton->setConnectedEdges(12);
     browserButton->setName("statusbar:browser");
-    browserButton->onClick = [this]() {
+    browserButton->onClick = [this]()
+    {
         auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
         editor->sidebar.showBrowser(browserButton->getToggleState());
     };
     browserButton->setClickingTogglesState(true);
     addAndMakeVisible(browserButton.get());
-    
+
     automationButton->setTooltip("Open documentation browser");
     automationButton->setConnectedEdges(12);
     automationButton->setName("statusbar:browser");
-    automationButton->onClick = [this]() {
-    };
+    automationButton->onClick = [this]() {};
     automationButton->setClickingTogglesState(true);
     addAndMakeVisible(automationButton.get());
-    
-    
+
     gridButton->setTooltip("Enable grid");
     gridButton->setConnectedEdges(12);
     gridButton->setName("statusbar:grid");
-    gridButton->onClick = [this](){
-        pd.saveSettings();
-    };
-    
+    gridButton->onClick = [this]() { pd.saveSettings(); };
+
     gridEnabled.referTo(pd.settingsTree.getPropertyAsValue("GridEnabled", nullptr));
     gridButton->getToggleStateValue().referTo(gridEnabled);
     gridButton->setClickingTogglesState(true);
@@ -306,40 +301,38 @@ Statusbar::~Statusbar()
 #endif
 }
 
-
 void Statusbar::resized()
 {
-    
     int pos = 0;
-    auto position = [this, &pos](int width, bool inverse = false) -> int {
+    auto position = [this, &pos](int width, bool inverse = false) -> int
+    {
         int result = 8 + pos;
         pos += width + 2;
         return inverse ? getWidth() - pos : result;
     };
-    
+
     lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(5); // Seperator
-    
+    position(5);  // Seperator
+
     connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(5); // Seperator
-    
+    position(5);  // Seperator
+
     zoomLabel.setBounds(position(getHeight() * 1.25), 0, getHeight() * 1.25, getHeight());
-    
+
     zoomIn->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     zoomOut->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position(5); // Seperator
-    
+    position(5);  // Seperator
+
     presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     themeButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
-   
-    
-    pos = 0; // reset position for elements on the left
-    
+
+    pos = 0;  // reset position for elements on the left
+
     automationButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
     browserButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
     bypassButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
@@ -347,9 +340,8 @@ void Statusbar::resized()
     int levelMeterPosition = position(100, true);
     levelMeter->setBounds(levelMeterPosition, 0, 100, getHeight());
     volumeSlider.setBounds(levelMeterPosition, 0, 100, getHeight());
-    
-    midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 
+    midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
 // We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...
@@ -450,13 +442,14 @@ static bool hasRealEvents(MidiBuffer& buffer)
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
-    
     auto** channelData = buffer.getArrayOfReadPointers();
-    
-    if(channels == 1) {
+
+    if (channels == 1)
+    {
         level[1] = 0;
     }
-    else if(channels == 0) {
+    else if (channels == 0)
+    {
         level[0] = 0;
         level[1] = 0;
     }

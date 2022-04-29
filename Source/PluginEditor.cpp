@@ -25,10 +25,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 #else
     setResizable(true, true);
 #endif
-    
+
     tooltipWindow->setOpaque(false);
     tooltipWindow->setLookAndFeel(&pd.lnf.get());
-    
+
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
 
@@ -39,11 +39,11 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
-    
-    for(auto& seperator : seperators) {
+
+    for (auto& seperator : seperators)
+    {
         addChildComponent(&seperator);
     }
-
 
     auto keymap = p.settingsTree.getChildWithName("Keymap");
     if (keymap.isValid())
@@ -112,7 +112,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     {
         auto* patch = pd.loadPatch(pd::Instance::defaultPatch);
         patch->setTitle("Untitled Patcher");
-
     };
 
     // Open button
@@ -143,7 +142,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]()
     {
-        
+
 #ifdef PLUGDATA_STANDALONE
         // Initialise settings dialog for DAW and standalone
         auto pluginHolder = StandalonePluginHolder::getInstance();
@@ -184,18 +183,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Pin)->setClickingTogglesState(true);
     toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     toolbarButton(Pin)->setConnectedEdges(12);
-    toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState());
-        
+    toolbarButton(Pin)->onClick = [this]()
+    {
+        sidebar.pinSidebar(toolbarButton(Pin)->getToggleState());
     };
 
     addAndMakeVisible(toolbarButton(Hide));
-    
+
     setSize(pd.lastUIWidth, pd.lastUIHeight);
 
     tabbar.toFront(false);
     sidebar.toFront(false);
-
-
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -204,9 +202,9 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     {
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
-    
-    if(settingsDialog) delete settingsDialog;
-    
+
+    if (settingsDialog) delete settingsDialog;
+
     pd.settingsTree.removeListener(this);
 
     removeKeyListener(&statusbar);
@@ -216,25 +214,23 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
 
 void PlugDataPluginEditor::showNewObjectMenu()
 {
-
-
     Dialogs::showObjectMenu(this, toolbarButton(Add));
 }
 
 void PlugDataPluginEditor::paint(Graphics& g)
 {
     auto baseColour = findColour(PlugDataColour::toolbarColourId);
-    
+
     // TODO: fix this by never having gaps around the canvas!!
     g.setColour(findColour(PlugDataColour::canvasColourId));
     g.fillRect(getLocalBounds().reduced(0, 10));
-    
+
 #if PLUGDATA_ROUNDED
     // Toolbar background
     g.setColour(baseColour);
     g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
     g.fillRoundedRectangle(0, 0, getWidth(), toolbarHeight, 6.0f);
-    
+
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
@@ -256,7 +252,7 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
     g.drawLine(0, toolbarHeight + 1, static_cast<float>(getWidth()), toolbarHeight + 1);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
 }
-    
+
 void PlugDataPluginEditor::resized()
 {
     tabbar.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - statusbar.getHeight());
@@ -264,7 +260,6 @@ void PlugDataPluginEditor::resized()
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + 1, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
-    
 
     FlexBox fb;
     fb.flexWrap = FlexBox::Wrap::noWrap;
@@ -306,10 +301,10 @@ void PlugDataPluginEditor::resized()
 #else
     int offset = 80;
 #endif
-    
+
     int pinPosition = getWidth() - std::max(sidebar.getWidth() - 40, offset);
     int hidePosition = toolbarButton(Hide)->getToggleState() ? pinPosition : pinPosition - 70;
-    
+
     toolbarButton(Hide)->setBounds(hidePosition, 0, 70, toolbarHeight);
     toolbarButton(Pin)->setBounds(pinPosition, 0, 70, toolbarHeight);
 
@@ -350,7 +345,7 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 #ifdef PLUGDATA_STANDALONE
 void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
-    if(e.getPosition().getY() < toolbarHeight)
+    if (e.getPosition().getY() < toolbarHeight)
     {
         auto* window = getTopLevelComponent();
         windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
@@ -379,14 +374,14 @@ void PlugDataPluginEditor::openProject()
     };
 
     openChooser = std::make_unique<FileChooser>("Choose file to open", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-    
+
     openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectFiles, openFunc);
 }
 
 void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCallback)
 {
     saveChooser = std::make_unique<FileChooser>("Select a save file", File(pd.settingsTree.getProperty("LastChooserPath")), "*.pd");
-    
+
     saveChooser->launchAsync(FileBrowserComponent::saveMode | FileBrowserComponent::warnAboutOverwriting,
                              [this, nestedCallback](const FileChooser& f) mutable
                              {
@@ -397,7 +392,7 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
                                      pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
 
                                      result.deleteFile();
-                                     
+
                                      getCurrentCanvas()->patch.savePatch(result);
                                  }
 
@@ -465,10 +460,10 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     tabbar.addTab(cnv->patch.getTitle(), findColour(ResizableWindow::backgroundColourId), cnv->viewport, true);
 
     int tabIdx = tabbar.getNumTabs() - 1;
-    
+
     tabbar.setCurrentTabIndex(tabIdx);
     tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
-    
+
     if (tabbar.getNumTabs() > 1)
     {
         tabbar.getTabbedButtonBar().setVisible(true);
@@ -498,21 +493,21 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         }
 
         if (idx == -1) return;
-        
+
         auto deleteFunc = [this, deleteWhenClosed, idx]() mutable
         {
             auto* cnv = getCanvas(idx);
             auto* patch = &cnv->patch;
-    
+
             if (deleteWhenClosed)
             {
                 patch->close();
             }
-            
+
             canvases.removeObject(cnv);
             tabbar.removeTab(idx);
             pd.patches.removeObject(patch);
-            
+
             int numTabs = tabbar.getNumTabs();
             tabbar.setCurrentTabIndex(numTabs - 1, true);
 
@@ -523,30 +518,30 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             }
         };
 
-        MessageManager::callAsync([this, deleteFunc, idx]() mutable {
-            auto* cnv = getCanvas(idx);
-            if (cnv->patch.isDirty())
+        MessageManager::callAsync(
+            [this, deleteFunc, idx]() mutable
             {
-                Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
-                                        [this, deleteFunc](int result) mutable
-                                        {
-                                            if (result == 2)
+                auto* cnv = getCanvas(idx);
+                if (cnv->patch.isDirty())
+                {
+                    Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
+                                            [this, deleteFunc](int result) mutable
                                             {
-                                                saveProject([deleteFunc]() mutable { deleteFunc(); });
-                                            }
-                                            else if (result == 1)
-                                            {
-                                                deleteFunc();
-                                            }
-                                        });
-            }
-            else
-            {
-                deleteFunc();
-            }
-
-            
-        });
+                                                if (result == 2)
+                                                {
+                                                    saveProject([deleteFunc]() mutable { deleteFunc(); });
+                                                }
+                                                else if (result == 1)
+                                                {
+                                                    deleteFunc();
+                                                }
+                                            });
+                }
+                else
+                {
+                    deleteFunc();
+                }
+            });
     };
 
     closeButton->setName("tab:close");
@@ -601,35 +596,38 @@ void PlugDataPluginEditor::updateCommandStatus()
         bool allSegmented = true;
         bool allNotSegmented = true;
         bool hasSelection = false;
-        for(auto& connection : cnv->getSelectionOfType<Connection>())
+        for (auto& connection : cnv->getSelectionOfType<Connection>())
         {
             allSegmented = allSegmented && connection->isSegmented();
             allNotSegmented = allNotSegmented && !connection->isSegmented();
             hasSelection = true;
         }
-        
+
         statusbar.connectionStyleButton->setEnabled(hasSelection && (allSegmented || allNotSegmented));
         statusbar.connectionPathfind->setEnabled(hasSelection && allSegmented);
         statusbar.connectionStyleButton->setToggleState(hasSelection && allSegmented, dontSendNotification);
-        
+
         auto* patchPtr = cnv->patch.getPointer();
-        if(!patchPtr) return;
-        
+        if (!patchPtr) return;
+
         // First on pd's thread, get undo status
-        pd.enqueueFunction([this, cnv, patchPtr]() mutable {
-            canUndo = libpd_can_undo(patchPtr);
-            canRedo = libpd_can_redo(patchPtr);
-            
-            // Set button enablement on message thread
-            MessageManager::callAsync([this](){
-                toolbarButton(Redo)->setEnabled(canRedo && pd.locked == var(false));
-                toolbarButton(Undo)->setEnabled(canUndo && pd.locked == var(false));
-                
-                // Application commands need to be updated when undo state changes
-                commandStatusChanged();
+        pd.enqueueFunction(
+            [this, cnv, patchPtr]() mutable
+            {
+                canUndo = libpd_can_undo(patchPtr);
+                canRedo = libpd_can_redo(patchPtr);
+
+                // Set button enablement on message thread
+                MessageManager::callAsync(
+                    [this]()
+                    {
+                        toolbarButton(Redo)->setEnabled(canRedo && pd.locked == var(false));
+                        toolbarButton(Undo)->setEnabled(canUndo && pd.locked == var(false));
+
+                        // Application commands need to be updated when undo state changes
+                        commandStatusChanged();
+                    });
             });
-            
-        });
     }
 }
 
@@ -651,7 +649,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 {
     bool hasBoxSelection = false;
     bool hasSelection = false;
-    
+
     if (auto* cnv = getCurrentCanvas())
     {
         auto selectedBoxes = cnv->getSelectionOfType<Box>();
@@ -787,8 +785,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(true);
             break;
         }
-            
-            
+
         case CommandIDs::NewObject:
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
@@ -1043,22 +1040,22 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             return true;
         }
 
-            
         default:
         {
             const std::vector<std::string> objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu"};
-            
+
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
-            
+
             int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
-            if(isPositiveAndBelow(idx, objectNames.size())) {
+            if (isPositiveAndBelow(idx, objectNames.size()))
+            {
                 cnv->boxes.add(new Box(cnv, objectNames[idx], lastPosition));
                 return true;
             }
-            
+
             return false;
         }
     }
-    
+
     return false;
 }

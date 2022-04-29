@@ -202,50 +202,50 @@ void Object::addUndoableAction()
     libpd_undo_apply(cnv, obj);
 }
 
-void Object::toFront() {
-    
-    auto glist_getindex = [](t_glist* x, t_gobj* y){
+void Object::toFront()
+{
+    auto glist_getindex = [](t_glist* x, t_gobj* y)
+    {
         t_gobj* y2;
         int indx;
         for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
         return (indx);
     };
-    
-    auto glist_nth = [](t_glist *x, int n) -> t_gobj* {
-        t_gobj *y;
+
+    auto glist_nth = [](t_glist* x, int n) -> t_gobj*
+    {
+        t_gobj* y;
         int indx;
         for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
-            if (indx == n)
-                return (y);
-       
+            if (indx == n) return (y);
+
         jassertfalse;
         return nullptr;
     };
 
     auto* cnv = static_cast<t_canvas*>(patch->getPointer());
     t_gobj* y = static_cast<t_gobj*>(getPointer());
-    
+
     t_gobj *y_prev = nullptr, *y_next = nullptr;
-    
-        /* if there is an object before ours (in other words our index is > 0) */
-    if (int idx = glist_getindex(cnv, y))
-        y_prev = glist_nth(cnv, idx - 1);
 
-        /* if there is an object after ours */
-    if (y->g_next)
-        y_next = y->g_next;
+    /* if there is an object before ours (in other words our index is > 0) */
+    if (int idx = glist_getindex(cnv, y)) y_prev = glist_nth(cnv, idx - 1);
 
-    t_gobj *y_end = glist_nth(cnv, glist_getindex(cnv, 0) - 1);
+    /* if there is an object after ours */
+    if (y->g_next) y_next = y->g_next;
+
+    t_gobj* y_end = glist_nth(cnv, glist_getindex(cnv, 0) - 1);
 
     y_end->g_next = y;
     y->g_next = NULL;
 
-        /* now fix links in the hole made in the list due to moving of the oldy
-         * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
-         */
+    /* now fix links in the hole made in the list due to moving of the oldy
+     * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
+     */
     if (y_prev) /* there is indeed more before the oldy position */
         y_prev->g_next = y_next;
-    else cnv->gl_list = y_next;
+    else
+        cnv->gl_list = y_next;
 }
 
 }  // namespace pd

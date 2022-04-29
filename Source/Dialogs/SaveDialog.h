@@ -8,39 +8,41 @@ struct SaveDialog : public Component
         addAndMakeVisible(dontsave);
         addAndMakeVisible(save);
 
-
         cancel.onClick = [this]
         {
-            
-            MessageManager::callAsync([this]() {
-                background->setVisible(false);
-                cb(0);
-                delete this;
-            });
+            MessageManager::callAsync(
+                [this]()
+                {
+                    background->setVisible(false);
+                    cb(0);
+                    delete this;
+                });
         };
         save.onClick = [this]
         {
-            MessageManager::callAsync([this]() {
-                cb(2);
-                delete this;
-            });
+            MessageManager::callAsync(
+                [this]()
+                {
+                    cb(2);
+                    delete this;
+                });
         };
         dontsave.onClick = [this]
         {
-            MessageManager::callAsync([this]() {
-                cb(1);
-                delete this;
-            });
+            MessageManager::callAsync(
+                [this]()
+                {
+                    cb(1);
+                    delete this;
+                });
         };
-        
-        
+
         background.reset(new BlackoutComponent(editor, this));
-        
+
         cancel.changeWidthToFitText();
         dontsave.changeWidthToFitText();
         save.changeWidthToFitText();
         setOpaque(false);
-        
     }
 
     void resized() override
@@ -63,9 +65,8 @@ struct SaveDialog : public Component
     std::function<void(int)> cb;
 
    private:
-    
     std::unique_ptr<BlackoutComponent> background;
-    
+
     Label savelabel;
 
     TextButton cancel = TextButton("Cancel");

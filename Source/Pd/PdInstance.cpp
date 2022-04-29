@@ -111,8 +111,6 @@ extern "C"
 namespace pd
 {
 
-
-
 Instance::Instance(std::string const& symbol)
 {
     libpd_multi_init();
@@ -149,21 +147,18 @@ Instance::Instance(std::string const& symbol)
     };
 
     auto panel_trigger = [](void* instance, int open, const char* snd, const char* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
-    
-    auto synchronise_trigger = [](void* instance, void* cnv) {
-        static_cast<Instance*>(instance)->synchroniseCanvas(cnv);
-    };
+
+    auto synchronise_trigger = [](void* instance, void* cnv) { static_cast<Instance*>(instance)->synchroniseCanvas(cnv); };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger);
 
     libpd_set_verbose(0);
-    
+
     setThis();
 }
 
 Instance::~Instance()
 {
-
     pd_free(static_cast<t_pd*>(m_message_receiver));
     pd_free(static_cast<t_pd*>(m_midi_receiver));
     pd_free(static_cast<t_pd*>(m_print_receiver));
@@ -437,13 +432,13 @@ void Instance::waitForStateUpdate()
         return;
     }
 
-    //if (audioStarted) {
-        // Append signal to resume thread at the end of the queue
-        // This will make sure that any actions we performed are definitely finished now
-        // If it can aquire a lock, it will dequeue all action immediately
-        enqueueFunction([this]() { updateWait.signal(); });
+    // if (audioStarted) {
+    //  Append signal to resume thread at the end of the queue
+    //  This will make sure that any actions we performed are definitely finished now
+    //  If it can aquire a lock, it will dequeue all action immediately
+    enqueueFunction([this]() { updateWait.signal(); });
 
-        updateWait.wait();
+    updateWait.wait();
     //}
     // Should ensure that patches are loaded correctly when audio hasn't started yet
     /*
@@ -470,29 +465,29 @@ void Instance::sendMessagesFromQueue()
 
 Patch Instance::openPatch(const File& toOpen)
 {
-    
     t_canvas* cnv = nullptr;
-    
-    enqueueFunction([this, toOpen, &cnv]() mutable {
-        String dirname = toOpen.getParentDirectory().getFullPathName();
-        auto* dir = dirname.toRawUTF8();
 
-        String filename = toOpen.getFileName();
-        auto* file = filename.toRawUTF8();
+    enqueueFunction(
+        [this, toOpen, &cnv]() mutable
+        {
+            String dirname = toOpen.getParentDirectory().getFullPathName();
+            auto* dir = dirname.toRawUTF8();
 
-        setThis();
+            String filename = toOpen.getFileName();
+            auto* file = filename.toRawUTF8();
 
-        cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));        
-    });
-    
-    while(!cnv) {
+            setThis();
+
+            cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
+        });
+
+    while (!cnv)
+    {
         waitForStateUpdate();
     }
-    
+
     return Patch(cnv, this, toOpen);
 }
-
-
 
 Array Instance::getArray(std::string const& name)
 {
@@ -564,10 +559,12 @@ void Instance::createPanel(int type, const char* snd, const char* location)
 void Instance::limitMessages()
 {
     // Remove 50 at a time to maintain some performance
-    if(consoleMessages.size() > 2000) {
+    if (consoleMessages.size() > 2000)
+    {
         consoleMessages.erase(consoleMessages.begin(), consoleMessages.begin() + 50);
     }
-    if(consoleHistory.size() > 2000) {
+    if (consoleHistory.size() > 2000)
+    {
         consoleHistory.erase(consoleHistory.begin(), consoleHistory.begin() + 50);
     }
 }
