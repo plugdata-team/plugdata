@@ -1,32 +1,24 @@
 ---
 title: coll
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: gimme
+  description:
   default:
-
 inlets:
-  1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
-
 outlets:
   1st:
-  - type:
+  - type: 
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE
+  2nd:
+  - type: 
+    description:
+  3rd:
+  - type: bang
+    description:
+  4th:
+  - type: bang
+    description:

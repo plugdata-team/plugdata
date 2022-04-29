@@ -1,32 +1,15 @@
 ---
 title: break
-
 description:
-
 categories:
-- object
-
-pdcategory:
-
+ - object
+pdcategory: General
 arguments:
-- description:
-  type:
+- type: symbol
+  description:
   default:
-
 inlets:
-  1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
-
 outlets:
   1st:
-  - type:
+  - type: anything
     description:
-
-draft: false
----
-
-LONG DESCRIPTION HERE
