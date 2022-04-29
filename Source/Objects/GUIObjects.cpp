@@ -66,13 +66,13 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
 {
     // if(!box->pdObject) return;
     const CriticalSection* cs = box->cnv->pd->getCallbackLock();
-    
+
     cs->enter();
     value = gui.getValue();
     min = gui.getMinimum();
     max = gui.getMaximum();
     cs->exit();
-    
+
     if (gui.isIEM())
     {
         auto rect = gui.getLabelBounds(Rectangle<int>());
@@ -83,23 +83,21 @@ GUIComponent::GUIComponent(pd::Gui pdGui, Box* parent, bool newObject) : box(par
     else if (gui.isAtom())
     {
         labelX = static_cast<int>(static_cast<t_fake_gatom*>(gui.getPointer())->a_wherelabel + 1);
-        
+
         int h = gui.getFontHeight();
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
         labelHeight = idx + 1;
-        
-        
     }
-    
+
     box->addComponentListener(this);
     updateLabel();
-    
+
     sendSymbol = gui.getSendSymbol();
     receiveSymbol = gui.getReceiveSymbol();
-    
+
     setWantsKeyboardFocus(true);
-    
+
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&LookAndFeel::getDefaultLookAndFeel())->getPdLook());
 }
 
@@ -136,57 +134,58 @@ void GUIComponent::mouseUp(const MouseEvent& e)
 
 void GUIComponent::initialise(bool newObject)
 {
-
     labelText = gui.getLabelText();
-    
-    if (gui.isIEM()) {
-        
+
+    if (gui.isIEM())
+    {
         primaryColour = Colour(gui.getForegroundColour()).toString();
         secondaryColour = Colour(gui.getBackgroundColour()).toString();
         labelColour = Colour(gui.getLabelColour()).toString();
-        
+
         getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
         getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
-        
+
         getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
         getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
-        
+
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
-        
+
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
     }
-    else {
+    else
+    {
         getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
     }
 
-    
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params)
     {
         value->addListener(this);
-        
+
         // Push current parameters to pd
         valueChanged(*value);
     }
-    
+
     repaint();
 }
 
 void GUIComponent::paint(Graphics& g)
 {
-    if(gui.isIEM()) {
+    if (gui.isIEM())
+    {
         g.setColour(findColour(TextButton::buttonColourId));
     }
-    else {
+    else
+    {
         // make sure text is readable
         getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
         getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
         getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
         g.setColour(box->findColour(PlugDataColour::canvasColourId));
     }
-    
+
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 }
 
@@ -197,7 +196,7 @@ void GUIComponent::paintOverChildren(Graphics& g)
         g.setColour(box->findColour(PlugDataColour::highlightColourId));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-        
+
         g.fillPath(triangle);
     }
 }
@@ -210,7 +209,7 @@ ObjectParameters GUIComponent::defineParameters()
 ObjectParameters GUIComponent::getParameters()
 {
     ObjectParameters params = defineParameters();
-    
+
     if (gui.isIEM())
     {
         params.push_back({"Foreground", tColour, cAppearance, &primaryColour, {}});
@@ -226,13 +225,12 @@ ObjectParameters GUIComponent::getParameters()
     else if (gui.isAtom())
     {
         params.push_back({"Height", tCombo, cGeneral, &labelHeight, {"auto", "8", "10", "12", "16", "24", "36"}});
-        
+
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
         params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
-        
+
         params.push_back({"Label", tString, cLabel, &labelText, {}});
         params.push_back({"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
-
     }
     return params;
 }
@@ -251,7 +249,7 @@ void GUIComponent::valueChanged(Value& v)
     {
         auto colour = Colour::fromString(primaryColour.toString());
         gui.setForegroundColour(colour);
-        
+
         getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
         getLookAndFeel().setColour(Slider::thumbColourId, colour);
         repaint();
@@ -260,25 +258,25 @@ void GUIComponent::valueChanged(Value& v)
     {
         auto colour = Colour::fromString(secondaryColour.toString());
         gui.setBackgroundColour(colour);
-        
+
         getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
         getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-        
+
         getLookAndFeel().setColour(Label::textColourId, colour.contrasting(1.0f));
         getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(1.0f));
-        
+
         auto sliderBackground = Colour::fromString(secondaryColour.toString());
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.5f) : sliderBackground.brighter(0.5f);
-        
+
         auto sliderTrack = Colour::fromString(secondaryColour.toString());
         sliderTrack = sliderTrack.getBrightness() > 0.5f ? sliderTrack.darker(0.2f) : sliderTrack.brighter(0.2f);
-        
+
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderTrack);
         getLookAndFeel().setColour(Slider::trackColourId, sliderBackground);
-        
+
         repaint();
     }
-    
+
     else if (v.refersToSameSourceAs(labelColour))
     {
         gui.setLabelColour(Colour::fromString(labelColour.toString()));
@@ -304,10 +302,11 @@ void GUIComponent::valueChanged(Value& v)
     }
     else if (v.refersToSameSourceAs(labelHeight))
     {
-        if(gui.isIEM()) {
+        if (gui.isIEM())
+        {
             gui.setFontHeight(static_cast<int>(labelHeight.getValue()));
         }
-        
+
         updateLabel();
     }
     else if (v.refersToSameSourceAs(labelText))
@@ -341,9 +340,9 @@ void GUIComponent::setValueOriginal(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-    
+
     gui.setValue(value);
 }
 
@@ -351,7 +350,7 @@ float GUIComponent::getValueScaled() const noexcept
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
 }
 
@@ -359,7 +358,7 @@ void GUIComponent::setValueScaled(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
     gui.setValue(value);
 }
@@ -368,7 +367,7 @@ void GUIComponent::startEdition() noexcept
 {
     edited = true;
     processor.enqueueMessages(stringGui, stringMouse, {1.f});
-    
+
     value = gui.getValue();
 }
 
@@ -384,35 +383,36 @@ void GUIComponent::updateValue()
     {
         auto thisPtr = SafePointer<GUIComponent>(this);
         box->cnv->pd->enqueueFunction(
-                                      [thisPtr]()
-                                      {
-                                          float const v = thisPtr->gui.getValue();
-                                          
-                                          MessageManager::callAsync(
-                                                                    [thisPtr, v]() mutable
-                                                                    {
-                                                                        if (thisPtr && v != thisPtr->value)
-                                                                        {
-                                                                            thisPtr->value = v;
-                                                                            thisPtr->update();
-                                                                        }
-                                                                    });
-                                      });
+            [thisPtr]()
+            {
+                float const v = thisPtr->gui.getValue();
+
+                MessageManager::callAsync(
+                    [thisPtr, v]() mutable
+                    {
+                        if (thisPtr && v != thisPtr->value)
+                        {
+                            thisPtr->value = v;
+                            thisPtr->update();
+                        }
+                    });
+            });
     }
 }
-
 
 void GUIComponent::componentMovedOrResized(Component& component, bool moved, bool resized)
 {
     updateLabel();
-    
-    if(!resized) return;
-    
-    if(recursiveResize) {
+
+    if (!resized) return;
+
+    if (recursiveResize)
+    {
         recursiveResize = false;
-        return; // break out of recursion: but doesn't protect against async recursion!!
+        return;  // break out of recursion: but doesn't protect against async recursion!!
     }
-    else {
+    else
+    {
         recursiveResize = true;
         checkBoxBounds();
         recursiveResize = false;
@@ -421,32 +421,36 @@ void GUIComponent::componentMovedOrResized(Component& component, bool moved, boo
 
 void GUIComponent::updateLabel()
 {
-    if(gui.isAtom()) {
+    if (gui.isAtom())
+    {
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
         gui.setFontHeight(atomSizes[idx - 1]);
     }
-    
+
     int fontHeight = gui.getFontHeight();
-    
-    if(fontHeight == 0) {
+
+    if (fontHeight == 0)
+    {
         fontHeight = glist_getfont(box->cnv->patch.getPointer());
     }
-    if(gui.isAtom()) fontHeight += 2;
-    
+    if (gui.isAtom()) fontHeight += 2;
+
     const String text = gui.getLabelText();
-    
+
     if (text.isNotEmpty())
     {
-        if(!label) {
+        if (!label)
+        {
             label = std::make_unique<Label>();
         }
 
         auto bounds = gui.getLabelBounds(box->getBounds().reduced(Box::margin));
-        
-        if(gui.isIEM()) {
+
+        if (gui.isIEM())
+        {
             bounds.translate(0, fontHeight / -2.0f);
         }
-        
+
         label->setFont(Font(fontHeight));
         label->setJustificationType(Justification::centredLeft);
         label->setBounds(bounds);
@@ -455,14 +459,16 @@ void GUIComponent::updateLabel()
         label->setText(text, dontSendNotification);
         label->setEditable(false, false);
         label->setInterceptsMouseClicks(false, false);
-        
-        if(gui.isIEM()) {
+
+        if (gui.isIEM())
+        {
             label->setColour(Label::textColourId, gui.getLabelColour());
         }
-        else {
+        else
+        {
             label->setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
         }
-        
+
         box->cnv->addAndMakeVisible(label.get());
     }
 }
@@ -478,9 +484,9 @@ void GUIComponent::closeOpenedSubpatchers()
 {
     auto& main = box->cnv->main;
     auto* tabbar = &main.tabbar;
-    
+
     if (!tabbar) return;
-    
+
     for (int n = 0; n < tabbar->getNumTabs(); n++)
     {
         auto* cnv = main.getCanvas(n);
@@ -492,7 +498,7 @@ void GUIComponent::closeOpenedSubpatchers()
             main.pd.patches.removeObject(deleted_patch, false);
         }
     }
-    
+
     if (tabbar->getNumTabs() > 1)
     {
         tabbar->getTabbedButtonBar().setVisible(true);
@@ -569,7 +575,7 @@ void DrawableTemplate::updateIfMoved()
 {
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
     auto bounds = canvas->getParentComponent()->getLocalBounds() + pos;
-    
+
     if (lastBounds != bounds)
     {
         update();
@@ -580,70 +586,70 @@ void DrawableTemplate::update()
 {
     auto* glist = canvas->patch.getPointer();
     auto* templ = template_findbyname(scalar->sc_template);
-    
+
     bool vis = true;
-    
+
     int i, n = object->x_npoints;
     t_fielddesc* f = object->x_vec;
-    
+
     auto* data = scalar->sc_vec;
-    
+
     /* see comment in plot_vis() */
     if (vis && !fielddesc_getfloat(&object->x_vis, templ, data, 0))
     {
         // return;
     }
-    
+
     // Reduce clip region
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
     auto bounds = canvas->getParentComponent()->getLocalBounds();
-    
+
     lastBounds = bounds + pos;
-    
+
     if (vis)
     {
         if (n > 1)
         {
             int flags = object->x_flags, closed = (flags & CLOSED);
             t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
-            
+
             char outline[20], fill[20];
             int pix[200];
             if (n > 100) n = 100;
-            
+
             canvas->pd->getCallbackLock()->enter();
-            
+
             for (i = 0, f = object->x_vec; i < n; i++, f += 2)
             {
                 // glist->gl_havewindow = canvas->isGraphChild;
                 // glist->gl_isgraph = canvas->isGraph;
-                
+
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
-                
+
                 pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
                 pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;
             }
-            
+
             canvas->pd->getCallbackLock()->exit();
-            
+
             if (width < 1) width = 1;
             if (glist->gl_isgraph) width *= glist_getzoom(glist);
-            
+
             numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
             if (flags & CLOSED)
             {
                 numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
-                
+
                 // sys_vgui(".x%lx.c create polygon\\\n",
                 //     glist_getcanvas(glist));
             }
             // else sys_vgui(".x%lx.c create line\\\n", glist_getcanvas(glist));
-            
+
             // sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
-            
+
             Path toDraw;
-            
+
             if (flags & CLOSED)
             {
                 toDraw.startNewSubPath(pix[0], pix[1]);
@@ -661,7 +667,7 @@ void DrawableTemplate::update()
                     toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
                 }
             }
-            
+
             String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
             if (objName.contains("fill"))
             {
@@ -674,7 +680,7 @@ void DrawableTemplate::update()
                 setStrokeFill(Colour::fromString("FF" + String::fromUTF8(outline + 1)));
                 setStrokeThickness(width);
             }
-            
+
             setPath(toDraw);
             repaint();
         }
@@ -686,11 +692,11 @@ void DrawableTemplate::update()
 GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newObject)
 {
     auto* guiPtr = dynamic_cast<pd::Gui*>(parent->pdObject.get());
-    
+
     if (!guiPtr) return nullptr;
-    
+
     auto& gui = *guiPtr;
-    
+
     if (gui.getType() == pd::Type::Bang)
     {
         return new BangComponent(gui, parent, newObject);
@@ -775,6 +781,6 @@ GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newO
     {
         return new PictureComponent(gui, parent, newObject);
     }
-    
+
     return nullptr;
 }

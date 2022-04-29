@@ -20,14 +20,14 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     console = new Console(instance);
     inspector = new Inspector;
     browser = new DocumentBrowser(instance);
-    
+
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     addChildComponent(browser);
-    
+
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
-    
+
     setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 40);
 }
 
@@ -42,15 +42,15 @@ Sidebar::~Sidebar()
 void Sidebar::paint(Graphics& g)
 {
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
-    
+
     // Sidebar
     g.setColour(findColour(PlugDataColour::toolbarColourId));
     g.fillRect(getWidth() - sWidth, 0, sWidth, getHeight() - 28);
-    
+
     // Draggable bar
     g.setColour(findColour(PlugDataColour::toolbarColourId));
     g.fillRect(getWidth() - sWidth, 0, dragbarWidth + 1, getHeight());
-    
+
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
     g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 }
@@ -59,7 +59,7 @@ void Sidebar::resized()
 {
     auto bounds = getLocalBounds();
     bounds.removeFromLeft(dragbarWidth);
-    
+
     console->setBounds(bounds);
     inspector->setBounds(bounds);
     browser->setBounds(getLocalBounds());
@@ -85,11 +85,10 @@ void Sidebar::mouseDrag(const MouseEvent& e)
     {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
         newWidth = std::min(newWidth, getParentWidth() / 2);
-        
+
         setBounds(getParentWidth() - newWidth, getY(), newWidth, getHeight());
         getParentComponent()->resized();
     }
-    
 }
 
 void Sidebar::mouseUp(const MouseEvent& e)
@@ -103,10 +102,12 @@ void Sidebar::mouseUp(const MouseEvent& e)
 
 void Sidebar::mouseMove(const MouseEvent& e)
 {
-    if(e.getPosition().getX() < dragbarWidth) {
+    if (e.getPosition().getX() < dragbarWidth)
+    {
         setMouseCursor(MouseCursor::LeftRightResizeCursor);
     }
-    else {
+    else
+    {
         setMouseCursor(MouseCursor::NormalCursor);
     }
 }
@@ -116,22 +117,21 @@ void Sidebar::mouseExit(const MouseEvent& e)
     setMouseCursor(MouseCursor::NormalCursor);
 }
 
-
-
 void Sidebar::showBrowser(bool show)
 {
     browser->setVisible(show);
     pinned = show;
 }
 
-bool Sidebar::isShowingBrowser() {
+bool Sidebar::isShowingBrowser()
+{
     return browser->isVisible();
 };
 
 void Sidebar::showSidebar(bool show)
 {
     sidebarHidden = !show;
-    
+
     if (!show)
     {
         lastWidth = getWidth();
@@ -148,7 +148,7 @@ void Sidebar::showSidebar(bool show)
 void Sidebar::pinSidebar(bool pin)
 {
     pinned = pin;
-    
+
     if (!pinned && lastParameters.empty())
     {
         hideParameters();
@@ -164,7 +164,7 @@ void Sidebar::showParameters(ObjectParameters& params)
 {
     lastParameters = params;
     inspector->loadParameters(params);
-    
+
     if (!pinned)
     {
         browser->setVisible(false);
@@ -176,7 +176,7 @@ void Sidebar::showParameters(ObjectParameters& params)
 void Sidebar::showParameters()
 {
     inspector->loadParameters(lastParameters);
-    
+
     if (!pinned)
     {
         browser->setVisible(false);
@@ -186,19 +186,18 @@ void Sidebar::showParameters()
 }
 void Sidebar::hideParameters()
 {
-    
     if (!pinned)
     {
         inspector->setVisible(false);
         console->setVisible(true);
     }
-    
+
     if (pinned)
     {
         ObjectParameters params = {};
         inspector->loadParameters(params);
     }
-    
+
     console->deselect();
 }
 

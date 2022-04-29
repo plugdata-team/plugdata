@@ -25,7 +25,6 @@ using ArgumentMap = std::unordered_map<String, Arguments>;
 using ObjectMap = std::unordered_map<String, String>;
 using KeywordMap = std::unordered_map<String, StringArray>;
 
-
 // Define the character size
 #define CHAR_SIZE 128
 #define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
@@ -76,7 +75,7 @@ struct Library : public Timer
     void parseDocumentation(const String& path);
 
     Suggestions autocomplete(std::string query);
-    
+
     String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
     void timerCallback() override;
@@ -86,7 +85,7 @@ struct Library : public Timer
     IODescriptionMap inletDescriptions;
     IODescriptionMap outletDescriptions;
     ArgumentMap arguments;
-    
+
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
     std::unique_ptr<Trie> searchTree;

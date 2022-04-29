@@ -4,7 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-
 struct ArrayDialog : public Component
 {
     ArrayDialog(Component* editor)
@@ -17,12 +16,13 @@ struct ArrayDialog : public Component
 
         cancel.onClick = [this]
         {
-            MessageManager::callAsync([this](){
-                background->setVisible(false);
-                cb(0, "", "");
-                delete this;
-            });
-
+            MessageManager::callAsync(
+                [this]()
+                {
+                    background->setVisible(false);
+                    cb(0, "", "");
+                    delete this;
+                });
         };
         ok.onClick = [this]
         {
@@ -41,11 +41,13 @@ struct ArrayDialog : public Component
             }
             if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0)
             {
-                MessageManager::callAsync([this](){
-                    background->setVisible(false);
-                    cb(1, nameEditor.getText(), sizeEditor.getText());
-                    delete this;
-                });
+                MessageManager::callAsync(
+                    [this]()
+                    {
+                        background->setVisible(false);
+                        cb(1, nameEditor.getText(), sizeEditor.getText());
+                        delete this;
+                    });
             }
         };
 
@@ -53,9 +55,8 @@ struct ArrayDialog : public Component
 
         cancel.changeWidthToFitText();
         ok.changeWidthToFitText();
-        
+
         background.reset(new BlackoutComponent(editor, this, cancel.onClick));
-        
 
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(sizeLabel);
@@ -65,10 +66,8 @@ struct ArrayDialog : public Component
 
         nameEditor.setText("array1");
         sizeEditor.setText("100");
-        
 
         setOpaque(false);
-
     }
 
     void resized() override
@@ -81,7 +80,6 @@ struct ArrayDialog : public Component
         sizeEditor.setBounds(65, 85, getWidth() - 85, 25);
         nameLabel.setBounds(8, 45, 52, 25);
         sizeLabel.setBounds(8, 85, 52, 25);
-        
     }
 
     void paint(Graphics& g) override
@@ -96,7 +94,6 @@ struct ArrayDialog : public Component
     std::function<void(int, String, String)> cb;
 
    private:
-
     Label label = Label("savelabel", "Array Properties");
 
     Label nameLabel = Label("namelabel", "Name:");
@@ -107,6 +104,6 @@ struct ArrayDialog : public Component
 
     TextButton cancel = TextButton("Cancel");
     TextButton ok = TextButton("OK");
-    
+
     std::unique_ptr<BlackoutComponent> background;
 };

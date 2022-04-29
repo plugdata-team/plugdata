@@ -83,7 +83,7 @@ struct Sidebar : public Component
     void showParameters(ObjectParameters& params);
     void showParameters();
     void hideParameters();
-    
+
     void showBrowser(bool show);
     bool isShowingBrowser();
 
@@ -97,7 +97,7 @@ struct Sidebar : public Component
     void updateConsole();
 
     static constexpr int dragbarWidth = 5;
-    
+
    private:
     ObjectParameters lastParameters;
 

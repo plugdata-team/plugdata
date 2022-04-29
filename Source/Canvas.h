@@ -21,7 +21,6 @@ class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
    public:
-    
     Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr, bool isGraphChild = false);
 
     ~Canvas() override;
@@ -31,7 +30,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics&) override;
-        
+
     void resized() override
     {
         repaint();
@@ -66,7 +65,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    //ObjectGrid shouldSnapToObjectGrid(const Box* toDrag);
+    // ObjectGrid shouldSnapToObjectGrid(const Box* toDrag);
 
     void handleMouseDown(Component* component, const MouseEvent& e);
     void handleMouseUp(Component* component, const MouseEvent& e);
@@ -83,7 +82,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
-    
+
     template <typename T>
     Array<T*> getSelectionOfType()
     {
@@ -103,7 +102,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Viewport* viewport = nullptr;
 
     OwnedArray<DrawableTemplate> templates;
-    
+
     bool connectingWithDrag = false;
     SafePointer<Edge> connectingEdge;
     SafePointer<Edge> nearestEdge;
@@ -121,17 +120,17 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     bool isGraph = false;
     bool isGraphChild = false;
-    bool updatingBounds = false; // used by connection
-    
+    bool updatingBounds = false;  // used by connection
+
     ObjectGrid grid;
 
     Point<int> canvasOrigin = {0, 0};
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
-    
+
     pd::Storage storage;
-    
+
    private:
     SafePointer<TabbedComponent> tabbar;
 

@@ -25,15 +25,14 @@
 
 #include <JuceHeader.h>
 
-
 #include "../PluginEditor.h"
 
 #include <memory>
 
-namespace pd {
+namespace pd
+{
 class Patch;
 };
-
 
 class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, private Value::Listener
 {
@@ -91,7 +90,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
 #if JUCE_DEBUG
-        //reloadPluginState();
+        // reloadPluginState();
 #endif
         startPlaying();
 
@@ -475,12 +474,11 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 */
 class PlugDataWindow : public DocumentWindow
 {
-
     // Replacement for native Windows shadow, to allow rounded corners
 #if JUCE_WINDOWS
-        DropShadow shadow = DropShadow(Colours::black, 5, Point<int>(0, 0));
+    DropShadow shadow = DropShadow(Colours::black, 5, Point<int>(0, 0));
 #endif
-    
+
    public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
@@ -509,8 +507,7 @@ class PlugDataWindow : public DocumentWindow
 
         setOpaque(false);
         setContentOwned(new MainContentComponent(*this), true);
-        
-        
+
         const auto windowScreenBounds = [this]() -> Rectangle<int>
         {
             const auto width = getWidth();
@@ -550,14 +547,15 @@ class PlugDataWindow : public DocumentWindow
         clearContentComponent();
         pluginHolder = nullptr;
     }
-    
+
     // Fixes shadow with rounded edges on windows
 #if JUCE_WINDOWS
-    void paint(Graphics& g) override {
+    void paint(Graphics& g) override
+    {
         shadow.drawForRectangle(g, getLocalBounds().reduced(5));
     }
 #endif
-    
+
     AudioProcessor* getAudioProcessor() const noexcept
     {
         return pluginHolder->processor.get();
@@ -581,32 +579,22 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder->startPlaying();
     }
 
-    void closeButtonPressed() override; // implemented in PlugDataApp.cpp
-    
+    void closeButtonPressed() override;  // implemented in PlugDataApp.cpp
+
     void maximiseButtonPressed() override
     {
         setFullScreen(!isFullScreen());
     }
-    
 
     void resized() override
     {
         ResizableWindow::resized();
-        
-        if (auto* b = getMaximiseButton())
-            b->setToggleState (isFullScreen(), dontSendNotification);
+
+        if (auto* b = getMaximiseButton()) b->setToggleState(isFullScreen(), dontSendNotification);
 
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 
-        getLookAndFeel()
-            .positionDocumentWindowButtons (*this,
-                                            titleBarArea.getX(), titleBarArea.getY(),
-                                            titleBarArea.getWidth(), titleBarArea.getHeight(),
-                                            getMinimiseButton(),
-                                            getMaximiseButton(),
-                                            getCloseButton(),
-                                            false);
-        
+        getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
@@ -617,16 +605,11 @@ class PlugDataWindow : public DocumentWindow
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
 
    private:
-
     class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
-
-        
        public:
         MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
         {
-        
-            
             inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
 
             if (editor != nullptr)
@@ -743,7 +726,7 @@ class PlugDataWindow : public DocumentWindow
     };
 
     std::function<void(int)> checkCanvas;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
 

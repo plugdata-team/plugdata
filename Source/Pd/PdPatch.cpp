@@ -60,9 +60,8 @@ extern "C"
 namespace pd
 {
 
-Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)  : ptr(patchPtr), instance(parentInstance), currentFile(patchFile)
+Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(patchPtr), instance(parentInstance), currentFile(patchFile)
 {
-    
     if (auto* cnv = getPointer())
     {
         instance->getCallbackLock()->enter();
@@ -92,7 +91,6 @@ void Patch::close()
 {
     libpd_closefile(ptr);
 }
-
 
 bool Patch::isDirty()
 {
@@ -131,8 +129,8 @@ void Patch::savePatch()
 
 void Patch::setCurrent(bool lock)
 {
-    instance->setThis(); // important for canvas_getcurrent
-    
+    instance->setThis();  // important for canvas_getcurrent
+
     if (!ptr) return;
 
     if (lock) instance->getCallbackLock()->enter();
@@ -147,8 +145,6 @@ void Patch::setCurrent(bool lock)
     canvas_setcurrent(getPointer());
     canvas_vis(getPointer(), 1.);
     canvas_map(getPointer(), 1.);
-
-
 
     t_atom argv[1];
     SETFLOAT(argv, 1);
@@ -230,7 +226,7 @@ std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y)
 {
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
-    
+
     instance->enqueueFunction(
         [this, x, y, &pdobject, &done]() mutable
         {
@@ -253,7 +249,7 @@ std::unique_ptr<Object> Patch::createGraph(const String& name, int size, int x, 
 {
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
-    
+
     instance->enqueueFunction(
         [this, name, size, x, y, &pdobject, &done]() mutable
         {
@@ -285,16 +281,15 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
     if (guiDefaults.find(tokens[0]) != guiDefaults.end())
     {
         auto preset = guiDefaults.at(tokens[0]);
-        
+
         auto bg = instance->getBackgroundColour().toString().substring(2);
         auto fg = instance->getForegroundColour().toString().substring(2);
         auto lbl = instance->getBackgroundColour().contrasting().toString().substring(2);
-        
-        
+
         preset = preset.replace("bgColour", "#" + bg);
         preset = preset.replace("fgColour", "#" + fg);
         preset = preset.replace("lblColour", "#" + lbl);
-        
+
         tokens.addTokens(preset, false);
     }
 
@@ -358,7 +353,7 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
 
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
-    
+
     instance->enqueueFunction(
         [this, argc, argv, typesymbol, &pdobject, &done]() mutable
         {
@@ -427,10 +422,11 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
         return obj;
     }
 
-    instance->enqueueFunction([this, obj, name]() mutable {
-        libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.getNumBytesAsUTF8());
-        
-    });
+    instance->enqueueFunction(
+        [this, obj, name]() mutable
+        {
+            libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.getNumBytesAsUTF8());
+        });
 
     instance->waitForStateUpdate();
 
@@ -449,23 +445,21 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
 
 void Patch::copy()
 {
-    instance->enqueueFunction([this]() {
-        int size;
-        const char* text = libpd_copy(getPointer(), &size);
-        auto copied = String(CharPointer_UTF8(text), size);
-        MessageManager::callAsync([copied]() mutable {
-            SystemClipboard::copyTextToClipboard(copied);
+    instance->enqueueFunction(
+        [this]()
+        {
+            int size;
+            const char* text = libpd_copy(getPointer(), &size);
+            auto copied = String(CharPointer_UTF8(text), size);
+            MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
         });
-    });
 }
 
 void Patch::paste()
 {
     auto text = SystemClipboard::getTextFromClipboard();
-    
-    instance->enqueueFunction([this, text]() mutable {
-        libpd_paste(getPointer(), text.toRawUTF8());
-    });
+
+    instance->enqueueFunction([this, text]() mutable { libpd_paste(getPointer(), text.toRawUTF8()); });
 }
 
 void Patch::duplicate()
@@ -617,7 +611,7 @@ void Patch::undo()
             EDITOR->canvas_undo_already_set_move = 0;
 
             libpd_undo(getPointer());
-            
+
             setCurrent();
         });
 }
@@ -641,7 +635,7 @@ void Patch::setZoom(int newZoom)
 {
     t_atom arg;
     SETFLOAT(&arg, newZoom);
-    
+
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
@@ -660,7 +654,6 @@ void Patch::keyPress(int keycode, int shift)
 
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("key"), 3, args);
 }
-
 
 String Patch::getTitle() const
 {

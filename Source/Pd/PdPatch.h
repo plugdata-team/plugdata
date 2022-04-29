@@ -10,7 +10,6 @@
 #include <array>
 #include <vector>
 
-
 #include "PdGui.h"
 #include "x_libpd_mod_utils.h"
 
@@ -29,7 +28,6 @@ class Patch
    public:
     Patch(void* ptr, Instance* instance, File currentFile = File());
 
-    
     //! @brief The compare equal operator.
     bool operator==(Patch const& other) const noexcept
     {
@@ -55,7 +53,7 @@ class Patch
 
     void selectObject(Object*);
     void deselectAll();
-    
+
     bool isDirty();
 
     void setZoom(int zoom);
@@ -74,12 +72,12 @@ class Patch
     };
 
     void setCurrent(bool lock = false);
-    
+
     bool isDirty() const;
-    
+
     void savePatch(const File& location);
     void savePatch();
-    
+
     File getCurrentFile()
     {
         return currentFile;
@@ -122,29 +120,26 @@ class Patch
     void setTitle(const String& title);
 
     std::vector<t_template*> getTemplates() const;
-    
+
     Instance* instance = nullptr;
-    
+
    private:
     File currentFile;
-    
-    void* ptr = nullptr;
 
+    void* ptr = nullptr;
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
-    static inline const std::map<String, String> guiDefaults = {
-        {"tgl", "23 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1"},
-        {"hsl", "128 15 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1"},
-        {"vsl", "15 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1"},
-        {"bng", "23 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour"},
-        {"nbx", "4 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256"},
-        {"hradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
-        {"vradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
-        {"cnv", "15 100 60 empty empty empty 20 12 0 14 #8b949e lblColour"},
-        {"vu", "15 120 empty empty -1 -8 0 10 bgColour lblColour 1 0"},
-        {"floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12"}
-    };
+    static inline const std::map<String, String> guiDefaults = {{"tgl", "23 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1"},
+                                                                {"hsl", "128 15 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1"},
+                                                                {"vsl", "15 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1"},
+                                                                {"bng", "23 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour"},
+                                                                {"nbx", "4 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256"},
+                                                                {"hradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
+                                                                {"vradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
+                                                                {"cnv", "15 100 60 empty empty empty 20 12 0 14 #8b949e lblColour"},
+                                                                {"vu", "15 120 empty empty -1 -8 0 10 bgColour lblColour 1 0"},
+                                                                {"floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12"}};
 
     friend class Instance;
     friend class Gui;

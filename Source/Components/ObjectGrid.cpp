@@ -18,33 +18,34 @@ Point<int> ObjectGrid::setState(GridType t, int i, Point<int> pos, Component* s,
     start = s;
     end = e;
     updateMarker();
-    
+
     return pos;
 }
 
 void ObjectGrid::updateMarker()
 {
-    if(type == NotSnappedToGrid || !start || !end) {
+    if (type == NotSnappedToGrid || !start || !end)
+    {
         setPath(std::move(Path()));
         return;
     }
 
     Path toDraw;
-    
-    if(type == ConnectionSnap) {
-        
+
+    if (type == ConnectionSnap)
+    {
         auto b1 = start->getParentComponent()->getBounds();
         auto b2 = end->getParentComponent()->getBounds();
-    
-        toDraw.addLineSegment(Line<float>(b1.getX() - 2, b1.getBottom() + 2, b1.getX() - 2,  b2.getY() - 2), 1.0f);
+
+        toDraw.addLineSegment(Line<float>(b1.getX() - 2, b1.getBottom() + 2, b1.getX() - 2, b2.getY() - 2), 1.0f);
         setPath(toDraw);
         return;
     }
-    
-    if(type == BestSizeSnap)
+
+    if (type == BestSizeSnap)
     {
         auto b1 = start->getBounds().reduced(Box::margin);
-        
+
         toDraw.addArrow({b1.getTopLeft().toFloat().translated(0, -6), b1.getTopRight().toFloat().translated(0, -6)}, 1.0f, 5.0f, 5.0f);
         toDraw.addArrow({b1.getTopRight().toFloat().translated(0, -6), b1.getTopLeft().toFloat().translated(0, -6)}, 1.0f, 5.0f, 5.0f);
         setPath(toDraw);
@@ -53,37 +54,45 @@ void ObjectGrid::updateMarker()
 
     auto b1 = start->getBounds().reduced(Box::margin);
     auto b2 = end->getBounds().reduced(Box::margin);
-    
+
     auto t = b1.getY() < b2.getY() ? b1 : b2;
     auto b = b1.getY() > b2.getY() ? b1 : b2;
     auto l = b1.getX() < b2.getX() ? b1 : b2;
     auto r = b1.getX() > b2.getX() ? b1 : b2;
-    
+
     auto gridLine = Line<float>();
-    
-    if(type == VerticalSnap) {
-        if(orientation == SnappedLeft){
+
+    if (type == VerticalSnap)
+    {
+        if (orientation == SnappedLeft)
+        {
             gridLine = Line<float>(l.getX(), t.getY(), r.getRight(), t.getY());
         }
-        else if(orientation == SnappedRight) {
+        else if (orientation == SnappedRight)
+        {
             gridLine = Line<float>(l.getX(), t.getBottom(), r.getRight(), t.getBottom());
         }
-        else { // snapped centre
+        else
+        {  // snapped centre
             gridLine = Line<float>(l.getX(), t.getCentreY(), r.getRight(), t.getCentreY());
         }
     }
-    else {
-        if(orientation == SnappedLeft){
+    else
+    {
+        if (orientation == SnappedLeft)
+        {
             gridLine = Line<float>(l.getX(), t.getY(), l.getX(), b.getBottom());
         }
-        else if(orientation == SnappedRight) {
+        else if (orientation == SnappedRight)
+        {
             gridLine = Line<float>(l.getRight(), t.getY(), l.getRight(), b.getBottom());
         }
-        else { // snapped centre
+        else
+        {  // snapped centre
             gridLine = Line<float>(l.getCentreX(), t.getY(), l.getCentreX(), b.getBottom());
         }
     }
-    
+
     toDraw.addLineSegment(gridLine, 1.0f);
     setPath(toDraw);
 }
@@ -98,153 +107,170 @@ void ObjectGrid::clear()
     updateMarker();
 }
 
-Point<int> ObjectGrid::forceSnap(GridType t, Box* toDrag, Point<int> dragOffset) {
-    
-    if(type != NotSnappedToGrid) return;
-    
+void ObjectGrid::setSnapped(GridType t, Box* toDrag, Point<int> dragOffset)
+{
+    if (type != NotSnappedToGrid) return;
+
     type = t;
     position = dragOffset;
     start = toDrag;
 }
 
-Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds) {
+Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
+{
     constexpr int tolerance = range / 2;
-    
+
     setStrokeFill(FillType(findColour(PlugDataColour::highlightColourId)));
-    
+
     // If object was snapped last time
-    if(type != NotSnappedToGrid) {
-        
+    if (type != NotSnappedToGrid)
+    {
         // Check if we've dragged out of the ObjectGrid snap
         bool horizontalSnap = type == HorizontalSnap || type == ConnectionSnap || type == BestSizeSnap;
         bool horizontalUnsnap = horizontalSnap && abs(position.x - dragOffset.x) > range;
         bool verticalUnsnap = !horizontalSnap && abs(position.y - dragOffset.y) > range;
-        
-        if(horizontalUnsnap || verticalUnsnap) {
+
+        if (horizontalUnsnap || verticalUnsnap)
+        {
             clear();
             return dragOffset;
         }
-        
-        
+
         updateMarker();
 
         // Otherwise replace drag distance with the drag distance when we first snapped
-        if(horizontalSnap) {
+        if (horizontalSnap)
+        {
             return {position.x, dragOffset.y};
         }
-        else {
+        else
+        {
             return {dragOffset.x, position.y};
-
         }
     }
 
     auto* cnv = toDrag->cnv;
-    
-    int totalSnaps = 0; // Keep idx of object snapped to recognise when we've changed to a different target
-    auto trySnap = [this, &totalSnaps, &tolerance](int distance) -> bool {
-        if(abs(distance) < tolerance) {
+
+    int totalSnaps = 0;  // Keep idx of object snapped to recognise when we've changed to a different target
+    auto trySnap = [this, &totalSnaps, &tolerance](int distance) -> bool
+    {
+        if (abs(distance) < tolerance)
+        {
             return true;
         }
         totalSnaps++;
         return false;
     };
-    
+
     // Find snap points based on connection alignment
-    for(auto* connection : toDrag->getConnections()) {
+    for (auto* connection : toDrag->getConnections())
+    {
         auto inletBounds = connection->inlet->getCanvasBounds();
         auto outletBounds = connection->outlet->getCanvasBounds();
 
-        
         // Don't snap if the cord is upside-down
-        if(inletBounds.getY() < outletBounds.getY()) continue;
-        
+        if (inletBounds.getY() < outletBounds.getY()) continue;
+
         auto recentDragOffset = (toDrag->mouseDownPos + dragOffset) - toDrag->getPosition();
-        if(connection->inlet->box == toDrag) {
+        if (connection->inlet->box == toDrag)
+        {
             // Skip if both objects are selected
-            if(cnv->isSelected(connection->outlet->box)) continue;
+            if (cnv->isSelected(connection->outlet->box)) continue;
             inletBounds += recentDragOffset;
         }
-        else {
-            if(cnv->isSelected(connection->inlet->box)) continue;
+        else
+        {
+            if (cnv->isSelected(connection->inlet->box)) continue;
             outletBounds += recentDragOffset;
         }
-        
+
         int snapDistance = inletBounds.getX() - outletBounds.getX();
-        
+
         // Check if the inlet or outlet is being moved, and invert if needed
-        if(connection->inlet->box == toDrag)  snapDistance = -snapDistance;
-        
-        if(trySnap(snapDistance)) {
+        if (connection->inlet->box == toDrag) snapDistance = -snapDistance;
+
+        if (trySnap(snapDistance))
+        {
             return setState(ConnectionSnap, totalSnaps, {snapDistance + dragOffset.x, dragOffset.y}, connection->outlet, connection->inlet);
         }
-        
+
         // If we're close, don't snap for other reasons
-        if(abs(snapDistance) < tolerance * 2.0f) {
+        if (abs(snapDistance) < tolerance * 2.0f)
+        {
             return dragOffset;
         }
     }
 
     // Find snap points based on box alignment
-    for(auto* box : cnv->boxes) {
-        if(cnv->isSelected(box)) continue; // don't look at selected objects
-        
-        if(!viewBounds.intersects(box->getBounds())) continue; // if the box is out of viewport bounds
-        
+    for (auto* box : cnv->boxes)
+    {
+        if (cnv->isSelected(box)) continue;  // don't look at selected objects
+
+        if (!viewBounds.intersects(box->getBounds())) continue;  // if the box is out of viewport bounds
+
         auto b1 = box->getBounds().reduced(Box::margin);
         auto b2 = toDrag->getBounds().withPosition(toDrag->mouseDownPos + dragOffset).reduced(Box::margin);
-        
+
         start = box;
         end = toDrag;
-        
+
         auto t = b1.getY() < b2.getY() ? b1 : b2;
         auto b = b1.getY() > b2.getY() ? b1 : b2;
         auto r = b1.getX() < b2.getX() ? b1 : b2;
         auto l = b1.getX() > b2.getX() ? b1 : b2;
-        
-        if(trySnap(b1.getX() - b2.getX())) {
+
+        if (trySnap(b1.getX() - b2.getX()))
+        {
             orientation = SnappedLeft;
             return setState(HorizontalSnap, totalSnaps, Point<int>(b1.getX() - b2.getX(), 0) + dragOffset, box, toDrag);
         }
-        if(trySnap(b1.getCentreX() - b2.getCentreX())) {
+        if (trySnap(b1.getCentreX() - b2.getCentreX()))
+        {
             orientation = SnappedCentre;
             setState(HorizontalSnap, totalSnaps, Point<int>(b1.getCentreX() - b2.getCentreX(), 0) + dragOffset, box, toDrag);
             return position;
         }
-        if(trySnap(b1.getRight() - b2.getRight())) {
+        if (trySnap(b1.getRight() - b2.getRight()))
+        {
             orientation = SnappedRight;
             setState(HorizontalSnap, totalSnaps, Point<int>(b1.getRight() - b2.getRight(), 0) + dragOffset, box, toDrag);
             return position;
         }
-        
-        if(trySnap(b1.getY() - b2.getY())) {
+
+        if (trySnap(b1.getY() - b2.getY()))
+        {
             orientation = SnappedLeft;
             setState(VerticalSnap, totalSnaps, Point<int>(0, b1.getY() - b2.getY()) + dragOffset, box, toDrag);
             return position;
         }
-        if(trySnap(b1.getCentreY() - b2.getCentreY())) {
+        if (trySnap(b1.getCentreY() - b2.getCentreY()))
+        {
             orientation = SnappedCentre;
             setState(VerticalSnap, totalSnaps, Point<int>(0, b1.getCentreY() - b2.getCentreY()) + dragOffset, box, toDrag);
             return position;
         }
-        if(trySnap(b1.getBottom() - b2.getBottom())) {
+        if (trySnap(b1.getBottom() - b2.getBottom()))
+        {
             orientation = SnappedRight;
             setState(VerticalSnap, totalSnaps, Point<int>(0, b1.getBottom() - b2.getBottom()) + dragOffset, box, toDrag);
             return position;
         }
     }
-    
+
     return dragOffset;
 }
 
 Point<int> ObjectGrid::handleMouseUp(Point<int> dragOffset)
 {
-    if(type == HorizontalSnap || type == ConnectionSnap) {
+    if (type == HorizontalSnap || type == ConnectionSnap)
+    {
         dragOffset.x = position.x;
     }
-    else if(type == VerticalSnap) {
+    else if (type == VerticalSnap)
+    {
         dragOffset.y = position.y;
     }
-    
+
     clear();
     return dragOffset;
 }

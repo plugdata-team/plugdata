@@ -24,7 +24,6 @@ struct _canvasenvironment
 namespace pd
 {
 
-
 // Iterative function to insert a key into a Trie
 void Trie::insert(const std::string& key)
 {
@@ -250,9 +249,9 @@ void Library::updateLibrary()
 #else
     mlist = o->c_methods;
 #endif
-    
+
     File outFile("/Users/timschoen/Projecten/PlugData/Resources/pddp/ELSE/all_obj");
-    
+
     String allNames;
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
@@ -262,7 +261,7 @@ void Library::updateLibrary()
     }
 
     outFile.replaceWithText(allNames);
-    
+
     searchTree->insert("graph");
 
     for (auto path : pathTree)
@@ -281,132 +280,139 @@ void Library::parseDocumentation(const String& path)
 {
     // Function to get sections from a text file based on a section name
     // Let it know which sections exists, and it will order them and put them in a map by name
-    auto getSections = [](String contents, StringArray sectionNames){
+    auto getSections = [](String contents, StringArray sectionNames)
+    {
         Array<std::pair<String, int>> positions;
-        
-        for(auto& section : sectionNames)
+
+        for (auto& section : sectionNames)
         {
             positions.add({section, contents.indexOf(section + ':')});
         }
-        
-        std::sort(positions.begin(), positions.end(),
-          [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
-        
+
+        std::sort(positions.begin(), positions.end(), [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+
         std::map<String, String> sections;
-        
-        for(auto it = positions.begin(); it < positions.end(); it++) {
+
+        for (auto it = positions.begin(); it < positions.end(); it++)
+        {
             auto& [name, currentPosition] = *it;
-            if(currentPosition < 0) continue; // section not found
-            
+            if (currentPosition < 0) continue;  // section not found
+
             currentPosition += name.length();
-            
+
             String sectionContent;
-            if(it == positions.end() - 1) {
+            if (it == positions.end() - 1)
+            {
                 sectionContent = contents.substring(currentPosition);
             }
-            else {
+            else
+            {
                 sectionContent = contents.substring(currentPosition + 1, (*(it + 1)).second);
             }
-            
+
             sections[name.trim()] = sectionContent.substring(1).trim();
         }
 
         return sections;
     };
-    
-    auto formatText = [](String text) {
-        
+
+    auto formatText = [](String text)
+    {
         text = text.trim();
         // Start sentences with uppercase
         if (text.length() > 1 && (*text.toRawUTF8()) >= 'a' && (*text.toRawUTF8()) <= 'z')
         {
             text = text.replaceSection(0, 1, text.substring(0, 1).toUpperCase());
         }
-        
+
         // Don't end with a period
-        if (text.getLastCharacter() == '.') {
+        if (text.getLastCharacter() == '.')
+        {
             text = text.upToLastOccurrenceOf(".", false, false);
         }
-        
+
         return text;
     };
-    
-    auto parseTypeAndDescription = [formatText](String content){
+
+    auto parseTypeAndDescription = [formatText](String content)
+    {
         Array<std::pair<String, String>> result;
-        
+
         auto lines = StringArray::fromLines(content);
-        
-        for(int i = 0; i < lines.size() / 2; i++) {
-            if(!lines[i*2].containsNonWhitespaceChars() || !lines[i*2+1].containsNonWhitespaceChars()) continue;
-            
+
+        for (int i = 0; i < lines.size() / 2; i++)
+        {
+            if (!lines[i * 2].containsNonWhitespaceChars() || !lines[i * 2 + 1].containsNonWhitespaceChars()) continue;
+
             String type = lines[i * 2].fromFirstOccurrenceOf("type:", false, false).trim();
             String description = formatText(lines[i * 2 + 1].fromFirstOccurrenceOf("description:", false, false));
-            
 
-            
             result.add({type, description});
-
         }
-        
+
         return result;
     };
 
-    
-    auto parseFile = [this, getSections, parseTypeAndDescription, formatText](File& f){
-                
+    auto parseFile = [this, getSections, parseTypeAndDescription, formatText](File& f)
+    {
         String contents = f.loadFileAsString();
         auto sections = getSections(contents, {"\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft"});
-        
-        if(!sections.contains("title")) return;
-        
+
+        if (!sections.contains("title")) return;
+
         String name = sections["title"];
-        
-        if(sections.contains("description")) {
+
+        if (sections.contains("description"))
+        {
             objectDescriptions[name] = sections["description"];
         }
-        
-        if(sections.contains("arguments")) {
+
+        if (sections.contains("arguments"))
+        {
             Arguments args;
-            for(auto& [type, description] : parseTypeAndDescription(sections["arguments"]))
+            for (auto& [type, description] : parseTypeAndDescription(sections["arguments"]))
             {
                 String defaultValue;
-                if(description.contains("(default")) {
+                if (description.contains("(default"))
+                {
                     defaultValue = formatText(description.fromFirstOccurrenceOf("(default", false, false).upToFirstOccurrenceOf(")", false, false));
                     description = description.upToFirstOccurrenceOf("(default", false, false);
                 }
-                
+
                 args.push_back({type, description, defaultValue});
             }
             arguments[name] = args;
         }
-        
+
         auto numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"};
-        if(sections.contains("inlets")) {
-            for(auto [number, content] : getSections(sections["inlets"], numbers))
+        if (sections.contains("inlets"))
+        {
+            for (auto [number, content] : getSections(sections["inlets"], numbers))
             {
                 String tooltip;
-                for(auto& [type, description] : parseTypeAndDescription(content))
+                for (auto& [type, description] : parseTypeAndDescription(content))
                 {
                     tooltip += "(" + type + ") " + description + "\n";
                 }
-                    
+
                 inletDescriptions[name].add({tooltip, number == "nth"});
             }
         }
-        if(sections.contains("outlets")) {
-            for(auto [number, content] : getSections(sections["outlets"], numbers))
+        if (sections.contains("outlets"))
+        {
+            for (auto [number, content] : getSections(sections["outlets"], numbers))
             {
                 String tooltip;
-                for(auto& [type, description] : parseTypeAndDescription(content))
+                for (auto& [type, description] : parseTypeAndDescription(content))
                 {
                     tooltip += "(" + type + ") " + description + "\n";
                 }
-                
+
                 outletDescriptions[name].add({tooltip, number == "nth"});
             }
         }
     };
-    
+
     for (auto& iter : RangedDirectoryIterator(path, true))
     {
         auto file = iter.getFile();
@@ -415,9 +421,8 @@ void Library::parseDocumentation(const String& path)
         {
             parseFile(file);
         }
-        
     }
-    
+
     /* temp disable
     for (auto& iter : RangedDirectoryIterator(path, true))
     {
@@ -437,32 +442,32 @@ void Library::parseDocumentation(const String& path)
 
             auto keywords = meta->getChildElementAllSubText("keywords", "");
             auto description = meta->getChildElementAllSubText("description", "");
-            
-            
+
+
             auto outlets = IODescription();
             auto inlets = IODescription();
-            
+
             auto inletsTree = object->getChildByName("inlets");
             auto outletsTree = object->getChildByName("outlets");
-            
+
             if(name == "metro") {
                 std::cout << "T" << std::endl;
             }
-            
+
             for(auto* inlet : inletsTree->getChildIterator())
             {
                 bool repeating = inlet->getNumAttributes() == 1 && inlet->getAttributeName(0) == "repeating";
                 String totalDescription;
-                
+
                 for(auto* trigger : inlet->getChildIterator())
                 {
                     totalDescription += "(" + trigger->getStringAttribute("on") + ") " +  trigger->getAllSubText() + "\n";
                 }
-            
+
                 inlets.add({totalDescription, repeating});
 
             }
-            
+
             for(auto* outlet : outletsTree->getChildIterator())
             {
                 String type = outlet->getStringAttribute("out");
@@ -471,7 +476,7 @@ void Library::parseDocumentation(const String& path)
                 bool repeating = outlet->getNumAttributes() == 1 && outlet->getAttributeName(0) == "repeating";
                 outlets.add({description, repeating});
             }
-            
+
             outletDescriptions[name] = outlets;
             inletDescriptions[name] = inlets;
 
@@ -492,33 +497,39 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
 {
     auto name = boxname.upToFirstOccurrenceOf(" ", false, false);
     auto args = StringArray::fromTokens(boxname.fromFirstOccurrenceOf(" ", false, false), true);
-    
-    auto findInfo = [&name, &args, &total, &idx](IODescriptionMap& map){
-        if(map.count(name)){
+
+    auto findInfo = [&name, &args, &total, &idx](IODescriptionMap& map)
+    {
+        if (map.count(name))
+        {
             auto descriptions = map.at(name);
-            
+
             // if the amount of inlets is not equal to the amount in the spec, look for repeating inlets
-            if(descriptions.size() < total) {
-                for(int i = 0; i < descriptions.size(); i++) {
-                    if(descriptions[i].second) { // repeating inlet found
-                        for(int j = 0; j < total - descriptions.size(); j++){
+            if (descriptions.size() < total)
+            {
+                for (int i = 0; i < descriptions.size(); i++)
+                {
+                    if (descriptions[i].second)
+                    {  // repeating inlet found
+                        for (int j = 0; j < total - descriptions.size(); j++)
+                        {
                             descriptions.insert(i, descriptions[i]);
                         }
                     }
                 }
             }
-            
+
             auto result = isPositiveAndBelow(idx, descriptions.size()) ? descriptions[idx].first : String();
             result = result.replace("$mth", String(idx));
             result = result.replace("$nth", String(idx + 1));
             result = result.replace("$arg", args[idx]);
-            
+
             return result;
         }
-        
+
         return String();
     };
-    
+
     return isInlet ? findInfo(inletDescriptions) : findInfo(outletDescriptions);
 }
 

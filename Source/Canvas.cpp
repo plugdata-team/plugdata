@@ -23,13 +23,15 @@ extern "C"
 Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph, bool graphChild) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
 {
     isGraphChild = graphChild;
-    
+
     // Check if canvas belongs to a graph
-    if(parentGraph) {
+    if (parentGraph)
+    {
         parentGraph->addAndMakeVisible(this);
         isGraph = true;
     }
-    else {
+    else
+    {
         isGraph = false;
     }
 
@@ -37,9 +39,9 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 
     commandLocked.referTo(pd->commandLocked);
     commandLocked.addListener(this);
-    
+
     gridEnabled.referTo(parent.statusbar.gridEnabled);
-    
+
     locked.referTo(pd->locked);
     locked.addListener(this);
 
@@ -68,7 +70,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
-        viewport->setBufferedToImage(true); // makes scrolling much smoother
+        viewport->setBufferedToImage(true);  // makes scrolling much smoother
 
         // Apply zooming
         setTransform(parent.transform);
@@ -79,10 +81,10 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         presentationMode = false;
     }
-    
+
     addAndMakeVisible(grid);
     synchronise();
-    
+
     // Prevent having to redraw all those dots!
     setBufferedToImage(true);
 }
@@ -110,7 +112,6 @@ void Canvas::paint(Graphics& g)
         g.drawLine(canvasOrigin.x - 1, canvasOrigin.y - 1, getWidth() + 2, canvasOrigin.y - 1);
     }
 
-    
     if (locked == var(false) && commandLocked == var(false) && !isGraph)
     {
         const int ObjectGridSize = 25;
@@ -131,7 +132,7 @@ void Canvas::paint(Graphics& g)
 void Canvas::focusGained(FocusChangeType cause)
 {
     // This is necessary because in some cases, setting the canvas as current right before an action isn't enough
-    
+
     // TODO: find out if this is still necessary, and if so, is this really the best way to do it??
     pd->setThis();
     if (patch.getPointer() && !isGraph)
@@ -291,18 +292,16 @@ void Canvas::synchronise(bool updatePosition)
                 {
                     storage.setInfoId(c.lastId, currentId);
                 }
-                
+
                 c.lastId = currentId;
 
                 auto info = storage.getInfo(currentId, "Path");
                 if (info.length()) c.setState(info);
-                
-                c.repaint();
-                
 
+                c.repaint();
             }
         }
-        
+
         storage.confirmIds();
 
         setTransform(main.transform);
@@ -323,7 +322,6 @@ void Canvas::synchronise(bool updatePosition)
     repaint();
 }
 
-
 void Canvas::mouseDown(const MouseEvent& e)
 {
     if (suggestor->openedEditor && e.originalComponent != suggestor->openedEditor)
@@ -332,7 +330,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         deselectAll();
         return;
     }
-    
+
     auto openSubpatch = [this](Box* parent)
     {
         if (!parent->graphics) return;
@@ -348,7 +346,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 return;
             }
         }
-        
+
         auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
         bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
@@ -408,7 +406,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 deselectAll();
             }
         }
-        
+
         if (auto* box = dynamic_cast<Box*>(source))
         {
             updateSidebarSelection();
@@ -495,7 +493,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 
                     auto* patch = main.pd.patches.add(new pd::Patch(helpPatch));
                     auto* newCnv = main.canvases.add(new Canvas(main, *patch));
-                    
+
                     main.addTab(newCnv, true);
 
                     break;
@@ -608,7 +606,8 @@ void Canvas::mouseUp(const MouseEvent& e)
 
         repaint();
     }
-    else if(connectingWithDrag && !connectingEdge) {
+    else if (connectingWithDrag && !connectingEdge)
+    {
         connectingWithDrag = false;
     }
 
@@ -873,7 +872,7 @@ void Canvas::undo()
 {
     // Performs undo on storage data if the next undo event if a dummy
     storage.undoIfNeeded();
-    
+
     // Tell pd to undo the last action
     patch.undo();
 
@@ -887,7 +886,7 @@ void Canvas::redo()
 {
     // Performs redo on storage data if the next redo event if a dummy
     storage.redoIfNeeded();
-    
+
     // Tell pd to undo the last action
     patch.redo();
 
@@ -900,7 +899,7 @@ void Canvas::redo()
 void Canvas::checkBounds()
 {
     if (isGraph || !viewport) return;
-    
+
     updatingBounds = true;
 
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
@@ -919,7 +918,6 @@ void Canvas::checkBounds()
     {
         box->updateBounds(false);
     }
-    
 
     if (graphArea)
     {
@@ -930,7 +928,7 @@ void Canvas::checkBounds()
     {
         tmpl->updateIfMoved();
     }
-    
+
     updatingBounds = false;
 }
 
@@ -939,11 +937,12 @@ void Canvas::valueChanged(Value& v)
     // When lock changes
     if (v.refersToSameSourceAs(locked))
     {
-        if(connectingEdge) connectingEdge = nullptr;
+        if (connectingEdge) connectingEdge = nullptr;
         deselectAll();
         repaint();
     }
-    else if(v.refersToSameSourceAs(commandLocked)) {
+    else if (v.refersToSameSourceAs(commandLocked))
+    {
         repaint();
     }
     // Should only get called when the canvas isn't a real graph
@@ -1015,18 +1014,20 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
         setSelected(component, true);
     }
 
-    if(auto* box = dynamic_cast<Box*>(component)) {
+    if (auto* box = dynamic_cast<Box*>(component))
+    {
         componentBeingDragged = box;
     }
-    
-    for(auto* box : getSelectionOfType<Box>()) {
+
+    for (auto* box : getSelectionOfType<Box>())
+    {
         box->mouseDownPos = box->getPosition();
     }
-    
-    if(component) {
+
+    if (component)
+    {
         component->repaint();
     }
-    
 }
 
 // Call from component's mouseUp
@@ -1043,11 +1044,11 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
                 if (box->pdObject) objects.push_back(box->pdObject.get());
             }
         }
-        
+
         auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
-        
+
         distance = grid.handleMouseUp(distance);
- 
+
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
 
@@ -1056,7 +1057,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     }
 
     if (didStartDragging) didStartDragging = false;
-    
+
     componentBeingDragged = nullptr;
 
     component->repaint();
@@ -1071,27 +1072,26 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     didStartDragging = true;
 
     auto dragDistance = e.getOffsetFromDragStart();
-    
-    if(static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
-        
+
+    if (static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged)
+    {
         dragDistance = grid.handleMouseDrag(componentBeingDragged, dragDistance, viewport->getViewArea());
     }
-    
+
     for (auto* box : getSelectionOfType<Box>())
     {
         box->setTopLeftPosition(box->mouseDownPos + dragDistance);
     }
-    
-    
+
     /*
     // If object was snapped last time
     if(static_cast<bool>(gridEnabled.getValue()) && lastObjectGrid.type != ObjectGrid::NotSnappedToObjectGrid) {
-        
+
         // Check if we've dragged out of the ObjectGrid snap
         bool horizontalSnap = lastObjectGrid.type == ObjectGrid::HorizontalSnap;
         bool horizontalUnsnap = horizontalSnap && abs(lastObjectGrid.position.x - dragDistance.x) > 4;
         bool verticalUnsnap = !horizontalSnap && abs(lastObjectGrid.position.y - dragDistance.y) > 4;
-        
+
         if(horizontalUnsnap || verticalUnsnap) {
             lastObjectGrid = ObjectGrid(); // reset ObjectGrid
             ObjectGridPath.setPath(Path());  // remove ObjectGrid marker
@@ -1108,13 +1108,13 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
 
     if(componentBeingDragged && static_cast<bool>(gridEnabled.getValue())) {
         auto snap = shouldSnapToObjectGrid(componentBeingDragged);
-        
+
         // If we were not snapped last time and are locked now, or if the point to which we snapped has changed
-        if(snap.type != ObjectGrid::NotSnappedToObjectGrid && (lastObjectGrid.type == ObjectGrid::NotSnappedToObjectGrid || snap.idx != lastObjectGrid.idx)) {            
+        if(snap.type != ObjectGrid::NotSnappedToObjectGrid && (lastObjectGrid.type == ObjectGrid::NotSnappedToObjectGrid || snap.idx != lastObjectGrid.idx)) {
             snap.position += dragDistance;
             lastObjectGrid = snap;
         }
-        
+
         if(snap.type != ObjectGrid::NotSnappedToObjectGrid) {
             // Show ObjectGrid indicator
             auto path = Path();

@@ -39,7 +39,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     void showEditor();
     void hideEditor();
-    
+
     Array<Connection*> getConnections() const;
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
@@ -52,7 +52,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
-    
+
     int getBestTextWidth();
 
     void setEditable(bool editable);
@@ -67,14 +67,13 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     Value presentationMode;
 
     ObjectGrid lastObjectGrid;
-    
+
     Canvas* cnv;
 
     std::unique_ptr<GUIComponent> graphics = nullptr;
 
     OwnedArray<Edge> edges;
     ResizableBorderComponent::Zone resizeZone;
-
 
     static inline constexpr int margin = 8;
     static inline constexpr int doubleMargin = margin * 2;
@@ -85,10 +84,10 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     bool edgeHovered = false;
 
     String currentText;
-    
+
     Point<int> mouseDownPos;
     Font font{15.0f};
-    
+
    private:
     void initialise();
     bool hitTest(int x, int y) override;
@@ -97,8 +96,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void textEditorTextChanged(TextEditor& ed) override;
 
     Rectangle<int> originalBounds;
-    
-
 
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;

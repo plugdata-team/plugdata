@@ -21,7 +21,7 @@ extern "C"
 
 #include "x_libpd_extra_utils.h"
 
-void my_numbox_calc_fontwidth(t_my_numbox* x);
+    void my_numbox_calc_fontwidth(t_my_numbox* x);
 }
 
 namespace pd
@@ -201,7 +201,6 @@ Type Gui::getType(void* ptr) noexcept
     {
         type = Type::Picture;
     }
-
 
     else if (name == "gatom")
     {
@@ -480,7 +479,8 @@ std::vector<Atom> Gui::getList() const noexcept
             {
                 array.emplace_back(atom_getfloat(av + i));
             }
-            else if (av[i].a_type == A_SYMBOL) {
+            else if (av[i].a_type == A_SYMBOL)
+            {
                 array.emplace_back(atom_getsymbol(av + i)->s_name);
             }
             else
@@ -554,7 +554,7 @@ std::string Gui::getSymbol() const noexcept
 
         auto result = std::string(text, size);
         freebytes(text, size);
-        
+
         return result;
     }
     else if (ptr && type == Type::AtomSymbol)
@@ -599,7 +599,8 @@ float Gui::getFontHeight() const noexcept
     {
         return static_cast<t_iemgui*>(ptr)->x_fontsize;
     }
-    if(isAtom()){
+    if (isAtom())
+    {
         return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
     }
     else
@@ -611,13 +612,14 @@ void Gui::setFontHeight(float newSize) noexcept
 {
     if (!ptr) return;
 
-    if(isIEM()) {
+    if (isIEM())
+    {
         static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
     }
-    else if(isAtom()){
+    else if (isAtom())
+    {
         static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;
     }
-    
 }
 
 std::string Gui::getFontName() const
@@ -691,7 +693,7 @@ Rectangle<int> Gui::getBounds() const noexcept
 
     int x = 0, y = 0, w = 0, h = 0;
     libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
-    
+
     if (type == Type::Keyboard)
     {
         auto* keyboard = static_cast<t_keyboard*>(ptr);
@@ -714,7 +716,7 @@ Rectangle<int> Gui::getBounds() const noexcept
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         auto* iemgui = &nbx->x_gui;
-        
+
         int width = nbx->x_numwidth * iemgui->x_fontsize;
 
         return {x, y, width, iemgui->x_h};
@@ -737,7 +739,7 @@ Rectangle<int> Gui::getBounds() const noexcept
     else if (isAtom())
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        
+
         w = gatom->a_text.te_width * sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0);
         return {x, y, w, h};
     }
@@ -781,7 +783,7 @@ void Gui::setBounds(Rectangle<int> bounds)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         auto* iemgui = &nbx->x_gui;
-        
+
         nbx->x_numwidth = round(static_cast<float>(bounds.getWidth()) / iemgui->x_fontsize);
         iemgui->x_h = bounds.getHeight();
 
@@ -796,10 +798,10 @@ void Gui::setBounds(Rectangle<int> bounds)
     }
     else if (type == Type::HorizontalRadio)
     {
-         auto* dial = static_cast<t_hdial*>(ptr);
+        auto* dial = static_cast<t_hdial*>(ptr);
 
-         dial->x_gui.x_w = w / dial->x_number;
-         dial->x_gui.x_h = h;
+        dial->x_gui.x_w = w / dial->x_number;
+        dial->x_gui.x_h = h;
     }
     else if (isIEM())
     {
@@ -812,11 +814,9 @@ void Gui::setBounds(Rectangle<int> bounds)
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0)));
-        
+
         gatom->a_text.te_width = newWidth;
     }
-    
-
 
     libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX(), bounds.getY());
 }
@@ -957,44 +957,47 @@ Rectangle<int> Gui::getLabelBounds(Rectangle<int> objectBounds) const noexcept
         t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
         if (sym)
         {
-            
             int fontHeight = getFontHeight();
             int labelLength = Font(fontHeight).getStringWidth(getLabelText());
-            
+
             auto const* iemgui = static_cast<t_iemgui*>(ptr);
             int const posx = objectBounds.getX() + iemgui->x_ldx;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
-            
+
             return {posx, posy, labelLength, fontHeight};
         }
     }
-    else if(isAtom()) {
+    else if (isAtom())
+    {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        
+
         int fontHeight = getFontHeight() + 2;
-        if(fontHeight == 0) {
+        if (fontHeight == 0)
+        {
             fontHeight = glist_getfont(patch->getPointer());
         }
-        
+
         int labelLength = Font(fontHeight).getStringWidth(getLabelText());
         int labelPosition = gatom->a_wherelabel;
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
-        
-        if(labelPosition == 0) { // left
+
+        if (labelPosition == 0)
+        {  // left
             return labelBounds.withRightX(objectBounds.getX() - 4);
         }
-        if(labelPosition == 1) { // right
+        if (labelPosition == 1)
+        {  // right
             return labelBounds.withX(objectBounds.getRight() + 4);
         }
-        if(labelPosition == 2) { // top
+        if (labelPosition == 2)
+        {  // top
             return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
         }
-        if(labelPosition == 3) { // bottom
+        if (labelPosition == 3)
+        {  // bottom
             return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
         }
-        
     }
-    
 
     return {objectBounds.getX(), objectBounds.getY()};
 }
