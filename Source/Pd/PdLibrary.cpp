@@ -274,6 +274,145 @@ void Library::updateLibrary()
 
 void Library::parseDocumentation(const String& path)
 {
+    // Function to get sections from a text file based on a section name
+    // Let it know which sections exists, and it will order them and put them in a map by name
+    auto getSections = [](String contents, StringArray sectionNames){
+        Array<std::pair<String, int>> positions;
+        
+        for(auto& section : sectionNames)
+        {
+            positions.add({section, contents.indexOf(section + ':')});
+        }
+        
+        std::sort(positions.begin(), positions.end(),
+          [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+        
+        std::map<String, String> sections;
+        
+        for(auto it = positions.begin(); it < positions.end(); it++) {
+            auto& [name, currentPosition] = *it;
+            if(currentPosition < 0) continue; // section not found
+            
+            currentPosition += name.length();
+            
+            String sectionContent;
+            if(it == positions.end() - 1) {
+                sectionContent = contents.substring(currentPosition);
+            }
+            else {
+                sectionContent = contents.substring(currentPosition + 1, (*(it + 1)).second);
+            }
+            
+            sections[name.trim()] = sectionContent.substring(1).trim();
+        }
+
+        return sections;
+    };
+    
+    auto formatText = [](String text) {
+        
+        text = text.trim();
+        // Start sentences with uppercase
+        if (text.length() > 1 && (*text.toRawUTF8()) >= 'a' && (*text.toRawUTF8()) <= 'z')
+        {
+            text = text.replaceSection(0, 1, text.substring(0, 1).toUpperCase());
+        }
+        
+        // Don't end with a period
+        if (text.getLastCharacter() == '.') {
+            text = text.upToLastOccurrenceOf(".", false, false);
+        }
+        
+        return text;
+    };
+    
+    auto parseTypeAndDescription = [formatText](String content){
+        Array<std::pair<String, String>> result;
+        
+        auto lines = StringArray::fromLines(content);
+        
+        for(int i = 0; i < lines.size() / 2; i++) {
+            if(!lines[i*2].containsNonWhitespaceChars() || !lines[i*2+1].containsNonWhitespaceChars()) continue;
+            
+            String type = lines[i * 2].fromFirstOccurrenceOf("type:", false, false).trim();
+            String description = formatText(lines[i * 2 + 1].fromFirstOccurrenceOf("description:", false, false));
+            
+
+            
+            result.add({type, description});
+
+        }
+        
+        return result;
+    };
+
+    
+    auto parseFile = [this, getSections, parseTypeAndDescription, formatText](File& f){
+                
+        String contents = f.loadFileAsString();
+        auto sections = getSections(contents, {"\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft"});
+        
+        if(!sections.contains("title")) return;
+        
+        String name = sections["title"];
+        
+        if(sections.contains("description")) {
+            objectDescriptions[name] = sections["description"];
+        }
+        
+        if(sections.contains("arguments")) {
+            Arguments args;
+            for(auto& [type, description] : parseTypeAndDescription(sections["arguments"]))
+            {
+                String defaultValue;
+                if(description.contains("(default")) {
+                    defaultValue = formatText(description.fromFirstOccurrenceOf("(default", false, false).upToFirstOccurrenceOf(")", false, false));
+                    description = description.upToFirstOccurrenceOf("(default", false, false);
+                }
+                
+                args.push_back({type, description, defaultValue});
+            }
+            arguments[name] = args;
+        }
+        
+        auto numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"};
+        if(sections.contains("inlets")) {
+            for(auto [number, content] : getSections(sections["inlets"], numbers))
+            {
+                String tooltip;
+                for(auto& [type, description] : parseTypeAndDescription(content))
+                {
+                    tooltip += "(" + type + ") " + description + "\n";
+                }
+                    
+                inletDescriptions[name].add({tooltip, number == "nth"});
+            }
+        }
+        if(sections.contains("outlets")) {
+            for(auto [number, content] : getSections(sections["outlets"], numbers))
+            {
+                String tooltip;
+                for(auto& [type, description] : parseTypeAndDescription(content))
+                {
+                    tooltip += "(" + type + ") " + description + "\n";
+                }
+                
+                outletDescriptions[name].add({tooltip, number == "nth"});
+            }
+        }
+    };
+    
+    for (auto& iter : RangedDirectoryIterator(path, true))
+    {
+        auto file = iter.getFile();
+
+        if (file.hasFileExtension("md"))
+        {
+            parseFile(file);
+        }
+        
+    }
+    
     /* temp disable
     for (auto& iter : RangedDirectoryIterator(path, true))
     {

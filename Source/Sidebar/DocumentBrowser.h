@@ -434,7 +434,11 @@ public:
         
         input.onTextChange = [this](){
             bool notEmpty = input.getText().isNotEmpty();
-            table.setVisible(notEmpty);
+            if(table.isVisible() != notEmpty) {
+                table.setVisible(notEmpty);
+                getParentComponent()->repaint();
+            }
+            
             setInterceptsMouseClicks(notEmpty, true);
             updateResults(input.getText());
         };
@@ -497,10 +501,6 @@ public:
         g.setColour(findColour(PlugDataColour::textColourId));
         
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
-        
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 28, getWidth(), 28);
-        g.drawLine(0.5f, 0, 0.5f, getHeight());
     }
     
     
@@ -772,16 +772,19 @@ struct DocumentBrowser : public DocumentBrowserBase
     
     void paint(Graphics& g) override {
         g.fillAll(findColour(PlugDataColour::toolbarColourId));
-        
+    }
+    
+    void paintOverChildren(Graphics& g) override {
         // Draggable bar
         g.setColour(findColour(PlugDataColour::toolbarColourId));
-        g.fillRect(getWidth() - Sidebar::dragbarWidth, 0, Sidebar::dragbarWidth + 1, getHeight());
+        g.fillRect(0, 28, Sidebar::dragbarWidth + 1, getHeight());
         
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(0, 0, 0, getHeight() - 27.5f);
+        g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
         
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(0, 28, getWidth(), 28);
     }
-
 
 private:
     TextButton revealButton = TextButton(Icons::OpenedFolder);

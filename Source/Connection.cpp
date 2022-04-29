@@ -480,7 +480,7 @@ void Connection::findPath()
     // Look for paths at an increasing resolution
     while (!numFound && resolution < 7 && distance > 40)
     {
-        // Find paths on an resolution*resolution lattice grid
+        // Find paths on an resolution*resolution lattice ObjectGrid
         incrementX = std::max(abs(pstart.x - pend.x) / resolution, resolution);
         incrementY = std::max(abs(pstart.y - pend.y) / resolution, resolution);
 

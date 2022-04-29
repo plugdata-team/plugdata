@@ -80,11 +80,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
         presentationMode = false;
     }
     
-    // Line to show when relative grid is used
-    gridPath.setStrokeThickness(1);
-    gridPath.setAlwaysOnTop(true);
-    
-    addAndMakeVisible(gridPath);
+    addAndMakeVisible(grid);
     synchronise();
     
     // Prevent having to redraw all those dots!
@@ -102,8 +98,7 @@ void Canvas::paint(Graphics& g)
     if (!isGraph)
     {
         lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::thumbColourId).withAlpha(0.3f));
-        gridPath.setStrokeFill(FillType(findColour(PlugDataColour::highlightColourId)));
-        
+
         g.fillAll(findColour(PlugDataColour::toolbarColourId));
 
         g.setColour(findColour(PlugDataColour::canvasColourId));
@@ -118,14 +113,14 @@ void Canvas::paint(Graphics& g)
     
     if (locked == var(false) && commandLocked == var(false) && !isGraph)
     {
-        const int gridSize = 25;
+        const int ObjectGridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasColourId).contrasting(0.42));
 
-        for (int x = canvasOrigin.getX() + gridSize; x < clipBounds.getRight(); x += gridSize)
+        for (int x = canvasOrigin.getX() + ObjectGridSize; x < clipBounds.getRight(); x += ObjectGridSize)
         {
-            for (int y = canvasOrigin.getY() + gridSize; y < clipBounds.getBottom(); y += gridSize)
+            for (int y = canvasOrigin.getY() + ObjectGridSize; y < clipBounds.getBottom(); y += ObjectGridSize)
             {
                 g.fillRect(x, y, 1, 1);
             }
@@ -1051,15 +1046,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         
         auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
         
-        if(lastGridSnap.type == GridSnap::HorizontalSnap) {
-            distance.x = lastGridSnap.position.x;
-        }
-        else if(lastGridSnap.type == GridSnap::VerticalSnap) {
-            distance.y = lastGridSnap.position.y;
-        }
-        
-        lastGridSnap = GridSnap();
-        gridPath.setPath(Path());
+        distance = grid.handleMouseUp(distance);
  
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
@@ -1075,89 +1062,6 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     component->repaint();
 }
 
-Canvas::GridSnap Canvas::shouldSnapToGrid(const Box* toDrag) {
-    constexpr int tolerance = 2;
-
-    int totalSnaps = 0; // Keep idx of object snapped to recognise when we've changed to a different target
-    auto trySnap = [this, &totalSnaps, &tolerance](int distance) -> bool {
-        if(abs(distance) < tolerance) {
-            return true;
-        }
-        totalSnaps++;
-        return false;
-    };
-    
-    // Find snap points based on connection alignment
-    for(auto* connection : toDrag->getConnections()) {
-        auto inletBounds = connection->inlet->getCanvasBounds();
-        auto outletBounds = connection->outlet->getCanvasBounds();
-
-        // Don't snap if the cord is upside-down
-        if(inletBounds.getY() < outletBounds.getY()) continue;
-        
-        // Skip if both objects are selected
-        if(isSelected(connection->inlet->box == toDrag ? connection->outlet->box : connection->outlet->box)) continue;
-        
-        int snapDistance = inletBounds.getX() - outletBounds.getX();
-        
-        // Check if the inlet or outlet is being moved, and invert if needed
-        if(connection->inlet->box == toDrag) snapDistance = -snapDistance;
-        
-        if(trySnap(snapDistance)) {
-            auto gridLine = Line<int>(inletBounds.getX() - 2, outletBounds.getBottom() + 2, inletBounds.getX() - 2,  inletBounds.getY() - 2);
-            return {GridSnap::HorizontalSnap, totalSnaps, {snapDistance, 0}, gridLine};
-        }
-        
-        // If we're close, don't snap for other reasons
-        if(abs(snapDistance) < tolerance * 2.0f) {
-            return GridSnap();
-        }
-    }
-
-    // Find snap points based on box alignment
-    for(auto* box : boxes) {
-        if(isSelected(box)) continue; // don't look at selected objects
-        
-        if(!viewport->getViewArea().intersects(box->getBounds())) continue; // if the box is out of viewport bounds
-        
-        auto b1 = box->getBounds().reduced(Box::margin);
-        auto b2 = toDrag->getBounds().reduced(Box::margin);
-        
-        auto t = b1.getY() < b2.getY() ? b1 : b2;
-        auto b = b1.getY() > b2.getY() ? b1 : b2;
-        auto r = b1.getX() < b2.getX() ? b1 : b2;
-        auto l = b1.getX() > b2.getX() ? b1 : b2;
-        
-        if(trySnap(b1.getX() - b2.getX())) {
-            auto gridLine = Line<int>(l.getX(), t.getY(), l.getX(), b.getBottom());
-            return {GridSnap::HorizontalSnap, totalSnaps, {b1.getX() - b2.getX(), 0}, gridLine};
-        }
-        if(trySnap(b1.getCentreX() - b2.getCentreX())) {
-            auto gridLine = Line<int>(l.getCentreX(), t.getY(), l.getCentreX(), b.getBottom());
-            return {GridSnap::HorizontalSnap, totalSnaps, {b1.getCentreX() - b2.getCentreX(), 0}, gridLine};
-        }
-        if(trySnap(b1.getRight() - b2.getRight())) {
-            auto gridLine = Line<int>(l.getRight(), t.getY(), l.getRight(), b.getBottom());
-            return {GridSnap::HorizontalSnap, totalSnaps, {b1.getRight() - b2.getRight(), 0}, gridLine};
-        }
-        
-        if(trySnap(b1.getY() - b2.getY())) {
-            auto gridLine = Line<int>(l.getX(), t.getY(), r.getRight(), t.getY());
-            return {GridSnap::VerticalSnap, totalSnaps, {0, b1.getY() - b2.getY()}, gridLine};
-        }
-        if(trySnap(b1.getCentreY() - b2.getCentreY())) {
-            auto gridLine = Line<int>(l.getX(), t.getCentreY(), r.getRight(), t.getCentreY());
-            return {GridSnap::VerticalSnap, totalSnaps, {0, b1.getCentreY() - b2.getCentreY()}, gridLine};
-        }
-        if(trySnap(b1.getBottom() - b2.getBottom())) {
-            auto gridLine = Line<int>(l.getX(), t.getBottom(), r.getRight(), t.getBottom());
-            return {GridSnap::VerticalSnap, totalSnaps, {0, b1.getBottom() - b2.getBottom()}, gridLine};
-        }
-    }
-    
-    return GridSnap();
-}
-
 // Call from component's mouseDrag
 void Canvas::handleMouseDrag(const MouseEvent& e)
 {
@@ -1166,50 +1070,58 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
 
     didStartDragging = true;
 
-    auto dragDistance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
+    auto dragDistance = e.getOffsetFromDragStart();
     
-    // If object was snapped last time
-    if(static_cast<bool>(gridEnabled.getValue()) && lastGridSnap.type != GridSnap::NotSnappedToGrid) {
+    if(static_cast<bool>(gridEnabled.getValue()) && componentBeingDragged) {
         
-        // Check if we've dragged out of the grid snap
-        bool horizontalSnap = lastGridSnap.type == GridSnap::HorizontalSnap;
-        bool horizontalUnsnap = horizontalSnap && abs(lastGridSnap.position.x - dragDistance.x) > 4;
-        bool verticalUnsnap = !horizontalSnap && abs(lastGridSnap.position.y - dragDistance.y) > 4;
-        
-        if(horizontalUnsnap || verticalUnsnap) {
-            lastGridSnap = GridSnap(); // reset grid
-            gridPath.setPath(Path());  // remove grid marker
-        }
-        // Otherwise replace drag distance with the drag distance when we first snapped
-        else if(horizontalSnap) {
-            dragDistance.x = lastGridSnap.position.x;
-        }
-        else {
-            dragDistance.y = lastGridSnap.position.y;
-        }
+        dragDistance = grid.handleMouseDrag(componentBeingDragged, dragDistance, viewport->getViewArea());
     }
-
+    
     for (auto* box : getSelectionOfType<Box>())
     {
         box->setTopLeftPosition(box->mouseDownPos + dragDistance);
     }
     
-    if(componentBeingDragged && static_cast<bool>(gridEnabled.getValue())) {
-        auto snap = shouldSnapToGrid(componentBeingDragged);
+    
+    /*
+    // If object was snapped last time
+    if(static_cast<bool>(gridEnabled.getValue()) && lastObjectGrid.type != ObjectGrid::NotSnappedToObjectGrid) {
         
-        // If we were not snapped last time and are locked now, or if the point to which we snapped has changed
-        if(snap.type != GridSnap::NotSnappedToGrid && (lastGridSnap.type == GridSnap::NotSnappedToGrid || snap.idx != lastGridSnap.idx)) {            
-            snap.position += dragDistance;
-            lastGridSnap = snap;
+        // Check if we've dragged out of the ObjectGrid snap
+        bool horizontalSnap = lastObjectGrid.type == ObjectGrid::HorizontalSnap;
+        bool horizontalUnsnap = horizontalSnap && abs(lastObjectGrid.position.x - dragDistance.x) > 4;
+        bool verticalUnsnap = !horizontalSnap && abs(lastObjectGrid.position.y - dragDistance.y) > 4;
+        
+        if(horizontalUnsnap || verticalUnsnap) {
+            lastObjectGrid = ObjectGrid(); // reset ObjectGrid
+            ObjectGridPath.setPath(Path());  // remove ObjectGrid marker
         }
-        
-        if(snap.type != GridSnap::NotSnappedToGrid) {
-            // Show grid indicator
-            auto path = Path();
-            path.addLineSegment(snap.gridLine.toFloat(), 0.5f);
-            gridPath.setPath(path);
+        // Otherwise replace drag distance with the drag distance when we first snapped
+        else if(horizontalSnap) {
+            dragDistance.x = lastObjectGrid.position.x;
+        }
+        else {
+            dragDistance.y = lastObjectGrid.position.y;
         }
     }
+
+
+    if(componentBeingDragged && static_cast<bool>(gridEnabled.getValue())) {
+        auto snap = shouldSnapToObjectGrid(componentBeingDragged);
+        
+        // If we were not snapped last time and are locked now, or if the point to which we snapped has changed
+        if(snap.type != ObjectGrid::NotSnappedToObjectGrid && (lastObjectGrid.type == ObjectGrid::NotSnappedToObjectGrid || snap.idx != lastObjectGrid.idx)) {            
+            snap.position += dragDistance;
+            lastObjectGrid = snap;
+        }
+        
+        if(snap.type != ObjectGrid::NotSnappedToObjectGrid) {
+            // Show ObjectGrid indicator
+            auto path = Path();
+            path.addLineSegment(snap.ObjectGridLine.toFloat(), 0.5f);
+            ObjectGridPath.setPath(path);
+        }
+    } */
 
     for (auto& tmpl : templates)
     {

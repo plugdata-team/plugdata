@@ -56,7 +56,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
     {
         table.setModel(this);
         table.setColour(ListBox::backgroundColourId, findColour(ResizableWindow::backgroundColourId));
-        table.setRowHeight(30);
+        table.setRowHeight(24);
         table.setOutlineThickness(0);
         table.deselectAllRows();
         
@@ -178,7 +178,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
     {
 
         auto* viewport = table.getViewport();
-        PlugDataLook::paintStripes(g, table.getRowHeight(), viewport->getViewedComponent()->getHeight(), table, table.getSelectedRow(), table.getViewport()->getViewPositionY());
+        PlugDataLook::paintStripes(g, table.getRowHeight(), viewport->getViewedComponent()->getHeight(), table, table.getSelectedRow(), table.getViewport()->getViewPositionY(), true);
     
     }
 
