@@ -237,7 +237,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
     bool keyPressed(const KeyPress& key, Component* originatingComponent) override
     {
-        if (state != ShowingObjects) return;
+        if (state != ShowingObjects) return false;
 
         if (key == KeyPress::upKey || key == KeyPress::downKey)
         {
