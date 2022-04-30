@@ -20,12 +20,13 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
 
     setTopLeftPosition(position - Point<int>(margin, margin));
 
-    if(cnv->attachNextObjectToMouse) {
+    if (cnv->attachNextObjectToMouse)
+    {
         cnv->attachNextObjectToMouse = false;
         startTimer(20);
         attachedToMouse = true;
     }
-    
+
     initialise();
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
@@ -57,7 +58,8 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name) : pdObject(obje
 
 Box::~Box()
 {
-    if(attachedToMouse) {
+    if (attachedToMouse)
+    {
         stopTimer();
     }
 }
@@ -81,9 +83,11 @@ void Box::initialise()
     originalBounds.setBounds(0, 0, 0, 0);
 }
 
-void Box::timerCallback() {
+void Box::timerCallback()
+{
     auto pos = cnv->getMouseXYRelative();
-    if(pos != getBounds().getCentre()) {
+    if (pos != getBounds().getCentre())
+    {
         setCentrePosition(cnv->getBounds().getConstrainedPoint(pos));
     }
 }
@@ -130,7 +134,6 @@ void Box::mouseExit(const MouseEvent& e)
 
 void Box::mouseMove(const MouseEvent& e)
 {
-    
     auto corners = getCorners();
 
     if (!cnv->isSelected(this) || locked == var(true)) return;
@@ -285,7 +288,8 @@ void Box::paint(Graphics& g)
     bool selected = cnv->isSelected(this);
 
     float thickness = 1.0f;
-    if(attachedToMouse) {
+    if (attachedToMouse)
+    {
         outlineColour = Colours::lightgreen;
         thickness = 2.0f;
     }
@@ -481,12 +485,13 @@ void Box::updatePorts()
 
 void Box::mouseDown(const MouseEvent& e)
 {
-    if(attachedToMouse) {
+    if (attachedToMouse)
+    {
         attachedToMouse = false;
         stopTimer();
         repaint();
     }
-    
+
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
 
     bool isSelected = cnv->isSelected(this);

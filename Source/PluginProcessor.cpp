@@ -319,14 +319,14 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         {
             float value = standaloneParams[n].load();
             lastParameters[n] = value;
-            
+
             parameterAtom[0] = {pd::Atom(value)};
 
             String toSend = ("param" + String(n + 1));
             sendList(toSend.toRawUTF8(), parameterAtom);
         }
     }
-    
+
 #else
     for (int n = 0; n < numParameters; n++)
     {

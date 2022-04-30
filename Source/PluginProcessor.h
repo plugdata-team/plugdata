@@ -170,11 +170,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     static inline constexpr int numParameters = 512;
     static inline constexpr int numInputBuses = 16;
     static inline constexpr int numOutputBuses = 16;
-    
+
 #if PLUGDATA_STANDALONE
     std::atomic<float> standaloneParams[numParameters];
 #endif
-    
+
    private:
     void processInternal();
 
@@ -193,8 +193,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     uint8 midiByteBuffer[512] = {0};
     size_t midiByteIndex = 0;
 
-
-
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
     std::array<float, numParameters> lastParameters = {0};
 
@@ -204,8 +202,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
-    
-
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };
