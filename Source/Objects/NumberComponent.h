@@ -69,12 +69,13 @@ struct NumberComponent : public GUIComponent
     {
         String text;
         text << value;
-       
-        while(text.length() > 1 && input.getFont().getStringWidth(text) > getWidth() - 5) {
+
+        while (text.length() > 1 && input.getFont().getStringWidth(text) > getWidth() - 5)
+        {
             text = text.substring(0, text.length() - 2);
         }
         if (!text.containsChar('.')) text << '.';
-        
+
         return text;
     }
 

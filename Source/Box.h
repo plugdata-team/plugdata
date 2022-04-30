@@ -28,9 +28,9 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     Box(pd::Object* object, Canvas* parent, const String& name = "");
 
     ~Box();
-    
+
     void valueChanged(Value& v) override;
-    
+
     void timerCallback() override;
 
     void paint(Graphics&) override;
@@ -107,7 +107,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     float minimumHorizontalScale = 1.0f;
     bool editSingleClick = false;
     bool wasResized = false;
-    
+
     bool attachedToMouse = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)

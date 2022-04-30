@@ -183,10 +183,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Pin)->setClickingTogglesState(true);
     toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     toolbarButton(Pin)->setConnectedEdges(12);
-    toolbarButton(Pin)->onClick = [this]()
-    {
-        sidebar.pinSidebar(toolbarButton(Pin)->getToggleState());
-    };
+    toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
 
     addAndMakeVisible(toolbarButton(Hide));
 

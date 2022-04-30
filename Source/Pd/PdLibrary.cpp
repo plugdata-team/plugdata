@@ -231,7 +231,6 @@ void Library::initialiseLibrary()
     startTimer(3000);
 }
 
-
 void Library::updateLibrary()
 {
     auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
@@ -250,12 +249,11 @@ void Library::updateLibrary()
 #else
     mlist = o->c_methods;
 #endif
-    
+
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
         searchTree->insert(m->me_name->s_name);
-        
     }
 
     searchTree->insert("graph");
@@ -306,7 +304,7 @@ void Library::parseDocumentation(const String& path)
             {
                 sectionContent = contents.substring(currentPosition + 1, (*(it + 1)).second);
             }
-            
+
             sections[name.trim()] = {sectionContent.substring(1).trim().unquoted(), i};
             i++;
         }
@@ -344,7 +342,7 @@ void Library::parseDocumentation(const String& path)
 
             String type = lines[i * 2].fromFirstOccurrenceOf("type:", false, false).trim();
             String description = formatText(lines[i * 2 + 1].fromFirstOccurrenceOf("description:", false, false).upToFirstOccurrenceOf("default:", false, false));
-            
+
             result.add({type, description});
         }
 
@@ -394,13 +392,13 @@ void Library::parseDocumentation(const String& path)
                 {
                     tooltip += "(" + type + ") " + description + "\n";
                 }
-                
+
                 inletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};
             }
         }
         if (sections.count("outlets"))
         {
-            auto section =  getSections(sections["outlets"].first, numbers);
+            auto section = getSections(sections["outlets"].first, numbers);
             outletDescriptions[name].resize(section.size());
             for (auto [number, content] : section)
             {
@@ -409,7 +407,7 @@ void Library::parseDocumentation(const String& path)
                 {
                     tooltip += "(" + type + ") " + description + "\n";
                 }
-                
+
                 outletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};
             }
         }
@@ -485,13 +483,11 @@ void Library::timerCallback()
 
 }  // namespace pd
 
-
-
 /* Code for generating library markdown files, not in usage but useful for later
- 
+
  // wait for pd to initialise
  Timer::callAfterDelay(1200, [this](){
-     
+
      enqueueFunction([this](){
      t_class* o = pd_objectmaker;
 #if PDINSTANCE
@@ -499,7 +495,7 @@ void Library::timerCallback()
 #else
      t_methodentry* mlist = o->c_methods;
 #endif
-     
+
  t_methodentry* m;
 
  int i;
@@ -507,20 +503,20 @@ void Library::timerCallback()
  {
      String name(m->me_name->s_name);
      StringArray arguments;
-     
+
      if(name == "onebang_proxy" || name == "midi") continue;
-     
+
      t_atom args[9];
      int nargs = 3;
      for(int i = 0; i < 6; i++) {
          auto atomtype = (t_atomtype)m->me_arg[i];
          String type;
          auto* target = args + i + 3;
-         
+
          if(atomtype == A_NULL) {
              break;
          }
-         
+
          nargs++;
          if(atomtype == A_FLOAT) {
              type = "float";
@@ -560,30 +556,30 @@ void Library::timerCallback()
              type = "dollsym";
              SETDOLLSYM(target, gensym("$1"));
          }
-         
+
          arguments.add(type);
      }
-     
+
      SETFLOAT(args, 20.0f);
      SETFLOAT(args + 1, 20.0f);
      SETSYMBOL(args + 2, gensym(name.toRawUTF8()));
-     
+
      auto* obj = pd_checkobject(libpd_createobj(patches[0]->getPointer(), gensym("obj"), nargs, args));
-     
+
      if(!obj) continue;
      int nin = libpd_ninlets(obj);
      int nout = libpd_noutlets(obj);
-     
+
      t_inlet* i;
      t_outlet* i_out;
-     
+
      StringArray inletTypes;
      StringArray outletTypes;
-     
+
      if(name == "metro") {
          std::cout << "hey" << std::endl;
      }
-     
+
      for (i = (t_inlet*)obj->ob_inlet; i; i = i->i_next) {
          if(!i->i_symfrom) {
              inletTypes.add("?");
@@ -595,7 +591,7 @@ void Library::timerCallback()
          inletTypes.add(inletTypes.getReference(inletTypes.size() - 1));
          nin--;
      }
-     
+
      for (i_out = (t_outlet*)obj->ob_outlet; i_out; i_out = i_out->o_next) {
          if(!i_out->o_sym) {
              outletTypes.add("?");
@@ -603,14 +599,14 @@ void Library::timerCallback()
          }
          outletTypes.add(i_out->o_sym->s_name);
      }
-     
+
      while(outletTypes.size() && nout > outletTypes.size()) {
          outletTypes.add(outletTypes.getReference(outletTypes.size() - 1));
          nout--;
      }
-     
+
      auto file = File("/Users/timschoen/Projecten/PlugData/Resources/pddp/NEW/" + name + ".md");
-     
+
      String newFile;
      newFile += "---\n";
      newFile += "title: " + name + "\n";
@@ -619,12 +615,12 @@ void Library::timerCallback()
      newFile += " - object\n";
      newFile += "pdcategory: General\n";
      newFile += "arguments:\n";
-     
+
      StringArray numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th", "10th"};
-     
-     
+
+
      for(auto& arg : arguments) {
-         
+
          newFile += "- type: " + arg + "\n";
          newFile += "  description:\n";
          newFile += "  default:\n";
@@ -638,7 +634,7 @@ void Library::timerCallback()
          newFile += "    description:\n";
          idx++;
      }
-     
+
      idx = 0;
      newFile += "outlets:\n";
      for(auto& outlet : outletTypes) {
@@ -650,10 +646,10 @@ void Library::timerCallback()
 
      file.create();
      file.replaceWithText(newFile);
-     
+
  }
-     
+
      });
  });
- 
+
  */

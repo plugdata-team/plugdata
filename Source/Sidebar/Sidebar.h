@@ -43,7 +43,6 @@ using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and 
 // Used by Console and Box for estimating best text height for a set width
 static int getNumLines(const String& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
 {
-
     int numLines = 1;
 
     Array<int> glyphs;
@@ -86,7 +85,7 @@ struct Sidebar : public Component
 
     void showBrowser(bool show);
     bool isShowingBrowser();
-    
+
     void showAutomationPanel(bool show);
 
     bool isShowingConsole() const noexcept;

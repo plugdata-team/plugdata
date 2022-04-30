@@ -22,7 +22,7 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     inspector = new Inspector;
     browser = new DocumentBrowser(instance);
     automationPanel = new AutomationPanel(instance);
-    
+
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     addChildComponent(browser);
@@ -30,7 +30,7 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
 
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
-    
+
     automationPanel->setAlwaysOnTop(true);
 
     setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 40);
@@ -128,10 +128,10 @@ void Sidebar::showBrowser(bool show)
 {
     browser->setVisible(show);
     pinned = show;
-    if(show) {
+    if (show)
+    {
         browser->grabKeyboardFocus();
     }
-    
 }
 
 bool Sidebar::isShowingBrowser()
@@ -139,10 +139,12 @@ bool Sidebar::isShowingBrowser()
     return browser->isVisible();
 };
 
-void Sidebar::showAutomationPanel(bool show) {
+void Sidebar::showAutomationPanel(bool show)
+{
     automationPanel->setVisible(show);
-    
-    if(show) {
+
+    if (show)
+    {
         automationPanel->toFront(true);
     }
 }

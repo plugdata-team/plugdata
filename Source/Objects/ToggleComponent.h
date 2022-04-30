@@ -33,6 +33,7 @@ struct ToggleComponent : public GUIComponent
         }
     };
 
+    Value nonZero;
     Toggle toggleButton;
 
     ToggleComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
@@ -45,13 +46,15 @@ struct ToggleComponent : public GUIComponent
         toggleButton.onMouseDown = [this]()
         {
             startEdition();
-            auto newValue = 1.f - getValueOriginal();
+            auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
             setValueOriginal(newValue);
             toggleButton.setToggleState(newValue, dontSendNotification);
             stopEdition();
 
             update();
         };
+
+        nonZero = static_cast<t_toggle*>(gui.getPointer())->x_nonzero;
 
         initialise(newObject);
     }
@@ -63,6 +66,27 @@ struct ToggleComponent : public GUIComponent
         if (size != box->getHeight() || size != box->getWidth())
         {
             box->setSize(size, size);
+        }
+    }
+
+    ObjectParameters defineParameters() override
+    {
+        return {
+            {"Non-zero value", tInt, cGeneral, &nonZero, {}},
+        };
+    }
+
+    void valueChanged(Value& value) override
+    {
+        if (value.refersToSameSourceAs(nonZero))
+        {
+            float val = nonZero.getValue();
+            max = val;
+            static_cast<t_toggle*>(gui.getPointer())->x_nonzero = val;
+        }
+        else
+        {
+            GUIComponent::valueChanged(value);
         }
     }
 

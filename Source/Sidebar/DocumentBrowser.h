@@ -245,7 +245,6 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
         refresh();
         addListener(this);
         getViewport()->getVerticalScrollBar().addListener(this);
-        
     }
 
     /** Destructor. */
@@ -326,7 +325,7 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
                 parent = parent->getParentItem();
             }
         }
-        
+
         PlugDataLook::paintStripes(g, 24, getViewport()->getHeight(), *this, selectionIdx, getViewport()->getViewPositionY());
     }
     // Paint file drop outline
@@ -476,7 +475,6 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
         table.setColour(TableListBox::backgroundColourId, Colours::transparentBlack);
 
         table.getViewport()->getVerticalScrollBar().addListener(this);
-        
 
         setInterceptsMouseClicks(false, true);
     }
@@ -776,7 +774,6 @@ struct DocumentBrowser : public DocumentBrowserBase
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
-        
 
         Array<TextButton*> buttons = {&revealButton, &loadFolderButton, &resetFolderButton};
 
