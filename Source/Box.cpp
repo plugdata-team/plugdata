@@ -259,6 +259,11 @@ void Box::setType(const String& newType, bool exists)
             graphics->lock(locked == var(true));
             graphics->updateValue();
         }
+
+        if (pdObject->getType() == pd::Type::Invalid)
+        {
+            setSize(100, getHeight());
+        }
     }
 
     // Update inlets/outlets
@@ -714,7 +719,7 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
 
 int Box::getBestTextWidth()
 {
-    return round(font.getStringWidthFloat(currentText) + 30.5f);
+    return std::max<float>(round(font.getStringWidthFloat(currentText) + 30.5f), 50);
 }
 
 void Box::setEditable(bool editable)
@@ -736,6 +741,7 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
 
 void Box::textEditorTextChanged(TextEditor& ed)
 {
+    currentText = ed.getText();
     // For resize-while-typing behaviour
     auto width = getBestTextWidth();
 
