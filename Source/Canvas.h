@@ -131,6 +131,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     pd::Storage storage;
 
+    bool attachNextObjectToMouse = false;
+    
    private:
     SafePointer<TabbedComponent> tabbar;
 

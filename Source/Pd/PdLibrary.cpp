@@ -364,10 +364,6 @@ void Library::parseDocumentation(const String& path)
         {
             objectDescriptions[name] = sections["description"].first;
         }
-        
-        if(name.contains("&&")) {
-            std::cout << "hey" << std::endl;
-        }
 
         if (sections.count("arguments"))
         {

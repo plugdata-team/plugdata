@@ -35,15 +35,6 @@ struct NumberComponent : public GUIComponent
         {
             input.setBorderSize({1, 15, 1, 1});
         }
-        else
-        {
-            auto fontHeight = gui.getFontHeight();
-            if (fontHeight == 0)
-            {
-                fontHeight = glist_getfont(box->cnv->patch.getPointer());
-            }
-            input.setFont(fontHeight);
-        }
 
         addAndMakeVisible(input);
 
@@ -71,14 +62,19 @@ struct NumberComponent : public GUIComponent
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        if (!gui.isAtom()) input.setFont(getHeight() - 4);
+        input.setFont(getHeight() - 6);
     }
 
     String formatNumber(float value)
     {
         String text;
         text << value;
+       
+        while(text.length() > 1 && input.getFont().getStringWidth(text) > getWidth() - 5) {
+            text = text.substring(0, text.length() - 2);
+        }
         if (!text.containsChar('.')) text << '.';
+        
         return text;
     }
 
@@ -199,12 +195,6 @@ struct NumberComponent : public GUIComponent
         {
             updateLabel();
             box->updateBounds(false);  // update box size based on new font
-            auto fontHeight = gui.getFontHeight();
-            if (fontHeight == 0)
-            {
-                fontHeight = glist_getfont(box->cnv->patch.getPointer());
-            }
-            input.setFont(fontHeight);
         }
         else
         {

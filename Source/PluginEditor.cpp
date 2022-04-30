@@ -261,11 +261,7 @@ void PlugDataPluginEditor::resized()
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
-    FlexBox fb;
-    fb.flexWrap = FlexBox::Wrap::noWrap;
-    fb.justifyContent = FlexBox::JustifyContent::flexStart;
-    fb.alignContent = FlexBox::AlignContent::flexStart;
-    fb.flexDirection = FlexBox::Direction::row;
+    auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
     for (int b = 0; b < 9; b++)
     {

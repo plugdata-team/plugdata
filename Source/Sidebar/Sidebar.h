@@ -10,6 +10,7 @@
 struct Console;
 struct Inspector;
 struct DocumentBrowser;
+struct AutomationPanel;
 struct PlugDataAudioProcessor;
 
 namespace pd
@@ -40,9 +41,8 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
 
 // Used by Console and Box for estimating best text height for a set width
-static int getNumLines(const String& text, int width)
+static int getNumLines(const String& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
 {
-    auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
 
     int numLines = 1;
 
@@ -86,6 +86,8 @@ struct Sidebar : public Component
 
     void showBrowser(bool show);
     bool isShowingBrowser();
+    
+    void showAutomationPanel(bool show);
 
     bool isShowingConsole() const noexcept;
 
@@ -104,6 +106,7 @@ struct Sidebar : public Component
     Console* console;
     Inspector* inspector;
     DocumentBrowser* browser;
+    AutomationPanel* automationPanel;
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;

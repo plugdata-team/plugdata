@@ -49,16 +49,6 @@ struct MessageComponent : public GUIComponent
 
         initialise(newObject);
 
-        if (gui.isAtom())
-        {
-            auto fontHeight = gui.getFontHeight();
-            if (fontHeight == 0)
-            {
-                fontHeight = glist_getfont(box->cnv->patch.getPointer());
-            }
-            input.setFont(fontHeight);
-        }
-
         box->addMouseListener(this, false);
     }
 
@@ -183,12 +173,6 @@ struct MessageComponent : public GUIComponent
             updateLabel();
             box->updateBounds(false);  // update box size based on new font
 
-            auto fontHeight = gui.getFontHeight();
-            if (fontHeight == 0)
-            {
-                fontHeight = glist_getfont(box->cnv->patch.getPointer());
-            }
-            input.setFont(fontHeight);
         }
         else
         {
