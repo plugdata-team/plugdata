@@ -176,7 +176,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
     void paint(Graphics& g) override
     {
         auto* viewport = table.getViewport();
-        PlugDataLook::paintStripes(g, table.getRowHeight(), viewport->getViewedComponent()->getHeight(), table, table.getSelectedRow(), table.getViewport()->getViewPositionY(), true);
+        PlugDataLook::paintStripes(g, table.getRowHeight(), getHeight(), table, table.getSelectedRow(), table.getViewport()->getViewPositionY(), true);
     }
 
    private:

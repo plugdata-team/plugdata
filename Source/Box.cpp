@@ -20,6 +20,12 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
 
     setTopLeftPosition(position - Point<int>(margin, margin));
 
+    if(cnv->attachNextObjectToMouse) {
+        cnv->attachNextObjectToMouse = false;
+        startTimer(20);
+        attachedToMouse = true;
+    }
+    
     initialise();
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
@@ -49,6 +55,13 @@ Box::Box(pd::Object* object, Canvas* parent, const String& name) : pdObject(obje
     setType(name, true);
 }
 
+Box::~Box()
+{
+    if(attachedToMouse) {
+        stopTimer();
+    }
+}
+
 void Box::initialise()
 {
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
@@ -66,6 +79,13 @@ void Box::initialise()
     setBufferedToImage(true);
 
     originalBounds.setBounds(0, 0, 0, 0);
+}
+
+void Box::timerCallback() {
+    auto pos = cnv->getMouseXYRelative();
+    if(pos != getBounds().getCentre()) {
+        setCentrePosition(cnv->getBounds().getConstrainedPoint(pos));
+    }
 }
 
 void Box::valueChanged(Value& v)
@@ -110,6 +130,7 @@ void Box::mouseExit(const MouseEvent& e)
 
 void Box::mouseMove(const MouseEvent& e)
 {
+    
     auto corners = getCorners();
 
     if (!cnv->isSelected(this) || locked == var(true)) return;
@@ -263,7 +284,12 @@ void Box::paint(Graphics& g)
 
     bool selected = cnv->isSelected(this);
 
-    if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
+    float thickness = 1.0f;
+    if(attachedToMouse) {
+        outlineColour = Colours::lightgreen;
+        thickness = 2.0f;
+    }
+    else if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
     {
         outlineColour = Colours::red;
         if (selected) outlineColour = outlineColour.brighter(1.3f);
@@ -296,7 +322,7 @@ void Box::paint(Graphics& g)
     else
     {
         g.setColour(outlineColour);
-        g.drawRoundedRectangle(rect.toFloat(), 2.0f, 1.0f);
+        g.drawRoundedRectangle(rect.toFloat(), 2.0f, thickness);
     }
 
     if (!hideLabel && !editor)
@@ -322,7 +348,7 @@ void Box::resized()
     if (!graphics || graphics->noGui())
     {
         // Estimate the amount of with needed to fit inlets and outlets
-        int ioletWidth = std::max(numInputs, numOutputs) * 15 + 15;
+        int ioletWidth = std::max(numInputs, numOutputs) * 15;
 
         // Width of text
         int textWidth = getBestTextWidth();
@@ -336,18 +362,9 @@ void Box::resized()
         };
 
         // Calculate height based on number of lines, and width
-        int width = std::max(getWidth(), ioletWidth);
-        int height = Box::height + ((getNumLines(currentText, width) - 1) * 28);
+        int width = std::max(getWidth(), ioletWidth + doubleMargin);
+        int height = Box::height + ((getNumLines(currentText, width - 13, font) - 1) * 28);
 
-        // If an object uses minimum
-        if (width == ioletWidth)
-        {
-            border.setLeft(10);
-        }
-        else
-        {
-            border.setLeft(8);
-        }
         // Recursive resize is a bit tricky, but since these variables are very predictable,
         // it won't be a problem
         if (getWidth() != width || getHeight() != height)
@@ -464,6 +481,12 @@ void Box::updatePorts()
 
 void Box::mouseDown(const MouseEvent& e)
 {
+    if(attachedToMouse) {
+        attachedToMouse = false;
+        stopTimer();
+        repaint();
+    }
+    
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
 
     bool isSelected = cnv->isSelected(this);
@@ -686,7 +709,7 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
 
 int Box::getBestTextWidth()
 {
-    return round(font.getStringWidthFloat(currentText) + 31.f);
+    return round(font.getStringWidthFloat(currentText) + 30.5f);
 }
 
 void Box::setEditable(bool editable)

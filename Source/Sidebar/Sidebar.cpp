@@ -13,6 +13,7 @@
 #include "Console.h"
 #include "Inspector.h"
 #include "DocumentBrowser.h"
+#include "AutomationPanel.h"
 
 Sidebar::Sidebar(PlugDataAudioProcessor* instance)
 {
@@ -20,13 +21,17 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     console = new Console(instance);
     inspector = new Inspector;
     browser = new DocumentBrowser(instance);
-
+    automationPanel = new AutomationPanel(instance);
+    
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     addChildComponent(browser);
+    addChildComponent(automationPanel);
 
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
+    
+    automationPanel->setAlwaysOnTop(true);
 
     setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 40);
 }
@@ -37,6 +42,7 @@ Sidebar::~Sidebar()
     delete console;
     delete inspector;
     delete browser;
+    delete automationPanel;
 }
 
 void Sidebar::paint(Graphics& g)
@@ -63,6 +69,7 @@ void Sidebar::resized()
     console->setBounds(bounds);
     inspector->setBounds(bounds);
     browser->setBounds(getLocalBounds());
+    automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
 }
 
 void Sidebar::mouseDown(const MouseEvent& e)
@@ -121,12 +128,24 @@ void Sidebar::showBrowser(bool show)
 {
     browser->setVisible(show);
     pinned = show;
+    if(show) {
+        browser->grabKeyboardFocus();
+    }
+    
 }
 
 bool Sidebar::isShowingBrowser()
 {
     return browser->isVisible();
 };
+
+void Sidebar::showAutomationPanel(bool show) {
+    automationPanel->setVisible(show);
+    
+    if(show) {
+        automationPanel->toFront(true);
+    }
+}
 
 void Sidebar::showSidebar(bool show)
 {

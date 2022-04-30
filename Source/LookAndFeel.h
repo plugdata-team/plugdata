@@ -807,7 +807,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
     static void paintStripes(Graphics& g, int itemHeight, int totalHeight, Component& owner, int selected, int offset, bool invert = false)
     {
-        totalHeight = std::max(owner.getHeight(), totalHeight);
+        totalHeight += offset;
         int y = -offset;
         int i = 0;
 
@@ -889,12 +889,16 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ComboBox::arrowColourId, textColour);
         setColour(DirectoryContentsDisplayComponent::textColourId, textColour);
         setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
+        setColour(Slider::textBoxTextColourId, textColour);
+        
         setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, Colours::white);
-
+        
+        
         setColour(TooltipWindow::outlineColourId, outlineColour);
         setColour(ComboBox::outlineColourId, outlineColour);
         setColour(TextEditor::outlineColourId, outlineColour);
 
+        setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         setColour(ScrollBar::backgroundColourId, Colours::transparentBlack);
         setColour(TreeView::backgroundColourId, Colours::transparentBlack);
     }

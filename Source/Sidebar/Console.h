@@ -59,11 +59,7 @@ struct Console : public Component
 
     void resized() override
     {
-        FlexBox fb;
-        fb.flexWrap = FlexBox::Wrap::noWrap;
-        fb.justifyContent = FlexBox::JustifyContent::flexStart;
-        fb.alignContent = FlexBox::AlignContent::flexStart;
-        fb.flexDirection = FlexBox::Direction::row;
+        auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
         for (auto& b : buttons)
         {

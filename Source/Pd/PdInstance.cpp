@@ -124,7 +124,7 @@ Instance::Instance(std::string const& symbol)
                              reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
 
-    m_message_receiver = libpd_multi_receiver_new(this, symbol.c_str(), reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+    m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                   reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
 
@@ -279,8 +279,6 @@ void Instance::sendSymbol(const char* receiver, const char* symbol) const
 
 void Instance::sendList(const char* receiver, const std::vector<Atom>& list) const
 {
-    if (!static_cast<t_pdinstance*>(m_instance)) return;
-
     auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     for (size_t i = 0; i < list.size(); ++i)
@@ -319,6 +317,8 @@ void Instance::processMessage(Message mess)
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
     else if (mess.selector == "list")
         receiveList(mess.destination, mess.list);
+    else if (mess.selector == "dsp")
+        receiveDSPState(mess.list[0].getFloat());
     else
         receiveMessage(mess.destination, mess.selector, mess.list);
 }
