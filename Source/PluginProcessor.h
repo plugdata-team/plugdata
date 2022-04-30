@@ -64,6 +64,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
     void receiveMidiByte(const int port, const int byte) override;
 
+    void receiveDSPState(bool dsp) override;
     void receiveGuiUpdate(int type) override;
 
     void updateConsole() override;
@@ -166,6 +167,14 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     SharedResourcePointer<PlugDataLook> lnf;
 
+    static inline constexpr int numParameters = 512;
+    static inline constexpr int numInputBuses = 16;
+    static inline constexpr int numOutputBuses = 16;
+    
+#if PLUGDATA_STANDALONE
+    std::atomic<float> standaloneParams[numParameters];
+#endif
+    
    private:
     void processInternal();
 
@@ -184,9 +193,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     uint8 midiByteBuffer[512] = {0};
     size_t midiByteIndex = 0;
 
-    static inline constexpr int numParameters = 512;
-    static inline constexpr int numInputBuses = 16;
-    static inline constexpr int numOutputBuses = 16;
+
 
     std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
     std::array<float, numParameters> lastParameters = {0};
@@ -197,6 +204,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
+    
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

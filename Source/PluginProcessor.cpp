@@ -10,49 +10,6 @@
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 
-// temp!
-
-
-extern "C"
-{
-#include <m_pd.h>
-#include <g_canvas.h>
-#include <m_imp.h>
-#include <s_stuff.h>
-
-#include <z_libpd.h>
-#include <x_libpd_mod_utils.h>
-
-union inletunion
-{
-    t_symbol *iu_symto;
-    t_gpointer *iu_pointerslot;
-    t_float *iu_floatslot;
-    t_symbol **iu_symslot;
-    t_float iu_floatsignalvalue;
-};
-
-struct _inlet
-{
-    t_pd i_pd;
-    struct _inlet *i_next;
-    t_object *i_owner;
-    t_pd *i_dest;
-    t_symbol *i_symfrom;
-    union inletunion i_un;
-};
-
-struct _outlet
-{
-    t_object *o_owner;
-    struct _outlet *o_next;
-    t_outconnect *o_connections;
-    t_symbol *o_sym;
-};
-
-}
-
-
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {
     AudioProcessor::BusesProperties busesProperties;
@@ -355,6 +312,22 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
+#if PLUGDATA_STANDALONE
+    for (int n = 0; n < numParameters; n++)
+    {
+        if (standaloneParams[n].load() != lastParameters[n])
+        {
+            float value = standaloneParams[n].load();
+            lastParameters[n] = value;
+            
+            parameterAtom[0] = {pd::Atom(value)};
+
+            String toSend = ("param" + String(n + 1));
+            sendList(toSend.toRawUTF8(), parameterAtom);
+        }
+    }
+    
+#else
     for (int n = 0; n < numParameters; n++)
     {
         if (parameterValues[n]->load() != lastParameters[n])
@@ -367,6 +340,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
             sendList(toSend.toRawUTF8(), parameterAtom);
         }
     }
+#endif
 
     midiBufferCopy.clear();
     midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
@@ -977,6 +951,11 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
     }
 
     startTimer(15);
+}
+
+void PlugDataAudioProcessor::receiveDSPState(bool dsp)
+{
+    parameters.getParameter("enabled")->setValueNotifyingHost(dsp);
 }
 
 void PlugDataAudioProcessor::updateConsole()

@@ -130,6 +130,8 @@ class Instance
     virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list)
     {
     }
+    
+    virtual void receiveDSPState(bool dsp) {};
 
     virtual void updateConsole(){};
 
