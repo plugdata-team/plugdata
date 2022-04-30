@@ -330,26 +330,7 @@ void Library::parseDocumentation(const String& path)
         return text;
     };
 
-    auto parseTypeAndDescription = [formatText](String content)
-    {
-        Array<std::pair<String, String>> result;
-
-        auto lines = StringArray::fromLines(content);
-
-        for (int i = 0; i < lines.size() / 2; i++)
-        {
-            if (!lines[i * 2].containsNonWhitespaceChars() || !lines[i * 2 + 1].containsNonWhitespaceChars()) continue;
-
-            String type = lines[i * 2].fromFirstOccurrenceOf("type:", false, false).trim();
-            String description = formatText(lines[i * 2 + 1].fromFirstOccurrenceOf("description:", false, false).upToFirstOccurrenceOf("default:", false, false));
-
-            result.add({type, description});
-        }
-
-        return result;
-    };
-
-    auto parseFile = [this, getSections, parseTypeAndDescription, formatText](File& f)
+    auto parseFile = [this, getSections, formatText](File& f)
     {
         String contents = f.loadFileAsString();
         auto sections = getSections(contents, {"\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft"});
@@ -366,17 +347,13 @@ void Library::parseDocumentation(const String& path)
         if (sections.count("arguments"))
         {
             Arguments args;
-            for (auto& [type, description] : parseTypeAndDescription(sections["arguments"].first))
-            {
-                String defaultValue;
-                if (description.contains("(default"))
-                {
-                    defaultValue = formatText(description.fromFirstOccurrenceOf("(default", false, false).upToFirstOccurrenceOf(")", false, false));
-                    description = description.upToFirstOccurrenceOf("(default", false, false);
-                }
 
-                args.push_back({type, description, defaultValue});
+            for (auto& argument : StringArray::fromTokens(sections["arguments"].first.fromFirstOccurrenceOf("-", false, false), "-", "\""))
+            {
+                auto sectionMap = getSections(argument, {"type", "description", "default"});
+                args.push_back({sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first});
             }
+
             arguments[name] = args;
         }
 
@@ -388,9 +365,12 @@ void Library::parseDocumentation(const String& path)
             for (auto [number, content] : section)
             {
                 String tooltip;
-                for (auto& [type, description] : parseTypeAndDescription(content.first))
+                for (auto& argument : StringArray::fromTokens(sections["inlets"].first, "-", "\""))
                 {
-                    tooltip += "(" + type + ") " + description + "\n";
+                    auto sectionMap = getSections(argument, {"type", "description"});
+                    if (sectionMap["type"].first.isEmpty()) continue;
+
+                    tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                 }
 
                 inletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};
@@ -403,9 +383,11 @@ void Library::parseDocumentation(const String& path)
             for (auto [number, content] : section)
             {
                 String tooltip;
-                for (auto& [type, description] : parseTypeAndDescription(content.first))
+
+                for (auto& argument : StringArray::fromTokens(sections["outlets"].first, "-", "\""))
                 {
-                    tooltip += "(" + type + ") " + description + "\n";
+                    auto sectionMap = getSections(argument, {"type", "description"});
+                    tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                 }
 
                 outletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};

@@ -14,7 +14,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
        public:
         Suggestion(int i) : idx(i)
         {
-            setText("", "");
+            setText("", "", false);
             setWantsKeyboardFocus(true);
             setConnectedEdges(12);
             setClickingTogglesState(true);
@@ -22,11 +22,12 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             setColour(TextButton::buttonOnColourId, findColour(ScrollBar::thumbColourId));
         }
 
-        void setText(const String& name, const String& description)
+        void setText(const String& name, const String& description, bool icon)
         {
             objectDescription = description;
             setButtonText(name);
             type = name.contains("~") ? 1 : 0;
+            drawIcon = icon;
 
             repaint();
         }
@@ -37,19 +38,28 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             getLookAndFeel().drawButtonBackground(g, *this, findColour(getToggleState() ? PlugDataColour::highlightColourId : colour), isMouseOver(), isMouseButtonDown());
 
-            getLookAndFeel().drawButtonText(g, *this, isMouseOver(), false);
+            auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
+            g.setFont(font);
+            g.setColour((getToggleState() ? Colours::white : findColour(TextButton::textColourOffId)).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f));
+            auto yIndent = jmin(4, proportionOfHeight(0.3f));
+            auto cornerSize = jmin(getHeight(), getWidth()) / 2;
+            auto fontHeight = roundToInt(font.getHeight() * 0.6f);
+            auto leftIndent = drawIcon ? 28 : 5;
+            auto rightIndent = jmin(fontHeight, 2 + cornerSize / (isConnectedOnRight() ? 4 : 2));
+            auto textWidth = getWidth() - leftIndent - rightIndent;
+
+            if (textWidth > 0) g.drawFittedText(getButtonText(), leftIndent, yIndent, textWidth, getHeight() - yIndent * 2, Justification::left, 2);
 
             if (objectDescription.isNotEmpty())
             {
-                auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
-                auto textLength = font.getStringWidth(getButtonText()) + 22;
+                auto textLength = font.getStringWidth(getButtonText());
 
                 g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
 
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
                 auto fontHeight = roundToInt(font.getHeight() * 0.5f);
-                auto leftIndent = textLength + 10;
+                auto leftIndent = drawIcon ? textLength + 32 : textLength + 8;
                 auto rightIndent = jmin(fontHeight, 2 + cornerSize / 2);
                 auto textWidth = getWidth() - leftIndent - rightIndent;
 
@@ -58,15 +68,20 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             if (type == -1) return;
 
-            g.setColour((type ? Colours::yellow : findColour(ScrollBar::thumbColourId)).withAlpha(float(0.8)));
-            Rectangle<int> iconbound = getLocalBounds().reduced(4);
-            iconbound.setWidth(getHeight() - 8);
-            iconbound.translate(3, 0);
-            g.fillRect(iconbound);
+            if (drawIcon)
+            {
+                g.setColour((type ? Colours::yellow : findColour(ScrollBar::thumbColourId)).withAlpha(float(0.8)));
+                Rectangle<int> iconbound = getLocalBounds().reduced(4);
+                iconbound.setWidth(getHeight() - 8);
+                iconbound.translate(3, 0);
+                g.fillRect(iconbound);
 
-            g.setColour(Colours::white);
-            g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
+                g.setColour(Colours::white);
+                g.drawFittedText(letters[type], iconbound.reduced(1), Justification::centred, 1);
+            }
         }
+
+        bool drawIcon = true;
     };
 
    public:
@@ -123,7 +138,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         // Should run after the input filter
         editor->onTextChange = [this, editor, box]()
         {
-            if (isCompleting && !editor->getText().containsChar(' '))
+            if (state == ShowingObjects && !editor->getText().containsChar(' '))
             {
                 editor->setHighlightedRegion({highlightStart, highlightEnd});
             }
@@ -142,10 +157,9 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             };
         }
 
-        // buttons[0]->setToggleState(true, sendNotification);
-        // setVisible(editor->getText().isNotEmpty());
-
         addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary | ComponentPeer::StyleFlags::windowIgnoresKeyPresses);
+        setVisible(false);
+
         repaint();
     }
 
@@ -223,6 +237,8 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
     bool keyPressed(const KeyPress& key, Component* originatingComponent) override
     {
+        if (state != ShowingObjects) return;
+
         if (key == KeyPress::upKey || key == KeyPress::downKey)
         {
             move(key == KeyPress::downKey ? 1 : -1);
@@ -244,7 +260,32 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         String typedText = e.getText().substring(0, start) + mutableInput;
         highlightStart = typedText.length();
 
+        constrainer.setSizeLimits(150, 100, 500, 400);
+        resized();
+
         auto& library = currentBox->cnv->pd->objectLibrary;
+
+        // If there's a space, open arguments panel
+        if ((e.getText() + mutableInput).contains(" "))
+        {
+            state = ShowingArguments;
+            auto found = library.arguments[typedText.upToFirstOccurrenceOf(" ", false, false)];
+            for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
+            {
+                auto& [type, description, init] = found[i];
+                buttons[i]->setText(type, description, false);
+                buttons[i]->setInterceptsMouseClicks(false, false);
+            }
+
+            for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("", "", false);
+
+            numOptions = found.size();
+
+            setVisible(numOptions);
+            currentidx = 0;
+            return mutableInput;
+        }
+
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
 
@@ -254,51 +295,55 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             if (library.objectDescriptions.find(name) != library.objectDescriptions.end())
             {
-                buttons[i]->setText(name, library.objectDescriptions[name]);
+                buttons[i]->setText(name, library.objectDescriptions[name], true);
             }
             else
             {
-                buttons[i]->setText(name, "");
+                buttons[i]->setText(name, "", true);
             }
+            buttons[i]->setInterceptsMouseClicks(true, false);
         }
 
-        for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("", "");
+        for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("", "", false);
 
         numOptions = found.size();
-
-        setVisible(typedText.isNotEmpty() && numOptions);
-
-        constrainer.setSizeLimits(150, 100, 500, 400);
-        resized();
 
         // Get length of user-typed text
         int textlen = e.getText().substring(0, start).length();
 
-        // Retrieve best suggestion
-        if (currentidx >= found.size() || textlen == 0)
+        if (found.empty() || textlen == 0)
+        {
+            state = Hidden;
+            setVisible(false);
+            highlightEnd = 0;
+            return mutableInput;
+        }
+
+        if (newInput.isEmpty() || e.getCaretPosition() != textlen)
         {
             highlightEnd = 0;
             return mutableInput;
         }
 
-        String fullName = found[currentidx].first;
+        // Retrieve best suggestion
+        const auto& fullName = found[currentidx].first;
 
-        highlightEnd = fullName.length();
-
-        if (!mutableInput.containsNonWhitespaceChars() || (e.getText() + mutableInput).contains(" ") || !found[currentidx].second)
-
-        {
-            isCompleting = false;
-            return mutableInput;
-        }
-
-        isCompleting = true;
+        state = ShowingObjects;
         mutableInput = fullName.substring(textlen);
+
+        setVisible(true);
+        highlightEnd = fullName.length();
 
         return mutableInput;
     }
 
-    bool running = false;
+    enum SugesstionState
+    {
+        Hidden,
+        ShowingObjects,
+        ShowingArguments
+    };
+
     int numOptions = 0;
     int currentidx = 0;
 
@@ -316,5 +361,5 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     int highlightStart = 0;
     int highlightEnd = 0;
 
-    bool isCompleting = false;
+    SugesstionState state = Hidden;
 };
