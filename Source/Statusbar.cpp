@@ -171,10 +171,8 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     bypassButton->setConnectedEdges(12);
     bypassButton->setName("statusbar:bypass");
     addAndMakeVisible(bypassButton.get());
-    
-    bypassButton->onClick = [this]() {
-        pd.enqueueMessages("pd", "dsp", {static_cast<float>(bypassButton->getToggleState())});
-    };
+
+    bypassButton->onClick = [this]() { pd.enqueueMessages("pd", "dsp", {static_cast<float>(bypassButton->getToggleState())}); };
 
     bypassButton->setToggleState(true, dontSendNotification);
 

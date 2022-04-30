@@ -108,11 +108,14 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(CommandIDs::NewVUMeter, "VU Meter"));
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
-    [parent](int result){
-        if(result != 0 ){
-            if(auto* cnv = parent->getCurrentCanvas()) {
-                cnv->attachNextObjectToMouse = true;
-            }
-        }
-    });
+                       [parent](int result)
+                       {
+                           if (result != 0)
+                           {
+                               if (auto* cnv = parent->getCurrentCanvas())
+                               {
+                                   cnv->attachNextObjectToMouse = true;
+                               }
+                           }
+                       });
 }

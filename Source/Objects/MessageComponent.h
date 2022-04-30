@@ -172,7 +172,6 @@ struct MessageComponent : public GUIComponent
         {
             updateLabel();
             box->updateBounds(false);  // update box size based on new font
-
         }
         else
         {

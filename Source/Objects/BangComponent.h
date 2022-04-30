@@ -47,6 +47,9 @@ struct BangComponent : public GUIComponent
             update();  // ?
         };
 
+        bangInterrupt = static_cast<t_bng*>(gui.getPointer())->x_flashtime_break;
+        bangHold = static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold;
+
         initialise(newObject);
     }
 
