@@ -218,7 +218,7 @@ int Trie::autocomplete(std::string query, Suggestions& result)
 
 void Library::initialiseLibrary()
 {
-    appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
     lastAppDirModificationTime = appDataDir.getLastModificationTime();
 

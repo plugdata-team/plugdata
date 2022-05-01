@@ -99,46 +99,32 @@ Rectangle<int> Object::getBounds() const noexcept
 //! @brief The name of the help file
 Patch Object::getHelp() const
 {
-    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
-    static File helpDir = appDir.getChildFile("Documentation/5.reference/");
-
+    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+        
     auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
     auto* name = class_gethelpname(pdclass);
-    auto* dir = class_gethelpdir(pdclass);
-
-    char realname[MAXPDSTRING];
-    /* make up a silly "dir" if none is supplied */
-
-    const String& fullPath = helpDir.getFullPathName();
-    const char* usedir = (*dir ? dir : fullPath.toRawUTF8());
-
-    /* 1. "objectname-help.pd" */
-    strncpy(realname, name, MAXPDSTRING - 10);
-    realname[MAXPDSTRING - 10] = 0;
-    if (strlen(realname) > 3 && !strcmp(realname + strlen(realname) - 3, ".pd")) realname[strlen(realname) - 3] = 0;
-    strcat(realname, "-help.pd");
-
-    if (File(usedir).getChildFile(realname).existsAsFile())
-    {
-        sys_lock();
-        auto* pdPatch = glob_evalfile(nullptr, gensym(realname), gensym(usedir));
-        sys_unlock();
-        return {pdPatch, instance, File(usedir).getChildFile(realname)};
+    
+    String firstName = String(name) + "-help.pd";
+    String secondName = "help-" + String(name) + ".pd";
+    
+    for(auto& fileIter : RangedDirectoryIterator(appDir, true)) {
+        auto file = fileIter.getFile();
+        auto fullPath = file.getParentDirectory().getFullPathName();
+        if(file.getFileName() == firstName) {
+            sys_lock();
+            
+            auto* pdPatch = glob_evalfile(nullptr, gensym(firstName.toRawUTF8()), gensym(fullPath.toRawUTF8()));
+            sys_unlock();
+            return {pdPatch, instance, File(fullPath).getChildFile(firstName)};
+        }
+        else if(file.getFileName() == secondName) {
+            sys_lock();
+            auto* pdPatch = glob_evalfile(nullptr, gensym(secondName.toRawUTF8()), gensym(fullPath.toRawUTF8()));
+            sys_unlock();
+            return {pdPatch, instance, File(fullPath).getChildFile(secondName)};
+        }
     }
-
-    /* 2. "help-objectname.pd" */
-    strcpy(realname, "help-");
-    strncat(realname, name, MAXPDSTRING - 10);
-    realname[MAXPDSTRING - 1] = 0;
-
-    if (File(dir).getChildFile(realname).existsAsFile())
-    {
-        sys_lock();
-        auto* pdPatch = glob_evalfile(nullptr, gensym(realname), gensym(usedir));
-        sys_unlock();
-        return {pdPatch, instance, File(usedir).getChildFile(realname)};
-    }
-
+    
     return {nullptr, nullptr};
 }
 

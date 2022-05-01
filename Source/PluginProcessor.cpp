@@ -99,13 +99,13 @@ PlugDataAudioProcessor::~PlugDataAudioProcessor()
 void PlugDataAudioProcessor::initialiseFilesystem()
 {
     // Check if the abstractions directory exists, if not, unzip it from binaryData
-    if (!appDir.exists() || !abstractions.exists())
+    if (!homeDir.exists() || !abstractions.exists())
     {
-        appDir.createDirectory();
+        homeDir.createDirectory();
 
-        MemoryInputStream binaryAbstractions(BinaryData::Abstractions_zip, BinaryData::Abstractions_zipSize, false);
+        MemoryInputStream binaryAbstractions(BinaryData::Library_zip, BinaryData::Library_zipSize, false);
         auto file = ZipFile(binaryAbstractions);
-        file.uncompressTo(appDir);
+        file.uncompressTo(homeDir);
     }
 
     // Check if settings file exists, if not, create the default
@@ -119,10 +119,15 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         auto pathTree = ValueTree("Paths");
 
-        auto defaultPath = ValueTree("Path");
-        defaultPath.setProperty("Path", abstractions.getFullPathName(), nullptr);
+        auto firstPath = ValueTree("Path");
+        firstPath.setProperty("Path", abstractions.getFullPathName(), nullptr);
+        
+        auto secondPath = ValueTree("Path");
+        secondPath.setProperty("Path", appDir.getChildFile("Deken").getFullPathName(), nullptr);
 
-        pathTree.appendChild(defaultPath, nullptr);
+        pathTree.appendChild(firstPath, nullptr);
+        pathTree.appendChild(secondPath, nullptr);
+        
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
