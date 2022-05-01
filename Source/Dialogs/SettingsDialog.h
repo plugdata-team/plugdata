@@ -290,7 +290,16 @@ struct SettingsDialog : public Component
                 [this]()
                 {
                     getTopLevelComponent()->removeChildComponent(this);
-                    delete this;
+                    
+                    background->setVisible(false);
+                    setVisible(false);
+                    
+                    // Check if deken is busy, else clean up settings dialog
+                    if(!dynamic_cast<Deken*>(settingsComponent.panels[3])->isBusy()) {
+                        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor())) {
+                            editor->settingsDialog.reset(nullptr);
+                        }
+                    }
                 });
         };
 
@@ -304,6 +313,7 @@ struct SettingsDialog : public Component
     {
         settingsComponent.removeMouseListener(this);
     }
+    
 
     void visibilityChanged() override
     {

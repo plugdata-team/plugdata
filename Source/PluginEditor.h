@@ -137,6 +137,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     std::atomic<bool> canUndo = false, canRedo = false;
 
+    std::unique_ptr<Component> settingsDialog = nullptr;
+    
    private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
@@ -148,7 +150,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 #endif
 
     OwnedArray<TextButton> toolbarButtons;
-    SafePointer<Component> settingsDialog = nullptr;
+
 
     SharedResourcePointer<TooltipWindow> tooltipWindow;
 

@@ -40,7 +40,7 @@ void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String,
     dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 300, 180);
 }
 
-Component::SafePointer<Component> Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
+Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
 {
     return new SettingsDialog(processor, manager, settingsTree);
 }
@@ -69,10 +69,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
 
             if (shortcutKey.isNotEmpty()) shortcutKey << ", ";
 
-            if (key.length() == 1 && key[0] < 128)
-                shortcutKey << key;
-            else
-                shortcutKey << key;
+            shortcutKey << key;
         }
 
         i.shortcutKeyDescription = shortcutKey.trim();
