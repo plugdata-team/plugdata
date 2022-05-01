@@ -55,7 +55,7 @@ struct Dialogs : public Component
     static void showSaveDialog(Component* centre, String filename, std::function<void(int)> callback);
     static void showArrayDialog(Component* centre, std::function<void(int, String, String)> callback);
 
-    static Component::SafePointer<Component> createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree);
+    static Component* createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree);
 
     static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
 };

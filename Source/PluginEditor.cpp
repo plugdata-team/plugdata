@@ -142,18 +142,22 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]()
     {
-
-#ifdef PLUGDATA_STANDALONE
-        // Initialise settings dialog for DAW and standalone
-        auto pluginHolder = StandalonePluginHolder::getInstance();
-
-        settingsDialog = Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree);
-#else
-        settingsDialog = Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree);
-#endif
+        
+        if(!settingsDialog) {
+    #ifdef PLUGDATA_STANDALONE
+            // Initialise settings dialog for DAW and standalone
+            auto pluginHolder = StandalonePluginHolder::getInstance();
+            
+            settingsDialog.reset(Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree));
+    #else
+            settingsDialog.reset(Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree));
+    #endif
+        }
+        
+        getTopLevelComponent()->addAndMakeVisible(settingsDialog.get());
+        
         // Add on top of everything
         // To make sure it is above the top-level close button
-        getTopLevelComponent()->addAndMakeVisible(settingsDialog);
         settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(650, 500));
         settingsDialog->toFront(false);
         settingsDialog->resized();
@@ -199,9 +203,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     {
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
-
-    if (settingsDialog) delete settingsDialog;
-
+    
     pd.settingsTree.removeListener(this);
 
     removeKeyListener(&statusbar);
