@@ -611,14 +611,17 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
             
             // draw progressbar
             if(installProgress) {
+                float width = getWidth() - 90.0f;
+                float right = jmap(installProgress, 90.f, width);
                 
                 Path downloadPath;
-                
-                float right = jmap(installProgress, 90.f, 500.f);
                 downloadPath.addLineSegment({90, 15, right, 15}, 1.0f);
                 
+                Path fullPath;
+                fullPath.addLineSegment({90, 15, width, 15}, 1.0f);
+                
                 g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-                g.strokePath(downloadPath, PathStrokeType(9.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+                g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
                 
                 g.setColour(findColour(PlugDataColour::highlightColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
