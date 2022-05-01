@@ -387,6 +387,7 @@ void Library::parseDocumentation(const String& path)
                 for (auto& argument : StringArray::fromTokens(sections["outlets"].first, "-", "\""))
                 {
                     auto sectionMap = getSections(argument, {"type", "description"});
+                    if (sectionMap["type"].first.isEmpty()) continue;
                     tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                 }
 
