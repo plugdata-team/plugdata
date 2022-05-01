@@ -43,37 +43,53 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         // Finish installation process
         void finished (URL::DownloadTask* task, bool success) override {
             
+            auto error = [this](String message){
+                MessageManager::callAsync([this, message]() mutable {
+                    deken.repaint();
+                    
+                    deken.showError(message);
+                    onFinish(false);
+                    
+                    auto& d = deken;
+                    d.downloads.removeObject(this);
+                    d.updateResults(d.input.getText());
+                    d.table.updateContent();
+                });
+            };
+            
             if(!success) {
-                const MessageManagerLock mmLock;
-                deken.repaint();
-                
-                deken.showError("Download failed");
+                error("Download failed");
                 return;
             }
             
             auto downloadLocation = task->getTargetLocation();
             // Install
             auto zipfile = ZipFile(downloadLocation);
-            
-            if(downloadLocation.getParentDirectory().getChildFile(zipfile.getEntry(0)->filename).exists()) {
-                downloadLocation.getParentDirectory().getChildFile(zipfile.getEntry(0)->filename).deleteRecursively();
-            }
+           
+  
             
             auto result = zipfile.uncompressTo(downloadLocation.getParentDirectory());
             downloadLocation.deleteFile();
             
             if(!result.wasOk()) {
-                deken.showError("Extraction failed");
+                error("Extraction failed: " + result.getErrorMessage());
                 return;
             }
             
-            // Tell deken to install the package we downloaded
-            deken.addPackageToRegister(packageInfo, zipfile.getEntry(0)->filename);
+            String extractedPath = filesystem.getChildFile(packageInfo.name).getFullPathName();
             
+            // Tell deken about the newly installed package
+            deken.addPackageToRegister(packageInfo, extractedPath);
+           
             MessageManager::callAsync([this]() mutable {
-                onFinish();
+                onFinish(true);
+                
+                // deken is relative to this, which gets deleted
+                auto& d = deken;
+                d.downloads.removeObject(this);
+                d.updateResults(d.input.getText());
+                d.table.updateContent();
             });
-            
         }
         
         void progress (URL::DownloadTask* task, int64 bytesDownloaded, int64 totalLength) override
@@ -86,7 +102,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         }
         
         std::function<void(float)> onProgress;
-        std::function<void()> onFinish;
+        std::function<void(bool)> onFinish;
     };
 
 
@@ -164,19 +180,9 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
     // Check if busy when deleting settings component
     bool isBusy() {
         
-        if(orphanedDownloads.size())
-            return true;
-        
-        for(int n = 0; n < table.getNumRows(); n++) {
-            if(auto* row = dynamic_cast<DekenRowComponent*>(table.getCellComponent(1, n)))
-            {
-                if(row->downloadTask && !row->downloadTask->task->isFinished()) {
-                    return true;
-                }
-            }
-        }
-        
-        return false;
+        if(downloads.size()) return true;
+            
+        return getNumJobs();
     }
 
     void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
@@ -186,10 +192,10 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
 
     void paint(Graphics& g) override
     {
-        PlugDataLook::paintStripes(g, 32, table.getHeight() + 32, *this, -1, table.getViewport()->getViewPositionY() + 4);
+        PlugDataLook::paintStripes(g, 32, table.getHeight() + 24, *this, -1, table.getViewport()->getViewPositionY() + 4);
 
         if(errorMessage.isNotEmpty()) {
-            g.setColour(isError ? Colours::red : findColour(PlugDataColour::textColourId));
+            g.setColour(Colours::red);
             g.drawText(errorMessage, getLocalBounds().removeFromBottom(30).withTrimmedLeft(5), Justification::centredLeft);
         }
     }
@@ -221,18 +227,21 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
 
     int getNumRows() override
     {
-        return searchResult.size();
+        return searchResult.size() + downloads.size();
     }
 
     Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
         
-        if(!isPositiveAndBelow(rowNumber, searchResult.size())) return nullptr;
-
-        auto* newComponent = new DekenRowComponent(*this, searchResult.getReference(rowNumber));
+        if(isPositiveAndBelow(rowNumber, downloads.size()))  {
+            return new DekenRowComponent(*this, downloads[rowNumber]->packageInfo);
+        }
+        else if(isPositiveAndBelow(rowNumber - downloads.size(), searchResult.size())) {
+            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - downloads.size()));
+        }
         
-        return newComponent;
+        return nullptr;
     }
 
     void updateResults(String query)
@@ -248,8 +257,21 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
                 auto url = child.getProperty("URL").toString();
                 auto version = child.getProperty("Version").toString();
                 auto author = child.getProperty("Author").toString();
-
-                searchResult.addIfNotAlreadyThere({name, author, timestamp, url, description, version});
+                
+                bool exists = false;
+                for(auto* download : downloads)  {
+                    if(download->packageInfo == PackageInfo(name, author, timestamp, url, description, version)) {
+                        exists = true;
+                        break;
+                    }
+                }
+                
+                auto info = PackageInfo(name, author, timestamp, url, description, version);
+                
+                if(!getDownloadForPackage(info)) {
+                    searchResult.addIfNotAlreadyThere(info);
+                }
+                
             }
             
             
@@ -293,6 +315,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
 #undef JUCE_DEBUG
             // Disable assertions:
             // Sometimes the server passes an invalid result causing an assertion
+            // But the invalid result is no problem!
         if(JSON::parse(json, parsedJson).wasOk()) {
 #define JUCE_DEBUG 1
             // Read json
@@ -345,14 +368,18 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
                 
                 // Lock message manager and add search result
                 const MessageManagerLock mmLock;
-                searchResult.addIfNotAlreadyThere(results.getReference(0));
+                
+                auto info = results.getReference(0);
+                
+                if(!getDownloadForPackage(info)) {
+                    searchResult.addIfNotAlreadyThere(info);
+                }
             }
         }
             // Update content from message thread
             MessageManager::callAsync([this](){
                 table.updateContent();
             });
-        
         });
     }
     
@@ -377,22 +404,10 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
 
     // Show error message in statusbar
     void showError(const String& message) {
-        isError = true;
         errorMessage = message;
         repaint();
     }
-    // Show error message in statusbar
-    void showMessage(const String& message) {
-        isError = false;
-        errorMessage = message;
-        repaint();
-    }
-    
-    void clearMessage() {
-        errorMessage = "";
-        repaint();
-    }
-    
+
     // When a property in our pkginfo changes, save it immediately
     void valueTreePropertyChanged (ValueTree &treeWhosePropertyHasChanged, const Identifier &property) override {
         pkgInfo.replaceWithText(packageState.toXmlString());
@@ -417,17 +432,15 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         }
     }
     
-    std::unique_ptr<DownloadTask> install(PackageInfo packageInfo) {
-        {
-            const MessageManagerLock mmLock;
-            // Make sure https is used
-            packageInfo.url = packageInfo.url.replaceFirstOccurrenceOf("http://", "https://");
-        }
+    DownloadTask* install(PackageInfo packageInfo) {
+
+        // Make sure https is used
+        packageInfo.url = packageInfo.url.replaceFirstOccurrenceOf("http://", "https://");
         auto filename = packageInfo.url.fromLastOccurrenceOf("/", false, false);
         auto destFile = Deken::filesystem.getChildFile(filename);
         
         // Download file and return unique ptr to task object
-        return std::make_unique<DownloadTask>(*this, packageInfo, destFile);
+        return downloads.add(new DownloadTask(*this, packageInfo, destFile));
     }
     
     void addPackageToRegister(const PackageInfo& info, String path)
@@ -438,8 +451,13 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
             pkgEntry.setProperty("Timestamp", info.timestamp, nullptr);
             pkgEntry.setProperty("Description", info.description, nullptr);
             pkgEntry.setProperty("Version", info.version, nullptr);
-            pkgEntry.setProperty("Path", Deken::filesystem.getChildFile(path).getFullPathName(), nullptr);
+            pkgEntry.setProperty("Path", path, nullptr);
             pkgEntry.setProperty("URL", info.url, nullptr);
+        
+            // Prevent duplicate entries
+            if(packageState.getChildWithProperty("ID", info.packageId).isValid()) {
+                packageState.removeChild(packageState.getChildWithProperty("ID", info.packageId), nullptr);
+            }
             packageState.appendChild(pkgEntry, nullptr);
     }
     
@@ -448,23 +466,11 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         return packageState.getChildWithProperty("ID", info.packageId).isValid();
     }
     
-    void addOrphanedDownload(DownloadTask* downloadTask) {
-        downloadTask->onProgress = [this](float v){
-            showMessage(String(static_cast<int>(v * 100)) + "%");
-        };
-        
-        orphanedDownloads.add(downloadTask);
-        downloadTask->onFinish = [this, downloadTask](){
-            orphanedDownloads.removeObject(downloadTask);
-            clearMessage();
-        };
-    }
-    
-    DownloadTask* getOrphanForPackage(PackageInfo& info) {
-        for(int i = 0; i < orphanedDownloads.size(); i++) {
-            if(orphanedDownloads[i]->packageInfo == info) {
-                clearMessage();
-                return orphanedDownloads.removeAndReturn(i);
+    // Checks if the current package is already being downloaded
+    DownloadTask* getDownloadForPackage(PackageInfo& info) {
+        for(auto* download : downloads) {
+            if(download->packageInfo == info) {
+                return download;
             }
         }
         
@@ -486,7 +492,6 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
     
     // Last error message
     String errorMessage;
-    bool isError = false;
     
     // Current search result
     SearchResult searchResult;
@@ -495,7 +500,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
     TextButton clearButton = TextButton(Icons::Clear);
         
     // Thread for unzipping and installing packages
-    OwnedArray<DownloadTask> orphanedDownloads;
+    OwnedArray<DownloadTask> downloads;
     
    
     // Component representing a search result
@@ -509,8 +514,6 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         TextButton installButton = TextButton(Icons::SaveAs);
         TextButton reinstallButton = TextButton(Icons::Refresh);
         TextButton uninstallButton = TextButton(Icons::Clear);
-        
-        std::unique_ptr<DownloadTask> downloadTask = nullptr;
         
         float installProgress;
         ValueTree packageState;
@@ -532,66 +535,40 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
             };
             
             reinstallButton.onClick = [this](){
-                hideButtons();
-                deken.uninstall(packageInfo);
-                downloadTask = deken.install(packageInfo);
-                downloadTask->onProgress = [this](float progress){
-                    installProgress = progress;
-                    repaint();
-                };
-                downloadTask->onFinish = [this](){
-                    setInstalled(true);
-                    downloadTask.reset(nullptr);
-                };
+                auto* downloadTask = deken.install(packageInfo);
+                attachToDownload(downloadTask);
             };
             
             installButton.onClick = [this](){
-                hideButtons();
-                downloadTask = deken.install(packageInfo);
-                downloadTask->onProgress = [this](float progress){
-                    installProgress = progress;
-                    repaint();
-                };
-                downloadTask->onFinish = [this](){
-                    setInstalled(true);
-                    downloadTask.reset(nullptr);
-                };
+                auto* downloadTask = deken.install(packageInfo);
+                attachToDownload(downloadTask);
             };
             
             // Check if package is already installed
             setInstalled(deken.packageExists(packageInfo));
             
             // Check if already in progress
-            if(auto* task = deken.getOrphanForPackage(packageInfo)) {
-                task->onProgress = [this](float progress){
-                    installProgress = progress;
-                    repaint();
-                };
-                task->onFinish = [this](){
-                    setInstalled(true);
-                    downloadTask.reset(nullptr);
-                };
-                
-                downloadTask.reset(task);
+            if(auto* task = deken.getDownloadForPackage(packageInfo)) {
+                attachToDownload(task);
             }
         }
         
-        
-        
-        ~DekenRowComponent() {
+        void attachToDownload(DownloadTask* task)
+        {
+            task->onProgress = [this](float progress){
+                installProgress = progress;
+                repaint();
+            };
+            task->onFinish = [this](bool result){
+                setInstalled(result);
+                deken.table.updateContent();
+            };
             
-            // Make sure download gets finished
-            if(downloadTask) {
-                deken.addOrphanedDownload(downloadTask.release());
-            }
-        }
-        
-        void hideButtons() {
             installButton.setVisible(false);
             reinstallButton.setVisible(false);
             uninstallButton.setVisible(false);
         }
-        
+
         // Enables or disables buttons based on package state
         void setInstalled(bool installed) {
             installButton.setVisible(!installed);
@@ -610,7 +587,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
             g.drawFittedText(packageInfo.name, 5, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
             
             // draw progressbar
-            if(installProgress) {
+            if(deken.getDownloadForPackage(packageInfo)) {
                 float width = getWidth() - 90.0f;
                 float right = jmap(installProgress, 90.f, width);
                 
