@@ -55,7 +55,10 @@ extern "C"
     }
 
     void canvas_map(t_canvas* x, t_floatarg f);
+
+    void canvas_declare(t_canvas *x, t_symbol *s, int argc, t_atom *argv);
 }
+
 
 namespace pd
 {
@@ -68,6 +71,17 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(pat
 
         setCurrent();
         setZoom(1);
+        
+        auto declarePath = [this](const char* name){
+            t_atom declare[2];
+            SETSYMBOL(declare, gensym("-path"));
+            SETSYMBOL(declare + 1, gensym(name));
+            
+            pd_typedmess((t_pd*)getPointer(), gensym("declare"), 2, declare);
+        };
+        
+        declarePath("else");
+        declarePath("cyclone");
 
         instance->getCallbackLock()->exit();
     }
