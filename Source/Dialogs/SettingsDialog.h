@@ -1,3 +1,5 @@
+#include "Deken.h"
+
 
 struct DAWAudioSettings : public Component
 {
@@ -195,7 +197,7 @@ struct SettingsComponent : public Component
 {
     SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
     {
-        toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search), new TextButton(Icons::Keyboard)};
+        toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals)};
 
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
@@ -210,6 +212,7 @@ struct SettingsComponent : public Component
 
         panels.add(new SearchPathComponent(settingsTree.getChildWithName("Paths")));
         panels.add(new KeyMappingEditorComponent(*editor->getKeyMappings(), true));
+        panels.add(new Deken());
 
         for (int i = 0; i < toolbarButtons.size(); i++)
         {
@@ -243,15 +246,10 @@ struct SettingsComponent : public Component
             toolbarPosition += 70;
         }
 
-        for (auto* panel : panels)
-        {
-            if (panel == panels.getLast())
-            {
-                panel->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 4);
-                continue;
-            }
-            panel->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
-        }
+        panels[0]->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
+        panels[1]->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
+        panels[2]->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 4);
+        panels[3]->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
     }
 
     int currentPanel = 0;
@@ -268,6 +266,7 @@ struct SettingsDialog : public Component
     AudioProcessor& audioProcessor;
     SettingsComponent settingsComponent;
     ComponentBoundsConstrainer constrainer;
+
 
     SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor), settingsComponent(processor, manager, settingsTree)
     {
@@ -298,6 +297,7 @@ struct SettingsDialog : public Component
         background.reset(new BlackoutComponent(processor.getActiveEditor(), this, closeButton->onClick));
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
+    
     }
 
     ~SettingsDialog() override

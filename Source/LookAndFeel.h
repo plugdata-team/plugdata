@@ -52,7 +52,10 @@ struct Icons
 
     inline static const CharPointer_UTF8 Parameters = CharPointer_UTF8("\xef\x87\x9e");
 
-    inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
+    inline static const CharPointer_UTF8 Presentation =CharPointer_UTF8("\xef\x81\xab");
+    inline static const CharPointer_UTF8 Externals = CharPointer_UTF8 ("\xef\x84\xae");
+    
+    inline static const CharPointer_UTF8 Refresh = CharPointer_UTF8 ("\xef\x80\xa1");
 };
 
 enum PlugDataColour
