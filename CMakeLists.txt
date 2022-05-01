@@ -307,7 +307,7 @@ file(GLOB PlugDataBinaryDataSources
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/PlugDataFont.ttf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/InterRegular.otf
     ${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugd_logo.png
-    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Abstractions.zip
+    ${CMAKE_CURRENT_SOURCE_DIR}/Resources/Library.zip
     )
 
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})

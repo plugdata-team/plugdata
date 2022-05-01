@@ -100,7 +100,7 @@ class SearchPathComponent : public Component, public TableListBoxModel
 
         resetButton.onClick = [this]()
         {
-            File abstractionsDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Abstractions");
+            File abstractionsDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
             auto defaultPath = ValueTree("Path");
             defaultPath.setProperty("Path", abstractionsDir.getFullPathName(), nullptr);

@@ -149,10 +149,10 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     pd::Library objectLibrary;
 
-    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory).getChildFile("PlugData");
-    File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File appDir = homeDir.getChildFile("Library");
 
-    File settingsFile = appDir.getChildFile("Settings.xml");
+    File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = appDir.getChildFile("Abstractions");
 
     Value locked = Value(var(false));
