@@ -1,6 +1,8 @@
 #include "Deken.h"
 #include "SearchPathComponent.h"
 
+
+// TODO: handle audiodeviceselector component here, and move to different file
 struct DAWAudioSettings : public Component
 {
     explicit DAWAudioSettings(AudioProcessor& p) : processor(p)
