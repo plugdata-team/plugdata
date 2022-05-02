@@ -215,6 +215,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     int getNumRows() override
     {
+        const ScopedLock lock(searchLock);
         return searchResult.size() + downloads.size();
     }
     
@@ -227,11 +228,15 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
+        
+        const ScopedLock lock(searchLock);
+        
         delete existingComponentToUpdate;
         
         if(isPositiveAndBelow(rowNumber, downloads.size()))  {
             return new DekenRowComponent(*this, downloads[rowNumber]->packageInfo);
         }
+        
         else if(isPositiveAndBelow(rowNumber - downloads.size(), searchResult.size())) {
             return new DekenRowComponent(*this, searchResult.getReference(rowNumber - downloads.size()));
         }
@@ -241,8 +246,17 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     void updateResults(String query)
     {
-        searchResult.clear();
+       
+       
+        // Run on threadpool
+        // Web requests shouldn't block the message queue!
+        addJob([this, query]() mutable {
         
+        const ScopedLock lock(searchLock);
+            
+        searchResult.clear();
+            
+        // Add as job to ensure synchronous order
         if(query.isEmpty())  {
             
             for(auto child : packageState) {
@@ -266,21 +280,14 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 if(!getDownloadForPackage(info)) {
                     searchResult.addIfNotAlreadyThere(info);
                 }
-                
             }
             
-            
-            listBox.updateContent();
+            MessageManager::callAsync([this](){
+                listBox.updateContent();
+            });
             return;
         }
-        
-        
-        
-        removeAllJobs(true, 10);
-        
-        // Run on threadpool
-        // Web requests shouldn't block the message queue!
-        addJob([this, query]() mutable {
+       
             
         // Set to name for now: there are not that many deken libraries to justify the other options
         String type = StringArray({"name", "objects", "libraries"})[0];
@@ -321,6 +328,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 MessageManager::callAsync([this](){
                     listBox.updateContent();
                 });
+                
                 return;
             }
             
@@ -339,7 +347,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                         auto* archs = arch["archs"].getArray();
                         // Look for matching platform
                         String platform = archs->getReference(0).toString();
-                        if(platform.startsWith(String(os)) && platform.contains(String(machine)));
+                        if(platform.startsWith(os) && platform.contains(machine))
                         {
                             // Extract info
                             String author = arch["author"];
@@ -360,10 +368,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2) {
                     return result1.timestamp.compare(result2.timestamp) > 0;
                 });
-                
-                // Lock message manager and add search result
-                const MessageManagerLock mmLock;
-                
+                                
                 auto info = results.getReference(0);
                 
                 if(!getDownloadForPackage(info)) {
@@ -371,10 +376,12 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 }
             }
         }
+            
             // Update content from message thread
             MessageManager::callAsync([this](){
                 listBox.updateContent();
             });
+            
         });
     }
     
@@ -497,6 +504,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
     // Thread for unzipping and installing packages
     OwnedArray<DownloadTask> downloads;
     
+    CriticalSection searchLock;
    
     // Component representing a search result
     // It holds package info about the package it represents

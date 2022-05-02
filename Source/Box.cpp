@@ -495,6 +495,15 @@ void Box::mouseDown(const MouseEvent& e)
         attachedToMouse = false;
         stopTimer();
         repaint();
+        cnv->pd->enqueueFunction(
+            [this]()
+            {
+                auto b = getBounds() - cnv->canvasOrigin;
+                b.reduce(margin, margin);
+                pdObject->setBounds(b);
+            });
+        
+        return;
     }
 
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;

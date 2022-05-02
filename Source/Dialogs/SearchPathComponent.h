@@ -246,7 +246,6 @@ private:
     void internalChange()
     {
         tree.removeAllChildren(nullptr);
-
         
         for(int p = 0; p < path.getNumPaths(); p++) {
             auto dir = path[p];

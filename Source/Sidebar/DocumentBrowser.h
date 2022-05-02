@@ -635,7 +635,7 @@ struct DocumentBrowser : public DocumentBrowserBase
 {
     DocumentBrowser(PlugDataAudioProcessor* processor) : DocumentBrowserBase(processor), fileList(directory, this), searchComponent(directory)
     {
-        auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+        auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
         auto customLocation = File(pd->settingsTree.getProperty("BrowserPath"));
         if (customLocation.exists())
