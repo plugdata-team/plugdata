@@ -578,8 +578,20 @@ void PlugDataPluginEditor::valueChanged(Value& v)
 
 void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property)
 {
+    startTimer(300);
+}
+void PlugDataPluginEditor::valueTreeChildAdded(ValueTree &parentTree, ValueTree &childWhichHasBeenAdded){
+    startTimer(300);
+}
+void PlugDataPluginEditor::valueTreeChildRemoved(ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) {
+    startTimer(300);
+}
+
+void PlugDataPluginEditor::timerCallback() {
     // Save settings to file whenever valuetree state changes
+    // Use timer to group changes together
     pd.saveSettings();
+    stopTimer();
 }
 
 void PlugDataPluginEditor::updateCommandStatus()

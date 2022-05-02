@@ -418,30 +418,26 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserView)
 };
 
-class FileSearchComponent : public Component, public TableListBoxModel, public ScrollBar::Listener
+class FileSearchComponent : public Component, public ListBoxModel, public ScrollBar::Listener
 {
    public:
     FileSearchComponent(DirectoryContentsList& directory) : searchPath(directory)
     {
-        table.setModel(this);
-        table.setRowHeight(24);
-        table.setOutlineThickness(0);
-        table.deselectAllRows();
+        listBox.setModel(this);
+        listBox.setRowHeight(24);
+        listBox.setOutlineThickness(0);
+        listBox.deselectAllRows();
 
-        table.getHeader().setStretchToFitActive(true);
-        table.setHeaderHeight(0);
-        table.getHeader().addColumn("Results", 1, 800, 50, 800, TableHeaderComponent::defaultFlags);
-
-        table.getViewport()->setScrollBarsShown(true, false, false, false);
+        listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
         input.setName("sidebar::searcheditor");
 
         input.onTextChange = [this]()
         {
             bool notEmpty = input.getText().isNotEmpty();
-            if (table.isVisible() != notEmpty)
+            if (listBox.isVisible() != notEmpty)
             {
-                table.setVisible(notEmpty);
+                listBox.setVisible(notEmpty);
                 getParentComponent()->repaint();
             }
 
@@ -454,7 +450,7 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
         {
             input.clear();
             input.giveAwayKeyboardFocus();
-            table.setVisible(false);
+            listBox.setVisible(false);
             setInterceptsMouseClicks(false, true);
             input.repaint();
         };
@@ -462,30 +458,29 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
         closeButton.setAlwaysOnTop(true);
 
         addAndMakeVisible(closeButton);
-        addAndMakeVisible(table);
+        addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
-        table.addMouseListener(this, true);
-        table.setVisible(false);
+        listBox.addMouseListener(this, true);
+        listBox.setVisible(false);
 
         input.setJustification(Justification::centredLeft);
         input.setBorder({1, 23, 3, 1});
 
-        table.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
-        table.setColour(TableListBox::backgroundColourId, Colours::transparentBlack);
+        listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
-        table.getViewport()->getVerticalScrollBar().addListener(this);
+        listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
     }
 
     void mouseDoubleClick(const MouseEvent& e) override
     {
-        int row = table.getSelectedRow();
+        int row = listBox.getSelectedRow();
 
         if (isPositiveAndBelow(row, searchResult.size()))
         {
-            if (table.getRowPosition(row, true).contains(e.getEventRelativeTo(&table).getPosition()))
+            if (listBox.getRowPosition(row, true).contains(e.getEventRelativeTo(&listBox).getPosition()))
             {
                 openFile(searchResult.getReference(row));
             }
@@ -499,9 +494,9 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
 
     void paint(Graphics& g) override
     {
-        if (table.isVisible())
+        if (listBox.isVisible())
         {
-            PlugDataLook::paintStripes(g, 24, table.getHeight() + 24, *this, -1, table.getViewport()->getViewPositionY() - 4);
+            PlugDataLook::paintStripes(g, 24, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() - 4);
         }
     }
 
@@ -512,25 +507,20 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
-
-    // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
-    void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
-    {
+    
+    void paintListBoxItem (int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override {
+    
         if (rowIsSelected)
         {
             g.setColour(findColour(PlugDataColour::highlightColourId));
             g.fillRect(1, 0, w - 3, h);
         }
-    }
-
-    // Overloaded from TableListBoxModel
-    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override
-    {
+        
         g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
         const String item = searchResult[rowNumber].getFileName();
 
         g.setFont(Font());
-        g.drawText(item, 24, 0, width - 4, height, Justification::centredLeft, true);
+        g.drawText(item, 24, 0, w - 4, h, Justification::centredLeft, true);
 
         g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
         g.drawText(Icons::File, 8, 2, 24, 24, Justification::centredLeft);
@@ -541,7 +531,7 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
         return searchResult.size();
     }
 
-    Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
+    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
         return nullptr;
@@ -593,23 +583,23 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
             }
         }
 
-        table.updateContent();
+        listBox.updateContent();
 
-        if (table.getSelectedRow() == -1) table.selectRow(0, true, true);
+        if (listBox.getSelectedRow() == -1) listBox.selectRow(0, true, true);
     }
 
     bool hasSelection()
     {
-        return table.isVisible() && isPositiveAndBelow(table.getSelectedRow(), searchResult.size());
+        return listBox.isVisible() && isPositiveAndBelow(listBox.getSelectedRow(), searchResult.size());
     }
     bool isSearching()
     {
-        return table.isVisible();
+        return listBox.isVisible();
     }
 
     File getSelection()
     {
-        int row = table.getSelectedRow();
+        int row = listBox.getSelectedRow();
 
         if (isPositiveAndBelow(row, searchResult.size()))
         {
@@ -627,13 +617,13 @@ class FileSearchComponent : public Component, public TableListBoxModel, public S
         closeButton.setBounds(inputBounds.removeFromRight(30));
 
         tableBounds.removeFromLeft(Sidebar::dragbarWidth);
-        table.setBounds(tableBounds);
+        listBox.setBounds(tableBounds);
     }
 
     std::function<void(File&)> openFile;
 
    private:
-    TableListBox table;
+    ListBox listBox;
 
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
