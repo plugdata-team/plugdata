@@ -456,7 +456,7 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
 
 void Library::timerCallback()
 {
-    if (lastAppDirModificationTime < appDataDir.getLastModificationTime())
+    if (lastAppDirModificationTime.getMillisecondCounter() < appDataDir.getLastModificationTime().getMillisecondCounter())
     {
         appDirChanged();
         updateLibrary();
