@@ -246,8 +246,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     void updateResults(String query)
     {
-       
-       
         // Run on threadpool
         // Web requests shouldn't block the message queue!
         addJob([this, query]() mutable {
