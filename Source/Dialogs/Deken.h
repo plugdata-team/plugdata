@@ -1,3 +1,4 @@
+#pragma once
 
 // Struct with info about the deken package
 struct PackageInfo
@@ -24,7 +25,7 @@ struct PackageInfo
 // Array with package info to store the result of a search action in
 using SearchResult = Array<PackageInfo>;
 
-class Deken : public Component, public TableListBoxModel, public ScrollBar::Listener, public ThreadPool, public ValueTree::Listener
+class Deken : public Component, public ListBoxModel, public ScrollBar::Listener, public ThreadPool, public ValueTree::Listener
 {
     
     struct DownloadTask : public URL::DownloadTaskListener
@@ -53,7 +54,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
                     auto& d = deken;
                     d.downloads.removeObject(this);
                     d.updateResults(d.input.getText());
-                    d.table.updateContent();
+                    d.listBox.updateContent();
                 });
             };
             
@@ -88,7 +89,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
                 auto& d = deken;
                 d.downloads.removeObject(this);
                 d.updateResults(d.input.getText());
-                d.table.updateContent();
+                d.listBox.updateContent();
             });
         }
         
@@ -129,16 +130,12 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         
         packageState.addListener(this);
 
-        table.setModel(this);
-        table.setRowHeight(32);
-        table.setOutlineThickness(0);
-        table.deselectAllRows();
+        listBox.setModel(this);
+        listBox.setRowHeight(32);
+        listBox.setOutlineThickness(0);
+        listBox.deselectAllRows();
 
-        table.getHeader().setStretchToFitActive(true);
-        table.setHeaderHeight(0);
-        table.getHeader().addColumn("Results", 1, 800, 50, 800, TableHeaderComponent::defaultFlags);
-
-        table.getViewport()->setScrollBarsShown(true, false, false, false);
+        listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
         input.setName("sidebar::searcheditor");
 
@@ -159,18 +156,17 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         clearButton.setAlwaysOnTop(true);
 
         addAndMakeVisible(clearButton);
-        addAndMakeVisible(table);
+        addAndMakeVisible(listBox);
         addAndMakeVisible(input);
 
-        table.addMouseListener(this, true);
+        listBox.addMouseListener(this, true);
 
         input.setJustification(Justification::centredLeft);
         input.setBorder({1, 23, 3, 1});
 
-        table.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
-        table.setColour(TableListBox::backgroundColourId, Colours::transparentBlack);
+        listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
-        table.getViewport()->getVerticalScrollBar().addListener(this);
+        listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
         
@@ -192,7 +188,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
 
     void paint(Graphics& g) override
     {
-        PlugDataLook::paintStripes(g, 32, table.getHeight() + 24, *this, -1, table.getViewport()->getViewPositionY() + 4);
+        PlugDataLook::paintStripes(g, 32, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() + 4);
 
         if(errorMessage.isNotEmpty()) {
             g.setColour(Colours::red);
@@ -217,20 +213,19 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         g.drawLine(0, 28, getWidth(), 28);
     }
 
-    // Overloaded from TableListBoxModel
-    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override
-    {
-    }
-    void paintRowBackground (Graphics&, int rowNumber, int width, int height, bool rowIsSelected) override
-    {
-    }
-
     int getNumRows() override
     {
         return searchResult.size() + downloads.size();
     }
+    
+    void paintListBoxItem (int rowNumber,
+                                   Graphics& g,
+                                   int width, int height,
+                           bool rowIsSelected) override {
+    
+    }
 
-    Component* refreshComponentForCell(int rowNumber, int columnId, bool isRowSelected, Component* existingComponentToUpdate) override
+    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
         
@@ -275,7 +270,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
             }
             
             
-            table.updateContent();
+            listBox.updateContent();
             return;
         }
         
@@ -324,7 +319,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
             // Invalid result, update table and return
             if(!object) {
                 MessageManager::callAsync([this](){
-                    table.updateContent();
+                    listBox.updateContent();
                 });
                 return;
             }
@@ -378,7 +373,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         }
             // Update content from message thread
             MessageManager::callAsync([this](){
-                table.updateContent();
+                listBox.updateContent();
             });
         });
     }
@@ -398,7 +393,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
         clearButton.setBounds(inputBounds.removeFromRight(30));
 
         tableBounds.removeFromLeft(Sidebar::dragbarWidth);
-        table.setBounds(tableBounds);
+        listBox.setBounds(tableBounds);
     }
     
 
@@ -480,7 +475,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
    private:
     
     // List component to list packages
-    TableListBox table;
+    ListBox listBox;
     
     inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library").getChildFile("Deken");
     
@@ -561,7 +556,7 @@ class Deken : public Component, public TableListBoxModel, public ScrollBar::List
             };
             task->onFinish = [this](bool result){
                 setInstalled(result);
-                deken.table.updateContent();
+                deken.listBox.updateContent();
             };
             
             installButton.setVisible(false);

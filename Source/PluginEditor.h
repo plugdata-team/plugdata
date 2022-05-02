@@ -80,7 +80,7 @@ struct TabComponent : public TabbedComponent
 
 class Canvas;
 class PlugDataAudioProcessor;
-class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager
+class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager, public Timer
 {
    public:
     explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
@@ -116,6 +116,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     void updateValues();
 
     void valueChanged(Value& v) override;
+    
 
     void updateCommandStatus();
 
@@ -125,6 +126,10 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     bool perform(const InvocationInfo& info) override;
 
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
+    void valueTreeChildAdded(ValueTree &parentTree, ValueTree &childWhichHasBeenAdded) override;
+    void valueTreeChildRemoved(ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
+    
+    void timerCallback() override;
 
     PlugDataAudioProcessor& pd;
 

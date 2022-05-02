@@ -218,17 +218,17 @@ int Trie::autocomplete(std::string query, Suggestions& result)
 
 void Library::initialiseLibrary()
 {
-    appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+    appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
     lastAppDirModificationTime = appDataDir.getLastModificationTime();
 
     updateLibrary();
 
-    auto pddocPath = appDataDir.getChildFile("Documentation").getChildFile("pddoc").getFullPathName();
+    auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
     parseDocumentation(pddocPath);
 
-    startTimer(3000);
+    startTimer(1300);
 }
 
 void Library::updateLibrary()
