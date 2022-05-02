@@ -1,5 +1,5 @@
 #include "Deken.h"
-
+#include "SearchPathComponent.h"
 
 struct DAWAudioSettings : public Component
 {
@@ -51,147 +51,6 @@ struct DAWAudioSettings : public Component
     Slider tailLengthSlider;
 };
 
-class SearchPathComponent : public Component, public TableListBoxModel
-{
-   public:
-    SearchPathComponent(ValueTree libraryTree) : tree(std::move(libraryTree))
-    {
-        table.setModel(this);
-        table.setColour(ListBox::backgroundColourId, findColour(ResizableWindow::backgroundColourId));
-        table.setRowHeight(24);
-        table.setOutlineThickness(0);
-        table.deselectAllRows();
-
-        table.setColour(TableListBox::backgroundColourId, Colours::transparentBlack);
-
-        table.getHeader().setStretchToFitActive(true);
-        table.setHeaderHeight(0);
-        table.getHeader().addColumn("Library Path", 1, 800, 50, 800, TableHeaderComponent::defaultFlags);
-
-        addButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        addButton.setConnectedEdges(12);
-        addButton.setName("statusbar:add");
-        addButton.onClick = [this]()
-        {
-            openChooser.launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                                    [this](const FileChooser& f)
-                                    {
-                                        auto result = f.getResult();
-                                        if (!result.exists()) return;
-
-                                        auto child = ValueTree("Path");
-                                        child.setProperty("Path", result.getFullPathName(), nullptr);
-
-                                        tree.appendChild(child, nullptr);
-
-                                        loadData();
-                                    });
-        };
-
-        removeButton.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
-        removeButton.setConnectedEdges(12);
-        removeButton.setName("statusbar:add");
-        removeButton.onClick = [this]() mutable
-        {
-            int idx = table.getSelectedRow();
-            tree.removeChild(idx, nullptr);
-            loadData();
-        };
-
-        resetButton.onClick = [this]()
-        {
-            File abstractionsDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
-
-            auto defaultPath = ValueTree("Path");
-            defaultPath.setProperty("Path", abstractionsDir.getFullPathName(), nullptr);
-
-            tree.removeAllChildren(nullptr);
-            tree.appendChild(defaultPath, nullptr);
-            loadData();
-        };
-
-        addAndMakeVisible(table);
-        addAndMakeVisible(addButton);
-        addAndMakeVisible(removeButton);
-        addAndMakeVisible(resetButton);
-
-        loadData();
-    }
-
-    void loadData()
-    {
-        items.clear();
-
-        for (auto child : tree)
-        {
-            items.add(child.getProperty("Path"));
-        }
-
-        table.updateContent();
-        table.selectRow(items.size() - 1);
-    }
-
-    // This is overloaded from TableListBoxModel, and should fill in the background of the whole row
-    void paintRowBackground(Graphics& g, int row, int w, int h, bool rowIsSelected) override
-    {
-    }
-
-    // This is overloaded from TableListBoxModel, and must paint any cells that aren't using custom
-    // components.
-    void paintCell(Graphics& g, int rowNumber, int columnId, int width, int height, bool rowIsSelected) override
-    {
-        g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
-        const String item = tree.getChild(rowNumber).getProperty("Path").toString();
-
-        g.drawText(item, 4, 0, width - 4, height, Justification::centredLeft, true);
-    }
-
-    int getNumRows() override
-    {
-        return items.size();
-    }
-
-    Component* refreshComponentForCell(int rowNumber, int columnId, bool /*isRowSelected*/, Component* existingComponentToUpdate) override
-    {
-        delete existingComponentToUpdate;
-        return nullptr;
-    }
-
-    void resized() override
-    {
-        auto tableBounds = getLocalBounds();
-        tableBounds.removeFromBottom(30);
-
-        table.setBounds(tableBounds);
-
-        const int buttonHeight = 20;
-        const int y = getHeight() - (buttonHeight + 7);
-        const int x = getWidth() - 8;
-
-        resetButton.changeWidthToFitText(buttonHeight);
-        resetButton.setTopRightPosition(x, y + 5);
-
-        addButton.setBounds(6, y, 30, 30);
-        removeButton.setBounds(34, y, 30, 30);
-    }
-
-    void paint(Graphics& g) override
-    {
-        auto* viewport = table.getViewport();
-        PlugDataLook::paintStripes(g, table.getRowHeight(), getHeight(), table, table.getSelectedRow(), table.getViewport()->getViewPositionY(), true);
-    }
-
-   private:
-    FileChooser openChooser = FileChooser("Choose path", File::getSpecialLocation(File::SpecialLocationType::userDocumentsDirectory), "");
-
-    TextButton addButton = TextButton(Icons::Add);
-    TextButton removeButton = TextButton(Icons::Clear);
-    TextButton resetButton = TextButton("reset to defaults");
-
-    TableListBox table;
-    ValueTree tree;
-    StringArray items;
-};
 
 struct SettingsComponent : public Component
 {
@@ -328,7 +187,7 @@ struct SettingsDialog : public Component
 
     void paint(Graphics& g) override
     {
-        // g.fillAll(findColour(PlugDataColour::canvasColourId));
+        //g.fillAll(findColour(PlugDataColour::canvasColourId));
 
         g.setColour(findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
