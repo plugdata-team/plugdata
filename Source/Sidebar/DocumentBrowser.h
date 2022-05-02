@@ -314,19 +314,15 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
 
     void paint(Graphics& g) override
     {
-        int selectionIdx = -1;
+        int selectedIdx = -1;
+        
+        // Paint selected row
         if (getNumSelectedFiles())
         {
-            selectionIdx = getSelectedItem(0)->getIndexInParent();
-            auto* parent = getSelectedItem(0)->getParentItem();
-            while (parent != getRootItem())
-            {
-                selectionIdx += parent->getIndexInParent() + 1;
-                parent = parent->getParentItem();
-            }
+            selectedIdx = getSelectedItem(0)->getRowNumberInTree();
         }
-
-        PlugDataLook::paintStripes(g, 24, getViewport()->getHeight(), *this, selectionIdx, getViewport()->getViewPositionY());
+        
+        PlugDataLook::paintStripes(g, 24, getViewport()->getHeight(), *this, selectedIdx, getViewport()->getViewPositionY());
     }
     // Paint file drop outline
     void paintOverChildren(Graphics& g) override

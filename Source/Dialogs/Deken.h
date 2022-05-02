@@ -361,16 +361,19 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     }
                 }
                 
-                // Sort by alphabetically by timestamp to get latest version
-                // The timestamp format is yyyy:mm::dd hh::mm::ss so this should work
-                std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2) {
-                    return result1.timestamp.compare(result2.timestamp) > 0;
-                });
-                                
-                auto info = results.getReference(0);
-                
-                if(!getDownloadForPackage(info)) {
-                    searchResult.addIfNotAlreadyThere(info);
+                if(!results.isEmpty()) {
+                    // Sort by alphabetically by timestamp to get latest version
+                    // The timestamp format is yyyy:mm::dd hh::mm::ss so this should work
+                    std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2) {
+                        return result1.timestamp.compare(result2.timestamp) > 0;
+                    });
+                                    
+                    auto info = results.getReference(0);
+                    
+                    // check if already being downloaded
+                    if(!getDownloadForPackage(info)) {
+                        searchResult.addIfNotAlreadyThere(info);
+                    }
                 }
             }
         }
