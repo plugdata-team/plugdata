@@ -51,6 +51,7 @@ struct AutomationComponent : public Component
             addAndMakeVisible(label);
             addAndMakeVisible(slider);
             addAndMakeVisible(button);
+            
             attachments.add(new SliderParameterAttachment(*pd->parameters.getParameter("param" + String(p + 1)), *slider, nullptr));
         }
     }
