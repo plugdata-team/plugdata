@@ -25,7 +25,7 @@ struct PackageInfo
 // Array with package info to store the result of a search action in
 using SearchResult = Array<PackageInfo>;
 
-class Deken : public Component, public ListBoxModel, public ScrollBar::Listener, public ThreadPool, public ValueTree::Listener
+class Deken : public Component, public ListBoxModel, public ScrollBar::Listener, public ThreadPool, public ValueTree::Listener, public Timer
 {
     
     struct DownloadTask : public URL::DownloadTaskListener
@@ -141,7 +141,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
         input.onTextChange = [this]()
         {
-            updateResults(input.getText());
+            startTimer(400);
         };
 
         clearButton.setName("statusbar:clearsearch");
@@ -171,6 +171,13 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         setInterceptsMouseClicks(false, true);
         
         updateResults("");
+    }
+    
+    
+    // Group fast typing together
+    void timerCallback() {
+        updateResults(input.getText());
+        stopTimer();
     }
     
     // Check if busy when deleting settings component
