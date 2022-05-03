@@ -142,18 +142,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]()
     {
-        
-        if(!settingsDialog) {
-    #ifdef PLUGDATA_STANDALONE
+        if (!settingsDialog)
+        {
+#ifdef PLUGDATA_STANDALONE
             // Initialise settings dialog for DAW and standalone
             auto pluginHolder = StandalonePluginHolder::getInstance();
-            
+
             settingsDialog.reset(Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree));
-    #else
+#else
             settingsDialog.reset(Dialogs::createSettingsDialog(pd, nullptr, pd.settingsTree));
-    #endif
+#endif
         }
-        
+
         settingsDialog->setVisible(true);
     };
 
@@ -197,7 +197,7 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     {
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
-    
+
     pd.settingsTree.removeListener(this);
 
     removeKeyListener(&statusbar);
@@ -574,14 +574,17 @@ void PlugDataPluginEditor::valueTreePropertyChanged(ValueTree& treeWhoseProperty
 {
     startTimer(300);
 }
-void PlugDataPluginEditor::valueTreeChildAdded(ValueTree &parentTree, ValueTree &childWhichHasBeenAdded){
+void PlugDataPluginEditor::valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded)
+{
     startTimer(300);
 }
-void PlugDataPluginEditor::valueTreeChildRemoved(ValueTree &parentTree, ValueTree &childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) {
+void PlugDataPluginEditor::valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved)
+{
     startTimer(300);
 }
 
-void PlugDataPluginEditor::timerCallback() {
+void PlugDataPluginEditor::timerCallback()
+{
     // Save settings to file whenever valuetree state changes
     // Use timer to group changes together
     pd.saveSettings();

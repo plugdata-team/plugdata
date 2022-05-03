@@ -25,17 +25,16 @@ void Dialogs::showSaveDialog(Component* centre, String filename, std::function<v
 {
     auto* dialog = new Dialog(centre, 400, 130, 160, false);
     auto* saveDialog = new SaveDialog(centre, dialog, filename);
-    
+
     dialog->setViewedComponent(saveDialog);
     saveDialog->cb = std::move(callback);
-
 }
 void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
 {
     auto* dialog = new Dialog(centre, 300, 180, 200, false);
     auto* arrayDialog = new ArrayDialog(centre, dialog);
     dialog->setViewedComponent(arrayDialog);
-    arrayDialog->cb = std::move(callback);    
+    arrayDialog->cb = std::move(callback);
 }
 
 Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)

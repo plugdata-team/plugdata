@@ -261,7 +261,7 @@ void Library::updateLibrary()
     for (auto path : pathTree)
     {
         auto filePath = File(path.getProperty("Path").toString());
-        
+
         for (auto& iter : RangedDirectoryIterator(filePath, true))
         {
             auto file = iter.getFile();
@@ -356,7 +356,7 @@ void Library::parseDocumentation(const String& path)
 
             arguments[name] = args;
         }
-        
+
         auto numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"};
         if (sections.count("inlets"))
         {

@@ -329,10 +329,10 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         const auto& fullName = found[currentidx].first;
 
         state = ShowingObjects;
-        if(fullName.length() > textlen) {
+        if (fullName.length() > textlen)
+        {
             mutableInput = fullName.substring(textlen);
         }
-       
 
         setVisible(true);
         highlightEnd = fullName.length();

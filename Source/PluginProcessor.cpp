@@ -122,13 +122,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
 
         auto firstPath = ValueTree("Path");
         firstPath.setProperty("Path", abstractions.getFullPathName(), nullptr);
-        
+
         auto secondPath = ValueTree("Path");
         secondPath.setProperty("Path", appDir.getChildFile("Deken").getFullPathName(), nullptr);
 
         pathTree.appendChild(firstPath, nullptr);
         pathTree.appendChild(secondPath, nullptr);
-        
+
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
@@ -163,11 +163,12 @@ void PlugDataAudioProcessor::updateSearchPaths()
 
     // Add ELSE path
     auto elsePath = appDir.getChildFile("Abstractions").getChildFile("else");
-    if(elsePath.exists()) {
+    if (elsePath.exists())
+    {
         auto location = elsePath.getFullPathName();
         libpd_add_to_search_path(location.toRawUTF8());
     }
-    
+
     objectLibrary.updateLibrary();
 }
 
@@ -676,7 +677,6 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 
         patch->setCurrentFile(File());
         patch->setTitle("Untitled Patcher");
-        
 
         editor->addTab(cnv);
     }

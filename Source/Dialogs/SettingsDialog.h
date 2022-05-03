@@ -1,7 +1,6 @@
 #include "Deken.h"
 #include "SearchPathComponent.h"
 
-
 struct DAWAudioSettings : public Component
 {
     explicit DAWAudioSettings(AudioProcessor& p) : processor(p)
@@ -52,16 +51,14 @@ struct DAWAudioSettings : public Component
     Slider tailLengthSlider;
 };
 
-
 struct SettingsDialog : public Component
 {
-
     SettingsDialog(AudioProcessor& processor, Dialog* dialog, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor)
     {
         setVisible(false);
 
         toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals)};
-        
+
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
@@ -93,20 +90,23 @@ struct SettingsDialog : public Component
 
         toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
 
-        dialog->onClose = [this, dialog](){
+        dialog->onClose = [this, dialog]()
+        {
             // Check if deken is busy, else clean up settings dialog
-            if(!dynamic_cast<Deken*>(panels[3])->isBusy()) {
-                if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor())) {
+            if (!dynamic_cast<Deken*>(panels[3])->isBusy())
+            {
+                if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor()))
+                {
                     editor->settingsDialog.reset(nullptr);
                 }
             }
-            else {
+            else
+            {
                 dialog->setVisible(false);
             }
         };
 
         constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
-        
     }
 
     ~SettingsDialog() override
@@ -117,10 +117,9 @@ struct SettingsDialog : public Component
 
     void resized() override
     {
-        
         auto b = getLocalBounds().reduced(3);
         auto panelBounds = Rectangle<int>(b.getX(), toolbarHeight, b.getWidth(), b.getHeight() - toolbarHeight - 4);
-        
+
         int toolbarPosition = 2;
         for (auto& button : toolbarButtons)
         {
@@ -136,7 +135,7 @@ struct SettingsDialog : public Component
 
     void paint(Graphics& g) override
     {
-        //g.fillAll(findColour(PlugDataColour::canvasColourId));
+        // g.fillAll(findColour(PlugDataColour::canvasColourId));
 
         g.setColour(findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
@@ -155,7 +154,6 @@ struct SettingsDialog : public Component
             g.fillRect(statusbarBounds.withHeight(20));
             g.fillRoundedRectangle(statusbarBounds, 5.0f);
         }
-
     }
 
     void paintOverChildren(Graphics& g) override
@@ -168,8 +166,7 @@ struct SettingsDialog : public Component
             g.drawLine(1.0f, getHeight() - 33, static_cast<float>(getWidth() - 2), getHeight() - 33);
         }
     }
-    
-    
+
     void showPanel(int idx)
     {
         panels[currentPanel]->setVisible(false);
@@ -177,12 +174,12 @@ struct SettingsDialog : public Component
         currentPanel = idx;
         repaint();
     }
-    
+
     AudioProcessor& audioProcessor;
     ComponentBoundsConstrainer constrainer;
 
     static constexpr int toolbarHeight = 45;
-    
+
     static inline std::atomic<int> lastPanel = 0;
     int currentPanel;
     OwnedArray<Component> panels;
@@ -190,4 +187,3 @@ struct SettingsDialog : public Component
 
     OwnedArray<TextButton> toolbarButtons;
 };
-
