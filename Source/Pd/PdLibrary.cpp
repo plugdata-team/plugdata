@@ -261,8 +261,8 @@ void Library::updateLibrary()
     for (auto path : pathTree)
     {
         auto filePath = File(path.getProperty("Path").toString());
-
-        for (auto& iter : RangedDirectoryIterator(filePath, false))
+        
+        for (auto& iter : RangedDirectoryIterator(filePath, true))
         {
             auto file = iter.getFile();
             if (file.getFileExtension() == ".pd") searchTree->insert(file.getFileNameWithoutExtension().toStdString());
@@ -356,7 +356,7 @@ void Library::parseDocumentation(const String& path)
 
             arguments[name] = args;
         }
-
+        
         auto numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"};
         if (sections.count("inlets"))
         {
@@ -365,7 +365,7 @@ void Library::parseDocumentation(const String& path)
             for (auto [number, content] : section)
             {
                 String tooltip;
-                for (auto& argument : StringArray::fromTokens(sections["inlets"].first, "-", "\""))
+                for (auto& argument : StringArray::fromTokens(content.first, "-", "\""))
                 {
                     auto sectionMap = getSections(argument, {"type", "description"});
                     if (sectionMap["type"].first.isEmpty()) continue;
@@ -384,7 +384,7 @@ void Library::parseDocumentation(const String& path)
             {
                 String tooltip;
 
-                for (auto& argument : StringArray::fromTokens(sections["outlets"].first, "-", "\""))
+                for (auto& argument : StringArray::fromTokens(content.first, "-", "\""))
                 {
                     auto sectionMap = getSections(argument, {"type", "description"});
                     if (sectionMap["type"].first.isEmpty()) continue;

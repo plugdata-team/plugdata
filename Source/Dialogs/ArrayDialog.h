@@ -6,7 +6,7 @@
 
 struct ArrayDialog : public Component
 {
-    ArrayDialog(Component* editor)
+    ArrayDialog(Component* editor, Dialog* parent)
     {
         setSize(400, 200);
 
@@ -14,17 +14,16 @@ struct ArrayDialog : public Component
         addAndMakeVisible(cancel);
         addAndMakeVisible(ok);
 
-        cancel.onClick = [this]
+        cancel.onClick = [this, parent]
         {
             MessageManager::callAsync(
-                [this]()
+                [this, parent]()
                 {
-                    background->setVisible(false);
                     cb(0, "", "");
-                    delete this;
+                    parent->onClose();
                 });
         };
-        ok.onClick = [this]
+        ok.onClick = [this, parent]
         {
             // Check if input is valid
             if (nameEditor.isEmpty())
@@ -42,11 +41,10 @@ struct ArrayDialog : public Component
             if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0)
             {
                 MessageManager::callAsync(
-                    [this]()
+                    [this, parent]()
                     {
-                        background->setVisible(false);
                         cb(1, nameEditor.getText(), sizeEditor.getText());
-                        delete this;
+                        parent->onClose();
                     });
             }
         };
@@ -55,8 +53,6 @@ struct ArrayDialog : public Component
 
         cancel.changeWidthToFitText();
         ok.changeWidthToFitText();
-
-        background.reset(new BlackoutComponent(editor, this, cancel.onClick));
 
         addAndMakeVisible(nameLabel);
         addAndMakeVisible(sizeLabel);
@@ -82,15 +78,6 @@ struct ArrayDialog : public Component
         sizeLabel.setBounds(8, 85, 52, 25);
     }
 
-    void paint(Graphics& g) override
-    {
-        g.setColour(findColour(PlugDataColour::toolbarColourId));
-        g.fillRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f);
-
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().reduced(1).toFloat(), 5.0f, 1.0f);
-    }
-
     std::function<void(int, String, String)> cb;
 
    private:
@@ -104,6 +91,4 @@ struct ArrayDialog : public Component
 
     TextButton cancel = TextButton("Cancel");
     TextButton ok = TextButton("OK");
-
-    std::unique_ptr<BlackoutComponent> background;
 };

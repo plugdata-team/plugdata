@@ -336,7 +336,14 @@ void Canvas::mouseDown(const MouseEvent& e)
         if (!parent->graphics) return;
 
         auto* subpatch = parent->graphics->getPatch();
+        auto* glist = subpatch->getPointer();
+        auto abstraction = canvas_isabstraction(glist);
+        File path;
 
+        if(abstraction) {
+            path = File(String(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String(glist->gl_name->s_name)).withFileExtension("pd");
+        }
+        
         for (int n = 0; n < tabbar->getNumTabs(); n++)
         {
             auto* tabCanvas = main.getCanvas(n);
@@ -351,6 +358,9 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
 
+        newPatch->setCurrentFile(path);
+
+        
         main.addTab(newCanvas);
         newCanvas->checkBounds();
     };
