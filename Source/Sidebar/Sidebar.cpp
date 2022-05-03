@@ -30,8 +30,6 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance) : pd(instance)
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
 
-
-
     setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 40);
 }
 
@@ -68,7 +66,7 @@ void Sidebar::resized()
     console->setBounds(bounds);
     inspector->setBounds(bounds);
     browser->setBounds(getLocalBounds());
-    if(automationPanel) automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
+    if (automationPanel) automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
 }
 
 void Sidebar::mouseDown(const MouseEvent& e)
@@ -140,17 +138,19 @@ bool Sidebar::isShowingBrowser()
 
 void Sidebar::showAutomationPanel(bool show)
 {
-    if(show) {
+    if (show)
+    {
         automationPanel = new AutomationPanel(pd);
         addAndMakeVisible(automationPanel);
         automationPanel->setAlwaysOnTop(true);
         automationPanel->toFront(true);
     }
-    else {
+    else
+    {
         delete automationPanel;
         automationPanel = nullptr;
     }
-    
+
     resized();
 }
 

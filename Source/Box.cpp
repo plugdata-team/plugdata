@@ -34,10 +34,12 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     {
         setSize(100, height);
         toFront(false);
-        if(attachedToMouse) {
+        if (attachedToMouse)
+        {
             createEditorOnMouseDown = true;
         }
-        else {
+        else
+        {
             showEditor();
         }
     }
@@ -189,11 +191,12 @@ void Box::updateBounds(bool newObject)
         {
             setEditable(true);
             hideLabel = false;
-            
+
             int width = bounds.getWidth() <= 0 ? getBestTextWidth() : bounds.getWidth() + doubleMargin;
-            
+
             // Hide rounding errors
-            if(abs((getWidth() - width) * 0.4f) < glist_fontwidth(cnv->patch.getPointer()) && bounds.getWidth() > 0) {
+            if (abs((getWidth() - width) * 0.4f) < glist_fontwidth(cnv->patch.getPointer()) && bounds.getWidth() > 0)
+            {
                 width = getWidth();
             }
 
@@ -494,15 +497,14 @@ void Box::mouseDown(const MouseEvent& e)
         stopTimer();
         repaint();
 
-        if(createEditorOnMouseDown) {
+        if (createEditorOnMouseDown)
+        {
             createEditorOnMouseDown = false;
             // Prevent losing focus because of click event
-            MessageManager::callAsync([this](){
-                showEditor();
-            });
-            
+            MessageManager::callAsync([this]() { showEditor(); });
         }
-        else {
+        else
+        {
             // Tell pd about new position
             // Don't do this for other case, as pdObject will not yet be assigned
             cnv->pd->enqueueFunction(
@@ -513,7 +515,7 @@ void Box::mouseDown(const MouseEvent& e)
                     pdObject->setBounds(b);
                 });
         }
-        
+
         return;
     }
 
@@ -596,8 +598,9 @@ void Box::mouseDrag(const MouseEvent& e)
     {
         wasResized = true;
         Point<int> dragDistance = e.getOffsetFromDragStart();
-        
-        if(!graphics || graphics->noGui()) {
+
+        if (!graphics || graphics->noGui())
+        {
             int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth();
             if (abs(distance) < ObjectGrid::range)
             {
@@ -611,7 +614,6 @@ void Box::mouseDrag(const MouseEvent& e)
         }
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
 
-            
         setBounds(newBounds);
 
         return;

@@ -315,13 +315,13 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     void paint(Graphics& g) override
     {
         int selectedIdx = -1;
-        
+
         // Paint selected row
         if (getNumSelectedFiles())
         {
             selectedIdx = getSelectedItem(0)->getRowNumberInTree();
         }
-        
+
         PlugDataLook::paintStripes(g, 24, getViewport()->getHeight(), *this, selectedIdx, getViewport()->getViewPositionY());
     }
     // Paint file drop outline
@@ -503,15 +503,15 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
-    
-    void paintListBoxItem (int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override {
-    
+
+    void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
+    {
         if (rowIsSelected)
         {
             g.setColour(findColour(PlugDataColour::highlightColourId));
             g.fillRect(1, 0, w - 3, h);
         }
-        
+
         g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
         const String item = searchResult[rowNumber].getFileName();
 

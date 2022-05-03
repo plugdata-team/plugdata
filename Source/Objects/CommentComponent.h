@@ -50,7 +50,7 @@ struct CommentComponent : public GUIComponent
             shouldOpenEditor = true;
         }
     }
-    
+
     // Makes it transparent
     void paint(Graphics& g) override
     {
