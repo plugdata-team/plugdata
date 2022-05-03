@@ -23,26 +23,28 @@
 
 void Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
 {
-    auto* dialog = new SaveDialog(centre, filename);
-    dialog->cb = std::move(callback);
+    auto* dialog = new Dialog(centre, 400, 130, 160, false);
+    auto* saveDialog = new SaveDialog(centre, dialog, filename);
+    
+    dialog->setViewedComponent(saveDialog);
+    saveDialog->cb = std::move(callback);
 
-    centre->getTopLevelComponent()->addAndMakeVisible(dialog);
-
-    dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 400, 130);
 }
 void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
 {
-    auto* dialog = new ArrayDialog(centre);
-    dialog->cb = std::move(callback);
-
-    centre->getTopLevelComponent()->addAndMakeVisible(dialog);
-
-    dialog->setBounds((centre->getWidth() / 2.) - 200., 60, 300, 180);
+    auto* dialog = new Dialog(centre, 300, 180, 200, false);
+    auto* arrayDialog = new ArrayDialog(centre, dialog);
+    dialog->setViewedComponent(arrayDialog);
+    arrayDialog->cb = std::move(callback);    
 }
 
 Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
 {
-    return new SettingsDialog(processor, manager, settingsTree);
+    auto* editor = processor.getActiveEditor();
+    auto* dialog = new Dialog(editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
+    dialog->setViewedComponent(settingsDialog);
+    return dialog;
 }
 
 void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)

@@ -154,13 +154,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     #endif
         }
         
-        getTopLevelComponent()->addAndMakeVisible(settingsDialog.get());
-        
-        // Add on top of everything
-        // To make sure it is above the top-level close button
-        settingsDialog->setBounds(getLocalBounds().withSizeKeepingCentre(650, 500));
-        settingsDialog->toFront(false);
-        settingsDialog->resized();
+        settingsDialog->setVisible(true);
     };
 
     // Hide sidebar

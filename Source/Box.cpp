@@ -33,8 +33,13 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     if (name.isEmpty())
     {
         setSize(100, height);
-        showEditor();
         toFront(false);
+        if(attachedToMouse) {
+            createEditorOnMouseDown = true;
+        }
+        else {
+            showEditor();
+        }
     }
     else if (name == "msg")
     {
@@ -184,8 +189,13 @@ void Box::updateBounds(bool newObject)
         {
             setEditable(true);
             hideLabel = false;
-
+            
             int width = bounds.getWidth() <= 0 ? getBestTextWidth() : bounds.getWidth() + doubleMargin;
+            
+            // Hide rounding errors
+            if(abs((getWidth() - width) * 0.4f) < glist_fontwidth(cnv->patch.getPointer()) && bounds.getWidth() > 0) {
+                width = getWidth();
+            }
 
             setSize(width, height);
         }
@@ -358,18 +368,6 @@ void Box::resized()
     {
         // Estimate the amount of with needed to fit inlets and outlets
         int ioletWidth = std::max(numInputs, numOutputs) * 15;
-
-        // Width of text
-        int textWidth = getBestTextWidth();
-
-        // Round width of text objects to pd's resolution, make sure that the ideal size is one of the options
-        auto roundToTextWidth = [this](int width, int stringWidth)
-        {
-            int multiple = glist_fontwidth(cnv->patch.getPointer());
-            int offset = stringWidth % multiple;
-            return (((width + multiple - 1) / multiple) * multiple) - offset;
-        };
-
         // Calculate height based on number of lines, and width
         int width = std::max(getWidth(), ioletWidth + doubleMargin);
         int height = Box::height + ((getNumLines(currentText, width - 13, font) - 1) * 28);
@@ -495,13 +493,26 @@ void Box::mouseDown(const MouseEvent& e)
         attachedToMouse = false;
         stopTimer();
         repaint();
-        cnv->pd->enqueueFunction(
-            [this]()
-            {
-                auto b = getBounds() - cnv->canvasOrigin;
-                b.reduce(margin, margin);
-                pdObject->setBounds(b);
+
+        if(createEditorOnMouseDown) {
+            createEditorOnMouseDown = false;
+            // Prevent losing focus because of click event
+            MessageManager::callAsync([this](){
+                showEditor();
             });
+            
+        }
+        else {
+            // Tell pd about new position
+            // Don't do this for other case, as pdObject will not yet be assigned
+            cnv->pd->enqueueFunction(
+                [this]()
+                {
+                    auto b = getBounds() - cnv->canvasOrigin;
+                    b.reduce(margin, margin);
+                    pdObject->setBounds(b);
+                });
+        }
         
         return;
     }
@@ -585,20 +596,22 @@ void Box::mouseDrag(const MouseEvent& e)
     {
         wasResized = true;
         Point<int> dragDistance = e.getOffsetFromDragStart();
+        
+        if(!graphics || graphics->noGui()) {
+            int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth();
+            if (abs(distance) < ObjectGrid::range)
+            {
+                cnv->grid.setSnapped(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
+            }
 
-        int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth();
-        if (abs(distance) < ObjectGrid::range)
-        {
-            cnv->grid.setSnapped(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
+            if (static_cast<bool>(cnv->gridEnabled.getValue()))
+            {
+                dragDistance = cnv->grid.handleMouseDrag(this, dragDistance, cnv->viewport->getViewArea());
+            }
         }
-
-        if (static_cast<bool>(cnv->gridEnabled.getValue()))
-        {
-            dragDistance = cnv->grid.handleMouseDrag(this, dragDistance, cnv->viewport->getViewArea());
-        }
-
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
 
+            
         setBounds(newBounds);
 
         return;

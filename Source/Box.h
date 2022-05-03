@@ -109,6 +109,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     bool wasResized = false;
 
     bool attachedToMouse = false;
+    bool createEditorOnMouseDown = false;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

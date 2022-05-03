@@ -100,6 +100,7 @@ struct Sidebar : public Component
     static constexpr int dragbarWidth = 5;
 
    private:
+    PlugDataAudioProcessor* pd;
     ObjectParameters lastParameters;
 
     Console* console;

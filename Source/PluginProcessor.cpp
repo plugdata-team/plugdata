@@ -116,6 +116,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         // Add default settings
         settingsTree.setProperty("ConnectionStyle", false, nullptr);
         settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
+        settingsTree.setProperty("Theme", 1, nullptr);
 
         auto pathTree = ValueTree("Paths");
 
@@ -160,6 +161,13 @@ void PlugDataAudioProcessor::updateSearchPaths()
         libpd_add_to_search_path(path.toRawUTF8());
     }
 
+    // Add ELSE path
+    auto elsePath = appDir.getChildFile("Abstractions").getChildFile("else");
+    if(elsePath.exists()) {
+        auto location = elsePath.getFullPathName();
+        libpd_add_to_search_path(location.toRawUTF8());
+    }
+    
     objectLibrary.updateLibrary();
 }
 
@@ -666,7 +674,9 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
 
         auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
 
+        patch->setCurrentFile(File());
         patch->setTitle("Untitled Patcher");
+        
 
         editor->addTab(cnv);
     }

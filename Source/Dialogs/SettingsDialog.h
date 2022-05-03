@@ -2,7 +2,6 @@
 #include "SearchPathComponent.h"
 
 
-// TODO: handle audiodeviceselector component here, and move to different file
 struct DAWAudioSettings : public Component
 {
     explicit DAWAudioSettings(AudioProcessor& p) : processor(p)
@@ -54,11 +53,16 @@ struct DAWAudioSettings : public Component
 };
 
 
-struct SettingsComponent : public Component
+struct SettingsDialog : public Component
 {
-    SettingsComponent(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
+
+    SettingsDialog(AudioProcessor& processor, Dialog* dialog, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor)
     {
+        setVisible(false);
+
         toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals)};
+        
+        currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
@@ -87,19 +91,36 @@ struct SettingsComponent : public Component
             toolbarButtons[i]->onClick = [this, i]() mutable { showPanel(i); };
         }
 
-        toolbarButtons[0]->setToggleState(true, sendNotification);
+        toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
+
+        dialog->onClose = [this, dialog](){
+            // Check if deken is busy, else clean up settings dialog
+            if(!dynamic_cast<Deken*>(panels[3])->isBusy()) {
+                if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor())) {
+                    editor->settingsDialog.reset(nullptr);
+                }
+            }
+            else {
+                dialog->setVisible(false);
+            }
+        };
+
+        constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
+        
     }
 
-    void showPanel(int idx)
+    ~SettingsDialog() override
     {
-        panels[currentPanel]->setVisible(false);
-        panels[idx]->setVisible(true);
-        currentPanel = idx;
-        repaint();
+        lastPanel = currentPanel;
+        dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
     }
 
     void resized() override
     {
+        
+        auto b = getLocalBounds().reduced(3);
+        auto panelBounds = Rectangle<int>(b.getX(), toolbarHeight, b.getWidth(), b.getHeight() - toolbarHeight - 4);
+        
         int toolbarPosition = 2;
         for (auto& button : toolbarButtons)
         {
@@ -107,84 +128,10 @@ struct SettingsComponent : public Component
             toolbarPosition += 70;
         }
 
-        panels[0]->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
-        panels[1]->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
-        panels[2]->setBounds(8, toolbarHeight, getWidth() - 8, getHeight() - toolbarHeight - 4);
-        panels[3]->setBounds(2, toolbarHeight, getWidth() - 2, getHeight() - toolbarHeight - 4);
-    }
-
-    int currentPanel = 0;
-    OwnedArray<Component> panels;
-    AudioDeviceManager* deviceManager = nullptr;
-
-    static constexpr int toolbarHeight = 45;
-
-    OwnedArray<TextButton> toolbarButtons;
-};
-
-struct SettingsDialog : public Component
-{
-    AudioProcessor& audioProcessor;
-    SettingsComponent settingsComponent;
-    ComponentBoundsConstrainer constrainer;
-
-
-    SettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor), settingsComponent(processor, manager, settingsTree)
-    {
-        closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
-
-        setCentrePosition(400, 400);
-        setSize(600, 550);
-
-        setVisible(false);
-
-        addAndMakeVisible(&settingsComponent);
-        addAndMakeVisible(closeButton.get());
-
-        settingsComponent.addMouseListener(this, false);
-
-        closeButton->onClick = [this]()
-        {
-            dynamic_cast<PlugDataAudioProcessor*>(&audioProcessor)->saveSettings();
-
-            MessageManager::callAsync(
-                [this]()
-                {
-                    getTopLevelComponent()->removeChildComponent(this);
-                    
-                    background->setVisible(false);
-                    setVisible(false);
-                    
-                    // Check if deken is busy, else clean up settings dialog
-                    if(!dynamic_cast<Deken*>(settingsComponent.panels[3])->isBusy()) {
-                        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor())) {
-                            editor->settingsDialog.reset(nullptr);
-                        }
-                    }
-                });
-        };
-
-        background.reset(new BlackoutComponent(processor.getActiveEditor(), this, closeButton->onClick));
-
-        constrainer.setMinimumOnscreenAmounts(600, 400, 400, 400);
-    
-    }
-
-    ~SettingsDialog() override
-    {
-        settingsComponent.removeMouseListener(this);
-    }
-    
-
-    void visibilityChanged() override
-    {
-        background->setVisible(isVisible());
-    }
-
-    void resized() override
-    {
-        closeButton->setBounds(getWidth() - 35, 8, 28, 28);
-        settingsComponent.setBounds(getLocalBounds().reduced(1));
+        panels[0]->setBounds(panelBounds);
+        panels[1]->setBounds(panelBounds);
+        panels[2]->setBounds(panelBounds.reduced(6, 0));
+        panels[3]->setBounds(panelBounds);
     }
 
     void paint(Graphics& g) override
@@ -196,11 +143,11 @@ struct SettingsDialog : public Component
 
         g.setColour(findColour(PlugDataColour::toolbarColourId));
 
-        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, SettingsComponent::toolbarHeight);
+        auto toolbarBounds = Rectangle<float>(1, 1, getWidth() - 2, toolbarHeight);
         g.fillRoundedRectangle(toolbarBounds, 5.0f);
         g.fillRect(toolbarBounds.withTop(10.0f));
 
-        if (settingsComponent.currentPanel > 0)
+        if (currentPanel > 0)
         {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
             g.setColour(findColour(PlugDataColour::toolbarColourId));
@@ -209,21 +156,38 @@ struct SettingsDialog : public Component
             g.fillRoundedRectangle(statusbarBounds, 5.0f);
         }
 
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(1), 5.0f, 1.0f);
     }
 
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(1.0f, SettingsComponent::toolbarHeight, static_cast<float>(getWidth() - 2), SettingsComponent::toolbarHeight);
+        g.drawLine(1.0f, toolbarHeight, static_cast<float>(getWidth() - 2), toolbarHeight);
 
-        if (settingsComponent.currentPanel > 0)
+        if (currentPanel > 0)
         {
             g.drawLine(1.0f, getHeight() - 33, static_cast<float>(getWidth() - 2), getHeight() - 33);
         }
     }
+    
+    
+    void showPanel(int idx)
+    {
+        panels[currentPanel]->setVisible(false);
+        panels[idx]->setVisible(true);
+        currentPanel = idx;
+        repaint();
+    }
+    
+    AudioProcessor& audioProcessor;
+    ComponentBoundsConstrainer constrainer;
 
-    std::unique_ptr<BlackoutComponent> background;
-    std::unique_ptr<Button> closeButton;
+    static constexpr int toolbarHeight = 45;
+    
+    static inline std::atomic<int> lastPanel = 0;
+    int currentPanel;
+    OwnedArray<Component> panels;
+    AudioDeviceManager* deviceManager = nullptr;
+
+    OwnedArray<TextButton> toolbarButtons;
 };
+

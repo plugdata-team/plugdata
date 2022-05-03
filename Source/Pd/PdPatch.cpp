@@ -72,17 +72,7 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(pat
         setCurrent();
         setZoom(1);
         
-        auto declarePath = [this](const char* name){
-            t_atom declare[2];
-            SETSYMBOL(declare, gensym("-path"));
-            SETSYMBOL(declare + 1, gensym(name));
-            
-            pd_typedmess((t_pd*)getPointer(), gensym("declare"), 2, declare);
-        };
         
-        declarePath("else");
-        declarePath("cyclone");
-
         instance->getCallbackLock()->exit();
     }
 }
