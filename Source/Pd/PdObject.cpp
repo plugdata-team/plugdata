@@ -100,31 +100,34 @@ Rectangle<int> Object::getBounds() const noexcept
 Patch Object::getHelp() const
 {
     static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
-        
+
     auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
     auto* name = class_gethelpname(pdclass);
-    
+
     String firstName = String(name) + "-help.pd";
     String secondName = "help-" + String(name) + ".pd";
-    
-    for(auto& fileIter : RangedDirectoryIterator(appDir, true)) {
+
+    for (auto& fileIter : RangedDirectoryIterator(appDir, true))
+    {
         auto file = fileIter.getFile();
         auto fullPath = file.getParentDirectory().getFullPathName();
-        if(file.getFileName() == firstName) {
+        if (file.getFileName() == firstName)
+        {
             sys_lock();
-            
+
             auto* pdPatch = glob_evalfile(nullptr, gensym(firstName.toRawUTF8()), gensym(fullPath.toRawUTF8()));
             sys_unlock();
             return {pdPatch, instance, File(fullPath).getChildFile(firstName)};
         }
-        else if(file.getFileName() == secondName) {
+        else if (file.getFileName() == secondName)
+        {
             sys_lock();
             auto* pdPatch = glob_evalfile(nullptr, gensym(secondName.toRawUTF8()), gensym(fullPath.toRawUTF8()));
             sys_unlock();
             return {pdPatch, instance, File(fullPath).getChildFile(secondName)};
         }
     }
-    
+
     return {nullptr, nullptr};
 }
 

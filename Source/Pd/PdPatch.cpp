@@ -56,9 +56,8 @@ extern "C"
 
     void canvas_map(t_canvas* x, t_floatarg f);
 
-    void canvas_declare(t_canvas *x, t_symbol *s, int argc, t_atom *argv);
+    void canvas_declare(t_canvas* x, t_symbol* s, int argc, t_atom* argv);
 }
-
 
 namespace pd
 {
@@ -71,8 +70,7 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(pat
 
         setCurrent();
         setZoom(1);
-        
-        
+
         instance->getCallbackLock()->exit();
     }
 }

@@ -340,10 +340,11 @@ void Canvas::mouseDown(const MouseEvent& e)
         auto abstraction = canvas_isabstraction(glist);
         File path;
 
-        if(abstraction) {
+        if (abstraction)
+        {
             path = File(String(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String(glist->gl_name->s_name)).withFileExtension("pd");
         }
-        
+
         for (int n = 0; n < tabbar->getNumTabs(); n++)
         {
             auto* tabCanvas = main.getCanvas(n);
@@ -360,7 +361,6 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         newPatch->setCurrentFile(path);
 
-        
         main.addTab(newCanvas);
         newCanvas->checkBounds();
     };

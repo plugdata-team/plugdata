@@ -13,36 +13,36 @@ class PlugDataPluginEditor;
 
 struct Dialog : public Component
 {
-    
     Dialog(Component* parent, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent(parent->getTopLevelComponent()), height(childHeight), width(childWidth), y(yPosition)
     {
         parentComponent->addAndMakeVisible(this);
         setBounds(4, 4, parentComponent->getWidth() - 8, parentComponent->getHeight() - 8);
-        
+
         setAlwaysOnTop(true);
-        
-        if(showCloseButton) {
+
+        if (showCloseButton)
+        {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
             addAndMakeVisible(closeButton.get());
-            closeButton->onClick = [this](){
-                onClose();
-            };
+            closeButton->onClick = [this]() { onClose(); };
             closeButton->setAlwaysOnTop(true);
         }
     }
-    
+
     void setViewedComponent(Component* child)
     {
         viewedComponent.reset(child);
         addAndMakeVisible(child);
         resized();
     }
-    
-    void paint(Graphics& g) {
+
+    void paint(Graphics& g)
+    {
         g.setColour(Colours::black.withAlpha(0.5f));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
-        
-        if(viewedComponent) {
+
+        if (viewedComponent)
+        {
             g.setColour(findColour(PlugDataColour::toolbarColourId));
             g.fillRoundedRectangle(viewedComponent->getBounds().reduced(1).toFloat(), 5.0f);
 
@@ -51,29 +51,31 @@ struct Dialog : public Component
         }
     }
 
-    void resized() {
-        if(viewedComponent) {
+    void resized()
+    {
+        if (viewedComponent)
+        {
             viewedComponent->setSize(width, height);
             viewedComponent->setCentrePosition({getBounds().getCentreX(), y - (height / 2)});
         }
-        
-        if(closeButton)
+
+        if (closeButton)
         {
             closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
         }
     }
-    
+
     void mouseDown(const MouseEvent& e)
     {
         onClose();
     }
-    
+
     int height, width, y;
-    
+
     Component* parentComponent;
-    
-    std::function<void()> onClose = [this](){ delete this; };
-    
+
+    std::function<void()> onClose = [this]() { delete this; };
+
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;
 };
