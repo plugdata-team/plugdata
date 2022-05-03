@@ -88,7 +88,7 @@ void Box::timerCallback()
     auto pos = cnv->getMouseXYRelative();
     if (pos != getBounds().getCentre())
     {
-        setCentrePosition(cnv->getBounds().getConstrainedPoint(pos));
+        setCentrePosition(cnv->viewport->getViewArea().getConstrainedPoint(pos));
     }
 }
 
