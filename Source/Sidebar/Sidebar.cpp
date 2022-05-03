@@ -15,13 +15,12 @@
 #include "DocumentBrowser.h"
 #include "AutomationPanel.h"
 
-Sidebar::Sidebar(PlugDataAudioProcessor* instance)
+Sidebar::Sidebar(PlugDataAudioProcessor* instance) : pd(instance)
 {
     // Can't use RAII because unique pointer won't compile with forward declarations
-    console = new Console(instance);
+    console = new Console(pd);
     inspector = new Inspector;
-    browser = new DocumentBrowser(instance);
-    automationPanel = new AutomationPanel(instance);
+    browser = new DocumentBrowser(pd);
 
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
@@ -31,7 +30,7 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance)
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
 
-    automationPanel->setAlwaysOnTop(true);
+
 
     setBounds(getParentWidth() - lastWidth, 40, lastWidth, getParentHeight() - 40);
 }
@@ -69,7 +68,7 @@ void Sidebar::resized()
     console->setBounds(bounds);
     inspector->setBounds(bounds);
     browser->setBounds(getLocalBounds());
-    automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
+    if(automationPanel) automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
 }
 
 void Sidebar::mouseDown(const MouseEvent& e)
@@ -141,12 +140,18 @@ bool Sidebar::isShowingBrowser()
 
 void Sidebar::showAutomationPanel(bool show)
 {
-    automationPanel->setVisible(show);
-
-    if (show)
-    {
+    if(show) {
+        automationPanel = new AutomationPanel(pd);
+        addAndMakeVisible(automationPanel);
+        automationPanel->setAlwaysOnTop(true);
         automationPanel->toFront(true);
     }
+    else {
+        delete automationPanel;
+        automationPanel = nullptr;
+    }
+    
+    resized();
 }
 
 void Sidebar::showSidebar(bool show)

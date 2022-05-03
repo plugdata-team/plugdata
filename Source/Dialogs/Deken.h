@@ -222,7 +222,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     int getNumRows() override
     {
-        const ScopedLock lock(searchLock);
         return searchResult.size() + downloads.size();
     }
     
@@ -236,7 +235,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
     Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
         
-        const ScopedLock lock(searchLock);
         
         delete existingComponentToUpdate;
         
@@ -257,9 +255,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         // Web requests shouldn't block the message queue!
         addJob([this, query]() mutable {
         
-        const ScopedLock lock(searchLock);
-            
-        searchResult.clear();
+        SearchResult newResult;
             
         // Add as job to ensure synchronous order
         if(query.isEmpty())  {
@@ -283,17 +279,17 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 auto info = PackageInfo(name, author, timestamp, url, description, version);
                 
                 if(!getDownloadForPackage(info)) {
-                    searchResult.addIfNotAlreadyThere(info);
+                    newResult.addIfNotAlreadyThere(info);
                 }
             }
             
-            MessageManager::callAsync([this](){
+            MessageManager::callAsync([this, newResult]() mutable {
+                searchResult = newResult;
                 listBox.updateContent();
             });
             return;
         }
        
-            
         // Set to name for now: there are not that many deken libraries to justify the other options
         String type = StringArray({"name", "objects", "libraries"})[0];
         
@@ -331,6 +327,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
             // Invalid result, update table and return
             if(!object) {
                 MessageManager::callAsync([this](){
+                    searchResult.clear();
                     listBox.updateContent();
                 });
                 
@@ -379,14 +376,14 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     
                     // check if already being downloaded
                     if(!getDownloadForPackage(info)) {
-                        searchResult.addIfNotAlreadyThere(info);
+                        newResult.addIfNotAlreadyThere(info);
                     }
                 }
             }
         }
-            
             // Update content from message thread
-            MessageManager::callAsync([this](){
+            MessageManager::callAsync([this, newResult]() mutable {
+                searchResult = newResult;
                 listBox.updateContent();
             });
             
@@ -511,8 +508,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         
     // Thread for unzipping and installing packages
     OwnedArray<DownloadTask> downloads;
-    
-    CriticalSection searchLock;
    
     // Component representing a search result
     // It holds package info about the package it represents

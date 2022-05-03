@@ -78,7 +78,7 @@ class Patch
     void savePatch(const File& location);
     void savePatch();
 
-    File getCurrentFile()
+    File getCurrentFile() const
     {
         return currentFile;
     }
@@ -86,6 +86,7 @@ class Patch
     {
         currentFile = newFile;
     }
+
 
     bool canConnect(Object* src, int nout, Object* sink, int nin);
     bool createConnection(Object* src, int nout, Object* sink, int nin);
