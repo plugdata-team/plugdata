@@ -117,7 +117,6 @@ struct SettingsDialog : public Component
 
     void resized() override
     {
-        // TODO: eliminate bottom trimming, is not necessary
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
 
         int toolbarPosition = 2;
