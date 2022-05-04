@@ -25,7 +25,6 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance) : pd(instance)
     addAndMakeVisible(console);
     addAndMakeVisible(inspector);
     addChildComponent(browser);
-    addChildComponent(automationPanel);
 
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
