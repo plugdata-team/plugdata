@@ -124,7 +124,17 @@ void Box::valueChanged(Value& v)
 
 bool Box::hitTest(int x, int y)
 {
-    return getLocalBounds().reduced(1).contains(x, y);
+    if(getLocalBounds().reduced(margin).contains(x, y))
+    {
+        return true;
+    }
+    
+    for(auto* edge : edges)
+    {
+        if(edge->getBounds().contains(x, y)) return true;
+    }
+    
+    return false;
 }
 
 void Box::mouseEnter(const MouseEvent& e)

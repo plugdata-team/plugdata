@@ -45,7 +45,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         downButton.setConnectedEdges(12);
         downButton.onClick = [this] { moveSelection(1); };
 
-        upButton.setTooltip("Reset to default");
+        resetButton.setTooltip("Reset to default");
         resetButton.setName("statusbar:down");
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
@@ -161,7 +161,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
         listBox.setBounds(0, 0, getWidth(), statusbarY);
 
-        auto statusbarBounds = Rectangle<int>(0, statusbarY + 3, getWidth(), statusbarHeight);
+        auto statusbarBounds = Rectangle<int>(0, statusbarY + 8, getWidth(), statusbarHeight);
 
         addButton.setBounds(statusbarBounds.removeFromLeft(buttonSize));
         removeButton.setBounds(statusbarBounds.removeFromLeft(buttonSize));

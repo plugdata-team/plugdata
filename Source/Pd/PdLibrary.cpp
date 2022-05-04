@@ -265,7 +265,10 @@ void Library::updateLibrary()
         for (auto& iter : RangedDirectoryIterator(filePath, true))
         {
             auto file = iter.getFile();
-            if (file.getFileExtension() == ".pd") searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+            // Get pd files but not help files
+            if (file.getFileExtension() == ".pd" && !(file.getFileName().startsWith("help-") || file.getFileName().endsWith("-help")))  {
+                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+            }
         }
     }
 }
