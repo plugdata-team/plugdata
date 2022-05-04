@@ -77,15 +77,16 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     objectLibrary.appDirChanged = [this]()
     {
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-        
+
         settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
-        
+
         // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
-        for(auto child : settingsTree) {
+        for (auto child : settingsTree)
+        {
             child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
         }
         settingsTree.copyPropertiesFrom(newTree, nullptr);
-        
+
         updateSearchPaths();
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     };

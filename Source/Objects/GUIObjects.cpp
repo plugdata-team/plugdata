@@ -174,7 +174,7 @@ void GUIComponent::initialise(bool newObject)
 void GUIComponent::paint(Graphics& g)
 {
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
-    
+
     if (gui.isIEM())
     {
         g.setColour(findColour(TextButton::buttonColourId));

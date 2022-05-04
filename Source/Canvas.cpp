@@ -44,7 +44,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 
     locked.referTo(pd->locked);
     locked.addListener(this);
-    
+
     tabbar = &parent.tabbar;
 
     // Add draggable border for setting graph position
@@ -960,7 +960,7 @@ void Canvas::valueChanged(Value& v)
         if (presentationMode == var(true)) connections.clear();
 
         commandLocked.setValue(presentationMode.getValue());
-        
+
         synchronise();
     }
 }

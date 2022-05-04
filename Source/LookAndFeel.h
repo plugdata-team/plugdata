@@ -92,18 +92,19 @@ struct PlugDataLook : public LookAndFeel_V4
     PlugDataLook() : defaultFont(resources->defaultTypeface), iconFont(resources->iconTypeface)
     {
         setTheme(false);
-        
+
 #if JUCE_WINDOWS
-        if(SystemStats::getUserLanguage().contains("Chinese")) {
+        if (SystemStats::getUserLanguage().contains("Chinese"))
+        {
             setDefaultSansSerifTypefaceName("Microsoft YaHei UI");
         }
-        else {
+        else
+        {
             setDefaultSansSerifTypeface(resources->defaultTypeface);
         }
 #else
         setDefaultSansSerifTypeface(resources->defaultTypeface);
 #endif
-        
     }
 
     class PlugData_DocumentWindowButton : public Button
@@ -300,7 +301,6 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
-        
         g.setColour(findColour(button.getToggleState() ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
 
         g.fillRect(button.getLocalBounds().withTop(1));

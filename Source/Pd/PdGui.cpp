@@ -130,9 +130,6 @@ Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, pat
 
 Type Gui::getType(void* ptr) noexcept
 {
-    
-
-    
     const std::string name = libpd_get_object_class_name(ptr);
     if (name == "bng")
     {
