@@ -106,7 +106,7 @@ struct Sidebar : public Component
     Console* console;
     Inspector* inspector;
     DocumentBrowser* browser;
-    AutomationPanel* automationPanel;
+    AutomationPanel* automationPanel = nullptr;
 
     int dragStartWidth = 0;
     bool draggingSidebar = false;
