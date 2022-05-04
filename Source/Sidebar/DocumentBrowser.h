@@ -165,7 +165,27 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
 
     void paintItem(Graphics& g, int width, int height) override
     {
-        owner.getLookAndFeel().drawFileBrowserRow(g, width, height, file, file.getFileName(), nullptr, fileSize, modTime, isDirectory, isSelected(), indexInParentTree, owner);
+        const int x = 32;
+
+        if (isSelected())
+            g.setColour(owner.findColour(DirectoryContentsDisplayComponent::highlightedTextColourId));
+        else
+            g.setColour(owner.findColour(DirectoryContentsDisplayComponent::textColourId));
+
+        
+        g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
+
+        if (isDirectory)
+        {
+            g.drawFittedText(Icons::Folder, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
+        }
+        else
+        {
+            g.drawFittedText(Icons::File, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
+        }
+
+        g.setFont(Font());
+        g.drawFittedText(file.getFileName(), x, 0, width - x, height, Justification::centredLeft, 1);
     }
 
     String getAccessibilityName() override

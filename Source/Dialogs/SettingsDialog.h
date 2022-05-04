@@ -117,8 +117,8 @@ struct SettingsDialog : public Component
 
     void resized() override
     {
-        auto b = getLocalBounds().reduced(3);
-        auto panelBounds = Rectangle<int>(b.getX(), toolbarHeight, b.getWidth(), b.getHeight() - toolbarHeight - 4);
+        // TODO: eliminate bottom trimming, is not necessary
+        auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
 
         int toolbarPosition = 2;
         for (auto& button : toolbarButtons)
@@ -127,10 +127,10 @@ struct SettingsDialog : public Component
             toolbarPosition += 70;
         }
 
-        panels[0]->setBounds(panelBounds);
-        panels[1]->setBounds(panelBounds);
-        panels[2]->setBounds(panelBounds.reduced(6, 0));
-        panels[3]->setBounds(panelBounds);
+        panels[0]->setBounds(b);
+        panels[1]->setBounds(b);
+        panels[2]->setBounds(b.reduced(6, 0));
+        panels[3]->setBounds(b);
     }
 
     void paint(Graphics& g) override
@@ -159,11 +159,11 @@ struct SettingsDialog : public Component
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(1.0f, toolbarHeight, static_cast<float>(getWidth() - 2), toolbarHeight);
+        g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
 
         if (currentPanel > 0)
         {
-            g.drawLine(1.0f, getHeight() - 33, static_cast<float>(getWidth() - 2), getHeight() - 33);
+            g.drawLine(0.0f, getHeight() - 33, getWidth(), getHeight() - 33);
         }
     }
 

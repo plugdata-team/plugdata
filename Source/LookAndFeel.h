@@ -747,53 +747,6 @@ struct PlugDataLook : public LookAndFeel_V4
         tl.draw(g, {static_cast<float>(width), static_cast<float>(height)});
     }
 
-    void drawFileBrowserRow(Graphics& g, int width, int height, const File&, const String& filename, Image* icon, const String& fileSizeDescription, const String& fileTimeDescription, bool isDirectory, bool isItemSelected, int /*itemIndex*/, DirectoryContentsDisplayComponent& dcc) override
-    {
-        auto fileListComp = dynamic_cast<Component*>(&dcc);
-        const int x = 32;
-
-        g.setColour(findColour(PlugDataColour::textColourId));
-        g.setFont(iconFont);
-
-        if (isDirectory)
-        {
-            g.drawFittedText(Icons::Folder, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
-        }
-        else
-        {
-            g.drawFittedText(Icons::File, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
-        }
-
-        if (isItemSelected)
-            g.setColour(fileListComp != nullptr ? fileListComp->findColour(DirectoryContentsDisplayComponent::highlightedTextColourId) : findColour(DirectoryContentsDisplayComponent::highlightedTextColourId));
-        else
-            g.setColour(fileListComp != nullptr ? fileListComp->findColour(DirectoryContentsDisplayComponent::textColourId) : findColour(DirectoryContentsDisplayComponent::textColourId));
-
-        g.setFont(Font());
-
-        if (width > 450 && !isDirectory)
-        {
-            auto sizeX = roundToInt(width * 0.7f);
-            auto dateX = roundToInt(width * 0.8f);
-
-            g.drawFittedText(filename, x, 0, sizeX - x, height, Justification::centredLeft, 1);
-
-            g.setFont(height * 0.5f);
-            g.setColour(Colours::darkgrey);
-
-            if (!isDirectory)
-            {
-                g.drawFittedText(fileSizeDescription, sizeX, 0, dateX - sizeX - 8, height, Justification::centredRight, 1);
-
-                g.drawFittedText(fileTimeDescription, dateX, 0, width - 8 - dateX, height, Justification::centredRight, 1);
-            }
-        }
-        else
-        {
-            g.drawFittedText(filename, x, 0, width - x, height, Justification::centredLeft, 1);
-        }
-    }
-
     LookAndFeel* getPdLook()
     {
         return new PdLook;
@@ -904,7 +857,7 @@ struct PlugDataLook : public LookAndFeel_V4
         }
         else
         {
-            setColours(Colour(23, 23, 23), Colour(32, 32, 32), Colour(255, 255, 255), Colour(66, 162, 200), Colour(130, 130, 130), Colour(225, 225, 225));
+            setColours(Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225));
         }
     }
 
