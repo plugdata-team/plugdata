@@ -154,14 +154,14 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
     void resized() override
     {
-        const int statusbarHeight = 30;
+        const int statusbarHeight = 32;
         const int statusbarY = getHeight() - statusbarHeight;
 
-        const int buttonSize = 30;
+        const int buttonSize = 32;
 
         listBox.setBounds(0, 0, getWidth(), statusbarY);
 
-        auto statusbarBounds = Rectangle<int>(0, statusbarY + 8, getWidth(), statusbarHeight);
+        auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
 
         addButton.setBounds(statusbarBounds.removeFromLeft(buttonSize));
         removeButton.setBounds(statusbarBounds.removeFromLeft(buttonSize));
