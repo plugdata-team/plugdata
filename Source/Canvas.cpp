@@ -962,6 +962,8 @@ void Canvas::valueChanged(Value& v)
 
         if (presentationMode == var(true)) connections.clear();
 
+        commandLocked.setValue(presentationMode.getValue());
+        
         synchronise();
     }
     else if (v.refersToSameSourceAs(connectionStyle))
