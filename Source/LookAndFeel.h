@@ -289,7 +289,8 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
-        g.setColour(findColour(button.getToggleState() ? ResizableWindow::backgroundColourId : ComboBox::backgroundColourId));
+        
+        g.setColour(findColour(button.getToggleState() ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
 
         g.fillRect(button.getLocalBounds().withTop(1));
 
