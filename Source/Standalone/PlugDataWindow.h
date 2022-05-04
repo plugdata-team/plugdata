@@ -29,6 +29,16 @@
 
 #include <memory>
 
+#if !JUCE_MAC
+#define SHADOW_RADIUS 22
+#define CUSTOM_SHADOW 1
+#else
+#define SHADOW_RADIUS 0
+#define CUSTOM_SHADOW 0
+#endif
+
+
+
 namespace pd
 {
 class Patch;
@@ -474,10 +484,6 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 */
 class PlugDataWindow : public DocumentWindow
 {
-    // Replacement for native Windows shadow, to allow rounded corners
-#if JUCE_WINDOWS
-    DropShadow shadow = DropShadow(Colours::black, 5, Point<int>(0, 0));
-#endif
 
    public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
@@ -497,9 +503,11 @@ class PlugDataWindow : public DocumentWindow
                    )
         : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
-#if JUCE_WINDOWS
+        // We draw this manually on windows and linux
+#if CUSTOM_SHADOW
         setDropShadowEnabled(false);
 #endif
+        
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
@@ -548,14 +556,6 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
 
-    // Fixes shadow with rounded edges on windows
-#if JUCE_WINDOWS
-    void paint(Graphics& g) override
-    {
-        shadow.drawForRectangle(g, getLocalBounds().reduced(5));
-    }
-#endif
-
     AudioProcessor* getAudioProcessor() const noexcept
     {
         return pluginHolder->processor.get();
@@ -592,9 +592,9 @@ class PlugDataWindow : public DocumentWindow
 
         if (auto* b = getMaximiseButton()) b->setToggleState(isFullScreen(), dontSendNotification);
 
-        auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
-
-        getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+        auto titleBarArea = Rectangle<int>(0, 12 + SHADOW_RADIUS, getWidth() - SHADOW_RADIUS, 25);
+        
+        getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth() - 8, titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
@@ -607,6 +607,13 @@ class PlugDataWindow : public DocumentWindow
    private:
     class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
+        
+#if CUSTOM_SHADOW
+        // Replacement for native shadow, to allow rounded corners on all platforms
+        DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), SHADOW_RADIUS, Point<int>(0, 1));
+#endif
+        
+
        public:
         MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
         {
@@ -630,6 +637,23 @@ class PlugDataWindow : public DocumentWindow
                 editor->setAlwaysOnTop(true);
             }
         }
+        
+#if CUSTOM_SHADOW
+        // Fixes shadow with rounded edges on windows
+        void paint(Graphics& g) override
+        {
+            
+            auto b = getLocalBounds().reduced(SHADOW_RADIUS);
+            Path localPath;
+            localPath.addRoundedRectangle(b.toFloat(), 6.0f);
+            shadow.drawForPath(g, localPath);
+            
+            g.setColour(Colour(186, 186, 186));
+            g.drawRoundedRectangle(b.toFloat(), 6.0f, 1.0f);
+
+        }
+#endif
+
 
         StringArray getMenuBarNames() override
         {
@@ -684,7 +708,7 @@ class PlugDataWindow : public DocumentWindow
 
         void resized() override
         {
-            auto r = getLocalBounds();
+            auto r = getLocalBounds().reduced(SHADOW_RADIUS);
 
             if (editor != nullptr)
             {
@@ -712,8 +736,7 @@ class PlugDataWindow : public DocumentWindow
 
         Rectangle<int> getSizeToContainEditor() const
         {
-            if (editor != nullptr) return getLocalArea(editor.get(), editor->getLocalBounds());
-
+            if (editor != nullptr) return getLocalArea(editor.get(), editor->getLocalBounds()).expanded(SHADOW_RADIUS);
             return {};
         }
 
