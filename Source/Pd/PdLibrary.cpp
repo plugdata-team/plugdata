@@ -266,7 +266,7 @@ void Library::updateLibrary()
         {
             auto file = iter.getFile();
             // Get pd files but not help files
-            if (file.getFileExtension() == ".pd" && !(file.getFileName().startsWith("help-") || file.getFileName().endsWith("-help")))  {
+            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help")))  {
                 searchTree->insert(file.getFileNameWithoutExtension().toStdString());
             }
         }

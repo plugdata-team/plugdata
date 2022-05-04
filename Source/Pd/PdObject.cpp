@@ -107,26 +107,43 @@ Patch Object::getHelp() const
     String firstName = String(name) + "-help.pd";
     String secondName = "help-" + String(name) + ".pd";
 
-    for (auto& fileIter : RangedDirectoryIterator(appDir, true))
+    auto findHelpPatch = [&firstName, &secondName](File searchDir) -> File
     {
-        auto file = fileIter.getFile();
-        auto fullPath = file.getParentDirectory().getFullPathName();
-        if (file.getFileName() == firstName)
+        for (auto& fileIter : RangedDirectoryIterator(searchDir, true))
         {
-            sys_lock();
-
-            auto* pdPatch = glob_evalfile(nullptr, gensym(firstName.toRawUTF8()), gensym(fullPath.toRawUTF8()));
-            sys_unlock();
-            return {pdPatch, instance, File(fullPath).getChildFile(firstName)};
+            auto file = fileIter.getFile();
+            if (file.getFileName() == firstName)
+            {
+                return file;
+            }
+            else if (file.getFileName() == secondName)
+            {
+                return file;
+            }
         }
-        else if (file.getFileName() == secondName)
-        {
+        
+        return File();
+    };
+    
+    // Paths to search
+    // First, only search vanilla, then search all documentation
+    std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
+
+    for(auto& path : paths)
+    {
+        auto file = findHelpPatch(path);
+        if(file.existsAsFile()) {
+            auto name = file.getFileName();
+            auto fullPath = file.getParentDirectory().getFullPathName();
             sys_lock();
-            auto* pdPatch = glob_evalfile(nullptr, gensym(secondName.toRawUTF8()), gensym(fullPath.toRawUTF8()));
+            auto* pdPatch = glob_evalfile(nullptr, gensym(name.toRawUTF8()), gensym(fullPath.toRawUTF8()));
             sys_unlock();
-            return {pdPatch, instance, File(fullPath).getChildFile(secondName)};
+            return {pdPatch, instance, file.getChildFile(secondName)};
         }
     }
+    
+
+
 
     return {nullptr, nullptr};
 }

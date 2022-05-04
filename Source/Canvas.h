@@ -114,7 +114,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     Value locked;
     Value commandLocked;
-    Value connectionStyle;
     Value presentationMode;
     Value gridEnabled;
 

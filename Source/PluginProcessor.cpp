@@ -122,7 +122,6 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsFile.create();
 
         // Add default settings
-        settingsTree.setProperty("ConnectionStyle", false, nullptr);
         settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
 

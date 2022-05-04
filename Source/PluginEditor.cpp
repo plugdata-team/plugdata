@@ -594,7 +594,7 @@ void PlugDataPluginEditor::timerCallback()
 
 void PlugDataPluginEditor::updateCommandStatus()
 {
-    // TODO: Fix threading issue!!
+
     if (auto* cnv = getCurrentCanvas())
     {
         // Update connection style button
@@ -708,6 +708,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Lock", "Lock patch", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier);
+            result.setActive(!static_cast<bool>(statusbar.presentationMode.getValue()));
             break;
         }
         case CommandIDs::ConnectionPathfind:
