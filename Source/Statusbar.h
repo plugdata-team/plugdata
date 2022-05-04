@@ -12,7 +12,7 @@ struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;
 
-struct Statusbar : public Component, public Timer, public KeyListener
+struct Statusbar : public Component, public Timer, public KeyListener, public Value::Listener
 {
     PlugDataAudioProcessor& pd;
 
@@ -29,9 +29,13 @@ struct Statusbar : public Component, public Timer, public KeyListener
     };
     bool keyStateChanged(bool isKeyDown, Component*) override;
 
+    void valueChanged(Value& v) override;
+    
     void zoom(bool zoomIn);
     void zoom(float zoomAmount);
     void defaultZoom();
+    
+    bool lastLockMode = false;
 
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;

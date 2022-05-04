@@ -146,6 +146,8 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     locked.referTo(pd.locked);
     commandLocked.referTo(pd.commandLocked);
     zoomScale.referTo(pd.zoomScale);
+    
+    locked.addListener(this);
 
     bypassButton = std::make_unique<TextButton>(Icons::Power);
     lockButton = std::make_unique<TextButton>(Icons::Lock);
@@ -164,6 +166,24 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     presentationButton->setConnectedEdges(12);
     presentationButton->setName("statusbar:presentation");
     presentationButton->getToggleStateValue().referTo(presentationMode);
+    
+    presentationButton->onClick = [this](){
+        
+        // When presenting we are always locked
+        // A bit different from Max's presentation mode
+        if(presentationButton->getToggleState()) {
+            lastLockMode = static_cast<bool>(locked.getValue());
+            if(!lastLockMode) {
+                locked = var(true);
+            }
+            lockButton->setEnabled(false);
+        }
+        else {
+            locked = var(lastLockMode);
+            lockButton->setEnabled(true);
+        }
+    };
+    
     addAndMakeVisible(presentationButton.get());
 
     bypassButton->setTooltip("Bypass");
@@ -181,9 +201,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     lockButton->setConnectedEdges(12);
     lockButton->setName("statusbar:lock");
     lockButton->getToggleStateValue().referTo(locked);
-    lockButton->onClick = [this]() { lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock); };
     addAndMakeVisible(lockButton.get());
-
     lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
 
     connectionStyleButton->setTooltip("Enable segmented connections");
@@ -308,6 +326,17 @@ Statusbar::~Statusbar()
 #endif
 }
 
+void Statusbar::valueChanged(Value& v)
+{
+    if(v.refersToSameSourceAs(locked)) {
+        lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
+    }
+    if(v.refersToSameSourceAs(commandLocked)) {
+        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::highlightColourId).brighter(0.2f) : findColour(PlugDataColour::textColourId);
+       lockButton->setColour(TextButton::textColourOffId, c);
+    }
+}
+
 void Statusbar::resized()
 {
     int pos = 0;
@@ -358,15 +387,11 @@ void Statusbar::timerCallback()
     if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var(false))
     {
         commandLocked = true;
-        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::highlightColourId).brighter(0.2f));
-        lockButton->repaint();
     }
 
     if (!ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == var(true))
     {
         commandLocked = false;
-        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
-        lockButton->repaint();
     }
 }
 
@@ -378,15 +403,11 @@ bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
     if (isKeyDown && mod.isCommandDown() && !lockButton->getToggleState())
     {
         commandLocked = true;
-        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::highlightColourId).brighter(0.2f));
-        lockButton->repaint();
     }
 
     if (!mod.isCommandDown() && pd.commandLocked == var(true))
     {
         commandLocked = false;
-        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
-        lockButton->repaint();
     }
 
     return false;  //  Never claim this event!

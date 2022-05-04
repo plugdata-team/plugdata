@@ -306,7 +306,7 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
 
     t_symbol* typesymbol = gensym("obj");
 
-    if (tokens[0] == "msg" || tokens[0] == "message")
+    if (tokens[0] == "msg")
     {
         typesymbol = gensym("msg");
         tokens.remove(0);

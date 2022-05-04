@@ -130,86 +130,88 @@ Gui::Gui(void* ptr, Patch* patch, Instance* instance) noexcept : Object(ptr, pat
 
 Type Gui::getType(void* ptr) noexcept
 {
-    auto type = Type::Undefined;
+    
 
+    
     const std::string name = libpd_get_object_class_name(ptr);
     if (name == "bng")
     {
-        type = Type::Bang;
+        return Type::Bang;
     }
-    else if (name == "hsl")
+    if (name == "hsl")
     {
-        type = Type::HorizontalSlider;
+        return Type::HorizontalSlider;
     }
-    else if (name == "vsl")
+    if (name == "vsl")
     {
-        type = Type::VerticalSlider;
+        return Type::VerticalSlider;
     }
-    else if (name == "tgl")
+    if (name == "tgl")
     {
-        type = Type::Toggle;
+        return Type::Toggle;
     }
-    else if (name == "nbx")
+    if (name == "nbx")
     {
-        type = Type::Number;
+        return Type::Number;
     }
-    else if (name == "vradio")
+    if (name == "vradio")
     {
-        type = Type::VerticalRadio;
+        return Type::VerticalRadio;
     }
-    else if (name == "hradio")
+    if (name == "hradio")
     {
-        type = Type::HorizontalRadio;
+        return Type::HorizontalRadio;
     }
-    else if (name == "cnv")
+    if (name == "cnv")
     {
-        type = Type::Panel;
+        return Type::Panel;
     }
-    else if (name == "vu")
+    if (name == "vu")
     {
-        type = Type::VuMeter;
+        return Type::VuMeter;
     }
-    else if (name == "text")
+    if (name == "text")
     {
         auto* textObj = static_cast<t_text*>(ptr);
         if (textObj->te_type == T_OBJECT)
         {
-            type = Type::Invalid;
+            return Type::Invalid;
         }
         else
         {
-            type = Type::Comment;
+            return Type::Comment;
         }
     }
-    else if (name == "message")
+    // Check size to prevent confusing it with else/message
+    if (name == "message" && static_cast<t_gobj*>(ptr)->g_pd->c_size == sizeof(t_message))
     {
-        type = Type::Message;
+        return Type::Message;
     }
     else if (name == "pad")
     {
-        type = Type::Mousepad;
+        return Type::Mousepad;
     }
     else if (name == "mouse")
     {
-        type = Type::Mouse;
+        return Type::Mouse;
     }
     else if (name == "keyboard")
     {
-        type = Type::Keyboard;
+        return Type::Keyboard;
     }
     else if (name == "pic")
     {
-        type = Type::Picture;
+        return Type::Picture;
     }
 
     else if (name == "gatom")
     {
         if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
-            type = Type::AtomNumber;
+            return Type::AtomNumber;
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
-            type = Type::AtomSymbol;
+            return Type::AtomSymbol;
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
-            type = Type::AtomList;
+            return Type::AtomList;
     }
 
     else if (name == "canvas" || name == "graph")
@@ -219,32 +221,32 @@ Type Gui::getType(void* ptr) noexcept
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
             if (c && c->c_name && (std::string(c->c_name->s_name) == std::string("array")))
             {
-                type = Type::Array;
+                return Type::Array;
             }
             else if (static_cast<t_canvas*>(ptr)->gl_isgraph)
             {
-                type = Type::GraphOnParent;
+                return Type::GraphOnParent;
             }
             else
             {  // abstraction or subpatch
-                type = Type::Subpatch;
+                return Type::Subpatch;
             }
         }
         else if (static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
-            type = Type::GraphOnParent;
+            return Type::GraphOnParent;
         }
         else
         {
-            type = Type::Subpatch;
+            return Type::Subpatch;
         }
     }
     else if (name == "pd")
     {
-        type = Type::Subpatch;
+        return Type::Subpatch;
     }
 
-    return type;
+    return Type::Undefined;
 }
 
 size_t Gui::getNumberOfSteps() const noexcept
