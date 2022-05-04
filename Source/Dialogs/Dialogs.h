@@ -13,10 +13,10 @@ class PlugDataPluginEditor;
 
 struct Dialog : public Component
 {
-    Dialog(Component* parent, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent(parent->getTopLevelComponent()), height(childHeight), width(childWidth), y(yPosition)
+    Dialog(Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent(editor->getParentComponent()), height(childHeight), width(childWidth), y(yPosition)
     {
         parentComponent->addAndMakeVisible(this);
-        setBounds(4, 4, parentComponent->getWidth() - 8, parentComponent->getHeight() - 8);
+        setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
 
@@ -44,10 +44,10 @@ struct Dialog : public Component
         if (viewedComponent)
         {
             g.setColour(findColour(PlugDataColour::toolbarColourId));
-            g.fillRoundedRectangle(viewedComponent->getBounds().reduced(1).toFloat(), 5.0f);
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
 
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            g.drawRoundedRectangle(viewedComponent->getBounds().reduced(1).toFloat(), 5.0f, 1.0f);
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f, 1.0f);
         }
     }
 
