@@ -594,7 +594,6 @@ void PlugDataPluginEditor::timerCallback()
 
 void PlugDataPluginEditor::updateCommandStatus()
 {
-
     if (auto* cnv = getCurrentCanvas())
     {
         // Update connection style button

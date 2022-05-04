@@ -121,18 +121,19 @@ Patch Object::getHelp() const
                 return file;
             }
         }
-        
+
         return File();
     };
-    
+
     // Paths to search
     // First, only search vanilla, then search all documentation
     std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
 
-    for(auto& path : paths)
+    for (auto& path : paths)
     {
         auto file = findHelpPatch(path);
-        if(file.existsAsFile()) {
+        if (file.existsAsFile())
+        {
             auto name = file.getFileName();
             auto fullPath = file.getParentDirectory().getFullPathName();
             sys_lock();
@@ -141,9 +142,6 @@ Patch Object::getHelp() const
             return {pdPatch, instance, file.getChildFile(secondName)};
         }
     }
-    
-
-
 
     return {nullptr, nullptr};
 }

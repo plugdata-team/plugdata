@@ -64,15 +64,14 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
         removeSubContentsList();
     }
 
-    void paintOpenCloseButton (Graphics& g, const Rectangle<float>& area, Colour backgroundColour, bool isMouseOver) override
+    void paintOpenCloseButton(Graphics& g, const Rectangle<float>& area, Colour backgroundColour, bool isMouseOver) override
     {
-        
         Path p;
         p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
         g.setColour(isSelected() ? Colours::white : getOwnerView()->findColour(PlugDataColour::textColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
         g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
     }
-    
+
     //==============================================================================
     bool mightContainSubItems() override
     {
@@ -677,10 +676,10 @@ struct DocumentBrowser : public DocumentBrowserBase
 
         revealButton.setTooltip(revealTip);
         addAndMakeVisible(revealButton);
-        
+
         loadFolderButton.setTooltip("Choose location to show");
         addAndMakeVisible(loadFolderButton);
-        
+
         resetFolderButton.setTooltip("Reset to default location");
         addAndMakeVisible(resetFolderButton);
 

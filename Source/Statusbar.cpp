@@ -146,7 +146,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     locked.referTo(pd.locked);
     commandLocked.referTo(pd.commandLocked);
     zoomScale.referTo(pd.zoomScale);
-    
+
     locked.addListener(this);
 
     bypassButton = std::make_unique<TextButton>(Icons::Power);
@@ -166,24 +166,27 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     presentationButton->setConnectedEdges(12);
     presentationButton->setName("statusbar:presentation");
     presentationButton->getToggleStateValue().referTo(presentationMode);
-    
-    presentationButton->onClick = [this](){
-        
+
+    presentationButton->onClick = [this]()
+    {
         // When presenting we are always locked
         // A bit different from Max's presentation mode
-        if(presentationButton->getToggleState()) {
+        if (presentationButton->getToggleState())
+        {
             lastLockMode = static_cast<bool>(locked.getValue());
-            if(!lastLockMode) {
+            if (!lastLockMode)
+            {
                 locked = var(true);
             }
             lockButton->setEnabled(false);
         }
-        else {
+        else
+        {
             locked = var(lastLockMode);
             lockButton->setEnabled(true);
         }
     };
-    
+
     addAndMakeVisible(presentationButton.get());
 
     bypassButton->setTooltip("Bypass");
@@ -328,12 +331,14 @@ Statusbar::~Statusbar()
 
 void Statusbar::valueChanged(Value& v)
 {
-    if(v.refersToSameSourceAs(locked)) {
+    if (v.refersToSameSourceAs(locked))
+    {
         lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
     }
-    if(v.refersToSameSourceAs(commandLocked)) {
+    if (v.refersToSameSourceAs(commandLocked))
+    {
         auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::highlightColourId).brighter(0.2f) : findColour(PlugDataColour::textColourId);
-       lockButton->setColour(TextButton::textColourOffId, c);
+        lockButton->setColour(TextButton::textColourOffId, c);
     }
 }
 

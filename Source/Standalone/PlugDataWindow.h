@@ -37,8 +37,6 @@
 #define CUSTOM_SHADOW 0
 #endif
 
-
-
 namespace pd
 {
 class Patch;
@@ -484,10 +482,9 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 */
 class PlugDataWindow : public DocumentWindow
 {
-    
 #if CUSTOM_SHADOW
-        // Replacement for native shadow, to allow rounded corners on all platforms
-        DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN, Point<int>(0, 1));
+    // Replacement for native shadow, to allow rounded corners on all platforms
+    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN, Point<int>(0, 1));
 #endif
 
    public:
@@ -512,7 +509,7 @@ class PlugDataWindow : public DocumentWindow
 #if CUSTOM_SHADOW
         setDropShadowEnabled(false);
 #endif
-        
+
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
@@ -552,8 +549,6 @@ class PlugDataWindow : public DocumentWindow
 
         if (auto* processor = getAudioProcessor())
             if (auto* editor = processor->getActiveEditor()) setResizable(editor->isResizable(), false);
-        
-        
     }
 
     ~PlugDataWindow() override
@@ -592,28 +587,25 @@ class PlugDataWindow : public DocumentWindow
     {
         setFullScreen(!isFullScreen());
     }
-    
+
     virtual BorderSize<int> getBorderThickness() override
     {
         return {WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
     }
-    
-    
+
 #if CUSTOM_SHADOW
     // Fixes shadow with rounded edges on windows
     void paint(Graphics& g) override
     {
-        
         auto b = getLocalBounds().reduced(WINDOW_MARGIN);
         Path localPath;
         localPath.addRoundedRectangle(b.toFloat(), 6.0f);
         shadow.drawForPath(g, localPath);
-        
+
         g.setColour(Colour(186, 186, 186));
         g.drawRoundedRectangle(b.toFloat(), 6.0f, 1.0f);
     }
 #endif
-
 
     void resized() override
     {
@@ -622,12 +614,13 @@ class PlugDataWindow : public DocumentWindow
         if (auto* b = getMaximiseButton()) b->setToggleState(isFullScreen(), dontSendNotification);
 
         int borderWidth = getBorderThickness().getRight();
-        
+
         auto titleBarArea = Rectangle<int>(0, 12 + WINDOW_MARGIN, getWidth() - borderWidth - 6, 24);
-        
+
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
-        
-        if(resizableBorder) {
+
+        if (resizableBorder)
+        {
             resizableBorder->setBorderThickness({3, 3, 3, 3});
             resizableBorder->setBounds(getLocalBounds().reduced(borderWidth - 2));
         }

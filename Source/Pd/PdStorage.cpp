@@ -113,7 +113,7 @@ void Storage::loadInfoFromPatch()
     canvas_setcurrent(parentPatch);
     canvas_map(infoParent, 0);
     canvas_vis(infoParent, 0);
-    
+
     auto block = MemoryBlock();
     auto succeeded = block.fromBase64Encoding(content);
 
