@@ -30,11 +30,11 @@ struct Statusbar : public Component, public Timer, public KeyListener, public Va
     bool keyStateChanged(bool isKeyDown, Component*) override;
 
     void valueChanged(Value& v) override;
-    
+
     void zoom(bool zoomIn);
     void zoom(float zoomAmount);
     void defaultZoom();
-    
+
     bool lastLockMode = false;
 
     LevelMeter* levelMeter;
