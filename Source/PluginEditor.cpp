@@ -228,6 +228,7 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
     g.fillRoundedRectangle(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
+
 #else
     // Toolbar background
     g.setColour(baseColour);
