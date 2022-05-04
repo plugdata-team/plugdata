@@ -95,7 +95,7 @@ struct PlugDataLook : public LookAndFeel_V4
         
 #if JUCE_WINDOWS
         if(SystemStats::getUserLanguage().contains("Chinese")) {
-            setDefaultSansSerifTypeface("Microsoft YaHei UI");
+            setDefaultSansSerifTypefaceName("Microsoft YaHei UI");
         }
         else {
             setDefaultSansSerifTypeface(resources->defaultTypeface);
