@@ -834,7 +834,6 @@ void Canvas::removeSelection()
 
     // Make sure nothing is selected
     patch.deselectAll();
-    storage.ensureDeselected();
 
     // Find selected objects and make them selected in pd
     Array<pd::Object*> objects;
