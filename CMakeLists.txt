@@ -213,17 +213,13 @@ juce_add_plugin(PlugDataMidi
 endif()
 
 if(APPLE)
-set_target_properties(PlugData PROPERTIES MACOSX_BUNDLE TRUE)
 set_target_properties(PlugData PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 set_target_properties(PlugDataFx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 endif()
 
-
-
 juce_generate_juce_header(PlugDataStandalone)
 set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 20)
 target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources} ${ELSESources})
-
 
 juce_generate_juce_header(PlugData)
 set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
@@ -273,26 +269,23 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRANDR=1
     )
-
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
 elseif(MSVC)
-
 target_link_libraries(PlugDataStandalone PUBLIC "-Wl,--export-all-symbols,--whole-archive ws2_32 kernel32 -static-libgcc")
-
 endif()
 
 target_compile_definitions(PlugDataStandalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
 
 target_compile_definitions(PlugData PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
+target_compile_definitions(PlugData PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+
 target_compile_definitions(PlugDataFx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-if(APPLE)
-target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
-endif()
+target_compile_definitions(PlugDataFx PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
+
 target_compile_definitions(PlugData_LV2 PRIVATE "JucePlugin_Build_LV2=1")
 
-target_compile_definitions(PlugData PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
-target_compile_definitions(PlugDataFx PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 if(APPLE)
+target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataMidi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 endif()
 
@@ -321,39 +314,42 @@ file(GLOB PlugDataBinaryDataSources
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+
+set(libs
+  PlugDataBinaryData
+  juce::juce_audio_utils
+  juce::juce_audio_plugin_client
+  juce::juce_opengl
+)
+
 if(MSVC)
-  target_link_libraries(PlugDataStandalone PRIVATE pd PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-  target_link_libraries(PlugData PRIVATE pd-multi PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-  target_link_libraries(PlugDataFx PRIVATE pd-multi PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-  target_link_libraries(PlugData_LV2 PRIVATE pd-multi PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client libpthreadVC3)
-else()
-  target_link_libraries(PlugDataStandalone PRIVATE pd PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-  target_link_libraries(PlugData PRIVATE pd-multi PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-  target_link_libraries(PlugDataFx PRIVATE pd-multi PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-  if(APPLE)
-    target_link_libraries(PlugDataMidi PRIVATE pd-multi PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
-  endif()
-  target_link_libraries(PlugData_LV2 PRIVATE pd-multi PlugDataBinaryData juce::juce_audio_utils juce::juce_audio_plugin_client)
+list(APPEND libs libpthreadVC3)
 endif()
+if(APPLE)
+  target_link_libraries(PlugDataMidi PRIVATE pd-multi ${libs})
+endif()
+
+target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
+target_link_libraries(PlugData PRIVATE pd-multi ${libs})
+target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
+target_link_libraries(PlugData_LV2 PRIVATE pd-multi ${libs})
 
 add_executable(lv2_file_generator ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/main.c)
 target_link_libraries(lv2_file_generator ${CMAKE_DL_LIBS})
 
 set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataFx PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-if(APPLE)
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-endif()
-
 set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+
+set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugData PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+
+set_target_properties(PlugDataFx PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugDataFx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+
 if(APPLE)
 set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 endif()
-
-
 
 
 set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
