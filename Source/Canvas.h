@@ -115,7 +115,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value gridEnabled;
+    Value gridEnabled = Value(true);
 
     bool isGraph = false;
     bool isGraphChild = false;

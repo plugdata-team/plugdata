@@ -43,6 +43,9 @@ Sidebar::~Sidebar()
 
 void Sidebar::paint(Graphics& g)
 {
+    // Makes sure the theme gets updated
+    if(automationPanel) automationPanel->viewport.repaint();
+    
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
 
     // Sidebar

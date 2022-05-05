@@ -189,7 +189,7 @@ void Box::updateBounds(bool newObject)
             addAndMakeVisible(graphics.get());
             auto b = pdObject->getBounds();
 
-            int width = b.getWidth() <= 0 ? getBestTextWidth() : b.getWidth() + doubleMargin;
+            int width = b.getWidth() <= 0 ? getBestTextWidth(currentText) : b.getWidth() + doubleMargin;
 
             setSize(width, b.getHeight() + doubleMargin);
             graphics->resized();
@@ -202,7 +202,7 @@ void Box::updateBounds(bool newObject)
             setEditable(true);
             hideLabel = false;
 
-            int width = bounds.getWidth() <= 0 ? getBestTextWidth() : bounds.getWidth() + doubleMargin;
+            int width = bounds.getWidth() <= 0 ? getBestTextWidth(currentText) : bounds.getWidth() + doubleMargin;
 
             // Hide rounding errors
             if (abs((getWidth() - width) * 0.4f) < glist_fontwidth(cnv->patch.getPointer()) && bounds.getWidth() > 0)
@@ -611,7 +611,7 @@ void Box::mouseDrag(const MouseEvent& e)
 
         if (!graphics || graphics->noGui())
         {
-            int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth();
+            int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth(currentText);
             if (abs(distance) < ObjectGrid::range)
             {
                 cnv->grid.setSnapped(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
@@ -751,9 +751,9 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
     return editor.get();
 }
 
-int Box::getBestTextWidth()
+int Box::getBestTextWidth(const String& text)
 {
-    return std::max<float>(round(font.getStringWidthFloat(currentText) + 30.5f), 50);
+    return std::max<float>(round(font.getStringWidthFloat(text) + 30.5f), 50);
 }
 
 void Box::setEditable(bool editable)
@@ -775,9 +775,8 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
 
 void Box::textEditorTextChanged(TextEditor& ed)
 {
-    currentText = ed.getText();
     // For resize-while-typing behaviour
-    auto width = getBestTextWidth();
+    auto width = getBestTextWidth(ed.getText());
 
     if (width > getWidth())
     {
