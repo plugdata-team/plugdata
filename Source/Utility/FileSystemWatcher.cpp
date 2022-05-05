@@ -8,6 +8,25 @@ For more information visit www.rabiensoftware.com
 #include <JuceHeader.h>
 #include "FileSystemWatcher.h"
 
+#ifdef  _WIN32
+ #include <Windows.h>
+ #include <ctime>
+#else
+ #include <sys/mman.h>
+ #include <sys/stat.h>
+ #include <fcntl.h>
+ #include <semaphore.h>
+ #include <ctime>
+#endif
+
+#ifdef __linux__
+ #include <sys/inotify.h>
+ #include <limits.h>
+ #include <unistd.h>
+ #include <sys/stat.h>
+ #include <sys/time.h>
+#endif
+
 //==============================================================================
 #if JUCE_MAC
 class FileSystemWatcher::Impl
