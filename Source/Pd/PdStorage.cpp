@@ -18,9 +18,9 @@ extern "C"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
 
-    extern t_class* text_class;
+extern t_class* text_class;
 
-    void canvas_map(t_canvas* x, t_floatarg f);
+void canvas_map(t_canvas* x, t_floatarg f);
 }
 
 namespace pd
@@ -29,30 +29,30 @@ namespace pd
 Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(inst)
 {
     instance->getCallbackLock()->enter();
-
+    
     for (t_gobj* y = patch->gl_list; y; y = y->g_next)
     {
         const std::string name = libpd_get_object_class_name(y);
-
+        
         if (name == "graph" || name == "canvas")
         {
             auto* glist = pd_checkglist(&y->g_pd);
             auto* obj = glist->gl_list;
-
+            
             if (obj != nullptr && obj->g_next == nullptr)
             {
                 // Skip non-text object to prevent crash on libpd_get_object_text
                 if (pd_class(&glist->gl_list->g_pd) != text_class) continue;
-
+                
                 // Get object text to return the content of the comment
                 char* text;
                 int size;
-
+                
                 libpd_get_object_text(glist->gl_list, &text, &size);
-
-                String name = String(CharPointer_UTF8(text), size);
+                
+                String name = String::fromUTF8(text, size);
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-
+                
                 // Found an existing storage object!
                 if (name.startsWith("plugdatainfo"))
                 {
@@ -65,29 +65,29 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
             }
         };
     }
-
+    
     // If we're here, no object was found, so we create a new one
-
+    
     // Ensures no undoable action is created, so there's no way to accidentally delete this object
     canvas_undo_get(glist_getcanvas(parentPatch))->u_doing = 1;
-
+    
     infoParent = pd_checkglist(libpd_creategraphonparent(patch, 0, 0));
-
+    
     canvas_undo_get(glist_getcanvas(parentPatch))->u_doing = 0;
-
+    
     // Makes it nearly invisible in pd-vanilla, in PlugData it's hidden
     infoParent->gl_pixwidth = 1;
     infoParent->gl_pixheight = 1;
-
+    
     // Create storage object
     int argc = 3;
     auto argv = std::vector<t_atom>(argc);
     SETFLOAT(argv.data(), 0);
     SETSYMBOL(argv.data() + 1, 0);
     SETSYMBOL(argv.data() + 2, gensym("plugdatainfo"));
-
+    
     infoObject = &pd_checkobject(libpd_createobj(infoParent, gensym("text"), argc, argv.data()))->te_g;
-
+    
     instance->getCallbackLock()->exit();
 }
 
@@ -95,47 +95,37 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
 void Storage::loadInfoFromPatch()
 {
     if (!infoObject) return;
-
+    
     // Make sure the canvas has a window to ensure correct behaviour
     canvas_setcurrent(infoParent);
     canvas_vis(infoParent, 1);
     canvas_map(infoParent, 1);
-
+    
     char* text;
     int size = 0;
     libpd_get_object_text(infoObject, &text, &size);
-
+    
     // copy state tree from patch
-    String content = String(CharPointer_UTF8(text), size).fromFirstOccurrenceOf("plugdatainfo ", false, false);
-    freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-
+    String content = String::fromUTF8(text, size).fromFirstOccurrenceOf("plugdatainfo ", false, false);
+    
     // Set parent to be current again
     canvas_setcurrent(parentPatch);
     canvas_map(infoParent, 0);
     canvas_vis(infoParent, 0);
-
-    auto block = MemoryBlock();
-    auto succeeded = block.fromBase64Encoding(content);
-
-    if (succeeded)
+    
+    try
     {
-        MemoryInputStream stream(block, false);
-        String base64 = stream.readString();
-
-        try
+        auto tree = ValueTree::fromXml(content);
+        
+        if (tree.isValid())
         {
-            auto tree = ValueTree::fromXml(base64);
-
-            if (tree.isValid())
-            {
-                extraInfo = tree;
-                return;
-            }
+            extraInfo = tree;
+            return;
         }
-        catch (...)
-        {
-            std::cerr << "error loading state" << std::endl;
-        }
+    }
+    catch (...)
+    {
+        std::cerr << "error loading state" << std::endl;
     }
 }
 
@@ -143,22 +133,11 @@ void Storage::loadInfoFromPatch()
 void Storage::storeInfo()
 {
     if (!infoObject) return;
-
-    MemoryOutputStream stream;
-    stream.writeString(extraInfo.toXmlString());
-
-    String newname = "plugdatainfo " + stream.getMemoryBlock().toBase64Encoding();
-
-    ensureDeselected();
-
+    
+    String newname = "plugdatainfo " + extraInfo.toXmlString(XmlElement::TextFormat().singleLine());
+    
     // This is likely thread safe because nothing else should access this object
     binbuf_text((reinterpret_cast<t_text*>(infoObject))->te_binbuf, newname.toRawUTF8(), newname.getNumBytesAsUTF8());
-}
-
-void Storage::ensureDeselected()
-{
-    // glist_noselect(infoParent);
-    // glist_noselect(parentPatch);
 }
 
 // Function to change the id of an entry
@@ -167,7 +146,7 @@ void Storage::ensureDeselected()
 void Storage::setInfoId(const String& oldId, const String& newId)
 {
     if (!infoObject) return;
-
+    
     for (auto s : extraInfo)
     {
         if (s.getProperty("ID") == oldId && s.getProperty("Updated") == var(false))
@@ -203,25 +182,25 @@ String Storage::getInfo(const String& id, const String& property) const
 void Storage::setInfo(const String& id, const String& property, const String& info, bool undoable)
 {
     jassert(property != "Updated" && property != "ID");
-
+    
     auto tree = ValueTree("InfoObj");
-
+    
     auto existingInfo = extraInfo.getChildWithProperty("ID", id);
     if (existingInfo.isValid())
     {
         tree = existingInfo;
     }
-
+    
     if (!existingInfo.isValid())
     {
         extraInfo.appendChild(tree, nullptr);
     }
-
+    
     if (undoable) createUndoAction();
-
+    
     tree.setProperty("ID", id, nullptr);
     tree.setProperty(property, info, &undoManager);
-
+    
     storeInfo();
 }
 
@@ -229,16 +208,16 @@ void Storage::setInfo(const String& id, const String& property, const String& in
 void Storage::undoIfNeeded()
 {
     instance->getCallbackLock()->enter();
-
+    
     t_undo* udo = canvas_undo_get(parentPatch);
-
+    
     if (udo && udo->u_last && !strcmp(udo->u_last->name, "plugdata_undo"))
     {
         undoManager.undo();
     }
-
+    
     instance->getCallbackLock()->exit();
-
+    
     storeInfo();
 }
 
@@ -246,16 +225,16 @@ void Storage::undoIfNeeded()
 void Storage::redoIfNeeded()
 {
     instance->getCallbackLock()->enter();
-
+    
     t_undo* udo = canvas_undo_get(parentPatch);
-
+    
     if (udo && udo->u_last && !strcmp(udo->u_last->next->name, "plugdata_undo"))
     {
         undoManager.redo();
     }
-
+    
     instance->getCallbackLock()->exit();
-
+    
     storeInfo();
 }
 
@@ -264,13 +243,13 @@ void Storage::redoIfNeeded()
 void Storage::createUndoAction()
 {
     if (!parentPatch || !infoParent) return;
-
+    
     undoManager.beginNewTransaction();
-
+    
     instance->getCallbackLock()->enter();
     // Create dummy undoable action that we can detect by name when calling undo
     canvas_undo_add(parentPatch, UNDO_MOTION, "plugdata_undo", canvas_undo_set_move(parentPatch, 1));
-
+    
     instance->getCallbackLock()->exit();
 }
 
@@ -284,7 +263,7 @@ bool Storage::isInfoParent(t_gobj* obj)
         auto* glist = pd_checkglist(&obj->g_pd);
         return isInfoParent(glist);
     }
-
+    
     return false;
 }
 
@@ -297,14 +276,14 @@ bool Storage::isInfoParent(t_glist* glist)
     {
         char* text;
         int size;
-
+        
         if (pd_class(&glist->gl_list->g_pd) != text_class) return false;
-
+        
         libpd_get_object_text(glist->gl_list, &text, &size);
-
+        
         String name = String(CharPointer_UTF8(text), size);
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-
+        
         if (name.startsWith("plugdatainfo"))
         {
             return true;
@@ -313,4 +292,4 @@ bool Storage::isInfoParent(t_glist* glist)
     return false;
 }
 
-}  // namespace pd
+}

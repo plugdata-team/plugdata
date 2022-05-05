@@ -88,6 +88,10 @@ struct NumberComponent : public GUIComponent
     {
         GUIComponent::mouseDown(e);
         if (input.isBeingEdited()) return;
+        
+        // Hide cursor
+        input.setMouseCursor(MouseCursor::NoCursor);
+        input.updateMouseCursor();
 
         startEdition();
         shift = e.mods.isShiftDown();
@@ -137,8 +141,13 @@ struct NumberComponent : public GUIComponent
     {
         if (input.isBeingEdited()) return;
 
-        setMouseCursor(MouseCursor::NormalCursor);
-        updateMouseCursor();
+        // Show cursor again
+        input.setMouseCursor(MouseCursor::NormalCursor);
+        input.updateMouseCursor();
+        
+        // Reset mouse position to where it was first clicked
+        Desktop::getInstance().getMainMouseSource().setScreenPosition(e.getMouseDownScreenPosition().toFloat());
+        
         stopEdition();
     }
 
@@ -146,8 +155,6 @@ struct NumberComponent : public GUIComponent
     {
         if (input.isBeingEdited()) return;
 
-        setMouseCursor(MouseCursor::NoCursor);
-        updateMouseCursor();
 
         const int decimal = decimalDrag + e.mods.isShiftDown();
         const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));

@@ -1,5 +1,33 @@
 #pragma once
 
+
+struct Spinner : public Component, public Timer
+{
+    int numSpinning = 0;
+    
+    void startSpinning() {
+        numSpinning++;
+        setVisible(true);
+        startTimer(20);
+    }
+    
+    void stopSpinning() {
+        numSpinning--;
+        if(!numSpinning) {
+            setVisible(false);
+            stopTimer();
+        }
+    }
+    
+    void timerCallback() override {
+        repaint();
+    }
+    
+    void paint(Graphics& g) override {
+        getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::textColourId), 3, 3, getWidth() - 6, getHeight() - 6);
+    }
+};
+
 // Struct with info about the deken package
 struct PackageInfo
 {
@@ -146,7 +174,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
         input.setName("sidebar::searcheditor");
 
-        input.onTextChange = [this]() { startTimer(400); };
+        input.onTextChange = [this]() { startTimer(250); };
 
         clearButton.setName("statusbar:clearsearch");
         clearButton.onClick = [this]()
@@ -173,12 +201,15 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
+        
+        addAndMakeVisible(searchSpinner);
+        searchSpinner.setAlwaysOnTop(true);
 
         updateResults("");
     }
 
     // Group fast typing together
-    void timerCallback()
+    void timerCallback() override
     {
         updateResults(input.getText());
         stopTimer();
@@ -256,6 +287,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
     {
         // Run on threadpool
         // Web requests shouldn't block the message queue!
+        searchSpinner.startSpinning();
         addJob(
             [this, query]() mutable
             {
@@ -296,6 +328,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                         {
                             searchResult = newResult;
                             listBox.updateContent();
+                            searchSpinner.stopSpinning();
                         });
                     return;
                 }
@@ -344,6 +377,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                             {
                                 searchResult.clear();
                                 listBox.updateContent();
+                                searchSpinner.stopSpinning();
                             });
 
                         return;
@@ -403,6 +437,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     {
                         searchResult = newResult;
                         listBox.updateContent();
+                        searchSpinner.stopSpinning();
                     });
             });
     }
@@ -421,6 +456,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         input.setBounds(inputBounds);
 
         clearButton.setBounds(inputBounds.removeFromRight(30));
+        searchSpinner.setBounds(inputBounds.removeFromRight(30));
 
         tableBounds.removeFromLeft(Sidebar::dragbarWidth);
         listBox.setBounds(tableBounds);
@@ -529,6 +565,8 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     TextEditor input;
     TextButton clearButton = TextButton(Icons::Clear);
+    
+    Spinner searchSpinner;
 
     // Thread for unzipping and installing packages
     OwnedArray<DownloadTask> downloads;
