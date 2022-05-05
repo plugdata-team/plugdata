@@ -558,14 +558,14 @@ void Instance::createPanel(int type, const char* snd, const char* location)
 
 void Instance::limitMessages()
 {
-    // Remove 50 at a time to maintain some performance
-    if (consoleMessages.size() > 2000)
+    // Remove 20 at a time to maintain some performance
+    if (consoleMessages.size() > 500)
     {
-        consoleMessages.erase(consoleMessages.begin(), consoleMessages.begin() + 50);
+        consoleMessages.erase(consoleMessages.begin(), consoleMessages.begin() + 20);
     }
-    if (consoleHistory.size() > 2000)
+    if (consoleHistory.size() > 500)
     {
-        consoleHistory.erase(consoleHistory.begin(), consoleHistory.begin() + 50);
+        consoleHistory.erase(consoleHistory.begin(), consoleHistory.begin() + 20);
     }
 }
 
