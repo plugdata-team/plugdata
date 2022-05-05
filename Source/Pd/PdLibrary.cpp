@@ -225,8 +225,8 @@ void Library::initialiseLibrary()
     auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
     parseDocumentation(pddocPath);
-
-    startTimer(1300);
+    watcher.addFolder(appDataDir);
+    watcher.addListener(this);
 }
 
 void Library::updateLibrary()
