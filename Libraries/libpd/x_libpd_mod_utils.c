@@ -689,7 +689,6 @@ struct _rtext
 
 void libpd_renameobj(t_canvas* cnv, t_gobj* obj, const char* buf, int bufsize)
 {
-    
     sys_lock();
     canvas_editmode(cnv, 1);
     

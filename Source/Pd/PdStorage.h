@@ -44,14 +44,12 @@ class Storage
     static bool isInfoParent(t_gobj* obj);
     static bool isInfoParent(t_glist* glist);
 
-    void ensureDeselected();
-
     String getInfo(const String& id, const String& property) const;
     void setInfo(const String& id, const String& property, const String& info, bool undoable = true);
 
    private:
     void createObject();
-
+    
     UndoManager undoManager;
 
     ValueTree extraInfo = ValueTree("PlugDataInfo");
