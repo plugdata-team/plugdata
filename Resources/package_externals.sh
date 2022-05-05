@@ -25,4 +25,6 @@ mkdir Deken
 
 cd ..
 zip -r Library.zip Library
-#rm -r -f Library
+zip -d Library.zip $1 "__MACOSX/*" "*/.DS_Store";
+
+rm -r -f Library

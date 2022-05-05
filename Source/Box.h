@@ -57,7 +57,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
 
-    int getBestTextWidth();
+    int getBestTextWidth(const String& text);
 
     void setEditable(bool editable);
     Array<Rectangle<float>> getCorners() const;

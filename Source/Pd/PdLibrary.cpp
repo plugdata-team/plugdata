@@ -220,8 +220,6 @@ void Library::initialiseLibrary()
 {
     appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
-    lastAppDirModificationTime = appDataDir.getLastModificationTime();
-
     updateLibrary();
 
     auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
@@ -458,14 +456,10 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
     return isInlet ? findInfo(inletDescriptions) : findInfo(outletDescriptions);
 }
 
-void Library::timerCallback()
+void Library::changeCallback()
 {
-    if (lastAppDirModificationTime.getMillisecondCounter() < appDataDir.getLastModificationTime().getMillisecondCounter())
-    {
-        appDirChanged();
-        updateLibrary();
-        lastAppDirModificationTime = appDataDir.getLastModificationTime();
-    }
+    appDirChanged();
+    updateLibrary();
 }
 
 }  // namespace pd
@@ -562,10 +556,6 @@ void Library::timerCallback()
 
      StringArray inletTypes;
      StringArray outletTypes;
-
-     if(name == "metro") {
-         std::cout << "hey" << std::endl;
-     }
 
      for (i = (t_inlet*)obj->ob_inlet; i; i = i->i_next) {
          if(!i->i_symfrom) {

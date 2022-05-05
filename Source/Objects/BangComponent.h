@@ -87,10 +87,10 @@ struct BangComponent : public GUIComponent
 
             auto button = SafePointer<TextButton>(&bangButton);
             Timer::callAfterDelay(holdTime,
-                                  [button]() mutable
+                                  [button, this]() mutable
                                   {
                                       if (!button) return;
-                                      button->setToggleState(false, dontSendNotification);
+                                        button->setToggleState(false, dontSendNotification);
                                       if (button->isDown())
                                       {
                                           button->setState(Button::ButtonState::buttonNormal);

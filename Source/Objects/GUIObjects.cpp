@@ -387,16 +387,16 @@ void GUIComponent::updateValue()
             [thisPtr]()
             {
                 float const v = thisPtr->gui.getValue();
-
-                MessageManager::callAsync(
-                    [thisPtr, v]() mutable
-                    {
-                        if (thisPtr && v != thisPtr->value)
+                if(thisPtr->value != v) {
+                    MessageManager::callAsync(
+                        [thisPtr, v]() mutable
                         {
-                            thisPtr->value = v;
-                            thisPtr->update();
-                        }
-                    });
+                            if(thisPtr) {
+                                thisPtr->value = v;
+                                thisPtr->update();
+                            }
+                        });
+                    }
             });
     }
 }
