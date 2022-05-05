@@ -7,6 +7,8 @@
 
 #include <JuceHeader.h>
 
+#include "../Utility/FileSystemWatcher.h"
+
 #include <array>
 #include <vector>
 
@@ -67,7 +69,7 @@ class Trie
     int autocomplete(std::string query, Suggestions& result);
 };
 
-struct Library : public Timer
+struct Library : public FileSystemWatcher::Listener
 {
     void initialiseLibrary();
 
@@ -78,7 +80,7 @@ struct Library : public Timer
 
     String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
-    void timerCallback() override;
+    void changeCallback() override;
 
     ObjectMap objectDescriptions;
     KeywordMap objectKeywords;
@@ -93,8 +95,6 @@ struct Library : public Timer
     File appDataDir;
 
     std::function<void()> appDirChanged;
-
-    Time lastAppDirModificationTime;
 };
 
 }  // namespace pd

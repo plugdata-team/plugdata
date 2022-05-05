@@ -8,13 +8,15 @@
 // 1. Sort by folders first
 // 2. Improve simplicity and efficiency by not using OS file icons (they look bad anyway)
 
+#include "../Utility/FileSystemWatcher.h"
+
 // Base classes for communication between parent and child classes
 struct DocumentBrowserViewBase : public TreeView, public DirectoryContentsDisplayComponent
 {
     DocumentBrowserViewBase(DirectoryContentsList& listToShow) : DirectoryContentsDisplayComponent(listToShow){};
 };
 
-struct DocumentBrowserBase : public Component, public Timer
+struct DocumentBrowserBase : public Component
 {
     DocumentBrowserBase(PlugDataAudioProcessor* processor)
         : pd(processor),
@@ -41,7 +43,6 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
           owner(treeComp),
           parentContentsList(parentContents),
           indexInContentsList(indexInContents),
-          indexInParentTree(indexInParent),
           subContentsList(nullptr, false)
     {
         DirectoryContentsList::FileInfo fileInfo;
@@ -49,7 +50,6 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
         if (parentContents != nullptr && parentContents->getFileInfo(indexInContents, fileInfo))
         {
             fileSize = File::descriptionOfSizeInBytes(fileInfo.fileSize);
-            modTime = fileInfo.modificationTime.formatted("%d %b '%y %H:%M");
             isDirectory = fileInfo.isDirectory;
         }
         else
@@ -253,10 +253,9 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
     DocumentBrowserViewBase& owner;
     DirectoryContentsList* parentContentsList;
     int indexInContentsList;
-    int indexInParentTree;
     OptionalScopedPointer<DirectoryContentsList> subContentsList;
     bool isDirectory;
-    String fileSize, modTime;
+    String fileSize;
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserItem)
 };
@@ -413,7 +412,7 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
             }
         }
 
-        browser->timerCallback();
+        browser->directory.refresh();
 
         isDraggingFile = false;
         repaint();
@@ -655,7 +654,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
     TextButton closeButton = TextButton(Icons::Clear);
 };
 
-struct DocumentBrowser : public DocumentBrowserBase
+struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::Listener
 {
     DocumentBrowser(PlugDataAudioProcessor* processor) : DocumentBrowserBase(processor), fileList(directory, this), searchComponent(directory)
     {
@@ -667,12 +666,14 @@ struct DocumentBrowser : public DocumentBrowserBase
             location = customLocation;
         }
 
+        watcher.addFolder(location);
         directory.setDirectory(location, true, true);
 
         updateThread.startThread();
-        timerCallback();
 
         addAndMakeVisible(fileList);
+        
+        watcher.addListener(this);
 
         searchComponent.openFile = [this](File& file)
         {
@@ -716,6 +717,7 @@ struct DocumentBrowser : public DocumentBrowserBase
                                              auto path = file.getFullPathName();
                                              pd->settingsTree.setProperty("BrowserPath", path, nullptr);
                                              directory.setDirectory(path, true, true);
+                                             watcher.addFolder(file);
                                          }
                                      });
         };
@@ -743,36 +745,19 @@ struct DocumentBrowser : public DocumentBrowserBase
         addAndMakeVisible(searchComponent);
 
         if (!fileList.getSelectedFile().exists()) fileList.moveSelectedRow(1);
-    }
+        }
 
     ~DocumentBrowser()
     {
         updateThread.stopThread(1000);
     }
-
-    void visibilityChanged() override
-    {
-        if (isVisible())
-        {
-            timerCallback();
-            startTimer(500);
-        }
-        else
-        {
-            stopTimer();
-        }
+    
+    // Called when folder changes
+    void changeCallback() override {
+        directory.refresh();
+        fileList.refresh();
     }
-
-    void timerCallback() override
-    {
-        if (directory.getDirectory().getLastModificationTime() > lastUpdateTime)
-        {
-            lastUpdateTime = directory.getDirectory().getLastModificationTime();
-            directory.refresh();
-            fileList.refresh();
-        }
-    }
-
+    
     bool isSearching() override
     {
         return searchComponent.isSearching();
@@ -833,9 +818,8 @@ struct DocumentBrowser : public DocumentBrowserBase
 
     std::unique_ptr<FileChooser> openChooser;
 
-    Time lastUpdateTime;
-
    public:
     DocumentBrowserView fileList;
     FileSearchComponent searchComponent;
+    FileSystemWatcher watcher;
 };

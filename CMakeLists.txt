@@ -75,7 +75,15 @@ file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/Dialogs/*.cpp
     ${SOURCES_DIRECTORY}/Pd/*.cpp
     ${SOURCES_DIRECTORY}/Pd/*.h
+    ${SOURCES_DIRECTORY}/Utility/*.h
 )
+
+if(APPLE)
+  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm)
+else()
+  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cpp)
+endif()
+
 foreach(core_SOURCE ${PlugDataSources})
 		# Get the path of the file relative to the current source directory
 		file(RELATIVE_PATH core_SOURCE_relative "${SOURCES_DIRECTORY}" "${core_SOURCE}")

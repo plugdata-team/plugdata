@@ -627,7 +627,7 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
-    // setThis();
+    setThis();
 
     // Dequeue messages
     sendMessagesFromQueue();
@@ -686,14 +686,14 @@ AudioProcessorEditor* PlugDataAudioProcessor::createEditor()
         patch->setCurrentFile(File());
         patch->setTitle("Untitled Patcher");
 
-        editor->addTab(cnv);
+        editor->addTab(cnv, true);
     }
     else
     {
         for (auto* patch : patches)
         {
             auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
-            editor->addTab(cnv);
+            editor->addTab(cnv, true);
         }
     }
 
@@ -708,6 +708,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
 
     suspendProcessing(true);  // These functions can be called from any thread, so suspend processing prevent threading issues
 
+    setThis();
     auto state = parameters.copyState();
     std::unique_ptr<XmlElement> xml(state.createXml());
     copyXmlToBinary(*xml, xmlBlock);
@@ -754,7 +755,8 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
                 editor->tabbar.clearTabs();
                 editor->canvases.clear();
             }
-
+            
+            for(auto& patch : patches) patch->close();
             patches.clear();
 
             int numPatches = istream.readInt();
@@ -812,7 +814,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(File patchFile)
         const MessageManagerLock mmLock;
         auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
         cnv->synchronise();
-        editor->addTab(cnv);
+        editor->addTab(cnv, true);
     }
 
     patch->setCurrentFile(patchFile);
