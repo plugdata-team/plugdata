@@ -95,6 +95,7 @@ struct Library : public FileSystemWatcher::Listener
     File appDataDir;
 
     std::function<void()> appDirChanged;
+    FileSystemWatcher watcher;
 };
 
 }  // namespace pd

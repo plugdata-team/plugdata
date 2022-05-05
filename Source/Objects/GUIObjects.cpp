@@ -585,6 +585,10 @@ void DrawableTemplate::updateIfMoved()
 
 void DrawableTemplate::update()
 {
+    if(String(object->x_obj.te_g.g_pd->c_name->s_name) == "drawtext") {
+        return; // not supported yet
+    }
+    
     auto* glist = canvas->patch.getPointer();
     auto* templ = template_findbyname(scalar->sc_template);
 
@@ -595,10 +599,11 @@ void DrawableTemplate::update()
 
     auto* data = scalar->sc_vec;
 
+
     /* see comment in plot_vis() */
     if (vis && !fielddesc_getfloat(&object->x_vis, templ, data, 0))
     {
-        // return;
+        return;
     }
 
     // Reduce clip region
@@ -606,6 +611,7 @@ void DrawableTemplate::update()
     auto bounds = canvas->getParentComponent()->getLocalBounds();
 
     lastBounds = bounds + pos;
+    
 
     if (vis)
     {
@@ -624,7 +630,8 @@ void DrawableTemplate::update()
             {
                 // glist->gl_havewindow = canvas->isGraphChild;
                 // glist->gl_isgraph = canvas->isGraph;
-
+                
+                    
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
 
