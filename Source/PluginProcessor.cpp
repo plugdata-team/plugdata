@@ -34,8 +34,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 {
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
-    parameters.createAndAddParameter(std::make_unique<AudioParameterBool>("enabled", "Enabled", true));
-
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++)
     {
@@ -46,7 +44,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     }
 
     volume = parameters.getRawParameterValue("volume");
-    enabled = parameters.getRawParameterValue("enabled");
 
     parameters.replaceState(ValueTree("PlugData"));
 
@@ -270,7 +267,11 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     midiByteBuffer[0] = 0;
     midiByteBuffer[1] = 0;
     midiByteBuffer[2] = 0;
+    
+
     startDSP();
+
+    
     processingBuffer.setSize(2, samplesPerBlock);
 
     statusbarSource.prepareToPlay(getTotalNumOutputChannels());
@@ -644,24 +645,11 @@ void PlugDataAudioProcessor::processInternal()
     sendMidiBuffer();
 
     // Process audio
-    if (static_cast<bool>(enabled->load()))
-    {
-        std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
+    std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
+    performDSP(audioBufferIn.data(), audioBufferOut.data());
 
-        performDSP(audioBufferIn.data(), audioBufferOut.data());
-    }
-
-    else
-    {
-        std::fill(audioBufferIn.begin(), audioBufferIn.end(), 0.f);
-
-        performDSP(audioBufferIn.data(), audioBufferOut.data());
-
-        std::fill(audioBufferOut.begin(), audioBufferOut.end(), 0.f);
-    }
 
     // Midi out
-
     if (producesMidi())
     {
         midiByteIndex = 0;
@@ -989,7 +977,9 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
 
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)
 {
-    parameters.getParameter("enabled")->setValueNotifyingHost(dsp);
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        editor->statusbar.bypassButton->setToggleState(dsp, dontSendNotification);
+    }
 }
 
 void PlugDataAudioProcessor::updateConsole()
