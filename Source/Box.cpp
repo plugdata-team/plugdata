@@ -85,7 +85,7 @@ void Box::initialise()
     locked.addListener(this);
     commandLocked.addListener(this);
 
-    setBufferedToImage(true);
+    //setBufferedToImage(true);
 
     originalBounds.setBounds(0, 0, 0, 0);
 }
