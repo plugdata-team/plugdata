@@ -67,8 +67,10 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
-        viewport->setBufferedToImage(true);  // makes scrolling much smoother
-
+        viewport->getVerticalScrollBar().addListener(this);
+        viewport->getHorizontalScrollBar().addListener(this);
+        
+            
         // Apply zooming
         setTransform(parent.transform);
         presentationMode.referTo(parent.statusbar.presentationMode);
@@ -82,12 +84,15 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     addAndMakeVisible(grid);
     synchronise();
 
-    // Prevent having to redraw all those dots!
-    setBufferedToImage(true);
 }
 
 Canvas::~Canvas()
 {
+    if(viewport) {
+        viewport->getVerticalScrollBar().removeListener(this);
+        viewport->getHorizontalScrollBar().removeListener(this);
+    }
+   
     delete graphArea;
     delete suggestor;
 }
@@ -124,6 +129,20 @@ void Canvas::paint(Graphics& g)
             }
         }
     }
+}
+
+// Micro-optimisation:
+// Viewport has better scrolling performance when buffered to image, but that is detrimental to the performance otherwise
+// So enable it when scrolling and disable it again afterwards
+void Canvas::scrollBarMoved (ScrollBar *scrollBarThatHasMoved, double newRangeStart)
+{
+    viewport->setBufferedToImage(true);
+    startTimer(200);
+}
+
+void Canvas::timerCallback() {
+    viewport->setBufferedToImage(false);
+    stopTimer();
 }
 
 void Canvas::focusGained(FocusChangeType cause)
@@ -1118,26 +1137,25 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
     for (auto& con : connections)
     {
         bool intersect = false;
-
-        // Check intersection with path
-        for (int i = 0; i < 200; i++)
+        PathFlatteningIterator i (con->toDraw);
+        
+        auto relativeBounds = lasso.getBounds().translated(-con->getX(), -con->getY());
+        while (i.next())
         {
-            float position = static_cast<float>(i) / 200.0f;
-            auto point = con->toDraw.getPointAlongPath(position * con->toDraw.getLength());
-
-            if (!point.isFinite()) continue;
-
-            if (lasso.getBounds().contains(point.toInt() + con->getPosition()))
-            {
+            if(relativeBounds.contains(i.x1, i.y1) || relativeBounds.contains(i.x2, i.y2)) {
                 intersect = true;
+                break;
             }
         }
-
+        
         if (intersect)
         {
             con->repaint();
             itemsFound.add(con);
             setSelected(con, true);
+        }
+        else if(!ModifierKeys::getCurrentModifiers().isAnyModifierKeyDown()) {
+            setSelected(con, false);
         }
     }
 }

@@ -25,7 +25,6 @@ Edge::Edge(Box* parent, bool inlet) : box(parent)
         createConnection();
     };
 
-    setBufferedToImage(true);
 }
 
 bool Edge::hasConnection()
@@ -66,32 +65,28 @@ void Edge::paint(Graphics& g)
 
     if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
-    Path path;
-
-    // Visual change if it has a connection
-    if (hasConnection() && !isHovered)
-    {
-        if (isInlet)
-        {
-            path.addPieSegment(bounds, MathConstants<float>::pi + MathConstants<float>::halfPi, MathConstants<float>::halfPi, 0.3f);
-        }
-        else
-        {
-            path.addPieSegment(bounds, -MathConstants<float>::halfPi, MathConstants<float>::halfPi, 0.3f);
-        }
+    bool connected = hasConnection();
+    
+    // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
+    // This is much faster!
+    if(connected) {
+        g.saveState();
+        g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
     }
-    else
-    {
-        path.addEllipse(bounds);
-    }
-
+    
     g.setColour(findColour(ResizableWindow::backgroundColourId));
     g.drawLine(bounds.getX(), bounds.getCentreY(), bounds.getRight(), bounds.getCentreY(), 2);
-
+    
     g.setColour(backgroundColour);
-    g.fillPath(path);
+    g.fillEllipse(bounds);
+    
+    
     g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
-    g.strokePath(path, PathStrokeType(1.f));
+    g.drawEllipse(bounds, 1.0f);
+    
+    if(connected) {
+        g.restoreState();
+    }
 }
 
 void Edge::resized()
