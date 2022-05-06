@@ -615,7 +615,7 @@ class PlugDataWindow : public DocumentWindow
 
         int borderWidth = getBorderThickness().getRight();
 
-        auto titleBarArea = Rectangle<int>(0, 12 + WINDOW_MARGIN, getWidth() - borderWidth - 6, 24);
+        auto titleBarArea = Rectangle<int>(0, 10 + WINDOW_MARGIN, getWidth() - borderWidth - 6, 24);
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
 
