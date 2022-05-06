@@ -195,9 +195,11 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     bypassButton->setName("statusbar:bypass");
     addAndMakeVisible(bypassButton.get());
 
-    bypassButton->onClick = [this]() { pd.enqueueMessages("pd", "dsp", {static_cast<float>(bypassButton->getToggleState())}); };
-
-    bypassButton->setToggleState(true, dontSendNotification);
+    bypassButton->onClick = [this]() {
+        bypassButton->getToggleState() ? pd.startDSP() : pd.releaseDSP();
+    };
+    
+    bypassButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
     lockButton->setTooltip("Lock");
     lockButton->setClickingTogglesState(true);
@@ -304,8 +306,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     volumeSlider.setName("statusbar:meter");
 
     volumeAttachment = std::make_unique<SliderParameterAttachment>(*pd.parameters.getParameter("volume"), volumeSlider, nullptr);
-
-    enableAttachment = std::make_unique<ButtonParameterAttachment>(*pd.parameters.getParameter("enabled"), *bypassButton, nullptr);
 
     addAndMakeVisible(levelMeter);
     addAndMakeVisible(midiBlinker);

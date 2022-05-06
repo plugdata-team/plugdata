@@ -52,7 +52,12 @@ struct AutomationComponent : public Component
             addAndMakeVisible(slider);
             addAndMakeVisible(button);
 
-            attachments.add(new SliderParameterAttachment(*pd->parameters.getParameter("param" + String(p + 1)), *slider, nullptr));
+            auto* param = pd->parameters.getParameter("param" + String(p + 1));
+            auto range = param->getNormalisableRange().getRange();
+            
+            slider->setNormalisableRange(NormalisableRange<double>(range.getStart(), range.getEnd()));
+            slider->setValue(param->getValue());
+            attachments.add(new SliderParameterAttachment(*param, *slider, nullptr));
         }
     }
     void paint(Graphics& g) override

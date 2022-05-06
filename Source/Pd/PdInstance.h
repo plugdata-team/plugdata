@@ -189,8 +189,9 @@ class Instance
 
     std::vector<std::pair<String, int>> consoleMessages;
     std::vector<std::pair<String, int>> consoleHistory;
-
+    
    private:
+
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
