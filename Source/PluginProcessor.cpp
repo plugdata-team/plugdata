@@ -77,7 +77,12 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     objectLibrary.appDirChanged = [this]()
     {
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-
+        
+        // Prevents causing an update loop
+        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+            settingsTree.removeListener(editor);
+        }
+        
         settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
 
         // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
@@ -86,6 +91,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
         }
         settingsTree.copyPropertiesFrom(newTree, nullptr);
+        
+        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+            settingsTree.addListener(editor);
+        }
 
         updateSearchPaths();
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));

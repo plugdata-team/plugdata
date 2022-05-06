@@ -267,7 +267,7 @@ if(UNIX AND NOT APPLE)
     set(PLUGDATA_COMPILE_DEFINITIONS
     ${PLUGDATA_COMPILE_DEFINITIONS}
     JUCE_MODAL_LOOPS_PERMITTED=1
-    JUCE_USE_XRANDR=1
+    JUCE_USE_XRENDER=1
     )
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
 elseif(MSVC)
