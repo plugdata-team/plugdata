@@ -399,7 +399,8 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                                 auto* archs = arch["archs"].getArray();
                                 // Look for matching platform
                                 String platform = archs->getReference(0).toString();
-                                if (platform.startsWith(os) && platform.contains(machine))
+                                
+                                if (checkArchitecture(platform))
                                 {
                                     // Extract info
                                     String author = arch["author"];
@@ -694,7 +695,44 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
             reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
         }
     };
+    
+    bool checkArchitecture(String packageArchitecture)
+    {
+        // Check OS
+        if(packageArchitecture.upToFirstOccurrenceOf("-", false, false) != os) return false;
+        packageArchitecture = packageArchitecture.fromFirstOccurrenceOf("-", false, false);
+        
+        // Check floatsize
+        if(packageArchitecture.fromLastOccurrenceOf("-", false, false) != floatsize) return false;
+        packageArchitecture = packageArchitecture.upToLastOccurrenceOf("-", false, false);
+        
+        if(packageArchitecture == machine) return true;
+        
+        if(architectureSubstitutes.count(packageArchitecture)) {
+            if(architectureSubstitutes[packageArchitecture].contains(machine)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+        
+    
+    std::map<String, StringArray> architectureSubstitutes =
+    {
+        {"x86_64", {"amd64"}},
+        {"amd64", {"x86_64"}},
+        {"i686", {"i586", "i386"}},
+        {"i586", {"i386"}},
+        {"armv6", {"armv6l", "arm"}},
+        {"armv6l", {"armv6", "arm"}},
+        {"armv7", {"armv7l", "armv6l", "armv6", "arm"}},
+        {"armv7l", {"armv7", "armv6l", "armv6", "arm"}},
+        {"PowerPC", {"ppc"}},
+        {"ppc", {"PowerPC"}}
+    };
 
+    String floatsize = String(PD_FLOATSIZE);
     String os =
 #if defined __linux__
         "Linux"
@@ -727,11 +765,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         "arm64"
 #elif defined(__ARM_ARCH)
         "armv" stringify(__ARM_ARCH)
-#if defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__)
-#if __BYTE_ORDER__ == __ORDER_BIG_ENDIAN__
-            "b"
-#endif
-#endif
 #else
 #if defined(__GNUC__)
 #warning unknown architecture
