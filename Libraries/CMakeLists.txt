@@ -11,19 +11,6 @@ if (MSVC)
     include_directories(pthread-win32)
 endif()
 
-
-if(UNIX AND NOT APPLE)
-set(CURL_STATICLIB ON CACHE BOOL "")
-set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-
-if(WIN32)
-    add_definitions("-DCURL_STATICLIB")
-endif()
-set(CURL_LIBRARY "-lcurl-static")
-find_package(CURL REQUIRED)
-include_directories(${CURL_INCLUDE_DIR})
-endif()
-
 add_subdirectory(JUCE)
 
 
