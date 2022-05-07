@@ -409,7 +409,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                                 // Look for matching platform
                                 String platform = archs->getReference(0).toString();
 #if JUCE_DEBUG
-                                std::cout << "  Platform:" << platform << "Machine: " << machine[0] << std::endl;
+                                std::cout << "  Platform:" << platform << "  Machine: " << machine[0] << std::endl;
 #endif
                                 if (checkArchitecture(platform))
                                 {
