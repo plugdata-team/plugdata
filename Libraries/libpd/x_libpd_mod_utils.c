@@ -633,7 +633,7 @@ t_pd* libpd_createobj(t_canvas* cnv, t_symbol *s, int argc, t_atom *argv) {
     if (new_object)
     {
         if (pd_class(new_object) == canvas_class)
-            canvas_loadbang((t_canvas *)pd_this->pd_newest);
+            canvas_loadbang(new_object);
         else if (zgetfn(new_object, gensym("loadbang")))
             vmess(new_object, gensym("loadbang"), "f", LB_LOAD);
     }
