@@ -396,7 +396,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                         for (const auto v : versions->getProperties())
                         {
 #if JUCE_DEBUG
-                        std::cout << "version: "<< v.name.toString9) << ", num archs:" << v.value.getArray().size() << std::endl;
+                        std::cout << "version: "<< v.name.toString() << ", num archs:" << v.value.getArray()->size() << std::endl;
 #endif
                             
                             // Loop through architectures
