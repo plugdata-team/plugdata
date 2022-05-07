@@ -395,10 +395,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                         auto* versions = result.value.getDynamicObject();
                         for (const auto v : versions->getProperties())
                         {
-#if JUCE_DEBUG
-                        std::cout << "version: "<< v.name.toString() << ", num archs:" << v.value.getArray()->size() << std::endl;
-#endif
-                            
                             // Loop through architectures
                             for (auto& arch : *v.value.getArray())
                             {
@@ -408,9 +404,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                                 auto* archs = arch["archs"].getArray();
                                 // Look for matching platform
                                 String platform = archs->getReference(0).toString();
-#if JUCE_DEBUG
-                                std::cout << "  Platform:" << platform << "  Machine: " << machine[0] << std::endl;
-#endif
                                 if (checkArchitecture(platform))
                                 {
                                     // Extract info
@@ -427,9 +420,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                             }
                         }
 
-#if JUCE_DEBUG
-                        std::cout << "num found:" << results.size() << std::endl;
-#endif
                         if (!results.isEmpty())
                         {
                             // Sort by alphabetically by timestamp to get latest version
