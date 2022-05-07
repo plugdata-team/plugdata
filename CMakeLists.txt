@@ -267,6 +267,7 @@ if(UNIX AND NOT APPLE)
     ${PLUGDATA_COMPILE_DEFINITIONS}
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
+    CURL_STATICLIB=1
     )
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
 elseif(MSVC)
@@ -326,7 +327,7 @@ if(MSVC)
 elseif(APPLE)
   target_link_libraries(PlugDataMidi PRIVATE pd-multi ${libs})
 elseif(UNIX)
-  list(APPEND libs curl)
+  list(APPEND libs curl-static)
 endif()
 
 target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
