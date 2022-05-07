@@ -352,6 +352,18 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     timer *= 2;
                     success = webstream.connect(nullptr);
                 }
+                
+                if(!success) {
+                    MessageManager::callAsync(
+                        [this]()
+                        {
+                            searchResult.clear();
+                            listBox.updateContent();
+                            searchSpinner.stopSpinning();
+                            showError("Failed to connect to server");
+                        });
+                }
+                
 
                 // Read JSON result from search query
                 auto json = webstream.readString();
