@@ -7,6 +7,7 @@ struct Subpatch : public GUIComponent
 
     void updateValue() override
     {
+        if(gui.getType() == pd::Type::Clone) return;
         // Pd sometimes sets the isgraph flag too late...
         // In that case we tell the box to create the gui
         if (static_cast<t_canvas*>(gui.getPointer())->gl_isgraph)
