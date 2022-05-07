@@ -70,6 +70,7 @@ FEATURES:
 	- Shift-drag to place object inbetween connection
 	- Shift while creating connection to create multiple connections
 	- Dragging over toggles and radiocomponents to activate them
+	- More stuff
 - Commandline arguments
 
 PD COMPATIBILITY:
