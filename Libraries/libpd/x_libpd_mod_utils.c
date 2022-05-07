@@ -9,6 +9,8 @@
 #include <g_canvas.h>
 #include <g_undo.h>
 
+#include <errno.h>
+
 #include <string.h>
 #include "x_libpd_mod_utils.h"
 
@@ -646,7 +648,6 @@ void libpd_savetofile(t_canvas* cnv, t_symbol *filename, t_symbol *dir)
     t_binbuf *b = binbuf_new();
     canvas_savetemplatesto(cnv, b, 1);
     canvas_saveto(cnv, b);
-    int errno = 0;
     if (binbuf_write(b, filename->s_name, dir->s_name, 0))
         post("%s/%s: %s", dir->s_name, filename->s_name,
             (errno ? strerror(errno) : "write failed"));
