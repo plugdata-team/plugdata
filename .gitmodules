@@ -13,3 +13,9 @@
 [submodule "Libraries/concurrentqueue"]
 	path = Libraries/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
+[submodule "Libraries/curl"]
+	path = Libraries/curl
+	url = https://github.com/curl/curl.git
+[submodule "Libraries/openssl"]
+	path = Libraries/openssl
+	url = https://github.com/openssl/openssl.git
