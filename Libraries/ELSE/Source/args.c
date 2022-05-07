@@ -47,7 +47,7 @@ static void args_break(t_args *x, t_symbol *s, int ac, t_atom *av){
             // i is starting point & j is broken item
             int j = i + 1;
             // j starts as next item from previous iteration (and as 0 in the first iteration)
-            while (j < ac){
+            while (j < ac - 1){
                 j++;
                 if ((av+j)->a_type == A_SYMBOL && x->x_separator == (atom_getsymbol(av+j))->s_name[0]){
                     x->x_broken = 1;
