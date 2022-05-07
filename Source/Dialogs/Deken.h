@@ -389,19 +389,21 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                         SearchResult results;
                         String name = result.name.toString();
                         
-#if JUCE_DEBUG
-                        std::cout << "num hits:" << results.size() << std::endl;
-#endif
+
 
                         // Loop through the different versions
                         auto* versions = result.value.getDynamicObject();
                         for (const auto v : versions->getProperties())
                         {
+#if JUCE_DEBUG
+                        std::cout << "version: "<< v.name.toString9) << ", num archs:" << v.value.getArray().size() << std::endl;
+#endif
+                            
                             // Loop through architectures
                             for (auto& arch : *v.value.getArray())
                             {
+
                                 
-                                std::cout << "num hits:" << results.size() << std::endl;
                                 
                                 auto* archs = arch["archs"].getArray();
                                 // Look for matching platform
