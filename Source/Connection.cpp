@@ -477,8 +477,8 @@ void Connection::findPath()
     while (!numFound && resolution < 7 && distance > 40)
     {
         // Find paths on an resolution*resolution lattice ObjectGrid
-        incrementX = std::max(abs(pstart.x - pend.x) / resolution, resolution);
-        incrementY = std::max(abs(pstart.y - pend.y) / resolution, resolution);
+        incrementX = std::max(std::abs(pstart.x - pend.x) / resolution, resolution);
+        incrementY = std::max(std::abs(pstart.y - pend.y) / resolution, resolution);
 
         numFound = findLatticePaths(bestPath, pathStack, pstart, pend, {incrementX, incrementY});
         resolution++;
@@ -557,7 +557,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     bool endVertically = pathStack[0].y > pend.y;
 
     // Check if we've reached the destination
-    if (abs(pstart.x - pend.x) < (increment.x * 0.5) && abs(pstart.y - pend.y) < (increment.y * 0.5))
+    if (std::abs(pstart.x - pend.x) < (increment.x * 0.5) && std::abs(pstart.y - pend.y) < (increment.y * 0.5))
     {
         bestPath = pathStack;
         return 1;
@@ -575,7 +575,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
         auto& coord2 = isX ? inlet.x : inlet.y;
         auto& incr = isX ? increment.x : increment.y;
 
-        if (abs(coord1 - coord2) >= incr)
+        if (std::abs(coord1 - coord2) >= incr)
         {
             coord1 > coord2 ? coord1 -= incr : coord1 += incr;
             count += findLatticePaths(bestPath, pathStack, outlet, inlet, increment);
@@ -587,7 +587,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // This will make it do a staircase effect
     if (endVertically)
     {
-        if (abs(pstart.y - pend.y) >= abs(pathStack[0].y - pend.y) * 0.5)
+        if (std::abs(pstart.y - pend.y) >= std::abs(pathStack[0].y - pend.y) * 0.5)
         {
             followLine(pstart, pend, false);
             followLine(pstart, pend, true);
@@ -600,7 +600,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     }
     else
     {
-        if (abs(pstart.x - pend.x) >= abs(pathStack[0].x - pend.x) * 0.5)
+        if (std::abs(pstart.x - pend.x) >= std::abs(pathStack[0].x - pend.x) * 0.5)
         {
             followLine(pstart, pend, true);
             followLine(pstart, pend, false);
