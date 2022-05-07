@@ -235,7 +235,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         if (errorMessage.isNotEmpty())
         {
             g.setColour(Colours::red);
-            g.drawText(errorMessage, getLocalBounds().removeFromBottom(30).withTrimmedLeft(5), Justification::centredLeft);
+            g.drawText(errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Justification::centredLeft);
         }
     }
 
