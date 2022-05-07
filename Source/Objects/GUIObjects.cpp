@@ -749,7 +749,7 @@ GUIComponent* GUIComponent::createGui(const String& name, Box* parent, bool newO
     {
         return new GraphOnParent(gui, parent, newObject);
     }
-    if (gui.getType() == pd::Type::Subpatch)
+    if (gui.getType() == pd::Type::Subpatch || gui.getType() == pd::Type::Clone)
     {
         return new Subpatch(gui, parent, newObject);
     }

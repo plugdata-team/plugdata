@@ -21,7 +21,9 @@ extern "C"
 
 #include "x_libpd_extra_utils.h"
 
-    void my_numbox_calc_fontwidth(t_my_numbox* x);
+void my_numbox_calc_fontwidth(t_my_numbox*);
+t_glist *clone_get_instance(t_gobj*, int);
+int clone_get_n(t_gobj*);
 }
 
 namespace pd
@@ -210,7 +212,6 @@ Type Gui::getType(void* ptr) noexcept
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
             return Type::AtomList;
     }
-
     else if (name == "canvas" || name == "graph")
     {
         if (static_cast<t_canvas*>(ptr)->gl_list)
@@ -237,6 +238,10 @@ Type Gui::getType(void* ptr) noexcept
         {
             return Type::Subpatch;
         }
+    }
+    else if (name == "clone")
+    {
+        return Type::Clone;
     }
     else if (name == "pd")
     {
@@ -835,7 +840,14 @@ Patch Gui::getPatch() const noexcept
     {
         return {ptr, instance};
     }
-
+    if (type == Type::Clone)
+    {
+        auto* obj = static_cast<t_gobj*>(ptr);
+        if(clone_get_n(obj) > 0) {
+            return {clone_get_instance(obj, 0), instance};
+        }
+        
+    }
     return {nullptr, nullptr};
 }
 

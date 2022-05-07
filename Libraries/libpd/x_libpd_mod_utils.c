@@ -38,6 +38,160 @@ struct _instanceeditor
 extern int glist_getindex(t_glist* cnv, t_gobj *y);
 extern int glist_selectionindex(t_glist* cnv, t_gobj *y, int selected);
 extern void glist_deselectline(t_glist* x);
+extern void canvas_savedeclarationsto(t_canvas *x, t_binbuf *b);
+extern void canvas_doaddtemplate(t_symbol *templatesym,
+                                 int *p_ntemplates, t_symbol ***p_templatevec);
+
+static void canvas_saveto(t_canvas *x, t_binbuf *b)
+{
+    t_gobj *y;
+    t_linetraverser t;
+    t_outconnect *oc;
+
+        /* subpatch */
+    if (x->gl_owner && !x->gl_env)
+    {
+        /* have to go to original binbuf to find out how we were named. */
+        t_binbuf *bz = binbuf_new();
+        t_symbol *patchsym;
+        binbuf_addbinbuf(bz, x->gl_obj.ob_binbuf);
+        patchsym = atom_getsymbolarg(1, binbuf_getnatom(bz), binbuf_getvec(bz));
+        binbuf_free(bz);
+        binbuf_addv(b, "ssiiiisi;", gensym("#N"), gensym("canvas"),
+            (int)(x->gl_screenx1),
+            (int)(x->gl_screeny1),
+            (int)(x->gl_screenx2 - x->gl_screenx1),
+            (int)(x->gl_screeny2 - x->gl_screeny1),
+            (patchsym != &s_ ? patchsym: gensym("(subpatch)")),
+            x->gl_mapped);
+    }
+        /* root or abstraction */
+    else
+    {
+        binbuf_addv(b, "ssiiiii;", gensym("#N"), gensym("canvas"),
+            (int)(x->gl_screenx1),
+            (int)(x->gl_screeny1),
+            (int)(x->gl_screenx2 - x->gl_screenx1),
+            (int)(x->gl_screeny2 - x->gl_screeny1),
+                (int)x->gl_font);
+        canvas_savedeclarationsto(x, b);
+    }
+    for (y = x->gl_list; y; y = y->g_next)
+        gobj_save(y, b);
+
+    linetraverser_start(&t, x);
+    while ((oc = linetraverser_next(&t)))
+    {
+        int srcno = canvas_getindex(x, &t.tr_ob->ob_g);
+        int sinkno = canvas_getindex(x, &t.tr_ob2->ob_g);
+        binbuf_addv(b, "ssiiii;", gensym("#X"), gensym("connect"),
+            srcno, t.tr_outno, sinkno, t.tr_inno);
+    }
+        /* unless everything is the default (as in ordinary subpatches)
+        print out a "coords" message to set up the coordinate systems */
+    if (x->gl_isgraph || x->gl_x1 || x->gl_y1 ||
+        x->gl_x2 != 1 ||  x->gl_y2 != 1 || x->gl_pixwidth || x->gl_pixheight)
+    {
+        if (x->gl_isgraph && x->gl_goprect)
+                /* if we have a graph-on-parent rectangle, we're new style.
+                The format is arranged so
+                that old versions of Pd can at least do something with it. */
+            binbuf_addv(b, "ssfffffffff;", gensym("#X"), gensym("coords"),
+                x->gl_x1, x->gl_y1,
+                x->gl_x2, x->gl_y2,
+                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
+                (t_float)((x->gl_hidetext)?2.:1.),
+                (t_float)x->gl_xmargin, (t_float)x->gl_ymargin);
+                    /* otherwise write in 0.38-compatible form */
+        else binbuf_addv(b, "ssfffffff;", gensym("#X"), gensym("coords"),
+                x->gl_x1, x->gl_y1,
+                x->gl_x2, x->gl_y2,
+                (t_float)x->gl_pixwidth, (t_float)x->gl_pixheight,
+                (t_float)x->gl_isgraph);
+    }
+}
+
+static void canvas_addtemplatesforscalar(t_symbol *templatesym,
+    t_word *w, int *p_ntemplates, t_symbol ***p_templatevec)
+{
+    t_dataslot *ds;
+    int i;
+    t_template *template = template_findbyname(templatesym);
+    canvas_doaddtemplate(templatesym, p_ntemplates, p_templatevec);
+    if (!template)
+        bug("canvas_addtemplatesforscalar");
+    else for (ds = template->t_vec, i = template->t_n; i--; ds++, w++)
+    {
+        if (ds->ds_type == DT_ARRAY)
+        {
+            int j;
+            t_array *a = w->w_array;
+            int elemsize = a->a_elemsize, nitems = a->a_n;
+            t_symbol *arraytemplatesym = ds->ds_arraytemplate;
+            canvas_doaddtemplate(arraytemplatesym, p_ntemplates, p_templatevec);
+            for (j = 0; j < nitems; j++)
+                canvas_addtemplatesforscalar(arraytemplatesym,
+                    (t_word *)(((char *)a->a_vec) + elemsize * j),
+                        p_ntemplates, p_templatevec);
+        }
+    }
+}
+static void canvas_collecttemplatesfor(t_canvas *x, int *ntemplatesp,
+    t_symbol ***templatevecp, int wholething)
+{
+    t_gobj *y;
+
+    for (y = x->gl_list; y; y = y->g_next)
+    {
+        if ((pd_class(&y->g_pd) == scalar_class) &&
+            (wholething || glist_isselected(x, y)))
+                canvas_addtemplatesforscalar(((t_scalar *)y)->sc_template,
+                    ((t_scalar *)y)->sc_vec,  ntemplatesp, templatevecp);
+        else if ((pd_class(&y->g_pd) == canvas_class) &&
+            (wholething || glist_isselected(x, y)))
+                canvas_collecttemplatesfor((t_canvas *)y,
+                    ntemplatesp, templatevecp, 1);
+    }
+}
+
+static void canvas_savetemplatesto(t_canvas *x, t_binbuf *b, int wholething)
+{
+    t_symbol **templatevec = getbytes(0);
+    int i, ntemplates = 0;
+    canvas_collecttemplatesfor(x, &ntemplates, &templatevec, wholething);
+    for (i = 0; i < ntemplates; i++)
+    {
+        t_template *template = template_findbyname(templatevec[i]);
+        int j, m;
+        if (!template)
+        {
+            bug("canvas_savetemplatesto");
+            continue;
+        }
+        m = template->t_n;
+            /* drop "pd-" prefix from template symbol to print */
+        binbuf_addv(b, "sss", &s__N, gensym("struct"),
+            gensym(templatevec[i]->s_name + 3));
+        for (j = 0; j < m; j++)
+        {
+            t_symbol *type;
+            switch (template->t_vec[j].ds_type)
+            {
+                case DT_FLOAT: type = &s_float; break;
+                case DT_SYMBOL: type = &s_symbol; break;
+                case DT_ARRAY: type = gensym("array"); break;
+                case DT_TEXT: type = gensym("text"); break;
+                default: type = &s_float; bug("canvas_write");
+            }
+            if (template->t_vec[j].ds_type == DT_ARRAY)
+                binbuf_addv(b, "sss", type, template->t_vec[j].ds_name,
+                    gensym(template->t_vec[j].ds_arraytemplate->s_name + 3));
+            else binbuf_addv(b, "ss", type, template->t_vec[j].ds_name);
+        }
+        binbuf_addsemi(b);
+    }
+    freebytes(templatevec, ntemplates * sizeof(*templatevec));
+}
 
 
 /* displace the selection by (dx, dy) pixels */
@@ -426,31 +580,6 @@ void libpd_canvas_saveto(t_canvas* cnv, t_binbuf *b)
 extern void canvas_doaddtemplate(t_symbol *templatesym,
                                  int *p_ntemplates, t_symbol ***p_templatevec);
 
-static void canvas_addtemplatesforscalar(t_symbol *templatesym,
-    t_word *w, int *p_ntemplates, t_symbol ***p_templatevec)
-{
-    t_dataslot *ds;
-    int i;
-    t_template *template = template_findbyname(templatesym);
-    canvas_doaddtemplate(templatesym, p_ntemplates, p_templatevec);
-    if (!template)
-        bug("canvas_addtemplatesforscalar");
-    else for (ds = template->t_vec, i = template->t_n; i--; ds++, w++)
-    {
-        if (ds->ds_type == DT_ARRAY)
-        {
-            int j;
-            t_array *a = w->w_array;
-            int elemsize = a->a_elemsize, nitems = a->a_n;
-            t_symbol *arraytemplatesym = ds->ds_arraytemplate;
-            canvas_doaddtemplate(arraytemplatesym, p_ntemplates, p_templatevec);
-            for (j = 0; j < nitems; j++)
-                canvas_addtemplatesforscalar(arraytemplatesym,
-                    (t_word *)(((char *)a->a_vec) + elemsize * j),
-                        p_ntemplates, p_templatevec);
-        }
-    }
-}
 
 /* call this recursively to collect all the template names for
  a canvas or for the selection. */
@@ -514,39 +643,31 @@ static void libpd_savetemplatesto(t_canvas* cnv, t_binbuf *b)
  body (and which is called recursively.) */
 void libpd_savetofile(t_canvas* cnv, t_symbol *filename, t_symbol *dir)
 {
-    /*
     t_binbuf *b = binbuf_new();
-    libpd_savetemplatesto(cnv, b);
-    libpd_canvas_saveto(cnv, b);
-    if (binbuf_write(b, filename->s_name, dir->s_name, 0)) {
-        //post("%s/%s: %s", dir->s_name, filename->s_name,
-        //     (errno ? strerror(errno) : "write failed"));
-    }
+    canvas_savetemplatesto(cnv, b, 1);
+    canvas_saveto(cnv, b);
+    int errno = 0;
+    if (binbuf_write(b, filename->s_name, dir->s_name, 0))
+        post("%s/%s: %s", dir->s_name, filename->s_name,
+            (errno ? strerror(errno) : "write failed"));
     else
     {
-        // if not an abstraction, reset title bar and directory
+            /* if not an abstraction, reset title bar and directory */
         if (!cnv->gl_owner)
-        {
+{
             canvas_rename(cnv, filename, dir);
-        }
+            /* update window list in case Save As changed the window name */
+            canvas_updatewindowlist();
+}
         post("saved to: %s/%s", dir->s_name, filename->s_name);
         canvas_dirty(cnv, 0);
         
-        // TODO: do something here?
-        //canvas_reload(filename, dir, cnv);
+        // The reason we're copying this instead of calling it is this:
+        // canvas_reload causes redrawing in pd, but is can also disconnect a patch from a pointer which is not good!
+        //canvas_reload(filename, dir, x);
     }
     binbuf_free(b);
     
-    glob_setfilename(NULL, filename, dir);*/
-    
-    t_atom argv[3];
-    
-    libpd_set_symbol(argv, filename->s_name);
-    libpd_set_symbol(argv + 1, dir->s_name);
-    libpd_set_float(argv + 2, 0);
-    
-    
-    pd_typedmess(cnv, gensym("savetofile"), 3, argv);
 }
 
 

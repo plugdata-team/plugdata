@@ -76,12 +76,16 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         // update GraphOnParent when changing tabs
         for (auto* box : getCurrentCanvas()->boxes)
         {
-            if (box->graphics && box->graphics->getGui().getType() == pd::Type::GraphOnParent)
+            if(!box->graphics) continue;
+            
+            auto type = box->graphics->getGui().getType();
+            
+            if (type == pd::Type::GraphOnParent)
             {
                 auto* cnv = box->graphics->getCanvas();
                 if (cnv) cnv->synchronise();
             }
-            if (box->graphics && (box->graphics->getGui().getType() == pd::Type::Subpatch || box->graphics->getGui().getType() == pd::Type::GraphOnParent))
+            if (type == pd::Type::Subpatch || type == pd::Type::GraphOnParent || type == pd::Type::Clone)
             {
                 box->updatePorts();
             }
@@ -394,6 +398,10 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
 
 void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
 {
+    for(auto* patch : pd.patches) {
+        patch->deselectAll();
+    }
+    
     if (getCurrentCanvas()->patch.getCurrentFile().existsAsFile())
     {
         getCurrentCanvas()->patch.savePatch();
