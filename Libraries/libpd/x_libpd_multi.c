@@ -552,6 +552,7 @@ void fbsine_tilde_setup();
 void fbsine2_tilde_setup();
 void setup_fdn0x2erev_tilde();
 void ffdelay_tilde_setup();
+void f2s_tilde_setup();
 void float2bits_setup();
 void float2sig_tilde_setup();
 void floor_setup();
@@ -1015,6 +1016,7 @@ void libpd_multi_init(void)
         fbdelay_tilde_setup();
         fbsine_tilde_setup();
         fbsine2_tilde_setup();
+        f2s_tilde_setup();
         setup_fdn0x2erev_tilde();
         ffdelay_tilde_setup();
         float2bits_setup();

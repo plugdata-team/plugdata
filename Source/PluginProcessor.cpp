@@ -972,7 +972,7 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
         callbackType = type;
     }
 
-    startTimer(15);
+    startTimer(5);
 }
 
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)
