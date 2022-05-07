@@ -223,6 +223,8 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
                 }
             }
         }
+        
+        return false;
     }
 
     void itemClicked(const MouseEvent& e) override
@@ -395,6 +397,8 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
                 return true;
             }
         }
+        
+        return false;
     }
 
     void filesDropped(const StringArray& files, int x, int y) override
@@ -628,6 +632,8 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
         {
             return searchResult[row];
         }
+        
+        return File();
     }
 
     void resized() override

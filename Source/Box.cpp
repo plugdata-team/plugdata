@@ -205,7 +205,7 @@ void Box::updateBounds(bool newObject)
             int width = bounds.getWidth() <= 0 ? getBestTextWidth(currentText) : bounds.getWidth() + doubleMargin;
 
             // Hide rounding errors
-            if (abs((getWidth() - width) * 0.4f) < glist_fontwidth(cnv->patch.getPointer()) && bounds.getWidth() > 0)
+            if (std::abs((getWidth() - width) * 0.4f) < glist_fontwidth(cnv->patch.getPointer()) && bounds.getWidth() > 0)
             {
                 width = getWidth();
             }
@@ -612,7 +612,7 @@ void Box::mouseDrag(const MouseEvent& e)
         if (!graphics || graphics->noGui())
         {
             int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth(currentText);
-            if (abs(distance) < ObjectGrid::range)
+            if (std::abs(distance) < ObjectGrid::range)
             {
                 cnv->grid.setSnapped(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
             }
