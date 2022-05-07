@@ -388,11 +388,14 @@ void Canvas::mouseDown(const MouseEvent& e)
     {
         if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
         {
-            auto* box = dynamic_cast<Box*>(source);
             // TODO: Move to Subpatch implementation
-            if (box && box->graphics && box->graphics->getGui().getType() == pd::Type::Subpatch)
-            {
-                openSubpatch(box);
+            auto* box = dynamic_cast<Box*>(source);
+            if(box && box->graphics) {
+                auto type = box->graphics->getGui().getType();
+                if (box && (box->graphics && (type == pd::Type::Subpatch || type == pd::Type::Clone)))
+                {
+                    openSubpatch(box);
+                }
             }
         }
         return;
@@ -452,7 +455,11 @@ void Canvas::mouseDown(const MouseEvent& e)
         Box* box = nullptr;
         if (hasSelection && !multiple) box = selectedBoxes.getFirst();
         
-        bool isSubpatch = box && (box->graphics && (box->graphics->getGui().getType() == pd::Type::GraphOnParent || box->graphics->getGui().getType() == pd::Type::Subpatch));
+        bool isSubpatch = false;
+        if(box && box->graphics) {
+            auto type = box->graphics->getGui().getType();
+            isSubpatch = type == pd::Type::GraphOnParent || type == pd::Type::Subpatch || type == pd::Type::Clone;
+        }
         
         // Create popup menu
         popupMenu.clear();

@@ -42,6 +42,7 @@ enum class Type : size_t
     GraphOnParent,
     Message,
     Subpatch,
+    Clone,
     Mousepad,
     Mouse,
     Keyboard,
