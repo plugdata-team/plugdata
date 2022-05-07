@@ -696,56 +696,36 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         }
     };
     
-    bool checkArchitecture(String packageArchitecture)
+    bool checkArchitecture(String platform)
     {
         // Check OS
-        if(packageArchitecture.upToFirstOccurrenceOf("-", false, false) != os) return false;
-        packageArchitecture = packageArchitecture.fromFirstOccurrenceOf("-", false, false);
+        if(platform.upToFirstOccurrenceOf("-", false, false) != os) return false;
+        platform = platform.fromFirstOccurrenceOf("-", false, false);
         
         // Check floatsize
-        if(packageArchitecture.fromLastOccurrenceOf("-", false, false) != floatsize) return false;
-        packageArchitecture = packageArchitecture.upToLastOccurrenceOf("-", false, false);
-        
-        if(packageArchitecture == machine) return true;
-        
-        if(architectureSubstitutes.count(packageArchitecture)) {
-            if(architectureSubstitutes[packageArchitecture].contains(machine)) {
-                return true;
-            }
-        }
+        if(platform.fromLastOccurrenceOf("-", false, false) != floatsize) return false;
+        platform = platform.upToLastOccurrenceOf("-", false, false);
+
+        if(machine.contains(platform)) return true;
         
         return false;
     }
         
-    
-    std::map<String, StringArray> architectureSubstitutes =
-    {
-        {"x86_64", {"amd64"}},
-        {"amd64", {"x86_64"}},
-        {"i686", {"i586", "i386"}},
-        {"i586", {"i386"}},
-        {"armv6", {"armv6l", "arm"}},
-        {"armv6l", {"armv6", "arm"}},
-        {"armv7", {"armv7l", "armv6l", "armv6", "arm"}},
-        {"armv7l", {"armv7", "armv6l", "armv6", "arm"}},
-        {"PowerPC", {"ppc"}},
-        {"ppc", {"PowerPC"}}
-    };
-
     String floatsize = String(PD_FLOATSIZE);
     String os =
-#if defined __linux__
+#if JUCE_LINUX
         "Linux"
-#elif defined __APPLE__
+#elif JUCE_MAC
         "Darwin"
+#elif JUCE_WINDOWS
+        "Windows"
+// PlugData has no official BSD support and testing, but for completeness:
 #elif defined __FreeBSD__
         "FreeBSD"
 #elif defined __NetBSD__
         "NetBSD"
 #elif defined __OpenBSD__
         "OpenBSD"
-#elif defined _WIN32
-        "Windows"
 #else
 #if defined(__GNUC__)
 #warning unknown OS
@@ -754,22 +734,25 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 #endif
         ;
 
-    String machine =
+    StringArray machine =
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
-        "amd64"
+    {"amd64", "x86_64"}
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)
-        "i386"
+    {"i386" "i686", "i586"}
 #elif defined(__ppc__)
-        "ppc"
+    {"ppc", "PowerPC"}
 #elif defined(__aarch64__)
-        "arm64"
-#elif defined(__ARM_ARCH)
+    {"arm64"}
+#elif __ARM_ARCH == 6 || defined(__ARM_ARCH_6__)
+    {"armv6", "armv6l", "arm"}
         "armv" stringify(__ARM_ARCH)
+#elif __ARM_ARCH == 7 || defined(__ARM_ARCH_7__)
+    {"armv7l", "armv7", "armv6l", "armv6", "arm"}
 #else
 #if defined(__GNUC__)
 #warning unknown architecture
 #endif
-        0
+    {}
 #endif
         ;
 };
