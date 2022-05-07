@@ -388,6 +388,10 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     {
                         SearchResult results;
                         String name = result.name.toString();
+                        
+#if JUCE_DEBUG
+                        std::cout << "num hits:" << results.size() << std::endl;
+#endif
 
                         // Loop through the different versions
                         auto* versions = result.value.getDynamicObject();
@@ -396,6 +400,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                             // Loop through architectures
                             for (auto& arch : *v.value.getArray())
                             {
+                                
+                                std::cout << "num hits:" << results.size() << std::endl;
+                                
                                 auto* archs = arch["archs"].getArray();
                                 // Look for matching platform
                                 String platform = archs->getReference(0).toString();
@@ -416,6 +423,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                             }
                         }
 
+#if JUCE_DEBUG
+                        std::cout << "num found:" << results.size() << std::endl;
+#endif
                         if (!results.isEmpty())
                         {
                             // Sort by alphabetically by timestamp to get latest version
@@ -738,7 +748,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
     {"amd64", "x86_64"}
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)
-    {"i386" "i686", "i586"}
+    {"i386", "i686", "i586"}
 #elif defined(__ppc__)
     {"ppc", "PowerPC"}
 #elif defined(__aarch64__)
