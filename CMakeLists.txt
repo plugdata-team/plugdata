@@ -268,7 +268,6 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
     CURL_STATICLIB=1
-    NEEDS_CURL=1
     )
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
 elseif(MSVC)
@@ -320,7 +319,7 @@ set(libs
   PlugDataBinaryData
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
-  juce::juce_opengl
+  curl
 )
 
 if(MSVC)
