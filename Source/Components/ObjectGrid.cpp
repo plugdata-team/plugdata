@@ -127,8 +127,8 @@ Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Recta
     {
         // Check if we've dragged out of the ObjectGrid snap
         bool horizontalSnap = type == HorizontalSnap || type == ConnectionSnap || type == BestSizeSnap;
-        bool horizontalUnsnap = horizontalSnap && abs(position.x - dragOffset.x) > range;
-        bool verticalUnsnap = !horizontalSnap && abs(position.y - dragOffset.y) > range;
+        bool horizontalUnsnap = horizontalSnap && std::abs(position.x - dragOffset.x) > range;
+        bool verticalUnsnap = !horizontalSnap && std::abs(position.y - dragOffset.y) > range;
 
         if (horizontalUnsnap || verticalUnsnap)
         {
@@ -154,7 +154,7 @@ Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Recta
     int totalSnaps = 0;  // Keep idx of object snapped to recognise when we've changed to a different target
     auto trySnap = [this, &totalSnaps, &tolerance](int distance) -> bool
     {
-        if (abs(distance) < tolerance)
+        if (std::abs(distance) < tolerance)
         {
             return true;
         }
@@ -195,7 +195,7 @@ Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Recta
         }
 
         // If we're close, don't snap for other reasons
-        if (abs(snapDistance) < tolerance * 2.0f)
+        if (std::abs(snapDistance) < tolerance * 2.0f)
         {
             return dragOffset;
         }
