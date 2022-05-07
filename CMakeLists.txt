@@ -260,7 +260,6 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_LOG_ASSERTIONS=1
     JUCE_STRICT_REFCOUNTEDPOINTER=1
     JUCE_WEB_BROWSER=0
-    JUCE_USE_CURL=1
 )
 
 if(UNIX AND NOT APPLE)
@@ -323,10 +322,11 @@ set(libs
 )
 
 if(MSVC)
-list(APPEND libs libpthreadVC3)
-endif()
-if(APPLE)
+  list(APPEND libs libpthreadVC3)
+elseif(APPLE)
   target_link_libraries(PlugDataMidi PRIVATE pd-multi ${libs})
+elseif(UNIX)
+  list(APPEND libs curl)
 endif()
 
 target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
