@@ -24,6 +24,8 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 {
     isGraphChild = graphChild;
     
+   
+    
     // Check if canvas belongs to a graph
     if (parentGraph)
     {
@@ -67,9 +69,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
-        viewport->getVerticalScrollBar().addListener(this);
-        viewport->getHorizontalScrollBar().addListener(this);
-        
+        viewport->setBufferedToImage(true);
         
         // Apply zooming
         setTransform(parent.transform);
@@ -88,10 +88,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 
 Canvas::~Canvas()
 {
-    if(viewport) {
-        viewport->getVerticalScrollBar().removeListener(this);
-        viewport->getHorizontalScrollBar().removeListener(this);
-    }
     
     delete graphArea;
     delete suggestor;
@@ -129,20 +125,6 @@ void Canvas::paint(Graphics& g)
             }
         }
     }
-}
-
-// Micro-optimisation:
-// Viewport has better scrolling performance when buffered to image, but that is detrimental to the performance otherwise
-// So enable it when scrolling and disable it again afterwards
-void Canvas::scrollBarMoved (ScrollBar *scrollBarThatHasMoved, double newRangeStart)
-{
-    viewport->setBufferedToImage(true);
-    startTimer(200);
-}
-
-void Canvas::timerCallback() {
-    viewport->setBufferedToImage(false);
-    stopTimer();
 }
 
 void Canvas::focusGained(FocusChangeType cause)

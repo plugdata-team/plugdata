@@ -149,7 +149,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     locked.addListener(this);
 
-    bypassButton = std::make_unique<TextButton>(Icons::Power);
+    powerButton = std::make_unique<TextButton>(Icons::Power);
     lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
     connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
@@ -189,17 +189,17 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     addAndMakeVisible(presentationButton.get());
 
-    bypassButton->setTooltip("Bypass");
-    bypassButton->setClickingTogglesState(true);
-    bypassButton->setConnectedEdges(12);
-    bypassButton->setName("statusbar:bypass");
-    addAndMakeVisible(bypassButton.get());
+    powerButton->setTooltip("Bypass");
+    powerButton->setClickingTogglesState(true);
+    powerButton->setConnectedEdges(12);
+    powerButton->setName("statusbar:bypass");
+    addAndMakeVisible(powerButton.get());
 
-    bypassButton->onClick = [this]() {
-        bypassButton->getToggleState() ? pd.startDSP() : pd.releaseDSP();
+    powerButton->onClick = [this]() {
+        powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP();
     };
     
-    bypassButton->setToggleState(pd_getdspstate(), dontSendNotification);
+    powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
     lockButton->setTooltip("Lock");
     lockButton->setClickingTogglesState(true);
@@ -376,7 +376,7 @@ void Statusbar::resized()
 
     automationButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
     browserButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
-    bypassButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
     int levelMeterPosition = position(100, true);
     levelMeter->setBounds(levelMeterPosition, 0, 100, getHeight());
