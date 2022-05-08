@@ -371,7 +371,13 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(const File& file) override
     {
-        browser->pd->loadPatch(file);
+        if(file.isDirectory()) {
+            file.revealToUser();
+        }
+        else if(file.existsAsFile()) {
+            browser->pd->loadPatch(file);
+        }
+
     }
     void selectionChanged() override
     {
