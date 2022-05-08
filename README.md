@@ -50,9 +50,14 @@ What works:
 
 Known issues:
 - Externals are broken on Windows
-- Tabs sometimes close when closing patch editor
 - Broken objects:
   - text define
+  - netreceive
+  - store
+  - rec
+  - oscilloscope
+  - canvas manipulation objects in ELSE
+  - Possibly more
 - There may still be some more bugs
 
 ## Roadmap
@@ -61,41 +66,27 @@ These are all the things I'm hoping to implement before version 0.6.
 I might release some smaller versions inbetween if any serious bugs are being found.
 
 FEATURES:
-- Allow multiple opened projects
-- Connection style per individual connection
 - Smart patching:
 	- Shift-drag to place object inbetween connection
 	- Shift while creating connection to create multiple connections
 	- Dragging over toggles and radiocomponents to activate them
-- Documentation browser
-- Panel to view and set DAW parameters
+	- More stuff
+- Commandline arguments
 
 PD COMPATIBILITY:
 - Fix missing canvas properties
 - Allow setting main canvas properties
-- Fix text define object
-- Fix broken ELSE objects: rec, store, various canvas related objects
+- Fix broken objects
 - Improve accuracy of pd's "draw on canvas" system (used by [circle] for example)
-- Decrease text object height a bit and allow text wrapping like in pd
-- Improve comment object behaviour to be more like pd
 - Support for dynamic patching
 
 BUGS:
 - Fix externals on Windows
-- Fix help-file and abstraction tabs sometimes closing when exiting plugin editor in DAW
 - Fix signing/notarising problem with some plugin hosts on Mac
-- Fix no window outline on some Linux distros
-- Set maximum number of console messages
 - Improve stability of custom connection paths
-- Sometimes inlets/outlets remain highlighted after drag action
-- Listatom has wrong background colour
-- All atoms have wrong background colours if they're in a graph
 
 OTHER:
-- Expand pddocs with more object descriptions and inlet/outlet hover messages
-- Improve number box dragging behaviour
-- Improve resize-while-typing behaviour
-- Improve library path settings component
+- Expand pddp with more object descriptions and inlet/outlet hover messages
 - Restructure build directory
 - Clean up and document code
 
