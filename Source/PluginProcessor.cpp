@@ -131,7 +131,8 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         // Add default settings
         settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
-
+        settingsTree.setProperty("GridEnabled", 1, nullptr);
+        
         auto pathTree = ValueTree("Paths");
 
         auto firstPath = ValueTree("Path");
@@ -972,13 +973,13 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
         callbackType = type;
     }
 
-    startTimer(5);
+    startTimer(16);
 }
 
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)
 {
     if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        editor->statusbar.bypassButton->setToggleState(dsp, dontSendNotification);
+        editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
     }
 }
 

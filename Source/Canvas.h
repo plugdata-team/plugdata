@@ -18,7 +18,7 @@ class SuggestionComponent;
 struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
-class Canvas : public Component, public Value::Listener, public LassoSource<Component*>, public ScrollBar::Listener, public Timer
+class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
    public:
     Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr, bool isGraphChild = false);
@@ -35,11 +35,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     {
         repaint();
     }
-    
-    
-    // For viewport optimisation
-    void scrollBarMoved (ScrollBar *scrollBarThatHasMoved, double newRangeStart) override;
-    void timerCallback() override;
 
     void mouseDown(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;

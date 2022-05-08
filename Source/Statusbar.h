@@ -40,7 +40,7 @@ struct Statusbar : public Component, public Timer, public KeyListener, public Va
     LevelMeter* levelMeter;
     MidiBlinker* midiBlinker;
 
-    std::unique_ptr<TextButton> bypassButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, gridButton, themeButton, browserButton, automationButton;
+    std::unique_ptr<TextButton> powerButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, gridButton, themeButton, browserButton, automationButton;
 
     Label zoomLabel;
 
