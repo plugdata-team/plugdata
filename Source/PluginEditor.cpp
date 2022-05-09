@@ -499,8 +499,15 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         auto deleteFunc = [this, deleteWhenClosed, idx]() mutable
         {
             auto* cnv = getCanvas(idx);
+            
+            if(!cnv)  {
+                tabbar.removeTab(idx);
+                return;
+            }
+            
             auto* patch = &cnv->patch;
 
+            
             if (deleteWhenClosed)
             {
                 patch->close();
@@ -524,7 +531,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             [this, deleteFunc, idx]() mutable
             {
                 auto* cnv = getCanvas(idx);
-                if (cnv->patch.isDirty())
+                if (cnv && cnv->patch.isDirty())
                 {
                     Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
                                             [this, deleteFunc](int result) mutable
