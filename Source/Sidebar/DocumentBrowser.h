@@ -29,9 +29,10 @@ struct DocumentBrowserBase : public Component
     virtual bool isSearching() = 0;
 
     PlugDataAudioProcessor* pd;
+    TimeSliceThread updateThread;
     DirectoryContentsList directory;
     WildcardFileFilter filter;
-    TimeSliceThread updateThread;
+
 };
 
 //==============================================================================

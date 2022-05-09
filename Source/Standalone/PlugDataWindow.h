@@ -30,7 +30,11 @@
 #include <memory>
 
 
-#define CUSTOM_SHADOW 1
+#if !JUCE_MAC
+ #define CUSTOM_SHADOW 1
+#else
+ #define CUSTOM_SHADOW 1
+#endif
 
 namespace pd
 {
@@ -479,6 +483,7 @@ class PlugDataWindow : public DocumentWindow
 {
     // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW
+    Image shadowImage;
     DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), 4, Point<int>(0, 0));
 #endif
 
@@ -551,19 +556,7 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
 
-    // Fixes shadow with rounded edges on windows
-#if CUSTOM_SHADOW
-    void paint(Graphics& g) override
-    {
-        auto b = getLocalBounds();
-        Path localPath;
-        localPath.addRoundedRectangle(b.toFloat().reduced(4), 6.0f);
-        shadow.drawForPath(g, localPath);
-        
-        g.setColour(Colour(186, 186, 186));
-        g.drawRoundedRectangle(b.toFloat().reduced(4), 6.0f, 1.0f);
-    }
-#endif
+
 
     AudioProcessor* getAudioProcessor() const noexcept
     {
@@ -594,7 +587,15 @@ class PlugDataWindow : public DocumentWindow
     {
         setFullScreen(!isFullScreen());
     }
-
+    
+    // Fixes shadow with rounded edges on windows
+#if CUSTOM_SHADOW
+    void paint(Graphics& g) override
+    {
+        g.drawImageAt(shadowImage, 0, 0);
+    }
+#endif
+    
     void resized() override
     {
         ResizableWindow::resized();
@@ -604,6 +605,18 @@ class PlugDataWindow : public DocumentWindow
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
+        
+#if CUSTOM_SHADOW
+         shadowImage = Image (Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
+         Graphics g(shadowImage);
+         auto b = getLocalBounds();
+         Path localPath;
+         localPath.addRoundedRectangle(b.toFloat().reduced(4), 6.0f);
+         shadow.drawForPath(g, localPath);
+
+         g.setColour(Colour(186, 186, 186));
+         g.drawRoundedRectangle(b.toFloat().reduced(4), 6.0f, 1.0f);
+ #endif
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
