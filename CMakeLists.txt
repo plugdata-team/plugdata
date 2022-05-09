@@ -21,7 +21,7 @@ project(PlugData VERSION 0.5 LANGUAGES C CXX)
 
 add_subdirectory(Libraries/)
 
-set(PLUGDATA_VERSION                    "0.5.1")
+set(PLUGDATA_VERSION                    "0.5.2")
 set(PLUGDATA_COMPANY_NAME               "Octagon")
 set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/timothyschoen/plugdata")
