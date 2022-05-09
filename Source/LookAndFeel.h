@@ -92,19 +92,7 @@ struct PlugDataLook : public LookAndFeel_V4
     PlugDataLook() : defaultFont(resources->defaultTypeface), iconFont(resources->iconTypeface)
     {
         setTheme(false);
-
-#if JUCE_WINDOWS
-        if (SystemStats::getUserLanguage().contains("Chinese"))
-        {
-            setDefaultSansSerifTypefaceName("Microsoft YaHei UI");
-        }
-        else
-        {
-            setDefaultSansSerifTypeface(resources->defaultTypeface);
-        }
-#else
         setDefaultSansSerifTypeface(resources->defaultTypeface);
-#endif
     }
 
     class PlugData_DocumentWindowButton : public Button

@@ -483,6 +483,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 class PlugDataWindow : public DocumentWindow
 {
 #if CUSTOM_SHADOW
+    Image shadowImage;
     // Replacement for native shadow, to allow rounded corners on all platforms
     DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN + 12, Point<int>(0, 1));
 #endif
@@ -593,7 +594,7 @@ class PlugDataWindow : public DocumentWindow
         return {WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
     }
 
-    Image shadowImage;
+
     
 #if CUSTOM_SHADOW
     // Fixes shadow with rounded edges on windows, improves consistency on different Linux distros
@@ -621,6 +622,7 @@ class PlugDataWindow : public DocumentWindow
             resizableBorder->setBounds(getLocalBounds().reduced(borderWidth - 2));
         }
         
+#if CUSTOM_SHADOW
         shadowImage = Image (Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
         Graphics g(shadowImage);
         auto b = getLocalBounds().reduced(WINDOW_MARGIN);
@@ -630,6 +632,7 @@ class PlugDataWindow : public DocumentWindow
         
         g.setColour(Colour(186, 186, 186));
         g.drawRoundedRectangle(b.toFloat(), 6.0f, 1.0f);
+#endif
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
