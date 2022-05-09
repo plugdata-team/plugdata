@@ -31,7 +31,7 @@
 
 #if !JUCE_MAC
 #define WINDOW_MARGIN 10
-#define CUSTOM_SHADOW 1
+#define CUSTOM_SHADOW 0
 #else
 #define WINDOW_MARGIN 8
 #define CUSTOM_SHADOW 1

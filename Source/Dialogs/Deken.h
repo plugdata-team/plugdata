@@ -86,7 +86,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
                         auto& d = deken;
                         d.downloads.removeObject(this);
-                        d.updateResults(d.input.getText());
+                        d.updateResults(d.input.getText(), &d.searchResult, 1);
                         d.listBox.updateContent();
                     });
             };
@@ -123,7 +123,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     // deken is relative to this, which gets deleted
                     auto& d = deken;
                     d.downloads.removeObject(this);
-                    d.updateResults(d.input.getText());
+                    d.updateResults(d.input.getText(), &d.searchResult);
                     d.listBox.updateContent();
                 });
         }
@@ -182,7 +182,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
             input.clear();
             input.giveAwayKeyboardFocus();
             input.repaint();
-            updateResults("");
+            updateResults("", &searchResult);
         };
 
         clearButton.setAlwaysOnTop(true);
@@ -205,13 +205,14 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         addAndMakeVisible(searchSpinner);
         searchSpinner.setAlwaysOnTop(true);
 
-        updateResults("");
+        //updateResults("*", &allResults, 2);
+        updateResults("", &searchResult, 0);
     }
 
     // Group fast typing together
     void timerCallback() override
     {
-        updateResults(input.getText());
+        updateResults(input.getText(), &searchResult);
         stopTimer();
     }
 
@@ -282,14 +283,19 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
         return nullptr;
     }
+    
+    
+    void search(String query) {
+        
+    }
 
-    void updateResults(String query)
+    void updateResults(String query, SearchResult* result, int searchType = 1)
     {
         // Run on threadpool
         // Web requests shouldn't block the message queue!
         searchSpinner.startSpinning();
         addJob(
-            [this, query]() mutable
+            [this, result, query, searchType]() mutable
             {
                 SearchResult newResult;
 
@@ -324,9 +330,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     }
 
                     MessageManager::callAsync(
-                        [this, newResult]() mutable
+                        [this, result, newResult]() mutable
                         {
-                            searchResult = newResult;
+                            *result = newResult;
                             listBox.updateContent();
                             searchSpinner.stopSpinning();
                         });
@@ -334,7 +340,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 }
 
                 // Set to name for now: there are not that many deken libraries to justify the other options
-                String type = StringArray({"name", "objects", "libraries"})[0];
+                String type = StringArray({"name", "objects", "libraries"})[searchType];
 
                 // Create link for deken search request
                 auto url = URL("https://deken.puredata.info/search?" + type + "=" + query);
@@ -355,9 +361,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 
                 if(!success) {
                     MessageManager::callAsync(
-                        [this]()
+                        [this, result]()
                         {
-                            searchResult.clear();
+                            result->clear();
                             listBox.updateContent();
                             searchSpinner.stopSpinning();
                             showError("Failed to connect to server");
@@ -385,9 +391,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     if (!object)
                     {
                         MessageManager::callAsync(
-                            [this]()
+                            [this, result]()
                             {
-                                searchResult.clear();
+                                result->clear();
                                 listBox.updateContent();
                                 searchSpinner.stopSpinning();
                             });
@@ -410,9 +416,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                             // Loop through architectures
                             for (auto& arch : *v.value.getArray())
                             {
-
-                                
-                                
                                 auto* archs = arch["archs"].getArray();
                                 // Look for matching platform
                                 String platform = archs->getReference(0).toString();
@@ -450,9 +453,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 }
                 // Update content from message thread
                 MessageManager::callAsync(
-                    [this, newResult]() mutable
+                    [this, result, newResult]() mutable
                     {
-                        searchResult = newResult;
+                        *result = newResult;
                         listBox.updateContent();
                         searchSpinner.stopSpinning();
                     });
@@ -579,6 +582,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     // Current search result
     SearchResult searchResult;
+    SearchResult allResults;
 
     TextEditor input;
     TextButton clearButton = TextButton(Icons::Clear);
@@ -617,7 +621,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
             {
                 setInstalled(false);
                 deken.uninstall(packageInfo);
-                deken.updateResults(deken.input.getText());
+                deken.updateResults(deken.input.getText(), &deken.searchResult);
             };
 
             reinstallButton.onClick = [this]()
