@@ -484,7 +484,7 @@ class PlugDataWindow : public DocumentWindow
     // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW
     Image shadowImageT, shadowImageB, shadowImageL, shadowImageR;
-    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), 4, Point<int>(0, 0));
+    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), 6, Point<int>(0, 0));
 #endif
 
    public:
@@ -592,11 +592,10 @@ class PlugDataWindow : public DocumentWindow
 #if CUSTOM_SHADOW
     void paint(Graphics& g) override
     {
-                
         g.drawImageAt(shadowImageT, 0, 0);
         g.drawImageAt(shadowImageB, 0, getHeight() - 6);
-        g.drawImageAt(shadowImageL, 0, 0);
-        g.drawImageAt(shadowImageR, getWidth() - 6, 0);
+        g.drawImageAt(shadowImageL, 0, 6);
+        g.drawImageAt(shadowImageR, getWidth() - 6, 6);
     }
 #endif
     
@@ -620,14 +619,23 @@ class PlugDataWindow : public DocumentWindow
 
          g.setColour(Colour(186, 186, 186));
          g.drawRoundedRectangle(b.toFloat().reduced(4), 6.0f, 1.0f);
- #endif
-        shadowImageT = shadowImage.getClippedImage({0, 0, getWidth(), 6});
-        shadowImageB = shadowImage.getClippedImage({0, getHeight() - 6, getWidth(), 6});
-        shadowImageL = shadowImage.getClippedImage({0, 0, 6, getHeight()});
-        shadowImageR = shadowImage.getClippedImage({getWidth() - 6, 0, 6, getHeight()});
         
-
+        
+        auto top = b.removeFromTop(6);
+        shadowImageT = shadowImage.getClippedImage(top);
+        
+        auto bottom = b.removeFromBottom(6);
+        shadowImageB = shadowImage.getClippedImage(bottom);
+        
+        auto left =  b.removeFromLeft(6);
+        shadowImageL = shadowImage.getClippedImage(left);
+        
+        auto right = b.removeFromRight(6);
+        shadowImageR = shadowImage.getClippedImage(right);
+        
+ #endif
     }
+    
 
     virtual StandalonePluginHolder* getPluginHolder()
     {
