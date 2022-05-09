@@ -33,8 +33,8 @@
 #define WINDOW_MARGIN 6
 #define CUSTOM_SHADOW 1
 #else
-#define WINDOW_MARGIN 0
-#define CUSTOM_SHADOW 0
+#define WINDOW_MARGIN 6
+#define CUSTOM_SHADOW 1
 #endif
 
 namespace pd
@@ -589,10 +589,11 @@ class PlugDataWindow : public DocumentWindow
         setFullScreen(!isFullScreen());
     }
 
+    /*
     virtual BorderSize<int> getContentComponentBorder() override
     {
         return {WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
-    }
+    } */
 
 
     
@@ -631,7 +632,7 @@ class PlugDataWindow : public DocumentWindow
         shadow.drawForPath(g, localPath);
         
         g.setColour(Colour(186, 186, 186));
-        g.drawRoundedRectangle(b.toFloat(), 6.0f, 1.0f);
+        g.drawRoundedRectangle(b.toFloat().reduced(1), 6.0f, 1.0f);
 #endif
     }
 
