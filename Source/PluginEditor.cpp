@@ -29,7 +29,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     tooltipWindow->setOpaque(false);
     tooltipWindow->setLookAndFeel(&pd.lnf.get());
     
-    
+    constrainer.setSizeLimits(830, 300, 999999, 999999);
+    setConstrainer(&constrainer);
 
     addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
