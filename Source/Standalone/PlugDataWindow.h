@@ -33,7 +33,7 @@
 #define WINDOW_MARGIN 10
 #define CUSTOM_SHADOW 1
 #else
-#define WINDOW_MARGIN 10
+#define WINDOW_MARGIN 8
 #define CUSTOM_SHADOW 1
 #endif
 
@@ -593,17 +593,13 @@ class PlugDataWindow : public DocumentWindow
         return {WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
     }
 
+    Image shadowImage;
+    
 #if CUSTOM_SHADOW
-    // Fixes shadow with rounded edges on windows
+    // Fixes shadow with rounded edges on windows, improves consistency on different Linux distros
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(WINDOW_MARGIN);
-        Path localPath;
-        localPath.addRoundedRectangle(b.toFloat(), 6.0f);
-        shadow.drawForPath(g, localPath);
-
-        g.setColour(Colour(186, 186, 186));
-        g.drawRoundedRectangle(b.toFloat(), 6.0f, 1.0f);
+        g.drawImageAt(shadowImage, 0, 0);
     }
 #endif
 
@@ -624,6 +620,16 @@ class PlugDataWindow : public DocumentWindow
             resizableBorder->setBorderThickness({3, 3, 3, 3});
             resizableBorder->setBounds(getLocalBounds().reduced(borderWidth - 2));
         }
+        
+        shadowImage = Image (Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
+        Graphics g(shadowImage);
+        auto b = getLocalBounds().reduced(WINDOW_MARGIN);
+        Path localPath;
+        localPath.addRoundedRectangle(b.toFloat(), 6.0f);
+        shadow.drawForPath(g, localPath);
+        
+        g.setColour(Colour(186, 186, 186));
+        g.drawRoundedRectangle(b.toFloat(), 6.0f, 1.0f);
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
