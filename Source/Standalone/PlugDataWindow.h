@@ -30,11 +30,11 @@
 #include <memory>
 
 #if !JUCE_MAC
-#define WINDOW_MARGIN 22
+#define WINDOW_MARGIN 10
 #define CUSTOM_SHADOW 1
 #else
-#define WINDOW_MARGIN 2
-#define CUSTOM_SHADOW 0
+#define WINDOW_MARGIN 10
+#define CUSTOM_SHADOW 1
 #endif
 
 namespace pd
@@ -484,7 +484,7 @@ class PlugDataWindow : public DocumentWindow
 {
 #if CUSTOM_SHADOW
     // Replacement for native shadow, to allow rounded corners on all platforms
-    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN, Point<int>(0, 1));
+    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN + 12, Point<int>(0, 1));
 #endif
 
    public:
@@ -637,7 +637,7 @@ class PlugDataWindow : public DocumentWindow
     class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
        public:
-        MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
+        MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->createEditorIfNeeded())
         {
             inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
 
@@ -651,7 +651,8 @@ class PlugDataWindow : public DocumentWindow
 #if JUCE_MAC
                 MenuBarModel::setMacMainMenu(this);
 #endif
-
+                
+                filterWindow.setConstrainer(editor->getConstrainer());
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 
