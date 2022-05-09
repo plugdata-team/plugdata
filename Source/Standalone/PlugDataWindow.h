@@ -30,11 +30,11 @@
 #include <memory>
 
 #if !JUCE_MAC
-#define WINDOW_MARGIN 10
-#define CUSTOM_SHADOW 0
-#else
-#define WINDOW_MARGIN 8
+#define WINDOW_MARGIN 6
 #define CUSTOM_SHADOW 1
+#else
+#define WINDOW_MARGIN 0
+#define CUSTOM_SHADOW 0
 #endif
 
 namespace pd
@@ -485,7 +485,7 @@ class PlugDataWindow : public DocumentWindow
 #if CUSTOM_SHADOW
     Image shadowImage;
     // Replacement for native shadow, to allow rounded corners on all platforms
-    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN + 12, Point<int>(0, 1));
+    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN + 8, Point<int>(0, 1));
 #endif
 
    public:
@@ -589,7 +589,7 @@ class PlugDataWindow : public DocumentWindow
         setFullScreen(!isFullScreen());
     }
 
-    virtual BorderSize<int> getBorderThickness() override
+    virtual BorderSize<int> getContentComponentBorder() override
     {
         return {WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
     }

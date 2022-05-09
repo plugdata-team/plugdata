@@ -26,6 +26,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     setResizable(true, true);
 #endif
 
+    
     tooltipWindow->setOpaque(false);
     tooltipWindow->setLookAndFeel(&pd.lnf.get());
     
