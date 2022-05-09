@@ -205,6 +205,8 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     {
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
+    
+    setConstrainer(nullptr);
 
     pd.settingsTree.removeListener(this);
 
