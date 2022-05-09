@@ -33,7 +33,7 @@
 #if !JUCE_MAC
  #define CUSTOM_SHADOW 1
 #else
- #define CUSTOM_SHADOW 1
+ #define CUSTOM_SHADOW 0
 #endif
 
 namespace pd
