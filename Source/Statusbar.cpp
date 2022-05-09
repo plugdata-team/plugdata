@@ -269,7 +269,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     browserButton->setClickingTogglesState(true);
     addAndMakeVisible(browserButton.get());
 
-    automationButton->setTooltip("Open documentation browser");
+    automationButton->setTooltip("Open automation panel");
     automationButton->setConnectedEdges(12);
     automationButton->setName("statusbar:browser");
     automationButton->onClick = [this]() {};
