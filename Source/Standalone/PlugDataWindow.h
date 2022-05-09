@@ -29,13 +29,8 @@
 
 #include <memory>
 
-#if !JUCE_MAC
-#define WINDOW_MARGIN 6
+
 #define CUSTOM_SHADOW 1
-#else
-#define WINDOW_MARGIN 6
-#define CUSTOM_SHADOW 1
-#endif
 
 namespace pd
 {
@@ -482,10 +477,9 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 */
 class PlugDataWindow : public DocumentWindow
 {
+    // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW
-    Image shadowImage;
-    // Replacement for native shadow, to allow rounded corners on all platforms
-    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), WINDOW_MARGIN + 8, Point<int>(0, 1));
+    DropShadow shadow = DropShadow(Colours::black, 5, Point<int>(0, 0));
 #endif
 
    public:
@@ -506,11 +500,9 @@ class PlugDataWindow : public DocumentWindow
                    )
         : DocumentWindow(title, backgroundColour, DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton)
     {
-        // We draw this manually on windows and linux
 #if CUSTOM_SHADOW
         setDropShadowEnabled(false);
 #endif
-
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
@@ -559,6 +551,22 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
 
+    // Fixes shadow with rounded edges on windows
+#if CUSTOM_SHADOW
+    void paint(Graphics& g) override
+    {
+        auto b = getLocalBounds().reduced(3);
+        Path localPath;
+        localPath.addRoundedRectangle(b.toFloat(), 6.0f);
+        shadow.drawForPath(g, localPath);
+        
+        g.setColour(Colour(186, 186, 186));
+        g.drawRoundedRectangle(b.toFloat().reduced(1), 6.0f, 1.0f);
+        
+        //shadow.drawForRectangle(g, getLocalBounds().reduced(5));
+    }
+#endif
+
     AudioProcessor* getAudioProcessor() const noexcept
     {
         return pluginHolder->processor.get();
@@ -589,51 +597,15 @@ class PlugDataWindow : public DocumentWindow
         setFullScreen(!isFullScreen());
     }
 
-    /*
-    virtual BorderSize<int> getContentComponentBorder() override
-    {
-        return {WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN, WINDOW_MARGIN};
-    } */
-
-
-    
-#if CUSTOM_SHADOW
-    // Fixes shadow with rounded edges on windows, improves consistency on different Linux distros
-    void paint(Graphics& g) override
-    {
-        g.drawImageAt(shadowImage, 0, 0);
-    }
-#endif
-
     void resized() override
     {
         ResizableWindow::resized();
 
         if (auto* b = getMaximiseButton()) b->setToggleState(isFullScreen(), dontSendNotification);
 
-        int borderWidth = getBorderThickness().getRight();
-
-        auto titleBarArea = Rectangle<int>(0, 10 + WINDOW_MARGIN, getWidth() - borderWidth - 6, 24);
+        auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
-
-        if (resizableBorder)
-        {
-            resizableBorder->setBorderThickness({3, 3, 3, 3});
-            resizableBorder->setBounds(getLocalBounds().reduced(borderWidth - 2));
-        }
-        
-#if CUSTOM_SHADOW
-        shadowImage = Image (Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
-        Graphics g(shadowImage);
-        auto b = getLocalBounds().reduced(WINDOW_MARGIN);
-        Path localPath;
-        localPath.addRoundedRectangle(b.toFloat(), 6.0f);
-        shadow.drawForPath(g, localPath);
-        
-        g.setColour(Colour(186, 186, 186));
-        g.drawRoundedRectangle(b.toFloat().reduced(1), 6.0f, 1.0f);
-#endif
     }
 
     virtual StandalonePluginHolder* getPluginHolder()
@@ -647,7 +619,7 @@ class PlugDataWindow : public DocumentWindow
     class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
        public:
-        MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->createEditorIfNeeded())
+        MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
         {
             inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
 
@@ -661,8 +633,7 @@ class PlugDataWindow : public DocumentWindow
 #if JUCE_MAC
                 MenuBarModel::setMacMainMenu(this);
 #endif
-                
-                filterWindow.setConstrainer(editor->getConstrainer());
+
                 editor->addComponentListener(this);
                 componentMovedOrResized(*editor, false, true);
 
@@ -753,6 +724,7 @@ class PlugDataWindow : public DocumentWindow
         Rectangle<int> getSizeToContainEditor() const
         {
             if (editor != nullptr) return getLocalArea(editor.get(), editor->getLocalBounds());
+
             return {};
         }
 
