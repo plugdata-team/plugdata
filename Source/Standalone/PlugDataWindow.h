@@ -479,7 +479,7 @@ class PlugDataWindow : public DocumentWindow
 {
     // Replacement for native Windows shadow, to allow rounded corners
 #if CUSTOM_SHADOW
-    DropShadow shadow = DropShadow(Colours::black, 5, Point<int>(0, 0));
+    DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), 4, Point<int>(0, 0));
 #endif
 
    public:
@@ -555,15 +555,13 @@ class PlugDataWindow : public DocumentWindow
 #if CUSTOM_SHADOW
     void paint(Graphics& g) override
     {
-        auto b = getLocalBounds().reduced(3);
+        auto b = getLocalBounds();
         Path localPath;
-        localPath.addRoundedRectangle(b.toFloat(), 6.0f);
+        localPath.addRoundedRectangle(b.toFloat().reduced(4), 6.0f);
         shadow.drawForPath(g, localPath);
         
         g.setColour(Colour(186, 186, 186));
-        g.drawRoundedRectangle(b.toFloat().reduced(1), 6.0f, 1.0f);
-        
-        //shadow.drawForRectangle(g, getLocalBounds().reduced(5));
+        g.drawRoundedRectangle(b.toFloat().reduced(4), 6.0f, 1.0f);
     }
 #endif
 
