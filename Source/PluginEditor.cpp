@@ -942,22 +942,22 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         {
             // could be nicer
             toolbarButtons[0]->triggerClick();
-            break;
+            return true;
         }
         case CommandIDs::OpenProject:
         {
             openProject();
-            break;
+            return true;
         }
         case CommandIDs::SaveProject:
         {
             saveProject();
-            break;
+            return true;
         }
         case CommandIDs::SaveProjectAs:
         {
             saveProjectAs();
-            break;
+            return true;
         }
         case CommandIDs::Copy:
         {
