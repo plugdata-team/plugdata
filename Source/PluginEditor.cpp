@@ -87,10 +87,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
                 auto* cnv = box->graphics->getCanvas();
                 if (cnv) cnv->synchronise();
             }
-            if (type == pd::Type::Subpatch || type == pd::Type::GraphOnParent || type == pd::Type::Clone)
-            {
-                box->updatePorts();
-            }
         }
 
         auto* cnv = getCurrentCanvas();
