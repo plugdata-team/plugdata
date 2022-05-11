@@ -286,11 +286,14 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
 
         auto bg = instance->getBackgroundColour().toString().substring(2);
         auto fg = instance->getForegroundColour().toString().substring(2);
-        auto lbl = instance->getBackgroundColour().contrasting().toString().substring(2);
-
+        auto lbl = instance->getTextColour().toString().substring(2);
+        auto ln = instance->getOutlineColour().toString().substring(2);
+        
         preset = preset.replace("bgColour", "#" + bg);
         preset = preset.replace("fgColour", "#" + fg);
         preset = preset.replace("lblColour", "#" + lbl);
+        preset = preset.replace("lnColour", "#" + ln);
+        
 
         tokens.addTokens(preset, false);
     }

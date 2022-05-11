@@ -13,6 +13,8 @@ struct SliderComponent : public GUIComponent
         addAndMakeVisible(slider);
 
         isLogarithmic = gui.isLogScale();
+        
+        setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
 
         if (vertical)
             slider.setSliderStyle(Slider::LinearBarVertical);
@@ -64,7 +66,7 @@ struct SliderComponent : public GUIComponent
 
     void resized() override
     {
-        slider.setBounds(getLocalBounds());
+        slider.setBounds(getLocalBounds().expanded(1));
     }
 
     void update() override

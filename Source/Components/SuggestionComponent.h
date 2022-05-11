@@ -70,7 +70,10 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             if (drawIcon)
             {
-                g.setColour((type ? Colours::yellow : findColour(ScrollBar::thumbColourId)).withAlpha(float(0.8)));
+                
+                auto colour = findColour(PlugDataColour::highlightColourId);
+                auto inverted = Colour(255 - colour.getRed(), 255 - colour.getGreen(), 255 - colour.getBlue());
+                g.setColour(type ? inverted.withAlpha(float(0.8)) : colour.withAlpha(float(0.8)));
                 Rectangle<int> iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(3, 0);
@@ -160,7 +163,23 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary | ComponentPeer::StyleFlags::windowIgnoresKeyPresses);
         setVisible(false);
 
+        setTopLeftPosition(box->getScreenX(), box->getScreenBounds().getBottom());
         repaint();
+    }
+    
+    void removeCalloutBox() {
+        if (isOnDesktop())
+        {
+            removeFromDesktop();
+        }
+        
+        if(openedEditor) {
+            openedEditor->setInputFilter(nullptr, false);
+        }
+        
+        
+        openedEditor = nullptr;
+        currentBox = nullptr;
     }
 
     void move(int offset, int setto = -1)
@@ -204,7 +223,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     }
 
     TextEditor* openedEditor = nullptr;
-    Box* currentBox;
+    SafePointer<Box> currentBox;
 
     void resized() override
     {
@@ -249,6 +268,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
     String filterNewText(TextEditor& e, const String& newInput) override
     {
+        if(!currentBox)  {
+            
+            return newInput;
+        }
+        
         String mutableInput = newInput;
 
         // Find start of highlighted region
@@ -337,6 +361,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         setVisible(true);
         highlightEnd = fullName.length();
 
+        
         return mutableInput;
     }
 

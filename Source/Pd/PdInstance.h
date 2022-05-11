@@ -160,7 +160,9 @@ class Instance
 
     virtual Colour getForegroundColour() = 0;
     virtual Colour getBackgroundColour() = 0;
-
+    virtual Colour getTextColour() = 0;
+    virtual Colour getOutlineColour() = 0;
+    
     void setThis();
     Array getArray(std::string const& name);
 

@@ -88,12 +88,12 @@ struct ListComponent : public GUIComponent, public Timer
         getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
 
-        g.fillAll(box->findColour(PlugDataColour::highlightColourId));
+        g.fillAll(box->findColour(PlugDataColour::canvasOutlineColourId));
 
         static auto const border = 1.0f;
         const auto h = static_cast<float>(getHeight());
         const auto w = static_cast<float>(getWidth());
-        const auto o = h * 0.25f;
+        const auto o = h * 0.33f;
         Path p;
         p.startNewSubPath(0.5f, 0.5f);
         p.lineTo(0.5f, h - 0.5f);
@@ -103,9 +103,8 @@ struct ListComponent : public GUIComponent, public Timer
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
 
-        g.setColour(box->findColour(PlugDataColour::canvasColourId));
+        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
         g.fillPath(p);
-        g.strokePath(p, PathStrokeType(border));
     }
 
     void update() override
