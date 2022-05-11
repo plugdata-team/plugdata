@@ -26,6 +26,7 @@ class Connection : public Component, public ComponentListener
     int outIdx;
 
     SafePointer<Edge> inlet, outlet;
+    SafePointer<Box> inbox, outbox;
 
     PathPlan currentPlan;
     Path toDraw;
