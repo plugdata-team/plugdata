@@ -169,7 +169,7 @@ void Canvas::synchronise(bool updatePosition)
         {
             auto connection = connections[n];
             
-            if (isObjectDeprecated(connection->inlet->box->pdObject.get()) || isObjectDeprecated(connection->outlet->box->pdObject.get()))
+            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inlet->box->pdObject.get()) || isObjectDeprecated(connection->outlet->box->pdObject.get()))
             {
                 connections.remove(n);
             }
@@ -219,6 +219,9 @@ void Canvas::synchronise(bool updatePosition)
         else
         {
             auto* box = *it;
+            
+            // Check if number of inlets/outlets is correct
+            box->updatePorts();
             
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
