@@ -9,7 +9,7 @@
 #include "Edge.h"
 #include "LookAndFeel.h"
 
-Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e)
+Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outbox(outlet->box), inbox(inlet->box)
 {
     // Should improve performance
     setBufferedToImage(true);
@@ -34,7 +34,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     // If it doesn't already exist in pd, create connection in pd
     if (!exists)
     {
-        bool canConnect = parent->patch.createConnection(outlet->box->pdObject.get(), outIdx, inlet->box->pdObject.get(), inIdx);
+        bool canConnect = parent->patch.createConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx);
 
         if (!canConnect)
         {
@@ -53,8 +53,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     }
 
     // Listen to changes at edges
-    outlet->box->addComponentListener(this);
-    inlet->box->addComponentListener(this);
+    outbox->addComponentListener(this);
+    inbox->addComponentListener(this);
     outlet->addComponentListener(this);
     inlet->addComponentListener(this);
 
@@ -115,27 +115,32 @@ String Connection::getId() const
 
     // TODO: check if connection is still valid before requesting idx from box
 
-    stream.writeInt(cnv->patch.getIndex(inlet->box->pdObject->getPointer()));
-    stream.writeInt(cnv->patch.getIndex(outlet->box->pdObject->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(inbox->pdObject->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(outbox->pdObject->getPointer()));
     stream.writeInt(inIdx);
-    stream.writeInt(outlet->box->numInputs + outIdx);
+    stream.writeInt(outbox->numInputs + outIdx);
 
     return stream.getMemoryBlock().toBase64Encoding();
 }
 
 Connection::~Connection()
 {
-    if (outlet && outlet->box)
+    if (outlet)
     {
         outlet->repaint();
-        outlet->box->removeComponentListener(this);
         outlet->removeComponentListener(this);
     }
-    if (inlet && inlet->box)
+    if(outbox) {
+        outbox->removeComponentListener(this);
+    }
+    
+    if (inlet)
     {
         inlet->repaint();
-        inlet->box->removeComponentListener(this);
         inlet->removeComponentListener(this);
+    }
+    if(inbox) {
+        inbox->removeComponentListener(this);
     }
 }
 
@@ -333,7 +338,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     }
 
     // If both inlet and outlet are selected we can just move the connection cord
-    if ((cnv->isSelected(outlet->box) && cnv->isSelected(inlet->box)) || cnv->updatingBounds)
+    if ((cnv->isSelected(outbox) && cnv->isSelected(inbox)) || cnv->updatingBounds)
     {
         auto offset = pstart - currentPlan[0];
         for (auto& point : currentPlan) point += offset;
@@ -345,7 +350,7 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     int idx2 = 1;
 
     auto& position = pstart;
-    if (&component == inlet || &component == inlet->box)
+    if (&component == inlet || &component == inbox)
     {
         idx1 = currentPlan.size() - 1;
         idx2 = currentPlan.size() - 2;
@@ -626,7 +631,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck)
 
         if (auto* graphics = box->graphics.get()) bounds = graphics->getBounds().expanded(3) + box->getPosition();
 
-        if (box == outlet->box || box == inlet->box || !bounds.intersects(getLocalBounds())) continue;
+        if (box == outbox || box == inbox || !bounds.intersects(getLocalBounds())) continue;
 
         auto intersectV = [](Line<int> first, Line<int> second)
         {
