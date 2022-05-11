@@ -630,6 +630,8 @@ struct PlugDataLook : public LookAndFeel_V4
             setColour(PlugDataColour::toolbarOutlineColourId, findColour(ComboBox::outlineColourId).interpolatedWith(findColour(ComboBox::backgroundColourId), 0.5f));
             setColour(PlugDataColour::canvasOutlineColourId, findColour(ComboBox::outlineColourId));
         }
+        
+        int getSliderThumbRadius (Slider&) override { return 0; }
 
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
         {
@@ -653,28 +655,23 @@ struct PlugDataLook : public LookAndFeel_V4
 
         void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
         {
-            g.setColour(slider.findColour(Slider::trackColourId));
-
-            if (slider.isHorizontal())
-            {
-                auto rect = Rectangle<float>(static_cast<float>(x), (float)y + 0.5f, sliderPos - (float)x, (float)height - 1.0f);
-
-                g.fillRect(rect);
-                g.setColour(findColour(Slider::thumbColourId));
-
-                x = jmap<int>(sliderPos, x, x + width, x + 2.5f, x + width - 2.5f) - 2.5f;
-                g.fillRect(rect.withWidth(5.0f).withX(x));
+            // Round edges to match objects
+            auto sliderBounds = Rectangle<float>(x, y, width, height).reduced(0.5f);
+            g.setColour(findColour(Slider::trackColourId));
+            g.fillRoundedRectangle(sliderBounds, 2.0f);
+            
+            Path toDraw;
+            if(slider.isHorizontal()) {
+                auto b = sliderBounds.withTrimmedLeft(sliderPos);
+                toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 2.0f, 2.0f, false, true, false, true);
             }
-            else
-            {
-                auto rect = Rectangle<float>((float)x + 0.5f, sliderPos, (float)width - 1.0f, (float)y + ((float)height - sliderPos));
-
-                g.fillRect(rect);
-                g.setColour(findColour(Slider::thumbColourId));
-
-                y = jmap<int>(sliderPos, y, y + height, y + 2.5f, y + height - 2.5f) - 2.5f;
-                g.fillRect(rect.withHeight(5.0f).withY(y));
+            else {
+                auto b = sliderBounds.withTrimmedBottom(height - sliderPos);
+                toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 2.0f, 2.0f, true, true, false, false);
             }
+            
+            g.setColour(slider.findColour(Slider::backgroundColourId));
+            g.fillPath(toDraw);
         }
 
         void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
@@ -841,7 +838,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         if (useLightTheme)
         {
-            setColours(Colour(231, 231, 231), Colour(245, 245, 245), Colour(91, 89, 94), Colour(0, 122, 255), Colour(165, 165, 165), Colour(179, 179, 179));
+            setColours(Colour(225, 225, 225), Colour(245, 245, 245), Colour(91, 89, 94), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179));
         }
         else
         {

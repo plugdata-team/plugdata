@@ -19,7 +19,7 @@ struct BangComponent : public GUIComponent
             const auto width = std::max(bounds.getWidth(), bounds.getHeight());
 
             const float circleOuter = 80.f * (width * 0.01f);
-            const float circleThickness = std::max(8.f * (width * 0.01f), 2.0f);
+            const float circleThickness = std::max(width * 0.06f, 1.5f);
 
             g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
             g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);

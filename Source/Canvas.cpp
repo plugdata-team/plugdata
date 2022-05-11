@@ -975,17 +975,10 @@ void Canvas::valueChanged(Value& v)
 void Canvas::showSuggestions(Box* box, TextEditor* editor)
 {
     suggestor->createCalloutBox(box, editor);
-    suggestor->setTopLeftPosition(box->getScreenX(), box->getScreenBounds().getBottom());
 }
 void Canvas::hideSuggestions()
 {
-    if (suggestor->isOnDesktop())
-    {
-        suggestor->removeFromDesktop();
-    }
-    
-    suggestor->openedEditor = nullptr;
-    suggestor->currentBox = nullptr;
+    suggestor->removeCalloutBox();
 }
 
 // Makes component selected

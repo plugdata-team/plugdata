@@ -167,14 +167,17 @@ bool Connection::hitTest(int x, int y)
 void Connection::paint(Graphics& g)
 {
     auto baseColour = findColour(PlugDataColour::connectionColourId);
-
+    auto highlightColour = findColour(PlugDataColour::highlightColourId);
+    auto invertedColour = Colour(255 - highlightColour.getRed(), 255 - highlightColour.getGreen(), 255 - highlightColour.getBlue());
+    
     if (cnv->isSelected(this))
     {
-        baseColour = outlet->isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
+       
+        baseColour = outlet->isSignal ? invertedColour : highlightColour;
     }
     else if (isMouseOver())
     {
-        baseColour = outlet->isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
+        baseColour = outlet->isSignal ? invertedColour : highlightColour;
         baseColour = baseColour.brighter(0.6f);
     }
 
