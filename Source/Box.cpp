@@ -109,7 +109,7 @@ void Box::valueChanged(Value& v)
     else
     {
         setVisible(true);
-        updatePorts();
+        updatePorts(); // why?
         resized();
     }
 
