@@ -91,12 +91,9 @@ struct MessageComponent : public GUIComponent
             Path flagPath;
             flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
 
-            g.setColour(box->findColour(PlugDataColour::highlightColourId));
+            g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
             g.fillPath(flagPath);
         }
-
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 1.5f);
     }
 
     void updateValue() override

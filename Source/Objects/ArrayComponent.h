@@ -25,7 +25,8 @@ struct GraphicalArray : public Component, public Timer
 
     void paint(Graphics& g) override
     {
-        g.fillAll(box->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
         if (error)
         {
@@ -81,9 +82,6 @@ struct GraphicalArray : public Component, public Timer
                 }
             }
         }
-
-        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
-        g.drawRect(getLocalBounds(), 1);
     }
 
     void mouseDown(const MouseEvent& e) override

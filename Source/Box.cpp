@@ -151,10 +151,13 @@ void Box::mouseExit(const MouseEvent& e)
 
 void Box::mouseMove(const MouseEvent& e)
 {
+    if (!cnv->isSelected(this) || locked == var(true))  {
+        setMouseCursor(MouseCursor::NormalCursor);
+        updateMouseCursor();
+        return;
+    }
+
     auto corners = getCorners();
-
-    if (!cnv->isSelected(this) || locked == var(true)) return;
-
     for (auto& rect : corners)
     {
         if (rect.contains(e.position))
@@ -166,7 +169,7 @@ void Box::mouseMove(const MouseEvent& e)
             return;
         }
     }
-
+    
     setMouseCursor(MouseCursor::NormalCursor);
     updateMouseCursor();
 }
@@ -359,7 +362,7 @@ void Box::paint(Graphics& g)
 
     if (!hideLabel && !editor)
     {
-        g.setColour(findColour(ResizableWindow::backgroundColourId).contrasting());
+        g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(rect);
@@ -667,7 +670,8 @@ void Box::showEditor()
         cnv->showSuggestions(this, editor.get());
 
         editor->setSize(10, 10);
-        addAndMakeVisible(editor.get());
+        addAndMakeVisible (editor.get());
+
         editor->setText(currentText, false);
         editor->addListener(this);
 

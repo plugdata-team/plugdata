@@ -294,9 +294,12 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         // Run on threadpool
         // Web requests shouldn't block the message queue!
         searchSpinner.startSpinning();
+        auto deken = SafePointer<Deken>(this);
+        
         addJob(
-            [this, result, query, searchType]() mutable
+            [this, deken, result, query, searchType]() mutable
             {
+                if(!deken) return;
                 SearchResult newResult;
 
                 // Add as job to ensure synchronous order
@@ -328,10 +331,14 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                             newResult.addIfNotAlreadyThere(info);
                         }
                     }
-
+                    
+                   
                     MessageManager::callAsync(
-                        [this, result, newResult]() mutable
+                        [this, deken, result, newResult]() mutable
                         {
+                            // Check if it didn't get deleted
+                            if(!deken) return;
+                            
                             *result = newResult;
                             listBox.updateContent();
                             searchSpinner.stopSpinning();
@@ -361,8 +368,10 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 
                 if(!success) {
                     MessageManager::callAsync(
-                        [this, result]()
+                        [this, deken, result]()
                         {
+                            if(!deken) return;
+                            
                             result->clear();
                             listBox.updateContent();
                             searchSpinner.stopSpinning();
@@ -391,8 +400,10 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     if (!object)
                     {
                         MessageManager::callAsync(
-                            [this, result]()
+                            [this, deken, result]()
                             {
+                                if(!deken) return;
+                                
                                 result->clear();
                                 listBox.updateContent();
                                 searchSpinner.stopSpinning();
@@ -407,8 +418,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                         SearchResult results;
                         String name = result.name.toString();
                         
-
-
                         // Loop through the different versions
                         auto* versions = result.value.getDynamicObject();
                         for (const auto v : versions->getProperties())
@@ -453,8 +462,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 }
                 // Update content from message thread
                 MessageManager::callAsync(
-                    [this, result, newResult]() mutable
+                    [this, deken, result, newResult]() mutable
                     {
+                        if(!deken) return;
                         *result = newResult;
                         listBox.updateContent();
                         searchSpinner.stopSpinning();

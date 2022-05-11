@@ -434,7 +434,7 @@ void Statusbar::zoom(bool zoomIn)
 }
 
 void Statusbar::zoom(float zoomAmount)
-{
+{    
     float value = static_cast<float>(zoomScale.getValue());
     value *= zoomAmount;
 

@@ -184,7 +184,8 @@ void GUIComponent::paint(Graphics& g)
         // make sure text is readable
         getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
         getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
-        g.setColour(box->findColour(PlugDataColour::canvasColourId));
+        
+        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
     }
 
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
@@ -194,7 +195,7 @@ void GUIComponent::paintOverChildren(Graphics& g)
 {
     if (gui.isAtom())
     {
-        g.setColour(box->findColour(PlugDataColour::highlightColourId));
+        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
 
@@ -253,6 +254,7 @@ void GUIComponent::valueChanged(Value& v)
 
         getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
         getLookAndFeel().setColour(Slider::thumbColourId, colour);
+        getLookAndFeel().setColour(Slider::trackColourId, colour);
         repaint();
     }
     else if (v.refersToSameSourceAs(secondaryColour))
@@ -263,17 +265,11 @@ void GUIComponent::valueChanged(Value& v)
         getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
         getLookAndFeel().setColour(TextButton::buttonColourId, colour);
 
-        getLookAndFeel().setColour(Label::textColourId, colour.contrasting(1.0f));
-        getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(1.0f));
+        
+        getLookAndFeel().setColour(Label::textColourId, colour.contrasting(0.6f));
+        getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(0.6f));
 
-        auto sliderBackground = Colour::fromString(secondaryColour.toString());
-        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.5f) : sliderBackground.brighter(0.5f);
-
-        auto sliderTrack = Colour::fromString(secondaryColour.toString());
-        sliderTrack = sliderTrack.getBrightness() > 0.5f ? sliderTrack.darker(0.2f) : sliderTrack.brighter(0.2f);
-
-        getLookAndFeel().setColour(Slider::backgroundColourId, sliderTrack);
-        getLookAndFeel().setColour(Slider::trackColourId, sliderBackground);
+        getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
         repaint();
     }

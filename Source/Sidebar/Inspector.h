@@ -285,8 +285,9 @@ struct Inspector : public PropertyPanel
 
         void mouseUp(const MouseEvent& e) override
         {
-            setMouseCursor(MouseCursor::NormalCursor);
-            updateMouseCursor();
+            
+            label.setMouseCursor(MouseCursor::NormalCursor);
+            label.updateMouseCursor();
         }
 
         void mouseDrag(const MouseEvent& e) override
@@ -294,7 +295,7 @@ struct Inspector : public PropertyPanel
             if constexpr (!std::is_arithmetic<T>::value) return;
             if (label.isBeingEdited()) return;
 
-            setMouseCursor(MouseCursor::NoCursor);
+            label.setMouseCursor(MouseCursor::NoCursor);
             updateMouseCursor();
 
             const int decimal = decimalDrag + e.mods.isShiftDown();

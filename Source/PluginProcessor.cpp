@@ -10,6 +10,14 @@
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 
+extern "C"
+{
+    extern char* pd_version;
+}
+
+const String else_version = "ELSE v1.0-rc1";
+const String cyclone_version = "cyclone v0.6-0";
+
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {
     AudioProcessor::BusesProperties busesProperties;
@@ -103,6 +111,11 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     }
 
     logMessage("PlugData v" + String(ProjectInfo::versionString));
+    logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
+    logMessage("Libraries:");
+    logMessage(else_version);
+    logMessage(cyclone_version);
+
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -855,14 +868,27 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
     }
 }
 
+
+Colour PlugDataAudioProcessor::getOutlineColour()
+{
+    // currently the same as text colour, but still a function to make it easy to change in the future
+    return lnf->findColour(PlugDataColour::canvasOutlineColourId);
+}
+
 Colour PlugDataAudioProcessor::getForegroundColour()
 {
-    return lnf->findColour(PlugDataColour::highlightColourId);
+    // currently the same as text colour, but still a function to make it easy to change in the future
+    return lnf->findColour(PlugDataColour::textColourId);
 }
 
 Colour PlugDataAudioProcessor::getBackgroundColour()
 {
-    return lnf->findColour(PlugDataColour::canvasColourId);
+    return lnf->findColour(PlugDataColour::toolbarColourId);
+}
+
+Colour PlugDataAudioProcessor::getTextColour()
+{
+    return lnf->findColour(PlugDataColour::textColourId);
 }
 
 void PlugDataAudioProcessor::receiveNoteOn(const int channel, const int pitch, const int velocity)

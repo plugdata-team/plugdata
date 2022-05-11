@@ -59,7 +59,9 @@ void Edge::paint(Graphics& g)
     bool down = isDown() && !bool(box->locked.getValue());
     bool over = isOver() && !bool(box->locked.getValue());
 
-    auto backgroundColour = isSignal ? Colours::yellow : findColour(PlugDataColour::highlightColourId);
+    auto colour = findColour(PlugDataColour::highlightColourId);
+    auto inverted = Colour(255 - colour.getRed(), 255 - colour.getGreen(), 255 - colour.getBlue());
+    auto backgroundColour = isSignal ? inverted: colour;
 
     if (!box->edgeHovered) backgroundColour = backgroundColour.withAlpha(0.7f);
 
