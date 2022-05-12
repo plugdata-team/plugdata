@@ -579,13 +579,13 @@ void Gui::setSymbol(std::string const& value) noexcept
 {
     if (ptr && type == Type::Message)
     {
-        auto valueCopy = value;  // to ensure thread safety
         instance->enqueueFunction(
-            [this, valueCopy]() mutable
+            [this, value]() mutable
             {
+                auto* cstr = value.c_str();
                 auto* messobj = static_cast<t_message*>(ptr);
                 binbuf_clear(messobj->m_text.te_binbuf);
-                binbuf_text(messobj->m_text.te_binbuf, valueCopy.c_str(), valueCopy.size());
+                binbuf_text(messobj->m_text.te_binbuf, value.c_str(), value.size());
                 glist_retext(messobj->m_glist, &messobj->m_text);
             });
     }
