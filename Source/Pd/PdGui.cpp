@@ -758,11 +758,8 @@ void Gui::setBounds(Rectangle<int> bounds)
     int w = bounds.getWidth();
     int h = bounds.getHeight();
 
-    if (w == oldBounds.getWidth() && h == oldBounds.getHeight()) return;
-
-    if (type != Type::Keyboard && type != Type::Panel && type != Type::Array && type != Type::GraphOnParent && !isIEM() && !isAtom() && type != Type::Number)
-    {
-        Object::setBounds(bounds);
+    if (w == oldBounds.getWidth() && h == oldBounds.getHeight())  {
+        libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX(), bounds.getY());
         return;
     }
 
@@ -773,17 +770,17 @@ void Gui::setBounds(Rectangle<int> bounds)
         static_cast<t_keyboard*>(ptr)->x_width = bounds.getWidth();
         static_cast<t_keyboard*>(ptr)->x_height = bounds.getHeight();
     }
-    if (type == Type::Panel)
+    else if (type == Type::Panel)
     {
         static_cast<t_my_canvas*>(ptr)->x_vis_w = w - 1;
         static_cast<t_my_canvas*>(ptr)->x_vis_h = h - 1;
     }
-    if (type == Type::Array || type == Type::GraphOnParent)
+    else if (type == Type::Array || type == Type::GraphOnParent)
     {
         static_cast<_glist*>(ptr)->gl_pixwidth = w;
         static_cast<_glist*>(ptr)->gl_pixheight = h;
     }
-    if (type == Type::Number)
+    else if (type == Type::Number)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         auto* iemgui = &nbx->x_gui;
@@ -820,6 +817,10 @@ void Gui::setBounds(Rectangle<int> bounds)
         short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0)));
 
         gatom->a_text.te_width = newWidth;
+    }
+    else {
+        Object::setBounds(bounds);
+        return;
     }
 
     libpd_moveobj(patch->getPointer(), (t_gobj*)getPointer(), bounds.getX(), bounds.getY());

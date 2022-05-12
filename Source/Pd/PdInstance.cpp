@@ -25,17 +25,17 @@ extern "C"
     {
         static void instance_multi_bang(pd::Instance* ptr, const char* recv)
         {
-            ptr->enqueueFunction([ptr, recv]() { ptr->processMessage({std::string("bang"), std::string(recv)}); });
+            ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({std::string("bang"), std::string(recv)}); });
         }
 
         static void instance_multi_float(pd::Instance* ptr, const char* recv, float f)
         {
-            ptr->enqueueFunction([ptr, recv, f]() mutable { ptr->processMessage({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})}); });
+            ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})}); });
         }
 
         static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym)
         {
-            ptr->enqueueFunction([ptr, recv, sym]() mutable { ptr->processMessage({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))}); });
+            ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))}); });
         }
 
         static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
@@ -49,7 +49,7 @@ extern "C"
                     mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
             }
 
-            ptr->enqueueFunction([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
+            ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
         }
 
         static void instance_multi_message(pd::Instance* ptr, const char* recv, const char* msg, int argc, t_atom* argv)
@@ -62,48 +62,48 @@ extern "C"
                 else if (argv[i].a_type == A_SYMBOL)
                     mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
             }
-            ptr->enqueueFunction([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
+            ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
         }
 
         static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
         {
-            ptr->enqueueFunction([ptr, channel, pitch, velocity]() mutable { ptr->processMidiEvent({midievent::NOTEON, channel, pitch, velocity}); });
+            ptr->enqueueFunctionAsync([ptr, channel, pitch, velocity]() mutable { ptr->processMidiEvent({midievent::NOTEON, channel, pitch, velocity}); });
         }
 
         static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
         {
-            ptr->enqueueFunction([ptr, channel, controller, value]() mutable { ptr->processMidiEvent({midievent::CONTROLCHANGE, channel, controller, value}); });
+            ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable { ptr->processMidiEvent({midievent::CONTROLCHANGE, channel, controller, value}); });
         }
 
         static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunction([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
+            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
         }
 
         static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunction([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
+            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
         }
 
         static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunction([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::AFTERTOUCH, channel, value, 0}); });
+            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::AFTERTOUCH, channel, value, 0}); });
         }
 
         static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
         {
-            ptr->enqueueFunction([ptr, channel, pitch, value]() mutable { ptr->processMidiEvent({midievent::POLYAFTERTOUCH, channel, pitch, value}); });
+            ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable { ptr->processMidiEvent({midievent::POLYAFTERTOUCH, channel, pitch, value}); });
         }
 
         static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
         {
-            ptr->enqueueFunction([ptr, port, byte]() mutable { ptr->processMidiEvent({midievent::MIDIBYTE, port, byte, 0}); });
+            ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { ptr->processMidiEvent({midievent::MIDIBYTE, port, byte, 0}); });
         }
 
         static void instance_multi_print(pd::Instance* ptr, char const* s)
         {
             auto message = std::string(s);
-            ptr->enqueueFunction([ptr, message]() mutable { ptr->processPrint(message); });
+            ptr->enqueueFunctionAsync([ptr, message]() mutable { ptr->processPrint(message); });
         }
     };
 }
@@ -401,7 +401,16 @@ void Instance::enqueueFunction(const std::function<void(void)>& fn)
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
     m_function_queue.enqueue(fn);
+    
+    // Checks if it can be performed immediately
     messageEnqueued();
+}
+
+void Instance::enqueueFunctionAsync(const std::function<void(void)>& fn)
+{
+    // This should be the way to do it, but it currently causes some issues
+    // By calling fn directly we fix these issues at the cost of possible thread unsafety
+    m_function_queue.enqueue(fn);
 }
 
 void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
@@ -454,7 +463,7 @@ void Instance::waitForStateUpdate()
 
 void Instance::sendMessagesFromQueue()
 {
-    // libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+    libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     std::function<void(void)> callback;
     while (m_function_queue.try_dequeue(callback))

@@ -138,6 +138,8 @@ class Instance
     virtual void titleChanged(){};
 
     void enqueueFunction(const std::function<void(void)>& fn);
+    void enqueueFunctionAsync(const std::function<void(void)>& fn);
+    
     void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list);
 
     void enqueueDirectMessages(void* object, std::vector<Atom> const& list);
