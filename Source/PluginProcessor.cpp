@@ -375,7 +375,7 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     ScopedNoDenormals noDenormals;
     const int blockSize = Instance::getBlockSize();
     const int numSamples = buffer.getNumSamples();
-    const int adv = audioAdvancement >= 64 ? 0 : audioAdvancement.load();
+    const int adv = audioAdvancement >= 64 ? 0 : audioAdvancement;
     const int numLeft = blockSize - adv;
     const int numIn = getTotalNumInputChannels();
     const int numOut = getTotalNumOutputChannels();
