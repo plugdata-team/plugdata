@@ -8,20 +8,20 @@ struct ToggleComponent : public GUIComponent
 
         void paint(Graphics& g) override
         {
-            float width = getWidth() - 4;
-            const float rectangleOuter = width * 0.70f;
-            const float rectangleThickness = std::max(width * 0.04f, 1.5f);
-            
-            auto toggleBounds = getLocalBounds().toFloat().reduced(width - rectangleOuter);
-            
-            
-            if(getToggleState()) {
-                g.setColour(findColour(TextButton::buttonOnColourId));
-                g.fillRoundedRectangle(toggleBounds, 2.0f);
+            g.setColour(getToggleState() ? findColour(TextButton::buttonOnColourId) : findColour(PlugDataColour::canvasOutlineColourId));
+
+            auto crossBounds = getLocalBounds().reduced(6).toFloat();
+
+            if (getWidth() < 20)
+            {
+                crossBounds = crossBounds.expanded(20 - getWidth());
             }
-            
-            g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
-            g.drawRoundedRectangle(toggleBounds, 2.0f, rectangleThickness);
+
+            const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
+            const auto strokeWidth = std::max(max * 0.15f, 2.0f);
+
+            g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
+            g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
         }
 
         void mouseDown(const MouseEvent& e) override
