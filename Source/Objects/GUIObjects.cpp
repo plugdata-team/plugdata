@@ -255,6 +255,10 @@ void GUIComponent::valueChanged(Value& v)
         getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
         getLookAndFeel().setColour(Slider::thumbColourId, colour);
         getLookAndFeel().setColour(Slider::trackColourId, colour);
+        
+        getLookAndFeel().setColour(Label::textColourId, colour);
+        getLookAndFeel().setColour(TextEditor::textColourId, colour);
+
         repaint();
     }
     else if (v.refersToSameSourceAs(secondaryColour))
@@ -266,8 +270,6 @@ void GUIComponent::valueChanged(Value& v)
         getLookAndFeel().setColour(TextButton::buttonColourId, colour);
 
         
-        getLookAndFeel().setColour(Label::textColourId, colour.contrasting(0.6f));
-        getLookAndFeel().setColour(TextEditor::textColourId, colour.contrasting(0.6f));
 
         getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
