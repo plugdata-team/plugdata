@@ -121,6 +121,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void sendMidiBuffer();
     void sendPlayhead();
+    void sendParameters();
 
     void messageEnqueued() override;
 

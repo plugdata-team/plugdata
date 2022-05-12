@@ -360,36 +360,6 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
         buffer.clear(i, 0, buffer.getNumSamples());
     }
 
-#if PLUGDATA_STANDALONE
-    for (int n = 0; n < numParameters; n++)
-    {
-        if (standaloneParams[n].load() != lastParameters[n])
-        {
-            float value = standaloneParams[n].load();
-            lastParameters[n] = value;
-
-            parameterAtom[0] = {pd::Atom(value)};
-
-            String toSend = ("param" + String(n + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
-        }
-    }
-
-#else
-    for (int n = 0; n < numParameters; n++)
-    {
-        if (parameterValues[n]->load() != lastParameters[n])
-        {
-            lastParameters[n] = parameterValues[n]->load();
-
-            parameterAtom[0] = {pd::Atom(lastParameters[n])};
-
-            String toSend = ("param" + String(n + 1));
-            sendList(toSend.toRawUTF8(), parameterAtom);
-        }
-    }
-#endif
-
     midiBufferCopy.clear();
     midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
 
@@ -538,6 +508,40 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     }
 }
 
+void PlugDataAudioProcessor::sendParameters()
+{
+    
+#if PLUGDATA_STANDALONE
+    for (int n = 0; n < numParameters; n++)
+    {
+        if (standaloneParams[n].load() != lastParameters[n])
+        {
+            float value = standaloneParams[n].load();
+            lastParameters[n] = value;
+
+            parameterAtom[0] = {pd::Atom(value)};
+
+            String toSend = ("param" + String(n + 1));
+            sendList(toSend.toRawUTF8(), parameterAtom);
+        }
+    }
+
+#else
+    for (int n = 0; n < numParameters; n++)
+    {
+        if (parameterValues[n]->load() != lastParameters[n])
+        {
+            lastParameters[n] = parameterValues[n]->load();
+
+            parameterAtom[0] = {pd::Atom(lastParameters[n])};
+
+            String toSend = ("param" + String(n + 1));
+            sendList(toSend.toRawUTF8(), parameterAtom);
+        }
+    }
+#endif
+}
+
 void PlugDataAudioProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
@@ -668,15 +672,13 @@ void PlugDataAudioProcessor::processInternal()
     // Dequeue messages
     sendMessagesFromQueue();
     sendPlayhead();
+    sendParameters();
     sendMidiBuffer();
     
 
     // Process audio
     std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
     performDSP(audioBufferIn.data(), audioBufferOut.data());
-
-
-
 }
 
 bool PlugDataAudioProcessor::hasEditor() const
