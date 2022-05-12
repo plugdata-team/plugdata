@@ -182,7 +182,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
    private:
     void processInternal();
 
-    std::atomic<int> audioAdvancement = 0;
+    int audioAdvancement = 0;
     std::vector<float> audioBufferIn;
     std::vector<float> audioBufferOut;
 

@@ -88,14 +88,20 @@ struct NumberComponent : public GUIComponent
     {
         GUIComponent::mouseDown(e);
         if (input.isBeingEdited()) return;
+
         
-        // Hide cursor
+        // Hide cursor and set unbounded mouse movement
         input.setMouseCursor(MouseCursor::NoCursor);
         input.updateMouseCursor();
-
+        
+        auto mouseSource = Desktop::getInstance().getMainMouseSource();
+        mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
+        mouseSource.enableUnboundedMouseMovement(true, true);
+        
         startEdition();
         shift = e.mods.isShiftDown();
         dragValue = input.getText().getFloatValue();
+        
 
         lastDragPos = e.position;
 
@@ -145,9 +151,10 @@ struct NumberComponent : public GUIComponent
         input.setMouseCursor(MouseCursor::NormalCursor);
         input.updateMouseCursor();
         
-        // Reset mouse position to where it was first clicked
-        Desktop::getInstance().getMainMouseSource().setScreenPosition(e.getMouseDownScreenPosition().toFloat());
-        
+        // Reset mouse position to where it was first clicked and disable unbounded movement
+        auto mouseSource = Desktop::getInstance().getMainMouseSource();
+        mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
+        mouseSource.enableUnboundedMouseMovement(false);
         stopEdition();
     }
 
@@ -155,14 +162,13 @@ struct NumberComponent : public GUIComponent
     {
         if (input.isBeingEdited()) return;
 
-
         const int decimal = decimalDrag + e.mods.isShiftDown();
         const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
         const float deltaY = e.y - lastDragPos.y;
         lastDragPos = e.position;
 
         dragValue += increment * -deltaY;
-
+        
         // truncate value and set
         double newValue = dragValue;
 
