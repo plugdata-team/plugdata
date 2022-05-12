@@ -51,23 +51,8 @@ struct PackageInfo
     String name, author, timestamp, url, description, version, packageId;
 };
 
-struct SearchInfo : public PackageInfo
-{
-    SearchInfo(String name, String author, String timestamp, String url, String description, String version, StringArray packages)  : PackageInfo(name, author, timestamp, url, description, version) {
-        
-    }
-    StringArray packages;
-    
-    bool matches(String query)
-    {
-        return name.contains(query);
-    }
-};
-
 // Array with package info to store the result of a search action in
-// TODO: better naming
 using SearchResult = Array<PackageInfo>;
-using PackageDatabase = Array<SearchInfo>;
 
 class Deken : public Component, public ListBoxModel, public ScrollBar::Listener, public ThreadPool, public ValueTree::Listener, public Timer
 {
@@ -220,7 +205,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         addAndMakeVisible(searchSpinner);
         searchSpinner.setAlwaysOnTop(true);
 
-        fetchPackages(allPackages);
         //updateResults("*", &allResults, 2);
         updateResults("", &searchResult, 0);
     }
@@ -309,6 +293,183 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
     {
         // Run on threadpool
         // Web requests shouldn't block the message queue!
+        searchSpinner.startSpinning();
+        auto deken = SafePointer<Deken>(this);
+        
+        addJob(
+            [this, deken, result, query, searchType]() mutable
+            {
+                if(!deken) return;
+                SearchResult newResult;
+
+                // Add as job to ensure synchronous order
+                if (query.isEmpty())
+                {
+                    for (auto child : packageState)
+                    {
+                        auto name = child.getType().toString();
+                        auto description = child.getProperty("Description").toString();
+                        auto timestamp = child.getProperty("Timestamp").toString();
+                        auto url = child.getProperty("URL").toString();
+                        auto version = child.getProperty("Version").toString();
+                        auto author = child.getProperty("Author").toString();
+
+                        bool exists = false;
+                        for (auto* download : downloads)
+                        {
+                            if (download->packageInfo == PackageInfo(name, author, timestamp, url, description, version))
+                            {
+                                exists = true;
+                                break;
+                            }
+                        }
+
+                        auto info = PackageInfo(name, author, timestamp, url, description, version);
+
+                        if (!getDownloadForPackage(info))
+                        {
+                            newResult.addIfNotAlreadyThere(info);
+                        }
+                    }
+                    
+                   
+                    MessageManager::callAsync(
+                        [this, deken, result, newResult]() mutable
+                        {
+                            // Check if it didn't get deleted
+                            if(!deken) return;
+                            
+                            *result = newResult;
+                            listBox.updateContent();
+                            searchSpinner.stopSpinning();
+                        });
+                    return;
+                }
+
+                // Set to name for now: there are not that many deken libraries to justify the other options
+                String type = StringArray({"name", "objects", "libraries"})[searchType];
+
+                // Create link for deken search request
+                auto url = URL("https://deken.puredata.info/search?" + type + "=" + query);
+
+                // Open webstream
+                WebInputStream webstream(url, false);
+
+                bool success = webstream.connect(nullptr);
+                int timer = 50;
+
+                // Try to connect with exponential backoff
+                while (!success && timer < 2000)
+                {
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + timer);
+                    timer *= 2;
+                    success = webstream.connect(nullptr);
+                }
+                
+                if(!success) {
+                    MessageManager::callAsync(
+                        [this, deken, result]()
+                        {
+                            if(!deken) return;
+                            
+                            result->clear();
+                            listBox.updateContent();
+                            searchSpinner.stopSpinning();
+                            showError("Failed to connect to server");
+                        });
+                }
+                
+
+                // Read JSON result from search query
+                auto json = webstream.readString();
+
+                // Parse outer JSON layer
+                var parsedJson;
+
+#undef JUCE_DEBUG
+                // Disable assertions:
+                // Sometimes the server passes an invalid result causing an assertion
+                // But the invalid result is no problem!
+                if (JSON::parse(json, parsedJson).wasOk())
+                {
+#define JUCE_DEBUG 1
+                    // Read json
+                    auto* object = parsedJson["result"]["libraries"].getDynamicObject();
+
+                    // Invalid result, update table and return
+                    if (!object)
+                    {
+                        MessageManager::callAsync(
+                            [this, deken, result]()
+                            {
+                                if(!deken) return;
+                                
+                                result->clear();
+                                listBox.updateContent();
+                                searchSpinner.stopSpinning();
+                            });
+
+                        return;
+                    }
+
+                    // Valid result, go through the options
+                    for (const auto result : object->getProperties())
+                    {
+                        SearchResult results;
+                        String name = result.name.toString();
+                        
+                        // Loop through the different versions
+                        auto* versions = result.value.getDynamicObject();
+                        for (const auto v : versions->getProperties())
+                        {
+                            // Loop through architectures
+                            for (auto& arch : *v.value.getArray())
+                            {
+                                auto* archs = arch["archs"].getArray();
+                                // Look for matching platform
+                                String platform = archs->getReference(0).toString();
+                                if (checkArchitecture(platform))
+                                {
+                                    // Extract info
+                                    String author = arch["author"];
+                                    String timestamp = arch["timestamp"];
+
+                                    String description = arch["description"];
+                                    String url = arch["url"];
+                                    String version = arch["version"];
+
+                                    // Add valid option
+                                    results.add({name, author, timestamp, url, description, version});
+                                }
+                            }
+                        }
+
+                        if (!results.isEmpty())
+                        {
+                            // Sort by alphabetically by timestamp to get latest version
+                            // The timestamp format is yyyy:mm::dd hh::mm::ss so this should work
+                            std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2) { return result1.timestamp.compare(result2.timestamp) > 0; });
+
+                            auto info = results.getReference(0);
+
+                            // check if already being downloaded
+                            if (!getDownloadForPackage(info))
+                            {
+                                newResult.addIfNotAlreadyThere(info);
+                            }
+                        }
+                    }
+                }
+                // Update content from message thread
+                MessageManager::callAsync(
+                    [this, deken, result, newResult]() mutable
+                    {
+                        if(!deken) return;
+                        *result = newResult;
+                        listBox.updateContent();
+                        searchSpinner.stopSpinning();
+                    });
+            });
     }
 
     // Return the package state document
@@ -431,7 +592,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     // Current search result
     SearchResult searchResult;
-    PackageDatabase allPackages;
+    SearchResult allResults;
 
     TextEditor input;
     TextButton clearButton = TextButton(Icons::Clear);
@@ -564,205 +725,6 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
             reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
         }
     };
-    
-    static bool getJSONFromURL(String url, var& result) {
-        
-        // Open webstream
-        WebInputStream webstream(url, false);
-
-        bool success = webstream.connect(nullptr);
-        int timer = 50;
-
-        // Try to connect with exponential backoff
-        while (!success && timer < 2000)
-        {
-            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + timer);
-            timer *= 2;
-            success = webstream.connect(nullptr);
-        }
-        
-        if(!success)
-        {
-            return false;
-        }
-        
-        // Read JSON result from search query
-        auto json = webstream.readString();
-
-        // Parse outer JSON layer
-        var parsedJson;
-
-#undef JUCE_DEBUG
-        // Disable assertions:
-        // Sometimes the server passes an invalid result causing an assertion, but we can handle this
-        success = JSON::parse(json, parsedJson).wasOk();
-#define JUCE_DEBUG 1
-        
-        if(success) {
-            result = parsedJson;
-        }
-        
-        return success;
-    }
-        
-        
-    static StringArray getObjectsForPackage(String packageURL, String name) {
-        
-        auto escaped = URL::addEscapeChars(packageURL, true);
-        
-        auto url = "https://deken.puredata.info/info.json?url=" + escaped;
-
-        // Parse outer JSON layer
-        var parsedJson;
-        
-        if (getJSONFromURL(url, parsedJson))
-        {
-            // Read json
-            auto* object = parsedJson["result"]["libraries"][var(name)].getDynamicObject();
-
-        }
-        
-    }
-    
-    void fetchPackages(PackageDatabase& result) {
-        searchSpinner.startSpinning();
-        auto deken = SafePointer<Deken>(this);
-        
-        addJob(
-            [this, deken, result]() mutable
-            {
-                if(!deken) return;
-                SearchResult newResult;
-                
-                /*
-                // Add as job to ensure synchronous order
-                if (query.isEmpty())
-                {
-                    for (auto child : packageState)
-                    {
-                        auto name = child.getType().toString();
-                        auto description = child.getProperty("Description").toString();
-                        auto timestamp = child.getProperty("Timestamp").toString();
-                        auto url = child.getProperty("URL").toString();
-                        auto version = child.getProperty("Version").toString();
-                        auto author = child.getProperty("Author").toString();
-
-                        bool exists = false;
-                        for (auto* download : downloads)
-                        {
-                            if (download->packageInfo == PackageInfo(name, author, timestamp, url, description, version))
-                            {
-                                exists = true;
-                                break;
-                            }
-                        }
-
-                        auto info = PackageInfo(name, author, timestamp, url, description, version);
-
-                        if (!getDownloadForPackage(info))
-                        {
-                            newResult.addIfNotAlreadyThere(info);
-                        }
-                    }
-                    
-                   
-                    MessageManager::callAsync(
-                        [this, deken, result, newResult]() mutable
-                        {
-                            // Check if it didn't get deleted
-                            if(!deken) return;
-                            
-                            *result = newResult;
-                            listBox.updateContent();
-                            searchSpinner.stopSpinning();
-                        });
-                    return;
-                } */
-
-                // Outer JSON layer
-                var parsedJson;
-
-                if (getJSONFromURL("https://deken.puredata.info/search.json", parsedJson))
-                {
-                    // Read json
-                    auto* object = parsedJson["result"]["libraries"].getDynamicObject();
-
-                    // Invalid result, update table and return
-                    if (!object)
-                    {
-                        MessageManager::callAsync(
-                            [this, deken, &result]()
-                            {
-                                if(!deken) return;
-                                
-                                result.clear();
-                                listBox.updateContent();
-                                searchSpinner.stopSpinning();
-                            });
-
-                        return;
-                    }
-
-                    // Valid result, go through the options
-                    for (const auto result : object->getProperties())
-                    {
-                        SearchResult results;
-                        String name = result.name.toString();
-                        
-                        // Loop through the different versions
-                        auto* versions = result.value.getDynamicObject();
-                        for (const auto v : versions->getProperties())
-                        {
-                            // Loop through architectures
-                            for (auto& arch : *v.value.getArray())
-                            {
-                                auto* archs = arch["archs"].getArray();
-                                // Look for matching platform
-                                String platform = archs->getReference(0).toString();
-                                if (checkArchitecture(platform))
-                                {
-                                    // Extract info
-                                    String author = arch["author"];
-                                    String timestamp = arch["timestamp"];
-
-                                    String description = arch["description"];
-                                    String url = arch["url"];
-                                    String version = arch["version"];
-
-                                    // Add valid option
-                                    results.add({name, author, timestamp, url, description, version});
-                                }
-                            }
-                        }
-
-                        if (!results.isEmpty())
-                        {
-                            // Sort by alphabetically by timestamp to get latest version
-                            // The timestamp format is yyyy:mm::dd hh::mm::ss so this should work
-                            std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2) { return result1.timestamp.compare(result2.timestamp) > 0; });
-
-                            auto info = results.getReference(0);
-
-                            // check if already being downloaded
-                            if (!getDownloadForPackage(info))
-                            {
-                                newResult.addIfNotAlreadyThere(info);
-                            }
-                        }
-                    }
-                }
-                // Update content from message thread
-                MessageManager::callAsync(
-                    [this, deken, &result, newResult]() mutable
-                    {
-                        if(!deken) return;
-                        //result = newResult;
-                        listBox.updateContent();
-                        searchSpinner.stopSpinning();
-                    });
-            });
-
-    }
     
     bool checkArchitecture(String platform)
     {
