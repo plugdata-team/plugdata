@@ -109,6 +109,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     {
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     }
+    
+    setLatencySamples(pd::Instance::getBlockSize());
 
     logMessage("PlugData v" + String(ProjectInfo::versionString));
     logMessage("Based on " + String(pd_version).upToFirstOccurrenceOf("(", false, false));
@@ -403,7 +405,7 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     ScopedNoDenormals noDenormals;
     const int blockSize = Instance::getBlockSize();
     const int numSamples = buffer.getNumSamples();
-    const int adv = audioAdvancement >= 64 ? 0 : audioAdvancement;
+    const int adv = audioAdvancement >= 64 ? 0 : audioAdvancement.load();
     const int numLeft = blockSize - adv;
     const int numIn = getTotalNumInputChannels();
     const int numOut = getTotalNumOutputChannels();
@@ -651,19 +653,9 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
-    setThis();
+    //setThis();
 
-    // Dequeue messages
-    sendMessagesFromQueue();
-    sendPlayhead();
-    sendMidiBuffer();
-
-    // Process audio
-    std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
-    performDSP(audioBufferIn.data(), audioBufferOut.data());
-
-
-    // Midi out
+    // clear midi out
     if (producesMidi())
     {
         midiByteIndex = 0;
@@ -672,6 +664,19 @@ void PlugDataAudioProcessor::processInternal()
         midiByteBuffer[2] = 0;
         midiBufferOut.clear();
     }
+    
+    // Dequeue messages
+    sendMessagesFromQueue();
+    sendPlayhead();
+    sendMidiBuffer();
+    
+
+    // Process audio
+    std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
+    performDSP(audioBufferIn.data(), audioBufferOut.data());
+
+
+
 }
 
 bool PlugDataAudioProcessor::hasEditor() const
@@ -1004,9 +1009,11 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
 
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)
 {
-    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-        editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
-    }
+    MessageManager::callAsync([this, dsp]() mutable {
+        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+            editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
+        }
+    });
 }
 
 void PlugDataAudioProcessor::updateConsole()

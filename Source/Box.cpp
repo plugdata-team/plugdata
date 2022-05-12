@@ -518,11 +518,14 @@ void Box::mouseDown(const MouseEvent& e)
         }
         else
         {
+            auto box = SafePointer<Box>(this);
             // Tell pd about new position
             // Don't do this for other case, as pdObject will not yet be assigned
             cnv->pd->enqueueFunction(
-                [this]()
+                [this, box]()
                 {
+                    if(!box) return;
+                    
                     auto b = getBounds() - cnv->canvasOrigin;
                     b.reduce(margin, margin);
                     pdObject->setBounds(b);
@@ -581,9 +584,12 @@ void Box::mouseUp(const MouseEvent& e)
     {
         originalBounds.setBounds(0, 0, 0, 0);
 
+        auto box = SafePointer<Box>(this);
         cnv->pd->enqueueFunction(
-            [this]()
+            [this, box]()
             {
+                if(!box) return;
+                
                 auto b = getBounds() - cnv->canvasOrigin;
                 b.reduce(margin, margin);
                 pdObject->setBounds(b);

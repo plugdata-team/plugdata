@@ -24,7 +24,7 @@ struct DAWAudioSettings : public Component
         latencyLabel.attachToComponent(&latencySlider, true);
 
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
-        latencySlider.onValueChange = [this, proc]() { proc->setLatencySamples(latencySlider.getValue()); };
+        latencySlider.onValueChange = [this, proc]() { proc->setLatencySamples(latencySlider.getValue() + proc->pd::Instance::getBlockSize()); };
         tailLengthSlider.onValueChange = [this, proc]() { proc->tailLength.setValue(tailLengthSlider.getValue()); };
     }
 
