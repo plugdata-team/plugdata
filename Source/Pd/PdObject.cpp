@@ -155,9 +155,9 @@ void Object::setBounds(Rectangle<int> bounds)
     {
         addUndoableAction();
         textObj->te_width = newWidth;
-
-        libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), bounds.getX(), bounds.getY());
     }
+    
+    libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), bounds.getX(), bounds.getY());
 }
 
 int Object::getNumInlets() noexcept
