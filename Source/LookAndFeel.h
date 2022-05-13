@@ -756,6 +756,11 @@ struct PlugDataLook : public LookAndFeel_V4
             }
             else
             {
+                /*
+                 auto onColour = owner.findColour(PlugDataColour::canvasColourId);
+                 auto offColour = owner.findColour(PlugDataColour::toolbarColourId).interpolatedWith(onColour, 0.5f);
+                 
+                 g.setColour((i + invert) & 1 ? onColour : offColour);*/
                 g.setColour(owner.findColour((i + invert) & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
             }
 
