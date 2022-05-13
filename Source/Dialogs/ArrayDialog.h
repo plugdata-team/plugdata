@@ -23,6 +23,7 @@ struct ArrayDialog : public Component
                     parent->onClose();
                 });
         };
+        
         ok.onClick = [this, parent]
         {
             // Check if input is valid

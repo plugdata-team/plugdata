@@ -65,7 +65,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     void updateLabel();
 
-    pd::Gui getGui();
+    pd::Type getType();
 
     float getValueOriginal() const noexcept;
 

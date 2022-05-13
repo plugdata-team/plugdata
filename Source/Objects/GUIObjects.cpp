@@ -472,9 +472,9 @@ void GUIComponent::updateLabel()
     }
 }
 
-pd::Gui GUIComponent::getGui()
+pd::Type GUIComponent::getType()
 {
-    return gui;
+    return gui.getType();
 }
 
 // Called in destructor of subpatch and graph class
