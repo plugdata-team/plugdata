@@ -1,7 +1,8 @@
 
 struct ListComponent : public GUIComponent, public Timer
 {
-    ListComponent(const pd::Gui& gui, Box* parent, bool newObject) : GUIComponent(gui, parent, newObject)
+    
+    ListComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject), dragger(label)
     {
         label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         label.setMinimumHorizontalScale(1.f);
@@ -15,29 +16,9 @@ struct ListComponent : public GUIComponent, public Timer
 
         label.onEditorHide = [this]()
         {
-            auto gui = getGui();
-            auto array = StringArray();
-            array.addTokens(label.getText(), true);
-            std::vector<pd::Atom> list;
-            list.reserve(array.size());
-            for (auto const& elem : array)
-            {
-                if (elem.getCharPointer().isDigit())
-                {
-                    list.push_back({elem.getFloatValue()});
-                }
-                else
-                {
-                    list.push_back({elem.toStdString()});
-                }
-            }
-            if (list != gui.getList())
-            {
-                startEdition();
-                gui.setList(list);
-                stopEdition();
-                // label.setText(String(gui.getSymbol()), NotificationType::dontSendNotification);
-            }
+            startEdition();
+            updateFromGui();
+            stopEdition();
         };
 
         label.onEditorShow = [this]()
@@ -49,11 +30,46 @@ struct ListComponent : public GUIComponent, public Timer
                 editor->setBorder(BorderSize<int>(2, 6, 2, 2));
             }
         };
+        
+        dragger.dragStart = [this](){
+            startEdition();
+        };
+        
+        dragger.valueChanged = [this](float){
+            updateFromGui();
+        };
+        
+        dragger.dragEnd = [this](){
+            stopEdition();
+        };
 
         updateValue();
 
         initialise(newObject);
         startTimer(100);
+    }
+    
+    
+    void updateFromGui() {
+        auto array = StringArray();
+        array.addTokens(label.getText(), true);
+        std::vector<pd::Atom> list;
+        list.reserve(array.size());
+        for (auto const& elem : array)
+        {
+            if (elem.getCharPointer().isDigit())
+            {
+                list.push_back({elem.getFloatValue()});
+            }
+            else
+            {
+                list.push_back({elem.toStdString()});
+            }
+        }
+        if (list != gui.getList())
+        {
+            gui.setList(list);
+        }
     }
 
     void checkBoxBounds() override
@@ -134,4 +150,5 @@ struct ListComponent : public GUIComponent, public Timer
 
    private:
     Label label;
+    DraggableListNumber dragger;
 };

@@ -357,7 +357,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         }
         
         auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
-        bool isGraphChild = parent->graphics->getGui().getType() == pd::Type::GraphOnParent;
+        bool isGraphChild = parent->graphics->getType() == pd::Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
         
         newPatch->setCurrentFile(path);
@@ -376,7 +376,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             // TODO: Move to Subpatch implementation
             auto* box = dynamic_cast<Box*>(source);
             if(box && box->graphics) {
-                auto type = box->graphics->getGui().getType();
+                auto type = box->graphics->getType();;
                 if (box && (box->graphics && (type == pd::Type::Subpatch || type == pd::Type::Clone)))
                 {
                     openSubpatch(box);
@@ -442,7 +442,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         
         bool isSubpatch = false;
         if(box && box->graphics) {
-            auto type = box->graphics->getGui().getType();
+            auto type = box->graphics->getType();
             isSubpatch = type == pd::Type::GraphOnParent || type == pd::Type::Subpatch || type == pd::Type::Clone;
         }
         
@@ -690,7 +690,7 @@ Array<DrawableTemplate*> Canvas::findDrawables()
         // Recurse for graphs
         if (gobj->g_pd == canvas_class)
         {
-            if (box->graphics && box->graphics->getGui().getType() == pd::Type::GraphOnParent)
+            if (box->graphics && box->graphics->getType() == pd::Type::GraphOnParent)
             {
                 auto* canvas = box->graphics->getCanvas();
                 
