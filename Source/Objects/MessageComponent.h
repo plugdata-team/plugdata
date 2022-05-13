@@ -95,7 +95,7 @@ struct MessageComponent : public GUIComponent
             g.fillPath(flagPath);
             
             if(isDown) {
-                g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 3.0f);
+                g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 4.0f);
             }
         }
     }

@@ -102,7 +102,7 @@ void Box::timerCallback()
 void Box::valueChanged(Value& v)
 {
     // Hide certain objects in GOP
-    if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!graphics || (graphics && (graphics->getType() == pd::Type::Message || graphics->getType() == pd::Type::Comment))))
+    if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!graphics || (graphics && (graphics->getType() == pd::Type::Message || graphics->getType() == pd::Type::Comment || graphics->noGui()))))
     {
         setVisible(false);
     }
