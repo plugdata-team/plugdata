@@ -655,22 +655,28 @@ struct PlugDataLook : public LookAndFeel_V4
 
         void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
         {
-            // Round edges to match objects
-            auto sliderBounds = Rectangle<float>(x, y, width, height).reduced(0.5f);
-            g.setColour(findColour(Slider::trackColourId));
-            g.fillRoundedRectangle(sliderBounds, 2.0f);
+            auto sliderBounds = slider.getLocalBounds().toFloat().reduced(0.5f);
+            
             
             Path toDraw;
             if(slider.isHorizontal()) {
-                auto b = sliderBounds.withTrimmedLeft(sliderPos);
-                toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 2.0f, 2.0f, false, true, false, true);
+                sliderPos = jmap<float>(sliderPos, x, width - (2 * x), 0.0f, width);
+                auto b = sliderBounds.withTrimmedRight(width - sliderPos);
+                if(sliderPos == 0) return;
+                
+                toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, true, false, true, false);
+                //toDraw.addRectangle(b);
             }
             else {
-                auto b = sliderBounds.withTrimmedBottom(height - sliderPos);
-                toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 2.0f, 2.0f, true, true, false, false);
+                sliderPos = jmap<float>(sliderPos, y, height - (2 * y), 0.0f, height);
+                auto b = sliderBounds.withTrimmedTop(sliderPos);
+                //toDraw.addRectangle(b);
+                if(sliderPos == height) return;
+                
+                toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, false, false, true, true);
             }
             
-            g.setColour(slider.findColour(Slider::backgroundColourId));
+            g.setColour(findColour(Slider::trackColourId));
             g.fillPath(toDraw);
         }
 
