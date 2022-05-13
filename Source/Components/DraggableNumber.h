@@ -166,6 +166,7 @@ struct DraggableListNumber : public DraggableNumber
                 
                 // End of item when we find whitespace or end of message
                 if(endGlyph.isWhitespace() || j == glyphs.getNumGlyphs() - 1) {
+                    if(j == glyphs.getNumGlyphs() - 1) j++;
                     auto number = text.substring(i, j);
 
                     // Check if item is a number and if mouse clicked on it
