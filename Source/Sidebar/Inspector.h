@@ -4,6 +4,8 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include "../Components/DraggableNumber.h"
+
 struct Inspector : public PropertyPanel
 {
     void paint(Graphics& g) override
@@ -202,6 +204,7 @@ struct Inspector : public PropertyPanel
     {
         Label label;
         Value& property;
+        std::unique_ptr<DraggableNumber> dragger;
 
         float dragValue = 0.0f;
         bool shift = false;
@@ -215,7 +218,15 @@ struct Inspector : public PropertyPanel
             label.setEditable(true, false);
             label.getTextValue().referTo(property);
             label.addMouseListener(this, true);
-
+            
+            if constexpr (std::is_arithmetic<T>::value)  {
+                dragger = std::make_unique<DraggableNumber>(label);
+                
+                dragger->valueChanged = [this](float value){
+                    property = value;
+                };
+            };
+            
             label.setFont(Font(14));
 
             label.onEditorShow = [this]()
@@ -231,103 +242,8 @@ struct Inspector : public PropertyPanel
                     editor->setInputRestrictions(0, "0123456789-");
                 }
             };
-        }
-
-        void mouseDown(const MouseEvent& e) override
-        {
-            if constexpr (!std::is_arithmetic<T>::value) return;
-            if (label.isBeingEdited()) return;
-
-            shift = e.mods.isShiftDown();
-            dragValue = label.getText().getFloatValue();
-
-            lastDragPos = e.position;
-
-            const auto textArea = label.getBorderSize().subtractedFrom(label.getBounds());
-
-            GlyphArrangement glyphs;
-            glyphs.addFittedText(label.getFont(), label.getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
-
-            double decimalX = getWidth();
-            for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
-            {
-                auto const& glyph = glyphs.getGlyph(i);
-                if (glyph.getCharacter() == '.')
-                {
-                    decimalX = glyph.getRight();
-                }
-            }
-
-            bool isDraggingDecimal = e.x > decimalX;
-
-            if constexpr (std::is_integral<T>::value) isDraggingDecimal = false;
-
-            decimalDrag = isDraggingDecimal ? 6 : 0;
-
-            if (isDraggingDecimal)
-            {
-                GlyphArrangement decimalsGlyph;
-                static const String decimalStr("000000");
-
-                decimalsGlyph.addFittedText(label.getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
-
-                for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
-                {
-                    auto const& glyph = decimalsGlyph.getGlyph(i);
-                    if (e.x <= glyph.getRight())
-                    {
-                        decimalDrag = i + 1;
-                        break;
-                    }
-                }
-            }
-        }
-
-        void mouseUp(const MouseEvent& e) override
-        {
             
-            label.setMouseCursor(MouseCursor::NormalCursor);
-            label.updateMouseCursor();
-        }
 
-        void mouseDrag(const MouseEvent& e) override
-        {
-            if constexpr (!std::is_arithmetic<T>::value) return;
-            if (label.isBeingEdited()) return;
-
-            label.setMouseCursor(MouseCursor::NoCursor);
-            updateMouseCursor();
-
-            const int decimal = decimalDrag + e.mods.isShiftDown();
-            const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
-            const float deltaY = e.y - lastDragPos.y;
-            lastDragPos = e.position;
-
-            dragValue += increment * -deltaY;
-
-            // truncate value and set
-            double newValue = dragValue;
-
-            if (decimal > 0)
-            {
-                const int sign = (newValue > 0) ? 1 : -1;
-                unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
-                newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
-            }
-            else
-            {
-                newValue = static_cast<int64_t>(newValue);
-            }
-
-            label.setText(formatNumber(newValue), NotificationType::sendNotification);
-        }
-
-        String formatNumber(float value)
-        {
-            String text;
-            text << value;
-            if (!text.containsChar('.')) text << '.';
-            return text;
         }
 
         void resized() override

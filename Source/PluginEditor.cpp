@@ -80,7 +80,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         {
             if(!box->graphics) continue;
             
-            auto type = box->graphics->getGui().getType();
+            auto type = box->graphics->getType();
             
             if (type == pd::Type::GraphOnParent)
             {

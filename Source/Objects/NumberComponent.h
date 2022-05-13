@@ -1,13 +1,10 @@
+#include "../Components/DraggableNumber.h"
 
 struct NumberComponent : public GUIComponent
-{
-    float dragValue = 0.0f;
-    bool shift = false;
-    int decimalDrag = 0;
+{    
+    DraggableNumber dragger;
 
-    Point<float> lastDragPos;
-
-    NumberComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
+    NumberComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject), dragger(input)
     {
         input.onEditorShow = [this]()
         {
@@ -38,13 +35,25 @@ struct NumberComponent : public GUIComponent
 
         addAndMakeVisible(input);
 
-        input.setText(formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
 
         initialise(newObject);
 
         input.setEditable(true, false);
 
         addMouseListener(this, true);
+        
+        dragger.dragStart = [this](){
+            startEdition();
+        };
+        
+        dragger.valueChanged = [this](float value){
+            setValueOriginal(value);
+        };
+        
+        dragger.dragEnd = [this](){
+            stopEdition();
+        };
     }
 
     void checkBoxBounds() override
@@ -65,127 +74,10 @@ struct NumberComponent : public GUIComponent
         input.setFont(getHeight() - 6);
     }
 
-    String formatNumber(float value)
-    {
-        String text;
-        text << value;
-
-        while (text.length() > 1 && input.getFont().getStringWidth(text) > getWidth() - 5)
-        {
-            text = text.substring(0, text.length() - 2);
-        }
-        if (!text.containsChar('.')) text << '.';
-
-        return text;
-    }
 
     void update() override
     {
-        input.setText(formatNumber(getValueOriginal()), dontSendNotification);
-    }
-
-    void mouseDown(const MouseEvent& e) override
-    {
-        GUIComponent::mouseDown(e);
-        if (input.isBeingEdited()) return;
-
-        
-        // Hide cursor and set unbounded mouse movement
-        input.setMouseCursor(MouseCursor::NoCursor);
-        input.updateMouseCursor();
-        
-        auto mouseSource = Desktop::getInstance().getMainMouseSource();
-        mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
-        mouseSource.enableUnboundedMouseMovement(true, true);
-        
-        startEdition();
-        shift = e.mods.isShiftDown();
-        dragValue = input.getText().getFloatValue();
-        
-
-        lastDragPos = e.position;
-
-        const auto textArea = input.getBorderSize().subtractedFrom(input.getBounds());
-
-        GlyphArrangement glyphs;
-        glyphs.addFittedText(input.getFont(), input.getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
-
-        double decimalX = getWidth();
-        for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
-        {
-            auto const& glyph = glyphs.getGlyph(i);
-            if (glyph.getCharacter() == '.')
-            {
-                decimalX = glyph.getRight();
-            }
-        }
-
-        const bool isDraggingDecimal = e.x > decimalX;
-
-        decimalDrag = isDraggingDecimal ? 6 : 0;
-
-        if (isDraggingDecimal)
-        {
-            GlyphArrangement decimalsGlyph;
-            static const String decimalStr("000000");
-
-            decimalsGlyph.addFittedText(input.getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, input.getMinimumHorizontalScale());
-
-            for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i)
-            {
-                auto const& glyph = decimalsGlyph.getGlyph(i);
-                if (e.x <= glyph.getRight())
-                {
-                    decimalDrag = i + 1;
-                    break;
-                }
-            }
-        }
-    }
-
-    void mouseUp(const MouseEvent& e) override
-    {
-        if (input.isBeingEdited()) return;
-
-        // Show cursor again
-        input.setMouseCursor(MouseCursor::NormalCursor);
-        input.updateMouseCursor();
-        
-        // Reset mouse position to where it was first clicked and disable unbounded movement
-        auto mouseSource = Desktop::getInstance().getMainMouseSource();
-        mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
-        mouseSource.enableUnboundedMouseMovement(false);
-        stopEdition();
-    }
-
-    void mouseDrag(const MouseEvent& e) override
-    {
-        if (input.isBeingEdited()) return;
-
-        const int decimal = decimalDrag + e.mods.isShiftDown();
-        const float increment = (decimal == 0) ? 1. : (1. / std::pow(10., decimal));
-        const float deltaY = e.y - lastDragPos.y;
-        lastDragPos = e.position;
-
-        dragValue += increment * -deltaY;
-        
-        // truncate value and set
-        double newValue = dragValue;
-
-        if (decimal > 0)
-        {
-            const int sign = (newValue > 0) ? 1 : -1;
-            unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
-            newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
-        }
-        else
-        {
-            newValue = static_cast<int64_t>(newValue);
-        }
-
-        setValueOriginal(newValue);
-
-        input.setText(formatNumber(getValueOriginal()), NotificationType::dontSendNotification);
+        input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
     }
 
     ObjectParameters defineParameters() override

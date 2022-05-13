@@ -102,14 +102,13 @@ void Box::timerCallback()
 void Box::valueChanged(Value& v)
 {
     // Hide certain objects in GOP
-    if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!graphics || (graphics && (graphics->getGui().getType() == pd::Type::Message || graphics->getGui().getType() == pd::Type::Comment))))
+    if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!graphics || (graphics && (graphics->getType() == pd::Type::Message || graphics->getType() == pd::Type::Comment))))
     {
         setVisible(false);
     }
     else
     {
         setVisible(true);
-        updatePorts(); // why?
         resized();
     }
 
@@ -345,7 +344,7 @@ void Box::paint(Graphics& g)
     }
 
     // Draw comment style
-    if (graphics && graphics->getGui().getType() == pd::Type::Comment)
+    if (graphics && graphics->getType() == pd::Type::Comment)
     {
         if (locked == var(false) && (isOver || selected) && !cnv->isGraph)
         {

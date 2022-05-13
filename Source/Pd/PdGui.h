@@ -101,7 +101,6 @@ class Gui : public Object
     Patch getPatch() const noexcept;
 
     std::vector<Atom> getList() const noexcept;
-
     void setList(std::vector<Atom> const& value) noexcept;
 
     void startEditingProperties();
