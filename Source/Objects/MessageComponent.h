@@ -93,6 +93,10 @@ struct MessageComponent : public GUIComponent
 
             g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
             g.fillPath(flagPath);
+            
+            if(isDown) {
+                g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 3.0f);
+            }
         }
     }
 
