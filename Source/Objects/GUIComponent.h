@@ -21,6 +21,7 @@ class Patch;
 
 class Box;
 
+
 struct GUIComponent : public Component, public ComponentListener, public Value::Listener
 {
     GUIComponent(pd::Gui gui, Box* parent, bool newObject);

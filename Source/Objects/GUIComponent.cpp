@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "GUIObjects.h"
+#include "GUIComponent.h"
 
 extern "C"
 {

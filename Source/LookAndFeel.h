@@ -849,7 +849,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         if (useLightTheme)
         {
-            setColours(Colour(225, 225, 225), Colour(245, 245, 245), Colour(91, 89, 94), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179));
+            setColours(Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179));
         }
         else
         {

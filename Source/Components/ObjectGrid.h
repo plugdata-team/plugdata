@@ -10,12 +10,9 @@ struct ObjectGrid : public DrawablePath
         HorizontalSnap,
         VerticalSnap,
         ConnectionSnap,
-        BestSizeSnap,
     };
 
     ObjectGrid();
-
-    void setSnapped(GridType t, Box* toDrag, Point<int> dragOffset);
 
     Point<int> handleMouseDrag(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
     Point<int> handleMouseUp(Point<int> dragOffset);

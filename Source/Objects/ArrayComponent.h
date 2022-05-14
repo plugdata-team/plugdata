@@ -101,6 +101,7 @@ struct GraphicalArray : public Component, public Timer
     void mouseDrag(const MouseEvent& e) override
     {
         if (error) return;
+        
         const auto s = static_cast<float>(vec.size() - 1);
         const auto w = static_cast<float>(getWidth());
         const auto h = static_cast<float>(getHeight());
@@ -128,7 +129,7 @@ struct GraphicalArray : public Component, public Timer
         }
 
         // Don't want to touch vec on the other thread, so we copy the vector into the lambda
-        auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd);
+        auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
         pd->enqueueFunction(
             [this, interpStart, changed]() mutable
