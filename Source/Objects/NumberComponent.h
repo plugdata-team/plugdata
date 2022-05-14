@@ -122,7 +122,8 @@ struct NumberComponent : public GUIComponent
 
         corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
 
-        g.setColour(Colour(gui.getForegroundColour()));
+        
+        g.setColour(Colour(gui.getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f));
         g.fillPath(corner);
     }
 };

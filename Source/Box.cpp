@@ -123,16 +123,28 @@ void Box::valueChanged(Value& v)
 
 bool Box::hitTest(int x, int y)
 {
+    int hitMargin = cnv->isSelected(this) ? margin - 5 : margin;
+    
+    // Mouse over object
     if (getLocalBounds().reduced(margin).contains(x, y))
     {
         return true;
     }
-
+    
+    // Mouse over edges
     for (auto* edge : edges)
     {
         if (edge->getBounds().contains(x, y)) return true;
     }
-
+    
+    // Mouse over corners
+    if(cnv->isSelected(this))
+    {
+        for(auto& corner : getCorners()) {
+            if(corner.contains(x, y)) return true;
+        }
+    }
+    
     return false;
 }
 
@@ -204,15 +216,15 @@ void Box::updateBounds(bool newObject)
             setEditable(true);
             hideLabel = false;
 
+            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
             int width = bounds.getWidth() <= 0 ? getBestTextWidth(currentText) : bounds.getWidth() + doubleMargin;
+            
+            // Calculate difference between best text size and the nearest valid pd size
+            // because pd measures text object width in number of characters instead of pixels
+            widthOffset = getBestTextWidth(currentText) % fontWidth;
+            
 
-            // Hide rounding errors
-            if (std::abs((getWidth() - width) * 0.4f) < glist_fontwidth(cnv->patch.getPointer()) && bounds.getWidth() > 0)
-            {
-                width = getWidth();
-            }
-
-            setSize(width, height);
+            setSize(width + widthOffset, height);
         }
     }
     else
@@ -617,24 +629,17 @@ void Box::mouseDrag(const MouseEvent& e)
         wasResized = true;
         Point<int> dragDistance = e.getOffsetFromDragStart();
 
-        if (!graphics || graphics->noGui())
-        {
-            int distance = resizeZone.resizeRectangleBy(originalBounds, dragDistance).getWidth() - getBestTextWidth(currentText);
-            if (std::abs(distance) < ObjectGrid::range)
-            {
-                cnv->grid.setSnapped(ObjectGrid::BestSizeSnap, this, {dragDistance.x - distance, dragDistance.y});
-            }
-
-            if (static_cast<bool>(cnv->gridEnabled.getValue()))
-            {
-                dragDistance = cnv->grid.handleMouseDrag(this, dragDistance, cnv->viewport->getViewArea());
-            }
-        }
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
 
+        if(!graphics || (graphics && graphics->noGui())) {
+            // Round width to valid pd width
+            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+            int roundedWidth = ((newBounds.getWidth() + fontWidth - 1) / fontWidth) * fontWidth;
+            
+            newBounds.setWidth(roundedWidth + widthOffset);
+        }
+        
         setBounds(newBounds);
-
-        return;
     }
     // Let canvas handle moving
     else

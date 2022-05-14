@@ -42,16 +42,6 @@ void ObjectGrid::updateMarker()
         return;
     }
 
-    if (type == BestSizeSnap)
-    {
-        auto b1 = start->getBounds().reduced(Box::margin);
-
-        toDraw.addArrow({b1.getTopLeft().toFloat().translated(0, -6), b1.getTopRight().toFloat().translated(0, -6)}, 1.0f, 5.0f, 5.0f);
-        toDraw.addArrow({b1.getTopRight().toFloat().translated(0, -6), b1.getTopLeft().toFloat().translated(0, -6)}, 1.0f, 5.0f, 5.0f);
-        setPath(toDraw);
-        return;
-    }
-
     auto b1 = start->getBounds().reduced(Box::margin);
     auto b2 = end->getBounds().reduced(Box::margin);
 
@@ -107,15 +97,6 @@ void ObjectGrid::clear()
     updateMarker();
 }
 
-void ObjectGrid::setSnapped(GridType t, Box* toDrag, Point<int> dragOffset)
-{
-    if (type != NotSnappedToGrid) return;
-
-    type = t;
-    position = dragOffset;
-    start = toDrag;
-}
-
 Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds)
 {
     constexpr int tolerance = range / 2;
@@ -126,7 +107,7 @@ Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Recta
     if (type != NotSnappedToGrid)
     {
         // Check if we've dragged out of the ObjectGrid snap
-        bool horizontalSnap = type == HorizontalSnap || type == ConnectionSnap || type == BestSizeSnap;
+        bool horizontalSnap = type == HorizontalSnap || type == ConnectionSnap;
         bool horizontalUnsnap = horizontalSnap && std::abs(position.x - dragOffset.x) > range;
         bool verticalUnsnap = !horizontalSnap && std::abs(position.y - dragOffset.y) > range;
 
