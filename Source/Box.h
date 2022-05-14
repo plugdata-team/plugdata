@@ -15,7 +15,7 @@ extern "C"
 
 #include "Components/ObjectGrid.h"
 #include "Edge.h"
-#include "Objects/GUIObjects.h"
+#include "Objects/GUIComponent.h"
 
 class Canvas;
 class Box : public Component, public Value::Listener, private TextEditor::Listener, public Timer
@@ -66,6 +66,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     int numInputs = 0;
     int numOutputs = 0;
+    int widthOffset = 0;
+    
     Value locked;
     Value commandLocked;
     Value presentationMode;
