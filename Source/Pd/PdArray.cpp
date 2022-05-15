@@ -16,6 +16,7 @@ namespace pd
 
 Array::Array(std::string arrayName, void* arrayInstance) : name(std::move(arrayName)), instance(arrayInstance)
 {
+    
 }
 
 std::string Array::getName() const noexcept
@@ -23,22 +24,19 @@ std::string Array::getName() const noexcept
     return name;
 }
 
-bool Array::isDrawingPoints() const noexcept
-{
-    libpd_set_instance(static_cast<t_pdinstance*>(instance));
-    return libpd_array_get_style(name.c_str()) == 0;
+bool Array::getNameHidden() const noexcept {
+    return libpd_get_array_name_hidden(name.c_str());
 }
 
-bool Array::isDrawingLine() const noexcept
-{
-    libpd_set_instance(static_cast<t_pdinstance*>(instance));
-    return libpd_array_get_style(name.c_str()) == 1;
+void Array::setNameHidden(bool shouldBeHidden) noexcept {
+    libpd_set_array_name_hidden(name.c_str(), shouldBeHidden);
 }
 
-bool Array::isDrawingCurve() const noexcept
+
+Array::DrawType Array::getDrawType() const noexcept
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
-    return libpd_array_get_style(name.c_str()) == 2;
+    return static_cast<DrawType>(libpd_array_get_style(name.c_str()));
 }
 
 std::array<float, 2> Array::getScale() const noexcept
@@ -48,6 +46,17 @@ std::array<float, 2> Array::getScale() const noexcept
     libpd_array_get_scale(name.c_str(), &min, &max);
     return {min, max};
 }
+
+void Array::setScale(std::array<float, 2> scale) noexcept
+{
+    
+    auto& [min, max] = scale;
+    libpd_set_instance(static_cast<t_pdinstance*>(instance));
+    
+    
+    libpd_array_set_scale(name.c_str(), min, max);
+}
+
 
 void Array::read(std::vector<float>& output) const
 {
@@ -68,4 +77,6 @@ void Array::write(const size_t pos, float const input)
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
     libpd_write_array(name.c_str(), static_cast<int>(pos), &input, 1);
 }
+
 }  // namespace pd
+

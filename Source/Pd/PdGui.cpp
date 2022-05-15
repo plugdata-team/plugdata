@@ -607,6 +607,10 @@ float Gui::getFontHeight() const noexcept
     {
         return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
     }
+    if (type == Type::Array)
+    {
+        return 14;
+    }
     else
     {
         return libpd_get_canvas_font_height(patch->getPointer());
@@ -1010,8 +1014,12 @@ Rectangle<int> Gui::getLabelBounds(Rectangle<int> objectBounds) const noexcept
             return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
         }
     }
-
-    return {objectBounds.getX(), objectBounds.getY()};
+    else if (type == Type::Array)
+    {
+        return objectBounds.removeFromTop(25).translated(0, -24);
+    }
+    
+    return objectBounds;
 }
 
 String Gui::getLabelText() const noexcept
@@ -1041,6 +1049,10 @@ String Gui::getLabelText() const noexcept
                 return text;
             }
         }
+    }
+    else if (type == Type::Array)
+    {
+        return getArray().getName();
     }
 
     return "";

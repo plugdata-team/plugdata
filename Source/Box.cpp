@@ -452,7 +452,7 @@ void Box::resized()
         }
         else if (total > 1)
         {
-            const double ratio = (bounds.getWidth() - edgeSize) / (double)(total - 1);
+            const float ratio = (bounds.getWidth() - edgeSize) / (float)(total - 1);
             edge->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
         }
 
