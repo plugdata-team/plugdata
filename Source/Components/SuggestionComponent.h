@@ -348,6 +348,8 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             highlightEnd = 0;
             return mutableInput;
         }
+        
+        currentidx = std::clamp<int>(currentidx, 0, found.size() - 1);
 
         // Retrieve best suggestion
         const auto& fullName = found[currentidx].first;

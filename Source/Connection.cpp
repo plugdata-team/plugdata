@@ -198,12 +198,19 @@ void Connection::paint(Graphics& g)
     g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::rounded));
     
     if(isMouseOver() || cnv->isSelected(this)) {
-        auto startReconnectHandle = toDraw.getPointAlongPath(7.0f);
-        auto endReconnectHandle = toDraw.getPointAlongPath(toDraw.getLength() - 7.0f);
+
+        auto mousePos = getMouseXYRelative();
         
-        g.setColour(highlightColour.brighter(0.3f));
-        g.fillEllipse(Rectangle<float>(5, 5).withCentre(startReconnectHandle));
-        g.fillEllipse(Rectangle<float>(5, 5).withCentre(endReconnectHandle));
+        bool overStart = startReconnectHandle.contains(mousePos.toFloat());
+        bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
+        
+        g.setColour(baseColour.brighter(0.3f));
+        g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
+        g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
+        
+        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+        g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
+        g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
         
     }
 }
@@ -253,6 +260,15 @@ void Connection::mouseDown(const MouseEvent& e)
     cnv->setSelected(this, true);
     repaint();
 
+    
+    if(startReconnectHandle.contains(e.getPosition().toFloat())) {
+        std::cout << "reconnect start" << std::endl;
+    }
+    
+    if(endReconnectHandle.contains(e.getPosition().toFloat())) {
+        std::cout << "reconnect end" << std::endl;
+    }
+    
     if (currentPlan.size() <= 2) return;
 
     int n = getClosestLineIdx(e.getPosition() + origin, currentPlan);
@@ -266,6 +282,7 @@ void Connection::mouseDown(const MouseEvent& e)
     {
         mouseDownPosition = currentPlan[n].y;
     }
+
 
     dragIdx = n;
 }
@@ -458,9 +475,11 @@ void Connection::updatePath()
 
         connectionPath.lineTo(pend.toFloat());
         toDraw = connectionPath.createPathWithRoundedCorners(8.0f);
-
-        repaint();
     }
+    
+    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(7.0f));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 7.0f, 7.0f)));
+    repaint();
 
     auto bounds = toDraw.getBounds().toNearestInt().expanded(4);
     setBounds(bounds + origin);
