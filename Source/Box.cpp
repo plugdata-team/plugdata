@@ -217,14 +217,15 @@ void Box::updateBounds(bool newObject)
             hideLabel = false;
 
             int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            int width = bounds.getWidth() <= 0 ? getBestTextWidth(currentText) : bounds.getWidth() + doubleMargin;
+            int textWidth = getBestTextWidth(currentText);
             
             // Calculate difference between best text size and the nearest valid pd size
             // because pd measures text object width in number of characters instead of pixels
-            widthOffset = getBestTextWidth(currentText) % fontWidth;
+            widthOffset = (((textWidth + fontWidth/2) / fontWidth) * fontWidth) - textWidth;
             
+            int width = bounds.getWidth() <= 0 ? textWidth : bounds.getWidth() + doubleMargin - widthOffset;
 
-            setSize(width + widthOffset, height);
+            setSize(width, height);
         }
     }
     else
@@ -539,6 +540,7 @@ void Box::mouseDown(const MouseEvent& e)
                     
                     auto b = getBounds() - cnv->canvasOrigin;
                     b.reduce(margin, margin);
+                    //b.setWidth(b.getWidth() - widthOffset);
                     pdObject->setBounds(b);
                 });
         }
@@ -603,6 +605,7 @@ void Box::mouseUp(const MouseEvent& e)
                 
                 auto b = getBounds() - cnv->canvasOrigin;
                 b.reduce(margin, margin);
+                //b.setWidth(b.getWidth() - widthOffset);
                 pdObject->setBounds(b);
 
                 // To make sure it happens after setting object bounds
@@ -634,9 +637,9 @@ void Box::mouseDrag(const MouseEvent& e)
         if(!graphics || (graphics && graphics->noGui())) {
             // Round width to valid pd width
             int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            int roundedWidth = ((newBounds.getWidth() + fontWidth - 1) / fontWidth) * fontWidth;
+            int roundedWidth = (((newBounds.getWidth() + fontWidth / 2) / fontWidth) * fontWidth);
             
-            newBounds.setWidth(roundedWidth + widthOffset);
+            newBounds.setWidth(roundedWidth - widthOffset);
         }
         
         setBounds(newBounds);

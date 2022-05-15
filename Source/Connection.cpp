@@ -158,10 +158,10 @@ bool Connection::hitTest(int x, int y)
     auto pend = inlet->getCanvasBounds().getCentre().toFloat() - origin.toFloat();
 
     // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position) < 10.0f) return false;
-    if (pend.getDistanceFrom(position) < 10.0f) return false;
+    if (pstart.getDistanceFrom(position) < 6.0f) return false;
+    if (pend.getDistanceFrom(position) < 6.0f) return false;
 
-    if (nearestPoint.getDistanceFrom(position) < 3)
+    if (nearestPoint.getDistanceFrom(position) < 5)
     {
         return true;
     }
@@ -180,11 +180,13 @@ void Connection::paint(Graphics& g)
        
         baseColour = outlet->isSignal ? invertedColour : highlightColour;
     }
+    
     else if (isMouseOver())
     {
         baseColour = outlet->isSignal ? invertedColour : highlightColour;
         baseColour = baseColour.brighter(0.6f);
     }
+    
 
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
@@ -194,6 +196,16 @@ void Connection::paint(Graphics& g)
 
     g.setColour(baseColour);
     g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+    
+    if(isMouseOver() || cnv->isSelected(this)) {
+        auto startReconnectHandle = toDraw.getPointAlongPath(7.0f);
+        auto endReconnectHandle = toDraw.getPointAlongPath(toDraw.getLength() - 7.0f);
+        
+        g.setColour(highlightColour.brighter(0.3f));
+        g.fillEllipse(Rectangle<float>(5, 5).withCentre(startReconnectHandle));
+        g.fillEllipse(Rectangle<float>(5, 5).withCentre(endReconnectHandle));
+        
+    }
 }
 
 void Connection::mouseMove(const MouseEvent& e)
