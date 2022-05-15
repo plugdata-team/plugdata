@@ -37,9 +37,6 @@ class Array
     //! @brief Gets the name of the array.
     std::string getName() const noexcept;
     
-    bool getNameHidden() const noexcept;
-    void setNameHidden(bool shouldBeHidden) noexcept;
-
 
     Array::DrawType getDrawType() const noexcept;
 

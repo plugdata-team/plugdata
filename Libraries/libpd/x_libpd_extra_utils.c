@@ -224,14 +224,3 @@ float libpd_get_canvas_font_height(t_canvas* cnv)
     }
     return glist_fontheight(cnv);
 }
-
-
-int libpd_get_array_name_hidden(const char* name) {
-    t_fake_garray* arr = (t_fake_garray*)libpd_array_get_byname(name);
-    return arr->x_hidename;
-}
-
-void libpd_set_array_name_hidden(const char* name, int hidden) {
-    t_fake_garray* arr = (t_fake_garray*)libpd_array_get_byname(name);
-    arr->x_hidename = hidden;
-}

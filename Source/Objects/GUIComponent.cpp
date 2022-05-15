@@ -471,10 +471,6 @@ void GUIComponent::updateLabel()
 
         box->cnv->addAndMakeVisible(label.get());
     }
-    
-    if(getType() == pd::Type::Array) {
-        label->setVisible(!gui.getArray().getNameHidden());
-    }
 }
 
 pd::Type GUIComponent::getType()
