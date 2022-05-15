@@ -853,7 +853,7 @@ struct PlugDataLook : public LookAndFeel_V4
         }
         else
         {
-            setColours(Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225));
+            setColours(Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(25, 142, 255), Colour(105, 105, 105), Colour(225, 225, 225));
         }
     }
 
