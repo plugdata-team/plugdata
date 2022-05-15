@@ -26,13 +26,6 @@ struct RadioComponent : public GUIComponent
         }
     }
 
-    template <typename T>
-    T roundMultiple(T value, T multiple)
-    {
-        if (multiple == 0) return value;
-        return static_cast<T>(std::round(static_cast<double>(value) / static_cast<double>(multiple)) * static_cast<double>(multiple));
-    }
-
     void resized() override
     {
         int size = isVertical ? getWidth() : getHeight();

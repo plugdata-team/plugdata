@@ -8,6 +8,9 @@ struct DraggableNumber : public MouseListener
     bool shift = false;
     int decimalDrag = 0;
     
+    bool isMinLimited = false, isMaxLimited = false;
+    float min, max;
+    
     Label& label;
     std::function<void(float)> valueChanged = [](float){};
     std::function<void()> dragStart = [](){};
@@ -21,18 +24,28 @@ struct DraggableNumber : public MouseListener
         label.removeMouseListener(this);
     }
     
+    void setMaximum(float maximum) {
+        isMaxLimited = true;
+        max = maximum;
+    }
+    
+    void setMinimum(float minimum) {
+        isMinLimited = true;
+        min = minimum;
+    }
+    
     void mouseDown(const MouseEvent& e) {
         if (label.isBeingEdited()) return;
         
         shift = e.mods.isShiftDown();
         dragValue = label.getText().getFloatValue();
 
-        const auto textArea = label.getBorderSize().subtractedFrom(label.getBounds());
+        const auto textArea = label.getBorderSize().subtractedFrom(label.getLocalBounds());
 
         GlyphArrangement glyphs;
         glyphs.addFittedText(label.getFont(), label.getText(), textArea.getX(), 0., textArea.getWidth(), label.getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
 
-        double decimalX = label.getWidth();
+        float decimalX = label.getWidth();
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i)
         {
             auto const& glyph = glyphs.getGlyph(i);
@@ -83,18 +96,21 @@ struct DraggableNumber : public MouseListener
         const float deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
         
         // truncate value and set
-        double newValue = dragValue + (increment * -deltaY);
+        float newValue = dragValue + (increment * -deltaY);
 
         if (decimal > 0)
         {
             const int sign = (newValue > 0) ? 1 : -1;
             unsigned int ui_temp = (newValue * std::pow(10, decimal)) * sign;
-            newValue = (((double)ui_temp) / std::pow(10, decimal) * sign);
+            newValue = (((float)ui_temp) / std::pow(10, decimal) * sign);
         }
         else
         {
             newValue = static_cast<int64_t>(newValue);
         }
+        
+        if(isMinLimited) newValue = std::max(newValue, min);
+        if(isMaxLimited) newValue = std::min(newValue, max);
         
         label.setText(formatNumber(newValue), dontSendNotification);
         valueChanged(newValue);
@@ -209,7 +225,7 @@ struct DraggableListNumber : public DraggableNumber
         
         //lastDragPos = e.position;
 
-        double newValue = dragValue + std::floor(increment * -deltaY);
+        float newValue = dragValue + std::floor(increment * -deltaY);
         
         int length = numberEndIdx - numberStartIdx;
         
