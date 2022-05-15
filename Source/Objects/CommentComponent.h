@@ -23,7 +23,7 @@ struct CommentComponent : public GUIComponent
                     auto* newName = name.toRawUTF8();
                     libpd_renameobj(box->cnv->patch.getPointer(), static_cast<t_gobj*>(gui.getPointer()), newName, input.getText().getNumBytesAsUTF8());
 
-                    MessageManager::callAsync([box]() { box->updateBounds(false); });
+                    MessageManager::callAsync([box]() { box->updateBounds(); });
                 });
         };
 

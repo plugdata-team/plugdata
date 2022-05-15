@@ -122,7 +122,7 @@ struct PictureComponent : public GUIComponent
         pic->x_width = img.getWidth();
         pic->x_height = img.getHeight();
 
-        box->updateBounds(false);
+        box->updateBounds();
         repaint();
     }
 
