@@ -172,7 +172,7 @@ struct MessageComponent : public GUIComponent
         if (gui.isAtom() && v.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
-            box->updateBounds(false);  // update box size based on new font
+            box->updateBounds();  // update box size based on new font
         }
         else
         {

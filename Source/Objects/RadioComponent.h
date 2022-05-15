@@ -105,7 +105,7 @@ struct RadioComponent : public GUIComponent
         radioButtons[idx]->setToggleState(true, dontSendNotification);
 
         resized();
-        // box->updateBounds(false);
+        // box->updateBounds();
     }
 
     OwnedArray<TextButton> radioButtons;

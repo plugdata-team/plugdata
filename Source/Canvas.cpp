@@ -225,7 +225,7 @@ void Canvas::synchronise(bool updatePosition)
             
             // Only update positions if we need to and there is a significant difference
             // There may be rounding errors when scaling the gui, this makes the experience smoother
-            if (updatePosition) box->updateBounds(false);
+            if (updatePosition) box->updateBounds();
             
             box->toFront(false);
             if (box->graphics && box->graphics->label) box->graphics->label->toFront(false);
@@ -933,7 +933,7 @@ void Canvas::checkBounds()
     
     for (auto& box : boxes)
     {
-        box->updateBounds(false);
+        box->updateBounds();
     }
     
     if (graphArea)
