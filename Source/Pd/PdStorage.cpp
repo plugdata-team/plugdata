@@ -199,6 +199,7 @@ void Storage::setInfo(const String& id, const String& property, const String& in
     if (undoable) createUndoAction();
     
     tree.setProperty("ID", id, nullptr);
+    tree.setProperty("Updated", false, nullptr);
     tree.setProperty(property, info, &undoManager);
     
     storeInfo();

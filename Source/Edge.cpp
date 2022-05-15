@@ -63,7 +63,6 @@ void Edge::paint(Graphics& g)
     auto inverted = Colour(255 - colour.getRed(), 255 - colour.getGreen(), 255 - colour.getBlue());
     auto backgroundColour = isSignal ? inverted: colour;
 
-    if (!box->edgeHovered) backgroundColour = backgroundColour.withAlpha(0.7f);
 
     if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 

@@ -27,6 +27,9 @@ class Connection : public Component, public ComponentListener
 
     SafePointer<Edge> inlet, outlet;
     SafePointer<Box> inbox, outbox;
+    
+    Rectangle<float> startReconnectHandle, endReconnectHandle;
+    
 
     PathPlan currentPlan;
     Path toDraw;
