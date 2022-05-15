@@ -13,6 +13,7 @@
 #include <g_all_guis.h>
 #include "x_libpd_multi.h"
 
+
 // False GARRAY
 typedef struct _fake_garray
 {
@@ -86,9 +87,9 @@ void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int
     *h -= *y;
 }
 
-t_fake_garray* libpd_array_get_byname(char const* name)
+t_garray* libpd_array_get_byname(char const* name)
 {
-    return (t_fake_garray *)pd_findbyclass(gensym((char *)name), garray_class);
+    return (t_fake_garray*)pd_findbyclass(gensym((char *)name), garray_class);
 }
 
 char const* libpd_array_get_name(void* ptr)
@@ -113,6 +114,22 @@ void libpd_array_get_scale(char const* name, float* min, float* max)
     }
     *min = -1;
     *max = 1;
+}
+
+void libpd_array_set_scale(char const* name, float min, float max)
+{
+    t_canvas* cnv;
+    t_fake_garray* array = libpd_array_get_byname(name);
+    if(array)
+    {
+        cnv = ((t_fake_garray*)array)->x_glist;
+        if(cnv)
+        {
+            cnv->gl_y2 = min;
+            cnv->gl_y1 = max;
+            return;
+        }
+    }
 }
 
 int libpd_array_get_style(char const* name)
@@ -206,4 +223,15 @@ float libpd_get_canvas_font_height(t_canvas* cnv)
         return 36.0032 * zoom; //41.91f * zoom;
     }
     return glist_fontheight(cnv);
+}
+
+
+int libpd_get_array_name_hidden(const char* name) {
+    t_fake_garray* arr = (t_fake_garray*)libpd_array_get_byname(name);
+    return arr->x_hidename;
+}
+
+void libpd_set_array_name_hidden(const char* name, int hidden) {
+    t_fake_garray* arr = (t_fake_garray*)libpd_array_get_byname(name);
+    arr->x_hidename = hidden;
 }

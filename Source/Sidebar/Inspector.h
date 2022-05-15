@@ -36,6 +36,8 @@ struct Inspector : public PropertyPanel
                     return new BoolComponent(name, *value, idx, options);
                 case tCombo:
                     return new ComboComponent(name, *value, idx, options);
+                case tRange:
+                    return new RangeComponent(name, *value, idx);
                 default:
                     return new EditableComponent<String>(name, *value, idx);
             }
@@ -198,6 +200,70 @@ struct Inspector : public PropertyPanel
         TextButton button;
         Value& currentColour;
     };
+    
+    struct RangeComponent : public InspectorProperty
+    {
+        Value& property;
+        
+        Label minLabel, maxLabel;
+        std::unique_ptr<DraggableNumber> minDragger, maxDragger;
+        
+        float min, max;
+        
+        RangeComponent(String propertyName, Value& value, int idx) : InspectorProperty(propertyName, idx), property(value)
+        {
+            min = value.getValue().getArray()->getReference(0);
+            max = value.getValue().getArray()->getReference(1);
+            
+            addAndMakeVisible(minLabel);
+            minLabel.setEditable(true, false);
+            minLabel.addMouseListener(this, true);
+            minLabel.setText(String(min), dontSendNotification);
+            
+            addAndMakeVisible(maxLabel);
+            maxLabel.setEditable(true, false);
+            maxLabel.addMouseListener(this, true);
+            maxLabel.setText(String(max), dontSendNotification);
+
+            minDragger = std::make_unique<DraggableNumber>(minLabel);
+            maxDragger = std::make_unique<DraggableNumber>(maxLabel);
+            
+            maxDragger->setMinimum(min);
+            minDragger->setMaximum(max);
+            
+            auto setMinimum = [this](float value){
+                min = value;
+                Array<var> arr = {min, max};
+                maxDragger->setMinimum(min + 1e-5f);
+                property = var(arr);
+            };
+            
+            auto setMaximum = [this](float value){
+                max = value;
+                Array<var> arr = {min, max};
+                minDragger->setMaximum(max - 1e-5f);
+                property = var(arr);
+            };
+            
+            minDragger->valueChanged = setMinimum;
+            minLabel.onTextChange = [this, setMinimum](){
+                setMinimum(minLabel.getText().getFloatValue());
+            };
+
+            maxDragger->valueChanged = setMaximum;
+            maxLabel.onTextChange = [this, setMaximum](){
+                setMaximum(maxLabel.getText().getFloatValue());
+            };
+        }
+        
+        void resized() override
+        {
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / 2);
+            maxLabel.setBounds(bounds.removeFromRight(bounds.getWidth() / 2));
+            minLabel.setBounds(bounds);
+        }
+        
+    };
 
     template <typename T>
     struct EditableComponent : public InspectorProperty
@@ -205,12 +271,6 @@ struct Inspector : public PropertyPanel
         Label label;
         Value& property;
         std::unique_ptr<DraggableNumber> dragger;
-
-        float dragValue = 0.0f;
-        bool shift = false;
-        int decimalDrag = 0;
-
-        Point<float> lastDragPos;
 
         EditableComponent(String propertyName, Value& value, int idx) : InspectorProperty(propertyName, idx), property(value)
         {

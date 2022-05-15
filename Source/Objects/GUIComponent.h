@@ -122,37 +122,3 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
 
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };
-
-struct _fielddesc
-{
-    char fd_type; /* LATER consider removing this? */
-    char fd_var;
-    union
-    {
-        t_float fd_float;    /* the field is a constant float */
-        t_symbol* fd_symbol; /* the field is a constant symbol */
-        t_symbol* fd_varsym; /* the field is variable and this is the name */
-    } fd_un;
-    float fd_v1; /* min and max values */
-    float fd_v2;
-    float fd_screen1; /* min and max screen values */
-    float fd_screen2;
-    float fd_quantum; /* quantization in value */
-};
-
-struct t_curve;
-struct DrawableTemplate : public DrawablePath
-{
-    t_scalar* scalar;
-    t_curve* object;
-    int baseX, baseY;
-    Canvas* canvas;
-
-    Rectangle<int> lastBounds;
-
-    DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y);
-
-    void update();
-
-    void updateIfMoved();
-};

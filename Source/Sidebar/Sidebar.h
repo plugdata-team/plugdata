@@ -25,7 +25,8 @@ enum ParameterType
     tFloat,
     tColour,
     tBool,
-    tCombo
+    tCombo,
+    tRange
 };
 
 enum ParameterCategory

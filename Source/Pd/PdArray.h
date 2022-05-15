@@ -21,6 +21,14 @@ class Gui;
 class Array
 {
    public:
+    
+    enum DrawType
+    {
+        Line,
+        Points,
+        Curve
+    };
+    
     Array(std::string name, void* instance);
 
     //! @brief The default constructor.
@@ -28,18 +36,16 @@ class Array
 
     //! @brief Gets the name of the array.
     std::string getName() const noexcept;
+    
+    bool getNameHidden() const noexcept;
+    void setNameHidden(bool shouldBeHidden) noexcept;
 
-    //! @brief Gets id it should be drawn as points.
-    bool isDrawingPoints() const noexcept;
 
-    //! @brief Gets id it should be drawn as lines.
-    bool isDrawingLine() const noexcept;
-
-    //! @brief Gets id it should be drawn as curves.
-    bool isDrawingCurve() const noexcept;
+    Array::DrawType getDrawType() const noexcept;
 
     //! @brief Gets the scale of the array.
     std::array<float, 2> getScale() const noexcept;
+    void setScale(std::array<float, 2> scale) noexcept;
 
     //! @brief Gets the values of the array.
     void read(std::vector<float>& output) const;
