@@ -230,7 +230,6 @@ public:
         
         name = String(array.array.getName());
         drawMode = static_cast<int>(array.array.getDrawType()) + 1;
-        showName = array.array.getNameHidden();
         
         // Use label interface to display name
         labelX = 0.0f;
@@ -264,7 +263,6 @@ public:
             {"Size", tInt, cGeneral, &size, {}},
             {"Draw Mode", tCombo, cGeneral, &drawMode, {"Points", "Polygon", "Bezier Curve"}},
             {"Y Range", tRange, cGeneral, &range, {}},
-            {"Show Name", tBool, cGeneral, &showName, {"No", "Yes"}},
             {"Save Contents", tBool, cGeneral, &saveContents, {"No", "Yes"}},
         };
     }
@@ -305,11 +303,6 @@ public:
         {
             updateSettings();
         }
-        else if(value.refersToSameSourceAs(showName)) {
-            array.array.setNameHidden(static_cast<bool>(showName.getValue()));
-            updateLabel();
-        }
-
         else if (value.refersToSameSourceAs(range))
         {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
@@ -323,7 +316,7 @@ public:
         }
     }
     
-    Value name, size, drawMode, saveContents, range, showName;
+    Value name, size, drawMode, saveContents, range;
     
 private:
     pd::Array graph;

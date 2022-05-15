@@ -26,9 +26,6 @@ void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int
 t_garray* libpd_array_get_byname(char const* name);
 char const* libpd_array_get_name(void* ptr);
 
-int libpd_get_array_name_hidden(const char* name);
-void libpd_set_array_name_hidden(const char* name, int hidden);
-
 void libpd_array_get_scale(char const* name, float* min, float* max);
 void libpd_array_set_scale(char const* name, float min, float max);
 

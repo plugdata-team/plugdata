@@ -24,15 +24,6 @@ std::string Array::getName() const noexcept
     return name;
 }
 
-bool Array::getNameHidden() const noexcept {
-    return libpd_get_array_name_hidden(name.c_str());
-}
-
-void Array::setNameHidden(bool shouldBeHidden) noexcept {
-    libpd_set_array_name_hidden(name.c_str(), shouldBeHidden);
-}
-
-
 Array::DrawType Array::getDrawType() const noexcept
 {
     libpd_set_instance(static_cast<t_pdinstance*>(instance));
