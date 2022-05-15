@@ -349,8 +349,10 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             return mutableInput;
         }
         
-        currentidx = std::clamp<int>(currentidx, 0, found.size() - 1);
-
+        // Limit it to minimum of the number of buttons and the number of suggestions
+        int numButtons = std::min(20, numOptions);
+        currentidx = (currentidx + numButtons) % numButtons;
+        
         // Retrieve best suggestion
         const auto& fullName = found[currentidx].first;
 
