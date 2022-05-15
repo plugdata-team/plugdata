@@ -39,7 +39,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void updatePorts();
 
     void setType(const String& newType, bool exists = false);
-    void updateBounds(bool newObject);
+    void updateBounds();
 
     void showEditor();
     void hideEditor();
@@ -58,6 +58,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseDrag(const MouseEvent& e) override;
 
     int getBestTextWidth(const String& text);
+    int getWidthOffset();
 
     void setEditable(bool editable);
     Array<Rectangle<float>> getCorners() const;
@@ -66,7 +67,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     int numInputs = 0;
     int numOutputs = 0;
-    int widthOffset = 0;
     
     Value locked;
     Value commandLocked;
@@ -112,6 +112,8 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     bool attachedToMouse = false;
     bool createEditorOnMouseDown = false;
-
+    
+    int textObjectWidth = 0;
+    int textWidthOffset = 0;
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

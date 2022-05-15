@@ -90,10 +90,8 @@ Rectangle<int> Object::getBounds() const noexcept
     auto* textObj = static_cast<t_text*>(ptr);
 
     libpd_get_object_bounds(patch->getPointer(), ptr, &x, &y, &w, &h);
-
-    w = textObj->te_width * glist_fontwidth(patch->getPointer());
-
-    return {x, y, w, h};
+    
+    return {x, y, textObj->te_width, h};
 }
 
 //! @brief The name of the help file
@@ -149,12 +147,11 @@ Patch Object::getHelp() const
 void Object::setBounds(Rectangle<int> bounds)
 {
     auto* textObj = static_cast<t_text*>(ptr);
-    short newWidth = std::max<short>(3, bounds.getWidth() / glist_fontwidth(patch->getPointer()));
 
-    if (newWidth != textObj->te_width)
+    if (bounds.getWidth() != textObj->te_width)
     {
         addUndoableAction();
-        textObj->te_width = newWidth;
+        textObj->te_width = bounds.getWidth();
     }
     
     libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), bounds.getX(), bounds.getY());

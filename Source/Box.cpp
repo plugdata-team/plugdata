@@ -185,46 +185,44 @@ void Box::mouseMove(const MouseEvent& e)
     updateMouseCursor();
 }
 
-void Box::updateBounds(bool newObject)
+void Box::updateBounds()
 {
     auto type = currentText.upToFirstOccurrenceOf(" ", false, false);
     if (pdObject)
     {
-        auto bounds = pdObject->getBounds() - Point<int>(margin, margin);
-        bounds.translate(cnv->canvasOrigin.x, cnv->canvasOrigin.y);
+        auto bounds = pdObject->getBounds() - cnv->canvasOrigin;
 
         if (bounds.getPosition().getDistanceFrom(getPosition()) >= 2.0f)
         {
-            setTopLeftPosition(bounds.getPosition());
+            setTopLeftPosition(bounds.translated(-margin, -margin).getPosition());
         }
 
         if (graphics && !graphics->noGui())
         {
+            bounds = bounds.expanded(margin);
             addAndMakeVisible(graphics.get());
-            auto b = pdObject->getBounds();
-
-            int width = b.getWidth() <= 0 ? getBestTextWidth(currentText) : b.getWidth() + doubleMargin;
-
-            setSize(width, b.getHeight() + doubleMargin);
+            setSize(bounds.getWidth(), bounds.getHeight());
             graphics->resized();
             graphics->toBack();
             hideLabel = true;
             setEditable(false);
         }
         else
-        {
+        {            
             setEditable(true);
             hideLabel = false;
 
             int fontWidth = glist_fontwidth(cnv->patch.getPointer());
             int textWidth = getBestTextWidth(currentText);
             
-            // Calculate difference between best text size and the nearest valid pd size
-            // because pd measures text object width in number of characters instead of pixels
-            widthOffset = (((textWidth + fontWidth/2) / fontWidth) * fontWidth) - textWidth;
-            
-            int width = bounds.getWidth() <= 0 ? textWidth : bounds.getWidth() + doubleMargin - widthOffset;
+            int mod = textWidth % fontWidth;
 
+            textObjectWidth = bounds.getWidth();
+            
+            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) - textWidthOffset;
+            
+            std::cout << textObjectWidth << std::endl;
+            
             setSize(width, height);
         }
     }
@@ -240,6 +238,7 @@ void Box::updateBounds(bool newObject)
 
 void Box::setType(const String& newType, bool exists)
 {
+    textWidthOffset = getBestTextWidth(newType) % glist_fontwidth(cnv->patch.getPointer());
     hideEditor();
 
     if (currentText != newType)
@@ -306,7 +305,7 @@ void Box::setType(const String& newType, bool exists)
 
     // Update inlets/outlets
     updatePorts();
-    updateBounds(!exists);
+    updateBounds();
 
     cnv->updateDrawables();
     cnv->main.updateCommandStatus();
@@ -538,9 +537,13 @@ void Box::mouseDown(const MouseEvent& e)
                 {
                     if(!box) return;
                     
+                    // TODO: fix this!
                     auto b = getBounds() - cnv->canvasOrigin;
                     b.reduce(margin, margin);
-                    //b.setWidth(b.getWidth() - widthOffset);
+                    if(!graphics || (graphics && graphics->noGui())) {
+                        b.setWidth(textObjectWidth);
+                    }
+                    
                     pdObject->setBounds(b);
                 });
         }
@@ -605,7 +608,11 @@ void Box::mouseUp(const MouseEvent& e)
                 
                 auto b = getBounds() - cnv->canvasOrigin;
                 b.reduce(margin, margin);
-                //b.setWidth(b.getWidth() - widthOffset);
+                
+                if(!graphics | (graphics && graphics->noGui())) {
+                    b.setWidth(textObjectWidth);
+                }
+  
                 pdObject->setBounds(b);
 
                 // To make sure it happens after setting object bounds
@@ -637,9 +644,10 @@ void Box::mouseDrag(const MouseEvent& e)
         if(!graphics || (graphics && graphics->noGui())) {
             // Round width to valid pd width
             int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            int roundedWidth = (((newBounds.getWidth() + fontWidth / 2) / fontWidth) * fontWidth);
-            
-            newBounds.setWidth(roundedWidth - widthOffset);
+            int textWidth = getBestTextWidth(currentText);
+
+            textObjectWidth = newBounds.getWidth() / fontWidth;
+            newBounds.setWidth(textObjectWidth * fontWidth - textWidthOffset);
         }
         
         setBounds(newBounds);
@@ -770,8 +778,9 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
 
 int Box::getBestTextWidth(const String& text)
 {
-    return std::max<float>(round(font.getStringWidthFloat(text) + 30.5f), 50);
+    return std::max<float>(round(font.getStringWidthFloat(text) + 30.5f), 40);
 }
+
 
 void Box::setEditable(bool editable)
 {
