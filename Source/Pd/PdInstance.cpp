@@ -127,6 +127,8 @@ Instance::Instance(std::string const& symbol)
     m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                   reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
+    
+    
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
@@ -152,6 +154,57 @@ Instance::Instance(std::string const& symbol)
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger);
 
+    
+    // HACK: create full path names for c-coded externals
+    int i;
+    t_class* o = pd_objectmaker;
+
+    t_methodentry *mlist, *m;
+
+#if PDINSTANCE
+    mlist = o->c_methods[pd_this->pd_instanceno];
+#else
+    mlist = o->c_methods;
+#endif
+    
+    bool insideElse = false;
+    bool insideCyclone = false;
+
+    for (i = o->c_nmethod, m = mlist; i--; m++)
+    {
+        String name(m->me_name->s_name);
+        
+        if(name == "accum") {
+            insideCyclone = true;
+        }
+        if(name == "above") {
+            insideElse = true;
+        }
+        
+        if(insideCyclone)
+        {
+            auto newName = "cylone/" + name;
+            
+            //class_addcreator(m->me_fun, gensym(newName.toRawUTF8()), m->me_arg[0], m->me_arg[1], m->me_arg[2], m->me_arg[3], m->me_arg[4], m->me_arg[5]);
+        }
+        
+        if(insideElse)
+        {
+            auto newName = "cylone/" + name;
+            //class_addcreator(m->me_fun, gensym(newName.toRawUTF8()), m->me_arg[0], m->me_arg[1], m->me_arg[2], m->me_arg[3], m->me_arg[4], m->me_arg[5]);
+        }
+        
+        
+        
+        if(name == "zerox") {
+            insideCyclone = false;
+        }
+        if(name == "zerocross") {
+            insideElse = false;
+        }
+    }
+    
+    
     libpd_set_verbose(0);
 
     setThis();

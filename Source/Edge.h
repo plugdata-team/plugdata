@@ -12,7 +12,7 @@ class Connection;
 class Box;
 class Canvas;
 
-class Edge : public TextButton
+class Edge : public Component, public SettableTooltipClient
 {
    public:
     Box* box;

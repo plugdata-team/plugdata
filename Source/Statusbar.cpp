@@ -272,7 +272,6 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     automationButton->setTooltip("Open automation panel");
     automationButton->setConnectedEdges(12);
     automationButton->setName("statusbar:browser");
-    automationButton->onClick = [this]() {};
     automationButton->setClickingTogglesState(true);
     automationButton->onClick = [this]()
     {
