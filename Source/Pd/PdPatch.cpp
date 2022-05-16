@@ -508,6 +508,22 @@ void Patch::removeObject(Object* obj)
         });
 }
 
+bool Patch::hasConnection(Object* src, int nout, Object* sink, int nin)
+{
+    
+    bool hasConnection = false;
+
+    instance->enqueueFunction([this, &hasConnection, src, nout, sink, nin]() mutable {
+        hasConnection = libpd_hasconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+    });
+
+    instance->waitForStateUpdate();
+
+    return hasConnection;
+    
+    
+}
+
 bool Patch::canConnect(Object* src, int nout, Object* sink, int nin)
 {
     bool canConnect = false;

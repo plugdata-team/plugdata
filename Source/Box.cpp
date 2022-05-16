@@ -219,9 +219,9 @@ void Box::updateBounds()
 
             textObjectWidth = bounds.getWidth();
             
-            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) - textWidthOffset;
+            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset;
             
-            std::cout << textObjectWidth << std::endl;
+            
             
             setSize(width, height);
         }
@@ -239,6 +239,7 @@ void Box::updateBounds()
 void Box::setType(const String& newType, bool exists)
 {
     textWidthOffset = getBestTextWidth(newType) % glist_fontwidth(cnv->patch.getPointer());
+    
     hideEditor();
 
     if (currentText != newType)
@@ -646,8 +647,8 @@ void Box::mouseDrag(const MouseEvent& e)
             int fontWidth = glist_fontwidth(cnv->patch.getPointer());
             int textWidth = getBestTextWidth(currentText);
 
-            textObjectWidth = newBounds.getWidth() / fontWidth;
-            newBounds.setWidth(textObjectWidth * fontWidth - textWidthOffset);
+            textObjectWidth = (newBounds.getWidth() - textWidthOffset) / fontWidth;
+            newBounds.setWidth(textObjectWidth * fontWidth + textWidthOffset);
         }
         
         setBounds(newBounds);

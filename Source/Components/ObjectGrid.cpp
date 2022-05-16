@@ -153,22 +153,22 @@ Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Recta
         if (inletBounds.getY() < outletBounds.getY()) continue;
 
         auto recentDragOffset = (toDrag->mouseDownPos + dragOffset) - toDrag->getPosition();
-        if (connection->inlet->box == toDrag)
+        if (connection->inbox == toDrag)
         {
             // Skip if both objects are selected
-            if (cnv->isSelected(connection->outlet->box)) continue;
+            if (cnv->isSelected(connection->outbox)) continue;
             inletBounds += recentDragOffset;
         }
         else
         {
-            if (cnv->isSelected(connection->inlet->box)) continue;
+            if (cnv->isSelected(connection->inbox)) continue;
             outletBounds += recentDragOffset;
         }
 
         int snapDistance = inletBounds.getX() - outletBounds.getX();
 
         // Check if the inlet or outlet is being moved, and invert if needed
-        if (connection->inlet->box == toDrag) snapDistance = -snapDistance;
+        if (connection->inbox == toDrag) snapDistance = -snapDistance;
 
         if (trySnap(snapDistance))
         {

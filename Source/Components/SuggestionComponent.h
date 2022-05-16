@@ -71,9 +71,9 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             if (drawIcon)
             {
                 
-                auto colour = findColour(PlugDataColour::highlightColourId);
-                auto inverted = Colour(255 - colour.getRed(), 255 - colour.getGreen(), 255 - colour.getBlue());
-                g.setColour(type ? inverted.withAlpha(float(0.8)) : colour.withAlpha(float(0.8)));
+                auto dataColour = findColour(PlugDataColour::highlightColourId);
+                auto signalColour = findColour(PlugDataColour::signalColourId);
+                g.setColour(type ? signalColour : dataColour);
                 Rectangle<int> iconbound = getLocalBounds().reduced(4);
                 iconbound.setWidth(getHeight() - 8);
                 iconbound.translate(3, 0);

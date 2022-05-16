@@ -72,7 +72,8 @@ enum PlugDataColour
     toolbarOutlineColourId,
     canvasOutlineColourId,
     meterColourId,
-    connectionColourId
+    connectionColourId,
+    signalColourId
 };
 
 struct Resources
@@ -778,7 +779,7 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
 
-    void setColours(Colour firstColour, Colour secondColour, Colour textColour, Colour highlightColour, Colour outlineColour, Colour connectionColour)
+    void setColours(Colour firstColour, Colour secondColour, Colour textColour, Colour highlightColour, Colour outlineColour, Colour connectionColour, Colour signalColour)
     {
         setColour(PlugDataColour::toolbarColourId, firstColour);
         setColour(PlugDataColour::canvasColourId, secondColour);
@@ -788,7 +789,8 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(PlugDataColour::canvasOutlineColourId, outlineColour);
         setColour(PlugDataColour::meterColourId, secondColour.brighter());
         setColour(PlugDataColour::connectionColourId, connectionColour);
-
+        setColour(PlugDataColour::signalColourId, signalColour);
+        
         setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
         setColour(TextButton::textColourOnId, highlightColour);
         setColour(Slider::thumbColourId, highlightColour);
@@ -849,11 +851,11 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         if (useLightTheme)
         {
-            setColours(Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179));
+            setColours(Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0));
         }
         else
         {
-            setColours(Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(25, 142, 255), Colour(105, 105, 105), Colour(225, 225, 225));
+            setColours(Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0));
         }
     }
 

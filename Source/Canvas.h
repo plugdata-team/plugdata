@@ -66,8 +66,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void setSelected(Component* component, bool shouldNowBeSelected);
     bool isSelected(Component* component) const;
 
-    // ObjectGrid shouldSnapToObjectGrid(const Box* toDrag);
-
     void handleMouseDown(Component* component, const MouseEvent& e);
     void handleMouseUp(Component* component, const MouseEvent& e);
     void handleMouseDrag(const MouseEvent& e);

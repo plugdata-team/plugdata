@@ -903,12 +903,15 @@ typedef struct _undo_connect
     int u_inletno;
 } t_undo_connect;
 
-
+int libpd_hasconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
+{
+    return canvas_isconnected(cnv, src, nout, sink, nin);
+}
 
 void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin)
 {
-    
-    if(!canvas_isconnected(cnv, src, nout, sink, nin)) {
+   
+    if(!libpd_hasconnection(cnv, src, nout, sink, nin)) {
         bug("non-existent connection");
         return;
     }

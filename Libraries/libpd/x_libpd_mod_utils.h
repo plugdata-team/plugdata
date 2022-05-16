@@ -46,6 +46,7 @@ void libpd_removeselection(t_canvas* cnv);
 
 void libpd_moveselection(t_canvas* cnv, int dx, int dy);
 
+int libpd_hasconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);
 void libpd_createconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);
 void libpd_removeconnection(t_canvas* cnv, t_object*src, int nout, t_object*sink, int nin);
 
