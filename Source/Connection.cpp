@@ -24,7 +24,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
         jassertfalse;
         return;
     }
-
+    
     inIdx = inlet->edgeIdx;
     outIdx = outlet->edgeIdx;
 
@@ -60,6 +60,8 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
 
     setInterceptsMouseClicks(true, false);
 
+    addMouseListener(cnv, true);
+    
     cnv->addAndMakeVisible(this);
     setAlwaysOnTop(true);
 
@@ -171,19 +173,21 @@ bool Connection::hitTest(int x, int y)
 
 void Connection::paint(Graphics& g)
 {
+
+    
     auto baseColour = findColour(PlugDataColour::connectionColourId);
-    auto highlightColour = findColour(PlugDataColour::highlightColourId);
-    auto invertedColour = Colour(255 - highlightColour.getRed(), 255 - highlightColour.getGreen(), 255 - highlightColour.getBlue());
+    auto dataColour = findColour(PlugDataColour::highlightColourId);
+    auto signalColour = findColour(PlugDataColour::signalColourId);
+    auto handleColour = outlet->isSignal ? dataColour : signalColour;
     
     if (cnv->isSelected(this))
     {
        
-        baseColour = outlet->isSignal ? invertedColour : highlightColour;
+        baseColour = outlet->isSignal ? signalColour : dataColour;
     }
-    
     else if (isMouseOver())
     {
-        baseColour = outlet->isSignal ? invertedColour : highlightColour;
+        baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
     
@@ -204,7 +208,7 @@ void Connection::paint(Graphics& g)
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
         
-        g.setColour(baseColour.brighter(0.3f));
+        g.setColour(handleColour);
         g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
         g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
         
@@ -213,6 +217,17 @@ void Connection::paint(Graphics& g)
         g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
         
     }
+}
+
+bool Connection::isSegmented()
+{
+    return cnv->storage.getInfo(getId(), "Segmented") == "1";
+}
+void Connection::setSegmented(bool segmented)
+{
+    cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
+    updatePath();
+    repaint();
 }
 
 void Connection::mouseMove(const MouseEvent& e)
@@ -244,6 +259,8 @@ void Connection::mouseMove(const MouseEvent& e)
     repaint();
 }
 
+
+
 void Connection::mouseExit(const MouseEvent& e)
 {
     repaint();
@@ -260,15 +277,7 @@ void Connection::mouseDown(const MouseEvent& e)
     cnv->setSelected(this, true);
     repaint();
 
-    
-    if(startReconnectHandle.contains(e.getPosition().toFloat())) {
-        std::cout << "reconnect start" << std::endl;
-    }
-    
-    if(endReconnectHandle.contains(e.getPosition().toFloat())) {
-        std::cout << "reconnect end" << std::endl;
-    }
-    
+
     if (currentPlan.size() <= 2) return;
 
     int n = getClosestLineIdx(e.getPosition() + origin, currentPlan);
@@ -287,19 +296,17 @@ void Connection::mouseDown(const MouseEvent& e)
     dragIdx = n;
 }
 
-bool Connection::isSegmented()
-{
-    return cnv->storage.getInfo(getId(), "Segmented") == "1";
-}
-void Connection::setSegmented(bool segmented)
-{
-    cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
-    updatePath();
-    repaint();
-}
-
 void Connection::mouseDrag(const MouseEvent& e)
 {
+    if(startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
+    {
+        reconnect(inlet, true);
+    }
+    if(endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
+    {
+        reconnect(outlet, true);
+    }
+    
     if (currentPlan.empty()) return;
 
     if (isSegmented() && dragIdx != -1)
@@ -322,6 +329,36 @@ void Connection::mouseDrag(const MouseEvent& e)
         updatePath();
         repaint();
     }
+    
+
+}
+
+
+void Connection::mouseUp(const MouseEvent& e)
+{
+    if (dragIdx != -1)
+    {
+        auto state = getState();
+        lastId = getId();
+
+        cnv->storage.setInfo(lastId, "Path", state);
+        dragIdx = -1;
+    }
+    
+    if(startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.getPosition().toFloat()))
+    {
+        reconnect(inlet, false);
+    }
+    if(endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.getPosition().toFloat()))
+    {
+        reconnect(outlet, false);
+    }
+    if(deleteOnMouseUp)
+    {
+        MessageManager::callAsync([this]() mutable {
+            cnv->connections.removeObject(this);
+        });
+    }
 }
 
 int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& plan)
@@ -341,17 +378,40 @@ int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& pl
     return -1;
 }
 
-void Connection::mouseUp(const MouseEvent& e)
-{
-    if (dragIdx != -1)
-    {
-        auto state = getState();
-        lastId = getId();
 
-        cnv->storage.setInfo(lastId, "Path", state);
-        dragIdx = -1;
+void Connection::reconnect(Edge* target, bool dragged)
+{
+    cnv->connectingEdge = nullptr;
+    
+    
+    if(cnv->patch.hasConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx)) {
+        // Delete connection from pd if we haven't done that yet
+        cnv->patch.removeConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx);
     }
+
+
+    // Create new connection
+    cnv->connectingEdge = target;
+    
+    if(dragged) {
+        cnv->connectingWithDrag = true;
+        setVisible(false);
+        
+        // Don't delete immediately as that would interrupt the mousedrag event
+        deleteOnMouseUp = true;
+    }
+    // Delete immediately if clicked
+    else {
+        MessageManager::callAsync([this]() mutable {
+            cnv->connections.removeObject(this);
+        });
+    }
+    
+    
+    // Make sure we're deselected and remove object
+    cnv->setSelected(this, false);
 }
+
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
@@ -477,8 +537,6 @@ void Connection::updatePath()
         toDraw = connectionPath.createPathWithRoundedCorners(8.0f);
     }
     
-    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(7.0f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 7.0f, 7.0f)));
     repaint();
 
     auto bounds = toDraw.getBounds().toNearestInt().expanded(4);
@@ -490,6 +548,9 @@ void Connection::updatePath()
     }
 
     offset = {-bounds.getX(), -bounds.getY()};
+    
+    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(7.0f));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 7.0f, 7.0f)));
 }
 
 void Connection::findPath()

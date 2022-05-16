@@ -169,14 +169,14 @@ void Canvas::synchronise(bool updatePosition)
         {
             auto connection = connections[n];
             
-            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inlet->box->pdObject.get()) || isObjectDeprecated(connection->outlet->box->pdObject.get()))
+            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inbox->pdObject.get()) || isObjectDeprecated(connection->outbox->pdObject.get()))
             {
                 connections.remove(n);
             }
             else
             {
-                auto* inlet = static_cast<t_text*>(connection->inlet->box->pdObject->getPointer());
-                auto* outlet = static_cast<t_text*>(connection->outlet->box->pdObject->getPointer());
+                auto* inlet = static_cast<t_text*>(connection->inbox->pdObject->getPointer());
+                auto* outlet = static_cast<t_text*>(connection->outbox->pdObject->getPointer());
                 
                 if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx))
                 {
@@ -273,8 +273,8 @@ void Canvas::synchronise(bool updatePosition)
                 
                 if (!c->inlet || !c->outlet) return false;
                 
-                bool sameStart = c->outlet->box == boxes[srcno];
-                bool sameEnd = c->inlet->box == boxes[sinkno];
+                bool sameStart = c->outbox == boxes[srcno];
+                bool sameEnd = c->inbox == boxes[sinkno];
                 
                 return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
             });
@@ -564,7 +564,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
     // Drag lasso
     lasso.dragLasso(e);
     
-    if (connectingWithDrag)
+    if (connectingWithDrag && connectingEdge)
     {
         auto* nearest = Edge::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->box);
         
@@ -627,6 +627,7 @@ void Canvas::mouseUp(const MouseEvent& e)
     else if (connectingWithDrag && !connectingEdge)
     {
         connectingWithDrag = false;
+        repaint();
     }
     
     updateSidebarSelection();
@@ -868,9 +869,10 @@ void Canvas::removeSelection()
     {
         if (isSelected(con))
         {
-            if (!(objects.contains(con->outlet->box->pdObject.get()) || objects.contains(con->inlet->box->pdObject.get())))
+            if (!(objects.contains(con->outbox->pdObject.get()) || objects.contains(con->inbox->pdObject.get())))
             {
-                patch.removeConnection(con->outlet->box->pdObject.get(), con->outIdx, con->inlet->box->pdObject.get(), con->inIdx);
+                
+                patch.removeConnection(con->outbox->pdObject.get(), con->outIdx, con->inbox->pdObject.get(), con->inIdx);
             }
         }
     }

@@ -18,13 +18,6 @@ Edge::Edge(Box* parent, bool inlet) : box(parent)
     parent->addAndMakeVisible(this);
 
     locked.referTo(parent->cnv->pd->locked);
-
-    onClick = [this]()
-    {
-        if (bool(locked.getValue())) return;
-        createConnection();
-    };
-
 }
 
 bool Edge::hasConnection()
@@ -55,13 +48,11 @@ void Edge::paint(Graphics& g)
     {
         bounds = bounds.reduced(2);
     }
+    
+    bool down = isMouseButtonDown() && !bool(box->locked.getValue());
+    bool over = isMouseOver() && !bool(box->locked.getValue());
 
-    bool down = isDown() && !bool(box->locked.getValue());
-    bool over = isOver() && !bool(box->locked.getValue());
-
-    auto colour = findColour(PlugDataColour::highlightColourId);
-    auto inverted = Colour(255 - colour.getRed(), 255 - colour.getGreen(), 255 - colour.getBlue());
-    auto backgroundColour = isSignal ? inverted: colour;
+    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::highlightColourId);
 
 
     if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
@@ -70,9 +61,11 @@ void Edge::paint(Graphics& g)
     
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
-    if(connected) {
+    bool stateSaved = false;
+    if(!(box->isMouseOver() || over || box->edgeHovered)) {
         g.saveState();
         g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
+        stateSaved = true;
     }
     
     g.setColour(findColour(ResizableWindow::backgroundColourId));
@@ -81,11 +74,10 @@ void Edge::paint(Graphics& g)
     g.setColour(backgroundColour);
     g.fillEllipse(bounds);
     
-    
     g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
     g.drawEllipse(bounds, 1.0f);
     
-    if(connected) {
+    if(stateSaved) {
         g.restoreState();
     }
 }
@@ -99,8 +91,6 @@ void Edge::mouseDrag(const MouseEvent& e)
     // Ignore when locked
     if (bool(locked.getValue())) return;
 
-    // For dragging to create new connections
-    TextButton::mouseDrag(e);
     if (!box->cnv->connectingEdge && e.getLengthOfMousePress() > 300)
     {
         box->cnv->connectingEdge = this;
@@ -111,8 +101,14 @@ void Edge::mouseDrag(const MouseEvent& e)
 
 void Edge::mouseUp(const MouseEvent& e)
 {
-    TextButton::mouseUp(e);
-
+    if (bool(locked.getValue())) return;
+    
+    if(!e.mouseWasDraggedSinceMouseDown()) {
+        createConnection();
+    }
+    
+    
+    
     if (box->cnv->nearestEdge)
     {
         box->cnv->nearestEdge->isHovered = false;
