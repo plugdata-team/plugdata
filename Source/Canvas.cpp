@@ -365,6 +365,24 @@ void Canvas::mouseDown(const MouseEvent& e)
         newCanvas->checkBounds();
     };
     
+    auto openHelp = [this](Box* box)
+    {
+        pd->setThis();
+        // Find name of help file
+        auto helpPatch = box->pdObject->getHelp();
+        
+        if (!helpPatch.getPointer())
+        {
+            pd->logMessage("Couldn't find help file");
+            return;
+        }
+        
+        auto* patch = main.pd.patches.add(new pd::Patch(helpPatch));
+        auto* newCnv = main.canvases.add(new Canvas(main, *patch));
+        
+        main.addTab(newCnv, true);
+    };
+    
     auto* source = e.originalComponent;
     
     // Ignore if locked
@@ -391,6 +409,15 @@ void Canvas::mouseDown(const MouseEvent& e)
         auto* box = findParentComponentOfClass<Box>();
         box->cnv->setSelected(box, true);
         return;
+    }
+    
+    if(!static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown() && e.originalComponent != this) {
+        if(auto* box = dynamic_cast<Box*>(e.originalComponent)) {
+            openHelp(box);
+        }
+        if(auto* box = e.originalComponent->findParentComponentOfClass<Box>()) {
+            openHelp(box);
+        }
     }
     
     // Left-click
@@ -463,7 +490,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addSeparator();
         popupMenu.addItem(9, "Help", box != nullptr);
         
-        auto callback = [this, &lassoSelection, openSubpatch, box](int result)
+        auto callback = [this, &lassoSelection, openSubpatch, openHelp, box](int result)
         {
             if (result < 1) return;
             
@@ -497,22 +524,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                     
                 case 9:
                 {  // Open help
-                    
-                    pd->setThis();
-                    // Find name of help file
-                    auto helpPatch = box->pdObject->getHelp();
-                    
-                    if (!helpPatch.getPointer())
-                    {
-                        pd->logMessage("Couldn't find help file");
-                        return;
-                    }
-                    
-                    auto* patch = main.pd.patches.add(new pd::Patch(helpPatch));
-                    auto* newCnv = main.canvases.add(new Canvas(main, *patch));
-                    
-                    main.addTab(newCnv, true);
-                    
+                    openHelp(box);
                     break;
                 }
                     
