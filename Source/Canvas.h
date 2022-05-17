@@ -120,7 +120,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool isGraphChild = false;
     bool updatingBounds = false;  // used by connection
     
-    ObjectGrid grid;
+    ObjectGrid grid = ObjectGrid(this);
 
     Point<int> canvasOrigin = {0, 0};
 

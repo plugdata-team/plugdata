@@ -81,7 +81,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
         presentationMode = false;
     }
     
-    addAndMakeVisible(grid);
     synchronise();
     
 }
