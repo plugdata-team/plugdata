@@ -4,6 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
+#include <clocale>
 #include "PluginProcessor.h"
 
 #include "Canvas.h"
@@ -40,6 +41,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
       pd::Instance("PlugData"),
       parameters(*this, nullptr)
 {
+    std::setlocale(LC_ALL, "C");
+    
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
     // General purpose automation parameters you can get by using "receive param1" etc.
