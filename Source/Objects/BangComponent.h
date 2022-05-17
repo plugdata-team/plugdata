@@ -36,7 +36,7 @@ struct BangComponent : public GUIComponent
     
     void paint(Graphics& g) override
     {
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.setColour(gui.getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
         
         const auto bounds = getLocalBounds().reduced(1).toFloat();
