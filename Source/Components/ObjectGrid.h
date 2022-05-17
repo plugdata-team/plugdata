@@ -1,40 +1,66 @@
 #pragma once
 #include <JuceHeader.h>
 
-class Box;
-struct ObjectGrid : public DrawablePath
+enum GridType
 {
-    enum GridType
-    {
-        NotSnappedToGrid,
-        HorizontalSnap,
-        VerticalSnap,
-        ConnectionSnap,
-    };
+    NotSnappedToGrid = 0,
+    HorizontalSnap = 1,
+    VerticalSnap = 2,
+    ConnectionSnap = 4,
+};
 
-    ObjectGrid();
+inline GridType operator|(GridType a, GridType b)
+{
+    return static_cast<GridType>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline GridType operator&(GridType a, GridType b)
+{
+    return static_cast<GridType>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+
+class Box;
+class Canvas;
+struct ObjectGrid
+{
+
+    ObjectGrid(Canvas* parent);
 
     Point<int> handleMouseDrag(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
     Point<int> handleMouseUp(Point<int> dragOffset);
 
-    static constexpr int range = 4;
-
+    static constexpr int range = 5;
+    static constexpr int tolerance = 3;
+    
    private:
     enum SnapOrientation
     {
         SnappedLeft,
         SnappedCentre,
-        SnappedRight
+        SnappedRight,
+        SnappedConnection
     };
 
-    GridType type = ObjectGrid::NotSnappedToGrid;
-    SnapOrientation orientation;
-    int idx;
-    Point<int> position;
-    SafePointer<Component> start;
-    SafePointer<Component> end;
+    // TODO: replace with bool
+    bool snapped[2] = {false, false};
+    
+    SnapOrientation orientation[2];
+    int idx[2];
+    Point<int> position[2];
+    Component::SafePointer<Component> start[2];
+    Component::SafePointer<Component> end[2];
+    DrawablePath gridLines[2];
+    
+    int totalSnaps = 0;
 
-    Point<int> setState(GridType type, int idx, Point<int> position, Component* start, Component* end);
+    Point<int> setState(bool isSnapped, int idx, Point<int> position, Component* start, Component* end, bool horizontal);
     void updateMarker();
-    void clear();
+    void clear(bool horizontal);
+    
+    Point<int> performVerticalSnap(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    Point<int> performHorizontalSnap(Box* toDrag, Point<int> dragOffset, Rectangle<int> viewBounds);
+    
+    bool trySnap(int distance);
+
 };

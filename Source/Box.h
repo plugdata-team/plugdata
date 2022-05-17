@@ -72,8 +72,6 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     Value commandLocked;
     Value presentationMode;
 
-    ObjectGrid lastObjectGrid;
-
     Canvas* cnv;
 
     std::unique_ptr<GUIComponent> graphics = nullptr;
