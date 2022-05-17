@@ -170,6 +170,10 @@ Instance::Instance(std::string const& symbol)
     bool insideElse = false;
     bool insideCyclone = false;
 
+    std::vector<std::tuple<String, t_newmethod, std::array<t_atomtype, 6>>> newMethods;
+    
+    // First find all the objects that need a full path and put them in a list
+    // Adding new entries while iterating over them is a bad idea
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
@@ -181,21 +185,21 @@ Instance::Instance(std::string const& symbol)
             insideElse = true;
         }
         
-        if(insideCyclone)
+        if((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~"))
         {
-            auto newName = "cylone/" + name;
             
-            //class_addcreator(m->me_fun, gensym(newName.toRawUTF8()), m->me_arg[0], m->me_arg[1], m->me_arg[2], m->me_arg[3], m->me_arg[4], m->me_arg[5]);
+            auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
+            
+            std::array<t_atomtype, 6> args;
+            for(int n = 0; n < 6; n++) {
+                args[n] = static_cast<t_atomtype>(m->me_arg[n]);
+            }
+            
+            auto* method = reinterpret_cast<t_newmethod>(m->me_fun);
+            
+            newMethods.push_back({newName, method, args});
+        
         }
-        
-        if(insideElse)
-        {
-            auto newName = "cylone/" + name;
-            //class_addcreator(m->me_fun, gensym(newName.toRawUTF8()), m->me_arg[0], m->me_arg[1], m->me_arg[2], m->me_arg[3], m->me_arg[4], m->me_arg[5]);
-        }
-        
-        
-        
         if(name == "zerox") {
             insideCyclone = false;
         }
@@ -204,7 +208,14 @@ Instance::Instance(std::string const& symbol)
         }
     }
     
+    // Then create aliases for all these objects
+    // We seperate this process in two parts because adding new objects while looping through objects causes problems
+    for(auto [name, method, args] : newMethods)
+    {
+        class_addcreator(method, gensym(name.toRawUTF8()), args[0], args[1], args[2], args[3], args[4], args[5]);
+    }
     
+        
     libpd_set_verbose(0);
 
     setThis();
