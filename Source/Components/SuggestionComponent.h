@@ -122,7 +122,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         addAndMakeVisible(resizer);
 
         setInterceptsMouseClicks(true, true);
-        setAlwaysOnTop(true);
+        //setAlwaysOnTop(true);
     }
 
     ~SuggestionComponent() override
@@ -162,6 +162,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
         addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary | ComponentPeer::StyleFlags::windowIgnoresKeyPresses);
         setVisible(false);
+        toFront(false);
 
         setTopLeftPosition(box->getScreenX(), box->getScreenBounds().getBottom());
         repaint();
