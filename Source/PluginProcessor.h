@@ -64,6 +64,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
     void receiveMidiByte(const int port, const int byte) override;
 
+    void receiveParameter(int idx, float value) override;
+
     void receiveDSPState(bool dsp) override;
     void receiveGuiUpdate(int type) override;
 
@@ -204,6 +206,29 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
-
+    
+#if !PLUGDATA_STANDALONE
+    
+    // Timer for grouping change messages when informing the DAW
+    struct ParameterTimer : public Timer
+    {
+        RangedAudioParameter* parameter;
+        
+        void notifyChange(RangedAudioParameter* param) {
+            if(!isTimerRunning()) {
+                parameter = param;
+                parameter->beginChangeGesture();
+                startTimer(500);
+            }
+        }
+        
+        void timerCallback() override
+        {
+            parameter->endChangeGesture();
+        }
+    };
+    
+    ParameterTimer parameterTimers[numParameters];
+#endif
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

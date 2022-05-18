@@ -156,6 +156,20 @@ void Sidebar::showAutomationPanel(bool show)
     resized();
 }
 
+#if PLUGDATA_STANDALONE
+void Sidebar::updateParameters()
+{
+    if(automationPanel) {
+        // Might be called from audio thread
+        MessageManager::callAsync([this](){
+            
+            automationPanel->sliders.updateParameters();
+        });
+    };
+    
+};
+#endif
+
 void Sidebar::showSidebar(bool show)
 {
     sidebarHidden = !show;
