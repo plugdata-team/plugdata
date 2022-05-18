@@ -76,6 +76,7 @@ class Gui : public Object
     void setBackgroundColour(Colour newColour) noexcept;
 
     std::string getSymbol() const noexcept;
+    std::string getText() override;
 
     void setSymbol(std::string const& value) noexcept;
 

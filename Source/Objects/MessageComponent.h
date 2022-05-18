@@ -179,6 +179,12 @@ struct MessageComponent : public GUIComponent
             GUIComponent::valueChanged(v);
         }
     }
+    
+    bool usesCharWidth() override
+    {
+        return true;
+    }
+
 
     int numLines = 1;
     int longestLine = 7;

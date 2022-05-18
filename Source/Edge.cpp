@@ -56,21 +56,22 @@ void Edge::paint(Graphics& g)
 
 
     if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
+    
+    if(static_cast<bool>(locked.getValue())) {
+        backgroundColour = findColour(PlugDataColour::textColourId);
+    }
 
     bool connected = hasConnection();
     
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
     bool stateSaved = false;
-    if(!(box->isMouseOver() || over || box->edgeHovered)) {
+    if(!(box->isMouseOver() || over || box->edgeHovered) || static_cast<bool>(locked.getValue())) {
         g.saveState();
         g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
         stateSaved = true;
     }
-    
-    g.setColour(findColour(ResizableWindow::backgroundColourId));
-    g.drawLine(bounds.getX(), bounds.getCentreY(), bounds.getRight(), bounds.getCentreY(), 2);
-    
+
     g.setColour(backgroundColour);
     g.fillEllipse(bounds);
     

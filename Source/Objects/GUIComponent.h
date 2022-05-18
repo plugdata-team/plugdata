@@ -56,6 +56,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     virtual pd::Patch* getPatch();
     virtual Canvas* getCanvas();
     virtual bool noGui();
+    virtual bool usesCharWidth();
 
     void showEditor()
     {
@@ -86,7 +87,8 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     void valueChanged(Value& value) override;
 
     Box* box;
-
+    pd::Gui gui;
+    
    protected:
     bool inspectorWasVisible = false;
     bool recursiveResize = false;
@@ -99,8 +101,7 @@ struct GUIComponent : public Component, public ComponentListener, public Value::
     PlugDataAudioProcessor& processor;
 
     Label input;
-
-    pd::Gui gui;
+    
     std::atomic<bool> edited;
     float value = 0;
     Value min = Value(0.0f);

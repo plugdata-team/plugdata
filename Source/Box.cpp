@@ -196,19 +196,9 @@ void Box::updateBounds()
         {
             setTopLeftPosition(bounds.translated(-margin, -margin).getPosition());
         }
-
-        if (graphics && !graphics->noGui())
+        
+        if (!graphics || graphics->noGui())
         {
-            bounds = bounds.expanded(margin);
-            addAndMakeVisible(graphics.get());
-            setSize(bounds.getWidth(), bounds.getHeight());
-            graphics->resized();
-            graphics->toBack();
-            hideLabel = true;
-            setEditable(false);
-        }
-        else
-        {            
             setEditable(true);
             hideLabel = false;
 
@@ -221,9 +211,36 @@ void Box::updateBounds()
             
             int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset;
             
+            setSize(width, height);
+        }
+        else if(graphics && graphics->usesCharWidth()) {
+            addAndMakeVisible(graphics.get());
             
+            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+            auto txt = String(graphics->gui.getText());
+            int textWidth = getBestTextWidth(String(graphics->gui.getText()));
+            
+            int mod = textWidth % fontWidth;
+
+            textObjectWidth = bounds.getWidth();
+            
+            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset;
             
             setSize(width, height);
+            graphics->resized();
+            graphics->toBack();
+            hideLabel = true;
+            setEditable(false);
+        }
+        else
+        {
+            bounds = bounds.expanded(margin);
+            addAndMakeVisible(graphics.get());
+            setSize(bounds.getWidth(), bounds.getHeight());
+            graphics->resized();
+            graphics->toBack();
+            hideLabel = true;
+            setEditable(false);
         }
     }
     else
@@ -610,7 +627,7 @@ void Box::mouseUp(const MouseEvent& e)
                 auto b = getBounds() - cnv->canvasOrigin;
                 b.reduce(margin, margin);
                 
-                if(!graphics | (graphics && graphics->noGui())) {
+                if(!graphics || (graphics && graphics->usesCharWidth())) {
                     b.setWidth(textObjectWidth);
                 }
   
@@ -642,7 +659,7 @@ void Box::mouseDrag(const MouseEvent& e)
 
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
 
-        if(!graphics || (graphics && graphics->noGui())) {
+        if(!graphics || (graphics && graphics->usesCharWidth())) {
             // Round width to valid pd width
             int fontWidth = glist_fontwidth(cnv->patch.getPointer());
             int textWidth = getBestTextWidth(currentText);
@@ -779,6 +796,7 @@ TextEditor* Box::getCurrentTextEditor() const noexcept
 
 int Box::getBestTextWidth(const String& text)
 {
+    
     return std::max<float>(round(font.getStringWidthFloat(text) + 30.5f), 40);
 }
 

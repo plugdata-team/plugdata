@@ -47,8 +47,8 @@ struct BangComponent : public GUIComponent
         
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
-        
-        g.setColour(bangState ? findColour(TextButton::buttonOnColourId) : Colours::transparentWhite);
+
+        g.setColour(bangState ? gui.getForegroundColour() : Colours::transparentWhite);
         
         g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
     }

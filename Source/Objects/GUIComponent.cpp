@@ -331,6 +331,11 @@ bool GUIComponent::noGui()
     return false;
 }
 
+bool GUIComponent::usesCharWidth()
+{
+    return noGui();
+}
+
 float GUIComponent::getValueOriginal() const noexcept
 {
     return value;
