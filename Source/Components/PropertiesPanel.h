@@ -54,6 +54,26 @@ struct PropertiesPanel : public PropertyPanel
         ComboBox comboBox;
     };
     
+    struct FontEntry : public PopupMenu::CustomComponent
+    {
+        String fontName;
+        FontEntry(String name) : fontName(name) {
+            
+        }
+        
+        void paint(Graphics& g) override
+        {
+            auto font = Font(fontName, 15, Font::plain);
+            g.setFont(font);
+            g.drawText(fontName, getLocalBounds().reduced(2), Justification::left);
+        }
+        
+        void getIdealSize (int& idealWidth, int& idealHeight) override {
+            idealWidth = 150;
+            idealHeight = 23;
+        }
+    };
+    
     struct FontComponent : public Property
     {
         Value fontValue;
@@ -63,7 +83,7 @@ struct PropertiesPanel : public PropertyPanel
         {            
             for (int n = 0; n < options.size(); n++)
             {
-                comboBox.addItem(options[n], n + 1);
+                comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(options[n]), nullptr, options[n]);
             }
 
             comboBox.setText(value.toString());

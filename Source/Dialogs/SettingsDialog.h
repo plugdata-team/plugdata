@@ -10,6 +10,7 @@ struct ThemePanel : public Component, private ListBoxModel, public Value::Listen
     ValueTree settingsTree;
     
     ThemePanel(ValueTree globalSettings) : settingsTree(globalSettings) {
+        
         addAndMakeVisible(themeSettingsList);
         themeSettingsList.setRowHeight(23);
         themeSettingsList.updateContent();
