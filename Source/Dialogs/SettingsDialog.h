@@ -74,6 +74,8 @@ struct ThemePanel : public Component, private ListBoxModel, public Value::Listen
         if(rowNumber == 2) {
             return new PropertiesPanel::ColourComponent("Toolbar Colour", tbColourValue, 2);
         }
+        
+        return nullptr;
     }
 
     

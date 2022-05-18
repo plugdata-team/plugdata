@@ -54,6 +54,7 @@ struct PropertiesPanel : public PropertyPanel
         ComboBox comboBox;
     };
     
+    // Combobox entry that displays the font name with that font
     struct FontEntry : public PopupMenu::CustomComponent
     {
         String fontName;
