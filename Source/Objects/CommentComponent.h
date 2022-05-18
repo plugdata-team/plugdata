@@ -11,9 +11,9 @@ struct CommentComponent : public GUIComponent
         addAndMakeVisible(input);
         input.setText(gui.getText(), dontSendNotification);
         input.setInterceptsMouseClicks(false, false);
-
         setInterceptsMouseClicks(false, false);
 
+        
         input.onTextChange = [this, box]()
         {
             String name = input.getText();
@@ -75,11 +75,19 @@ struct CommentComponent : public GUIComponent
     {
         input.setBounds(getLocalBounds());
     }
+    
+    bool usesCharWidth() override
+    {
+        return true;
+    }
 
     void checkBoxBounds() override
     {
-        int numLines = getNumLines(gui.getText(), box->getWidth() - Box::doubleMargin);
-        box->setSize(box->getWidth(), (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
+        
+        auto bestWidth = box->getWidth() <= Box::doubleMargin ? box->getBestTextWidth(gui.getText()) : box->getWidth();
+        int numLines = getNumLines(gui.getText(), bestWidth - Box::doubleMargin);
+        box->setSize(bestWidth + Box::doubleMargin, (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
+        
     }
 
     bool shouldOpenEditor = false;

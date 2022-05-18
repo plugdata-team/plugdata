@@ -13,12 +13,12 @@ struct ToggleComponent : public GUIComponent
     
     void paint(Graphics& g) override
     {
-        
-        g.setColour(gui.getBackgroundColour());
+        auto backgroundColour = gui.getBackgroundColour();
+        g.setColour(backgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
         
-        auto toggledColour = box->findColour(PlugDataColour::textColourId);
-        auto untoggledColour = toggledColour.interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.8f);
+        auto toggledColour = gui.getForegroundColour();
+        auto untoggledColour = toggledColour.interpolatedWith(backgroundColour, 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
         auto crossBounds = getLocalBounds().reduced(6).toFloat();
