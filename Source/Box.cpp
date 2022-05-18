@@ -209,7 +209,7 @@ void Box::updateBounds()
 
             textObjectWidth = bounds.getWidth();
             
-            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset;
+            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset + doubleMargin;
             
             setSize(width, height);
         }
@@ -224,9 +224,9 @@ void Box::updateBounds()
 
             textObjectWidth = bounds.getWidth();
             
-            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset;
+            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset + doubleMargin;
             
-            setSize(width + doubleMargin, height);
+            setSize(width, height);
             graphics->resized();
             graphics->toBack();
             hideLabel = true;
@@ -558,7 +558,7 @@ void Box::mouseDown(const MouseEvent& e)
                     // TODO: fix this!
                     auto b = getBounds() - cnv->canvasOrigin;
                     b.reduce(margin, margin);
-                    if(!graphics || (graphics && graphics->noGui())) {
+                    if(!graphics || (graphics && graphics->usesCharWidth())) {
                         b.setWidth(textObjectWidth);
                     }
                     
@@ -664,8 +664,8 @@ void Box::mouseDrag(const MouseEvent& e)
             int fontWidth = glist_fontwidth(cnv->patch.getPointer());
             int textWidth = getBestTextWidth(currentText);
 
-            textObjectWidth = (newBounds.getWidth() - textWidthOffset) / fontWidth;
-            newBounds.setWidth(textObjectWidth * fontWidth + textWidthOffset);
+            textObjectWidth = (newBounds.getWidth() - doubleMargin - textWidthOffset) / fontWidth;
+            newBounds.setWidth(textObjectWidth * fontWidth + textWidthOffset + doubleMargin);
         }
         
         setBounds(newBounds);

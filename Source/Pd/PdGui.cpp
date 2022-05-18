@@ -740,7 +740,7 @@ Rectangle<int> Gui::getBounds() const noexcept
         auto* dial = static_cast<t_hdial*>(ptr);
         return {x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h};
     }
-    else if (type == Type::Message || type == Type::AtomNumber || type == Type::Number)
+    else if (type == Type::Message || type == Type::Number)
     {
         return Object::getBounds();
     }
@@ -753,7 +753,7 @@ Rectangle<int> Gui::getBounds() const noexcept
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
 
-        w = gatom->a_text.te_width * sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0);
+        w = gatom->a_text.te_width;
         return {x, y, w, h};
     }
 
@@ -815,7 +815,6 @@ void Gui::setBounds(Rectangle<int> bounds)
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         if (bounds.getWidth() != gatom->a_text.te_width)
         {
-            addUndoableAction();
             gatom->a_text.te_width = bounds.getWidth();
         }
     }
