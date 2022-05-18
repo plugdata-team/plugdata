@@ -14,7 +14,6 @@ struct Icons
     inline static const CharPointer_UTF8 Open = CharPointer_UTF8("\xef\x81\xbb");
     inline static const CharPointer_UTF8 Save = CharPointer_UTF8("\xef\x83\x87");
     inline static const CharPointer_UTF8 SaveAs = CharPointer_UTF8("\xef\x80\x99");
-
     inline static const CharPointer_UTF8 Undo = CharPointer_UTF8("\xef\x83\xa2");
     inline static const CharPointer_UTF8 Redo = CharPointer_UTF8("\xef\x80\x9e");
     inline static const CharPointer_UTF8 Add = CharPointer_UTF8("\xef\x81\xa7");
@@ -29,37 +28,28 @@ struct Icons
     inline static const CharPointer_UTF8 Audio = CharPointer_UTF8("\xef\x80\xa8");
     inline static const CharPointer_UTF8 Search = CharPointer_UTF8("\xef\x80\x82");
     inline static const CharPointer_UTF8 Wand = CharPointer_UTF8("\xef\x83\x90");
-
-    inline static const CharPointer_UTF8 CleanUp = CharPointer_UTF8("\xef\x87\xbc");
+    inline static const CharPointer_UTF8 Pencil = CharPointer_UTF8("\xef\x87\xbc");
     inline static const CharPointer_UTF8 Colour = CharPointer_UTF8("\xef\x87\xbb");
     inline static const CharPointer_UTF8 Grid = CharPointer_UTF8("\xef\x83\x8e");
     inline static const CharPointer_UTF8 Theme = CharPointer_UTF8("\xef\x81\x82");
-
     inline static const CharPointer_UTF8 ZoomIn = CharPointer_UTF8("\xef\x80\x8e");
     inline static const CharPointer_UTF8 ZoomOut = CharPointer_UTF8("\xef\x80\x90");
-
     inline static const CharPointer_UTF8 Pin = CharPointer_UTF8("\xef\x82\x8d");
     inline static const CharPointer_UTF8 Keyboard = CharPointer_UTF8("\xef\x84\x9c");
-
     inline static const CharPointer_UTF8 Folder = CharPointer_UTF8("\xef\x81\xbb");
     inline static const CharPointer_UTF8 OpenedFolder = CharPointer_UTF8("\xef\x81\xbc");
     inline static const CharPointer_UTF8 File = CharPointer_UTF8("\xef\x85\x9c");
-
     inline static const CharPointer_UTF8 AutoScroll = CharPointer_UTF8("\xef\x80\xb4");
     inline static const CharPointer_UTF8 Restore = CharPointer_UTF8("\xef\x83\xa2");
     inline static const CharPointer_UTF8 Error = CharPointer_UTF8("\xef\x81\xb1");
     inline static const CharPointer_UTF8 Message = CharPointer_UTF8("\xef\x81\xb5");
-
     inline static const CharPointer_UTF8 Parameters = CharPointer_UTF8("\xef\x87\x9e");
-
     inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
     inline static const CharPointer_UTF8 Externals = CharPointer_UTF8("\xef\x84\xae");
-
+    inline static const CharPointer_UTF8 Info = CharPointer_UTF8 ("\xef\x81\x9a");
     inline static const CharPointer_UTF8 Refresh = CharPointer_UTF8("\xef\x80\xa1");
-
     inline static const CharPointer_UTF8 Up = CharPointer_UTF8("\xef\x81\xa2");
     inline static const CharPointer_UTF8 Down = CharPointer_UTF8("\xef\x81\xa3");
-
     inline static const CharPointer_UTF8 Edit = CharPointer_UTF8("\xef\x81\x80");
 };
 

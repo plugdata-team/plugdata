@@ -35,6 +35,8 @@ struct MessageComponent : public GUIComponent
             {
                 auto* editor = input.getCurrentTextEditor();
 
+                editor->setMultiLine(true, true);
+                editor->setReturnKeyStartsNewLine(true);
                 editor->onTextChange = [this, editor]()
                 {
                     auto width = input.getFont().getStringWidth(editor->getText()) + 25;
@@ -47,6 +49,7 @@ struct MessageComponent : public GUIComponent
             };
         }
 
+        input.setMinimumHorizontalScale(1.0f);
         initialise(newObject);
 
         box->addMouseListener(this, false);
@@ -54,14 +57,11 @@ struct MessageComponent : public GUIComponent
 
     void checkBoxBounds() override
     {
-        // Apply size limits
-        int w = jlimit(50, maxSize, box->getWidth());
-        int h = jlimit(Box::height - 2, maxSize, box->getHeight());
-
-        if (w != box->getWidth() || h != box->getHeight())
-        {
-            box->setSize(w, h);
-        }
+        
+        auto bestWidth = box->getWidth() <= Box::doubleMargin ? box->getBestTextWidth(gui.getText()) : box->getWidth();
+        int numLines = getNumLines(gui.getText(), bestWidth - Box::doubleMargin);
+        box->setSize(bestWidth + Box::doubleMargin, (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
+        
     }
 
     void lock(bool locked) override
