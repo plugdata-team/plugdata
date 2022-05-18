@@ -135,7 +135,7 @@ class Patch
                                                                 {"hsl", "128 15 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1"},
                                                                 {"vsl", "15 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1"},
                                                                 {"bng", "23 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour"},
-                                                                {"nbx", "4 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256"},
+                                                                {"nbx", "5 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256"},
                                                                 {"hradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
                                                                 {"vradio", "18 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
                                                                 {"cnv", "15 100 60 empty empty empty 20 12 0 14 #8b949e fgColour"},
