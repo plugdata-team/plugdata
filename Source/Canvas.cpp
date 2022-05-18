@@ -337,6 +337,9 @@ void Canvas::mouseDown(const MouseEvent& e)
         
         auto* subpatch = parent->graphics->getPatch();
         auto* glist = subpatch->getPointer();
+        
+        if(!glist) return;
+        
         auto abstraction = canvas_isabstraction(glist);
         File path;
         
