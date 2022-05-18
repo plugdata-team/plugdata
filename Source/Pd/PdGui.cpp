@@ -740,6 +740,12 @@ Rectangle<int> Gui::getBounds() const noexcept
         auto* dial = static_cast<t_hdial*>(ptr);
         return {x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h};
     }
+    else if (type == Type::Number)
+    {
+        auto* nbx = static_cast<t_my_numbox*>(ptr);
+        w = nbx->x_numwidth;
+        return {x, y, w, h};
+    }
     else if (type == Type::Message || type == Type::Number)
     {
         return Object::getBounds();
@@ -752,7 +758,6 @@ Rectangle<int> Gui::getBounds() const noexcept
     else if (isAtom())
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-
         w = gatom->a_text.te_width;
         return {x, y, w, h};
     }
@@ -802,6 +807,11 @@ void Gui::setBounds(Rectangle<int> bounds)
 
         dial->x_gui.x_w = w / dial->x_number;
         dial->x_gui.x_h = h;
+    }
+    else if (type == Type::Number)
+    {
+        auto* nbx = static_cast<t_my_numbox*>(ptr);
+        nbx->x_numwidth = w;
     }
     else if (isIEM())
     {
