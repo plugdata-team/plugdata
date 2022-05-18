@@ -58,6 +58,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     parameters.replaceState(ValueTree("PlugData"));
 
+    LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+    
     // On first startup, initialise abstractions and settings
     initialiseFilesystem();
 
@@ -79,8 +81,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     setCallbackLock(&AudioProcessor::getCallbackLock());
 
     sendMessagesFromQueue();
-
-    LookAndFeel::setDefaultLookAndFeel(&lnf.get());
 
     objectLibrary.appDirChanged = [this]()
     {
@@ -172,6 +172,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     {
         // Or load the settings when they exist already
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
+        
+        if(settingsTree.hasProperty("DefaultFont"))
+        {
+            String fontname = settingsTree.getProperty("DefaultFont").toString();
+            auto newFont = Font(fontname, 15, Font::plain);
+            lnf->setDefaultSansSerifTypeface(newFont.getTypefacePtr());
+        }
     }
 }
 
