@@ -249,16 +249,19 @@ void PlugDataPluginEditor::paint(Graphics& g)
 
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 {
+    int roundedOffset = PLUGDATA_ROUNDED;
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(0, toolbarHeight + 1, static_cast<float>(getWidth()), toolbarHeight + 1);
+    g.drawLine(0, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
 }
 
 void PlugDataPluginEditor::resized()
 {
-    tabbar.setBounds(0, toolbarHeight, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - statusbar.getHeight());
+    int roundedOffset = PLUGDATA_ROUNDED;
+    tabbar.setBounds(0, toolbarHeight - (1 - roundedOffset), (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - statusbar.getHeight());
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + 1, sidebar.getWidth(), getHeight() - toolbarHeight);
+    
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
