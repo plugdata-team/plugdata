@@ -226,7 +226,7 @@ void Box::updateBounds()
             
             int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset;
             
-            setSize(width, height);
+            setSize(width + doubleMargin, height);
             graphics->resized();
             graphics->toBack();
             hideLabel = true;
