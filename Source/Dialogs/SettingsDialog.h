@@ -9,11 +9,16 @@ struct DAWAudioSettings : public Component
         latencySlider.setRange(0, 88200, 1);
         latencySlider.setTextValueSuffix(" Samples");
         latencySlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
-
+        latencySlider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
+        latencySlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
+        
         addAndMakeVisible(tailLengthSlider);
         tailLengthSlider.setRange(0, 10.0f, 0.01f);
         tailLengthSlider.setTextValueSuffix(" Seconds");
         tailLengthSlider.setTextBoxStyle(Slider::TextEntryBoxPosition::TextBoxRight, false, 100, 20);
+        tailLengthSlider.setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
+        tailLengthSlider.setColour(Slider::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
+
 
         addAndMakeVisible(tailLengthLabel);
         tailLengthLabel.setText("Tail Length", dontSendNotification);

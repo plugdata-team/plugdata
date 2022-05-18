@@ -130,6 +130,9 @@ class Instance
     virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list)
     {
     }
+    virtual void receiveParameter(int idx, float value)
+    {
+    }
 
     virtual void receiveDSPState(bool dsp){};
 
@@ -183,6 +186,7 @@ class Instance
     void* m_patch = nullptr;
     void* m_atoms = nullptr;
     void* m_message_receiver = nullptr;
+    void* m_parameter_receiver = nullptr;
     void* m_midi_receiver = nullptr;
     void* m_print_receiver = nullptr;
 

@@ -972,6 +972,45 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
     }
 }
 
+void PlugDataAudioProcessor::receiveParameter(int idx, float value)
+{
+#if PLUGDATA_STANDALONE
+    standaloneParams[idx] = value;
+    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        editor->sidebar.updateParameters();
+    }
+#else
+    auto* parameter = parameters.getParameter("param" + String(idx));
+    parameterTimers[idx].notifyChange(parameter);
+    parameter->setValueNotifyingHost(value);
+#endif
+}
+
+
+void PlugDataAudioProcessor::receiveDSPState(bool dsp)
+{
+    MessageManager::callAsync([this, dsp]() mutable {
+        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+            editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
+        }
+    });
+}
+
+
+void PlugDataAudioProcessor::receiveGuiUpdate(int type)
+{
+    if (callbackType != 0 && callbackType != type)
+    {
+        callbackType = 3;
+    }
+    else
+    {
+        callbackType = type;
+    }
+
+    startTimer(16);
+}
+
 void PlugDataAudioProcessor::timerCallback()
 {
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
@@ -996,29 +1035,6 @@ void PlugDataAudioProcessor::timerCallback()
 
         callbackType = 0;
     }
-}
-
-void PlugDataAudioProcessor::receiveGuiUpdate(int type)
-{
-    if (callbackType != 0 && callbackType != type)
-    {
-        callbackType = 3;
-    }
-    else
-    {
-        callbackType = type;
-    }
-
-    startTimer(16);
-}
-
-void PlugDataAudioProcessor::receiveDSPState(bool dsp)
-{
-    MessageManager::callAsync([this, dsp]() mutable {
-        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-            editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
-        }
-    });
 }
 
 void PlugDataAudioProcessor::updateConsole()

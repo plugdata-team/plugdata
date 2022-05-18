@@ -126,6 +126,9 @@ Instance::Instance(std::string const& symbol)
 
     m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                   reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+    
+    m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+                                                    reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
     
     
@@ -226,6 +229,7 @@ Instance::~Instance()
     pd_free(static_cast<t_pd*>(m_message_receiver));
     pd_free(static_cast<t_pd*>(m_midi_receiver));
     pd_free(static_cast<t_pd*>(m_print_receiver));
+    pd_free(static_cast<t_pd*>(m_parameter_receiver));
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
@@ -373,7 +377,12 @@ void Instance::sendMessage(const char* receiver, const char* msg, const std::vec
 
 void Instance::processMessage(Message mess)
 {
-    if (mess.selector == "bang")
+    if (mess.destination == "param") {
+        int index = mess.list[0].getFloat();
+        float value = std::clamp(mess.list[1].getFloat() , 0.0f, 1.0f);
+        receiveParameter(index, value);
+    }
+    else if (mess.selector == "bang")
         receiveBang(mess.destination);
     else if (mess.selector == "float")
         receiveFloat(mess.destination, mess.list[0].getFloat());
