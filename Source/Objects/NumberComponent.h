@@ -126,4 +126,9 @@ struct NumberComponent : public GUIComponent
         g.setColour(Colour(gui.getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f));
         g.fillPath(corner);
     }
+    
+    bool usesCharWidth() override
+    {
+        return true;
+    }
 };

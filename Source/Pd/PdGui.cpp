@@ -570,6 +570,16 @@ std::string Gui::getSymbol() const noexcept
     return {};
 }
 
+std::string Gui::getText()
+{
+    if(getType() == Type::Number || getType() == Type::AtomNumber) {
+        return std::to_string(getValue());
+    }
+    else {
+        return Object::getText();
+    }
+}
+
 void Gui::click() noexcept
 {
     instance->enqueueDirectMessages(ptr, 0);
@@ -720,15 +730,6 @@ Rectangle<int> Gui::getBounds() const noexcept
         auto* glist = static_cast<_glist*>(ptr);
         return {x, y, glist->gl_pixwidth, glist->gl_pixheight};
     }
-    else if (type == Type::Number)
-    {
-        auto* nbx = static_cast<t_my_numbox*>(ptr);
-        auto* iemgui = &nbx->x_gui;
-
-        int width = nbx->x_numwidth * iemgui->x_fontsize;
-
-        return {x, y, width, iemgui->x_h};
-    }
     else if (type == Type::VerticalRadio)
     {
         auto* dial = static_cast<t_vdial*>(ptr);
@@ -738,6 +739,10 @@ Rectangle<int> Gui::getBounds() const noexcept
     {
         auto* dial = static_cast<t_hdial*>(ptr);
         return {x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h};
+    }
+    else if (type == Type::Message || type == Type::AtomNumber || type == Type::Number)
+    {
+        return Object::getBounds();
     }
     else if (isIEM())
     {
@@ -784,16 +789,6 @@ void Gui::setBounds(Rectangle<int> bounds)
         static_cast<_glist*>(ptr)->gl_pixwidth = w;
         static_cast<_glist*>(ptr)->gl_pixheight = h;
     }
-    else if (type == Type::Number)
-    {
-        auto* nbx = static_cast<t_my_numbox*>(ptr);
-        auto* iemgui = &nbx->x_gui;
-
-        nbx->x_numwidth = round(static_cast<float>(bounds.getWidth()) / iemgui->x_fontsize);
-        iemgui->x_h = bounds.getHeight();
-
-        my_numbox_calc_fontwidth(nbx);
-    }
     else if (type == Type::VerticalRadio)
     {
         auto* dial = static_cast<t_hdial*>(ptr);
@@ -818,9 +813,11 @@ void Gui::setBounds(Rectangle<int> bounds)
     else if (isAtom())
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        short newWidth = std::max<short>(3, round(static_cast<float>(bounds.getWidth()) / sys_zoomfontwidth(gatom->a_fontsize, glist_getzoom(patch->getPointer()), 0)));
-
-        gatom->a_text.te_width = newWidth;
+        if (bounds.getWidth() != gatom->a_text.te_width)
+        {
+            addUndoableAction();
+            gatom->a_text.te_width = bounds.getWidth();
+        }
     }
     else {
         Object::setBounds(bounds);

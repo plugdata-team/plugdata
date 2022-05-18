@@ -51,6 +51,7 @@ bool Object::operator!=(Object const& other) const noexcept
 
 std::string Object::getText()
 {
+    
     if (ptr && patch->checkObject(this))
     {
         char* text = nullptr;

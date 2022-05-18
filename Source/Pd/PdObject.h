@@ -60,7 +60,7 @@ class Object
     bool operator!=(Object const& other) const noexcept;
 
     //! @brief The text of the Object.
-    std::string getText();
+    virtual std::string getText();
 
     //! @brief The name of the Object.
     std::string getName() const;
