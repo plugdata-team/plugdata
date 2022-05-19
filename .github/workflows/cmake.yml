@@ -281,7 +281,11 @@ jobs:
           files: PlugData-Fedora-35-x64
   arch-build:
     runs-on: ubuntu-latest
-    container: archlinux
+    container:
+      image: archlinux
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
     steps:
     - name: Update git
       run: sudo pacman -Sy && sudo pacman -S --noconfirm git
