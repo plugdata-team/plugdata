@@ -246,7 +246,7 @@ jobs:
         env:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - name: Install Dependencies
-        run: sudo dnf install -y alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
+        run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
@@ -296,7 +296,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: pacman -S --noconfirm alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
+      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
