@@ -319,7 +319,7 @@ jobs:
         - /sys/fs/cgroup:/sys/fs/cgroup
     steps:
     - name: Update git
-      run: zypper refresh -n && zypper install -n git
+      run: zypper refresh && zypper install -y git
     - uses: actions/checkout@v2
       with:
         submodules: recursive
@@ -327,7 +327,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: zypper install -n cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
+      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
 
     - name: Build
       shell: bash
