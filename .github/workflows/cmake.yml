@@ -286,6 +286,10 @@ jobs:
       options: --privileged
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup
+      securityContext:
+        fsGroup: 1000
+        runAsGroup: 1000
+        runAsUser: 1000
     steps:
     - name: Update git
       run: pacman -Sy && pacman -S --noconfirm git
