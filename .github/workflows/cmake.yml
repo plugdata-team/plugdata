@@ -254,7 +254,7 @@ jobs:
       - name: Configure CMake
         shell: bash
         working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+        run: cmake .. -G "Unix Makefiles"
 
       - name: Build
         working-directory: ${{github.workspace}}/build
@@ -304,7 +304,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+      run: cmake .. -G "Unix Makefiles"
 
     - name: Build
       working-directory: ${{github.workspace}}/build
