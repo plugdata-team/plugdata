@@ -351,45 +351,45 @@ jobs:
         prerelease: true
         draft: true
         files: PlugData-OpenSUSE-x64
-debian-build:
-  runs-on: ubuntu-latest
-  container:
-    image: debian
-    options: --privileged
-    volumes:
-      - /sys/fs/cgroup:/sys/fs/cgroup
-  steps:
-  - name: Update git
-    run: apt -qq update && apt install -y git
+  debian-build:
+    runs-on: ubuntu-latest
+    container:
+      image: debian
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
+    steps:
+    - name: Update git
+      run: apt -qq update && apt install -y git
 
-  - uses: actions/checkout@v2
-    with:
-      submodules: recursive
-    env:
-      PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+      env:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
-  - name: Install Dependencies
-    run: apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
+    - name: Install Dependencies
+      run: apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
 
-  - name: Build
-    shell: bash
-    run: mkdir build && cd build && cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+    - name: Build
+      shell: bash
+      run: mkdir build && cd build && cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
-  - name: Prepare Artefacts
-    working-directory: ${{github.workspace}}
-    shell: bash
-    run: ./.github/scripts/package.sh Debian-x64
+    - name: Prepare Artefacts
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: ./.github/scripts/package.sh Debian-x64
 
-  - name: Archive Artifacts
-    uses: actions/upload-artifact@v2
-    with:
-      name: PlugData-Debian-x64
-      path: PlugData-Debian-x64
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: PlugData-Debian-x64
+        path: PlugData-Debian-x64
 
-  - name: Release Artifacts
-    uses: softprops/action-gh-release@v1
-    if: startsWith(github.ref, 'refs/tags/')
-    with:
-      prerelease: true
-      draft: true
-      files: PlugData-Debian-x64
+    - name: Release Artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+        files: PlugData-Debian-x64
