@@ -239,7 +239,7 @@ jobs:
       container: fedora:35
       steps:
       - name: Update git
-        run: sudo dnf update -y && sudo dnf install -y git
+        run: sudo dnf install -y git
       - uses: actions/checkout@v2
         with:
           submodules: recursive
@@ -288,13 +288,15 @@ jobs:
         - /sys/fs/cgroup:/sys/fs/cgroup
     steps:
     - name: Update git
-      run: sudo pacman -Sy && sudo pacman -S --noconfirm git
+      run: pacman -Sy && pacman -S --noconfirm git
     - uses: actions/checkout@v2
       with:
         submodules: recursive
+      env:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: sudo pacman -S --noconfirm alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
+      run: pacman -S --noconfirm alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
