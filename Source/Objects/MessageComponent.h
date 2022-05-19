@@ -59,8 +59,8 @@ struct MessageComponent : public GUIComponent
     {
         
         auto bestWidth = box->getWidth() <= Box::doubleMargin ? box->getBestTextWidth(gui.getText()) : box->getWidth();
-        int numLines = getNumLines(gui.getText(), bestWidth - Box::doubleMargin);
-        box->setSize(bestWidth + Box::doubleMargin, (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
+        //int numLines = getNumLines(gui.getText(), bestWidth - Box::doubleMargin);
+        //box->setSize(bestWidth + Box::doubleMargin, (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
         
     }
 

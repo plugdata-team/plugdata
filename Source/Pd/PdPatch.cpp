@@ -426,8 +426,29 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
 
         return obj;
     }
+    
+    auto type = name.upToFirstOccurrenceOf(" ", false, false);
+    String newName = name;
+    // Also apply default style when renaming
+    if (guiDefaults.find(type) != guiDefaults.end())
+    {
+        auto preset = guiDefaults.at(type);
 
-    instance->enqueueFunction([this, obj, name]() mutable { libpd_renameobj(getPointer(), &checkObject(obj)->te_g, name.toRawUTF8(), name.getNumBytesAsUTF8()); });
+        auto bg = instance->getBackgroundColour().toString().substring(2);
+        auto fg = instance->getForegroundColour().toString().substring(2);
+        auto lbl = instance->getTextColour().toString().substring(2);
+        auto ln = instance->getOutlineColour().toString().substring(2);
+        
+        preset = preset.replace("bgColour", "#" + bg);
+        preset = preset.replace("fgColour", "#" + fg);
+        preset = preset.replace("lblColour", "#" + lbl);
+        preset = preset.replace("lnColour", "#" + ln);
+        
+
+        newName += " " + preset;
+    }
+
+    instance->enqueueFunction([this, obj, newName]() mutable { libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8()); });
 
     instance->waitForStateUpdate();
 
