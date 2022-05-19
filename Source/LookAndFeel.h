@@ -830,6 +830,18 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ScrollBar::backgroundColourId, Colours::transparentBlack);
         setColour(TreeView::backgroundColourId, Colours::transparentBlack);
     }
+    
+    static void setDefaultFont(String fontName)
+    {
+        auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
+        if(fontName == "Inter") {
+            lnf.setDefaultSansSerifTypeface(lnf.defaultFont.getTypefacePtr());
+        }
+        else {
+            auto newFont = Font(fontName, 15, Font::plain);
+            lnf.setDefaultSansSerifTypeface(newFont.getTypefacePtr());
+        }
+    }
 
     void setTheme(bool useLightTheme)
     {

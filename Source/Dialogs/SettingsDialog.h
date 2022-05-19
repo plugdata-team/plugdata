@@ -29,10 +29,10 @@ struct ThemePanel : public Component, private ListBoxModel, public Value::Listen
     
     void valueChanged(Value& v) override {
         if(v.refersToSameSourceAs(fontValue)) {
-            auto newFont = Font(fontValue.toString(), 15, Font::plain);
-            LookAndFeel::getDefaultLookAndFeel().setDefaultSansSerifTypeface(newFont.getTypefacePtr());
-            settingsTree.setProperty("DefaultFont", v.getValue(), nullptr);
+            PlugDataLook::setDefaultFont(fontValue.toString());
+            settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
             getTopLevelComponent()->repaint();
+
         }
         // TODO: implement this!
         if(v.refersToSameSourceAs(cnvColourValue)) {
