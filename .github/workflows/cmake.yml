@@ -290,7 +290,7 @@ jobs:
 
     - name: Build
       shell: bash
-      run: mkdir build && cd build && CXX_STANDARD=17 cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CXXFLAGS=-std=c++17 cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
@@ -331,7 +331,7 @@ jobs:
 
     - name: Build
       shell: bash
-      run: mkdir build && cd build && cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CXXFLAGS=-std=c++17 cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
