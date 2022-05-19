@@ -290,7 +290,7 @@ jobs:
 
     - name: Build
       shell: bash
-      run: mkdir build && cd build && CMAKE_C_COMPILER=clang CMAKE_CXX_COMPILER=clang cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CC=clang CXX=clang cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
@@ -327,11 +327,11 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
+      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel clang
 
     - name: Build
       shell: bash
-      run: mkdir build && cd build && CMAKE_C_COMPILER=clang CMAKE_CXX_COMPILER=clang cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CC=clang CXX=clang cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
