@@ -196,20 +196,25 @@ struct Console : public Component
                 int numLines = getNumLines(message.first, getWidth());
                 int height = numLines * 22 + 2;
 
-                const Rectangle<int> r(2, totalHeight, getWidth(), height);
+                const Rectangle<int> r(0, totalHeight, getWidth(), height);
 
                 if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors))
                 {
                     continue;
                 }
 
-                if (rowColour || row == selectedItem)
+                auto offColour = findColour(PlugDataColour::canvasColourId);
+                auto onColour = offColour.darker(0.04f);
+                auto background = rowColour ? offColour : onColour;
+
+                if (row == selectedItem)
                 {
-                    g.setColour(selectedItem == row ? findColour(PlugDataColour::highlightColourId) : findColour(ResizableWindow::backgroundColourId));
-
-                    g.fillRect(r);
+                    background = findColour(PlugDataColour::highlightColourId);
                 }
-
+                
+                g.setColour(background);
+                g.fillRect(r);
+                
                 rowColour = !rowColour;
 
                 g.setColour(selectedItem == row ? Colours::white : colourWithType(message.second));
@@ -220,13 +225,14 @@ struct Console : public Component
 
             while (totalHeight < viewport.getHeight())
             {
-                if (rowColour)
-                {
-                    const Rectangle<int> r(0, totalHeight, getWidth(), 24);
+                auto offColour = findColour(PlugDataColour::canvasColourId);
+                auto onColour = offColour.darker(0.04f);
+                
+                const Rectangle<int> r(0, totalHeight, getWidth(), 24);
 
-                    g.setColour(findColour(ResizableWindow::backgroundColourId));
-                    g.fillRect(r);
-                }
+                g.setColour(rowColour ? offColour : onColour);
+                g.fillRect(r);
+               
                 rowColour = !rowColour;
                 totalHeight += 24;
             }

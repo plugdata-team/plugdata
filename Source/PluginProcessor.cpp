@@ -150,7 +150,8 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
         settingsTree.setProperty("GridEnabled", 1, nullptr);
-        settingsTree.setProperty("DefaultFont", "Inter", nullptr);
+        
+
         
         auto pathTree = ValueTree("Paths");
 
@@ -166,6 +167,13 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
+        
+        settingsTree.setProperty("DefaultFont", "Inter", nullptr);
+        for(int i = 0; i < lnf->colourNames.size(); i++) {
+            for(int j = 0; j < lnf->colourNames[i].size(); j++) {
+                settingsTree.setProperty(lnf->colourNames[i][j], PlugDataLook::colourSettings[i][j].toString(), nullptr);
+            }
+        }
 
         saveSettings();
     }
@@ -178,6 +186,12 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         {
             String fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
+        }
+        
+        for(int i = 0; i < lnf->colourNames.size(); i++) {
+            for(int j = 0; j < lnf->colourNames[i].size(); j++) {
+                PlugDataLook::colourSettings[i][j] = Colour::fromString(settingsTree.getProperty(lnf->colourNames[i][j]).toString());
+            }
         }
     }
 }

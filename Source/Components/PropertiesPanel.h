@@ -12,13 +12,23 @@ struct PropertiesPanel : public PropertyPanel
     struct Property : public PropertyComponent
     {
         int idx;
-
+        bool hideLabel = false;
+        
         Property(const String& propertyName, int i) : PropertyComponent(propertyName, 23), idx(i)
         {
         }
+        
+        void setHideLabel(bool labelHidden) {
+            hideLabel = labelHidden;
+            repaint();
+            resized();
+        }
+        
 
         void paint(Graphics& g) override
         {
+            if(hideLabel) return;
+            
             auto bg = idx & 1 ? findColour(PlugDataColour::toolbarColourId) : findColour(PlugDataColour::canvasColourId);
 
             g.fillAll(bg);
@@ -47,7 +57,7 @@ struct PropertiesPanel : public PropertyPanel
 
         void resized() override
         {
-            comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+            comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
 
        private:
@@ -101,10 +111,12 @@ struct PropertiesPanel : public PropertyPanel
 
             addAndMakeVisible(comboBox);
         }
+        
+
 
         void resized() override
         {
-            comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+            comboBox.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
 
        private:
@@ -131,7 +143,7 @@ struct PropertiesPanel : public PropertyPanel
 
         void resized() override
         {
-            toggleButton.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+            toggleButton.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
 
        private:
@@ -157,11 +169,9 @@ struct PropertiesPanel : public PropertyPanel
             {
                 std::unique_ptr<ColourSelector> colourSelector = std::make_unique<ColourSelector>(ColourSelector::showColourAtTop | ColourSelector::showSliders | ColourSelector::showColourspace);
                 colourSelector->setName("background");
-                colourSelector->setCurrentColour(findColour(TextButton::buttonColourId));
                 colourSelector->addChangeListener(this);
                 colourSelector->setSize(300, 400);
                 colourSelector->setColour(ColourSelector::backgroundColourId, findColour(PlugDataColour::toolbarColourId));
-
                 colourSelector->setCurrentColour(Colour::fromString(currentColour.toString()));
 
                 CallOutBox::launchAsynchronously(std::move(colourSelector), button.getScreenBounds(), nullptr);
@@ -198,7 +208,7 @@ struct PropertiesPanel : public PropertyPanel
 
         void resized() override
         {
-            button.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+            button.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
 
        private:
@@ -263,8 +273,8 @@ struct PropertiesPanel : public PropertyPanel
         
         void resized() override
         {
-            auto bounds = getLocalBounds().removeFromRight(getWidth() / 2);
-            maxLabel.setBounds(bounds.removeFromRight(bounds.getWidth() / 2));
+            auto bounds = getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel));
+            maxLabel.setBounds(bounds.removeFromRight(bounds.getWidth() / (2 - hideLabel)));
             minLabel.setBounds(bounds);
         }
         
@@ -313,7 +323,7 @@ struct PropertiesPanel : public PropertyPanel
 
         void resized() override
         {
-            label.setBounds(getLocalBounds().removeFromRight(getWidth() / 2));
+            label.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
     };
 };

@@ -431,12 +431,12 @@ void Box::resized()
     }
 
     int edgeSize = 12;
-    const int edgeHitBox = 5;
+    const int edgeHitBox = 4;
     const int borderWidth = 14;
 
-    if (getWidth() < 35)
+    if (getWidth() < 32 && (numInputs > 1 || numOutputs > 1))
     {
-        edgeSize = std::max(edgeSize - (35 - getWidth()), 10);
+        edgeSize = 9;
     }
 
     auto inletBounds = getLocalBounds();
