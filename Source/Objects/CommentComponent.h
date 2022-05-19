@@ -11,8 +11,9 @@ struct CommentComponent : public GUIComponent
         addAndMakeVisible(input);
         input.setText(gui.getText(), dontSendNotification);
         input.setInterceptsMouseClicks(false, false);
+        input.setMinimumHorizontalScale(0.9f);
+        
         setInterceptsMouseClicks(false, false);
-
         
         input.onTextChange = [this, box]()
         {
@@ -83,10 +84,8 @@ struct CommentComponent : public GUIComponent
 
     void checkBoxBounds() override
     {
-        
-        auto bestWidth = box->getWidth() <= Box::doubleMargin ? box->getBestTextWidth(gui.getText()) : box->getWidth();
-        int numLines = getNumLines(gui.getText(), bestWidth - Box::doubleMargin);
-        box->setSize(bestWidth + Box::doubleMargin, (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
+        int numLines = getNumLines(gui.getText(), box->getWidth());
+        box->setSize(box->getWidth(), (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
         
     }
 
