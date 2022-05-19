@@ -291,7 +291,7 @@ jobs:
     - name: Build
       shell: bash
       run: mkdir build && cd build && cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
-f
+
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
       shell: bash
