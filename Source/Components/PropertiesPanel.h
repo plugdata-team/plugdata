@@ -112,6 +112,10 @@ struct PropertiesPanel : public PropertyPanel
             addAndMakeVisible(comboBox);
         }
         
+        void setFont(String fontName) {
+            fontValue.setValue(fontValue);
+            comboBox.setText(fontName);
+        }
 
 
         void resized() override
