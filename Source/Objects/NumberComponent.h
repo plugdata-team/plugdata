@@ -62,6 +62,9 @@ struct NumberComponent : public GUIComponent
         int w = jlimit(30, maxSize, box->getWidth());
         int h = jlimit(Box::height - 12, maxSize, box->getHeight());
 
+        if(gui.isAtom()) {
+            h = gui.getBounds().getHeight() + Box::doubleMargin;
+        }
         if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
