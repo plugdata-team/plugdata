@@ -747,12 +747,9 @@ struct PlugDataLook : public LookAndFeel_V4
             }
             else
             {
-                /*
-                 auto onColour = owner.findColour(PlugDataColour::canvasColourId);
-                 auto offColour = owner.findColour(PlugDataColour::toolbarColourId).interpolatedWith(onColour, 0.5f);
-                 
-                 g.setColour((i + invert) & 1 ? onColour : offColour);*/
-                g.setColour(owner.findColour((i + invert) & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
+                auto offColour = owner.findColour(PlugDataColour::canvasColourId);
+                auto onColour = offColour.darker(0.04f);
+                g.setColour((i + invert) & 1 ? onColour : offColour);
             }
 
             g.fillRect(0, y, owner.getWidth(), itemHeight);
@@ -763,8 +760,10 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
 
-    void setColours(Colour firstColour, Colour secondColour, Colour textColour, Colour highlightColour, Colour outlineColour, Colour connectionColour, Colour signalColour)
+    void setColours(std::vector<Colour> colours)
     {
+        Colour firstColour = colours[0], secondColour = colours[1], textColour = colours[2], highlightColour = colours[3], outlineColour = colours[4], connectionColour = colours[5], signalColour = colours[6];
+        
         setColour(PlugDataColour::toolbarColourId, firstColour);
         setColour(PlugDataColour::canvasColourId, secondColour);
         setColour(PlugDataColour::highlightColourId, highlightColour);
@@ -843,17 +842,29 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
 
+    inline static const std::vector<std::vector<String>> colourNames = {
+        { "tbLightColour",  "cnvLightColour", "textLightColour", "dataLightColour", "outlineLightColour", "connectionLightColour", "signalLightColour"},
+        {"tbDarkColour", "cnvDarkColour", "textDarkColour", "dataDarkColour", "outlineDarkColour", "connectionDarkColour", "signalDarkColour"}};
+    
+   
+     inline static const std::vector<std::vector<Colour>> defaultColours = {{Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0)}, {Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0)}};
+    
+    inline static std::vector<std::vector<Colour>> colourSettings = defaultColours;
+
     void setTheme(bool useLightTheme)
     {
         if (useLightTheme)
         {
-            setColours(Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0));
+            setColours(colourSettings[0]);
         }
         else
         {
-            setColours(Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0));
+            setColours(colourSettings[1]);
         }
+        
+        isUsingLightTheme = useLightTheme;
     }
 
+    static inline bool isUsingLightTheme = true;
     std::unique_ptr<Drawable> folderImage;
 };

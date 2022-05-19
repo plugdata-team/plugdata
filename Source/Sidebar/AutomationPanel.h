@@ -80,10 +80,15 @@ struct AutomationComponent : public Component
     {
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
+
+            
             sliders[p]->setColour(Slider::backgroundColourId, findColour(p & 1 ? PlugDataColour::toolbarColourId : PlugDataColour::canvasColourId));
             sliders[p]->setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
 
-            g.setColour(findColour(p & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
+            auto offColour = findColour(PlugDataColour::canvasColourId);
+            auto onColour = offColour.darker(0.04f);
+            
+            g.setColour(p & 1 ? offColour : onColour);
             g.fillRect(0, sliders[p]->getY(), getWidth(), sliders[p]->getHeight());
         }
     }
