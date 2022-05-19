@@ -64,6 +64,8 @@ struct PropertiesPanel : public PropertyPanel
         
         void paint(Graphics& g) override
         {
+            g.setColour(findColour(PlugDataColour::textColourId));
+            
             auto font = Font(fontName, 15, Font::plain);
             g.setFont(font);
             g.drawText(fontName, getLocalBounds().reduced(2), Justification::left);
