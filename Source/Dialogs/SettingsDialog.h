@@ -107,6 +107,7 @@ struct AboutPanel : public Component
     void paint(Graphics& g) override
     {
         g.setFont(30);
+        g.setColour(findColour(PlugDataColour::textColourId));
         g.drawFittedText("PlugData " + String(ProjectInfo::versionString), 150, 20, 300, 30, Justification::left, 1);
         
         g.setFont(16);
