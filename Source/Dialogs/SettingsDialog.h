@@ -45,6 +45,12 @@ struct ThemePanel : public Component, public Value::Listener
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
             lnf.colourSettings = lnf.defaultColours;
             
+            dynamic_cast<PropertiesPanel::FontComponent*>(panels[0])->setFont("Inter");
+            fontValue = "Inter";
+            lnf.setDefaultFont(fontValue.toString());
+            settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
+            
+            
             int numColours = PlugDataLook::colourNames[0].size();
             for(int i = 0; i < 2; i++) {
                 for(int j = 0; j < numColours; j++) {
