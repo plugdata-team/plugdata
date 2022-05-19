@@ -331,7 +331,7 @@ jobs:
 
     - name: Build
       shell: bash
-      run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CC=/usr/bin/gcc11 CXX=/usr/bin/g++11 cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
