@@ -19,7 +19,7 @@ struct MessageComponent : public GUIComponent
             gui.setSymbol(input.getText().toStdString());
             stopEdition();
 
-            auto width = input.getFont().getStringWidth(input.getText()) + 25;
+            auto width = input.getFont().getStringWidth(input.getText()) + 36;
             if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
@@ -49,7 +49,7 @@ struct MessageComponent : public GUIComponent
             };
         }
 
-        input.setMinimumHorizontalScale(1.0f);
+        input.setMinimumHorizontalScale(0.9f);
         initialise(newObject);
 
         box->addMouseListener(this, false);
@@ -57,11 +57,14 @@ struct MessageComponent : public GUIComponent
 
     void checkBoxBounds() override
     {
+        int numLines = getNumLines(gui.getText(), box->getWidth() - Box::doubleMargin - 5);
+        int newHeight = (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin + 2;
         
-        auto bestWidth = box->getWidth() <= Box::doubleMargin ? box->getBestTextWidth(gui.getText()) : box->getWidth();
-        //int numLines = getNumLines(gui.getText(), bestWidth - Box::doubleMargin);
-        //box->setSize(bestWidth + Box::doubleMargin, (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
-        
+        // parent component check prevents infinite recursion bug
+        // TODO: fix this in a better way!
+        if(getParentComponent() && box->getHeight() != newHeight) {
+            box->setSize(box->getWidth(), newHeight);
+        }
     }
 
     void lock(bool locked) override
@@ -172,7 +175,9 @@ struct MessageComponent : public GUIComponent
         if (gui.isAtom() && v.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
-            box->updateBounds();  // update box size based on new font
+            if(getParentComponent()) {
+                box->updateBounds();  // update box size based on new font
+            }
         }
         else
         {

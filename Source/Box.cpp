@@ -431,7 +431,7 @@ void Box::resized()
     }
 
     int edgeSize = 12;
-    const int edgeHitBox = 12;
+    const int edgeHitBox = 5;
     const int borderWidth = 14;
 
     if (getWidth() < 35)
