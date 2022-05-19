@@ -243,7 +243,7 @@ jobs:
           submodules: recursive
 
       - name: Install Dependencies
-        run: |
+        run: >
         sudo dnf update && sudo dnf install alsa-lib-devel \
         sudo dnf install libXinerama-devel \
         sudo dnf install freetype-devel \
