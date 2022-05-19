@@ -744,7 +744,7 @@ Rectangle<int> Gui::getBounds() const noexcept
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         w = nbx->x_numwidth;
-        return {x, y, w, h};
+        return {x, y, w, nbx->x_gui.x_h};
     }
     else if (type == Type::Message || type == Type::Number)
     {
@@ -812,6 +812,7 @@ void Gui::setBounds(Rectangle<int> bounds)
     {
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         nbx->x_numwidth = w;
+        nbx->x_gui.x_h = h;
     }
     else if (isIEM())
     {
