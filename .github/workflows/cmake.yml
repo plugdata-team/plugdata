@@ -239,14 +239,14 @@ jobs:
       container: fedora:35
       steps:
       - name: Update git
-        run: sudo dnf update && sudo dnf install git
+        run: sudo dnf update && sudo dnf install -y git
       - uses: actions/checkout@v2
         with:
           submodules: recursive
         env:
-          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin 
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - name: Install Dependencies
-        run: sudo dnf update && sudo dnf install alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
+        run: sudo dnf install -y alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
@@ -283,12 +283,14 @@ jobs:
     runs-on: ubuntu-latest
     container: archlinux
     steps:
+    - name: Update git
+      run: sudo pacman -Sy && sudo pacman -S --noconfirm git
     - uses: actions/checkout@v2
       with:
         submodules: recursive
 
     - name: Install Dependencies
-      run: sudo pacman -Sy && sudo pacman -S alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
+      run: sudo pacman -S --noconfirm alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
