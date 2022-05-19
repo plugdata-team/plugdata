@@ -313,7 +313,7 @@ jobs:
   opensuse-build:
     runs-on: ubuntu-latest
     container:
-      image: opensuse
+      image: opensuse/tumbleweed
       options: --privileged
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup
