@@ -279,44 +279,43 @@ jobs:
 
   arch-build:
     runs-on: ubuntu-latest
-    container:
-      image: archlinux
-      steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
+    container: archlinux
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
 
-      - name: Install Dependencies
-        run: sudo pacman -Sy && sudo pacman -S alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
+    - name: Install Dependencies
+      run: sudo pacman -Sy && sudo pacman -S alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
 
-      - name: Create Build Environment
-        run: cmake -E make_directory ${{github.workspace}}/build
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
 
-      - name: Configure CMake
-        shell: bash
-        working-directory: ${{github.workspace}}/build
-        run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
 
-      - name: Build
-        working-directory: ${{github.workspace}}/build
-        shell: bash
-        run: cmake --build . --config $BUILD_TYPE
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
 
-      - name: Prepare Artefacts
-        working-directory: ${{github.workspace}}
-        shell: bash
-        run: ./.github/scripts/package.sh Arch-x64
+    - name: Prepare Artefacts
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: ./.github/scripts/package.sh Arch-x64
 
-      - name: Archive Artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: PlugData-Arch-x64
-          path: PlugData-Arch-x64
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: PlugData-Arch-x64
+        path: PlugData-Arch-x64
 
-      - name: Release Artifacts
-        uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/')
-        with:
-          prerelease: true
-          draft: true
-          files: PlugData-Arch-x64
+    - name: Release Artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+        files: PlugData-Arch-x64
