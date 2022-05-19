@@ -310,3 +310,44 @@ jobs:
         prerelease: true
         draft: true
         files: PlugData-Arch-x64
+  opensuse-build:
+    runs-on: ubuntu-latest
+    container:
+      image: opensuse
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
+    steps:
+    - name: Update git
+      run: sudo zypper refresh -y && sudo zypper install -y git
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+      env:
+        PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+
+    - name: Install Dependencies
+      run: sudo zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
+
+    - name: Build
+      shell: bash
+      run: mkdir build && cd build && cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+
+    - name: Prepare Artefacts
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: ./.github/scripts/package.sh OpenSUSE-x64
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: PlugData-OpenSUSE-x64
+        path: PlugData-OpenSUSE-x64
+
+    - name: Release Artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+        files: PlugData-OpenSUSE-x64
