@@ -24,6 +24,16 @@
 #include "../Canvas.h"
 #include "../PluginProcessor.h"
 
+#ifdef _WIN32
+#include <io.h>
+#include <windows.h>
+#include <winbase.h>
+#endif
+#ifdef _MSC_VER  /* This is only for Microsoft's compiler, not cygwin, e.g. */
+#define snprintf _snprintf
+#endif
+
+
 extern "C"
 {
 
