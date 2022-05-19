@@ -244,15 +244,15 @@ jobs:
 
       - name: Install Dependencies
         run: >
-        sudo dnf update && sudo dnf install alsa-lib-devel \
-        sudo dnf install libXinerama-devel \
-        sudo dnf install freetype-devel \
-        sudo dnf install libcurl-devel \
-        sudo dnf install gcc-c++ \
-        sudo dnf install libXcomposite-devel \
-        sudo dnf install freeglut-devel \
-        sudo dnf install libXrandr-devel \
-        sudo dnf install libXcursor-devel \
+        sudo dnf update && sudo dnf install alsa-lib-devel
+        sudo dnf install libXinerama-devel
+        sudo dnf install freetype-devel
+        sudo dnf install libcurl-devel
+        sudo dnf install gcc-c++
+        sudo dnf install libXcomposite-devel
+        sudo dnf install freeglut-devel
+        sudo dnf install libXrandr-devel
+        sudo dnf install libXcursor-devel
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
