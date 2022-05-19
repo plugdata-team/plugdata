@@ -81,7 +81,9 @@ struct PropertiesPanel : public PropertyPanel
         StringArray options = Font::findAllTypefaceNames();
         
         FontComponent(const String& propertyName, Value& value, int idx) : Property(propertyName, idx)
-        {            
+        {
+            options.addIfNotAlreadyThere("Inter");
+            
             for (int n = 0; n < options.size(); n++)
             {
                 comboBox.getRootMenu()->addCustomItem(n + 1, std::make_unique<FontEntry>(options[n]), nullptr, options[n]);
