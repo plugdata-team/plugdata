@@ -7,92 +7,6 @@ env:
   BUILD_TYPE: Release
 
 jobs:
-  ubuntu-20_04-build:
-    runs-on: ubuntu-20.04
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-
-    - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
-
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
-
-    - name: Build
-      working-directory: ${{github.workspace}}/build
-      shell: bash
-      run: cmake --build . --config $BUILD_TYPE
-
-    - name: Prepare Artefacts
-      working-directory: ${{github.workspace}}
-      shell: bash
-      run: ./.github/scripts/package.sh Ubuntu-20.04-x64
-
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: PlugData-Ubuntu-20.04-x64
-        path: PlugData-Ubuntu-20.04-x64
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: PlugData-Ubuntu-20.04-x64
-
-  ubuntu-18_04-build:
-    runs-on: ubuntu-18.04
-
-    steps:
-    - uses: actions/checkout@v2
-      with:
-        submodules: recursive
-
-    - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
-
-    - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
-
-    - name: Configure CMake
-      shell: bash
-      working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
-
-    - name: Build
-      working-directory: ${{github.workspace}}/build
-      shell: bash
-      run: cmake --build . --config $BUILD_TYPE
-
-    - name: Prepare Artefacts
-      working-directory: ${{github.workspace}}
-      shell: bash
-      run: ./.github/scripts/package.sh Ubuntu-18.04-x64
-
-    - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
-      with:
-        name: PlugData-Ubuntu-18.04-x64
-        path: PlugData-Ubuntu-18.04-x64
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
-      with:
-        prerelease: true
-        draft: true
-        files: PlugData-Ubuntu-18.04-x64
-
   macos-universal-build:
     runs-on: macos-10.15
 
@@ -234,3 +148,197 @@ jobs:
         prerelease: true
         draft: true
         files: PlugData-Win32
+        jobs:
+  ubuntu-20_04-build:
+    runs-on: ubuntu-20.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install Dependencies
+      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: Prepare Artefacts
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: ./.github/scripts/package.sh Ubuntu-20.04-x64
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: PlugData-Ubuntu-20.04-x64
+        path: PlugData-Ubuntu-20.04-x64
+
+    - name: Release Artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+        files: PlugData-Ubuntu-20.04-x64
+
+  ubuntu-18_04-build:
+    runs-on: ubuntu-18.04
+
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install Dependencies
+      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
+
+    - name: Create Build Environment
+      run: cmake -E make_directory ${{github.workspace}}/build
+
+    - name: Configure CMake
+      shell: bash
+      working-directory: ${{github.workspace}}/build
+      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+
+    - name: Build
+      working-directory: ${{github.workspace}}/build
+      shell: bash
+      run: cmake --build . --config $BUILD_TYPE
+
+    - name: Prepare Artefacts
+      working-directory: ${{github.workspace}}
+      shell: bash
+      run: ./.github/scripts/package.sh Ubuntu-18.04-x64
+
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: PlugData-Ubuntu-18.04-x64
+        path: PlugData-Ubuntu-18.04-x64
+
+    - name: Release Artifacts
+      uses: softprops/action-gh-release@v1
+      if: startsWith(github.ref, 'refs/tags/')
+      with:
+        prerelease: true
+        draft: true
+        files: PlugData-Ubuntu-18.04-x64
+    fedora-build:
+      runs-on: ubuntu-latest
+      container: fedora:35
+      steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run: sudo dnf update && sudo dnf install alsa-lib-devel \
+        sudo dnf install libXinerama-devel \
+        sudo dnf install freetype-devel \
+        sudo dnf install libcurl-devel \
+        sudo dnf install gcc-c++ \
+        sudo dnf install libXcomposite-devel \
+        sudo dnf install freeglut-devel \
+        sudo dnf install libXrandr-devel \
+        sudo dnf install libXcursor-devel \
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+      - name: Prepare Artefacts
+        working-directory: ${{github.workspace}}
+        shell: bash
+        run: ./.github/scripts/package.sh Fedora-35-x64
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: PlugData-Fedora-35-x64
+          path: PlugData-Fedora-35-x64
+
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: PlugData-Fedora-35-x64
+
+  arch-build:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux
+      options: --privileged
+      volumes:
+        - /sys/fs/cgroup:/sys/fs/cgroup
+      steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+
+      - name: Install Dependencies
+        run: sudo pacman -Sy && sudo  pacman -S alsa-lib-devel \
+        sudo pacman -S alsa-lib  \
+        sudo pacman -S freetype2 \
+        sudo pacman -S libx11 \
+        sudo pacman -S gcc-c++ \
+        sudo pacman -S libxcursor \
+        sudo pacman -S libxext \
+        sudo pacman -S libxinerama \
+        sudo pacman -S libxrandr  \
+        sudo pacman -S libxrender  \
+        sudo pacman -S webkit2gtk  \
+        sudo pacman -S cmake  \
+
+      - name: Create Build Environment
+        run: cmake -E make_directory ${{github.workspace}}/build
+
+      - name: Configure CMake
+        shell: bash
+        working-directory: ${{github.workspace}}/build
+        run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+
+      - name: Build
+        working-directory: ${{github.workspace}}/build
+        shell: bash
+        run: cmake --build . --config $BUILD_TYPE
+
+      - name: Prepare Artefacts
+        working-directory: ${{github.workspace}}
+        shell: bash
+        run: ./.github/scripts/package.sh Fedora-35-x64
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v2
+        with:
+          name: PlugData-Fedora-35-x64
+          path: PlugData-Fedora-35-x64
+
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: PlugData-Fedora-35-x64

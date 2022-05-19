@@ -56,9 +56,9 @@ struct LevelMeter : public Component, public Timer
 
     void paint(Graphics& g) override
     {
-        int height = getHeight() / 2;
-        int width = getWidth() - 8;
-        int x = 4;
+        auto height = getHeight() / 2.0f;
+        auto width = getWidth() - 8.0f;
+        auto x = 4.0f;
 
         auto outerBorderWidth = 2.0f;
         auto spacingFraction = 0.03f;
@@ -73,7 +73,7 @@ struct LevelMeter : public Component, public Timer
 
         for (int ch = 0; ch < numChannels; ch++)
         {
-            int y = ch * height;
+            auto y = ch * height;
 
             for (auto i = 0; i < totalBlocks; ++i)
             {
@@ -84,7 +84,13 @@ struct LevelMeter : public Component, public Timer
 
                 g.fillRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
             }
+            
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.drawRect(outerBorderWidth + x, y, getWidth() - (2 * (outerBorderWidth + blockRectSpacing)), blockHeight + 2.0f, 1.0f);
         }
+        
+        
+        
     }
 
     int totalBlocks = 15;
