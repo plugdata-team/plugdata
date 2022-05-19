@@ -150,6 +150,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
         settingsTree.setProperty("GridEnabled", 1, nullptr);
+        settingsTree.setProperty("DefaultFont", "Inter", nullptr);
         
         auto pathTree = ValueTree("Paths");
 
@@ -176,8 +177,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         if(settingsTree.hasProperty("DefaultFont"))
         {
             String fontname = settingsTree.getProperty("DefaultFont").toString();
-            auto newFont = Font(fontname, 15, Font::plain);
-            lnf->setDefaultSansSerifTypeface(newFont.getTypefacePtr());
+            PlugDataLook::setDefaultFont(fontname);
         }
     }
 }
