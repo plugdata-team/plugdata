@@ -327,11 +327,11 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel gcc11
+      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel gcc11
 
     - name: Build
       shell: bash
-      run: mkdir build && cd build && CC=/usr/bin/gcc-11 CXX=/usr/bin/g++-11 cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
