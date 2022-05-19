@@ -234,7 +234,7 @@ jobs:
         prerelease: true
         draft: true
         files: PlugData-Ubuntu-18.04-x64
-    fedora-build:
+  fedora-build:
       runs-on: ubuntu-latest
       container: fedora:35
       steps:
@@ -243,7 +243,8 @@ jobs:
           submodules: recursive
 
       - name: Install Dependencies
-        run: sudo dnf update && sudo dnf install alsa-lib-devel \
+        run: |
+        sudo dnf update && sudo dnf install alsa-lib-devel \
         sudo dnf install libXinerama-devel \
         sudo dnf install freetype-devel \
         sudo dnf install libcurl-devel \
@@ -298,18 +299,7 @@ jobs:
           submodules: recursive
 
       - name: Install Dependencies
-        run: sudo pacman -Sy && sudo  pacman -S alsa-lib-devel \
-        sudo pacman -S alsa-lib  \
-        sudo pacman -S freetype2 \
-        sudo pacman -S libx11 \
-        sudo pacman -S gcc-c++ \
-        sudo pacman -S libxcursor \
-        sudo pacman -S libxext \
-        sudo pacman -S libxinerama \
-        sudo pacman -S libxrandr  \
-        sudo pacman -S libxrender  \
-        sudo pacman -S webkit2gtk  \
-        sudo pacman -S cmake  \
+        run: sudo pacman -Sy && sudo  pacman -S alsa-lib-devel alsa-lib freetype2 libx11 gcc-c++ libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake
 
       - name: Create Build Environment
         run: cmake -E make_directory ${{github.workspace}}/build
