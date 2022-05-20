@@ -70,8 +70,9 @@ FEATURES:
 	- Shift-drag to place object inbetween connection
 	- Shift while creating connection to create multiple connections
 	- Dragging over toggles and radiocomponents to activate them
+	- Move objects with arrow keys
 	- More stuff
-- Commandline arguments
+- Oversampling
 
 PD COMPATIBILITY:
 - Fix missing canvas properties
@@ -86,7 +87,8 @@ BUGS:
 - Improve stability of custom connection paths
 
 OTHER:
-- Expand pddp with more object descriptions and inlet/outlet hover messages
+- Improve performance
+- Expand documentation with more object descriptions and inlet/outlet hover messages
 - Restructure build directory
 - Clean up and document code
 
