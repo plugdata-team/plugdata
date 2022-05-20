@@ -148,7 +148,7 @@ Connection::~Connection()
 
 bool Connection::hitTest(int x, int y)
 {
-    if (locked == var(true)) return false;
+    if (locked == var(true) || cnv->connectingEdge) return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
 
@@ -160,8 +160,8 @@ bool Connection::hitTest(int x, int y)
     auto pend = inlet->getCanvasBounds().getCentre().toFloat() - origin.toFloat();
 
     // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position) < 6.0f) return false;
-    if (pend.getDistanceFrom(position) < 6.0f) return false;
+    if (pstart.getDistanceFrom(position) < 6.5f) return false;
+    if (pend.getDistanceFrom(position) < 6.5f) return false;
 
     if (nearestPoint.getDistanceFrom(position) < 5)
     {
@@ -173,8 +173,6 @@ bool Connection::hitTest(int x, int y)
 
 void Connection::paint(Graphics& g)
 {
-
-    
     auto baseColour = findColour(PlugDataColour::connectionColourId);
     auto dataColour = findColour(PlugDataColour::highlightColourId);
     auto signalColour = findColour(PlugDataColour::signalColourId);
@@ -201,7 +199,7 @@ void Connection::paint(Graphics& g)
     g.setColour(baseColour);
     g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::rounded));
     
-    if(isMouseOver() || cnv->isSelected(this)) {
+    if(cnv->isSelected(this)) {
 
         auto mousePos = getMouseXYRelative();
         
@@ -209,6 +207,7 @@ void Connection::paint(Graphics& g)
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
         
         g.setColour(handleColour);
+        
         g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
         g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
         
@@ -355,7 +354,10 @@ void Connection::mouseUp(const MouseEvent& e)
     }
     if(deleteOnMouseUp)
     {
-        MessageManager::callAsync([this]() mutable {
+        SafePointer<Connection> deletionChecker(this);
+        MessageManager::callAsync([this, deletionChecker]() mutable {
+            if(!deletionChecker) return;
+            
             cnv->connections.removeObject(this);
         });
     }
@@ -549,8 +551,8 @@ void Connection::updatePath()
 
     offset = {-bounds.getX(), -bounds.getY()};
     
-    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(7.0f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 7.0f, 7.0f)));
+    startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 8.5f)));
 }
 
 void Connection::findPath()
