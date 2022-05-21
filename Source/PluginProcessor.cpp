@@ -190,7 +190,9 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         
         for(int i = 0; i < lnf->colourNames.size(); i++) {
             for(int j = 0; j < lnf->colourNames[i].size(); j++) {
-                PlugDataLook::colourSettings[i][j] = Colour::fromString(settingsTree.getProperty(lnf->colourNames[i][j]).toString());
+                if(settingsTree.hasProperty(lnf->colourNames[i][j])) {
+                    PlugDataLook::colourSettings[i][j] = Colour::fromString(settingsTree.getProperty(lnf->colourNames[i][j]).toString());
+                }
             }
         }
     }
