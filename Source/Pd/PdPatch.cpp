@@ -7,7 +7,6 @@
 #include "PdPatch.h"
 
 #include "PdInstance.h"
-#include "PdObject.h"
 #include "PdStorage.h"
 #include "../Objects/GUIObject.h"
 
