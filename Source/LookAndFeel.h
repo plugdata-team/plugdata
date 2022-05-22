@@ -46,7 +46,7 @@ struct Icons
     inline static const CharPointer_UTF8 Parameters = CharPointer_UTF8("\xef\x87\x9e");
     inline static const CharPointer_UTF8 Presentation = CharPointer_UTF8("\xef\x81\xab");
     inline static const CharPointer_UTF8 Externals = CharPointer_UTF8("\xef\x84\xae");
-    inline static const CharPointer_UTF8 Info = CharPointer_UTF8 ("\xef\x81\x9a");
+    inline static const CharPointer_UTF8 Info = CharPointer_UTF8("\xef\x81\x9a");
     inline static const CharPointer_UTF8 Refresh = CharPointer_UTF8("\xef\x80\xa1");
     inline static const CharPointer_UTF8 Up = CharPointer_UTF8("\xef\x81\xa2");
     inline static const CharPointer_UTF8 Down = CharPointer_UTF8("\xef\x81\xa3");
@@ -621,8 +621,11 @@ struct PlugDataLook : public LookAndFeel_V4
             setColour(PlugDataColour::toolbarOutlineColourId, findColour(ComboBox::outlineColourId).interpolatedWith(findColour(ComboBox::backgroundColourId), 0.5f));
             setColour(PlugDataColour::canvasOutlineColourId, findColour(ComboBox::outlineColourId));
         }
-        
-        int getSliderThumbRadius (Slider&) override { return 0; }
+
+        int getSliderThumbRadius(Slider&) override
+        {
+            return 0;
+        }
 
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
         {
@@ -647,20 +650,21 @@ struct PlugDataLook : public LookAndFeel_V4
         void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
         {
             auto sliderBounds = slider.getLocalBounds().toFloat().reduced(0.5f);
-            
-            
+
             Path toDraw;
-            if(slider.isHorizontal()) {
+            if (slider.isHorizontal())
+            {
                 sliderPos = jmap<float>(sliderPos, x, width - (2 * x), 1.0f, width);
                 auto b = sliderBounds.withTrimmedRight(width - sliderPos);
                 toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, true, false, true, false);
             }
-            else {
+            else
+            {
                 sliderPos = jmap<float>(sliderPos, y, height, 0.0f, height - 2.0f);
                 auto b = sliderBounds.withTrimmedTop(sliderPos);
                 toDraw.addRoundedRectangle(b.getX(), b.getY(), b.getWidth(), b.getHeight(), 1.0f, 1.0f, false, false, true, true);
             }
-            
+
             g.setColour(findColour(Slider::trackColourId));
             g.fillPath(toDraw);
         }
@@ -763,7 +767,7 @@ struct PlugDataLook : public LookAndFeel_V4
     void setColours(std::vector<Colour> colours)
     {
         Colour firstColour = colours[0], secondColour = colours[1], textColour = colours[2], highlightColour = colours[3], outlineColour = colours[4], connectionColour = colours[5], signalColour = colours[6];
-        
+
         setColour(PlugDataColour::toolbarColourId, firstColour);
         setColour(PlugDataColour::canvasColourId, secondColour);
         setColour(PlugDataColour::highlightColourId, highlightColour);
@@ -773,7 +777,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(PlugDataColour::meterColourId, secondColour.brighter());
         setColour(PlugDataColour::connectionColourId, connectionColour);
         setColour(PlugDataColour::signalColourId, signalColour);
-        
+
         setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
         setColour(TextButton::textColourOnId, highlightColour);
         setColour(Slider::thumbColourId, highlightColour);
@@ -829,26 +833,27 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ScrollBar::backgroundColourId, Colours::transparentBlack);
         setColour(TreeView::backgroundColourId, Colours::transparentBlack);
     }
-    
+
     static void setDefaultFont(String fontName)
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
-        if(fontName == "Inter") {
+        if (fontName == "Inter")
+        {
             lnf.setDefaultSansSerifTypeface(lnf.defaultFont.getTypefacePtr());
         }
-        else {
+        else
+        {
             auto newFont = Font(fontName, 15, Font::plain);
             lnf.setDefaultSansSerifTypeface(newFont.getTypefacePtr());
         }
     }
 
-    inline static const std::vector<std::vector<String>> colourNames = {
-        { "tbLightColour",  "cnvLightColour", "textLightColour", "dataLightColour", "outlineLightColour", "connectionLightColour", "signalLightColour"},
-        {"tbDarkColour", "cnvDarkColour", "textDarkColour", "dataDarkColour", "outlineDarkColour", "connectionDarkColour", "signalDarkColour"}};
-    
-   
-     inline static const std::vector<std::vector<Colour>> defaultColours = {{Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0)}, {Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0)}};
-    
+    inline static const std::vector<std::vector<String>> colourNames = {{"tbLightColour", "cnvLightColour", "textLightColour", "dataLightColour", "outlineLightColour", "connectionLightColour", "signalLightColour"},
+                                                                        {"tbDarkColour", "cnvDarkColour", "textDarkColour", "dataDarkColour", "outlineDarkColour", "connectionDarkColour", "signalDarkColour"}};
+
+    inline static const std::vector<std::vector<Colour>> defaultColours = {{Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0)},
+                                                                           {Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0)}};
+
     inline static std::vector<std::vector<Colour>> colourSettings = defaultColours;
 
     void setTheme(bool useLightTheme)
@@ -861,7 +866,7 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             setColours(colourSettings[1]);
         }
-        
+
         isUsingLightTheme = useLightTheme;
     }
 

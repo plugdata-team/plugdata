@@ -97,11 +97,11 @@ struct Sidebar : public Component
     bool isPinned();
 
     void updateConsole();
-    
+
 #if PLUGDATA_STANDALONE
     void updateParameters();
 #endif
-    
+
     static constexpr int dragbarWidth = 5;
 
    private:

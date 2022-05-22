@@ -44,8 +44,8 @@ Sidebar::~Sidebar()
 void Sidebar::paint(Graphics& g)
 {
     // Makes sure the theme gets updated
-    if(automationPanel) automationPanel->viewport.repaint();
-    
+    if (automationPanel) automationPanel->viewport.repaint();
+
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
 
     // Sidebar
@@ -159,14 +159,11 @@ void Sidebar::showAutomationPanel(bool show)
 #if PLUGDATA_STANDALONE
 void Sidebar::updateParameters()
 {
-    if(automationPanel) {
+    if (automationPanel)
+    {
         // Might be called from audio thread
-        MessageManager::callAsync([this](){
-            
-            automationPanel->sliders.updateParameters();
-        });
+        MessageManager::callAsync([this]() { automationPanel->sliders.updateParameters(); });
     };
-    
 };
 #endif
 

@@ -49,7 +49,7 @@ class Storage
 
    private:
     void createObject();
-    
+
     UndoManager undoManager;
 
     ValueTree extraInfo = ValueTree("PlugDataInfo");

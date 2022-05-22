@@ -4,14 +4,14 @@ struct NumberObject : public IEMObject
 {
     Label input;
     DraggableNumber dragger;
-    
+
     NumberObject(void* obj, Box* parent) : IEMObject(obj, parent), dragger(input)
     {
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
-            
+
             editor->setBorder({0, 10, 0, 0});
 
             if (editor != nullptr)
@@ -27,7 +27,7 @@ struct NumberObject : public IEMObject
         };
 
         input.setBorderSize({1, 15, 1, 1});
-        
+
         addAndMakeVisible(input);
 
         input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
@@ -37,32 +37,26 @@ struct NumberObject : public IEMObject
         input.setEditable(true, false);
 
         addMouseListener(this, true);
-        
-        dragger.dragStart = [this](){
-            startEdition();
-        };
-        
-        dragger.valueChanged = [this](float value){
-            setValueOriginal(value);
-        };
-        
-        dragger.dragEnd = [this](){
-            stopEdition();
-        };
+
+        dragger.dragStart = [this]() { startEdition(); };
+
+        dragger.valueChanged = [this](float value) { setValueOriginal(value); };
+
+        dragger.dragEnd = [this]() { stopEdition(); };
     }
 
-    void updateBounds() override {
-        
+    void updateBounds() override
+    {
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        
+
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         w = nbx->x_numwidth;
         Rectangle<int> bounds = {x, y, w, nbx->x_gui.x_h};
-        
+
         box->setBounds(bounds.expanded(Box::margin));
     }
-    
+
     void checkBoxBounds() override
     {
         // Apply size limits
@@ -80,11 +74,10 @@ struct NumberObject : public IEMObject
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         nbx->x_numwidth = getWidth() / glist_fontwidth(cnv->patch.getPointer());
         nbx->x_gui.x_h = getHeight();
-        
+
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }
-
 
     void update() override
     {
@@ -126,35 +119,32 @@ struct NumberObject : public IEMObject
 
         corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
 
-        
         g.setColour(Colour(getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f));
         g.fillPath(corner);
     }
-    
-    
+
     float getValue() override
     {
         return (static_cast<t_my_numbox*>(ptr))->x_val;
     }
-    
+
     float getMinimum()
     {
         return (static_cast<t_my_numbox*>(ptr))->x_min;
     }
-    
+
     float getMaximum()
     {
         return (static_cast<t_my_numbox*>(ptr))->x_max;
     }
-    
+
     void setMinimum(float value)
     {
         static_cast<t_my_numbox*>(ptr)->x_min = value;
     }
-    
+
     void setMaximum(float value)
     {
         static_cast<t_my_numbox*>(ptr)->x_max = value;
     }
-    
 };

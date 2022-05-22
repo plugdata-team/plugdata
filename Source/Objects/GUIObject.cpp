@@ -22,7 +22,6 @@ extern "C"
 #include "LookAndFeel.h"
 #include "Pd/PdPatch.h"
 
-
 #include "IEMObject.h"
 #include "AtomObject.h"
 
@@ -48,7 +47,7 @@ extern "C"
 #include "SymbolAtomObject.h"
 #include "DrawableTemplate.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv) {};
+ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv){};
 
 String ObjectBase::getText()
 {
@@ -63,11 +62,12 @@ String ObjectBase::getText()
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
         return String(txt);
     }
-    
+
     return "";
 }
 
-void ObjectBase::setPosition(int x, int y) {
+void ObjectBase::setPosition(int x, int y)
+{
     libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), x, y);
 }
 
@@ -109,7 +109,7 @@ void GUIObject::mouseUp(const MouseEvent& e)
 
 void GUIObject::initialise()
 {
-// TODO: Why not in constructor?
+    // TODO: Why not in constructor?
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
 
@@ -129,15 +129,13 @@ void GUIObject::paint(Graphics& g)
 {
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
 
-
     // make sure text is readable
     getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
     getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
-    
+
     g.setColour(box->findColour(PlugDataColour::toolbarColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 }
-
 
 ObjectParameters GUIObject::defineParameters()
 {
@@ -149,7 +147,6 @@ ObjectParameters GUIObject::getParameters()
     return defineParameters();
 }
 
-
 pd::Patch* GUIObject::getPatch()
 {
     return nullptr;
@@ -159,7 +156,6 @@ Canvas* GUIObject::getCanvas()
 {
     return nullptr;
 }
-
 
 float GUIObject::getValueOriginal() const noexcept
 {
@@ -215,19 +211,21 @@ void GUIObject::updateValue()
         box->cnv->pd->enqueueFunction(
             [thisPtr]()
             {
-                if(!thisPtr) return;
-                
+                if (!thisPtr) return;
+
                 float const v = thisPtr->getValue();
-                if(thisPtr->value != v) {
+                if (thisPtr->value != v)
+                {
                     MessageManager::callAsync(
                         [thisPtr, v]() mutable
                         {
-                            if(thisPtr) {
+                            if (thisPtr)
+                            {
                                 thisPtr->value = v;
                                 thisPtr->update();
                             }
                         });
-                    }
+                }
             });
     }
 }
@@ -250,7 +248,6 @@ void GUIObject::componentMovedOrResized(Component& component, bool moved, bool r
         recursiveResize = false;
     }
 }
-
 
 Type GUIObject::getType()
 {
@@ -307,7 +304,6 @@ String GUIObject::getName() const
     }
     return {};
 }
-
 
 Type GUIObject::getType(void* ptr) noexcept
 {
@@ -434,12 +430,10 @@ Type GUIObject::getType(void* ptr) noexcept
     return Type::Text;
 }
 
-
-
 ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
 {
     auto type = getType(ptr);
-    
+
     if (type == Type::Text)
     {
         return new TextObject(ptr, parent);
@@ -533,6 +527,5 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         return new ScalarObject(ptr, parent);
     }
 
-    
     return nullptr;
 }

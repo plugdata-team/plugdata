@@ -6,16 +6,15 @@
 
 struct CommentObject : public GUIObject
 {
-    
     CommentObject(void* obj, Box* box) : GUIObject(obj, box)
     {
         addAndMakeVisible(input);
         input.setText(getText(), dontSendNotification);
         input.setInterceptsMouseClicks(false, false);
         input.setMinimumHorizontalScale(0.9f);
-        
+
         setInterceptsMouseClicks(false, false);
-        
+
         input.onTextChange = [this, box]()
         {
             String name = input.getText();
@@ -77,14 +76,15 @@ struct CommentObject : public GUIObject
     {
         input.setBounds(getLocalBounds());
     }
-    
+
     /*
     bool usesCharWidth() override
     {
         return true;
     } */
-    
-    void updateBounds() override {
+
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
 
@@ -92,7 +92,6 @@ struct CommentObject : public GUIObject
     {
         int numLines = getNumLines(getText(), box->getWidth());
         box->setSize(box->getWidth(), (numLines * 19) + Box::doubleMargin);
-        
     }
 
     Label input;

@@ -29,11 +29,10 @@
 
 #include <memory>
 
-
 #if !JUCE_MAC
- #define CUSTOM_SHADOW 1
+#define CUSTOM_SHADOW 1
 #else
- #define CUSTOM_SHADOW 0
+#define CUSTOM_SHADOW 0
 #endif
 
 namespace pd
@@ -556,8 +555,6 @@ class PlugDataWindow : public DocumentWindow
         pluginHolder = nullptr;
     }
 
-
-
     AudioProcessor* getAudioProcessor() const noexcept
     {
         return pluginHolder->processor.get();
@@ -587,7 +584,7 @@ class PlugDataWindow : public DocumentWindow
     {
         setFullScreen(!isFullScreen());
     }
-    
+
     // Fixes shadow with rounded edges on windows
 #if CUSTOM_SHADOW
     void paint(Graphics& g) override
@@ -598,7 +595,7 @@ class PlugDataWindow : public DocumentWindow
         g.drawImageAt(shadowImageR, getWidth() - 6, 6);
     }
 #endif
-    
+
     void resized() override
     {
         ResizableWindow::resized();
@@ -608,34 +605,32 @@ class PlugDataWindow : public DocumentWindow
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 
         getLookAndFeel().positionDocumentWindowButtons(*this, titleBarArea.getX(), titleBarArea.getY(), titleBarArea.getWidth(), titleBarArea.getHeight(), getMinimiseButton(), getMaximiseButton(), getCloseButton(), false);
-        
-#if CUSTOM_SHADOW
-         auto shadowImage = Image (Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
-         Graphics g(shadowImage);
-         auto b = getLocalBounds();
-         Path localPath;
-         localPath.addRoundedRectangle(b.toFloat().reduced(4), 6.0f);
-         shadow.drawForPath(g, localPath);
 
-         g.setColour(Colour(186, 186, 186));
-         g.drawRoundedRectangle(b.toFloat().reduced(4), 6.0f, 1.0f);
-        
-        
+#if CUSTOM_SHADOW
+        auto shadowImage = Image(Image::PixelFormat::ARGB, getWidth(), getHeight(), true);
+        Graphics g(shadowImage);
+        auto b = getLocalBounds();
+        Path localPath;
+        localPath.addRoundedRectangle(b.toFloat().reduced(4), 6.0f);
+        shadow.drawForPath(g, localPath);
+
+        g.setColour(Colour(186, 186, 186));
+        g.drawRoundedRectangle(b.toFloat().reduced(4), 6.0f, 1.0f);
+
         auto top = b.removeFromTop(6);
         shadowImageT = shadowImage.getClippedImage(top);
-        
+
         auto bottom = b.removeFromBottom(6);
         shadowImageB = shadowImage.getClippedImage(bottom);
-        
-        auto left =  b.removeFromLeft(6);
+
+        auto left = b.removeFromLeft(6);
         shadowImageL = shadowImage.getClippedImage(left);
-        
+
         auto right = b.removeFromRight(6);
         shadowImageR = shadowImage.getClippedImage(right);
-        
- #endif
+
+#endif
     }
-    
 
     virtual StandalonePluginHolder* getPluginHolder()
     {

@@ -48,25 +48,26 @@ void Edge::paint(Graphics& g)
     {
         bounds = bounds.reduced(2);
     }
-    
+
     bool down = isMouseButtonDown() && !bool(box->locked.getValue());
     bool over = isMouseOver() && !bool(box->locked.getValue());
 
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::highlightColourId);
 
-
     if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
-    
-    if(static_cast<bool>(locked.getValue())) {
+
+    if (static_cast<bool>(locked.getValue()))
+    {
         backgroundColour = findColour(PlugDataColour::textColourId);
     }
 
     bool connected = hasConnection();
-    
+
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
     bool stateSaved = false;
-    if(!(box->isMouseOver() || over || box->edgeHovered || isHovered) || static_cast<bool>(locked.getValue())) {
+    if (!(box->isMouseOver() || over || box->edgeHovered || isHovered) || static_cast<bool>(locked.getValue()))
+    {
         g.saveState();
         g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
         stateSaved = true;
@@ -74,11 +75,12 @@ void Edge::paint(Graphics& g)
 
     g.setColour(backgroundColour);
     g.fillEllipse(bounds);
-    
+
     g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
     g.drawEllipse(bounds, 1.0f);
-    
-    if(stateSaved) {
+
+    if (stateSaved)
+    {
         g.restoreState();
     }
 }
@@ -103,13 +105,12 @@ void Edge::mouseDrag(const MouseEvent& e)
 void Edge::mouseUp(const MouseEvent& e)
 {
     if (bool(locked.getValue())) return;
-    
-    if(!e.mouseWasDraggedSinceMouseDown()) {
+
+    if (!e.mouseWasDraggedSinceMouseDown())
+    {
         createConnection();
     }
-    
-    
-    
+
     if (box->cnv->nearestEdge)
     {
         box->cnv->nearestEdge->isHovered = false;

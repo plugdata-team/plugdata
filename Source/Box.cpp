@@ -17,22 +17,21 @@
 Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
     cnv = parent;
-    
+
     setTopLeftPosition(position - Point<int>(margin, margin));
-    
+
     if (cnv->attachNextObjectToMouse)
     {
         cnv->attachNextObjectToMouse = false;
         startTimer(20);
         attachedToMouse = true;
     }
-    
+
     initialise();
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
     if (name.isEmpty())
     {
-        
         setSize(100, height);
         toFront(false);
         if (attachedToMouse)
@@ -48,7 +47,8 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     {
         setType(name);
     }
-    if(graphics) {
+    if (graphics)
+    {
         graphics->showEditor();
     }
 }
@@ -56,9 +56,9 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
 Box::Box(void* object, Canvas* parent)
 {
     cnv = parent;
-    
+
     initialise();
-    
+
     setType("", object);
 }
 
@@ -74,18 +74,18 @@ void Box::initialise()
 {
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
-    
+
     // Updates lock/unlock mode
     locked.referTo(cnv->pd->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
-    
+
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
-    
+
     setBufferedToImage(true);
-    
+
     originalBounds.setBounds(0, 0, 0, 0);
 }
 
@@ -110,12 +110,12 @@ void Box::valueChanged(Value& v)
         setVisible(true);
         resized();
     }
-    
+
     if (graphics)
     {
         graphics->lock(locked == var(true) || commandLocked == var(true));
     }
-    
+
     resized();
     repaint();
 }
@@ -123,27 +123,28 @@ void Box::valueChanged(Value& v)
 bool Box::hitTest(int x, int y)
 {
     int hitMargin = cnv->isSelected(this) ? margin - 5 : margin;
-    
+
     // Mouse over object
     if (getLocalBounds().reduced(margin).contains(x, y))
     {
         return true;
     }
-    
+
     // Mouse over edges
     for (auto* edge : edges)
     {
         if (edge->getBounds().contains(x, y)) return true;
     }
-    
+
     // Mouse over corners
-    if(cnv->isSelected(this))
+    if (cnv->isSelected(this))
     {
-        for(auto& corner : getCorners()) {
-            if(corner.contains(x, y)) return true;
+        for (auto& corner : getCorners())
+        {
+            if (corner.contains(x, y)) return true;
         }
     }
-    
+
     return false;
 }
 
@@ -161,33 +162,34 @@ void Box::mouseExit(const MouseEvent& e)
 
 void Box::mouseMove(const MouseEvent& e)
 {
-    if (!cnv->isSelected(this) || locked == var(true))  {
+    if (!cnv->isSelected(this) || locked == var(true))
+    {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
         return;
     }
-    
+
     auto corners = getCorners();
     for (auto& rect : corners)
     {
         if (rect.contains(e.position))
         {
             auto zone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
-            
+
             setMouseCursor(zone.getMouseCursor());
             updateMouseCursor();
             return;
         }
     }
-    
+
     setMouseCursor(MouseCursor::NormalCursor);
     updateMouseCursor();
 }
 
 void Box::updateBounds()
 {
-    if(graphics)  {
-        
+    if (graphics)
+    {
         graphics->updateBounds();
     }
     resized();
@@ -197,8 +199,7 @@ void Box::setType(const String& newType, void* existingObject)
 {
     // Change box type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
-    
-    
+
     void* objectPtr = nullptr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the pdObject needs to be assigned already
@@ -210,9 +211,9 @@ void Box::setType(const String& newType, void* existingObject)
             // Clear connections to this object
             // They will be remade by the synchronise call later
             for (auto* connection : getConnections()) cnv->connections.removeObject(connection);
-            
+
             objectPtr = pd->renameObject(getPointer(), newType);
-            
+
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
             MessageManager::callAsync([this]() { cnv->synchronise(false); });
@@ -223,30 +224,31 @@ void Box::setType(const String& newType, void* existingObject)
             objectPtr = pd->createObject(newType, rect.getX() + margin, rect.getY() + margin);
         }
     }
-    else {
+    else
+    {
         objectPtr = existingObject;
     }
-    
+
     // Create graphics for the object if necessary
     graphics.reset(GUIObject::createGui(objectPtr, this));
-    
+
     if (graphics)
     {
         graphics->lock(locked == var(true));
         graphics->updateValue();
         addAndMakeVisible(graphics.get());
     }
-    
+
     /*
     if (pdObject->getType() == Type::Invalid)
     {
         setSize(100, getHeight());
     } */
-    
+
     // Update inlets/outlets
     updatePorts();
     updateBounds();
-    
+
     cnv->updateDrawables();
     cnv->main.updateCommandStatus();
 }
@@ -255,10 +257,10 @@ Array<Rectangle<float>> Box::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
     const float offset = 2.0f;
-    
+
     Array<Rectangle<float>> corners = {Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
-        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)};
-    
+                                       Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)};
+
     return corners;
 }
 
@@ -266,30 +268,29 @@ void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(margin);
     auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
-    
+
     bool selected = cnv->isSelected(this);
-    
+
     float thickness = 1.0f;
     if (attachedToMouse)
     {
         outlineColour = Colours::lightgreen;
         thickness = 2.0f;
     }
-     else if (graphics && graphics->getType() == Type::Invalid)
-     {
-     outlineColour = Colours::red;
-     if (selected) outlineColour = outlineColour.brighter(1.3f);
-     }
+    else if (graphics && graphics->getType() == Type::Invalid)
+    {
+        outlineColour = Colours::red;
+        if (selected) outlineColour = outlineColour.brighter(1.3f);
+    }
     else if (selected && !cnv->isGraph)
     {
         outlineColour = findColour(PlugDataColour::highlightColourId);
         g.setColour(outlineColour);
-        
+
         // Draw resize edges when selected
         for (auto& rect : getCorners()) g.fillRoundedRectangle(rect, 2.0f);
     }
-    
-    
+
     // Draw comment style
     if (graphics && graphics->getType() == Type::Comment)
     {
@@ -309,43 +310,43 @@ void Box::paint(Graphics& g)
 
 void Box::resized()
 {
-    
     if (graphics)
     {
         auto bounds = getLocalBounds().reduced(margin);
         bounds.setWidth(std::max(1, bounds.getWidth()));
         bounds.setHeight(std::max(1, bounds.getHeight()));
-        
+
         graphics->setBounds(bounds);
     }
-    
-    if(newObjectEditor) {
+
+    if (newObjectEditor)
+    {
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
-    
+
     int edgeSize = 12;
     const int edgeHitBox = 4;
     const int borderWidth = 14;
-    
+
     if (getWidth() < 32 && (numInputs > 1 || numOutputs > 1))
     {
         edgeSize = 9;
     }
-    
+
     auto inletBounds = getLocalBounds();
     if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (edgeHitBox * numInputs) - borderWidth))
     {
         inletBounds.removeFromLeft(spaceToRemove);
         inletBounds.removeFromRight(spaceToRemove);
     }
-    
+
     auto outletBounds = getLocalBounds();
     if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (edgeHitBox * numOutputs) - borderWidth))
     {
         outletBounds.removeFromLeft(spaceToRemove);
         outletBounds.removeFromRight(spaceToRemove);
     }
-    
+
     int index = 0;
     for (auto& edge : edges)
     {
@@ -353,9 +354,9 @@ void Box::resized()
         const int position = index < numInputs ? index : index - numInputs;
         const int total = isInlet ? numInputs : numOutputs;
         const float yPosition = (isInlet ? margin : getHeight() - margin) - edgeSize / 2.0f;
-        
+
         const auto bounds = isInlet ? inletBounds : outletBounds;
-        
+
         if (total == 1 && position == 0)
         {
             int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - edgeSize / 2.0f : bounds.getX();
@@ -366,7 +367,7 @@ void Box::resized()
             const float ratio = (bounds.getWidth() - edgeSize) / (float)(total - 1);
             edge->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
         }
-        
+
         index++;
     }
 }
@@ -374,66 +375,66 @@ void Box::resized()
 void Box::updatePorts()
 {
     // update inlets and outlets
-    
+
     int oldNumInputs = 0;
     int oldNumOutputs = 0;
-    
+
     for (auto& edge : edges)
     {
         edge->isInlet ? oldNumInputs++ : oldNumOutputs++;
     }
-    
+
     numInputs = 0;
     numOutputs = 0;
-    
+
     if (auto* ptr = pd::Patch::checkObject(getPointer()))
     {
         numInputs = libpd_ninlets(ptr);
         numOutputs = libpd_noutlets(ptr);
     }
-    
+
     while (numInputs < oldNumInputs) edges.remove(--oldNumInputs);
     while (numInputs > oldNumInputs) edges.insert(oldNumInputs++, new Edge(this, true));
     while (numOutputs < oldNumOutputs) edges.remove(numInputs + (--oldNumOutputs));
     while (numOutputs > oldNumOutputs) edges.insert(numInputs + (++oldNumOutputs), new Edge(this, false));
-    
+
     int numIn = 0;
     int numOut = 0;
-    
+
     for (int i = 0; i < numInputs + numOutputs; i++)
     {
         auto* edge = edges[i];
         bool input = edge->isInlet;
 
-       
-        
         bool isSignal;
-        if(i < numInputs) {
-            isSignal = libpd_issignalinlet( pd::Patch::checkObject(getPointer()), i);
+        if (i < numInputs)
+        {
+            isSignal = libpd_issignalinlet(pd::Patch::checkObject(getPointer()), i);
         }
-        else {
-            isSignal = libpd_issignaloutlet( pd::Patch::checkObject(getPointer()), i);
+        else
+        {
+            isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i);
         }
-    
+
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;
         edge->setAlwaysOnTop(true);
-        
-        if(graphics) {
+
+        if (graphics)
+        {
             /*
             String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(pdObject->getName(), edge->edgeIdx, input ? numInputs : numOutputs, input);
             edge->setTooltip(tooltip); */
-            
         }
 
         // Dont show for graphs or presentation mode
         edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
         edge->repaint();
-        
+
         numIn += input;
         numOut += !input;
     }
-    
+
     resized();
 }
 
@@ -444,7 +445,7 @@ void Box::mouseDown(const MouseEvent& e)
         attachedToMouse = false;
         stopTimer();
         repaint();
-        
+
         if (createEditorOnMouseDown)
         {
             createEditorOnMouseDown = false;
@@ -457,44 +458,44 @@ void Box::mouseDown(const MouseEvent& e)
             // Tell pd about new position
             // Don't do this for other case, as pdObject will not yet be assigned
             cnv->pd->enqueueFunction(
-                                     [this, box]()
-                                     {
-                                         if(!box) return;
-                                         
-                                         // TODO: fix this!
-                                         auto b = getBounds() - cnv->canvasOrigin;
-                                         b.reduce(margin, margin);
-                                         /*
-                                          if(!graphics || (graphics && graphics->usesCharWidth())) {
-                                          b.setWidth(textObjectWidth);
-                                          } */
-                                         
-                                        // pdObject->setBounds(b);
-                                     });
+                [this, box]()
+                {
+                    if (!box) return;
+
+                    // TODO: fix this!
+                    auto b = getBounds() - cnv->canvasOrigin;
+                    b.reduce(margin, margin);
+                    /*
+                     if(!graphics || (graphics && graphics->usesCharWidth())) {
+                     b.setWidth(textObjectWidth);
+                     } */
+
+                    // pdObject->setBounds(b);
+                });
         }
-        
+
         return;
     }
-    
+
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
-    
+
     bool isSelected = cnv->isSelected(this);
-    
+
     for (auto& rect : getCorners())
     {
         if (rect.contains(e.position) && isSelected)
         {
             // Start resize
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
-            
+
             originalBounds = getBounds();
-            
+
             return;
         }
     }
-    
+
     cnv->handleMouseDown(this, e);
-    
+
     if (isSelected != cnv->isSelected(this))
     {
         selectionChanged = true;
@@ -504,66 +505,66 @@ void Box::mouseDown(const MouseEvent& e)
 void Box::mouseUp(const MouseEvent& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
-    
+
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
-    
+
     cnv->handleMouseUp(this, e);
-    
+
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
         cnv->connectingEdge = nullptr;
     }
-    
+
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
     {
         originalBounds.setBounds(0, 0, 0, 0);
-        
+
         auto box = SafePointer<Box>(this);
         cnv->pd->enqueueFunction(
-                                 [this, box]()
-                                 {
-                                     if(!box) return;
-                                     
-                                     auto b = getBounds() - cnv->canvasOrigin;
-                                     b.reduce(margin, margin);
-                                     
-                                     graphics->setPosition(b.getX(), b.getY());
-                                     
-                                     // To make sure it happens after setting object bounds
-                                     if (!cnv->viewport->getViewArea().contains(getBounds()))
-                                     {
-                                         MessageManager::callAsync([this]() { cnv->checkBounds(); });
-                                     }
-                                 });
+            [this, box]()
+            {
+                if (!box) return;
+
+                auto b = getBounds() - cnv->canvasOrigin;
+                b.reduce(margin, margin);
+
+                graphics->setPosition(b.getX(), b.getY());
+
+                // To make sure it happens after setting object bounds
+                if (!cnv->viewport->getViewArea().contains(getBounds()))
+                {
+                    MessageManager::callAsync([this]() { cnv->checkBounds(); });
+                }
+            });
     }
     else if (!cnv->viewport->getViewArea().contains(getBounds()))
     {
         cnv->checkBounds();
     }
-    
+
     selectionChanged = false;
 }
 
 void Box::mouseDrag(const MouseEvent& e)
 {
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
-    
+
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
         Point<int> dragDistance = e.getOffsetFromDragStart();
-        
+
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
-        
+
         /*
          if(!graphics || (graphics && graphics->usesCharWidth())) {
          // Round width to valid pd width
          //int fontWidth = glist_fontwidth(cnv->patch.getPointer());
          //int textWidth = getBestTextWidth(currentText);
-         
+
          //textObjectWidth = (newBounds.getWidth() - doubleMargin - textWidthOffset) / fontWidth;
          //newBounds.setWidth(textObjectWidth * fontWidth + textWidthOffset + doubleMargin);
          } */
-        
+
         setBounds(newBounds);
     }
     // Let canvas handle moving
@@ -575,34 +576,37 @@ void Box::mouseDrag(const MouseEvent& e)
 
 void Box::showEditor()
 {
-    if(!graphics) {
+    if (!graphics)
+    {
         openNewObjectEditor();
     }
-    else {
+    else
+    {
         graphics->showEditor();
     }
 }
 
 void Box::hideEditor()
 {
-    if(graphics) {
+    if (graphics)
+    {
         graphics->hideEditor();
     }
-    else if(newObjectEditor) {
-        
+    else if (newObjectEditor)
+    {
         WeakReference<Component> deletionChecker(this);
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap(outgoingEditor, newObjectEditor);
-        
+
         if (auto* peer = getPeer()) peer->dismissPendingTextInput();
-        
+
         outgoingEditor->setInputFilter(nullptr, false);
-        
+
         cnv->hideSuggestions();
-        
+
         auto newText = outgoingEditor->getText();
         outgoingEditor.reset();
-        
+
         repaint();
         setType(newText);
     }
@@ -629,29 +633,28 @@ void* Box::getPointer() const
     return graphics ? graphics->ptr : nullptr;
 }
 
-
 void Box::openNewObjectEditor()
 {
-    
-    if(!newObjectEditor) {
+    if (!newObjectEditor)
+    {
         newObjectEditor = std::make_unique<TextEditor>();
-        
+
         auto* editor = newObjectEditor.get();
         editor->applyFontToAllText(Font(15));
-        
+
         copyAllExplicitColoursTo(*editor);
         editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
         editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
         editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
-        
+
         editor->setAlwaysOnTop(true);
-        
+
         editor->setMultiLine(false);
         editor->setReturnKeyStartsNewLine(false);
         editor->setBorder(BorderSize<int>{1, 7, 1, 2});
         editor->setIndents(0, 0);
         editor->setJustification(Justification::left);
-        
+
         editor->onFocusLost = [this]()
         {
             // Necessary so the editor doesn't close when clicking on a suggestion
@@ -660,19 +663,19 @@ void Box::openNewObjectEditor()
                 hideEditor();
             }
         };
-        
+
         cnv->showSuggestions(this, editor);
-        
+
         editor->setSize(10, 10);
-        addAndMakeVisible (editor);
+        addAndMakeVisible(editor);
         editor->addListener(this);
-        
+
         if (editor == nullptr)  // may be deleted by a callback
             return;
-        
+
         resized();
         repaint();
-        
+
         editor->grabKeyboardFocus();
     }
 }
@@ -689,7 +692,7 @@ void Box::textEditorTextChanged(TextEditor& ed)
 {
     // For resize-while-typing behaviour
     auto width = Font(15).getStringWidth(ed.getText()) + 25;
-    
+
     if (width > getWidth())
     {
         setSize(width, getHeight());

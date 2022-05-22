@@ -211,10 +211,10 @@ struct Console : public Component
                 {
                     background = findColour(PlugDataColour::highlightColourId);
                 }
-                
+
                 g.setColour(background);
                 g.fillRect(r);
-                
+
                 rowColour = !rowColour;
 
                 g.setColour(selectedItem == row ? Colours::white : colourWithType(message.second));
@@ -227,12 +227,12 @@ struct Console : public Component
             {
                 auto offColour = findColour(PlugDataColour::canvasColourId);
                 auto onColour = offColour.darker(0.04f);
-                
+
                 const Rectangle<int> r(0, totalHeight, getWidth(), 24);
 
                 g.setColour(rowColour ? offColour : onColour);
                 g.fillRect(r);
-               
+
                 rowColour = !rowColour;
                 totalHeight += 24;
             }

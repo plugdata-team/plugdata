@@ -18,12 +18,12 @@ struct VUMeterObject : public IEMObject
             box->setSize(w, h);
         }
     }
-    
+
     float getValue() override
     {
         return static_cast<t_vu*>(ptr)->x_fp;
     }
-    
+
     float getRMS()
     {
         return static_cast<t_vu*>(ptr)->x_fr;

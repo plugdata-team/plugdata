@@ -11,20 +11,18 @@ struct SliderObject : public IEMObject
     {
         isVertical = vertical;
         addAndMakeVisible(slider);
-        
+
         min = getMinimum();
         max = getMaximum();
 
         isLogarithmic = isLogScale();
-        
+
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-        
-        
+
         if (vertical)
             slider.setSliderStyle(Slider::LinearBarVertical);
         else
             slider.setSliderStyle(Slider::LinearBar);
-        
 
         slider.setRange(0., 1., 0.001);
         slider.setTextBoxStyle(Slider::NoTextBox, 0, 0, 0);
@@ -68,7 +66,6 @@ struct SliderObject : public IEMObject
             box->setSize(w, h);
         }
     }
-    
 
     void resized() override
     {
@@ -88,43 +85,46 @@ struct SliderObject : public IEMObject
             {"Logarithmic", tBool, cGeneral, &isLogarithmic, {"off", "on"}},
         };
     }
-    
+
     float getValue() override
     {
         return isVertical ? (static_cast<t_vslider*>(ptr))->x_fval : (static_cast<t_hslider*>(ptr))->x_fval;
     }
-    
+
     float getMinimum()
     {
         return isVertical ? (static_cast<t_vslider*>(ptr))->x_min : (static_cast<t_hslider*>(ptr))->x_min;
     }
-    
+
     float getMaximum()
     {
         return isVertical ? (static_cast<t_vslider*>(ptr))->x_max : (static_cast<t_hslider*>(ptr))->x_max;
     }
-    
-    
+
     void setMinimum(float value)
     {
         if (isVertical)
         {
             static_cast<t_vslider*>(ptr)->x_min = value;
         }
-        else {
+        else
+        {
             static_cast<t_hslider*>(ptr)->x_min = value;
         }
     }
-    
-    void setMaximum(float value) {
-        if(isVertical) {
+
+    void setMaximum(float value)
+    {
+        if (isVertical)
+        {
             static_cast<t_vslider*>(ptr)->x_max = value;
         }
-        else {
+        else
+        {
             static_cast<t_hslider*>(ptr)->x_max = value;
         }
     }
-    
+
     bool jumpOnClick() const noexcept
     {
         return isVertical ? (static_cast<t_vslider*>(ptr))->x_steady == 0 : (static_cast<t_hslider*>(ptr))->x_steady == 0;
@@ -145,14 +145,13 @@ struct SliderObject : public IEMObject
             setLogScale(isLogarithmic == var(true));
             min = getMinimum();
             max = getMaximum();
-
         }
         else
         {
             GUIObject::valueChanged(value);
         }
     }
-    
+
     bool isLogScale() const noexcept
     {
         return isVertical ? (static_cast<t_hslider*>(ptr))->x_lin0_log1 != 0 : (static_cast<t_vslider*>(ptr))->x_lin0_log1 != 0;
@@ -164,9 +163,9 @@ struct SliderObject : public IEMObject
         {
             static_cast<t_vslider*>(ptr)->x_lin0_log1 = log;
         }
-        else {
+        else
+        {
             static_cast<t_hslider*>(ptr)->x_lin0_log1 = log;
         }
     }
-    
 };
