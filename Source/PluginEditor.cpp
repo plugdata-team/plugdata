@@ -77,13 +77,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         // update GraphOnParent when changing tabs
         for (auto* box : getCurrentCanvas()->boxes)
         {
-            if (!box->graphics) continue;
+            if (!box->gui) continue;
 
-            auto type = box->graphics->getType();
+            auto type = box->gui->getType();
 
             if (type == Type::GraphOnParent)
             {
-                auto* cnv = box->graphics->getCanvas();
+                auto* cnv = box->gui->getCanvas();
                 if (cnv) cnv->synchronise();
             }
         }
@@ -423,9 +423,9 @@ void PlugDataPluginEditor::updateValues()
 
     for (auto& box : cnv->boxes)
     {
-        if (box->graphics && box->isShowing())
+        if (box->gui && box->isShowing())
         {
-            box->graphics->updateValue();
+            box->gui->updateValue();
         }
     }
 

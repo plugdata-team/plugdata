@@ -7,7 +7,7 @@ struct VUMeterObject : public IEMObject
         initialise();
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(30, maxSize, box->getWidth());

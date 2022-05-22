@@ -41,12 +41,8 @@ struct FloatAtomObject : public AtomObject
         dragger.dragEnd = [this]() { stopEdition(); };
     }
 
-    void updateBounds() override
-    {
-        box->setBounds(getBounds().expanded(Box::margin));
-    }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(30, maxSize, box->getWidth());
@@ -62,6 +58,8 @@ struct FloatAtomObject : public AtomObject
 
     void resized() override
     {
+        AtomObject::resized();
+        
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }

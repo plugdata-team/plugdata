@@ -54,20 +54,31 @@ struct AtomObject : public GUIObject
     void updateBounds() override
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        int x, y, w, h;
+        
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        
+        w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
 
-        int w = gatom->a_text.te_width;
-        auto bounds = Rectangle<int>(gatom->a_text.te_xpix, gatom->a_text.te_xpix, w, glist_fontheight(box->cnv->patch.getPointer()));
+        auto bounds = Rectangle<int>(x, y, w, glist_fontheight(box->cnv->patch.getPointer()));
+        
         box->setBounds(bounds.expanded(Box::margin));
     }
 
     void resized() override
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        if (getWidth() != gatom->a_text.te_width)
+        
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        int width = std::max(4, getWidth() / fontWidth);
+        
+        if ((gatom->a_text.te_width * fontWidth) != getWidth() || box->getHeight() != Box::height)
         {
-            gatom->a_text.te_width = getWidth();
+            gatom->a_text.te_width = std::max(width, 4);
+            box->setSize((width * fontWidth) + Box::doubleMargin, Box::height);
         }
     }
+
 
     void paintOverChildren(Graphics& g) override
     {
@@ -223,4 +234,34 @@ struct AtomObject : public GUIObject
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_wherelabel = wherelabel - 1;
     }
+    
+    String getSendSymbol() noexcept
+    {
+        return "";
+    }
+
+    String getReceiveSymbol() noexcept
+    {
+        return "";
+    }
+
+     void setSendSymbol(const String& symbol) const noexcept
+     {
+         if (symbol.isEmpty()) return;
+
+         auto* atom = static_cast<t_fake_gatom*>(ptr);
+         atom->a_symto = gensym(symbol.toRawUTF8());
+         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
+     }
+
+     void setReceiveSymbol(const String& symbol) const noexcept
+     {
+         if (symbol.isEmpty()) return;
+         
+         auto* atom = static_cast<t_fake_gatom*>(ptr);
+         if (*atom->a_symfrom->s_name) pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+         atom->a_symfrom = gensym(symbol.toRawUTF8());
+         if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+     }
+
 };

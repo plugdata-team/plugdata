@@ -334,7 +334,7 @@ struct ArrayObject : public GUIObject
         box->setBounds(bounds.expanded(Box::margin));
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(100, maxSize, box->getWidth());

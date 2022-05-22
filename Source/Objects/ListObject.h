@@ -1,7 +1,7 @@
 
-struct ListObject : public GUIObject, public Timer
+struct ListObject : public AtomObject
 {
-    ListObject(void* obj, Box* parent) : GUIObject(obj, parent), dragger(label)
+    ListObject(void* obj, Box* parent) : AtomObject(obj, parent), dragger(label)
     {
         label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         label.setMinimumHorizontalScale(1.f);
@@ -39,7 +39,6 @@ struct ListObject : public GUIObject, public Timer
         updateValue();
 
         initialise();
-        startTimer(100);
     }
 
     void updateFromGui()
@@ -65,12 +64,7 @@ struct ListObject : public GUIObject, public Timer
         }
     }
 
-    void updateBounds() override
-    {
-        box->setBounds(getBounds().expanded(Box::margin));
-    }
-
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(100, maxSize, box->getWidth());
@@ -84,16 +78,12 @@ struct ListObject : public GUIObject, public Timer
 
     ~ListObject()
     {
-        stopTimer();
-    }
-
-    void timerCallback() override
-    {
-        update();
     }
 
     void resized() override
     {
+        AtomObject::resized();
+        
         label.setBounds(getLocalBounds());
     }
 

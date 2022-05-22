@@ -55,7 +55,8 @@ struct ObjectBase : public Component
     void* ptr;
     Box* box;
     Canvas* cnv;
-
+    Type type;
+    
     ObjectBase(void* obj, Box* parent);
 
     virtual void showEditor(){};
@@ -66,7 +67,7 @@ struct ObjectBase : public Component
 
     virtual void setText(const String&){};
 
-    virtual Type getType() = 0;
+    Type getType()  { return type; }
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -76,6 +77,7 @@ struct ObjectBase : public Component
     }
 
     void setPosition(int x, int y);
+    void moveToFront();
 
     virtual Canvas* getCanvas()
     {
@@ -119,11 +121,10 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     String getName() const;
 
     static Type getType(void* ptr) noexcept;
-    Type getType() override;
 
     static ObjectBase* createGui(void* ptr, Box* parent);
 
-    virtual void checkBoxBounds(){};
+    virtual void checkBounds(){};
 
     // Get rid of this mess!!
     virtual ObjectParameters defineParameters();
@@ -176,12 +177,10 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void setValue(float value) noexcept;
 
    protected:
-    Type type;
 
     std::unique_ptr<Label> label;
 
     bool inspectorWasVisible = false;
-    bool recursiveResize = false;
 
     static inline constexpr int maxSize = 1000000;
 

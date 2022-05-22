@@ -42,7 +42,6 @@ struct ObjectGrid
         SnappedConnection
     };
 
-    // TODO: replace with bool
     bool snapped[2] = {false, false};
     
     SnapOrientation orientation[2];
