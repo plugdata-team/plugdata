@@ -68,7 +68,8 @@ class Connection : public Component, public ComponentListener
 
    private:
     bool deleteOnMouseUp = false;
-
+    bool segmented = false;
+    
     Rectangle<float> startReconnectHandle, endReconnectHandle;
 
     PathPlan currentPlan;

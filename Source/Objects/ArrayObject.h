@@ -17,7 +17,7 @@ class PdArray
         Curve
     };
 
-    PdArray(std::string arrayName, void* arrayInstance) : name(std::move(arrayName)), instance(arrayInstance)
+    PdArray(String arrayName, void* arrayInstance) : name(std::move(arrayName)), instance(arrayInstance)
     {
     }
 
@@ -25,7 +25,7 @@ class PdArray
     PdArray() = default;
 
     // Gets the name of the array.
-    std::string getName() const noexcept
+    String getName() const noexcept
     {
         return name;
     }
@@ -33,7 +33,7 @@ class PdArray
     PdArray::DrawType getDrawType() const noexcept
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return static_cast<DrawType>(libpd_array_get_style(name.c_str()));
+        return static_cast<DrawType>(libpd_array_get_style(name.toRawUTF8()));
     }
 
     // Gets the scale of the array.
@@ -41,7 +41,7 @@ class PdArray
     {
         float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_array_get_scale(name.c_str(), &min, &max);
+        libpd_array_get_scale(name.toRawUTF8(), &min, &max);
         return {min, max};
     }
 
@@ -50,34 +50,34 @@ class PdArray
         auto& [min, max] = scale;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
 
-        libpd_array_set_scale(name.c_str(), min, max);
+        libpd_array_set_scale(name.toRawUTF8(), min, max);
     }
 
     // Gets the values of the array.
     void read(std::vector<float>& output) const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        int const size = libpd_arraysize(name.c_str());
+        int const size = libpd_arraysize(name.toRawUTF8());
         output.resize(static_cast<size_t>(size));
-        libpd_read_array(output.data(), name.c_str(), 0, size);
+        libpd_read_array(output.data(), name.toRawUTF8(), 0, size);
     }
 
     // Writes the values of the array.
     void write(std::vector<float> const& input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_write_array(name.c_str(), 0, input.data(), static_cast<int>(input.size()));
+        libpd_write_array(name.toRawUTF8(), 0, input.data(), static_cast<int>(input.size()));
     }
 
     // Writes a value of the array.
     void write(const size_t pos, float const input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_write_array(name.c_str(), static_cast<int>(pos), &input, 1);
+        libpd_write_array(name.toRawUTF8(), static_cast<int>(pos), &input, 1);
     }
 
    private:
-    std::string name = std::string("");
+    String name = "";
     void* instance = nullptr;
 
     friend class Instance;
@@ -90,7 +90,7 @@ struct GraphicalArray : public Component
 
     GraphicalArray(PlugDataAudioProcessor* instance, PdArray& graph, Box* parent) : array(graph), edited(false), pd(instance), box(parent)
     {
-        if (graph.getName().empty()) return;
+        if (graph.getName().isEmpty()) return;
 
         vec.reserve(8192);
         temp.reserve(8192);
@@ -244,7 +244,7 @@ struct GraphicalArray : public Component
 
         lastIndex = index;
 
-        pd->enqueueMessages(stringArray, array.getName(), {});
+        pd->enqueueMessages(stringArray.toStdString(), array.getName().toStdString(), {});
         repaint();
     }
 
@@ -285,7 +285,7 @@ struct GraphicalArray : public Component
     std::vector<float> temp;
     std::atomic<bool> edited;
     bool error = false;
-    const std::string stringArray = std::string("array");
+    const String stringArray = "array";
 
     int lastIndex = 0;
 
@@ -378,7 +378,7 @@ struct ArrayObject : public GUIObject
         cnv->pd->enqueueFunction(
             [this, arrName, arrSize, flags]() mutable
             {
-                auto* garray = static_cast<t_garray*>(libpd_array_get_byname(array.array.getName().c_str()));
+                auto* garray = static_cast<t_garray*>(libpd_array_get_byname(array.array.getName().toRawUTF8()));
                 garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
             });
 

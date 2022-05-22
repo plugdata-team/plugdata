@@ -219,10 +219,11 @@ void Connection::paint(Graphics& g)
 
 bool Connection::isSegmented()
 {
-    return cnv->storage.getInfo(getId(), "Segmented") == "1";
+    return segmented;
 }
-void Connection::setSegmented(bool segmented)
+void Connection::setSegmented(bool isSegmented)
 {
+    segmented = isSegmented;
     cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
     updatePath();
     repaint();
@@ -465,7 +466,9 @@ void Connection::updatePath()
     auto pstart = outlet->getCanvasBounds().getCentre() - origin;
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
 
-    if (!isSegmented())
+    segmented = cnv->storage.getInfo(getId(), "Segmented") == "1";
+    
+    if (!segmented)
     {
         toDraw.clear();
 

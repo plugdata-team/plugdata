@@ -27,8 +27,6 @@ struct CommentObject : public TextObject
 
             outgoingEditor->setInputFilter(nullptr, false);
 
-            //cnv->hideSuggestions();
-
             auto newText = outgoingEditor->getText();
 
             bool changed;

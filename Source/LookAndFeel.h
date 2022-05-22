@@ -751,8 +751,8 @@ struct PlugDataLook : public LookAndFeel_V4
             }
             else
             {
-                auto offColour = owner.findColour(PlugDataColour::canvasColourId);
-                auto onColour = offColour.darker(0.04f);
+                auto offColour = owner.findColour(PlugDataColour::toolbarColourId);
+                auto onColour = owner.findColour(PlugDataColour::canvasColourId);
                 g.setColour((i + invert) & 1 ? onColour : offColour);
             }
 

@@ -264,8 +264,8 @@ class Instance
 
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
-    std::vector<std::pair<String, int>> consoleMessages;
-    std::vector<std::pair<String, int>> consoleHistory;
+    std::vector<std::tuple<String, int, int>> consoleMessages;
+    std::vector<std::tuple<String, int, int>> consoleHistory;
 
    private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
