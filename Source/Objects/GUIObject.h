@@ -134,7 +134,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     virtual void updateLabel(){};
 
-    virtual float getValue(){};
+    virtual float getValue(){ return 0.0f; };
 
     float getValueOriginal() const noexcept;
 
