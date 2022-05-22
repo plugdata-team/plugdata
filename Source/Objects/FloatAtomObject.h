@@ -1,20 +1,17 @@
 #include "../Components/DraggableNumber.h"
 
-struct NumberComponent : public GUIComponent
-{    
+struct FloatAtomObject : public AtomObject
+{
+    Label input;
     DraggableNumber dragger;
-
-    NumberComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject), dragger(input)
+    
+    FloatAtomObject(void* obj, Box* parent) : AtomObject(obj, parent), dragger(input)
     {
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
 
-            if (!gui.isAtom())
-            {
-                editor->setBorder({0, 10, 0, 0});
-            }
 
             if (editor != nullptr)
             {
@@ -28,16 +25,11 @@ struct NumberComponent : public GUIComponent
             stopEdition();
         };
 
-        if (!gui.isAtom())
-        {
-            input.setBorderSize({1, 15, 1, 1});
-        }
-
         addAndMakeVisible(input);
 
         input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
 
-        initialise(newObject);
+        initialise();
 
         input.setEditable(true, false);
 
@@ -56,15 +48,18 @@ struct NumberComponent : public GUIComponent
         };
     }
 
+    void updateBounds() override {
+        box->setBounds(getBounds().expanded(Box::margin));
+    }
+    
     void checkBoxBounds() override
     {
         // Apply size limits
         int w = jlimit(30, maxSize, box->getWidth());
         int h = jlimit(Box::height - 12, maxSize, box->getHeight());
 
-        if(gui.isAtom()) {
-            h = gui.getBounds().getHeight() + Box::doubleMargin;
-        }
+        h = getBounds().getHeight() + Box::doubleMargin;
+        
         if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
@@ -92,49 +87,66 @@ struct NumberComponent : public GUIComponent
     {
         if (value.refersToSameSourceAs(min))
         {
-            gui.setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(static_cast<float>(min.getValue()));
             updateValue();
         }
         else if (value.refersToSameSourceAs(max))
         {
-            gui.setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(static_cast<float>(max.getValue()));
             updateValue();
         }
-        else if (gui.isAtom() && value.refersToSameSourceAs(labelHeight))
+        else if (value.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
             if(getParentComponent()) {
                 box->updateBounds();  // update box size based on new font
             }
-            
         }
         else
         {
-            GUIComponent::valueChanged(value);
+            GUIObject::valueChanged(value);
         }
     }
-
-    void paintOverChildren(Graphics& g) override
+    
+    float getValue() override
     {
-        GUIComponent::paintOverChildren(g);
-
-        if (gui.isAtom()) return;
-
-        const int indent = 9;
-
-        const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
-
-        Path corner;
-
-        corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
-
-        
-        g.setColour(Colour(gui.getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f));
-        g.fillPath(corner);
+        return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
     }
     
-    bool usesCharWidth() override
+
+    float getMinimum()
     {
-        return true;
+        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
+        if (std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon())
+        {
+            return gatom->a_draglo;
+        }
+        return -std::numeric_limits<float>::max();
+    }
+    
+    float getMaximum() {
+        auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
+        if (std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon())
+        {
+            return gatom->a_draghi;
+        }
+        return std::numeric_limits<float>::max();
+    }
+    
+    void setMinimum(float value)
+    {
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        if (std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon())
+        {
+            gatom->a_draglo = value;
+        }
+    }
+    void setMaximum(float value)
+    {
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        if (std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon())
+        {
+            gatom->a_draghi = value;
+        }
     }
 };

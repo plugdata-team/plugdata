@@ -1,6 +1,6 @@
 
 // Else "mouse" component
-struct MouseComponent : public GUIComponent
+struct MouseObject : public GUIObject
 {
     typedef struct _mouse
     {
@@ -15,12 +15,12 @@ struct MouseComponent : public GUIComponent
         t_outlet* x_vertical;
     } t_mouse;
 
-    MouseComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
+    MouseObject(void* ptr, Box* box) : GUIObject(ptr, box)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
     }
 
-    ~MouseComponent()
+    ~MouseObject()
     {
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
@@ -35,25 +35,25 @@ struct MouseComponent : public GUIComponent
             t_atom args[1];
             SETFLOAT(args, 0);
 
-            pd_typedmess((t_pd*)gui.getPointer(), gensym("_up"), 1, args);
+            pd_typedmess((t_pd*)ptr, gensym("_up"), 1, args);
         }
         else
         {
             t_atom args[1];
             SETFLOAT(args, 1);
 
-            pd_typedmess((t_pd*)gui.getPointer(), gensym("_up"), 1, args);
+            pd_typedmess((t_pd*)ptr, gensym("_up"), 1, args);
         }
 
         t_atom args[2];
         SETFLOAT(args, pos.x);
         SETFLOAT(args + 1, pos.y);
 
-        pd_typedmess((t_pd*)gui.getPointer(), gensym("_getscreen"), 2, args);
+        pd_typedmess((t_pd*)ptr, gensym("_getscreen"), 2, args);
     }
 
-    bool noGui() override
-    {
-        return true;
+    
+    void updateBounds() override {
+        box->setBounds(getBounds().expanded(Box::margin));
     }
 };

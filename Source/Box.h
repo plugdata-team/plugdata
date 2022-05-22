@@ -15,17 +15,17 @@ extern "C"
 
 #include "Components/ObjectGrid.h"
 #include "Edge.h"
-#include "Objects/GUIComponent.h"
+#include "Objects/GUIObject.h"
 
 class Canvas;
-class Box : public Component, public Value::Listener, private TextEditor::Listener, public Timer
+class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener
 {
     bool isOver = false;
 
    public:
     Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
-    Box(pd::Object* object, Canvas* parent, const String& name = "");
+    Box(void* object, Canvas* parent);
 
     ~Box();
 
@@ -38,16 +38,17 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     void updatePorts();
 
-    void setType(const String& newType, bool exists = false);
+    void setType(const String& newType, void* existingObject = nullptr);
     void updateBounds();
 
     void showEditor();
     void hideEditor();
+    
+    pd::Patch getHelp() const;
+    void* getPointer() const;
 
     Array<Connection*> getConnections() const;
 
-    /** Returns the currently-visible text editor, or nullptr if none is open. */
-    TextEditor* getCurrentTextEditor() const noexcept;
 
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
@@ -57,13 +58,11 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
 
-    int getBestTextWidth(const String& text);
-    int getWidthOffset();
-
-    void setEditable(bool editable);
+    
+    void textEditorReturnKeyPressed(TextEditor& ed) override;
+    void textEditorTextChanged(TextEditor& ed) override;
+    
     Array<Rectangle<float>> getCorners() const;
-
-    std::unique_ptr<pd::Object> pdObject = nullptr;
 
     int numInputs = 0;
     int numOutputs = 0;
@@ -74,7 +73,7 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
 
     Canvas* cnv;
 
-    std::unique_ptr<GUIComponent> graphics = nullptr;
+    std::unique_ptr<ObjectBase> graphics = nullptr;
 
     OwnedArray<Edge> edges;
     ResizableBorderComponent::Zone resizeZone;
@@ -84,34 +83,22 @@ class Box : public Component, public Value::Listener, private TextEditor::Listen
     static inline constexpr int height = 37;
 
     bool selectionChanged = false;
-    bool hideLabel = false;
     bool edgeHovered = false;
 
-    String currentText;
-
     Point<int> mouseDownPos;
-    Font font{15.0f};
 
    private:
     void initialise();
     bool hitTest(int x, int y) override;
 
-    void textEditorReturnKeyPressed(TextEditor& ed) override;
-    void textEditorTextChanged(TextEditor& ed) override;
+    void openNewObjectEditor();
 
     Rectangle<int> originalBounds;
-
-    Justification justification = Justification::centredLeft;
-    std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border{1, 7, 1, 2};
-    float minimumHorizontalScale = 1.0f;
-    bool editSingleClick = false;
-    bool wasResized = false;
-
+    
     bool attachedToMouse = false;
     bool createEditorOnMouseDown = false;
     
-    int textObjectWidth = 0;
-    int textWidthOffset = 0;
+    std::unique_ptr<TextEditor> newObjectEditor;
+    
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

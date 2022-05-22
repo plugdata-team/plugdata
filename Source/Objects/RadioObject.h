@@ -1,5 +1,5 @@
 
-struct RadioComponent : public GUIComponent
+struct RadioObject : public IEMObject
 {
     int lastState = 0;
 
@@ -7,13 +7,13 @@ struct RadioComponent : public GUIComponent
 
     bool isVertical;
 
-    RadioComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
+    RadioObject(bool vertical, void* obj, Box* parent) : IEMObject(obj, parent)
     {
         isVertical = vertical;
 
-        numButtons = gui.getMaximum();
+        numButtons = getMaximum();
 
-        initialise(newObject);
+        initialise();
         updateRange();
 
         numButtons.addListener(this);
@@ -49,6 +49,25 @@ struct RadioComponent : public GUIComponent
         {
             box->setSize(size * radioButtons.size() + Box::doubleMargin, std::max(box->getHeight(), minSize + Box::doubleMargin));
         }
+        
+        if (isVertical)
+        {
+            auto* dial = static_cast<t_hdial*>(ptr);
+            
+            dial->x_gui.x_w = getWidth();
+            dial->x_gui.x_h = getHeight() / dial->x_number;
+        }
+        else
+        {
+            auto* dial = static_cast<t_hdial*>(ptr);
+            dial->x_gui.x_w = getWidth() / dial->x_number;
+            dial->x_gui.x_h = getHeight();
+        }
+    }
+    
+    float getValue() override
+    {
+        return isVertical ? (static_cast<t_vdial*>(ptr))->x_on : (static_cast<t_hdial*>(ptr))->x_on;
     }
 
     void update() override
@@ -59,6 +78,27 @@ struct RadioComponent : public GUIComponent
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
+    }
+    
+
+    
+    
+    void updateBounds() override {
+        
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        
+        Rectangle<int> bounds;
+        if(isVertical) {
+            auto* dial = static_cast<t_vdial*>(ptr);
+            bounds = {x, y, dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number};
+        }
+        else {
+            auto* dial = static_cast<t_hdial*>(ptr);
+            bounds = {x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h};
+        }
+        
+        box->setBounds(bounds.expanded(Box::margin));
     }
 
     // To make it trigger on mousedown instead of mouseup
@@ -75,7 +115,7 @@ struct RadioComponent : public GUIComponent
 
     void updateRange()
     {
-        numButtons = gui.getMaximum();
+        numButtons = getMaximum();
 
         radioButtons.clear();
 
@@ -119,12 +159,28 @@ struct RadioComponent : public GUIComponent
     {
         if (value.refersToSameSourceAs(numButtons))
         {
-            gui.setMaximum(static_cast<int>(numButtons.getValue()));
+            setMaximum(static_cast<int>(numButtons.getValue()));
             updateRange();
         }
         else
         {
-            GUIComponent::valueChanged(value);
+            GUIObject::valueChanged(value);
         }
     }
+    
+    float getMaximum()
+    {
+        return isVertical ? (static_cast<t_vdial*>(ptr))->x_number : (static_cast<t_hdial*>(ptr))->x_number;
+    }
+    
+    void setMaximum(float value) {
+        if(isVertical) {
+            static_cast<t_vdial*>(ptr)->x_number = value;
+        }
+        else {
+            static_cast<t_hdial*>(ptr)->x_number = value;
+        }
+    }
+
+    
 };

@@ -1,13 +1,13 @@
 
-struct MessageComponent : public GUIComponent
+struct SymbolAtomObject : public GUIObject
 {
     bool isDown = false;
     bool isLocked = false;
     bool shouldOpenEditor = false;
 
-    std::string lastMessage;
+    String lastMessage;
 
-    MessageComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
+    SymbolAtomObject(void* obj, Box* parent) : GUIObject(obj, parent)
     {
         addAndMakeVisible(input);
 
@@ -16,7 +16,7 @@ struct MessageComponent : public GUIComponent
         input.onTextChange = [this]()
         {
             startEdition();
-            gui.setSymbol(input.getText().toStdString());
+            setSymbol(input.getText().toStdString());
             stopEdition();
 
             auto width = input.getFont().getStringWidth(input.getText()) + 36;
@@ -27,38 +27,20 @@ struct MessageComponent : public GUIComponent
             }
         };
 
-        // message box behaviour
-        if (!gui.isAtom())
-        {
-            // For the autoresize while typing feature
-            input.onEditorShow = [this]()
-            {
-                auto* editor = input.getCurrentTextEditor();
-
-                editor->setMultiLine(true, true);
-                editor->setReturnKeyStartsNewLine(true);
-                editor->onTextChange = [this, editor]()
-                {
-                    auto width = input.getFont().getStringWidth(editor->getText()) + 25;
-
-                    if (width > box->getWidth())
-                    {
-                        box->setSize(width, box->getHeight());
-                    }
-                };
-            };
-        }
-
         input.setMinimumHorizontalScale(0.9f);
-        initialise(newObject);
+        initialise();
 
         box->addMouseListener(this, false);
     }
 
+    void updateBounds() override {
+        box->setBounds(getBounds().expanded(Box::margin));
+    }
+    
     void checkBoxBounds() override
     {
-        int numLines = getNumLines(gui.getText(), box->getWidth() - Box::doubleMargin - 5);
-        int newHeight = (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin + 2;
+        int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
+        int newHeight = (numLines * 19) + Box::doubleMargin + 2;
         
         // parent component check prevents infinite recursion bug
         // TODO: fix this in a better way!
@@ -66,7 +48,7 @@ struct MessageComponent : public GUIComponent
             box->setSize(box->getWidth(), newHeight);
         }
     }
-
+    
     void lock(bool locked) override
     {
         isLocked = locked;
@@ -80,42 +62,32 @@ struct MessageComponent : public GUIComponent
 
     void update() override
     {
-        input.setText(String(gui.getSymbol()), sendNotification);
+        input.setText(String(getSymbol()), sendNotification);
     }
-
-    void paintOverChildren(Graphics& g) override
+    
+    void setSymbol(std::string const& value) noexcept
     {
-        GUIComponent::paintOverChildren(g);
-
-        auto b = getLocalBounds();
-
-        if (!gui.isAtom())
-        {
-            Path flagPath;
-            flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
-
-            g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-            g.fillPath(flagPath);
-            
-            if(isDown) {
-                g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 4.0f);
-            }
-        }
+        cnv->pd->enqueueDirectMessages(ptr, value);
+    }
+    
+    String getSymbol() {
+        cnv->pd->setThis();
+        return atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name;
     }
 
     void updateValue() override
     {
         if (!edited)
         {
-            std::string const v = gui.getSymbol();
+            String v = getSymbol();
 
-            if (lastMessage != v && !String(v).startsWith("click"))
+            if (lastMessage != v && !v.startsWith("click"))
             {
                 numLines = 1;
                 longestLine = 7;
 
                 int currentLineLength = 0;
-                for (auto& c : v)
+                for (auto c : v)
                 {
                     if (c == '\n')
                     {
@@ -140,17 +112,8 @@ struct MessageComponent : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
-        GUIComponent::mouseDown(e);
-        if (!gui.isAtom() && isLocked)
-        {
-            isDown = true;
-            repaint();
-
-            startEdition();
-            gui.click();
-            stopEdition();
-        }
-        if (box->cnv->isSelected(box) && !box->selectionChanged)
+        GUIObject::mouseDown(e);
+        if (cnv->isSelected(box) && !box->selectionChanged)
         {
             shouldOpenEditor = true;
         }
@@ -161,7 +124,7 @@ struct MessageComponent : public GUIComponent
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if ((!isLocked && shouldOpenEditor && !e.mouseWasDraggedSinceMouseDown() && !gui.isAtom()) || (isLocked && gui.isAtom()))
+        if (isLocked)
         {
             input.showEditor();
             shouldOpenEditor = false;
@@ -172,7 +135,7 @@ struct MessageComponent : public GUIComponent
 
     void valueChanged(Value& v) override
     {
-        if (gui.isAtom() && v.refersToSameSourceAs(labelHeight))
+        if (v.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
             if(getParentComponent()) {
@@ -181,15 +144,17 @@ struct MessageComponent : public GUIComponent
         }
         else
         {
-            GUIComponent::valueChanged(v);
+            GUIObject::valueChanged(v);
         }
     }
     
+    /*
     bool usesCharWidth() override
     {
         return true;
-    }
+    } */
 
+    Label input;
 
     int numLines = 1;
     int longestLine = 7;
