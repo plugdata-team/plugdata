@@ -79,7 +79,6 @@ struct AtomObject : public GUIObject
         }
     }
 
-
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
