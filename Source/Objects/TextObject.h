@@ -147,7 +147,7 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
 
             outgoingEditor->setInputFilter(nullptr, false);
 
-            //cnv->hideSuggestions();
+            cnv->hideSuggestions();
 
             auto newText = outgoingEditor->getText();
 

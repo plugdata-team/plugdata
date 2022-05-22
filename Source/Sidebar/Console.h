@@ -118,7 +118,7 @@ struct Console : public Component
                 // Copy console item
                 if (key == KeyPress('c', ModifierKeys::commandModifier, 0))
                 {
-                    SystemClipboard::copyTextToClipboard(pd->consoleMessages[selectedItem].first);
+                    SystemClipboard::copyTextToClipboard(std::get<0>(pd->consoleMessages[selectedItem]));
                     return true;
                 }
             }
@@ -159,9 +159,9 @@ struct Console : public Component
 
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
             {
-                auto& message = pd->consoleMessages[row];
+                auto& [message, type, length] = pd->consoleMessages[row];
 
-                int numLines = getNumLines(message.first, getWidth());
+                int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
 
                 const Rectangle<int> r(0, totalHeight, getWidth(), height);
@@ -191,20 +191,21 @@ struct Console : public Component
 
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)
             {
-                auto& message = pd->consoleMessages[row];
+                auto& [message, type, length] = pd->consoleMessages[row];
 
-                int numLines = getNumLines(message.first, getWidth());
+                int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
 
                 const Rectangle<int> r(0, totalHeight, getWidth(), height);
 
-                if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors))
+                if ((type == 1 && !showMessages) || (type == 0 && !showErrors))
                 {
                     continue;
                 }
 
-                auto offColour = findColour(PlugDataColour::canvasColourId);
-                auto onColour = offColour.darker(0.04f);
+                auto offColour = findColour(PlugDataColour::toolbarColourId);
+                auto onColour = findColour(PlugDataColour::canvasColourId);
+                
                 auto background = rowColour ? offColour : onColour;
 
                 if (row == selectedItem)
@@ -217,16 +218,16 @@ struct Console : public Component
 
                 rowColour = !rowColour;
 
-                g.setColour(selectedItem == row ? Colours::white : colourWithType(message.second));
-                g.drawFittedText(message.first, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
+                g.setColour(selectedItem == row ? Colours::white : colourWithType(type));
+                g.drawFittedText(message, r.reduced(4, 0), Justification::centredLeft, numLines, 1.0f);
 
                 totalHeight += height;
             }
 
             while (totalHeight < viewport.getHeight())
             {
-                auto offColour = findColour(PlugDataColour::canvasColourId);
-                auto onColour = offColour.darker(0.04f);
+                auto offColour = findColour(PlugDataColour::toolbarColourId);
+                auto onColour = findColour(PlugDataColour::canvasColourId);
 
                 const Rectangle<int> r(0, totalHeight, getWidth(), 24);
 
@@ -249,12 +250,12 @@ struct Console : public Component
 
             int numEmpty = 0;
 
-            for (auto& message : pd->consoleMessages)
+            for (auto& [message, type, length] : pd->consoleMessages)
             {
-                int numLines = getNumLines(message.first, getWidth());
+                int numLines = getNumLines(getWidth(), length);
                 int height = numLines * 22 + 2;
 
-                if ((message.second == 1 && !showMessages) || (message.second == 0 && !showErrors)) continue;
+                if ((type == 1 && !showMessages) || (length == 0 && !showErrors)) continue;
 
                 totalHeight += height;
             }

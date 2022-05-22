@@ -51,9 +51,9 @@ struct SymbolAtomObject : public AtomObject
         input.setText(String(getSymbol()), sendNotification);
     }
 
-    void setSymbol(std::string const& value) noexcept
+    void setSymbol(String const& value) noexcept
     {
-        cnv->pd->enqueueDirectMessages(ptr, value);
+        cnv->pd->enqueueDirectMessages(ptr, value.toStdString());
     }
 
     String getSymbol()
