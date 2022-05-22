@@ -132,7 +132,7 @@ struct SymbolAtomObject : public AtomObject
         }
         else
         {
-            GUIObject::valueChanged(v);
+            AtomObject::valueChanged(v);
         }
     }
 

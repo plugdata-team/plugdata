@@ -44,7 +44,6 @@ struct CanvasObject : public IEMObject
 
     ObjectParameters getParameters() override
     {
-        // TODO: why not use IEM?
         ObjectParameters params;
         params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});

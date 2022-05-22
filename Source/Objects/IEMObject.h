@@ -15,10 +15,11 @@ struct IEMObject : public GUIObject
         receiveSymbol = getReceiveSymbol();
     }
     
-    void resized() override
-    {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+    
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
         
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui->x_w = getWidth();
         iemgui->x_h = getHeight();
     }

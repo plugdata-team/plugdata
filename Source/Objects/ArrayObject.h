@@ -353,10 +353,16 @@ struct ArrayObject : public GUIObject
         };
     }
 
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
+        auto* array = static_cast<_glist*>(ptr);
+        array->gl_pixwidth = getWidth();
+        array->gl_pixheight = getHeight();
+    }
+    
     void resized() override
     {
-        static_cast<_glist*>(ptr)->gl_pixwidth = getWidth();
-        static_cast<_glist*>(ptr)->gl_pixheight = getHeight();
         array.setBounds(getLocalBounds());
     }
 

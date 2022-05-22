@@ -46,7 +46,6 @@ enum class Type : size_t
     Mouse,
     Keyboard,
     Picture,
-    Scalar,
     Invalid
 };
 
@@ -76,7 +75,8 @@ struct ObjectBase : public Component
         setInterceptsMouseClicks(isLocked, isLocked);
     }
 
-    void setPosition(int x, int y);
+    virtual void applyBounds() = 0;
+    
     void moveToFront();
 
     virtual Canvas* getCanvas()

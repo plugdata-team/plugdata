@@ -73,7 +73,7 @@ struct ToggleObject : public IEMObject
         }
         else
         {
-            GUIObject::valueChanged(value);
+            IEMObject::valueChanged(value);
         }
     }
 
