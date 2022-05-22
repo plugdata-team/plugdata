@@ -81,6 +81,14 @@ struct PictureObject : public GUIObject
             openFile(path.toString());
         }
     }
+    
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
+        auto* pic = static_cast<t_pic*>(ptr);
+        pic->x_width = getWidth();
+        pic->x_height = getHeight();
+    }
 
     void updateBounds() override
     {
@@ -89,7 +97,7 @@ struct PictureObject : public GUIObject
         box->setBounds(getBounds().expanded(Box::margin));
     }
 
-    /*
+    
     void checkBounds() override {
         auto* pic = static_cast<t_pic*>(ptr);
 
@@ -99,7 +107,7 @@ struct PictureObject : public GUIObject
         else if(pic->x_height != img.getHeight() || pic->x_width != img.getWidth()) {
             box->setSize(img.getWidth(), img.getHeight());
         }
-    } */
+    }
 
     void openFile(String location)
     {

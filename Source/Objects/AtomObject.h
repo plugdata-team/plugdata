@@ -59,23 +59,32 @@ struct AtomObject : public GUIObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-
+        
         auto bounds = Rectangle<int>(x, y, w, glist_fontheight(box->cnv->patch.getPointer()));
         
         box->setBounds(bounds.expanded(Box::margin));
     }
 
+    
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        gatom->a_text.te_width = width / fontWidth;
+    }
+    
     void resized() override
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int width = std::max(4, getWidth() / fontWidth);
+        int width = std::max(4, getWidth() / fontWidth) * fontWidth;
         
-        if ((gatom->a_text.te_width * fontWidth) != getWidth() || box->getHeight() != Box::height)
+        if (width != getWidth() || box->getHeight() != Box::height)
         {
-            gatom->a_text.te_width = std::max(width, 4);
-            box->setSize((width * fontWidth) + Box::doubleMargin, Box::height);
+            box->setSize(width + Box::doubleMargin, Box::height);
         }
     }
 

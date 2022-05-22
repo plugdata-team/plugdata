@@ -65,6 +65,8 @@ struct MessageObject : public GUIObject
         box->addMouseListener(this, false);
     }
 
+
+    
     void updateBounds() override
     {
         int x = 0, y = 0, w = 0, h = 0;
@@ -108,6 +110,13 @@ struct MessageObject : public GUIObject
         setInterceptsMouseClicks(isLocked, isLocked);
     }
 
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
+        auto* textObj = static_cast<t_text*>(ptr);
+        textObj->te_width = getWidth() / glist_fontwidth(cnv->patch.getPointer());
+    }
+    
     void resized() override
     {
         input.setBounds(getLocalBounds());

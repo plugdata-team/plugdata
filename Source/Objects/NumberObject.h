@@ -68,14 +68,20 @@ struct NumberObject : public IEMObject
         }
     }
 
-    void resized() override
-    {
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         nbx->x_numwidth = getWidth() / fontWidth;
         nbx->x_gui.x_h = getHeight();
-        
-        int width = nbx->x_numwidth * fontWidth;
+    }
+    
+    void resized() override
+    {
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        int width = (getWidth() / fontWidth) * fontWidth;
         if(getWidth() != width || getHeight() != Box::height - Box::doubleMargin) {
             box->setSize(width + Box::doubleMargin, Box::height);
         }
@@ -108,14 +114,12 @@ struct NumberObject : public IEMObject
         }
         else
         {
-            GUIObject::valueChanged(value);
+            IEMObject::valueChanged(value);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        GUIObject::paintOverChildren(g);
-
         const int indent = 9;
 
         const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);

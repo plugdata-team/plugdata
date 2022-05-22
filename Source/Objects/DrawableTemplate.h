@@ -53,13 +53,11 @@ struct DrawableTemplate : public DrawablePath
     void updateIfMoved();
 };
 
-struct ScalarObject : public GUIObject
+/*
+struct ScalarObject : public TextObject
 {
-    ScalarObject(void* obj, Box* box) : GUIObject(obj, box)
+    ScalarObject(void* obj, Box* box) : TextObject(obj, box)
     {
     }
 
-    void updateBounds() override
-    {
-    }
-};
+}; */

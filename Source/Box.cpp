@@ -101,8 +101,9 @@ void Box::timerCallback()
 void Box::valueChanged(Value& v)
 {
     // Hide certain objects in GOP
-    if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!gui || (gui && (gui->getType() == Type::Message || gui->getType() == Type::Comment /*|| gui->noGui()*/))))
+    if (((cnv->isGraph || cnv->presentationMode == var(true)) && (!gui || (gui && (gui->getType() == Type::Message || gui->getType() == Type::Comment)))) || !getPointer() || !cnv->patch.checkObject(getPointer()))
     {
+        
         setVisible(false);
     }
     else
@@ -464,11 +465,8 @@ void Box::mouseDown(const MouseEvent& e)
             cnv->pd->enqueueFunction(
                                      [this, box]()
                                      {
-                                         if (!box || !box->gui) return;
-                                         
-                                         auto b = getBounds() - cnv->canvasOrigin;
-                                         b.reduce(margin, margin);
-                                         gui->setPosition(b.getX(), b.getY());
+                                         if (!box || !box->gui) return;                                         
+                                         gui->applyBounds();
                                      });
         }
         
@@ -521,13 +519,18 @@ void Box::mouseUp(const MouseEvent& e)
         cnv->pd->enqueueFunction(
                                  [this, box]()
                                  {
-                                     if (!box) return;
+                                     if (!box || !gui) return;
                                      
                                      auto b = getBounds() - cnv->canvasOrigin;
                                      b.reduce(margin, margin);
                                      
-                                     gui->setPosition(b.getX(), b.getY());
+                                     // Used for size changes, could also be used for properties
+                                     auto* obj = static_cast<t_gobj*>(getPointer());
+                                     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
+                                     libpd_undo_apply(canvas, obj);
                                      
+                                     gui->applyBounds();
+
                                      // To make sure it happens after setting object bounds
                                      if (!cnv->viewport->getViewArea().contains(getBounds()))
                                      {

@@ -14,14 +14,17 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
     ~TextObject() {
         removeMouseListener(box);
     }
+    
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto* textObj = static_cast<t_text*>(ptr);
+        textObj->te_width = textObjectWidth;
+    }
 
     void resized() override
     {
-        auto* textObj = static_cast<t_text*>(ptr);
-        
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
-        textObj->te_width = textObjectWidth;
         
         int width = textObjectWidth * fontWidth + textWidthOffset;
         int height = getNumLines(currentText, width) * 15 + 6;
