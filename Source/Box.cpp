@@ -186,7 +186,10 @@ void Box::mouseMove(const MouseEvent& e)
 
 void Box::updateBounds()
 {
-    if(graphics) graphics->updateBounds();
+    if(graphics)  {
+        
+        graphics->updateBounds();
+    }
     resized();
 }
 
@@ -306,9 +309,14 @@ void Box::paint(Graphics& g)
 
 void Box::resized()
 {
+    
     if (graphics)
     {
-        graphics->setBounds(getLocalBounds().reduced(margin));
+        auto bounds = getLocalBounds().reduced(margin);
+        bounds.setWidth(std::max(1, bounds.getWidth()));
+        bounds.setHeight(std::max(1, bounds.getHeight()));
+        
+        graphics->setBounds(bounds);
     }
     
     if(newObjectEditor) {
@@ -499,12 +507,6 @@ void Box::mouseUp(const MouseEvent& e)
     
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
     
-    /*
-     if (editSingleClick && isEnabled() && contains(e.getPosition()) && !(e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && cnv->isSelected(this) && !selectionChanged)
-     {
-     showEditor();
-     } */
-    
     cnv->handleMouseUp(this, e);
     
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
@@ -525,12 +527,7 @@ void Box::mouseUp(const MouseEvent& e)
                                      auto b = getBounds() - cnv->canvasOrigin;
                                      b.reduce(margin, margin);
                                      
-                                     /*
-                                      if(!graphics || (graphics && graphics->usesCharWidth())) {
-                                      //b.setWidth(textObjectWidth);
-                                      } */
-                                     
-                                     //pdObject->setBounds(b);
+                                     graphics->setPosition(b.getX(), b.getY());
                                      
                                      // To make sure it happens after setting object bounds
                                      if (!cnv->viewport->getViewArea().contains(getBounds()))
