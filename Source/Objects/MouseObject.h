@@ -1,6 +1,6 @@
 
 // Else "mouse" component
-struct MouseObject : public GUIObject
+struct MouseObject : public TextObject
 {
     typedef struct _mouse
     {
@@ -15,7 +15,7 @@ struct MouseObject : public GUIObject
         t_outlet* x_vertical;
     } t_mouse;
 
-    MouseObject(void* ptr, Box* box) : GUIObject(ptr, box)
+    MouseObject(void* ptr, Box* box) : TextObject(ptr, box)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
     }
@@ -52,8 +52,4 @@ struct MouseObject : public GUIObject
         pd_typedmess((t_pd*)ptr, gensym("_getscreen"), 2, args);
     }
 
-    void updateBounds() override
-    {
-        box->setBounds(getBounds().expanded(Box::margin));
-    }
 };

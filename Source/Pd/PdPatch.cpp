@@ -292,7 +292,6 @@ void* Patch::createObject(const String& name, int x, int y)
         preset = preset.replace("fgColour", "#" + fg);
         preset = preset.replace("lblColour", "#" + lbl);
         preset = preset.replace("lnColour", "#" + ln);
-        
 
         tokens.addTokens(preset, false);
     }
@@ -332,6 +331,10 @@ void* Patch::createObject(const String& name, int x, int y)
     {
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
+    }
+    if (tokens[0] == "+")
+    {
+        tokens.set(0, "\\+");
     }
 
     int argc = tokens.size() + 2;

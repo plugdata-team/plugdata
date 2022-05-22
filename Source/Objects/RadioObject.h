@@ -52,7 +52,7 @@ struct RadioObject : public IEMObject
 
         if (isVertical)
         {
-            auto* dial = static_cast<t_hdial*>(ptr);
+            auto* dial = static_cast<t_vdial*>(ptr);
 
             dial->x_gui.x_w = getWidth();
             dial->x_gui.x_h = getHeight() / dial->x_number;
@@ -114,9 +114,9 @@ struct RadioObject : public IEMObject
 
     void updateRange()
     {
-        numButtons = getMaximum();
-
         radioButtons.clear();
+        
+       
 
         for (int i = 0; i < numButtons; i++)
         {
@@ -142,9 +142,10 @@ struct RadioObject : public IEMObject
 
         int idx = getValueOriginal();
         radioButtons[idx]->setToggleState(true, dontSendNotification);
-
-        resized();
-        // box->updateBounds();
+        
+        if(getWidth() != 0 && getHeight() != 0) {
+            resized();
+        }
     }
 
     OwnedArray<TextButton> radioButtons;

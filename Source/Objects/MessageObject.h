@@ -37,7 +37,7 @@ struct MessageObject : public GUIObject
             if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
-                checkBoxBounds();
+                checkBounds();
             }
         };
 
@@ -74,18 +74,23 @@ struct MessageObject : public GUIObject
 
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        Rectangle<int> bounds = {x, y, textObj->te_width, h};
+        int width = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
+        
+        if(textObj->te_width == 0) {
+            width = Font(15).getStringWidth(getText()) + 19;
+        }
+        
+        Rectangle<int> bounds = {x, y, width, h};
 
         box->setBounds(bounds.expanded(Box::margin));
     }
 
-    void checkBoxBounds() override
+
+    void checkBounds() override
     {
         int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
 
-        // parent component check prevents infinite recursion bug
-        // TODO: fix this in a better way!
         if (getParentComponent() && box->getHeight() != newHeight)
         {
             box->setSize(box->getWidth(), newHeight);

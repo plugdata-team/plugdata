@@ -55,7 +55,7 @@ struct SliderObject : public IEMObject
         initialise();
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(isVertical ? 23 : 50, maxSize, box->getWidth());

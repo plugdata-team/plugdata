@@ -46,7 +46,7 @@ struct ToggleObject : public IEMObject
         repaint();
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Fix aspect ratio and apply limits
         int size = jlimit(30, maxSize, box->getWidth());

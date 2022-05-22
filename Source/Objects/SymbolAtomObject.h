@@ -1,5 +1,5 @@
 
-struct SymbolAtomObject : public GUIObject
+struct SymbolAtomObject : public AtomObject
 {
     bool isDown = false;
     bool isLocked = false;
@@ -7,7 +7,7 @@ struct SymbolAtomObject : public GUIObject
 
     String lastMessage;
 
-    SymbolAtomObject(void* obj, Box* parent) : GUIObject(obj, parent)
+    SymbolAtomObject(void* obj, Box* parent) : AtomObject(obj, parent)
     {
         addAndMakeVisible(input);
 
@@ -23,7 +23,7 @@ struct SymbolAtomObject : public GUIObject
             if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
-                checkBoxBounds();
+                checkBounds();
             }
         };
 
@@ -31,24 +31,6 @@ struct SymbolAtomObject : public GUIObject
         initialise();
 
         box->addMouseListener(this, false);
-    }
-
-    void updateBounds() override
-    {
-        box->setBounds(getBounds().expanded(Box::margin));
-    }
-
-    void checkBoxBounds() override
-    {
-        int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
-        int newHeight = (numLines * 19) + Box::doubleMargin + 2;
-
-        // parent component check prevents infinite recursion bug
-        // TODO: fix this in a better way!
-        if (getParentComponent() && box->getHeight() != newHeight)
-        {
-            box->setSize(box->getWidth(), newHeight);
-        }
     }
 
     void lock(bool locked) override
@@ -59,6 +41,8 @@ struct SymbolAtomObject : public GUIObject
 
     void resized() override
     {
+        AtomObject::resized();
+        
         input.setBounds(getLocalBounds());
     }
 

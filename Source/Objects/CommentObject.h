@@ -85,10 +85,16 @@ struct CommentObject : public GUIObject
 
     void updateBounds() override
     {
-        box->setBounds(getBounds().expanded(Box::margin));
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+
+        // TODO: use text chars
+        Rectangle<int> bounds = {x, y, w, h};
+
+        box->setBounds(bounds.expanded(Box::margin));
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         int numLines = getNumLines(getText(), box->getWidth());
         box->setSize(box->getWidth(), (numLines * 19) + Box::doubleMargin);

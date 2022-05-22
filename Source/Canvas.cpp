@@ -185,7 +185,7 @@ void Canvas::synchronise(bool updatePosition)
     for (int n = boxes.size() - 1; n >= 0; n--)
     {
         auto* box = boxes[n];
-        if (box->graphics && isObjectDeprecated(box->getPointer()))
+        if (box->gui && isObjectDeprecated(box->getPointer()))
         {
             boxes.remove(n);
         }
@@ -201,7 +201,7 @@ void Canvas::synchronise(bool updatePosition)
             newBox->toFront(false);
 
             // TODO: don't do this on Canvas!!
-            if (newBox->graphics && newBox->graphics->getLabel()) newBox->graphics->getLabel()->toFront(false);
+            if (newBox->gui && newBox->gui->getLabel()) newBox->gui->getLabel()->toFront(false);
 
             // Don't show non-patchable (internal) objects
             if (!pd::Patch::checkObject(object)) newBox->setVisible(false);
@@ -218,7 +218,7 @@ void Canvas::synchronise(bool updatePosition)
             if (updatePosition) box->updateBounds();
 
             box->toFront(false);
-            if (box->graphics && box->graphics->getLabel()) box->graphics->getLabel()->toFront(false);
+            if (box->gui && box->gui->getLabel()) box->gui->getLabel()->toFront(false);
 
             // Don't show non-patchable (internal) objects
             if (!pd::Patch::checkObject(object)) box->setVisible(false);
@@ -325,9 +325,9 @@ void Canvas::mouseDown(const MouseEvent& e)
 
     auto openSubpatch = [this](Box* parent)
     {
-        if (!parent->graphics) return;
+        if (!parent->gui) return;
 
-        auto* subpatch = parent->graphics->getPatch();
+        auto* subpatch = parent->gui->getPatch();
         auto* glist = subpatch->getPointer();
 
         if (!glist) return;
@@ -351,7 +351,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         }
 
         auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
-        bool isGraphChild = parent->graphics->getType() == Type::GraphOnParent;
+        bool isGraphChild = parent->gui->getType() == Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
 
         newPatch->setCurrentFile(path);
@@ -362,10 +362,10 @@ void Canvas::mouseDown(const MouseEvent& e)
 
     auto openHelp = [this](Box* box)
     {
-        /*
+        
         pd->setThis();
         // Find name of help file
-        auto helpPatch = box->pdObject->getHelp();
+        auto helpPatch = box->getHelp();
 
         if (!helpPatch.getPointer())
         {
@@ -376,7 +376,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         auto* patch = main.pd.patches.add(new pd::Patch(helpPatch));
         auto* newCnv = main.canvases.add(new Canvas(main, *patch));
 
-        main.addTab(newCnv, true); */
+        main.addTab(newCnv, true);
     };
 
     auto* source = e.originalComponent;
@@ -388,11 +388,11 @@ void Canvas::mouseDown(const MouseEvent& e)
         {
             // TODO: Move to Subpatch implementation
             auto* box = dynamic_cast<Box*>(source);
-            if (box && box->graphics)
+            if (box && box->gui)
             {
-                auto type = box->graphics->getType();
+                auto type = box->gui->getType();
                 ;
-                if (box && (box->graphics && (type == Type::Subpatch || type == Type::Clone)))
+                if (box && (box->gui && (type == Type::Subpatch || type == Type::Clone)))
                 {
                     openSubpatch(box);
                 }
@@ -468,9 +468,9 @@ void Canvas::mouseDown(const MouseEvent& e)
         if (hasSelection && !multiple) box = selectedBoxes.getFirst();
 
         bool isSubpatch = false;
-        if (box && box->graphics)
+        if (box && box->gui)
         {
-            auto type = box->graphics->getType();
+            auto type = box->gui->getType();
             isSubpatch = type == Type::GraphOnParent || type == Type::Subpatch || type == Type::Clone;
         }
 
@@ -521,8 +521,8 @@ void Canvas::mouseDown(const MouseEvent& e)
 
                 case 8:  // To Front
                     box->toFront(false);
-                    // TODO: FIX THIS
-                    // box->pdObject->toFront();
+
+                    if(box->gui) box->gui->moveToFront();
                     break;
 
                 case 9:
@@ -658,7 +658,7 @@ void Canvas::updateSidebarSelection()
     if (lassoSelection.size() == 1)
     {
         auto* box = lassoSelection.getFirst();
-        auto params = box->graphics ? box->graphics->getParameters() : ObjectParameters();
+        auto params = box->gui ? box->gui->getParameters() : ObjectParameters();
 
         if (!params.empty() || main.sidebar.isPinned())
         {
@@ -705,9 +705,9 @@ Array<DrawableTemplate*> Canvas::findDrawables()
         // Recurse for graphs
         if (gobj->g_pd == canvas_class)
         {
-            if (box->graphics && box->graphics->getType() == Type::GraphOnParent)
+            if (box->gui && box->gui->getType() == Type::GraphOnParent)
             {
-                auto* canvas = box->graphics->getCanvas();
+                auto* canvas = box->gui->getCanvas();
 
                 auto subdrawables = canvas->findDrawables();
                 result.addArray(subdrawables);
