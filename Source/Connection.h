@@ -14,7 +14,6 @@ extern "C"
 }
 
 #include "Edge.h"
-#include "Pd/PdObject.h"
 
 using PathPlan = std::vector<Point<int>>;
 

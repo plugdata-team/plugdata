@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "../Components/PropertiesPanel.h"
+#include "../Utility/PropertiesPanel.h"
 
 struct Inspector : public PropertiesPanel
 {

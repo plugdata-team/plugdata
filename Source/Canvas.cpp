@@ -17,8 +17,8 @@ extern "C"
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 
-#include "Components/GraphArea.h"
-#include "Components/SuggestionComponent.h"
+#include "Utility/GraphArea.h"
+#include "Utility/SuggestionComponent.h"
 
 Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph, bool graphChild) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
 {
