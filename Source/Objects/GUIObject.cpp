@@ -67,6 +67,10 @@ String ObjectBase::getText()
     return "";
 }
 
+void ObjectBase::setPosition(int x, int y) {
+    libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), x, y);
+}
+
 GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false), type(getType(obj))
 {
     box->addComponentListener(this);
