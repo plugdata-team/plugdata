@@ -1,4 +1,4 @@
-struct TextObject : public ObjectBase, private TextEditor::Listener
+struct TextObject : public ObjectBase, public TextEditor::Listener
 {
     
 
@@ -38,8 +38,10 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
 
     void paint(Graphics& g) override
     {
-        g.setColour(findColour(ResizableWindow::backgroundColourId));
-        g.fillRect(getLocalBounds().toFloat().reduced(0.5f));
+        if(type != Type::Comment) {
+            g.setColour(findColour(ResizableWindow::backgroundColourId));
+            g.fillRect(getLocalBounds().toFloat().reduced(0.5f));
+        }
 
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
@@ -102,45 +104,7 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
         }
     }
 
-    void hideEditor() override
-    {
-        if (editor != nullptr)
-        {
-            WeakReference<Component> deletionChecker(this);
-            std::unique_ptr<TextEditor> outgoingEditor;
-            std::swap(outgoingEditor, editor);
-
-            if (auto* peer = getPeer()) peer->dismissPendingTextInput();
-
-            outgoingEditor->setInputFilter(nullptr, false);
-
-            cnv->hideSuggestions();
-
-            auto newText = outgoingEditor->getText();
-
-            bool changed;
-            if (currentText != newText)
-            {
-                currentText = newText;
-                repaint();
-                changed = true;
-            }
-            else
-            {
-                changed = false;
-            }
-
-            outgoingEditor.reset();
-
-            repaint();
-
-            // update if the name has changed, or if pdobject is unassigned
-            if (changed)
-            {
-                box->setType(newText);
-            }
-        }
-    }
+   
 
     void updateBounds() override
     {
@@ -168,6 +132,46 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
         box->setBounds(bounds.getX(), bounds.getY(), width + Box::doubleMargin, height + Box::doubleMargin);
     }
 
+    void hideEditor() override
+    {
+        if (editor != nullptr)
+        {
+            WeakReference<Component> deletionChecker(this);
+            std::unique_ptr<TextEditor> outgoingEditor;
+            std::swap(outgoingEditor, editor);
+
+            if (auto* peer = getPeer()) peer->dismissPendingTextInput();
+
+            outgoingEditor->setInputFilter(nullptr, false);
+
+            //cnv->hideSuggestions();
+
+            auto newText = outgoingEditor->getText();
+
+            bool changed;
+            if (currentText != newText)
+            {
+                currentText = newText;
+                repaint();
+                changed = true;
+            }
+            else
+            {
+                changed = false;
+            }
+
+            outgoingEditor.reset();
+
+            repaint();
+
+            // update if the name has changed, or if pdobject is unassigned
+            if (changed)
+            {
+                box->setType(newText);
+            }
+        }
+    }
+    
     void showEditor() override
     {
         if (editor == nullptr)

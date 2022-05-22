@@ -4,103 +4,117 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject : public GUIObject
+struct CommentObject : public TextObject
 {
-    CommentObject(void* obj, Box* box) : GUIObject(obj, box)
+    CommentObject(void* obj, Box* box) : TextObject(obj, box)
     {
-        addAndMakeVisible(input);
-        input.setText(getText(), dontSendNotification);
-        input.setInterceptsMouseClicks(false, false);
-        input.setMinimumHorizontalScale(0.9f);
-
+       
         setInterceptsMouseClicks(false, false);
-
-        input.onTextChange = [this, box]()
-        {
-            String name = input.getText();
-            cnv->pd->enqueueFunction(
-                [this, box, name]() mutable
-                {
-                    auto* newName = name.toRawUTF8();
-                    libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, input.getText().getNumBytesAsUTF8());
-
-                    MessageManager::callAsync([box]() { box->updateBounds(); });
-                });
-        };
-
-        input.onEditorShow = [this]()
-        {
-            auto* editor = input.getCurrentTextEditor();
-            if (editor)
-            {
-                editor->setMultiLine(true, true);
-                editor->setReturnKeyStartsNewLine(true);
-            }
-        };
-
-        initialise();
 
         // Our component doesn't intercept mouse events, so dragging will be okay
         box->addMouseListener(this, false);
     }
 
-    void mouseDown(const MouseEvent& e) override
+
+    void hideEditor() override
     {
-        if (cnv->isSelected(box) && !box->selectionChanged)
+        if (editor != nullptr)
         {
-            shouldOpenEditor = true;
+            WeakReference<Component> deletionChecker(this);
+            std::unique_ptr<TextEditor> outgoingEditor;
+            std::swap(outgoingEditor, editor);
+
+            if (auto* peer = getPeer()) peer->dismissPendingTextInput();
+
+            outgoingEditor->setInputFilter(nullptr, false);
+
+            //cnv->hideSuggestions();
+
+            auto newText = outgoingEditor->getText();
+
+            bool changed;
+            if (currentText != newText)
+            {
+                currentText = newText;
+                repaint();
+                changed = true;
+            }
+            else
+            {
+                changed = false;
+            }
+
+            outgoingEditor.reset();
+
+            repaint();
+
+            // update if the name has changed, or if pdobject is unassigned
+            if (changed)
+            {
+                SafePointer<CommentObject> obj;
+                cnv->pd->enqueueFunction(
+                    [this, obj]() mutable
+                    {
+                        if(!obj) return;
+                        
+                        auto* newName = currentText.toRawUTF8();
+                        libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, currentText.getNumBytesAsUTF8());
+
+                        MessageManager::callAsync([this, obj]() {
+                            if(!obj) return;
+                            box->updateBounds(); });
+                    });
+                
+                box->setType(newText);
+            }
+        }
+    }
+    
+    void showEditor() override
+    {
+        if (editor == nullptr)
+        {
+            editor = std::make_unique<TextEditor>(getName());
+            editor->applyFontToAllText(font);
+
+            copyAllExplicitColoursTo(*editor);
+            editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
+            editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
+            editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+
+            editor->setAlwaysOnTop(true);
+
+            editor->setMultiLine(false);
+            editor->setReturnKeyStartsNewLine(false);
+            editor->setBorder(border);
+            editor->setIndents(0, 0);
+            editor->setJustification(justification);
+
+            editor->onFocusLost = [this]()
+            {
+                // Necessary so the editor doesn't close when clicking on a suggestion
+                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
+                {
+                    hideEditor();
+                }
+            };
+
+            editor->setSize(10, 10);
+            addAndMakeVisible(editor.get());
+
+            editor->setText(currentText, false);
+            editor->addListener(this);
+
+            if (editor == nullptr)  // may be deleted by a callback
+                return;
+
+            editor->setHighlightedRegion(Range<int>(0, currentText.length()));
+
+            resized();
+            repaint();
+
+            editor->grabKeyboardFocus();
         }
     }
 
-    // Makes it transparent
-    void paint(Graphics& g) override
-    {
-    }
-
-    void mouseUp(const MouseEvent& e) override
-    {
-        // Edit messages when unlocked, edit atoms when locked
-        if (!isLocked && shouldOpenEditor && !e.mouseWasDraggedSinceMouseDown())
-        {
-            input.showEditor();
-            shouldOpenEditor = false;
-        }
-    }
-
-    void lock(bool locked) override
-    {
-        isLocked = locked;
-    }
-
-    void resized() override
-    {
-        input.setBounds(getLocalBounds());
-    }
-
-    /*
-    bool usesCharWidth() override
-    {
-        return true;
-    } */
-
-    void updateBounds() override
-    {
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        // TODO: use text chars
-        Rectangle<int> bounds = {x, y, w, h};
-
-        box->setBounds(bounds.expanded(Box::margin));
-    }
-
-    void checkBounds() override
-    {
-        int numLines = getNumLines(getText(), box->getWidth());
-        box->setSize(box->getWidth(), (numLines * 19) + Box::doubleMargin);
-    }
-
-    Label input;
-    bool shouldOpenEditor = false;
-    bool isLocked = false;
 };
