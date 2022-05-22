@@ -12,7 +12,7 @@
 #include "Pd/PdPatch.h"
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
-#include "Components/ObjectGrid.h"
+#include "Utility/ObjectGrid.h"
 #include "Objects/DrawableTemplate.h"
 
 class SuggestionComponent;

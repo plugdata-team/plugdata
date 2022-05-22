@@ -13,7 +13,7 @@ extern "C"
 #include <m_pd.h>
 }
 
-#include "Components/ObjectGrid.h"
+#include "Utility/ObjectGrid.h"
 #include "Edge.h"
 #include "Objects/GUIObject.h"
 
