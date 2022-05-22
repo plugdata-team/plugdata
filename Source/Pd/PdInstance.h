@@ -17,12 +17,83 @@ extern "C"
 #include "s_libpd_inter.h"
 }
 
-#include "PdAtom.h"
 #include "PdPatch.h"
 #include "concurrentqueue.h"
 
 namespace pd
 {
+
+class Atom
+{
+   public:
+    // The default constructor.
+    inline Atom() : type(FLOAT), value(0), symbol()
+    {
+    }
+
+    // The float constructor.
+    inline Atom(const float val) : type(FLOAT), value(val), symbol()
+    {
+    }
+
+    // The string constructor.
+    inline Atom(std::string sym) : type(SYMBOL), value(0), symbol(std::move(sym))
+    {
+    }
+
+    // The c-string constructor.
+    inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym)
+    {
+    }
+
+    // Check if the atom is a float.
+    inline bool isFloat() const noexcept
+    {
+        return type == FLOAT;
+    }
+
+    // Check if the atom is a string.
+    inline bool isSymbol() const noexcept
+    {
+        return type == SYMBOL;
+    }
+
+    // Get the float value.
+    inline float getFloat() const noexcept
+    {
+        return value;
+    }
+
+    // Get the string.
+    inline std::string const& getSymbol() const noexcept
+    {
+        return symbol;
+    }
+
+    // Compare two atoms.
+    inline bool operator==(Atom const& other) const noexcept
+    {
+        if (type == SYMBOL)
+        {
+            return other.type == SYMBOL && symbol == other.symbol;
+        }
+        else
+        {
+            return other.type == FLOAT && value == other.value;
+        }
+    }
+
+   private:
+    enum Type
+    {
+        FLOAT,
+        SYMBOL
+    };
+    Type type = FLOAT;
+    float value = 0;
+    std::string symbol;
+};
+
 class Patch;
 
 class Instance
@@ -31,7 +102,7 @@ class Instance
     {
         std::string selector;
         std::string destination;
-        std::vector<Atom> list;
+        std::vector<pd::Atom> list;
     };
 
     struct dmessage
@@ -39,7 +110,7 @@ class Instance
         void* object;
         std::string destination;
         std::string selector;
-        std::vector<Atom> list;
+        std::vector<pd::Atom> list;
     };
 
     typedef struct midievent
@@ -110,8 +181,8 @@ class Instance
     void sendBang(const char* receiver) const;
     void sendFloat(const char* receiver, float const value) const;
     void sendSymbol(const char* receiver, const char* symbol) const;
-    void sendList(const char* receiver, const std::vector<Atom>& list) const;
-    void sendMessage(const char* receiver, const char* msg, const std::vector<Atom>& list) const;
+    void sendList(const char* receiver, const std::vector<pd::Atom>& list) const;
+    void sendMessage(const char* receiver, const char* msg, const std::vector<pd::Atom>& list) const;
 
     virtual void receivePrint(const std::string& message){};
 
@@ -124,10 +195,10 @@ class Instance
     virtual void receiveSymbol(const std::string& dest, const std::string& symbol)
     {
     }
-    virtual void receiveList(const std::string& dest, const std::vector<Atom>& list)
+    virtual void receiveList(const std::string& dest, const std::vector<pd::Atom>& list)
     {
     }
-    virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<Atom>& list)
+    virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<pd::Atom>& list)
     {
     }
     virtual void receiveParameter(int idx, float value)
@@ -143,9 +214,9 @@ class Instance
     void enqueueFunction(const std::function<void(void)>& fn);
     void enqueueFunctionAsync(const std::function<void(void)>& fn);
     
-    void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list);
+    void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<pd::Atom>&& list);
 
-    void enqueueDirectMessages(void* object, std::vector<Atom> const& list);
+    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
     void enqueueDirectMessages(void* object, const std::string& msg);
     void enqueueDirectMessages(void* object, const float msg);
 
@@ -169,8 +240,6 @@ class Instance
     virtual Colour getOutlineColour() = 0;
     
     void setThis();
-    Array getArray(std::string const& name);
-
     bool checkState(String pdstate);
 
     static Instance* getCurrent();

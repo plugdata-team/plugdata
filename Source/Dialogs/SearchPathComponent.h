@@ -4,7 +4,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 {
    public:
     //==============================================================================
-    /** Creates an empty FileSearchPathListComponent. */
+    /** Creates an empty FileSearchPathListObject. */
     SearchPathComponent(ValueTree libraryTree) : tree(std::move(libraryTree))
     {
         listBox.setOutlineThickness(0);

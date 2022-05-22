@@ -571,11 +571,6 @@ Patch Instance::openPatch(const File& toOpen)
     return Patch(cnv, this, toOpen);
 }
 
-Array Instance::getArray(std::string const& name)
-{
-    return {name, m_instance};
-}
-
 void Instance::setThis()
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));

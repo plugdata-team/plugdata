@@ -1,18 +1,21 @@
 
 
-struct SliderComponent : public GUIComponent
+struct SliderObject : public IEMObject
 {
     bool isVertical;
     Value isLogarithmic = Value(var(false));
 
     Slider slider;
 
-    SliderComponent(bool vertical, const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
+    SliderObject(bool vertical, void* obj, Box* parent) : IEMObject(obj, parent)
     {
         isVertical = vertical;
         addAndMakeVisible(slider);
+        
+        min = getMinimum();
+        max = getMaximum();
 
-        isLogarithmic = gui.isLogScale();
+        isLogarithmic = isLogScale();
         
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
         
@@ -36,7 +39,7 @@ struct SliderComponent : public GUIComponent
         slider.onValueChange = [this]()
         {
             const float val = slider.getValue();
-            if (gui.isLogScale())
+            if (isLogScale())
             {
                 float minValue = static_cast<float>(min.getValue());
                 float maxValue = static_cast<float>(max.getValue());
@@ -51,7 +54,7 @@ struct SliderComponent : public GUIComponent
 
         slider.onDragEnd = [this]() { stopEdition(); };
 
-        initialise(newObject);
+        initialise();
     }
 
     void checkBoxBounds() override
@@ -65,6 +68,7 @@ struct SliderComponent : public GUIComponent
             box->setSize(w, h);
         }
     }
+    
 
     void resized() override
     {
@@ -84,26 +88,85 @@ struct SliderComponent : public GUIComponent
             {"Logarithmic", tBool, cGeneral, &isLogarithmic, {"off", "on"}},
         };
     }
+    
+    float getValue() override
+    {
+        return isVertical ? (static_cast<t_vslider*>(ptr))->x_fval : (static_cast<t_hslider*>(ptr))->x_fval;
+    }
+    
+    float getMinimum()
+    {
+        return isVertical ? (static_cast<t_vslider*>(ptr))->x_min : (static_cast<t_hslider*>(ptr))->x_min;
+    }
+    
+    float getMaximum()
+    {
+        return isVertical ? (static_cast<t_vslider*>(ptr))->x_max : (static_cast<t_hslider*>(ptr))->x_max;
+    }
+    
+    
+    void setMinimum(float value)
+    {
+        if (isVertical)
+        {
+            static_cast<t_vslider*>(ptr)->x_min = value;
+        }
+        else {
+            static_cast<t_hslider*>(ptr)->x_min = value;
+        }
+    }
+    
+    void setMaximum(float value) {
+        if(isVertical) {
+            static_cast<t_vslider*>(ptr)->x_max = value;
+        }
+        else {
+            static_cast<t_hslider*>(ptr)->x_max = value;
+        }
+    }
+    
+    bool jumpOnClick() const noexcept
+    {
+        return isVertical ? (static_cast<t_vslider*>(ptr))->x_steady == 0 : (static_cast<t_hslider*>(ptr))->x_steady == 0;
+    }
 
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min))
         {
-            gui.setMinimum(static_cast<float>(min.getValue()));
+            setMinimum(static_cast<float>(min.getValue()));
         }
         else if (value.refersToSameSourceAs(max))
         {
-            gui.setMaximum(static_cast<float>(max.getValue()));
+            setMaximum(static_cast<float>(max.getValue()));
         }
         else if (value.refersToSameSourceAs(isLogarithmic))
         {
-            gui.setLogScale(isLogarithmic == var(true));
-            min = gui.getMinimum();
-            max = gui.getMaximum();
+            setLogScale(isLogarithmic == var(true));
+            min = getMinimum();
+            max = getMaximum();
+
         }
         else
         {
-            GUIComponent::valueChanged(value);
+            GUIObject::valueChanged(value);
         }
     }
+    
+    bool isLogScale() const noexcept
+    {
+        return isVertical ? (static_cast<t_hslider*>(ptr))->x_lin0_log1 != 0 : (static_cast<t_vslider*>(ptr))->x_lin0_log1 != 0;
+    }
+
+    void setLogScale(bool log) noexcept
+    {
+        if (isVertical)
+        {
+            static_cast<t_vslider*>(ptr)->x_lin0_log1 = log;
+        }
+        else {
+            static_cast<t_hslider*>(ptr)->x_lin0_log1 = log;
+        }
+    }
+    
 };

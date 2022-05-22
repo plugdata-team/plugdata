@@ -24,8 +24,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 {
     isGraphChild = graphChild;
     
-   
-    
     // Check if canvas belongs to a graph
     if (parentGraph)
     {
@@ -148,12 +146,12 @@ void Canvas::synchronise(bool updatePosition)
     patch.setCurrent(true);
     
     auto objects = patch.getObjects();
-    auto isObjectDeprecated = [&](pd::Object* obj)
+    auto isObjectDeprecated = [&](void* obj)
     {
         // NOTE: replace with std::ranges::all_of when available
-        for (auto& pdobj : objects)
+        for (auto* pdobj : objects)
         {
-            if (pdobj == *obj)
+            if (pdobj == obj)
             {
                 return false;
             }
@@ -168,14 +166,14 @@ void Canvas::synchronise(bool updatePosition)
         {
             auto connection = connections[n];
             
-            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inbox->pdObject.get()) || isObjectDeprecated(connection->outbox->pdObject.get()))
+            if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inbox->getPointer()) || isObjectDeprecated(connection->outbox->getPointer()))
             {
                 connections.remove(n);
             }
             else
             {
-                auto* inlet = static_cast<t_text*>(connection->inbox->pdObject->getPointer());
-                auto* outlet = static_cast<t_text*>(connection->outbox->pdObject->getPointer());
+                auto* inlet = static_cast<t_text*>(connection->inbox->getPointer());
+                auto* outlet = static_cast<t_text*>(connection->outbox->getPointer());
                 
                 if (!canvas_isconnected(patch.getPointer(), outlet, connection->outIdx, inlet, connection->inIdx))
                 {
@@ -189,31 +187,27 @@ void Canvas::synchronise(bool updatePosition)
     for (int n = boxes.size() - 1; n >= 0; n--)
     {
         auto* box = boxes[n];
-        if (box->pdObject && isObjectDeprecated(box->pdObject.get()))
+        if (box->graphics && isObjectDeprecated(box->getPointer()))
         {
             boxes.remove(n);
         }
     }
     
-    for (auto& object : objects)
+    for (auto* object : objects)
     {
-        auto it = std::find_if(boxes.begin(), boxes.end(), [&object](Box* b) { return b->pdObject && *b->pdObject == object; });
+        auto it = std::find_if(boxes.begin(), boxes.end(), [&object](Box* b) {
+            return b->getPointer() && b->getPointer() == object; });
         
         if (it == boxes.end())
-        {
-            auto name = String(object.getText());
-            
-            auto type = pd::Gui::getType(object.getPointer());
-            auto isGui = type != pd::Type::Undefined;
-            auto* pdObject = isGui ? new pd::Gui(object.getPointer(), &patch, pd) : new pd::Object(object);
-            
-            auto* newBox = boxes.add(new Box(pdObject, this, name));
+        {            
+            auto* newBox = boxes.add(new Box(object, this));
             newBox->toFront(false);
             
-            if (newBox->graphics && newBox->graphics->label) newBox->graphics->label->toFront(false);
+            // TODO: don't do this on Canvas!!
+            if (newBox->graphics && newBox->graphics->getLabel()) newBox->graphics->getLabel()->toFront(false);
             
             // Don't show non-patchable (internal) objects
-            if (!pd::Patch::checkObject(&object)) newBox->setVisible(false);
+            if (!pd::Patch::checkObject(object)) newBox->setVisible(false);
         }
         else
         {
@@ -227,10 +221,10 @@ void Canvas::synchronise(bool updatePosition)
             if (updatePosition) box->updateBounds();
             
             box->toFront(false);
-            if (box->graphics && box->graphics->label) box->graphics->label->toFront(false);
+            if (box->graphics && box->graphics->getLabel()) box->graphics->getLabel()->toFront(false);
             
             // Don't show non-patchable (internal) objects
-            if (!pd::Patch::checkObject(&object)) box->setVisible(false);
+            if (!pd::Patch::checkObject(object)) box->setVisible(false);
         }
     }
     
@@ -238,8 +232,8 @@ void Canvas::synchronise(bool updatePosition)
     std::sort(boxes.begin(), boxes.end(),
               [&objects](Box* first, Box* second) mutable
               {
-        size_t idx1 = std::find(objects.begin(), objects.end(), *first->pdObject) - objects.begin();
-        size_t idx2 = std::find(objects.begin(), objects.end(), *second->pdObject) - objects.begin();
+        size_t idx1 = std::find(objects.begin(), objects.end(), first->getPointer()) - objects.begin();
+        size_t idx2 = std::find(objects.begin(), objects.end(), second->getPointer()) - objects.begin();
         
         return idx1 < idx2;
     });
@@ -324,12 +318,13 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
+    /*
     if (suggestor->openedEditor && e.originalComponent != suggestor->openedEditor)
     {
         suggestor->currentBox->hideEditor();
         deselectAll();
         return;
-    }
+    } */
     
     auto openSubpatch = [this](Box* parent)
     {
@@ -359,7 +354,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         }
         
         auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
-        bool isGraphChild = parent->graphics->getType() == pd::Type::GraphOnParent;
+        bool isGraphChild = parent->graphics->getType() == Type::GraphOnParent;
         auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
         
         newPatch->setCurrentFile(path);
@@ -370,6 +365,7 @@ void Canvas::mouseDown(const MouseEvent& e)
     
     auto openHelp = [this](Box* box)
     {
+        /*
         pd->setThis();
         // Find name of help file
         auto helpPatch = box->pdObject->getHelp();
@@ -383,7 +379,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         auto* patch = main.pd.patches.add(new pd::Patch(helpPatch));
         auto* newCnv = main.canvases.add(new Canvas(main, *patch));
         
-        main.addTab(newCnv, true);
+        main.addTab(newCnv, true); */
     };
     
     auto* source = e.originalComponent;
@@ -397,7 +393,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             auto* box = dynamic_cast<Box*>(source);
             if(box && box->graphics) {
                 auto type = box->graphics->getType();;
-                if (box && (box->graphics && (type == pd::Type::Subpatch || type == pd::Type::Clone)))
+                if (box && (box->graphics && (type == Type::Subpatch || type == Type::Clone)))
                 {
                     openSubpatch(box);
                 }
@@ -472,7 +468,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         bool isSubpatch = false;
         if(box && box->graphics) {
             auto type = box->graphics->getType();
-            isSubpatch = type == pd::Type::GraphOnParent || type == pd::Type::Subpatch || type == pd::Type::Clone;
+            isSubpatch = type == Type::GraphOnParent || type == Type::Subpatch || type == Type::Clone;
         }
         
         // Create popup menu
@@ -522,7 +518,8 @@ void Canvas::mouseDown(const MouseEvent& e)
                     
                 case 8:  // To Front
                     box->toFront(false);
-                    box->pdObject->toFront();
+                    // TODO: FIX THIS
+                    //box->pdObject->toFront();
                     break;
                     
                 case 9:
@@ -538,7 +535,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         
         if (auto* box = dynamic_cast<Box*>(source))
         {
-            if (box->getCurrentTextEditor()) return;
+            //if (box->getCurrentTextEditor()) return;
         }
         
         popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main).withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 2, 2)), ModalCallbackFunction::create(callback));
@@ -698,14 +695,15 @@ Array<DrawableTemplate*> Canvas::findDrawables()
     
     for (auto& box : boxes)
     {
-        if (!box->pdObject) continue;
+        if (!box->getPointer()) continue;
         
-        auto* gobj = static_cast<t_gobj*>(box->pdObject->getPointer());
+        auto* gobj = static_cast<t_gobj*>(box->getPointer());
         
         // Recurse for graphs
         if (gobj->g_pd == canvas_class)
         {
-            if (box->graphics && box->graphics->getType() == pd::Type::GraphOnParent)
+            
+            if (box->graphics && box->graphics->getType() == Type::GraphOnParent)
             {
                 auto* canvas = box->graphics->getCanvas();
                 
@@ -796,7 +794,7 @@ void Canvas::copySelection()
     {
         if (auto* box = dynamic_cast<Box*>(sel))
         {
-            patch.selectObject(box->pdObject.get());
+            patch.selectObject(box->getPointer());
         }
     }
     
@@ -815,7 +813,7 @@ void Canvas::pasteSelection()
     
     for (auto* box : boxes)
     {
-        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(box->pdObject->getPointer())))
+        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(box->getPointer())))
         {
             setSelected(box, true);
         }
@@ -831,7 +829,7 @@ void Canvas::duplicateSelection()
     {
         if (auto* box = dynamic_cast<Box*>(sel))
         {
-            patch.selectObject(box->pdObject.get());
+            patch.selectObject(box->getPointer());
         }
     }
     
@@ -844,7 +842,7 @@ void Canvas::duplicateSelection()
     // Select the newly duplicated objects
     for (auto* box : boxes)
     {
-        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(box->pdObject->getPointer())))
+        if (glist_isselected(patch.getPointer(), static_cast<t_gobj*>(box->getPointer())))
         {
             setSelected(box, true);
         }
@@ -862,15 +860,15 @@ void Canvas::removeSelection()
     patch.deselectAll();
     
     // Find selected objects and make them selected in pd
-    Array<pd::Object*> objects;
+    Array<void*> objects;
     for (auto* sel : getLassoSelection())
     {
         if (auto* box = dynamic_cast<Box*>(sel))
         {
-            if (box->pdObject)
+            if (box->getPointer())
             {
-                patch.selectObject(box->pdObject.get());
-                objects.add(box->pdObject.get());
+                patch.selectObject(box->getPointer());
+                objects.add(box->getPointer());
             }
         }
     }
@@ -883,10 +881,10 @@ void Canvas::removeSelection()
     {
         if (isSelected(con))
         {
-            if (!(objects.contains(con->outbox->pdObject.get()) || objects.contains(con->inbox->pdObject.get())))
+            if (!(objects.contains(con->outbox->getPointer()) || objects.contains(con->inbox->getPointer())))
             {
                 
-                patch.removeConnection(con->outbox->pdObject.get(), con->outIdx, con->inbox->pdObject.get(), con->inIdx);
+                patch.removeConnection(con->outbox->getPointer(), con->outIdx, con->inbox->getPointer(), con->inIdx);
             }
         }
     }
@@ -1055,13 +1053,13 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 {
     if (didStartDragging)
     {
-        auto objects = std::vector<pd::Object*>();
+        auto objects = std::vector<void*>();
         
         for (auto* component : getLassoSelection())
         {
             if (auto* box = dynamic_cast<Box*>(component))
             {
-                if (box->pdObject) objects.push_back(box->pdObject.get());
+                if (box->getPointer()) objects.push_back(box->getPointer());
             }
         }
         

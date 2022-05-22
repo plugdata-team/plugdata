@@ -34,7 +34,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     // If it doesn't already exist in pd, create connection in pd
     if (!exists)
     {
-        bool canConnect = parent->patch.createConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx);
+        bool canConnect = parent->patch.createConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx);
 
         if (!canConnect)
         {
@@ -117,8 +117,8 @@ String Connection::getId() const
 
     // TODO: check if connection is still valid before requesting idx from box
 
-    stream.writeInt(cnv->patch.getIndex(inbox->pdObject->getPointer()));
-    stream.writeInt(cnv->patch.getIndex(outbox->pdObject->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(inbox->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(outbox->getPointer()));
     stream.writeInt(inIdx);
     stream.writeInt(outbox->numInputs + outIdx);
 
@@ -386,9 +386,9 @@ void Connection::reconnect(Edge* target, bool dragged)
     cnv->connectingEdge = nullptr;
     
     
-    if(cnv->patch.hasConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx)) {
+    if(cnv->patch.hasConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx)) {
         // Delete connection from pd if we haven't done that yet
-        cnv->patch.removeConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx);
+        cnv->patch.removeConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx);
     }
 
 

@@ -4,12 +4,13 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentComponent : public GUIComponent
+struct CommentObject : public GUIObject
 {
-    CommentComponent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject)
+    
+    CommentObject(void* obj, Box* box) : GUIObject(obj, box)
     {
         addAndMakeVisible(input);
-        input.setText(gui.getText(), dontSendNotification);
+        input.setText(getText(), dontSendNotification);
         input.setInterceptsMouseClicks(false, false);
         input.setMinimumHorizontalScale(0.9f);
         
@@ -18,11 +19,11 @@ struct CommentComponent : public GUIComponent
         input.onTextChange = [this, box]()
         {
             String name = input.getText();
-            box->cnv->pd->enqueueFunction(
+            cnv->pd->enqueueFunction(
                 [this, box, name]() mutable
                 {
                     auto* newName = name.toRawUTF8();
-                    libpd_renameobj(box->cnv->patch.getPointer(), static_cast<t_gobj*>(gui.getPointer()), newName, input.getText().getNumBytesAsUTF8());
+                    libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, input.getText().getNumBytesAsUTF8());
 
                     MessageManager::callAsync([box]() { box->updateBounds(); });
                 });
@@ -38,7 +39,7 @@ struct CommentComponent : public GUIComponent
             }
         };
 
-        initialise(newObject);
+        initialise();
 
         // Our component doesn't intercept mouse events, so dragging will be okay
         box->addMouseListener(this, false);
@@ -46,7 +47,7 @@ struct CommentComponent : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
-        if (box->cnv->isSelected(box) && !box->selectionChanged)
+        if (cnv->isSelected(box) && !box->selectionChanged)
         {
             shouldOpenEditor = true;
         }
@@ -77,18 +78,24 @@ struct CommentComponent : public GUIComponent
         input.setBounds(getLocalBounds());
     }
     
+    /*
     bool usesCharWidth() override
     {
         return true;
+    } */
+    
+    void updateBounds() override {
+        box->setBounds(getBounds().expanded(Box::margin));
     }
 
     void checkBoxBounds() override
     {
-        int numLines = getNumLines(gui.getText(), box->getWidth());
-        box->setSize(box->getWidth(), (numLines * (box->font.getHeight() + 4)) + Box::doubleMargin);
+        int numLines = getNumLines(getText(), box->getWidth());
+        box->setSize(box->getWidth(), (numLines * 19) + Box::doubleMargin);
         
     }
 
+    Label input;
     bool shouldOpenEditor = false;
     bool isLocked = false;
 };

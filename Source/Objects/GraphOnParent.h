@@ -1,17 +1,18 @@
 
-struct GraphOnParent : public GUIComponent
+struct GraphOnParent : public GUIObject
 {
     bool isLocked = false;
 
    public:
     // Graph On Parent
-    GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), subpatch(gui.getPatch())
+    GraphOnParent(void* obj, Box* box) : GUIObject(obj, box), subpatch({ptr, cnv->pd})
     {
+        
         setInterceptsMouseClicks(box->locked == var(false), true);
 
         updateCanvas();
 
-        initialise(newObject);
+        initialise();
 
         addMouseListener(this, true);
 
@@ -28,6 +29,10 @@ struct GraphOnParent : public GUIComponent
         {
             box->setSize(w, h);
         }
+    }
+    
+    void updateBounds() override {
+        box->setBounds(getBounds().expanded(Box::margin));
     }
 
     ~GraphOnParent() override
@@ -47,7 +52,7 @@ struct GraphOnParent : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
-        GUIComponent::mouseDown(e);
+        GUIObject::mouseDown(e);
         if (!isLocked)
         {
             box->mouseDown(e.getEventRelativeTo(box));
@@ -74,11 +79,11 @@ struct GraphOnParent : public GUIComponent
     {
         if (!canvas)
         {
-            canvas = std::make_unique<Canvas>(box->cnv->main, subpatch, this);
+            canvas = std::make_unique<Canvas>(cnv->main, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
-            box->cnv->patch.setCurrent(true);
-            box->cnv->main.updateCommandStatus();
+            cnv->patch.setCurrent(true);
+            cnv->main.updateCommandStatus();
         }
 
         auto b = getPatch()->getBounds();

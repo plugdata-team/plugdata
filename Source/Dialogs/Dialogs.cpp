@@ -103,7 +103,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(CommandIDs::NewCanvas, "Canvas"));
     menu.addSeparator();
     menu.addItem(createCommandItem(CommandIDs::NewKeyboard, "Keyboard"));
-    menu.addItem(createCommandItem(CommandIDs::NewVUMeter, "VU Meter"));
+    menu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
                        [parent](int result)

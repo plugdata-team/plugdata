@@ -16,66 +16,33 @@ namespace pd
 class Patch;
 class Instance;
 
-//! @brief The Pd object.
+// The Pd object.
 //! @details The class is a wrapper around a Pd object. The lifetime of the internal\n
 //! object is not guaranteed by the class.
 //! @see Instance, Patch, Gui
 
-//!         //! @brief The type of GUI.
-enum class Type : size_t
-{
-    Undefined = 0,
-    HorizontalSlider,
-    VerticalSlider,
-    Toggle,
-    Number,
-    HorizontalRadio,
-    VerticalRadio,
-    Bang,
-    Panel,
-    VuMeter,
-    Comment,
-    AtomNumber,
-    AtomSymbol,
-    AtomList,
-    Array,
-    GraphOnParent,
-    Message,
-    Subpatch,
-    Clone,
-    Mousepad,
-    Mouse,
-    Keyboard,
-    Picture,
-    Invalid
-};
+//!         // The type of GUI.
 
 class Object
 {
    public:
-    //! @brief The compare equal operator.
+    // The compare equal operator.
     bool operator==(Object const& other) const noexcept;
 
-    //! @brief The compare unequal operator.
+    // The compare unequal operator.
     bool operator!=(Object const& other) const noexcept;
 
-    //! @brief The text of the Object.
-    virtual std::string getText();
-
-    //! @brief The name of the Object.
+    // The name of the Object.
     std::string getName() const;
-
-    //! @brief The name of the help file
+    
+    static String getText(void* obj);
+    // The name of the help file
     Patch getHelp() const;
 
     virtual void setBounds(Rectangle<int> bounds);
 
-    virtual inline Type getType() const noexcept
-    {
-        return Type::Undefined;
-    }
 
-    //! @brief The bounds of the Object.
+    // The bounds of the Object.
     virtual Rectangle<int> getBounds() const noexcept;
 
     void* getPointer() const noexcept
@@ -83,11 +50,6 @@ class Object
         return ptr;
     }
 
-    int getNumInlets() noexcept;
-    int getNumOutlets() noexcept;
-
-    bool isSignalInlet(int idx) noexcept;
-    bool isSignalOutlet(int idx) noexcept;
 
     void toFront();
 

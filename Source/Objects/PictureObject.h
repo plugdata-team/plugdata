@@ -1,5 +1,5 @@
 // ELSE pic
-struct PictureComponent : public GUIComponent
+struct PictureObject : public GUIObject
 {
     typedef struct _edit_proxy
     {
@@ -39,9 +39,9 @@ struct PictureComponent : public GUIComponent
         t_outlet* x_outlet;
     } t_pic;
 
-    PictureComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
+    PictureObject(void* ptr, Box* box) : GUIObject(ptr, box)
     {
-        auto* pic = static_cast<t_pic*>(gui.getPointer());
+        auto* pic = static_cast<t_pic*>(ptr);
 
         if (pic && pic->x_filename)
         {
@@ -52,7 +52,7 @@ struct PictureComponent : public GUIComponent
             }
         }
 
-        initialise(newObject);
+        initialise();
     }
 
     ObjectParameters defineParameters() override
@@ -82,9 +82,13 @@ struct PictureComponent : public GUIComponent
         }
     }
 
+    void updateBounds() override {
+        box->setBounds(getBounds().expanded(Box::margin));
+    }
+    
     /*
     void checkBoxBounds() override {
-        auto* pic = static_cast<t_pic*>(gui.getPointer());
+        auto* pic = static_cast<t_pic*>(ptr);
 
         if(!imageFile.existsAsFile()) {
             box->setSize(50, 50);
@@ -96,11 +100,11 @@ struct PictureComponent : public GUIComponent
 
     void openFile(String location)
     {
-        auto* pic = static_cast<t_pic*>(gui.getPointer());
+        auto* pic = static_cast<t_pic*>(ptr);
 
         String pathString = location;
 
-        auto searchPath = File(String(canvas_getdir(box->cnv->patch.getPointer())->s_name));
+        auto searchPath = File(String(canvas_getdir(cnv->patch.getPointer())->s_name));
 
         if (searchPath.getChildFile(pathString).existsAsFile())
         {
