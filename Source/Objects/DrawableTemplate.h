@@ -57,12 +57,9 @@ struct ScalarObject : public GUIObject
 {
     ScalarObject(void* obj, Box* box) : GUIObject(obj, box)
     {
-        
     }
-    
+
     void updateBounds() override
     {
-        
     }
-    
 };

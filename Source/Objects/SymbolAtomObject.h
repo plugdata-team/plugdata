@@ -33,22 +33,24 @@ struct SymbolAtomObject : public GUIObject
         box->addMouseListener(this, false);
     }
 
-    void updateBounds() override {
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
-    
+
     void checkBoxBounds() override
     {
         int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
-        
+
         // parent component check prevents infinite recursion bug
         // TODO: fix this in a better way!
-        if(getParentComponent() && box->getHeight() != newHeight) {
+        if (getParentComponent() && box->getHeight() != newHeight)
+        {
             box->setSize(box->getWidth(), newHeight);
         }
     }
-    
+
     void lock(bool locked) override
     {
         isLocked = locked;
@@ -64,13 +66,14 @@ struct SymbolAtomObject : public GUIObject
     {
         input.setText(String(getSymbol()), sendNotification);
     }
-    
+
     void setSymbol(std::string const& value) noexcept
     {
         cnv->pd->enqueueDirectMessages(ptr, value);
     }
-    
-    String getSymbol() {
+
+    String getSymbol()
+    {
         cnv->pd->setThis();
         return atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name;
     }
@@ -138,7 +141,8 @@ struct SymbolAtomObject : public GUIObject
         if (v.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
-            if(getParentComponent()) {
+            if (getParentComponent())
+            {
                 box->updateBounds();  // update box size based on new font
             }
         }
@@ -147,7 +151,7 @@ struct SymbolAtomObject : public GUIObject
             GUIObject::valueChanged(v);
         }
     }
-    
+
     /*
     bool usesCharWidth() override
     {

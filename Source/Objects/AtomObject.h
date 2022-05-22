@@ -38,10 +38,8 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
     return (binbuf_getvec(x->a_text.te_binbuf));
 }
 
-
 struct AtomObject : public GUIObject
 {
-    
     AtomObject(void* ptr, Box* parent) : GUIObject(ptr, parent)
     {
         labelText = getLabelText();
@@ -51,19 +49,17 @@ struct AtomObject : public GUIObject
 
         int idx = static_cast<int>(std::find(atomSizes, atomSizes + 7, h) - atomSizes);
         labelHeight = idx + 1;
-
-
     }
-    
+
     void updateBounds() override
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        
+
         int w = gatom->a_text.te_width;
         auto bounds = Rectangle<int>(gatom->a_text.te_xpix, gatom->a_text.te_xpix, w, glist_fontheight(box->cnv->patch.getPointer()));
         box->setBounds(bounds.expanded(Box::margin));
     }
-    
+
     void resized() override
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
@@ -72,26 +68,24 @@ struct AtomObject : public GUIObject
             gatom->a_text.te_width = getWidth();
         }
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
+        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        Path triangle;
+        triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
 
-            g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-            Path triangle;
-            triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
+        g.fillPath(triangle);
+    }
 
-            g.fillPath(triangle);
+    void initialise() override
+    {
     }
-    
-    void initialise() override {
-    
-    }
-    
-    
+
     ObjectParameters getParameters() override
     {
         ObjectParameters params = defineParameters();
-        
+
         params.push_back({"Height", tCombo, cGeneral, &labelHeight, {"auto", "8", "10", "12", "16", "24", "36"}});
 
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
@@ -99,16 +93,16 @@ struct AtomObject : public GUIObject
 
         params.push_back({"Label", tString, cLabel, &labelText, {}});
         params.push_back({"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
-        
+
         return params;
     }
-    
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(labelX))
         {
-                setLabelPosition(static_cast<int>(labelX.getValue()));
-                updateLabel();
+            setLabelPosition(static_cast<int>(labelX.getValue()));
+            updateLabel();
         }
         else if (v.refersToSameSourceAs(labelHeight))
         {
@@ -120,12 +114,12 @@ struct AtomObject : public GUIObject
             updateLabel();
         }
     }
-    
+
     void updateLabel() override
     {
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
         setFontHeight(atomSizes[idx - 1]);
-        
+
         int fontHeight = getFontHeight();
 
         if (fontHeight == 0)
@@ -142,12 +136,12 @@ struct AtomObject : public GUIObject
                 label = std::make_unique<Label>();
             }
 
-            //auto bounds = getLabelBounds(box->getBounds().reduced(Box::margin));
-            //label->setBounds(bounds);
-            
+            // auto bounds = getLabelBounds(box->getBounds().reduced(Box::margin));
+            // label->setBounds(bounds);
+
             label->setFont(Font(fontHeight));
             label->setJustificationType(Justification::centredLeft);
-           
+
             label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
             label->setMinimumHorizontalScale(1.f);
             label->setText(text, dontSendNotification);
@@ -160,17 +154,16 @@ struct AtomObject : public GUIObject
         }
     }
 
-    
     float getFontHeight() const noexcept
     {
         return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
     }
-    
+
     void setFontHeight(float newSize) noexcept
     {
         static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;
     }
-    
+
     Rectangle<int> getLabelBounds(Rectangle<int> objectBounds) const noexcept
     {
         int fontHeight = getFontHeight() + 2;
@@ -180,7 +173,7 @@ struct AtomObject : public GUIObject
         }
 
         int labelLength = Font(fontHeight).getStringWidth(getLabelText());
-        int labelPosition =  static_cast<t_fake_gatom*>(ptr)->a_wherelabel;
+        int labelPosition = static_cast<t_fake_gatom*>(ptr)->a_wherelabel;
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
 
         if (labelPosition == 0)
@@ -200,7 +193,7 @@ struct AtomObject : public GUIObject
             return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
         }
     }
-    
+
     String getLabelText() const
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
@@ -213,24 +206,21 @@ struct AtomObject : public GUIObject
                 return text;
             }
         }
-        
+
         return "";
     }
-    
+
     void setLabelText(String newText)
     {
-        
         if (newText.isEmpty()) newText = "empty";
-        
+
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_label = gensym(newText.toRawUTF8());
     }
-    
-    
+
     void setLabelPosition(int wherelabel) noexcept
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_wherelabel = wherelabel - 1;
     }
-    
 };

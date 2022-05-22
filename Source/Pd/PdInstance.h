@@ -213,7 +213,7 @@ class Instance
 
     void enqueueFunction(const std::function<void(void)>& fn);
     void enqueueFunctionAsync(const std::function<void(void)>& fn);
-    
+
     void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<pd::Atom>&& list);
 
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
@@ -238,7 +238,7 @@ class Instance
     virtual Colour getBackgroundColour() = 0;
     virtual Colour getTextColour() = 0;
     virtual Colour getOutlineColour() = 0;
-    
+
     void setThis();
     bool checkState(String pdstate);
 
@@ -266,9 +266,8 @@ class Instance
 
     std::vector<std::pair<String, int>> consoleMessages;
     std::vector<std::pair<String, int>> consoleHistory;
-    
-   private:
 
+   private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;

@@ -7,7 +7,6 @@ struct GraphOnParent : public GUIObject
     // Graph On Parent
     GraphOnParent(void* obj, Box* box) : GUIObject(obj, box), subpatch({ptr, cnv->pd})
     {
-        
         setInterceptsMouseClicks(box->locked == var(false), true);
 
         updateCanvas();
@@ -30,8 +29,9 @@ struct GraphOnParent : public GUIObject
             box->setSize(w, h);
         }
     }
-    
-    void updateBounds() override {
+
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
 

@@ -10,13 +10,13 @@ struct ToggleObject : public IEMObject
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
         initialise();
     }
-    
+
     void paint(Graphics& g) override
     {
         auto backgroundColour = getBackgroundColour();
         g.setColour(backgroundColour);
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
-        
+
         auto toggledColour = getForegroundColour();
         auto untoggledColour = toggledColour.interpolatedWith(backgroundColour, 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
@@ -34,7 +34,7 @@ struct ToggleObject : public IEMObject
         g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
         g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
     }
-    
+
     void mouseDown(const MouseEvent& e) override
     {
         startEdition();
@@ -42,9 +42,9 @@ struct ToggleObject : public IEMObject
         setValueOriginal(newValue);
         toggleState = newValue;
         stopEdition();
-        
+
         repaint();
-    }    
+    }
 
     void checkBoxBounds() override
     {
@@ -81,7 +81,7 @@ struct ToggleObject : public IEMObject
     {
         return (static_cast<t_toggle*>(ptr))->x_on;
     }
-    
+
     void update() override
     {
         toggleState = getValueOriginal() > std::numeric_limits<float>::epsilon();

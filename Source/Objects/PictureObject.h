@@ -82,10 +82,11 @@ struct PictureObject : public GUIObject
         }
     }
 
-    void updateBounds() override {
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
-    
+
     /*
     void checkBoxBounds() override {
         auto* pic = static_cast<t_pic*>(ptr);

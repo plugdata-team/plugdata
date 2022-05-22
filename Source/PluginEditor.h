@@ -152,7 +152,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 #else
     static constexpr int toolbarHeight = 40;
 #endif
-    
+
     ComponentBoundsConstrainer constrainer;
 
     OwnedArray<TextButton> toolbarButtons;

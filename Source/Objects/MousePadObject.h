@@ -100,16 +100,16 @@ struct MousePadObject : public GUIObject
         outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
     }
 
-    void updateBounds() override {
-        
+    void updateBounds() override
+    {
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         Rectangle<int> bounds(x, y, w, h);
-        
+
         box->setBounds(bounds.expanded(Box::margin));
     }
-    
+
     void lock(bool locked) override
     {
         isLocked = locked;

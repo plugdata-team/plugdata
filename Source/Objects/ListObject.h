@@ -1,7 +1,6 @@
 
 struct ListObject : public GUIObject, public Timer
 {
-    
     ListObject(void* obj, Box* parent) : GUIObject(obj, parent), dragger(label)
     {
         label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
@@ -10,17 +9,17 @@ struct ListObject : public GUIObject, public Timer
         label.setBorderSize(BorderSize<int>(2, 6, 2, 2));
         label.setText(String(getValueOriginal()), dontSendNotification);
         label.setEditable(true, false);
-        
+
         setInterceptsMouseClicks(true, false);
         addAndMakeVisible(label);
-        
+
         label.onEditorHide = [this]()
         {
             startEdition();
             updateFromGui();
             stopEdition();
         };
-        
+
         label.onEditorShow = [this]()
         {
             auto* editor = label.getCurrentTextEditor();
@@ -30,27 +29,21 @@ struct ListObject : public GUIObject, public Timer
                 editor->setBorder(BorderSize<int>(2, 6, 2, 2));
             }
         };
-        
-        dragger.dragStart = [this](){
-            startEdition();
-        };
-        
-        dragger.valueChanged = [this](float){
-            updateFromGui();
-        };
-        
-        dragger.dragEnd = [this](){
-            stopEdition();
-        };
-        
+
+        dragger.dragStart = [this]() { startEdition(); };
+
+        dragger.valueChanged = [this](float) { updateFromGui(); };
+
+        dragger.dragEnd = [this]() { stopEdition(); };
+
         updateValue();
-        
+
         initialise();
         startTimer(100);
     }
-    
-    
-    void updateFromGui() {
+
+    void updateFromGui()
+    {
         auto array = StringArray();
         array.addTokens(label.getText(), true);
         std::vector<pd::Atom> list;
@@ -71,45 +64,46 @@ struct ListObject : public GUIObject, public Timer
             setList(list);
         }
     }
-    
-    void updateBounds() override {
+
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
-    
+
     void checkBoxBounds() override
     {
         // Apply size limits
         int w = jlimit(100, maxSize, box->getWidth());
         int h = jlimit(Box::height - 2, maxSize, box->getHeight());
-        
+
         if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
         }
     }
-    
+
     ~ListObject()
     {
         stopTimer();
     }
-    
+
     void timerCallback() override
     {
         update();
     }
-    
+
     void resized() override
     {
         label.setBounds(getLocalBounds());
     }
-    
+
     void paint(Graphics& g) override
     {
         getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
-        
+
         g.fillAll(box->findColour(PlugDataColour::canvasOutlineColourId));
-        
+
         static auto const border = 1.0f;
         const auto h = static_cast<float>(getHeight());
         const auto w = static_cast<float>(getWidth());
@@ -122,11 +116,11 @@ struct ListObject : public GUIObject, public Timer
         p.lineTo(w - 0.5f, o);
         p.lineTo(w - o, 0.5f);
         p.closeSubPath();
-        
+
         g.setColour(box->findColour(PlugDataColour::toolbarColourId));
         g.fillPath(p);
     }
-    
+
     void update() override
     {
         if (!edited && !label.isBeingEdited())
@@ -151,12 +145,12 @@ struct ListObject : public GUIObject, public Timer
             label.setText(message, NotificationType::dontSendNotification);
         }
     }
-    
+
     std::vector<pd::Atom> getList() const noexcept
     {
         std::vector<pd::Atom> array;
         cnv->pd->setThis();
-        
+
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         array.reserve(ac);
@@ -176,15 +170,14 @@ struct ListObject : public GUIObject, public Timer
             }
         }
         return array;
-        
     }
-    
+
     void setList(std::vector<pd::Atom> const& value) noexcept
     {
         cnv->pd->enqueueDirectMessages(ptr, value);
     }
-    
-private:
+
+   private:
     Label label;
     DraggableListNumber dragger;
 };

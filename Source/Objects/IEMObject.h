@@ -2,22 +2,20 @@
 
 struct IEMObject : public GUIObject
 {
-    
     IEMObject(void* ptr, Box* parent) : GUIObject(ptr, parent)
     {
         labelText = getLabelText();
-       
+
         /*
         auto rect = getLabelBounds(Rectangle<int>());
         labelX = rect.getX();
         labelY = rect.getY();
         labelHeight = rect.getHeight(); */
-        
-        //sendSymbol = getSendSymbol();
-        //receiveSymbol = getReceiveSymbol();
 
+        // sendSymbol = getSendSymbol();
+        // receiveSymbol = getReceiveSymbol();
     }
-    
+
     void resized() override
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -25,8 +23,9 @@ struct IEMObject : public GUIObject
         iemgui->x_w = getWidth();
         iemgui->x_h = getHeight();
     }
-    
-    void initialise() override {
+
+    void initialise() override
+    {
         primaryColour = Colour(getForegroundColour()).toString();
         secondaryColour = Colour(getBackgroundColour()).toString();
         labelColour = Colour(getLabelColour()).toString();
@@ -41,7 +40,7 @@ struct IEMObject : public GUIObject
         sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
 
         getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
-        
+
         auto params = getParameters();
         for (auto& [name, type, cat, value, list] : params)
         {
@@ -53,11 +52,11 @@ struct IEMObject : public GUIObject
 
         repaint();
     }
-    
+
     ObjectParameters getParameters() override
     {
         ObjectParameters params = defineParameters();
-        
+
         params.push_back({"Foreground", tColour, cAppearance, &primaryColour, {}});
         params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
@@ -67,19 +66,19 @@ struct IEMObject : public GUIObject
         params.push_back({"Label X", tInt, cLabel, &labelX, {}});
         params.push_back({"Label Y", tInt, cLabel, &labelY, {}});
         params.push_back({"Label Height", tInt, cLabel, &labelHeight, {}});
-        
+
         return params;
     }
-    
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(sendSymbol))
         {
-            //setSendSymbol(sendSymbol.toString());
+            // setSendSymbol(sendSymbol.toString());
         }
         else if (v.refersToSameSourceAs(receiveSymbol))
         {
-            //setReceiveSymbol(receiveSymbol.toString());
+            // setReceiveSymbol(receiveSymbol.toString());
         }
         else if (v.refersToSameSourceAs(primaryColour))
         {
@@ -89,7 +88,7 @@ struct IEMObject : public GUIObject
             getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
             getLookAndFeel().setColour(Slider::thumbColourId, colour);
             getLookAndFeel().setColour(Slider::trackColourId, colour);
-            
+
             getLookAndFeel().setColour(Label::textColourId, colour);
             getLookAndFeel().setColour(TextEditor::textColourId, colour);
 
@@ -102,8 +101,6 @@ struct IEMObject : public GUIObject
 
             getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
             getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-
-            
 
             getLookAndFeel().setColour(Slider::backgroundColourId, colour);
 
@@ -135,21 +132,22 @@ struct IEMObject : public GUIObject
             updateLabel();
         }
     }
-    
-    void updateBounds() override {
+
+    void updateBounds() override
+    {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        
+
         auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
         box->setBounds(bounds.expanded(Box::margin));
     }
-    
+
     void updateLabel() override
     {
         int fontHeight = getFontHeight();
 
         if (fontHeight == 0)
         {
-            //fontHeight = glist_getfont(box->cnv->patch.getPointer());
+            // fontHeight = glist_getfont(box->cnv->patch.getPointer());
         }
 
         const String text = getLabelText();
@@ -161,7 +159,6 @@ struct IEMObject : public GUIObject
                 label = std::make_unique<Label>();
             }
 
-            
             auto bounds = getLabelBounds(box->getBounds().reduced(Box::margin));
 
             bounds.translate(0, fontHeight / -2.0f);
@@ -180,7 +177,7 @@ struct IEMObject : public GUIObject
             box->cnv->addAndMakeVisible(label.get());
         }
     }
-    
+
     Rectangle<int> getLabelBounds(Rectangle<int> objectBounds) const noexcept
     {
         t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
@@ -196,7 +193,7 @@ struct IEMObject : public GUIObject
             return {posx, posy, labelLength, fontHeight};
         }
     }
-  
+
     /*
     String getSendSymbol() noexcept
     {
@@ -213,7 +210,7 @@ struct IEMObject : public GUIObject
 
         return "";
     }
-    
+
     String Gui::getReceiveSymbol() noexcept
     {
         if (ptr))
@@ -231,7 +228,7 @@ struct IEMObject : public GUIObject
 
         return "";
     }
-     
+
      void Gui::setSendSymbol(const String& symbol) const noexcept
      {
          if (symbol.isEmpty()) return;
@@ -307,7 +304,7 @@ struct IEMObject : public GUIObject
          }
      }
      */
-    
+
     static unsigned int fromIemColours(int const color)
     {
         auto const c = static_cast<unsigned int>(color << 8 | 0xFF);
@@ -322,13 +319,11 @@ struct IEMObject : public GUIObject
     Colour getForegroundColour() const noexcept
     {
         return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(ptr)));
-
     }
 
     Colour getLabelColour() const noexcept
     {
-
-            return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(ptr)));
+        return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(ptr)));
     }
 
     void setBackgroundColour(Colour colour) noexcept
@@ -348,18 +343,17 @@ struct IEMObject : public GUIObject
         String colourStr = colour.toString();
         libpd_iemgui_set_label_color(ptr, colourStr.toRawUTF8());
     }
-    
+
     int getFontHeight() const noexcept
     {
         return static_cast<t_iemgui*>(ptr)->x_fontsize;
     }
-    
+
     void setFontHeight(float newSize) noexcept
     {
         static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
     }
-    
-    
+
     String getLabelText() const
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
@@ -371,21 +365,19 @@ struct IEMObject : public GUIObject
                 return text;
             }
         }
-        
+
         return "";
     }
-    
+
     void setLabelText(String newText)
     {
-        
         if (newText.isEmpty()) newText = "empty";
-        
+
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
         iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
     }
-    
-    
+
     void setLabelPosition(Point<int> position) noexcept
     {
         auto* iem = static_cast<t_iemgui*>(ptr);

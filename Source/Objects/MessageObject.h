@@ -5,7 +5,6 @@ typedef struct _messresponder
     t_outlet* mr_outlet;
 } t_messresponder;
 
-
 typedef struct _message
 {
     t_text m_text;
@@ -13,7 +12,6 @@ typedef struct _message
     t_glist* m_glist;
     t_clock* m_clock;
 } t_message;
-
 
 struct MessageObject : public GUIObject
 {
@@ -67,32 +65,33 @@ struct MessageObject : public GUIObject
         box->addMouseListener(this, false);
     }
 
-    void updateBounds() override {
+    void updateBounds() override
+    {
         int x = 0, y = 0, w = 0, h = 0;
 
         // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
         auto* textObj = static_cast<t_text*>(ptr);
 
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        
+
         Rectangle<int> bounds = {x, y, textObj->te_width, h};
-        
+
         box->setBounds(bounds.expanded(Box::margin));
     }
-    
+
     void checkBoxBounds() override
     {
-       
         int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
-        
+
         // parent component check prevents infinite recursion bug
         // TODO: fix this in a better way!
-        if(getParentComponent() && box->getHeight() != newHeight) {
+        if (getParentComponent() && box->getHeight() != newHeight)
+        {
             box->setSize(box->getWidth(), newHeight);
         }
     }
-    
+
     void showEditor() override
     {
         input.showEditor();
@@ -125,11 +124,11 @@ struct MessageObject : public GUIObject
 
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.fillPath(flagPath);
-        
-        if(isDown) {
+
+        if (isDown)
+        {
             g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 4.0f);
         }
-
     }
 
     void updateValue() override
@@ -184,7 +183,7 @@ struct MessageObject : public GUIObject
             shouldOpenEditor = true;
         }
     }
-    
+
     void click() noexcept
     {
         cnv->pd->enqueueDirectMessages(ptr, 0);
@@ -208,7 +207,7 @@ struct MessageObject : public GUIObject
     {
         GUIObject::valueChanged(v);
     }
-    
+
     /*
     bool usesCharWidth() override
     {
@@ -243,7 +242,6 @@ struct MessageObject : public GUIObject
             });
     }
 
-    
     Label input;
 
     int numLines = 1;
