@@ -96,7 +96,7 @@ struct FloatAtomObject : public AtomObject
         }
         else
         {
-            GUIObject::valueChanged(value);
+            AtomObject::valueChanged(value);
         }
     }
 

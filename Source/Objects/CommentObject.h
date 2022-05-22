@@ -8,7 +8,6 @@ struct CommentObject : public TextObject
 {
     CommentObject(void* obj, Box* box) : TextObject(obj, box)
     {
-       
         setInterceptsMouseClicks(false, false);
 
         // Our component doesn't intercept mouse events, so dragging will be okay

@@ -53,6 +53,9 @@ ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box-
 
 String ObjectBase::getText()
 {
+    
+    if(!cnv->patch.checkObject(ptr)) return "";
+    
     char* text = nullptr;
     int size = 0;
     cnv->pd->setThis();
@@ -66,11 +69,6 @@ String ObjectBase::getText()
     }
 
     return "";
-}
-
-void ObjectBase::setPosition(int x, int y)
-{
-    libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), x, y);
 }
 
 void ObjectBase::moveToFront()
@@ -456,10 +454,6 @@ Type GUIObject::getType(void* ptr) noexcept
     {
         return Type::Subpatch;
     }
-    if (name == "scalar")
-    {
-        return Type::Scalar;
-    }
 
     return Type::Text;
 }
@@ -517,8 +511,6 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         return new KeyboardObject(ptr, parent);
         case Type::Picture:
         return new PictureObject(ptr, parent);
-        case Type::Scalar:
-        return new ScalarObject(ptr, parent);
         default:
             return nullptr;
     }
