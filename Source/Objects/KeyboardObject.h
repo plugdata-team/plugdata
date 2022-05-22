@@ -143,7 +143,7 @@ struct KeyboardObject : public GUIObject, public MidiKeyboardStateListener
         box->setBounds(bounds.expanded(Box::margin));
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
         float ratio = numKeys / 9.55f;
@@ -224,7 +224,7 @@ struct KeyboardObject : public GUIObject, public MidiKeyboardStateListener
             keyboardObject->x_semitones = range % 12;
 
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
-            checkBoxBounds();
+            checkBounds();
         }
         else if (value.refersToSameSourceAs(rangeMax))
         {
@@ -236,7 +236,7 @@ struct KeyboardObject : public GUIObject, public MidiKeyboardStateListener
             int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
             keyboardObject->x_octaves = range / 12;
             keyboardObject->x_semitones = range % 12;
-            checkBoxBounds();
+            checkBounds();
         }
     }
 

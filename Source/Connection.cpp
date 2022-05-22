@@ -713,7 +713,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck)
     {
         auto bounds = box->getBounds().expanded(3);
 
-        if (auto* graphics = box->graphics.get()) bounds = graphics->getBounds().expanded(3) + box->getPosition();
+        if (auto* graphics = box->gui.get()) bounds = graphics->getBounds().expanded(3) + box->getPosition();
 
         if (box == outbox || box == inbox || !bounds.intersects(getLocalBounds())) continue;
 

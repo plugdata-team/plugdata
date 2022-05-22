@@ -23,7 +23,7 @@ struct CanvasObject : public IEMObject
         static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight() - 1;
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(20, maxSize, box->getWidth());
@@ -44,6 +44,7 @@ struct CanvasObject : public IEMObject
 
     ObjectParameters getParameters() override
     {
+        // TODO: why not use IEM?
         ObjectParameters params;
         params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
         params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});

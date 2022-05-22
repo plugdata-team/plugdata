@@ -32,11 +32,6 @@ struct SubpatchObject : public TextObject
         return &subpatch;
     }
 
-    void updateBounds() override
-    {
-        box->setBounds(getBounds().expanded(Box::margin));
-    }
-
    protected:
     pd::Patch subpatch;
 };

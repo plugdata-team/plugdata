@@ -1,14 +1,34 @@
 struct TextObject : public ObjectBase, private TextEditor::Listener
 {
+    
+
+    
     TextObject(void* obj, Box* parent) : ObjectBase(obj, parent)
     {
         currentText = getText();
+        addMouseListener(box, false);
+        
+        type = GUIObject::getType(obj);
+    }
+    
+    ~TextObject() {
+        removeMouseListener(box);
     }
 
     void resized() override
     {
         auto* textObj = static_cast<t_text*>(ptr);
-        textObj->te_width = getWidth();
+        
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
+        textObj->te_width = textObjectWidth;
+        
+        int width = textObjectWidth * fontWidth + textWidthOffset;
+        int height = getNumLines(currentText, width) * 15 + 6;
+        
+        if(getWidth() != width || getHeight() != height) {
+            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
+        }
 
         if (editor)
         {
@@ -26,15 +46,12 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
 
         auto textArea = border.subtractedFrom(getLocalBounds());
 
-        g.drawFittedText(currentText, textArea, justification, jmax(1, static_cast<int>((static_cast<float>(textArea.getHeight()) / font.getHeight()))), minimumHorizontalScale);
+        int numLines = getNumLines(currentText, getWidth());
+        
+        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
     }
 
     void updateValue() override{};
-
-    Type getType() override
-    {
-        return Type::Text;
-    }
 
     void lock(bool isLocked) override
     {
@@ -58,24 +75,13 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
         {
             showEditor();
         }
-
         box->mouseUp(e.getEventRelativeTo(box));
     }
 
     int getBestTextWidth(const String& text)
     {
-        return std::max<float>(round(font.getStringWidthFloat(text) + 30.5f), 40);
+        return std::max<float>(round(font.getStringWidthFloat(text) + 14.0f), 32);
     }
-
-    /*
-    void setEditable(bool editable)
-    {
-        editSingleClick = editable;
-
-        setWantsKeyboardFocus(editSingleClick);
-        setFocusContainerType(editSingleClick ? FocusContainerType::keyboardFocusContainer : FocusContainerType::none);
-        invalidateAccessibilityHandler();
-    } */
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
@@ -144,18 +150,22 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
 
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        Rectangle<int> bounds = {x, y, textObj->te_width, h};
+        Rectangle<int> bounds = {x - Box::margin, y - Box::margin, textObj->te_width, h + Box::margin};
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int textWidth = getBestTextWidth(currentText);
 
-        int mod = textWidth % fontWidth;
-
+        textWidthOffset = textWidth % fontWidth;
         textObjectWidth = bounds.getWidth();
+        
+        if(textObjectWidth == 0) {
+            textObjectWidth = (textWidth - textWidthOffset) / fontWidth;
+        }
 
-        int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset + Box::doubleMargin;
-
-        box->setBounds(bounds.getX(), bounds.getY(), width, Box::height);
+        int width = textObjectWidth * fontWidth + textWidthOffset;
+        int height = getNumLines(currentText, width) * 15 + 6;
+        
+        box->setBounds(bounds.getX(), bounds.getY(), width + Box::doubleMargin, height + Box::doubleMargin);
     }
 
     void showEditor() override
@@ -217,7 +227,7 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border{1, 7, 1, 2};
-    float minimumHorizontalScale = 1.0f;
+    float minimumHorizontalScale = 0.9f;
 
     String currentText;
     Font font{15.0f};
@@ -226,4 +236,5 @@ struct TextObject : public ObjectBase, private TextEditor::Listener
 
     int textObjectWidth = 0;
     int textWidthOffset = 0;
+
 };

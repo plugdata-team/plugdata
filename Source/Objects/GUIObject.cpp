@@ -47,7 +47,9 @@ extern "C"
 #include "SymbolAtomObject.h"
 #include "DrawableTemplate.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv){};
+ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv), type(GUIObject::getType(obj))
+{
+};
 
 String ObjectBase::getText()
 {
@@ -71,7 +73,53 @@ void ObjectBase::setPosition(int x, int y)
     libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), x, y);
 }
 
-GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false), type(getType(obj))
+void ObjectBase::moveToFront()
+{
+    auto glist_getindex = [](t_glist* x, t_gobj* y)
+    {
+        t_gobj* y2;
+        int indx;
+        for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
+        return (indx);
+    };
+    
+    auto glist_nth = [](t_glist* x, int n) -> t_gobj*
+    {
+        t_gobj* y;
+        int indx;
+        for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
+            if (indx == n) return (y);
+        
+        jassertfalse;
+        return nullptr;
+    };
+    
+    auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
+    t_gobj* y = static_cast<t_gobj*>(ptr);
+    
+    t_gobj *y_prev = nullptr, *y_next = nullptr;
+    
+    /* if there is an object before ours (in other words our index is > 0) */
+    if (int idx = glist_getindex(canvas, y)) y_prev = glist_nth(canvas, idx - 1);
+    
+    /* if there is an object after ours */
+    if (y->g_next) y_next = y->g_next;
+    
+    t_gobj* y_end = glist_nth(canvas, glist_getindex(canvas, 0) - 1);
+    
+    y_end->g_next = y;
+    y->g_next = NULL;
+    
+    /* now fix links in the hole made in the list due to moving of the oldy
+     * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
+     */
+    if (y_prev) /* there is indeed more before the oldy position */
+        y_prev->g_next = y_next;
+    else
+        canvas->gl_list = y_next;
+}
+
+GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false)
 {
     box->addComponentListener(this);
     updateLabel();
@@ -109,7 +157,7 @@ void GUIObject::mouseUp(const MouseEvent& e)
 
 void GUIObject::initialise()
 {
-    // TODO: Why not in constructor?
+
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
 
@@ -236,22 +284,8 @@ void GUIObject::componentMovedOrResized(Component& component, bool moved, bool r
 
     if (!resized) return;
 
-    if (recursiveResize)
-    {
-        recursiveResize = false;
-        return;  // break out of recursion: but doesn't protect against async recursion!!
-    }
-    else
-    {
-        recursiveResize = true;
-        checkBoxBounds();
-        recursiveResize = false;
-    }
-}
 
-Type GUIObject::getType()
-{
-    return type;
+    checkBounds();
 }
 
 void GUIObject::setValue(float value) noexcept
@@ -434,98 +468,58 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
 {
     auto type = getType(ptr);
 
-    if (type == Type::Text)
-    {
+    switch (type) {
+        case Type::Text:
         return new TextObject(ptr, parent);
-    }
-    if (type == Type::Bang)
-    {
+        case Type::Invalid:
+        return new TextObject(ptr, parent);
+        case Type::Bang:
         return new BangObject(ptr, parent);
-    }
-    if (type == Type::Toggle)
-    {
+        case Type::Toggle:
         return new ToggleObject(ptr, parent);
-    }
-    if (type == Type::HorizontalSlider)
-    {
+        case Type::HorizontalSlider:
         return new SliderObject(false, ptr, parent);
-    }
-    if (type == Type::VerticalSlider)
-    {
+        case Type::VerticalSlider:
         return new SliderObject(true, ptr, parent);
-    }
-    if (type == Type::HorizontalRadio)
-    {
+        case Type::HorizontalRadio:
         return new RadioObject(false, ptr, parent);
-    }
-    if (type == Type::VerticalRadio)
-    {
+        case Type::VerticalRadio:
         return new RadioObject(true, ptr, parent);
-    }
-    if (type == Type::Message)
-    {
+        case Type::Message:
         return new MessageObject(ptr, parent);
-    }
-    if (type == Type::Number)
-    {
+        case Type::Number:
         return new NumberObject(ptr, parent);
-    }
-    if (type == Type::AtomList)
-    {
+        case Type::AtomList:
         return new ListObject(ptr, parent);
-    }
-    if (type == Type::Array)
-    {
+        case Type::Array:
         return new ArrayObject(ptr, parent);
-    }
-    if (type == Type::GraphOnParent)
-    {
+        case Type::GraphOnParent:
         return new GraphOnParent(ptr, parent);
-    }
-    if (type == Type::Subpatch || type == Type::Clone)
-    {
+        case Type::Subpatch:
         return new SubpatchObject(ptr, parent);
-    }
-    if (type == Type::VuMeter)
-    {
+        case Type::Clone:
+        return new SubpatchObject(ptr, parent);
+        case Type::VuMeter:
         return new VUMeterObject(ptr, parent);
-    }
-    if (type == Type::Panel)
-    {
+        case Type::Panel:
         return new CanvasObject(ptr, parent);
-    }
-    if (type == Type::Comment)
-    {
+        case Type::Comment:
         return new CommentObject(ptr, parent);
-    }
-    if (type == Type::AtomNumber)
-    {
+        case Type::AtomNumber:
         return new FloatAtomObject(ptr, parent);
-    }
-    if (type == Type::AtomSymbol)
-    {
+        case Type::AtomSymbol:
         return new SymbolAtomObject(ptr, parent);
-    }
-    if (type == Type::Mousepad)
-    {
+        case Type::Mousepad:
         return new MousePadObject(ptr, parent);
-    }
-    if (type == Type::Mouse)
-    {
+        case Type::Mouse:
         return new MouseObject(ptr, parent);
-    }
-    if (type == Type::Keyboard)
-    {
+        case Type::Keyboard:
         return new KeyboardObject(ptr, parent);
-    }
-    if (type == Type::Picture)
-    {
+        case Type::Picture:
         return new PictureObject(ptr, parent);
-    }
-    if (type == Type::Scalar)
-    {
+        case Type::Scalar:
         return new ScalarObject(ptr, parent);
+        default:
+            return nullptr;
     }
-
-    return nullptr;
 }

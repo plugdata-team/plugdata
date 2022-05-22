@@ -20,7 +20,7 @@ extern "C"
 class Canvas;
 class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener
 {
-    bool isOver = false;
+
 
    public:
     Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
@@ -60,6 +60,9 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
 
+    bool isOver();
+    
+    
     Array<Rectangle<float>> getCorners() const;
 
     int numInputs = 0;
@@ -71,7 +74,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     Canvas* cnv;
 
-    std::unique_ptr<ObjectBase> graphics = nullptr;
+    std::unique_ptr<ObjectBase> gui = nullptr;
 
     OwnedArray<Edge> edges;
     ResizableBorderComponent::Zone resizeZone;
@@ -82,7 +85,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     bool selectionChanged = false;
     bool edgeHovered = false;
-
+    
     Point<int> mouseDownPos;
 
    private:

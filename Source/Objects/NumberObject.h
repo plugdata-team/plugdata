@@ -51,13 +51,12 @@ struct NumberObject : public IEMObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        w = nbx->x_numwidth;
-        Rectangle<int> bounds = {x, y, w, nbx->x_gui.x_h};
-
-        box->setBounds(bounds.expanded(Box::margin));
+        w = nbx->x_numwidth * glist_fontwidth(cnv->patch.getPointer());
+        
+        box->setBounds({x - Box::margin, y - Box::margin, w + Box::doubleMargin, Box::height});
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(30, maxSize, box->getWidth());
@@ -71,9 +70,15 @@ struct NumberObject : public IEMObject
 
     void resized() override
     {
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        nbx->x_numwidth = getWidth() / glist_fontwidth(cnv->patch.getPointer());
+        nbx->x_numwidth = getWidth() / fontWidth;
         nbx->x_gui.x_h = getHeight();
+        
+        int width = nbx->x_numwidth * fontWidth;
+        if(getWidth() != width || getHeight() != Box::height - Box::doubleMargin) {
+            box->setSize(width + Box::doubleMargin, Box::height);
+        }
 
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);

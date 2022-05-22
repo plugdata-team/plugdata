@@ -18,7 +18,7 @@ struct GraphOnParent : public GUIObject
         resized();
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(25, maxSize, box->getWidth());
@@ -32,7 +32,13 @@ struct GraphOnParent : public GUIObject
 
     void updateBounds() override
     {
-        box->setBounds(getBounds().expanded(Box::margin));
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+
+        auto* glist = static_cast<_glist*>(ptr);
+        Rectangle<int> bounds = {x, y, glist->gl_pixwidth, glist->gl_pixheight};
+
+        box->setBounds(bounds.expanded(Box::margin));
     }
 
     ~GraphOnParent() override
@@ -100,9 +106,9 @@ struct GraphOnParent : public GUIObject
 
         for (auto& box : canvas->boxes)
         {
-            if (box->graphics)
+            if (box->gui)
             {
-                box->graphics->updateValue();
+                box->gui->updateValue();
             }
         }
     }
