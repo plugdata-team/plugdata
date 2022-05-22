@@ -313,8 +313,8 @@ void Box::resized()
     if (graphics)
     {
         auto bounds = getLocalBounds().reduced(margin);
-        bounds.setWidth(std::max(1, bounds.getWidth()));
-        bounds.setHeight(std::max(1, bounds.getHeight()));
+        //bounds.setWidth(std::max(1, bounds.getWidth()));
+        //bounds.setHeight(std::max(1, bounds.getHeight()));
 
         graphics->setBounds(bounds);
     }
