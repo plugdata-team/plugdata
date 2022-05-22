@@ -648,14 +648,14 @@ void Instance::limitMessages()
 
 void Instance::logMessage(const String& message)
 {
-    consoleMessages.emplace_back(message, 0);
+    consoleMessages.emplace_back(message, 0, Font(14).getStringWidth(message) + 12);
     limitMessages();
     updateConsole();
 }
 
 void Instance::logError(const String& error)
 {
-    consoleMessages.emplace_back(error, 1);
+    consoleMessages.emplace_back(error, 1, Font(14).getStringWidth(error) + 12);
     limitMessages();
     updateConsole();
 }

@@ -83,8 +83,8 @@ struct AutomationComponent : public Component
             sliders[p]->setColour(Slider::backgroundColourId, findColour(p & 1 ? PlugDataColour::toolbarColourId : PlugDataColour::canvasColourId));
             sliders[p]->setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
 
-            auto offColour = findColour(PlugDataColour::canvasColourId);
-            auto onColour = offColour.darker(0.04f);
+            auto offColour = findColour(PlugDataColour::toolbarColourId);
+            auto onColour = findColour(PlugDataColour::canvasColourId);
 
             g.setColour(p & 1 ? offColour : onColour);
             g.fillRect(0, sliders[p]->getY(), getWidth(), sliders[p]->getHeight());

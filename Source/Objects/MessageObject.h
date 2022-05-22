@@ -33,7 +33,7 @@ struct MessageObject : public GUIObject
             setSymbol(input.getText().toStdString());
             stopEdition();
 
-            auto width = input.getFont().getStringWidth(input.getText()) + 36;
+            auto width = Font(15).getStringWidth(input.getText()) + 35;
             if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
@@ -50,7 +50,7 @@ struct MessageObject : public GUIObject
             editor->setReturnKeyStartsNewLine(true);
             editor->onTextChange = [this, editor]()
             {
-                auto width = input.getFont().getStringWidth(editor->getText()) + 25;
+                auto width = input.getFont().getStringWidth(editor->getText()) + 35;
 
                 if (width > box->getWidth())
                 {
@@ -81,6 +81,9 @@ struct MessageObject : public GUIObject
         if(textObj->te_width == 0) {
             width = Font(15).getStringWidth(getText()) + 19;
         }
+        if(getText().isEmpty()) {
+            
+        }
         
         Rectangle<int> bounds = {x, y, width, h};
 
@@ -92,10 +95,11 @@ struct MessageObject : public GUIObject
     {
         int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
-
-        if (getParentComponent() && box->getHeight() != newHeight)
+        
+        int newWidth = std::max(50, box->getWidth());
+        if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth()))
         {
-            box->setSize(box->getWidth(), newHeight);
+            box->setSize(newWidth, newHeight);
         }
     }
 
@@ -120,6 +124,9 @@ struct MessageObject : public GUIObject
     void resized() override
     {
         input.setBounds(getLocalBounds());
+        if(auto* editor = input.getCurrentTextEditor()) {
+            editor->setBounds(getLocalBounds());
+        }
     }
 
     void update() override
@@ -243,15 +250,15 @@ struct MessageObject : public GUIObject
         return result;
     }
 
-    void setSymbol(std::string const& value) noexcept
+    void setSymbol(String const& value) noexcept
     {
         cnv->pd->enqueueFunction(
             [this, value]() mutable
             {
-                auto* cstr = value.c_str();
+                auto* cstr = value.toRawUTF8();
                 auto* messobj = static_cast<t_message*>(ptr);
                 binbuf_clear(messobj->m_text.te_binbuf);
-                binbuf_text(messobj->m_text.te_binbuf, value.c_str(), value.size());
+                binbuf_text(messobj->m_text.te_binbuf, cstr, value.getNumBytesAsUTF8());
                 glist_retext(messobj->m_glist, &messobj->m_text);
             });
     }

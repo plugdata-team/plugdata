@@ -200,7 +200,7 @@ struct IEMObject : public GUIObject
         t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
-        std::string name = iemgui->x_snd_unexpanded->s_name;
+        String name = iemgui->x_snd_unexpanded->s_name;
         if (name == "empty") return "";
         
         return name;
@@ -212,7 +212,7 @@ struct IEMObject : public GUIObject
         auto* iemgui = static_cast<t_iemgui*>(ptr);
         iemgui_all_sym2dollararg(iemgui, srlsym);
         
-        std::string name = iemgui->x_rcv_unexpanded->s_name;
+        String name = iemgui->x_rcv_unexpanded->s_name;
         
         if (name == "empty") return "";
         
