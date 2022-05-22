@@ -76,6 +76,8 @@ struct ObjectBase : public Component
         setInterceptsMouseClicks(isLocked, isLocked);
     }
     
+    void setPosition(int x, int y);
+    
     virtual Canvas* getCanvas() { return nullptr; };
     virtual Label* getLabel() { return nullptr; };
     virtual pd::Patch* getPatch() { return nullptr; };
