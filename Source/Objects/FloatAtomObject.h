@@ -4,14 +4,13 @@ struct FloatAtomObject : public AtomObject
 {
     Label input;
     DraggableNumber dragger;
-    
+
     FloatAtomObject(void* obj, Box* parent) : AtomObject(obj, parent), dragger(input)
     {
         input.onEditorShow = [this]()
         {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
-
 
             if (editor != nullptr)
             {
@@ -34,24 +33,19 @@ struct FloatAtomObject : public AtomObject
         input.setEditable(true, false);
 
         addMouseListener(this, true);
-        
-        dragger.dragStart = [this](){
-            startEdition();
-        };
-        
-        dragger.valueChanged = [this](float value){
-            setValueOriginal(value);
-        };
-        
-        dragger.dragEnd = [this](){
-            stopEdition();
-        };
+
+        dragger.dragStart = [this]() { startEdition(); };
+
+        dragger.valueChanged = [this](float value) { setValueOriginal(value); };
+
+        dragger.dragEnd = [this]() { stopEdition(); };
     }
 
-    void updateBounds() override {
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
-    
+
     void checkBoxBounds() override
     {
         // Apply size limits
@@ -59,7 +53,7 @@ struct FloatAtomObject : public AtomObject
         int h = jlimit(Box::height - 12, maxSize, box->getHeight());
 
         h = getBounds().getHeight() + Box::doubleMargin;
-        
+
         if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
@@ -71,7 +65,6 @@ struct FloatAtomObject : public AtomObject
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }
-
 
     void update() override
     {
@@ -98,7 +91,8 @@ struct FloatAtomObject : public AtomObject
         else if (value.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
-            if(getParentComponent()) {
+            if (getParentComponent())
+            {
                 box->updateBounds();  // update box size based on new font
             }
         }
@@ -107,12 +101,11 @@ struct FloatAtomObject : public AtomObject
             GUIObject::valueChanged(value);
         }
     }
-    
+
     float getValue() override
     {
         return atom_getfloat(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)));
     }
-    
 
     float getMinimum()
     {
@@ -123,8 +116,9 @@ struct FloatAtomObject : public AtomObject
         }
         return -std::numeric_limits<float>::max();
     }
-    
-    float getMaximum() {
+
+    float getMaximum()
+    {
         auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
         if (std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon())
         {
@@ -132,7 +126,7 @@ struct FloatAtomObject : public AtomObject
         }
         return std::numeric_limits<float>::max();
     }
-    
+
     void setMinimum(float value)
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);

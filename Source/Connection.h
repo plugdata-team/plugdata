@@ -27,10 +27,10 @@ class Connection : public Component, public ComponentListener
 
     SafePointer<Edge> inlet, outlet;
     SafePointer<Box> inbox, outbox;
-    
+
     Path toDraw;
     String lastId;
-    
+
     Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);
     ~Connection() override;
 
@@ -48,7 +48,7 @@ class Connection : public Component, public ComponentListener
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
-    
+
     void reconnect(Edge* target, bool dragged);
 
     int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
@@ -68,13 +68,11 @@ class Connection : public Component, public ComponentListener
     bool straightLineIntersectsObject(Line<int> first);
 
    private:
-    
     bool deleteOnMouseUp = false;
-    
+
     Rectangle<float> startReconnectHandle, endReconnectHandle;
 
     PathPlan currentPlan;
-
 
     Value locked;
     Value connectionStyle;
@@ -86,6 +84,6 @@ class Connection : public Component, public ComponentListener
     int dragIdx = -1;
 
     float mouseDownPosition = 0;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
 };

@@ -2,8 +2,8 @@
 
 extern "C"
 {
-t_glist *clone_get_instance(t_gobj*, int);
-int clone_get_n(t_gobj*);
+    t_glist* clone_get_instance(t_gobj*, int);
+    int clone_get_n(t_gobj*);
 }
 
 struct SubpatchObject : public TextObject
@@ -24,7 +24,7 @@ struct SubpatchObject : public TextObject
 
     ~SubpatchObject()
     {
-        //closeOpenedSubpatchers();
+        // closeOpenedSubpatchers();
     }
 
     pd::Patch* getPatch() override
@@ -32,28 +32,27 @@ struct SubpatchObject : public TextObject
         return &subpatch;
     }
 
-    
-    void updateBounds() override {
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
-    
+
    protected:
     pd::Patch subpatch;
 };
-
 
 struct CloneObject : public SubpatchObject
 {
     CloneObject(void* obj, Box* box) : SubpatchObject(obj, box)
     {
         auto* gobj = static_cast<t_gobj*>(ptr);
-        if(clone_get_n(gobj) > 0) {
+        if (clone_get_n(gobj) > 0)
+        {
             subpatch = {clone_get_instance(gobj, 0), cnv->pd};
         }
     }
-    
+
     void updateValue() override
     {
     }
-
 };

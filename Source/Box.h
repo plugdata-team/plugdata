@@ -43,12 +43,11 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     void showEditor();
     void hideEditor();
-    
+
     pd::Patch getHelp() const;
     void* getPointer() const;
 
     Array<Connection*> getConnections() const;
-
 
     void mouseEnter(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
@@ -58,15 +57,14 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     void mouseUp(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
 
-    
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
-    
+
     Array<Rectangle<float>> getCorners() const;
 
     int numInputs = 0;
     int numOutputs = 0;
-    
+
     Value locked;
     Value commandLocked;
     Value presentationMode;
@@ -94,11 +92,11 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     void openNewObjectEditor();
 
     Rectangle<int> originalBounds;
-    
+
     bool attachedToMouse = false;
     bool createEditorOnMouseDown = false;
-    
+
     std::unique_ptr<TextEditor> newObjectEditor;
-    
+
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

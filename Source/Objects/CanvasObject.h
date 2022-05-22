@@ -6,17 +6,17 @@ struct CanvasObject : public IEMObject
         box->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
         initialise();
     }
-    
-    void updateBounds() override {
-        
+
+    void updateBounds() override
+    {
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        
+
         Rectangle<int> bounds = {x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w, static_cast<t_my_canvas*>(ptr)->x_vis_h};
-        
+
         box->setBounds(bounds.expanded(Box::margin));
     }
-    
+
     void resized() override
     {
         static_cast<t_my_canvas*>(ptr)->x_vis_w = getWidth() - 1;

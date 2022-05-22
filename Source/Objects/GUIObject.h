@@ -50,45 +50,53 @@ enum class Type : size_t
     Invalid
 };
 
-
 struct ObjectBase : public Component
 {
     void* ptr;
     Box* box;
     Canvas* cnv;
-    
+
     ObjectBase(void* obj, Box* parent);
-    
-    virtual void showEditor() {};
-    virtual void hideEditor() {};
-    
+
+    virtual void showEditor(){};
+    virtual void hideEditor(){};
+
     virtual void updateValue() = 0;
     virtual void updateBounds() = 0;
-    
-    virtual void setText(const String&) {};
-    
+
+    virtual void setText(const String&){};
+
     virtual Type getType() = 0;
-    
+
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
-    virtual void lock(bool isLocked) 
+    virtual void lock(bool isLocked)
     {
         setInterceptsMouseClicks(isLocked, isLocked);
     }
-    
+
     void setPosition(int x, int y);
-    
-    virtual Canvas* getCanvas() { return nullptr; };
-    virtual Label* getLabel() { return nullptr; };
-    virtual pd::Patch* getPatch() { return nullptr; };
-    
-    virtual ObjectParameters getParameters() { return {}; };
-    
+
+    virtual Canvas* getCanvas()
+    {
+        return nullptr;
+    };
+    virtual Label* getLabel()
+    {
+        return nullptr;
+    };
+    virtual pd::Patch* getPatch()
+    {
+        return nullptr;
+    };
+
+    virtual ObjectParameters getParameters()
+    {
+        return {};
+    };
+
     String getText();
-
 };
-
-
 
 struct GUIObject : public ObjectBase, public ComponentListener, public Value::Listener
 {
@@ -109,12 +117,12 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void closeOpenedSubpatchers();
 
     String getName() const;
-    
+
     static Type getType(void* ptr) noexcept;
     Type getType() override;
-    
+
     static ObjectBase* createGui(void* ptr, Box* parent);
- 
+
     virtual void checkBoxBounds(){};
 
     // Get rid of this mess!!
@@ -124,9 +132,9 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     pd::Patch* getPatch() override;
     Canvas* getCanvas() override;
 
-    virtual void updateLabel() {};
-    
-    virtual float getValue() {};
+    virtual void updateLabel(){};
+
+    virtual float getValue(){};
 
     float getValueOriginal() const noexcept;
 
@@ -143,10 +151,13 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
 
-    void valueChanged(Value& value) override {};
-    
-    Label* getLabel() override { return label.get(); }
-    
+    void valueChanged(Value& value) override{};
+
+    Label* getLabel() override
+    {
+        return label.get();
+    }
+
     // MOVE TO GUIObject
     Colour getBackgroundColour() const noexcept;
     Colour getForegroundColour() const noexcept;
@@ -155,19 +166,18 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void setLabelColour(Colour newColour) noexcept;
     void setForegroundColour(Colour newColour) noexcept;
     void setBackgroundColour(Colour newColour) noexcept;
-    
-    //Rectangle<int> getLabelBounds(Rectangle<int> objectBounds) const noexcept;
+
+    // Rectangle<int> getLabelBounds(Rectangle<int> objectBounds) const noexcept;
 
     void setLabelText(String newText) noexcept;
     void setLabelPosition(Point<int> bounds) noexcept;
     void setLabelPosition(int wherelabel) noexcept;
 
     void setValue(float value) noexcept;
-    
+
    protected:
-    
     Type type;
-    
+
     std::unique_ptr<Label> label;
 
     bool inspectorWasVisible = false;
@@ -176,7 +186,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     static inline constexpr int maxSize = 1000000;
 
     PlugDataAudioProcessor& processor;
-    
+
     std::atomic<bool> edited;
     float value = 0;
     Value min = Value(0.0f);

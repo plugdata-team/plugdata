@@ -26,10 +26,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     setResizable(true, true);
 #endif
 
-    
     tooltipWindow->setOpaque(false);
     tooltipWindow->setLookAndFeel(&pd.lnf.get());
-    
+
     constrainer.setSizeLimits(830, 300, 999999, 999999);
     setConstrainer(&constrainer);
 
@@ -78,10 +77,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         // update GraphOnParent when changing tabs
         for (auto* box : getCurrentCanvas()->boxes)
         {
-            if(!box->graphics) continue;
-            
+            if (!box->graphics) continue;
+
             auto type = box->graphics->getType();
-            
+
             if (type == Type::GraphOnParent)
             {
                 auto* cnv = box->graphics->getCanvas();
@@ -196,13 +195,12 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
-    
     auto keymap = pd.settingsTree.getChildWithName("Keymap");
     if (keymap.isValid())
     {
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
-    
+
     setConstrainer(nullptr);
 
     pd.settingsTree.removeListener(this);
@@ -260,7 +258,6 @@ void PlugDataPluginEditor::resized()
     int roundedOffset = PLUGDATA_ROUNDED;
     tabbar.setBounds(0, toolbarHeight - (1 - roundedOffset), (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - statusbar.getHeight());
 
-    
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
@@ -402,10 +399,11 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
 
 void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
 {
-    for(auto* patch : pd.patches) {
+    for (auto* patch : pd.patches)
+    {
         patch->deselectAll();
     }
-    
+
     if (getCurrentCanvas()->patch.getCurrentFile().existsAsFile())
     {
         getCurrentCanvas()->patch.savePatch();
@@ -501,15 +499,15 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         auto deleteFunc = [this, deleteWhenClosed, idx]() mutable
         {
             auto* cnv = getCanvas(idx);
-            
-            if(!cnv)  {
+
+            if (!cnv)
+            {
                 tabbar.removeTab(idx);
                 return;
             }
-            
+
             auto* patch = &cnv->patch;
 
-            
             if (deleteWhenClosed)
             {
                 patch->close();

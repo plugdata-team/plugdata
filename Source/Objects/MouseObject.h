@@ -52,8 +52,8 @@ struct MouseObject : public GUIObject
         pd_typedmess((t_pd*)ptr, gensym("_getscreen"), 2, args);
     }
 
-    
-    void updateBounds() override {
+    void updateBounds() override
+    {
         box->setBounds(getBounds().expanded(Box::margin));
     }
 };

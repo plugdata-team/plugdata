@@ -126,12 +126,10 @@ Instance::Instance(std::string const& symbol)
 
     m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                   reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
-    
+
     m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                     reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
-    
-    
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
@@ -157,7 +155,6 @@ Instance::Instance(std::string const& symbol)
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger);
 
-    
     // HACK: create full path names for c-coded externals
     int i;
     t_class* o = pd_objectmaker;
@@ -169,56 +166,58 @@ Instance::Instance(std::string const& symbol)
 #else
     mlist = o->c_methods;
 #endif
-    
+
     bool insideElse = false;
     bool insideCyclone = false;
 
     std::vector<std::tuple<String, t_newmethod, std::array<t_atomtype, 6>>> newMethods;
-    
+
     // First find all the objects that need a full path and put them in a list
     // Adding new entries while iterating over them is a bad idea
     for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
-        
-        if(name == "accum") {
+
+        if (name == "accum")
+        {
             insideCyclone = true;
         }
-        if(name == "above") {
+        if (name == "above")
+        {
             insideElse = true;
         }
-        
-        if((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~"))
+
+        if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~"))
         {
-            
             auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
-            
+
             std::array<t_atomtype, 6> args;
-            for(int n = 0; n < 6; n++) {
+            for (int n = 0; n < 6; n++)
+            {
                 args[n] = static_cast<t_atomtype>(m->me_arg[n]);
             }
-            
+
             auto* method = reinterpret_cast<t_newmethod>(m->me_fun);
-            
+
             newMethods.push_back({newName, method, args});
-        
         }
-        if(name == "zerox") {
+        if (name == "zerox")
+        {
             insideCyclone = false;
         }
-        if(name == "zerocross") {
+        if (name == "zerocross")
+        {
             insideElse = false;
         }
     }
-    
+
     // Then create aliases for all these objects
     // We seperate this process in two parts because adding new objects while looping through objects causes problems
-    for(auto [name, method, args] : newMethods)
+    for (auto [name, method, args] : newMethods)
     {
         class_addcreator(method, gensym(name.toRawUTF8()), args[0], args[1], args[2], args[3], args[4], args[5]);
     }
-    
-        
+
     libpd_set_verbose(0);
 
     setThis();
@@ -377,9 +376,10 @@ void Instance::sendMessage(const char* receiver, const char* msg, const std::vec
 
 void Instance::processMessage(Message mess)
 {
-    if (mess.destination == "param") {
+    if (mess.destination == "param")
+    {
         int index = mess.list[0].getFloat();
-        float value = std::clamp(mess.list[1].getFloat() , 0.0f, 1.0f);
+        float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
         receiveParameter(index, value);
     }
     else if (mess.selector == "bang")
@@ -474,7 +474,7 @@ void Instance::enqueueFunction(const std::function<void(void)>& fn)
     // This should be the way to do it, but it currently causes some issues
     // By calling fn directly we fix these issues at the cost of possible thread unsafety
     m_function_queue.enqueue(fn);
-    
+
     // Checks if it can be performed immediately
     messageEnqueued();
 }
