@@ -60,7 +60,7 @@ enum CommandIDs
     NewGraphOnParent,
     NewCanvas,
     NewKeyboard,
-    NewVUMeter,
+    NewVUMeterObject,
     NumItems
 };
 

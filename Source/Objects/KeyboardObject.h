@@ -64,7 +64,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent
     }
 };
 // ELSE keyboard
-struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
+struct KeyboardObject : public GUIObject, public MidiKeyboardStateListener
 {
     typedef struct _edit_proxy
     {
@@ -110,7 +110,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_outlet* x_out;
     } t_keyboard;
     
-    KeyboardComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
+    KeyboardObject(void* ptr, Box* box) : GUIObject(ptr, box), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
@@ -119,7 +119,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         
         addAndMakeVisible(keyboard);
         
-        auto* x = (t_keyboard*)gui.getPointer();
+        auto* x = (t_keyboard*)ptr;
         x->x_width = width * 0.595f;
         
         rangeMin = x->x_low_c;
@@ -131,7 +131,18 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
             rangeMax = 86;
         }
         
-        initialise(newObject);
+        initialise();
+    }
+    
+    void updateBounds() override {
+        int x, y, w, h;
+        
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+
+        auto* keyboard = static_cast<t_keyboard*>(ptr);
+        Rectangle<int> bounds(x, y, keyboard->x_width, keyboard->x_height);
+        
+        box->setBounds(bounds.expanded(Box::margin));
     }
     
     void checkBoxBounds() override
@@ -139,7 +150,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
         float ratio = numKeys / 9.55f;
         
-        auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
+        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
         
         if (box->getWidth() / ratio != box->getHeight())
         {
@@ -155,14 +166,17 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     
     void resized() override
     {
+        static_cast<t_keyboard*>(ptr)->x_width = getWidth();
+        static_cast<t_keyboard*>(ptr)->x_height = getHeight();
+        
         keyboard.setBounds(getLocalBounds());
     }
     
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
-        auto* x = (t_keyboard*)gui.getPointer();
+        auto* x = (t_keyboard*)ptr;
         
-        box->cnv->pd->enqueueFunction(
+        cnv->pd->enqueueFunction(
                                       [x, note, velocity]() mutable
                                       {
                                           int ac = 2;
@@ -177,9 +191,9 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     
     void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
-        auto* x = (t_keyboard*)gui.getPointer();
+        auto* x = (t_keyboard*)ptr;
         
-        box->cnv->pd->enqueueFunction(
+        cnv->pd->enqueueFunction(
                                       [x, note]() mutable
                                       {
                                           int ac = 2;
@@ -199,7 +213,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
     
     void valueChanged(Value& value) override
     {
-        auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
+        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
         
         if (value.refersToSameSourceAs(rangeMin))
         {
@@ -218,7 +232,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         {
             rangeMax = std::clamp<int>(rangeMax.getValue(), 0, 127);
             /*
-             static_cast<t_keyboard*>(gui.getPointer())->x_octaves = static_cast<int>(value.getValue()); */
+             static_cast<t_keyboard*>(ptr)->x_octaves = static_cast<int>(value.getValue()); */
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
             
             int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());

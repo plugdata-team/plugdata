@@ -82,7 +82,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
             
             auto type = box->graphics->getType();
             
-            if (type == pd::Type::GraphOnParent)
+            if (type == Type::GraphOnParent)
             {
                 auto* cnv = box->graphics->getCanvas();
                 if (cnv) cnv->synchronise();
@@ -922,7 +922,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setActive(pd.locked == var(false));
             break;
         }
-        case CommandIDs::NewVUMeter:
+        case CommandIDs::NewVUMeterObject:
         {
             result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
             result.setActive(pd.locked == var(false));

@@ -18,20 +18,6 @@ extern "C"
     extern t_class* text_class;
 }
 
-struct _outconnect
-{
-    struct _outconnect* oc_next;
-    t_pd* oc_to;
-};
-
-struct _outlet
-{
-    t_object* o_owner;
-    struct _outlet* o_next;
-    t_outconnect* o_connections;
-    t_symbol* o_sym;
-};
-
 namespace pd
 {
 
@@ -49,21 +35,21 @@ bool Object::operator!=(Object const& other) const noexcept
     return ptr != other.ptr;
 }
 
-std::string Object::getText()
+
+String Object::getText(void* obj)
 {
-    
-    if (ptr && patch->checkObject(this))
+    bool hasText = pd_class(&pd_checkobject(static_cast<t_pd*>(obj))->te_g.g_pd) == text_class;
+    if (obj && hasText)
     {
         char* text = nullptr;
         int size = 0;
-        instance->setThis();
-
-        libpd_get_object_text(ptr, &text, &size);
+        
+        libpd_get_object_text(pd_checkobject(static_cast<t_pd*>(obj)), &text, &size);
         if (text && size)
         {
             std::string txt(text, size);
             freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
-            return txt;
+            return String(txt);
         }
     }
     return {};
@@ -95,55 +81,7 @@ Rectangle<int> Object::getBounds() const noexcept
     return {x, y, textObj->te_width, h};
 }
 
-//! @brief The name of the help file
-Patch Object::getHelp() const
-{
-    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
-    auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
-    auto* name = class_gethelpname(pdclass);
-
-    String firstName = String(name) + "-help.pd";
-    String secondName = "help-" + String(name) + ".pd";
-
-    auto findHelpPatch = [&firstName, &secondName](File searchDir) -> File
-    {
-        for (auto& fileIter : RangedDirectoryIterator(searchDir, true))
-        {
-            auto file = fileIter.getFile();
-            if (file.getFileName() == firstName)
-            {
-                return file;
-            }
-            else if (file.getFileName() == secondName)
-            {
-                return file;
-            }
-        }
-
-        return File();
-    };
-
-    // Paths to search
-    // First, only search vanilla, then search all documentation
-    std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
-
-    for (auto& path : paths)
-    {
-        auto file = findHelpPatch(path);
-        if (file.existsAsFile())
-        {
-            auto name = file.getFileName();
-            auto fullPath = file.getParentDirectory().getFullPathName();
-            sys_lock();
-            auto* pdPatch = glob_evalfile(nullptr, gensym(name.toRawUTF8()), gensym(fullPath.toRawUTF8()));
-            sys_unlock();
-            return {pdPatch, instance, file.getChildFile(secondName)};
-        }
-    }
-
-    return {nullptr, nullptr};
-}
 
 void Object::setBounds(Rectangle<int> bounds)
 {
@@ -158,43 +96,6 @@ void Object::setBounds(Rectangle<int> bounds)
     libpd_moveobj(patch->getPointer(), static_cast<t_gobj*>(getPointer()), bounds.getX(), bounds.getY());
 }
 
-int Object::getNumInlets() noexcept
-{
-    if (auto* checked = patch->checkObject(this))
-    {
-        return libpd_ninlets(checked);
-    }
-
-    return 0;
-}
-int Object::getNumOutlets() noexcept
-{
-    if (auto* checked = patch->checkObject(this))
-    {
-        return libpd_noutlets(checked);
-    }
-
-    return 0;
-}
-
-bool Object::isSignalInlet(int idx) noexcept
-{
-    if (auto* checked = patch->checkObject(this))
-    {
-        return libpd_issignalinlet(checked, idx);
-    }
-
-    return false;
-}
-bool Object::isSignalOutlet(int idx) noexcept
-{
-    if (auto* checked = patch->checkObject(this))
-    {
-        return libpd_issignaloutlet(checked, idx);
-    }
-
-    return false;
-}
 
 void Object::addUndoableAction()
 {

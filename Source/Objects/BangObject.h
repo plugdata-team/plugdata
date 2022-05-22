@@ -1,5 +1,5 @@
 
-struct BangComponent : public GUIComponent
+struct BangObject : public IEMObject
 {
     uint32_t lastBang = 0;
     
@@ -8,12 +8,12 @@ struct BangComponent : public GUIComponent
     
     bool bangState = false;
     
-    BangComponent(const pd::Gui& pdGui, Box* parent, bool newObject) : GUIComponent(pdGui, parent, newObject)
+    BangObject(void* obj, Box* parent) : IEMObject(obj, parent)
     {
-        bangInterrupt = static_cast<t_bng*>(gui.getPointer())->x_flashtime_break;
-        bangHold = static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold;
+        bangInterrupt = static_cast<t_bng*>(ptr)->x_flashtime_break;
+        bangHold = static_cast<t_bng*>(ptr)->x_flashtime_hold;
         
-        initialise(newObject);
+        initialise();
     }
     
     void checkBoxBounds() override
@@ -36,7 +36,7 @@ struct BangComponent : public GUIComponent
     
     void paint(Graphics& g) override
     {
-        g.setColour(gui.getBackgroundColour());
+        g.setColour(getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
         
         const auto bounds = getLocalBounds().reduced(1).toFloat();
@@ -48,9 +48,20 @@ struct BangComponent : public GUIComponent
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
 
-        g.setColour(bangState ? gui.getForegroundColour() : Colours::transparentWhite);
+        g.setColour(bangState ? getForegroundColour() : Colours::transparentWhite);
         
         g.fillEllipse(bounds.reduced(width - circleOuter + circleThickness));
+    }
+    
+    float getValue() override
+    {
+        // hack to trigger off the bang if no GUI update
+        if ((static_cast<t_bng*>(ptr))->x_flashed > 0)
+        {
+            static_cast<t_bng*>(ptr)->x_flashed = 0;
+            return 1.0f;
+        }
+        return 0.0f;
     }
     
     void update() override
@@ -103,15 +114,24 @@ struct BangComponent : public GUIComponent
     {
         if (value.refersToSameSourceAs(bangInterrupt))
         {
-            static_cast<t_bng*>(gui.getPointer())->x_flashtime_break = bangInterrupt.getValue();
+            static_cast<t_bng*>(ptr)->x_flashtime_break = bangInterrupt.getValue();
         }
         if (value.refersToSameSourceAs(bangHold))
         {
-            static_cast<t_bng*>(gui.getPointer())->x_flashtime_hold = bangHold.getValue();
+            static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
         }
         else
         {
-            GUIComponent::valueChanged(value);
+            GUIObject::valueChanged(value);
         }
     }
+    
+    
+    float getMaximum() const noexcept
+    {
+        return (static_cast<t_my_numbox*>(ptr))->x_max;
+
+    }
+
+    
 };

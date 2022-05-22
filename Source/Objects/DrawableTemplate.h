@@ -16,6 +16,8 @@ extern "C"
 #include <s_stuff.h>
 }
 
+#include "GUIObject.h"
+
 class Canvas;
 struct _fielddesc
 {
@@ -49,4 +51,18 @@ struct DrawableTemplate : public DrawablePath
     void update();
 
     void updateIfMoved();
+};
+
+struct ScalarObject : public GUIObject
+{
+    ScalarObject(void* obj, Box* box) : GUIObject(obj, box)
+    {
+        
+    }
+    
+    void updateBounds() override
+    {
+        
+    }
+    
 };
