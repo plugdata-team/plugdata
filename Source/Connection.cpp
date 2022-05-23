@@ -265,13 +265,14 @@ void Connection::mouseExit(const MouseEvent& e)
 
 void Connection::mouseDown(const MouseEvent& e)
 {
+    wasSelected = cnv->isSelected(this);
+    
     // Deselect all other connection if shift or command is not down
     if (!ModifierKeys::getCurrentModifiers().isCommandDown() && !ModifierKeys::getCurrentModifiers().isShiftDown())
     {
         cnv->deselectAll();
     }
-
-    wasSelected = cnv->isSelected(this);
+    
     cnv->setSelected(this, true);
     repaint();
 
