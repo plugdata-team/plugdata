@@ -1,6 +1,6 @@
 #include "../Utility/DraggableNumber.h"
 
-struct NumberObject : public IEMObject
+struct NumberObject final : public IEMObject
 {
     Label input;
     DraggableNumber dragger;
@@ -53,7 +53,7 @@ struct NumberObject : public IEMObject
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         w = nbx->x_numwidth * glist_fontwidth(cnv->patch.getPointer());
         
-        box->setBounds({x - Box::margin, y - Box::margin, w + Box::doubleMargin, Box::height});
+        box->setObjectBounds({x, y, w, Box::height - Box::doubleMargin});
     }
 
     void checkBounds() override

@@ -42,10 +42,11 @@ extern "C"
 #include "VUMeterObject.h"
 #include "ListObject.h"
 #include "SubpatchObject.h"
+#include "CloneObject.h"
 #include "CommentObject.h"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
-#include "DrawableTemplate.h"
+#include "ScalarObject.h"
 
 ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv), type(GUIObject::getType(obj))
 {
@@ -70,6 +71,40 @@ String ObjectBase::getText()
 
     return "";
 }
+
+// Called in destructor of subpatch and graph class
+// Makes sure that any tabs refering to the now deleted patch will be closed
+void ObjectBase::closeOpenedSubpatchers()
+{
+    auto& main = box->cnv->main;
+    auto* tabbar = &main.tabbar;
+
+    if (!tabbar) return;
+
+    for (int n = 0; n < tabbar->getNumTabs(); n++)
+    {
+        auto* cnv = main.getCanvas(n);
+        if (cnv && cnv->patch == *getPatch())
+        {
+            auto* deleted_patch = &cnv->patch;
+            main.canvases.removeObject(cnv);
+            tabbar->removeTab(n);
+            main.pd.patches.removeObject(deleted_patch, false);
+        }
+    }
+
+    if (tabbar->getNumTabs() > 1)
+    {
+        tabbar->getTabbedButtonBar().setVisible(true);
+        tabbar->setTabBarDepth(30);
+    }
+    else
+    {
+        tabbar->getTabbedButtonBar().setVisible(false);
+        tabbar->setTabBarDepth(1);
+    }
+}
+
 
 void ObjectBase::moveToFront()
 {
@@ -115,6 +150,16 @@ void ObjectBase::moveToFront()
         y_prev->g_next = y_next;
     else
         canvas->gl_list = y_next;
+}
+
+
+NonPatchable::NonPatchable(void* obj, Box* parent) : ObjectBase(obj, parent) {
+   
+    // Make object invisible
+    box->setVisible(false);
+}
+
+NonPatchable::~NonPatchable() {
 }
 
 GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false)
@@ -291,38 +336,6 @@ void GUIObject::setValue(float value) noexcept
     cnv->pd->enqueueDirectMessages(ptr, value);
 }
 
-// Called in destructor of subpatch and graph class
-// Makes sure that any tabs refering to the now deleted patch will be closed
-void GUIObject::closeOpenedSubpatchers()
-{
-    auto& main = box->cnv->main;
-    auto* tabbar = &main.tabbar;
-
-    if (!tabbar) return;
-
-    for (int n = 0; n < tabbar->getNumTabs(); n++)
-    {
-        auto* cnv = main.getCanvas(n);
-        if (cnv && cnv->patch == *getPatch())
-        {
-            auto* deleted_patch = &cnv->patch;
-            main.canvases.removeObject(cnv);
-            tabbar->removeTab(n);
-            main.pd.patches.removeObject(deleted_patch, false);
-        }
-    }
-
-    if (tabbar->getNumTabs() > 1)
-    {
-        tabbar->getTabbedButtonBar().setVisible(true);
-        tabbar->setTabBarDepth(30);
-    }
-    else
-    {
-        tabbar->getTabbedButtonBar().setVisible(false);
-        tabbar->setTabBarDepth(1);
-    }
-}
 
 String GUIObject::getName() const
 {
@@ -454,6 +467,17 @@ Type GUIObject::getType(void* ptr) noexcept
     {
         return Type::Subpatch;
     }
+    else if (name == "scalar")
+    {
+        auto* gobj = static_cast<t_gobj*>(ptr);
+        if (gobj->g_pd == scalar_class) {
+            return Type::Scalar;
+        }
+    }
+    else if(!pd_checkobject(static_cast<t_pd*>(ptr))) {
+        // Object is not a patcher object but something else
+        return Type::NonPatchable;
+    }
 
     return Type::Text;
 }
@@ -511,6 +535,10 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         return new KeyboardObject(ptr, parent);
         case Type::Picture:
         return new PictureObject(ptr, parent);
+        case Type::Scalar:
+        return new ScalarObject(ptr, parent);
+        case Type::NonPatchable:
+        return new NonPatchable(ptr, parent);
         default:
             return nullptr;
     }
