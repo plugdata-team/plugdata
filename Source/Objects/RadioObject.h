@@ -3,20 +3,18 @@ struct RadioObject final : public IEMObject
 {
     int lastState = 0;
 
-    Value numButtons = Value(8.0f);
-
     bool isVertical;
 
     RadioObject(bool vertical, void* obj, Box* parent) : IEMObject(obj, parent)
     {
         isVertical = vertical;
 
-        numButtons = getMaximum();
+        max = getMaximum();
 
         initialise();
         updateRange();
 
-        numButtons.addListener(this);
+        max.addListener(this);
 
         int selected = getValueOriginal();
 
@@ -98,32 +96,19 @@ struct RadioObject final : public IEMObject
         }
     }
 
-    // To make it trigger on mousedown instead of mouseup
-    void mouseDown(const MouseEvent& e) override
-    {
-        for (int i = 0; i < numButtons; i++)
-        {
-            if (radioButtons[i]->getBounds().contains(e.getEventRelativeTo(this).getPosition()))
-            {
-                radioButtons[i]->triggerClick();
-            }
-        }
-    }
-
     void updateRange()
     {
         radioButtons.clear();
-        
-       
 
-        for (int i = 0; i < numButtons; i++)
+        for (int i = 0; i < max; i++)
         {
             radioButtons.add(new TextButton);
             radioButtons[i]->setConnectedEdges(12);
             radioButtons[i]->setRadioGroupId(1001);
             radioButtons[i]->setClickingTogglesState(true);
             radioButtons[i]->setName("radiobutton");
-            radioButtons[i]->setInterceptsMouseClicks(false, false);
+            radioButtons[i]->setInterceptsMouseClicks(true, false);
+            radioButtons[i]->setTriggeredOnMouseDown(true);
             addAndMakeVisible(radioButtons[i]);
 
             radioButtons[i]->onClick = [this, i]() mutable
@@ -140,8 +125,9 @@ struct RadioObject final : public IEMObject
 
         int idx = getValueOriginal();
         radioButtons[idx]->setToggleState(true, dontSendNotification);
-        
-        if(getWidth() != 0 && getHeight() != 0) {
+
+        if (getWidth() != 0 && getHeight() != 0)
+        {
             resized();
         }
     }
@@ -150,14 +136,14 @@ struct RadioObject final : public IEMObject
 
     ObjectParameters defineParameters() override
     {
-        return {{"Options", tInt, cGeneral, &numButtons, {}}};
+        return {{"Options", tInt, cGeneral, &max, {}}};
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(numButtons))
+        if (value.refersToSameSourceAs(max))
         {
-            setMaximum(static_cast<int>(numButtons.getValue()));
+            setMaximum(static_cast<int>(max.getValue()));
             updateRange();
         }
         else

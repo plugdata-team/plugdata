@@ -13,8 +13,6 @@ struct GraphOnParent final : public GUIObject
 
         initialise();
 
-        addMouseListener(this, true);
-
         resized();
         updateDrawables();
     }
@@ -45,14 +43,14 @@ struct GraphOnParent final : public GUIObject
         closeOpenedSubpatchers();
     }
 
-    void applyBounds() override {
+    void applyBounds() override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
-        
+
         auto* graph = static_cast<_glist*>(ptr);
         graph->gl_pixwidth = getWidth();
         graph->gl_pixheight = getHeight();
     }
-    
 
     void lock(bool locked) override
     {
@@ -116,10 +114,10 @@ struct GraphOnParent final : public GUIObject
             }
         }
     }
-    
+
     void updateDrawables() override
     {
-        if(!canvas) return;
+        if (!canvas) return;
         for (auto& box : canvas->boxes)
         {
             if (box->gui)

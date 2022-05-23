@@ -51,5 +51,4 @@ struct MouseObject final : public TextBase
 
         pd_typedmess((t_pd*)ptr, gensym("_getscreen"), 2, args);
     }
-
 };

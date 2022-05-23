@@ -29,7 +29,6 @@ extern "C"
 #include <s_stuff.h>
 }
 
-
 #ifdef _WIN32
 #include <io.h>
 #include <windows.h>

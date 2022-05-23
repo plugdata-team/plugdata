@@ -67,9 +67,10 @@ class Connection : public Component, public ComponentListener
     bool straightLineIntersectsObject(Line<int> first);
 
    private:
+    bool wasSelected = false;
     bool deleteOnMouseUp = false;
     bool segmented = false;
-    
+
     Rectangle<float> startReconnectHandle, endReconnectHandle;
 
     PathPlan currentPlan;
