@@ -4,9 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject : public TextObject
+struct CommentObject final : public TextBase
 {
-    CommentObject(void* obj, Box* box) : TextObject(obj, box)
+    CommentObject(void* obj, Box* box) : TextBase(obj, box)
     {
         setInterceptsMouseClicks(false, false);
 

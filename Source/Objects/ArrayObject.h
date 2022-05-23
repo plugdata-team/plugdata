@@ -292,7 +292,7 @@ struct GraphicalArray : public Component
     PlugDataAudioProcessor* pd;
 };
 
-struct ArrayObject : public GUIObject
+struct ArrayObject final : public GUIObject
 {
    public:
     // Array component

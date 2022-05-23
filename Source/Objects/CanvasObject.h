@@ -1,5 +1,5 @@
 
-struct CanvasObject : public IEMObject
+struct CanvasObject final : public IEMObject
 {
     CanvasObject(void* ptr, Box* box) : IEMObject(ptr, box)
     {

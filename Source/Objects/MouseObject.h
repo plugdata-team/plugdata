@@ -1,6 +1,6 @@
 
 // Else "mouse" component
-struct MouseObject : public TextObject
+struct MouseObject final : public TextBase
 {
     typedef struct _mouse
     {
@@ -15,7 +15,7 @@ struct MouseObject : public TextObject
         t_outlet* x_vertical;
     } t_mouse;
 
-    MouseObject(void* ptr, Box* box) : TextObject(ptr, box)
+    MouseObject(void* ptr, Box* box) : TextBase(ptr, box)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
     }

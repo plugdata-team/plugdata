@@ -1,5 +1,5 @@
 
-struct RadioObject : public IEMObject
+struct RadioObject final : public IEMObject
 {
     int lastState = 0;
 
