@@ -10,8 +10,9 @@
 #include <array>
 #include <vector>
 
-#include "PdGui.h"
 #include "x_libpd_mod_utils.h"
+
+
 
 namespace pd
 {
@@ -19,7 +20,7 @@ namespace pd
 using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
 class Instance;
 
-//! @brief The Pd patch.
+// The Pd patch.
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
 //! is not guaranteed by the class.
 //! @see Instance, Object, Gui
@@ -28,7 +29,7 @@ class Patch
    public:
     Patch(void* ptr, Instance* instance, File currentFile = File());
 
-    //! @brief The compare equal operator.
+    // The compare equal operator.
     bool operator==(Patch const& other) const noexcept
     {
         return getPointer() == other.getPointer();
@@ -36,22 +37,22 @@ class Patch
 
     void close();
 
-    //! @brief Gets the bounds of the patch.
+    // Gets the bounds of the patch.
     Rectangle<int> getBounds() const noexcept;
 
-    std::unique_ptr<Object> createGraph(const String& name, int size, int x, int y);
-    std::unique_ptr<Object> createGraphOnParent(int x, int y);
+    void* createGraph(const String& name, int size, int x, int y);
+    void* createGraphOnParent(int x, int y);
 
-    std::unique_ptr<Object> createObject(const String& name, int x, int y);
-    void removeObject(Object* obj);
-    std::unique_ptr<Object> renameObject(Object* obj, const String& name);
+    void* createObject(const String& name, int x, int y);
+    void removeObject(void* obj);
+    void* renameObject(void* obj, const String& name);
 
-    void moveObjects(const std::vector<Object*>&, int x, int y);
+    void moveObjects(const std::vector<void*>&, int x, int y);
 
     void finishRemove();
     void removeSelection();
 
-    void selectObject(Object*);
+    void selectObject(void*);
     void deselectAll();
 
     bool isDirty();
@@ -87,10 +88,10 @@ class Patch
         currentFile = newFile;
     }
 
-    bool hasConnection(Object* src, int nout, Object* sink, int nin);
-    bool canConnect(Object* src, int nout, Object* sink, int nin);
-    bool createConnection(Object* src, int nout, Object* sink, int nin);
-    void removeConnection(Object* src, int nout, Object* sink, int nin);
+    bool hasConnection(void* src, int nout, void* sink, int nin);
+    bool canConnect(void* src, int nout, void* sink, int nin);
+    bool createConnection(void* src, int nout, void* sink, int nin);
+    void removeConnection(void* src, int nout, void* sink, int nin);
 
     Connections getConnections() const;
 
@@ -99,8 +100,8 @@ class Patch
         return static_cast<t_canvas*>(ptr);
     }
 
-    //! @brief Gets the objects of the patch.
-    std::vector<Object> getObjects(bool onlyGui = false) noexcept;
+    // Gets the objects of the patch.
+    std::vector<void*> getObjects(bool onlyGui = false) noexcept;
 
     String getCanvasContent()
     {
@@ -113,7 +114,7 @@ class Patch
 
     int getIndex(void* obj);
 
-    static t_object* checkObject(Object* obj) noexcept;
+    static t_object* checkObject(void* obj) noexcept;
 
     void keyPress(int keycode, int shift);
 

@@ -6,10 +6,9 @@
 
 #include "PdPatch.h"
 
-#include "PdGui.h"
 #include "PdInstance.h"
-#include "PdObject.h"
 #include "PdStorage.h"
+#include "../Objects/GUIObject.h"
 
 extern "C"
 {
@@ -20,6 +19,7 @@ extern "C"
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
+
 
     struct _instanceeditor
     {
@@ -178,14 +178,15 @@ int Patch::getIndex(void* obj)
 Connections Patch::getConnections() const
 {
     Connections connections;
-
+            
+    t_outconnect *oc;
     t_linetraverser t;
     auto* x = getPointer();
 
     // Get connections from pd
     linetraverser_start(&t, x);
-
-    while (linetraverser_next(&t))
+    
+    while ((oc = linetraverser_next(&t)))
     {
         connections.push_back({t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2});
     }
@@ -193,38 +194,36 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<Object> Patch::getObjects(bool onlyGui) noexcept
+std::vector<void*> Patch::getObjects(bool onlyGui) noexcept
 {
     if (ptr)
     {
-        std::vector<Object> objects;
+        std::vector<void*> objects;
         t_canvas const* cnv = getPointer();
 
         for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
         {
-            Object object(static_cast<void*>(y), this, instance);
-
             if (Storage::isInfoParent(y)) continue;
 
             if (onlyGui)
             {
-                Gui gui(static_cast<void*>(y), this, instance);
-                if (gui.getType() != Type::Undefined)
+                if (GUIObject::getType(y) != Type::Text)
                 {
-                    objects.push_back(object);
+                    objects.push_back(static_cast<void*>(y));
                 }
             }
             else
             {
-                objects.push_back(object);
+                objects.push_back(static_cast<void*>(y));
             }
         }
+        
         return objects;
     }
     return {};
 }
 
-std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y)
+void* Patch::createGraphOnParent(int x, int y)
 {
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
@@ -244,10 +243,10 @@ std::unique_ptr<Object> Patch::createGraphOnParent(int x, int y)
 
     assert(pdobject);
 
-    return std::make_unique<Gui>(pdobject, this, instance);
+    return pdobject;
 }
 
-std::unique_ptr<Object> Patch::createGraph(const String& name, int size, int x, int y)
+void* Patch::createGraph(const String& name, int size, int x, int y)
 {
     t_pd* pdobject = nullptr;
     std::atomic<bool> done = false;
@@ -267,10 +266,10 @@ std::unique_ptr<Object> Patch::createGraph(const String& name, int size, int x, 
 
     assert(pdobject);
 
-    return std::make_unique<Gui>(pdobject, this, instance);
+    return pdobject;
 }
 
-std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
+void* Patch::createObject(const String& name, int x, int y)
 {
     if (!ptr) return nullptr;
 
@@ -293,7 +292,6 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
         preset = preset.replace("fgColour", "#" + fg);
         preset = preset.replace("lblColour", "#" + lbl);
         preset = preset.replace("lnColour", "#" + ln);
-        
 
         tokens.addTokens(preset, false);
     }
@@ -334,6 +332,10 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
     }
+    if (tokens[0] == "+")
+    {
+        tokens.set(0, "\\+");
+    }
 
     int argc = tokens.size() + 2;
 
@@ -373,17 +375,7 @@ std::unique_ptr<Object> Patch::createObject(const String& name, int x, int y)
     }
 
     assert(pdobject);
-
-    bool isGui = Gui::getType(pdobject) != Type::Undefined;
-
-    if (isGui)
-    {
-        return std::make_unique<Gui>(pdobject, this, instance);
-    }
-    else
-    {
-        return std::make_unique<Object>(pdobject, this, instance);
-    }
+    return pdobject;
 }
 
 static int glist_getindex(t_glist* x, t_gobj* y)
@@ -395,7 +387,7 @@ static int glist_getindex(t_glist* x, t_gobj* y)
     return (indx);
 }
 
-std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
+void* Patch::renameObject(void* obj, const String& name)
 {
     if (!obj || !ptr) return nullptr;
 
@@ -405,9 +397,11 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
     StringArray notRenamable = {"msg", "message", "gatom", "floatatom", "symbolatom", "listbox"};
 
     // Don't rename when going to or from a gui object, remove and recreate instead
+    /*
     if (notRenamable.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() == Type::Message || obj->getType() == Type::AtomNumber || obj->getType() == Type::AtomSymbol)
     {
-        auto b = obj->getBounds();
+        int x, y, w, h;
+        libpd_get_object_bounds(ptr, obj, &x, &y, &w, &h);
 
         instance->enqueueFunction(
             [this, obj]()
@@ -420,12 +414,12 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
                 glist_noselect(getPointer());
             });
 
-        auto obj = createObject(name, b.getX(), b.getY());
+        auto obj = createObject(name, x, y);
 
         instance->enqueueFunction([this]() { canvas_restoreconnections(getPointer()); });
 
         return obj;
-    }
+    } */
     
     auto type = name.upToFirstOccurrenceOf(" ", false, false);
     String newName = name;
@@ -454,15 +448,7 @@ std::unique_ptr<Object> Patch::renameObject(Object* obj, const String& name)
 
     setCurrent(true);
 
-    auto gui = Gui(libpd_newest(getPointer()), this, instance);
-    if (gui.getType() == Type::Undefined)
-    {
-        return std::make_unique<Object>(libpd_newest(getPointer()), this, instance);
-    }
-    else
-    {
-        return std::make_unique<Gui>(gui);
-    }
+    return libpd_newest(getPointer());
 }
 
 void Patch::copy()
@@ -494,7 +480,7 @@ void Patch::duplicate()
         });
 }
 
-void Patch::selectObject(Object* obj)
+void Patch::selectObject(void* obj)
 {
     instance->enqueueFunction(
         [this, obj]()
@@ -517,7 +503,7 @@ void Patch::deselectAll()
         });
 }
 
-void Patch::removeObject(Object* obj)
+void Patch::removeObject(void* obj)
 {
     if (!obj || !ptr) return;
 
@@ -529,7 +515,7 @@ void Patch::removeObject(Object* obj)
         });
 }
 
-bool Patch::hasConnection(Object* src, int nout, Object* sink, int nin)
+bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
     
     bool hasConnection = false;
@@ -550,7 +536,7 @@ bool Patch::hasConnection(Object* src, int nout, Object* sink, int nin)
     
 }
 
-bool Patch::canConnect(Object* src, int nout, Object* sink, int nin)
+bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
     bool canConnect = false;
 
@@ -561,7 +547,7 @@ bool Patch::canConnect(Object* src, int nout, Object* sink, int nin)
     return canConnect;
 }
 
-bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
+bool Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
     if (!src || !sink || !ptr) return false;
 
@@ -584,7 +570,7 @@ bool Patch::createConnection(Object* src, int nout, Object* sink, int nin)
     return canConnect;
 }
 
-void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
+void Patch::removeConnection(void* src, int nout, void* sink, int nin)
 {
     if (!src || !sink || !ptr) return;
 
@@ -597,7 +583,7 @@ void Patch::removeConnection(Object* src, int nout, Object* sink, int nin)
         });
 }
 
-void Patch::moveObjects(const std::vector<Object*>& objects, int dx, int dy)
+void Patch::moveObjects(const std::vector<void*>& objects, int dx, int dy)
 {
     // if(!obj || !ptr) return;
 
@@ -682,9 +668,9 @@ void Patch::setZoom(int newZoom)
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
-t_object* Patch::checkObject(Object* obj) noexcept
+t_object* Patch::checkObject(void* obj) noexcept
 {
-    return pd_checkobject(static_cast<t_pd*>(obj->getPointer()));
+    return pd_checkobject(static_cast<t_pd*>(obj));
 }
 
 void Patch::keyPress(int keycode, int shift)

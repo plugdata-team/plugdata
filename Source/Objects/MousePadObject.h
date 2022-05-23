@@ -1,6 +1,6 @@
 
 // ELSE mousepad
-struct MousePad : public GUIComponent
+struct MousePadObject : public GUIObject
 {
     bool isLocked = false;
     bool isPressed = false;
@@ -21,7 +21,7 @@ struct MousePad : public GUIComponent
         unsigned char x_color[3];
     } t_pad;
 
-    MousePad(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
+    MousePadObject(void* ptr, Box* box) : GUIObject(ptr, box)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
 
@@ -30,7 +30,7 @@ struct MousePad : public GUIComponent
         addMouseListener(box, false);
     }
 
-    ~MousePad()
+    ~MousePadObject()
     {
         removeMouseListener(box);
         Desktop::getInstance().removeGlobalMouseListener(this);
@@ -42,10 +42,10 @@ struct MousePad : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
-        GUIComponent::mouseDown(e);
+        GUIObject::mouseDown(e);
         if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
 
-        auto* x = static_cast<t_pad*>(gui.getPointer());
+        auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
 
         auto relativeEvent = e.getEventRelativeTo(this);
@@ -73,7 +73,7 @@ struct MousePad : public GUIComponent
     {
         if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
 
-        auto* x = static_cast<t_pad*>(gui.getPointer());
+        auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
 
         auto relativeEvent = e.getEventRelativeTo(this);
@@ -94,10 +94,28 @@ struct MousePad : public GUIComponent
     {
         if (!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) return;
 
-        auto* x = static_cast<t_pad*>(gui.getPointer());
+        auto* x = static_cast<t_pad*>(ptr);
         t_atom at[1];
         SETFLOAT(at, 0);
         outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
+    }
+    
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
+        auto* pad = static_cast<t_pad*>(ptr);
+        pad->x_w = getWidth();
+        pad->x_h = getHeight();
+    }
+    
+    void updateBounds() override
+    {
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+
+        Rectangle<int> bounds(x, y, w, h);
+
+        box->setBounds(bounds.expanded(Box::margin));
     }
 
     void lock(bool locked) override

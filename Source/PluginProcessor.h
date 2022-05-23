@@ -134,12 +134,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void setTheme(bool themeToUse);
 
-
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;
     Colour getTextColour() override;
     Colour getOutlineColour() override;
-    
+
     // All opened patches
     OwnedArray<pd::Patch> patches;
 
@@ -206,28 +205,30 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
-    
+
 #if !PLUGDATA_STANDALONE
-    
+
     // Timer for grouping change messages when informing the DAW
     struct ParameterTimer : public Timer
     {
         RangedAudioParameter* parameter;
-        
-        void notifyChange(RangedAudioParameter* param) {
-            if(!isTimerRunning()) {
+
+        void notifyChange(RangedAudioParameter* param)
+        {
+            if (!isTimerRunning())
+            {
                 parameter = param;
                 parameter->beginChangeGesture();
                 startTimer(500);
             }
         }
-        
+
         void timerCallback() override
         {
             parameter->endChangeGesture();
         }
     };
-    
+
     ParameterTimer parameterTimers[numParameters];
 #endif
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)

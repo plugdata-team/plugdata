@@ -84,13 +84,10 @@ struct LevelMeter : public Component, public Timer
 
                 g.fillRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
             }
-            
-            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            g.drawRect(outerBorderWidth + x, y, getWidth() - (2 * (outerBorderWidth + blockRectSpacing)), blockHeight + 2.0f, 1.0f);
+
+            //g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            //g.drawRect(outerBorderWidth + x, y, getWidth() - (2 * (outerBorderWidth + blockRectSpacing)), blockHeight + 2.0f, 1.0f);
         }
-        
-        
-        
     }
 
     int totalBlocks = 15;
@@ -201,10 +198,8 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     powerButton->setName("statusbar:bypass");
     addAndMakeVisible(powerButton.get());
 
-    powerButton->onClick = [this]() {
-        powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP();
-    };
-    
+    powerButton->onClick = [this]() { powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP(); };
+
     powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
     lockButton->setTooltip("Lock");
@@ -439,7 +434,7 @@ void Statusbar::zoom(bool zoomIn)
 }
 
 void Statusbar::zoom(float zoomAmount)
-{    
+{
     float value = static_cast<float>(zoomScale.getValue());
     value *= zoomAmount;
 

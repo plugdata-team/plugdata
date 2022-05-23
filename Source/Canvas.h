@@ -12,7 +12,7 @@
 #include "Pd/PdPatch.h"
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
-#include "Components/ObjectGrid.h"
+#include "Utility/ObjectGrid.h"
 #include "Objects/DrawableTemplate.h"
 
 class SuggestionComponent;
@@ -119,7 +119,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool isGraph = false;
     bool isGraphChild = false;
     bool updatingBounds = false;  // used by connection
-    
+
     ObjectGrid grid = ObjectGrid(this);
 
     Point<int> canvasOrigin = {0, 0};

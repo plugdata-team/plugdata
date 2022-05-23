@@ -1,24 +1,24 @@
 
-struct GraphOnParent : public GUIComponent
+struct GraphOnParent : public GUIObject
 {
     bool isLocked = false;
 
    public:
     // Graph On Parent
-    GraphOnParent(const pd::Gui& pdGui, Box* box, bool newObject) : GUIComponent(pdGui, box, newObject), subpatch(gui.getPatch())
+    GraphOnParent(void* obj, Box* box) : GUIObject(obj, box), subpatch({ptr, cnv->pd})
     {
         setInterceptsMouseClicks(box->locked == var(false), true);
 
         updateCanvas();
 
-        initialise(newObject);
+        initialise();
 
         addMouseListener(this, true);
 
         resized();
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(25, maxSize, box->getWidth());
@@ -30,14 +30,30 @@ struct GraphOnParent : public GUIComponent
         }
     }
 
+    void updateBounds() override
+    {
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+
+        auto* glist = static_cast<_glist*>(ptr);
+        Rectangle<int> bounds = {x, y, glist->gl_pixwidth, glist->gl_pixheight};
+
+        box->setBounds(bounds.expanded(Box::margin));
+    }
+
     ~GraphOnParent() override
     {
         closeOpenedSubpatchers();
     }
 
-    void resized() override
-    {
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
+        auto* graph = static_cast<_glist*>(ptr);
+        graph->gl_pixwidth = getWidth();
+        graph->gl_pixheight = getHeight();
     }
+    
 
     void lock(bool locked) override
     {
@@ -47,7 +63,7 @@ struct GraphOnParent : public GUIComponent
 
     void mouseDown(const MouseEvent& e) override
     {
-        GUIComponent::mouseDown(e);
+        GUIObject::mouseDown(e);
         if (!isLocked)
         {
             box->mouseDown(e.getEventRelativeTo(box));
@@ -74,11 +90,11 @@ struct GraphOnParent : public GUIComponent
     {
         if (!canvas)
         {
-            canvas = std::make_unique<Canvas>(box->cnv->main, subpatch, this);
+            canvas = std::make_unique<Canvas>(cnv->main, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
-            box->cnv->patch.setCurrent(true);
-            box->cnv->main.updateCommandStatus();
+            cnv->patch.setCurrent(true);
+            cnv->main.updateCommandStatus();
         }
 
         auto b = getPatch()->getBounds();
@@ -95,9 +111,9 @@ struct GraphOnParent : public GUIComponent
 
         for (auto& box : canvas->boxes)
         {
-            if (box->graphics)
+            if (box->gui)
             {
-                box->graphics->updateValue();
+                box->gui->updateValue();
             }
         }
     }

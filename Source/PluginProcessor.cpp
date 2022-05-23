@@ -42,7 +42,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
       parameters(*this, nullptr)
 {
     std::setlocale(LC_ALL, "C");
-    
+
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
     // General purpose automation parameters you can get by using "receive param1" etc.
@@ -59,7 +59,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     parameters.replaceState(ValueTree("PlugData"));
 
     LookAndFeel::setDefaultLookAndFeel(&lnf.get());
-    
+
     // On first startup, initialise abstractions and settings
     initialiseFilesystem();
 
@@ -85,12 +85,13 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     objectLibrary.appDirChanged = [this]()
     {
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-        
+
         // Prevents causing an update loop
-        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+        {
             settingsTree.removeListener(editor);
         }
-        
+
         settingsTree.getChildWithName("Paths").copyPropertiesAndChildrenFrom(newTree.getChildWithName("Paths"), nullptr);
 
         // Direct children shouldn't be overwritten as that would break some valueTree links, for example in SettingsDialog
@@ -99,8 +100,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             child.copyPropertiesAndChildrenFrom(newTree.getChildWithName(child.getType()), nullptr);
         }
         settingsTree.copyPropertiesFrom(newTree, nullptr);
-        
-        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+
+        if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+        {
             settingsTree.addListener(editor);
         }
 
@@ -112,7 +114,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     {
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
     }
-    
+
     setLatencySamples(pd::Instance::getBlockSize());
 
     logMessage("PlugData v" + String(ProjectInfo::versionString));
@@ -120,7 +122,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
-
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -150,9 +151,7 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.setProperty("BrowserPath", abstractions.getParentDirectory().getFullPathName(), nullptr);
         settingsTree.setProperty("Theme", 1, nullptr);
         settingsTree.setProperty("GridEnabled", 1, nullptr);
-        
 
-        
         auto pathTree = ValueTree("Paths");
 
         auto firstPath = ValueTree("Path");
@@ -167,10 +166,12 @@ void PlugDataAudioProcessor::initialiseFilesystem()
         settingsTree.appendChild(pathTree, nullptr);
 
         settingsTree.appendChild(ValueTree("Keymap"), nullptr);
-        
+
         settingsTree.setProperty("DefaultFont", "Inter", nullptr);
-        for(int i = 0; i < lnf->colourNames.size(); i++) {
-            for(int j = 0; j < lnf->colourNames[i].size(); j++) {
+        for (int i = 0; i < lnf->colourNames.size(); i++)
+        {
+            for (int j = 0; j < lnf->colourNames[i].size(); j++)
+            {
                 settingsTree.setProperty(lnf->colourNames[i][j], PlugDataLook::colourSettings[i][j].toString(), nullptr);
             }
         }
@@ -181,16 +182,19 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     {
         // Or load the settings when they exist already
         settingsTree = ValueTree::fromXml(settingsFile.loadFileAsString());
-        
-        if(settingsTree.hasProperty("DefaultFont"))
+
+        if (settingsTree.hasProperty("DefaultFont"))
         {
             String fontname = settingsTree.getProperty("DefaultFont").toString();
             PlugDataLook::setDefaultFont(fontname);
         }
-        
-        for(int i = 0; i < lnf->colourNames.size(); i++) {
-            for(int j = 0; j < lnf->colourNames[i].size(); j++) {
-                if(settingsTree.hasProperty(lnf->colourNames[i][j])) {
+
+        for (int i = 0; i < lnf->colourNames.size(); i++)
+        {
+            for (int j = 0; j < lnf->colourNames[i].size(); j++)
+            {
+                if (settingsTree.hasProperty(lnf->colourNames[i][j]))
+                {
                     PlugDataLook::colourSettings[i][j] = Colour::fromString(settingsTree.getProperty(lnf->colourNames[i][j]).toString());
                 }
             }
@@ -309,11 +313,9 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     midiByteBuffer[0] = 0;
     midiByteBuffer[1] = 0;
     midiByteBuffer[2] = 0;
-    
 
     startDSP();
 
-    
     processingBuffer.setSize(2, samplesPerBlock);
 
     statusbarSource.prepareToPlay(getTotalNumOutputChannels());
@@ -536,7 +538,6 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
 
 void PlugDataAudioProcessor::sendParameters()
 {
-    
 #if PLUGDATA_STANDALONE
     for (int n = 0; n < numParameters; n++)
     {
@@ -683,7 +684,7 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
-    //setThis();
+    // setThis();
 
     // clear midi out
     if (producesMidi())
@@ -694,13 +695,12 @@ void PlugDataAudioProcessor::processInternal()
         midiByteBuffer[2] = 0;
         midiBufferOut.clear();
     }
-    
+
     // Dequeue messages
     sendMessagesFromQueue();
     sendPlayhead();
     sendParameters();
     sendMidiBuffer();
-    
 
     // Process audio
     std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
@@ -799,8 +799,8 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
                 editor->tabbar.clearTabs();
                 editor->canvases.clear();
             }
-            
-            for(auto& patch : patches) patch->close();
+
+            for (auto& patch : patches) patch->close();
             patches.clear();
 
             int numPatches = istream.readInt();
@@ -901,7 +901,6 @@ void PlugDataAudioProcessor::setTheme(bool themeToUse)
     }
 }
 
-
 Colour PlugDataAudioProcessor::getOutlineColour()
 {
     // currently the same as text colour, but still a function to make it easy to change in the future
@@ -999,7 +998,8 @@ void PlugDataAudioProcessor::receiveParameter(int idx, float value)
 {
 #if PLUGDATA_STANDALONE
     standaloneParams[idx] = value;
-    if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+    {
         editor->sidebar.updateParameters();
     }
 #else
@@ -1009,16 +1009,17 @@ void PlugDataAudioProcessor::receiveParameter(int idx, float value)
 #endif
 }
 
-
 void PlugDataAudioProcessor::receiveDSPState(bool dsp)
 {
-    MessageManager::callAsync([this, dsp]() mutable {
-        if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor())) {
-            editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
-        }
-    });
+    MessageManager::callAsync(
+        [this, dsp]() mutable
+        {
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            {
+                editor->statusbar.powerButton->setToggleState(dsp, dontSendNotification);
+            }
+        });
 }
-
 
 void PlugDataAudioProcessor::receiveGuiUpdate(int type)
 {

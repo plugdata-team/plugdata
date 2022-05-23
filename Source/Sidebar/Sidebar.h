@@ -41,7 +41,18 @@ using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Val
 
 using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
 
-// Used by Console and Box for estimating best text height for a set width
+// used by console for a more optimised calculation
+static int getNumLines(int width, int stringWidth)
+{
+    int numLines = 1;
+    while(width < stringWidth) {
+        stringWidth -= (width - 12);
+        numLines++;
+    }
+    
+    return numLines;
+}
+// Used by text objects for estimating best text height for a set width
 static int getNumLines(const String& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
 {
     int numLines = 1;
@@ -97,11 +108,11 @@ struct Sidebar : public Component
     bool isPinned();
 
     void updateConsole();
-    
+
 #if PLUGDATA_STANDALONE
     void updateParameters();
 #endif
-    
+
     static constexpr int dragbarWidth = 5;
 
    private:

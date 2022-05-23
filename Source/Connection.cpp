@@ -24,7 +24,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
         jassertfalse;
         return;
     }
-    
+
     inIdx = inlet->edgeIdx;
     outIdx = outlet->edgeIdx;
 
@@ -34,7 +34,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     // If it doesn't already exist in pd, create connection in pd
     if (!exists)
     {
-        bool canConnect = parent->patch.createConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx);
+        bool canConnect = parent->patch.createConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx);
 
         if (!canConnect)
         {
@@ -61,7 +61,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     setInterceptsMouseClicks(true, false);
 
     addMouseListener(cnv, true);
-    
+
     cnv->addAndMakeVisible(this);
     setAlwaysOnTop(true);
 
@@ -117,8 +117,8 @@ String Connection::getId() const
 
     // TODO: check if connection is still valid before requesting idx from box
 
-    stream.writeInt(cnv->patch.getIndex(inbox->pdObject->getPointer()));
-    stream.writeInt(cnv->patch.getIndex(outbox->pdObject->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(inbox->getPointer()));
+    stream.writeInt(cnv->patch.getIndex(outbox->getPointer()));
     stream.writeInt(inIdx);
     stream.writeInt(outbox->numInputs + outIdx);
 
@@ -132,16 +132,18 @@ Connection::~Connection()
         outlet->repaint();
         outlet->removeComponentListener(this);
     }
-    if(outbox) {
+    if (outbox)
+    {
         outbox->removeComponentListener(this);
     }
-    
+
     if (inlet)
     {
         inlet->repaint();
         inlet->removeComponentListener(this);
     }
-    if(inbox) {
+    if (inbox)
+    {
         inbox->removeComponentListener(this);
     }
 }
@@ -177,10 +179,9 @@ void Connection::paint(Graphics& g)
     auto dataColour = findColour(PlugDataColour::highlightColourId);
     auto signalColour = findColour(PlugDataColour::signalColourId);
     auto handleColour = outlet->isSignal ? dataColour : signalColour;
-    
+
     if (cnv->isSelected(this))
     {
-       
         baseColour = outlet->isSignal ? signalColour : dataColour;
     }
     else if (isMouseOver())
@@ -188,7 +189,6 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
-    
 
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
@@ -198,32 +198,32 @@ void Connection::paint(Graphics& g)
 
     g.setColour(baseColour);
     g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::rounded));
-    
-    if(cnv->isSelected(this)) {
 
+    if (cnv->isSelected(this))
+    {
         auto mousePos = getMouseXYRelative();
-        
+
         bool overStart = startReconnectHandle.contains(mousePos.toFloat());
         bool overEnd = endReconnectHandle.contains(mousePos.toFloat());
-        
+
         g.setColour(handleColour);
-        
+
         g.fillEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f));
         g.fillEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f));
-        
+
         g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
         g.drawEllipse(startReconnectHandle.expanded(overStart ? 3.0f : 0.0f), 0.5f);
         g.drawEllipse(endReconnectHandle.expanded(overEnd ? 3.0f : 0.0f), 0.5f);
-        
     }
 }
 
 bool Connection::isSegmented()
 {
-    return cnv->storage.getInfo(getId(), "Segmented") == "1";
+    return segmented;
 }
-void Connection::setSegmented(bool segmented)
+void Connection::setSegmented(bool isSegmented)
 {
+    segmented = isSegmented;
     cnv->storage.setInfo(getId(), "Segmented", segmented ? "1" : "0");
     updatePath();
     repaint();
@@ -258,8 +258,6 @@ void Connection::mouseMove(const MouseEvent& e)
     repaint();
 }
 
-
-
 void Connection::mouseExit(const MouseEvent& e)
 {
     repaint();
@@ -276,7 +274,6 @@ void Connection::mouseDown(const MouseEvent& e)
     cnv->setSelected(this, true);
     repaint();
 
-
     if (currentPlan.size() <= 2) return;
 
     int n = getClosestLineIdx(e.getPosition() + origin, currentPlan);
@@ -291,21 +288,20 @@ void Connection::mouseDown(const MouseEvent& e)
         mouseDownPosition = currentPlan[n].y;
     }
 
-
     dragIdx = n;
 }
 
 void Connection::mouseDrag(const MouseEvent& e)
 {
-    if(startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
+    if (startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
     {
         reconnect(inlet, true);
     }
-    if(endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
+    if (endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
     {
         reconnect(outlet, true);
     }
-    
+
     if (currentPlan.empty()) return;
 
     if (isSegmented() && dragIdx != -1)
@@ -328,10 +324,7 @@ void Connection::mouseDrag(const MouseEvent& e)
         updatePath();
         repaint();
     }
-    
-
 }
-
 
 void Connection::mouseUp(const MouseEvent& e)
 {
@@ -343,23 +336,25 @@ void Connection::mouseUp(const MouseEvent& e)
         cnv->storage.setInfo(lastId, "Path", state);
         dragIdx = -1;
     }
-    
-    if(startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.getPosition().toFloat()))
+
+    if (startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.getPosition().toFloat()))
     {
         reconnect(inlet, false);
     }
-    if(endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.getPosition().toFloat()))
+    if (endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.getPosition().toFloat()))
     {
         reconnect(outlet, false);
     }
-    if(deleteOnMouseUp)
+    if (deleteOnMouseUp)
     {
         SafePointer<Connection> deletionChecker(this);
-        MessageManager::callAsync([this, deletionChecker]() mutable {
-            if(!deletionChecker) return;
-            
-            cnv->connections.removeObject(this);
-        });
+        MessageManager::callAsync(
+            [this, deletionChecker]() mutable
+            {
+                if (!deletionChecker) return;
+
+                cnv->connections.removeObject(this);
+            });
     }
 }
 
@@ -380,40 +375,36 @@ int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& pl
     return -1;
 }
 
-
 void Connection::reconnect(Edge* target, bool dragged)
 {
     cnv->connectingEdge = nullptr;
-    
-    
-    if(cnv->patch.hasConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx)) {
-        // Delete connection from pd if we haven't done that yet
-        cnv->patch.removeConnection(outbox->pdObject.get(), outIdx, inbox->pdObject.get(), inIdx);
-    }
 
+    if (cnv->patch.hasConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx))
+    {
+        // Delete connection from pd if we haven't done that yet
+        cnv->patch.removeConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx);
+    }
 
     // Create new connection
     cnv->connectingEdge = target;
-    
-    if(dragged) {
+
+    if (dragged)
+    {
         cnv->connectingWithDrag = true;
         setVisible(false);
-        
+
         // Don't delete immediately as that would interrupt the mousedrag event
         deleteOnMouseUp = true;
     }
     // Delete immediately if clicked
-    else {
-        MessageManager::callAsync([this]() mutable {
-            cnv->connections.removeObject(this);
-        });
+    else
+    {
+        MessageManager::callAsync([this]() mutable { cnv->connections.removeObject(this); });
     }
-    
-    
+
     // Make sure we're deselected and remove object
     cnv->setSelected(this, false);
 }
-
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
 {
@@ -475,7 +466,9 @@ void Connection::updatePath()
     auto pstart = outlet->getCanvasBounds().getCentre() - origin;
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
 
-    if (!isSegmented())
+    segmented = cnv->storage.getInfo(getId(), "Segmented") == "1";
+    
+    if (!segmented)
     {
         toDraw.clear();
 
@@ -538,7 +531,7 @@ void Connection::updatePath()
         connectionPath.lineTo(pend.toFloat());
         toDraw = connectionPath.createPathWithRoundedCorners(8.0f);
     }
-    
+
     repaint();
 
     auto bounds = toDraw.getBounds().toNearestInt().expanded(4);
@@ -550,7 +543,7 @@ void Connection::updatePath()
     }
 
     offset = {-bounds.getX(), -bounds.getY()};
-    
+
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
     endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 8.5f)));
 }
@@ -723,7 +716,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck)
     {
         auto bounds = box->getBounds().expanded(3);
 
-        if (auto* graphics = box->graphics.get()) bounds = graphics->getBounds().expanded(3) + box->getPosition();
+        if (auto* graphics = box->gui.get()) bounds = graphics->getBounds().expanded(3) + box->getPosition();
 
         if (box == outbox || box == inbox || !bounds.intersects(getLocalBounds())) continue;
 
