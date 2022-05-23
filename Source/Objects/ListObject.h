@@ -1,5 +1,5 @@
 
-struct ListObject : public AtomObject
+struct ListObject final : public AtomObject
 {
     ListObject(void* obj, Box* parent) : AtomObject(obj, parent), dragger(label)
     {

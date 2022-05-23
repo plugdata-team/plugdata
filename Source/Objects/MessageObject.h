@@ -13,7 +13,7 @@ typedef struct _message
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject : public GUIObject
+struct MessageObject final : public GUIObject
 {
     bool isDown = false;
     bool isLocked = false;
