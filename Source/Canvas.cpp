@@ -672,68 +672,6 @@ void Canvas::updateSidebarSelection()
     }
 }
 
-// Updates pd objects that use the drawing feature
-void Canvas::updateDrawables()
-{
-    /*
-    templates.clear();
-    templates.addArray(findDrawables());
-
-    for (auto& tmpl : templates)
-    {
-        addAndMakeVisible(tmpl);
-        tmpl->setAlwaysOnTop(true);
-        tmpl->update();
-    } */
-}
-/*
-Array<DrawableTemplate*> Canvas::findDrawables()
-{
-    // Find all drawables (from objects like drawpolygon, filledcurve, etc.)
-    // Pd draws this over all siblings, even when drawn inside a graph!
-
-    Array<DrawableTemplate*> result;
-
-    for (auto& box : boxes)
-    {
-        if (!box->getPointer()) continue;
-
-        auto* gobj = static_cast<t_gobj*>(box->getPointer());
-
-        // Recurse for graphs
-        if (gobj->g_pd == canvas_class)
-        {
-            if (auto* canvas = box->gui->getCanvas())
-            {
-                auto subdrawables = canvas->findDrawables();
-                result.addArray(subdrawables);
-            }
-        }
-        // Scalar found!
-        if (gobj->g_pd == scalar_class)
-        {
-            auto* x = reinterpret_cast<t_scalar*>(gobj);
-            auto* templ = template_findbyname(x->sc_template);
-            auto* templatecanvas = template_findcanvas(templ);
-            t_gobj* y;
-            t_float basex, basey;
-            scalar_getbasexy(x, &basex, &basey);
-
-            if (!templatecanvas) continue;
-
-            for (y = templatecanvas->gl_list; y; y = y->g_next)
-            {
-                const t_parentwidgetbehavior* wb = pd_getparentwidget(&y->g_pd);
-                if (!wb) continue;
-
-                result.add(new DrawableTemplate(x, y, this, static_cast<int>(basex), static_cast<int>(basey)));
-            }
-        }
-    }
-
-    return result;
-} */
-
 void Canvas::paintOverChildren(Graphics& g)
 {
     // Draw connections in the making over everything else
