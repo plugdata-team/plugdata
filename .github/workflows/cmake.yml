@@ -56,7 +56,7 @@ jobs:
       run: ./.github/scripts/package.sh MacOS-Universal
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-MacOS-Universal
         path: PlugData-MacOS-Universal.zip
@@ -96,7 +96,7 @@ jobs:
       run: ./.github/scripts/package.bat Win64
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-Win64
         path: PlugData-Win64
@@ -136,7 +136,7 @@ jobs:
       run: ./.github/scripts/package.bat Win32
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-Win32
         path: PlugData-Win32
@@ -177,7 +177,7 @@ jobs:
       run: ./.github/scripts/package.sh Ubuntu-22.04-x64
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-Ubuntu-22.04-x64
         path: PlugData-Ubuntu-22.04-x64
@@ -219,7 +219,7 @@ jobs:
       run: ./.github/scripts/package.sh Ubuntu-20.04-x64
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-Ubuntu-20.04-x64
         path: PlugData-Ubuntu-20.04-x64
@@ -262,7 +262,7 @@ jobs:
       run: ./.github/scripts/package.sh Ubuntu-18.04-x64
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-Ubuntu-18.04-x64
         path: PlugData-Ubuntu-18.04-x64
@@ -278,6 +278,8 @@ jobs:
       runs-on: ubuntu-latest
       container: fedora:35
       steps:
+      - name: Update git
+        run: sudo dnf install -y git
       - uses: actions/checkout@v3
         with:
           submodules: recursive
@@ -295,7 +297,7 @@ jobs:
         run: ./.github/scripts/package.sh Fedora-35-x64
 
       - name: Archive Artifacts
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         with:
           name: PlugData-Fedora-35-x64
           path: PlugData-Fedora-35-x64
@@ -315,6 +317,8 @@ jobs:
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup
     steps:
+    - name: Update git
+      run: pacman -Sy && pacman -S --noconfirm git
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -322,7 +326,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: pacman -Sy && pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc11 pkgconf
+      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc11 pkgconf
 
     - name: Build
       shell: bash
@@ -334,7 +338,7 @@ jobs:
       run: ./.github/scripts/package.sh Arch-x64
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-Arch-x64
         path: PlugData-Arch-x64
@@ -354,6 +358,8 @@ jobs:
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup
     steps:
+    - name: Update git
+      run: zypper refresh && zypper install -y git
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -361,7 +367,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: zypper refresh && zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++
+      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++
 
     - name: Build
       shell: bash
@@ -373,7 +379,7 @@ jobs:
       run: ./.github/scripts/package.sh OpenSUSE-x64
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-OpenSUSE-x64
         path: PlugData-OpenSUSE-x64
@@ -393,6 +399,9 @@ jobs:
       volumes:
         - /sys/fs/cgroup:/sys/fs/cgroup
     steps:
+    - name: Update git
+      run: apt -qq update && apt install -y git
+
     - uses: actions/checkout@v3
       with:
         submodules: recursive
@@ -400,7 +409,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: apt -qq update && apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++
+      run: apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++
 
     - name: Build
       shell: bash
@@ -412,7 +421,7 @@ jobs:
       run: ./.github/scripts/package.sh Debian-x64
 
     - name: Archive Artifacts
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v3
       with:
         name: PlugData-Debian-x64
         path: PlugData-Debian-x64
