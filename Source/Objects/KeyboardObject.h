@@ -158,10 +158,11 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
             }
         }
     }
-    
-    void applyBounds() override {
+
+    void applyBounds() override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
-        
+
         auto* keyboard = static_cast<t_keyboard*>(ptr);
         keyboard->x_width = getWidth();
         keyboard->x_height = getHeight();

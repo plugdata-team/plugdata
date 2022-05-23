@@ -20,7 +20,6 @@ extern "C"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
 
-
     struct _instanceeditor
     {
         t_binbuf* copy_binbuf;
@@ -178,14 +177,14 @@ int Patch::getIndex(void* obj)
 Connections Patch::getConnections() const
 {
     Connections connections;
-            
-    t_outconnect *oc;
+
+    t_outconnect* oc;
     t_linetraverser t;
     auto* x = getPointer();
 
     // Get connections from pd
     linetraverser_start(&t, x);
-    
+
     while ((oc = linetraverser_next(&t)))
     {
         connections.push_back({t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2});
@@ -209,12 +208,12 @@ std::vector<void*> Patch::getObjects(bool onlyGui) noexcept
             {
                 objects.push_back(static_cast<void*>(y));
             }
-            else if(!onlyGui)
+            else if (!onlyGui)
             {
                 objects.push_back(static_cast<void*>(y));
             }
         }
-        
+
         return objects;
     }
     return {};
@@ -284,7 +283,7 @@ void* Patch::createObject(const String& name, int x, int y)
         auto fg = instance->getForegroundColour().toString().substring(2);
         auto lbl = instance->getTextColour().toString().substring(2);
         auto ln = instance->getOutlineColour().toString().substring(2);
-        
+
         preset = preset.replace("bgColour", "#" + bg);
         preset = preset.replace("fgColour", "#" + fg);
         preset = preset.replace("lblColour", "#" + lbl);
@@ -390,7 +389,7 @@ void* Patch::renameObject(void* obj, const String& name)
 
     // Cant use the queue for this...
     setCurrent(true);
-    
+
     auto type = name.upToFirstOccurrenceOf(" ", false, false);
     String newName = name;
     // Also apply default style when renaming
@@ -402,12 +401,11 @@ void* Patch::renameObject(void* obj, const String& name)
         auto fg = instance->getForegroundColour().toString().substring(2);
         auto lbl = instance->getTextColour().toString().substring(2);
         auto ln = instance->getOutlineColour().toString().substring(2);
-        
+
         preset = preset.replace("bgColour", "#" + bg);
         preset = preset.replace("fgColour", "#" + fg);
         preset = preset.replace("lblColour", "#" + lbl);
         preset = preset.replace("lnColour", "#" + ln);
-        
 
         newName += " " + preset;
     }
@@ -487,23 +485,22 @@ void Patch::removeObject(void* obj)
 
 bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
 {
-    
     bool hasConnection = false;
     bool hasReturned = false;
-    
-    instance->enqueueFunction([this, &hasConnection, &hasReturned, src, nout, sink, nin]() mutable {
-        hasConnection = libpd_hasconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
-        hasReturned = true;
-    });
 
-    while(!hasReturned) {
+    instance->enqueueFunction(
+        [this, &hasConnection, &hasReturned, src, nout, sink, nin]() mutable
+        {
+            hasConnection = libpd_hasconnection(getPointer(), checkObject(src), nout, checkObject(sink), nin);
+            hasReturned = true;
+        });
+
+    while (!hasReturned)
+    {
         instance->waitForStateUpdate();
     }
-   
 
     return hasConnection;
-    
-    
 }
 
 bool Patch::canConnect(void* src, int nout, void* sink, int nin)

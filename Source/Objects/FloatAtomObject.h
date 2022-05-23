@@ -41,7 +41,6 @@ struct FloatAtomObject final : public AtomObject
         dragger.dragEnd = [this]() { stopEdition(); };
     }
 
-
     void checkBounds() override
     {
         // Apply size limits
@@ -59,7 +58,7 @@ struct FloatAtomObject final : public AtomObject
     void resized() override
     {
         AtomObject::resized();
-        
+
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }

@@ -205,7 +205,7 @@ struct Console : public Component
 
                 auto offColour = findColour(PlugDataColour::toolbarColourId);
                 auto onColour = findColour(PlugDataColour::canvasColourId);
-                
+
                 auto background = rowColour ? offColour : onColour;
 
                 if (row == selectedItem)

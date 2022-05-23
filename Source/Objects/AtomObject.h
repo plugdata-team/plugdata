@@ -55,30 +55,30 @@ struct AtomObject : public GUIObject
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         int x, y, w, h;
-        
+
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        
+
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
         box->setObjectBounds({x, y, w, glist_fontheight(box->cnv->patch.getPointer())});
     }
 
-    
-    void applyBounds() override {
+    void applyBounds() override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
-        
+
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        
+
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_text.te_width = width / fontWidth;
     }
-    
+
     void resized() override
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        
+
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int width = std::max(4, getWidth() / fontWidth) * fontWidth;
-        
+
         if (width != getWidth() || box->getHeight() != Box::height)
         {
             box->setSize(width + Box::doubleMargin, Box::height);
@@ -152,7 +152,7 @@ struct AtomObject : public GUIObject
                 label = std::make_unique<Label>();
             }
 
-            auto bounds = getLabelBounds(box->getObjectBounds());
+            auto bounds = getLabelBounds();
             label->setBounds(bounds);
 
             label->setFont(Font(fontHeight));
@@ -180,8 +180,9 @@ struct AtomObject : public GUIObject
         static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;
     }
 
-    Rectangle<int> getLabelBounds(Rectangle<int> objectBounds) const noexcept
+    Rectangle<int> getLabelBounds() const noexcept
     {
+        auto objectBounds = box->getObjectBounds();
         int fontHeight = getFontHeight() + 2;
         if (fontHeight == 0)
         {
@@ -239,7 +240,7 @@ struct AtomObject : public GUIObject
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_wherelabel = wherelabel - 1;
     }
-    
+
     String getSendSymbol() noexcept
     {
         return "";
@@ -250,23 +251,22 @@ struct AtomObject : public GUIObject
         return "";
     }
 
-     void setSendSymbol(const String& symbol) const noexcept
-     {
-         if (symbol.isEmpty()) return;
+    void setSendSymbol(const String& symbol) const noexcept
+    {
+        if (symbol.isEmpty()) return;
 
-         auto* atom = static_cast<t_fake_gatom*>(ptr);
-         atom->a_symto = gensym(symbol.toRawUTF8());
-         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
-     }
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        atom->a_symto = gensym(symbol.toRawUTF8());
+        atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
+    }
 
-     void setReceiveSymbol(const String& symbol) const noexcept
-     {
-         if (symbol.isEmpty()) return;
-         
-         auto* atom = static_cast<t_fake_gatom*>(ptr);
-         if (*atom->a_symfrom->s_name) pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
-         atom->a_symfrom = gensym(symbol.toRawUTF8());
-         if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
-     }
+    void setReceiveSymbol(const String& symbol) const noexcept
+    {
+        if (symbol.isEmpty()) return;
 
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        if (*atom->a_symfrom->s_name) pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+        atom->a_symfrom = gensym(symbol.toRawUTF8());
+        if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+    }
 };

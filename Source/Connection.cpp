@@ -271,6 +271,7 @@ void Connection::mouseDown(const MouseEvent& e)
         cnv->deselectAll();
     }
 
+    wasSelected = cnv->isSelected(this);
     cnv->setSelected(this, true);
     repaint();
 
@@ -293,11 +294,11 @@ void Connection::mouseDown(const MouseEvent& e)
 
 void Connection::mouseDrag(const MouseEvent& e)
 {
-    if (startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
+    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
     {
         reconnect(inlet, true);
     }
-    if (endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
+    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && e.getDistanceFromDragStart() > 6)
     {
         reconnect(outlet, true);
     }
@@ -337,11 +338,11 @@ void Connection::mouseUp(const MouseEvent& e)
         dragIdx = -1;
     }
 
-    if (startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.getPosition().toFloat()))
+    if (wasSelected && startReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && startReconnectHandle.contains(e.getPosition().toFloat()))
     {
         reconnect(inlet, false);
     }
-    if (endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.getPosition().toFloat()))
+    if (wasSelected && endReconnectHandle.contains(e.getMouseDownPosition().toFloat()) && endReconnectHandle.contains(e.getPosition().toFloat()))
     {
         reconnect(outlet, false);
     }
@@ -467,7 +468,7 @@ void Connection::updatePath()
     auto pend = inlet->getCanvasBounds().getCentre() - origin;
 
     segmented = cnv->storage.getInfo(getId(), "Segmented") == "1";
-    
+
     if (!segmented)
     {
         toDraw.clear();

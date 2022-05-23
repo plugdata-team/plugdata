@@ -57,21 +57,46 @@ struct ObjectBase : public Component
     Box* box;
     Canvas* cnv;
     Type type;
-    
+
     ObjectBase(void* obj, Box* parent);
 
+    // Functions to show and hide a text editor
+    // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
     virtual void showEditor(){};
     virtual void hideEditor(){};
 
+    // Called whenever any GUI object's value changes
     virtual void updateValue() = 0;
+
+    // Gets position from pd and applies it to Box
     virtual void updateBounds() = 0;
-    virtual void updateDrawables() {};
-    
-    virtual bool hideInGraph() { return false; }
+
+    // Called whenever a drawable changes
+    virtual void updateDrawables(){};
+
+    virtual bool drawOutline()
+    {
+        return true;
+    };
+
+    // Flag to make object visible or hidden inside a GraphOnParent
+    virtual bool hideInGraph()
+    {
+        return false;
+    }
+
+    // Flag for valid/invalid objects, to create the red outline on Box
+    virtual bool isValid()
+    {
+        return true;
+    }
 
     virtual void setText(const String&){};
 
-    Type getType()  { return type; }
+    Type getType()
+    {
+        return type;
+    }
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -81,7 +106,7 @@ struct ObjectBase : public Component
     }
 
     virtual void applyBounds() = 0;
-    
+
     void moveToFront();
 
     virtual Canvas* getCanvas()
@@ -101,7 +126,7 @@ struct ObjectBase : public Component
     {
         return {};
     };
-    
+
     void closeOpenedSubpatchers();
 
     String getText();
@@ -112,10 +137,10 @@ struct NonPatchable : public ObjectBase
 {
     NonPatchable(void* obj, Box* parent);
     ~NonPatchable();
-    
-    virtual void updateValue() {};
-    virtual void updateBounds() {};
-    virtual void applyBounds() {};
+
+    virtual void updateValue(){};
+    virtual void updateBounds(){};
+    virtual void applyBounds(){};
 };
 
 struct GUIObject : public ObjectBase, public ComponentListener, public Value::Listener
@@ -151,7 +176,10 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     virtual void updateLabel(){};
 
-    virtual float getValue(){ return 0.0f; };
+    virtual float getValue()
+    {
+        return 0.0f;
+    };
 
     float getValueOriginal() const noexcept;
 
@@ -174,11 +202,10 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     {
         return label.get();
     }
-    
+
     void setValue(float value) noexcept;
 
    protected:
-
     std::unique_ptr<Label> label;
 
     bool inspectorWasVisible = false;
@@ -208,5 +235,3 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };
-
-
