@@ -13,7 +13,6 @@
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
 #include "Utility/ObjectGrid.h"
-//#include "Objects/DrawableTemplate.h"
 
 class SuggestionComponent;
 struct GraphArea;

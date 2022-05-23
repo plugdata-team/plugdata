@@ -225,8 +225,6 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         return editor.get();
     }
-
-    bool isText() override { return true; }
     
    protected:
     Justification justification = Justification::centredLeft;

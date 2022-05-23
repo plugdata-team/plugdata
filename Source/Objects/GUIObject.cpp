@@ -395,6 +395,7 @@ Type GUIObject::getType(void* ptr) noexcept
         if (textObj->te_type == T_OBJECT)
         {
             return Type::Invalid;
+            
         }
         else
         {

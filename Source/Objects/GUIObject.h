@@ -67,7 +67,6 @@ struct ObjectBase : public Component
     virtual void updateBounds() = 0;
     virtual void updateDrawables() {};
     
-    virtual bool isText() { return false; }
     virtual bool hideInGraph() { return false; }
 
     virtual void setText(const String&){};

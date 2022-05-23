@@ -205,14 +205,11 @@ std::vector<void*> Patch::getObjects(bool onlyGui) noexcept
         {
             if (Storage::isInfoParent(y)) continue;
 
-            if (onlyGui)
+            if (onlyGui && y->g_pd->c_gobj)
             {
-                if (GUIObject::getType(y) != Type::Text)
-                {
-                    objects.push_back(static_cast<void*>(y));
-                }
+                objects.push_back(static_cast<void*>(y));
             }
-            else
+            else if(!onlyGui)
             {
                 objects.push_back(static_cast<void*>(y));
             }
