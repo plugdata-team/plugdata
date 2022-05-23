@@ -76,7 +76,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
 
     void updateSidebarSelection();
-    void updateDrawables();
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
