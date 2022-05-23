@@ -46,6 +46,7 @@ enum class Type : size_t
     Mouse,
     Keyboard,
     Picture,
+    Scalar,
     Invalid
 };
 
@@ -63,6 +64,10 @@ struct ObjectBase : public Component
 
     virtual void updateValue() = 0;
     virtual void updateBounds() = 0;
+    virtual void updateDrawables() {};
+    
+    virtual bool isText() { return false; }
+    virtual bool hideInGraph() { return false; }
 
     virtual void setText(const String&){};
 
@@ -207,3 +212,5 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };
+
+

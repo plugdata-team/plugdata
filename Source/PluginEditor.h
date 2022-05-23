@@ -114,6 +114,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     Canvas* getCanvas(int idx);
 
     void updateValues();
+    void updateDrawables();
 
     void valueChanged(Value& v) override;
 

@@ -13,6 +13,15 @@ struct CommentObject : public TextObject
         // Our component doesn't intercept mouse events, so dragging will be okay
         box->addMouseListener(this, false);
     }
+    
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setFont(font);
+
+        auto textArea = border.subtractedFrom(getLocalBounds());
+        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+    }
 
 
     void hideEditor() override
@@ -113,5 +122,7 @@ struct CommentObject : public TextObject
             editor->grabKeyboardFocus();
         }
     }
+    
+    bool hideInGraph() override { return true; }
 
 };

@@ -59,10 +59,7 @@ struct AtomObject : public GUIObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
         
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-        
-        auto bounds = Rectangle<int>(x, y, w, glist_fontheight(box->cnv->patch.getPointer()));
-        
-        box->setBounds(bounds.expanded(Box::margin));
+        box->setObjectBounds({x, y, w, glist_fontheight(box->cnv->patch.getPointer())});
     }
 
     
@@ -155,8 +152,8 @@ struct AtomObject : public GUIObject
                 label = std::make_unique<Label>();
             }
 
-            // auto bounds = getLabelBounds(box->getBounds().reduced(Box::margin));
-            // label->setBounds(bounds);
+            auto bounds = getLabelBounds(box->getObjectBounds());
+            label->setBounds(bounds);
 
             label->setFont(Font(fontHeight));
             label->setJustificationType(Justification::centredLeft);
