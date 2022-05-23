@@ -4,14 +4,23 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject : public TextObject
+struct CommentObject final : public TextBase
 {
-    CommentObject(void* obj, Box* box) : TextObject(obj, box)
+    CommentObject(void* obj, Box* box) : TextBase(obj, box)
     {
         setInterceptsMouseClicks(false, false);
 
         // Our component doesn't intercept mouse events, so dragging will be okay
         box->addMouseListener(this, false);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        g.setColour(findColour(PlugDataColour::textColourId));
+        g.setFont(font);
+
+        auto textArea = border.subtractedFrom(getLocalBounds());
+        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
     }
 
 
@@ -113,5 +122,7 @@ struct CommentObject : public TextObject
             editor->grabKeyboardFocus();
         }
     }
+    
+    bool hideInGraph() override { return true; }
 
 };

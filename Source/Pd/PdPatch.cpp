@@ -393,33 +393,6 @@ void* Patch::renameObject(void* obj, const String& name)
 
     // Cant use the queue for this...
     setCurrent(true);
-
-    StringArray notRenamable = {"msg", "message", "gatom", "floatatom", "symbolatom", "listbox"};
-
-    // Don't rename when going to or from a gui object, remove and recreate instead
-    /*
-    if (notRenamable.contains(name.upToFirstOccurrenceOf(" ", false, false)) || obj->getType() == Type::Message || obj->getType() == Type::AtomNumber || obj->getType() == Type::AtomSymbol)
-    {
-        int x, y, w, h;
-        libpd_get_object_bounds(ptr, obj, &x, &y, &w, &h);
-
-        instance->enqueueFunction(
-            [this, obj]()
-            {
-                setCurrent();
-                glist_noselect(getPointer());
-                glist_select(getPointer(), &checkObject(obj)->te_g);
-                canvas_stowconnections(getPointer());
-                libpd_removeselection(getPointer());
-                glist_noselect(getPointer());
-            });
-
-        auto obj = createObject(name, x, y);
-
-        instance->enqueueFunction([this]() { canvas_restoreconnections(getPointer()); });
-
-        return obj;
-    } */
     
     auto type = name.upToFirstOccurrenceOf(" ", false, false);
     String newName = name;
@@ -697,23 +670,6 @@ void Patch::setTitle(const String& title)
     getPointer()->gl_name = gensym(title.toRawUTF8());
     canvas_bind(getPointer());
     instance->titleChanged();
-}
-
-std::vector<t_template*> Patch::getTemplates() const
-{
-    std::vector<t_template*> templates;
-
-    t_symbol** templatevec = static_cast<t_symbol**>(getbytes(0));
-    int ntemplates = 0;
-
-    libpd_collecttemplatesfor(getPointer(), &ntemplates, &templatevec);
-
-    for (int n = 0; n < ntemplates; n++)
-    {
-        templates.push_back(template_findbyname(templatevec[n]));
-    }
-
-    return templates;
 }
 
 }  // namespace pd

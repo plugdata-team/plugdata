@@ -136,9 +136,7 @@ struct IEMObject : public GUIObject
     void updateBounds() override
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        
-        auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
-        box->setBounds(bounds.expanded(Box::margin));
+        box->setObjectBounds({iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h});
     }
     
     void updateLabel() override
@@ -159,7 +157,7 @@ struct IEMObject : public GUIObject
                 label = std::make_unique<Label>();
             }
             
-            auto bounds = getLabelBounds(box->getBounds().reduced(Box::margin));
+            auto bounds = getLabelBounds(box->getObjectBounds());
             
             bounds.translate(0, fontHeight / -2.0f);
             

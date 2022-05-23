@@ -14,6 +14,12 @@
 #include "PluginEditor.h"
 #include "LookAndFeel.h"
 
+extern "C"
+{
+#include <m_pd.h>
+#include <m_imp.h>
+}
+
 Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
     cnv = parent;
@@ -69,6 +75,17 @@ Box::~Box()
         stopTimer();
     }
 }
+
+Rectangle<int> Box::getObjectBounds()
+{
+    return getBounds().reduced(margin) - cnv->canvasOrigin;
+}
+
+void Box::setObjectBounds(Rectangle<int> bounds)
+{
+    setBounds(bounds.expanded(margin) + cnv->canvasOrigin);
+}
+
 
 void Box::initialise()
 {
@@ -234,7 +251,7 @@ void Box::setType(const String& newType, void* existingObject)
         }
         else
         {
-            auto rect = getBounds().reduced(margin) - cnv->canvasOrigin;
+            auto rect = getObjectBounds();
             objectPtr = pd->createObject(newType, rect.getX(), rect.getY());
         }
     }

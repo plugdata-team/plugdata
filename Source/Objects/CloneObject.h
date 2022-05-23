@@ -1,8 +1,19 @@
 
-struct SubpatchObject final : public TextBase
+extern "C"
 {
-    SubpatchObject(void* obj, Box* box) : TextBase(obj, box), subpatch({ptr, cnv->pd})
+    t_glist* clone_get_instance(t_gobj*, int);
+    int clone_get_n(t_gobj*);
+}
+
+struct CloneObject final : public TextBase
+{
+    CloneObject(void* obj, Box* box) : TextBase(obj, box), subpatch({nullptr, nullptr})
     {
+        auto* gobj = static_cast<t_gobj*>(ptr);
+        if (clone_get_n(gobj) > 0)
+        {
+            subpatch = {clone_get_instance(gobj, 0), cnv->pd};
+        }
     }
 
     void updateValue() override
@@ -15,7 +26,7 @@ struct SubpatchObject final : public TextBase
         }
     };
 
-    ~SubpatchObject()
+    ~CloneObject()
     {
         closeOpenedSubpatchers();
     }

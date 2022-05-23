@@ -46,6 +46,8 @@ enum class Type : size_t
     Mouse,
     Keyboard,
     Picture,
+    Scalar,
+    NonPatchable,
     Invalid
 };
 
@@ -63,6 +65,10 @@ struct ObjectBase : public Component
 
     virtual void updateValue() = 0;
     virtual void updateBounds() = 0;
+    virtual void updateDrawables() {};
+    
+    virtual bool isText() { return false; }
+    virtual bool hideInGraph() { return false; }
 
     virtual void setText(const String&){};
 
@@ -96,8 +102,21 @@ struct ObjectBase : public Component
     {
         return {};
     };
+    
+    void closeOpenedSubpatchers();
 
     String getText();
+};
+
+// Class for non-patchable objects
+struct NonPatchable : public ObjectBase
+{
+    NonPatchable(void* obj, Box* parent);
+    ~NonPatchable();
+    
+    virtual void updateValue() {};
+    virtual void updateBounds() {};
+    virtual void applyBounds() {};
 };
 
 struct GUIObject : public ObjectBase, public ComponentListener, public Value::Listener
@@ -115,8 +134,6 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
     void paint(Graphics& g) override;
-
-    void closeOpenedSubpatchers();
 
     String getName() const;
 
@@ -158,22 +175,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     {
         return label.get();
     }
-
-    // MOVE TO GUIObject
-    Colour getBackgroundColour() const noexcept;
-    Colour getForegroundColour() const noexcept;
-    Colour getLabelColour() const noexcept;
-
-    void setLabelColour(Colour newColour) noexcept;
-    void setForegroundColour(Colour newColour) noexcept;
-    void setBackgroundColour(Colour newColour) noexcept;
-
-    // Rectangle<int> getLabelBounds(Rectangle<int> objectBounds) const noexcept;
-
-    void setLabelText(String newText) noexcept;
-    void setLabelPosition(Point<int> bounds) noexcept;
-    void setLabelPosition(int wherelabel) noexcept;
-
+    
     void setValue(float value) noexcept;
 
    protected:
@@ -207,3 +209,5 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };
+
+

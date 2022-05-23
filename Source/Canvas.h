@@ -13,7 +13,7 @@
 #include "Pd/PdStorage.h"
 #include "PluginProcessor.h"
 #include "Utility/ObjectGrid.h"
-#include "Objects/DrawableTemplate.h"
+//#include "Objects/DrawableTemplate.h"
 
 class SuggestionComponent;
 struct GraphArea;
@@ -77,7 +77,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void updateSidebarSelection();
     void updateDrawables();
-    Array<DrawableTemplate*> findDrawables();
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
@@ -100,7 +99,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     Viewport* viewport = nullptr;
 
-    OwnedArray<DrawableTemplate> templates;
+    OwnedArray<DrawablePath> drawables;
 
     bool connectingWithDrag = false;
     SafePointer<Edge> connectingEdge;

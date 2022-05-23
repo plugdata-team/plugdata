@@ -1,5 +1,5 @@
 
-struct SymbolAtomObject : public AtomObject
+struct SymbolAtomObject final : public AtomObject
 {
     bool isDown = false;
     bool isLocked = false;
