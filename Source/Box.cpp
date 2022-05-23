@@ -274,8 +274,6 @@ void Box::setType(const String& newType, void* existingObject)
     updateBounds();
     updatePorts();
     
-    
-    cnv->updateDrawables();
     cnv->main.updateCommandStatus();
 }
 

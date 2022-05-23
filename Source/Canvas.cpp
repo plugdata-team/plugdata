@@ -296,7 +296,6 @@ void Canvas::synchronise(bool updatePosition)
         storage.confirmIds();
 
         setTransform(main.transform);
-        updateDrawables();
     }
 
     // patch.deselectAll();
