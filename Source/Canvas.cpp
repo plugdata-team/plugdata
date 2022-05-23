@@ -202,9 +202,6 @@ void Canvas::synchronise(bool updatePosition)
 
             // TODO: don't do this on Canvas!!
             if (newBox->gui && newBox->gui->getLabel()) newBox->gui->getLabel()->toFront(false);
-
-            // Don't show non-patchable (internal) objects
-            if (!pd::Patch::checkObject(object)) newBox->setVisible(false);
         }
         else
         {
@@ -219,9 +216,6 @@ void Canvas::synchronise(bool updatePosition)
 
             box->toFront(false);
             if (box->gui && box->gui->getLabel()) box->gui->getLabel()->toFront(false);
-
-            // Don't show non-patchable (internal) objects
-            if (!pd::Patch::checkObject(object)) box->setVisible(false);
         }
     }
 
@@ -298,16 +292,8 @@ void Canvas::synchronise(bool updatePosition)
         setTransform(main.transform);
     }
 
-    // patch.deselectAll();
-
     // Resize canvas to fit objects
     checkBounds();
-
-    /*
-    for (auto& tmpl : templates)
-    {
-        tmpl->updateIfMoved();
-    } */
 
     main.updateCommandStatus();
     repaint();
@@ -315,14 +301,6 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
-    /*
-    if (suggestor->openedEditor && e.originalComponent != suggestor->openedEditor)
-    {
-        suggestor->currentBox->hideEditor();
-        deselectAll();
-        return;
-    } */
-
     auto openSubpatch = [this](Box* parent)
     {
         if (!parent->gui) return;
@@ -889,12 +867,6 @@ void Canvas::checkBounds()
         graphArea->updateBounds();
     }
 
-    /*
-    for (auto& tmpl : templates)
-    {
-        tmpl->updateIfMoved();
-    } */
-
     updatingBounds = false;
 }
 
@@ -1035,12 +1007,6 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     {
         box->setTopLeftPosition(box->mouseDownPos + dragDistance);
     }
-
-    /*
-    for (auto& tmpl : templates)
-    {
-        tmpl->updateIfMoved();
-    } */
 }
 
 SelectedItemSet<Component*>& Canvas::getLassoSelection()

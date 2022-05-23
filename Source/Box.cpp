@@ -117,8 +117,9 @@ void Box::timerCallback()
 
 void Box::valueChanged(Value& v)
 {
+    
     // Hide certain objects in GOP
-    if (((cnv->isGraph || cnv->presentationMode == var(true)) && (!gui || (gui && (gui->getType() == Type::Message || gui->getType() == Type::Comment)))) || !getPointer() || !cnv->patch.checkObject(getPointer()))
+    if ((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph())
     {
         
         setVisible(false);
@@ -552,10 +553,6 @@ void Box::mouseUp(const MouseEvent& e)
                                          MessageManager::callAsync([this]() { cnv->checkBounds(); });
                                      }
                                  });
-    }
-    else if (!cnv->viewport->getViewArea().contains(getBounds()))
-    {
-        cnv->checkBounds();
     }
     
     selectionChanged = false;
