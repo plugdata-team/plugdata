@@ -39,7 +39,7 @@ struct Dialog : public Component
     void paint(Graphics& g)
     {
         g.setColour(Colours::black.withAlpha(0.5f));
-        
+
 #if PLUGDATA_STANDALONE
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
 #else

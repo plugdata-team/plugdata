@@ -32,19 +32,13 @@ struct DocumentBrowserBase : public Component
     TimeSliceThread updateThread;
     DirectoryContentsList directory;
     WildcardFileFilter filter;
-
 };
 
 //==============================================================================
 class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private ChangeListener
 {
    public:
-    DocumentBrowserItem(DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, const File& f)
-        : file(f),
-          owner(treeComp),
-          parentContentsList(parentContents),
-          indexInContentsList(indexInContents),
-          subContentsList(nullptr, false)
+    DocumentBrowserItem(DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, const File& f) : file(f), owner(treeComp), parentContentsList(parentContents), indexInContentsList(indexInContents), subContentsList(nullptr, false)
     {
         DirectoryContentsList::FileInfo fileInfo;
 
@@ -173,7 +167,6 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
         else
             g.setColour(owner.findColour(DirectoryContentsDisplayComponent::textColourId));
 
-        
         g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
 
         if (isDirectory)
@@ -224,7 +217,7 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
                 }
             }
         }
-        
+
         return false;
     }
 
@@ -372,13 +365,14 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(const File& file) override
     {
-        if(file.isDirectory()) {
+        if (file.isDirectory())
+        {
             file.revealToUser();
         }
-        else if(file.existsAsFile()) {
+        else if (file.existsAsFile())
+        {
             browser->pd->loadPatch(file);
         }
-
     }
     void selectionChanged() override
     {
@@ -404,7 +398,7 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
                 return true;
             }
         }
-        
+
         return false;
     }
 
@@ -639,7 +633,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
         {
             return searchResult[row];
         }
-        
+
         return File();
     }
 
@@ -685,7 +679,7 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
         updateThread.startThread();
 
         addAndMakeVisible(fileList);
-        
+
         watcher.addListener(this);
 
         searchComponent.openFile = [this](File& file)
@@ -758,19 +752,20 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
         addAndMakeVisible(searchComponent);
 
         if (!fileList.getSelectedFile().exists()) fileList.moveSelectedRow(1);
-        }
+    }
 
     ~DocumentBrowser()
     {
         updateThread.stopThread(1000);
     }
-    
+
     // Called when folder changes
-    void changeCallback() override {
+    void changeCallback() override
+    {
         directory.refresh();
         fileList.refresh();
     }
-    
+
     bool isSearching() override
     {
         return searchComponent.isSearching();
@@ -785,9 +780,10 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
 
     void resized() override
     {
-        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(30).withLeft(5));
-
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(28).withLeft(5));
+
+
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 

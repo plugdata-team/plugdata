@@ -1,29 +1,33 @@
 #pragma once
 
-
 struct Spinner : public Component, public Timer
 {
     int numSpinning = 0;
-    
-    void startSpinning() {
+
+    void startSpinning()
+    {
         numSpinning++;
         setVisible(true);
         startTimer(20);
     }
-    
-    void stopSpinning() {
+
+    void stopSpinning()
+    {
         numSpinning--;
-        if(!numSpinning) {
+        if (!numSpinning)
+        {
             setVisible(false);
             stopTimer();
         }
     }
-    
-    void timerCallback() override {
+
+    void timerCallback() override
+    {
         repaint();
     }
-    
-    void paint(Graphics& g) override {
+
+    void paint(Graphics& g) override
+    {
         getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::textColourId), 3, 3, getWidth() - 6, getHeight() - 6);
     }
 };
@@ -201,11 +205,11 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
         setInterceptsMouseClicks(false, true);
-        
+
         addAndMakeVisible(searchSpinner);
         searchSpinner.setAlwaysOnTop(true);
 
-        //updateResults("*", &allResults, 2);
+        // updateResults("*", &allResults, 2);
         updateResults("", &searchResult, 0);
     }
 
@@ -283,10 +287,9 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
         return nullptr;
     }
-    
-    
-    void search(String query) {
-        
+
+    void search(String query)
+    {
     }
 
     void updateResults(String query, SearchResult* result, int searchType = 1)
@@ -295,11 +298,11 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         // Web requests shouldn't block the message queue!
         searchSpinner.startSpinning();
         auto deken = SafePointer<Deken>(this);
-        
+
         addJob(
             [this, deken, result, query, searchType]() mutable
             {
-                if(!deken) return;
+                if (!deken) return;
                 SearchResult newResult;
 
                 // Add as job to ensure synchronous order
@@ -331,14 +334,13 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                             newResult.addIfNotAlreadyThere(info);
                         }
                     }
-                    
-                   
+
                     MessageManager::callAsync(
                         [this, deken, result, newResult]() mutable
                         {
                             // Check if it didn't get deleted
-                            if(!deken) return;
-                            
+                            if (!deken) return;
+
                             *result = newResult;
                             listBox.updateContent();
                             searchSpinner.stopSpinning();
@@ -365,20 +367,20 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     timer *= 2;
                     success = webstream.connect(nullptr);
                 }
-                
-                if(!success) {
+
+                if (!success)
+                {
                     MessageManager::callAsync(
                         [this, deken, result]()
                         {
-                            if(!deken) return;
-                            
+                            if (!deken) return;
+
                             result->clear();
                             listBox.updateContent();
                             searchSpinner.stopSpinning();
                             showError("Failed to connect to server");
                         });
                 }
-                
 
                 // Read JSON result from search query
                 auto json = webstream.readString();
@@ -402,8 +404,8 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                         MessageManager::callAsync(
                             [this, deken, result]()
                             {
-                                if(!deken) return;
-                                
+                                if (!deken) return;
+
                                 result->clear();
                                 listBox.updateContent();
                                 searchSpinner.stopSpinning();
@@ -417,7 +419,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     {
                         SearchResult results;
                         String name = result.name.toString();
-                        
+
                         // Loop through the different versions
                         auto* versions = result.value.getDynamicObject();
                         for (const auto v : versions->getProperties())
@@ -464,7 +466,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                 MessageManager::callAsync(
                     [this, deken, result, newResult]() mutable
                     {
-                        if(!deken) return;
+                        if (!deken) return;
                         *result = newResult;
                         listBox.updateContent();
                         searchSpinner.stopSpinning();
@@ -596,7 +598,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     TextEditor input;
     TextButton clearButton = TextButton(Icons::Clear);
-    
+
     Spinner searchSpinner;
 
     // Thread for unzipping and installing packages
@@ -725,22 +727,22 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
             reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
         }
     };
-    
+
     bool checkArchitecture(String platform)
     {
         // Check OS
-        if(platform.upToFirstOccurrenceOf("-", false, false) != os) return false;
+        if (platform.upToFirstOccurrenceOf("-", false, false) != os) return false;
         platform = platform.fromFirstOccurrenceOf("-", false, false);
-        
+
         // Check floatsize
-        if(platform.fromLastOccurrenceOf("-", false, false) != floatsize) return false;
+        if (platform.fromLastOccurrenceOf("-", false, false) != floatsize) return false;
         platform = platform.upToLastOccurrenceOf("-", false, false);
 
-        if(machine.contains(platform)) return true;
-        
+        if (machine.contains(platform)) return true;
+
         return false;
     }
-        
+
     String floatsize = String(PD_FLOATSIZE);
     String os =
 #if JUCE_LINUX
@@ -766,23 +768,24 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     StringArray machine =
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
-    {"amd64", "x86_64"}
+        {"amd64", "x86_64"}
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)
-    {"i386", "i686", "i586"}
+        {"i386", "i686", "i586"}
 #elif defined(__ppc__)
-    {"ppc", "PowerPC"}
+        {"ppc", "PowerPC"}
 #elif defined(__aarch64__)
-    {"arm64"}
+        {"arm64"}
 #elif __ARM_ARCH == 6 || defined(__ARM_ARCH_6__)
-    {"armv6", "armv6l", "arm"}
-        "armv" stringify(__ARM_ARCH)
+    { "armv6",
+      "armv6l",
+      "arm" } "armv" stringify(__ARM_ARCH)
 #elif __ARM_ARCH == 7 || defined(__ARM_ARCH_7__)
-    {"armv7l", "armv7", "armv6l", "armv6", "arm"}
+        {"armv7l", "armv7", "armv6l", "armv6", "arm"}
 #else
 #if defined(__GNUC__)
 #warning unknown architecture
 #endif
-    {}
+        {}
 #endif
-        ;
+    ;
 };

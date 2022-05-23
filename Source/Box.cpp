@@ -17,16 +17,16 @@
 Box::Box(Canvas* parent, const String& name, Point<int> position)
 {
     cnv = parent;
-
+    
     setTopLeftPosition(position - Point<int>(margin, margin));
-
+    
     if (cnv->attachNextObjectToMouse)
     {
         cnv->attachNextObjectToMouse = false;
         startTimer(20);
         attachedToMouse = true;
     }
-
+    
     initialise();
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
@@ -43,24 +43,23 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
             showEditor();
         }
     }
-    else if (name == "msg")
-    {
-        setType(name);
-        graphics->showEditor();
-    }
     else
     {
         setType(name);
     }
+    if (gui)
+    {
+        gui->showEditor();
+    }
 }
 
-Box::Box(pd::Object* object, Canvas* parent, const String& name) : pdObject(object)
+Box::Box(void* object, Canvas* parent)
 {
     cnv = parent;
-
+    
     initialise();
-
-    setType(name, true);
+    
+    setType("", object);
 }
 
 Box::~Box()
@@ -75,18 +74,18 @@ void Box::initialise()
 {
     addMouseListener(cnv, true);  // Receive mouse messages on canvas
     cnv->addAndMakeVisible(this);
-
+    
     // Updates lock/unlock mode
     locked.referTo(cnv->pd->locked);
     commandLocked.referTo(cnv->pd->commandLocked);
     presentationMode.referTo(cnv->presentationMode);
-
+    
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
-
+    
     setBufferedToImage(true);
-
+    
     originalBounds.setBounds(0, 0, 0, 0);
 }
 
@@ -102,8 +101,9 @@ void Box::timerCallback()
 void Box::valueChanged(Value& v)
 {
     // Hide certain objects in GOP
-    if ((cnv->isGraph || cnv->presentationMode == var(true)) && (!graphics || (graphics && (graphics->getType() == pd::Type::Message || graphics->getType() == pd::Type::Comment || graphics->noGui()))))
+    if (((cnv->isGraph || cnv->presentationMode == var(true)) && (!gui || (gui && (gui->getType() == Type::Message || gui->getType() == Type::Comment)))) || !getPointer() || !cnv->patch.checkObject(getPointer()))
     {
+        
         setVisible(false);
     }
     else
@@ -111,12 +111,12 @@ void Box::valueChanged(Value& v)
         setVisible(true);
         resized();
     }
-
-    if (graphics)
+    
+    if (gui)
     {
-        graphics->lock(locked == var(true) || commandLocked == var(true));
+        gui->lock(locked == var(true) || commandLocked == var(true));
     }
-
+    
     resized();
     repaint();
 }
@@ -138,10 +138,11 @@ bool Box::hitTest(int x, int y)
     }
     
     // Mouse over corners
-    if(cnv->isSelected(this))
+    if (cnv->isSelected(this))
     {
-        for(auto& corner : getCorners()) {
-            if(corner.contains(x, y)) return true;
+        for (auto& corner : getCorners())
+        {
+            if (corner.contains(x, y)) return true;
         }
     }
     
@@ -150,31 +151,43 @@ bool Box::hitTest(int x, int y)
 
 void Box::mouseEnter(const MouseEvent& e)
 {
-    isOver = true;
     repaint();
 }
 
 void Box::mouseExit(const MouseEvent& e)
 {
-    isOver = false;
     repaint();
+}
+
+bool Box::isOver()
+{
+    if(isMouseOverOrDragging()) {
+        return true;
+    }
+    if(gui && gui->isMouseOver())
+    {
+        return true;
+    }
+    
+    return false;
 }
 
 void Box::mouseMove(const MouseEvent& e)
 {
-    if (!cnv->isSelected(this) || locked == var(true))  {
+    if (!cnv->isSelected(this) || locked == var(true))
+    {
         setMouseCursor(MouseCursor::NormalCursor);
         updateMouseCursor();
         return;
     }
-
+    
     auto corners = getCorners();
     for (auto& rect : corners)
     {
         if (rect.contains(e.position))
         {
             auto zone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
-
+            
             setMouseCursor(zone.getMouseCursor());
             updateMouseCursor();
             return;
@@ -187,144 +200,64 @@ void Box::mouseMove(const MouseEvent& e)
 
 void Box::updateBounds()
 {
-    auto type = currentText.upToFirstOccurrenceOf(" ", false, false);
-    if (pdObject)
+    if (gui)
     {
-        auto bounds = pdObject->getBounds() - cnv->canvasOrigin;
-
-        if (bounds.getPosition().getDistanceFrom(getPosition()) >= 2.0f)
-        {
-            setTopLeftPosition(bounds.translated(-margin, -margin).getPosition());
-        }
-        
-        if (!graphics || graphics->noGui())
-        {
-            setEditable(true);
-            hideLabel = false;
-
-            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            int textWidth = getBestTextWidth(currentText);
-            
-            int mod = textWidth % fontWidth;
-
-            textObjectWidth = bounds.getWidth();
-            
-            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset + doubleMargin;
-            
-            setSize(width, height);
-        }
-        else if(graphics && graphics->usesCharWidth()) {
-            addAndMakeVisible(graphics.get());
-            
-            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            auto txt = String(graphics->gui.getText());
-            int textWidth = getBestTextWidth(String(graphics->gui.getText()));
-            
-            int mod = textWidth % fontWidth;
-
-            textObjectWidth = bounds.getWidth();
-            
-            int width = textObjectWidth == 0 ? textWidth : (textObjectWidth * glist_fontwidth(cnv->patch.getPointer())) + textWidthOffset + doubleMargin;
-            
-            setSize(width, bounds.getHeight() + doubleMargin);
-            graphics->resized();
-            graphics->toBack();
-            hideLabel = true;
-            setEditable(false);
-        }
-        else
-        {
-            bounds = bounds.expanded(margin);
-            addAndMakeVisible(graphics.get());
-            setSize(bounds.getWidth(), bounds.getHeight());
-            graphics->resized();
-            graphics->toBack();
-            hideLabel = true;
-            setEditable(false);
-        }
+        cnv->pd->setThis();
+        gui->updateBounds();
     }
-    else
-    {
-        hideLabel = false;
-        setEditable(true);
-        setSize(100, Box::height);
-    }
-
     resized();
 }
 
-void Box::setType(const String& newType, bool exists)
+
+void Box::setType(const String& newType, void* existingObject)
 {
-    textWidthOffset = getBestTextWidth(newType) % glist_fontwidth(cnv->patch.getPointer());
-    
-    hideEditor();
-
-    if (currentText != newType)
-    {
-        currentText = newType;
-    }
-
     // Change box type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
-
+    
+    void* objectPtr = nullptr;
     // "exists" indicates that this object already exists in pd
-    // When setting exists to true, the pdObject need to be assigned already
-    if (!exists)
+    // When setting exists to true, the gui needs to be assigned already
+    if (!existingObject)
     {
         auto* pd = &cnv->patch;
-        if (pdObject)
+        if (gui)
         {
             // Clear connections to this object
             // They will be remade by the synchronise call later
             for (auto* connection : getConnections()) cnv->connections.removeObject(connection);
-
-            pdObject = pd->renameObject(pdObject.get(), newType);
-
+            
+            objectPtr = pd->renameObject(getPointer(), newType);
+            
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
             MessageManager::callAsync([this]() { cnv->synchronise(false); });
         }
         else
         {
-            auto rect = getBounds() - cnv->canvasOrigin;
-            pdObject = pd->createObject(newType, rect.getX() + margin, rect.getY() + margin);
+            auto rect = getBounds().reduced(margin) - cnv->canvasOrigin;
+            objectPtr = pd->createObject(newType, rect.getX(), rect.getY());
         }
     }
     else
     {
-        auto* ptr = pdObject->getPointer();
-        // Reload GUI if it already exists
-        if (pd::Gui::getType(ptr) != pd::Type::Undefined)
-        {
-            pdObject = std::make_unique<pd::Gui>(ptr, &cnv->patch, cnv->pd);
-        }
-        else
-        {
-            pdObject = std::make_unique<pd::Object>(ptr, &cnv->patch, cnv->pd);
-        }
+        objectPtr = existingObject;
     }
-
-    if (pdObject)
+    
+    // Create gui for the object
+    gui.reset(GUIObject::createGui(objectPtr, this));
+    
+    if (gui)
     {
-        // Create graphics for the object if necessary
-        graphics.reset(GUIComponent::createGui(type, this, !exists));
-
-        if (graphics)
-        {
-            graphics->lock(locked == var(true));
-            graphics->updateValue();
-        }
-
-        if (pdObject->getType() == pd::Type::Invalid)
-        {
-            setSize(100, getHeight());
-        }
+        gui->lock(locked == var(true));
+        gui->updateValue();
+        addAndMakeVisible(gui.get());
     }
-
+    
     // Update inlets/outlets
-    updatePorts();
     updateBounds();
-
+    updatePorts();
+    
+    
     cnv->updateDrawables();
     cnv->main.updateCommandStatus();
 }
@@ -333,10 +266,10 @@ Array<Rectangle<float>> Box::getCorners() const
 {
     auto rect = getLocalBounds().reduced(margin);
     const float offset = 2.0f;
-
+    
     Array<Rectangle<float>> corners = {Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopLeft().toFloat()).translated(offset, offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomLeft().toFloat()).translated(offset, -offset),
-                                       Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)};
-
+        Rectangle<float>(9.0f, 9.0f).withCentre(rect.getBottomRight().toFloat()).translated(-offset, -offset), Rectangle<float>(9.0f, 9.0f).withCentre(rect.getTopRight().toFloat()).translated(-offset, offset)};
+    
     return corners;
 }
 
@@ -344,16 +277,16 @@ void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(margin);
     auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
-
+    
     bool selected = cnv->isSelected(this);
-
+    
     float thickness = 1.0f;
     if (attachedToMouse)
     {
         outlineColour = Colours::lightgreen;
         thickness = 2.0f;
     }
-    else if (pdObject && pdObject->getType() == pd::Type::Invalid && !getCurrentTextEditor())
+    else if (gui && gui->getType() == Type::Invalid)
     {
         outlineColour = Colours::red;
         if (selected) outlineColour = outlineColour.brighter(1.3f);
@@ -362,21 +295,15 @@ void Box::paint(Graphics& g)
     {
         outlineColour = findColour(PlugDataColour::highlightColourId);
         g.setColour(outlineColour);
-
+        
         // Draw resize edges when selected
         for (auto& rect : getCorners()) g.fillRoundedRectangle(rect, 2.0f);
     }
-
-    if (!graphics || (graphics && graphics->noGui()))
-    {
-        g.setColour(findColour(ResizableWindow::backgroundColourId));
-        g.fillRect(getLocalBounds().reduced(margin));
-    }
-
+    
     // Draw comment style
-    if (graphics && graphics->getType() == pd::Type::Comment)
+    if (gui && gui->getType() == Type::Comment)
     {
-        if (locked == var(false) && (isOver || selected) && !cnv->isGraph)
+        if (locked == var(false) && (isOver() || selected) && !cnv->isGraph)
         {
             g.setColour(selected ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::canvasOutlineColourId));
             g.drawRect(rect.toFloat(), 0.5f);
@@ -388,71 +315,43 @@ void Box::paint(Graphics& g)
         g.setColour(outlineColour);
         g.drawRoundedRectangle(rect.toFloat(), 2.0f, thickness);
     }
-
-    if (!hideLabel && !editor)
-    {
-        g.setColour(findColour(PlugDataColour::textColourId));
-        g.setFont(font);
-
-        auto textArea = border.subtractedFrom(rect);
-
-        g.drawFittedText(currentText, textArea, justification, jmax(1, static_cast<int>((static_cast<float>(textArea.getHeight()) / font.getHeight()))), minimumHorizontalScale);
-    }
 }
 
 void Box::resized()
 {
-    if (graphics)
+    if (gui)
     {
-        graphics->setBounds(getLocalBounds().reduced(margin));
+        gui->setBounds(getLocalBounds().reduced(margin));
     }
-
-    // graphical objects manage their own size limits
-    // For text object, make sure the width at least fits the text
-    if (!graphics || graphics->noGui())
+    
+    if (newObjectEditor)
     {
-        // Estimate the amount of with needed to fit inlets and outlets
-        int ioletWidth = std::max(numInputs, numOutputs) * 15;
-        // Calculate height based on number of lines, and width
-        int width = std::max(getWidth(), ioletWidth + doubleMargin);
-        int height = Box::height + ((getNumLines(currentText, width - 13, font) - 1) * 28);
-
-        // Recursive resize is a bit tricky, but since these variables are very predictable,
-        // it won't be a problem
-        if (getWidth() != width || getHeight() != height)
-        {
-            setSize(width, height);
-        }
+        newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
-
-    if (auto* newEditor = getCurrentTextEditor())
-    {
-        newEditor->setBounds(getLocalBounds().reduced(margin));
-    }
-
+    
     int edgeSize = 12;
     const int edgeHitBox = 4;
     const int borderWidth = 14;
-
+    
     if (getWidth() < 32 && (numInputs > 1 || numOutputs > 1))
     {
         edgeSize = 9;
     }
-
+    
     auto inletBounds = getLocalBounds();
     if (auto spaceToRemove = jlimit<int>(0, borderWidth, inletBounds.getWidth() - (edgeHitBox * numInputs) - borderWidth))
     {
         inletBounds.removeFromLeft(spaceToRemove);
         inletBounds.removeFromRight(spaceToRemove);
     }
-
+    
     auto outletBounds = getLocalBounds();
     if (auto spaceToRemove = jlimit<int>(0, borderWidth, outletBounds.getWidth() - (edgeHitBox * numOutputs) - borderWidth))
     {
         outletBounds.removeFromLeft(spaceToRemove);
         outletBounds.removeFromRight(spaceToRemove);
     }
-
+    
     int index = 0;
     for (auto& edge : edges)
     {
@@ -460,9 +359,9 @@ void Box::resized()
         const int position = index < numInputs ? index : index - numInputs;
         const int total = isInlet ? numInputs : numOutputs;
         const float yPosition = (isInlet ? margin : getHeight() - margin) - edgeSize / 2.0f;
-
+        
         const auto bounds = isInlet ? inletBounds : outletBounds;
-
+        
         if (total == 1 && position == 0)
         {
             int xPosition = getWidth() < 40 ? getLocalBounds().getCentreX() - edgeSize / 2.0f : bounds.getX();
@@ -473,61 +372,75 @@ void Box::resized()
             const float ratio = (bounds.getWidth() - edgeSize) / (float)(total - 1);
             edge->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
         }
-
+        
         index++;
     }
 }
 
 void Box::updatePorts()
 {
+    if(!getPointer()) return;
+    
     // update inlets and outlets
-
+    
     int oldNumInputs = 0;
     int oldNumOutputs = 0;
-
+    
     for (auto& edge : edges)
     {
         edge->isInlet ? oldNumInputs++ : oldNumOutputs++;
     }
-
+    
     numInputs = 0;
     numOutputs = 0;
-
-    if (pdObject)
+    
+    if (auto* ptr = pd::Patch::checkObject(getPointer()))
     {
-        numInputs = pdObject->getNumInlets();
-        numOutputs = pdObject->getNumOutlets();
+        numInputs = libpd_ninlets(ptr);
+        numOutputs = libpd_noutlets(ptr);
     }
-
+    
     while (numInputs < oldNumInputs) edges.remove(--oldNumInputs);
     while (numInputs > oldNumInputs) edges.insert(oldNumInputs++, new Edge(this, true));
     while (numOutputs < oldNumOutputs) edges.remove(numInputs + (--oldNumOutputs));
     while (numOutputs > oldNumOutputs) edges.insert(numInputs + (++oldNumOutputs), new Edge(this, false));
-
+    
     int numIn = 0;
     int numOut = 0;
-
+    
     for (int i = 0; i < numInputs + numOutputs; i++)
     {
         auto* edge = edges[i];
         bool input = edge->isInlet;
-        bool isSignal = i < numInputs ? pdObject->isSignalInlet(i) : pdObject->isSignalOutlet(i - numInputs);
-
+        
+        bool isSignal;
+        if (i < numInputs)
+        {
+            isSignal = libpd_issignalinlet(pd::Patch::checkObject(getPointer()), i);
+        }
+        else
+        {
+            isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i);
+        }
+        
         edge->edgeIdx = input ? numIn : numOut;
         edge->isSignal = isSignal;
         edge->setAlwaysOnTop(true);
-
-        String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(currentText, edge->edgeIdx, input ? numInputs : numOutputs, input);
-        edge->setTooltip(tooltip);
-
+        
+        if (gui)
+        {
+             String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getName(), edge->edgeIdx, input ? numInputs : numOutputs, input);
+             edge->setTooltip(tooltip);
+        }
+        
         // Dont show for graphs or presentation mode
         edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
         edge->repaint();
-
+        
         numIn += input;
         numOut += !input;
     }
-
+    
     resized();
 }
 
@@ -538,7 +451,7 @@ void Box::mouseDown(const MouseEvent& e)
         attachedToMouse = false;
         stopTimer();
         repaint();
-
+        
         if (createEditorOnMouseDown)
         {
             createEditorOnMouseDown = false;
@@ -549,45 +462,36 @@ void Box::mouseDown(const MouseEvent& e)
         {
             auto box = SafePointer<Box>(this);
             // Tell pd about new position
-            // Don't do this for other case, as pdObject will not yet be assigned
             cnv->pd->enqueueFunction(
-                [this, box]()
-                {
-                    if(!box) return;
-                    
-                    // TODO: fix this!
-                    auto b = getBounds() - cnv->canvasOrigin;
-                    b.reduce(margin, margin);
-                    if(!graphics || (graphics && graphics->usesCharWidth())) {
-                        b.setWidth(textObjectWidth);
-                    }
-                    
-                    pdObject->setBounds(b);
-                });
+                                     [this, box]()
+                                     {
+                                         if (!box || !box->gui) return;                                         
+                                         gui->applyBounds();
+                                     });
         }
-
+        
         return;
     }
-
+    
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
-
+    
     bool isSelected = cnv->isSelected(this);
-
+    
     for (auto& rect : getCorners())
     {
         if (rect.contains(e.position) && isSelected)
         {
             // Start resize
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
-
+            
             originalBounds = getBounds();
-
+            
             return;
         }
     }
-
+    
     cnv->handleMouseDown(this, e);
-
+    
     if (isSelected != cnv->isSelected(this))
     {
         selectionChanged = true;
@@ -597,76 +501,70 @@ void Box::mouseDown(const MouseEvent& e)
 void Box::mouseUp(const MouseEvent& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
-
+    
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
-
-    if (editSingleClick && isEnabled() && contains(e.getPosition()) && !(e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && cnv->isSelected(this) && !selectionChanged)
-    {
-        showEditor();
-    }
-
-    if (wasResized) cnv->grid.handleMouseUp(Point<int>());
-
+    
     cnv->handleMouseUp(this, e);
-
+    
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
         cnv->connectingEdge = nullptr;
     }
-
+    
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
     {
         originalBounds.setBounds(0, 0, 0, 0);
-
+        
         auto box = SafePointer<Box>(this);
         cnv->pd->enqueueFunction(
-            [this, box]()
-            {
-                if(!box) return;
-                
-                auto b = getBounds() - cnv->canvasOrigin;
-                b.reduce(margin, margin);
-                
-                if(!graphics || (graphics && graphics->usesCharWidth())) {
-                    b.setWidth(textObjectWidth);
-                }
-  
-                pdObject->setBounds(b);
+                                 [this, box]()
+                                 {
+                                     if (!box || !gui) return;
+                                     
+                                     auto b = getBounds() - cnv->canvasOrigin;
+                                     b.reduce(margin, margin);
+                                     
+                                     // Used for size changes, could also be used for properties
+                                     auto* obj = static_cast<t_gobj*>(getPointer());
+                                     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
+                                     libpd_undo_apply(canvas, obj);
+                                     
+                                     gui->applyBounds();
 
-                // To make sure it happens after setting object bounds
-                if (!cnv->viewport->getViewArea().contains(getBounds()))
-                {
-                    MessageManager::callAsync([this]() { cnv->checkBounds(); });
-                }
-            });
+                                     // To make sure it happens after setting object bounds
+                                     if (!cnv->viewport->getViewArea().contains(getBounds()))
+                                     {
+                                         MessageManager::callAsync([this]() { cnv->checkBounds(); });
+                                     }
+                                 });
     }
     else if (!cnv->viewport->getViewArea().contains(getBounds()))
     {
         cnv->checkBounds();
     }
-
+    
     selectionChanged = false;
 }
 
 void Box::mouseDrag(const MouseEvent& e)
 {
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
-
+    
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
-        wasResized = true;
         Point<int> dragDistance = e.getOffsetFromDragStart();
-
+        
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
-
-        if(!graphics || (graphics && graphics->usesCharWidth())) {
-            // Round width to valid pd width
-            int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-            int textWidth = getBestTextWidth(currentText);
-
-            textObjectWidth = (newBounds.getWidth() - doubleMargin - textWidthOffset) / fontWidth;
-            newBounds.setWidth(textObjectWidth * fontWidth + textWidthOffset + doubleMargin);
-        }
+        
+        /*
+         if(!gui || (gui && gui->usesCharWidth())) {
+         // Round width to valid pd width
+         //int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+         //int textWidth = getBestTextWidth(currentText);
+         
+         //textObjectWidth = (newBounds.getWidth() - doubleMargin - textWidthOffset) / fontWidth;
+         //newBounds.setWidth(textObjectWidth * fontWidth + textWidthOffset + doubleMargin);
+         } */
         
         setBounds(newBounds);
     }
@@ -679,97 +577,39 @@ void Box::mouseDrag(const MouseEvent& e)
 
 void Box::showEditor()
 {
-    if (editor == nullptr)
+    if (!gui)
     {
-        editor = std::make_unique<TextEditor>(getName());
-        editor->applyFontToAllText(font);
-
-        copyAllExplicitColoursTo(*editor);
-        editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-        editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
-        editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
-
-        editor->setAlwaysOnTop(true);
-
-        editor->setMultiLine(false);
-        editor->setReturnKeyStartsNewLine(false);
-        editor->setBorder(border);
-        editor->setIndents(0, 0);
-        editor->setJustification(justification);
-
-        editor->onFocusLost = [this]()
-        {
-            // Necessary so the editor doesn't close when clicking on a suggestion
-            if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
-            {
-                hideEditor();
-            }
-        };
-
-        cnv->showSuggestions(this, editor.get());
-
-        editor->setSize(10, 10);
-        addAndMakeVisible (editor.get());
-
-        editor->setText(currentText, false);
-        editor->addListener(this);
-
-        if (editor == nullptr)  // may be deleted by a callback
-            return;
-
-        editor->setHighlightedRegion(Range<int>(0, currentText.length()));
-
-        resized();
-        repaint();
-
-        editor->grabKeyboardFocus();
+        openNewObjectEditor();
+    }
+    else
+    {
+        gui->showEditor();
     }
 }
 
 void Box::hideEditor()
 {
-    if (editor != nullptr)
+    if (gui)
+    {
+        gui->hideEditor();
+    }
+    else if (newObjectEditor)
     {
         WeakReference<Component> deletionChecker(this);
         std::unique_ptr<TextEditor> outgoingEditor;
-        std::swap(outgoingEditor, editor);
-
+        std::swap(outgoingEditor, newObjectEditor);
+        
         if (auto* peer = getPeer()) peer->dismissPendingTextInput();
-
-        // not needed?
+        
         outgoingEditor->setInputFilter(nullptr, false);
-
-        if (graphics && !graphics->noGui())
-        {
-            setVisible(false);
-            resized();
-        }
-
+        
         cnv->hideSuggestions();
-
+        
         auto newText = outgoingEditor->getText();
-
-        bool changed;
-        if (currentText != newText)
-        {
-            currentText = newText;
-            repaint();
-            changed = true;
-        }
-        else
-        {
-            changed = false;
-        }
-
         outgoingEditor.reset();
-
+        
         repaint();
-
-        // update if the name has changed, or if pdobject is unassigned
-        if (changed || !pdObject)
-        {
-            setType(newText);
-        }
+        setType(newText);
     }
 }
 
@@ -789,42 +629,125 @@ Array<Connection*> Box::getConnections() const
     return result;
 }
 
-TextEditor* Box::getCurrentTextEditor() const noexcept
+void* Box::getPointer() const
 {
-    return editor.get();
+    return gui ? gui->ptr : nullptr;
 }
 
-int Box::getBestTextWidth(const String& text)
+void Box::openNewObjectEditor()
 {
-    
-    return std::max<float>(round(font.getStringWidthFloat(text) + 30.5f), 40);
-}
-
-
-void Box::setEditable(bool editable)
-{
-    editSingleClick = editable;
-
-    setWantsKeyboardFocus(editSingleClick);
-    setFocusContainerType(editSingleClick ? FocusContainerType::keyboardFocusContainer : FocusContainerType::none);
-    invalidateAccessibilityHandler();
+    if (!newObjectEditor)
+    {
+        newObjectEditor = std::make_unique<TextEditor>();
+        
+        auto* editor = newObjectEditor.get();
+        editor->applyFontToAllText(Font(15));
+        
+        copyAllExplicitColoursTo(*editor);
+        editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
+        editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
+        editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+        
+        editor->setAlwaysOnTop(true);
+        
+        editor->setMultiLine(false);
+        editor->setReturnKeyStartsNewLine(false);
+        editor->setBorder(BorderSize<int>{1, 7, 1, 2});
+        editor->setIndents(0, 0);
+        editor->setJustification(Justification::left);
+        
+        editor->onFocusLost = [this]()
+        {
+            // Necessary so the editor doesn't close when clicking on a suggestion
+            if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
+            {
+                hideEditor();
+            }
+        };
+        
+        cnv->showSuggestions(this, editor);
+        
+        editor->setSize(10, 10);
+        addAndMakeVisible(editor);
+        editor->addListener(this);
+        
+        if (editor == nullptr)  // may be deleted by a callback
+            return;
+        
+        resized();
+        repaint();
+        
+        editor->grabKeyboardFocus();
+    }
 }
 
 void Box::textEditorReturnKeyPressed(TextEditor& ed)
 {
-    if (editor != nullptr)
+    if (newObjectEditor)
     {
-        editor->giveAwayKeyboardFocus();
+        newObjectEditor->giveAwayKeyboardFocus();
     }
 }
 
 void Box::textEditorTextChanged(TextEditor& ed)
 {
     // For resize-while-typing behaviour
-    auto width = getBestTextWidth(ed.getText());
-
+    auto width = Font(15).getStringWidth(ed.getText()) + 25;
+    
     if (width > getWidth())
     {
         setSize(width, getHeight());
     }
+}
+
+pd::Patch Box::getHelp() const
+{
+    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+    
+    auto* ptr = getPointer();
+    if(!ptr) return {nullptr, nullptr};
+    
+    auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
+    auto* name = class_gethelpname(pdclass);
+    
+    String firstName = String(name) + "-help.pd";
+    String secondName = "help-" + String(name) + ".pd";
+    
+    auto findHelpPatch = [&firstName, &secondName](File searchDir) -> File
+    {
+        for (auto& fileIter : RangedDirectoryIterator(searchDir, true))
+        {
+            auto file = fileIter.getFile();
+            if (file.getFileName() == firstName)
+            {
+                return file;
+            }
+            else if (file.getFileName() == secondName)
+            {
+                return file;
+            }
+        }
+        
+        return File();
+    };
+    
+    // Paths to search
+    // First, only search vanilla, then search all documentation
+    std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
+    
+    for (auto& path : paths)
+    {
+        auto file = findHelpPatch(path);
+        if (file.existsAsFile())
+        {
+            auto name = file.getFileName();
+            auto fullPath = file.getParentDirectory().getFullPathName();
+            sys_lock();
+            auto* pdPatch = glob_evalfile(nullptr, gensym(name.toRawUTF8()), gensym(fullPath.toRawUTF8()));
+            sys_unlock();
+            return {pdPatch, cnv->pd, file.getChildFile(secondName)};
+        }
+    }
+    
+    return {nullptr, nullptr};
 }

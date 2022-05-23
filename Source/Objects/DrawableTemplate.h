@@ -16,6 +16,8 @@ extern "C"
 #include <s_stuff.h>
 }
 
+#include "GUIObject.h"
+
 class Canvas;
 struct _fielddesc
 {
@@ -50,3 +52,12 @@ struct DrawableTemplate : public DrawablePath
 
     void updateIfMoved();
 };
+
+/*
+struct ScalarObject : public TextObject
+{
+    ScalarObject(void* obj, Box* box) : TextObject(obj, box)
+    {
+    }
+
+}; */

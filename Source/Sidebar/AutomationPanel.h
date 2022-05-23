@@ -26,7 +26,6 @@ struct AutomationComponent : public Component
 
             slider->setScrollWheelEnabled(false);
             slider->setTextBoxStyle(Slider::TextBoxRight, false, 45, 13);
-            
 
 #if PLUGDATA_STANDALONE
             slider->onValueChange = [this, slider, p]() mutable
@@ -59,35 +58,34 @@ struct AutomationComponent : public Component
 #else
             auto* param = pd->parameters.getParameter("param" + String(p + 1));
             auto range = param->getNormalisableRange().getRange();
-            
+
             slider->setNormalisableRange(NormalisableRange<double>(range.getStart(), range.getEnd()));
             slider->setValue(param->getValue());
             attachments.add(new SliderParameterAttachment(*param, *slider, nullptr));
 #endif
         }
     }
-    
+
 #if PLUGDATA_STANDALONE
-    void updateParameters() {
+    void updateParameters()
+    {
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
             sliders[p]->setValue(pd->standaloneParams[p]);
         }
     }
 #endif
-    
+
     void paint(Graphics& g) override
     {
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
-
-            
             sliders[p]->setColour(Slider::backgroundColourId, findColour(p & 1 ? PlugDataColour::toolbarColourId : PlugDataColour::canvasColourId));
             sliders[p]->setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
 
-            auto offColour = findColour(PlugDataColour::canvasColourId);
-            auto onColour = offColour.darker(0.04f);
-            
+            auto offColour = findColour(PlugDataColour::toolbarColourId);
+            auto onColour = findColour(PlugDataColour::canvasColourId);
+
             g.setColour(p & 1 ? offColour : onColour);
             g.fillRect(0, sliders[p]->getY(), getWidth(), sliders[p]->getHeight());
         }
@@ -118,7 +116,7 @@ struct AutomationComponent : public Component
     OwnedArray<TextButton> createButtons;
     OwnedArray<Label> labels;
     OwnedArray<Slider> sliders;
-    
+
 #if !PLUGDATA_STANDALONE
     OwnedArray<SliderParameterAttachment> attachments;
 #endif

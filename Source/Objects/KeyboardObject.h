@@ -12,59 +12,56 @@ struct MIDIKeyboard : public MidiKeyboardComponent
         setColour(MidiKeyboardComponent::shadowColourId, Colours::transparentWhite);
     }
 
-
-    void drawWhiteNote (int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
+    void drawWhiteNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour lineColour, Colour textColour) override
     {
         auto c = Colour(225, 225, 225);
-        if (isOver)  c = Colour(235, 235, 235);
-        if (isDown)  c = Colour(245, 245, 245);
-        
-        
+        if (isOver) c = Colour(235, 235, 235);
+        if (isDown) c = Colour(245, 245, 245);
+
         area = area.reduced(0.0f, 0.5f);
-        
-        g.setColour (c);
-        
+
+        g.setColour(c);
+
         // Rounded first and last keys to fix boxes
         if (midiNoteNumber == getRangeStart())
         {
-            //area = area.expanded(0.0f, -0.5f);
+            // area = area.expanded(0.0f, -0.5f);
             Path keyPath;
             keyPath.addRoundedRectangle(area.getX() + 0.5f, area.getY(), area.getWidth() - 0.5f, area.getHeight(), 2.0f, 2.0f, true, false, true, false);
-            
+
             g.fillPath(keyPath);
-            return; // skip drawing outline for first key
+            return;  // skip drawing outline for first key
         }
         if (midiNoteNumber == getRangeEnd())
         {
             Path keyPath;
             keyPath.addRoundedRectangle(area.getX(), area.getY(), area.getWidth() - 3.5f, area.getHeight(), 2.0f, 2.0f, false, true, false, true);
-            
+
             g.fillPath(keyPath);
         }
-        else {
+        else
+        {
             area = area.expanded(0.0f, -0.5f);
-            g.fillRect (area);
+            g.fillRect(area);
         }
-        
 
-        g.setColour (findColour(PlugDataColour::canvasOutlineColourId));
-        g.fillRect (area.withWidth (1.0f));
+        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+        g.fillRect(area.withWidth(1.0f));
     }
-    
-    void drawBlackNote (int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour noteFillColour) override
+
+    void drawBlackNote(int midiNoteNumber, Graphics& g, Rectangle<float> area, bool isDown, bool isOver, Colour noteFillColour) override
     {
         auto c = Colour(90, 90, 90);
-        
-       
-        if (isOver)  c = Colour(101, 101, 101);
-        if (isDown)  c = Colour(60, 60, 60);
-        
-        g.setColour (c);
-        g.fillRect (area);
+
+        if (isOver) c = Colour(101, 101, 101);
+        if (isDown) c = Colour(60, 60, 60);
+
+        g.setColour(c);
+        g.fillRect(area);
     }
 };
 // ELSE keyboard
-struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
+struct KeyboardObject : public GUIObject, public MidiKeyboardStateListener
 {
     typedef struct _edit_proxy
     {
@@ -73,7 +70,7 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_clock* p_clock;
         struct _keyboard* p_cnv;
     } t_edit_proxy;
-    
+
     typedef struct _keyboard
     {
         t_object x_obj;
@@ -109,42 +106,54 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         t_symbol* x_bindsym;
         t_outlet* x_out;
     } t_keyboard;
-    
-    KeyboardComponent(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
+
+    KeyboardObject(void* ptr, Box* box) : GUIObject(ptr, box), keyboard(state, MidiKeyboardComponent::horizontalKeyboard)
     {
         keyboard.setAvailableRange(36, 83);
         keyboard.setScrollButtonsVisible(false);
-        
+
         state.addListener(this);
-        
+
         addAndMakeVisible(keyboard);
-        
-        auto* x = (t_keyboard*)gui.getPointer();
+
+        auto* x = (t_keyboard*)ptr;
         x->x_width = width * 0.595f;
-        
+
         rangeMin = x->x_low_c;
         rangeMax = x->x_low_c + (x->x_octaves * 12) + x->x_semitones;
-        
+
         if (static_cast<int>(rangeMin.getValue()) == 0 || static_cast<int>(rangeMax.getValue()) == 0)
         {
             rangeMin = 36;
             rangeMax = 86;
         }
-        
-        initialise(newObject);
+
+        initialise();
     }
-    
-    void checkBoxBounds() override
+
+    void updateBounds() override
+    {
+        int x, y, w, h;
+
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+
+        auto* keyboard = static_cast<t_keyboard*>(ptr);
+        Rectangle<int> bounds(x, y, keyboard->x_width, keyboard->x_height);
+
+        box->setBounds(bounds.expanded(Box::margin));
+    }
+
+    void checkBounds() override
     {
         int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
         float ratio = numKeys / 9.55f;
-        
-        auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
-        
+
+        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
+
         if (box->getWidth() / ratio != box->getHeight())
         {
             box->setSize(box->getHeight() * ratio, box->getHeight());
-            
+
             if (getWidth() > 0)
             {
                 keyboard.setKeyWidth(getWidth() / (numKeys * 0.597f));
@@ -153,84 +162,92 @@ struct KeyboardComponent : public GUIComponent, public MidiKeyboardStateListener
         }
     }
     
+    void applyBounds() override {
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        
+        auto* keyboard = static_cast<t_keyboard*>(ptr);
+        keyboard->x_width = getWidth();
+        keyboard->x_height = getHeight();
+    }
+
     void resized() override
     {
         keyboard.setBounds(getLocalBounds());
     }
-    
+
     void handleNoteOn(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
-        auto* x = (t_keyboard*)gui.getPointer();
-        
-        box->cnv->pd->enqueueFunction(
-                                      [x, note, velocity]() mutable
-                                      {
-                                          int ac = 2;
-                                          t_atom at[2];
-                                          SETFLOAT(at, note);
-                                          SETFLOAT(at + 1, velocity * 127);
-                                          
-                                          outlet_list(x->x_out, &s_list, ac, at);
-                                          if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-                                      });
+        auto* x = (t_keyboard*)ptr;
+
+        cnv->pd->enqueueFunction(
+            [x, note, velocity]() mutable
+            {
+                int ac = 2;
+                t_atom at[2];
+                SETFLOAT(at, note);
+                SETFLOAT(at + 1, velocity * 127);
+
+                outlet_list(x->x_out, &s_list, ac, at);
+                if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+            });
     }
-    
+
     void handleNoteOff(MidiKeyboardState* source, int midiChannel, int note, float velocity) override
     {
-        auto* x = (t_keyboard*)gui.getPointer();
-        
-        box->cnv->pd->enqueueFunction(
-                                      [x, note]() mutable
-                                      {
-                                          int ac = 2;
-                                          t_atom at[2];
-                                          SETFLOAT(at, note);
-                                          SETFLOAT(at + 1, 0);
-                                          
-                                          outlet_list(x->x_out, &s_list, ac, at);
-                                          if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
-                                      });
+        auto* x = (t_keyboard*)ptr;
+
+        cnv->pd->enqueueFunction(
+            [x, note]() mutable
+            {
+                int ac = 2;
+                t_atom at[2];
+                SETFLOAT(at, note);
+                SETFLOAT(at + 1, 0);
+
+                outlet_list(x->x_out, &s_list, ac, at);
+                if (x->x_send != &s_ && x->x_send->s_thing) pd_list(x->x_send->s_thing, &s_list, ac, at);
+            });
     };
-    
+
     ObjectParameters defineParameters() override
     {
         return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
     };
-    
+
     void valueChanged(Value& value) override
     {
-        auto* keyboardObject = static_cast<t_keyboard*>(gui.getPointer());
-        
+        auto* keyboardObject = static_cast<t_keyboard*>(ptr);
+
         if (value.refersToSameSourceAs(rangeMin))
         {
             rangeMin = std::clamp<int>(rangeMin.getValue(), 0, 127);
-            
+
             keyboardObject->x_low_c = static_cast<int>(rangeMin.getValue());
-            
+
             int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
             keyboardObject->x_octaves = range / 12;
             keyboardObject->x_semitones = range % 12;
-            
+
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
-            checkBoxBounds();
+            checkBounds();
         }
         else if (value.refersToSameSourceAs(rangeMax))
         {
             rangeMax = std::clamp<int>(rangeMax.getValue(), 0, 127);
             /*
-             static_cast<t_keyboard*>(gui.getPointer())->x_octaves = static_cast<int>(value.getValue()); */
+             static_cast<t_keyboard*>(ptr)->x_octaves = static_cast<int>(value.getValue()); */
             keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
-            
+
             int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
             keyboardObject->x_octaves = range / 12;
             keyboardObject->x_semitones = range % 12;
-            checkBoxBounds();
+            checkBounds();
         }
     }
-    
+
     Value rangeMin;
     Value rangeMax;
-    
+
     MidiKeyboardState state;
     MIDIKeyboard keyboard;
 };
