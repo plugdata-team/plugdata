@@ -1,5 +1,5 @@
 
-struct GraphOnParent : public GUIObject
+struct GraphOnParent final : public GUIObject
 {
     bool isLocked = false;
 
@@ -16,6 +16,7 @@ struct GraphOnParent : public GUIObject
         addMouseListener(this, true);
 
         resized();
+        updateDrawables();
     }
 
     void checkBounds() override
@@ -112,6 +113,18 @@ struct GraphOnParent : public GUIObject
             if (box->gui)
             {
                 box->gui->updateValue();
+            }
+        }
+    }
+    
+    void updateDrawables() override
+    {
+        if(!canvas) return;
+        for (auto& box : canvas->boxes)
+        {
+            if (box->gui)
+            {
+                box->gui->updateDrawables();
             }
         }
     }

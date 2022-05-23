@@ -1,6 +1,6 @@
 #include "../Utility/DraggableNumber.h"
 
-struct NumberObject : public IEMObject
+struct NumberObject final : public IEMObject
 {
     Label input;
     DraggableNumber dragger;

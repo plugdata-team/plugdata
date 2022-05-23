@@ -1,5 +1,5 @@
 // ELSE pic
-struct PictureObject : public GUIObject
+struct PictureObject final : public GUIObject
 {
     typedef struct _edit_proxy
     {

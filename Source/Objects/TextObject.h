@@ -1,9 +1,7 @@
-struct TextObject : public ObjectBase, public TextEditor::Listener
+// Text base class that text objects with special implementation details can derive from
+struct TextBase : public ObjectBase, public TextEditor::Listener
 {
-    
-
-    
-    TextObject(void* obj, Box* parent) : ObjectBase(obj, parent)
+    TextBase(void* obj, Box* parent) : ObjectBase(obj, parent)
     {
         currentText = getText();
         addMouseListener(box, false);
@@ -11,7 +9,7 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
         type = GUIObject::getType(obj);
     }
     
-    ~TextObject() {
+    ~TextBase() {
         removeMouseListener(box);
     }
     
@@ -245,4 +243,10 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
     int textWidthOffset = 0;
     int numLines = 1;
 
+};
+
+// Actual text object, marked final for optimisation
+struct TextObject final : public TextBase
+{
+    TextObject(void* obj, Box* parent) : TextBase(obj, parent) {}
 };

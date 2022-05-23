@@ -1,6 +1,6 @@
 
 // ELSE mousepad
-struct MousePadObject : public GUIObject
+struct MousePadObject final : public GUIObject
 {
     bool isLocked = false;
     bool isPressed = false;

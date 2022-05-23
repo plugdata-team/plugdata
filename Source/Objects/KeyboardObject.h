@@ -61,7 +61,7 @@ struct MIDIKeyboard : public MidiKeyboardComponent
     }
 };
 // ELSE keyboard
-struct KeyboardObject : public GUIObject, public MidiKeyboardStateListener
+struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 {
     typedef struct _edit_proxy
     {
