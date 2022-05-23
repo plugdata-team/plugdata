@@ -83,7 +83,7 @@ struct ListObject final : public AtomObject
     void resized() override
     {
         AtomObject::resized();
-        
+
         label.setBounds(getLocalBounds());
     }
 

@@ -81,10 +81,11 @@ struct PictureObject final : public GUIObject
             openFile(path.toString());
         }
     }
-    
-    void applyBounds() override {
+
+    void applyBounds() override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
-        
+
         auto* pic = static_cast<t_pic*>(ptr);
         pic->x_width = getWidth();
         pic->x_height = getHeight();
@@ -92,21 +93,22 @@ struct PictureObject final : public GUIObject
 
     void updateBounds() override
     {
-        
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        
+
         box->setObjectBounds({x, y, w, h});
     }
 
-    
-    void checkBounds() override {
+    void checkBounds() override
+    {
         auto* pic = static_cast<t_pic*>(ptr);
 
-        if(!imageFile.existsAsFile()) {
+        if (!imageFile.existsAsFile())
+        {
             box->setSize(50, 50);
         }
-        else if(pic->x_height != img.getHeight() || pic->x_width != img.getWidth()) {
+        else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth())
+        {
             box->setSize(img.getWidth(), img.getHeight());
         }
     }

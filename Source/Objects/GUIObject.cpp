@@ -48,15 +48,12 @@ extern "C"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv), type(GUIObject::getType(obj))
-{
-};
+ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv), type(GUIObject::getType(obj)){};
 
 String ObjectBase::getText()
 {
-    
-    if(!cnv->patch.checkObject(ptr)) return "";
-    
+    if (!cnv->patch.checkObject(ptr)) return "";
+
     char* text = nullptr;
     int size = 0;
     cnv->pd->setThis();
@@ -105,7 +102,6 @@ void ObjectBase::closeOpenedSubpatchers()
     }
 }
 
-
 void ObjectBase::moveToFront()
 {
     auto glist_getindex = [](t_glist* x, t_gobj* y)
@@ -115,34 +111,34 @@ void ObjectBase::moveToFront()
         for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
         return (indx);
     };
-    
+
     auto glist_nth = [](t_glist* x, int n) -> t_gobj*
     {
         t_gobj* y;
         int indx;
         for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
             if (indx == n) return (y);
-        
+
         jassertfalse;
         return nullptr;
     };
-    
+
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
     t_gobj* y = static_cast<t_gobj*>(ptr);
-    
+
     t_gobj *y_prev = nullptr, *y_next = nullptr;
-    
+
     /* if there is an object before ours (in other words our index is > 0) */
     if (int idx = glist_getindex(canvas, y)) y_prev = glist_nth(canvas, idx - 1);
-    
+
     /* if there is an object after ours */
     if (y->g_next) y_next = y->g_next;
-    
+
     t_gobj* y_end = glist_nth(canvas, glist_getindex(canvas, 0) - 1);
-    
+
     y_end->g_next = y;
     y->g_next = NULL;
-    
+
     /* now fix links in the hole made in the list due to moving of the oldy
      * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
      */
@@ -152,14 +148,14 @@ void ObjectBase::moveToFront()
         canvas->gl_list = y_next;
 }
 
-
-NonPatchable::NonPatchable(void* obj, Box* parent) : ObjectBase(obj, parent) {
-   
+NonPatchable::NonPatchable(void* obj, Box* parent) : ObjectBase(obj, parent)
+{
     // Make object invisible
     box->setVisible(false);
 }
 
-NonPatchable::~NonPatchable() {
+NonPatchable::~NonPatchable()
+{
 }
 
 GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false)
@@ -200,7 +196,6 @@ void GUIObject::mouseUp(const MouseEvent& e)
 
 void GUIObject::initialise()
 {
-
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
 
@@ -327,7 +322,6 @@ void GUIObject::componentMovedOrResized(Component& component, bool moved, bool r
 
     if (!resized) return;
 
-
     checkBounds();
 }
 
@@ -335,7 +329,6 @@ void GUIObject::setValue(float value) noexcept
 {
     cnv->pd->enqueueDirectMessages(ptr, value);
 }
-
 
 String GUIObject::getName() const
 {
@@ -395,7 +388,6 @@ Type GUIObject::getType(void* ptr) noexcept
         if (textObj->te_type == T_OBJECT)
         {
             return Type::Invalid;
-            
         }
         else
         {
@@ -471,11 +463,13 @@ Type GUIObject::getType(void* ptr) noexcept
     else if (name == "scalar")
     {
         auto* gobj = static_cast<t_gobj*>(ptr);
-        if (gobj->g_pd == scalar_class) {
+        if (gobj->g_pd == scalar_class)
+        {
             return Type::Scalar;
         }
     }
-    else if(!pd_checkobject(static_cast<t_pd*>(ptr))) {
+    else if (!pd_checkobject(static_cast<t_pd*>(ptr)))
+    {
         // Object is not a patcher object but something else
         return Type::NonPatchable;
     }
@@ -487,59 +481,60 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
 {
     auto type = getType(ptr);
 
-    switch (type) {
+    switch (type)
+    {
         case Type::Text:
-        return new TextObject(ptr, parent);
+            return new TextObject(ptr, parent);
         case Type::Invalid:
-        return new TextObject(ptr, parent);
+            return new TextObject(ptr, parent);
         case Type::Bang:
-        return new BangObject(ptr, parent);
+            return new BangObject(ptr, parent);
         case Type::Toggle:
-        return new ToggleObject(ptr, parent);
+            return new ToggleObject(ptr, parent);
         case Type::HorizontalSlider:
-        return new SliderObject(false, ptr, parent);
+            return new SliderObject(false, ptr, parent);
         case Type::VerticalSlider:
-        return new SliderObject(true, ptr, parent);
+            return new SliderObject(true, ptr, parent);
         case Type::HorizontalRadio:
-        return new RadioObject(false, ptr, parent);
+            return new RadioObject(false, ptr, parent);
         case Type::VerticalRadio:
-        return new RadioObject(true, ptr, parent);
+            return new RadioObject(true, ptr, parent);
         case Type::Message:
-        return new MessageObject(ptr, parent);
+            return new MessageObject(ptr, parent);
         case Type::Number:
-        return new NumberObject(ptr, parent);
+            return new NumberObject(ptr, parent);
         case Type::AtomList:
-        return new ListObject(ptr, parent);
+            return new ListObject(ptr, parent);
         case Type::Array:
-        return new ArrayObject(ptr, parent);
+            return new ArrayObject(ptr, parent);
         case Type::GraphOnParent:
-        return new GraphOnParent(ptr, parent);
+            return new GraphOnParent(ptr, parent);
         case Type::Subpatch:
-        return new SubpatchObject(ptr, parent);
+            return new SubpatchObject(ptr, parent);
         case Type::Clone:
-        return new SubpatchObject(ptr, parent);
+            return new SubpatchObject(ptr, parent);
         case Type::VuMeter:
-        return new VUMeterObject(ptr, parent);
+            return new VUMeterObject(ptr, parent);
         case Type::Panel:
-        return new CanvasObject(ptr, parent);
+            return new CanvasObject(ptr, parent);
         case Type::Comment:
-        return new CommentObject(ptr, parent);
+            return new CommentObject(ptr, parent);
         case Type::AtomNumber:
-        return new FloatAtomObject(ptr, parent);
+            return new FloatAtomObject(ptr, parent);
         case Type::AtomSymbol:
-        return new SymbolAtomObject(ptr, parent);
+            return new SymbolAtomObject(ptr, parent);
         case Type::Mousepad:
-        return new MousePadObject(ptr, parent);
+            return new MousePadObject(ptr, parent);
         case Type::Mouse:
-        return new MouseObject(ptr, parent);
+            return new MouseObject(ptr, parent);
         case Type::Keyboard:
-        return new KeyboardObject(ptr, parent);
+            return new KeyboardObject(ptr, parent);
         case Type::Picture:
-        return new PictureObject(ptr, parent);
+            return new PictureObject(ptr, parent);
         case Type::Scalar:
-        return new ScalarObject(ptr, parent);
+            return new ScalarObject(ptr, parent);
         case Type::NonPatchable:
-        return new NonPatchable(ptr, parent);
+            return new NonPatchable(ptr, parent);
         default:
             return nullptr;
     }

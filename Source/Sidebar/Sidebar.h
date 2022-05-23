@@ -45,11 +45,12 @@ using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and 
 static int getNumLines(int width, int stringWidth)
 {
     int numLines = 1;
-    while(width < stringWidth) {
+    while (width < stringWidth)
+    {
         stringWidth -= (width - 12);
         numLines++;
     }
-    
+
     return numLines;
 }
 // Used by text objects for estimating best text height for a set width

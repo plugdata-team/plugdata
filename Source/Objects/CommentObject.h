@@ -8,12 +8,8 @@ struct CommentObject final : public TextBase
 {
     CommentObject(void* obj, Box* box) : TextBase(obj, box)
     {
-        setInterceptsMouseClicks(false, false);
-
-        // Our component doesn't intercept mouse events, so dragging will be okay
-        box->addMouseListener(this, false);
     }
-    
+
     void paint(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::textColourId));
@@ -22,7 +18,6 @@ struct CommentObject final : public TextBase
         auto textArea = border.subtractedFrom(getLocalBounds());
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
     }
-
 
     void hideEditor() override
     {
@@ -61,21 +56,24 @@ struct CommentObject final : public TextBase
                 cnv->pd->enqueueFunction(
                     [this, obj]() mutable
                     {
-                        if(!obj) return;
-                        
+                        if (!obj) return;
+
                         auto* newName = currentText.toRawUTF8();
                         libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, currentText.getNumBytesAsUTF8());
 
-                        MessageManager::callAsync([this, obj]() {
-                            if(!obj) return;
-                            box->updateBounds(); });
+                        MessageManager::callAsync(
+                            [this, obj]()
+                            {
+                                if (!obj) return;
+                                box->updateBounds();
+                            });
                     });
-                
+
                 box->setType(newText);
             }
         }
     }
-    
+
     void showEditor() override
     {
         if (editor == nullptr)
@@ -122,7 +120,9 @@ struct CommentObject final : public TextBase
             editor->grabKeyboardFocus();
         }
     }
-    
-    bool hideInGraph() override { return true; }
 
+    bool hideInGraph() override
+    {
+        return true;
+    }
 };

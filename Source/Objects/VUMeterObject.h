@@ -1,6 +1,6 @@
 
 
-struct VUMeterObject final : public IEMObject 
+struct VUMeterObject final : public IEMObject
 {
     VUMeterObject(void* ptr, Box* box) : IEMObject(ptr, box)
     {

@@ -65,8 +65,6 @@ struct MessageObject final : public GUIObject
         box->addMouseListener(this, false);
     }
 
-
-    
     void updateBounds() override
     {
         int x = 0, y = 0, w = 0, h = 0;
@@ -77,20 +75,20 @@ struct MessageObject final : public GUIObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         int width = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
-        
-        if(textObj->te_width == 0) {
+
+        if (textObj->te_width == 0)
+        {
             width = Font(15).getStringWidth(getText()) + 19;
         }
 
         box->setObjectBounds({x, y, width, h});
     }
 
-
     void checkBounds() override
     {
         int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
-        
+
         int newWidth = std::max(50, box->getWidth());
         if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth()))
         {
@@ -109,17 +107,19 @@ struct MessageObject final : public GUIObject
         setInterceptsMouseClicks(isLocked, isLocked);
     }
 
-    void applyBounds() override {
+    void applyBounds() override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
-        
+
         auto* textObj = static_cast<t_text*>(ptr);
         textObj->te_width = getWidth() / glist_fontwidth(cnv->patch.getPointer());
     }
-    
+
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        if(auto* editor = input.getCurrentTextEditor()) {
+        if (auto* editor = input.getCurrentTextEditor())
+        {
             editor->setBounds(getLocalBounds());
         }
     }
@@ -238,8 +238,11 @@ struct MessageObject final : public GUIObject
                 glist_retext(messobj->m_glist, &messobj->m_text);
             });
     }
-    
-    bool hideInGraph() override { return true; }
+
+    bool hideInGraph() override
+    {
+        return true;
+    }
 
     Label input;
 };

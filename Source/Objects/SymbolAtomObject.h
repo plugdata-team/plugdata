@@ -42,7 +42,7 @@ struct SymbolAtomObject final : public AtomObject
     void resized() override
     {
         AtomObject::resized();
-        
+
         input.setBounds(getLocalBounds());
     }
 

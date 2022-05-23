@@ -5,15 +5,17 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         currentText = getText();
         addMouseListener(box, false);
-        
+
         type = GUIObject::getType(obj);
     }
-    
-    ~TextBase() {
+
+    ~TextBase()
+    {
         removeMouseListener(box);
     }
-    
-    void applyBounds() override {
+
+    void applyBounds() override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
         auto* textObj = static_cast<t_text*>(ptr);
         textObj->te_width = textObjectWidth;
@@ -23,12 +25,13 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
-        
+
         int width = textObjectWidth * fontWidth + textWidthOffset;
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
-        
-        if(getWidth() != width || getHeight() != height) {
+
+        if (getWidth() != width || getHeight() != height)
+        {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
         }
 
@@ -42,7 +45,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         g.setColour(findColour(ResizableWindow::backgroundColourId));
         g.fillRect(getLocalBounds().toFloat().reduced(0.5f));
-        
+
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
 
@@ -101,8 +104,6 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         }
     }
 
-   
-
     void updateBounds() override
     {
         int x, y, w, h;
@@ -118,16 +119,17 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
         textWidthOffset = textWidth % fontWidth;
         textObjectWidth = bounds.getWidth();
-        
-        if(textObjectWidth == 0) {
+
+        if (textObjectWidth == 0)
+        {
             textObjectWidth = (textWidth - textWidthOffset) / fontWidth;
         }
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        
+
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
-        
+
         box->setObjectBounds({bounds.getX(), bounds.getY(), width, height});
     }
 
@@ -170,7 +172,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             }
         }
     }
-    
+
     void showEditor() override
     {
         if (editor == nullptr)
@@ -225,7 +227,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         return editor.get();
     }
-    
+
+    bool hideInGraph() override
+    {
+        return true;
+    }
+
    protected:
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
@@ -240,11 +247,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     int textObjectWidth = 0;
     int textWidthOffset = 0;
     int numLines = 1;
-
 };
 
 // Actual text object, marked final for optimisation
 struct TextObject final : public TextBase
 {
-    TextObject(void* obj, Box* parent) : TextBase(obj, parent) {}
+    TextObject(void* obj, Box* parent) : TextBase(obj, parent)
+    {
+    }
 };

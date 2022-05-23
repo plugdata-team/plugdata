@@ -783,8 +783,6 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
         searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
         fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(28).withLeft(5));
 
-
-
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
         Array<TextButton*> buttons = {&revealButton, &loadFolderButton, &resetFolderButton};

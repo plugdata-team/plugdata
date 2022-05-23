@@ -340,7 +340,6 @@ void Canvas::mouseDown(const MouseEvent& e)
 
     auto openHelp = [this](Box* box)
     {
-        
         pd->setThis();
         // Find name of help file
         auto helpPatch = box->getHelp();
@@ -369,7 +368,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             if (box && box->gui)
             {
                 auto type = box->gui->getType();
-                
+
                 // Check if subpatch but not graph
                 if (box->gui->getPatch() && !box->gui->getCanvas())
                 {
@@ -496,7 +495,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 case 8:  // To Front
                     box->toFront(false);
 
-                    if(box->gui) box->gui->moveToFront();
+                    if (box->gui) box->gui->moveToFront();
                     break;
 
                 case 9:
@@ -958,6 +957,7 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
 // Call from component's mouseUp
 void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 {
+    bool needsBoundsCheck = false;
     if (didStartDragging)
     {
         auto objects = std::vector<void*>();
@@ -967,6 +967,11 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
             if (auto* box = dynamic_cast<Box*>(component))
             {
                 if (box->getPointer()) objects.push_back(box->getPointer());
+
+                if (!getBounds().contains(box->getBounds()))
+                {
+                    needsBoundsCheck = true;
+                }
             }
         }
 
@@ -984,6 +989,11 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     if (didStartDragging) didStartDragging = false;
 
     componentBeingDragged = nullptr;
+
+    if (needsBoundsCheck)
+    {
+        checkBounds();
+    }
 
     component->repaint();
 }

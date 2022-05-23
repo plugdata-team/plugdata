@@ -27,7 +27,7 @@ struct MousePadObject final : public GUIObject
 
         // setInterceptsMouseClicks(box->locked, box->locked);
 
-        addMouseListener(box, false);
+        // addMouseListener(box, false);
     }
 
     ~MousePadObject()
@@ -99,15 +99,16 @@ struct MousePadObject final : public GUIObject
         SETFLOAT(at, 0);
         outlet_anything(x->x_obj.ob_outlet, gensym("click"), 1, at);
     }
-    
-    void applyBounds() override {
+
+    void applyBounds() override
+    {
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
-        
+
         auto* pad = static_cast<t_pad*>(ptr);
         pad->x_w = getWidth();
         pad->x_h = getHeight();
     }
-    
+
     void updateBounds() override
     {
         int x, y, w, h;

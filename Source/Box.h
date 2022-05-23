@@ -20,8 +20,6 @@ extern "C"
 class Canvas;
 class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener
 {
-
-
    public:
     Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
@@ -43,7 +41,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     void showEditor();
     void hideEditor();
-    
+
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
 
@@ -64,8 +62,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     void textEditorTextChanged(TextEditor& ed) override;
 
     bool isOver();
-    
-    
+
     Array<Rectangle<float>> getCorners() const;
 
     int numInputs = 0;
@@ -88,8 +85,9 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     bool selectionChanged = false;
     bool edgeHovered = false;
-    
+
     Point<int> mouseDownPos;
+    bool attachedToMouse = false;
 
    private:
     void initialise();
@@ -98,8 +96,6 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     void openNewObjectEditor();
 
     Rectangle<int> originalBounds;
-
-    bool attachedToMouse = false;
     bool createEditorOnMouseDown = false;
 
     std::unique_ptr<TextEditor> newObjectEditor;

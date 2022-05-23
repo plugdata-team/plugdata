@@ -85,8 +85,8 @@ struct LevelMeter : public Component, public Timer
                 g.fillRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
             }
 
-            //g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-            //g.drawRect(outerBorderWidth + x, y, getWidth() - (2 * (outerBorderWidth + blockRectSpacing)), blockHeight + 2.0f, 1.0f);
+            // g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            // g.drawRect(outerBorderWidth + x, y, getWidth() - (2 * (outerBorderWidth + blockRectSpacing)), blockHeight + 2.0f, 1.0f);
         }
     }
 
