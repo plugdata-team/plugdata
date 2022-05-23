@@ -77,7 +77,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void updateSidebarSelection();
     void updateDrawables();
-    //Array<DrawableTemplate*> findDrawables();
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
