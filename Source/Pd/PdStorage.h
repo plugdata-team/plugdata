@@ -10,7 +10,7 @@
 #include <array>
 #include <vector>
 
-#include "PdGui.h"
+#include "PdInstance.h"
 #include "x_libpd_mod_utils.h"
 
 namespace pd
@@ -49,7 +49,7 @@ class Storage
 
    private:
     void createObject();
-    
+
     UndoManager undoManager;
 
     ValueTree extraInfo = ValueTree("PlugDataInfo");

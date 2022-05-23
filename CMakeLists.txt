@@ -65,8 +65,8 @@ endif()
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
-    ${SOURCES_DIRECTORY}/Components/*.h
-    ${SOURCES_DIRECTORY}/Components/*.cpp
+    ${SOURCES_DIRECTORY}/Utility/*.h
+    ${SOURCES_DIRECTORY}/Utility/*.cpp
     ${SOURCES_DIRECTORY}/Objects/*.h
     ${SOURCES_DIRECTORY}/Objects/*.cpp
     ${SOURCES_DIRECTORY}/Sidebar/*.h
@@ -75,13 +75,12 @@ file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/Dialogs/*.cpp
     ${SOURCES_DIRECTORY}/Pd/*.cpp
     ${SOURCES_DIRECTORY}/Pd/*.h
-    ${SOURCES_DIRECTORY}/Utility/*.h
 )
 
 if(APPLE)
   list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.mm)
 else()
-  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cpp)
+  list(APPEND PlugDataSources ${SOURCES_DIRECTORY}/Utility/FileSystemWatcher.cxx)
 endif()
 
 foreach(core_SOURCE ${PlugDataSources})
@@ -260,6 +259,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_LOG_ASSERTIONS=1
     JUCE_STRICT_REFCOUNTEDPOINTER=1
     JUCE_WEB_BROWSER=0
+    JUCE_COREGRAPHICS_RENDER_WITH_MULTIPLE_PAINT_CALLS=1
 )
 
 if(UNIX AND NOT APPLE)

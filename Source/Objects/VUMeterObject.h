@@ -1,13 +1,13 @@
 
 
-struct VUMeter : public GUIComponent
+struct VUMeterObject : public IEMObject
 {
-    VUMeter(const pd::Gui& gui, Box* box, bool newObject) : GUIComponent(gui, box, newObject)
+    VUMeterObject(void* ptr, Box* box) : IEMObject(ptr, box)
     {
-        initialise(newObject);
+        initialise();
     }
 
-    void checkBoxBounds() override
+    void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(30, maxSize, box->getWidth());
@@ -19,6 +19,16 @@ struct VUMeter : public GUIComponent
         }
     }
 
+    float getValue() override
+    {
+        return static_cast<t_vu*>(ptr)->x_fp;
+    }
+
+    float getRMS()
+    {
+        return static_cast<t_vu*>(ptr)->x_fr;
+    }
+
     void resized() override
     {
     }
@@ -27,7 +37,7 @@ struct VUMeter : public GUIComponent
     {
         g.fillAll(box->findColour(PlugDataColour::toolbarColourId));
 
-        auto values = std::vector<float>{gui.getValue(), gui.getPeak()};
+        auto values = std::vector<float>{getValue(), getRMS()};
 
         int height = getHeight();
         int width = getWidth();
