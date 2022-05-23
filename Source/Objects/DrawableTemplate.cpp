@@ -25,6 +25,49 @@ static t_float fielddesc_getfloat(t_fielddesc* f, t_template* templ, t_word* wp,
     }
 }
 
+static void scalar_getrect(t_gobj *z, t_glist *owner,
+    int *xp1, int *yp1, int *xp2, int *yp2)
+{
+    t_scalar *x = (t_scalar *)z;
+    t_template *templ = template_findbyname(x->sc_template);
+    t_canvas *templatecanvas = template_findcanvas(templ);
+    int x1 = 0x7fffffff, x2 = -0x7fffffff, y1 = 0x7fffffff, y2 = -0x7fffffff;
+    t_gobj *y;
+    t_float basex, basey;
+    scalar_getbasexy(x, &basex, &basey);
+        /* if someone deleted the template canvas, we're just a point */
+    if (!templatecanvas)
+    {
+        x1 = x2 = glist_xtopixels(owner, basex);
+        y1 = y2 = glist_ytopixels(owner, basey);
+    }
+    else
+    {
+        x1 = y1 = 0x7fffffff;
+        x2 = y2 = -0x7fffffff;
+        for (y = templatecanvas->gl_list; y; y = y->g_next)
+        {
+            const t_parentwidgetbehavior *wb = pd_getparentwidget(&y->g_pd);
+            int nx1, ny1, nx2, ny2;
+            if (!wb) continue;
+            (*wb->w_parentgetrectfn)(y, owner,
+                x->sc_vec, templ, basex, basey,
+                &nx1, &ny1, &nx2, &ny2);
+            if (nx1 < x1) x1 = nx1;
+            if (ny1 < y1) y1 = ny1;
+            if (nx2 > x2) x2 = nx2;
+            if (ny2 > y2) y2 = ny2;
+        }
+        if (x2 < x1 || y2 < y1)
+            x1 = y1 = x2 = y2 = 0;
+    }
+    /* post("scalar x1 %d y1 %d x2 %d y2 %d", x1, y1, x2, y2); */
+    *xp1 = x1;
+    *yp1 = y1;
+    *xp2 = x2;
+    *yp2 = y2;
+}
+
 static int rangecolor(int n) /* 0 to 9 in 5 steps */
 {
     int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
@@ -90,16 +133,20 @@ void DrawableTemplate::update()
     auto* data = scalar->sc_vec;
 
     /* see comment in plot_vis() */
+    /*
     if (vis && !fielddesc_getfloat(&object->x_vis, templ, data, 0))
     {
         return;
-    }
+    } */
 
     // Reduce clip region
     auto pos = canvas->getLocalPoint(canvas->main.getCurrentCanvas(), canvas->getPosition()) * -1;
-    auto bounds = canvas->getParentComponent()->getLocalBounds();
+    
+    
+    auto bounds = canvas->isGraph ? canvas->getParentComponent()->getLocalBounds() : canvas->getLocalBounds();
 
-    lastBounds = bounds + pos;
+    
+    lastBounds = bounds;// + pos;
 
     if (vis)
     {
@@ -122,8 +169,8 @@ void DrawableTemplate::update()
                 float xCoord = (baseX + fielddesc_getcoord(f, templ, data, 1)) / glist->gl_pixwidth;
                 float yCoord = (baseY + fielddesc_getcoord(f + 1, templ, data, 1)) / glist->gl_pixheight;
 
-                pix[2 * i] = xCoord * bounds.getWidth() + pos.x;
-                pix[2 * i + 1] = yCoord * bounds.getHeight() + pos.y;
+                pix[2 * i] = xCoord * bounds.getWidth();// + pos.x;
+                pix[2 * i + 1] = yCoord * bounds.getHeight();// + pos.y;
             }
 
             canvas->pd->getCallbackLock()->exit();

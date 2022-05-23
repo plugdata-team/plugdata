@@ -36,9 +36,7 @@ struct GraphOnParent : public GUIObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         auto* glist = static_cast<_glist*>(ptr);
-        Rectangle<int> bounds = {x, y, glist->gl_pixwidth, glist->gl_pixheight};
-
-        box->setBounds(bounds.expanded(Box::margin));
+        box->setObjectBounds({x, y, glist->gl_pixwidth, glist->gl_pixheight});
     }
 
     ~GraphOnParent() override

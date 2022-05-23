@@ -53,11 +53,4 @@ struct DrawableTemplate : public DrawablePath
     void updateIfMoved();
 };
 
-/*
-struct ScalarObject : public TextObject
-{
-    ScalarObject(void* obj, Box* box) : TextObject(obj, box)
-    {
-    }
 
-}; */

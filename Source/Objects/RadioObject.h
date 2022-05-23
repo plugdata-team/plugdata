@@ -89,15 +89,13 @@ struct RadioObject : public IEMObject
         if (isVertical)
         {
             auto* dial = static_cast<t_vdial*>(ptr);
-            bounds = {x, y, dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number};
+            box->setObjectBounds({x, y, dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number});
         }
         else
         {
             auto* dial = static_cast<t_hdial*>(ptr);
-            bounds = {x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h};
+            box->setObjectBounds({x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h});
         }
-
-        box->setBounds(bounds.expanded(Box::margin));
     }
 
     // To make it trigger on mousedown instead of mouseup

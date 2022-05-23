@@ -112,10 +112,7 @@ struct MousePadObject : public GUIObject
     {
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        Rectangle<int> bounds(x, y, w, h);
-
-        box->setBounds(bounds.expanded(Box::margin));
+        box->setObjectBounds({x, y, w, h});
     }
 
     void lock(bool locked) override

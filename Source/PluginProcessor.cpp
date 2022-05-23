@@ -1051,10 +1051,7 @@ void PlugDataAudioProcessor::timerCallback()
         }
         else
         {
-            for (auto* tmpl : editor->getCurrentCanvas()->templates)
-            {
-                static_cast<DrawableTemplate*>(tmpl)->update();
-            }
+            editor->updateDrawables();
         }
 
         callbackType = 0;
