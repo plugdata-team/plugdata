@@ -162,8 +162,8 @@ bool Connection::hitTest(int x, int y)
     auto pend = inlet->getCanvasBounds().getCentre().toFloat() - origin.toFloat();
 
     // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position) < 6.5f) return false;
-    if (pend.getDistanceFrom(position) < 6.5f) return false;
+    if (pstart.getDistanceFrom(position) < 8.0f) return false;
+    if (pend.getDistanceFrom(position) < 8.0f) return false;
 
     if (nearestPoint.getDistanceFrom(position) < 5)
     {
