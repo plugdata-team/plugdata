@@ -304,10 +304,11 @@ void Canvas::synchronise(bool updatePosition)
     // Resize canvas to fit objects
     checkBounds();
 
+    /*
     for (auto& tmpl : templates)
     {
         tmpl->updateIfMoved();
-    }
+    } */
 
     main.updateCommandStatus();
     repaint();
@@ -351,7 +352,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         }
 
         auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
-        bool isGraphChild = parent->gui->getType() == Type::GraphOnParent;
+        bool isGraphChild = parent->gui->getCanvas();
         auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
 
         newPatch->setCurrentFile(path);
@@ -391,8 +392,9 @@ void Canvas::mouseDown(const MouseEvent& e)
             if (box && box->gui)
             {
                 auto type = box->gui->getType();
-                ;
-                if (box && (box->gui && (type == Type::Subpatch || type == Type::Clone)))
+                
+                // Check if subpatch but not graph
+                if (box->gui->getPatch() && !box->gui->getCanvas())
                 {
                     openSubpatch(box);
                 }
@@ -467,12 +469,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         Box* box = nullptr;
         if (hasSelection && !multiple) box = selectedBoxes.getFirst();
 
-        bool isSubpatch = false;
-        if (box && box->gui)
-        {
-            auto type = box->gui->getType();
-            isSubpatch = type == Type::GraphOnParent || type == Type::Subpatch || type == Type::Clone;
-        }
+        bool isSubpatch = box && box->gui && box->gui->getPatch();
 
         // Create popup menu
         popupMenu.clear();
@@ -673,69 +670,6 @@ void Canvas::updateSidebarSelection()
     {
         main.sidebar.hideParameters();
     }
-}
-
-// Updates pd objects that use the drawing feature
-void Canvas::updateDrawables()
-{
-    templates.clear();
-    templates.addArray(findDrawables());
-
-    for (auto& tmpl : templates)
-    {
-        addAndMakeVisible(tmpl);
-        tmpl->setAlwaysOnTop(true);
-        tmpl->update();
-    }
-}
-
-Array<DrawableTemplate*> Canvas::findDrawables()
-{
-    // Find all drawables (from objects like drawpolygon, filledcurve, etc.)
-    // Pd draws this over all siblings, even when drawn inside a graph!
-
-    Array<DrawableTemplate*> result;
-
-    for (auto& box : boxes)
-    {
-        if (!box->getPointer()) continue;
-
-        auto* gobj = static_cast<t_gobj*>(box->getPointer());
-
-        // Recurse for graphs
-        if (gobj->g_pd == canvas_class)
-        {
-            if (box->gui && box->gui->getType() == Type::GraphOnParent)
-            {
-                auto* canvas = box->gui->getCanvas();
-
-                auto subdrawables = canvas->findDrawables();
-                result.addArray(subdrawables);
-            }
-        }
-        // Scalar found!
-        if (gobj->g_pd == scalar_class)
-        {
-            auto* x = reinterpret_cast<t_scalar*>(gobj);
-            auto* templ = template_findbyname(x->sc_template);
-            auto* templatecanvas = template_findcanvas(templ);
-            t_gobj* y;
-            t_float basex, basey;
-            scalar_getbasexy(x, &basex, &basey);
-
-            if (!templatecanvas) continue;
-
-            for (y = templatecanvas->gl_list; y; y = y->g_next)
-            {
-                const t_parentwidgetbehavior* wb = pd_getparentwidget(&y->g_pd);
-                if (!wb) continue;
-
-                result.add(new DrawableTemplate(x, y, this, static_cast<int>(basex), static_cast<int>(basey)));
-            }
-        }
-    }
-
-    return result;
 }
 
 void Canvas::paintOverChildren(Graphics& g)
@@ -956,10 +890,11 @@ void Canvas::checkBounds()
         graphArea->updateBounds();
     }
 
+    /*
     for (auto& tmpl : templates)
     {
         tmpl->updateIfMoved();
-    }
+    } */
 
     updatingBounds = false;
 }
@@ -1102,10 +1037,11 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
         box->setTopLeftPosition(box->mouseDownPos + dragDistance);
     }
 
+    /*
     for (auto& tmpl : templates)
     {
         tmpl->updateIfMoved();
-    }
+    } */
 }
 
 SelectedItemSet<Component*>& Canvas::getLassoSelection()

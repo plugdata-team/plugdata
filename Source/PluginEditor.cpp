@@ -78,14 +78,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         for (auto* box : getCurrentCanvas()->boxes)
         {
             if (!box->gui) continue;
-
-            auto type = box->gui->getType();
-
-            if (type == Type::GraphOnParent)
-            {
-                auto* cnv = box->gui->getCanvas();
-                if (cnv) cnv->synchronise();
-            }
+            if (auto* cnv = box->gui->getCanvas()) cnv->synchronise();
         }
 
         auto* cnv = getCurrentCanvas();
@@ -426,6 +419,24 @@ void PlugDataPluginEditor::updateValues()
         if (box->gui && box->isShowing())
         {
             box->gui->updateValue();
+        }
+    }
+
+    // Maybe don't do this?
+    updateCommandStatus();
+}
+
+void PlugDataPluginEditor::updateDrawables()
+{
+    auto* cnv = getCurrentCanvas();
+
+    if (!cnv) return;
+
+    for (auto& box : cnv->boxes)
+    {
+        if (box->gui)
+        {
+            box->gui->updateDrawables();
         }
     }
 

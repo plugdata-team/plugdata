@@ -43,6 +43,9 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     void showEditor();
     void hideEditor();
+    
+    Rectangle<int> getObjectBounds();
+    void setObjectBounds(Rectangle<int> bounds);
 
     pd::Patch getHelp() const;
     void* getPointer() const;

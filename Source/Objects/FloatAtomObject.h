@@ -1,6 +1,6 @@
 #include "../Utility/DraggableNumber.h"
 
-struct FloatAtomObject : public AtomObject
+struct FloatAtomObject final : public AtomObject
 {
     Label input;
     DraggableNumber dragger;

@@ -1,5 +1,5 @@
 
-struct GraphOnParent : public GUIObject
+struct GraphOnParent final : public GUIObject
 {
     bool isLocked = false;
 
@@ -16,6 +16,7 @@ struct GraphOnParent : public GUIObject
         addMouseListener(this, true);
 
         resized();
+        updateDrawables();
     }
 
     void checkBounds() override
@@ -36,9 +37,7 @@ struct GraphOnParent : public GUIObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         auto* glist = static_cast<_glist*>(ptr);
-        Rectangle<int> bounds = {x, y, glist->gl_pixwidth, glist->gl_pixheight};
-
-        box->setBounds(bounds.expanded(Box::margin));
+        box->setObjectBounds({x, y, glist->gl_pixwidth, glist->gl_pixheight});
     }
 
     ~GraphOnParent() override
@@ -114,6 +113,18 @@ struct GraphOnParent : public GUIObject
             if (box->gui)
             {
                 box->gui->updateValue();
+            }
+        }
+    }
+    
+    void updateDrawables() override
+    {
+        if(!canvas) return;
+        for (auto& box : canvas->boxes)
+        {
+            if (box->gui)
+            {
+                box->gui->updateDrawables();
             }
         }
     }

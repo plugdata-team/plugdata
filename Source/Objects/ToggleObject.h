@@ -1,6 +1,6 @@
 
 
-struct ToggleObject : public IEMObject
+struct ToggleObject final : public IEMObject
 {
     bool toggleState = false;
     Value nonZero;

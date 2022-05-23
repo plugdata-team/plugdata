@@ -1,5 +1,5 @@
 
-struct BangObject : public IEMObject
+struct BangObject final : public IEMObject
 {
     uint32_t lastBang = 0;
 
