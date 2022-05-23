@@ -81,13 +81,8 @@ struct MessageObject : public GUIObject
         if(textObj->te_width == 0) {
             width = Font(15).getStringWidth(getText()) + 19;
         }
-        if(getText().isEmpty()) {
-            
-        }
-        
-        Rectangle<int> bounds = {x, y, width, h};
 
-        box->setBounds(bounds.expanded(Box::margin));
+        box->setObjectBounds({x, y, width, h});
     }
 
 
@@ -160,25 +155,6 @@ struct MessageObject : public GUIObject
 
             if (lastMessage != v && !v.startsWith("click"))
             {
-                numLines = 1;
-                longestLine = 7;
-
-                int currentLineLength = 0;
-                for (auto c : v)
-                {
-                    if (c == '\n')
-                    {
-                        numLines++;
-                        longestLine = std::max(longestLine, currentLineLength);
-                        currentLineLength = 0;
-                    }
-                    else
-                    {
-                        currentLineLength++;
-                    }
-                }
-                if (numLines == 1) longestLine = std::max(longestLine, currentLineLength);
-
                 lastMessage = v;
 
                 update();
@@ -262,9 +238,8 @@ struct MessageObject : public GUIObject
                 glist_retext(messobj->m_glist, &messobj->m_text);
             });
     }
+    
+    bool hideInGraph() override { return true; }
 
     Label input;
-
-    int numLines = 1;
-    int longestLine = 7;
 };

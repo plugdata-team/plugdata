@@ -121,8 +121,6 @@ class Patch
     String getTitle() const;
     void setTitle(const String& title);
 
-    std::vector<t_template*> getTemplates() const;
-
     Instance* instance = nullptr;
 
    private:

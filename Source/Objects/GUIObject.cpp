@@ -45,7 +45,7 @@ extern "C"
 #include "CommentObject.h"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
-#include "DrawableTemplate.h"
+#include "ScalarObject.h"
 
 ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv), type(GUIObject::getType(obj))
 {
@@ -454,6 +454,13 @@ Type GUIObject::getType(void* ptr) noexcept
     {
         return Type::Subpatch;
     }
+    else if (name == "scalar")
+    {
+        auto* gobj = static_cast<t_gobj*>(ptr);
+        if (gobj->g_pd == scalar_class) {
+            return Type::Scalar;
+        }
+    }
 
     return Type::Text;
 }
@@ -511,6 +518,8 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
         return new KeyboardObject(ptr, parent);
         case Type::Picture:
         return new PictureObject(ptr, parent);
+        case Type::Scalar:
+        return new ScalarObject(ptr, parent);
         default:
             return nullptr;
     }

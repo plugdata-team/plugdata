@@ -27,7 +27,8 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
         textObjectWidth = (getWidth() - textWidthOffset) / fontWidth;
         
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        int height = getNumLines(currentText, width) * 15 + 6;
+        numLines = getNumLines(currentText, width);
+        int height = numLines * 15 + 6;
         
         if(getWidth() != width || getHeight() != height) {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
@@ -41,18 +42,13 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
 
     void paint(Graphics& g) override
     {
-        if(type != Type::Comment) {
-            g.setColour(findColour(ResizableWindow::backgroundColourId));
-            g.fillRect(getLocalBounds().toFloat().reduced(0.5f));
-        }
-
+        g.setColour(findColour(ResizableWindow::backgroundColourId));
+        g.fillRect(getLocalBounds().toFloat().reduced(0.5f));
+        
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
 
         auto textArea = border.subtractedFrom(getLocalBounds());
-
-        int numLines = getNumLines(currentText, getWidth());
-        
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
     }
 
@@ -117,7 +113,7 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
 
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        Rectangle<int> bounds = {x - Box::margin, y - Box::margin, textObj->te_width, h + Box::margin};
+        Rectangle<int> bounds = {x, y, textObj->te_width, h};
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int textWidth = getBestTextWidth(currentText);
@@ -130,9 +126,11 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
         }
 
         int width = textObjectWidth * fontWidth + textWidthOffset;
-        int height = getNumLines(currentText, width) * 15 + 6;
         
-        box->setBounds(bounds.getX(), bounds.getY(), width + Box::doubleMargin, height + Box::doubleMargin);
+        numLines = getNumLines(currentText, width);
+        int height = numLines * 15 + 6;
+        
+        box->setObjectBounds({bounds.getX(), bounds.getY(), width, height});
     }
 
     void hideEditor() override
@@ -230,6 +228,8 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
         return editor.get();
     }
 
+    bool isText() override { return true; }
+    
    protected:
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
@@ -243,5 +243,6 @@ struct TextObject : public ObjectBase, public TextEditor::Listener
 
     int textObjectWidth = 0;
     int textWidthOffset = 0;
+    int numLines = 1;
 
 };

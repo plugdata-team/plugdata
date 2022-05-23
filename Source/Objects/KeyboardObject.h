@@ -134,13 +134,10 @@ struct KeyboardObject : public GUIObject, public MidiKeyboardStateListener
     void updateBounds() override
     {
         int x, y, w, h;
-
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         auto* keyboard = static_cast<t_keyboard*>(ptr);
-        Rectangle<int> bounds(x, y, keyboard->x_width, keyboard->x_height);
-
-        box->setBounds(bounds.expanded(Box::margin));
+        box->setObjectBounds({x, y, keyboard->x_width, keyboard->x_height});
     }
 
     void checkBounds() override
