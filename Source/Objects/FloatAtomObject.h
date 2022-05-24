@@ -85,14 +85,6 @@ struct FloatAtomObject final : public AtomObject
             setMaximum(static_cast<float>(max.getValue()));
             updateValue();
         }
-        else if (value.refersToSameSourceAs(labelHeight))
-        {
-            updateLabel();
-            if (getParentComponent())
-            {
-                box->updateBounds();  // update box size based on new font
-            }
-        }
         else
         {
             AtomObject::valueChanged(value);

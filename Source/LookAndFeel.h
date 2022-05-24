@@ -651,6 +651,9 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             auto sliderBounds = slider.getLocalBounds().toFloat().reduced(0.5f);
 
+            g.setColour(findColour(Slider::backgroundColourId));
+            g.fillRect(sliderBounds);
+            
             Path toDraw;
             if (slider.isHorizontal())
             {

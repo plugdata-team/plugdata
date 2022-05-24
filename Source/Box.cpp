@@ -289,53 +289,39 @@ Array<Rectangle<float>> Box::getCorners() const
 void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(margin);
-    auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
-
     bool selected = cnv->isSelected(this);
 
-    float thickness = 1.0f;
-    if (attachedToMouse)
+    if (selected && !cnv->isGraph)
     {
-        outlineColour = Colours::lightgreen;
-        thickness = 2.0f;
-    }
-    else if (gui && gui->getType() == Type::Invalid)
-    {
-        outlineColour = Colours::red;
-        if (selected) outlineColour = outlineColour.brighter(1.3f);
-    }
-    else if (selected && !cnv->isGraph)
-    {
-        outlineColour = findColour(PlugDataColour::highlightColourId);
-        g.setColour(outlineColour);
+        g.setColour(findColour(PlugDataColour::highlightColourId));
 
         g.saveState();
-        g.excludeClipRegion(getLocalBounds().reduced(margin));
+        g.excludeClipRegion(getLocalBounds().reduced(margin + 1));
 
         // Draw resize edges when selected
         for (auto& rect : getCorners())
         {
             g.fillRoundedRectangle(rect, 2.0f);
         }
-
         g.restoreState();
     }
 
-    // Draw comment style
-    if (gui && gui->getType() == Type::Comment)
+    if(gui && !gui->drawOutline()) return;
+    
+    auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
+    float thickness = 1.0f;
+    if (attachedToMouse)
     {
-        if (locked == var(false) && (isOver() || selected) && !cnv->isGraph)
-        {
-            g.setColour(selected ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::canvasOutlineColourId));
-            g.drawRect(rect.toFloat(), 0.5f);
-        }
+        outlineColour = Colours::lightgreen;
+        thickness = 2.0f;
     }
-    // Draw for all other objects
-    else
+    else if (selected && !cnv->isGraph)
     {
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(rect.toFloat(), 2.0f, thickness);
+        outlineColour = findColour(PlugDataColour::highlightColourId);
     }
+
+    g.setColour(outlineColour);
+    g.drawRoundedRectangle(rect.toFloat(), 2.0f, thickness);
 }
 
 void Box::resized()

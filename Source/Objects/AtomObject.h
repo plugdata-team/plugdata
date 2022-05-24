@@ -59,7 +59,8 @@ struct AtomObject : public GUIObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-        box->setObjectBounds({x, y, w, glist_fontheight(box->cnv->patch.getPointer())});
+        h = atomSizes[static_cast<int>(labelHeight.getValue())] + Box::doubleMargin;
+        box->setObjectBounds({x, y, w, h});
     }
 
     void applyBounds() override
@@ -123,6 +124,7 @@ struct AtomObject : public GUIObject
         else if (v.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
+            updateBounds();
         }
         else if (v.refersToSameSourceAs(labelText))
         {
@@ -269,4 +271,6 @@ struct AtomObject : public GUIObject
         atom->a_symfrom = gensym(symbol.toRawUTF8());
         if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
+    
+    const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };

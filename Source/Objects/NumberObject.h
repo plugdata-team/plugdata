@@ -32,6 +32,9 @@ struct NumberObject final : public IEMObject
 
         input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
 
+        min = getMinimum();
+        max = getMaximum();
+        
         initialise();
 
         input.setEditable(true, false);
