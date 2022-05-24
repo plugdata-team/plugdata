@@ -17,6 +17,15 @@ struct CommentObject final : public TextBase
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+        
+        auto selected = cnv->isSelected(box);
+        if (box->locked == var(false) && (box->isOver() || selected) && !cnv->isGraph)
+        {
+            g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
+        
+            g.drawRect(getLocalBounds().toFloat(), 0.5f);
+        }
+
     }
 
     void hideEditor() override
@@ -120,6 +129,11 @@ struct CommentObject final : public TextBase
             editor->grabKeyboardFocus();
         }
     }
+    
+    bool drawOutline() override
+    {
+        return false;
+    };
 
     bool hideInGraph() override
     {

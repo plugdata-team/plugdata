@@ -1,12 +1,10 @@
 // Text base class that text objects with special implementation details can derive from
 struct TextBase : public ObjectBase, public TextEditor::Listener
 {
-    TextBase(void* obj, Box* parent) : ObjectBase(obj, parent)
+    TextBase(void* obj, Box* parent, bool valid = true) : ObjectBase(obj, parent), isValid(valid)
     {
         currentText = getText();
         addMouseListener(box, false);
-
-        type = GUIObject::getType(obj);
     }
 
     ~TextBase()
@@ -51,6 +49,22 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+        
+        bool selected = cnv->isSelected(box);
+        auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
+        float thickness = 1.0f;
+        if (box->attachedToMouse)
+        {
+            outlineColour = Colours::lightgreen;
+            thickness = 2.0f;
+        }
+        else if (selected && !cnv->isGraph)
+        {
+            outlineColour = findColour(PlugDataColour::highlightColourId);
+        }
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, thickness);
     }
 
     void updateValue() override{};
@@ -232,6 +246,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         return true;
     }
+    
+    bool drawOutline() override
+    {
+        return false;
+    };
+
 
    protected:
     Justification justification = Justification::centredLeft;
@@ -243,6 +263,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     Font font{15.0f};
 
     bool wasSelected = false;
+    bool isValid = true;
 
     int textObjectWidth = 0;
     int textWidthOffset = 0;
@@ -252,7 +273,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 // Actual text object, marked final for optimisation
 struct TextObject final : public TextBase
 {
-    TextObject(void* obj, Box* parent) : TextBase(obj, parent)
+    TextObject(void* obj, Box* parent, bool isValid = true) : TextBase(obj, parent, isValid)
     {
     }
 };

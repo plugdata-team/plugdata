@@ -367,8 +367,6 @@ void Canvas::mouseDown(const MouseEvent& e)
             auto* box = dynamic_cast<Box*>(source);
             if (box && box->gui)
             {
-                auto type = box->gui->getType();
-
                 // Check if subpatch but not graph
                 if (box->gui->getPatch() && !box->gui->getCanvas())
                 {

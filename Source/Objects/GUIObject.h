@@ -20,43 +20,11 @@ class Patch;
 
 class Box;
 
-enum class Type : size_t
-{
-    Undefined = 0,
-    Text,
-    HorizontalSlider,
-    VerticalSlider,
-    Toggle,
-    Number,
-    HorizontalRadio,
-    VerticalRadio,
-    Bang,
-    Panel,
-    VuMeter,
-    Comment,
-    AtomNumber,
-    AtomSymbol,
-    AtomList,
-    Array,
-    GraphOnParent,
-    Message,
-    Subpatch,
-    Clone,
-    Mousepad,
-    Mouse,
-    Keyboard,
-    Picture,
-    Scalar,
-    NonPatchable,
-    Invalid
-};
-
 struct ObjectBase : public Component
 {
     void* ptr;
     Box* box;
     Canvas* cnv;
-    Type type;
 
     ObjectBase(void* obj, Box* parent);
 
@@ -71,6 +39,9 @@ struct ObjectBase : public Component
     // Gets position from pd and applies it to Box
     virtual void updateBounds() = 0;
 
+    // Push current object bounds into pd
+    virtual void applyBounds() = 0;
+    
     // Called whenever a drawable changes
     virtual void updateDrawables(){};
 
@@ -93,11 +64,6 @@ struct ObjectBase : public Component
 
     virtual void setText(const String&){};
 
-    Type getType()
-    {
-        return type;
-    }
-
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
     virtual void lock(bool isLocked)
@@ -105,7 +71,7 @@ struct ObjectBase : public Component
         setInterceptsMouseClicks(isLocked, isLocked);
     }
 
-    virtual void applyBounds() = 0;
+
 
     void moveToFront();
 
@@ -161,8 +127,6 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     String getName() const;
 
-    static Type getType(void* ptr) noexcept;
-
     static ObjectBase* createGui(void* ptr, Box* parent);
 
     virtual void checkBounds(){};
@@ -170,9 +134,6 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     // Get rid of this mess!!
     virtual ObjectParameters defineParameters();
     ObjectParameters getParameters() override;
-
-    pd::Patch* getPatch() override;
-    Canvas* getCanvas() override;
 
     virtual void updateLabel(){};
 
@@ -233,5 +194,4 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     Value labelText;
 
-    const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };
