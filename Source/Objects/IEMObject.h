@@ -6,10 +6,10 @@ struct IEMObject : public GUIObject
     {
         labelText = getLabelText();
 
-        auto rect = getLabelBounds();
-        labelX = rect.getX();
-        labelY = rect.getY();
-        labelHeight = rect.getHeight();
+        auto const* iemgui = static_cast<t_iemgui*>(ptr);
+        labelX = iemgui->x_ldx;
+        labelY = iemgui->x_ldy;
+        labelHeight = getFontHeight();
 
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
@@ -179,7 +179,7 @@ struct IEMObject : public GUIObject
 
     Rectangle<int> getLabelBounds() const noexcept
     {
-        Rectangle<int> objectBounds = box->getObjectBounds();
+        auto objectBounds = box->getBounds().reduced(Box::margin);
 
         t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
         if (sym)

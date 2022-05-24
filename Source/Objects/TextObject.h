@@ -49,7 +49,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
         auto textArea = border.subtractedFrom(getLocalBounds());
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
-        
+
         bool selected = cnv->isSelected(box);
         auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
         float thickness = 1.0f;
@@ -246,12 +246,11 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         return true;
     }
-    
+
     bool drawOutline() override
     {
         return false;
     };
-
 
    protected:
     Justification justification = Justification::centredLeft;
