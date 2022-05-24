@@ -141,7 +141,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 
     void checkBounds() override
     {
-        int numKeys = static_cast<int>(octaves.getValue()) * 12;
+        int numKeys = std::clamp(static_cast<int>(octaves.getValue()), 0, 10) * 12;
         float ratio = numKeys / 9.55f;
 
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
@@ -152,7 +152,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 
             if (getWidth() > 0)
             {
-                keyboard.setKeyWidth(getWidth() / (numKeys * 0.6f));
+                keyboard.setKeyWidth(getWidth() / (numKeys * 0.584f));
                 keyboardObject->x_width = getWidth();
             }
         }
