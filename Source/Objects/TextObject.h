@@ -4,10 +4,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     TextBase(void* obj, Box* parent, bool valid = true) : ObjectBase(obj, parent), isValid(valid)
     {
         currentText = getText();
+        addMouseListener(box, false);
     }
 
     ~TextBase()
     {
+        removeMouseListener(box);
     }
 
     void applyBounds() override
