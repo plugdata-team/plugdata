@@ -57,10 +57,10 @@ struct AtomObject : public GUIObject
         int x, y, w, h;
 
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
+        
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-        h = atomSizes[static_cast<int>(labelHeight.getValue())] + Box::doubleMargin;
-        box->setObjectBounds({x, y, w, h});
+
+        box->setObjectBounds({x, y, w, getAtomHeight()});
     }
 
     void applyBounds() override
@@ -79,10 +79,20 @@ struct AtomObject : public GUIObject
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int width = std::max(4, getWidth() / fontWidth) * fontWidth;
-
-        if (width != getWidth() || box->getHeight() != Box::height)
+        int height = getAtomHeight() + Box::doubleMargin;
+        if (width != getWidth() || box->getHeight() != height)
         {
-            box->setSize(width + Box::doubleMargin, Box::height);
+            box->setSize(width + Box::doubleMargin, height);
+        }
+    }
+    
+    int getAtomHeight() const {
+        int idx = static_cast<int>(labelHeight.getValue()) - 1;
+        if(idx == 0) {
+            return glist_fontheight(cnv->patch.getPointer()) + 5;
+        }
+        else {
+            return atomSizes[idx] + 5;
         }
     }
 
@@ -93,10 +103,6 @@ struct AtomObject : public GUIObject
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
 
         g.fillPath(triangle);
-    }
-
-    void initialise() override
-    {
     }
 
     ObjectParameters getParameters() override
@@ -138,7 +144,7 @@ struct AtomObject : public GUIObject
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
         setFontHeight(atomSizes[idx - 1]);
 
-        int fontHeight = getFontHeight();
+        int fontHeight = getAtomHeight();
 
         if (fontHeight == 0)
         {
@@ -185,11 +191,7 @@ struct AtomObject : public GUIObject
     Rectangle<int> getLabelBounds() const noexcept
     {
         auto objectBounds = box->getObjectBounds();
-        int fontHeight = getFontHeight() + 2;
-        if (fontHeight == 0)
-        {
-            fontHeight = glist_getfont(cnv->patch.getPointer());
-        }
+        int fontHeight = getAtomHeight();
 
         int labelLength = Font(fontHeight).getStringWidth(getLabelText());
         int labelPosition = static_cast<t_fake_gatom*>(ptr)->a_wherelabel;
