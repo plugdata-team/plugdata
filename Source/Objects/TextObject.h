@@ -4,12 +4,10 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     TextBase(void* obj, Box* parent, bool valid = true) : ObjectBase(obj, parent), isValid(valid)
     {
         currentText = getText();
-        addMouseListener(box, false);
     }
 
     ~TextBase()
     {
-        removeMouseListener(box);
     }
 
     void applyBounds() override
@@ -51,16 +49,16 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
 
         bool selected = cnv->isSelected(box);
-        auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        
         float thickness = 1.0f;
         if (box->attachedToMouse)
         {
             outlineColour = Colours::lightgreen;
             thickness = 2.0f;
         }
-        else if (selected && !cnv->isGraph)
-        {
-            outlineColour = findColour(PlugDataColour::highlightColourId);
+        else if(!isValid) {
+            outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
         }
 
         g.setColour(outlineColour);

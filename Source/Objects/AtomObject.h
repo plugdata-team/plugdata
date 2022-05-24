@@ -91,11 +91,11 @@ struct AtomObject : public GUIObject
         int idx = static_cast<int>(labelHeight.getValue()) - 1;
         if (idx == 0)
         {
-            return glist_fontheight(cnv->patch.getPointer()) + 5;
+            return glist_fontheight(cnv->patch.getPointer()) + 6;
         }
         else
         {
-            return atomSizes[idx] + 5;
+            return atomSizes[idx] + 6;
         }
     }
 
@@ -144,16 +144,11 @@ struct AtomObject : public GUIObject
 
     void updateLabel() override
     {
+    
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
         setFontHeight(atomSizes[idx - 1]);
 
-        int fontHeight = getAtomHeight();
-
-        if (fontHeight == 0)
-        {
-            fontHeight = glist_getfont(box->cnv->patch.getPointer()) + 2;
-        }
-
+        int fontHeight = getAtomHeight() - 2;
         const String text = getLabelText();
 
         if (text.isNotEmpty())
