@@ -57,7 +57,7 @@ struct AtomObject : public GUIObject
         int x, y, w, h;
 
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-        
+
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
 
         box->setObjectBounds({x, y, w, getAtomHeight()});
@@ -85,13 +85,16 @@ struct AtomObject : public GUIObject
             box->setSize(width + Box::doubleMargin, height);
         }
     }
-    
-    int getAtomHeight() const {
+
+    int getAtomHeight() const
+    {
         int idx = static_cast<int>(labelHeight.getValue()) - 1;
-        if(idx == 0) {
+        if (idx == 0)
+        {
             return glist_fontheight(cnv->patch.getPointer()) + 5;
         }
-        else {
+        else
+        {
             return atomSizes[idx] + 5;
         }
     }
@@ -190,7 +193,7 @@ struct AtomObject : public GUIObject
 
     Rectangle<int> getLabelBounds() const noexcept
     {
-        auto objectBounds = box->getObjectBounds();
+        auto objectBounds = box->getBounds().reduced(Box::margin);
         int fontHeight = getAtomHeight();
 
         int labelLength = Font(fontHeight).getStringWidth(getLabelText());
@@ -273,6 +276,6 @@ struct AtomObject : public GUIObject
         atom->a_symfrom = gensym(symbol.toRawUTF8());
         if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
-    
+
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };

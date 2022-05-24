@@ -306,8 +306,8 @@ void Box::paint(Graphics& g)
         g.restoreState();
     }
 
-    if(gui && !gui->drawOutline()) return;
-    
+    if (gui && !gui->drawOutline()) return;
+
     auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
     float thickness = 1.0f;
     if (attachedToMouse)

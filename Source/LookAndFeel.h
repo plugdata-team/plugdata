@@ -653,7 +653,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
             g.setColour(findColour(Slider::backgroundColourId));
             g.fillRect(sliderBounds);
-            
+
             Path toDraw;
             if (slider.isHorizontal())
             {
