@@ -41,7 +41,7 @@ struct ObjectBase : public Component
 
     // Push current object bounds into pd
     virtual void applyBounds() = 0;
-    
+
     // Called whenever a drawable changes
     virtual void updateDrawables(){};
 
@@ -70,8 +70,6 @@ struct ObjectBase : public Component
     {
         setInterceptsMouseClicks(isLocked, isLocked);
     }
-
-
 
     void moveToFront();
 
@@ -193,5 +191,4 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     Value labelHeight = Value(18.0f);
 
     Value labelText;
-
 };

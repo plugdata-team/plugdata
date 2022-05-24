@@ -48,7 +48,7 @@ extern "C"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv) {};
+ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv){};
 
 String ObjectBase::getText()
 {
