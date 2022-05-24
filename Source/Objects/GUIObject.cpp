@@ -48,7 +48,7 @@ extern "C"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv), type(GUIObject::getType(obj)){};
+ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv) {};
 
 String ObjectBase::getText()
 {
@@ -233,16 +233,6 @@ ObjectParameters GUIObject::getParameters()
     return defineParameters();
 }
 
-pd::Patch* GUIObject::getPatch()
-{
-    return nullptr;
-}
-
-Canvas* GUIObject::getCanvas()
-{
-    return nullptr;
-}
-
 float GUIObject::getValueOriginal() const noexcept
 {
     return value;
@@ -343,87 +333,87 @@ String GUIObject::getName() const
     return {};
 }
 
-Type GUIObject::getType(void* ptr) noexcept
+ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
 {
     const String name = libpd_get_object_class_name(ptr);
     if (name == "bng")
     {
-        return Type::Bang;
+        return new BangObject(ptr, parent);
     }
     if (name == "hsl")
     {
-        return Type::HorizontalSlider;
+        return new SliderObject(false, ptr, parent);
     }
     if (name == "vsl")
     {
-        return Type::VerticalSlider;
+        return new SliderObject(true, ptr, parent);
     }
     if (name == "tgl")
     {
-        return Type::Toggle;
+        return new ToggleObject(ptr, parent);
     }
     if (name == "nbx")
     {
-        return Type::Number;
+        return new NumberObject(ptr, parent);
     }
     if (name == "vradio")
     {
-        return Type::VerticalRadio;
+        return new RadioObject(true, ptr, parent);
     }
     if (name == "hradio")
     {
-        return Type::HorizontalRadio;
+        return new RadioObject(false, ptr, parent);
     }
     if (name == "cnv")
     {
-        return Type::Panel;
+        return new CanvasObject(ptr, parent);
     }
     if (name == "vu")
     {
-        return Type::VuMeter;
+        return new VUMeterObject(ptr, parent);
     }
     if (name == "text")
     {
         auto* textObj = static_cast<t_text*>(ptr);
         if (textObj->te_type == T_OBJECT)
         {
-            return Type::Invalid;
+            return new TextObject(ptr, parent, false);
         }
         else
         {
-            return Type::Comment;
+            return new CommentObject(ptr, parent);
         }
     }
     // Check size to prevent confusing it with else/message
     if (name == "message" && static_cast<t_gobj*>(ptr)->g_pd->c_size == sizeof(t_message))
     {
-        return Type::Message;
+        return new MessageObject(ptr, parent);
     }
     else if (name == "pad")
     {
-        return Type::Mousepad;
+        return new MousePadObject(ptr, parent);
     }
     else if (name == "mouse")
     {
-        return Type::Mouse;
+        return new MouseObject(ptr, parent);
     }
     else if (name == "keyboard")
     {
-        return Type::Keyboard;
+        return new KeyboardObject(ptr, parent);
     }
     else if (name == "pic")
     {
-        return Type::Picture;
+        return new PictureObject(ptr, parent);
     }
 
     else if (name == "gatom")
     {
         if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
-            return Type::AtomNumber;
+            return new FloatAtomObject(ptr, parent);
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
-            return Type::AtomSymbol;
+            return new SymbolAtomObject(ptr, parent);
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
-            return Type::AtomList;
+            return new ListObject(ptr, parent);
     }
     else if (name == "canvas" || name == "graph")
     {
@@ -432,110 +422,47 @@ Type GUIObject::getType(void* ptr) noexcept
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
             if (c && c->c_name && (String(c->c_name->s_name) == "array"))
             {
-                return Type::Array;
+                return new ArrayObject(ptr, parent);
             }
             else if (static_cast<t_canvas*>(ptr)->gl_isgraph)
             {
-                return Type::GraphOnParent;
+                return new GraphOnParent(ptr, parent);
             }
             else
             {  // abstraction or subpatch
-                return Type::Subpatch;
+                return new SubpatchObject(ptr, parent);
             }
         }
         else if (static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
-            return Type::GraphOnParent;
+            return new GraphOnParent(ptr, parent);
         }
         else
         {
-            return Type::Subpatch;
+            return new SubpatchObject(ptr, parent);
         }
     }
     else if (name == "clone")
     {
-        return Type::Clone;
+        return new CloneObject(ptr, parent);
     }
     else if (name == "pd")
     {
-        return Type::Subpatch;
+        return new SubpatchObject(ptr, parent);
     }
     else if (name == "scalar")
     {
         auto* gobj = static_cast<t_gobj*>(ptr);
         if (gobj->g_pd == scalar_class)
         {
-            return Type::Scalar;
+            return new ScalarObject(ptr, parent);
         }
     }
     else if (!pd_checkobject(static_cast<t_pd*>(ptr)))
     {
         // Object is not a patcher object but something else
-        return Type::NonPatchable;
+        return new NonPatchable(ptr, parent);
     }
 
-    return Type::Text;
-}
-
-ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
-{
-    auto type = getType(ptr);
-
-    switch (type)
-    {
-        case Type::Text:
-            return new TextObject(ptr, parent);
-        case Type::Invalid:
-            return new TextObject(ptr, parent);
-        case Type::Bang:
-            return new BangObject(ptr, parent);
-        case Type::Toggle:
-            return new ToggleObject(ptr, parent);
-        case Type::HorizontalSlider:
-            return new SliderObject(false, ptr, parent);
-        case Type::VerticalSlider:
-            return new SliderObject(true, ptr, parent);
-        case Type::HorizontalRadio:
-            return new RadioObject(false, ptr, parent);
-        case Type::VerticalRadio:
-            return new RadioObject(true, ptr, parent);
-        case Type::Message:
-            return new MessageObject(ptr, parent);
-        case Type::Number:
-            return new NumberObject(ptr, parent);
-        case Type::AtomList:
-            return new ListObject(ptr, parent);
-        case Type::Array:
-            return new ArrayObject(ptr, parent);
-        case Type::GraphOnParent:
-            return new GraphOnParent(ptr, parent);
-        case Type::Subpatch:
-            return new SubpatchObject(ptr, parent);
-        case Type::Clone:
-            return new SubpatchObject(ptr, parent);
-        case Type::VuMeter:
-            return new VUMeterObject(ptr, parent);
-        case Type::Panel:
-            return new CanvasObject(ptr, parent);
-        case Type::Comment:
-            return new CommentObject(ptr, parent);
-        case Type::AtomNumber:
-            return new FloatAtomObject(ptr, parent);
-        case Type::AtomSymbol:
-            return new SymbolAtomObject(ptr, parent);
-        case Type::Mousepad:
-            return new MousePadObject(ptr, parent);
-        case Type::Mouse:
-            return new MouseObject(ptr, parent);
-        case Type::Keyboard:
-            return new KeyboardObject(ptr, parent);
-        case Type::Picture:
-            return new PictureObject(ptr, parent);
-        case Type::Scalar:
-            return new ScalarObject(ptr, parent);
-        case Type::NonPatchable:
-            return new NonPatchable(ptr, parent);
-        default:
-            return nullptr;
-    }
+    return new TextObject(ptr, parent);
 }
