@@ -84,7 +84,6 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
         int x_width;
         int x_height;
         int x_octaves;
-        int x_semitones;
         int x_first_c;
         int x_low_c;
         int x_toggle_mode;
@@ -119,13 +118,13 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
         auto* x = (t_keyboard*)ptr;
         x->x_width = width * 0.595f;
 
-        rangeMin = x->x_low_c;
-        rangeMax = x->x_low_c + (x->x_octaves * 12) + x->x_semitones;
+        lowC = x->x_low_c;
+        octaves = x->x_octaves;
 
-        if (static_cast<int>(rangeMin.getValue()) == 0 || static_cast<int>(rangeMax.getValue()) == 0)
+        if (static_cast<int>(lowC.getValue()) == 0 || static_cast<int>(octaves.getValue()) == 0)
         {
-            rangeMin = 36;
-            rangeMax = 86;
+            lowC = 3;
+            octaves = 4;
         }
 
         initialise();
@@ -142,7 +141,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 
     void checkBounds() override
     {
-        int numKeys = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
+        int numKeys = static_cast<int>(octaves.getValue()) * 12;
         float ratio = numKeys / 9.55f;
 
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
@@ -153,7 +152,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 
             if (getWidth() > 0)
             {
-                keyboard.setKeyWidth(getWidth() / (numKeys * 0.597f));
+                keyboard.setKeyWidth(getWidth() / (numKeys * 0.6f));
                 keyboardObject->x_width = getWidth();
             }
         }
@@ -209,42 +208,38 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 
     ObjectParameters defineParameters() override
     {
-        return {{"Lowest note", tInt, cGeneral, &rangeMin, {}}, {"Highest note", tInt, cGeneral, &rangeMax, {}}};
+        return {{"Lowest note", tInt, cGeneral, &lowC, {}}, {"Num. octaves", tInt, cGeneral, &octaves, {}}};
     };
 
     void valueChanged(Value& value) override
     {
         auto* keyboardObject = static_cast<t_keyboard*>(ptr);
 
-        if (value.refersToSameSourceAs(rangeMin))
+        if (value.refersToSameSourceAs(lowC))
         {
-            rangeMin = std::clamp<int>(rangeMin.getValue(), 0, 127);
-
-            keyboardObject->x_low_c = static_cast<int>(rangeMin.getValue());
-
-            int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
-            keyboardObject->x_octaves = range / 12;
-            keyboardObject->x_semitones = range % 12;
-
-            keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
+            int numOctaves = std::clamp<int>(static_cast<int>(octaves.getValue()), 0, 10);
+            int lowest = std::clamp<int>(lowC.getValue(), 0, 10);
+            int highest = std::clamp<int>(lowest + numOctaves, 0, 10);
+            keyboard.setAvailableRange(lowest * 12, highest * 12);
+            
+            keyboardObject->x_low_c = lowest;
             checkBounds();
         }
-        else if (value.refersToSameSourceAs(rangeMax))
+        else if (value.refersToSameSourceAs(octaves))
         {
-            rangeMax = std::clamp<int>(rangeMax.getValue(), 0, 127);
-            /*
-             static_cast<t_keyboard*>(ptr)->x_octaves = static_cast<int>(value.getValue()); */
-            keyboard.setAvailableRange(rangeMin.getValue(), rangeMax.getValue());
-
-            int range = static_cast<int>(rangeMax.getValue()) - static_cast<int>(rangeMin.getValue());
-            keyboardObject->x_octaves = range / 12;
-            keyboardObject->x_semitones = range % 12;
+            octaves = std::clamp<int>(octaves.getValue(), 0, 10);
+            int numOctaves = static_cast<int>(octaves.getValue());
+            int lowest = std::clamp<int>(lowC.getValue(), 0, 10);
+            int highest = std::clamp<int>(lowest + numOctaves, 0, 10);
+                                          
+            keyboard.setAvailableRange(lowest * 12, highest * 12);
+            keyboardObject->x_octaves = numOctaves;
             checkBounds();
         }
     }
 
-    Value rangeMin;
-    Value rangeMax;
+    Value lowC;
+    Value octaves;
 
     MidiKeyboardState state;
     MIDIKeyboard keyboard;

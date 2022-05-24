@@ -676,8 +676,47 @@ bool Canvas::keyPressed(const KeyPress& key)
     if (main.getCurrentCanvas() != this || isGraph) return false;
 
     int keycode = key.getKeyCode();
+    
+    
+    auto moveSelection = [this](int x, int y){
+        auto boxes = getSelectionOfType<Box>();
+        std::vector<void*> objects;
+        
+        for(auto* box : boxes) {
+            objects.push_back(box->getPointer());
+        }
+        
+        patch.moveObjects(objects, x, y);
+        
+        for(auto* box : boxes) {
+            box->updateBounds();
+            
+            if(!getBounds().contains(box->getBounds())) {
+                checkBounds();
+            }
+        }
+    };
+    
+    // Move objects with arrow keys
+    if(keycode == KeyPress::leftKey) {
+        moveSelection(-10, 0);
+        return true;
+    }
+    if(keycode == KeyPress::rightKey){
+        moveSelection(10, 0);
+        return true;
+    }
+    if(keycode == KeyPress::upKey){
+        moveSelection(0, -10);
+        return true;
+    }
+    if(keycode == KeyPress::downKey) {
+        moveSelection(0, 10);
+        return true;
+    }
+    
     // Ignore backspace, arrow keys, return key and more that might cause actions in pd
-    if (KeyPress::backspaceKey || KeyPress::leftKey || KeyPress::rightKey || KeyPress::upKey || KeyPress::downKey || KeyPress::pageUpKey || KeyPress::pageDownKey || KeyPress::homeKey || KeyPress::escapeKey || KeyPress::deleteKey || KeyPress::returnKey || KeyPress::tabKey)
+    if (keycode == KeyPress::backspaceKey || keycode == KeyPress::pageUpKey || keycode == KeyPress::pageDownKey || keycode == KeyPress::homeKey || keycode == KeyPress::escapeKey || keycode == KeyPress::deleteKey || keycode == KeyPress::returnKey || keycode == KeyPress::tabKey)
     {
         return false;
     }

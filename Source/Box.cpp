@@ -427,7 +427,7 @@ void Box::updatePorts()
         }
         else
         {
-            isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i);
+            isSignal = libpd_issignaloutlet(pd::Patch::checkObject(getPointer()), i - numInputs);
         }
 
         edge->edgeIdx = input ? numIn : numOut;
