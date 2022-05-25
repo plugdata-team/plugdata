@@ -212,10 +212,6 @@ void PlugDataPluginEditor::paint(Graphics& g)
 {
     auto baseColour = findColour(PlugDataColour::toolbarColourId);
 
-    // TODO: fix this by never having gaps around the canvas!!
-    g.setColour(findColour(PlugDataColour::canvasColourId));
-    g.fillRect(getLocalBounds().reduced(0, 10));
-
 #if PLUGDATA_ROUNDED
     // Toolbar background
     g.setColour(baseColour);
@@ -236,6 +232,11 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
 #endif
+    
+    // Fill bounds below the canvas
+    g.setColour(findColour(PlugDataColour::canvasColourId));
+    g.fillRect(tabbar.getBounds());
+    
 }
 
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)

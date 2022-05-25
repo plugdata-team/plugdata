@@ -14,6 +14,20 @@ struct SubpatchObject final : public TextBase
             box->setType(currentText, ptr);
         }
     };
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        //  If locked and it's a left click
+        if ((box->locked == var(true) || box->commandLocked == var(true)) && !ModifierKeys::getCurrentModifiers().isRightButtonDown())
+        {
+            box->openSubpatch();
+        
+            return;
+        }
+        else {
+            TextBase::mouseDown(e);
+        }
+    }
 
     ~SubpatchObject()
     {
