@@ -61,6 +61,7 @@ struct GraphOnParent final : public GUIObject
     void mouseDown(const MouseEvent& e) override
     {
         GUIObject::mouseDown(e);
+        
         if (!isLocked)
         {
             box->mouseDown(e.getEventRelativeTo(box));

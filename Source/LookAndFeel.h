@@ -792,7 +792,7 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ComboBox::backgroundColourId, firstColour);
         setColour(ListBox::backgroundColourId, firstColour);
 
-        setColour(ScrollBar::trackColourId, firstColour);
+
         setColour(AlertWindow::backgroundColourId, firstColour);
         getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
 
@@ -833,7 +833,6 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(TextEditor::outlineColourId, outlineColour);
 
         setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
-        setColour(ScrollBar::backgroundColourId, Colours::transparentBlack);
         setColour(TreeView::backgroundColourId, Colours::transparentBlack);
     }
 

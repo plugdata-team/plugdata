@@ -71,7 +71,6 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
     void lock(bool isLocked) override
     {
-        setInterceptsMouseClicks(!isLocked, !isLocked);
     }
 
     void mouseDown(const MouseEvent& e) override
@@ -232,7 +231,10 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             resized();
             repaint();
 
-            editor->grabKeyboardFocus();
+            if(isShowing()) {
+                editor->grabKeyboardFocus();
+            }
+            
         }
     }
 
@@ -261,12 +263,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     String currentText;
     Font font{15.0f};
 
-    bool wasSelected = false;
-    bool isValid = true;
-
     int textObjectWidth = 0;
     int textWidthOffset = 0;
     int numLines = 1;
+    
+    bool wasSelected = false;
+    bool isValid = true;
 };
 
 // Actual text object, marked final for optimisation
