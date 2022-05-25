@@ -92,7 +92,7 @@ void Canvas::paint(Graphics& g)
 {
     if (!isGraph)
     {
-        lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(ScrollBar::thumbColourId).withAlpha(0.3f));
+        lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(PlugDataColour::highlightColourId).withAlpha(0.3f));
 
         g.fillAll(findColour(PlugDataColour::toolbarColourId));
 
@@ -125,7 +125,6 @@ void Canvas::paint(Graphics& g)
 void Canvas::focusGained(FocusChangeType cause)
 {
     // This is necessary because in some cases, setting the canvas as current right before an action isn't enough
-
     // TODO: find out if this is still necessary, and if so, is this really the best way to do it??
     pd->setThis();
     if (patch.getPointer() && !isGraph)
@@ -301,113 +300,10 @@ void Canvas::synchronise(bool updatePosition)
 
 void Canvas::mouseDown(const MouseEvent& e)
 {
-    auto openSubpatch = [this](Box* parent)
-    {
-        if (!parent->gui) return;
-
-        auto* subpatch = parent->gui->getPatch();
-        auto* glist = subpatch->getPointer();
-
-        if (!glist) return;
-
-        auto abstraction = canvas_isabstraction(glist);
-        File path;
-
-        if (abstraction)
-        {
-            path = File(String(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String(glist->gl_name->s_name)).withFileExtension("pd");
-        }
-
-        for (int n = 0; n < tabbar->getNumTabs(); n++)
-        {
-            auto* tabCanvas = main.getCanvas(n);
-            if (tabCanvas->patch == *subpatch)
-            {
-                tabbar->setCurrentTabIndex(n);
-                return;
-            }
-        }
-
-        auto* newPatch = main.pd.patches.add(new pd::Patch(*subpatch));
-        bool isGraphChild = parent->gui->getCanvas();
-        auto* newCanvas = main.canvases.add(new Canvas(main, *newPatch, nullptr, isGraphChild));
-
-        newPatch->setCurrentFile(path);
-
-        main.addTab(newCanvas);
-        newCanvas->checkBounds();
-    };
-
-    auto openHelp = [this](Box* box)
-    {
-        pd->setThis();
-        // Find name of help file
-        auto helpPatch = box->getHelp();
-
-        if (!helpPatch.getPointer())
-        {
-            pd->logMessage("Couldn't find help file");
-            return;
-        }
-
-        auto* patch = main.pd.patches.add(new pd::Patch(helpPatch));
-        auto* newCnv = main.canvases.add(new Canvas(main, *patch));
-
-        main.addTab(newCnv, true);
-    };
-
     auto* source = e.originalComponent;
-
-    // Ignore if locked
-    if (locked == var(true))
-    {
-        if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
-        {
-            // TODO: Move to Subpatch implementation
-            auto* box = dynamic_cast<Box*>(source);
-            if (box && box->gui)
-            {
-                // Check if subpatch but not graph
-                if (box->gui->getPatch() && !box->gui->getCanvas())
-                {
-                    openSubpatch(box);
-                }
-            }
-        }
-        return;
-    }
-
-    // Select parent box when clicking on graphs
-    if (isGraph)
-    {
-        auto* box = findParentComponentOfClass<Box>();
-        box->cnv->setSelected(box, true);
-        return;
-    }
-
-    if (!static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown() && e.originalComponent != this)
-    {
-        if (auto* box = dynamic_cast<Box*>(e.originalComponent))
-        {
-            openHelp(box);
-        }
-        if (auto* box = e.originalComponent->findParentComponentOfClass<Box>())
-        {
-            openHelp(box);
-        }
-    }
-
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
     {
-        if (locked == var(true))
-        {
-            if (auto* box = dynamic_cast<Box*>(source))
-            {
-                openSubpatch(box);
-                return;
-            }
-        }
         // Connecting objects by dragging
         if (source == this || source == graphArea)
         {
@@ -463,17 +359,14 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addSeparator();
         popupMenu.addItem(9, "Help", box != nullptr);
 
-        auto callback = [this, &lassoSelection, openSubpatch, openHelp, box](int result)
+        auto callback = [this, &lassoSelection, box](int result)
         {
             if (result < 1) return;
-
             switch (result)
             {
-                case 1:
-                {
-                    openSubpatch(box);
+                case 1: // Open subpatch
+                    box->openSubpatch();
                     break;
-                }
                 case 4:  // Cut
                     copySelection();
                     removeSelection();
@@ -481,36 +374,23 @@ void Canvas::mouseDown(const MouseEvent& e)
                 case 5:  // Copy
                     copySelection();
                     break;
-                case 6:
-                {  // Duplicate
+                case 6: // Duplicate
                     duplicateSelection();
                     break;
-                }
                 case 7:  // Remove
                     removeSelection();
                     break;
-
                 case 8:  // To Front
                     box->toFront(false);
-
                     if (box->gui) box->gui->moveToFront();
                     break;
-
-                case 9:
-                {  // Open help
-                    openHelp(box);
+                case 9: // Open help
+                    box->openHelpPatch();
                     break;
-                }
-
                 default:
                     break;
             }
         };
-
-        if (auto* box = dynamic_cast<Box*>(source))
-        {
-            // if (box->getCurrentTextEditor()) return;
-        }
 
         popupMenu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(&main).withTargetScreenArea(Rectangle<int>(e.getScreenX(), e.getScreenY(), 2, 2)), ModalCallbackFunction::create(callback));
     }
@@ -883,16 +763,19 @@ void Canvas::checkBounds()
 
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
 
-    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
+    // Repeat in case the scrollbar visibility changes
+    for(int i = 0; i < 2; i++) {
+        auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
 
-    for (auto obj : boxes)
-    {
-        viewBounds = obj->getBounds().reduced(Box::margin).getUnion(viewBounds);
+        for (auto obj : boxes)
+        {
+            viewBounds = obj->getBounds().getUnion(viewBounds);
+        }
+        
+        if(i == 0) canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
+        setSize(viewBounds.getWidth(), viewBounds.getHeight());
     }
-
-    canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
-    setSize(viewBounds.getWidth(), viewBounds.getHeight());
-
+    
     for (auto& box : boxes)
     {
         box->updateBounds();
@@ -994,7 +877,6 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
 // Call from component's mouseUp
 void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 {
-    bool needsBoundsCheck = false;
     if (didStartDragging)
     {
         auto objects = std::vector<void*>();
@@ -1004,11 +886,6 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
             if (auto* box = dynamic_cast<Box*>(component))
             {
                 if (box->getPointer()) objects.push_back(box->getPointer());
-
-                if (!getBounds().contains(box->getBounds()))
-                {
-                    needsBoundsCheck = true;
-                }
             }
         }
 
@@ -1027,10 +904,7 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 
     componentBeingDragged = nullptr;
 
-    if (needsBoundsCheck)
-    {
-        checkBounds();
-    }
+    checkBounds();
 
     component->repaint();
 }

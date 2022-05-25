@@ -45,7 +45,8 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     Rectangle<int> getObjectBounds();
     void setObjectBounds(Rectangle<int> bounds);
 
-    pd::Patch getHelp() const;
+    void openHelpPatch() const;
+    void openSubpatch() const;
     void* getPointer() const;
 
     Array<Connection*> getConnections() const;
