@@ -117,15 +117,7 @@ void Box::timerCallback()
 void Box::valueChanged(Value& v)
 {
     // Hide certain objects in GOP
-    if ((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph())
-    {
-        setVisible(false);
-    }
-    else
-    {
-        setVisible(true);
-        resized();
-    }
+    resized();
 
     if (gui)
     {
@@ -326,6 +318,9 @@ void Box::paint(Graphics& g)
 
 void Box::resized()
 {
+    
+    setVisible(!((cnv->isGraph || cnv->presentationMode == var(true)) && gui && gui->hideInGraph()));
+    
     if (gui)
     {
         gui->setBounds(getLocalBounds().reduced(margin));

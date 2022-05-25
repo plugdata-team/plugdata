@@ -50,6 +50,7 @@ class Connection : public Component, public ComponentListener
 
     void reconnect(Edge* target, bool dragged);
 
+    bool intersects(Rectangle<float> toCheck, int accuracy = 4);
     int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
 
     String getId() const;

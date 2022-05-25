@@ -177,7 +177,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     static inline constexpr int numOutputBuses = 16;
 
 #if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters];
+    std::atomic<float> standaloneParams[numParameters] = {0};
 #endif
 
    private:

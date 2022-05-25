@@ -1084,33 +1084,12 @@ void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle
 
     for (auto& con : connections)
     {
-        // If bounds don't intersect, there can't be an intersection with the line
+        // If total bounds don't intersect, there can't be an intersection with the line
+        // This is cheaper than checking the path intersection, so do this first
         if (!con->getBounds().intersects(lasso.getBounds())) continue;
 
-        bool intersect = false;
-        PathFlatteningIterator i(con->toDraw);
-
-        auto relativeBounds = lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat();
-
-        while (i.next())
-        {
-            auto point1 = Point<float>(i.x1, i.y1);
-
-            // Skip every other point to reduce accuracy a little bit for better performance
-            auto next = i.next();
-            if (!next) break;
-
-            auto point2 = Point<float>(i.x2, i.y2);
-            auto currentLine = Line<float>(point1, point2);
-
-            if (relativeBounds.intersects(currentLine))
-            {
-                intersect = true;
-                break;
-            }
-        }
-
-        if (intersect)
+        // Check if path intersects with lasso
+        if (con->intersects(lasso.getBounds().translated(-con->getX(), -con->getY()).toFloat()))
         {
             itemsFound.add(con);
             setSelected(con, true);
