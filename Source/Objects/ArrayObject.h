@@ -106,6 +106,11 @@ struct GraphicalArray : public Component
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
     }
+    
+    void setArray(PdArray& graph) {
+        if (graph.getName().isEmpty()) return;
+        array = graph;
+    }
 
     void paint(Graphics& g) override
     {
@@ -116,6 +121,7 @@ struct GraphicalArray : public Component
         {
             g.setColour(box->findColour(PlugDataColour::textColourId));
             g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
+            error = false;
         }
         else
         {
@@ -141,7 +147,7 @@ struct GraphicalArray : public Component
                             const float y3 = h - (std::clamp(vec[i + 1], scale[0], scale[1]) - scale[0]) * dh;
                             p.cubicTo(static_cast<float>(i - 1) * dw, y1, static_cast<float>(i) * dw, y2, static_cast<float>(i + 1) * dw, y3);
                         }
-                        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+                        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
                         g.strokePath(p, PathStrokeType(1));
                         break;
                     }
@@ -156,7 +162,7 @@ struct GraphicalArray : public Component
                             const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
                             p.lineTo(static_cast<float>(i) * dw, y);
                         }
-                        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+                        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
                         g.strokePath(p, PathStrokeType(1));
                         break;
                     }
@@ -164,7 +170,7 @@ struct GraphicalArray : public Component
                     {
                         const float dh = h / (scale[1] - scale[0]);
                         const float dw = w / static_cast<float>(vec.size());
-                        g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+                        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
                         for (size_t i = 0; i < vec.size(); ++i)
                         {
                             const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
@@ -177,6 +183,8 @@ struct GraphicalArray : public Component
                 }
             }
         }
+        
+        
     }
 
     void mouseDown(const MouseEvent& e) override
@@ -307,14 +315,8 @@ struct ArrayObject final : public GUIObject
         range = var(arr);
         size = var(static_cast<int>(array.getArraySize()));
 
-        name = String(array.array.getName());
+        name = String(graph.getName());
         drawMode = static_cast<int>(array.array.getDrawType()) + 1;
-
-        // Use label interface to display name
-        labelX = 0.0f;
-        labelY = 0.0f;
-        labelHeight = 14.0f;
-        labelText = array.getName();
 
         labelColour = box->findColour(PlugDataColour::textColourId).toString();
 
@@ -322,6 +324,39 @@ struct ArrayObject final : public GUIObject
 
         initialise();
     }
+    
+    void updateLabel() override
+    {
+        int fontHeight = 14.0f;
+
+        const String text = graph.getName();
+
+        if (text.isNotEmpty())
+        {
+            if (!label)
+            {
+                label = std::make_unique<Label>();
+            }
+
+            auto bounds = box->getBounds().reduced(Box::margin).removeFromTop(fontHeight + 2);
+            
+            bounds.translate(2, -(fontHeight + 2));
+
+            label->setFont(Font(fontHeight));
+            label->setJustificationType(Justification::centredLeft);
+            label->setBounds(bounds);
+            label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
+            label->setMinimumHorizontalScale(1.f);
+            label->setText(text, dontSendNotification);
+            label->setEditable(false, false);
+            label->setInterceptsMouseClicks(false, false);
+
+            label->setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+
+            box->cnv->addAndMakeVisible(label.get());
+        }
+    }
+
 
     void updateBounds() override
     {
@@ -377,8 +412,15 @@ struct ArrayObject final : public GUIObject
         cnv->pd->enqueueFunction(
             [this, arrName, arrSize, flags]() mutable
             {
-                auto* garray = static_cast<t_garray*>(libpd_array_get_byname(array.array.getName().toRawUTF8()));
+                auto* garray = static_cast<t_garray*>(libpd_array_get_byname(graph.getName().toRawUTF8()));
                 garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
+                
+                MessageManager::callAsync([this](){
+                    graph = getArray();
+                    array.setArray(graph);
+                    updateLabel();
+                });
+
             });
 
         repaint();
@@ -406,6 +448,13 @@ struct ArrayObject final : public GUIObject
         {
             GUIObject::valueChanged(value);
         }
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
     PdArray getArray() const noexcept

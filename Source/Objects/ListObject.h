@@ -92,24 +92,17 @@ struct ListObject final : public AtomObject
         getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
         getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
 
-        g.fillAll(box->findColour(PlugDataColour::canvasOutlineColourId));
-
-        static auto const border = 1.0f;
-        const auto h = static_cast<float>(getHeight());
-        const auto w = static_cast<float>(getWidth());
-        const auto o = h * 0.33f;
-        Path p;
-        p.startNewSubPath(0.5f, 0.5f);
-        p.lineTo(0.5f, h - 0.5f);
-        p.lineTo(w - o, h - 0.5f);
-        p.lineTo(w - 0.5f, h - o);
-        p.lineTo(w - 0.5f, o);
-        p.lineTo(w - o, 0.5f);
-        p.closeSubPath();
-
         g.setColour(box->findColour(PlugDataColour::toolbarColourId));
-        g.fillPath(p);
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+
+        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+
+        Path bottomTriangle;
+        bottomTriangle.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
+        bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
+        g.fillPath(bottomTriangle);
     }
+    
 
     void update() override
     {

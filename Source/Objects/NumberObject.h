@@ -56,18 +56,17 @@ struct NumberObject final : public IEMObject
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         w = nbx->x_numwidth * glist_fontwidth(cnv->patch.getPointer());
 
-        box->setObjectBounds({x, y, w, Box::height - Box::doubleMargin});
+        box->setObjectBounds({x, y, w, h});
     }
 
     void checkBounds() override
     {
-        // Apply size limits
-        int w = jlimit(30, maxSize, box->getWidth());
-        int h = jlimit(Box::height - 12, maxSize, box->getHeight());
-
-        if (w != box->getWidth() || h != box->getHeight())
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
+        int height = jlimit(18, maxSize, getHeight());
+        if (getWidth() != width || getHeight() != height)
         {
-            box->setSize(w, h);
+            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
         }
     }
 
@@ -84,13 +83,6 @@ struct NumberObject final : public IEMObject
 
     void resized() override
     {
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int width = (getWidth() / fontWidth) * fontWidth;
-        if (getWidth() != width || getHeight() != Box::height - Box::doubleMargin)
-        {
-            box->setSize(width + Box::doubleMargin, Box::height);
-        }
-
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }

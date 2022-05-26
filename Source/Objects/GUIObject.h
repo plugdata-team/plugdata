@@ -28,6 +28,8 @@ struct ObjectBase : public Component
 
     ObjectBase(void* obj, Box* parent);
 
+    void paint(Graphics& g) override;
+    
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
     virtual void showEditor(){};
@@ -45,21 +47,10 @@ struct ObjectBase : public Component
     // Called whenever a drawable changes
     virtual void updateDrawables(){};
 
-    virtual bool drawOutline()
-    {
-        return true;
-    };
-
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()
     {
         return false;
-    }
-
-    // Flag for valid/invalid objects, to create the red outline on Box
-    virtual bool isValid()
-    {
-        return true;
     }
 
     virtual void setText(const String&){};
@@ -121,8 +112,6 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
-    void paint(Graphics& g) override;
-
     String getName() const;
 
     static ObjectBase* createGui(void* ptr, Box* parent);
@@ -177,7 +166,6 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     float value = 0;
     Value min = Value(0.0f);
     Value max = Value(0.0f);
-    int width = 6;
 
     Value sendSymbol;
     Value receiveSymbol;
