@@ -166,7 +166,7 @@ struct AtomObject : public GUIObject
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
         setFontHeight(atomSizes[idx - 1]);
 
-        int fontHeight = getAtomHeight() - 2;
+        int fontHeight = getAtomHeight() - 6;
         const String text = getLabelText();
 
         if (text.isNotEmpty())
@@ -207,7 +207,7 @@ struct AtomObject : public GUIObject
     Rectangle<int> getLabelBounds() const noexcept
     {
         auto objectBounds = box->getBounds().reduced(Box::margin);
-        int fontHeight = getAtomHeight();
+        int fontHeight = getAtomHeight() - 6;
 
         int labelLength = Font(fontHeight).getStringWidth(getLabelText());
         int labelPosition = static_cast<t_fake_gatom*>(ptr)->a_wherelabel;
