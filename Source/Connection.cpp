@@ -567,7 +567,7 @@ void Connection::updatePath()
 
     repaint();
 
-    auto bounds = toDraw.getBounds().toNearestInt().expanded(4);
+    auto bounds = toDraw.getBounds().toNearestInt().expanded(8);
     setBounds(bounds + origin);
 
     if (bounds.getX() < 0 || bounds.getY() < 0)

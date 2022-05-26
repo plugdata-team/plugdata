@@ -1,12 +1,29 @@
 #include "x_libpd_extra_utils.h"
 
+extern "C"
+{
+char* pdgui_strnescape(char *dst, size_t dstlen, const char *src, size_t srclen);
+}
+
 struct IEMObject : public GUIObject
 {
     IEMObject(void* ptr, Box* parent) : GUIObject(ptr, parent)
     {
+        auto* iemgui = static_cast<t_iemgui*>(ptr);
+
+        t_symbol* srlsym[3];
+        srlsym[0] = iemgui->x_snd;
+        srlsym[1] = iemgui->x_rcv;
+        srlsym[2] = iemgui->x_lab;
+        
+        iemgui_all_dollar2raute(srlsym);
+        iemgui_all_sym2dollararg(iemgui, srlsym);
+        String label = String(srlsym[2]->s_name).removeCharacters("\\");
+        iemgui->x_lab_unexpanded = gensym(label.toRawUTF8());
+        
+        
         labelText = getLabelText();
 
-        auto const* iemgui = static_cast<t_iemgui*>(ptr);
         labelX = iemgui->x_ldx;
         labelY = iemgui->x_ldy;
         labelHeight = getFontHeight();
@@ -160,7 +177,7 @@ struct IEMObject : public GUIObject
             // fontHeight = glist_getfont(box->cnv->patch.getPointer());
         }
 
-        const String text = getLabelText();
+        const String text = getExpandedLabelText();
 
         if (text.isNotEmpty())
         {
@@ -196,7 +213,7 @@ struct IEMObject : public GUIObject
         if (sym)
         {
             int fontHeight = getFontHeight();
-            int labelLength = Font(fontHeight).getStringWidth(getLabelText());
+            int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
 
             auto const* iemgui = static_cast<t_iemgui*>(ptr);
             int const posx = objectBounds.getX() + iemgui->x_ldx;
@@ -335,6 +352,22 @@ struct IEMObject : public GUIObject
     {
         static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
     }
+    
+    String getExpandedLabelText() const
+    {
+        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
+        if (sym)
+        {
+            auto const text = String(sym->s_name);
+            if (text.isNotEmpty() && text != "empty")
+            {
+                return text;
+            }
+        }
+
+        return "";
+    }
+
 
     String getLabelText() const
     {
@@ -354,9 +387,11 @@ struct IEMObject : public GUIObject
     void setLabelText(String newText)
     {
         if (newText.isEmpty()) newText = "empty";
-
+        
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
+        if (newText != "empty") {
+            iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
+        }
         iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
     }
 
