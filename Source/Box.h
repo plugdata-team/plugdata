@@ -32,6 +32,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     void timerCallback() override;
 
     void paint(Graphics&) override;
+    void paintOverChildren(Graphics&) override;
     void resized() override;
 
     void updatePorts();

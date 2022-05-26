@@ -35,12 +35,14 @@ struct VUMeterObject final : public IEMObject
 
     void paint(Graphics& g) override
     {
-        g.fillAll(box->findColour(PlugDataColour::toolbarColourId));
-
         auto values = std::vector<float>{getValue(), getRMS()};
 
         int height = getHeight();
         int width = getWidth();
+        
+        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        
 
         auto outerBorderWidth = 2.0f;
         auto totalBlocks = 30;
@@ -101,6 +103,11 @@ struct VUMeterObject final : public IEMObject
             g.setFont(11);
             g.drawFittedText(String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
         }
+        
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
     void updateValue() override

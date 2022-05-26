@@ -13,12 +13,11 @@ struct ToggleObject final : public IEMObject
 
     void paint(Graphics& g) override
     {
-        auto backgroundColour = getBackgroundColour();
-        g.setColour(backgroundColour);
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        
+        IEMObject::paint(g);
 
         auto toggledColour = getForegroundColour();
-        auto untoggledColour = toggledColour.interpolatedWith(backgroundColour, 0.8f);
+        auto untoggledColour = toggledColour.interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.8f);
         g.setColour(toggleState ? toggledColour : untoggledColour);
 
         auto crossBounds = getLocalBounds().reduced(6).toFloat();
@@ -33,6 +32,8 @@ struct ToggleObject final : public IEMObject
 
         g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
         g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
+        
+
     }
 
     void mouseDown(const MouseEvent& e) override

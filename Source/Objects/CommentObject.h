@@ -26,6 +26,14 @@ struct CommentObject final : public TextBase
             g.drawRect(getLocalBounds().toFloat(), 0.5f);
         }
     }
+    
+    void mouseEnter(const MouseEvent& e) override {
+        repaint();
+    }
+    
+    void mouseExit(const MouseEvent& e) override {
+        repaint();
+    }
 
     void hideEditor() override
     {
@@ -128,11 +136,6 @@ struct CommentObject final : public TextBase
             editor->grabKeyboardFocus();
         }
     }
-
-    bool drawOutline() override
-    {
-        return false;
-    };
 
     bool hideInGraph() override
     {

@@ -233,7 +233,6 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
 #endif
     
-    // Fill bounds below the canvas
     g.setColour(findColour(PlugDataColour::canvasColourId));
     g.fillRect(tabbar.getBounds());
     
@@ -250,7 +249,7 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 void PlugDataPluginEditor::resized()
 {
     int roundedOffset = PLUGDATA_ROUNDED;
-    tabbar.setBounds(0, toolbarHeight - (1 - roundedOffset), (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - statusbar.getHeight());
+    tabbar.setBounds(0, toolbarHeight + roundedOffset, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight() + PLUGDATA_ROUNDED));
 
     sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight);
 

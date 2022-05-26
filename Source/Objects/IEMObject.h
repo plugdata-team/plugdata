@@ -14,6 +14,17 @@ struct IEMObject : public GUIObject
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
     }
+    
+    void paint(Graphics& g) override
+    {
+        g.setColour(getBackgroundColour());
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+    }
 
     void applyBounds() override
     {
