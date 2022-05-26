@@ -338,7 +338,7 @@ struct IEMObject : public GUIObject
 
     String getLabelText() const
     {
-        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
+        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab_unexpanded;
         if (sym)
         {
             auto const text = String(sym->s_name);
