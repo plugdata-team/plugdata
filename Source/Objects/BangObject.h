@@ -36,9 +36,8 @@ struct BangObject final : public IEMObject
 
     void paint(Graphics& g) override
     {
-        g.setColour(getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
-
+        IEMObject::paint(g);
+        
         const auto bounds = getLocalBounds().reduced(1).toFloat();
         const auto width = std::max(bounds.getWidth(), bounds.getHeight());
 

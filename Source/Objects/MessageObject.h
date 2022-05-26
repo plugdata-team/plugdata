@@ -133,7 +133,7 @@ struct MessageObject final : public GUIObject
     {
         GUIObject::paintOverChildren(g);
 
-        auto b = getLocalBounds();
+        auto b = getLocalBounds().reduced(1);
 
         Path flagPath;
         flagPath.addQuadrilateral(b.getRight(), b.getY(), b.getRight() - 4, b.getY() + 4, b.getRight() - 4, b.getBottom() - 4, b.getRight(), b.getBottom());
@@ -143,7 +143,7 @@ struct MessageObject final : public GUIObject
 
         if (isDown)
         {
-            g.drawRoundedRectangle(getLocalBounds().toFloat(), 2.0f, 4.0f);
+            g.drawRoundedRectangle(b.reduced(1).toFloat(), 2.0f, 3.0f);
         }
     }
 
@@ -205,11 +205,6 @@ struct MessageObject final : public GUIObject
         GUIObject::valueChanged(v);
     }
 
-    /*
-    bool usesCharWidth() override
-    {
-        return true;
-    } */
 
     String getSymbol() const noexcept
     {

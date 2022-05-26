@@ -70,7 +70,7 @@ struct AtomObject : public GUIObject
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        gatom->a_text.te_width = width / fontWidth;
+        gatom->a_text.te_width = getWidth() / fontWidth;
     }
 
     void resized() override
@@ -91,21 +91,31 @@ struct AtomObject : public GUIObject
         int idx = static_cast<int>(labelHeight.getValue()) - 1;
         if (idx == 0)
         {
-            return glist_fontheight(cnv->patch.getPointer()) + 6;
+            return glist_fontheight(cnv->patch.getPointer()) + 8;
         }
         else
         {
-            return atomSizes[idx] + 6;
+            return atomSizes[idx] + 8;
         }
     }
 
+    void paint(Graphics& g) override
+    {
+        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+    }
+        
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         Path triangle;
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
-
+        triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
+        
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
     ObjectParameters getParameters() override
@@ -139,6 +149,14 @@ struct AtomObject : public GUIObject
         {
             setLabelText(labelText.toString());
             updateLabel();
+        }
+        else if (v.refersToSameSourceAs(sendSymbol))
+        {
+            setSendSymbol(sendSymbol.toString());
+        }
+        else if (v.refersToSameSourceAs(receiveSymbol))
+        {
+            setReceiveSymbol(receiveSymbol.toString());
         }
     }
 
@@ -245,12 +263,14 @@ struct AtomObject : public GUIObject
 
     String getSendSymbol() noexcept
     {
-        return "";
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        return String(atom->a_symfrom->s_name);
     }
 
     String getReceiveSymbol() noexcept
     {
-        return "";
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        return String(atom->a_symto->s_name);
     }
 
     void setSendSymbol(const String& symbol) const noexcept

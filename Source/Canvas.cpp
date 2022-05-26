@@ -763,18 +763,15 @@ void Canvas::checkBounds()
 
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
 
-    // Repeat in case the scrollbar visibility changes
-    for(int i = 0; i < 2; i++) {
-        auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
+    auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
 
-        for (auto obj : boxes)
-        {
-            viewBounds = obj->getBounds().getUnion(viewBounds);
-        }
-        
-        if(i == 0) canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
-        setSize(viewBounds.getWidth(), viewBounds.getHeight());
+    for (auto obj : boxes)
+    {
+        viewBounds = obj->getBounds().getUnion(viewBounds);
     }
+    
+    canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
+    setSize(viewBounds.getWidth(), viewBounds.getHeight());
     
     for (auto& box : boxes)
     {

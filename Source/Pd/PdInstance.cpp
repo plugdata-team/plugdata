@@ -549,8 +549,9 @@ Patch Instance::openPatch(const File& toOpen)
 {
     t_canvas* cnv = nullptr;
 
+    bool done = false;
     enqueueFunction(
-        [this, toOpen, &cnv]() mutable
+        [this, toOpen, &cnv, &done]() mutable
         {
             String dirname = toOpen.getParentDirectory().getFullPathName();
             auto* dir = dirname.toRawUTF8();
@@ -561,9 +562,10 @@ Patch Instance::openPatch(const File& toOpen)
             setThis();
 
             cnv = static_cast<t_canvas*>(libpd_create_canvas(file, dir));
+            done = true;
         });
 
-    while (!cnv)
+    while (!done)
     {
         waitForStateUpdate();
     }

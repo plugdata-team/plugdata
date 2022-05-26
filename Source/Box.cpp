@@ -29,33 +29,31 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     if (cnv->attachNextObjectToMouse)
     {
         cnv->attachNextObjectToMouse = false;
-        startTimer(20);
         attachedToMouse = true;
+        startTimer(20);
     }
     
     initialise();
+    
     // Open editor for undefined objects
     // Delay the setting of the type to prevent creating an invalid object first
     if (name.isEmpty())
     {
         setSize(100, height);
-        toFront(false);
-        if (attachedToMouse)
-        {
-            createEditorOnMouseDown = true;
-        }
-        else
-        {
-            showEditor();
-        }
     }
     else
     {
         setType(name);
     }
-    if (gui)
+    
+    // Open the text editor of a new object if it has one
+    // Don't do this if the object is attached to the mouse
+    if (attachedToMouse)
     {
-        gui->showEditor();
+        createEditorOnMouseDown = true;
+    }
+    else {
+        showEditor();
     }
 }
 
@@ -278,6 +276,24 @@ Array<Rectangle<float>> Box::getCorners() const
     return corners;
 }
 
+void Box::paintOverChildren(Graphics& g)
+{
+    if (attachedToMouse)
+    {
+        g.saveState();
+        
+        // Don't draw line over edges!
+        for(auto& edge : edges){
+            g.excludeClipRegion(edge->getBounds().reduced(2));
+        }
+        
+        g.setColour(Colours::lightgreen);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(Box::margin + 1.0f), 2.0f, 2.0f);
+        
+        g.restoreState();
+    }
+}
+
 void Box::paint(Graphics& g)
 {
     auto rect = getLocalBounds().reduced(margin);
@@ -297,23 +313,6 @@ void Box::paint(Graphics& g)
         }
         g.restoreState();
     }
-    
-    if (gui && !gui->drawOutline()) return;
-    
-    auto outlineColour = findColour(PlugDataColour::canvasOutlineColourId);
-    float thickness = 1.0f;
-    if (attachedToMouse)
-    {
-        outlineColour = Colours::lightgreen;
-        thickness = 2.0f;
-    }
-    else if (selected && !cnv->isGraph)
-    {
-        outlineColour = findColour(PlugDataColour::highlightColourId);
-    }
-    
-    g.setColour(outlineColour);
-    g.drawRoundedRectangle(rect.toFloat(), 2.0f, thickness);
 }
 
 void Box::resized()
@@ -459,23 +458,23 @@ void Box::mouseDown(const MouseEvent& e)
         stopTimer();
         repaint();
         
+        auto box = SafePointer<Box>(this);
+        // Tell pd about new position
+        cnv->pd->enqueueFunction(
+                                 [this, box]()
+                                 {
+                                     if (!box || !box->gui) return;
+                                     gui->applyBounds();
+                                 });
+        
         if (createEditorOnMouseDown)
         {
             createEditorOnMouseDown = false;
+            
             // Prevent losing focus because of click event
             MessageManager::callAsync([this]() { showEditor(); });
         }
-        else
-        {
-            auto box = SafePointer<Box>(this);
-            // Tell pd about new position
-            cnv->pd->enqueueFunction(
-                                     [this, box]()
-                                     {
-                                         if (!box || !box->gui) return;
-                                         gui->applyBounds();
-                                     });
-        }
+
         
         return;
     }

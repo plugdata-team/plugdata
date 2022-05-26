@@ -282,7 +282,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         g.setColour(findColour(button.getToggleState() ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
 
-        g.fillRect(button.getLocalBounds().withTop(1));
+        g.fillRect(button.getLocalBounds());
 
         int w = button.getWidth();
         int h = button.getHeight();
@@ -649,7 +649,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
         void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
         {
-            auto sliderBounds = slider.getLocalBounds().toFloat().reduced(0.5f);
+            auto sliderBounds = slider.getLocalBounds().toFloat().reduced(1.0f);
 
             g.setColour(findColour(Slider::backgroundColourId));
             g.fillRect(sliderBounds);
@@ -674,9 +674,9 @@ struct PlugDataLook : public LookAndFeel_V4
 
         void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
         {
-            auto baseColour = findColour(TextButton::buttonColourId);
+            auto baseColour = button.findColour(TextButton::buttonColourId);
 
-            auto highlightColour = findColour(TextButton::buttonOnColourId);
+            auto highlightColour = button.findColour(TextButton::buttonOnColourId);
 
             Path path;
             path.addRectangle(button.getLocalBounds());
@@ -685,7 +685,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
             g.fillRect(button.getLocalBounds());
 
-            g.setColour(findColour(ComboBox::outlineColourId));
+            g.setColour(button.findColour(ComboBox::outlineColourId));
             g.strokePath(path, PathStrokeType(1.0f));
 
             if (shouldDrawButtonAsDown || button.getToggleState())

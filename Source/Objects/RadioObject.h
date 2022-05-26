@@ -26,7 +26,7 @@ struct RadioObject final : public IEMObject
 
     void resized() override
     {
-        int size = isVertical ? getWidth() : getHeight();
+        int size = (isVertical ? getWidth() : getHeight());
         int minSize = 12;
         size = std::max(size, minSize);
 
@@ -77,6 +77,8 @@ struct RadioObject final : public IEMObject
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
     }
+    
+    
 
     void updateBounds() override
     {
@@ -109,6 +111,9 @@ struct RadioObject final : public IEMObject
             radioButtons[i]->setName("radiobutton");
             radioButtons[i]->setInterceptsMouseClicks(true, false);
             radioButtons[i]->setTriggeredOnMouseDown(true);
+            
+            radioButtons[i]->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+            radioButtons[i]->setColour(TextButton::buttonColourId, Colours::transparentBlack);
             addAndMakeVisible(radioButtons[i]);
 
             radioButtons[i]->onClick = [this, i]() mutable
@@ -131,7 +136,33 @@ struct RadioObject final : public IEMObject
             resized();
         }
     }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        bool skipped = false;
+        for(auto& button : radioButtons)
+        {
+            if(!skipped) {
+                skipped = true;
+                continue;
+            }
+            g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+            if(isVertical)
+            {
+                g.drawLine({button->getBounds().getTopLeft().toFloat(), button->getBounds().getTopRight().toFloat()}, 1.0f);
+            }
+            else {
+                g.drawLine({button->getBounds().getTopLeft().toFloat(), button->getBounds().getBottomLeft().toFloat()}, 1.0f);
+            }
+            
+        }
 
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+    }
+    
     OwnedArray<TextButton> radioButtons;
 
     ObjectParameters defineParameters() override

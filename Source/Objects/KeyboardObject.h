@@ -116,7 +116,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
         addAndMakeVisible(keyboard);
 
         auto* x = (t_keyboard*)ptr;
-        x->x_width = width * 0.595f;
+        x->x_width = getWidth();
 
         lowC = x->x_low_c;
         octaves = x->x_octaves;
@@ -236,6 +236,13 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
             keyboardObject->x_octaves = numOctaves;
             checkBounds();
         }
+    }
+    
+    void paintOverChildren(Graphics& g) override
+    {
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
     Value lowC;

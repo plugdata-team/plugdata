@@ -148,6 +148,24 @@ void ObjectBase::moveToFront()
         canvas->gl_list = y_next;
 }
 
+void ObjectBase::paint(Graphics& g)
+{
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
+
+    // make sure text is readable
+    // TODO: move this to places where it's relevant
+    getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+
+    g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+    
+    auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+    
+    g.setColour(outlineColour);
+    g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+}
+
 NonPatchable::NonPatchable(void* obj, Box* parent) : ObjectBase(obj, parent)
 {
     // Make object invisible
@@ -209,18 +227,6 @@ void GUIObject::initialise()
     }
 
     repaint();
-}
-
-void GUIObject::paint(Graphics& g)
-{
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
-
-    // make sure text is readable
-    getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
-    getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
-
-    g.setColour(box->findColour(PlugDataColour::toolbarColourId));
-    g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 }
 
 ObjectParameters GUIObject::defineParameters()
