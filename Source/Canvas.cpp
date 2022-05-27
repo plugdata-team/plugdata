@@ -31,6 +31,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     // Check if canvas belongs to a graph
     if (parentGraph)
     {
+        setLookAndFeel(&main.getLookAndFeel());
         parentGraph->addAndMakeVisible(this);
         isGraph = true;
     }

@@ -9,7 +9,7 @@ struct GraphOnParent final : public GUIObject
     {
         setInterceptsMouseClicks(box->locked == var(false), true);
 
-        isGraphChild = glist_isgraph(subpatch.getPointer());
+        isGraphChild = true;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
 
         isGraphChild.addListener(this);
