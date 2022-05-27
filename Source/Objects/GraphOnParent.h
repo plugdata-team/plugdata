@@ -45,11 +45,13 @@ struct GraphOnParent final : public GUIObject
 
     void applyBounds() override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto b = box->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
 
         auto* graph = static_cast<_glist*>(ptr);
-        graph->gl_pixwidth = getWidth();
-        graph->gl_pixheight = getHeight();
+        graph->gl_pixwidth = b.getWidth();
+        graph->gl_pixheight = b.getHeight();
     }
 
     void lock(bool locked) override

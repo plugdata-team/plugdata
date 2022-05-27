@@ -72,13 +72,14 @@ struct NumberObject final : public IEMObject
 
     void applyBounds() override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto b = box->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        nbx->x_numwidth = getWidth() / fontWidth;
-        nbx->x_gui.x_h = getHeight();
+        nbx->x_numwidth = b.getWidth() / fontWidth;
+        nbx->x_gui.x_h = b.getHeight();
     }
 
     void resized() override

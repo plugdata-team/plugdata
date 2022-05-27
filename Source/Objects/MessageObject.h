@@ -109,10 +109,12 @@ struct MessageObject final : public GUIObject
 
     void applyBounds() override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto b = box->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
 
         auto* textObj = static_cast<t_text*>(ptr);
-        textObj->te_width = getWidth() / glist_fontwidth(cnv->patch.getPointer());
+        textObj->te_width = b.getWidth() / glist_fontwidth(cnv->patch.getPointer());
     }
 
     void resized() override
