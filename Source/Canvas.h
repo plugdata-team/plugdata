@@ -111,15 +111,15 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value gridEnabled = Value(true);
+    Value gridEnabled = Value(var(true));
 
     bool isGraph = false;
     bool hasParentCanvas = false;
     bool updatingBounds = false;  // used by connection
     
     
-    Value isGraphChild = Value(false);
-    Value hideNameAndArgs = Value(false);
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
     
     ObjectGrid grid = ObjectGrid(this);
 
