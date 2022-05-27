@@ -745,8 +745,9 @@ void Box::openHelpPatch() const
                 sys_unlock();
                 return {pdPatch, cnv->pd, file.getChildFile(secondName)};
             }
-            return {nullptr, nullptr};
         }
+        
+        return {nullptr, nullptr};
     };
 
     cnv->pd->setThis();
