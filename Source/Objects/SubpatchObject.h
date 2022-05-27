@@ -5,7 +5,7 @@ struct SubpatchObject final : public TextBase, public Value::Listener
     {
         isGraphChild = glist_isgraph(subpatch.getPointer());
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
-        
+
         isGraphChild.addListener(this);
         hideNameAndArgs.addListener(this);
     }
@@ -19,17 +19,18 @@ struct SubpatchObject final : public TextBase, public Value::Listener
             box->setType(currentText, ptr);
         }
     };
-    
+
     void mouseDown(const MouseEvent& e) override
     {
         //  If locked and it's a left click
         if ((box->locked == var(true) || box->commandLocked == var(true)) && !ModifierKeys::getCurrentModifiers().isRightButtonDown())
         {
             box->openSubpatch();
-        
+
             return;
         }
-        else {
+        else
+        {
             TextBase::mouseDown(e);
         }
     }
@@ -43,12 +44,12 @@ struct SubpatchObject final : public TextBase, public Value::Listener
     {
         return &subpatch;
     }
-    
-    ObjectParameters getParameters() override {
-        return {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}},
-            {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
+
+    ObjectParameters getParameters() override
+    {
+        return {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
     };
-    
+
     void valueChanged(Value& v) override
     {
         if (v.refersToSameSourceAs(isGraphChild))
@@ -62,10 +63,9 @@ struct SubpatchObject final : public TextBase, public Value::Listener
             repaint();
         }
     }
-    
+
    protected:
-    
     pd::Patch subpatch;
-    Value isGraphChild = Value(false);
-    Value hideNameAndArgs = Value(false);
+    Value isGraphChild = Value(var(false));
+    Value hideNameAndArgs = Value(var(false));
 };

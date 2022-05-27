@@ -232,10 +232,9 @@ void PlugDataPluginEditor::paint(Graphics& g)
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight());
 #endif
-    
+
     g.setColour(findColour(PlugDataColour::canvasColourId));
     g.fillRect(tabbar.getBounds());
-    
 }
 
 void PlugDataPluginEditor::paintOverChildren(Graphics& g)

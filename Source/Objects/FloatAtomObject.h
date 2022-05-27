@@ -30,7 +30,7 @@ struct FloatAtomObject final : public AtomObject
 
         min = getMinimum();
         max = getMaximum();
-        
+
         initialise();
 
         input.setEditable(true, false);

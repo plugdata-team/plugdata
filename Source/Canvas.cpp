@@ -24,7 +24,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
-    
+
     isGraphChild.addListener(this);
     hideNameAndArgs.addListener(this);
 
@@ -370,7 +370,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             if (result < 1) return;
             switch (result)
             {
-                case 1: // Open subpatch
+                case 1:  // Open subpatch
                     box->openSubpatch();
                     break;
                 case 4:  // Cut
@@ -380,7 +380,7 @@ void Canvas::mouseDown(const MouseEvent& e)
                 case 5:  // Copy
                     copySelection();
                     break;
-                case 6: // Duplicate
+                case 6:  // Duplicate
                     duplicateSelection();
                     break;
                 case 7:  // Remove
@@ -390,10 +390,10 @@ void Canvas::mouseDown(const MouseEvent& e)
                     box->toFront(false);
                     if (box->gui) box->gui->moveToFront();
                     break;
-                case 9: // Open help
+                case 9:  // Open help
                     box->openHelpPatch();
                     break;
-                case 10: // Open help
+                case 10:  // Open help
                     main.sidebar.showParameters(parameters);
                     break;
                 default:
@@ -565,45 +565,52 @@ bool Canvas::keyPressed(const KeyPress& key)
     if (main.getCurrentCanvas() != this || isGraph) return false;
 
     int keycode = key.getKeyCode();
-    
-    
-    auto moveSelection = [this](int x, int y){
+
+    auto moveSelection = [this](int x, int y)
+    {
         auto boxes = getSelectionOfType<Box>();
         std::vector<void*> objects;
-        
-        for(auto* box : boxes) {
+
+        for (auto* box : boxes)
+        {
             objects.push_back(box->getPointer());
         }
-        
+
         patch.moveObjects(objects, x, y);
-        
-        for(auto* box : boxes) {
+
+        for (auto* box : boxes)
+        {
             box->updateBounds();
-            
-            if(!getBounds().contains(box->getBounds())) {
+
+            if (!getBounds().contains(box->getBounds()))
+            {
                 checkBounds();
             }
         }
     };
-    
+
     // Move objects with arrow keys
-    if(keycode == KeyPress::leftKey) {
+    if (keycode == KeyPress::leftKey)
+    {
         moveSelection(-10, 0);
         return true;
     }
-    if(keycode == KeyPress::rightKey){
+    if (keycode == KeyPress::rightKey)
+    {
         moveSelection(10, 0);
         return true;
     }
-    if(keycode == KeyPress::upKey){
+    if (keycode == KeyPress::upKey)
+    {
         moveSelection(0, -10);
         return true;
     }
-    if(keycode == KeyPress::downKey) {
+    if (keycode == KeyPress::downKey)
+    {
         moveSelection(0, 10);
         return true;
     }
-    
+
     // Ignore backspace, arrow keys, return key and more that might cause actions in pd
     if (keycode == KeyPress::backspaceKey || keycode == KeyPress::pageUpKey || keycode == KeyPress::pageDownKey || keycode == KeyPress::homeKey || keycode == KeyPress::escapeKey || keycode == KeyPress::deleteKey || keycode == KeyPress::returnKey || keycode == KeyPress::tabKey)
     {
@@ -778,10 +785,10 @@ void Canvas::checkBounds()
     {
         viewBounds = obj->getBounds().getUnion(viewBounds);
     }
-    
+
     canvasOrigin -= {viewBounds.getX(), viewBounds.getY()};
     setSize(viewBounds.getWidth(), viewBounds.getHeight());
-    
+
     for (auto& box : boxes)
     {
         box->updateBounds();
@@ -822,16 +829,16 @@ void Canvas::valueChanged(Value& v)
     else if (v.refersToSameSourceAs(isGraphChild))
     {
         patch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
-        
+
         if (static_cast<bool>(isGraphChild.getValue()) && !isGraph)
         {
-            
             graphArea = new GraphArea(this);
             addAndMakeVisible(graphArea);
             graphArea->setAlwaysOnTop(true);
             graphArea->updateBounds();
         }
-        else {
+        else
+        {
             delete graphArea;
             graphArea = nullptr;
         }

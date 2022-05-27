@@ -12,7 +12,7 @@
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outbox(outlet->box), inbox(inlet->box)
 {
     // Should improve performance
-    //setBufferedToImage(true);
+    // setBufferedToImage(true);
 
     locked.referTo(parent->locked);
 
@@ -182,7 +182,8 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy)
         auto point1 = Point<float>(i.x1, i.y1);
 
         // Skip points to reduce accuracy a little bit for better performance
-        for(int n = 0; n < accuracy; n++) {
+        for (int n = 0; n < accuracy; n++)
+        {
             auto next = i.next();
             if (!next) break;
         }
@@ -195,11 +196,11 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy)
             return true;
         }
     }
-    
+
     return false;
 }
 void Connection::paint(Graphics& g)
-{    
+{
     auto baseColour = findColour(PlugDataColour::connectionColourId);
     auto dataColour = findColour(PlugDataColour::highlightColourId);
     auto signalColour = findColour(PlugDataColour::signalColourId);

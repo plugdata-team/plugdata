@@ -106,8 +106,9 @@ struct GraphicalArray : public Component
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
     }
-    
-    void setArray(PdArray& graph) {
+
+    void setArray(PdArray& graph)
+    {
         if (graph.getName().isEmpty()) return;
         array = graph;
     }
@@ -183,8 +184,6 @@ struct GraphicalArray : public Component
                 }
             }
         }
-        
-        
     }
 
     void mouseDown(const MouseEvent& e) override
@@ -324,7 +323,7 @@ struct ArrayObject final : public GUIObject
 
         initialise();
     }
-    
+
     void updateLabel() override
     {
         int fontHeight = 14.0f;
@@ -339,7 +338,7 @@ struct ArrayObject final : public GUIObject
             }
 
             auto bounds = box->getBounds().reduced(Box::margin).removeFromTop(fontHeight + 2);
-            
+
             bounds.translate(2, -(fontHeight + 2));
 
             label->setFont(Font(fontHeight));
@@ -356,7 +355,6 @@ struct ArrayObject final : public GUIObject
             box->cnv->addAndMakeVisible(label.get());
         }
     }
-
 
     void updateBounds() override
     {
@@ -391,7 +389,6 @@ struct ArrayObject final : public GUIObject
         auto b = box->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-
         auto* array = static_cast<_glist*>(ptr);
         array->gl_pixwidth = b.getWidth();
         array->gl_pixheight = b.getHeight();
@@ -416,13 +413,14 @@ struct ArrayObject final : public GUIObject
             {
                 auto* garray = static_cast<t_garray*>(libpd_array_get_byname(graph.getName().toRawUTF8()));
                 garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
-                
-                MessageManager::callAsync([this](){
-                    graph = getArray();
-                    array.setArray(graph);
-                    updateLabel();
-                });
 
+                MessageManager::callAsync(
+                    [this]()
+                    {
+                        graph = getArray();
+                        array.setArray(graph);
+                        updateLabel();
+                    });
             });
 
         repaint();
@@ -451,7 +449,7 @@ struct ArrayObject final : public GUIObject
             GUIObject::valueChanged(value);
         }
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);

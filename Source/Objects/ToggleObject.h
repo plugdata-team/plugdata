@@ -13,7 +13,6 @@ struct ToggleObject final : public IEMObject
 
     void paint(Graphics& g) override
     {
-        
         IEMObject::paint(g);
 
         auto toggledColour = getForegroundColour();
@@ -32,8 +31,6 @@ struct ToggleObject final : public IEMObject
 
         g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
         g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
-        
-
     }
 
     void mouseDown(const MouseEvent& e) override

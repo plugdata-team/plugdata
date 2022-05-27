@@ -36,7 +36,8 @@ struct MousePadObject final : public GUIObject
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
 
-    void paint(Graphics& g) override{
+    void paint(Graphics& g) override
+    {
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
@@ -107,7 +108,6 @@ struct MousePadObject final : public GUIObject
     {
         auto b = box->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
 
         auto* pad = static_cast<t_pad*>(ptr);
         pad->x_w = b.getWidth();
