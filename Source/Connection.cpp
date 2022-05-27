@@ -199,13 +199,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy)
     return false;
 }
 void Connection::paint(Graphics& g)
-{
-    // Check if we need to redraw
-    // The connecion takes a large rect but fills only a small part of it
-    // If the invalidated region doesn't intersect the path, skip the repaint
-    if(!intersects(g.getClipBounds().toFloat())) return;
-
-    
+{    
     auto baseColour = findColour(PlugDataColour::connectionColourId);
     auto dataColour = findColour(PlugDataColour::highlightColourId);
     auto signalColour = findColour(PlugDataColour::signalColourId);

@@ -331,12 +331,13 @@ void Box::resized()
     }
     
     int edgeSize = 12;
-    const int edgeHitBox = 4;
-    const int borderWidth = 14;
+    int edgeHitBox = 4;
+    int borderWidth = 14;
     
-    if (getWidth() < 32 && (numInputs > 1 || numOutputs > 1))
+    if (getWidth() < 45 && (numInputs > 1 || numOutputs > 1))
     {
-        edgeSize = 9;
+        borderWidth = 9;
+        edgeSize = 10;
     }
     
     auto inletBounds = getLocalBounds();
