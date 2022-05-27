@@ -2,7 +2,7 @@
 
 extern "C"
 {
-char* pdgui_strnescape(char *dst, size_t dstlen, const char *src, size_t srclen);
+    char* pdgui_strnescape(char* dst, size_t dstlen, const char* src, size_t srclen);
 }
 
 struct IEMObject : public GUIObject
@@ -15,13 +15,12 @@ struct IEMObject : public GUIObject
         srlsym[0] = iemgui->x_snd;
         srlsym[1] = iemgui->x_rcv;
         srlsym[2] = iemgui->x_lab;
-        
+
         iemgui_all_dollar2raute(srlsym);
         iemgui_all_sym2dollararg(iemgui, srlsym);
         String label = String(srlsym[2]->s_name).removeCharacters("\\");
         iemgui->x_lab_unexpanded = gensym(label.toRawUTF8());
-        
-        
+
         labelText = getLabelText();
 
         labelX = iemgui->x_ldx;
@@ -31,14 +30,14 @@ struct IEMObject : public GUIObject
         sendSymbol = getSendSymbol();
         receiveSymbol = getReceiveSymbol();
     }
-    
+
     void paint(Graphics& g) override
     {
         g.setColour(getBackgroundColour());
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
-        
+
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
@@ -354,7 +353,7 @@ struct IEMObject : public GUIObject
     {
         static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
     }
-    
+
     String getExpandedLabelText() const
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
@@ -369,7 +368,6 @@ struct IEMObject : public GUIObject
 
         return "";
     }
-
 
     String getLabelText() const
     {
@@ -389,9 +387,10 @@ struct IEMObject : public GUIObject
     void setLabelText(String newText)
     {
         if (newText.isEmpty()) newText = "empty";
-        
+
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        if (newText != "empty") {
+        if (newText != "empty")
+        {
             iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
         }
         iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);

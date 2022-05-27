@@ -1,6 +1,5 @@
 
 
-
 // False GATOM
 typedef struct _fake_gatom
 {
@@ -44,12 +43,10 @@ struct AtomObject : public GUIObject
 {
     AtomObject(void* ptr, Box* parent) : GUIObject(ptr, parent)
     {
-        
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        
+
         labelText = getLabelText();
         labelX = static_cast<int>(atom->a_wherelabel + 1);
-        
 
         int h = getFontHeight();
 
@@ -73,7 +70,6 @@ struct AtomObject : public GUIObject
     {
         auto b = box->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
@@ -112,7 +108,7 @@ struct AtomObject : public GUIObject
         g.setColour(box->findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
     }
-        
+
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
@@ -120,7 +116,7 @@ struct AtomObject : public GUIObject
         triangle.addTriangle(Point<float>(getWidth() - 8, 0), Point<float>(getWidth(), 0), Point<float>(getWidth(), 8));
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
-        
+
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -170,7 +166,6 @@ struct AtomObject : public GUIObject
 
     void updateLabel() override
     {
-    
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
         setFontHeight(atomSizes[idx - 1]);
 
@@ -238,7 +233,7 @@ struct AtomObject : public GUIObject
             return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
         }
     }
-    
+
     String getExpandedLabelText() const
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
@@ -300,7 +295,7 @@ struct AtomObject : public GUIObject
     void setSendSymbol(const String& symbol) const noexcept
     {
         if (symbol.isEmpty()) return;
-        
+
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_symto = gensym(symbol.toRawUTF8());
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
@@ -315,22 +310,23 @@ struct AtomObject : public GUIObject
         atom->a_symfrom = gensym(symbol.toRawUTF8());
         if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
-    
+
     /* prepend "-" as necessary to avoid empty strings, so we can
     use them in Pd messages. */
-    static t_symbol *gatom_escapit(t_symbol *s)
+    static t_symbol* gatom_escapit(t_symbol* s)
     {
-    if (!*s->s_name)
-        return (gensym("-"));
-    else if (*s->s_name == '-')
-    {
-        char shmo[100];
-        shmo[0] = '-';
-        strncpy(shmo+1, s->s_name, 99);
-        shmo[99] = 0;
-        return (gensym(shmo));
-    }
-    else return (s);
+        if (!*s->s_name)
+            return (gensym("-"));
+        else if (*s->s_name == '-')
+        {
+            char shmo[100];
+            shmo[0] = '-';
+            strncpy(shmo + 1, s->s_name, 99);
+            shmo[99] = 0;
+            return (gensym(shmo));
+        }
+        else
+            return (s);
     }
 
     /* undo previous operation: strip leading "-" if found.  This is used
@@ -340,11 +336,12 @@ struct AtomObject : public GUIObject
     to "$".  This is unnecessary when reading files saved from 0.52 or later,
     and really we should test for that and only bash when necessary, just
     in case someone wants to have a "#" in a name. */
-    static t_symbol *gatom_unescapit(t_symbol *s)
+    static t_symbol* gatom_unescapit(t_symbol* s)
     {
-    if (*s->s_name == '-')
-        return (gensym(s->s_name+1));
-    else return (iemgui_raute2dollar(s));
+        if (*s->s_name == '-')
+            return (gensym(s->s_name + 1));
+        else
+            return (iemgui_raute2dollar(s));
     }
 
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};

@@ -638,8 +638,8 @@ void Instance::createPanel(int type, const char* snd, const char* location)
 void Instance::logMessage(const String& message)
 {
     consoleMessages.emplace_back(message, 0, Font(14).getStringWidth(message) + 12);
-    
-    if(consoleMessages.size() > 800) consoleMessages.pop_front();
+
+    if (consoleMessages.size() > 800) consoleMessages.pop_front();
 
     updateConsole();
 }
@@ -647,8 +647,8 @@ void Instance::logMessage(const String& message)
 void Instance::logError(const String& error)
 {
     consoleMessages.emplace_back(error, 1, Font(14).getStringWidth(error) + 12);
-    
-    if(consoleMessages.size() > 800)  consoleMessages.pop_front();
+
+    if (consoleMessages.size() > 800) consoleMessages.pop_front();
 
     updateConsole();
 }

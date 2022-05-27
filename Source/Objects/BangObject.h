@@ -37,7 +37,7 @@ struct BangObject final : public IEMObject
     void paint(Graphics& g) override
     {
         IEMObject::paint(g);
-        
+
         const auto bounds = getLocalBounds().reduced(1).toFloat();
         const auto width = std::max(bounds.getWidth(), bounds.getHeight());
 

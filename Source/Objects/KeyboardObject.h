@@ -163,7 +163,6 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
         auto b = box->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-
         auto* keyboard = static_cast<t_keyboard*>(ptr);
         keyboard->x_width = b.getWidth();
         keyboard->x_height = b.getHeight();
@@ -223,7 +222,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
             int lowest = std::clamp<int>(lowC.getValue(), 0, 10);
             int highest = std::clamp<int>(lowest + numOctaves, 0, 10);
             keyboard.setAvailableRange(lowest * 12, highest * 12);
-            
+
             keyboardObject->x_low_c = lowest;
             checkBounds();
         }
@@ -233,13 +232,13 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
             int numOctaves = static_cast<int>(octaves.getValue());
             int lowest = std::clamp<int>(lowC.getValue(), 0, 10);
             int highest = std::clamp<int>(lowest + numOctaves, 0, 10);
-                                          
+
             keyboard.setAvailableRange(lowest * 12, highest * 12);
             keyboardObject->x_octaves = numOctaves;
             checkBounds();
         }
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);

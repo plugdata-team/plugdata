@@ -8,7 +8,8 @@
 
 struct Inspector : public PropertiesPanel
 {
-    PropertyComponent* createPanel(int type, const String& name, Value* value, int idx, std::vector<String>& options) {
+    PropertyComponent* createPanel(int type, const String& name, Value* value, int idx, std::vector<String>& options)
+    {
         switch (type)
         {
             case tString:
@@ -29,17 +30,17 @@ struct Inspector : public PropertiesPanel
                 return new EditableComponent<String>(name, *value, idx);
         }
     }
-    
+
     void loadParameters(ObjectParameters& params)
     {
         StringArray names = {"General", "Appearance", "Label", "Extra"};
-        
+
         clear();
-        
+
         for (int i = 0; i < 4; i++)
         {
             Array<PropertyComponent*> panels;
-            
+
             int idx = 0;
             for (auto& [name, type, category, value, options] : params)
             {

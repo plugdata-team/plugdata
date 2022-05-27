@@ -102,7 +102,6 @@ struct ListObject final : public AtomObject
         bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(bottomTriangle);
     }
-    
 
     void update() override
     {
