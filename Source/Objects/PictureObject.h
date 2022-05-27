@@ -89,11 +89,12 @@ struct PictureObject final : public GUIObject
 
     void applyBounds() override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto b = box->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* pic = static_cast<t_pic*>(ptr);
-        pic->x_width = getWidth();
-        pic->x_height = getHeight();
+        pic->x_width = b.getWidth();
+        pic->x_height = b.getHeight();
     }
 
     void updateBounds() override

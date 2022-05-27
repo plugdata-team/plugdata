@@ -105,11 +105,13 @@ struct MousePadObject final : public GUIObject
 
     void applyBounds() override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto b = box->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
 
         auto* pad = static_cast<t_pad*>(ptr);
-        pad->x_w = getWidth();
-        pad->x_h = getHeight();
+        pad->x_w = b.getWidth();
+        pad->x_h = b.getHeight();
     }
 
     void updateBounds() override
