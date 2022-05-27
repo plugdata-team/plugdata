@@ -22,7 +22,11 @@ extern "C"
 
 Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph, bool graphChild) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
 {
-    isGraphChild = graphChild;
+    isGraphChild = glist_isgraph(p.getPointer());
+    hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
+    
+    isGraphChild.addListener(this);
+    hideNameAndArgs.addListener(this);
 
     // Check if canvas belongs to a graph
     if (parentGraph)
@@ -48,7 +52,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     tabbar = &parent.tabbar;
 
     // Add draggable border for setting graph position
-    if (isGraphChild)
+    if (static_cast<bool>(isGraphChild.getValue()) && !isGraph)
     {
         graphArea = new GraphArea(this);
         addAndMakeVisible(graphArea);
@@ -358,6 +362,8 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addItem(8, "To Front", box != nullptr);
         popupMenu.addSeparator();
         popupMenu.addItem(9, "Help", box != nullptr);
+        popupMenu.addSeparator();
+        popupMenu.addItem(10, "Properties", true);
 
         auto callback = [this, &lassoSelection, box](int result)
         {
@@ -386,6 +392,9 @@ void Canvas::mouseDown(const MouseEvent& e)
                     break;
                 case 9: // Open help
                     box->openHelpPatch();
+                    break;
+                case 10: // Open help
+                    main.sidebar.showParameters(parameters);
                     break;
                 default:
                     break;
@@ -809,6 +818,29 @@ void Canvas::valueChanged(Value& v)
         commandLocked.setValue(presentationMode.getValue());
 
         synchronise();
+    }
+    else if (v.refersToSameSourceAs(isGraphChild))
+    {
+        patch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
+        
+        if (static_cast<bool>(isGraphChild.getValue()) && !isGraph)
+        {
+            
+            graphArea = new GraphArea(this);
+            addAndMakeVisible(graphArea);
+            graphArea->setAlwaysOnTop(true);
+            graphArea->updateBounds();
+        }
+        else {
+            delete graphArea;
+            graphArea = nullptr;
+        }
+        repaint();
+    }
+    else if (v.refersToSameSourceAs(hideNameAndArgs))
+    {
+        patch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
+        repaint();
     }
 }
 
