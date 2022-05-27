@@ -1,4 +1,6 @@
 
+
+
 // False GATOM
 typedef struct _fake_gatom
 {
@@ -42,8 +44,12 @@ struct AtomObject : public GUIObject
 {
     AtomObject(void* ptr, Box* parent) : GUIObject(ptr, parent)
     {
+        
+        auto* atom = static_cast<t_fake_gatom*>(ptr);
+        
         labelText = getLabelText();
-        labelX = static_cast<int>(static_cast<t_fake_gatom*>(ptr)->a_wherelabel + 1);
+        labelX = static_cast<int>(atom->a_wherelabel + 1);
+        
 
         int h = getFontHeight();
 
@@ -167,7 +173,7 @@ struct AtomObject : public GUIObject
         setFontHeight(atomSizes[idx - 1]);
 
         int fontHeight = getAtomHeight() - 6;
-        const String text = getLabelText();
+        const String text = getExpandedLabelText();
 
         if (text.isNotEmpty())
         {
@@ -209,7 +215,7 @@ struct AtomObject : public GUIObject
         auto objectBounds = box->getBounds().reduced(Box::margin);
         int fontHeight = getAtomHeight() - 6;
 
-        int labelLength = Font(fontHeight).getStringWidth(getLabelText());
+        int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
         int labelPosition = static_cast<t_fake_gatom*>(ptr)->a_wherelabel;
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
 
@@ -230,11 +236,27 @@ struct AtomObject : public GUIObject
             return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
         }
     }
+    
+    String getExpandedLabelText() const
+    {
+        auto* gatom = static_cast<t_fake_gatom*>(ptr);
+        t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
+        if (sym)
+        {
+            auto const text = String(sym->s_name);
+            if (text.isNotEmpty() && text != "empty")
+            {
+                return text;
+            }
+        }
+
+        return "";
+    }
 
     String getLabelText() const
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
+        t_symbol const* sym = gatom->a_label;
         if (sym)
         {
             auto const text = String(sym->s_name);
@@ -276,7 +298,7 @@ struct AtomObject : public GUIObject
     void setSendSymbol(const String& symbol) const noexcept
     {
         if (symbol.isEmpty()) return;
-
+        
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_symto = gensym(symbol.toRawUTF8());
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
@@ -290,6 +312,37 @@ struct AtomObject : public GUIObject
         if (*atom->a_symfrom->s_name) pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         atom->a_symfrom = gensym(symbol.toRawUTF8());
         if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+    }
+    
+    /* prepend "-" as necessary to avoid empty strings, so we can
+    use them in Pd messages. */
+    static t_symbol *gatom_escapit(t_symbol *s)
+    {
+    if (!*s->s_name)
+        return (gensym("-"));
+    else if (*s->s_name == '-')
+    {
+        char shmo[100];
+        shmo[0] = '-';
+        strncpy(shmo+1, s->s_name, 99);
+        shmo[99] = 0;
+        return (gensym(shmo));
+    }
+    else return (s);
+    }
+
+    /* undo previous operation: strip leading "-" if found.  This is used
+    both to restore send, etc, names when loading from a file, and to
+    set them from the properties dialog.  In the former case, since before
+    version 0.52 '$" was aliases to "#", we also bash any "#" characters
+    to "$".  This is unnecessary when reading files saved from 0.52 or later,
+    and really we should test for that and only bash when necessary, just
+    in case someone wants to have a "#" in a name. */
+    static t_symbol *gatom_unescapit(t_symbol *s)
+    {
+    if (*s->s_name == '-')
+        return (gensym(s->s_name+1));
+    else return (iemgui_raute2dollar(s));
     }
 
     const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
