@@ -1,16 +1,21 @@
 
-struct SubpatchObject final : public TextBase
+struct SubpatchObject final : public TextBase, public Value::Listener
 {
     SubpatchObject(void* obj, Box* box) : TextBase(obj, box), subpatch({ptr, cnv->pd})
     {
+        isGraphChild = glist_isgraph(subpatch.getPointer());
+        hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
+        
+        isGraphChild.addListener(this);
+        hideNameAndArgs.addListener(this);
     }
 
     void updateValue() override
     {
-        // Pd sometimes sets the isgraph flag too late...
-        // In that case we tell the box to create the gui
+        // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
+            box->cnv->main.sidebar.hideParameters();
             box->setType(currentText, ptr);
         }
     };
@@ -38,7 +43,29 @@ struct SubpatchObject final : public TextBase
     {
         return &subpatch;
     }
-
+    
+    ObjectParameters getParameters() override {
+        return {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}},
+            {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
+    };
+    
+    void valueChanged(Value& v) override
+    {
+        if (v.refersToSameSourceAs(isGraphChild))
+        {
+            subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
+            updateValue();
+        }
+        else if (v.refersToSameSourceAs(hideNameAndArgs))
+        {
+            subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
+            repaint();
+        }
+    }
+    
    protected:
+    
     pd::Patch subpatch;
+    Value isGraphChild = Value(false);
+    Value hideNameAndArgs = Value(false);
 };
