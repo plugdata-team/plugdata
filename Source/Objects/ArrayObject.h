@@ -303,19 +303,19 @@ struct ArrayObject final : public GUIObject
 {
    public:
     // Array component
-    ArrayObject(void* obj, Box* box) : GUIObject(obj, box), graph(getArray()), array(cnv->pd, graph, box)
+    ArrayObject(void* obj, Box* box) : GUIObject(obj, box), array(getArray()), graph(cnv->pd, array, box)
     {
         setInterceptsMouseClicks(false, true);
-        array.setBounds(getLocalBounds());
-        addAndMakeVisible(&array);
+        graph.setBounds(getLocalBounds());
+        addAndMakeVisible(&graph);
 
-        auto scale = array.array.getScale();
+        auto scale = array.getScale();
         Array<var> arr = {var(scale[0]), var(scale[1])};
         range = var(arr);
-        size = var(static_cast<int>(array.getArraySize()));
+        size = var(static_cast<int>(graph.getArraySize()));
 
-        name = String(graph.getName());
-        drawMode = static_cast<int>(array.array.getDrawType()) + 1;
+        name = String(array.getName());
+        drawMode = static_cast<int>(array.getDrawType()) + 1;
 
         labelColour = box->findColour(PlugDataColour::textColourId).toString();
 
@@ -328,7 +328,7 @@ struct ArrayObject final : public GUIObject
     {
         int fontHeight = 14.0f;
 
-        const String text = graph.getName();
+        const String text = array.getName();
 
         if (text.isNotEmpty())
         {
@@ -380,7 +380,11 @@ struct ArrayObject final : public GUIObject
     ObjectParameters defineParameters() override
     {
         return {
-            {"Name", tString, cGeneral, &name, {}}, {"Size", tInt, cGeneral, &size, {}}, {"Draw Mode", tCombo, cGeneral, &drawMode, {"Points", "Polygon", "Bezier Curve"}}, {"Y Range", tRange, cGeneral, &range, {}}, {"Save Contents", tBool, cGeneral, &saveContents, {"No", "Yes"}},
+            {"Name", tString, cGeneral, &name, {}},
+            {"Size", tInt, cGeneral, &size, {}},
+            {"Draw Mode", tCombo, cGeneral, &drawMode, {"Points", "Polygon", "Bezier Curve"}},
+            {"Y Range", tRange, cGeneral, &range, {}},
+            {"Save Contents", tBool, cGeneral, &saveContents, {"No", "Yes"}},
         };
     }
 
@@ -396,7 +400,7 @@ struct ArrayObject final : public GUIObject
 
     void resized() override
     {
-        array.setBounds(getLocalBounds());
+        graph.setBounds(getLocalBounds());
     }
 
     void updateSettings()
@@ -411,14 +415,14 @@ struct ArrayObject final : public GUIObject
         cnv->pd->enqueueFunction(
             [this, arrName, arrSize, flags]() mutable
             {
-                auto* garray = static_cast<t_garray*>(libpd_array_get_byname(graph.getName().toRawUTF8()));
+                auto* garray = static_cast<t_garray*>(libpd_array_get_byname(array.getName().toRawUTF8()));
                 garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
 
                 MessageManager::callAsync(
                     [this]()
                     {
-                        graph = getArray();
-                        array.setArray(graph);
+                        array = getArray();
+                        graph.setArray(array);
                         updateLabel();
                     });
             });
@@ -428,7 +432,7 @@ struct ArrayObject final : public GUIObject
 
     void updateValue() override
     {
-        array.update();
+        graph.update();
     }
 
     void valueChanged(Value& value) override
@@ -441,7 +445,7 @@ struct ArrayObject final : public GUIObject
         {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
-            array.array.setScale({min, max});
+            graph.array.setScale({min, max});
             repaint();
         }
         else
@@ -459,12 +463,12 @@ struct ArrayObject final : public GUIObject
 
     PdArray getArray() const noexcept
     {
-        return {libpd_array_get_name(static_cast<t_canvas*>(ptr)->gl_list), cnv->pd};
+        return {libpd_array_get_name(static_cast<t_canvas*>(ptr)->gl_list), cnv->pd->m_instance};
     }
 
    private:
     Value name, size, drawMode, saveContents, range;
 
-    PdArray graph;
-    GraphicalArray array;
+    PdArray array;
+    GraphicalArray graph;
 };

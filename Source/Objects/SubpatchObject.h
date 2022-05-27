@@ -15,6 +15,7 @@ struct SubpatchObject final : public TextBase, public Value::Listener
         // Change from subpatch to graph
         if (static_cast<t_canvas*>(ptr)->gl_isgraph)
         {
+            cnv->setSelected(box, false);
             box->cnv->main.sidebar.hideParameters();
             box->setType(currentText, ptr);
         }
