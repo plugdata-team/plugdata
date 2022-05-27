@@ -119,6 +119,7 @@ struct IEMObject : public GUIObject
             getLookAndFeel().setColour(Slider::trackColourId, colour);
 
             getLookAndFeel().setColour(Label::textColourId, colour);
+            getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
             getLookAndFeel().setColour(TextEditor::textColourId, colour);
 
             repaint();

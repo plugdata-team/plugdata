@@ -222,7 +222,6 @@ class Instance
 
     void logMessage(const String& message);
     void logError(const String& error);
-    void limitMessages();
 
     virtual void messageEnqueued(){};
 
@@ -264,8 +263,8 @@ class Instance
 
     inline static const String defaultPatch = "#N canvas 827 239 527 327 12;";
 
-    std::vector<std::tuple<String, int, int>> consoleMessages;
-    std::vector<std::tuple<String, int, int>> consoleHistory;
+    std::deque<std::tuple<String, int, int>> consoleMessages;
+    std::deque<std::tuple<String, int, int>> consoleHistory;
 
    private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);

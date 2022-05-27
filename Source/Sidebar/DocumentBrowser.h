@@ -666,11 +666,13 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
     DocumentBrowser(PlugDataAudioProcessor* processor) : DocumentBrowserBase(processor), fileList(directory, this), searchComponent(directory)
     {
         auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
-
-        auto customLocation = File(pd->settingsTree.getProperty("BrowserPath"));
-        if (customLocation.exists())
-        {
-            location = customLocation;
+        
+        if(pd->settingsTree.hasProperty("BrowserPath")) {
+            auto customLocation = File(pd->settingsTree.getProperty("BrowserPath"));
+            if (customLocation.exists())
+            {
+                location = customLocation;
+            }
         }
 
         watcher.addFolder(location);
