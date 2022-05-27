@@ -78,7 +78,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void showSuggestions(Box* box, TextEditor* editor);
     void hideSuggestions();
-
+    
     template <typename T>
     Array<T*> getSelectionOfType()
     {
@@ -114,9 +114,13 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Value gridEnabled = Value(true);
 
     bool isGraph = false;
-    bool isGraphChild = false;
+    bool hasParentCanvas = false;
     bool updatingBounds = false;  // used by connection
-
+    
+    
+    Value isGraphChild = Value(false);
+    Value hideNameAndArgs = Value(false);
+    
     ObjectGrid grid = ObjectGrid(this);
 
     Point<int> canvasOrigin = {0, 0};
@@ -142,6 +146,14 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     SelectedItemSet<Component*> selectedComponents;
 
     Box* componentBeingDragged{nullptr};
+    
+    
+    // Properties that can be shown in the inspector by right-clicking on canvas
+    ObjectParameters parameters = {
+        {"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}},
+        {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}
+    };
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };
