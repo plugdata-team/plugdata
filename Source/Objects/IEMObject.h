@@ -45,11 +45,12 @@ struct IEMObject : public GUIObject
 
     void applyBounds() override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto b = box->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
         auto* iemgui = static_cast<t_iemgui*>(ptr);
-        iemgui->x_w = getWidth();
-        iemgui->x_h = getHeight();
+        iemgui->x_w = b.getWidth();
+        iemgui->x_h = b.getHeight();
     }
 
     void initialise() override

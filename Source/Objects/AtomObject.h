@@ -71,12 +71,14 @@ struct AtomObject : public GUIObject
 
     void applyBounds() override
     {
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), box->getX() + Box::margin, box->getY() + Box::margin);
+        auto b = box->getObjectBounds();
+        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        gatom->a_text.te_width = getWidth() / fontWidth;
+        gatom->a_text.te_width = b.getWidth() / fontWidth;
     }
 
     void resized() override
