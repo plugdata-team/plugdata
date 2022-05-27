@@ -852,12 +852,13 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 pd::Patch* PlugDataAudioProcessor::loadPatch(File patchFile)
 {
     auto newPatch = openPatch(patchFile);
-    
-    if(!newPatch.getPointer()) {
+
+    if (!newPatch.getPointer())
+    {
         logError("Couldn't open patch");
         return nullptr;
     }
-    
+
     auto* patch = patches.add(new pd::Patch(newPatch));
 
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))

@@ -112,7 +112,6 @@ struct MessageObject final : public GUIObject
         auto b = box->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-
         auto* textObj = static_cast<t_text*>(ptr);
         textObj->te_width = b.getWidth() / glist_fontwidth(cnv->patch.getPointer());
     }
@@ -206,7 +205,6 @@ struct MessageObject final : public GUIObject
     {
         GUIObject::valueChanged(v);
     }
-
 
     String getSymbol() const noexcept
     {

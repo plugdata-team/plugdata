@@ -72,9 +72,9 @@ struct PictureObject final : public GUIObject
             g.setColour(box->findColour(PlugDataColour::textColourId));
             g.drawText("?", getLocalBounds(), Justification::centred);
         }
-        
+
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
-    
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }

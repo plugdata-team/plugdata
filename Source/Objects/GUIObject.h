@@ -29,7 +29,7 @@ struct ObjectBase : public Component
     ObjectBase(void* obj, Box* parent);
 
     void paint(Graphics& g) override;
-    
+
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
     virtual void showEditor(){};

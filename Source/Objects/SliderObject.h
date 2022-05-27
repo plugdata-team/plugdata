@@ -66,15 +66,15 @@ struct SliderObject : public IEMObject
             box->setSize(w, h);
         }
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
         auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
-        
+
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
-    
+
     void resized() override
     {
         slider.setBounds(getLocalBounds());

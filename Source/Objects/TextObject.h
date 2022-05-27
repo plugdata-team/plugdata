@@ -4,7 +4,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     TextBase(void* obj, Box* parent, bool valid = true) : ObjectBase(obj, parent), isValid(valid)
     {
         currentText = getText();
-        
+
         // To get enter/exit messages
         addMouseListener(box, false);
     }
@@ -47,7 +47,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     {
         g.setColour(box->findColour(PlugDataColour::canvasColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
-        
+
         g.setColour(findColour(PlugDataColour::textColourId));
         g.setFont(font);
 
@@ -55,10 +55,11 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
 
         bool selected = cnv->isSelected(box);
-        
+
         auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
-    
-        if(!isValid) {
+
+        if (!isValid)
+        {
             outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
         }
 
@@ -230,10 +231,10 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             resized();
             repaint();
 
-            if(isShowing()) {
+            if (isShowing())
+            {
                 editor->grabKeyboardFocus();
             }
-            
         }
     }
 
@@ -248,7 +249,6 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         return true;
     }
 
-
    protected:
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
@@ -261,7 +261,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     int textObjectWidth = 0;
     int textWidthOffset = 0;
     int numLines = 1;
-    
+
     bool wasSelected = false;
     bool isValid = true;
 };

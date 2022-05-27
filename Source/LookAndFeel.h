@@ -792,7 +792,6 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(ComboBox::backgroundColourId, firstColour);
         setColour(ListBox::backgroundColourId, firstColour);
 
-
         setColour(AlertWindow::backgroundColourId, firstColour);
         getCurrentColourScheme().setUIColour(ColourScheme::UIColour::widgetBackground, firstColour);
 
