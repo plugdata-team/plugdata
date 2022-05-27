@@ -228,10 +228,8 @@ struct AtomObject : public GUIObject
         {  // top
             return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
         }
-        if (labelPosition == 3)
-        {  // bottom
-            return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
-        }
+        
+        return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
     }
 
     String getExpandedLabelText() const

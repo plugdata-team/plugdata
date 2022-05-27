@@ -185,6 +185,10 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     tabbar.toFront(false);
     sidebar.toFront(false);
+    
+    
+    // Make sure existing console messages are processed
+    sidebar.updateConsole();
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
@@ -248,9 +252,9 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 void PlugDataPluginEditor::resized()
 {
     int roundedOffset = PLUGDATA_ROUNDED;
-    tabbar.setBounds(0, toolbarHeight + roundedOffset, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight() + PLUGDATA_ROUNDED));
+    tabbar.setBounds(0, toolbarHeight + roundedOffset, (getWidth() - sidebar.getWidth()) + 1, getHeight() - toolbarHeight - (statusbar.getHeight() + roundedOffset));
 
-    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight);
+    sidebar.setBounds(getWidth() - sidebar.getWidth(), toolbarHeight + roundedOffset, sidebar.getWidth(), getHeight() - toolbarHeight - roundedOffset);
 
     statusbar.setBounds(0, getHeight() - statusbar.getHeight(), getWidth() - sidebar.getWidth(), statusbar.getHeight());
 
@@ -479,7 +483,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     if (tabbar.getNumTabs() > 1)
     {
         tabbar.getTabbedButtonBar().setVisible(true);
-        tabbar.setTabBarDepth(30);
+        tabbar.setTabBarDepth(29);
     }
     else
     {

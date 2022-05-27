@@ -93,7 +93,7 @@ void ObjectBase::closeOpenedSubpatchers()
     if (tabbar->getNumTabs() > 1)
     {
         tabbar->getTabbedButtonBar().setVisible(true);
-        tabbar->setTabBarDepth(30);
+        tabbar->setTabBarDepth(29);
     }
     else
     {
