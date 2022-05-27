@@ -3,7 +3,7 @@ struct SubpatchObject final : public TextBase, public Value::Listener
 {
     SubpatchObject(void* obj, Box* box) : TextBase(obj, box), subpatch({ptr, cnv->pd})
     {
-        isGraphChild = glist_isgraph(subpatch.getPointer());
+        isGraphChild = false;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
 
         isGraphChild.addListener(this);
