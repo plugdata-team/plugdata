@@ -105,6 +105,10 @@ struct AtomObject : public GUIObject
 
     void paint(Graphics& g) override
     {
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+        getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+
         g.setColour(box->findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
     }

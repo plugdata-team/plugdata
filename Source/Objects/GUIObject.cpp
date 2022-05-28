@@ -150,11 +150,12 @@ void ObjectBase::moveToFront()
 
 void ObjectBase::paint(Graphics& g)
 {
-    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
+   
 
     // make sure text is readable
     // TODO: move this to places where it's relevant
     getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+    getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
     getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
 
     g.setColour(box->findColour(PlugDataColour::toolbarColourId));
