@@ -150,8 +150,6 @@ void ObjectBase::moveToFront()
 
 void ObjectBase::paint(Graphics& g)
 {
-   
-
     // make sure text is readable
     // TODO: move this to places where it's relevant
     getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
