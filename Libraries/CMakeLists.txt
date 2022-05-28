@@ -62,9 +62,9 @@ function(message)
 endfunction()
 
 
-add_subdirectory(ELSE/sfont~/fluidsynth)
-include_directories(${FluidSynth_BINARY_DIR}/include/)
-include_directories(ELSE/sfont~/fluidsynth/include/)
+#add_subdirectory(ELSE/sfont~/fluidsynth)
+#include_directories(${FluidSynth_BINARY_DIR}/include/)
+#include_directories(ELSE/sfont~/fluidsynth/include/)
 
 function(message)
         _message(${ARGN})
@@ -254,7 +254,7 @@ file(GLOB_RECURSE ELSE_SOURCES
     )
     
 if(LIBSNDFILE_FOUND)
-    list(APPEND ELSE_SOURCES ./ELSE/sfont~/sfont~.c)
+ #   list(APPEND ELSE_SOURCES ./ELSE/sfont~/sfont~.c)
 endif()
 
 include_directories(ELSE/Source/)
@@ -385,6 +385,6 @@ endif()
 set(THREADS_PREFER_PTHREAD_FLAG On)
 set(CMAKE_THREAD_PREFER_PTHREAD True)
 
-if(LIBSNDFILE_FOUND)
-set_target_properties(fluidsynth PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
-endif()
+#if(LIBSNDFILE_FOUND)
+#set_target_properties(fluidsynth PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
+#endif()
