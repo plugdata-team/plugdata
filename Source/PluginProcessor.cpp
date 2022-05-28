@@ -556,7 +556,7 @@ void PlugDataAudioProcessor::sendParameters()
 #else
     for (int n = 0; n < numParameters; n++)
     {
-        if(parameterTimers[n].isTimerRunning()) continue;
+        //if(parameterTimers[n].isTimerRunning()) continue;
         
         if (parameterValues[n]->load() != lastParameters[n])
         {
