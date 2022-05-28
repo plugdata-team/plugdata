@@ -145,7 +145,7 @@ void Sidebar::showAutomationPanel(bool show)
         automationPanel = new AutomationPanel(pd);
         addAndMakeVisible(automationPanel);
         automationPanel->setAlwaysOnTop(true);
-        automationPanel->toFront(true);
+        automationPanel->toFront(false);
     }
     else
     {
