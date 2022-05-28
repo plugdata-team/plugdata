@@ -1,4 +1,4 @@
-#N canvas 553 23 561 605 10;
+#N canvas 394 23 561 605 10;
 #X obj 3 3 cnv 15 301 42 empty empty Autotune 20 20 2 37 #e0e0e0 #000000
 0;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
@@ -72,8 +72,8 @@
 #X floatatom 61 220 5 0 0 0 - - - 0;
 #X msg 61 240 base \$1;
 #X text 59 90 [autotune] receives a scale as a list of steps in cents
-and a base MIDI pitch value (default 60). It then retunes incoming MIDI
-pitches to the closest step in the scale., f 67;
+and a base MIDI pitch value (default 60). It then retunes incoming
+MIDI pitches to the closest step in the scale., f 67;
 #X obj 131 291 else/autotune -base 57 0 110 190 320 410 480 590 610
 690 805 895 990 1110 1200, f 40;
 #X obj 422 323 else/autotune2;

@@ -510,6 +510,7 @@ void setup_canvas0x2epos();
 void setup_canvas0x2esetname();
 void setup_canvas0x2evis();
 void setup_canvas0x2ezoom();
+void setup_canvas0x2efile();
 void ceil_setup();
 void ceil_tilde_setup();
 void cents2ratio_setup();
@@ -597,6 +598,7 @@ void lincong_tilde_setup();
 void loadbanger_setup();
 void logistic_tilde_setup();
 void loop_setup();
+void lop2_tilde_setup();
 void lorenz_tilde_setup();
 void lowpass_tilde_setup();
 void lowshelf_tilde_setup();
@@ -650,6 +652,9 @@ void setup_rand0x2ef_tilde();
 void setup_rand0x2ei();
 void setup_rand0x2ei_tilde();
 void setup_rand0x2eseq();
+#ifdef ENABLE_SFONT
+void sfont_tilde_setup();
+#endif
 void randpulse_tilde_setup();
 void randpulse2_tilde_setup();
 void range_tilde_setup();
@@ -980,6 +985,7 @@ void libpd_multi_init(void)
         setup_canvas0x2esetname();
         setup_canvas0x2evis();
         setup_canvas0x2ezoom();
+        setup_canvas0x2efile();
         ceil_setup();
         ceil_tilde_setup();
         cents2ratio_setup();
@@ -1067,6 +1073,7 @@ void libpd_multi_init(void)
         loadbanger_setup();
         logistic_tilde_setup();
         loop_setup();
+        lop2_tilde_setup();
         lorenz_tilde_setup();
         lowpass_tilde_setup();
         lowshelf_tilde_setup();
@@ -1118,6 +1125,9 @@ void libpd_multi_init(void)
         setup_rand0x2ef();
         setup_rand0x2ef_tilde();
         s2f_tilde_setup();
+#ifdef ENABLE_SFONT
+        sfont_tilde_setup();
+#endif
         setup_rand0x2ei();
         setup_rand0x2ei_tilde();
         setup_rand0x2eseq();

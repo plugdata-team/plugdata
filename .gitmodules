@@ -19,3 +19,6 @@
 [submodule "Libraries/openssl"]
 	path = Libraries/openssl
 	url = https://github.com/openssl/openssl.git
+[submodule "Libraries/ELSE/sfont~/fluidsynth"]
+	path = Libraries/ELSE/sfont~/fluidsynth
+	url = https://github.com/chirs241097/fluidsynth-sans-glib.git

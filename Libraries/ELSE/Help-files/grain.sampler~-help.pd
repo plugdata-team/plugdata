@@ -56,32 +56,32 @@ equal temperament), f 74;
 #X obj 94 40 cnv 4 4 4 empty empty sampler 0 28 2 18 #e0e0e0 #000000
 0;
 #N canvas 585 135 781 557 example 0;
-#N canvas 1024 281 408 394 tuning 0;
+#N canvas 958 281 408 394 tuning 0;
 #X obj 64 339 outlet;
 #X obj 94 236 else/eqdiv;
 #X msg 63 80 autotune \$1;
 #X obj 63 54 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000
 0 1;
-#X msg 94 112 3 13;
-#X msg 112 153 2 12;
-#X msg 103 132 2 13;
-#X msg 120 174 2 24;
-#X msg 126 195 2 7;
 #X obj 94 264 else/insert scale;
 #X text 174 156 You can try other arbitrary scales in the same format
 , f 18;
 #X text 154 137 <= some equal divisions;
 #X text 180 64 The autotune message retunes the reading speed to match
 a given scale \, see [else/autotune] for reference., f 32;
-#X connect 1 0 9 0;
+#X msg 94 112 13 3;
+#X msg 103 132 13 2;
+#X msg 112 153 12 2;
+#X msg 120 174 24 2;
+#X msg 126 195 7 2;
+#X connect 1 0 4 0;
 #X connect 2 0 0 0;
 #X connect 3 0 2 0;
-#X connect 4 0 1 0;
-#X connect 5 0 1 0;
-#X connect 6 0 1 0;
-#X connect 7 0 1 0;
+#X connect 4 0 0 0;
 #X connect 8 0 1 0;
-#X connect 9 0 0 0;
+#X connect 9 0 1 0;
+#X connect 10 0 1 0;
+#X connect 11 0 1 0;
+#X connect 12 0 1 0;
 #X restore 59 175 pd tuning;
 #N canvas 563 270 746 404 presets 0;
 #X obj 86 335 outlet;

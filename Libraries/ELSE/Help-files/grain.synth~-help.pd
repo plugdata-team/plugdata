@@ -626,11 +626,6 @@ equal temperament), f 72;
 #X msg 63 80 autotune \$1;
 #X obj 63 54 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000
 0 1;
-#X msg 94 112 3 13;
-#X msg 112 153 2 12;
-#X msg 103 132 2 13;
-#X msg 120 174 2 24;
-#X msg 126 195 2 7;
 #X obj 94 264 else/insert scale;
 #X text 174 156 You can try other arbitrary scales in the same format
 , f 18;
@@ -638,15 +633,20 @@ equal temperament), f 72;
 [else/autotune] for reference. The [grainsynth~] object also takes
 a base value., f 50;
 #X text 154 137 <= some equal divisions;
-#X connect 1 0 9 0;
+#X msg 94 112 13 3;
+#X msg 103 132 13 2;
+#X msg 112 153 12 2;
+#X msg 120 174 24 2;
+#X msg 126 195 7 2;
+#X connect 1 0 4 0;
 #X connect 2 0 0 0;
 #X connect 3 0 2 0;
-#X connect 4 0 1 0;
-#X connect 5 0 1 0;
-#X connect 6 0 1 0;
-#X connect 7 0 1 0;
+#X connect 4 0 0 0;
 #X connect 8 0 1 0;
-#X connect 9 0 0 0;
+#X connect 9 0 1 0;
+#X connect 10 0 1 0;
+#X connect 11 0 1 0;
+#X connect 12 0 1 0;
 #X restore 93 166 pd tuning;
 #N canvas 521 189 602 432 presets 0;
 #X obj 99 351 outlet;

@@ -222,6 +222,8 @@ struct IEMObject : public GUIObject
 
             return {posx, posy, labelLength, fontHeight};
         }
+        
+        return objectBounds;
     }
 
     String getSendSymbol() noexcept

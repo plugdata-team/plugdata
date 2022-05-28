@@ -261,6 +261,7 @@ set(PLUGDATA_COMPILE_DEFINITIONS
     JUCE_WEB_BROWSER=0
 )
 
+
 if(UNIX AND NOT APPLE)
     set(PLUGDATA_COMPILE_DEFINITIONS
     ${PLUGDATA_COMPILE_DEFINITIONS}
@@ -268,6 +269,7 @@ if(UNIX AND NOT APPLE)
     JUCE_USE_XRENDER=1
     )
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
+
 elseif(MSVC)
 target_link_libraries(PlugDataStandalone PUBLIC "-Wl,--export-all-symbols,--whole-archive ws2_32 kernel32 -static-libgcc")
 endif()
@@ -318,6 +320,10 @@ set(libs
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
 )
+
+#if(LIBSNDFILE_FOUND)
+#  list(APPEND libs LIBSNDFILE_LIBRARIES libfluidsynth)  
+#endif()
 
 if(MSVC)
   list(APPEND libs libpthreadVC3)

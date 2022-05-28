@@ -54,22 +54,18 @@
 #X connect 16 0 7 1;
 #X restore 269 323 pd find-index;
 #X obj 385 35 inlet;
-#N canvas 999 363 434 315 init 0;
-#X obj 190 255 outlet;
-#X msg 190 166 0 100 200 300 400 500 600 700 800 900 1000 1100 1200
+#N canvas 932 363 419 246 init 0;
+#X obj 190 195 outlet;
+#X msg 190 106 0 100 200 300 400 500 600 700 800 900 1000 1100 1200
 , f 26;
-#X obj 60 100 pdcontrol;
-#X msg 60 68 args;
-#X obj 60 167 route bang list;
-#X obj 60 131 break -;
+#X obj 60 107 route bang list;
 #X obj 60 37 lb 2, f 19;
+#X obj 60 71 args -;
 #X connect 1 0 0 0;
-#X connect 2 0 5 0;
-#X connect 3 0 2 0;
-#X connect 4 1 0 0;
-#X connect 5 0 4 0;
-#X connect 6 0 3 0;
-#X connect 6 1 1 0;
+#X connect 2 1 0 0;
+#X connect 3 0 4 0;
+#X connect 3 1 1 0;
+#X connect 4 0 2 0;
 #X restore 403 118 pd init;
 #X obj 149 485 outlet;
 #X text 264 413 Part of ELSE \; https://github.com/porres/pd-else;

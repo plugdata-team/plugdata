@@ -15,9 +15,6 @@ EXTERN_STRUCT _osdir;
 int ospath_length(char *path, char *cwd);
 char *ospath_absolute(char *path, char *cwd, char *result);
 
-FILE *fileread_open(char *filename, t_canvas *cv, int textmode);
-FILE *filewrite_open(char *filename, t_canvas *cv, int textmode);
-
 t_osdir *osdir_open(char *dirname);
 void osdir_setmode(t_osdir *dp, int flags);
 void osdir_close(t_osdir *dp);
@@ -36,7 +33,7 @@ EXTERN_STRUCT _elsefile;
 
 typedef void (*t_elsefilefn)(t_pd *, t_symbol *, int, t_atom *);
 
-void panel_open(t_elsefile *f, t_symbol *inidir);
+void panel_click_open(t_elsefile *f);
 void panel_setopendir(t_elsefile *f, t_symbol *dir);
 t_symbol *panel_getopendir(t_elsefile *f);
 void panel_save(t_elsefile *f, t_symbol *inidir, t_symbol *inifile);

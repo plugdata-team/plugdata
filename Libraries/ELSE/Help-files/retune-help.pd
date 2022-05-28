@@ -1,4 +1,4 @@
-#N canvas 542 23 564 603 10;
+#N canvas 785 23 564 603 10;
 #X obj 93 153 keyboard 17 80 2 3 0 0 empty empty;
 #X floatatom 93 271 4 0 0 0 - - - 0;
 #X obj 93 337 else/display;
@@ -54,7 +54,6 @@
 #X text 205 449 list;
 #X text 239 448 - scale in cents;
 #X text 158 423 base <float>;
-#X text 239 422 - MIDI pitch base;
 #X obj 4 507 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
 0;
 #X text 130 519 -base <float>: base MIDI pitch (default 60);
@@ -69,20 +68,21 @@
 #X obj 440 341 else/autotune;
 #X msg 33 257 base \$1;
 #X floatatom 33 234 5 0 0 0 - - - 0;
-#X obj 93 297 else/retune -base 57 0 171.429 342.857 514.286 685.714
-857.143 1028.57 1200, f 38;
 #X text 54 86 [retune] receives a scale as a list of steps in cents
 and a base MIDI pitch value (default 60). It then remaps the incoming
 MIDI ptches (as integers) and retunes the pitches above or below the
 base value according to the scale., f 65;
 #X obj 440 365 else/frac2dec;
+#X text 239 422 - MIDI pitch base (decimal point allowed);
+#X obj 93 297 else/retune -base 57 0 171.429 342.857 514.286 685.714
+857.143 1028.57 1200, f 38;
 #X connect 0 0 3 0;
-#X connect 1 0 46 0;
-#X connect 2 0 41 0;
+#X connect 1 0 48 0;
+#X connect 2 0 40 0;
 #X connect 3 0 1 0;
+#X connect 36 0 37 0;
 #X connect 37 0 38 0;
-#X connect 38 0 39 0;
-#X connect 40 0 37 0;
-#X connect 44 0 46 0;
-#X connect 45 0 44 0;
-#X connect 46 0 2 0;
+#X connect 39 0 36 0;
+#X connect 43 0 48 0;
+#X connect 44 0 43 0;
+#X connect 48 0 2 0;

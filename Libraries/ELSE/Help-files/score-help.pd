@@ -33,8 +33,6 @@
 0;
 #X obj 86 248 cnv 17 3 123 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 102 344 read <symbol> -;
-#X text 96 358 write <symbol> -;
 #X text 150 274 float -;
 #X obj 85 385 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
@@ -67,8 +65,6 @@ the user;
 #X text 200 386 event data, f 58;
 #X text 200 425 when sequence is over, f 58;
 #X text 125 454 1) symbol - score file to load (default none);
-#X text 156 316 open -;
-#X text 150 330 close -;
 #X text 200 330 closes edit window, f 58;
 #X text 200 316 opens edit window, f 58;
 #X text 205 124 play/stop;
@@ -78,8 +74,6 @@ the user;
 #X text 334 183 <= click to open;
 #X msg 189 150 start;
 #X msg 233 153 stop;
-#X msg 271 156 open;
-#X msg 309 160 close;
 #X obj 180 185 else/score score-1.txt, f 24;
 #X obj 156 150 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
 #000000 #000000;
@@ -356,12 +350,18 @@ time of "0". Otherwise you need to specify a very short time amount
 #X connect 12 0 8 0;
 #X connect 12 2 0 0;
 #X restore 466 213 pd polyphony;
-#X connect 33 0 53 0;
-#X connect 49 0 53 0;
-#X connect 50 0 53 0;
-#X connect 51 0 53 0;
-#X connect 52 0 53 0;
-#X connect 53 0 62 0;
-#X connect 53 1 59 0;
-#X connect 53 2 32 0;
-#X connect 54 0 53 0;
+#X text 156 316 show -;
+#X text 156 330 hide -;
+#X text 102 344 open <symbol> -;
+#X text 102 358 save <symbol> -;
+#X msg 271 156 show;
+#X msg 309 160 hide;
+#X connect 31 0 47 0;
+#X connect 45 0 47 0;
+#X connect 46 0 47 0;
+#X connect 47 0 56 0;
+#X connect 47 1 53 0;
+#X connect 47 2 30 0;
+#X connect 48 0 47 0;
+#X connect 64 0 47 0;
+#X connect 65 0 47 0;

@@ -7,7 +7,7 @@
 0;
 #X obj 5 522 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 79 443 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 86 443 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 149 531 1) symbol;
 #X text 218 546 - audio file to load (optional), f 44;
@@ -42,86 +42,30 @@
 #X restore 3 4 graph;
 #X msg 170 134 show;
 #X msg 214 144 hide;
-#X text 173 274 clear;
-#X text 218 274 - fills all arrays with zeros, f 53;
-#X text 218 387 - normalizes to the given float value, f 53;
-#X text 218 232 - sets file to load from (no symbol opens dialog box)
-;
-#X text 218 302 - sets file to write to (no symbol opens dialog box)
+#X text 178 274 clear;
+#X text 217 274 - fills all arrays with zeros, f 53;
+#X text 217 387 - normalizes to the given float value, f 53;
+#X text 217 302 - sets file to write to (no symbol opens dialog box)
 , f 53;
-#X text 218 260 - reads and loads the previously opened file again
-, f 53;
-#X text 143 358 sr <float>;
-#X text 179 330 show;
-#X text 179 344 hide;
-#X text 218 330 - shows/opens buffer supbatch window, f 53;
-#X text 218 344 - hides/closes buffer supbatch window, f 53;
-#X text 89 288 trim <float \, float>;
-#X text 131 401 size <float>;
-#X text 143 415 ms <float>;
-#X text 101 386 normalize <float>;
-#X text 113 372 rename <symbol>;
-#X text 218 373 - changes the buffer name, f 53;
-#X text 125 232 load <symbol>;
-#X text 167 260 reload;
-#X text 125 302 save <symbol>;
-#X text 125 316 depth <float>;
-#X text 218 316 - sets bit depth (16 \, 24 or 32), f 53;
-#X text 218 288 - trims to a sample range, f 53;
-#X text 218 358 - sets file's sample rate (default: patch's), f 53
+#X text 148 358 sr <float>;
+#X text 184 330 show;
+#X text 184 344 hide;
+#X text 217 330 - shows/opens buffer supbatch window, f 53;
+#X text 217 344 - hides/closes buffer supbatch window, f 53;
+#X text 94 288 trim <float \, float>;
+#X text 136 401 size <float>;
+#X text 148 415 ms <float>;
+#X text 106 386 normalize <float>;
+#X text 118 372 rename <symbol>;
+#X text 217 373 - changes the buffer name, f 53;
+#X text 130 302 save <symbol>;
+#X text 130 316 depth <float>;
+#X text 217 316 - sets bit depth (16 \, 24 or 32), f 53;
+#X text 217 288 - trims to a sample range, f 53;
+#X text 217 358 - sets file's sample rate (default: patch's), f 53
 ;
-#N canvas 527 114 757 447 load/save 0;
-#X msg 529 238 clear;
-#X text 556 212 open/close buffer window;
-#X text 573 237 clears all channels;
-#X text 468 138 without symbol: opens dialog box;
-#X text 498 172 reloads the last opened file;
-#X text 554 309 without symbol: opens dialog box, f 17;
-#X msg 474 209 show;
-#X msg 515 210 hide;
-#X msg 446 173 reload;
-#X msg 435 138 load;
-#X msg 515 284 save test.wav;
-#X msg 515 315 save;
-#X text 13 185 The "save" message saves the contents of [sample~] into
-an audio file. If no symbol is given \, a standard file dialog is opened
-for naming the file., f 59;
-#X text 13 311 The "depth" message sets the bit depth for writing files
-\, it accepts floats:, f 59;
-#X text 136 330 16 - 16-bit integer (default) \; 24 - 24-bit integer
-\; 32 - 32-bit float \;;
-#X text 609 283 writes to a file;
-#X msg 422 102 load stereo.wav;
-#X obj 411 389 else/display;
-#X msg 385 63 load stereo.wav 44100 88200;
-#X msg 412 28 load stereo.wav 44100;
-#X text 530 96 read a file specified by a symbol (.wav \, .aif/.aiff
-or .caf), f 33;
-#X text 13 224 You can specify a file extension with the "wav" \, "aif"
-and "caf" messages \, but you can also specify a file extension in
-the given symbol (such as "test.wav"). If you don't specify an extension
-\, [sample~] saves in the same extension of the most recently opened
-audio file or the last given extension message ("wav" of "aif"). By
-default \, [sample~] saves in .wav format.;
-#X text 14 120 You can specify a sound file to load as the second argument
-or via the "load" message ([sample~] can load 'wav' \, 'caf' and 'aif/aiff'
-sound files). Without a given symbol \, "load" opens a dialog box.
-The "reload" message reloads the last opened file.;
-#X obj 411 356 else/sample~ -ch 2 buffer_\$0;
-#X connect 0 0 23 0;
-#X connect 6 0 23 0;
-#X connect 7 0 23 0;
-#X connect 8 0 23 0;
-#X connect 9 0 23 0;
-#X connect 10 0 23 0;
-#X connect 11 0 23 0;
-#X connect 16 0 23 0;
-#X connect 18 0 23 0;
-#X connect 19 0 23 0;
-#X connect 23 0 17 0;
-#X restore 466 147 pd load/save;
-#X text 218 401 - sets maximum buffer size in samples, f 53;
-#X text 218 415 - sets maximum buffer size in ms, f 53;
+#X text 217 401 - sets maximum buffer size in samples, f 53;
+#X text 217 415 - sets maximum buffer size in ms, f 53;
 #X text 135 475 -size <float> - sets maximum buffer size in samples
 ;
 #X text 146 489 -ms <float> - sets maximum buffer size in ms, f 45
@@ -153,12 +97,11 @@ give it the correct table name according to a specific channel., f
 60;
 #X connect 7 0 9 0;
 #X connect 10 0 3 0;
-#X restore 479 127 pd details;
-#X text 111 172 click =>;
-#X obj 81 233 cnv 17 3 197 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X restore 479 156 pd details;
+#X obj 88 233 cnv 17 3 197 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 119 445 list <f \, f \, f>;
-#X text 218 445 - sample's size \, sample rate and channels, f 53
+#X text 126 445 list <f \, f \, f>;
+#X text 225 445 - sample's size \, sample rate and channels, f 48
 ;
 #X text 73 84 [sample~] is an abstraction that creates an audio buffer
 which you can use to load a sample or record into. It can load and
@@ -203,14 +146,69 @@ multi-channel support)., f 62;
 #X connect 9 0 15 0;
 #X connect 13 0 3 0;
 #X connect 13 1 3 1;
-#X restore 472 168 pd rec/play;
-#X text 179 246 info;
-#X text 218 246 - re output size \, sample rate and channels, f 53
+#X restore 472 197 pd rec/play;
+#X text 184 246 info;
+#X text 217 246 - re output size \, sample rate and channels, f 53
 ;
 #X obj 170 195 else/display;
 #X msg 125 134 info;
 #X obj 170 172 else/sample~ \$0-sample stereo.wav;
-#X connect 21 0 65 0;
-#X connect 22 0 65 0;
-#X connect 64 0 65 0;
-#X connect 65 0 63 0;
+#X text 130 232 open <symbol>;
+#X text 172 260 reopen;
+#X text 217 232 - opens sample file (no symbol opens dialog box);
+#X text 217 260 - re opens the previously opened file, f 53;
+#X text 20 172 click to show sample -->;
+#N canvas 527 114 757 447 open/save 0;
+#X msg 529 238 clear;
+#X text 556 212 open/close buffer window;
+#X text 573 237 clears all channels;
+#X text 468 138 without symbol: opens dialog box;
+#X text 490 172 reloads the last opened file;
+#X text 554 309 without symbol: opens dialog box, f 17;
+#X msg 474 209 show;
+#X msg 515 210 hide;
+#X msg 515 284 save test.wav;
+#X msg 515 315 save;
+#X text 13 185 The "save" message saves the contents of [sample~] into
+an audio file. If no symbol is given \, a standard file dialog is opened
+for naming the file., f 59;
+#X text 13 311 The "depth" message sets the bit depth for writing files
+\, it accepts floats:, f 59;
+#X text 136 330 16 - 16-bit integer (default) \; 24 - 24-bit integer
+\; 32 - 32-bit float \;;
+#X text 609 283 writes to a file;
+#X obj 411 389 else/display;
+#X text 530 96 read a file specified by a symbol (.wav \, .aif/.aiff
+or .caf), f 33;
+#X text 13 224 You can specify a file extension with the "wav" \, "aif"
+and "caf" messages \, but you can also specify a file extension in
+the given symbol (such as "test.wav"). If you don't specify an extension
+\, [sample~] saves in the same extension of the most recently opened
+audio file or the last given extension message ("wav" of "aif"). By
+default \, [sample~] saves in .wav format.;
+#X obj 411 356 else/sample~ -ch 2 buffer_\$0;
+#X msg 412 28 open stereo.wav 44100;
+#X msg 385 63 open stereo.wav 44100 88200;
+#X msg 422 102 open stereo.wav;
+#X msg 435 138 open;
+#X msg 446 173 reopen;
+#X text 14 120 You can specify a sound file to load as the second argument
+or via the "open" message ([sample~] can load 'wav' \, 'caf' and 'aif/aiff'
+sound files). Without a given symbol \, "open" opens a dialog box.
+The "reopen" message reloads the last opened file.;
+#X connect 0 0 17 0;
+#X connect 6 0 17 0;
+#X connect 7 0 17 0;
+#X connect 8 0 17 0;
+#X connect 9 0 17 0;
+#X connect 17 0 14 0;
+#X connect 18 0 17 0;
+#X connect 19 0 17 0;
+#X connect 20 0 17 0;
+#X connect 21 0 17 0;
+#X connect 22 0 17 0;
+#X restore 467 176 pd open/save;
+#X connect 21 0 59 0;
+#X connect 22 0 59 0;
+#X connect 58 0 59 0;
+#X connect 59 0 57 0;

@@ -186,8 +186,10 @@ static int find_note(t_keyboard* x, float xpos, float ypos){
         }
     }
     x->x_velocity = x->x_norm > 0 ? x->x_norm : (int)((ypos / x->x_height) * 127);
-    if(x->x_velocity <= 0)
+    if(x->x_velocity < 1)
         x->x_velocity = 1;
+    if(x->x_velocity > 127)
+        x->x_velocity = 127;
     return(x->x_first_c+i);
 }
 
@@ -681,7 +683,7 @@ void * keyboard_new(t_symbol *s, int ac, t_atom* av){
     float init_space = 17;
     float init_height = 80;
     float init_8ves = 4;
-    float init_low_c = 3;
+    float init_low_c = 2;
     t_symbol *snd = &s_;
     t_symbol *rcv = &s_;
     if(ac && av->a_type == A_FLOAT){ // 1st Width
