@@ -1,0 +1,62 @@
+#N canvas 569 62 564 440 10;
+#X obj 306 7 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 6 pd;
+#X obj 345 14 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 21 43 cnv 4 4 4 empty empty Search\ for\ file 0 28 2 18 #e0e0e0
+#000000 0;
+#X obj 458 14 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 14 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 14 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 29 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 29 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 7 cnv 15 301 42 empty empty canvas.file 20 20 2 37 #e0e0e0
+#000000 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 2 6 graph;
+#X obj 8 285 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 320 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 373 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 407 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 154 328 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 182 382 1) float -;
+#X obj 154 294 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 187 329 symbol;
+#X text 253 382 depth level (default 0), f 25;
+#X obj 102 220 else/canvas.file;
+#X symbolatom 102 254 69 0 0 0 - - - 0;
+#X text 187 295 symbol;
+#X obj 154 350 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 187 351 symbol;
+#X text 236 351 - input file when failing search;
+#X text 236 329 - path and filename when found;
+#X text 236 295 - file name to search;
+#X text 48 93 [canvas.file] tries to locate the file in using the patch's
+directory or Pd's search-paths. If it finds it \, it returns the absolute
+path in the left outlet. If it fails \, the input name is output via
+the right outlet. The depth level sets the directory according to the
+parent patch and so on., f 78;
+#X msg 102 159 symbol bubul.wav;
+#X symbolatom 214 218 9 0 0 0 - - - 0;
+#X msg 124 187 symbol nada.c;
+#X text 276 219 fail;
+#X connect 20 0 21 0;
+#X connect 20 1 30 0;
+#X connect 29 0 20 0;
+#X connect 31 0 20 0;

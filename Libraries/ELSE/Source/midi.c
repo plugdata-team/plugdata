@@ -1,7 +1,12 @@
 // based on cyclone's [seq]
 
+#ifdef _MSC_VER
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
+
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include "m_pd.h"
 #include "elsefile.h"
@@ -13,9 +18,9 @@
 #define MIDI_EOM                    255     // end of message marker, LATER rethink
 #define MIDI_TICKSPERSEC            48
 #define MIDI_MINTICKDELAY           1.      // LATER rethink
-#define MIDI_TICKEPSILON  ((double) .0001)
-#define MIDI_STARTEPSILON           .0001   // if inside: play unmodified
-#define MIDI_TEMPOEPSILON           .0001   // if inside: pause
+#define MIDI_TICKEPSILON ((double) .0001)
+#define MIDI_STARTEPSILON          .0001   // if inside: play unmodified
+#define MIDI_TEMPOEPSILON          .0001   // if inside: pause
 #define MIDI_ISRUNNING(x) ((x)->x_prevtime > (double).0001)
 #define MIDI_ISPAUSED(x) ((x)->x_prevtime <= (double).0001)
 
@@ -35,7 +40,7 @@ typedef struct _midi{
     t_object       x_ob;
     t_canvas      *x_canvas;
     t_symbol      *x_defname;
-    t_elsefile        *x_elsefilehandle;
+    t_elsefile    *x_elsefilehandle;
     int            x_loop;
     int            x_mode;
     int            x_playhead;
@@ -707,8 +712,7 @@ static int midi_mfread(t_midi *x, char *path){
         goto mfreadfailed;
     if(x->x_eventreadhead < x->x_nevents){
         pd_error(x, "bug [midi]: midi_mfread 1");
-        post("declared %d events, got %d",
-        x->x_nevents, x->x_eventreadhead);
+        post("declared %d events, got %d", x->x_nevents, x->x_eventreadhead);
         x->x_nevents = x->x_eventreadhead;
     }
     if(x->x_nevents)
@@ -728,7 +732,7 @@ mfreadfailed:
 }
 
 static void midi_click(t_midi *x){
-    panel_open(x->x_elsefilehandle, 0);
+    panel_click_open(x->x_elsefilehandle);
 }
 
 static int midi_mfwrite(t_midi *x, char *path){
@@ -807,7 +811,7 @@ static void midi_textread(t_midi *x, char *path){
     t_binbuf *bb;
     bb = binbuf_new();
     if(binbuf_read(bb, path, "", 0)) // CHECKED no complaint, open dialog presented
-        panel_open(x->x_elsefilehandle, 0);  // LATER rethink
+        panel_click_open(x->x_elsefilehandle);  // LATER rethink
     else{
         int nlines = /* CHECKED absolute timestamps */
             midi_fromatoms(x, binbuf_getnatom(bb), binbuf_getvec(bb));
@@ -849,22 +853,19 @@ static void midi_textwrite(t_midi *x, char *path){
 }
 
 static void midi_doread(t_midi *x, t_symbol *fn){
-    char buf[MAXPDSTRING];
-    if(x->x_canvas) // FIXME use open_via_path()
-        canvas_makefilename(x->x_canvas, fn->s_name, buf, MAXPDSTRING);
-    else{
-        strncpy(buf, fn->s_name, MAXPDSTRING);
-        buf[MAXPDSTRING-1] = 0;
-    }
-    FILE *fp = sys_fopen(buf, "r");
-    if(!(fp)){
-        post("[midi] elsefile '%s' not found", buf);
-        fclose(fp);
+    static char fname[MAXPDSTRING];
+    char *bufptr;
+    int fd = canvas_open(x->x_canvas, fn->s_name, "", fname, &bufptr, MAXPDSTRING, 1);
+    if(fd < 0){
+        post("[midi] file '%s' not found", fn->s_name);
         return;
     }
-    fclose(fp);
-    if(!midi_mfread(x, buf))
-        midi_textread(x, buf);
+    else{
+        fname[strlen(fname)]='/';
+        sys_close(fd);
+    }
+    if(!midi_mfread(x, fname))
+        midi_textread(x, fname);
     x->x_playhead = 0;
 }
 
@@ -906,7 +907,7 @@ static void midi_read(t_midi *x, t_symbol *s){
     if(s && s != &s_)
         midi_doread(x, s);
     else
-        panel_open(x->x_elsefilehandle, 0);
+        panel_click_open(x->x_elsefilehandle);
 }
 
 static void midi_write(t_midi *x, t_symbol *s){

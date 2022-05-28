@@ -47,25 +47,27 @@ static void args_break(t_args *x, t_symbol *s, int ac, t_atom *av){
             // i is starting point & j is broken item
             int j = i + 1;
             // j starts as next item from previous iteration (and as 0 in the first iteration)
-            while (j < ac - 1){
+            while(j < ac){
                 j++;
-                if ((av+j)->a_type == A_SYMBOL && x->x_separator == (atom_getsymbol(av+j))->s_name[0]){
+                if(j == ac)
+                    break;
+                if((av+j)->a_type == A_SYMBOL
+                && x->x_separator == (atom_getsymbol(av+j))->s_name[0]){
                     x->x_broken = 1;
                     break;
                 }
-        
             }
             n = j - i - 1; // n = # of extra elements in broken message (so we have - 1)
             if(first){
-                if(av->a_type == A_SYMBOL &&
-                   x->x_separator == (atom_getsymbol(av))->s_name[0])
+                if(av->a_type == A_SYMBOL
+                && x->x_separator == (atom_getsymbol(av))->s_name[0])
                     outlet_anything(x->x_obj.ob_outlet, atom_getsymbol(av), n-1, av+1);
                 else
                     outlet_anything(x->x_obj.ob_outlet, s, n, av);
                 first = 0;
             }
             else
-                outlet_anything(x->x_obj.ob_outlet, atom_getsymbol(av + i), n, av + i + 1);
+                outlet_anything(x->x_obj.ob_outlet, atom_getsymbol(av+i), n, av+i + 1);
             i = j;
         }
     }

@@ -151,6 +151,8 @@ or 'bw', f 65;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 304 3 graph;
+#X text 25 217 see also:;
+#X obj 25 239 else/lop2~;
 #X connect 14 0 46 0;
 #X connect 15 0 46 1;
 #X connect 16 0 46 2;

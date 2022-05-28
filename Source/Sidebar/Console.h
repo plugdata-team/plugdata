@@ -75,6 +75,7 @@ struct Console : public Component
         fb.performLayout(bounds.removeFromBottom(28));
         viewport.setBounds(bounds.toNearestInt());
         console->resized();
+        
     }
 
     void update()

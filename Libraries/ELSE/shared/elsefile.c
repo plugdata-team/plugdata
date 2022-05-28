@@ -1,4 +1,3 @@
-
 // The 'file' proxy encapsulates openpanel/savepanel management (stolen from cyclone)
 
 #ifdef _WIN32
@@ -9,7 +8,7 @@
 #endif
 
 #include <stdlib.h>
-#include <stdio.h>
+//#include <stdio.h>
 #include <string.h>
 #include "m_pd.h"
 #include "g_canvas.h"
@@ -18,7 +17,6 @@
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 // OS
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-
 
 static int ospath_doabsolute(char *path, char *cwd, char *result){
     if(*path == 0){
@@ -180,40 +178,6 @@ int ospath_length(char *path, char *cwd){ // one extra byte used internally (gua
 char *ospath_absolute(char *path, char *cwd, char *result){
     ospath_doabsolute(path, cwd, result);
     return(result);
-}
-
-FILE *fileread_open(char *filename, t_canvas *cv, int textmode){
-    char path[MAXPDSTRING+2], *nameptr;
-    t_symbol *dirsym = (cv ? canvas_getdir(cv) : 0);
-    /* path arg is returned unbashed (system-independent) */
-    int fd = open_via_path((dirsym ? dirsym->s_name : ""), filename, "", path, &nameptr, MAXPDSTRING, 1);
-    if(fd < 0)
-        return(0);
-    /* Closing/reopening dance.  This is unnecessary under linux, and we
-     could have tried to convert fd to fp, but under windows open_via_path()
-     returns what seems to be an invalid fd.
-     LATER try to understand what is going on here... */
-    close(fd);
-    if(path != nameptr){
-        char *slashpos = path + strlen(path);
-        *slashpos++ = '/';
-        /* try not to be dependent on current open_via_path() implementation */
-        if(nameptr != slashpos)
-            strcpy(slashpos, nameptr);
-    }
-    return(sys_fopen(path, (textmode ? "r" : "rb")));
-}
-
-FILE *filewrite_open(char *filename, t_canvas *cv, int textmode){
-    char path[MAXPDSTRING+2];
-    if(cv)
-    /* path arg is returned unbashed (system-independent) */
-        canvas_makefilename(cv, filename, path, MAXPDSTRING);
-    else{
-        strncpy(path, filename, MAXPDSTRING);
-        path[MAXPDSTRING-1] = 0;
-    }
-    return(sys_fopen(path, (textmode ? "w" : "wb")));
 }
 
 /* FIXME add MSW */
@@ -385,17 +349,21 @@ static void panel_tick(t_elsefile *f){
     if(f->f_savepanel)
         sys_vgui("panel_open %s {%s}\n", f->f_bindname->s_name, f->f_inidir->s_name);
     else
-        sys_vgui("panel_save %s {%s} {%s}\n", f->f_bindname->s_name,
-        f->f_inidir->s_name, f->f_inifile->s_name);
+        sys_vgui("panel_save %s {%s} {%s}\n", f->f_bindname->s_name, f->f_inidir->s_name, f->f_inifile->s_name);
 }
 
-/* these are hacks: deferring modal dialog creation in order to allow for
-   a message box redraw to happen -- LATER investigate */
 void panel_open(t_elsefile *f, t_symbol *inidir){
     if(inidir)
         f->f_inidir = inidir;
     else
         f->f_inidir = (f->f_currentdir ? f->f_currentdir : &s_);
+    clock_delay(f->f_panelclock, 0);
+}
+
+/* these are hacks: deferring modal dialog creation in order to allow for
+   a message box redraw to happen -- LATER investigate */
+void panel_click_open(t_elsefile *f){
+    f->f_inidir = (f->f_currentdir ? f->f_currentdir : &s_);
     clock_delay(f->f_panelclock, 0);
 }
 

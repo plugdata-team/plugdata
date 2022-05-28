@@ -31,10 +31,8 @@
 0;
 #X obj 8 458 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 86 239 cnv 17 3 123 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 86 238 cnv 17 3 126 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 98 335 read <symbol> -;
-#X text 92 349 write <symbol> -;
 #X text 146 265 float -;
 #X obj 85 376 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
@@ -69,8 +67,6 @@ window, f 58;
 #X text 196 396 event duration in ms, f 58;
 #X text 196 436 when sequence is over, f 58;
 #X text 125 465 1) symbol - score file to load (default none);
-#X text 152 307 open -;
-#X text 146 321 close -;
 #X text 196 321 closes edit window, f 58;
 #X text 196 307 opens edit window, f 58;
 #X text 215 119 play/stop;
@@ -80,8 +76,6 @@ window, f 58;
 #X text 344 178 <= click to open;
 #X msg 199 145 start;
 #X msg 243 148 stop;
-#X msg 281 151 open;
-#X msg 319 155 close;
 #X obj 166 145 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
 #000000 #000000;
 #X text 146 279 pause -;
@@ -428,13 +422,19 @@ beat are also output., f 39;
 #X text 196 416 score data (bar number \, tempo and other things by
 the user);
 #X obj 190 180 else/score2 score2-1.txt;
-#X connect 34 0 69 0;
-#X connect 51 0 69 0;
-#X connect 52 0 69 0;
-#X connect 53 0 69 0;
-#X connect 54 0 69 0;
-#X connect 55 0 69 0;
-#X connect 69 0 62 0;
-#X connect 69 1 61 0;
-#X connect 69 2 60 0;
-#X connect 69 3 33 0;
+#X text 152 307 show -;
+#X text 152 321 hide -;
+#X text 98 335 open <symbol> -;
+#X text 98 349 save <symbol> -;
+#X msg 281 151 show;
+#X msg 319 155 hide;
+#X connect 32 0 63 0;
+#X connect 47 0 63 0;
+#X connect 48 0 63 0;
+#X connect 49 0 63 0;
+#X connect 63 0 56 0;
+#X connect 63 1 55 0;
+#X connect 63 2 54 0;
+#X connect 63 3 31 0;
+#X connect 68 0 63 0;
+#X connect 69 0 63 0;

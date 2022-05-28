@@ -1,4 +1,4 @@
-#N canvas 416 24 561 585 10;
+#N canvas 416 24 561 571 10;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -27,32 +27,32 @@
 #X restore 3 3 graph;
 #X obj 4 278 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 441 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 428 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 494 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 481 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 130 450 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 130 437 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 130 287 cnv 17 3 125 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c
+#X obj 130 287 cnv 17 3 115 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c
 0;
-#X obj 4 559 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 4 546 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X text 201 285 bang;
-#X obj 130 419 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 130 406 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 177 419 anything;
-#X text 177 450 anything;
+#X text 177 406 anything;
+#X text 177 437 anything;
 #X text 195 314 clear;
 #X msg 205 175 clear;
 #X obj 195 248 else/display;
 #X obj 195 149 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X msg 305 196 1 2 \, 3 4 \, 5 6;
-#X text 231 450 - the stored message;
-#X obj 130 471 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 231 437 - the stored message;
+#X obj 130 458 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 149 149 output;
-#X text 231 419 - input messages to be stacked, f 38;
+#X text 231 406 - input messages to be stacked, f 38;
 #X text 231 285 - outputs and removes a message, f 38;
 #X text 231 313 - clears the stack, f 38;
 #X floatatom 282 144 5 0 0 0 - - - 0;
@@ -61,48 +61,20 @@
 #X text 201 300 dump;
 #X msg 152 181 fifo;
 #X msg 116 181 lifo;
-#X text 201 356 fifo;
-#X text 231 356 - set order to 'fifo';
-#X text 201 371 lifo;
-#X text 231 371 - set order to 'lifo';
-#X text 145 503 1) symbol - sets order \, <fifo> (default) or <lifo>
+#X text 201 343 fifo;
+#X text 231 343 - set order to 'fifo';
+#X text 201 358 lifo;
+#X text 231 358 - set order to 'lifo';
+#X text 145 490 1) symbol - sets order \, <fifo> (default) or <lifo>
 ;
 #X text 231 300 - outputs all messages and clears them;
-#X text 201 386 open;
-#X text 231 386 - opens [text] window;
-#X text 195 401 close;
-#X text 231 401 - closes [text] window;
-#N canvas 986 183 503 298 open 0;
-#X obj 171 217 else/display;
-#X obj 171 143 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X msg 272 166 1 2 \, 3 4 \, 5 6;
-#X floatatom 238 114 5 0 0 0 - - - 0;
-#X text 279 113 store messages;
-#X msg 258 139 a \, b c \, list x y \, symbol hi;
-#X msg 85 144 open;
-#X msg 122 144 close;
-#X text 82 29 The [stack] object is based on Pd Vanilla's [text] object.
-And you can open its window with the 'open' message and close it with
-the 'close' message. Clicking on the object also opens it. This also
-means you can manually edit the contents of stack!;
-#X obj 171 193 else/stack, f 15;
-#X text 115 193 click =>;
-#X connect 1 0 9 0;
-#X connect 2 0 9 1;
-#X connect 3 0 9 1;
-#X connect 5 0 9 1;
-#X connect 6 0 9 0;
-#X connect 7 0 9 0;
-#X connect 9 0 0 0;
-#X restore 493 205 pd open \; close;
+#X text 231 373 - opens [text] window;
+#X text 231 388 - closes [text] window;
 #X obj 282 247 display;
-#X text 195 471 float;
+#X text 195 458 float;
 #X text 219 328 n;
 #X text 231 327 - outputs number of elements in right outlet;
-#X text 231 471 - number of stacked messages;
-#X text 147 342 store <float>;
-#X text 231 341 - non zero stores data with the patch;
+#X text 231 458 - number of stacked messages;
 #X msg 216 199 n;
 #X obj 195 224 else/stack lifo;
 #X text 41 85 [stack] stores messages as stacks \, where it outputs
@@ -110,10 +82,10 @@ and removes them one by one when receiving bangs. An argument defines
 the output order \, which can be 'fifo' (first in first out) or 'lifo'
 (last in first out) - This needs to be set before storing data., f
 76;
-#X obj 4 528 cnv 3 550 3 empty empty click 8 12 0 13 #dcdcdc #000000
+#X obj 4 515 cnv 3 550 3 empty empty click 8 12 0 13 #dcdcdc #000000
 0;
-#X text 163 536 clicking on the object opens stack's window;
-#N canvas 1048 151 320 314 dump 0;
+#X text 163 523 clicking on the object opens stack's window;
+#N canvas 803 176 320 314 dump 0;
 #X obj 80 148 else/display;
 #X floatatom 137 90 5 0 0 0 - - - 0;
 #X text 178 89 store messages;
@@ -125,9 +97,9 @@ the output order \, which can be 'fifo' (first in first out) or 'lifo'
 #X obj 138 222 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X obj 138 198 sel 0;
-#X text 163 223 <= bang if empty;
 #X text 56 32 A dump message outputs all stored messages and clears
 the memory., f 33;
+#X text 163 223 <-- bang if empty;
 #X connect 0 0 7 0;
 #X connect 1 0 4 1;
 #X connect 3 0 4 0;
@@ -145,13 +117,40 @@ the memory., f 33;
 ;
 #X obj 269 40 cnv 4 4 4 empty empty fifo/lifo 0 28 2 18 #e0e0e0 #000000
 0;
-#X connect 23 0 58 0;
-#X connect 25 0 58 0;
-#X connect 26 0 58 1;
-#X connect 33 0 58 1;
-#X connect 35 0 58 1;
-#X connect 37 0 58 0;
-#X connect 38 0 58 0;
-#X connect 57 0 58 0;
-#X connect 58 0 24 0;
-#X connect 58 1 50 0;
+#X text 201 373 show;
+#X text 201 388 hide;
+#X text 57 225 click to show data -->;
+#N canvas 675 111 503 298 show 0;
+#X obj 171 217 else/display;
+#X obj 171 143 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 272 166 1 2 \, 3 4 \, 5 6;
+#X floatatom 238 114 5 0 0 0 - - - 0;
+#X text 279 113 store messages;
+#X msg 258 139 a \, b c \, list x y \, symbol hi;
+#X obj 171 193 else/stack, f 15;
+#X msg 85 144 show;
+#X msg 122 144 hide;
+#X text 111 193 click -->;
+#X text 82 29 The [stack] object is based on Pd Vanilla's [text] object.
+And you can open its window with the 'show' message and close it with
+the 'hide' message. Clicking on the object also opens it. This also
+means you can manually edit the contents of stack!;
+#X connect 1 0 6 0;
+#X connect 2 0 6 1;
+#X connect 3 0 6 1;
+#X connect 5 0 6 1;
+#X connect 6 0 0 0;
+#X connect 7 0 6 0;
+#X connect 8 0 6 0;
+#X restore 493 205 pd show \; hide;
+#X connect 23 0 53 0;
+#X connect 25 0 53 0;
+#X connect 26 0 53 1;
+#X connect 33 0 53 1;
+#X connect 35 0 53 1;
+#X connect 37 0 53 0;
+#X connect 38 0 53 0;
+#X connect 52 0 53 0;
+#X connect 53 0 24 0;
+#X connect 53 1 47 0;
