@@ -131,6 +131,9 @@ struct AutomationPanel : public Component, public ScrollBar::Listener
 
         viewport.getVerticalScrollBar().addListener(this);
 
+        setWantsKeyboardFocus(false);
+        viewport.setWantsKeyboardFocus(false);
+        
         addAndMakeVisible(viewport);
     }
 
