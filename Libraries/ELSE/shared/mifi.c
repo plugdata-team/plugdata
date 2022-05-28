@@ -502,7 +502,7 @@ const char *dirname, int complain){
     if(path != fnameptr){
         char *slashpos = path + strlen(path);
         *slashpos++ = '/';
-        /* try not to be dependent on current open_via_path() implementation */
+        // try not to be dependent on current open_via_path() implementation
         if(fnameptr != slashpos)
             strcpy(slashpos, fnameptr);
     }

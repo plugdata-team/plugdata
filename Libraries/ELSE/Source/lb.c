@@ -113,7 +113,5 @@ void loadbanger_setup(void){
     class_addmethod(loadbanger_class, (t_method)loadbanger_loadbang, gensym("loadbang"), A_DEFFLOAT, 0);
     class_addmethod(loadbanger_class, (t_method)loadbanger_click, gensym("click"),
         A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT,0);
-    
-    // TODO: where do we get f2s_class from?
     //class_sethelpsymbol(f2s_class, gensym("loadbanger"));
 }

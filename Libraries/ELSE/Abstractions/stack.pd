@@ -1,4 +1,4 @@
-#N canvas 719 132 463 195 10;
+#N canvas 630 113 463 195 10;
 #X declare -path else;
 #N canvas 831 222 411 288 guts 0;
 #X obj 58 18 inlet;
@@ -132,7 +132,7 @@
 #X connect 8 1 3 0;
 #X connect 9 0 7 0;
 #X connect 9 1 5 0;
-#X restore 259 96 pd set;
+#X restore 257 96 pd set;
 #X obj 216 215 text define \$0-stack;
 #X msg 216 177 click;
 #X msg 259 178 close;
@@ -140,7 +140,7 @@
 #X obj 166 209 r n_\$0;
 #X obj 260 146 s n_\$0;
 #X obj 215 49 else/click;
-#X obj 58 75 route dump bang clear open close n;
+#X obj 58 75 route dump bang clear show hide n;
 #X connect 0 0 14 0;
 #X connect 1 0 4 0;
 #X connect 1 1 3 0;
@@ -164,11 +164,11 @@
 #X obj 53 32 inlet;
 #X text 230 111 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 232 92 Alexandre Torres Porres (2017);
-#N canvas 907 245 430 355 store 0;
+#N canvas 604 202 430 355 store 0;
 #X obj 69 67 inlet;
-#X obj 233 225 v \$0_dir;
-#X obj 184 248 text insert \$0-stack;
-#X obj 229 156 list prepend symbol;
+#X obj 255 225 v \$0_dir;
+#X obj 197 248 text insert \$0-stack;
+#X obj 232 156 list prepend symbol;
 #N canvas 372 272 445 318 list 0;
 #X obj 101 142 b;
 #X obj 200 194 list;
@@ -192,11 +192,11 @@
 #X connect 6 0 7 0;
 #X connect 8 0 2 0;
 #X connect 9 0 5 0;
-#X restore 175 156 pd list;
+#X restore 178 156 pd list;
 #X obj 69 177 list;
-#X obj 175 269 text size \$0-stack;
-#X obj 175 225 t b a b;
-#X obj 175 290 s n_\$0;
+#X obj 178 269 text size \$0-stack;
+#X obj 178 225 t b a b;
+#X obj 178 290 s n_\$0;
 #X obj 69 121 else/routetype anything float list symbol bang;
 #X msg 287 183 symbol bang;
 #X connect 0 0 9 0;

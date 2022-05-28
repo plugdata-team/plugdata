@@ -56,11 +56,9 @@
 #X text 324 126 store messages;
 #X msg 298 153 a \, b c \, list x y \, symbol hi;
 #X text 191 315 dump;
-#X text 191 358 open;
 #X text 221 358 - opens [text] window;
-#X text 185 373 close;
 #X text 221 373 - closes [text] window;
-#N canvas 986 183 503 298 open 0;
+#N canvas 863 183 503 298 open 0;
 #X obj 171 217 else/display;
 #X obj 171 143 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
@@ -70,20 +68,20 @@
 #X msg 258 139 a \, b c \, list x y \, symbol hi;
 #X msg 85 144 open;
 #X msg 122 144 close;
-#X text 115 193 click =>;
 #X obj 171 193 else/store, f 15;
 #A saved;
+#X text 110 193 click -->;
 #X text 82 29 The [store] object is based on Pd Vanilla's [text] object.
-You can open its window with the 'open' message and close it with the
-'close' message. Clicking on the object also opens it. This also means
+You can open its window with the 'show' message and close it with the
+'hide' message. Clicking on the object also opens it. This also means
 you can manually edit the contents of stack!;
-#X connect 1 0 9 0;
-#X connect 2 0 9 1;
-#X connect 3 0 9 1;
-#X connect 5 0 9 1;
-#X connect 6 0 9 0;
-#X connect 7 0 9 0;
-#X connect 9 0 0 0;
+#X connect 1 0 8 0;
+#X connect 2 0 8 1;
+#X connect 3 0 8 1;
+#X connect 5 0 8 1;
+#X connect 6 0 8 0;
+#X connect 7 0 8 0;
+#X connect 8 0 0 0;
 #X restore 491 181 pd open \; close;
 #N canvas 935 178 425 279 store 0;
 #X obj 97 205 else/display;
@@ -114,31 +112,29 @@ zero argument., f 39;
 #X msg 226 182 n;
 #X obj 4 499 cnv 3 550 3 empty empty click 8 12 0 13 #dcdcdc #000000
 0;
-#X text 163 507 clicking on the object opens stack's window;
 #X obj 150 40 cnv 4 4 4 empty empty sequentially 0 28 2 18 #e0e0e0
 #000000 0;
 #X obj 205 207 else/store, f 14;
 #A saved;
-#N canvas 1088 147 359 260 dump 0;
+#N canvas 869 149 359 260 dump 0;
 #X obj 96 156 else/display;
 #X floatatom 153 98 5 0 0 0 - - - 0;
 #X text 194 97 store messages;
 #X msg 96 96 dump;
-#X text 53 17 A dump message outputs all stored messages and clears
-the memory. The export message outputs all stored messages but keeps
-the information., f 42;
 #X obj 96 198 print data;
 #X obj 153 159 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X obj 96 129 else/store;
 #A saved;
 #X text 178 160 <= bang when done;
-#X connect 0 0 5 0;
-#X connect 1 0 7 1;
-#X connect 3 0 7 0;
-#X connect 6 0 5 0;
-#X connect 7 0 0 0;
-#X connect 7 1 6 0;
+#X text 55 43 A dump message outputs all stored messages \, the information
+is kept., f 34;
+#X connect 0 0 4 0;
+#X connect 1 0 6 1;
+#X connect 3 0 6 0;
+#X connect 5 0 4 0;
+#X connect 6 0 0 0;
+#X connect 6 1 5 0;
 #X restore 497 213 pd dump;
 #X msg 154 168 goto 2;
 #X text 221 391 - messages to be stored in a sequence;
@@ -161,13 +157,16 @@ incoming messages sequentially., f 73;
 #X obj 19 235 else/sequencer;
 #X obj 19 193 else/stack;
 #X obj 19 214 else/rec;
-#X connect 23 0 47 0;
-#X connect 25 0 47 0;
-#X connect 26 0 47 1;
-#X connect 30 0 47 1;
-#X connect 32 0 47 1;
-#X connect 43 0 47 0;
-#X connect 47 0 24 0;
-#X connect 47 1 40 0;
-#X connect 49 0 47 0;
-#X connect 62 0 47 0;
+#X text 191 358 show;
+#X text 191 373 hide;
+#X text 163 507 clicking on the object opens [store]'s window;
+#X connect 23 0 44 0;
+#X connect 25 0 44 0;
+#X connect 26 0 44 1;
+#X connect 30 0 44 1;
+#X connect 32 0 44 1;
+#X connect 41 0 44 0;
+#X connect 44 0 24 0;
+#X connect 44 1 38 0;
+#X connect 46 0 44 0;
+#X connect 59 0 44 0;

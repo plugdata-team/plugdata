@@ -24,8 +24,8 @@
 #X obj 320 286 clip 0 1;
 #X obj 238 249 unpack float float float;
 #X obj 238 160 route float list -rate;
-#X obj 122 30 inlet;
-#X obj 122 68 trigger bang bang;
+#X obj 122 50 inlet;
+#X obj 122 88 trigger bang bang;
 #X obj 122 429 v phase_\$0;
 #X obj 122 305 sel 1 0;
 #X obj 145 356 expr if(f_\$0 == 1 \, 0 \, phase_\$0);
@@ -34,9 +34,8 @@
 #X obj 122 262 == 1;
 #X obj 238 300 s \$0-freq;
 #X obj 338 217 s \$0-rate;
-#X obj 238 131 break -;
-#X obj 238 101 args;
 #X obj 338 189 list split 1;
+#X obj 238 131 args -;
 #X connect 1 0 0 0;
 #X connect 3 0 2 0;
 #X connect 4 0 14 0;
@@ -44,7 +43,7 @@
 #X connect 4 2 1 0;
 #X connect 5 0 4 0;
 #X connect 5 1 4 0;
-#X connect 5 2 18 0;
+#X connect 5 2 16 0;
 #X connect 6 0 7 0;
 #X connect 7 0 12 0;
 #X connect 7 1 17 0;
@@ -54,10 +53,9 @@
 #X connect 11 0 8 0;
 #X connect 12 0 13 0;
 #X connect 13 0 9 0;
-#X connect 16 0 5 0;
-#X connect 17 0 16 0;
-#X connect 18 0 15 0;
-#X connect 18 1 5 0;
+#X connect 16 0 15 0;
+#X connect 16 1 5 0;
+#X connect 17 0 5 0;
 #X restore 94 118 pd args;
 #X obj 61 57 lb 3, f 10;
 #X connect 3 0 0 0;

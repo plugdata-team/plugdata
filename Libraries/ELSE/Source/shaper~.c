@@ -44,15 +44,15 @@ static void shaper_set(t_shaper *x, t_symbol *s){
 static void update_cheby_func(t_shaper *x){
     int i;
     for(i = 0; i < FLEN; i++) // clear
-		x->x_cheby[i] = 0;
-	for(i = 0 ; i < x->x_count; i++){
-		if(x->x_coef[i] > 0.0){
-			for(int j = 0; j < FLEN; j++){
-				float p = -1.0 + 2.0 * ((float)j / (float)FLEN);
-				x->x_cheby[j] += (x->x_coef[i] * cos((float)i * acos(p)));
-			}
-		}
-	}
+        x->x_cheby[i] = 0;
+    for(i = 0 ; i < x->x_count; i++){
+        if(x->x_coef[i] > 0.0){
+            for(int j = 0; j < FLEN; j++){
+                float p = -1.0 + 2.0 * ((float)j / (float)FLEN);
+                x->x_cheby[j] += (x->x_coef[i] * cos((float)i * acos(p)));
+            }
+        }
+    }
     if(x->x_norm){ // normalize
         float  min = 1, max = -1; // find min/max
         for(i = 0; i < FLEN; i++){
@@ -98,19 +98,19 @@ static void shaper_list(t_shaper *x, t_symbol *s, short ac, t_atom *av){
 }
 
 static t_int *shaper_perform(t_int *w){
-	t_shaper *x = (t_shaper *) (w[1]);
-	t_float *in = (t_float *)(w[2]);
+    t_shaper *x = (t_shaper *) (w[1]);
+    t_float *in = (t_float *)(w[2]);
     t_float *out = (t_float *)(w[3]);
     double xnm1 = x->x_xnm1;
     double ynm1 = x->x_ynm1;
     double a = x->x_a;
-    t_int n = w[4];
+    int n = (int)(w[4]);
     t_word *buf = (t_word *)x->x_buffer->c_vectors[0];
     double maxidx = (double)(x->x_buffer->c_npts - 1);
-	while(n--){
+    while(n--){
         double yn, xn;
         float output = 0;
-		double ph = ((double)*in++ + 1) * 0.5; // get phase (0-1)
+        double ph = ((double)*in++ + 1) * 0.5; // get phase (0-1)
         while(ph < 0) // wrap
             ph++;
         while(ph >= 1)
@@ -128,13 +128,13 @@ static t_int *shaper_perform(t_int *w){
             yn = xn - xnm1 + (a * ynm1);
             output = (float)yn;
         }
-		*out++ = output;
+        *out++ = output;
         xnm1 = xn;
         ynm1 = yn;
-	}
+    }
     x->x_xnm1 = xnm1;
     x->x_ynm1 = ynm1;
-	return(w+5);
+    return(w+5);
 }
 
 static void shaper_dsp(t_shaper *x, t_signal **sp){

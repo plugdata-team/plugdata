@@ -14,6 +14,62 @@ endif()
 add_subdirectory(JUCE)
 
 
+set ( enable-aufile off CACHE BOOL "compile support for sound file output")
+set ( BUILD_SHARED_LIBS off CACHE BOOL "Build a shared object or DLL")
+set ( enable-dbus off CACHE BOOL "compile DBUS support (if it is available)")
+set ( enable-ipv6  off CACHE BOOL "enable ipv6 support")
+set ( enable-jack off CACHE BOOL "compile JACK support (if it is available)")
+set ( enable-ladspa off CACHE BOOL "enable LADSPA effect units")
+set ( enable-libinstpatch off CACHE BOOL "use libinstpatch (if available) to load DLS and GIG files")
+set ( enable-libsndfile off CACHE BOOL "compile libsndfile support (if it is available)")
+set ( enable-midishare off CACHE BOOL "compile MidiShare support (if it is available)")
+set ( enable-opensles off CACHE BOOL "compile OpenSLES support (if it is available)")
+set ( enable-oboe off CACHE BOOL "compile Oboe support (requires OpenSLES and/or AAudio)")
+set ( enable-network off CACHE BOOL "enable network support (requires BSD sockets)")
+set ( enable-oss off CACHE BOOL "compile OSS support (if it is available)")
+set ( enable-dsound off CACHE BOOL "compile DirectSound support (if it is available)")
+set ( enable-wasapi off CACHE BOOL "compile Windows WASAPI support (if it is available)")
+set ( enable-waveout off CACHE BOOL "compile Windows WaveOut support (if it is available)")
+set ( enable-winmidi off CACHE BOOL "compile Windows MIDI support (if it is available)")
+set ( enable-sdl2 off CACHE BOOL "compile SDL2 audio support (if it is available)")
+set ( enable-pulseaudio off CACHE BOOL "compile PulseAudio support (if it is available)")
+set ( enable-pipewire off CACHE BOOL "compile PipeWire support (if it is available)")
+set ( enable-readline on CACHE BOOL "compile readline lib line editing (if it is available)")
+set ( enable-threads off CACHE BOOL "enable multi-threading support (such as parallel voice synthesis)")
+set ( enable-openmp off CACHE BOOL "enable OpenMP support (parallelization of soundfont decoding, vectorization of voice mixing, etc.)")
+
+set ( enable-lash off CACHE BOOL "compile LASH support (if it is available)")
+set ( enable-alsa off CACHE BOOL "compile ALSA support (if it is available)")
+set ( enable-systemd off CACHE BOOL "compile systemd support (if it is available)")
+set ( enable-coreaudio  off CACHE BOOL "compile CoreAudio support (if it is available)")
+set ( enable-coremidi off CACHE BOOL "compile CoreMIDI support (if it is available)")
+set ( enable-framework off CACHE BOOL "create a Mac OSX style FluidSynth.framework")
+set ( enable-dart off CACHE BOOL "compile DART support (if it is available)")
+
+# Hide messages from fluidsynth
+# There's many, and some could be wrongly interpreted as being about pure-data or PlugData
+
+if(MSVC)
+link_directories(ELSE/sfont~/libsndfile/lib/)
+endif()
+
+# check for libsndfile
+include(ELSE/sfont~/FindLibSndFile.cmake)
+
+if(LIBSNDFILE_FOUND)
+message("-- Configuring fluidsynth")
+function(message)
+endfunction()
+
+
+add_subdirectory(ELSE/sfont~/fluidsynth)
+include_directories(${FluidSynth_BINARY_DIR}/include/)
+include_directories(ELSE/sfont~/fluidsynth/include/)
+
+function(message)
+        _message(${ARGN})
+endfunction()
+endif(LIBSNDFILE_FOUND)
 #------------------------------------------------------------------------------#
 
 set(CMAKE_MACOSX_RPATH ON)
@@ -194,7 +250,9 @@ list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 file(GLOB_RECURSE ELSE_SOURCES
     ./ELSE/Source/*.c
     ./ELSE/Aliases/*.c
-    ./ELSE/shared/*.c)
+    ./ELSE/shared/*.c
+    ./ELSE/sfont~/sfont~.c
+    )
 
 include_directories(ELSE/Source/)
 include_directories(ELSE/Aliases/)
@@ -323,3 +381,5 @@ endif()
 #------------------------------------------------------------------------------#
 set(THREADS_PREFER_PTHREAD_FLAG On)
 set(CMAKE_THREAD_PREFER_PTHREAD True)
+
+set_target_properties(fluidsynth PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)

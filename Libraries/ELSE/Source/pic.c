@@ -3,7 +3,7 @@
 #include <m_pd.h>
 #include <g_canvas.h>
 
-#ifdef _WIN32
+#ifdef _MSC_VER
 #include <io.h>
 #else
 #include <unistd.h>
@@ -69,17 +69,17 @@ static void pic_draw_io_let(t_pic *x){
             cv, xpos, ypos+x->x_height, xpos+IOWIDTH*x->x_zoom, ypos+x->x_height-IHEIGHT*x->x_zoom, x);
 }
 
-// --------------------------------------------------------------------------------------------------------
+// --------------------------------------------------------------------------------------
 // helper functions
 static const char* pic_filepath(t_pic *x, const char *filename){
-    static char fname[MAXPDSTRING];
+    static char fn[MAXPDSTRING];
     char *bufptr;
-    int fd = open_via_path(canvas_getdir(glist_getcanvas(x->x_glist))->s_name,
-        filename, "", fname, &bufptr, MAXPDSTRING, 1);
+    int fd = canvas_open(glist_getcanvas(x->x_glist),
+        filename, "", fn, &bufptr, MAXPDSTRING, 1);
     if(fd > 0){
-        fname[strlen(fname)]='/';
-        close(fd);
-        return(fname);
+        fn[strlen(fn)]='/';
+        sys_close(fd);
+        return(fn);
     }
     else
         return(0);
@@ -597,12 +597,12 @@ static void *pic_new(t_symbol *s, int ac, t_atom *av){
         else goto errstate;
     };
     if(x->x_filename !=  &s_){
-        const char *fname = pic_filepath(x, x->x_filename->s_name); // full path
-        if(fname){
+        const char *fn = pic_filepath(x, x->x_filename->s_name); // full path
+        if(fn){
             loaded = 1;
-            x->x_fullname = gensym(fname);
+            x->x_fullname = gensym(fn);
             sys_vgui("if { [info exists %lx_picname] == 0 } { image create photo %lx_picname -file \"%s\"\n set %lx_picname 1\n}\n",
-                    x->x_fullname, x->x_fullname, fname, x->x_fullname);
+                    x->x_fullname, x->x_fullname, fn, x->x_fullname);
         }
         else
             pd_error(x, "[pic]: error opening file '%s'", x->x_filename->s_name);
