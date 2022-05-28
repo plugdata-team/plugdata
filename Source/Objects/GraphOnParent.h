@@ -151,6 +151,14 @@ struct GraphOnParent final : public GUIObject
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+        
+        
+        if(!static_cast<bool>(hideNameAndArgs.getValue())) {
+            g.setColour(box->findColour(PlugDataColour::textColourId));
+            g.setFont(Font(15));
+            auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
+            g.drawFittedText(getText(), textArea, Justification::left, 1, 1.0f);
+        }
     }
 
     pd::Patch* getPatch() override

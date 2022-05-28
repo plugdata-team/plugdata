@@ -12,8 +12,8 @@ class PdArray
    public:
     enum DrawType
     {
-        Line,
         Points,
+        Line,
         Curve
     };
 
@@ -408,6 +408,15 @@ struct ArrayObject final : public GUIObject
         auto arrName = name.getValue().toString();
         auto arrSize = static_cast<int>(size.getValue());
         auto arrDrawMode = static_cast<int>(drawMode.getValue()) - 1;
+        
+        // This flag is swapped for some reason
+        if(arrDrawMode == 0){
+            arrDrawMode = 1;
+        }
+        else if(arrDrawMode == 1){
+            arrDrawMode = 0;
+        }
+        
         auto arrSaveContents = static_cast<bool>(saveContents.getValue());
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);

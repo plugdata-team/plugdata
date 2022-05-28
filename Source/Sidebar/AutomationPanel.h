@@ -128,7 +128,6 @@ struct AutomationPanel : public Component, public ScrollBar::Listener
     {
         viewport.setViewedComponent(&sliders, false);
         viewport.setScrollBarsShown(true, false, false, false);
-        viewport.setBufferedToImage(true);
 
         viewport.getVerticalScrollBar().addListener(this);
 

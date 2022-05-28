@@ -86,7 +86,6 @@ struct DrawableTemplate final : public DrawablePath
 
     DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y) : scalar(s), object(reinterpret_cast<t_curve*>(obj)), canvas(cnv), baseX(x), baseY(y)
     {
-        setBufferedToImage(true);
     }
 
     void update()
@@ -141,35 +140,23 @@ struct DrawableTemplate final : public DrawablePath
             if (glist->gl_isgraph) width *= glist_getzoom(glist);
 
             numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
+            
             if (flags & CLOSED)
             {
                 numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
-
-                // sys_vgui(".x%lx.c create polygon\\\n",
-                //     glist_getcanvas(glist));
             }
-            // else sys_vgui(".x%lx.c create line\\\n", glist_getcanvas(glist));
-
-            // sys_vgui("%d %d\\\n", pix[2*i], pix[2*i+1]);
 
             Path toDraw;
 
+            toDraw.startNewSubPath(pix[0], pix[1]);
+            for (i = 1; i < n; i++)
+            {
+                toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
+            }
+            
             if (flags & CLOSED)
             {
-                toDraw.startNewSubPath(pix[0], pix[1]);
-                for (i = 1; i < n; i++)
-                {
-                    toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
-                }
                 toDraw.lineTo(pix[0], pix[1]);
-            }
-            else
-            {
-                toDraw.startNewSubPath(pix[0], pix[1]);
-                for (i = 1; i < n; i++)
-                {
-                    toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
-                }
             }
 
             String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
@@ -184,7 +171,18 @@ struct DrawableTemplate final : public DrawablePath
                 setStrokeFill(Colour::fromString("FF" + String::fromUTF8(outline + 1)));
                 setStrokeThickness(width);
             }
-
+            
+            auto drawBounds = toDraw.getBounds();
+            // tcl/tk will show a dot for a 0px polygon
+            // JUCE doesn't do this, so we have to fake it
+            if ((flags & CLOSED) && drawBounds.isEmpty())
+            {
+                toDraw.clear();
+                toDraw.addEllipse(drawBounds.withSizeKeepingCentre(5, 5));
+                setStrokeThickness(2);
+                setFill(getStrokeFill());
+            }
+                
             setPath(toDraw);
         }
         else

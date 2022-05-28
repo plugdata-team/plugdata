@@ -226,6 +226,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
         void timerCallback() override
         {
             parameter->endChangeGesture();
+            stopTimer();
         }
     };
 
