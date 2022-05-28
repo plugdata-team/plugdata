@@ -251,8 +251,11 @@ file(GLOB_RECURSE ELSE_SOURCES
     ./ELSE/Source/*.c
     ./ELSE/Aliases/*.c
     ./ELSE/shared/*.c
-    ./ELSE/sfont~/sfont~.c
     )
+    
+if(LIBSNDFILE_FOUND)
+    list(APPEND ELSE_SOURCES ./ELSE/sfont~/sfont~.c)
+endif()
 
 include_directories(ELSE/Source/)
 include_directories(ELSE/Aliases/)
