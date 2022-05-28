@@ -87,9 +87,13 @@ struct MessageObject final : public GUIObject
     void checkBounds() override
     {
         int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());;
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
-
-        int newWidth = std::max(50, box->getWidth());
+        int newWidth = getWidth() / fontWidth;
+        
+        static_cast<t_text*>(ptr)->te_width = newWidth;
+        newWidth = std::max((newWidth * fontWidth), 35) + Box::doubleMargin;
+        
         if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth()))
         {
             box->setSize(newWidth, newHeight);
