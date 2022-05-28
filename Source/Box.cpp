@@ -30,7 +30,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
     {
         cnv->attachNextObjectToMouse = false;
         attachedToMouse = true;
-        startTimer(20);
+        startTimer(16);
     }
 
     initialise();
@@ -98,8 +98,6 @@ void Box::initialise()
     presentationMode.addListener(this);
     locked.addListener(this);
     commandLocked.addListener(this);
-
-    setBufferedToImage(true);
 
     originalBounds.setBounds(0, 0, 0, 0);
 }
@@ -483,7 +481,8 @@ void Box::mouseDown(const MouseEvent& e)
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
 
     bool isSelected = cnv->isSelected(this);
-
+    
+    
     for (auto& rect : getCorners())
     {
         if (rect.contains(e.position) && isSelected)
@@ -491,8 +490,10 @@ void Box::mouseDown(const MouseEvent& e)
             // Start resize
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
 
-            originalBounds = getBounds();
-            return;
+            if(resizeZone != ResizableBorderComponent::Zone(0)) {
+                originalBounds = getBounds();
+                return;
+            }
         }
     }
 

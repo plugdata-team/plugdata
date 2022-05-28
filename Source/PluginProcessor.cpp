@@ -1005,14 +1005,14 @@ void PlugDataAudioProcessor::receiveMidiByte(const int port, const int byte)
 void PlugDataAudioProcessor::receiveParameter(int idx, float value)
 {
 #if PLUGDATA_STANDALONE
-    standaloneParams[idx] = value;
+    standaloneParams[idx - 1] = value;
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
         editor->sidebar.updateParameters();
     }
 #else
     auto* parameter = parameters.getParameter("param" + String(idx));
-    parameterTimers[idx].notifyChange(parameter);
+    parameterTimers[idx - 1].notifyChange(parameter);
     parameter->setValueNotifyingHost(value);
 #endif
 }

@@ -15,7 +15,6 @@ struct Console : public Component
 
         viewport.setViewedComponent(console);
         viewport.setScrollBarsShown(true, false);
-        viewport.setBufferedToImage(true);
         
         console->setVisible(true);
 
@@ -178,7 +177,7 @@ struct Console : public Component
             }
         };
 
-        OwnedArray<ConsoleMessage> messages;
+        std::deque<std::unique_ptr<ConsoleMessage>> messages;
         
         std::array<TextButton, 5>& buttons;
         Viewport& viewport;
@@ -187,7 +186,6 @@ struct Console : public Component
 
         ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v), pd(instance)
         {
-            messages.ensureStorageAllocated(800);
             setWantsKeyboardFocus(true);
             repaint();
         }
@@ -220,15 +218,16 @@ struct Console : public Component
         void update()
         {
             while(messages.size() > pd->consoleMessages.size() || messages.size() >= 800) {
-                messages.remove(0);
-                // Make sure we don't trigger a repaint for this case
+                messages.pop_front();
+                
+                // Make sure we don't trigger a repaint for all messages when the console is full
                 for (int row = 0; row < static_cast<int>(messages.size()); row++)
                 {
                     messages[row]->idx--;
                 }
             }
             while(messages.size() < pd->consoleMessages.size()) {
-                auto* message = messages.add(new ConsoleMessage(messages.size(), *this));
+                messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
             
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++)

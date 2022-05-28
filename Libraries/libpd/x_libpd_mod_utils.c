@@ -686,7 +686,7 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y) {
     t_float px2 = x + 200.0f;
     t_float py2 = y + 140.0f;
     
-    t_symbol* sym = gensym("graph");
+    t_symbol* sym = gensym("");
     
     SETSYMBOL(argv, sym);
     SETFLOAT(argv + 1, x1);
@@ -707,7 +707,10 @@ t_pd* libpd_creategraphonparent(t_canvas* cnv, int x, int y) {
     
     glist_noselect(cnv);
     
-    return libpd_newest(cnv);
+    t_pd* result = libpd_newest(cnv);
+    ((t_glist*)result)->gl_hidetext = 1;
+    
+    return result;
 }
 
 t_pd* libpd_creategraph(t_canvas* cnv, const char* name, int size, int x, int y) {
