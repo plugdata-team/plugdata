@@ -48,11 +48,11 @@ Box::Box(Canvas* parent, const String& name, Point<int> position)
 
     // Open the text editor of a new object if it has one
     // Don't do this if the object is attached to the mouse
-    if (attachedToMouse)
+    if (attachedToMouse && !gui)
     {
         createEditorOnMouseDown = true;
     }
-    else
+    else if(!gui)
     {
         showEditor();
     }
