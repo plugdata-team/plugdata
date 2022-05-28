@@ -151,7 +151,8 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     zoomScale.referTo(pd.zoomScale);
 
     locked.addListener(this);
-
+    commandLocked.addListener(this);
+    
     powerButton = std::make_unique<TextButton>(Icons::Power);
     lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
