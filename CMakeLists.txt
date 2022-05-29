@@ -295,6 +295,7 @@ target_compile_definitions(PlugDataMidi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS
 endif()
 
 add_custom_target(build-time-make-directory PlugData_LV2
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${CMAKE_CURRENT_SOURCE_DIR}/Plugins"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${PLUGDATA_LV2_LOCATION}"
     COMMAND ${CMAKE_COMMAND} -E make_directory "${PLUGDATA_LV2_LOCATION}/PlugData.lv2/"
     )
