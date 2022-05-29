@@ -37,12 +37,12 @@ enum ParameterCategory
     cExtra
 };
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>;  // name, type and pointer to value, list of items only for combobox and bool
 
-using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
+using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
 
 // used by console for a more optimised calculation
-static int getNumLines (int width, int stringWidth)
+static int getNumLines(int width, int stringWidth)
 {
     int numLines = 1;
     while (width < stringWidth)
@@ -54,21 +54,21 @@ static int getNumLines (int width, int stringWidth)
     return numLines;
 }
 // Used by text objects for estimating best text height for a set width
-static int getNumLines (const String& text, int width, Font font = Font (Font::getDefaultSansSerifFontName(), 13, 0))
+static int getNumLines(const String& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
 {
     int numLines = 1;
 
     Array<int> glyphs;
     Array<float> xOffsets;
-    font.getGlyphPositions (text, glyphs, xOffsets);
+    font.getGlyphPositions(text, glyphs, xOffsets);
 
     for (int i = 0; i < xOffsets.size(); i++)
     {
-        if ((xOffsets[i] + 12) >= static_cast<float> (width) || text.getCharPointer()[i] == '\n')
+        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n')
         {
             for (int j = i + 1; j < xOffsets.size(); j++)
             {
-                xOffsets.getReference (j) -= xOffsets[i];
+                xOffsets.getReference(j) -= xOffsets[i];
             }
             numLines++;
         }
@@ -79,33 +79,33 @@ static int getNumLines (const String& text, int width, Font font = Font (Font::g
 
 struct Sidebar : public Component
 {
-    explicit Sidebar (PlugDataAudioProcessor* instance);
+    explicit Sidebar(PlugDataAudioProcessor* instance);
 
     ~Sidebar() override;
 
-    void paint (Graphics& g) override;
+    void paint(Graphics& g) override;
     void resized() override;
 
-    void mouseDown (const MouseEvent& e) override;
-    void mouseUp (const MouseEvent& e) override;
-    void mouseDrag (const MouseEvent& e) override;
-    void mouseMove (const MouseEvent& e) override;
-    void mouseExit (const MouseEvent& e) override;
+    void mouseDown(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+    void mouseMove(const MouseEvent& e) override;
+    void mouseExit(const MouseEvent& e) override;
 
-    void showParameters (ObjectParameters& params);
+    void showParameters(ObjectParameters& params);
     void showParameters();
     void hideParameters();
 
-    void showBrowser (bool show);
+    void showBrowser(bool show);
     bool isShowingBrowser();
 
-    void showAutomationPanel (bool show);
+    void showAutomationPanel(bool show);
 
     bool isShowingConsole() const noexcept;
 
-    void showSidebar (bool show);
+    void showSidebar(bool show);
 
-    void pinSidebar (bool pin);
+    void pinSidebar(bool pin);
     bool isPinned();
 
     void updateConsole();
@@ -116,7 +116,7 @@ struct Sidebar : public Component
 
     static constexpr int dragbarWidth = 5;
 
-private:
+   private:
     PlugDataAudioProcessor* pd;
     ObjectParameters lastParameters;
 

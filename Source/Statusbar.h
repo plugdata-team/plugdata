@@ -16,23 +16,23 @@ struct Statusbar : public Component, public Timer, public KeyListener, public Va
 {
     PlugDataAudioProcessor& pd;
 
-    explicit Statusbar (PlugDataAudioProcessor& processor);
+    explicit Statusbar(PlugDataAudioProcessor& processor);
     ~Statusbar();
 
     void resized() override;
 
     void timerCallback() override;
 
-    bool keyPressed (const KeyPress& k, Component*) override
+    bool keyPressed(const KeyPress& k, Component*) override
     {
         return false;
     };
-    bool keyStateChanged (bool isKeyDown, Component*) override;
+    bool keyStateChanged(bool isKeyDown, Component*) override;
 
-    void valueChanged (Value& v) override;
+    void valueChanged(Value& v) override;
 
-    void zoom (bool zoomIn);
-    void zoom (float zoomAmount);
+    void zoom(bool zoomIn);
+    void zoom(float zoomAmount);
     void defaultZoom();
 
     bool lastLockMode = false;
@@ -60,20 +60,20 @@ struct Statusbar : public Component, public Timer, public KeyListener, public Va
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Statusbar)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Statusbar)
 };
 
 struct StatusbarSource
 {
     StatusbarSource();
 
-    void processBlock (const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
+    void processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int outChannels);
 
-    void prepareToPlay (int numChannels);
+    void prepareToPlay(int numChannels);
 
     std::atomic<bool> midiReceived = false;
     std::atomic<bool> midiSent = false;
-    std::atomic<float> level[2] = { 0 };
+    std::atomic<float> level[2] = {0};
 
     int numChannels;
 

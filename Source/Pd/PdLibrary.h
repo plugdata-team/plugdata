@@ -29,12 +29,12 @@ using KeywordMap = std::unordered_map<String, StringArray>;
 
 // Define the character size
 #define CHAR_SIZE 128
-#define CHAR_TO_INDEX(c) (static_cast<int> (c) - static_cast<int> ('\0'))
+#define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
 
 // A class to store a Trie node
 class Trie
 {
-public:
+   public:
     bool isLeaf;
     Trie* character[CHAR_SIZE];
 
@@ -60,13 +60,13 @@ public:
         }
     }
 
-    void insert (const String& key);
-    bool deletion (Trie*&, String);
-    bool search (const String&);
+    void insert(const String& key);
+    bool deletion(Trie*&, String);
+    bool search(const String&);
     bool hasChildren();
 
-    void suggestionsRec (String currPrefix, Suggestions& result);
-    int autocomplete (String query, Suggestions& result);
+    void suggestionsRec(String currPrefix, Suggestions& result);
+    int autocomplete(String query, Suggestions& result);
 };
 
 struct Library : public FileSystemWatcher::Listener
@@ -74,11 +74,11 @@ struct Library : public FileSystemWatcher::Listener
     void initialiseLibrary();
 
     void updateLibrary();
-    void parseDocumentation (const String& path);
+    void parseDocumentation(const String& path);
 
-    Suggestions autocomplete (String query) const;
+    Suggestions autocomplete(String query) const;
 
-    String getInletOutletTooltip (String boxname, int idx, int total, bool isInlet);
+    String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
     void changeCallback() override;
 
@@ -98,4 +98,4 @@ struct Library : public FileSystemWatcher::Listener
     FileSystemWatcher watcher;
 };
 
-} // namespace pd
+}  // namespace pd

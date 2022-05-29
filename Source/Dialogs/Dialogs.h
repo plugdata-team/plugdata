@@ -6,53 +6,52 @@
 
 #pragma once
 
-#include "LookAndFeel.h"
 #include <JuceHeader.h>
+#include "LookAndFeel.h"
 
 class PlugDataPluginEditor;
 
 struct Dialog : public Component
 {
-    Dialog (Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent (editor->getParentComponent()), height (childHeight), width (childWidth), y (yPosition)
+    Dialog(Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent(editor->getParentComponent()), height(childHeight), width(childWidth), y(yPosition)
     {
-        parentComponent->addAndMakeVisible (this);
-        setBounds (0, 0, parentComponent->getWidth(), parentComponent->getHeight());
+        parentComponent->addAndMakeVisible(this);
+        setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
-        setAlwaysOnTop (true);
+        setAlwaysOnTop(true);
 
         if (showCloseButton)
         {
-            closeButton.reset (getLookAndFeel().createDocumentWindowButton (4));
-            addAndMakeVisible (closeButton.get());
-            closeButton->onClick = [this]()
-            { onClose(); };
-            closeButton->setAlwaysOnTop (true);
+            closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
+            addAndMakeVisible(closeButton.get());
+            closeButton->onClick = [this]() { onClose(); };
+            closeButton->setAlwaysOnTop(true);
         }
     }
 
-    void setViewedComponent (Component* child)
+    void setViewedComponent(Component* child)
     {
-        viewedComponent.reset (child);
-        addAndMakeVisible (child);
+        viewedComponent.reset(child);
+        addAndMakeVisible(child);
         resized();
     }
 
-    void paint (Graphics& g)
+    void paint(Graphics& g)
     {
-        g.setColour (Colours::black.withAlpha (0.5f));
+        g.setColour(Colours::black.withAlpha(0.5f));
 
 #if PLUGDATA_STANDALONE
-        g.fillRoundedRectangle (getLocalBounds().toFloat(), 6.0f);
+        g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
 #else
-        g.fillRect (getLocalBounds());
+        g.fillRect(getLocalBounds());
 #endif
         if (viewedComponent)
         {
-            g.setColour (findColour (PlugDataColour::toolbarColourId));
-            g.fillRoundedRectangle (viewedComponent->getBounds().toFloat(), 5.0f);
+            g.setColour(findColour(PlugDataColour::toolbarColourId));
+            g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
 
-            g.setColour (findColour (PlugDataColour::toolbarOutlineColourId));
-            g.drawRoundedRectangle (viewedComponent->getBounds().toFloat(), 5.0f, 1.0f);
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.drawRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f, 1.0f);
         }
     }
 
@@ -60,17 +59,17 @@ struct Dialog : public Component
     {
         if (viewedComponent)
         {
-            viewedComponent->setSize (width, height);
-            viewedComponent->setCentrePosition ({ getBounds().getCentreX(), y - (height / 2) });
+            viewedComponent->setSize(width, height);
+            viewedComponent->setCentrePosition({getBounds().getCentreX(), y - (height / 2)});
         }
 
         if (closeButton)
         {
-            closeButton->setBounds (viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
+            closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
         }
     }
 
-    void mouseDown (const MouseEvent& e)
+    void mouseDown(const MouseEvent& e)
     {
         onClose();
     }
@@ -79,8 +78,7 @@ struct Dialog : public Component
 
     Component* parentComponent;
 
-    std::function<void()> onClose = [this]()
-    { delete this; };
+    std::function<void()> onClose = [this]() { delete this; };
 
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;
@@ -90,10 +88,10 @@ struct Dialogs
 {
     Dialogs();
 
-    static void showSaveDialog (Component* centre, String filename, std::function<void (int)> callback);
-    static void showArrayDialog (Component* centre, std::function<void (int, String, String)> callback);
+    static void showSaveDialog(Component* centre, String filename, std::function<void(int)> callback);
+    static void showArrayDialog(Component* centre, std::function<void(int, String, String)> callback);
 
-    static Component* createSettingsDialog (AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree);
+    static Component* createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree);
 
-    static void showObjectMenu (PlugDataPluginEditor* parent, Component* target);
+    static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
 };

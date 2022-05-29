@@ -25,24 +25,24 @@ namespace pd
 
 class Atom
 {
-public:
+   public:
     // The default constructor.
-    inline Atom() : type (FLOAT), value (0), symbol()
+    inline Atom() : type(FLOAT), value(0), symbol()
     {
     }
 
     // The float constructor.
-    inline Atom (const float val) : type (FLOAT), value (val), symbol()
+    inline Atom(const float val) : type(FLOAT), value(val), symbol()
     {
     }
 
     // The string constructor.
-    inline Atom (String sym) : type (SYMBOL), value (0), symbol (std::move (sym))
+    inline Atom(String sym) : type(SYMBOL), value(0), symbol(std::move(sym))
     {
     }
 
     // The c-string constructor.
-    inline Atom (const char* sym) : type (SYMBOL), value (0), symbol (sym)
+    inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym)
     {
     }
 
@@ -71,7 +71,7 @@ public:
     }
 
     // Compare two atoms.
-    inline bool operator== (Atom const& other) const noexcept
+    inline bool operator==(Atom const& other) const noexcept
     {
         if (type == SYMBOL)
         {
@@ -83,7 +83,7 @@ public:
         }
     }
 
-private:
+   private:
     enum Type
     {
         FLOAT,
@@ -130,108 +130,108 @@ class Instance
         int midi3;
     } midievent;
 
-public:
-    Instance (String const& symbol);
-    Instance (Instance const& other) = delete;
+   public:
+    Instance(String const& symbol);
+    Instance(Instance const& other) = delete;
     virtual ~Instance();
 
-    void prepareDSP (const int nins, const int nouts, const double samplerate);
+    void prepareDSP(const int nins, const int nouts, const double samplerate);
     void startDSP();
     void releaseDSP();
-    void performDSP (float const* inputs, float* outputs);
+    void performDSP(float const* inputs, float* outputs);
     int getBlockSize() const noexcept;
 
-    void sendNoteOn (const int channel, const int pitch, const int velocity) const;
-    void sendControlChange (const int channel, const int controller, const int value) const;
-    void sendProgramChange (const int channel, const int value) const;
-    void sendPitchBend (const int channel, const int value) const;
-    void sendAfterTouch (const int channel, const int value) const;
-    void sendPolyAfterTouch (const int channel, const int pitch, const int value) const;
-    void sendSysEx (const int port, const int byte) const;
-    void sendSysRealTime (const int port, const int byte) const;
-    void sendMidiByte (const int port, const int byte) const;
+    void sendNoteOn(const int channel, const int pitch, const int velocity) const;
+    void sendControlChange(const int channel, const int controller, const int value) const;
+    void sendProgramChange(const int channel, const int value) const;
+    void sendPitchBend(const int channel, const int value) const;
+    void sendAfterTouch(const int channel, const int value) const;
+    void sendPolyAfterTouch(const int channel, const int pitch, const int value) const;
+    void sendSysEx(const int port, const int byte) const;
+    void sendSysRealTime(const int port, const int byte) const;
+    void sendMidiByte(const int port, const int byte) const;
 
-    virtual void receiveNoteOn (const int channel, const int pitch, const int velocity)
+    virtual void receiveNoteOn(const int channel, const int pitch, const int velocity)
     {
     }
-    virtual void receiveControlChange (const int channel, const int controller, const int value)
+    virtual void receiveControlChange(const int channel, const int controller, const int value)
     {
     }
-    virtual void receiveProgramChange (const int channel, const int value)
+    virtual void receiveProgramChange(const int channel, const int value)
     {
     }
-    virtual void receivePitchBend (const int channel, const int value)
+    virtual void receivePitchBend(const int channel, const int value)
     {
     }
-    virtual void receiveAftertouch (const int channel, const int value)
+    virtual void receiveAftertouch(const int channel, const int value)
     {
     }
-    virtual void receivePolyAftertouch (const int channel, const int pitch, const int value)
+    virtual void receivePolyAftertouch(const int channel, const int pitch, const int value)
     {
     }
-    virtual void receiveMidiByte (const int port, const int byte)
-    {
-    }
-
-    virtual void receiveGuiUpdate (int type) {};
-    virtual void synchroniseCanvas (void* cnv) {};
-
-    virtual void createPanel (int type, const char* snd, const char* location);
-
-    void sendBang (const char* receiver) const;
-    void sendFloat (const char* receiver, float const value) const;
-    void sendSymbol (const char* receiver, const char* symbol) const;
-    void sendList (const char* receiver, const std::vector<pd::Atom>& list) const;
-    void sendMessage (const char* receiver, const char* msg, const std::vector<pd::Atom>& list) const;
-
-    virtual void receivePrint (const String& message) {};
-
-    virtual void receiveBang (const String& dest)
-    {
-    }
-    virtual void receiveFloat (const String& dest, float num)
-    {
-    }
-    virtual void receiveSymbol (const String& dest, const String& symbol)
-    {
-    }
-    virtual void receiveList (const String& dest, const std::vector<pd::Atom>& list)
-    {
-    }
-    virtual void receiveMessage (const String& dest, const String& msg, const std::vector<pd::Atom>& list)
-    {
-    }
-    virtual void receiveParameter (int idx, float value)
+    virtual void receiveMidiByte(const int port, const int byte)
     {
     }
 
-    virtual void receiveDSPState (bool dsp) {};
+    virtual void receiveGuiUpdate(int type){};
+    virtual void synchroniseCanvas(void* cnv){};
 
-    virtual void updateConsole() {};
+    virtual void createPanel(int type, const char* snd, const char* location);
 
-    virtual void titleChanged() {};
+    void sendBang(const char* receiver) const;
+    void sendFloat(const char* receiver, float const value) const;
+    void sendSymbol(const char* receiver, const char* symbol) const;
+    void sendList(const char* receiver, const std::vector<pd::Atom>& list) const;
+    void sendMessage(const char* receiver, const char* msg, const std::vector<pd::Atom>& list) const;
 
-    void enqueueFunction (const std::function<void (void)>& fn);
-    void enqueueFunctionAsync (const std::function<void (void)>& fn);
+    virtual void receivePrint(const String& message){};
 
-    void enqueueMessages (const String& dest, const String& msg, std::vector<pd::Atom>&& list);
+    virtual void receiveBang(const String& dest)
+    {
+    }
+    virtual void receiveFloat(const String& dest, float num)
+    {
+    }
+    virtual void receiveSymbol(const String& dest, const String& symbol)
+    {
+    }
+    virtual void receiveList(const String& dest, const std::vector<pd::Atom>& list)
+    {
+    }
+    virtual void receiveMessage(const String& dest, const String& msg, const std::vector<pd::Atom>& list)
+    {
+    }
+    virtual void receiveParameter(int idx, float value)
+    {
+    }
 
-    void enqueueDirectMessages (void* object, std::vector<pd::Atom> const& list);
-    void enqueueDirectMessages (void* object, const String& msg);
-    void enqueueDirectMessages (void* object, const float msg);
+    virtual void receiveDSPState(bool dsp){};
 
-    void logMessage (const String& message);
-    void logError (const String& error);
+    virtual void updateConsole(){};
 
-    virtual void messageEnqueued() {};
+    virtual void titleChanged(){};
+
+    void enqueueFunction(const std::function<void(void)>& fn);
+    void enqueueFunctionAsync(const std::function<void(void)>& fn);
+
+    void enqueueMessages(const String& dest, const String& msg, std::vector<pd::Atom>&& list);
+
+    void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
+    void enqueueDirectMessages(void* object, const String& msg);
+    void enqueueDirectMessages(void* object, const float msg);
+
+    void logMessage(const String& message);
+    void logError(const String& error);
+
+    virtual void messageEnqueued(){};
 
     void sendMessagesFromQueue();
-    void processMessage (Message mess);
-    void processPrint (String message);
-    void processMidiEvent (midievent event);
-    void processSend (dmessage mess);
+    void processMessage(Message mess);
+    void processPrint(String message);
+    void processMidiEvent(midievent event);
+    void processSend(dmessage mess);
 
-    Patch openPatch (const File& toOpen);
+    Patch openPatch(const File& toOpen);
 
     virtual Colour getForegroundColour() = 0;
     virtual Colour getBackgroundColour() = 0;
@@ -239,7 +239,7 @@ public:
     virtual Colour getOutlineColour() = 0;
 
     void setThis();
-    bool checkState (String pdstate);
+    bool checkState(String pdstate);
 
     static Instance* getCurrent();
 
@@ -266,8 +266,8 @@ public:
     std::deque<std::tuple<String, int, int>> consoleMessages;
     std::deque<std::tuple<String, int, int>> consoleHistory;
 
-private:
-    moodycamel::ConcurrentQueue<std::function<void (void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void (void)>> (4096);
+   private:
+    moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
@@ -276,4 +276,4 @@ private:
 
     struct internal;
 };
-} // namespace pd
+}  // namespace pd
