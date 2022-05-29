@@ -6,8 +6,6 @@
 #pragma once
 #include <JuceHeader.h>
 
-#include <memory>
-
 struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;

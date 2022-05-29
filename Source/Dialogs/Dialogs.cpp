@@ -3,6 +3,7 @@
  // For information on usage and redistribution, and for a DISCLAIMER OF ALL
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
+#include <JuceHeader.h>
 
 #include "Dialogs.h"
 #include "LookAndFeel.h"
@@ -11,10 +12,6 @@
 #include "PluginProcessor.h"
 
 #include "Standalone/PlugDataWindow.h"
-
-#include <JuceHeader.h>
-
-#include <memory>
 
 #include "SaveDialog.h"
 #include "ArrayDialog.h"

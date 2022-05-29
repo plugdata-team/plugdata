@@ -27,8 +27,6 @@
 
 #include "../PluginEditor.h"
 
-#include <memory>
-
 #if !JUCE_MAC
 #define CUSTOM_SHADOW 1
 #else

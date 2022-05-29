@@ -4,8 +4,6 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
 */
 
-#include <memory>
-
 #include "Statusbar.h"
 #include "LookAndFeel.h"
 
