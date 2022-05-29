@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
-set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
 
@@ -14,6 +14,10 @@ if(APPLE)
   else()
   set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
   endif()
+endif()
+
+if(RUN_CLANG_TIDY)
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
 if (NOT DEFINED COPY_PLUGIN_AFTER_BUILD)
@@ -279,7 +283,7 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
     )
-    target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic -fPIC")
+    target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
 
 elseif(MSVC)
 target_link_libraries(PlugDataStandalone PUBLIC "-Wl,--export-all-symbols,--whole-archive ws2_32 kernel32 -static-libgcc")
@@ -379,7 +383,6 @@ if(RUN_CLANG_TIDY)
   set_target_properties(PlugDataStandalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
 
 endif()
-
 
 set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
 set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
