@@ -60,13 +60,13 @@ class Trie
         }
     }
 
-    void insert(const std::string& key);
-    bool deletion(Trie*&, std::string);
-    bool search(const std::string&);
+    void insert(const String& key);
+    bool deletion(Trie*&, String);
+    bool search(const String&);
     bool hasChildren();
 
-    void suggestionsRec(std::string currPrefix, Suggestions& result);
-    int autocomplete(std::string query, Suggestions& result);
+    void suggestionsRec(String currPrefix, Suggestions& result);
+    int autocomplete(String query, Suggestions& result);
 };
 
 struct Library : public FileSystemWatcher::Listener
@@ -76,7 +76,7 @@ struct Library : public FileSystemWatcher::Listener
     void updateLibrary();
     void parseDocumentation(const String& path);
 
-    Suggestions autocomplete(std::string query);
+    Suggestions autocomplete(String query) const;
 
     String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 

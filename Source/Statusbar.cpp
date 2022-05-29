@@ -362,7 +362,7 @@ void Statusbar::resized()
 
     position(5);  // Seperator
 
-    zoomLabel.setBounds(position(getHeight() * 1.25), 0, getHeight() * 1.25, getHeight());
+    zoomLabel.setBounds(position(getHeight() * 1.25f), 0, getHeight() * 1.25f, getHeight());
 
     zoomIn->setBounds(position(getHeight()), 0, getHeight(), getHeight());
     zoomOut->setBounds(position(getHeight()), 0, getHeight(), getHeight());
@@ -462,16 +462,10 @@ StatusbarSource::StatusbarSource()
 
 static bool hasRealEvents(MidiBuffer& buffer)
 {
-    for (auto event : buffer)
-    {
-        auto m = event.getMessage();
-        if (!m.isSysEx())
-        {
-            return true;
-        }
-    }
-
-    return false;
+    return std::any_of(buffer.begin(), buffer.end(),
+    [](const auto& m){
+        return !m.getMessage().isSysEx();
+    });
 }
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)

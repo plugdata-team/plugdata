@@ -361,9 +361,7 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
         ninch += nchb;
     }
 
-    if (ninch > 32 || noutch > 32) return false;
-
-    return true;
+    return ninch <= 32 && noutch <= 32;
 }
 
 void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
@@ -851,7 +849,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
         });
 }
 
-pd::Patch* PlugDataAudioProcessor::loadPatch(File patchFile)
+pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
 {
     auto newPatch = openPatch(patchFile);
 
@@ -1051,11 +1049,7 @@ void PlugDataAudioProcessor::timerCallback()
     {
         if (!callbackType) return;
 
-        if (callbackType == 1)
-        {
-            editor->updateValues();
-        }
-        else if (callbackType == 3)
+        else if (callbackType == 1 || callbackType == 3)
         {
             editor->updateValues();
         }

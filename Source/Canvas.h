@@ -21,7 +21,7 @@ class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
    public:
-    Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr, bool isGraphChild = false);
+    Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 

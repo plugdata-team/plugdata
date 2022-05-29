@@ -32,7 +32,7 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
 
     for (t_gobj* y = patch->gl_list; y; y = y->g_next)
     {
-        const std::string name = libpd_get_object_class_name(y);
+        const String name = libpd_get_object_class_name(y);
 
         if (name == "graph" || name == "canvas")
         {
@@ -258,7 +258,7 @@ void Storage::createUndoAction()
 // We use this to make ignore this object in the GUI
 bool Storage::isInfoParent(t_gobj* obj)
 {
-    const std::string name = libpd_get_object_class_name(obj);
+    const String name = libpd_get_object_class_name(obj);
     if (name == "graph" || name == "canvas")
     {
         auto* glist = pd_checkglist(&obj->g_pd);

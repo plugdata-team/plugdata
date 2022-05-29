@@ -20,20 +20,6 @@ Edge::Edge(Box* parent, bool inlet) : box(parent)
     locked.referTo(parent->cnv->pd->locked);
 }
 
-bool Edge::hasConnection()
-{
-    // Check if it has any connections
-    for (auto* connection : box->cnv->connections)
-    {
-        if (connection->inlet == this || connection->outlet == this)
-        {
-            return true;
-        }
-    }
-
-    return false;
-}
-
 Rectangle<int> Edge::getCanvasBounds()
 {
     // Get bounds relative to canvas, used for positioning connections
@@ -60,8 +46,6 @@ void Edge::paint(Graphics& g)
     {
         backgroundColour = findColour(PlugDataColour::textColourId);
     }
-
-    bool connected = hasConnection();
 
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!

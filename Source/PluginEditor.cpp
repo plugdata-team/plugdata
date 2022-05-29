@@ -142,7 +142,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
         {
 #ifdef PLUGDATA_STANDALONE
             // Initialise settings dialog for DAW and standalone
-            auto pluginHolder = StandalonePluginHolder::getInstance();
+            auto* pluginHolder = StandalonePluginHolder::getInstance();
 
             settingsDialog.reset(Dialogs::createSettingsDialog(pd, &pluginHolder->deviceManager, pd.settingsTree));
 #else
@@ -220,12 +220,12 @@ void PlugDataPluginEditor::paint(Graphics& g)
     // Toolbar background
     g.setColour(baseColour);
     g.fillRect(0, 10, getWidth(), toolbarHeight - 9);
-    g.fillRoundedRectangle(0, 0, getWidth(), toolbarHeight, 6.0f);
+    g.fillRoundedRectangle(0.0f, 0.0f, getWidth(), toolbarHeight, 6.0f);
 
     // Statusbar background
     g.setColour(baseColour);
     g.fillRect(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight() - 10);
-    g.fillRoundedRectangle(0, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
+    g.fillRoundedRectangle(0.0f, getHeight() - statusbar.getHeight(), getWidth(), statusbar.getHeight(), 6.0f);
 
 #else
     // Toolbar background
@@ -245,7 +245,7 @@ void PlugDataPluginEditor::paintOverChildren(Graphics& g)
 {
     int roundedOffset = PLUGDATA_ROUNDED;
     g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-    g.drawLine(0, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);
+    g.drawLine(0.0f, toolbarHeight + roundedOffset, static_cast<float>(getWidth()), toolbarHeight + roundedOffset);
     g.drawLine(0.0f, getHeight() - statusbar.getHeight(), static_cast<float>(getWidth()), getHeight() - statusbar.getHeight());
 }
 
@@ -1080,7 +1080,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
         default:
         {
-            const std::vector<std::string> objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu"};
+            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu"};
 
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
 

@@ -6,8 +6,6 @@
 
 #include "Box.h"
 
-#include <memory>
-
 #include "Canvas.h"
 #include "Connection.h"
 #include "Edge.h"
@@ -20,10 +18,8 @@ extern "C"
 #include <m_imp.h>
 }
 
-Box::Box(Canvas* parent, const String& name, Point<int> position)
+Box::Box(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
 {
-    cnv = parent;
-
     setTopLeftPosition(position - Point<int>(margin, margin));
 
     if (cnv->attachNextObjectToMouse)
@@ -127,8 +123,6 @@ void Box::valueChanged(Value& v)
 
 bool Box::hitTest(int x, int y)
 {
-    int hitMargin = cnv->isSelected(this) ? margin - 5 : margin;
-
     // Mouse over object
     if (getLocalBounds().reduced(margin).contains(x, y))
     {
@@ -296,7 +290,6 @@ void Box::paintOverChildren(Graphics& g)
 
 void Box::paint(Graphics& g)
 {
-    auto rect = getLocalBounds().reduced(margin);
     bool selected = cnv->isSelected(this);
 
     if (selected && !cnv->isGraph)
@@ -370,7 +363,7 @@ void Box::resized()
         }
         else if (total > 1)
         {
-            const float ratio = (bounds.getWidth() - edgeSize) / (float)(total - 1);
+            const float ratio = (bounds.getWidth() - edgeSize) / static_cast<float>(total - 1);
             edge->setBounds(bounds.getX() + ratio * position, yPosition, edgeSize, edgeSize);
         }
 
@@ -707,21 +700,17 @@ void Box::openHelpPatch() const
         if (!ptr) return {nullptr, nullptr};
 
         auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
-        auto* name = class_gethelpname(pdclass);
+        const auto* name = class_gethelpname(pdclass);
 
         String firstName = String(name) + "-help.pd";
         String secondName = "help-" + String(name) + ".pd";
 
-        auto findHelpPatch = [&firstName, &secondName](File searchDir) -> File
+        auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
         {
-            for (auto& fileIter : RangedDirectoryIterator(searchDir, true))
+            for (const auto& fileIter : RangedDirectoryIterator(searchDir, true))
             {
                 auto file = fileIter.getFile();
-                if (file.getFileName() == firstName)
-                {
-                    return file;
-                }
-                else if (file.getFileName() == secondName)
+                if (file.getFileName() == firstName || file.getFileName() == secondName)
                 {
                     return file;
                 }
@@ -798,8 +787,7 @@ void Box::openSubpatch() const
     }
 
     auto* newPatch = cnv->main.pd.patches.add(new pd::Patch(*subpatch));
-    bool isGraphChild = gui->getCanvas();
-    auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr, isGraphChild));
+    auto* newCanvas = cnv->main.canvases.add(new Canvas(cnv->main, *newPatch, nullptr));
 
     newPatch->setCurrentFile(path);
 
