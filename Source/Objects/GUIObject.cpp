@@ -8,11 +8,12 @@
 
 extern "C"
 {
-#include <g_all_guis.h>
-#include <g_canvas.h>
-#include <m_imp.h>
 #include <m_pd.h>
+#include <m_imp.h>
+#include <g_canvas.h>
+#include <g_all_guis.h>
 
+#include <x_libpd_extra_utils.h>
 #include <memory>
 }
 
@@ -28,25 +29,27 @@ extern "C"
 #include "ArrayObject.h"
 #include "BangObject.h"
 #include "CanvasObject.h"
-#include "CloneObject.h"
-#include "CommentObject.h"
 #include "FloatAtomObject.h"
 #include "GraphOnParent.h"
 #include "KeyboardObject.h"
 #include "ListObject.h"
 #include "MessageObject.h"
-#include "MouseObject.h"
 #include "MousePadObject.h"
 #include "NumberObject.h"
 #include "PictureObject.h"
 #include "RadioObject.h"
 #include "ScalarObject.h"
 #include "SliderObject.h"
-#include "SubpatchObject.h"
+
 #include "SymbolAtomObject.h"
 #include "TextObject.h"
 #include "ToggleObject.h"
 #include "VUMeterObject.h"
+
+#include "CommentObject.h"
+#include "MouseObject.h"
+#include "SubpatchObject.h"
+#include "CloneObject.h"
 
 ObjectBase::ObjectBase (void* obj, Box* parent) : ptr (obj), box (parent), cnv (box->cnv) {};
 
