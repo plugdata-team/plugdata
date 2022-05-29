@@ -153,8 +153,8 @@ void Trie::suggestionsRec(String currPrefix, Suggestions& result)
         {
             // append current character to currPrefixString
             //currPrefix += i;
-            
-            currPrefix += String(static_cast<char>(i));
+            char letter = INDEX_TO_CHAR(i);
+            currPrefix += String(&letter, 1);
 
             // recur over the rest
             character[i]->suggestionsRec(currPrefix, result);

@@ -30,7 +30,7 @@ using KeywordMap = std::unordered_map<String, StringArray>;
 // Define the character size
 #define CHAR_SIZE 128
 #define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
-
+#define INDEX_TO_CHAR(c) static_cast<char>(c + static_cast<int>('\0'))
 // A class to store a Trie node
 class Trie
 {
