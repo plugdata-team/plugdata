@@ -294,8 +294,10 @@ target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataMidi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 endif()
 
-add_custom_target(build-time-make-directory PlugData
-    COMMAND ${CMAKE_COMMAND} -E make_directory "${PLUGDATA_LV2_LOCATION}/PlugData.lv2/")
+add_custom_target(build-time-make-directory PlugData_LV2
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${PLUGDATA_LV2_LOCATION}"
+    COMMAND ${CMAKE_COMMAND} -E make_directory "${PLUGDATA_LV2_LOCATION}/PlugData.lv2/"
+    )
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
