@@ -5,6 +5,7 @@
  */
 
 #include "Box.h"
+#include <memory>
 
 #include "Canvas.h"
 #include "Connection.h"
