@@ -1,17 +1,17 @@
 
 struct ListObject final : public AtomObject
 {
-    ListObject(void* obj, Box* parent) : AtomObject(obj, parent), dragger(label)
+    ListObject (void* obj, Box* parent) : AtomObject (obj, parent), dragger (label)
     {
-        label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
-        label.setMinimumHorizontalScale(1.f);
-        label.setJustificationType(Justification::centredLeft);
-        label.setBorderSize(BorderSize<int>(2, 6, 2, 2));
-        label.setText(String(getValueOriginal()), dontSendNotification);
-        label.setEditable(true, false);
+        label.setBounds (2, 0, getWidth() - 2, getHeight() - 1);
+        label.setMinimumHorizontalScale (1.f);
+        label.setJustificationType (Justification::centredLeft);
+        label.setBorderSize (BorderSize<int> (2, 6, 2, 2));
+        label.setText (String (getValueOriginal()), dontSendNotification);
+        label.setEditable (true, false);
 
-        setInterceptsMouseClicks(true, false);
-        addAndMakeVisible(label);
+        setInterceptsMouseClicks (true, false);
+        addAndMakeVisible (label);
 
         label.onEditorHide = [this]()
         {
@@ -25,16 +25,19 @@ struct ListObject final : public AtomObject
             auto* editor = label.getCurrentTextEditor();
             if (editor != nullptr)
             {
-                editor->setIndents(1, 2);
-                editor->setBorder(BorderSize<int>(2, 6, 2, 2));
+                editor->setIndents (1, 2);
+                editor->setBorder (BorderSize<int> (2, 6, 2, 2));
             }
         };
 
-        dragger.dragStart = [this]() { startEdition(); };
+        dragger.dragStart = [this]()
+        { startEdition(); };
 
-        dragger.valueChanged = [this](float) { updateFromGui(); };
+        dragger.valueChanged = [this] (float)
+        { updateFromGui(); };
 
-        dragger.dragEnd = [this]() { stopEdition(); };
+        dragger.dragEnd = [this]()
+        { stopEdition(); };
 
         updateValue();
 
@@ -44,35 +47,35 @@ struct ListObject final : public AtomObject
     void updateFromGui()
     {
         auto array = StringArray();
-        array.addTokens(label.getText(), true);
+        array.addTokens (label.getText(), true);
         std::vector<pd::Atom> list;
-        list.reserve(array.size());
+        list.reserve (array.size());
         for (auto const& elem : array)
         {
             if (elem.getCharPointer().isDigit())
             {
-                list.push_back({elem.getFloatValue()});
+                list.push_back ({ elem.getFloatValue() });
             }
             else
             {
-                list.push_back({elem.toStdString()});
+                list.push_back ({ elem.toStdString() });
             }
         }
         if (list != getList())
         {
-            setList(list);
+            setList (list);
         }
     }
 
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(100, maxSize, box->getWidth());
-        int h = jlimit(Box::height - 2, maxSize, box->getHeight());
+        int w = jlimit (100, maxSize, box->getWidth());
+        int h = jlimit (Box::height - 2, maxSize, box->getHeight());
 
         if (w != box->getWidth() || h != box->getHeight())
         {
-            box->setSize(w, h);
+            box->setSize (w, h);
         }
     }
 
@@ -84,28 +87,28 @@ struct ListObject final : public AtomObject
     {
         AtomObject::resized();
 
-        label.setBounds(getLocalBounds());
+        label.setBounds (getLocalBounds());
     }
 
-    void paint(Graphics& g) override
+    void paint (Graphics& g) override
     {
-        getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
-        getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
+        getLookAndFeel().setColour (Label::textWhenEditingColourId, box->findColour (Label::textWhenEditingColourId));
+        getLookAndFeel().setColour (Label::textColourId, box->findColour (Label::textColourId));
 
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        g.setColour (box->findColour (PlugDataColour::toolbarColourId));
+        g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (0.5f), 2.0f);
 
-        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+        g.setColour (box->findColour (PlugDataColour::canvasOutlineColourId));
 
         Path bottomTriangle;
-        bottomTriangle.addTriangle(Point<float>(getWidth() - 8, getHeight()), Point<float>(getWidth(), getHeight()), Point<float>(getWidth(), getHeight() - 8));
-        bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
-        g.fillPath(bottomTriangle);
+        bottomTriangle.addTriangle (Point<float> (getWidth() - 8, getHeight()), Point<float> (getWidth(), getHeight()), Point<float> (getWidth(), getHeight() - 8));
+        bottomTriangle = bottomTriangle.createPathWithRoundedCorners (4.0f);
+        g.fillPath (bottomTriangle);
     }
 
     void update() override
     {
-        if (!edited && !label.isBeingEdited())
+        if (! edited && ! label.isBeingEdited())
         {
             auto const array = getList();
             String message;
@@ -117,14 +120,14 @@ struct ListObject final : public AtomObject
                 }
                 if (atom.isFloat())
                 {
-                    message += String(atom.getFloat());
+                    message += String (atom.getFloat());
                 }
                 else if (atom.isSymbol())
                 {
-                    message += String(atom.getSymbol());
+                    message += String (atom.getSymbol());
                 }
             }
-            label.setText(message, NotificationType::dontSendNotification);
+            label.setText (message, NotificationType::dontSendNotification);
         }
     }
 
@@ -133,18 +136,18 @@ struct ListObject final : public AtomObject
         std::vector<pd::Atom> array;
         cnv->pd->setThis();
 
-        int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
-        t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
-        array.reserve(ac);
+        int ac = binbuf_getnatom (static_cast<t_fake_gatom*> (ptr)->a_text.te_binbuf);
+        t_atom* av = binbuf_getvec (static_cast<t_fake_gatom*> (ptr)->a_text.te_binbuf);
+        array.reserve (ac);
         for (int i = 0; i < ac; ++i)
         {
             if (av[i].a_type == A_FLOAT)
             {
-                array.emplace_back(atom_getfloat(av + i));
+                array.emplace_back (atom_getfloat (av + i));
             }
             else if (av[i].a_type == A_SYMBOL)
             {
-                array.emplace_back(atom_getsymbol(av + i)->s_name);
+                array.emplace_back (atom_getsymbol (av + i)->s_name);
             }
             else
             {
@@ -154,12 +157,12 @@ struct ListObject final : public AtomObject
         return array;
     }
 
-    void setList(std::vector<pd::Atom> const& value) noexcept
+    void setList (std::vector<pd::Atom> const& value) noexcept
     {
-        cnv->pd->enqueueDirectMessages(ptr, value);
+        cnv->pd->enqueueDirectMessages (ptr, value);
     }
 
-   private:
+private:
     Label label;
     DraggableListNumber dragger;
 };

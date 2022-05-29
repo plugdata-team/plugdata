@@ -6,33 +6,33 @@
 
 struct CommentObject final : public TextBase
 {
-    CommentObject(void* obj, Box* box) : TextBase(obj, box)
+    CommentObject (void* obj, Box* box) : TextBase (obj, box)
     {
     }
 
-    void paint(Graphics& g) override
+    void paint (Graphics& g) override
     {
-        g.setColour(findColour(PlugDataColour::textColourId));
-        g.setFont(font);
+        g.setColour (findColour (PlugDataColour::textColourId));
+        g.setFont (font);
 
-        auto textArea = border.subtractedFrom(getLocalBounds());
-        g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
+        auto textArea = border.subtractedFrom (getLocalBounds());
+        g.drawFittedText (currentText, textArea, justification, numLines, minimumHorizontalScale);
 
-        auto selected = cnv->isSelected(box);
-        if (box->locked == var(false) && (box->isOver() || selected) && !cnv->isGraph)
+        auto selected = cnv->isSelected (box);
+        if (box->locked == var (false) && (box->isOver() || selected) && ! cnv->isGraph)
         {
-            g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
+            g.setColour (selected ? box->findColour (PlugDataColour::highlightColourId) : box->findColour (PlugDataColour::canvasOutlineColourId));
 
-            g.drawRect(getLocalBounds().toFloat(), 0.5f);
+            g.drawRect (getLocalBounds().toFloat(), 0.5f);
         }
     }
 
-    void mouseEnter(const MouseEvent& e) override
+    void mouseEnter (const MouseEvent& e) override
     {
         repaint();
     }
 
-    void mouseExit(const MouseEvent& e) override
+    void mouseExit (const MouseEvent& e) override
     {
         repaint();
     }
@@ -41,13 +41,14 @@ struct CommentObject final : public TextBase
     {
         if (editor != nullptr)
         {
-            WeakReference<Component> deletionChecker(this);
+            WeakReference<Component> deletionChecker (this);
             std::unique_ptr<TextEditor> outgoingEditor;
-            std::swap(outgoingEditor, editor);
+            std::swap (outgoingEditor, editor);
 
-            if (auto* peer = getPeer()) peer->dismissPendingTextInput();
+            if (auto* peer = getPeer())
+                peer->dismissPendingTextInput();
 
-            outgoingEditor->setInputFilter(nullptr, false);
+            outgoingEditor->setInputFilter (nullptr, false);
 
             auto newText = outgoingEditor->getText();
 
@@ -71,23 +72,25 @@ struct CommentObject final : public TextBase
             if (changed)
             {
                 SafePointer<CommentObject> obj;
-                cnv->pd->enqueueFunction(
+                cnv->pd->enqueueFunction (
                     [this, obj]() mutable
                     {
-                        if (!obj) return;
+                        if (! obj)
+                            return;
 
                         auto* newName = currentText.toRawUTF8();
-                        libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, currentText.getNumBytesAsUTF8());
+                        libpd_renameobj (cnv->patch.getPointer(), static_cast<t_gobj*> (ptr), newName, currentText.getNumBytesAsUTF8());
 
-                        MessageManager::callAsync(
+                        MessageManager::callAsync (
                             [this, obj]()
                             {
-                                if (!obj) return;
+                                if (! obj)
+                                    return;
                                 box->updateBounds();
                             });
                     });
 
-                box->setType(newText);
+                box->setType (newText);
             }
         }
     }
@@ -96,41 +99,41 @@ struct CommentObject final : public TextBase
     {
         if (editor == nullptr)
         {
-            editor = std::make_unique<TextEditor>(getName());
-            editor->applyFontToAllText(font);
+            editor = std::make_unique<TextEditor> (getName());
+            editor->applyFontToAllText (font);
 
-            copyAllExplicitColoursTo(*editor);
-            editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
-            editor->setColour(Label::backgroundWhenEditingColourId, findColour(TextEditor::backgroundColourId));
-            editor->setColour(Label::outlineWhenEditingColourId, findColour(TextEditor::focusedOutlineColourId));
+            copyAllExplicitColoursTo (*editor);
+            editor->setColour (Label::textWhenEditingColourId, findColour (TextEditor::textColourId));
+            editor->setColour (Label::backgroundWhenEditingColourId, findColour (TextEditor::backgroundColourId));
+            editor->setColour (Label::outlineWhenEditingColourId, findColour (TextEditor::focusedOutlineColourId));
 
-            editor->setAlwaysOnTop(true);
+            editor->setAlwaysOnTop (true);
 
-            editor->setMultiLine(false);
-            editor->setReturnKeyStartsNewLine(false);
-            editor->setBorder(border);
-            editor->setIndents(0, 0);
-            editor->setJustification(justification);
+            editor->setMultiLine (false);
+            editor->setReturnKeyStartsNewLine (false);
+            editor->setBorder (border);
+            editor->setIndents (0, 0);
+            editor->setJustification (justification);
 
             editor->onFocusLost = [this]()
             {
                 // Necessary so the editor doesn't close when clicking on a suggestion
-                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
+                if (! reinterpret_cast<Component*> (cnv->suggestor)->hasKeyboardFocus (true))
                 {
                     hideEditor();
                 }
             };
 
-            editor->setSize(10, 10);
-            addAndMakeVisible(editor.get());
+            editor->setSize (10, 10);
+            addAndMakeVisible (editor.get());
 
-            editor->setText(currentText, false);
-            editor->addListener(this);
+            editor->setText (currentText, false);
+            editor->addListener (this);
 
-            if (editor == nullptr)  // may be deleted by a callback
+            if (editor == nullptr) // may be deleted by a callback
                 return;
 
-            editor->setHighlightedRegion(Range<int>(0, currentText.length()));
+            editor->setHighlightedRegion (Range<int> (0, currentText.length()));
 
             resized();
             repaint();

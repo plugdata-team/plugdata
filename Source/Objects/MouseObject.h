@@ -15,40 +15,40 @@ struct MouseObject final : public TextBase
         t_outlet* x_vertical;
     } t_mouse;
 
-    MouseObject(void* ptr, Box* box) : TextBase(ptr, box)
+    MouseObject (void* ptr, Box* box) : TextBase (ptr, box)
     {
-        Desktop::getInstance().addGlobalMouseListener(this);
+        Desktop::getInstance().addGlobalMouseListener (this);
     }
 
     ~MouseObject()
     {
-        Desktop::getInstance().removeGlobalMouseListener(this);
+        Desktop::getInstance().removeGlobalMouseListener (this);
     }
 
-    void mouseMove(const MouseEvent& e) override
+    void mouseMove (const MouseEvent& e) override
     {
         // Do this with a mouselistener?
         auto pos = Desktop::getInstance().getMousePosition();
 
-        if (Desktop::getInstance().getMouseSource(0)->isDragging())
+        if (Desktop::getInstance().getMouseSource (0)->isDragging())
         {
             t_atom args[1];
-            SETFLOAT(args, 0);
+            SETFLOAT (args, 0);
 
-            pd_typedmess((t_pd*)ptr, gensym("_up"), 1, args);
+            pd_typedmess ((t_pd*) ptr, gensym ("_up"), 1, args);
         }
         else
         {
             t_atom args[1];
-            SETFLOAT(args, 1);
+            SETFLOAT (args, 1);
 
-            pd_typedmess((t_pd*)ptr, gensym("_up"), 1, args);
+            pd_typedmess ((t_pd*) ptr, gensym ("_up"), 1, args);
         }
 
         t_atom args[2];
-        SETFLOAT(args, pos.x);
-        SETFLOAT(args + 1, pos.y);
+        SETFLOAT (args, pos.x);
+        SETFLOAT (args + 1, pos.y);
 
-        pd_typedmess((t_pd*)ptr, gensym("_getscreen"), 2, args);
+        pd_typedmess ((t_pd*) ptr, gensym ("_getscreen"), 2, args);
     }
 };

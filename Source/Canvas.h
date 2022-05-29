@@ -20,41 +20,41 @@ class Edge;
 class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
-   public:
-    Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
+public:
+    Canvas (PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
 
     PlugDataPluginEditor& main;
     PlugDataAudioProcessor* pd;
 
-    void paint(Graphics& g) override;
-    void paintOverChildren(Graphics&) override;
+    void paint (Graphics& g) override;
+    void paintOverChildren (Graphics&) override;
 
     void resized() override
     {
         repaint();
     }
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseMove(const MouseEvent& e) override;
+    void mouseDown (const MouseEvent& e) override;
+    void mouseDrag (const MouseEvent& e) override;
+    void mouseUp (const MouseEvent& e) override;
+    void mouseMove (const MouseEvent& e) override;
 
-    void synchronise(bool updatePosition = true);
+    void synchronise (bool updatePosition = true);
 
-    bool keyPressed(const KeyPress& key) override;
+    bool keyPressed (const KeyPress& key) override;
 
     void copySelection();
     void removeSelection();
     void pasteSelection();
     void duplicateSelection();
 
-    void valueChanged(Value& v) override;
+    void valueChanged (Value& v) override;
 
     void checkBounds();
 
-    void focusGained(FocusChangeType cause) override;
+    void focusGained (FocusChangeType cause) override;
 
     void undo();
     void redo();
@@ -62,21 +62,21 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     // Multi-dragger functions
     void deselectAll();
 
-    void setSelected(Component* component, bool shouldNowBeSelected);
-    bool isSelected(Component* component) const;
+    void setSelected (Component* component, bool shouldNowBeSelected);
+    bool isSelected (Component* component) const;
 
-    void handleMouseDown(Component* component, const MouseEvent& e);
-    void handleMouseUp(Component* component, const MouseEvent& e);
-    void handleMouseDrag(const MouseEvent& e);
+    void handleMouseDown (Component* component, const MouseEvent& e);
+    void handleMouseUp (Component* component, const MouseEvent& e);
+    void handleMouseDrag (const MouseEvent& e);
 
     SelectedItemSet<Component*>& getLassoSelection() override;
 
-    void removeSelectedComponent(Component* component);
-    void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
+    void removeSelectedComponent (Component* component);
+    void findLassoItemsInArea (Array<Component*>& itemsFound, const Rectangle<int>& area) override;
 
     void updateSidebarSelection();
 
-    void showSuggestions(Box* box, TextEditor* editor);
+    void showSuggestions (Box* box, TextEditor* editor);
     void hideSuggestions();
 
     template <typename T>
@@ -86,9 +86,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
         for (auto* obj : selectedComponents)
         {
-            if (auto* objOfType = dynamic_cast<T*>(obj))
+            if (auto* objOfType = dynamic_cast<T*> (obj))
             {
-                result.add(objOfType);
+                result.add (objOfType);
             }
         }
 
@@ -111,18 +111,18 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     Value locked;
     Value commandLocked;
     Value presentationMode;
-    Value gridEnabled = Value(var(true));
+    Value gridEnabled = Value (var (true));
 
     bool isGraph = false;
     bool hasParentCanvas = false;
-    bool updatingBounds = false;  // used by connection
+    bool updatingBounds = false; // used by connection
 
-    Value isGraphChild = Value(var(false));
-    Value hideNameAndArgs = Value(var(false));
+    Value isGraphChild = Value (var (false));
+    Value hideNameAndArgs = Value (var (false));
 
-    ObjectGrid grid = ObjectGrid(this);
+    ObjectGrid grid = ObjectGrid (this);
 
-    Point<int> canvasOrigin = {0, 0};
+    Point<int> canvasOrigin = { 0, 0 };
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
@@ -131,7 +131,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     bool attachNextObjectToMouse = false;
 
-   private:
+private:
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<Component*> lasso;
@@ -140,14 +140,14 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     // Multi-dragger variables
     const int minimumMovementToStartDrag = 10;
 
-    bool didStartDragging{false};
+    bool didStartDragging { false };
 
     SelectedItemSet<Component*> selectedComponents;
 
-    Box* componentBeingDragged{nullptr};
+    Box* componentBeingDragged { nullptr };
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
+    ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Canvas)
 };
