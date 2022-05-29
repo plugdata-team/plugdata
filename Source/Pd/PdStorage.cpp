@@ -10,9 +10,9 @@
 
 extern "C"
 {
-#include <g_canvas.h>
-#include <m_imp.h>
 #include <m_pd.h>
+#include <m_imp.h>
+#include <g_canvas.h>
 
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
