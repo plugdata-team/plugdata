@@ -20,7 +20,7 @@ using PathPlan = std::vector<Point<int>>;
 class Canvas;
 class Connection : public Component, public ComponentListener
 {
-   public:
+public:
     int inIdx;
     int outIdx;
 
@@ -30,44 +30,44 @@ class Connection : public Component, public ComponentListener
     Path toDraw;
     String lastId;
 
-    Connection(Canvas* parent, Edge* start, Edge* end, bool exists = false);
+    Connection (Canvas* parent, Edge* start, Edge* end, bool exists = false);
     ~Connection() override;
 
-    void paint(Graphics&) override;
+    void paint (Graphics&) override;
 
     bool isSegmented();
-    void setSegmented(bool segmented);
+    void setSegmented (bool segmented);
 
     void updatePath();
 
-    bool hitTest(int x, int y) override;
+    bool hitTest (int x, int y) override;
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseMove(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseExit(const MouseEvent& e) override;
+    void mouseDown (const MouseEvent& e) override;
+    void mouseMove (const MouseEvent& e) override;
+    void mouseDrag (const MouseEvent& e) override;
+    void mouseUp (const MouseEvent& e) override;
+    void mouseExit (const MouseEvent& e) override;
 
-    void reconnect(Edge* target, bool dragged);
+    void reconnect (Edge* target, bool dragged);
 
-    bool intersects(Rectangle<float> toCheck, int accuracy = 4) const;
-    int getClosestLineIdx(const Point<int>& position, const PathPlan& plan);
+    bool intersects (Rectangle<float> toCheck, int accuracy = 4) const;
+    int getClosestLineIdx (const Point<int>& position, const PathPlan& plan);
 
     String getId() const;
 
     String getState();
-    void setState(const String& block);
+    void setState (const String& block);
 
-    void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override;
+    void componentMovedOrResized (Component& component, bool wasMoved, bool wasResized) override;
 
     // Pathfinding
-    int findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
+    int findLatticePaths (PathPlan& bestPath, PathPlan& pathStack, Point<int> start, Point<int> end, Point<int> increment);
 
     void findPath();
 
-    bool straightLineIntersectsObject(Line<int> first);
+    bool straightLineIntersectsObject (Line<int> first);
 
-   private:
+private:
     bool wasSelected = false;
     bool deleteOnMouseUp = false;
     bool segmented = false;
@@ -87,5 +87,5 @@ class Connection : public Component, public ComponentListener
 
     float mouseDownPosition = 0;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Connection)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Connection)
 };

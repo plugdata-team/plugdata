@@ -26,14 +26,14 @@ struct ObjectBase : public Component
     Box* box;
     Canvas* cnv;
 
-    ObjectBase(void* obj, Box* parent);
+    ObjectBase (void* obj, Box* parent);
 
-    void paint(Graphics& g) override;
+    void paint (Graphics& g) override;
 
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
-    virtual void showEditor(){};
-    virtual void hideEditor(){};
+    virtual void showEditor() {};
+    virtual void hideEditor() {};
 
     // Called whenever any GUI object's value changes
     virtual void updateValue() = 0;
@@ -45,7 +45,7 @@ struct ObjectBase : public Component
     virtual void applyBounds() = 0;
 
     // Called whenever a drawable changes
-    virtual void updateDrawables(){};
+    virtual void updateDrawables() {};
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()
@@ -53,13 +53,13 @@ struct ObjectBase : public Component
         return false;
     }
 
-    virtual void setText(const String&){};
+    virtual void setText (const String&) {};
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
-    virtual void lock(bool isLocked)
+    virtual void lock (bool isLocked)
     {
-        setInterceptsMouseClicks(isLocked, isLocked);
+        setInterceptsMouseClicks (isLocked, isLocked);
     }
 
     void moveToFront();
@@ -90,39 +90,39 @@ struct ObjectBase : public Component
 // Class for non-patchable objects
 struct NonPatchable : public ObjectBase
 {
-    NonPatchable(void* obj, Box* parent);
+    NonPatchable (void* obj, Box* parent);
     ~NonPatchable();
 
-    virtual void updateValue(){};
-    virtual void updateBounds(){};
-    virtual void applyBounds(){};
+    virtual void updateValue() {};
+    virtual void updateBounds() {};
+    virtual void applyBounds() {};
 };
 
 struct GUIObject : public ObjectBase, public ComponentListener, public Value::Listener
 {
-    GUIObject(void* obj, Box* parent);
+    GUIObject (void* obj, Box* parent);
 
     ~GUIObject() override;
 
     void updateValue() override;
 
-    virtual void update(){};
+    virtual void update() {};
 
     virtual void initialise();
 
-    void componentMovedOrResized(Component& component, bool moved, bool resized) override;
+    void componentMovedOrResized (Component& component, bool moved, bool resized) override;
 
     String getName() const;
 
-    static ObjectBase* createGui(void* ptr, Box* parent);
+    static ObjectBase* createGui (void* ptr, Box* parent);
 
-    virtual void checkBounds(){};
+    virtual void checkBounds() {};
 
     // Get rid of this mess!!
     virtual ObjectParameters defineParameters();
     ObjectParameters getParameters() override;
 
-    virtual void updateLabel(){};
+    virtual void updateLabel() {};
 
     virtual float getValue()
     {
@@ -131,29 +131,29 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     float getValueOriginal() const noexcept;
 
-    void setValueOriginal(float v);
+    void setValueOriginal (float v);
 
     float getValueScaled() const noexcept;
 
-    void setValueScaled(float v);
+    void setValueScaled (float v);
 
     void startEdition() noexcept;
 
     void stopEdition() noexcept;
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
+    void mouseDown (const MouseEvent& e) override;
+    void mouseUp (const MouseEvent& e) override;
 
-    void valueChanged(Value& value) override{};
+    void valueChanged (Value& value) override {};
 
     Label* getLabel() override
     {
         return label.get();
     }
 
-    void setValue(float value) noexcept;
+    void setValue (float value) noexcept;
 
-   protected:
+protected:
     std::unique_ptr<Label> label;
 
     bool inspectorWasVisible = false;
@@ -164,8 +164,8 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     std::atomic<bool> edited;
     float value = 0;
-    Value min = Value(0.0f);
-    Value max = Value(0.0f);
+    Value min = Value (0.0f);
+    Value max = Value (0.0f);
 
     Value sendSymbol;
     Value receiveSymbol;
@@ -174,9 +174,9 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     Value secondaryColour;
     Value labelColour;
 
-    Value labelX = Value(0.0f);
-    Value labelY = Value(0.0f);
-    Value labelHeight = Value(18.0f);
+    Value labelX = Value (0.0f);
+    Value labelY = Value (0.0f);
+    Value labelHeight = Value (18.0f);
 
     Value labelText;
 };
