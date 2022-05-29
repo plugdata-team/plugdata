@@ -347,21 +347,25 @@ target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
 target_link_libraries(PlugData PRIVATE pd-multi ${libs})
 target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
 
+function(copy_result target buildtype)
+add_custom_command(TARGET ${target} POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}_artefacts/${CMAKE_BUILD_TYPE}/${buildtype}/
+    ${PLUGDATA_PLUGINS_LOCATION}/${buildtype}/
+    COMMENT "Copied ${buildtype} to ${PLUGDATA_PLUGINS_LOCATION}/${buildtype}/"
+)
+endfunction()
 
-set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-
-set_target_properties(PlugData PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugData PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-
-set_target_properties(PlugDataFx PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataFx PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+# copy build results
+copy_result(PlugData LV2)
+copy_result(PlugData VST3)
+copy_result(PlugDataFx VST3)
+copy_result(PlugDataStandalone Standalone)
 
 if(APPLE)
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+    copy_result(PlugData AU)
+    copy_result(PlugDataFx AU)
+    copy_result(PlugDataMidi AU)
 endif()
-
 
 if(RUN_CLANG_TIDY)
   find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" ) 
