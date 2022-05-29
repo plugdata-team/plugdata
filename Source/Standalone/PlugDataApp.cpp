@@ -220,7 +220,9 @@ void PlugDataWindow::closeButtonPressed()
                                                     checkCanvas(i);
                                                 }
                                             }
-                                            // last option: cancel, where we end the chain });
+                    // last option: cancel, where we end the chain
+                    
+                });
             }
             else if (! isLast)
             {
