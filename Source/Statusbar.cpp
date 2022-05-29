@@ -468,6 +468,8 @@ static bool hasRealEvents(MidiBuffer& buffer)
              return true;
          }
      }
+    
+    return false;
     /* Not supported by all compilers yet?
     return std::any_of(buffer.begin(), buffer.end(),
     [](const auto& m){
