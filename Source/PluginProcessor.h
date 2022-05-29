@@ -217,8 +217,9 @@ private:
             {
                 parameter = param;
                 parameter->beginChangeGesture();
-                startTimer (500);
             }
+            // Reset timer
+            startTimer (500);
         }
 
         void timerCallback() override
