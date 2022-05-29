@@ -13,16 +13,16 @@
 // Base classes for communication between parent and child classes
 struct DocumentBrowserViewBase : public TreeView, public DirectoryContentsDisplayComponent
 {
-    DocumentBrowserViewBase (DirectoryContentsList& listToShow) : DirectoryContentsDisplayComponent (listToShow) {};
+    DocumentBrowserViewBase(DirectoryContentsList& listToShow) : DirectoryContentsDisplayComponent(listToShow){};
 };
 
 struct DocumentBrowserBase : public Component
 {
-    DocumentBrowserBase (PlugDataAudioProcessor* processor)
-        : pd (processor),
-          filter ("*.pd", "*", "pure-data files"),
-          updateThread ("browserThread"),
-          directory (&filter, updateThread) {
+    DocumentBrowserBase(PlugDataAudioProcessor* processor)
+        : pd(processor),
+          filter("*.pd", "*", "pure-data files"),
+          updateThread("browserThread"),
+          directory(&filter, updateThread){
 
           };
 
@@ -37,14 +37,14 @@ struct DocumentBrowserBase : public Component
 //==============================================================================
 class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private ChangeListener
 {
-public:
-    DocumentBrowserItem (DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, const File& f) : file (f), owner (treeComp), parentContentsList (parentContents), indexInContentsList (indexInContents), subContentsList (nullptr, false)
+   public:
+    DocumentBrowserItem(DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, const File& f) : file(f), owner(treeComp), parentContentsList(parentContents), indexInContentsList(indexInContents), subContentsList(nullptr, false)
     {
         DirectoryContentsList::FileInfo fileInfo;
 
-        if (parentContents != nullptr && parentContents->getFileInfo (indexInContents, fileInfo))
+        if (parentContents != nullptr && parentContents->getFileInfo(indexInContents, fileInfo))
         {
-            fileSize = File::descriptionOfSizeInBytes (fileInfo.fileSize);
+            fileSize = File::descriptionOfSizeInBytes(fileInfo.fileSize);
             isDirectory = fileInfo.isDirectory;
         }
         else
@@ -59,12 +59,12 @@ public:
         removeSubContentsList();
     }
 
-    void paintOpenCloseButton (Graphics& g, const Rectangle<float>& area, Colour backgroundColour, bool isMouseOver) override
+    void paintOpenCloseButton(Graphics& g, const Rectangle<float>& area, Colour backgroundColour, bool isMouseOver) override
     {
         Path p;
-        p.addTriangle (0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
-        g.setColour (isSelected() ? Colours::white : getOwnerView()->findColour (PlugDataColour::textColourId).withAlpha (isMouseOver ? 0.7f : 1.0f));
-        g.fillPath (p, p.getTransformToScaleToFit (area.reduced (2, area.getHeight() / 4), true));
+        p.addTriangle(0.0f, 0.0f, 1.0f, isOpen() ? 0.0f : 0.5f, isOpen() ? 0.5f : 0.0f, 1.0f);
+        g.setColour(isSelected() ? Colours::white : getOwnerView()->findColour(PlugDataColour::textColourId).withAlpha(isMouseOver ? 0.7f : 1.0f));
+        g.fillPath(p, p.getTransformToScaleToFit(area.reduced(2, area.getHeight() / 4), true));
     }
 
     //==============================================================================
@@ -85,7 +85,7 @@ public:
         return String();
     }
 
-    void itemOpennessChanged (bool isNowOpen) override
+    void itemOpennessChanged(bool isNowOpen) override
     {
         if (isNowOpen)
         {
@@ -97,14 +97,14 @@ public:
             {
                 if (subContentsList == nullptr && parentContentsList != nullptr)
                 {
-                    auto l = new DirectoryContentsList (parentContentsList->getFilter(), parentContentsList->getTimeSliceThread());
+                    auto l = new DirectoryContentsList(parentContentsList->getFilter(), parentContentsList->getTimeSliceThread());
 
-                    l->setDirectory (file, parentContentsList->isFindingDirectories(), parentContentsList->isFindingFiles());
+                    l->setDirectory(file, parentContentsList->isFindingDirectories(), parentContentsList->isFindingFiles());
 
-                    setSubContentsList (l, true);
+                    setSubContentsList(l, true);
                 }
 
-                changeListenerCallback (nullptr);
+                changeListenerCallback(nullptr);
             }
         }
     }
@@ -113,20 +113,20 @@ public:
     {
         if (subContentsList != nullptr)
         {
-            subContentsList->removeChangeListener (this);
+            subContentsList->removeChangeListener(this);
             subContentsList.reset();
         }
     }
 
-    void setSubContentsList (DirectoryContentsList* newList, const bool canDeleteList)
+    void setSubContentsList(DirectoryContentsList* newList, const bool canDeleteList)
     {
         removeSubContentsList();
 
-        subContentsList = OptionalScopedPointer<DirectoryContentsList> (newList, canDeleteList);
-        newList->addChangeListener (this);
+        subContentsList = OptionalScopedPointer<DirectoryContentsList>(newList, canDeleteList);
+        newList->addChangeListener(this);
     }
 
-    void changeListenerCallback (ChangeBroadcaster*) override
+    void changeListenerCallback(ChangeBroadcaster*) override
     {
         rebuildItemsFromContentList();
     }
@@ -141,45 +141,45 @@ public:
             // Sort by folders first
             for (int i = 0; i < subContentsList->getNumFiles(); ++i)
             {
-                if (subContentsList->getFile (i).isDirectory())
+                if (subContentsList->getFile(i).isDirectory())
                 {
-                    addSubItem (new DocumentBrowserItem (owner, subContentsList, i, idx, subContentsList->getFile (i)));
+                    addSubItem(new DocumentBrowserItem(owner, subContentsList, i, idx, subContentsList->getFile(i)));
                     idx++;
                 }
             }
             for (int i = 0; i < subContentsList->getNumFiles(); ++i)
             {
-                if (subContentsList->getFile (i).existsAsFile())
+                if (subContentsList->getFile(i).existsAsFile())
                 {
-                    addSubItem (new DocumentBrowserItem (owner, subContentsList, i, idx, subContentsList->getFile (i)));
+                    addSubItem(new DocumentBrowserItem(owner, subContentsList, i, idx, subContentsList->getFile(i)));
                     idx++;
                 }
             }
         }
     }
 
-    void paintItem (Graphics& g, int width, int height) override
+    void paintItem(Graphics& g, int width, int height) override
     {
         const int x = 32;
 
         if (isSelected())
-            g.setColour (owner.findColour (DirectoryContentsDisplayComponent::highlightedTextColourId));
+            g.setColour(owner.findColour(DirectoryContentsDisplayComponent::highlightedTextColourId));
         else
-            g.setColour (owner.findColour (DirectoryContentsDisplayComponent::textColourId));
+            g.setColour(owner.findColour(DirectoryContentsDisplayComponent::textColourId));
 
-        g.setFont (dynamic_cast<PlugDataLook*> (&owner.getLookAndFeel())->iconFont);
+        g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
 
         if (isDirectory)
         {
-            g.drawFittedText (Icons::Folder, Rectangle<int> (2, 2, x - 4, height - 4), Justification::centred, 1);
+            g.drawFittedText(Icons::Folder, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
         }
         else
         {
-            g.drawFittedText (Icons::File, Rectangle<int> (2, 2, x - 4, height - 4), Justification::centred, 1);
+            g.drawFittedText(Icons::File, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
         }
 
-        g.setFont (Font());
-        g.drawFittedText (file.getFileName(), x, 0, width - x, height, Justification::centredLeft, 1);
+        g.setFont(Font());
+        g.drawFittedText(file.getFileName(), x, 0, width - x, height, Justification::centredLeft, 1);
     }
 
     String getAccessibilityName() override
@@ -187,29 +187,28 @@ public:
         return file.getFileName();
     }
 
-    bool selectFile (const File& target)
+    bool selectFile(const File& target)
     {
         if (file == target)
         {
-            setSelected (true, true);
+            setSelected(true, true);
             return true;
         }
 
-        if (target.isAChildOf (file))
+        if (target.isAChildOf(file))
         {
-            setOpen (true);
+            setOpen(true);
 
             for (int maxRetries = 500; --maxRetries > 0;)
             {
                 for (int i = 0; i < getNumSubItems(); ++i)
-                    if (auto* f = dynamic_cast<DocumentBrowserItem*> (getSubItem (i)))
-                        if (f->selectFile (target))
-                            return true;
+                    if (auto* f = dynamic_cast<DocumentBrowserItem*>(getSubItem(i)))
+                        if (f->selectFile(target)) return true;
 
                 // if we've just opened and the contents are still loading, wait for it..
                 if (subContentsList != nullptr && subContentsList->isStillLoading())
                 {
-                    Thread::sleep (10);
+                    Thread::sleep(10);
                     rebuildItemsFromContentList();
                 }
                 else
@@ -222,19 +221,19 @@ public:
         return false;
     }
 
-    void itemClicked (const MouseEvent& e) override
+    void itemClicked(const MouseEvent& e) override
     {
-        owner.sendMouseClickMessage (file, e);
+        owner.sendMouseClickMessage(file, e);
     }
 
-    void itemDoubleClicked (const MouseEvent& e) override
+    void itemDoubleClicked(const MouseEvent& e) override
     {
-        TreeViewItem::itemDoubleClicked (e);
+        TreeViewItem::itemDoubleClicked(e);
 
-        owner.sendDoubleClickMessage (file);
+        owner.sendDoubleClickMessage(file);
     }
 
-    void itemSelectionChanged (bool) override
+    void itemSelectionChanged(bool) override
     {
         owner.sendSelectionChangeMessage();
     }
@@ -246,7 +245,7 @@ public:
 
     const File file;
 
-private:
+   private:
     DocumentBrowserViewBase& owner;
     DirectoryContentsList* parentContentsList;
     int indexInContentsList;
@@ -254,21 +253,21 @@ private:
     bool isDirectory;
     String fileSize;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DocumentBrowserItem)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserItem)
 };
 
 class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserListener, public ScrollBar::Listener
 {
-public:
+   public:
     //==============================================================================
     /** Creates a listbox to show the contents of a specified directory.
      */
-    DocumentBrowserView (DirectoryContentsList& listToShow, DocumentBrowserBase* parent) : DocumentBrowserViewBase (listToShow), itemHeight (24), browser (parent)
+    DocumentBrowserView(DirectoryContentsList& listToShow, DocumentBrowserBase* parent) : DocumentBrowserViewBase(listToShow), itemHeight(24), browser(parent)
     {
-        setRootItemVisible (false);
+        setRootItemVisible(false);
         refresh();
-        addListener (this);
-        getViewport()->getVerticalScrollBar().addListener (this);
+        addListener(this);
+        getViewport()->getVerticalScrollBar().addListener(this);
     }
 
     /** Destructor. */
@@ -280,15 +279,14 @@ public:
     /** Scrolls this view to the top. */
     void scrollToTop() override
     {
-        getViewport()->getVerticalScrollBar().setCurrentRangeStart (0);
+        getViewport()->getVerticalScrollBar().setCurrentRangeStart(0);
     }
     /** If the specified file is in the list, it will become the only selected item
         (and if the file isn't in the list, all other items will be deselected). */
-    void setSelectedFile (const File& target) override
+    void setSelectedFile(const File& target) override
     {
-        if (auto* t = dynamic_cast<DocumentBrowserItem*> (getRootItem()))
-            if (! t->selectFile (target))
-                clearSelectedItems();
+        if (auto* t = dynamic_cast<DocumentBrowserItem*>(getRootItem()))
+            if (!t->selectFile(target)) clearSelectedItems();
     }
 
     //==============================================================================
@@ -304,10 +302,9 @@ public:
         The index should be in the range 0 to (getNumSelectedFiles() - 1).
         @see getNumSelectedFiles
     */
-    File getSelectedFile (int index = 0) const override
+    File getSelectedFile(int index = 0) const override
     {
-        if (auto* item = dynamic_cast<const DocumentBrowserItem*> (getSelectedItem (index)))
-            return item->file;
+        if (auto* item = dynamic_cast<const DocumentBrowserItem*>(getSelectedItem(index))) return item->file;
 
         return {};
     }
@@ -322,51 +319,51 @@ public:
     void refresh()
     {
         // Mouse events during update can cause a crash!
-        setEnabled (false);
+        setEnabled(false);
 
         // Prevents crash!
-        setRootItemVisible (false);
+        setRootItemVisible(false);
 
         deleteRootItem();
 
-        auto root = new DocumentBrowserItem (*this, nullptr, 0, 0, directoryContentsList.getDirectory());
+        auto root = new DocumentBrowserItem(*this, nullptr, 0, 0, directoryContentsList.getDirectory());
 
-        root->setSubContentsList (&directoryContentsList, false);
-        setRootItem (root);
+        root->setSubContentsList(&directoryContentsList, false);
+        setRootItem(root);
 
-        setInterceptsMouseClicks (true, true);
-        setEnabled (true);
+        setInterceptsMouseClicks(true, true);
+        setEnabled(true);
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
         int selectedIdx = -1;
 
         // Paint selected row
         if (getNumSelectedFiles())
         {
-            selectedIdx = getSelectedItem (0)->getRowNumberInTree();
+            selectedIdx = getSelectedItem(0)->getRowNumberInTree();
         }
 
-        PlugDataLook::paintStripes (g, 24, getViewport()->getHeight(), *this, selectedIdx, getViewport()->getViewPositionY());
+        PlugDataLook::paintStripes(g, 24, getViewport()->getHeight(), *this, selectedIdx, getViewport()->getViewPositionY());
     }
     // Paint file drop outline
-    void paintOverChildren (Graphics& g) override
+    void paintOverChildren(Graphics& g) override
     {
         if (isDraggingFile)
         {
-            g.setColour (findColour (PlugDataColour::highlightColourId));
-            g.drawRect (getLocalBounds().reduced (1), 2.0f);
+            g.setColour(findColour(PlugDataColour::highlightColourId));
+            g.drawRect(getLocalBounds().reduced(1), 2.0f);
         }
     }
 
-    void scrollBarMoved (ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
+    void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
     {
         repaint();
     }
 
     /** Callback when the user double-clicks on a file in the browser. */
-    void fileDoubleClicked (const File& file) override
+    void fileDoubleClicked(const File& file) override
     {
         if (file.isDirectory())
         {
@@ -374,20 +371,19 @@ public:
         }
         else if (file.existsAsFile())
         {
-            browser->pd->loadPatch (file);
+            browser->pd->loadPatch(file);
         }
     }
     void selectionChanged() override
     {
         browser->repaint();
     };
-    void fileClicked (const File&, const MouseEvent&) override {};
-    void browserRootChanged (const File&) override {};
+    void fileClicked(const File&, const MouseEvent&) override{};
+    void browserRootChanged(const File&) override{};
 
-    bool isInterestedInFileDrag (const StringArray& files) override
+    bool isInterestedInFileDrag(const StringArray& files) override
     {
-        if (! browser->isVisible())
-            return false;
+        if (!browser->isVisible()) return false;
 
         if (browser->isSearching())
         {
@@ -396,8 +392,8 @@ public:
 
         for (auto& path : files)
         {
-            auto file = File (path);
-            if (file.exists() && (file.isDirectory() || file.hasFileExtension ("pd")))
+            auto file = File(path);
+            if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd")))
             {
                 return true;
             }
@@ -406,19 +402,18 @@ public:
         return false;
     }
 
-    void filesDropped (const StringArray& files, int x, int y) override
+    void filesDropped(const StringArray& files, int x, int y) override
     {
         for (auto& path : files)
         {
-            auto file = File (path);
+            auto file = File(path);
 
-            if (file.exists() && (file.isDirectory() || file.hasFileExtension ("pd")))
+            if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd")))
             {
-                auto alias = browser->directory.getDirectory().getChildFile (file.getFileName());
+                auto alias = browser->directory.getDirectory().getChildFile(file.getFileName());
 
-                if (alias.exists())
-                    alias.deleteFile();
-                File::createSymbolicLink (alias, file.getFullPathName(), false);
+                if (alias.exists()) alias.deleteFile();
+                File::createSymbolicLink(alias, file.getFullPathName(), false);
             }
         }
 
@@ -428,19 +423,19 @@ public:
         repaint();
     }
 
-    void fileDragEnter (const StringArray&, int, int) override
+    void fileDragEnter(const StringArray&, int, int) override
     {
         isDraggingFile = true;
         repaint();
     }
 
-    void fileDragExit (const StringArray&) override
+    void fileDragExit(const StringArray&) override
     {
         isDraggingFile = false;
         repaint();
     }
 
-private:
+   private:
     //==============================================================================
 
     DocumentBrowserBase* browser;
@@ -448,115 +443,115 @@ private:
 
     int itemHeight;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (DocumentBrowserView)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(DocumentBrowserView)
 };
 
 class FileSearchComponent : public Component, public ListBoxModel, public ScrollBar::Listener
 {
-public:
-    FileSearchComponent (DirectoryContentsList& directory) : searchPath (directory)
+   public:
+    FileSearchComponent(DirectoryContentsList& directory) : searchPath(directory)
     {
-        listBox.setModel (this);
-        listBox.setRowHeight (24);
-        listBox.setOutlineThickness (0);
+        listBox.setModel(this);
+        listBox.setRowHeight(24);
+        listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
 
-        listBox.getViewport()->setScrollBarsShown (true, false, false, false);
+        listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.setName ("sidebar::searcheditor");
+        input.setName("sidebar::searcheditor");
 
         input.onTextChange = [this]()
         {
             bool notEmpty = input.getText().isNotEmpty();
             if (listBox.isVisible() != notEmpty)
             {
-                listBox.setVisible (notEmpty);
+                listBox.setVisible(notEmpty);
                 getParentComponent()->repaint();
             }
 
-            setInterceptsMouseClicks (notEmpty, true);
-            updateResults (input.getText());
+            setInterceptsMouseClicks(notEmpty, true);
+            updateResults(input.getText());
         };
 
-        closeButton.setName ("statusbar:clearsearch");
+        closeButton.setName("statusbar:clearsearch");
         closeButton.onClick = [this]()
         {
             input.clear();
             input.giveAwayKeyboardFocus();
-            listBox.setVisible (false);
-            setInterceptsMouseClicks (false, true);
+            listBox.setVisible(false);
+            setInterceptsMouseClicks(false, true);
             input.repaint();
         };
 
-        closeButton.setAlwaysOnTop (true);
+        closeButton.setAlwaysOnTop(true);
 
-        addAndMakeVisible (closeButton);
-        addAndMakeVisible (listBox);
-        addAndMakeVisible (input);
+        addAndMakeVisible(closeButton);
+        addAndMakeVisible(listBox);
+        addAndMakeVisible(input);
 
-        listBox.addMouseListener (this, true);
-        listBox.setVisible (false);
+        listBox.addMouseListener(this, true);
+        listBox.setVisible(false);
 
-        input.setJustification (Justification::centredLeft);
-        input.setBorder ({ 1, 23, 3, 1 });
+        input.setJustification(Justification::centredLeft);
+        input.setBorder({1, 23, 3, 1});
 
-        listBox.setColour (ListBox::backgroundColourId, Colours::transparentBlack);
+        listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
-        listBox.getViewport()->getVerticalScrollBar().addListener (this);
+        listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
-        setInterceptsMouseClicks (false, true);
+        setInterceptsMouseClicks(false, true);
     }
 
-    void mouseDoubleClick (const MouseEvent& e) override
+    void mouseDoubleClick(const MouseEvent& e) override
     {
         int row = listBox.getSelectedRow();
 
-        if (isPositiveAndBelow (row, searchResult.size()))
+        if (isPositiveAndBelow(row, searchResult.size()))
         {
-            if (listBox.getRowPosition (row, true).contains (e.getEventRelativeTo (&listBox).getPosition()))
+            if (listBox.getRowPosition(row, true).contains(e.getEventRelativeTo(&listBox).getPosition()))
             {
-                openFile (searchResult.getReference (row));
+                openFile(searchResult.getReference(row));
             }
         }
     }
 
-    void scrollBarMoved (ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
+    void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
     {
         repaint();
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
         if (listBox.isVisible())
         {
-            PlugDataLook::paintStripes (g, 24, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() - 4);
+            PlugDataLook::paintStripes(g, 24, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() - 4);
         }
     }
 
-    void paintOverChildren (Graphics& g) override
+    void paintOverChildren(Graphics& g) override
     {
-        g.setFont (getLookAndFeel().getTextButtonFont (closeButton, 30));
-        g.setColour (findColour (PlugDataColour::textColourId));
+        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 30));
+        g.setColour(findColour(PlugDataColour::textColourId));
 
-        g.drawText (Icons::Search, 0, 0, 30, 30, Justification::centred);
+        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
     }
 
-    void paintListBoxItem (int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
+    void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
     {
         if (rowIsSelected)
         {
-            g.setColour (findColour (PlugDataColour::highlightColourId));
-            g.fillRect (1, 0, w - 3, h);
+            g.setColour(findColour(PlugDataColour::highlightColourId));
+            g.fillRect(1, 0, w - 3, h);
         }
 
-        g.setColour (rowIsSelected ? Colours::white : findColour (ComboBox::textColourId));
+        g.setColour(rowIsSelected ? Colours::white : findColour(ComboBox::textColourId));
         const String item = searchResult[rowNumber].getFileName();
 
-        g.setFont (Font());
-        g.drawText (item, 24, 0, w - 4, h, Justification::centredLeft, true);
+        g.setFont(Font());
+        g.drawText(item, 24, 0, w - 4, h, Justification::centredLeft, true);
 
-        g.setFont (getLookAndFeel().getTextButtonFont (closeButton, 23));
-        g.drawText (Icons::File, 8, 2, 24, 24, Justification::centredLeft);
+        g.setFont(getLookAndFeel().getTextButtonFont(closeButton, 23));
+        g.drawText(Icons::File, 8, 2, 24, 24, Justification::centredLeft);
     }
 
     int getNumRows() override
@@ -564,7 +559,7 @@ public:
         return searchResult.size();
     }
 
-    Component* refreshComponentForRow (int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
+    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
         return nullptr;
@@ -575,58 +570,55 @@ public:
         searchResult.clear();
     }
 
-    void updateResults (String query)
+    void updateResults(String query)
     {
         clearSearchResults();
 
-        if (query.isEmpty())
-            return;
+        if (query.isEmpty()) return;
 
-        auto addFile = [this, &query] (const File& file)
+        auto addFile = [this, &query](const File& file)
         {
             auto fileName = file.getFileName();
 
-            if (! file.hasFileExtension ("pd"))
-                return;
+            if (!file.hasFileExtension("pd")) return;
 
             // Insert in front if the query matches a whole word
-            if (fileName.containsWholeWordIgnoreCase (query))
+            if (fileName.containsWholeWordIgnoreCase(query))
             {
-                searchResult.insert (0, file);
+                searchResult.insert(0, file);
             }
             // Insert in back if it contains the query
-            else if (fileName.containsIgnoreCase (query))
+            else if (fileName.containsIgnoreCase(query))
             {
-                searchResult.add (file);
+                searchResult.add(file);
             }
         };
 
         for (int i = 0; i < searchPath.getNumFiles(); i++)
         {
-            auto file = searchPath.getFile (i);
+            auto file = searchPath.getFile(i);
 
             if (file.isDirectory())
             {
-                for (auto& child : RangedDirectoryIterator (file, true))
+                for (auto& child : RangedDirectoryIterator(file, true))
                 {
-                    addFile (child.getFile());
+                    addFile(child.getFile());
                 }
             }
             else
             {
-                addFile (file);
+                addFile(file);
             }
         }
 
         listBox.updateContent();
 
-        if (listBox.getSelectedRow() == -1)
-            listBox.selectRow (0, true, true);
+        if (listBox.getSelectedRow() == -1) listBox.selectRow(0, true, true);
     }
 
     bool hasSelection()
     {
-        return listBox.isVisible() && isPositiveAndBelow (listBox.getSelectedRow(), searchResult.size());
+        return listBox.isVisible() && isPositiveAndBelow(listBox.getSelectedRow(), searchResult.size());
     }
     bool isSearching()
     {
@@ -637,7 +629,7 @@ public:
     {
         int row = listBox.getSelectedRow();
 
-        if (isPositiveAndBelow (row, searchResult.size()))
+        if (isPositiveAndBelow(row, searchResult.size()))
         {
             return searchResult[row];
         }
@@ -648,62 +640,62 @@ public:
     void resized() override
     {
         auto tableBounds = getLocalBounds();
-        auto inputBounds = tableBounds.removeFromTop (28);
+        auto inputBounds = tableBounds.removeFromTop(28);
 
-        input.setBounds (inputBounds);
+        input.setBounds(inputBounds);
 
-        closeButton.setBounds (inputBounds.removeFromRight (30));
+        closeButton.setBounds(inputBounds.removeFromRight(30));
 
-        tableBounds.removeFromLeft (Sidebar::dragbarWidth);
-        listBox.setBounds (tableBounds);
+        tableBounds.removeFromLeft(Sidebar::dragbarWidth);
+        listBox.setBounds(tableBounds);
     }
 
-    std::function<void (File&)> openFile;
+    std::function<void(File&)> openFile;
 
-private:
+   private:
     ListBox listBox;
 
     DirectoryContentsList& searchPath;
     Array<File> searchResult;
     TextEditor input;
-    TextButton closeButton = TextButton (Icons::Clear);
+    TextButton closeButton = TextButton(Icons::Clear);
 };
 
 struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::Listener
 {
-    DocumentBrowser (PlugDataAudioProcessor* processor) : DocumentBrowserBase (processor), fileList (directory, this), searchComponent (directory)
+    DocumentBrowser(PlugDataAudioProcessor* processor) : DocumentBrowserBase(processor), fileList(directory, this), searchComponent(directory)
     {
-        auto location = File::getSpecialLocation (File::SpecialLocationType::userApplicationDataDirectory).getChildFile ("PlugData").getChildFile ("Library");
+        auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
-        if (pd->settingsTree.hasProperty ("BrowserPath"))
+        if (pd->settingsTree.hasProperty("BrowserPath"))
         {
-            auto customLocation = File (pd->settingsTree.getProperty ("BrowserPath"));
+            auto customLocation = File(pd->settingsTree.getProperty("BrowserPath"));
             if (customLocation.exists())
             {
                 location = customLocation;
             }
         }
 
-        watcher.addFolder (location);
-        directory.setDirectory (location, true, true);
+        watcher.addFolder(location);
+        directory.setDirectory(location, true, true);
 
         updateThread.startThread();
 
-        addAndMakeVisible (fileList);
+        addAndMakeVisible(fileList);
 
-        watcher.addListener (this);
+        watcher.addListener(this);
 
-        searchComponent.openFile = [this] (File& file)
+        searchComponent.openFile = [this](File& file)
         {
             if (file.existsAsFile())
             {
-                pd->loadPatch (file);
+                pd->loadPatch(file);
             }
         };
 
-        revealButton.setName ("statusbar:reveal");
-        loadFolderButton.setName ("statusbar:browserpathopen");
-        resetFolderButton.setName ("statusbar:browserpathreset");
+        revealButton.setName("statusbar:reveal");
+        loadFolderButton.setName("statusbar:browserpathopen");
+        resetFolderButton.setName("statusbar:browserpathreset");
 
 #if JUCE_MAC
         String revealTip = "Show in Finder";
@@ -713,39 +705,39 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
         String revealTip = "Show in file browser";
 #endif
 
-        revealButton.setTooltip (revealTip);
-        addAndMakeVisible (revealButton);
+        revealButton.setTooltip(revealTip);
+        addAndMakeVisible(revealButton);
 
-        loadFolderButton.setTooltip ("Choose location to show");
-        addAndMakeVisible (loadFolderButton);
+        loadFolderButton.setTooltip("Choose location to show");
+        addAndMakeVisible(loadFolderButton);
 
-        resetFolderButton.setTooltip ("Reset to default location");
-        addAndMakeVisible (resetFolderButton);
+        resetFolderButton.setTooltip("Reset to default location");
+        addAndMakeVisible(resetFolderButton);
 
         loadFolderButton.onClick = [this]()
         {
-            openChooser = std::make_unique<FileChooser> ("Open...", directory.getDirectory().getFullPathName(), "", true);
+            openChooser = std::make_unique<FileChooser>("Open...", directory.getDirectory().getFullPathName(), "", true);
 
-            openChooser->launchAsync (FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
-                                      [this] (FileChooser const& fileChooser)
-                                      {
-                                          auto const file = fileChooser.getResult();
-                                          if (file.exists())
-                                          {
-                                              auto path = file.getFullPathName();
-                                              pd->settingsTree.setProperty ("BrowserPath", path, nullptr);
-                                              directory.setDirectory (path, true, true);
-                                              watcher.addFolder (file);
-                                          }
-                                      });
+            openChooser->launchAsync(FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories,
+                                     [this](FileChooser const& fileChooser)
+                                     {
+                                         auto const file = fileChooser.getResult();
+                                         if (file.exists())
+                                         {
+                                             auto path = file.getFullPathName();
+                                             pd->settingsTree.setProperty("BrowserPath", path, nullptr);
+                                             directory.setDirectory(path, true, true);
+                                             watcher.addFolder(file);
+                                         }
+                                     });
         };
 
         resetFolderButton.onClick = [this]()
         {
-            auto location = File::getSpecialLocation (File::SpecialLocationType::userApplicationDataDirectory).getChildFile ("PlugData");
+            auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
             auto path = location.getFullPathName();
-            pd->settingsTree.setProperty ("BrowserPath", path, nullptr);
-            directory.setDirectory (path, true, true);
+            pd->settingsTree.setProperty("BrowserPath", path, nullptr);
+            directory.setDirectory(path, true, true);
         };
 
         revealButton.onClick = [this]()
@@ -760,15 +752,14 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
             }
         };
 
-        addAndMakeVisible (searchComponent);
+        addAndMakeVisible(searchComponent);
 
-        if (! fileList.getSelectedFile().exists())
-            fileList.moveSelectedRow (1);
+        if (!fileList.getSelectedFile().exists()) fileList.moveSelectedRow(1);
     }
 
     ~DocumentBrowser()
     {
-        updateThread.stopThread (1000);
+        updateThread.stopThread(1000);
     }
 
     // Called when folder changes
@@ -783,62 +774,61 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
         return searchComponent.isSearching();
     }
 
-    bool hitTest (int x, int y) override
+    bool hitTest(int x, int y) override
     {
-        if (x < 5)
-            return false;
+        if (x < 5) return false;
 
         return true;
     }
 
     void resized() override
     {
-        searchComponent.setBounds (getLocalBounds().withHeight (getHeight() - 28));
-        fileList.setBounds (getLocalBounds().withHeight (getHeight() - 58).withY (28).withLeft (5));
+        searchComponent.setBounds(getLocalBounds().withHeight(getHeight() - 28));
+        fileList.setBounds(getLocalBounds().withHeight(getHeight() - 58).withY(28).withLeft(5));
 
-        auto fb = FlexBox (FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
+        auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
-        Array<TextButton*> buttons = { &revealButton, &loadFolderButton, &resetFolderButton };
+        Array<TextButton*> buttons = {&revealButton, &loadFolderButton, &resetFolderButton};
 
         for (auto* b : buttons)
         {
-            auto item = FlexItem (*b).withMinWidth (8.0f).withMinHeight (8.0f).withMaxHeight (27);
+            auto item = FlexItem(*b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
             item.flexGrow = 1.0f;
             item.flexShrink = 1.0f;
-            fb.items.add (item);
+            fb.items.add(item);
         }
 
         auto bounds = getLocalBounds().toFloat();
 
-        fb.performLayout (bounds.removeFromBottom (28));
+        fb.performLayout(bounds.removeFromBottom(28));
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
-        g.fillAll (findColour (PlugDataColour::toolbarColourId));
+        g.fillAll(findColour(PlugDataColour::toolbarColourId));
     }
 
-    void paintOverChildren (Graphics& g) override
+    void paintOverChildren(Graphics& g) override
     {
         // Draggable bar
-        g.setColour (findColour (PlugDataColour::toolbarColourId));
-        g.fillRect (0, 28, Sidebar::dragbarWidth + 1, getHeight());
+        g.setColour(findColour(PlugDataColour::toolbarColourId));
+        g.fillRect(0, 28, Sidebar::dragbarWidth + 1, getHeight());
 
-        g.setColour (findColour (PlugDataColour::toolbarOutlineColourId));
-        g.drawLine (0.5f, 0, 0.5f, getHeight() - 27.5f);
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(0.5f, 0, 0.5f, getHeight() - 27.5f);
 
-        g.setColour (findColour (PlugDataColour::toolbarOutlineColourId));
-        g.drawLine (0, 28, getWidth(), 28);
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(0, 28, getWidth(), 28);
     }
 
-private:
-    TextButton revealButton = TextButton (Icons::OpenedFolder);
-    TextButton loadFolderButton = TextButton (Icons::Folder);
-    TextButton resetFolderButton = TextButton (Icons::Restore);
+   private:
+    TextButton revealButton = TextButton(Icons::OpenedFolder);
+    TextButton loadFolderButton = TextButton(Icons::Folder);
+    TextButton resetFolderButton = TextButton(Icons::Restore);
 
     std::unique_ptr<FileChooser> openChooser;
 
-public:
+   public:
     DocumentBrowserView fileList;
     FileSearchComponent searchComponent;
     FileSystemWatcher watcher;

@@ -66,15 +66,15 @@ enum CommandIDs
 
 struct TabComponent : public TabbedComponent
 {
-    std::function<void (int)> onTabChange = [] (int) {};
+    std::function<void(int)> onTabChange = [](int) {};
 
-    TabComponent() : TabbedComponent (TabbedButtonBar::TabsAtTop)
+    TabComponent() : TabbedComponent(TabbedButtonBar::TabsAtTop)
     {
     }
 
-    void currentTabChanged (int newCurrentTabIndex, const String& newCurrentTabName) override
+    void currentTabChanged(int newCurrentTabIndex, const String& newCurrentTabName) override
     {
-        onTabChange (newCurrentTabIndex);
+        onTabChange(newCurrentTabIndex);
     }
 };
 
@@ -82,52 +82,52 @@ class Canvas;
 class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager, public Timer
 {
-public:
-    explicit PlugDataPluginEditor (PlugDataAudioProcessor&);
+   public:
+    explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
 
     ~PlugDataPluginEditor() override;
     void showNewObjectMenu();
 
-    void paint (Graphics& g) override;
-    void paintOverChildren (Graphics& g) override;
+    void paint(Graphics& g) override;
+    void paintOverChildren(Graphics& g) override;
 
     void resized() override;
 
-    void mouseWheelMove (const MouseEvent& e, const MouseWheelDetails& wheel) override;
-    void mouseMagnify (const MouseEvent& e, float scaleFactor) override;
+    void mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel) override;
+    void mouseMagnify(const MouseEvent& e, float scaleFactor) override;
 
 #ifdef PLUGDATA_STANDALONE
     // For dragging parent window
-    void mouseDrag (const MouseEvent& e) override;
-    void mouseDown (const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
+    void mouseDown(const MouseEvent& e) override;
 
     ComponentDragger windowDragger;
 #endif
 
     void openProject();
-    void saveProject (const std::function<void()>& nestedCallback = []() {});
-    void saveProjectAs (const std::function<void()>& nestedCallback = []() {});
+    void saveProject(const std::function<void()>& nestedCallback = []() {});
+    void saveProjectAs(const std::function<void()>& nestedCallback = []() {});
 
-    void addTab (Canvas* cnv, bool deleteWhenClosed = false);
+    void addTab(Canvas* cnv, bool deleteWhenClosed = false);
 
     Canvas* getCurrentCanvas();
-    Canvas* getCanvas (int idx);
+    Canvas* getCanvas(int idx);
 
     void updateValues();
     void updateDrawables();
 
-    void valueChanged (Value& v) override;
+    void valueChanged(Value& v) override;
 
     void updateCommandStatus();
 
     ApplicationCommandTarget* getNextCommandTarget() override;
-    void getAllCommands (Array<CommandID>& commands) override;
-    void getCommandInfo (const CommandID commandID, ApplicationCommandInfo& result) override;
-    bool perform (const InvocationInfo& info) override;
+    void getAllCommands(Array<CommandID>& commands) override;
+    void getCommandInfo(const CommandID commandID, ApplicationCommandInfo& result) override;
+    bool perform(const InvocationInfo& info) override;
 
-    void valueTreePropertyChanged (ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
-    void valueTreeChildAdded (ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
-    void valueTreeChildRemoved (ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override;
+    void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override;
+    void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override;
 
     void timerCallback() override;
 
@@ -144,7 +144,7 @@ public:
 
     std::unique_ptr<Component> settingsDialog = nullptr;
 
-private:
+   private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
@@ -176,10 +176,10 @@ private:
         Pin
     };
 
-    TextButton* toolbarButton (ToolbarButtonType type)
+    TextButton* toolbarButton(ToolbarButtonType type)
     {
-        return toolbarButtons[static_cast<int> (type)];
+        return toolbarButtons[static_cast<int>(type)];
     }
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugDataPluginEditor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };

@@ -10,14 +10,14 @@
 #include "Connection.h"
 #include "LookAndFeel.h"
 
-Edge::Edge (Box* parent, bool inlet) : box (parent)
+Edge::Edge(Box* parent, bool inlet) : box(parent)
 {
     isInlet = inlet;
-    setSize (8, 8);
+    setSize(8, 8);
 
-    parent->addAndMakeVisible (this);
+    parent->addAndMakeVisible(this);
 
-    locked.referTo (parent->cnv->pd->locked);
+    locked.referTo(parent->cnv->pd->locked);
 }
 
 Rectangle<int> Edge::getCanvasBounds()
@@ -26,43 +26,42 @@ Rectangle<int> Edge::getCanvasBounds()
     return getBounds() + box->getPosition();
 }
 
-void Edge::paint (Graphics& g)
+void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
 
-    if (! isHovered)
+    if (!isHovered)
     {
-        bounds = bounds.reduced (2);
+        bounds = bounds.reduced(2);
     }
 
-    bool down = isMouseButtonDown() && ! bool (box->locked.getValue());
-    bool over = isMouseOver() && ! bool (box->locked.getValue());
+    bool down = isMouseButtonDown() && !bool(box->locked.getValue());
+    bool over = isMouseOver() && !bool(box->locked.getValue());
 
-    auto backgroundColour = isSignal ? findColour (PlugDataColour::signalColourId) : findColour (PlugDataColour::highlightColourId);
+    auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::highlightColourId);
 
-    if (down || over)
-        backgroundColour = backgroundColour.contrasting (down ? 0.2f : 0.05f);
+    if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
-    if (static_cast<bool> (locked.getValue()))
+    if (static_cast<bool>(locked.getValue()))
     {
-        backgroundColour = findColour (PlugDataColour::textColourId);
+        backgroundColour = findColour(PlugDataColour::textColourId);
     }
 
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
     bool stateSaved = false;
-    if (! (box->isOver() || over || box->edgeHovered || isHovered) || static_cast<bool> (locked.getValue()))
+    if (!(box->isOver() || over || box->edgeHovered || isHovered) || static_cast<bool>(locked.getValue()))
     {
         g.saveState();
-        g.reduceClipRegion (getLocalArea (box, box->getLocalBounds().reduced (Box::margin)));
+        g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
         stateSaved = true;
     }
 
-    g.setColour (backgroundColour);
-    g.fillEllipse (bounds);
+    g.setColour(backgroundColour);
+    g.fillEllipse(bounds);
 
-    g.setColour (findColour (PlugDataColour::canvasOutlineColourId));
-    g.drawEllipse (bounds, 1.0f);
+    g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+    g.drawEllipse(bounds, 1.0f);
 
     if (stateSaved)
     {
@@ -74,13 +73,12 @@ void Edge::resized()
 {
 }
 
-void Edge::mouseDrag (const MouseEvent& e)
+void Edge::mouseDrag(const MouseEvent& e)
 {
     // Ignore when locked
-    if (bool (locked.getValue()))
-        return;
+    if (bool(locked.getValue())) return;
 
-    if (! box->cnv->connectingEdge && e.getLengthOfMousePress() > 300)
+    if (!box->cnv->connectingEdge && e.getLengthOfMousePress() > 300)
     {
         box->cnv->connectingEdge = this;
         auto* cnv = findParentComponentOfClass<Canvas>();
@@ -88,12 +86,11 @@ void Edge::mouseDrag (const MouseEvent& e)
     }
 }
 
-void Edge::mouseUp (const MouseEvent& e)
+void Edge::mouseUp(const MouseEvent& e)
 {
-    if (bool (locked.getValue()))
-        return;
+    if (bool(locked.getValue())) return;
 
-    if (! e.mouseWasDraggedSinceMouseDown())
+    if (!e.mouseWasDraggedSinceMouseDown())
     {
         createConnection();
     }
@@ -106,25 +103,23 @@ void Edge::mouseUp (const MouseEvent& e)
     }
 }
 
-void Edge::mouseMove (const MouseEvent& e)
+void Edge::mouseMove(const MouseEvent& e)
 {
 }
 
-void Edge::mouseEnter (const MouseEvent& e)
+void Edge::mouseEnter(const MouseEvent& e)
 {
     // Only show when not locked
-    isHovered = ! bool (locked.getValue());
+    isHovered = !bool(locked.getValue());
     box->edgeHovered = true;
-    for (auto& edge : box->edges)
-        edge->repaint();
+    for (auto& edge : box->edges) edge->repaint();
 }
 
-void Edge::mouseExit (const MouseEvent& e)
+void Edge::mouseExit(const MouseEvent& e)
 {
     isHovered = false;
     box->edgeHovered = false;
-    for (auto& edge : box->edges)
-        edge->repaint();
+    for (auto& edge : box->edges) edge->repaint();
 }
 
 void Edge::createConnection()
@@ -135,7 +130,7 @@ void Edge::createConnection()
         // Check type for input and output
         bool sameDirection = isInlet == box->cnv->connectingEdge->isInlet;
 
-        bool connectionAllowed = box->cnv->connectingEdge->box != box && ! sameDirection;
+        bool connectionAllowed = box->cnv->connectingEdge->box != box && !sameDirection;
 
         // Don't create if this is the same edge
         if (box->cnv->connectingEdge == this)
@@ -146,7 +141,7 @@ void Edge::createConnection()
         else if (connectionAllowed)
         {
             auto* cnv = findParentComponentOfClass<Canvas>();
-            cnv->connections.add (new Connection (cnv, box->cnv->connectingEdge, this));
+            cnv->connections.add(new Connection(cnv, box->cnv->connectingEdge, this));
             box->cnv->connectingEdge = nullptr;
         }
     }
@@ -157,7 +152,7 @@ void Edge::createConnection()
     }
 }
 
-Edge* Edge::findNearestEdge (Canvas* cnv, Point<int> position, bool inlet, Box* boxToExclude)
+Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Box* boxToExclude)
 {
     // Find all edges
     Array<Edge*> allEdges;
@@ -167,7 +162,7 @@ Edge* Edge::findNearestEdge (Canvas* cnv, Point<int> position, bool inlet, Box* 
         {
             if (edge->isInlet == inlet && edge->box != boxToExclude)
             {
-                allEdges.add (edge);
+                allEdges.add(edge);
             }
         }
     }
@@ -176,15 +171,14 @@ Edge* Edge::findNearestEdge (Canvas* cnv, Point<int> position, bool inlet, Box* 
 
     for (auto& edge : allEdges)
     {
-        auto bounds = edge->getCanvasBounds().expanded (150, 150);
-        if (bounds.contains (position))
+        auto bounds = edge->getCanvasBounds().expanded(150, 150);
+        if (bounds.contains(position))
         {
-            if (! nearestEdge)
-                nearestEdge = edge;
+            if (!nearestEdge) nearestEdge = edge;
 
             auto oldPos = nearestEdge->getCanvasBounds().getCentre();
             auto newPos = bounds.getCentre();
-            nearestEdge = newPos.getDistanceFrom (position) < oldPos.getDistanceFrom (position) ? edge : nearestEdge;
+            nearestEdge = newPos.getDistanceFrom(position) < oldPos.getDistanceFrom(position) ? edge : nearestEdge;
         }
     }
 

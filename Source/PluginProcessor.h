@@ -18,21 +18,21 @@ class PlugDataLook;
 class PlugDataPluginEditor;
 class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer
 {
-public:
+   public:
     PlugDataAudioProcessor();
     ~PlugDataAudioProcessor() override;
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
-    void prepareToPlay (double sampleRate, int samplesPerBlock) override;
+    void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
 #ifndef JucePlugin_PreferredChannelConfigurations
-    bool isBusesLayoutSupported (const BusesLayout& layouts) const override;
+    bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 #endif
 
-    void processBlockBypassed (AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
-    void processBlock (AudioBuffer<float>&, MidiBuffer&) override;
+    void processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
+    void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
     bool hasEditor() const override;
@@ -49,52 +49,52 @@ public:
 
     int getNumPrograms() override;
     int getCurrentProgram() override;
-    void setCurrentProgram (int index) override;
-    const String getProgramName (int index) override;
-    void changeProgramName (int index, const String& newName) override;
+    void setCurrentProgram(int index) override;
+    const String getProgramName(int index) override;
+    void changeProgramName(int index, const String& newName) override;
 
-    void getStateInformation (MemoryBlock& destData) override;
-    void setStateInformation (const void* data, int sizeInBytes) override;
+    void getStateInformation(MemoryBlock& destData) override;
+    void setStateInformation(const void* data, int sizeInBytes) override;
 
-    void receiveNoteOn (const int channel, const int pitch, const int velocity) override;
-    void receiveControlChange (const int channel, const int controller, const int value) override;
-    void receiveProgramChange (const int channel, const int value) override;
-    void receivePitchBend (const int channel, const int value) override;
-    void receiveAftertouch (const int channel, const int value) override;
-    void receivePolyAftertouch (const int channel, const int pitch, const int value) override;
-    void receiveMidiByte (const int port, const int byte) override;
+    void receiveNoteOn(const int channel, const int pitch, const int velocity) override;
+    void receiveControlChange(const int channel, const int controller, const int value) override;
+    void receiveProgramChange(const int channel, const int value) override;
+    void receivePitchBend(const int channel, const int value) override;
+    void receiveAftertouch(const int channel, const int value) override;
+    void receivePolyAftertouch(const int channel, const int pitch, const int value) override;
+    void receiveMidiByte(const int port, const int byte) override;
 
-    void receiveParameter (int idx, float value) override;
+    void receiveParameter(int idx, float value) override;
 
-    void receiveDSPState (bool dsp) override;
-    void receiveGuiUpdate (int type) override;
+    void receiveDSPState(bool dsp) override;
+    void receiveGuiUpdate(int type) override;
 
     void updateConsole() override;
 
-    void synchroniseCanvas (void* cnv) override;
+    void synchroniseCanvas(void* cnv) override;
 
-    void receivePrint (const String& message) override
+    void receivePrint(const String& message) override
     {
         if (message.isNotEmpty())
         {
-            if (! message.startsWith ("error:"))
+            if (!message.startsWith("error:"))
             {
-                logError (message.substring (7));
+                logError(message.substring(7));
             }
-            else if (! message.startsWith ("verbose(4):"))
+            else if (!message.startsWith("verbose(4):"))
             {
-                logError (message.substring (12));
+                logError(message.substring(12));
             }
             else
             {
-                logMessage (message);
+                logMessage(message);
             }
         }
     };
 
-    void process (AudioSampleBuffer&, MidiBuffer&);
+    void process(AudioSampleBuffer&, MidiBuffer&);
 
-    void setCallbackLock (const CriticalSection* lock)
+    void setCallbackLock(const CriticalSection* lock)
     {
         audioLock = lock;
     };
@@ -104,14 +104,14 @@ public:
         return audioLock;
     };
 
-    bool canAddBus (bool isInput) const override
+    bool canAddBus(bool isInput) const override
     {
         return true;
     }
 
-    bool canRemoveBus (bool isInput) const override
+    bool canRemoveBus(bool isInput) const override
     {
-        int nbus = getBusCount (isInput);
+        int nbus = getBusCount(isInput);
         return nbus > 0;
     }
 
@@ -125,12 +125,12 @@ public:
 
     void messageEnqueued() override;
 
-    pd::Patch* loadPatch (String patch);
-    pd::Patch* loadPatch (const File& patch);
+    pd::Patch* loadPatch(String patch);
+    pd::Patch* loadPatch(const File& patch);
 
     void titleChanged() override;
 
-    void setTheme (bool themeToUse);
+    void setTheme(bool themeToUse);
 
     Colour getForegroundColour() override;
     Colour getBackgroundColour() override;
@@ -146,27 +146,27 @@ public:
 
     std::atomic<float>* volume;
 
-    std::vector<pd::Atom> parameterAtom = std::vector<pd::Atom> (1);
+    std::vector<pd::Atom> parameterAtom = std::vector<pd::Atom>(1);
 
-    ValueTree settingsTree = ValueTree ("PlugDataSettings");
+    ValueTree settingsTree = ValueTree("PlugDataSettings");
 
     pd::Library objectLibrary;
 
-    File homeDir = File::getSpecialLocation (File::SpecialLocationType::userApplicationDataDirectory).getChildFile ("PlugData");
-    File appDir = homeDir.getChildFile ("Library");
+    File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    File appDir = homeDir.getChildFile("Library");
 
-    File settingsFile = homeDir.getChildFile ("Settings.xml");
-    File abstractions = appDir.getChildFile ("Abstractions");
+    File settingsFile = homeDir.getChildFile("Settings.xml");
+    File abstractions = appDir.getChildFile("Abstractions");
 
-    Value locked = Value (var (false));
-    Value commandLocked = Value (var (false));
-    Value zoomScale = Value (1.0f);
+    Value locked = Value(var(false));
+    Value commandLocked = Value(var(false));
+    Value zoomScale = Value(1.0f);
 
     AudioProcessorValueTreeState parameters;
 
     StatusbarSource statusbarSource;
 
-    Value tailLength = Value (0.0f);
+    Value tailLength = Value(0.0f);
 
     SharedResourcePointer<PlugDataLook> lnf;
 
@@ -175,10 +175,10 @@ public:
     static inline constexpr int numOutputBuses = 16;
 
 #if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters] = { 0 };
+    std::atomic<float> standaloneParams[numParameters] = {0};
 #endif
 
-private:
+   private:
     void processInternal();
 
     int audioAdvancement = 0;
@@ -191,11 +191,11 @@ private:
     MidiBuffer midiBufferCopy;
 
     bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = { 0 };
+    uint8 midiByteBuffer[512] = {0};
     size_t midiByteIndex = 0;
 
-    std::array<std::atomic<float>*, numParameters> parameterValues = { nullptr };
-    std::array<float, numParameters> lastParameters = { 0 };
+    std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
+    std::array<float, numParameters> lastParameters = {0};
 
     std::vector<pd::Atom> atoms_playhead;
 
@@ -204,22 +204,21 @@ private:
 
     const CriticalSection* audioLock;
 
-#if ! PLUGDATA_STANDALONE
+#if !PLUGDATA_STANDALONE
 
     // Timer for grouping change messages when informing the DAW
     struct ParameterTimer : public Timer
     {
         RangedAudioParameter* parameter;
 
-        void notifyChange (RangedAudioParameter* param)
+        void notifyChange(RangedAudioParameter* param)
         {
-            if (! isTimerRunning())
+            if (!isTimerRunning())
             {
                 parameter = param;
                 parameter->beginChangeGesture();
             }
-            // Reset timer
-            startTimer (500);
+            startTimer(500);
         }
 
         void timerCallback() override
@@ -231,5 +230,5 @@ private:
 
     ParameterTimer parameterTimers[numParameters];
 #endif
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (PlugDataAudioProcessor)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };

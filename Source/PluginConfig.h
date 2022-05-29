@@ -8,10 +8,10 @@
 
 #define JUCE_DISPLAY_SPLASH_SCREEN 0
 
-#define JucePlugin_LV2URI (juce::String ("urn:PlugData:") + juce::String ("PlugData")).toUTF8()
+#define JucePlugin_LV2URI (juce::String("urn:PlugData:") + juce::String("PlugData")).toUTF8()
 
 namespace ProjectInfo
 {
 const char* const companyName = "Octagon";
 const char* const versionString = "0.5.3";
-} // namespace ProjectInfo
+}  // namespace ProjectInfo
