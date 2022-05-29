@@ -159,18 +159,12 @@ bool Connection::hitTest(int x, int y)
     auto pend = inlet->getCanvasBounds().getCentre().toFloat() - origin.toFloat();
 
     // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position) < 8.0f) return false;
-    if (pend.getDistanceFrom(position) < 8.0f) return false;
+    if (pstart.getDistanceFrom(position) < 8.0f || pend.getDistanceFrom(position) < 8.0f) return false;
 
-    if (nearestPoint.getDistanceFrom(position) < 5)
-    {
-        return true;
-    }
-
-    return false;
+    return nearestPoint.getDistanceFrom(position) < 5;
 }
 
-bool Connection::intersects(Rectangle<float> toCheck, int accuracy)
+bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
 {
     PathFlatteningIterator i(toDraw);
 

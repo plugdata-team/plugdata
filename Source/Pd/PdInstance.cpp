@@ -25,28 +25,28 @@ extern "C"
     {
         static void instance_multi_bang(pd::Instance* ptr, const char* recv)
         {
-            ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({std::string("bang"), std::string(recv)}); });
+            ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({String("bang"), String(recv)}); });
         }
 
         static void instance_multi_float(pd::Instance* ptr, const char* recv, float f)
         {
-            ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({std::string("float"), std::string(recv), std::vector<Atom>(1, {f})}); });
+            ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({String("float"), String(recv), std::vector<Atom>(1, {f})}); });
         }
 
         static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym)
         {
-            ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({std::string("symbol"), std::string(recv), std::vector<Atom>(1, std::string(sym))}); });
+            ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({String("symbol"), String(recv), std::vector<Atom>(1, String(sym))}); });
         }
 
         static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
         {
-            Message mess{std::string("list"), std::string(recv), std::vector<Atom>(argc)};
+            Message mess{String("list"), String(recv), std::vector<Atom>(argc)};
             for (int i = 0; i < argc; ++i)
             {
                 if (argv[i].a_type == A_FLOAT)
                     mess.list[i] = Atom(atom_getfloat(argv + i));
                 else if (argv[i].a_type == A_SYMBOL)
-                    mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
+                    mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
             }
 
             ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
@@ -54,13 +54,13 @@ extern "C"
 
         static void instance_multi_message(pd::Instance* ptr, const char* recv, const char* msg, int argc, t_atom* argv)
         {
-            Message mess{msg, std::string(recv), std::vector<Atom>(argc)};
+            Message mess{msg, String(recv), std::vector<Atom>(argc)};
             for (int i = 0; i < argc; ++i)
             {
                 if (argv[i].a_type == A_FLOAT)
                     mess.list[i] = Atom(atom_getfloat(argv + i));
                 else if (argv[i].a_type == A_SYMBOL)
-                    mess.list[i] = Atom(std::string(atom_getsymbol(argv + i)->s_name));
+                    mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
             }
             ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
         }
@@ -102,7 +102,7 @@ extern "C"
 
         static void instance_multi_print(pd::Instance* ptr, char const* s)
         {
-            auto message = std::string(s);
+            auto message = String(s);
             ptr->enqueueFunctionAsync([ptr, message]() mutable { ptr->processPrint(message); });
         }
     };
@@ -111,7 +111,7 @@ extern "C"
 namespace pd
 {
 
-Instance::Instance(std::string const& symbol)
+Instance::Instance(String const& symbol)
 {
     libpd_multi_init();
 
@@ -353,7 +353,7 @@ void Instance::sendList(const char* receiver, const std::vector<Atom>& list) con
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol().c_str());
+            libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
     }
     libpd_list(receiver, static_cast<int>(list.size()), argv);
 }
@@ -369,7 +369,7 @@ void Instance::sendMessage(const char* receiver, const char* msg, const std::vec
         if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
-            libpd_set_symbol(argv + i, list[i].getSymbol().c_str());
+            libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
     }
     libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
 }
@@ -414,13 +414,11 @@ void Instance::processMidiEvent(midievent event)
         receiveMidiByte(event.midi1, event.midi2);
 }
 
-void Instance::processPrint(std::string print)
+void Instance::processPrint(String print)
 {
-    if (print.empty()) return;
-
-    while (!print.empty() && (print.back() == '\n' || print.back() == ' '))
+    while (print.isNotEmpty() && (print.getLastCharacter() == '\n' || print.getLastCharacter() == ' '))
     {
-        print.pop_back();
+        print = print.substring(0, print.length() - 2);
     }
 
     MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
@@ -440,7 +438,7 @@ void Instance::processSend(dmessage mess)
                 else if (mess.list[i].isSymbol())
                 {
                     sys_lock();
-                    SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().data()));
+                    SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().toRawUTF8()));
                     sys_unlock();
                 }
                 else
@@ -459,13 +457,13 @@ void Instance::processSend(dmessage mess)
         else if (mess.selector == "symbol")
         {
             sys_lock();
-            pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().c_str()));
+            pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().toRawUTF8()));
             sys_unlock();
         }
     }
     else
     {
-        sendMessage(mess.destination.c_str(), mess.selector.c_str(), mess.list);
+        sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);
     }
 }
 
@@ -486,24 +484,24 @@ void Instance::enqueueFunctionAsync(const std::function<void(void)>& fn)
     m_function_queue.enqueue(fn);
 }
 
-void Instance::enqueueMessages(const std::string& dest, const std::string& msg, std::vector<Atom>&& list)
+void Instance::enqueueMessages(const String& dest, const String& msg, std::vector<Atom>&& list)
 {
     enqueueFunction([this, dest, msg, list]() mutable { processSend(dmessage{nullptr, dest, msg, std::move(list)}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list)
 {
-    enqueueFunction([this, object, list]() mutable { processSend(dmessage{object, std::string(), "list", list}); });
+    enqueueFunction([this, object, list]() mutable { processSend(dmessage{object, String(), "list", list}); });
 }
 
-void Instance::enqueueDirectMessages(void* object, const std::string& msg)
+void Instance::enqueueDirectMessages(void* object, const String& msg)
 {
-    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, std::string(), "symbol", std::vector<Atom>(1, msg)}); });
+    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, String(), "symbol", std::vector<Atom>(1, msg)}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, const float msg)
 {
-    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, std::string(), "float", std::vector<Atom>(1, msg)}); });
+    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, String(), "float", std::vector<Atom>(1, msg)}); });
 }
 
 void Instance::waitForStateUpdate()
@@ -554,10 +552,10 @@ Patch Instance::openPatch(const File& toOpen)
         [this, toOpen, &cnv, &done]() mutable
         {
             String dirname = toOpen.getParentDirectory().getFullPathName();
-            auto* dir = dirname.toRawUTF8();
+            const auto* dir = dirname.toRawUTF8();
 
             String filename = toOpen.getFileName();
-            auto* file = filename.toRawUTF8();
+            const auto* file = filename.toRawUTF8();
 
             setThis();
 
@@ -600,7 +598,7 @@ void Instance::createPanel(int type, const char* snd, const char* location)
                                              enqueueFunction(
                                                  [obj, file]() mutable
                                                  {
-                                                     auto* path = file.getFullPathName().toRawUTF8();
+                                                     const auto* path = file.getFullPathName().toRawUTF8();
 
                                                      t_atom argv[1];
                                                      libpd_set_symbol(argv, path);
@@ -624,7 +622,7 @@ void Instance::createPanel(int type, const char* snd, const char* location)
                                              enqueueFunction(
                                                  [obj, file]() mutable
                                                  {
-                                                     auto* path = file.getFullPathName().toRawUTF8();
+                                                     const auto* path = file.getFullPathName().toRawUTF8();
 
                                                      t_atom argv[1];
                                                      libpd_set_symbol(argv, path);

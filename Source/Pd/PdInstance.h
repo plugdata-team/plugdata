@@ -37,7 +37,7 @@ class Atom
     }
 
     // The string constructor.
-    inline Atom(std::string sym) : type(SYMBOL), value(0), symbol(std::move(sym))
+    inline Atom(String sym) : type(SYMBOL), value(0), symbol(std::move(sym))
     {
     }
 
@@ -65,7 +65,7 @@ class Atom
     }
 
     // Get the string.
-    inline std::string const& getSymbol() const noexcept
+    inline String const& getSymbol() const noexcept
     {
         return symbol;
     }
@@ -91,7 +91,7 @@ class Atom
     };
     Type type = FLOAT;
     float value = 0;
-    std::string symbol;
+    String symbol;
 };
 
 class Patch;
@@ -100,16 +100,16 @@ class Instance
 {
     struct Message
     {
-        std::string selector;
-        std::string destination;
+        String selector;
+        String destination;
         std::vector<pd::Atom> list;
     };
 
     struct dmessage
     {
         void* object;
-        std::string destination;
-        std::string selector;
+        String destination;
+        String selector;
         std::vector<pd::Atom> list;
     };
 
@@ -131,7 +131,7 @@ class Instance
     } midievent;
 
    public:
-    Instance(std::string const& symbol);
+    Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
@@ -184,21 +184,21 @@ class Instance
     void sendList(const char* receiver, const std::vector<pd::Atom>& list) const;
     void sendMessage(const char* receiver, const char* msg, const std::vector<pd::Atom>& list) const;
 
-    virtual void receivePrint(const std::string& message){};
+    virtual void receivePrint(const String& message){};
 
-    virtual void receiveBang(const std::string& dest)
+    virtual void receiveBang(const String& dest)
     {
     }
-    virtual void receiveFloat(const std::string& dest, float num)
+    virtual void receiveFloat(const String& dest, float num)
     {
     }
-    virtual void receiveSymbol(const std::string& dest, const std::string& symbol)
+    virtual void receiveSymbol(const String& dest, const String& symbol)
     {
     }
-    virtual void receiveList(const std::string& dest, const std::vector<pd::Atom>& list)
+    virtual void receiveList(const String& dest, const std::vector<pd::Atom>& list)
     {
     }
-    virtual void receiveMessage(const std::string& dest, const std::string& msg, const std::vector<pd::Atom>& list)
+    virtual void receiveMessage(const String& dest, const String& msg, const std::vector<pd::Atom>& list)
     {
     }
     virtual void receiveParameter(int idx, float value)
@@ -214,10 +214,10 @@ class Instance
     void enqueueFunction(const std::function<void(void)>& fn);
     void enqueueFunctionAsync(const std::function<void(void)>& fn);
 
-    void enqueueMessages(const std::string& dest, const std::string& msg, std::vector<pd::Atom>&& list);
+    void enqueueMessages(const String& dest, const String& msg, std::vector<pd::Atom>&& list);
 
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
-    void enqueueDirectMessages(void* object, const std::string& msg);
+    void enqueueDirectMessages(void* object, const String& msg);
     void enqueueDirectMessages(void* object, const float msg);
 
     void logMessage(const String& message);
@@ -227,7 +227,7 @@ class Instance
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
-    void processPrint(std::string message);
+    void processPrint(String message);
     void processMidiEvent(midievent event);
     void processSend(dmessage mess);
 

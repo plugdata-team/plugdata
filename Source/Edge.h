@@ -33,8 +33,6 @@ class Edge : public Component, public SettableTooltipClient
 
     void createConnection();
 
-    bool hasConnection();
-
     Rectangle<int> getCanvasBounds();
 
     int edgeIdx;
