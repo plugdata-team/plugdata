@@ -8,8 +8,6 @@
 
 #include "LookAndFeel.h"
 
-#include <memory>
-
 #include "Canvas.h"
 #include "Connection.h"
 #include "Dialogs/Dialogs.h"
