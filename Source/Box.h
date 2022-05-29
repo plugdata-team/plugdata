@@ -13,38 +13,38 @@ extern "C"
 #include <m_pd.h>
 }
 
+#include "Utility/ObjectGrid.h"
 #include "Edge.h"
 #include "Objects/GUIObject.h"
-#include "Utility/ObjectGrid.h"
 
 class Canvas;
 class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener
 {
-public:
-    Box (Canvas* parent, const String& name = "", Point<int> position = { 100, 100 });
+   public:
+    Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
 
-    Box (void* object, Canvas* parent);
+    Box(void* object, Canvas* parent);
 
     ~Box();
 
-    void valueChanged (Value& v) override;
+    void valueChanged(Value& v) override;
 
     void timerCallback() override;
 
-    void paint (Graphics&) override;
-    void paintOverChildren (Graphics&) override;
+    void paint(Graphics&) override;
+    void paintOverChildren(Graphics&) override;
     void resized() override;
 
     void updatePorts();
 
-    void setType (const String& newType, void* existingObject = nullptr);
+    void setType(const String& newType, void* existingObject = nullptr);
     void updateBounds();
 
     void showEditor();
     void hideEditor();
 
     Rectangle<int> getObjectBounds();
-    void setObjectBounds (Rectangle<int> bounds);
+    void setObjectBounds(Rectangle<int> bounds);
 
     void openHelpPatch() const;
     void openSubpatch() const;
@@ -52,16 +52,16 @@ public:
 
     Array<Connection*> getConnections() const;
 
-    void mouseEnter (const MouseEvent& e) override;
-    void mouseExit (const MouseEvent& e) override;
+    void mouseEnter(const MouseEvent& e) override;
+    void mouseExit(const MouseEvent& e) override;
 
-    void mouseMove (const MouseEvent& e) override;
-    void mouseDown (const MouseEvent& e) override;
-    void mouseUp (const MouseEvent& e) override;
-    void mouseDrag (const MouseEvent& e) override;
+    void mouseMove(const MouseEvent& e) override;
+    void mouseDown(const MouseEvent& e) override;
+    void mouseUp(const MouseEvent& e) override;
+    void mouseDrag(const MouseEvent& e) override;
 
-    void textEditorReturnKeyPressed (TextEditor& ed) override;
-    void textEditorTextChanged (TextEditor& ed) override;
+    void textEditorReturnKeyPressed(TextEditor& ed) override;
+    void textEditorTextChanged(TextEditor& ed) override;
 
     bool isOver();
 
@@ -91,9 +91,9 @@ public:
     Point<int> mouseDownPos;
     bool attachedToMouse = false;
 
-private:
+   private:
     void initialise();
-    bool hitTest (int x, int y) override;
+    bool hitTest(int x, int y) override;
 
     void openNewObjectEditor();
 
@@ -102,5 +102,5 @@ private:
 
     std::unique_ptr<TextEditor> newObjectEditor;
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (Box)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };

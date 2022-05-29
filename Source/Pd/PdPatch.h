@@ -24,11 +24,11 @@ class Instance;
 //! @see Instance, Object, Gui
 class Patch
 {
-public:
-    Patch (void* ptr, Instance* instance, File currentFile = File());
+   public:
+    Patch(void* ptr, Instance* instance, File currentFile = File());
 
     // The compare equal operator.
-    bool operator== (Patch const& other) const noexcept
+    bool operator==(Patch const& other) const noexcept
     {
         return getPointer() == other.getPointer();
     }
@@ -38,24 +38,24 @@ public:
     // Gets the bounds of the patch.
     Rectangle<int> getBounds() const noexcept;
 
-    void* createGraph (const String& name, int size, int x, int y);
-    void* createGraphOnParent (int x, int y);
+    void* createGraph(const String& name, int size, int x, int y);
+    void* createGraphOnParent(int x, int y);
 
-    void* createObject (const String& name, int x, int y);
-    void removeObject (void* obj);
-    void* renameObject (void* obj, const String& name);
+    void* createObject(const String& name, int x, int y);
+    void removeObject(void* obj);
+    void* renameObject(void* obj, const String& name);
 
-    void moveObjects (const std::vector<void*>&, int x, int y);
+    void moveObjects(const std::vector<void*>&, int x, int y);
 
     void finishRemove();
     void removeSelection();
 
-    void selectObject (void*);
+    void selectObject(void*);
     void deselectAll();
 
     bool isDirty();
 
-    void setZoom (int zoom);
+    void setZoom(int zoom);
 
     void copy();
     void paste();
@@ -70,78 +70,77 @@ public:
         Move
     };
 
-    void setCurrent (bool lock = false);
+    void setCurrent(bool lock = false);
 
     bool isDirty() const;
 
-    void savePatch (const File& location);
+    void savePatch(const File& location);
     void savePatch();
 
     File getCurrentFile() const
     {
         return currentFile;
     }
-    void setCurrentFile (File newFile)
+    void setCurrentFile(File newFile)
     {
         currentFile = newFile;
     }
 
-    bool hasConnection (void* src, int nout, void* sink, int nin);
-    bool canConnect (void* src, int nout, void* sink, int nin);
-    bool createConnection (void* src, int nout, void* sink, int nin);
-    void removeConnection (void* src, int nout, void* sink, int nin);
+    bool hasConnection(void* src, int nout, void* sink, int nin);
+    bool canConnect(void* src, int nout, void* sink, int nin);
+    bool createConnection(void* src, int nout, void* sink, int nin);
+    void removeConnection(void* src, int nout, void* sink, int nin);
 
     Connections getConnections() const;
 
     t_canvas* getPointer() const
     {
-        return static_cast<t_canvas*> (ptr);
+        return static_cast<t_canvas*>(ptr);
     }
 
     // Gets the objects of the patch.
-    std::vector<void*> getObjects (bool onlyGui = false) noexcept;
+    std::vector<void*> getObjects(bool onlyGui = false) noexcept;
 
     String getCanvasContent()
     {
-        if (! ptr)
-            return {};
+        if (!ptr) return {};
         char* buf;
         int bufsize;
-        libpd_getcontent (static_cast<t_canvas*> (ptr), &buf, &bufsize);
-        return { buf, static_cast<size_t> (bufsize) };
+        libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
+        return {buf, static_cast<size_t>(bufsize)};
     }
 
-    int getIndex (void* obj);
+    int getIndex(void* obj);
 
-    static t_object* checkObject (void* obj) noexcept;
+    static t_object* checkObject(void* obj) noexcept;
 
-    void keyPress (int keycode, int shift);
+    void keyPress(int keycode, int shift);
 
     String getTitle() const;
-    void setTitle (const String& title);
+    void setTitle(const String& title);
 
     Instance* instance = nullptr;
 
-private:
+   private:
     File currentFile;
 
     void* ptr = nullptr;
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
-    static inline const std::map<String, String> guiDefaults = { { "tgl", "25 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1" },
-                                                                 { "hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1" },
-                                                                 { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1" },
-                                                                 { "bng", "25 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour" },
-                                                                 { "nbx", "5 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256" },
-                                                                 { "hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
-                                                                 { "vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
-                                                                 { "cnv", "15 100 60 empty empty empty 20 12 0 14 lblColour fgColour" },
-                                                                 { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
-                                                                 { "floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12" } };
+    static inline const std::map<String, String> guiDefaults = {{"tgl", "25 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1"},
+                                                                {"hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1"},
+                                                                {"vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1"},
+                                                                {"bng", "25 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour"},
+                                                                {"nbx", "5 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256"},
+                                                                {"hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
+                                                                {"vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
+                                                                {"cnv", "15 100 60 empty empty empty 20 12 0 14 lblColour fgColour"},
+                                                                {"vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0"},
+                                                                {"floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12"}};
 
     friend class Instance;
     friend class Gui;
     friend class Object;
 };
-} // namespace pd
+}  // namespace pd

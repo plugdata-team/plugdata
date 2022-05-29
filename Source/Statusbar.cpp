@@ -6,22 +6,22 @@
 
 #include <memory>
 
-#include "LookAndFeel.h"
 #include "Statusbar.h"
+#include "LookAndFeel.h"
 
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
 #include "Canvas.h"
 #include "Connection.h"
-#include "PluginEditor.h"
-#include "PluginProcessor.h"
 
 struct LevelMeter : public Component, public Timer
 {
     int numChannels = 2;
     StatusbarSource& source;
 
-    explicit LevelMeter (StatusbarSource& statusbarSource) : source (statusbarSource)
+    explicit LevelMeter(StatusbarSource& statusbarSource) : source(statusbarSource)
     {
-        startTimerHz (20);
+        startTimerHz(20);
     }
 
     void timerCallback() override
@@ -33,15 +33,15 @@ struct LevelMeter : public Component, public Timer
             {
                 auto newLevel = source.level[ch].load();
 
-                if (! std::isfinite (newLevel))
+                if (!std::isfinite(newLevel))
                 {
                     source.level[ch] = 0;
                     blocks[ch] = 0;
                     return;
                 }
 
-                float lvl = (float) std::exp (std::log (newLevel) / 3.0) * (newLevel > 0.002);
-                auto numBlocks = roundToInt (totalBlocks * lvl);
+                float lvl = (float)std::exp(std::log(newLevel) / 3.0) * (newLevel > 0.002);
+                auto numBlocks = roundToInt(totalBlocks * lvl);
 
                 if (blocks[ch] != numBlocks)
                 {
@@ -50,12 +50,11 @@ struct LevelMeter : public Component, public Timer
                 }
             }
 
-            if (needsRepaint)
-                repaint();
+            if (needsRepaint) repaint();
         }
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
         auto height = getHeight() / 2.0f;
         auto width = getWidth() - 8.0f;
@@ -65,12 +64,12 @@ struct LevelMeter : public Component, public Timer
         auto spacingFraction = 0.03f;
         auto doubleOuterBorderWidth = 2.0f * outerBorderWidth;
 
-        auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float> (totalBlocks);
+        auto blockWidth = (width - doubleOuterBorderWidth) / static_cast<float>(totalBlocks);
         auto blockHeight = height - doubleOuterBorderWidth;
         auto blockRectWidth = (1.0f - 2.0f * spacingFraction) * blockWidth;
         auto blockRectSpacing = spacingFraction * blockWidth;
         auto blockCornerSize = 0.1f * blockWidth;
-        auto c = findColour (PlugDataColour::highlightColourId);
+        auto c = findColour(PlugDataColour::highlightColourId);
 
         for (int ch = 0; ch < numChannels; ch++)
         {
@@ -79,11 +78,11 @@ struct LevelMeter : public Component, public Timer
             for (auto i = 0; i < totalBlocks; ++i)
             {
                 if (i >= blocks[ch])
-                    g.setColour (findColour (PlugDataColour::meterColourId));
+                    g.setColour(findColour(PlugDataColour::meterColourId));
                 else
-                    g.setColour (i < totalBlocks - 1 ? c : Colours::red);
+                    g.setColour(i < totalBlocks - 1 ? c : Colours::red);
 
-                g.fillRoundedRectangle (x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
+                g.fillRoundedRectangle(x + outerBorderWidth + (i * blockWidth) + blockRectSpacing, y + outerBorderWidth, blockRectWidth, blockHeight, blockCornerSize);
             }
 
             // g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
@@ -92,34 +91,34 @@ struct LevelMeter : public Component, public Timer
     }
 
     int totalBlocks = 15;
-    int blocks[2] = { 0 };
+    int blocks[2] = {0};
 
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LevelMeter)
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LevelMeter)
 };
 
 struct MidiBlinker : public Component, public Timer
 {
     StatusbarSource& source;
 
-    explicit MidiBlinker (StatusbarSource& statusbarSource) : source (statusbarSource)
+    explicit MidiBlinker(StatusbarSource& statusbarSource) : source(statusbarSource)
     {
-        startTimer (200);
+        startTimer(200);
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
-        g.setColour (findColour (ComboBox::textColourId));
-        g.setFont (Font (11));
-        g.drawText ("MIDI", getLocalBounds().removeFromLeft (28), Justification::right);
+        g.setColour(findColour(ComboBox::textColourId));
+        g.setFont(Font(11));
+        g.drawText("MIDI", getLocalBounds().removeFromLeft(28), Justification::right);
 
-        auto midiInRect = Rectangle<float> (38.0f, 8.0f, 15.0f, 3.0f);
-        auto midiOutRect = Rectangle<float> (38.0f, 17.0f, 15.0f, 3.0f);
+        auto midiInRect = Rectangle<float>(38.0f, 8.0f, 15.0f, 3.0f);
+        auto midiOutRect = Rectangle<float>(38.0f, 17.0f, 15.0f, 3.0f);
 
-        g.setColour (blinkMidiIn ? findColour (PlugDataColour::highlightColourId) : findColour (PlugDataColour::meterColourId));
-        g.fillRoundedRectangle (midiInRect, 1.0f);
+        g.setColour(blinkMidiIn ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::meterColourId));
+        g.fillRoundedRectangle(midiInRect, 1.0f);
 
-        g.setColour (blinkMidiOut ? findColour (PlugDataColour::highlightColourId) : findColour (PlugDataColour::meterColourId));
-        g.fillRoundedRectangle (midiOutRect, 1.0f);
+        g.setColour(blinkMidiOut ? findColour(PlugDataColour::highlightColourId) : findColour(PlugDataColour::meterColourId));
+        g.fillRoundedRectangle(midiOutRect, 1.0f);
     }
 
     void timerCallback() override
@@ -140,37 +139,37 @@ struct MidiBlinker : public Component, public Timer
     bool blinkMidiOut = false;
 };
 
-Statusbar::Statusbar (PlugDataAudioProcessor& processor) : pd (processor)
+Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 {
-    levelMeter = new LevelMeter (processor.statusbarSource);
-    midiBlinker = new MidiBlinker (processor.statusbarSource);
+    levelMeter = new LevelMeter(processor.statusbarSource);
+    midiBlinker = new MidiBlinker(processor.statusbarSource);
 
-    setWantsKeyboardFocus (true);
+    setWantsKeyboardFocus(true);
 
-    locked.referTo (pd.locked);
-    commandLocked.referTo (pd.commandLocked);
-    zoomScale.referTo (pd.zoomScale);
+    locked.referTo(pd.locked);
+    commandLocked.referTo(pd.commandLocked);
+    zoomScale.referTo(pd.zoomScale);
 
-    locked.addListener (this);
-    commandLocked.addListener (this);
+    locked.addListener(this);
+    commandLocked.addListener(this);
+    
+    powerButton = std::make_unique<TextButton>(Icons::Power);
+    lockButton = std::make_unique<TextButton>(Icons::Lock);
+    connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
+    connectionPathfind = std::make_unique<TextButton>(Icons::Wand);
+    zoomIn = std::make_unique<TextButton>(Icons::ZoomIn);
+    zoomOut = std::make_unique<TextButton>(Icons::ZoomOut);
+    presentationButton = std::make_unique<TextButton>(Icons::Presentation);
+    gridButton = std::make_unique<TextButton>(Icons::Grid);
+    themeButton = std::make_unique<TextButton>(Icons::Theme);
+    browserButton = std::make_unique<TextButton>(Icons::Folder);
+    automationButton = std::make_unique<TextButton>(Icons::Parameters);
 
-    powerButton = std::make_unique<TextButton> (Icons::Power);
-    lockButton = std::make_unique<TextButton> (Icons::Lock);
-    connectionStyleButton = std::make_unique<TextButton> (Icons::ConnectionStyle);
-    connectionPathfind = std::make_unique<TextButton> (Icons::Wand);
-    zoomIn = std::make_unique<TextButton> (Icons::ZoomIn);
-    zoomOut = std::make_unique<TextButton> (Icons::ZoomOut);
-    presentationButton = std::make_unique<TextButton> (Icons::Presentation);
-    gridButton = std::make_unique<TextButton> (Icons::Grid);
-    themeButton = std::make_unique<TextButton> (Icons::Theme);
-    browserButton = std::make_unique<TextButton> (Icons::Folder);
-    automationButton = std::make_unique<TextButton> (Icons::Parameters);
-
-    presentationButton->setTooltip ("Presentation Mode");
-    presentationButton->setClickingTogglesState (true);
-    presentationButton->setConnectedEdges (12);
-    presentationButton->setName ("statusbar:presentation");
-    presentationButton->getToggleStateValue().referTo (presentationMode);
+    presentationButton->setTooltip("Presentation Mode");
+    presentationButton->setClickingTogglesState(true);
+    presentationButton->setConnectedEdges(12);
+    presentationButton->setName("statusbar:presentation");
+    presentationButton->getToggleStateValue().referTo(presentationMode);
 
     presentationButton->onClick = [this]()
     {
@@ -178,151 +177,146 @@ Statusbar::Statusbar (PlugDataAudioProcessor& processor) : pd (processor)
         // A bit different from Max's presentation mode
         if (presentationButton->getToggleState())
         {
-            lastLockMode = static_cast<bool> (locked.getValue());
-            if (! lastLockMode)
+            lastLockMode = static_cast<bool>(locked.getValue());
+            if (!lastLockMode)
             {
-                locked = var (true);
+                locked = var(true);
             }
-            lockButton->setEnabled (false);
+            lockButton->setEnabled(false);
         }
         else
         {
-            locked = var (lastLockMode);
-            lockButton->setEnabled (true);
+            locked = var(lastLockMode);
+            lockButton->setEnabled(true);
         }
     };
 
-    addAndMakeVisible (presentationButton.get());
+    addAndMakeVisible(presentationButton.get());
 
-    powerButton->setTooltip ("Bypass");
-    powerButton->setClickingTogglesState (true);
-    powerButton->setConnectedEdges (12);
-    powerButton->setName ("statusbar:bypass");
-    addAndMakeVisible (powerButton.get());
+    powerButton->setTooltip("Bypass");
+    powerButton->setClickingTogglesState(true);
+    powerButton->setConnectedEdges(12);
+    powerButton->setName("statusbar:bypass");
+    addAndMakeVisible(powerButton.get());
 
-    powerButton->onClick = [this]()
-    { powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP(); };
+    powerButton->onClick = [this]() { powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP(); };
 
-    powerButton->setToggleState (pd_getdspstate(), dontSendNotification);
+    powerButton->setToggleState(pd_getdspstate(), dontSendNotification);
 
-    lockButton->setTooltip ("Lock");
-    lockButton->setClickingTogglesState (true);
-    lockButton->setConnectedEdges (12);
-    lockButton->setName ("statusbar:lock");
-    lockButton->getToggleStateValue().referTo (locked);
-    addAndMakeVisible (lockButton.get());
-    lockButton->setButtonText (locked == var (true) ? Icons::Lock : Icons::Unlock);
+    lockButton->setTooltip("Lock");
+    lockButton->setClickingTogglesState(true);
+    lockButton->setConnectedEdges(12);
+    lockButton->setName("statusbar:lock");
+    lockButton->getToggleStateValue().referTo(locked);
+    addAndMakeVisible(lockButton.get());
+    lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
 
-    connectionStyleButton->setTooltip ("Enable segmented connections");
-    connectionStyleButton->setClickingTogglesState (true);
-    connectionStyleButton->setConnectedEdges (12);
-    connectionStyleButton->setName ("statusbar:connectionstyle");
+    connectionStyleButton->setTooltip("Enable segmented connections");
+    connectionStyleButton->setClickingTogglesState(true);
+    connectionStyleButton->setConnectedEdges(12);
+    connectionStyleButton->setName("statusbar:connectionstyle");
     connectionStyleButton->onClick = [this]()
     {
         bool segmented = connectionStyleButton->getToggleState();
-        auto* editor = dynamic_cast<PlugDataPluginEditor*> (pd.getActiveEditor());
+        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
         for (auto& connection : editor->getCurrentCanvas()->getSelectionOfType<Connection>())
         {
-            connection->setSegmented (segmented);
+            connection->setSegmented(segmented);
         }
-        connectionPathfind->setEnabled (segmented);
+        connectionPathfind->setEnabled(segmented);
     };
 
-    addAndMakeVisible (connectionStyleButton.get());
+    addAndMakeVisible(connectionStyleButton.get());
 
-    connectionPathfind->setTooltip ("Find best connection path");
-    connectionPathfind->setConnectedEdges (12);
-    connectionPathfind->setName ("statusbar:findpath");
-    connectionPathfind->onClick = [this]()
-    { dynamic_cast<ApplicationCommandManager*> (pd.getActiveEditor())->invokeDirectly (CommandIDs::ConnectionPathfind, true); };
-    connectionPathfind->setEnabled (connectionStyleButton->getToggleState());
-    addAndMakeVisible (connectionPathfind.get());
+    connectionPathfind->setTooltip("Find best connection path");
+    connectionPathfind->setConnectedEdges(12);
+    connectionPathfind->setName("statusbar:findpath");
+    connectionPathfind->onClick = [this]() { dynamic_cast<ApplicationCommandManager*>(pd.getActiveEditor())->invokeDirectly(CommandIDs::ConnectionPathfind, true); };
+    connectionPathfind->setEnabled(connectionStyleButton->getToggleState());
+    addAndMakeVisible(connectionPathfind.get());
 
-    addAndMakeVisible (zoomLabel);
-    zoomLabel.setText ("100%", dontSendNotification);
-    zoomLabel.setFont (Font (11));
-    zoomLabel.setJustificationType (Justification::right);
+    addAndMakeVisible(zoomLabel);
+    zoomLabel.setText("100%", dontSendNotification);
+    zoomLabel.setFont(Font(11));
+    zoomLabel.setJustificationType(Justification::right);
 
-    zoomIn->setTooltip ("Zoom In");
-    zoomIn->setConnectedEdges (12);
-    zoomIn->setName ("statusbar:zoomin");
-    zoomIn->onClick = [this]()
-    { zoom (true); };
-    addAndMakeVisible (zoomIn.get());
+    zoomIn->setTooltip("Zoom In");
+    zoomIn->setConnectedEdges(12);
+    zoomIn->setName("statusbar:zoomin");
+    zoomIn->onClick = [this]() { zoom(true); };
+    addAndMakeVisible(zoomIn.get());
 
-    themeButton->setTooltip ("Switch dark mode");
-    themeButton->setConnectedEdges (12);
-    themeButton->setName ("statusbar:darkmode");
+    themeButton->setTooltip("Switch dark mode");
+    themeButton->setConnectedEdges(12);
+    themeButton->setName("statusbar:darkmode");
     themeButton->onClick = [this]()
     {
-        pd.setTheme (themeButton->getToggleState());
-        lockButton->setColour (TextButton::textColourOffId, findColour (PlugDataColour::textColourId));
+        pd.setTheme(themeButton->getToggleState());
+        lockButton->setColour(TextButton::textColourOffId, findColour(PlugDataColour::textColourId));
     };
 
-    theme.referTo (pd.settingsTree.getPropertyAsValue ("Theme", nullptr));
-    themeButton->getToggleStateValue().referTo (theme);
-    themeButton->setClickingTogglesState (true);
-    addAndMakeVisible (themeButton.get());
+    theme.referTo(pd.settingsTree.getPropertyAsValue("Theme", nullptr));
+    themeButton->getToggleStateValue().referTo(theme);
+    themeButton->setClickingTogglesState(true);
+    addAndMakeVisible(themeButton.get());
 
-    browserButton->setTooltip ("Open documentation browser");
-    browserButton->setConnectedEdges (12);
-    browserButton->setName ("statusbar:browser");
+    browserButton->setTooltip("Open documentation browser");
+    browserButton->setConnectedEdges(12);
+    browserButton->setName("statusbar:browser");
     browserButton->onClick = [this]()
     {
-        auto* editor = dynamic_cast<PlugDataPluginEditor*> (pd.getActiveEditor());
-        editor->sidebar.showBrowser (browserButton->getToggleState());
+        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
+        editor->sidebar.showBrowser(browserButton->getToggleState());
     };
-    browserButton->setClickingTogglesState (true);
-    addAndMakeVisible (browserButton.get());
+    browserButton->setClickingTogglesState(true);
+    addAndMakeVisible(browserButton.get());
 
-    automationButton->setTooltip ("Open automation panel");
-    automationButton->setConnectedEdges (12);
-    automationButton->setName ("statusbar:browser");
-    automationButton->setClickingTogglesState (true);
+    automationButton->setTooltip("Open automation panel");
+    automationButton->setConnectedEdges(12);
+    automationButton->setName("statusbar:browser");
+    automationButton->setClickingTogglesState(true);
     automationButton->onClick = [this]()
     {
-        auto* editor = dynamic_cast<PlugDataPluginEditor*> (pd.getActiveEditor());
-        editor->sidebar.showAutomationPanel (automationButton->getToggleState());
+        auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd.getActiveEditor());
+        editor->sidebar.showAutomationPanel(automationButton->getToggleState());
     };
-    addAndMakeVisible (automationButton.get());
+    addAndMakeVisible(automationButton.get());
 
-    gridButton->setTooltip ("Enable grid");
-    gridButton->setConnectedEdges (12);
-    gridButton->setName ("statusbar:grid");
-    gridButton->onClick = [this]()
-    { pd.saveSettings(); };
+    gridButton->setTooltip("Enable grid");
+    gridButton->setConnectedEdges(12);
+    gridButton->setName("statusbar:grid");
+    gridButton->onClick = [this]() { pd.saveSettings(); };
 
-    gridEnabled.referTo (pd.settingsTree.getPropertyAsValue ("GridEnabled", nullptr));
-    gridButton->getToggleStateValue().referTo (gridEnabled);
-    gridButton->setClickingTogglesState (true);
-    addAndMakeVisible (gridButton.get());
+    gridEnabled.referTo(pd.settingsTree.getPropertyAsValue("GridEnabled", nullptr));
+    gridButton->getToggleStateValue().referTo(gridEnabled);
+    gridButton->setClickingTogglesState(true);
+    addAndMakeVisible(gridButton.get());
 
-    zoomOut->setTooltip ("Zoom Out");
-    zoomOut->setConnectedEdges (12);
-    zoomOut->setName ("statusbar:zoomout");
-    zoomOut->onClick = [this]()
-    { zoom (false); };
+    zoomOut->setTooltip("Zoom Out");
+    zoomOut->setConnectedEdges(12);
+    zoomOut->setName("statusbar:zoomout");
+    zoomOut->onClick = [this]() { zoom(false); };
 
-    addAndMakeVisible (zoomOut.get());
+    addAndMakeVisible(zoomOut.get());
 
-    addAndMakeVisible (volumeSlider);
-    volumeSlider.setTextBoxStyle (Slider::NoTextBox, false, 0, 0);
+    addAndMakeVisible(volumeSlider);
+    volumeSlider.setTextBoxStyle(Slider::NoTextBox, false, 0, 0);
 
-    volumeSlider.setValue (0.75);
-    volumeSlider.setRange (0.0f, 1.0f);
-    volumeSlider.setName ("statusbar:meter");
+    volumeSlider.setValue(0.75);
+    volumeSlider.setRange(0.0f, 1.0f);
+    volumeSlider.setName("statusbar:meter");
 
-    volumeAttachment = std::make_unique<SliderParameterAttachment> (*pd.parameters.getParameter ("volume"), volumeSlider, nullptr);
+    volumeAttachment = std::make_unique<SliderParameterAttachment>(*pd.parameters.getParameter("volume"), volumeSlider, nullptr);
 
-    addAndMakeVisible (levelMeter);
-    addAndMakeVisible (midiBlinker);
+    addAndMakeVisible(levelMeter);
+    addAndMakeVisible(midiBlinker);
 
-    levelMeter->toBehind (&volumeSlider);
+    levelMeter->toBehind(&volumeSlider);
 
-    setSize (getWidth(), statusbarHeight);
+    setSize(getWidth(), statusbarHeight);
 
 #if JUCE_LINUX
-    startTimer (50);
+    startTimer(50);
 #endif
 }
 
@@ -336,128 +330,128 @@ Statusbar::~Statusbar()
 #endif
 }
 
-void Statusbar::valueChanged (Value& v)
+void Statusbar::valueChanged(Value& v)
 {
-    if (v.refersToSameSourceAs (locked))
+    if (v.refersToSameSourceAs(locked))
     {
-        lockButton->setButtonText (locked == var (true) ? Icons::Lock : Icons::Unlock);
+        lockButton->setButtonText(locked == var(true) ? Icons::Lock : Icons::Unlock);
     }
-    if (v.refersToSameSourceAs (commandLocked))
+    if (v.refersToSameSourceAs(commandLocked))
     {
-        auto c = static_cast<bool> (commandLocked.getValue()) ? findColour (PlugDataColour::highlightColourId).brighter (0.2f) : findColour (PlugDataColour::textColourId);
-        lockButton->setColour (TextButton::textColourOffId, c);
+        auto c = static_cast<bool>(commandLocked.getValue()) ? findColour(PlugDataColour::highlightColourId).brighter(0.2f) : findColour(PlugDataColour::textColourId);
+        lockButton->setColour(TextButton::textColourOffId, c);
     }
 }
 
 void Statusbar::resized()
 {
     int pos = 0;
-    auto position = [this, &pos] (int width, bool inverse = false) -> int
+    auto position = [this, &pos](int width, bool inverse = false) -> int
     {
         int result = 8 + pos;
         pos += width + 2;
         return inverse ? getWidth() - pos : result;
     };
 
-    lockButton->setBounds (position (getHeight()), 0, getHeight(), getHeight());
+    lockButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position (5); // Seperator
+    position(5);  // Seperator
 
-    connectionStyleButton->setBounds (position (getHeight()), 0, getHeight(), getHeight());
-    connectionPathfind->setBounds (position (getHeight()), 0, getHeight(), getHeight());
+    connectionStyleButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    connectionPathfind->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position (5); // Seperator
+    position(5);  // Seperator
 
-    zoomLabel.setBounds (position (getHeight() * 1.25f), 0, getHeight() * 1.25f, getHeight());
+    zoomLabel.setBounds(position(getHeight() * 1.25f), 0, getHeight() * 1.25f, getHeight());
 
-    zoomIn->setBounds (position (getHeight()), 0, getHeight(), getHeight());
-    zoomOut->setBounds (position (getHeight()), 0, getHeight(), getHeight());
+    zoomIn->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    zoomOut->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    position (5); // Seperator
+    position(5);  // Seperator
 
-    presentationButton->setBounds (position (getHeight()), 0, getHeight(), getHeight());
-    gridButton->setBounds (position (getHeight()), 0, getHeight(), getHeight());
-    themeButton->setBounds (position (getHeight()), 0, getHeight(), getHeight());
+    presentationButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    gridButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
+    themeButton->setBounds(position(getHeight()), 0, getHeight(), getHeight());
 
-    pos = 0; // reset position for elements on the left
+    pos = 0;  // reset position for elements on the left
 
-    automationButton->setBounds (position (getHeight(), true), 0, getHeight(), getHeight());
-    browserButton->setBounds (position (getHeight(), true), 0, getHeight(), getHeight());
-    powerButton->setBounds (position (getHeight(), true), 0, getHeight(), getHeight());
+    automationButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    browserButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
+    powerButton->setBounds(position(getHeight(), true), 0, getHeight(), getHeight());
 
-    int levelMeterPosition = position (100, true);
-    levelMeter->setBounds (levelMeterPosition, 0, 100, getHeight());
-    volumeSlider.setBounds (levelMeterPosition, 0, 100, getHeight());
+    int levelMeterPosition = position(100, true);
+    levelMeter->setBounds(levelMeterPosition, 0, 100, getHeight());
+    volumeSlider.setBounds(levelMeterPosition, 0, 100, getHeight());
 
-    midiBlinker->setBounds (position (55, true), 0, 55, getHeight());
+    midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
 // We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...
 // This timer is only started on Linux
 void Statusbar::timerCallback()
 {
-    if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var (false))
+    if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var(false))
     {
         commandLocked = true;
     }
 
-    if (! ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == var (true))
+    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == var(true))
     {
         commandLocked = false;
     }
 }
 
-bool Statusbar::keyStateChanged (bool isKeyDown, Component*)
+bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
 {
     // Lock when command is down
     auto mod = ComponentPeer::getCurrentModifiersRealtime();
 
-    if (isKeyDown && mod.isCommandDown() && ! lockButton->getToggleState())
+    if (isKeyDown && mod.isCommandDown() && !lockButton->getToggleState())
     {
         commandLocked = true;
     }
 
-    if (! mod.isCommandDown() && pd.commandLocked == var (true))
+    if (!mod.isCommandDown() && pd.commandLocked == var(true))
     {
         commandLocked = false;
     }
 
-    return false; //  Never claim this event!
+    return false;  //  Never claim this event!
 }
 
-void Statusbar::zoom (bool zoomIn)
+void Statusbar::zoom(bool zoomIn)
 {
-    float value = static_cast<float> (zoomScale.getValue());
+    float value = static_cast<float>(zoomScale.getValue());
 
     // Zoom limits
-    value = std::clamp (zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);
+    value = std::clamp(zoomIn ? value + 0.1f : value - 0.1f, 0.5f, 2.0f);
 
     // Round in case we zoomed with scrolling
-    value = static_cast<float> (static_cast<int> (round (value * 10.))) / 10.;
+    value = static_cast<float>(static_cast<int>(round(value * 10.))) / 10.;
 
     zoomScale = value;
 
-    zoomLabel.setText (String (value * 100.0f) + "%", dontSendNotification);
+    zoomLabel.setText(String(value * 100.0f) + "%", dontSendNotification);
 }
 
-void Statusbar::zoom (float zoomAmount)
+void Statusbar::zoom(float zoomAmount)
 {
-    float value = static_cast<float> (zoomScale.getValue());
+    float value = static_cast<float>(zoomScale.getValue());
     value *= zoomAmount;
 
     // Zoom limits
-    value = std::clamp (value, 0.5f, 2.0f);
+    value = std::clamp(value, 0.5f, 2.0f);
 
     zoomScale = value;
 
-    zoomLabel.setText (String (value * 100.0f, 1) + "%", dontSendNotification);
+    zoomLabel.setText(String(value * 100.0f, 1) + "%", dontSendNotification);
 }
 
 void Statusbar::defaultZoom()
 {
     zoomScale = 1.0;
 
-    zoomLabel.setText ("100%", dontSendNotification);
+    zoomLabel.setText("100%", dontSendNotification);
 }
 
 StatusbarSource::StatusbarSource()
@@ -466,13 +460,15 @@ StatusbarSource::StatusbarSource()
     level[1] = 0.0f;
 }
 
-static bool hasRealEvents (MidiBuffer& buffer)
+static bool hasRealEvents(MidiBuffer& buffer)
 {
-    return std::any_of (buffer.begin(), buffer.end(), [] (const auto& m)
-                        { return ! m.getMessage().isSysEx(); });
+    return std::any_of(buffer.begin(), buffer.end(),
+    [](const auto& m){
+        return !m.getMessage().isSysEx();
+    });
 }
 
-void StatusbarSource::processBlock (const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
+void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)
 {
     auto** channelData = buffer.getArrayOfReadPointers();
 
@@ -493,7 +489,7 @@ void StatusbarSource::processBlock (const AudioBuffer<float>& buffer, MidiBuffer
 
         for (int n = 0; n < buffer.getNumSamples(); n++)
         {
-            float s = std::abs (channelData[ch][n]);
+            float s = std::abs(channelData[ch][n]);
 
             const float decayFactor = 0.99992f;
 
@@ -510,10 +506,10 @@ void StatusbarSource::processBlock (const AudioBuffer<float>& buffer, MidiBuffer
 
     auto now = Time::getCurrentTime();
 
-    auto hasInEvents = hasRealEvents (midiIn);
-    auto hasOutEvents = hasRealEvents (midiOut);
+    auto hasInEvents = hasRealEvents(midiIn);
+    auto hasOutEvents = hasRealEvents(midiOut);
 
-    if (! hasInEvents && (now - lastMidiIn).inMilliseconds() > 700)
+    if (!hasInEvents && (now - lastMidiIn).inMilliseconds() > 700)
     {
         midiReceived = false;
     }
@@ -523,7 +519,7 @@ void StatusbarSource::processBlock (const AudioBuffer<float>& buffer, MidiBuffer
         lastMidiIn = now;
     }
 
-    if (! hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700)
+    if (!hasOutEvents && (now - lastMidiOut).inMilliseconds() > 700)
     {
         midiSent = false;
     }
@@ -534,7 +530,7 @@ void StatusbarSource::processBlock (const AudioBuffer<float>& buffer, MidiBuffer
     }
 }
 
-void StatusbarSource::prepareToPlay (int nChannels)
+void StatusbarSource::prepareToPlay(int nChannels)
 {
     numChannels = nChannels;
 }

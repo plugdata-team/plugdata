@@ -7,16 +7,16 @@ struct Spinner : public Component, public Timer
     void startSpinning()
     {
         numSpinning++;
-        setVisible (true);
-        startTimer (20);
+        setVisible(true);
+        startTimer(20);
     }
 
     void stopSpinning()
     {
         numSpinning--;
-        if (! numSpinning)
+        if (!numSpinning)
         {
-            setVisible (false);
+            setVisible(false);
             stopTimer();
         }
     }
@@ -26,16 +26,16 @@ struct Spinner : public Component, public Timer
         repaint();
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
-        getLookAndFeel().drawSpinningWaitAnimation (g, findColour (PlugDataColour::textColourId), 3, 3, getWidth() - 6, getHeight() - 6);
+        getLookAndFeel().drawSpinningWaitAnimation(g, findColour(PlugDataColour::textColourId), 3, 3, getWidth() - 6, getHeight() - 6);
     }
 };
 
 // Struct with info about the deken package
 struct PackageInfo
 {
-    PackageInfo (String name, String author, String timestamp, String url, String description, String version)
+    PackageInfo(String name, String author, String timestamp, String url, String description, String version)
     {
         this->name = name;
         this->author = author;
@@ -43,11 +43,11 @@ struct PackageInfo
         this->url = url;
         this->description = description;
         this->version = version;
-        packageId = Base64::toBase64 (name + "_" + version + "_" + timestamp + "_" + author);
+        packageId = Base64::toBase64(name + "_" + version + "_" + timestamp + "_" + author);
     }
 
     // fast compare by ID
-    friend bool operator== (const PackageInfo& lhs, const PackageInfo& rhs)
+    friend bool operator==(const PackageInfo& lhs, const PackageInfo& rhs)
     {
         return lhs.packageId == rhs.packageId;
     }
@@ -68,86 +68,85 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
         std::unique_ptr<URL::DownloadTask> task;
 
-        DownloadTask (Deken& d, PackageInfo& info, File destFile)
-            : deken (d),
-              packageInfo (info),
-              task (URL (info.url).downloadToFile (destFile, URL::DownloadTaskOptions().withListener (this))) {
+        DownloadTask(Deken& d, PackageInfo& info, File destFile)
+            : deken(d),
+              packageInfo(info),
+              task(URL(info.url).downloadToFile(destFile, URL::DownloadTaskOptions().withListener(this))){
 
               };
 
         // Finish installation process
-        void finished (URL::DownloadTask* task, bool success) override
+        void finished(URL::DownloadTask* task, bool success) override
         {
-            auto error = [this] (String message)
+            auto error = [this](String message)
             {
-                MessageManager::callAsync (
+                MessageManager::callAsync(
                     [this, message]() mutable
                     {
                         deken.repaint();
 
-                        deken.showError (message);
-                        onFinish (false);
+                        deken.showError(message);
+                        onFinish(false);
 
                         auto& d = deken;
-                        d.downloads.removeObject (this);
-                        d.updateResults (d.input.getText(), &d.searchResult, 1);
+                        d.downloads.removeObject(this);
+                        d.updateResults(d.input.getText(), &d.searchResult, 1);
                         d.listBox.updateContent();
                     });
             };
 
-            if (! success)
+            if (!success)
             {
-                error ("Download failed");
+                error("Download failed");
                 return;
             }
 
             auto downloadLocation = task->getTargetLocation();
             // Install
-            auto zipfile = ZipFile (downloadLocation);
+            auto zipfile = ZipFile(downloadLocation);
 
-            auto result = zipfile.uncompressTo (downloadLocation.getParentDirectory());
+            auto result = zipfile.uncompressTo(downloadLocation.getParentDirectory());
             downloadLocation.deleteFile();
 
-            if (! result.wasOk())
+            if (!result.wasOk())
             {
-                error ("Extraction failed: " + result.getErrorMessage());
+                error("Extraction failed: " + result.getErrorMessage());
                 return;
             }
 
-            String extractedPath = filesystem.getChildFile (packageInfo.name).getFullPathName();
+            String extractedPath = filesystem.getChildFile(packageInfo.name).getFullPathName();
 
             // Tell deken about the newly installed package
-            deken.addPackageToRegister (packageInfo, extractedPath);
+            deken.addPackageToRegister(packageInfo, extractedPath);
 
-            MessageManager::callAsync (
+            MessageManager::callAsync(
                 [this]() mutable
                 {
-                    onFinish (true);
+                    onFinish(true);
 
                     // deken is relative to this, which gets deleted
                     auto& d = deken;
-                    d.downloads.removeObject (this);
-                    d.updateResults (d.input.getText(), &d.searchResult);
+                    d.downloads.removeObject(this);
+                    d.updateResults(d.input.getText(), &d.searchResult);
                     d.listBox.updateContent();
                 });
         }
 
-        void progress (URL::DownloadTask* task, int64 bytesDownloaded, int64 totalLength) override
+        void progress(URL::DownloadTask* task, int64 bytesDownloaded, int64 totalLength) override
         {
-            float progress = static_cast<long double> (task->getLengthDownloaded()) / static_cast<long double> (task->getTotalLength());
+            float progress = static_cast<long double>(task->getLengthDownloaded()) / static_cast<long double>(task->getTotalLength());
 
-            MessageManager::callAsync ([this, progress]() mutable
-                                       { onProgress (progress); });
+            MessageManager::callAsync([this, progress]() mutable { onProgress(progress); });
         }
 
-        std::function<void (float)> onProgress;
-        std::function<void (bool)> onFinish;
+        std::function<void(float)> onProgress;
+        std::function<void(bool)> onFinish;
     };
 
-public:
-    Deken() : ThreadPool (1)
+   public:
+    Deken() : ThreadPool(1)
     {
-        if (! filesystem.exists())
+        if (!filesystem.exists())
         {
             filesystem.createDirectory();
         }
@@ -156,113 +155,111 @@ public:
         {
             try
             {
-                auto newTree = ValueTree::fromXml (pkgInfo.loadFileAsString());
-                if (newTree.getType() == Identifier ("pkg_info"))
+                auto newTree = ValueTree::fromXml(pkgInfo.loadFileAsString());
+                if (newTree.getType() == Identifier("pkg_info"))
                 {
                     packageState = newTree;
                 }
             }
             catch (...)
             {
-                packageState = ValueTree ("pkg_info");
+                packageState = ValueTree("pkg_info");
             }
         }
 
-        packageState.addListener (this);
+        packageState.addListener(this);
 
-        listBox.setModel (this);
-        listBox.setRowHeight (32);
-        listBox.setOutlineThickness (0);
+        listBox.setModel(this);
+        listBox.setRowHeight(32);
+        listBox.setOutlineThickness(0);
         listBox.deselectAllRows();
 
-        listBox.getViewport()->setScrollBarsShown (true, false, false, false);
+        listBox.getViewport()->setScrollBarsShown(true, false, false, false);
 
-        input.setName ("sidebar::searcheditor");
+        input.setName("sidebar::searcheditor");
 
-        input.onTextChange = [this]()
-        { startTimer (250); };
+        input.onTextChange = [this]() { startTimer(250); };
 
-        clearButton.setName ("statusbar:clearsearch");
+        clearButton.setName("statusbar:clearsearch");
         clearButton.onClick = [this]()
         {
             input.clear();
             input.giveAwayKeyboardFocus();
             input.repaint();
-            updateResults ("", &searchResult);
+            updateResults("", &searchResult);
         };
 
-        clearButton.setAlwaysOnTop (true);
+        clearButton.setAlwaysOnTop(true);
 
-        addAndMakeVisible (clearButton);
-        addAndMakeVisible (listBox);
-        addAndMakeVisible (input);
+        addAndMakeVisible(clearButton);
+        addAndMakeVisible(listBox);
+        addAndMakeVisible(input);
 
-        listBox.addMouseListener (this, true);
+        listBox.addMouseListener(this, true);
 
-        input.setJustification (Justification::centredLeft);
-        input.setBorder ({ 1, 23, 3, 1 });
+        input.setJustification(Justification::centredLeft);
+        input.setBorder({1, 23, 3, 1});
 
-        listBox.setColour (ListBox::backgroundColourId, Colours::transparentBlack);
+        listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
-        listBox.getViewport()->getVerticalScrollBar().addListener (this);
+        listBox.getViewport()->getVerticalScrollBar().addListener(this);
 
-        setInterceptsMouseClicks (false, true);
+        setInterceptsMouseClicks(false, true);
 
-        addAndMakeVisible (searchSpinner);
-        searchSpinner.setAlwaysOnTop (true);
+        addAndMakeVisible(searchSpinner);
+        searchSpinner.setAlwaysOnTop(true);
 
         // updateResults("*", &allResults, 2);
-        updateResults ("", &searchResult, 0);
+        updateResults("", &searchResult, 0);
     }
 
     // Group fast typing together
     void timerCallback() override
     {
-        updateResults (input.getText(), &searchResult);
+        updateResults(input.getText(), &searchResult);
         stopTimer();
     }
 
     // Check if busy when deleting settings component
     bool isBusy()
     {
-        if (downloads.size())
-            return true;
+        if (downloads.size()) return true;
 
         return getNumJobs();
     }
 
-    void scrollBarMoved (ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
+    void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
     {
         repaint();
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
-        PlugDataLook::paintStripes (g, 32, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() + 4);
+        PlugDataLook::paintStripes(g, 32, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() + 4);
 
         if (errorMessage.isNotEmpty())
         {
-            g.setColour (Colours::red);
-            g.drawText (errorMessage, getLocalBounds().removeFromBottom (28).withTrimmedLeft (8).translated (0, 2), Justification::centredLeft);
+            g.setColour(Colours::red);
+            g.drawText(errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Justification::centredLeft);
         }
     }
 
-    void paintOverChildren (Graphics& g) override
+    void paintOverChildren(Graphics& g) override
     {
-        g.setFont (getLookAndFeel().getTextButtonFont (clearButton, 30));
-        g.setColour (findColour (PlugDataColour::textColourId));
+        g.setFont(getLookAndFeel().getTextButtonFont(clearButton, 30));
+        g.setColour(findColour(PlugDataColour::textColourId));
 
-        g.drawText (Icons::Search, 0, 0, 30, 30, Justification::centred);
+        g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
 
         if (input.getText().isEmpty())
         {
-            g.setColour (findColour (PlugDataColour::toolbarOutlineColourId));
-            g.setFont (Font());
-            g.drawText ("Type to search for objects or libraries", 32, 0, 350, 30, Justification::centredLeft);
+            g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+            g.setFont(Font());
+            g.drawText("Type to search for objects or libraries", 32, 0, 350, 30, Justification::centredLeft);
         }
 
-        g.setColour (findColour (PlugDataColour::toolbarOutlineColourId));
-        g.drawLine (0, 28, getWidth(), 28);
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        g.drawLine(0, 28, getWidth(), 28);
     }
 
     int getNumRows() override
@@ -270,43 +267,42 @@ public:
         return searchResult.size() + downloads.size();
     }
 
-    void paintListBoxItem (int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
+    void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
     {
     }
 
-    Component* refreshComponentForRow (int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
+    Component* refreshComponentForRow(int rowNumber, bool isRowSelected, Component* existingComponentToUpdate) override
     {
         delete existingComponentToUpdate;
 
-        if (isPositiveAndBelow (rowNumber, downloads.size()))
+        if (isPositiveAndBelow(rowNumber, downloads.size()))
         {
-            return new DekenRowComponent (*this, downloads[rowNumber]->packageInfo);
+            return new DekenRowComponent(*this, downloads[rowNumber]->packageInfo);
         }
 
-        else if (isPositiveAndBelow (rowNumber - downloads.size(), searchResult.size()))
+        else if (isPositiveAndBelow(rowNumber - downloads.size(), searchResult.size()))
         {
-            return new DekenRowComponent (*this, searchResult.getReference (rowNumber - downloads.size()));
+            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - downloads.size()));
         }
 
         return nullptr;
     }
 
-    void search (String query)
+    void search(String query)
     {
     }
 
-    void updateResults (String query, SearchResult* result, int searchType = 1)
+    void updateResults(String query, SearchResult* result, int searchType = 1)
     {
         // Run on threadpool
         // Web requests shouldn't block the message queue!
         searchSpinner.startSpinning();
-        auto deken = SafePointer<Deken> (this);
+        auto deken = SafePointer<Deken>(this);
 
-        addJob (
+        addJob(
             [this, deken, result, query, searchType]() mutable
             {
-                if (! deken)
-                    return;
+                if (!deken) return;
                 SearchResult newResult;
 
                 // Add as job to ensure synchronous order
@@ -315,36 +311,35 @@ public:
                     for (auto child : packageState)
                     {
                         auto name = child.getType().toString();
-                        auto description = child.getProperty ("Description").toString();
-                        auto timestamp = child.getProperty ("Timestamp").toString();
-                        auto url = child.getProperty ("URL").toString();
-                        auto version = child.getProperty ("Version").toString();
-                        auto author = child.getProperty ("Author").toString();
+                        auto description = child.getProperty("Description").toString();
+                        auto timestamp = child.getProperty("Timestamp").toString();
+                        auto url = child.getProperty("URL").toString();
+                        auto version = child.getProperty("Version").toString();
+                        auto author = child.getProperty("Author").toString();
 
                         bool exists = false;
                         for (auto* download : downloads)
                         {
-                            if (download->packageInfo == PackageInfo (name, author, timestamp, url, description, version))
+                            if (download->packageInfo == PackageInfo(name, author, timestamp, url, description, version))
                             {
                                 exists = true;
                                 break;
                             }
                         }
 
-                        auto info = PackageInfo (name, author, timestamp, url, description, version);
+                        auto info = PackageInfo(name, author, timestamp, url, description, version);
 
-                        if (! getDownloadForPackage (info))
+                        if (!getDownloadForPackage(info))
                         {
-                            newResult.addIfNotAlreadyThere (info);
+                            newResult.addIfNotAlreadyThere(info);
                         }
                     }
 
-                    MessageManager::callAsync (
+                    MessageManager::callAsync(
                         [this, deken, result, newResult]() mutable
                         {
                             // Check if it didn't get deleted
-                            if (! deken)
-                                return;
+                            if (!deken) return;
 
                             *result = newResult;
                             listBox.updateContent();
@@ -354,37 +349,36 @@ public:
                 }
 
                 // Set to name for now: there are not that many deken libraries to justify the other options
-                String type = StringArray ({ "name", "objects", "libraries" })[searchType];
+                String type = StringArray({"name", "objects", "libraries"})[searchType];
 
                 // Create link for deken search request
-                auto url = URL ("https://deken.puredata.info/search?" + type + "=" + query);
+                auto url = URL("https://deken.puredata.info/search?" + type + "=" + query);
 
                 // Open webstream
-                WebInputStream webstream (url, false);
+                WebInputStream webstream(url, false);
 
-                bool success = webstream.connect (nullptr);
+                bool success = webstream.connect(nullptr);
                 int timer = 50;
 
                 // Try to connect with exponential backoff
-                while (! success && timer < 2000)
+                while (!success && timer < 2000)
                 {
-                    Time::waitForMillisecondCounter (Time::getMillisecondCounter() + timer);
+                    Time::waitForMillisecondCounter(Time::getMillisecondCounter() + timer);
                     timer *= 2;
-                    success = webstream.connect (nullptr);
+                    success = webstream.connect(nullptr);
                 }
 
-                if (! success)
+                if (!success)
                 {
-                    MessageManager::callAsync (
+                    MessageManager::callAsync(
                         [this, deken, result]()
                         {
-                            if (! deken)
-                                return;
+                            if (!deken) return;
 
                             result->clear();
                             listBox.updateContent();
                             searchSpinner.stopSpinning();
-                            showError ("Failed to connect to server");
+                            showError("Failed to connect to server");
                         });
                 }
 
@@ -398,20 +392,19 @@ public:
                 // Disable assertions:
                 // Sometimes the server passes an invalid result causing an assertion
                 // But the invalid result is no problem!
-                if (JSON::parse (json, parsedJson).wasOk())
+                if (JSON::parse(json, parsedJson).wasOk())
                 {
 #define JUCE_DEBUG 1
                     // Read json
                     auto* object = parsedJson["result"]["libraries"].getDynamicObject();
 
                     // Invalid result, update table and return
-                    if (! object)
+                    if (!object)
                     {
-                        MessageManager::callAsync (
+                        MessageManager::callAsync(
                             [this, deken, result]()
                             {
-                                if (! deken)
-                                    return;
+                                if (!deken) return;
 
                                 result->clear();
                                 listBox.updateContent();
@@ -436,8 +429,8 @@ public:
                             {
                                 auto* archs = arch["archs"].getArray();
                                 // Look for matching platform
-                                String platform = archs->getReference (0).toString();
-                                if (checkArchitecture (platform))
+                                String platform = archs->getReference(0).toString();
+                                if (checkArchitecture(platform))
                                 {
                                     // Extract info
                                     String author = arch["author"];
@@ -448,34 +441,32 @@ public:
                                     String version = arch["version"];
 
                                     // Add valid option
-                                    results.add ({ name, author, timestamp, url, description, version });
+                                    results.add({name, author, timestamp, url, description, version});
                                 }
                             }
                         }
 
-                        if (! results.isEmpty())
+                        if (!results.isEmpty())
                         {
                             // Sort by alphabetically by timestamp to get latest version
                             // The timestamp format is yyyy:mm::dd hh::mm::ss so this should work
-                            std::sort (results.begin(), results.end(), [] (const auto& result1, const auto& result2)
-                                       { return result1.timestamp.compare (result2.timestamp) > 0; });
+                            std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2) { return result1.timestamp.compare(result2.timestamp) > 0; });
 
-                            auto info = results.getReference (0);
+                            auto info = results.getReference(0);
 
                             // check if already being downloaded
-                            if (! getDownloadForPackage (info))
+                            if (!getDownloadForPackage(info))
                             {
-                                newResult.addIfNotAlreadyThere (info);
+                                newResult.addIfNotAlreadyThere(info);
                             }
                         }
                     }
                 }
                 // Update content from message thread
-                MessageManager::callAsync (
+                MessageManager::callAsync(
                     [this, deken, result, newResult]() mutable
                     {
-                        if (! deken)
-                            return;
+                        if (!deken) return;
                         *result = newResult;
                         listBox.updateContent();
                         searchSpinner.stopSpinning();
@@ -491,89 +482,89 @@ public:
 
     void resized() override
     {
-        auto tableBounds = getLocalBounds().withTrimmedBottom (30);
-        auto inputBounds = tableBounds.removeFromTop (28);
+        auto tableBounds = getLocalBounds().withTrimmedBottom(30);
+        auto inputBounds = tableBounds.removeFromTop(28);
 
-        input.setBounds (inputBounds);
+        input.setBounds(inputBounds);
 
-        clearButton.setBounds (inputBounds.removeFromRight (30));
-        searchSpinner.setBounds (inputBounds.removeFromRight (30));
+        clearButton.setBounds(inputBounds.removeFromRight(30));
+        searchSpinner.setBounds(inputBounds.removeFromRight(30));
 
-        tableBounds.removeFromLeft (Sidebar::dragbarWidth);
-        listBox.setBounds (tableBounds);
+        tableBounds.removeFromLeft(Sidebar::dragbarWidth);
+        listBox.setBounds(tableBounds);
     }
 
     // Show error message in statusbar
-    void showError (const String& message)
+    void showError(const String& message)
     {
         errorMessage = message;
         repaint();
     }
 
     // When a property in our pkginfo changes, save it immediately
-    void valueTreePropertyChanged (ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override
+    void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override
     {
-        pkgInfo.replaceWithText (packageState.toXmlString());
+        pkgInfo.replaceWithText(packageState.toXmlString());
     }
 
-    void valueTreeChildAdded (ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override
+    void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override
     {
-        pkgInfo.replaceWithText (packageState.toXmlString());
+        pkgInfo.replaceWithText(packageState.toXmlString());
     }
 
-    void valueTreeChildRemoved (ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override
+    void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override
     {
-        pkgInfo.replaceWithText (packageState.toXmlString());
+        pkgInfo.replaceWithText(packageState.toXmlString());
     }
 
-    void uninstall (PackageInfo& packageInfo)
+    void uninstall(PackageInfo& packageInfo)
     {
-        auto toRemove = packageState.getChildWithProperty ("ID", packageInfo.packageId);
+        auto toRemove = packageState.getChildWithProperty("ID", packageInfo.packageId);
         if (toRemove.isValid())
         {
-            auto folder = File (toRemove.getProperty ("Path").toString());
+            auto folder = File(toRemove.getProperty("Path").toString());
             folder.deleteRecursively();
-            packageState.removeChild (toRemove, nullptr);
+            packageState.removeChild(toRemove, nullptr);
         }
     }
 
-    DownloadTask* install (PackageInfo packageInfo)
+    DownloadTask* install(PackageInfo packageInfo)
     {
         // Make sure https is used
-        packageInfo.url = packageInfo.url.replaceFirstOccurrenceOf ("http://", "https://");
-        auto filename = packageInfo.url.fromLastOccurrenceOf ("/", false, false);
-        auto destFile = Deken::filesystem.getChildFile (filename);
+        packageInfo.url = packageInfo.url.replaceFirstOccurrenceOf("http://", "https://");
+        auto filename = packageInfo.url.fromLastOccurrenceOf("/", false, false);
+        auto destFile = Deken::filesystem.getChildFile(filename);
 
         // Download file and return unique ptr to task object
-        return downloads.add (new DownloadTask (*this, packageInfo, destFile));
+        return downloads.add(new DownloadTask(*this, packageInfo, destFile));
     }
 
-    void addPackageToRegister (const PackageInfo& info, String path)
+    void addPackageToRegister(const PackageInfo& info, String path)
     {
-        ValueTree pkgEntry = ValueTree (info.name);
-        pkgEntry.setProperty ("ID", info.packageId, nullptr);
-        pkgEntry.setProperty ("Author", info.author, nullptr);
-        pkgEntry.setProperty ("Timestamp", info.timestamp, nullptr);
-        pkgEntry.setProperty ("Description", info.description, nullptr);
-        pkgEntry.setProperty ("Version", info.version, nullptr);
-        pkgEntry.setProperty ("Path", path, nullptr);
-        pkgEntry.setProperty ("URL", info.url, nullptr);
+        ValueTree pkgEntry = ValueTree(info.name);
+        pkgEntry.setProperty("ID", info.packageId, nullptr);
+        pkgEntry.setProperty("Author", info.author, nullptr);
+        pkgEntry.setProperty("Timestamp", info.timestamp, nullptr);
+        pkgEntry.setProperty("Description", info.description, nullptr);
+        pkgEntry.setProperty("Version", info.version, nullptr);
+        pkgEntry.setProperty("Path", path, nullptr);
+        pkgEntry.setProperty("URL", info.url, nullptr);
 
         // Prevent duplicate entries
-        if (packageState.getChildWithProperty ("ID", info.packageId).isValid())
+        if (packageState.getChildWithProperty("ID", info.packageId).isValid())
         {
-            packageState.removeChild (packageState.getChildWithProperty ("ID", info.packageId), nullptr);
+            packageState.removeChild(packageState.getChildWithProperty("ID", info.packageId), nullptr);
         }
-        packageState.appendChild (pkgEntry, nullptr);
+        packageState.appendChild(pkgEntry, nullptr);
     }
 
-    bool packageExists (const PackageInfo& info)
+    bool packageExists(const PackageInfo& info)
     {
-        return packageState.getChildWithProperty ("ID", info.packageId).isValid();
+        return packageState.getChildWithProperty("ID", info.packageId).isValid();
     }
 
     // Checks if the current package is already being downloaded
-    DownloadTask* getDownloadForPackage (PackageInfo& info)
+    DownloadTask* getDownloadForPackage(PackageInfo& info)
     {
         for (auto* download : downloads)
         {
@@ -586,17 +577,17 @@ public:
         return nullptr;
     }
 
-private:
+   private:
     // List component to list packages
     ListBox listBox;
 
-    inline static File filesystem = File::getSpecialLocation (File::SpecialLocationType::userApplicationDataDirectory).getChildFile ("PlugData").getChildFile ("Library").getChildFile ("Deken");
+    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library").getChildFile("Deken");
 
     // Package info file
-    File pkgInfo = filesystem.getChildFile (".pkg_info");
+    File pkgInfo = filesystem.getChildFile(".pkg_info");
 
     // Package state tree, keeps track of which packages are installed and saves it to pkgInfo
-    ValueTree packageState = ValueTree ("pkg_info");
+    ValueTree packageState = ValueTree("pkg_info");
 
     // Last error message
     String errorMessage;
@@ -606,7 +597,7 @@ private:
     SearchResult allResults;
 
     TextEditor input;
-    TextButton clearButton = TextButton (Icons::Clear);
+    TextButton clearButton = TextButton(Icons::Clear);
 
     Spinner searchSpinner;
 
@@ -621,141 +612,138 @@ private:
         Deken& deken;
         PackageInfo packageInfo;
 
-        TextButton installButton = TextButton (Icons::SaveAs);
-        TextButton reinstallButton = TextButton (Icons::Refresh);
-        TextButton uninstallButton = TextButton (Icons::Clear);
+        TextButton installButton = TextButton(Icons::SaveAs);
+        TextButton reinstallButton = TextButton(Icons::Refresh);
+        TextButton uninstallButton = TextButton(Icons::Clear);
 
         float installProgress;
         ValueTree packageState;
 
-        DekenRowComponent (Deken& parent, PackageInfo& info) : deken (parent), packageInfo (info), packageState (deken.getPackageState())
+        DekenRowComponent(Deken& parent, PackageInfo& info) : deken(parent), packageInfo(info), packageState(deken.getPackageState())
         {
-            addChildComponent (installButton);
-            addChildComponent (reinstallButton);
-            addChildComponent (uninstallButton);
+            addChildComponent(installButton);
+            addChildComponent(reinstallButton);
+            addChildComponent(uninstallButton);
 
-            installButton.setName ("statusbar:install");
-            reinstallButton.setName ("statusbar:reinstall");
-            uninstallButton.setName ("statusbar:uninstall");
+            installButton.setName("statusbar:install");
+            reinstallButton.setName("statusbar:reinstall");
+            uninstallButton.setName("statusbar:uninstall");
 
             uninstallButton.onClick = [this]()
             {
-                setInstalled (false);
-                deken.uninstall (packageInfo);
-                deken.updateResults (deken.input.getText(), &deken.searchResult);
+                setInstalled(false);
+                deken.uninstall(packageInfo);
+                deken.updateResults(deken.input.getText(), &deken.searchResult);
             };
 
             reinstallButton.onClick = [this]()
             {
-                auto* downloadTask = deken.install (packageInfo);
-                attachToDownload (downloadTask);
+                auto* downloadTask = deken.install(packageInfo);
+                attachToDownload(downloadTask);
             };
 
             installButton.onClick = [this]()
             {
-                auto* downloadTask = deken.install (packageInfo);
-                attachToDownload (downloadTask);
+                auto* downloadTask = deken.install(packageInfo);
+                attachToDownload(downloadTask);
             };
 
             // Check if package is already installed
-            setInstalled (deken.packageExists (packageInfo));
+            setInstalled(deken.packageExists(packageInfo));
 
             // Check if already in progress
-            if (auto* task = deken.getDownloadForPackage (packageInfo))
+            if (auto* task = deken.getDownloadForPackage(packageInfo))
             {
-                attachToDownload (task);
+                attachToDownload(task);
             }
         }
 
-        void attachToDownload (DownloadTask* task)
+        void attachToDownload(DownloadTask* task)
         {
-            task->onProgress = [this] (float progress)
+            task->onProgress = [this](float progress)
             {
                 installProgress = progress;
                 repaint();
             };
-            task->onFinish = [this] (bool result)
+            task->onFinish = [this](bool result)
             {
-                setInstalled (result);
+                setInstalled(result);
                 deken.listBox.updateContent();
             };
 
-            installButton.setVisible (false);
-            reinstallButton.setVisible (false);
-            uninstallButton.setVisible (false);
+            installButton.setVisible(false);
+            reinstallButton.setVisible(false);
+            uninstallButton.setVisible(false);
         }
 
         // Enables or disables buttons based on package state
-        void setInstalled (bool installed)
+        void setInstalled(bool installed)
         {
-            installButton.setVisible (! installed);
-            reinstallButton.setVisible (installed);
-            uninstallButton.setVisible (installed);
+            installButton.setVisible(!installed);
+            reinstallButton.setVisible(installed);
+            uninstallButton.setVisible(installed);
             installProgress = 0.0f;
 
             repaint();
         }
 
-        void paint (Graphics& g) override
+        void paint(Graphics& g) override
         {
-            g.setColour (findColour (ComboBox::textColourId));
+            g.setColour(findColour(ComboBox::textColourId));
 
-            g.setFont (Font());
-            g.drawFittedText (packageInfo.name, 5, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
+            g.setFont(Font());
+            g.drawFittedText(packageInfo.name, 5, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
 
             // draw progressbar
-            if (deken.getDownloadForPackage (packageInfo))
+            if (deken.getDownloadForPackage(packageInfo))
             {
                 float width = getWidth() - 90.0f;
-                float right = jmap (installProgress, 90.f, width);
+                float right = jmap(installProgress, 90.f, width);
 
                 Path downloadPath;
-                downloadPath.addLineSegment ({ 90, 15, right, 15 }, 1.0f);
+                downloadPath.addLineSegment({90, 15, right, 15}, 1.0f);
 
                 Path fullPath;
-                fullPath.addLineSegment ({ 90, 15, width, 15 }, 1.0f);
+                fullPath.addLineSegment({90, 15, width, 15}, 1.0f);
 
-                g.setColour (findColour (PlugDataColour::toolbarOutlineColourId));
-                g.strokePath (fullPath, PathStrokeType (11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+                g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+                g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
 
-                g.setColour (findColour (PlugDataColour::highlightColourId));
-                g.strokePath (downloadPath, PathStrokeType (8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
+                g.setColour(findColour(PlugDataColour::highlightColourId));
+                g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             }
             else
             {
-                g.drawFittedText (packageInfo.version, 90, 0, 150, getHeight(), Justification::centredLeft, 1, 0.8f);
-                g.drawFittedText (packageInfo.author, 250, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
-                g.drawFittedText (packageInfo.timestamp, 440, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
+                g.drawFittedText(packageInfo.version, 90, 0, 150, getHeight(), Justification::centredLeft, 1, 0.8f);
+                g.drawFittedText(packageInfo.author, 250, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
+                g.drawFittedText(packageInfo.timestamp, 440, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
             }
         }
 
         void resized() override
         {
-            installButton.setBounds (getWidth() - 40, 1, 26, 30);
-            uninstallButton.setBounds (getWidth() - 40, 1, 26, 30);
-            reinstallButton.setBounds (getWidth() - 70, 1, 26, 30);
+            installButton.setBounds(getWidth() - 40, 1, 26, 30);
+            uninstallButton.setBounds(getWidth() - 40, 1, 26, 30);
+            reinstallButton.setBounds(getWidth() - 70, 1, 26, 30);
         }
     };
 
-    bool checkArchitecture (String platform)
+    bool checkArchitecture(String platform)
     {
         // Check OS
-        if (platform.upToFirstOccurrenceOf ("-", false, false) != os)
-            return false;
-        platform = platform.fromFirstOccurrenceOf ("-", false, false);
+        if (platform.upToFirstOccurrenceOf("-", false, false) != os) return false;
+        platform = platform.fromFirstOccurrenceOf("-", false, false);
 
         // Check floatsize
-        if (platform.fromLastOccurrenceOf ("-", false, false) != floatsize)
-            return false;
-        platform = platform.upToLastOccurrenceOf ("-", false, false);
+        if (platform.fromLastOccurrenceOf("-", false, false) != floatsize) return false;
+        platform = platform.upToLastOccurrenceOf("-", false, false);
 
-        if (machine.contains (platform))
-            return true;
+        if (machine.contains(platform)) return true;
 
         return false;
     }
 
-    String floatsize = String (PD_FLOATSIZE);
+    String floatsize = String(PD_FLOATSIZE);
     String os =
 #if JUCE_LINUX
         "Linux"
@@ -780,32 +768,24 @@ private:
 
     StringArray machine =
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
-    { "amd64",
-      "x86_64" }
+        {"amd64", "x86_64"}
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)
-    { "i386",
-      "i686",
-      "i586" }
+        {"i386", "i686", "i586"}
 #elif defined(__ppc__)
-    { "ppc",
-      "PowerPC" }
+        {"ppc", "PowerPC"}
 #elif defined(__aarch64__)
-    { "arm64" }
+        {"arm64"}
 #elif __ARM_ARCH == 6 || defined(__ARM_ARCH_6__)
     { "armv6",
       "armv6l",
-      "arm" } "armv" stringify (__ARM_ARCH)
+      "arm" } "armv" stringify(__ARM_ARCH)
 #elif __ARM_ARCH == 7 || defined(__ARM_ARCH_7__)
-    { "armv7l",
-      "armv7",
-      "armv6l",
-      "armv6",
-      "arm" }
+        {"armv7l", "armv7", "armv6l", "armv6", "arm"}
 #else
 #if defined(__GNUC__)
 #warning unknown architecture
 #endif
-    {}
+        {}
 #endif
     ;
 };
