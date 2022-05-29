@@ -8,7 +8,7 @@
 
 #define JUCE_DISPLAY_SPLASH_SCREEN 0
 
-#define JucePlugin_LV2URI "https://github.com/timothyschoen/PlugData/"
+//#define JucePlugin_LV2URI "https://github.com/timothyschoen/PlugData/"
 
 namespace ProjectInfo
 {
