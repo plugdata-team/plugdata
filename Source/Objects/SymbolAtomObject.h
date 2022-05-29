@@ -7,68 +7,68 @@ struct SymbolAtomObject final : public AtomObject
 
     String lastMessage;
 
-    SymbolAtomObject(void* obj, Box* parent) : AtomObject(obj, parent)
+    SymbolAtomObject (void* obj, Box* parent) : AtomObject (obj, parent)
     {
-        addAndMakeVisible(input);
+        addAndMakeVisible (input);
 
-        input.setInterceptsMouseClicks(false, false);
+        input.setInterceptsMouseClicks (false, false);
 
         input.onTextChange = [this]()
         {
             startEdition();
-            setSymbol(input.getText().toStdString());
+            setSymbol (input.getText().toStdString());
             stopEdition();
 
-            auto width = input.getFont().getStringWidth(input.getText()) + 36;
+            auto width = input.getFont().getStringWidth (input.getText()) + 36;
             if (width < box->getWidth())
             {
-                box->setSize(width, box->getHeight());
+                box->setSize (width, box->getHeight());
                 checkBounds();
             }
         };
 
-        input.setMinimumHorizontalScale(0.9f);
+        input.setMinimumHorizontalScale (0.9f);
         initialise();
 
-        box->addMouseListener(this, false);
+        box->addMouseListener (this, false);
     }
 
-    void lock(bool locked) override
+    void lock (bool locked) override
     {
         isLocked = locked;
-        setInterceptsMouseClicks(isLocked, isLocked);
+        setInterceptsMouseClicks (isLocked, isLocked);
     }
 
     void resized() override
     {
         AtomObject::resized();
 
-        input.setBounds(getLocalBounds());
+        input.setBounds (getLocalBounds());
     }
 
     void update() override
     {
-        input.setText(String(getSymbol()), sendNotification);
+        input.setText (String (getSymbol()), sendNotification);
     }
 
-    void setSymbol(String const& value) noexcept
+    void setSymbol (String const& value) noexcept
     {
-        cnv->pd->enqueueDirectMessages(ptr, value.toStdString());
+        cnv->pd->enqueueDirectMessages (ptr, value.toStdString());
     }
 
     String getSymbol()
     {
         cnv->pd->setThis();
-        return atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name;
+        return atom_getsymbol (fake_gatom_getatom (static_cast<t_fake_gatom*> (ptr)))->s_name;
     }
 
     void updateValue() override
     {
-        if (!edited)
+        if (! edited)
         {
             String v = getSymbol();
 
-            if (lastMessage != v && !v.startsWith("click"))
+            if (lastMessage != v && ! v.startsWith ("click"))
             {
                 lastMessage = v;
                 update();
@@ -76,16 +76,16 @@ struct SymbolAtomObject final : public AtomObject
         }
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown (const MouseEvent& e) override
     {
-        GUIObject::mouseDown(e);
-        if (cnv->isSelected(box) && !box->selectionChanged)
+        GUIObject::mouseDown (e);
+        if (cnv->isSelected (box) && ! box->selectionChanged)
         {
             shouldOpenEditor = true;
         }
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp (const MouseEvent& e) override
     {
         isDown = false;
 
@@ -99,19 +99,19 @@ struct SymbolAtomObject final : public AtomObject
         repaint();
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged (Value& v) override
     {
-        if (v.refersToSameSourceAs(labelHeight))
+        if (v.refersToSameSourceAs (labelHeight))
         {
             updateLabel();
             if (getParentComponent())
             {
-                box->updateBounds();  // update box size based on new font
+                box->updateBounds(); // update box size based on new font
             }
         }
         else
         {
-            AtomObject::valueChanged(v);
+            AtomObject::valueChanged (v);
         }
     }
 

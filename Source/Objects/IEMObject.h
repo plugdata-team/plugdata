@@ -2,24 +2,24 @@
 
 extern "C"
 {
-    char* pdgui_strnescape(char* dst, size_t dstlen, const char* src, size_t srclen);
+    char* pdgui_strnescape (char* dst, size_t dstlen, const char* src, size_t srclen);
 }
 
 struct IEMObject : public GUIObject
 {
-    IEMObject(void* ptr, Box* parent) : GUIObject(ptr, parent)
+    IEMObject (void* ptr, Box* parent) : GUIObject (ptr, parent)
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
 
         t_symbol* srlsym[3];
         srlsym[0] = iemgui->x_snd;
         srlsym[1] = iemgui->x_rcv;
         srlsym[2] = iemgui->x_lab;
 
-        iemgui_all_dollar2raute(srlsym);
-        iemgui_all_sym2dollararg(iemgui, srlsym);
-        String label = String(srlsym[2]->s_name).removeCharacters("\\");
-        iemgui->x_lab_unexpanded = gensym(label.toRawUTF8());
+        iemgui_all_dollar2raute (srlsym);
+        iemgui_all_sym2dollararg (iemgui, srlsym);
+        String label = String (srlsym[2]->s_name).removeCharacters ("\\");
+        iemgui->x_lab_unexpanded = gensym (label.toRawUTF8());
 
         labelText = getLabelText();
 
@@ -31,51 +31,51 @@ struct IEMObject : public GUIObject
         receiveSymbol = getReceiveSymbol();
     }
 
-    void paint(Graphics& g) override
+    void paint (Graphics& g) override
     {
-        g.setColour(getBackgroundColour());
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        g.setColour (getBackgroundColour());
+        g.fillRoundedRectangle (getLocalBounds().toFloat().reduced (0.5f), 2.0f);
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = box->findColour (cnv->isSelected (box) && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+        g.setColour (outlineColour);
+        g.drawRoundedRectangle (getLocalBounds().toFloat().reduced (0.5f), 2.0f, 1.0f);
     }
 
     void applyBounds() override
     {
         auto b = box->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
+        libpd_moveobj (cnv->patch.getPointer(), static_cast<t_gobj*> (ptr), b.getX(), b.getY());
 
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
         iemgui->x_w = b.getWidth();
         iemgui->x_h = b.getHeight();
     }
 
     void initialise() override
     {
-        primaryColour = Colour(getForegroundColour()).toString();
-        secondaryColour = Colour(getBackgroundColour()).toString();
-        labelColour = Colour(getLabelColour()).toString();
+        primaryColour = Colour (getForegroundColour()).toString();
+        secondaryColour = Colour (getBackgroundColour()).toString();
+        labelColour = Colour (getLabelColour()).toString();
 
-        getLookAndFeel().setColour(TextButton::buttonOnColourId, Colour::fromString(primaryColour.toString()));
-        getLookAndFeel().setColour(Slider::thumbColourId, Colour::fromString(primaryColour.toString()));
+        getLookAndFeel().setColour (TextButton::buttonOnColourId, Colour::fromString (primaryColour.toString()));
+        getLookAndFeel().setColour (Slider::thumbColourId, Colour::fromString (primaryColour.toString()));
 
-        getLookAndFeel().setColour(TextEditor::backgroundColourId, Colour::fromString(secondaryColour.toString()));
-        getLookAndFeel().setColour(TextButton::buttonColourId, Colour::fromString(secondaryColour.toString()));
+        getLookAndFeel().setColour (TextEditor::backgroundColourId, Colour::fromString (secondaryColour.toString()));
+        getLookAndFeel().setColour (TextButton::buttonColourId, Colour::fromString (secondaryColour.toString()));
 
-        auto sliderBackground = Colour::fromString(secondaryColour.toString());
-        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker(0.6f) : sliderBackground.brighter(0.6f);
+        auto sliderBackground = Colour::fromString (secondaryColour.toString());
+        sliderBackground = sliderBackground.getBrightness() > 0.5f ? sliderBackground.darker (0.6f) : sliderBackground.brighter (0.6f);
 
-        getLookAndFeel().setColour(Slider::backgroundColourId, sliderBackground);
+        getLookAndFeel().setColour (Slider::backgroundColourId, sliderBackground);
 
         auto params = getParameters();
         for (auto& [name, type, cat, value, list] : params)
         {
-            value->addListener(this);
+            value->addListener (this);
 
             // Push current parameters to pd
-            valueChanged(*value);
+            valueChanged (*value);
         }
 
         repaint();
@@ -85,88 +85,88 @@ struct IEMObject : public GUIObject
     {
         ObjectParameters params = defineParameters();
 
-        params.push_back({"Foreground", tColour, cAppearance, &primaryColour, {}});
-        params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
-        params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
-        params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
-        params.push_back({"Label", tString, cLabel, &labelText, {}});
-        params.push_back({"Label Colour", tColour, cLabel, &labelColour, {}});
-        params.push_back({"Label X", tInt, cLabel, &labelX, {}});
-        params.push_back({"Label Y", tInt, cLabel, &labelY, {}});
-        params.push_back({"Label Height", tInt, cLabel, &labelHeight, {}});
+        params.push_back ({ "Foreground", tColour, cAppearance, &primaryColour, {} });
+        params.push_back ({ "Background", tColour, cAppearance, &secondaryColour, {} });
+        params.push_back ({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
+        params.push_back ({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
+        params.push_back ({ "Label", tString, cLabel, &labelText, {} });
+        params.push_back ({ "Label Colour", tColour, cLabel, &labelColour, {} });
+        params.push_back ({ "Label X", tInt, cLabel, &labelX, {} });
+        params.push_back ({ "Label Y", tInt, cLabel, &labelY, {} });
+        params.push_back ({ "Label Height", tInt, cLabel, &labelHeight, {} });
 
         return params;
     }
 
-    void valueChanged(Value& v) override
+    void valueChanged (Value& v) override
     {
-        if (v.refersToSameSourceAs(sendSymbol))
+        if (v.refersToSameSourceAs (sendSymbol))
         {
-            setSendSymbol(sendSymbol.toString());
+            setSendSymbol (sendSymbol.toString());
         }
-        else if (v.refersToSameSourceAs(receiveSymbol))
+        else if (v.refersToSameSourceAs (receiveSymbol))
         {
-            setReceiveSymbol(receiveSymbol.toString());
+            setReceiveSymbol (receiveSymbol.toString());
         }
-        else if (v.refersToSameSourceAs(primaryColour))
+        else if (v.refersToSameSourceAs (primaryColour))
         {
-            auto colour = Colour::fromString(primaryColour.toString());
-            setForegroundColour(colour);
+            auto colour = Colour::fromString (primaryColour.toString());
+            setForegroundColour (colour);
 
-            getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
-            getLookAndFeel().setColour(Slider::thumbColourId, colour);
-            getLookAndFeel().setColour(Slider::trackColourId, colour);
+            getLookAndFeel().setColour (TextButton::buttonOnColourId, colour);
+            getLookAndFeel().setColour (Slider::thumbColourId, colour);
+            getLookAndFeel().setColour (Slider::trackColourId, colour);
 
-            getLookAndFeel().setColour(Label::textColourId, colour);
-            getLookAndFeel().setColour(Label::textWhenEditingColourId, colour);
-            getLookAndFeel().setColour(TextEditor::textColourId, colour);
-
-            repaint();
-        }
-        else if (v.refersToSameSourceAs(secondaryColour))
-        {
-            auto colour = Colour::fromString(secondaryColour.toString());
-            setBackgroundColour(colour);
-
-            getLookAndFeel().setColour(TextEditor::backgroundColourId, colour);
-            getLookAndFeel().setColour(TextButton::buttonColourId, colour);
-
-            getLookAndFeel().setColour(Slider::backgroundColourId, colour);
+            getLookAndFeel().setColour (Label::textColourId, colour);
+            getLookAndFeel().setColour (Label::textWhenEditingColourId, colour);
+            getLookAndFeel().setColour (TextEditor::textColourId, colour);
 
             repaint();
         }
+        else if (v.refersToSameSourceAs (secondaryColour))
+        {
+            auto colour = Colour::fromString (secondaryColour.toString());
+            setBackgroundColour (colour);
 
-        else if (v.refersToSameSourceAs(labelColour))
+            getLookAndFeel().setColour (TextEditor::backgroundColourId, colour);
+            getLookAndFeel().setColour (TextButton::buttonColourId, colour);
+
+            getLookAndFeel().setColour (Slider::backgroundColourId, colour);
+
+            repaint();
+        }
+
+        else if (v.refersToSameSourceAs (labelColour))
         {
-            setLabelColour(Colour::fromString(labelColour.toString()));
+            setLabelColour (Colour::fromString (labelColour.toString()));
             updateLabel();
         }
-        else if (v.refersToSameSourceAs(labelX))
+        else if (v.refersToSameSourceAs (labelX))
         {
-            setLabelPosition({static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue())});
+            setLabelPosition ({ static_cast<int> (labelX.getValue()), static_cast<int> (labelY.getValue()) });
             updateLabel();
         }
-        if (v.refersToSameSourceAs(labelY))
+        if (v.refersToSameSourceAs (labelY))
         {
-            setLabelPosition({static_cast<int>(labelX.getValue()), static_cast<int>(labelY.getValue())});
+            setLabelPosition ({ static_cast<int> (labelX.getValue()), static_cast<int> (labelY.getValue()) });
             updateLabel();
         }
-        else if (v.refersToSameSourceAs(labelHeight))
+        else if (v.refersToSameSourceAs (labelHeight))
         {
-            setFontHeight(static_cast<int>(labelHeight.getValue()));
+            setFontHeight (static_cast<int> (labelHeight.getValue()));
             updateLabel();
         }
-        else if (v.refersToSameSourceAs(labelText))
+        else if (v.refersToSameSourceAs (labelText))
         {
-            setLabelText(labelText.toString());
+            setLabelText (labelText.toString());
             updateLabel();
         }
     }
 
     void updateBounds() override
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        box->setObjectBounds({iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h});
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
+        box->setObjectBounds ({ iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h });
     }
 
     void updateLabel() override
@@ -182,57 +182,58 @@ struct IEMObject : public GUIObject
 
         if (text.isNotEmpty())
         {
-            if (!label)
+            if (! label)
             {
                 label = std::make_unique<Label>();
             }
 
             auto bounds = getLabelBounds();
 
-            bounds.translate(0, fontHeight / -2.0f);
+            bounds.translate (0, fontHeight / -2.0f);
 
-            label->setFont(Font(fontHeight));
-            label->setJustificationType(Justification::centredLeft);
-            label->setBounds(bounds);
-            label->setBorderSize(BorderSize<int>(0, 0, 0, 0));
-            label->setMinimumHorizontalScale(1.f);
-            label->setText(text, dontSendNotification);
-            label->setEditable(false, false);
-            label->setInterceptsMouseClicks(false, false);
+            label->setFont (Font (fontHeight));
+            label->setJustificationType (Justification::centredLeft);
+            label->setBounds (bounds);
+            label->setBorderSize (BorderSize<int> (0, 0, 0, 0));
+            label->setMinimumHorizontalScale (1.f);
+            label->setText (text, dontSendNotification);
+            label->setEditable (false, false);
+            label->setInterceptsMouseClicks (false, false);
 
-            label->setColour(Label::textColourId, getLabelColour());
+            label->setColour (Label::textColourId, getLabelColour());
 
-            box->cnv->addAndMakeVisible(label.get());
+            box->cnv->addAndMakeVisible (label.get());
         }
     }
 
     Rectangle<int> getLabelBounds() const noexcept
     {
-        auto objectBounds = box->getBounds().reduced(Box::margin);
+        auto objectBounds = box->getBounds().reduced (Box::margin);
 
-        t_symbol const* sym = canvas_realizedollar(static_cast<t_iemgui*>(ptr)->x_glist, static_cast<t_iemgui*>(ptr)->x_lab);
+        t_symbol const* sym = canvas_realizedollar (static_cast<t_iemgui*> (ptr)->x_glist, static_cast<t_iemgui*> (ptr)->x_lab);
         if (sym)
         {
             int fontHeight = getFontHeight();
-            int labelLength = Font(fontHeight).getStringWidth(getExpandedLabelText());
+            int labelLength = Font (fontHeight).getStringWidth (getExpandedLabelText());
 
-            auto const* iemgui = static_cast<t_iemgui*>(ptr);
+            auto const* iemgui = static_cast<t_iemgui*> (ptr);
             int const posx = objectBounds.getX() + iemgui->x_ldx;
             int const posy = objectBounds.getY() + iemgui->x_ldy;
 
-            return {posx, posy, labelLength, fontHeight};
+            return { posx, posy, labelLength, fontHeight };
         }
-        
+
         return objectBounds;
     }
 
     String getSendSymbol() noexcept
     {
         t_symbol* srlsym[3];
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        iemgui_all_sym2dollararg(iemgui, srlsym);
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
+        iemgui_all_sym2dollararg (iemgui, srlsym);
         String name = iemgui->x_snd_unexpanded->s_name;
-        if (name == "empty") return "";
+        if (name == "empty")
+            return "";
 
         return name;
     }
@@ -240,21 +241,23 @@ struct IEMObject : public GUIObject
     String getReceiveSymbol() noexcept
     {
         t_symbol* srlsym[3];
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        iemgui_all_sym2dollararg(iemgui, srlsym);
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
+        iemgui_all_sym2dollararg (iemgui, srlsym);
 
         String name = iemgui->x_rcv_unexpanded->s_name;
 
-        if (name == "empty") return "";
+        if (name == "empty")
+            return "";
 
         return name;
     }
 
-    void setSendSymbol(const String& symbol) const noexcept
+    void setSendSymbol (const String& symbol) const noexcept
     {
-        if (symbol.isEmpty()) return;
+        if (symbol.isEmpty())
+            return;
 
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
 
         if (symbol == "empty")
         {
@@ -262,19 +265,20 @@ struct IEMObject : public GUIObject
         }
         else
         {
-            iemgui->x_snd_unexpanded = gensym(symbol.toRawUTF8());
-            iemgui->x_snd = canvas_realizedollar(iemgui->x_glist, iemgui->x_snd_unexpanded);
+            iemgui->x_snd_unexpanded = gensym (symbol.toRawUTF8());
+            iemgui->x_snd = canvas_realizedollar (iemgui->x_glist, iemgui->x_snd_unexpanded);
 
             iemgui->x_fsf.x_snd_able = true;
-            iemgui_verify_snd_ne_rcv(iemgui);
+            iemgui_verify_snd_ne_rcv (iemgui);
         }
     }
 
-    void setReceiveSymbol(const String& symbol) const noexcept
+    void setReceiveSymbol (const String& symbol) const noexcept
     {
-        if (symbol.isEmpty()) return;
+        if (symbol.isEmpty())
+            return;
 
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
 
         bool rcvable = true;
 
@@ -288,80 +292,81 @@ struct IEMObject : public GUIObject
 
         if (rcvable)
         {
-            if (strcmp(symbol.toRawUTF8(), iemgui->x_rcv_unexpanded->s_name))
+            if (strcmp (symbol.toRawUTF8(), iemgui->x_rcv_unexpanded->s_name))
             {
-                if (iemgui->x_fsf.x_rcv_able) pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-                iemgui->x_rcv_unexpanded = gensym(symbol.toRawUTF8());
-                iemgui->x_rcv = canvas_realizedollar(iemgui->x_glist, iemgui->x_rcv_unexpanded);
-                pd_bind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
+                if (iemgui->x_fsf.x_rcv_able)
+                    pd_unbind (&iemgui->x_obj.ob_pd, iemgui->x_rcv);
+                iemgui->x_rcv_unexpanded = gensym (symbol.toRawUTF8());
+                iemgui->x_rcv = canvas_realizedollar (iemgui->x_glist, iemgui->x_rcv_unexpanded);
+                pd_bind (&iemgui->x_obj.ob_pd, iemgui->x_rcv);
             }
         }
         else if (iemgui->x_fsf.x_rcv_able)
         {
-            pd_unbind(&iemgui->x_obj.ob_pd, iemgui->x_rcv);
-            iemgui->x_rcv_unexpanded = gensym(symbol.toRawUTF8());
-            iemgui->x_rcv = canvas_realizedollar(iemgui->x_glist, iemgui->x_rcv_unexpanded);
+            pd_unbind (&iemgui->x_obj.ob_pd, iemgui->x_rcv);
+            iemgui->x_rcv_unexpanded = gensym (symbol.toRawUTF8());
+            iemgui->x_rcv = canvas_realizedollar (iemgui->x_glist, iemgui->x_rcv_unexpanded);
         }
 
         iemgui->x_fsf.x_rcv_able = rcvable;
-        iemgui_verify_snd_ne_rcv(iemgui);
+        iemgui_verify_snd_ne_rcv (iemgui);
     }
 
-    static unsigned int fromIemColours(int const color)
+    static unsigned int fromIemColours (int const color)
     {
-        auto const c = static_cast<unsigned int>(color << 8 | 0xFF);
+        auto const c = static_cast<unsigned int> (color << 8 | 0xFF);
         return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
     }
 
     Colour getBackgroundColour() const noexcept
     {
-        return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(ptr)));
+        return Colour (static_cast<uint32> (libpd_iemgui_get_background_color (ptr)));
     }
 
     Colour getForegroundColour() const noexcept
     {
-        return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(ptr)));
+        return Colour (static_cast<uint32> (libpd_iemgui_get_foreground_color (ptr)));
     }
 
     Colour getLabelColour() const noexcept
     {
-        return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(ptr)));
+        return Colour (static_cast<uint32> (libpd_iemgui_get_label_color (ptr)));
     }
 
-    void setBackgroundColour(Colour colour) noexcept
+    void setBackgroundColour (Colour colour) noexcept
     {
         String colourStr = colour.toString();
-        libpd_iemgui_set_background_color(ptr, colourStr.toRawUTF8());
+        libpd_iemgui_set_background_color (ptr, colourStr.toRawUTF8());
     }
 
-    void setForegroundColour(Colour colour) noexcept
+    void setForegroundColour (Colour colour) noexcept
     {
         String colourStr = colour.toString();
-        libpd_iemgui_set_foreground_color(ptr, colourStr.toRawUTF8());
+        libpd_iemgui_set_foreground_color (ptr, colourStr.toRawUTF8());
     }
 
-    void setLabelColour(Colour colour) noexcept
+    void setLabelColour (Colour colour) noexcept
     {
         String colourStr = colour.toString();
-        libpd_iemgui_set_label_color(ptr, colourStr.toRawUTF8());
+        libpd_iemgui_set_label_color (ptr, colourStr.toRawUTF8());
     }
 
     int getFontHeight() const noexcept
     {
-        return static_cast<t_iemgui*>(ptr)->x_fontsize;
+        return static_cast<t_iemgui*> (ptr)->x_fontsize;
     }
 
-    void setFontHeight(float newSize) noexcept
+    void setFontHeight (float newSize) noexcept
     {
-        static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
+        static_cast<t_iemgui*> (ptr)->x_fontsize = newSize;
     }
 
     String getExpandedLabelText() const
     {
-        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
+        t_symbol const* sym = static_cast<t_iemgui*> (ptr)->x_lab;
         if (sym)
         {
-            auto const text = String(sym->s_name);
+            auto const text = String (sym->s_name);
             if (text.isNotEmpty() && text != "empty")
             {
                 return text;
@@ -373,10 +378,10 @@ struct IEMObject : public GUIObject
 
     String getLabelText() const
     {
-        t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab_unexpanded;
+        t_symbol const* sym = static_cast<t_iemgui*> (ptr)->x_lab_unexpanded;
         if (sym)
         {
-            auto const text = String(sym->s_name);
+            auto const text = String (sym->s_name);
             if (text.isNotEmpty() && text != "empty")
             {
                 return text;
@@ -386,21 +391,22 @@ struct IEMObject : public GUIObject
         return "";
     }
 
-    void setLabelText(String newText)
+    void setLabelText (String newText)
     {
-        if (newText.isEmpty()) newText = "empty";
+        if (newText.isEmpty())
+            newText = "empty";
 
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
+        auto* iemgui = static_cast<t_iemgui*> (ptr);
         if (newText != "empty")
         {
-            iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
+            iemgui->x_lab_unexpanded = gensym (newText.toRawUTF8());
         }
-        iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
+        iemgui->x_lab = canvas_realizedollar (iemgui->x_glist, iemgui->x_lab_unexpanded);
     }
 
-    void setLabelPosition(Point<int> position) noexcept
+    void setLabelPosition (Point<int> position) noexcept
     {
-        auto* iem = static_cast<t_iemgui*>(ptr);
+        auto* iem = static_cast<t_iemgui*> (ptr);
         iem->x_ldx = position.x;
         iem->x_ldy = position.y;
     }

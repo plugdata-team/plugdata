@@ -24,15 +24,15 @@ class Storage
     t_gobj* infoObject = nullptr;
     t_glist* infoParent = nullptr;
 
-   public:
-    Storage(t_glist* patch, Instance* inst);
+public:
+    Storage (t_glist* patch, Instance* inst);
 
     Storage() = delete;
 
-    void setInfoId(const String& oldId, const String& newId);
+    void setInfoId (const String& oldId, const String& newId);
     void confirmIds();
 
-    bool hasInfo(const String& id) const;
+    bool hasInfo (const String& id) const;
     void storeInfo();
     void loadInfoFromPatch();
 
@@ -41,20 +41,20 @@ class Storage
 
     void createUndoAction();
 
-    static bool isInfoParent(t_gobj* obj);
-    static bool isInfoParent(t_glist* glist);
+    static bool isInfoParent (t_gobj* obj);
+    static bool isInfoParent (t_glist* glist);
 
-    String getInfo(const String& id, const String& property) const;
-    void setInfo(const String& id, const String& property, const String& info, bool undoable = true);
+    String getInfo (const String& id, const String& property) const;
+    void setInfo (const String& id, const String& property, const String& info, bool undoable = true);
 
-   private:
+private:
     void createObject();
 
     UndoManager undoManager;
 
-    ValueTree extraInfo = ValueTree("PlugDataInfo");
+    ValueTree extraInfo = ValueTree ("PlugDataInfo");
 
     friend class Instance;
     friend class Patch;
 };
-}  // namespace pd
+} // namespace pd
