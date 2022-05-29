@@ -25,10 +25,10 @@ namespace pd
 {
 
 // Iterative function to insert a key into a Trie
-void Trie::insert(const std::string& key)
+void Trie::insert(const String& key)
 {
     // Names with spaces not supported yet by the suggestor
-    if (std::count(key.begin(), key.end(), ' ')) return;
+    if (key.containsChar(' ')) return;
 
     // start from the root node
     Trie* curr = this;
@@ -50,7 +50,7 @@ void Trie::insert(const std::string& key)
 
 // Iterative function to search a key in a Trie. It returns true
 // if the key is found in the Trie; otherwise, it returns false
-bool Trie::search(const std::string& key)
+bool Trie::search(const String& key)
 {
     Trie* curr = this;
     for (char i : key)
@@ -85,7 +85,7 @@ bool Trie::hasChildren()
 }
 
 // Recursive function to delete a key in the Trie
-bool Trie::deletion(Trie*& curr, std::string key)
+bool Trie::deletion(Trie*& curr, String key)
 {
     // return if Trie is empty
     if (curr == nullptr)
@@ -99,7 +99,7 @@ bool Trie::deletion(Trie*& curr, std::string key)
         // recur for the node corresponding to the next character in the key
         // and if it returns true, delete the current node (if it is non-leaf)
 
-        if (curr != nullptr && curr->character[key[0]] != nullptr && deletion(curr->character[key[0]], key.substr(1)) && !curr->isLeaf)
+        if (curr != nullptr && curr->character[key[0]] != nullptr && deletion(curr->character[key[0]], key.substring(1)) && !curr->isLeaf)
         {
             if (!curr->hasChildren())
             {
@@ -107,10 +107,8 @@ bool Trie::deletion(Trie*& curr, std::string key)
                 curr = nullptr;
                 return true;
             }
-            else
-            {
-                return false;
-            }
+    
+            return false;
         }
     }
 
@@ -128,21 +126,17 @@ bool Trie::deletion(Trie*& curr, std::string key)
             return true;
         }
 
-        // if the current node is a leaf node and has children
-        else
-        {
-            // mark the current node as a non-leaf node (DON'T DELETE IT)
-            curr->isLeaf = false;
+        // mark the current node as a non-leaf node (DON'T DELETE IT)
+        curr->isLeaf = false;
 
-            // don't delete its parent nodes
-            return false;
-        }
+        // don't delete its parent nodes
+        return false;
     }
 
     return false;
 }
 
-void Trie::suggestionsRec(std::string currPrefix, Suggestions& result)
+void Trie::suggestionsRec(String currPrefix, Suggestions& result)
 {
     // found aString in Trie with the given prefix
     if (isLeaf)
@@ -158,19 +152,21 @@ void Trie::suggestionsRec(std::string currPrefix, Suggestions& result)
         if (character[i])
         {
             // append current character to currPrefixString
-            currPrefix.push_back(i);
+            //currPrefix += i;
+            
+            currPrefix += String(static_cast<char>(i));
 
             // recur over the rest
             character[i]->suggestionsRec(currPrefix, result);
 
             // remove last character
-            currPrefix.pop_back();
+            currPrefix = currPrefix.substring(0, currPrefix.length() - 2);
         }
     }
 }
 
 // print suggestions for given query prefix.
-int Trie::autocomplete(std::string query, Suggestions& result)
+int Trie::autocomplete(String query, Suggestions& result)
 {
     auto* pCrawl = this;
 
@@ -209,7 +205,7 @@ int Trie::autocomplete(std::string query, Suggestions& result)
     // matching character.
     if (!isLast)
     {
-        const std::string& prefix = query;
+        const String& prefix = query;
         pCrawl->suggestionsRec(prefix, result);
         return 1;
     }
@@ -260,7 +256,7 @@ void Library::updateLibrary()
     {
         auto filePath = File(path.getProperty("Path").toString());
 
-        for (auto& iter : RangedDirectoryIterator(filePath, true))
+        for (const auto& iter : RangedDirectoryIterator(filePath, true))
         {
             auto file = iter.getFile();
             // Get pd files but not help files
@@ -409,7 +405,7 @@ void Library::parseDocumentation(const String& path)
     }
 }
 
-Suggestions Library::autocomplete(std::string query)
+Suggestions Library::autocomplete(String query) const
 {
     Suggestions result;
     searchTree->autocomplete(std::move(query), result);

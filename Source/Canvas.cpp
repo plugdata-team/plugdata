@@ -20,7 +20,7 @@ extern "C"
 #include "Utility/GraphArea.h"
 #include "Utility/SuggestionComponent.h"
 
-Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph, bool graphChild) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
+Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGraph) : main(parent), pd(&parent.pd), patch(p), storage(patch.getPointer(), pd)
 {
     isGraphChild = glist_isgraph(p.getPointer());
     hideNameAndArgs = static_cast<bool>(p.getPointer()->gl_hidetext);
@@ -151,14 +151,9 @@ void Canvas::synchronise(bool updatePosition)
     auto isObjectDeprecated = [&](void* obj)
     {
         // NOTE: replace with std::ranges::all_of when available
-        for (auto* pdobj : objects)
-        {
-            if (pdobj == obj)
-            {
-                return false;
-            }
-        }
-        return true;
+        return std::all_of(objects.begin(), objects.end(), [obj](const auto* obj2){
+            return obj != obj2;
+        });
     };
 
     if (!(isGraph || presentationMode == var(true)))
@@ -166,7 +161,7 @@ void Canvas::synchronise(bool updatePosition)
         // Remove deprecated connections
         for (int n = connections.size() - 1; n >= 0; n--)
         {
-            auto connection = connections[n];
+            auto* connection = connections[n];
 
             if (!connection->inlet || !connection->outlet || isObjectDeprecated(connection->inbox->getPointer()) || isObjectDeprecated(connection->outbox->getPointer()))
             {
@@ -197,7 +192,7 @@ void Canvas::synchronise(bool updatePosition)
 
     for (auto* object : objects)
     {
-        auto it = std::find_if(boxes.begin(), boxes.end(), [&object](Box* b) { return b->getPointer() && b->getPointer() == object; });
+        auto* it = std::find_if(boxes.begin(), boxes.end(), [&object](Box* b) { return b->getPointer() && b->getPointer() == object; });
 
         if (it == boxes.end())
         {
@@ -254,7 +249,7 @@ void Canvas::synchronise(bool updatePosition)
                 continue;
             }
 
-            auto it = std::find_if(connections.begin(), connections.end(),
+            auto* it = std::find_if(connections.begin(), connections.end(),
                                    [this, &connection, &srcno, &sinkno](Connection* c)
                                    {
                                        auto& [inno, inobj, outno, outobj] = connection;
@@ -626,7 +621,7 @@ bool Canvas::keyPressed(const KeyPress& key)
 void Canvas::deselectAll()
 {
     // Deselect boxes
-    for (auto c : selectedComponents)
+    for (auto* c : selectedComponents)
         if (c) c->repaint();
 
     selectedComponents.deselectAll();
@@ -782,7 +777,7 @@ void Canvas::checkBounds()
 
     auto viewBounds = Rectangle<int>(canvasOrigin.x, canvasOrigin.y, viewport->getMaximumVisibleWidth() * scale, viewport->getMaximumVisibleHeight() * scale);
 
-    for (auto obj : boxes)
+    for (auto* obj : boxes)
     {
         viewBounds = obj->getBounds().getUnion(viewBounds);
     }

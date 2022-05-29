@@ -73,19 +73,17 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void synchroniseCanvas(void* cnv) override;
 
-    void receivePrint(const std::string& message) override
+    void receivePrint(const String& message) override
     {
-        if (!message.empty())
+        if (message.isNotEmpty())
         {
-            if (!message.compare(0, 6, "error:"))
+            if (!message.startsWith("error:"))
             {
-                const auto temp = String(message);
-                logError(temp.substring(7));
+                logError(message.substring(7));
             }
-            else if (!message.compare(0, 11, "verbose(4):"))
+            else if (!message.startsWith("verbose(4):"))
             {
-                const auto temp = String(message);
-                logError(temp.substring(12));
+                logError(message.substring(12));
             }
             else
             {
@@ -128,7 +126,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     void messageEnqueued() override;
 
     pd::Patch* loadPatch(String patch);
-    pd::Patch* loadPatch(File patch);
+    pd::Patch* loadPatch(const File& patch);
 
     void titleChanged() override;
 

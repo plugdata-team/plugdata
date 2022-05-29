@@ -1,8 +1,19 @@
 cmake_minimum_required(VERSION 3.12)
 
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
+
+set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES})
+
+set(RUN_CLANG_TIDY 0)
+
 if(APPLE)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
-set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
+  if(RUN_CLANG_TIDY)
+  set(CMAKE_OSX_ARCHITECTURES "arm64;" CACHE STRING "" FORCE)
+  else()
+  set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+  endif()
 endif()
 
 if (NOT DEFINED COPY_PLUGIN_AFTER_BUILD)
@@ -358,6 +369,19 @@ set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDAT
 endif()
 
 
+if(RUN_CLANG_TIDY)
+  find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" ) 
+  if(NOT CLANG_TIDY_EXE) 
+    message(STATUS "clang-tidy not found.") 
+  else() 
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}") 
+    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'") 
+  endif()
+  set_target_properties(PlugDataStandalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
+
+endif()
+
+
 set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
 set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
 set_target_properties(PlugData_LV2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
@@ -367,6 +391,7 @@ foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
       set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PLUGDATA_LV2_LOCATION})
       set_target_properties(PlugData_LV2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PLUGDATA_LV2_LOCATION})
 endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+
 
 if(MSVC)
 set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
