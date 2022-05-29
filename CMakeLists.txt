@@ -1,8 +1,21 @@
 cmake_minimum_required(VERSION 3.12)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+set(RUN_CLANG_TIDY 0)
+
 if(APPLE)
-set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
-set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+  set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
+  if(RUN_CLANG_TIDY)
+  set(CMAKE_OSX_ARCHITECTURES "arm64;" CACHE STRING "" FORCE)
+  else()
+  set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "" FORCE)
+  endif()
+endif()
+
+if(RUN_CLANG_TIDY)
+  set(CMAKE_CXX_STANDARD_INCLUDE_DIRECTORIES ${CMAKE_CXX_IMPLICIT_INCLUDE_DIRECTORIES}) 
+  set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 endif()
 
 if (NOT DEFINED COPY_PLUGIN_AFTER_BUILD)
@@ -104,9 +117,6 @@ source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
 
 #source_group("Source\\Pd" FILES ${PlugDataPdSources})
 
-file(GLOB_RECURSE PlugDataLV2Sources
-    ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/juce_LV2_Wrapper.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/juce_LV2_FileCreator.cpp)
 
 juce_add_plugin(PlugDataStandalone
     VERSION                     ${PLUGDATA_VERSION}
@@ -153,7 +163,7 @@ juce_add_plugin(PlugData
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_MANUFACTURER_CODE    OCTA
     PLUGIN_CODE                 PlDt
-    FORMATS                     AU VST3
+    FORMATS                     AU VST3 LV2
     PRODUCT_NAME                "PlugData"
     AU_MAIN_TYPE                kAudioUnitType_MusicDevice
     VST3_CATEGORIES             Instrument
@@ -179,7 +189,7 @@ juce_add_plugin(PlugDataFx
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_MANUFACTURER_CODE    OCTA
     PLUGIN_CODE                 PlDf
-    FORMATS                     AU VST3
+    FORMATS                     AU VST3 LV2
     PRODUCT_NAME                "PlugDataFx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
@@ -236,9 +246,6 @@ set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LI
 target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${ELSESources})
 endif()
 
-add_library(PlugData_LV2 SHARED ${PlugDataLV2Sources})
-target_link_libraries(PlugData_LV2 PRIVATE PlugDataFx pd-multi)
-set_target_properties(PlugData_LV2 PROPERTIES PREFIX "")
 
 set(LIBPD_MULTI_COMPILE_DEFINITIONS
     PDINSTANCE=1
@@ -282,8 +289,6 @@ target_compile_definitions(PlugData PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataFx PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataFx PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 
-target_compile_definitions(PlugData_LV2 PRIVATE "JucePlugin_Build_LV2=1")
-
 if(APPLE)
 target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataMidi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
@@ -296,7 +301,6 @@ list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/co
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/fluidsynth/include")
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/Source/")
 
 target_include_directories(PlugDataStandalone PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 target_include_directories(PlugData PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
@@ -338,10 +342,7 @@ endif()
 target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
 target_link_libraries(PlugData PRIVATE pd-multi ${libs})
 target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
-target_link_libraries(PlugData_LV2 PRIVATE pd-multi ${libs})
 
-add_executable(lv2_file_generator ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/LV2/main.c)
-target_link_libraries(lv2_file_generator ${CMAKE_DL_LIBS})
 
 set_target_properties(PlugDataStandalone PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(PlugDataStandalone PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
@@ -358,15 +359,18 @@ set_target_properties(PlugDataMidi PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDAT
 endif()
 
 
-set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
-set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
-set_target_properties(PlugData_LV2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_LV2_LOCATION})
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-		  string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-			set_target_properties(lv2_file_generator PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PLUGDATA_LV2_LOCATION})
-      set_target_properties(PlugData_LV2 PROPERTIES LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PLUGDATA_LV2_LOCATION})
-      set_target_properties(PlugData_LV2 PROPERTIES RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${PLUGDATA_LV2_LOCATION})
-endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
+if(RUN_CLANG_TIDY)
+  find_program( CLANG_TIDY_EXE NAMES "clang-tidy" DOC "Path to clang-tidy executable" ) 
+  if(NOT CLANG_TIDY_EXE) 
+    message(STATUS "clang-tidy not found.") 
+  else() 
+    message(STATUS "clang-tidy found: ${CLANG_TIDY_EXE}") 
+    set(DO_CLANG_TIDY "${CLANG_TIDY_EXE}" "-checks=clang-diagnostic-*,clang-diagnostic-unused-value,clang-analyzer-*,bugprone-*,performance-*,readability-*,-readability-magic-numbers,-readability-braces-around-statements,-readability-inconsistent-declaration-parameter-name,-readability-named-parameter  --header-filter='.*'") 
+  endif()
+  set_target_properties(PlugDataStandalone PROPERTIES CXX_CLANG_TIDY "${DO_CLANG_TIDY}")
+
+endif()
+
 
 if(MSVC)
 set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)

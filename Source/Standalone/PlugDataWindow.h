@@ -354,21 +354,31 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             inner.audioDeviceAboutToStart(device);
         }
 
-        void audioDeviceIOCallback(const float** inputChannelData, int numInputChannels, float** outputChannelData, int numOutputChannels, int numSamples) override
+        void audioDeviceIOCallbackWithContext (const float** inputChannelData,
+                                               int numInputChannels,
+                                               float** outputChannelData,
+                                               int numOutputChannels,
+                                               int numSamples,
+                                               const AudioIODeviceCallbackContext& context) override
         {
-            jassertquiet(static_cast<int>(storedInputChannels.size()) == numInputChannels);
-            jassertquiet(static_cast<int>(storedOutputChannels.size()) == numOutputChannels);
+            jassertquiet ((int) storedInputChannels.size()  == numInputChannels);
+            jassertquiet ((int) storedOutputChannels.size() == numOutputChannels);
 
             int position = 0;
 
             while (position < numSamples)
             {
-                const auto blockLength = jmin(maximumSize, numSamples - position);
+                const auto blockLength = jmin (maximumSize, numSamples - position);
 
-                initChannelPointers(inputChannelData, storedInputChannels, position);
-                initChannelPointers(outputChannelData, storedOutputChannels, position);
+                initChannelPointers (inputChannelData,  storedInputChannels,  position);
+                initChannelPointers (outputChannelData, storedOutputChannels, position);
 
-                inner.audioDeviceIOCallback(storedInputChannels.data(), static_cast<int>(storedInputChannels.size()), storedOutputChannels.data(), static_cast<int>(storedOutputChannels.size()), blockLength);
+                inner.audioDeviceIOCallbackWithContext (storedInputChannels.data(),
+                                                        (int) storedInputChannels.size(),
+                                                        storedOutputChannels.data(),
+                                                        (int) storedOutputChannels.size(),
+                                                        blockLength,
+                                                        context);
 
                 position += blockLength;
             }
@@ -405,7 +415,12 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     CallbackMaxSizeEnforcer maxSizeEnforcer{*this};
 
-    void audioDeviceIOCallback(const float** inputChannelData, int numInputChannels, float** outputChannelData, int numOutputChannels, int numSamples) override
+    void audioDeviceIOCallbackWithContext (const float** inputChannelData,
+                                           int numInputChannels,
+                                           float** outputChannelData,
+                                           int numOutputChannels,
+                                           int numSamples,
+                                           const AudioIODeviceCallbackContext& context) override
     {
         if (muteInput)
         {
@@ -413,7 +428,12 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             inputChannelData = emptyBuffer.getArrayOfReadPointers();
         }
 
-        player.audioDeviceIOCallback(inputChannelData, numInputChannels, outputChannelData, numOutputChannels, numSamples);
+        player.audioDeviceIOCallbackWithContext (inputChannelData,
+                                                 numInputChannels,
+                                                 outputChannelData,
+                                                 numOutputChannels,
+                                                 numSamples,
+                                                 context);
     }
 
     void audioDeviceAboutToStart(AudioIODevice* device) override
