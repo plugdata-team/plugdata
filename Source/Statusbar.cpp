@@ -460,21 +460,10 @@ StatusbarSource::StatusbarSource()
 
 static bool hasRealEvents(MidiBuffer& buffer)
 {
-    for (auto event : buffer)
-     {
-         auto m = event.getMessage();
-         if (!m.isSysEx())
-         {
-             return true;
-         }
-     }
-    
-    return false;
-    /* Not supported by all compilers yet?
     return std::any_of(buffer.begin(), buffer.end(),
-    [](const auto& m){
-        return !m.getMessage().isSysEx();
-    }); */
+    [](const auto& event){
+        return !event.getMessage().isSysEx();
+    });
 }
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)

@@ -150,19 +150,9 @@ void Canvas::synchronise(bool updatePosition)
     auto objects = patch.getObjects();
     auto isObjectDeprecated = [&](void* obj)
     {
-
-        for (auto* pdobj : objects)
-         {
-             if (pdobj == obj)
-             {
-                 return false;
-             }
-         }
-         return true;
-        /* not yet supported by all compilers?
         return std::all_of(objects.begin(), objects.end(), [obj](const auto* obj2){
             return obj != obj2;
-        }); */
+        });
     };
 
     if (!(isGraph || presentationMode == var(true)))

@@ -8,7 +8,7 @@
 
 #define JUCE_DISPLAY_SPLASH_SCREEN 0
 
-#define JucePlugin_LV2URI (juce::String("urn:PlugData:") + juce::String("PlugData")).toUTF8()
+#define JucePlugin_LV2URI "urn:PlugData:PlugData"
 
 namespace ProjectInfo
 {
