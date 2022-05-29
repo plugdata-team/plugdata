@@ -1054,7 +1054,11 @@ void PlugDataAudioProcessor::receiveGuiUpdate (int type)
         callbackType = type;
     }
 
-    startTimer (16);
+    // Don't restart timer if it's already running
+    if(!isTimerRunning()) {
+        
+        startTimer (16);
+    }
 }
 
 void PlugDataAudioProcessor::timerCallback()
@@ -1064,11 +1068,11 @@ void PlugDataAudioProcessor::timerCallback()
         if (! callbackType)
             return;
 
-        else if (callbackType == 1 || callbackType == 3)
+        if (callbackType == 1 || callbackType == 3)
         {
             editor->updateValues();
         }
-        else
+        if(callbackType >= 2)
         {
             editor->updateDrawables();
         }

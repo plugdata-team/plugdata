@@ -279,7 +279,7 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
     )
-    target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
+    target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic -fPIC")
 
 elseif(MSVC)
 target_link_libraries(PlugDataStandalone PUBLIC "-Wl,--export-all-symbols,--whole-archive ws2_32 kernel32 -static-libgcc")
