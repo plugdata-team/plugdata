@@ -160,7 +160,7 @@ void Trie::suggestionsRec(String currPrefix, Suggestions& result)
             character[i]->suggestionsRec(currPrefix, result);
 
             // remove last character
-            currPrefix = currPrefix.substring(0, currPrefix.length() - 2);
+            currPrefix = currPrefix.dropLastCharacters(1);
         }
     }
 }
