@@ -418,7 +418,8 @@ void Instance::processPrint(String print)
 {
     while (print.isNotEmpty() && (print.getLastCharacter() == '\n' || print.getLastCharacter() == ' '))
     {
-        print = print.substring(0, print.length() - 2);
+        
+        print = print.dropLastCharacters(1);
     }
 
     MessageManager::callAsync([this, print]() mutable { receivePrint(print); });

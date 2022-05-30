@@ -42,15 +42,15 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
       parameters(*this, nullptr)
 {
     std::setlocale(LC_ALL, "C");
-
-    parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>("volume", "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
+    
+    parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
     // General purpose automation parameters you can get by using "receive param1" etc.
     for (int n = 0; n < numParameters; n++)
     {
-        String id = "param" + String(n + 1);
+        auto id = ParameterID("param" + String(n + 1), 1);
         parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(id, "Parameter " + String(n + 1), 0.0f, 1.0f, 0.0f));
-        parameterValues[n] = parameters.getRawParameterValue(id);
+        parameterValues[n] = parameters.getRawParameterValue(id.getParamID());
         lastParameters[n] = 0;
     }
 
