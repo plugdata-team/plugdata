@@ -349,13 +349,10 @@ target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
 target_link_libraries(PlugData PRIVATE pd-multi ${libs})
 target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
 
-add_custom_target(
-    fake_target_that_always_runs ALL
-    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header.h
-)
+
 
 function(copy_result target format)
-add_custom_command(TARGET fake_target_that_always_runs POST_BUILD
+add_custom_command(TARGET ${target}_${format} POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E remove_directory ${PLUGDATA_PLUGINS_LOCATION}/${format}/
     COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}_artefacts/$<CONFIG>/${format}/
     ${PLUGDATA_PLUGINS_LOCATION}/${format}/
