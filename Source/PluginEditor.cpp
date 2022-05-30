@@ -179,7 +179,9 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     addAndMakeVisible(toolbarButton(Hide));
 
+    sidebar.setSize(250, pd.lastUIHeight - 40);
     setSize(pd.lastUIWidth, pd.lastUIHeight);
+
 
     tabbar.toFront(false);
     sidebar.toFront(false);
