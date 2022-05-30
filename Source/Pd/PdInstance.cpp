@@ -416,12 +416,7 @@ void Instance::processMidiEvent(midievent event)
 
 void Instance::processPrint(String print)
 {
-    while (print.isNotEmpty() && (print.getLastCharacter() == '\n' || print.getLastCharacter() == ' '))
-    {
-        
-        print = print.dropLastCharacters(1);
-    }
-
+    print = print.trimEnd();
     MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
 }
 
