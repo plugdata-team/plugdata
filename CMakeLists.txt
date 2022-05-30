@@ -4,6 +4,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(RUN_CLANG_TIDY 0)
 
+
+
 if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
   if(RUN_CLANG_TIDY)
@@ -347,11 +349,17 @@ target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
 target_link_libraries(PlugData PRIVATE pd-multi ${libs})
 target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
 
-function(copy_result target buildtype)
-add_custom_command(TARGET ${target} POST_BUILD
-    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}_artefacts/${CMAKE_BUILD_TYPE}/${buildtype}/
-    ${PLUGDATA_PLUGINS_LOCATION}/${buildtype}/
-    COMMENT "Copied ${buildtype} to ${PLUGDATA_PLUGINS_LOCATION}/${buildtype}/"
+add_custom_target(
+    fake_target_that_always_runs ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/__header.h
+)
+
+function(copy_result target format)
+add_custom_command(TARGET fake_target_that_always_runs POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E remove_directory ${PLUGDATA_PLUGINS_LOCATION}/${format}/
+    COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_BINARY_DIR}/${target}_artefacts/$<CONFIG>/${format}/
+    ${PLUGDATA_PLUGINS_LOCATION}/${format}/
+    COMMENT "Copied ${format} to ${PLUGDATA_PLUGINS_LOCATION}/${format}/"
 )
 endfunction()
 
