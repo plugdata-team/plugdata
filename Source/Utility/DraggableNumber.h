@@ -138,7 +138,7 @@ struct DraggableNumber : public MouseListener
 
         while (text.length() > 1 && label.getFont().getStringWidth(text) > label.getWidth() - 5)
         {
-            text = text.substring(0, text.length() - 2);
+            text = text.dropLastCharacters(1);
         }
         if (!text.containsChar('.')) text << '.';
 

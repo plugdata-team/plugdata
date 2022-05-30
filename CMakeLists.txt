@@ -42,7 +42,6 @@ set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/timothyschoen/plugdata")
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugd_logo.png")
 set(PLUGDATA_PLUGINS_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins")
-set(PLUGDATA_LV2_LOCATION           "${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2")
 
 set(PLUGDATA_AU_INSTALL_LOCATION           "$ENV{HOME}/Library/Audio/Plug-Ins/Components/")
 
@@ -192,7 +191,7 @@ juce_add_plugin(PlugDataFx
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_MANUFACTURER_CODE    OCTA
     PLUGIN_CODE                 PlDf
-    FORMATS                     AU VST3
+    FORMATS                     AU VST3 LV2
     PRODUCT_NAME                "PlugDataFx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
@@ -296,10 +295,6 @@ if(APPLE)
 target_compile_definitions(PlugDataMidi PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS})
 target_compile_definitions(PlugDataMidi PUBLIC ${LIBPD_MULTI_COMPILE_DEFINITIONS})
 endif()
-
-file(MAKE_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins)
-file(MAKE_DIRECTORY ${PLUGDATA_LV2_LOCATION})
-file(MAKE_DIRECTORY ${PLUGDATA_LV2_LOCATION}/PlugData.lv2/)
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
