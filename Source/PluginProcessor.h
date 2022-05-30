@@ -77,11 +77,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     {
         if (message.isNotEmpty())
         {
-            if (!message.startsWith("error:"))
+            if (message.startsWith("error:"))
             {
                 logError(message.substring(7));
             }
-            else if (!message.startsWith("verbose(4):"))
+            else if (message.startsWith("verbose(4):"))
             {
                 logError(message.substring(12));
             }
