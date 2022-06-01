@@ -778,7 +778,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 #elif __ARM_ARCH == 6 || defined(__ARM_ARCH_6__)
     { "armv6",
       "armv6l",
-      "arm" } "armv" + stringify(__ARM_ARCH)
+      "arm" }
 #elif __ARM_ARCH == 7 || defined(__ARM_ARCH_7__)
         {"armv7l", "armv7", "armv6l", "armv6", "arm"}
 #else
