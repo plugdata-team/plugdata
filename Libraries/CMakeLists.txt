@@ -49,27 +49,26 @@ set ( enable-dart off CACHE BOOL "compile DART support (if it is available)")
 # Hide messages from fluidsynth
 # There's many, and some could be wrongly interpreted as being about pure-data or PlugData
 
-if(MSVC)
-link_directories(ELSE/sfont~/libsndfile/lib/)
-endif()
+#if(MSVC)
+#link_directories(ELSE/sfont~/libsndfile/lib/)
+#endif()
 
 # check for libsndfile
-include(ELSE/sfont~/FindLibSndFile.cmake)
+#include(ELSE/sfont~/FindLibSndFile.cmake)
 
-if(LIBSNDFILE_FOUND)
-message("-- Configuring fluidsynth")
-function(message)
-endfunction()
-
+#if(LIBSNDFILE_FOUND)
+#message("-- Configuring fluidsynth")
+#function(message)
+#endfunction()
 
 #add_subdirectory(ELSE/sfont~/fluidsynth)
 #include_directories(${FluidSynth_BINARY_DIR}/include/)
 #include_directories(ELSE/sfont~/fluidsynth/include/)
 
-function(message)
-        _message(${ARGN})
-endfunction()
-endif(LIBSNDFILE_FOUND)
+#function(message)
+#        _message(${ARGN})
+#endfunction()
+#endif(LIBSNDFILE_FOUND)
 #------------------------------------------------------------------------------#
 
 set(CMAKE_MACOSX_RPATH ON)
@@ -253,9 +252,9 @@ file(GLOB_RECURSE ELSE_SOURCES
     ./ELSE/shared/*.c
     )
     
-if(LIBSNDFILE_FOUND)
- #   list(APPEND ELSE_SOURCES ./ELSE/sfont~/sfont~.c)
-endif()
+#if(LIBSNDFILE_FOUND)
+#   list(APPEND ELSE_SOURCES ./ELSE/sfont~/sfont~.c)
+#endif()
 
 include_directories(ELSE/Source/)
 include_directories(ELSE/Aliases/)

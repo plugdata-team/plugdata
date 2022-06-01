@@ -79,15 +79,6 @@ struct AtomObject : public GUIObject
 
     void resized() override
     {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int width = std::max(4, getWidth() / fontWidth) * fontWidth;
-        int height = getAtomHeight() + Box::doubleMargin;
-        if (width != getWidth() || box->getHeight() != height)
-        {
-            box->setSize(width + Box::doubleMargin, height);
-        }
     }
 
     int getAtomHeight() const

@@ -58,7 +58,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     parameters.replaceState(ValueTree("PlugData"));
 
+    // TODO: move to a better place!
     LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+
 
     // On first startup, initialise abstractions and settings
     initialiseFilesystem();
@@ -1046,6 +1048,7 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
     }
 }
 
+// TODO: Don't do this here!!!
 void PlugDataAudioProcessor::timerCallback()
 {
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
