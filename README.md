@@ -38,7 +38,6 @@ Supported by [Deskew Technologies](https://gigperformer.com)
 - [LV2 PlugIn Technology](http://lv2plug.in) by Steve Harris, David Robillard and others
 - [VST PlugIn Technology](https://www.steinberg.net/en/company/technologies/vst3.html) by Steinberg Media Technologies
 - [Audio Unit PlugIn Technology](https://developer.apple.com/documentation/audiounit) by Apple
-- [Juce LV2 interface](http://www.falktx.com) by Filipe Coelho
 
 ## Status
 What works:
