@@ -371,6 +371,7 @@ if(RUN_CLANG_TIDY)
 endif()
 
 # Set up testing framework
+if(UNIT_TEST)
 enable_testing()
 file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h")
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
@@ -385,7 +386,7 @@ set_target_properties(Tests PROPERTIES CXX_STANDARD 17)
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugDataStandalone pd ${libs})
 
 
-if(UNIT_TEST)
+
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
 catch_discover_tests(Tests)
