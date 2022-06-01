@@ -7,7 +7,11 @@ Plugin wrapper around PureData to allow patching in a wide selection of DAWs.
 
 PlugData is a plugin wrapper for PureData, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
-For Arch users, you can install [the AUR package](https://aur.archlinux.org/packages/plugdata-git) manually or via an AUR helper.
+## Installation
+
+Linux users are adviced to install PlugData using the repositories [here](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata). Arch users can also install [the AUR package](https://aur.archlinux.org/packages/plugdata-git).
+
+For Mac and Windows, you can find the last stable-ish release in the releases section on the right, or download a recent build from the actions tab.
 
 ## Build
 
