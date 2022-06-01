@@ -387,10 +387,10 @@ void Statusbar::resized()
 // Use a timer to regularly check them!
 void Statusbar::timerCallback()
 {
-    auto mods = ModifierKeys::getCurrentModifiersRealtime();
-    if(lastModifiers != mods) {
+    auto mods = ModifierKeys::getCurrentModifiers();
+    if(mods.isCommandDown() != static_cast<bool>(commandLocked.getValue())) {
         modifierKeysChanged(mods);
-        lastModifiers = mods;
+        std::cout << "CHANGED" << std::endl;
     }
 }
 
