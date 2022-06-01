@@ -10,7 +10,7 @@ struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;
 
-struct Statusbar : public Component, public Timer, public KeyListener, public Value::Listener
+struct Statusbar : public Component, public Value::Listener
 {
     PlugDataAudioProcessor& pd;
 
@@ -19,13 +19,7 @@ struct Statusbar : public Component, public Timer, public KeyListener, public Va
 
     void resized() override;
 
-    void timerCallback() override;
-
-    bool keyPressed(const KeyPress& k, Component*) override
-    {
-        return false;
-    };
-    bool keyStateChanged(bool isKeyDown, Component*) override;
+    void modifierKeysChanged(const ModifierKeys& modifiers) override;
 
     void valueChanged(Value& v) override;
 

@@ -115,6 +115,10 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 
     void updateValues();
     void updateDrawables();
+    
+    // Pass modifier keys to statusbar
+    void modifierKeysChanged(const ModifierKeys& modifiers) override { statusbar.modifierKeysChanged(modifiers); }
+
 
     void valueChanged(Value& v) override;
 

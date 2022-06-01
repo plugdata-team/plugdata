@@ -312,20 +312,12 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     levelMeter->toBehind(&volumeSlider);
 
     setSize(getWidth(), statusbarHeight);
-
-#if JUCE_LINUX
-    startTimer(50);
-#endif
 }
 
 Statusbar::~Statusbar()
 {
     delete midiBlinker;
     delete levelMeter;
-
-#if JUCE_LINUX
-    stopTimer();
-#endif
 }
 
 void Statusbar::valueChanged(Value& v)
@@ -384,37 +376,9 @@ void Statusbar::resized()
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
 
-// We don't get callbacks for the ctrl/command key on Linux, so we have to check it with a timer...
-// This timer is only started on Linux
-void Statusbar::timerCallback()
+void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)
 {
-    if (ModifierKeys::getCurrentModifiers().isCommandDown() && locked == var(false))
-    {
-        commandLocked = true;
-    }
-
-    if (!ModifierKeys::getCurrentModifiers().isCommandDown() && commandLocked == var(true))
-    {
-        commandLocked = false;
-    }
-}
-
-bool Statusbar::keyStateChanged(bool isKeyDown, Component*)
-{
-    // Lock when command is down
-    auto mod = ComponentPeer::getCurrentModifiersRealtime();
-
-    if (isKeyDown && mod.isCommandDown() && !lockButton->getToggleState())
-    {
-        commandLocked = true;
-    }
-
-    if (!mod.isCommandDown() && pd.commandLocked == var(true))
-    {
-        commandLocked = false;
-    }
-
-    return false;  //  Never claim this event!
+    commandLocked = modifiers.isCommandDown() && locked.getValue() == var(false);
 }
 
 void Statusbar::zoom(bool zoomIn)
