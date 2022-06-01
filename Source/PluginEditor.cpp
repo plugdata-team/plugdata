@@ -29,8 +29,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     // Set minimum bounds
     setResizeLimits(835, 305, 999999, 999999);
-
-    addKeyListener(&statusbar);
     addKeyListener(getKeyMappings());
 
     pd.locked.addListener(this);
@@ -201,8 +199,6 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     setConstrainer(nullptr);
 
     pd.settingsTree.removeListener(this);
-
-    removeKeyListener(&statusbar);
     pd.locked.removeListener(this);
     pd.zoomScale.removeListener(this);
 }
