@@ -162,7 +162,7 @@ struct DrawableTemplate final : public DrawablePath
             }
 
             String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
-            if (!closed)
+            if (objName.startsWith("fill"))
             {
                 setFill(Colour::fromString("FF" + String::fromUTF8(fill + 1)));
                 setStrokeThickness(0.0f);
@@ -177,7 +177,7 @@ struct DrawableTemplate final : public DrawablePath
             auto drawBounds = toDraw.getBounds();
             // tcl/tk will show a dot for a 0px polygon
             // JUCE doesn't do this, so we have to fake it
-            if ((flags & CLOSED) && drawBounds.isEmpty())
+            if (closed && drawBounds.isEmpty())
             {
                 toDraw.clear();
                 toDraw.addEllipse(drawBounds.withSizeKeepingCentre(5, 5));

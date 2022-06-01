@@ -103,7 +103,6 @@ struct GraphOnParent final : public GUIObject
         }
 
         auto b = getPatch()->getBounds();
-        // canvas->checkBounds();
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
     }

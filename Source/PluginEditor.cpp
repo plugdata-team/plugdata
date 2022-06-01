@@ -27,8 +27,6 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     tooltipWindow->setOpaque(false);
     tooltipWindow->setLookAndFeel(&pd.lnf.get());
 
-    // Set minimum bounds
-    setResizeLimits(835, 305, 999999, 999999);
     addKeyListener(getKeyMappings());
 
     pd.locked.addListener(this);
@@ -176,11 +174,13 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
 
     addAndMakeVisible(toolbarButton(Hide));
-
+    
     sidebar.setSize(250, pd.lastUIHeight - 40);
     setSize(pd.lastUIWidth, pd.lastUIHeight);
-
-
+    
+    // Set minimum bounds
+    setResizeLimits(835, 305, 999999, 999999);
+    
     tabbar.toFront(false);
     sidebar.toFront(false);
     
@@ -480,11 +480,13 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     {
         tabbar.getTabbedButtonBar().setVisible(true);
         tabbar.setTabBarDepth(29);
+        resized();
     }
     else
     {
         tabbar.getTabbedButtonBar().setVisible(false);
         tabbar.setTabBarDepth(1);
+        resized();
     }
 
     auto* tabButton = tabbar.getTabbedButtonBar().getTabButton(tabIdx);
@@ -534,6 +536,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             {
                 tabbar.getTabbedButtonBar().setVisible(false);
                 tabbar.setTabBarDepth(1);
+                resized();
             }
         };
 
