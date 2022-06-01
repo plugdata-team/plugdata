@@ -530,9 +530,15 @@ class PlugDataWindow : public DocumentWindow
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
-
+        
         setOpaque(false);
-        setContentOwned(new MainContentComponent(*this), true);
+        
+        auto* mainComponent = new MainContentComponent(*this);
+        auto* editor = mainComponent->getEditor();
+        auto* c = editor->getConstrainer();
+        setResizeLimits(c->getMinimumWidth() + 7, c->getMinimumHeight() + 7, c->getMaximumWidth() + 7, c->getMaximumHeight() + 7);
+    
+        setContentOwned(mainComponent, true);
 
         const auto windowScreenBounds = [this]() -> Rectangle<int>
         {
@@ -563,8 +569,7 @@ class PlugDataWindow : public DocumentWindow
 
         setBoundsConstrained(windowScreenBounds);
 
-        if (auto* processor = getAudioProcessor())
-            if (auto* editor = processor->getActiveEditor()) setResizable(editor->isResizable(), false);
+        setResizable(true, false);
     }
 
     ~PlugDataWindow() override
@@ -684,6 +689,8 @@ class PlugDataWindow : public DocumentWindow
                 editor->setAlwaysOnTop(true);
             }
         }
+        
+        AudioProcessorEditor* getEditor() { return editor.get(); }
 
         StringArray getMenuBarNames() override
         {
@@ -739,7 +746,7 @@ class PlugDataWindow : public DocumentWindow
         void resized() override
         {
             auto r = getLocalBounds();
-
+            
             if (editor != nullptr)
             {
                 const auto newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());

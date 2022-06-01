@@ -48,10 +48,8 @@ struct FloatAtomObject final : public AtomObject
     {
         // Apply size limits
         int w = jlimit(30, maxSize, box->getWidth());
-        int h = jlimit(Box::height - 12, maxSize, atomSizes[6]);
-
-        h = getBounds().getHeight() + Box::doubleMargin;
-
+        int h = getAtomHeight() + Box::doubleMargin;
+        
         if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);

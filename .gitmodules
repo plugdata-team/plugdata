@@ -22,3 +22,6 @@
 [submodule "Libraries/ELSE/sfont~/fluidsynth"]
 	path = Libraries/ELSE/sfont~/fluidsynth
 	url = https://github.com/chirs241097/fluidsynth-sans-glib.git
+[submodule "Libraries/Catch2"]
+	path = Libraries/Catch2
+	url = https://github.com/catchorg/Catch2.git
