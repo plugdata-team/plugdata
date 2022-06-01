@@ -92,11 +92,13 @@ void ObjectBase::closeOpenedSubpatchers()
     {
         tabbar->getTabbedButtonBar().setVisible(true);
         tabbar->setTabBarDepth(29);
+        main.resized();
     }
     else
     {
         tabbar->getTabbedButtonBar().setVisible(false);
         tabbar->setTabBarDepth(1);
+        main.resized();
     }
 }
 

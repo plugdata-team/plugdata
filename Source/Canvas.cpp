@@ -127,17 +127,6 @@ void Canvas::paint(Graphics& g)
     }
 }
 
-void Canvas::focusGained(FocusChangeType cause)
-{
-    // This is necessary because in some cases, setting the canvas as current right before an action isn't enough
-    // TODO: find out if this is still necessary, and if so, is this really the best way to do it??
-    pd->setThis();
-    if (patch.getPointer() && !isGraph)
-    {
-        patch.setCurrent(true);
-    }
-}
-
 // Synchronise state with pure-data
 // Used for loading and for complicated actions like undo/redo
 void Canvas::synchronise(bool updatePosition)
