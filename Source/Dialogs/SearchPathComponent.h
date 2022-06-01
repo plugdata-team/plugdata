@@ -174,7 +174,6 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
     void paint(Graphics& g) override
     {
-        auto* viewport = listBox.getViewport();
         PlugDataLook::paintStripes(g, listBox.getRowHeight(), listBox.getHeight(), listBox, listBox.getSelectedRow(), listBox.getViewport()->getViewPositionY(), true);
     }
 

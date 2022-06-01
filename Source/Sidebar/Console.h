@@ -11,8 +11,6 @@ struct Console : public Component
         // Viewport takes ownership
         console = new ConsoleComponent(instance, buttons, viewport);
 
-        addComponentListener(console);
-
         viewport.setViewedComponent(console);
         viewport.setScrollBarsShown(true, false);
         
@@ -55,7 +53,6 @@ struct Console : public Component
 
     ~Console() override
     {
-        removeComponentListener(console);
     }
 
     void resized() override
@@ -74,7 +71,7 @@ struct Console : public Component
 
         fb.performLayout(bounds.removeFromBottom(28));
         viewport.setBounds(bounds.toNearestInt());
-        console->resized();
+        console->setSize(viewport.getWidth(), std::max<int>(console->getTotalHeight(), viewport.getHeight()));
         
     }
 
@@ -115,7 +112,7 @@ struct Console : public Component
         }
     }
         
-    struct ConsoleComponent : public Component, public ComponentListener
+    struct ConsoleComponent : public Component
     {
         struct ConsoleMessage : public Component
         {
@@ -191,10 +188,6 @@ struct Console : public Component
             repaint();
         }
 
-        void componentMovedOrResized(Component& component, bool wasMoved, bool wasResized) override
-        {
-            setSize(viewport.getWidth(), getHeight());
-        }
 
         void focusLost(FocusChangeType cause) override
         {

@@ -113,7 +113,9 @@ struct DrawableTemplate final : public DrawablePath
 
         if (n > 1)
         {
-            int flags = object->x_flags, closed = (flags & CLOSED);
+            int flags = object->x_flags;
+            int closed = flags & CLOSED;
+            
             t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
 
             char outline[20], fill[20];
@@ -141,7 +143,7 @@ struct DrawableTemplate final : public DrawablePath
 
             numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
             
-            if (flags & CLOSED)
+            if (closed)
             {
                 numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
             }
@@ -154,13 +156,13 @@ struct DrawableTemplate final : public DrawablePath
                 toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
             }
             
-            if (flags & CLOSED)
+            if (closed)
             {
                 toDraw.lineTo(pix[0], pix[1]);
             }
 
             String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
-            if (objName.contains("fill"))
+            if (!closed)
             {
                 setFill(Colour::fromString("FF" + String::fromUTF8(fill + 1)));
                 setStrokeThickness(0.0f);

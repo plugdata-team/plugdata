@@ -143,7 +143,7 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     std::atomic<bool> canUndo = false, canRedo = false;
 
     std::unique_ptr<Component> settingsDialog = nullptr;
-
+    
    private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
@@ -153,8 +153,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
 #else
     static constexpr int toolbarHeight = 40;
 #endif
-
-    ComponentBoundsConstrainer constrainer;
 
     OwnedArray<TextButton> toolbarButtons;
 
@@ -180,6 +178,8 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     {
         return toolbarButtons[static_cast<int>(type)];
     }
+    
+
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataPluginEditor)
 };

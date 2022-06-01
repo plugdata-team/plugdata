@@ -3,8 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(RUN_CLANG_TIDY 0)
-
-
+set(UNIT_TEST 0)
 
 if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
@@ -192,6 +191,7 @@ juce_add_plugin(PlugDataFx
     PLUGIN_MANUFACTURER_CODE    OCTA
     PLUGIN_CODE                 PlDf
     FORMATS                     AU VST3 LV2
+    LV2URI                      https://github.com/timothyschoen/PlugData
     PRODUCT_NAME                "PlugDataFx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
     VST3_CATEGORIES             Fx
@@ -370,6 +370,35 @@ if(RUN_CLANG_TIDY)
 
 endif()
 
+# Set up testing framework
+enable_testing()
+file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.h")
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
+
+# Include Catch2
+add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
+set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
+
+add_executable(Tests ${TestFiles} ${PlugDataGlobalSources} ${PlugDataStandaloneSources})
+set_target_properties(Tests PROPERTIES CXX_STANDARD 17)
+
+target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugDataStandalone pd ${libs})
+
+
+if(UNIT_TEST)
+source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
+include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
+catch_discover_tests(Tests)
+
+target_include_directories(Tests PUBLIC PLUGDATA_INCLUDE_DIRECTORY)
+target_include_directories(Tests PUBLIC ${CMAKE_CACHEFILE_DIR}/PlugDataStandalone_artefacts/JuceLibraryCode/)
+target_include_directories(Tests PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
+set_target_properties(Tests PROPERTIES PREFIX "")
+
+set_target_properties(Tests PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
+#set_target_properties(Tests PROPERTIES XCODE_GENERATE_SCHEME ON)
+endif()
 
 if(MSVC)
 set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
