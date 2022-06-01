@@ -10,7 +10,7 @@ struct LevelMeter;
 struct MidiBlinker;
 struct PlugDataAudioProcessor;
 
-struct Statusbar : public Component, public Value::Listener
+struct Statusbar : public Component, public Timer, public Value::Listener
 {
     PlugDataAudioProcessor& pd;
 
@@ -21,6 +21,7 @@ struct Statusbar : public Component, public Value::Listener
 
     void modifierKeysChanged(const ModifierKeys& modifiers) override;
 
+    void timerCallback() override;
     void valueChanged(Value& v) override;
 
     void zoom(bool zoomIn);
@@ -48,6 +49,8 @@ struct Statusbar : public Component, public Value::Listener
     Value theme;
 
     static constexpr int statusbarHeight = 28;
+    
+    ModifierKeys lastModifiers;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
