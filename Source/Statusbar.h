@@ -49,8 +49,6 @@ struct Statusbar : public Component, public Timer, public Value::Listener
     Value theme;
 
     static constexpr int statusbarHeight = 28;
-    
-    ModifierKeys lastModifiers;
 
     std::unique_ptr<ButtonParameterAttachment> enableAttachment;
     std::unique_ptr<SliderParameterAttachment> volumeAttachment;
