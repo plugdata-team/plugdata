@@ -362,24 +362,12 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         auto callback = [this, &lassoSelection, box](int result)
         {
+            popupMenu.clear();
             if (result < 1) return;
             switch (result)
             {
                 case 1:  // Open subpatch
                     box->openSubpatch();
-                    break;
-                case 4:  // Cut
-                    copySelection();
-                    removeSelection();
-                    break;
-                case 5:  // Copy
-                    copySelection();
-                    break;
-                case 6:  // Duplicate
-                    duplicateSelection();
-                    break;
-                case 7:  // Remove
-                    removeSelection();
                     break;
                 case 8:  // To Front
                     box->toFront(false);
@@ -459,7 +447,8 @@ void Canvas::mouseUp(const MouseEvent& e)
 {
     if (auto* box = dynamic_cast<Box*>(e.originalComponent))
     {
-        if (!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2)
+        
+        if (!popupMenu.getNumItems() && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2)
         {
             deselectAll();
         }
