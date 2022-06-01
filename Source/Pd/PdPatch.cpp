@@ -65,12 +65,10 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(pat
 {
     if (auto* cnv = getPointer())
     {
-        instance->getCallbackLock()->enter();
-
-        setCurrent();
-        setZoom(1);
-
-        instance->getCallbackLock()->exit();
+        parentInstance->enqueueFunction([this](){
+            setCurrent();
+            setZoom(1);
+        });
     }
 }
 
@@ -390,9 +388,6 @@ void* Patch::renameObject(void* obj, const String& name)
 {
     if (!obj || !ptr) return nullptr;
 
-    // Cant use the queue for this...
-    setCurrent(true);
-
     auto type = name.upToFirstOccurrenceOf(" ", false, false);
     String newName = name;
     // Also apply default style when renaming
@@ -413,11 +408,15 @@ void* Patch::renameObject(void* obj, const String& name)
         newName += " " + preset;
     }
 
-    instance->enqueueFunction([this, obj, newName]() mutable { libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8()); });
+    instance->enqueueFunction([this, obj, newName]() mutable {
+        setCurrent();
+        libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+        
+        // make sure that creating a graph doesn't leave it as the current patch
+        setCurrent();
+    });
 
     instance->waitForStateUpdate();
-
-    setCurrent(true);
 
     return libpd_newest(getPointer());
 }

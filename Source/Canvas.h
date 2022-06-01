@@ -54,8 +54,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     void checkBounds();
 
-    void focusGained(FocusChangeType cause) override;
-
     void undo();
     void redo();
 
