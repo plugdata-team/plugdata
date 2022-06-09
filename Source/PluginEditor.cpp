@@ -479,7 +479,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     if (tabbar.getNumTabs() > 1)
     {
         tabbar.getTabbedButtonBar().setVisible(true);
-        tabbar.setTabBarDepth(29);
+        tabbar.setTabBarDepth(28);
         resized();
     }
     else

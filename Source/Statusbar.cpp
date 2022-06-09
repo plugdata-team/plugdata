@@ -312,17 +312,11 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     levelMeter->toBehind(&volumeSlider);
 
     setSize(getWidth(), statusbarHeight);
-    
-#if JUCE_LINUX
-    startTimer(40);
-#endif
+
 }
 
 Statusbar::~Statusbar()
 {
-#if JUCE_LINUX
-    stopTimer();
-#endif
     delete midiBlinker;
     delete levelMeter;
 }
@@ -381,17 +375,6 @@ void Statusbar::resized()
     volumeSlider.setBounds(levelMeterPosition, 0, 100, getHeight());
 
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
-}
-
-// Modifier key changes don't always work well on Linux
-// Use a timer to regularly check them!
-void Statusbar::timerCallback()
-{
-    auto mods = ModifierKeys::getCurrentModifiers();
-    if(mods.isCommandDown() != static_cast<bool>(commandLocked.getValue())) {
-        modifierKeysChanged(mods);
-        std::cout << "CHANGED" << std::endl;
-    }
 }
 
 void Statusbar::modifierKeysChanged(const ModifierKeys& modifiers)

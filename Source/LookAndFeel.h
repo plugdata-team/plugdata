@@ -210,16 +210,6 @@ struct PlugDataLook : public LookAndFeel_V4
             LookAndFeel_V4::drawLinearSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
     }
-    int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
-    {
-        auto& buttonBar = button.getTabbedButtonBar();
-        return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
-    }
-
-    int getTabButtonOverlap(int tabDepth) override
-    {
-        return 1;
-    }
 
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
     {
@@ -278,6 +268,17 @@ struct PlugDataLook : public LookAndFeel_V4
         return nullptr;
     }
 
+    int getTabButtonBestWidth(TabBarButton& button, int tabDepth) override
+    {
+        auto& buttonBar = button.getTabbedButtonBar();
+        return (buttonBar.getWidth() / buttonBar.getNumTabs()) + 1;
+    }
+
+    int getTabButtonOverlap(int tabDepth) override
+    {
+        return 0;
+    }
+    
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         g.setColour(findColour(button.getToggleState() ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
@@ -288,15 +289,16 @@ struct PlugDataLook : public LookAndFeel_V4
         int h = button.getHeight();
 
         g.setColour(button.findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(Line<float>(0, h - 1, w, h - 1), 1.0f);
+        g.drawLine(Line<float>(0, h - 0.5f, w, h - 0.5f), 1.0f);
 
         if (button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1)
         {
-            g.drawLine(Line<float>(w - 1, 1, w - 1, h - 1), 1.0f);
+            g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
         }
 
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
+    
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, const int w, const int h) override
     {
     }
