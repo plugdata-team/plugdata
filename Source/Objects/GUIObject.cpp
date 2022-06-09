@@ -91,14 +91,14 @@ void ObjectBase::closeOpenedSubpatchers()
     if (tabbar->getNumTabs() > 1)
     {
         tabbar->getTabbedButtonBar().setVisible(true);
-        tabbar->setTabBarDepth(29);
-        main.resized();
+        tabbar->setTabBarDepth(28);
+        //main.resized(); TODO: this currently crashes because it will access the deleted object, fix this!
     }
     else
     {
         tabbar->getTabbedButtonBar().setVisible(false);
         tabbar->setTabBarDepth(1);
-        main.resized();
+        // main.resized();  TODO: same thing
     }
 }
 
