@@ -24,11 +24,11 @@ class Instance;
 //! @see Instance, Object, Gui
 class Patch
 {
-   public:
+public:
     Patch(void* ptr, Instance* instance, File currentFile = File());
 
     // The compare equal operator.
-    bool operator==(Patch const& other) const 
+    bool operator==(Patch const& other) const
     {
         return getPointer() == other.getPointer();
     }
@@ -36,7 +36,7 @@ class Patch
     void close();
 
     // Gets the bounds of the patch.
-    Rectangle<int> getBounds() const ;
+    Rectangle<int> getBounds() const;
 
     void* createGraph(const String& name, int size, int x, int y);
     void* createGraphOnParent(int x, int y);
@@ -97,20 +97,21 @@ class Patch
     }
 
     // Gets the objects of the patch.
-    std::vector<void*> getObjects(bool onlyGui = false) ;
+    std::vector<void*> getObjects(bool onlyGui = false);
 
     String getCanvasContent()
     {
-        if (!ptr) return {};
+        if(! ptr)
+            return {};
         char* buf;
         int bufsize;
         libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
-        return {buf, static_cast<size_t>(bufsize)};
+        return { buf, static_cast<size_t>(bufsize) };
     }
 
     int getIndex(void* obj);
 
-    static t_object* checkObject(void* obj) ;
+    static t_object* checkObject(void* obj);
 
     void keyPress(int keycode, int shift);
 
@@ -119,26 +120,26 @@ class Patch
 
     Instance* instance = nullptr;
 
-   private:
+private:
     File currentFile;
 
     void* ptr = nullptr;
 
     // Initialisation parameters for GUI objects
     // Taken from pd save files, this will make sure that it directly initialises objects with the right parameters
-    static inline const std::map<String, String> guiDefaults = {{"tgl", "25 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1"},
-                                                                {"hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1"},
-                                                                {"vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1"},
-                                                                {"bng", "25 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour"},
-                                                                {"nbx", "5 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256"},
-                                                                {"hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
-                                                                {"vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
-                                                                {"cnv", "15 100 60 empty empty empty 20 12 0 14 lblColour fgColour"},
-                                                                {"vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0"},
-                                                                {"floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12"}};
+    static inline const std::map<String, String> guiDefaults = { { "tgl", "25 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour 0 1" },
+                                                                 { "hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1" },
+                                                                 { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1" },
+                                                                 { "bng", "25 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour" },
+                                                                 { "nbx", "5 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0 256" },
+                                                                 { "hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
+                                                                 { "vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
+                                                                 { "cnv", "15 100 60 empty empty empty 20 12 0 14 lblColour fgColour" },
+                                                                 { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
+                                                                 { "floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12" } };
 
     friend class Instance;
     friend class Gui;
     friend class Object;
 };
-}  // namespace pd
+} // namespace pd

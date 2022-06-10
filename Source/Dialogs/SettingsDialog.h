@@ -1,6 +1,6 @@
+#include "../Utility/PropertiesPanel.h"
 #include "Deken.h"
 #include "SearchPathComponent.h"
-#include "../Utility/PropertiesPanel.h"
 
 struct ThemePanel : public Component, public Value::Listener
 {
@@ -22,9 +22,9 @@ struct ThemePanel : public Component, public Value::Listener
         int numColours = PlugDataLook::colourNames[0].size();
         colours.resize(2);
 
-        for (int i = 0; i < numColours; i++)
+        for(int i = 0; i < numColours; i++)
         {
-            for (int j = 0; j < 2; j++)
+            for(int j = 0; j < 2; j++)
             {
                 colours[j].resize(numColours);
                 colours[j][i].setValue(PlugDataLook::colourSettings[j][i].toString());
@@ -33,7 +33,7 @@ struct ThemePanel : public Component, public Value::Listener
             }
         }
 
-        for (auto* panel : panels)
+        for(auto* panel : panels)
         {
             panel->setHideLabel(true);
             addAndMakeVisible(panel);
@@ -54,9 +54,9 @@ struct ThemePanel : public Component, public Value::Listener
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
             int numColours = PlugDataLook::colourNames[0].size();
-            for (int i = 0; i < 2; i++)
+            for(int i = 0; i < 2; i++)
             {
-                for (int j = 0; j < numColours; j++)
+                for(int j = 0; j < numColours; j++)
                 {
                     colours[i][j] = lnf.colourSettings[i][j].toString();
                     settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
@@ -66,9 +66,9 @@ struct ThemePanel : public Component, public Value::Listener
             lnf.setTheme(lnf.isUsingLightTheme);
             getTopLevelComponent()->repaint();
 
-            for (auto* panel : panels)
+            for(auto* panel : panels)
             {
-                if (auto* colourPanel = dynamic_cast<PropertiesPanel::ColourComponent*>(panel))
+                if(auto* colourPanel = dynamic_cast<PropertiesPanel::ColourComponent*>(panel))
                 {
                     colourPanel->updateColour();
                 }
@@ -80,18 +80,18 @@ struct ThemePanel : public Component, public Value::Listener
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
 
-        if (v.refersToSameSourceAs(fontValue))
+        if(v.refersToSameSourceAs(fontValue))
         {
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
             getTopLevelComponent()->repaint();
         }
         int numColours = PlugDataLook::colourNames[0].size();
-        for (int i = 0; i < 2; i++)
+        for(int i = 0; i < 2; i++)
         {
-            for (int j = 0; j < numColours; j++)
+            for(int j = 0; j < numColours; j++)
             {
-                if (v.refersToSameSourceAs(colours[i][j]))
+                if(v.refersToSameSourceAs(colours[i][j]))
                 {
                     lnf.colourSettings[i][j] = Colour::fromString(v.toString());
                     settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
@@ -135,7 +135,7 @@ struct ThemePanel : public Component, public Value::Listener
 
         bounds.removeFromTop(23);
 
-        for (int i = 0; i < panels.size() / 2; i++)
+        for(int i = 0; i < panels.size() / 2; i++)
         {
             auto panelBounds = bounds.removeFromTop(23);
             panels[i * 2 + 1]->setBounds(panelBounds.removeFromRight(getWidth() / 4));
@@ -170,7 +170,7 @@ struct AboutPanel : public Component
 
         g.drawFittedText("This program is published under the terms of the GPLv3 license", 150, 180, getWidth() - 150, 50, Justification::left, 2);
 
-        Rectangle<float> logoBounds = {40.0f, 20.0f, logo.getWidth() / 2.0f, logo.getHeight() / 2.0f};
+        Rectangle<float> logoBounds = { 40.0f, 20.0f, logo.getWidth() / 2.0f, logo.getHeight() / 2.0f };
 
         g.drawImage(logo, logoBounds);
     }
@@ -203,8 +203,10 @@ struct DAWAudioSettings : public Component
         latencyLabel.attachToComponent(&latencySlider, true);
 
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
-        latencySlider.onValueChange = [this, proc]() { proc->setLatencySamples(latencySlider.getValue() + proc->pd::Instance::getBlockSize()); };
-        tailLengthSlider.onValueChange = [this, proc]() { proc->tailLength.setValue(tailLengthSlider.getValue()); };
+        latencySlider.onValueChange = [this, proc]()
+        { proc->setLatencySamples(latencySlider.getValue() + proc->pd::Instance::getBlockSize()); };
+        tailLengthSlider.onValueChange = [this, proc]()
+        { proc->tailLength.setValue(tailLengthSlider.getValue()); };
     }
 
     void resized() override
@@ -215,7 +217,8 @@ struct DAWAudioSettings : public Component
 
     void visibilityChanged() override
     {
-        if (!isVisible()) return;
+        if(! isVisible())
+            return;
 
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
         latencySlider.setValue(processor.getLatencySamples());
@@ -236,13 +239,13 @@ struct SettingsDialog : public Component
     {
         setVisible(false);
 
-        toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Pencil), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals), new TextButton(Icons::Info)};
+        toolbarButtons = { new TextButton(Icons::Audio), new TextButton(Icons::Pencil), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals), new TextButton(Icons::Info) };
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
-        if (manager)
+        if(manager)
         {
             panels.add(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
         }
@@ -256,7 +259,7 @@ struct SettingsDialog : public Component
         panels.add(new Deken());
         panels.add(new AboutPanel());
 
-        for (int i = 0; i < toolbarButtons.size(); i++)
+        for(int i = 0; i < toolbarButtons.size(); i++)
         {
             toolbarButtons[i]->setClickingTogglesState(true);
             toolbarButtons[i]->setRadioGroupId(0110);
@@ -265,7 +268,8 @@ struct SettingsDialog : public Component
             addAndMakeVisible(toolbarButtons[i]);
 
             addChildComponent(panels[i]);
-            toolbarButtons[i]->onClick = [this, i]() mutable { showPanel(i); };
+            toolbarButtons[i]->onClick = [this, i]() mutable
+            { showPanel(i); };
         }
 
         toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
@@ -273,9 +277,9 @@ struct SettingsDialog : public Component
         dialog->onClose = [this, dialog]()
         {
             // Check if deken is busy, else clean up settings dialog
-            if (!dynamic_cast<Deken*>(panels[4])->isBusy())
+            if(! dynamic_cast<Deken*>(panels[4])->isBusy())
             {
-                if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor()))
+                if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor()))
                 {
                     editor->settingsDialog.reset(nullptr);
                 }
@@ -300,9 +304,9 @@ struct SettingsDialog : public Component
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
 
         int toolbarPosition = 2;
-        for (auto& button : toolbarButtons)
+        for(auto& button : toolbarButtons)
         {
-            if (button == toolbarButtons.getLast())
+            if(button == toolbarButtons.getLast())
             {
                 button->setBounds(getWidth() - 100, 1, 70, toolbarHeight - 2);
                 break;
@@ -333,7 +337,7 @@ struct SettingsDialog : public Component
         g.fillRoundedRectangle(toolbarBounds, 5.0f);
         g.fillRect(toolbarBounds.withTop(10.0f));
 
-        if (currentPanel > 0)
+        if(currentPanel > 0)
         {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
             g.setColour(findColour(PlugDataColour::toolbarColourId));
@@ -348,7 +352,7 @@ struct SettingsDialog : public Component
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
 
-        if (currentPanel > 0)
+        if(currentPanel > 0)
         {
             g.drawLine(0.0f, getHeight() - 33, getWidth(), getHeight() - 33);
         }

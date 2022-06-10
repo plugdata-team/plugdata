@@ -15,8 +15,7 @@
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {
-    toolbarButtons = {new TextButton(Icons::New),  new TextButton(Icons::Open), new TextButton(Icons::Save),     new TextButton(Icons::SaveAs), new TextButton(Icons::Undo),
-                      new TextButton(Icons::Redo), new TextButton(Icons::Add),  new TextButton(Icons::Settings), new TextButton(Icons::Hide),   new TextButton(Icons::Pin)};
+    toolbarButtons = { new TextButton(Icons::New), new TextButton(Icons::Open), new TextButton(Icons::Save), new TextButton(Icons::SaveAs), new TextButton(Icons::Undo), new TextButton(Icons::Redo), new TextButton(Icons::Add), new TextButton(Icons::Settings), new TextButton(Icons::Hide), new TextButton(Icons::Pin) };
 
 #if PLUGDATA_ROUNDED
     setResizable(true, false);
@@ -37,18 +36,18 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     setWantsKeyboardFocus(true);
     registerAllCommandsForTarget(this);
 
-    for (auto& seperator : seperators)
+    for(auto& seperator : seperators)
     {
         addChildComponent(&seperator);
     }
 
     auto keymap = p.settingsTree.getChildWithName("Keymap");
-    if (keymap.isValid())
+    if(keymap.isValid())
     {
         auto xmlStr = keymap.getProperty("keyxml").toString();
         auto elt = XmlDocument(xmlStr).getDocumentElement();
 
-        if (elt)
+        if(elt)
         {
             getKeyMappings()->restoreFromXml(*elt);
         }
@@ -66,17 +65,20 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     tabbar.onTabChange = [this](int idx)
     {
-        if (idx == -1) return;
+        if(idx == -1)
+            return;
 
         // update GraphOnParent when changing tabs
-        for (auto* box : getCurrentCanvas()->boxes)
+        for(auto* box : getCurrentCanvas()->boxes)
         {
-            if (!box->gui) continue;
-            if (auto* cnv = box->gui->getCanvas()) cnv->synchronise();
+            if(! box->gui)
+                continue;
+            if(auto* cnv = box->gui->getCanvas())
+                cnv->synchronise();
         }
 
         auto* cnv = getCurrentCanvas();
-        if (cnv->patch.getPointer())
+        if(cnv->patch.getPointer())
         {
             cnv->patch.setCurrent();
         }
@@ -89,7 +91,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     addAndMakeVisible(tabbar);
     addAndMakeVisible(sidebar);
 
-    for (auto* button : toolbarButtons)
+    for(auto* button : toolbarButtons)
     {
         button->setName("toolbar:button");
         button->setConnectedEdges(12);
@@ -106,33 +108,39 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     // Open button
     toolbarButton(Open)->setTooltip("Open Project");
-    toolbarButton(Open)->onClick = [this]() { openProject(); };
+    toolbarButton(Open)->onClick = [this]()
+    { openProject(); };
 
     // Save button
     toolbarButton(Save)->setTooltip("Save Project");
-    toolbarButton(Save)->onClick = [this]() { saveProject(); };
+    toolbarButton(Save)->onClick = [this]()
+    { saveProject(); };
 
     // Save Ad button
     toolbarButton(SaveAs)->setTooltip("Save Project as");
-    toolbarButton(SaveAs)->onClick = [this]() { saveProjectAs(); };
+    toolbarButton(SaveAs)->onClick = [this]()
+    { saveProjectAs(); };
 
     //  Undo button
     toolbarButton(Undo)->setTooltip("Undo");
-    toolbarButton(Undo)->onClick = [this]() { getCurrentCanvas()->undo(); };
+    toolbarButton(Undo)->onClick = [this]()
+    { getCurrentCanvas()->undo(); };
 
     // Redo button
     toolbarButton(Redo)->setTooltip("Redo");
-    toolbarButton(Redo)->onClick = [this]() { getCurrentCanvas()->redo(); };
+    toolbarButton(Redo)->onClick = [this]()
+    { getCurrentCanvas()->redo(); };
 
     // New object button
     toolbarButton(Add)->setTooltip("Create Object");
-    toolbarButton(Add)->onClick = [this]() { showNewObjectMenu(); };
+    toolbarButton(Add)->onClick = [this]()
+    { showNewObjectMenu(); };
 
     // Show settings
     toolbarButton(Settings)->setTooltip("Settings");
     toolbarButton(Settings)->onClick = [this]()
     {
-        if (!settingsDialog)
+        if(! settingsDialog)
         {
 #ifdef PLUGDATA_STANDALONE
             // Initialise settings dialog for DAW and standalone
@@ -155,7 +163,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Hide)->setConnectedEdges(12);
     toolbarButton(Hide)->onClick = [this]()
     {
-        bool show = !toolbarButton(Hide)->getToggleState();
+        bool show = ! toolbarButton(Hide)->getToggleState();
         sidebar.showSidebar(show);
         toolbarButton(Hide)->setButtonText(show ? Icons::Hide : Icons::Show);
 
@@ -171,27 +179,27 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Pin)->setClickingTogglesState(true);
     toolbarButton(Pin)->setColour(ComboBox::outlineColourId, findColour(TextButton::buttonColourId));
     toolbarButton(Pin)->setConnectedEdges(12);
-    toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
+    toolbarButton(Pin)->onClick = [this]()
+    { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
 
     addAndMakeVisible(toolbarButton(Hide));
-    
+
     sidebar.setSize(250, pd.lastUIHeight - 40);
     setSize(pd.lastUIWidth, pd.lastUIHeight);
-    
+
     // Set minimum bounds
     setResizeLimits(835, 305, 999999, 999999);
-    
+
     tabbar.toFront(false);
     sidebar.toFront(false);
-    
-    
+
     // Make sure existing console messages are processed
     sidebar.updateConsole();
 }
 PlugDataPluginEditor::~PlugDataPluginEditor()
 {
     auto keymap = pd.settingsTree.getChildWithName("Keymap");
-    if (keymap.isValid())
+    if(keymap.isValid())
     {
         keymap.setProperty("keyxml", getKeyMappings()->createXml(true)->toString(), nullptr);
     }
@@ -256,7 +264,7 @@ void PlugDataPluginEditor::resized()
 
     auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
-    for (int b = 0; b < 9; b++)
+    for(int b = 0; b < 9; b++)
     {
         auto* button = toolbarButtons[b];
 
@@ -264,7 +272,7 @@ void PlugDataPluginEditor::resized()
         item.flexGrow = 1.0f;
         item.flexShrink = 1.0f;
 
-        if (b == 4 || b == 6)
+        if(b == 4 || b == 6)
         {
             auto separator = FlexItem(seperators[b == 4]).withMinWidth(1.0f).withMaxWidth(12.0f);
             separator.flexGrow = 1.0f;
@@ -275,13 +283,14 @@ void PlugDataPluginEditor::resized()
         fb.items.add(item);
     }
 
-    Rectangle<float> toolbarBounds = {5.0f, 0.0f, getWidth() - sidebar.getWidth() + 60.0f, static_cast<float>(toolbarHeight)};
-    if (toolbarButton(Hide)->getToggleState()) toolbarBounds.setWidth(getWidth() - 50.0f);
+    Rectangle<float> toolbarBounds = { 5.0f, 0.0f, getWidth() - sidebar.getWidth() + 60.0f, static_cast<float>(toolbarHeight) };
+    if(toolbarButton(Hide)->getToggleState())
+        toolbarBounds.setWidth(getWidth() - 50.0f);
 
     fb.performLayout(toolbarBounds);
 
     // hide when they fall off the screen
-    for (int b = 0; b < 8; b++)
+    for(int b = 0; b < 8; b++)
     {
         toolbarButtons[b]->setVisible((toolbarButtons[b]->getBounds().getCentreX()) < getWidth() - sidebar.getWidth());
     }
@@ -300,7 +309,7 @@ void PlugDataPluginEditor::resized()
     pd.lastUIWidth = getWidth();
     pd.lastUIHeight = getHeight();
 
-    if (auto* cnv = getCurrentCanvas())
+    if(auto* cnv = getCurrentCanvas())
     {
         cnv->checkBounds();
     }
@@ -308,7 +317,7 @@ void PlugDataPluginEditor::resized()
 
 void PlugDataPluginEditor::mouseWheelMove(const MouseEvent& e, const MouseWheelDetails& wheel)
 {
-    if (e.mods.isCommandDown())
+    if(e.mods.isCommandDown())
     {
         mouseMagnify(e, 1.0f / (1.0f - wheel.deltaY));
     }
@@ -324,7 +333,7 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
     auto oldMousePos = cnv->getLocalPoint(this, e.getPosition());
 
     statusbar.zoom(scrollFactor);
-    valueChanged(pd.zoomScale);  // trigger change to make the anchoring work
+    valueChanged(pd.zoomScale); // trigger change to make the anchoring work
 
     auto newMousePos = cnv->getLocalPoint(this, e.getPosition());
 
@@ -334,7 +343,7 @@ void PlugDataPluginEditor::mouseMagnify(const MouseEvent& e, float scrollFactor)
 #ifdef PLUGDATA_STANDALONE
 void PlugDataPluginEditor::mouseDown(const MouseEvent& e)
 {
-    if (e.getPosition().getY() < toolbarHeight)
+    if(e.getPosition().getY() < toolbarHeight)
     {
         auto* window = getTopLevelComponent();
         windowDragger.startDraggingComponent(window, e.getEventRelativeTo(window));
@@ -354,7 +363,7 @@ void PlugDataPluginEditor::openProject()
     {
         File openedFile = f.getResult();
 
-        if (openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd"))
+        if(openedFile.exists() && openedFile.getFileExtension().equalsIgnoreCase(".pd"))
         {
             pd.settingsTree.setProperty("LastChooserPath", openedFile.getParentDirectory().getFullPathName(), nullptr);
 
@@ -376,7 +385,7 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
                              {
                                  File result = saveChooser->getResult();
 
-                                 if (result.getFullPathName().isNotEmpty())
+                                 if(result.getFullPathName().isNotEmpty())
                                  {
                                      pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
 
@@ -391,12 +400,12 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
 
 void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallback)
 {
-    for (auto* patch : pd.patches)
+    for(auto* patch : pd.patches)
     {
         patch->deselectAll();
     }
 
-    if (getCurrentCanvas()->patch.getCurrentFile().existsAsFile())
+    if(getCurrentCanvas()->patch.getCurrentFile().existsAsFile())
     {
         getCurrentCanvas()->patch.savePatch();
         nestedCallback();
@@ -411,11 +420,12 @@ void PlugDataPluginEditor::updateValues()
 {
     auto* cnv = getCurrentCanvas();
 
-    if (!cnv) return;
+    if(! cnv)
+        return;
 
-    for (auto& box : cnv->boxes)
+    for(auto& box : cnv->boxes)
     {
-        if (box->gui && box->isShowing())
+        if(box->gui && box->isShowing())
         {
             box->gui->updateValue();
         }
@@ -429,11 +439,12 @@ void PlugDataPluginEditor::updateDrawables()
 {
     auto* cnv = getCurrentCanvas();
 
-    if (!cnv) return;
+    if(! cnv)
+        return;
 
-    for (auto& box : cnv->boxes)
+    for(auto& box : cnv->boxes)
     {
-        if (box->gui)
+        if(box->gui)
         {
             box->gui->updateDrawables();
         }
@@ -444,9 +455,9 @@ void PlugDataPluginEditor::updateDrawables()
 
 Canvas* PlugDataPluginEditor::getCurrentCanvas()
 {
-    if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent()))
+    if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getCurrentContentComponent()))
     {
-        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()))
+        if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()))
         {
             return cnv;
         }
@@ -456,9 +467,9 @@ Canvas* PlugDataPluginEditor::getCurrentCanvas()
 
 Canvas* PlugDataPluginEditor::getCanvas(int idx)
 {
-    if (auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx)))
+    if(auto* viewport = dynamic_cast<Viewport*>(tabbar.getTabContentComponent(idx)))
     {
-        if (auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()))
+        if(auto* cnv = dynamic_cast<Canvas*>(viewport->getViewedComponent()))
         {
             return cnv;
         }
@@ -476,7 +487,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     tabbar.setCurrentTabIndex(tabIdx);
     tabbar.setTabBackgroundColour(tabIdx, Colours::transparentBlack);
 
-    if (tabbar.getNumTabs() > 1)
+    if(tabbar.getNumTabs() > 1)
     {
         tabbar.getTabbedButtonBar().setVisible(true);
         tabbar.setTabBarDepth(28);
@@ -497,22 +508,23 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
     {
         // We cant use the index from earlier because it might change!
         int idx = -1;
-        for (int i = 0; i < tabbar.getNumTabs(); i++)
+        for(int i = 0; i < tabbar.getNumTabs(); i++)
         {
-            if (tabbar.getTabbedButtonBar().getTabButton(i) == tabButton)
+            if(tabbar.getTabbedButtonBar().getTabButton(i) == tabButton)
             {
                 idx = i;
                 break;
             }
         }
 
-        if (idx == -1) return;
+        if(idx == -1)
+            return;
 
         auto deleteFunc = [this, deleteWhenClosed, idx]() mutable
         {
             auto* cnv = getCanvas(idx);
 
-            if (!cnv)
+            if(! cnv)
             {
                 tabbar.removeTab(idx);
                 return;
@@ -520,7 +532,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 
             auto* patch = &cnv->patch;
 
-            if (deleteWhenClosed)
+            if(deleteWhenClosed)
             {
                 patch->close();
             }
@@ -532,7 +544,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             int numTabs = tabbar.getNumTabs();
             tabbar.setCurrentTabIndex(numTabs - 1, true);
 
-            if (numTabs == 1)
+            if(numTabs == 1)
             {
                 tabbar.getTabbedButtonBar().setVisible(false);
                 tabbar.setTabBarDepth(1);
@@ -544,10 +556,9 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
             [this, deleteFunc, idx]() mutable
             {
                 auto* cnv = getCanvas(idx);
-                if (cnv && cnv->patch.isDirty())
+                if(cnv && cnv->patch.isDirty())
                 {
-                    Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
-                                            [this, deleteFunc](int result) mutable
+                    Dialogs::showSaveDialog(this, cnv->patch.getTitle(), [this, deleteFunc](int result) mutable
                                             {
                                                 if (result == 2)
                                                 {
@@ -556,8 +567,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                                                 else if (result == 1)
                                                 {
                                                     deleteFunc();
-                                                }
-                                            });
+                                                } });
                 }
                 else
                 {
@@ -582,18 +592,18 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
 void PlugDataPluginEditor::valueChanged(Value& v)
 {
     // Update undo state when locking/unlocking
-    if (v.refersToSameSourceAs(pd.locked))
+    if(v.refersToSameSourceAs(pd.locked))
     {
         toolbarButton(Add)->setEnabled(pd.locked == var(false));
         updateCommandStatus();
     }
     // Update zoom
-    else if (v.refersToSameSourceAs(pd.zoomScale))
+    else if(v.refersToSameSourceAs(pd.zoomScale))
     {
         transform = AffineTransform().scaled(static_cast<float>(v.getValue()));
-        for (auto& canvas : canvases)
+        for(auto& canvas : canvases)
         {
-            if (!canvas->isGraph)
+            if(! canvas->isGraph)
             {
                 canvas->hideSuggestions();
                 canvas->setTransform(transform);
@@ -626,16 +636,16 @@ void PlugDataPluginEditor::timerCallback()
 
 void PlugDataPluginEditor::updateCommandStatus()
 {
-    if (auto* cnv = getCurrentCanvas())
+    if(auto* cnv = getCurrentCanvas())
     {
         // Update connection style button
         bool allSegmented = true;
         bool allNotSegmented = true;
         bool hasSelection = false;
-        for (auto& connection : cnv->getSelectionOfType<Connection>())
+        for(auto& connection : cnv->getSelectionOfType<Connection>())
         {
             allSegmented = allSegmented && connection->isSegmented();
-            allNotSegmented = allNotSegmented && !connection->isSegmented();
+            allNotSegmented = allNotSegmented && ! connection->isSegmented();
             hasSelection = true;
         }
 
@@ -644,7 +654,8 @@ void PlugDataPluginEditor::updateCommandStatus()
         statusbar.connectionStyleButton->setToggleState(hasSelection && allSegmented, dontSendNotification);
 
         auto* patchPtr = cnv->patch.getPointer();
-        if (!patchPtr) return;
+        if(! patchPtr)
+            return;
 
         // First on pd's thread, get undo status
         pd.enqueueFunction(
@@ -675,7 +686,7 @@ ApplicationCommandTarget* PlugDataPluginEditor::getNextCommandTarget()
 void PlugDataPluginEditor::getAllCommands(Array<CommandID>& commands)
 {
     // Add all command IDs
-    for (int n = NewProject; n < NumItems; n++)
+    for(int n = NewProject; n < NumItems; n++)
     {
         commands.add(n);
     }
@@ -686,16 +697,16 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
     bool hasBoxSelection = false;
     bool hasSelection = false;
 
-    if (auto* cnv = getCurrentCanvas())
+    if(auto* cnv = getCurrentCanvas())
     {
         auto selectedBoxes = cnv->getSelectionOfType<Box>();
         auto selectedConnections = cnv->getSelectionOfType<Connection>();
 
-        hasBoxSelection = !selectedBoxes.isEmpty();
-        hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
+        hasBoxSelection = ! selectedBoxes.isEmpty();
+        hasSelection = hasBoxSelection || ! selectedConnections.isEmpty();
     }
 
-    switch (commandID)
+    switch(commandID)
     {
         case CommandIDs::NewProject:
         {
@@ -739,7 +750,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Lock", "Lock patch", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier);
-            result.setActive(!static_cast<bool>(statusbar.presentationMode.getValue()));
+            result.setActive(! static_cast<bool>(statusbar.presentationMode.getValue()));
             break;
         }
         case CommandIDs::ConnectionPathfind:
@@ -950,7 +961,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
     auto lastPosition = cnv->viewport->getViewArea().getConstrainedPoint(cnv->getMouseXYRelative() - Point<int>(Box::margin, Box::margin));
 
-    switch (info.commandID)
+    switch(info.commandID)
     {
         case CommandIDs::NewProject:
         {
@@ -1001,11 +1012,11 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::SelectAll:
         {
-            for (auto* box : cnv->boxes)
+            for(auto* box : cnv->boxes)
             {
                 cnv->setSelected(box, true);
             }
-            for (auto* con : cnv->connections)
+            for(auto* con : cnv->connections)
             {
                 cnv->setSelected(con, true);
             }
@@ -1013,7 +1024,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::ShowBrowser:
         {
-            sidebar.showBrowser(!sidebar.isShowingBrowser());
+            sidebar.showBrowser(! sidebar.isShowingBrowser());
             statusbar.browserButton->setToggleState(sidebar.isShowingBrowser(), dontSendNotification);
             return true;
         }
@@ -1026,9 +1037,9 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         {
             auto* cnv = getCurrentCanvas();
             statusbar.connectionStyleButton->setToggleState(true, sendNotification);
-            for (auto* con : cnv->connections)
+            for(auto* con : cnv->connections)
             {
-                if (cnv->isSelected(con))
+                if(cnv->isSelected(con))
                 {
                     con->findPath();
                     con->updatePath();
@@ -1067,7 +1078,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             Dialogs::showArrayDialog(this,
                                      [this](int result, const String& name, const String& size)
                                      {
-                                         if (result)
+                                         if(result)
                                          {
                                              auto* cnv = getCurrentCanvas();
                                              auto* box = new Box(cnv, "graph " + name + " " + size, cnv->viewport->getViewArea().getCentre());
@@ -1079,12 +1090,12 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
 
         default:
         {
-            const StringArray objectNames = {"", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu"};
+            const StringArray objectNames = { "", "comment", "bng", "msg", "tgl", "nbx", "vsl", "hsl", "vradio", "hradio", "floatatom", "symbolatom", "listbox", "array", "graph", "cnv", "keyboard", "vu" };
 
             jassert(objectNames.size() == CommandIDs::NumItems - CommandIDs::NewObject);
 
             int idx = static_cast<int>(info.commandID) - CommandIDs::NewObject;
-            if (isPositiveAndBelow(idx, objectNames.size()))
+            if(isPositiveAndBelow(idx, objectNames.size()))
             {
                 cnv->boxes.add(new Box(cnv, objectNames[idx], lastPosition));
                 return true;

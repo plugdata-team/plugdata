@@ -13,7 +13,7 @@ struct VUMeterObject final : public IEMObject
         int w = jlimit(30, maxSize, box->getWidth());
         int h = jlimit(80, maxSize, box->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight())
+        if(w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
         }
@@ -35,7 +35,7 @@ struct VUMeterObject final : public IEMObject
 
     void paint(Graphics& g) override
     {
-        auto values = std::vector<float>{getValue(), getRMS()};
+        auto values = std::vector<float> { getValue(), getRMS() };
 
         int height = getHeight();
         int width = getWidth();
@@ -57,16 +57,16 @@ struct VUMeterObject final : public IEMObject
 
         float rms = Decibels::decibelsToGain(values[1] - 12.0f);
 
-        float lvl = (float)std::exp(std::log(rms) / 3.0) * (rms > 0.002);
+        float lvl = (float) std::exp(std::log(rms) / 3.0) * (rms > 0.002);
         auto numBlocks = roundToInt(totalBlocks * lvl);
 
         auto verticalGradient = ColourGradient(c, 0, getHeight(), Colours::red, 0, 0, false);
         verticalGradient.addColour(0.5f, c);
         verticalGradient.addColour(0.75f, Colours::orange);
 
-        for (auto i = 0; i < totalBlocks; ++i)
+        for(auto i = 0; i < totalBlocks; ++i)
         {
-            if (i >= numBlocks)
+            if(i >= numBlocks)
                 g.setColour(Colours::darkgrey);
             else
                 g.setGradientFill(verticalGradient);
@@ -75,7 +75,7 @@ struct VUMeterObject final : public IEMObject
         }
 
         float peak = Decibels::decibelsToGain(values[0] - 12.0f);
-        float lvl2 = (float)std::exp(std::log(peak) / 3.0) * (peak > 0.002);
+        float lvl2 = (float) std::exp(std::log(peak) / 3.0) * (peak > 0.002);
         auto numBlocks2 = roundToInt(totalBlocks * lvl2);
 
         g.setColour(Colours::white);
@@ -85,13 +85,13 @@ struct VUMeterObject final : public IEMObject
         // Prevent going past -100 for size reasons
         String textValue = String(std::max(values[1], -96.0f), 2);
 
-        if (getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB"))
+        if(getWidth() > g.getCurrentFont().getStringWidth(textValue + " dB"))
         {
             // Check noscale flag, otherwise display next to slider
             g.setColour(Colours::white);
             g.drawFittedText(textValue + " dB", Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
         }
-        else if (getWidth() > g.getCurrentFont().getStringWidth(textValue))
+        else if(getWidth() > g.getCurrentFont().getStringWidth(textValue))
         {
             g.setColour(Colours::white);
             g.drawFittedText(textValue, Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
@@ -103,7 +103,7 @@ struct VUMeterObject final : public IEMObject
             g.drawFittedText(String(std::max(values[1], -96.0f), 0), Rectangle<int>(getLocalBounds().removeFromBottom(20)).reduced(2), Justification::centred, 1, 0.6f);
         }
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = box->findColour(cnv->isSelected(box) && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);

@@ -12,9 +12,9 @@ struct NumberObject final : public IEMObject
             auto* editor = input.getCurrentTextEditor();
             startEdition();
 
-            editor->setBorder({0, 10, 0, 0});
+            editor->setBorder({ 0, 10, 0, 0 });
 
-            if (editor != nullptr)
+            if(editor != nullptr)
             {
                 editor->setInputRestrictions(0, ".-0123456789");
             }
@@ -26,7 +26,7 @@ struct NumberObject final : public IEMObject
             stopEdition();
         };
 
-        input.setBorderSize({1, 15, 1, 1});
+        input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
 
@@ -41,11 +41,14 @@ struct NumberObject final : public IEMObject
 
         addMouseListener(this, true);
 
-        dragger.dragStart = [this]() { startEdition(); };
+        dragger.dragStart = [this]()
+        { startEdition(); };
 
-        dragger.valueChanged = [this](float value) { setValueOriginal(value); };
+        dragger.valueChanged = [this](float value)
+        { setValueOriginal(value); };
 
-        dragger.dragEnd = [this]() { stopEdition(); };
+        dragger.dragEnd = [this]()
+        { stopEdition(); };
     }
 
     void updateBounds() override
@@ -56,7 +59,7 @@ struct NumberObject final : public IEMObject
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         w = nbx->x_numwidth * glist_fontwidth(cnv->patch.getPointer());
 
-        box->setObjectBounds({x, y, w, h});
+        box->setObjectBounds({ x, y, w, h });
     }
 
     void checkBounds() override
@@ -64,7 +67,7 @@ struct NumberObject final : public IEMObject
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
         int height = jlimit(18, maxSize, getHeight());
-        if (getWidth() != width || getHeight() != height)
+        if(getWidth() != width || getHeight() != height)
         {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
         }
@@ -95,17 +98,17 @@ struct NumberObject final : public IEMObject
 
     ObjectParameters defineParameters() override
     {
-        return {{"Minimum", tFloat, cGeneral, &min, {}}, {"Maximum", tFloat, cGeneral, &max, {}}};
+        return { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min))
+        if(value.refersToSameSourceAs(min))
         {
             setMinimum(static_cast<float>(min.getValue()));
             updateValue();
         }
-        else if (value.refersToSameSourceAs(max))
+        else if(value.refersToSameSourceAs(max))
         {
             setMaximum(static_cast<float>(max.getValue()));
             updateValue();

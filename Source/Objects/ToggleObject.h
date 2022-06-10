@@ -21,7 +21,7 @@ struct ToggleObject final : public IEMObject
 
         auto crossBounds = getLocalBounds().reduced(6).toFloat();
 
-        if (getWidth() < 20)
+        if(getWidth() < 20)
         {
             crossBounds = crossBounds.expanded(20 - getWidth());
         }
@@ -29,8 +29,8 @@ struct ToggleObject final : public IEMObject
         const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
         const auto strokeWidth = std::max(max * 0.15f, 2.0f);
 
-        g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
-        g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
+        g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
+        g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);
     }
 
     void mouseDown(const MouseEvent& e) override
@@ -48,7 +48,7 @@ struct ToggleObject final : public IEMObject
     {
         // Fix aspect ratio and apply limits
         int size = jlimit(30, maxSize, box->getWidth());
-        if (size != box->getHeight() || size != box->getWidth())
+        if(size != box->getHeight() || size != box->getWidth())
         {
             box->setSize(size, size);
         }
@@ -57,13 +57,13 @@ struct ToggleObject final : public IEMObject
     ObjectParameters defineParameters() override
     {
         return {
-            {"Non-zero value", tInt, cGeneral, &nonZero, {}},
+            { "Non-zero value", tInt, cGeneral, &nonZero, {} },
         };
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(nonZero))
+        if(value.refersToSameSourceAs(nonZero))
         {
             float val = nonZero.getValue();
             max = val;

@@ -1,9 +1,9 @@
 
 extern "C"
 {
-#include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
+#include <m_pd.h>
 #include <s_stuff.h>
 }
 
@@ -14,10 +14,10 @@ extern "C"
 
 struct _canvasenvironment
 {
-    t_symbol* ce_dir;    /* directory patch lives in */
-    int ce_argc;         /* number of "$" arguments */
-    t_atom* ce_argv;     /* array of "$" arguments */
-    int ce_dollarzero;   /* value of "$0" */
+    t_symbol* ce_dir; /* directory patch lives in */
+    int ce_argc; /* number of "$" arguments */
+    t_atom* ce_argv; /* array of "$" arguments */
+    int ce_dollarzero; /* value of "$0" */
     t_namelist* ce_path; /* search path */
 };
 
@@ -28,14 +28,15 @@ namespace pd
 void Trie::insert(const String& key)
 {
     // Names with spaces not supported yet by the suggestor
-    if (key.containsChar(' ')) return;
+    if(key.containsChar(' '))
+        return;
 
     // start from the root node
     Trie* curr = this;
-    for (char i : key)
+    for(char i : key)
     {
         // create a new node if the path doesn't exist
-        if (curr->character[i] == nullptr)
+        if(curr->character[i] == nullptr)
         {
             curr->character[i] = new Trie();
         }
@@ -53,13 +54,13 @@ void Trie::insert(const String& key)
 bool Trie::search(const String& key)
 {
     Trie* curr = this;
-    for (char i : key)
+    for(char i : key)
     {
         // go to the next node
         curr = curr->character[i];
 
         // if the string is invalid (reached end of a path in the Trie)
-        if (curr == nullptr)
+        if(curr == nullptr)
         {
             return false;
         }
@@ -73,11 +74,11 @@ bool Trie::search(const String& key)
 // Returns true if a given node has any children
 bool Trie::hasChildren()
 {
-    for (auto & i : character)
+    for(auto& i : character)
     {
-        if (i)
+        if(i)
         {
-            return true;  // child found
+            return true; // child found
         }
     }
 
@@ -88,35 +89,35 @@ bool Trie::hasChildren()
 bool Trie::deletion(Trie*& curr, String key)
 {
     // return if Trie is empty
-    if (curr == nullptr)
+    if(curr == nullptr)
     {
         return false;
     }
 
     // if the end of the key is not reached
-    if (key.length())
+    if(key.length())
     {
         // recur for the node corresponding to the next character in the key
         // and if it returns true, delete the current node (if it is non-leaf)
 
-        if (curr != nullptr && curr->character[key[0]] != nullptr && deletion(curr->character[key[0]], key.substring(1)) && !curr->isLeaf)
+        if(curr != nullptr && curr->character[key[0]] != nullptr && deletion(curr->character[key[0]], key.substring(1)) && ! curr->isLeaf)
         {
-            if (!curr->hasChildren())
+            if(! curr->hasChildren())
             {
                 delete curr;
                 curr = nullptr;
                 return true;
             }
-    
+
             return false;
         }
     }
 
     // if the end of the key is reached
-    if (key.length() == 0 && curr->isLeaf)
+    if(key.length() == 0 && curr->isLeaf)
     {
         // if the current node is a leaf node and doesn't have any children
-        if (!curr->hasChildren())
+        if(! curr->hasChildren())
         {
             // delete the current node
             delete curr;
@@ -139,17 +140,18 @@ bool Trie::deletion(Trie*& curr, String key)
 void Trie::suggestionsRec(String currPrefix, Suggestions& result)
 {
     // found aString in Trie with the given prefix
-    if (isLeaf)
+    if(isLeaf)
     {
-        result.push_back({currPrefix, true});
+        result.push_back({ currPrefix, true });
     }
 
     // All children struct node pointers are NULL
-    if (!hasChildren()) return;
+    if(! hasChildren())
+        return;
 
-    for (int i = 0; i < CHAR_SIZE; i++)
+    for(int i = 0; i < CHAR_SIZE; i++)
     {
-        if (character[i])
+        if(character[i])
         {
             // append current character to currPrefixString
             //currPrefix += i;
@@ -175,12 +177,13 @@ int Trie::autocomplete(String query, Suggestions& result)
     // of givenString.
     int level;
     int n = query.length();
-    for (level = 0; level < n; level++)
+    for(level = 0; level < n; level++)
     {
         int index = CHAR_TO_INDEX(query[level]);
 
         // noString in the Trie has this prefix
-        if (!pCrawl->character[index]) return 0;
+        if(! pCrawl->character[index])
+            return 0;
 
         pCrawl = pCrawl->character[index];
     }
@@ -190,20 +193,20 @@ int Trie::autocomplete(String query, Suggestions& result)
 
     // If prefix is last node of tree (has no
     // children)
-    bool isLast = !pCrawl->hasChildren();
+    bool isLast = ! pCrawl->hasChildren();
 
     // If prefix is present as a word, but
     // there is no subtree below the last
     // matching node.
-    if (isWord && isLast)
+    if(isWord && isLast)
     {
-        result.push_back({query, true});
+        result.push_back({ query, true });
         return -1;
     }
 
     // If there are are nodes below last
     // matching character.
-    if (!isLast)
+    if(! isLast)
     {
         const String& prefix = query;
         pCrawl->suggestionsRec(prefix, result);
@@ -244,7 +247,7 @@ void Library::updateLibrary()
     mlist = o->c_methods;
 #endif
 
-    for (i = o->c_nmethod, m = mlist; i--; m++)
+    for(i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
         searchTree->insert(m->me_name->s_name);
@@ -252,15 +255,15 @@ void Library::updateLibrary()
 
     searchTree->insert("graph");
 
-    for (auto path : pathTree)
+    for(auto path : pathTree)
     {
         auto filePath = File(path.getProperty("Path").toString());
 
-        for (const auto& iter : RangedDirectoryIterator(filePath, true))
+        for(const auto& iter : RangedDirectoryIterator(filePath, true))
         {
             auto file = iter.getFile();
             // Get pd files but not help files
-            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help")))
+            if(file.getFileExtension() == ".pd" && ! (file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help")))
             {
                 searchTree->insert(file.getFileNameWithoutExtension().toStdString());
             }
@@ -276,25 +279,27 @@ void Library::parseDocumentation(const String& path)
     {
         Array<std::pair<String, int>> positions;
 
-        for (auto& section : sectionNames)
+        for(auto& section : sectionNames)
         {
-            positions.add({section, contents.indexOf(section + ':')});
+            positions.add({ section, contents.indexOf(section + ':') });
         }
 
-        std::sort(positions.begin(), positions.end(), [](const auto& lhs, const auto& rhs) { return lhs.second < rhs.second; });
+        std::sort(positions.begin(), positions.end(), [](const auto& lhs, const auto& rhs)
+                  { return lhs.second < rhs.second; });
 
         std::map<String, std::pair<String, int>> sections;
 
         int i = 0;
-        for (auto it = positions.begin(); it < positions.end(); it++)
+        for(auto it = positions.begin(); it < positions.end(); it++)
         {
             auto& [name, currentPosition] = *it;
-            if (currentPosition < 0) continue;  // section not found
+            if(currentPosition < 0)
+                continue; // section not found
 
             currentPosition += name.length();
 
             String sectionContent;
-            if (it == positions.end() - 1)
+            if(it == positions.end() - 1)
             {
                 sectionContent = contents.substring(currentPosition);
             }
@@ -303,7 +308,7 @@ void Library::parseDocumentation(const String& path)
                 sectionContent = contents.substring(currentPosition + 1, (*(it + 1)).second);
             }
 
-            sections[name.trim()] = {sectionContent.substring(1).trim().unquoted(), i};
+            sections[name.trim()] = { sectionContent.substring(1).trim().unquoted(), i };
             i++;
         }
 
@@ -314,13 +319,13 @@ void Library::parseDocumentation(const String& path)
     {
         text = text.trim();
         // Start sentences with uppercase
-        if (text.length() > 1 && (*text.toRawUTF8()) >= 'a' && (*text.toRawUTF8()) <= 'z')
+        if(text.length() > 1 && (*text.toRawUTF8()) >= 'a' && (*text.toRawUTF8()) <= 'z')
         {
             text = text.replaceSection(0, 1, text.substring(0, 1).toUpperCase());
         }
 
         // Don't end with a period
-        if (text.getLastCharacter() == '.')
+        if(text.getLastCharacter() == '.')
         {
             text = text.upToLastOccurrenceOf(".", false, false);
         }
@@ -331,74 +336,77 @@ void Library::parseDocumentation(const String& path)
     auto parseFile = [this, getSections, formatText](File& f)
     {
         String contents = f.loadFileAsString();
-        auto sections = getSections(contents, {"\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft"});
+        auto sections = getSections(contents, { "\ntitle", "\ndescription", "\npdcategory", "\ncategories", "\narguments", "\nlast_update", "\ninlets", "\noutlets", "\ndraft" });
 
-        if (!sections.count("title")) return;
+        if(! sections.count("title"))
+            return;
 
         String name = sections["title"].first;
 
-        if (sections.count("description"))
+        if(sections.count("description"))
         {
             objectDescriptions[name] = sections["description"].first;
         }
 
-        if (sections.count("arguments"))
+        if(sections.count("arguments"))
         {
             Arguments args;
 
-            for (auto& argument : StringArray::fromTokens(sections["arguments"].first.fromFirstOccurrenceOf("-", false, false), "-", "\""))
+            for(auto& argument : StringArray::fromTokens(sections["arguments"].first.fromFirstOccurrenceOf("-", false, false), "-", "\""))
             {
-                auto sectionMap = getSections(argument, {"type", "description", "default"});
-                args.push_back({sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first});
+                auto sectionMap = getSections(argument, { "type", "description", "default" });
+                args.push_back({ sectionMap["type"].first, sectionMap["description"].first, sectionMap["default"].first });
             }
 
             arguments[name] = args;
         }
 
-        auto numbers = {"1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth"};
-        if (sections.count("inlets"))
+        auto numbers = { "1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "nth" };
+        if(sections.count("inlets"))
         {
             auto section = getSections(sections["inlets"].first, numbers);
             inletDescriptions[name].resize(section.size());
-            for (auto [number, content] : section)
+            for(auto [number, content] : section)
             {
                 String tooltip;
-                for (auto& argument : StringArray::fromTokens(content.first, "-", "\""))
+                for(auto& argument : StringArray::fromTokens(content.first, "-", "\""))
                 {
-                    auto sectionMap = getSections(argument, {"type", "description"});
-                    if (sectionMap["type"].first.isEmpty()) continue;
+                    auto sectionMap = getSections(argument, { "type", "description" });
+                    if(sectionMap["type"].first.isEmpty())
+                        continue;
 
                     tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                 }
 
-                inletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};
+                inletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
             }
         }
-        if (sections.count("outlets"))
+        if(sections.count("outlets"))
         {
             auto section = getSections(sections["outlets"].first, numbers);
             outletDescriptions[name].resize(section.size());
-            for (auto [number, content] : section)
+            for(auto [number, content] : section)
             {
                 String tooltip;
 
-                for (auto& argument : StringArray::fromTokens(content.first, "-", "\""))
+                for(auto& argument : StringArray::fromTokens(content.first, "-", "\""))
                 {
-                    auto sectionMap = getSections(argument, {"type", "description"});
-                    if (sectionMap["type"].first.isEmpty()) continue;
+                    auto sectionMap = getSections(argument, { "type", "description" });
+                    if(sectionMap["type"].first.isEmpty())
+                        continue;
                     tooltip += "(" + sectionMap["type"].first + ") " + sectionMap["description"].first + "\n";
                 }
 
-                outletDescriptions[name].getReference(content.second) = {tooltip, number == "nth"};
+                outletDescriptions[name].getReference(content.second) = { tooltip, number == "nth" };
             }
         }
     };
 
-    for (auto& iter : RangedDirectoryIterator(path, true))
+    for(auto& iter : RangedDirectoryIterator(path, true))
     {
         auto file = iter.getFile();
 
-        if (file.hasFileExtension("md"))
+        if(file.hasFileExtension("md"))
         {
             parseFile(file);
         }
@@ -419,18 +427,18 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
 
     auto findInfo = [&name, &args, &total, &idx](IODescriptionMap& map)
     {
-        if (map.count(name))
+        if(map.count(name))
         {
             auto descriptions = map.at(name);
 
             // if the amount of inlets is not equal to the amount in the spec, look for repeating inlets
-            if (descriptions.size() < total)
+            if(descriptions.size() < total)
             {
-                for (int i = 0; i < descriptions.size(); i++)
+                for(int i = 0; i < descriptions.size(); i++)
                 {
-                    if (descriptions[i].second)
-                    {  // repeating inlet found
-                        for (int j = 0; j < total - descriptions.size(); j++)
+                    if(descriptions[i].second)
+                    { // repeating inlet found
+                        for(int j = 0; j < total - descriptions.size(); j++)
                         {
                             descriptions.insert(i, descriptions[i]);
                         }
@@ -458,7 +466,7 @@ void Library::changeCallback()
     updateLibrary();
 }
 
-}  // namespace pd
+} // namespace pd
 
 /* Code for generating library markdown files, not in usage but useful for later
 

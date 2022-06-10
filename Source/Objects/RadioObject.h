@@ -18,7 +18,7 @@ struct RadioObject final : public IEMObject
 
         int selected = getValueOriginal();
 
-        if (selected < radioButtons.size())
+        if(selected < radioButtons.size())
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
@@ -30,16 +30,16 @@ struct RadioObject final : public IEMObject
         int minSize = 12;
         size = std::max(size, minSize);
 
-        for (int i = 0; i < radioButtons.size(); i++)
+        for(int i = 0; i < radioButtons.size(); i++)
         {
-            if (isVertical)
+            if(isVertical)
                 radioButtons[i]->setBounds(0, i * size, size, size);
             else
                 radioButtons[i]->setBounds(i * size, 0, size, size);
         }
 
         // Fix aspect ratio
-        if (isVertical)
+        if(isVertical)
         {
             box->setSize(std::max(box->getWidth(), minSize + Box::doubleMargin), size * radioButtons.size() + Box::doubleMargin);
         }
@@ -48,7 +48,7 @@ struct RadioObject final : public IEMObject
             box->setSize(size * radioButtons.size() + Box::doubleMargin, std::max(box->getHeight(), minSize + Box::doubleMargin));
         }
 
-        if (isVertical)
+        if(isVertical)
         {
             auto* dial = static_cast<t_vdial*>(ptr);
 
@@ -72,7 +72,7 @@ struct RadioObject final : public IEMObject
     {
         int selected = getValueOriginal();
 
-        if (selected < radioButtons.size())
+        if(selected < radioButtons.size())
         {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }
@@ -84,15 +84,15 @@ struct RadioObject final : public IEMObject
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         Rectangle<int> bounds;
-        if (isVertical)
+        if(isVertical)
         {
             auto* dial = static_cast<t_vdial*>(ptr);
-            box->setObjectBounds({x, y, dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number});
+            box->setObjectBounds({ x, y, dial->x_gui.x_w, dial->x_gui.x_h * dial->x_number });
         }
         else
         {
             auto* dial = static_cast<t_hdial*>(ptr);
-            box->setObjectBounds({x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h});
+            box->setObjectBounds({ x, y, dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h });
         }
     }
 
@@ -100,7 +100,7 @@ struct RadioObject final : public IEMObject
     {
         radioButtons.clear();
 
-        for (int i = 0; i < max; i++)
+        for(int i = 0; i < max; i++)
         {
             radioButtons.add(new TextButton);
             radioButtons[i]->setConnectedEdges(12);
@@ -116,7 +116,8 @@ struct RadioObject final : public IEMObject
 
             radioButtons[i]->onClick = [this, i]() mutable
             {
-                if (!radioButtons[i]->getToggleState()) return;
+                if(! radioButtons[i]->getToggleState())
+                    return;
 
                 lastState = i;
 
@@ -129,7 +130,7 @@ struct RadioObject final : public IEMObject
         int idx = getValueOriginal();
         radioButtons[idx]->setToggleState(true, dontSendNotification);
 
-        if (getWidth() != 0 && getHeight() != 0)
+        if(getWidth() != 0 && getHeight() != 0)
         {
             resized();
         }
@@ -138,25 +139,25 @@ struct RadioObject final : public IEMObject
     void paintOverChildren(Graphics& g) override
     {
         bool skipped = false;
-        for (auto& button : radioButtons)
+        for(auto& button : radioButtons)
         {
-            if (!skipped)
+            if(! skipped)
             {
                 skipped = true;
                 continue;
             }
             g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-            if (isVertical)
+            if(isVertical)
             {
-                g.drawLine({button->getBounds().getTopLeft().toFloat(), button->getBounds().getTopRight().toFloat()}, 1.0f);
+                g.drawLine({ button->getBounds().getTopLeft().toFloat(), button->getBounds().getTopRight().toFloat() }, 1.0f);
             }
             else
             {
-                g.drawLine({button->getBounds().getTopLeft().toFloat(), button->getBounds().getBottomLeft().toFloat()}, 1.0f);
+                g.drawLine({ button->getBounds().getTopLeft().toFloat(), button->getBounds().getBottomLeft().toFloat() }, 1.0f);
             }
         }
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = box->findColour(cnv->isSelected(box) && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -166,12 +167,12 @@ struct RadioObject final : public IEMObject
 
     ObjectParameters defineParameters() override
     {
-        return {{"Options", tInt, cGeneral, &max, {}}};
+        return { { "Options", tInt, cGeneral, &max, {} } };
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(max))
+        if(value.refersToSameSourceAs(max))
         {
             setMaximum(static_cast<int>(max.getValue()));
             updateRange();
@@ -189,7 +190,7 @@ struct RadioObject final : public IEMObject
 
     void setMaximum(float value)
     {
-        if (isVertical)
+        if(isVertical)
         {
             static_cast<t_vdial*>(ptr)->x_number = value;
         }
