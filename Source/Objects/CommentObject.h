@@ -45,8 +45,6 @@ struct CommentObject final : public TextBase
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
-            if (auto* peer = getPeer()) peer->dismissPendingTextInput();
-
             outgoingEditor->setInputFilter(nullptr, false);
 
             auto newText = outgoingEditor->getText();
