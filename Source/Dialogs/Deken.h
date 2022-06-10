@@ -768,32 +768,22 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 
     static inline const StringArray machine =
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
-    { "amd64",
-      "x86_64" }
+        {"amd64", "x86_64"}
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)
-    { "i386",
-      "i686",
-      "i586" }
+        {"i386", "i686", "i586"}
 #elif defined(__ppc__)
-    { "ppc",
-      "PowerPC" }
+        {"ppc", "PowerPC"}
 #elif defined(__aarch64__)
-    { "arm64" }
+        {"arm64"}
 #elif __ARM_ARCH == 6 || defined(__ARM_ARCH_6__)
-    { "armv6",
-      "armv6l",
-      "arm" }
+    { "armv6", "armv6l", "arm" }
 #elif __ARM_ARCH == 7 || defined(__ARM_ARCH_7__)
-    { "armv7l",
-      "armv7",
-      "armv6l",
-      "armv6",
-      "arm" }
+        {"armv7l", "armv7", "armv6l", "armv6", "arm"}
 #else
 #if defined(__GNUC__)
 #warning unknown architecture
 #endif
-    {}
+        {}
 #endif
     ;
 };

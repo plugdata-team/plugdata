@@ -13,10 +13,10 @@
 
 #include "Standalone/PlugDataWindow.h"
 
-#include "ArrayDialog.h"
-#include "Canvas.h"
 #include "SaveDialog.h"
+#include "ArrayDialog.h"
 #include "SettingsDialog.h"
+#include "Canvas.h"
 
 void Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
 {

@@ -4,12 +4,12 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "PluginProcessor.h"
 #include <clocale>
+#include "PluginProcessor.h"
 
 #include "Canvas.h"
-#include "LookAndFeel.h"
 #include "PluginEditor.h"
+#include "LookAndFeel.h"
 
 extern "C"
 {
@@ -42,7 +42,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
       parameters(*this, nullptr)
 {
     std::setlocale(LC_ALL, "C");
-
+    
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
     // General purpose automation parameters you can get by using "receive param1" etc.
@@ -60,6 +60,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     // TODO: move to a better place!
     LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+
 
     // On first startup, initialise abstractions and settings
     initialiseFilesystem();
@@ -555,8 +556,8 @@ void PlugDataAudioProcessor::sendParameters()
 #else
     for (int n = 0; n < numParameters; n++)
     {
-        // if(parameterTimers[n].isTimerRunning()) continue;
-
+        //if(parameterTimers[n].isTimerRunning()) continue;
+        
         if (parameterValues[n]->load() != lastParameters[n])
         {
             lastParameters[n] = parameterValues[n]->load();
@@ -1041,8 +1042,8 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
         callbackType = type;
     }
 
-    if (!isTimerRunning())
-    {
+    if(!isTimerRunning()) {
+
         startTimer(16);
     }
 }
@@ -1056,11 +1057,11 @@ void PlugDataAudioProcessor::timerCallback()
 
         if (callbackType == 1 || callbackType == 3)
         {
-            editor->updateValues();
+             editor->updateValues();
         }
-        if (callbackType >= 2)
+        if(callbackType >= 2)
         {
-            editor->updateDrawables();
+             editor->updateDrawables();
         }
 
         callbackType = 0;

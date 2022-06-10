@@ -22,7 +22,7 @@ struct AutomationComponent : public Component
 
             String name = "param" + String(p + 1);
             label->setText(name, dontSendNotification);
-            // label->attachToComponent(slider, true);
+            //label->attachToComponent(slider, true);
 
             slider->setScrollWheelEnabled(false);
             slider->setTextBoxStyle(Slider::TextBoxRight, false, 45, 13);
@@ -80,9 +80,10 @@ struct AutomationComponent : public Component
     {
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
+            
             auto rect = Rectangle<int>(0, sliders[p]->getY(), getWidth(), sliders[p]->getHeight());
-            if (!g.clipRegionIntersects(rect)) continue;
-
+            if(!g.clipRegionIntersects(rect)) continue;
+                
             sliders[p]->setColour(Slider::backgroundColourId, findColour(p & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
             sliders[p]->setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
 
@@ -107,9 +108,9 @@ struct AutomationComponent : public Component
         }
 
         fb.performLayout(getLocalBounds().withTrimmedLeft(55).withTrimmedRight(40).toFloat());
-
+        
         fb.items.clear();
-
+        
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
             auto item = FlexItem(*labels[p]).withMinHeight(19.0f).withMaxHeight(27);
@@ -117,7 +118,7 @@ struct AutomationComponent : public Component
             item.flexShrink = 1.0f;
             fb.items.add(item);
         }
-
+        
         fb.performLayout(getLocalBounds().removeFromLeft(55));
 
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
@@ -146,7 +147,7 @@ struct AutomationPanel : public Component, public ScrollBar::Listener
 
         setWantsKeyboardFocus(false);
         viewport.setWantsKeyboardFocus(false);
-
+        
         addAndMakeVisible(viewport);
     }
 

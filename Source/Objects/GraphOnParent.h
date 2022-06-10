@@ -150,9 +150,9 @@ struct GraphOnParent final : public GUIObject
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
-
-        if (!static_cast<bool>(hideNameAndArgs.getValue()))
-        {
+        
+        
+        if(!static_cast<bool>(hideNameAndArgs.getValue())) {
             g.setColour(box->findColour(PlugDataColour::textColourId));
             g.setFont(Font(15));
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);

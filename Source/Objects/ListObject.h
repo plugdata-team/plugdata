@@ -128,7 +128,7 @@ struct ListObject final : public AtomObject
         }
     }
 
-    std::vector<pd::Atom> getList() const
+    std::vector<pd::Atom> getList() const 
     {
         std::vector<pd::Atom> array;
         cnv->pd->setThis();
@@ -154,7 +154,7 @@ struct ListObject final : public AtomObject
         return array;
     }
 
-    void setList(std::vector<pd::Atom> const& value)
+    void setList(std::vector<pd::Atom> const& value) 
     {
         cnv->pd->enqueueDirectMessages(ptr, value);
     }

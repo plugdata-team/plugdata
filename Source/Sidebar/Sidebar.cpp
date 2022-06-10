@@ -4,16 +4,16 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include "LookAndFeel.h"
-#include "Pd/PdInstance.h"
-#include "PluginProcessor.h"
 #include <JuceHeader.h>
+#include "Pd/PdInstance.h"
+#include "LookAndFeel.h"
+#include "PluginProcessor.h"
 
-#include "AutomationPanel.h"
-#include "Console.h"
-#include "DocumentBrowser.h"
-#include "Inspector.h"
 #include "Sidebar.h"
+#include "Console.h"
+#include "Inspector.h"
+#include "DocumentBrowser.h"
+#include "AutomationPanel.h"
 
 Sidebar::Sidebar(PlugDataAudioProcessor* instance) : pd(instance)
 {
@@ -28,8 +28,9 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance) : pd(instance)
 
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
-
-    // setBounds(editor->getWidth() - lastWidth, 40, lastWidth, editor->getHeight() - 40);
+    
+    
+    //setBounds(editor->getWidth() - lastWidth, 40, lastWidth, editor->getHeight() - 40);
 }
 
 Sidebar::~Sidebar()
@@ -234,7 +235,7 @@ void Sidebar::hideParameters()
     console->deselect();
 }
 
-bool Sidebar::isShowingConsole() const
+bool Sidebar::isShowingConsole() const 
 {
     return console->isVisible();
 }

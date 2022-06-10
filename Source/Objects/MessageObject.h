@@ -90,10 +90,10 @@ struct MessageObject final : public GUIObject
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
         int newWidth = getWidth() / fontWidth;
-
+        
         static_cast<t_text*>(ptr)->te_width = newWidth;
         newWidth = std::max((newWidth * fontWidth), 35) + Box::doubleMargin;
-
+        
         if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth()))
         {
             box->setSize(newWidth, newHeight);
@@ -186,7 +186,7 @@ struct MessageObject final : public GUIObject
         }
     }
 
-    void click()
+    void click() 
     {
         cnv->pd->enqueueDirectMessages(ptr, 0);
     }
@@ -210,7 +210,7 @@ struct MessageObject final : public GUIObject
         GUIObject::valueChanged(v);
     }
 
-    String getSymbol() const
+    String getSymbol() const 
     {
         cnv->pd->setThis();
 
@@ -225,7 +225,7 @@ struct MessageObject final : public GUIObject
         return result;
     }
 
-    void setSymbol(String const& value)
+    void setSymbol(String const& value) 
     {
         cnv->pd->enqueueFunction(
             [this, value]() mutable

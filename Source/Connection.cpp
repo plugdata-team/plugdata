@@ -11,6 +11,7 @@
 
 Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(parent), outlet(s->isInlet ? e : s), inlet(s->isInlet ? s : e), outbox(outlet->box), inbox(inlet->box)
 {
+    
     locked.referTo(parent->locked);
 
     // Make sure it's not 2x the same edge

@@ -10,13 +10,13 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Edge.h"
-#include "LookAndFeel.h"
 #include "PluginEditor.h"
+#include "LookAndFeel.h"
 
 extern "C"
 {
-#include <m_imp.h>
 #include <m_pd.h>
+#include <m_imp.h>
 }
 
 Box::Box(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
@@ -49,7 +49,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
     {
         createEditorOnMouseDown = true;
     }
-    else if (!gui)
+    else if(!gui)
     {
         showEditor();
     }
@@ -475,7 +475,8 @@ void Box::mouseDown(const MouseEvent& e)
     if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
 
     bool isSelected = cnv->isSelected(this);
-
+    
+    
     for (auto& rect : getCorners())
     {
         if (rect.contains(e.position) && isSelected)
@@ -483,8 +484,7 @@ void Box::mouseDown(const MouseEvent& e)
             // Start resize
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
 
-            if (resizeZone != ResizableBorderComponent::Zone(0))
-            {
+            if(resizeZone != ResizableBorderComponent::Zone(0)) {
                 originalBounds = getBounds();
                 return;
             }
@@ -533,7 +533,11 @@ void Box::mouseUp(const MouseEvent& e)
                 // To make sure it happens after setting object bounds
                 if (!cnv->viewport->getViewArea().contains(getBounds()))
                 {
-                    MessageManager::callAsync([this]() { cnv->checkBounds(); });
+                    MessageManager::callAsync(
+                        [this]()
+                        {
+                            cnv->checkBounds();
+                        });
                 }
             });
     }
@@ -731,7 +735,7 @@ void Box::openHelpPatch() const
                 return {pdPatch, cnv->pd, file.getChildFile(secondName)};
             }
         }
-
+        
         return {nullptr, nullptr};
     };
 

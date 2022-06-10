@@ -19,10 +19,10 @@
    DISCLAIMED.
 */
 
+#include <JuceHeader.h>
+#include "PlugDataWindow.h"
 #include "../Canvas.h"
 #include "../PluginProcessor.h"
-#include "PlugDataWindow.h"
-#include <JuceHeader.h>
 
 extern "C"
 {
@@ -31,8 +31,8 @@ extern "C"
 
 #ifdef _WIN32
 #include <io.h>
-#include <winbase.h>
 #include <windows.h>
+#include <winbase.h>
 #endif
 #ifdef _MSC_VER /* This is only for Microsoft's compiler, not cygwin, e.g. */
 #define snprintf _snprintf

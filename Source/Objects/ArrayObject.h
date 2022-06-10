@@ -25,19 +25,19 @@ class PdArray
     PdArray() = default;
 
     // Gets the name of the array.
-    String getName() const
+    String getName() const 
     {
         return name;
     }
 
-    PdArray::DrawType getDrawType() const
+    PdArray::DrawType getDrawType() const 
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         return static_cast<DrawType>(libpd_array_get_style(name.toRawUTF8()));
     }
 
     // Gets the scale of the array.
-    std::array<float, 2> getScale() const
+    std::array<float, 2> getScale() const 
     {
         float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
@@ -45,7 +45,7 @@ class PdArray
         return {min, max};
     }
 
-    void setScale(std::array<float, 2> scale)
+    void setScale(std::array<float, 2> scale) 
     {
         auto& [min, max] = scale;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
@@ -282,7 +282,7 @@ struct GraphicalArray : public Component
         }
     }
 
-    size_t getArraySize() const
+    size_t getArraySize() const 
     {
         return vec.size();
     }
@@ -380,7 +380,11 @@ struct ArrayObject final : public GUIObject
     ObjectParameters defineParameters() override
     {
         return {
-            {"Name", tString, cGeneral, &name, {}}, {"Size", tInt, cGeneral, &size, {}}, {"Draw Mode", tCombo, cGeneral, &drawMode, {"Points", "Polygon", "Bezier Curve"}}, {"Y Range", tRange, cGeneral, &range, {}}, {"Save Contents", tBool, cGeneral, &saveContents, {"No", "Yes"}},
+            {"Name", tString, cGeneral, &name, {}},
+            {"Size", tInt, cGeneral, &size, {}},
+            {"Draw Mode", tCombo, cGeneral, &drawMode, {"Points", "Polygon", "Bezier Curve"}},
+            {"Y Range", tRange, cGeneral, &range, {}},
+            {"Save Contents", tBool, cGeneral, &saveContents, {"No", "Yes"}},
         };
     }
 
@@ -404,17 +408,15 @@ struct ArrayObject final : public GUIObject
         auto arrName = name.getValue().toString();
         auto arrSize = static_cast<int>(size.getValue());
         auto arrDrawMode = static_cast<int>(drawMode.getValue()) - 1;
-
+        
         // This flag is swapped for some reason
-        if (arrDrawMode == 0)
-        {
+        if(arrDrawMode == 0){
             arrDrawMode = 1;
         }
-        else if (arrDrawMode == 1)
-        {
+        else if(arrDrawMode == 1){
             arrDrawMode = 0;
         }
-
+        
         auto arrSaveContents = static_cast<bool>(saveContents.getValue());
 
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
@@ -468,7 +470,7 @@ struct ArrayObject final : public GUIObject
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
-    PdArray getArray() const
+    PdArray getArray() const 
     {
         return {libpd_array_get_name(static_cast<t_canvas*>(ptr)->gl_list), cnv->pd->m_instance};
     }

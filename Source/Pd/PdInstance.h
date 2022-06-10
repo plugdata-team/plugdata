@@ -47,31 +47,31 @@ class Atom
     }
 
     // Check if the atom is a float.
-    inline bool isFloat() const
+    inline bool isFloat() const 
     {
         return type == FLOAT;
     }
 
     // Check if the atom is a string.
-    inline bool isSymbol() const
+    inline bool isSymbol() const 
     {
         return type == SYMBOL;
     }
 
     // Get the float value.
-    inline float getFloat() const
+    inline float getFloat() const 
     {
         return value;
     }
 
     // Get the string.
-    inline String const& getSymbol() const
+    inline String const& getSymbol() const 
     {
         return symbol;
     }
 
     // Compare two atoms.
-    inline bool operator==(Atom const& other) const
+    inline bool operator==(Atom const& other) const 
     {
         if (type == SYMBOL)
         {
@@ -139,7 +139,7 @@ class Instance
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
-    int getBlockSize() const;
+    int getBlockSize() const ;
 
     void sendNoteOn(const int channel, const int pitch, const int velocity) const;
     void sendControlChange(const int channel, const int controller, const int value) const;

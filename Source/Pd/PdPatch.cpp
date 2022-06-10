@@ -6,15 +6,15 @@
 
 #include "PdPatch.h"
 
-#include "../Objects/GUIObject.h"
 #include "PdInstance.h"
 #include "PdStorage.h"
+#include "../Objects/GUIObject.h"
 
 extern "C"
 {
+#include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
-#include <m_pd.h>
 
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
@@ -65,16 +65,14 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(pat
 {
     if (auto* cnv = getPointer())
     {
-        parentInstance->enqueueFunction(
-            [this]()
-            {
-                setCurrent();
-                setZoom(1);
-            });
+        parentInstance->enqueueFunction([this](){
+            setCurrent();
+            setZoom(1);
+        });
     }
 }
 
-Rectangle<int> Patch::getBounds() const
+Rectangle<int> Patch::getBounds() const 
 {
     if (ptr)
     {
@@ -196,7 +194,7 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<void*> Patch::getObjects(bool onlyGui)
+std::vector<void*> Patch::getObjects(bool onlyGui) 
 {
     if (ptr)
     {
@@ -406,15 +404,13 @@ void* Patch::renameObject(void* obj, const String& name)
         newName += " " + preset;
     }
 
-    instance->enqueueFunction(
-        [this, obj, newName]() mutable
-        {
-            setCurrent();
-            libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
-
-            // make sure that creating a graph doesn't leave it as the current patch
-            setCurrent();
-        });
+    instance->enqueueFunction([this, obj, newName]() mutable {
+        setCurrent();
+        libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
+        
+        // make sure that creating a graph doesn't leave it as the current patch
+        setCurrent();
+    });
 
     instance->waitForStateUpdate();
 
@@ -637,7 +633,7 @@ void Patch::setZoom(int newZoom)
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
-t_object* Patch::checkObject(void* obj)
+t_object* Patch::checkObject(void* obj) 
 {
     return pd_checkobject(static_cast<t_pd*>(obj));
 }
