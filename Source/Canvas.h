@@ -20,7 +20,7 @@ class Edge;
 class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
 {
-public:
+   public:
     Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;
@@ -82,9 +82,9 @@ public:
     {
         Array<T*> result;
 
-        for(auto* obj : selectedComponents)
+        for (auto* obj : selectedComponents)
         {
-            if(auto* objOfType = dynamic_cast<T*>(obj))
+            if (auto* objOfType = dynamic_cast<T*>(obj))
             {
                 result.add(objOfType);
             }
@@ -113,14 +113,14 @@ public:
 
     bool isGraph = false;
     bool hasParentCanvas = false;
-    bool updatingBounds = false; // used by connection
+    bool updatingBounds = false;  // used by connection
 
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
 
     ObjectGrid grid = ObjectGrid(this);
 
-    Point<int> canvasOrigin = { 0, 0 };
+    Point<int> canvasOrigin = {0, 0};
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
@@ -129,7 +129,7 @@ public:
 
     bool attachNextObjectToMouse = false;
 
-private:
+   private:
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<Component*> lasso;
@@ -138,14 +138,14 @@ private:
     // Multi-dragger variables
     const int minimumMovementToStartDrag = 10;
 
-    bool didStartDragging { false };
+    bool didStartDragging{false};
 
     SelectedItemSet<Component*> selectedComponents;
 
-    Box* componentBeingDragged { nullptr };
+    Box* componentBeingDragged{nullptr};
 
     // Properties that can be shown in the inspector by right-clicking on canvas
-    ObjectParameters parameters = { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
+    ObjectParameters parameters = {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Canvas)
 };

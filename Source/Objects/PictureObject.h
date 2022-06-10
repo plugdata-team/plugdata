@@ -43,10 +43,10 @@ struct PictureObject final : public GUIObject
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
-        if(pic && pic->x_filename)
+        if (pic && pic->x_filename)
         {
             auto filePath = String(pic->x_filename->s_name);
-            if(File(filePath).existsAsFile())
+            if (File(filePath).existsAsFile())
             {
                 path = filePath;
             }
@@ -57,12 +57,12 @@ struct PictureObject final : public GUIObject
 
     ObjectParameters defineParameters() override
     {
-        return { { "File", tString, cGeneral, &path, {} } };
+        return {{"File", tString, cGeneral, &path, {}}};
     };
 
     void paint(Graphics& g) override
     {
-        if(imageFile.existsAsFile())
+        if (imageFile.existsAsFile())
         {
             g.drawImageAt(img, 0, 0);
         }
@@ -73,7 +73,7 @@ struct PictureObject final : public GUIObject
             g.drawText("?", getLocalBounds(), Justification::centred);
         }
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -81,7 +81,7 @@ struct PictureObject final : public GUIObject
 
     void valueChanged(Value& value) override
     {
-        if(value.refersToSameSourceAs(path))
+        if (value.refersToSameSourceAs(path))
         {
             openFile(path.toString());
         }
@@ -102,18 +102,18 @@ struct PictureObject final : public GUIObject
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        box->setObjectBounds({ x, y, w, h });
+        box->setObjectBounds({x, y, w, h});
     }
 
     void checkBounds() override
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
-        if(! imageFile.existsAsFile())
+        if (!imageFile.existsAsFile())
         {
             box->setSize(50, 50);
         }
-        else if(pic->x_height != img.getHeight() || pic->x_width != img.getWidth())
+        else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth())
         {
             box->setSize(img.getWidth(), img.getHeight());
         }
@@ -127,7 +127,7 @@ struct PictureObject final : public GUIObject
 
         auto searchPath = File(String(canvas_getdir(cnv->patch.getPointer())->s_name));
 
-        if(searchPath.getChildFile(pathString).existsAsFile())
+        if (searchPath.getChildFile(pathString).existsAsFile())
         {
             imageFile = searchPath.getChildFile(pathString);
         }
@@ -156,7 +156,7 @@ struct PictureObject final : public GUIObject
         static char fname[MAXPDSTRING];
         char* bufptr;
         int fd = open_via_path(canvas_getdir(glist_getcanvas(x->x_glist))->s_name, filename, "", fname, &bufptr, MAXPDSTRING, 1);
-        if(fd > 0)
+        if (fd > 0)
         {
             fname[strlen(fname)] = '/';
             sys_close(fd);

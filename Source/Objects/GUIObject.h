@@ -32,8 +32,8 @@ struct ObjectBase : public Component
 
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
-    virtual void showEditor() {};
-    virtual void hideEditor() {};
+    virtual void showEditor(){};
+    virtual void hideEditor(){};
 
     // Called whenever any GUI object's value changes
     virtual void updateValue() = 0;
@@ -45,7 +45,7 @@ struct ObjectBase : public Component
     virtual void applyBounds() = 0;
 
     // Called whenever a drawable changes
-    virtual void updateDrawables() {};
+    virtual void updateDrawables(){};
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()
@@ -53,7 +53,7 @@ struct ObjectBase : public Component
         return false;
     }
 
-    virtual void setText(const String&) {};
+    virtual void setText(const String&){};
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -93,9 +93,9 @@ struct NonPatchable : public ObjectBase
     NonPatchable(void* obj, Box* parent);
     ~NonPatchable();
 
-    virtual void updateValue() {};
-    virtual void updateBounds() {};
-    virtual void applyBounds() {};
+    virtual void updateValue(){};
+    virtual void updateBounds(){};
+    virtual void applyBounds(){};
 };
 
 struct GUIObject : public ObjectBase, public ComponentListener, public Value::Listener
@@ -106,7 +106,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     void updateValue() override;
 
-    virtual void update() {};
+    virtual void update(){};
 
     virtual void initialise();
 
@@ -116,13 +116,13 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     static ObjectBase* createGui(void* ptr, Box* parent);
 
-    virtual void checkBounds() {};
+    virtual void checkBounds(){};
 
     // Get rid of this mess!!
     virtual ObjectParameters defineParameters();
     ObjectParameters getParameters() override;
 
-    virtual void updateLabel() {};
+    virtual void updateLabel(){};
 
     virtual float getValue()
     {
@@ -144,7 +144,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
 
-    void valueChanged(Value& value) override {};
+    void valueChanged(Value& value) override{};
 
     Label* getLabel() override
     {
@@ -153,7 +153,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     void setValue(float value);
 
-protected:
+   protected:
     std::unique_ptr<Label> label;
 
     bool inspectorWasVisible = false;

@@ -34,7 +34,7 @@ struct MessageObject final : public GUIObject
             stopEdition();
 
             auto width = Font(15).getStringWidth(input.getText()) + 35;
-            if(width < box->getWidth())
+            if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
                 checkBounds();
@@ -52,7 +52,7 @@ struct MessageObject final : public GUIObject
             {
                 auto width = input.getFont().getStringWidth(editor->getText()) + 35;
 
-                if(width > box->getWidth())
+                if (width > box->getWidth())
                 {
                     box->setSize(width, box->getHeight());
                 }
@@ -76,12 +76,12 @@ struct MessageObject final : public GUIObject
 
         int width = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
 
-        if(textObj->te_width == 0)
+        if (textObj->te_width == 0)
         {
             width = Font(15).getStringWidth(getText()) + 19;
         }
 
-        box->setObjectBounds({ x, y, width, h });
+        box->setObjectBounds({x, y, width, h});
     }
 
     void checkBounds() override
@@ -94,7 +94,7 @@ struct MessageObject final : public GUIObject
         static_cast<t_text*>(ptr)->te_width = newWidth;
         newWidth = std::max((newWidth * fontWidth), 35) + Box::doubleMargin;
 
-        if(getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth()))
+        if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth()))
         {
             box->setSize(newWidth, newHeight);
         }
@@ -123,7 +123,7 @@ struct MessageObject final : public GUIObject
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        if(auto* editor = input.getCurrentTextEditor())
+        if (auto* editor = input.getCurrentTextEditor())
         {
             editor->setBounds(getLocalBounds());
         }
@@ -146,7 +146,7 @@ struct MessageObject final : public GUIObject
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.fillPath(flagPath);
 
-        if(isDown)
+        if (isDown)
         {
             g.drawRoundedRectangle(b.reduced(1).toFloat(), 2.0f, 3.0f);
         }
@@ -154,11 +154,11 @@ struct MessageObject final : public GUIObject
 
     void updateValue() override
     {
-        if(! edited)
+        if (!edited)
         {
             String v = getSymbol();
 
-            if(lastMessage != v && ! v.startsWith("click"))
+            if (lastMessage != v && !v.startsWith("click"))
             {
                 lastMessage = v;
 
@@ -171,7 +171,7 @@ struct MessageObject final : public GUIObject
     void mouseDown(const MouseEvent& e) override
     {
         GUIObject::mouseDown(e);
-        if(isLocked)
+        if (isLocked)
         {
             isDown = true;
             repaint();
@@ -180,7 +180,7 @@ struct MessageObject final : public GUIObject
             click();
             stopEdition();
         }
-        if(cnv->isSelected(box) && ! box->selectionChanged)
+        if (cnv->isSelected(box) && !box->selectionChanged)
         {
             shouldOpenEditor = true;
         }
@@ -196,7 +196,7 @@ struct MessageObject final : public GUIObject
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if(! isLocked && shouldOpenEditor && ! e.mouseWasDraggedSinceMouseDown())
+        if (!isLocked && shouldOpenEditor && !e.mouseWasDraggedSinceMouseDown())
         {
             input.showEditor();
             shouldOpenEditor = false;

@@ -25,7 +25,7 @@ namespace pd
 
 class Atom
 {
-public:
+   public:
     // The default constructor.
     inline Atom() : type(FLOAT), value(0), symbol()
     {
@@ -73,7 +73,7 @@ public:
     // Compare two atoms.
     inline bool operator==(Atom const& other) const
     {
-        if(type == SYMBOL)
+        if (type == SYMBOL)
         {
             return other.type == SYMBOL && symbol == other.symbol;
         }
@@ -83,7 +83,7 @@ public:
         }
     }
 
-private:
+   private:
     enum Type
     {
         FLOAT,
@@ -130,7 +130,7 @@ class Instance
         int midi3;
     } midievent;
 
-public:
+   public:
     Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
@@ -173,8 +173,8 @@ public:
     {
     }
 
-    virtual void receiveGuiUpdate(int type) {};
-    virtual void synchroniseCanvas(void* cnv) {};
+    virtual void receiveGuiUpdate(int type){};
+    virtual void synchroniseCanvas(void* cnv){};
 
     virtual void createPanel(int type, const char* snd, const char* location);
 
@@ -184,7 +184,7 @@ public:
     void sendList(const char* receiver, const std::vector<pd::Atom>& list) const;
     void sendMessage(const char* receiver, const char* msg, const std::vector<pd::Atom>& list) const;
 
-    virtual void receivePrint(const String& message) {};
+    virtual void receivePrint(const String& message){};
 
     virtual void receiveBang(const String& dest)
     {
@@ -205,11 +205,11 @@ public:
     {
     }
 
-    virtual void receiveDSPState(bool dsp) {};
+    virtual void receiveDSPState(bool dsp){};
 
-    virtual void updateConsole() {};
+    virtual void updateConsole(){};
 
-    virtual void titleChanged() {};
+    virtual void titleChanged(){};
 
     void enqueueFunction(const std::function<void(void)>& fn);
     void enqueueFunctionAsync(const std::function<void(void)>& fn);
@@ -223,7 +223,7 @@ public:
     void logMessage(const String& message);
     void logError(const String& error);
 
-    virtual void messageEnqueued() {};
+    virtual void messageEnqueued(){};
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
@@ -263,7 +263,7 @@ public:
     std::deque<std::tuple<String, int, int>> consoleMessages;
     std::deque<std::tuple<String, int, int>> consoleHistory;
 
-private:
+   private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
@@ -273,4 +273,4 @@ private:
 
     struct internal;
 };
-} // namespace pd
+}  // namespace pd
