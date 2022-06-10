@@ -6,15 +6,15 @@
 
 #include "PdPatch.h"
 
+#include "../Objects/GUIObject.h"
 #include "PdInstance.h"
 #include "PdStorage.h"
-#include "../Objects/GUIObject.h"
 
 extern "C"
 {
-#include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
+#include <m_pd.h>
 
 #include "g_undo.h"
 #include "x_libpd_extra_utils.h"
@@ -25,9 +25,9 @@ extern "C"
         t_binbuf* copy_binbuf;
         char* canvas_textcopybuf;
         int canvas_textcopybufsize;
-        t_undofn canvas_undo_fn;      /* current undo function if any */
-        int canvas_undo_whatnext;     /* whether we can now UNDO or REDO */
-        void* canvas_undo_buf;        /* data private to the undo function */
+        t_undofn canvas_undo_fn; /* current undo function if any */
+        int canvas_undo_whatnext; /* whether we can now UNDO or REDO */
+        void* canvas_undo_buf; /* data private to the undo function */
         t_canvas* canvas_undo_canvas; /* which canvas we can undo on */
         const char* canvas_undo_name;
         int canvas_undo_already_set_move;
@@ -45,12 +45,14 @@ extern "C"
 
     static void canvas_bind(t_canvas* x)
     {
-        if (strcmp(x->gl_name->s_name, "Pd")) pd_bind(&x->gl_pd, canvas_makebindsym(x->gl_name));
+        if(strcmp(x->gl_name->s_name, "Pd"))
+            pd_bind(&x->gl_pd, canvas_makebindsym(x->gl_name));
     }
 
     static void canvas_unbind(t_canvas* x)
     {
-        if (strcmp(x->gl_name->s_name, "Pd")) pd_unbind(&x->gl_pd, canvas_makebindsym(x->gl_name));
+        if(strcmp(x->gl_name->s_name, "Pd"))
+            pd_unbind(&x->gl_pd, canvas_makebindsym(x->gl_name));
     }
 
     void canvas_map(t_canvas* x, t_floatarg f);
@@ -63,30 +65,30 @@ namespace pd
 
 Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(patchPtr), instance(parentInstance), currentFile(patchFile)
 {
-    if (auto* cnv = getPointer())
+    if(auto* cnv = getPointer())
     {
-        parentInstance->enqueueFunction([this](){
+        parentInstance->enqueueFunction([this]()
+                                        {
             setCurrent();
-            setZoom(1);
-        });
+            setZoom(1); });
     }
 }
 
-Rectangle<int> Patch::getBounds() const 
+Rectangle<int> Patch::getBounds() const
 {
-    if (ptr)
+    if(ptr)
     {
         t_canvas* cnv = getPointer();
 
-        if (cnv->gl_isgraph)
+        if(cnv->gl_isgraph)
         {
             cnv->gl_pixwidth = std::max(50, cnv->gl_pixwidth);
             cnv->gl_pixheight = std::max(50, cnv->gl_pixheight);
 
-            return {cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight};
+            return { cnv->gl_xmargin, cnv->gl_ymargin, cnv->gl_pixwidth, cnv->gl_pixheight };
         }
     }
-    return {0, 0, 0, 0};
+    return { 0, 0, 0, 0 };
 }
 
 void Patch::close()
@@ -131,15 +133,17 @@ void Patch::savePatch()
 
 void Patch::setCurrent(bool lock)
 {
-    instance->setThis();  // important for canvas_getcurrent
+    instance->setThis(); // important for canvas_getcurrent
 
-    if (!ptr) return;
+    if(! ptr)
+        return;
 
-    if (lock) instance->getCallbackLock()->enter();
+    if(lock)
+        instance->getCallbackLock()->enter();
 
     auto* cnv = canvas_getcurrent();
 
-    if (cnv)
+    if(cnv)
     {
         canvas_unsetcurrent(cnv);
     }
@@ -150,9 +154,10 @@ void Patch::setCurrent(bool lock)
 
     t_atom argv[1];
     SETFLOAT(argv, 1);
-    pd_typedmess((t_pd*)getPointer(), gensym("pop"), 1, argv);
+    pd_typedmess((t_pd*) getPointer(), gensym("pop"), 1, argv);
 
-    if (lock) instance->getCallbackLock()->exit();
+    if(lock)
+        instance->getCallbackLock()->exit();
 }
 
 int Patch::getIndex(void* obj)
@@ -160,11 +165,12 @@ int Patch::getIndex(void* obj)
     int i = 0;
     auto* cnv = getPointer();
 
-    for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
+    for(t_gobj* y = cnv->gl_list; y; y = y->g_next)
     {
-        if (Storage::isInfoParent(y)) continue;
+        if(Storage::isInfoParent(y))
+            continue;
 
-        if (obj == y)
+        if(obj == y)
         {
             return i;
         }
@@ -186,26 +192,27 @@ Connections Patch::getConnections() const
     // Get connections from pd
     linetraverser_start(&t, x);
 
-    while ((oc = linetraverser_next(&t)))
+    while((oc = linetraverser_next(&t)))
     {
-        connections.push_back({t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2});
+        connections.push_back({ t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2 });
     }
 
     return connections;
 }
 
-std::vector<void*> Patch::getObjects(bool onlyGui) 
+std::vector<void*> Patch::getObjects(bool onlyGui)
 {
-    if (ptr)
+    if(ptr)
     {
         std::vector<void*> objects;
         t_canvas const* cnv = getPointer();
 
-        for (t_gobj* y = cnv->gl_list; y; y = y->g_next)
+        for(t_gobj* y = cnv->gl_list; y; y = y->g_next)
         {
-            if (Storage::isInfoParent(y)) continue;
+            if(Storage::isInfoParent(y))
+                continue;
 
-            if ((onlyGui && y->g_pd->c_gobj) || !onlyGui)
+            if((onlyGui && y->g_pd->c_gobj) || ! onlyGui)
             {
                 objects.push_back(static_cast<void*>(y));
             }
@@ -229,7 +236,7 @@ void* Patch::createGraphOnParent(int x, int y)
             done = true;
         });
 
-    while (!done)
+    while(! done)
     {
         instance->waitForStateUpdate();
     }
@@ -252,7 +259,7 @@ void* Patch::createGraph(const String& name, int size, int x, int y)
             done = true;
         });
 
-    while (!done)
+    while(! done)
     {
         instance->waitForStateUpdate();
     }
@@ -264,7 +271,8 @@ void* Patch::createGraph(const String& name, int size, int x, int y)
 
 void* Patch::createObject(const String& name, int x, int y)
 {
-    if (!ptr) return nullptr;
+    if(! ptr)
+        return nullptr;
 
     StringArray tokens;
     tokens.addTokens(name, false);
@@ -272,7 +280,7 @@ void* Patch::createObject(const String& name, int x, int y)
     // See if we have preset parameters for this object
     // These parameters are designed to make the experience in plugdata better
     // Mostly larger GUI objects and a different colour scheme
-    if (guiDefaults.find(tokens[0]) != guiDefaults.end())
+    if(guiDefaults.find(tokens[0]) != guiDefaults.end())
     {
         auto preset = guiDefaults.at(tokens[0]);
 
@@ -289,43 +297,43 @@ void* Patch::createObject(const String& name, int x, int y)
         tokens.addTokens(preset, false);
     }
 
-    if (tokens[0] == "graph" && tokens.size() == 3)
+    if(tokens[0] == "graph" && tokens.size() == 3)
     {
         return createGraph(tokens[1], tokens[2].getIntValue(), x, y);
     }
-    else if (tokens[0] == "graph")
+    else if(tokens[0] == "graph")
     {
         return createGraphOnParent(x, y);
     }
 
     t_symbol* typesymbol = gensym("obj");
 
-    if (tokens[0] == "msg")
+    if(tokens[0] == "msg")
     {
         typesymbol = gensym("msg");
         tokens.remove(0);
     }
-    if (tokens[0] == "comment")
+    if(tokens[0] == "comment")
     {
         typesymbol = gensym("text");
         tokens.remove(0);
     }
-    if (tokens[0] == "floatatom")
+    if(tokens[0] == "floatatom")
     {
         typesymbol = gensym("floatatom");
         tokens.remove(0);
     }
-    if (tokens[0] == "listbox")
+    if(tokens[0] == "listbox")
     {
         typesymbol = gensym("listbox");
         tokens.remove(0);
     }
-    if (tokens[0] == "symbolatom")
+    if(tokens[0] == "symbolatom")
     {
         typesymbol = gensym("symbolatom");
         tokens.remove(0);
     }
-    if (tokens[0] == "+")
+    if(tokens[0] == "+")
     {
         tokens.set(0, "\\+");
     }
@@ -338,10 +346,10 @@ void* Patch::createObject(const String& name, int x, int y)
     SETFLOAT(argv.data(), static_cast<float>(x));
     SETFLOAT(argv.data() + 1, static_cast<float>(y));
 
-    for (int i = 0; i < tokens.size(); i++)
+    for(int i = 0; i < tokens.size(); i++)
     {
         auto& tok = tokens[i];
-        if (tokens[i].containsOnly("0123456789e.-+") && tokens[i] != "-")
+        if(tokens[i].containsOnly("0123456789e.-+") && tokens[i] != "-")
         {
             SETFLOAT(argv.data() + i + 2, tokens[i].getFloatValue());
         }
@@ -362,7 +370,7 @@ void* Patch::createObject(const String& name, int x, int y)
             done = true;
         });
 
-    while (!done)
+    while(! done)
     {
         instance->waitForStateUpdate();
     }
@@ -376,18 +384,20 @@ static int glist_getindex(t_glist* x, t_gobj* y)
     t_gobj* y2;
     int indx;
 
-    for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
+    for(y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next)
+        indx++;
     return (indx);
 }
 
 void* Patch::renameObject(void* obj, const String& name)
 {
-    if (!obj || !ptr) return nullptr;
+    if(! obj || ! ptr)
+        return nullptr;
 
     auto type = name.upToFirstOccurrenceOf(" ", false, false);
     String newName = name;
     // Also apply default style when renaming
-    if (guiDefaults.find(type) != guiDefaults.end())
+    if(guiDefaults.find(type) != guiDefaults.end())
     {
         auto preset = guiDefaults.at(type);
 
@@ -404,13 +414,13 @@ void* Patch::renameObject(void* obj, const String& name)
         newName += " " + preset;
     }
 
-    instance->enqueueFunction([this, obj, newName]() mutable {
+    instance->enqueueFunction([this, obj, newName]() mutable
+                              {
         setCurrent();
         libpd_renameobj(getPointer(), &checkObject(obj)->te_g, newName.toRawUTF8(), newName.getNumBytesAsUTF8());
         
         // make sure that creating a graph doesn't leave it as the current patch
-        setCurrent();
-    });
+        setCurrent(); });
 
     instance->waitForStateUpdate();
 
@@ -425,7 +435,8 @@ void Patch::copy()
             int size;
             const char* text = libpd_copy(getPointer(), &size);
             auto copied = String(CharPointer_UTF8(text), size);
-            MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
+            MessageManager::callAsync([copied]() mutable
+                                      { SystemClipboard::copyTextToClipboard(copied); });
         });
 }
 
@@ -433,7 +444,8 @@ void Patch::paste()
 {
     auto text = SystemClipboard::getTextFromClipboard();
 
-    instance->enqueueFunction([this, text]() mutable { libpd_paste(getPointer(), text.toRawUTF8()); });
+    instance->enqueueFunction([this, text]() mutable
+                              { libpd_paste(getPointer(), text.toRawUTF8()); });
 }
 
 void Patch::duplicate()
@@ -452,7 +464,7 @@ void Patch::selectObject(void* obj)
         [this, obj]()
         {
             auto* checked = &checkObject(obj)->te_g;
-            if (!glist_isselected(getPointer(), checked))
+            if(! glist_isselected(getPointer(), checked))
             {
                 glist_select(getPointer(), checked);
             }
@@ -471,7 +483,8 @@ void Patch::deselectAll()
 
 void Patch::removeObject(void* obj)
 {
-    if (!obj || !ptr) return;
+    if(! obj || ! ptr)
+        return;
 
     instance->enqueueFunction(
         [this, obj]()
@@ -493,7 +506,7 @@ bool Patch::hasConnection(void* src, int nout, void* sink, int nin)
             hasReturned = true;
         });
 
-    while (!hasReturned)
+    while(! hasReturned)
     {
         instance->waitForStateUpdate();
     }
@@ -505,7 +518,8 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 {
     bool canConnect = false;
 
-    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable { canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin); });
+    instance->enqueueFunction([this, &canConnect, src, nout, sink, nin]() mutable
+                              { canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin); });
 
     instance->waitForStateUpdate();
 
@@ -514,7 +528,8 @@ bool Patch::canConnect(void* src, int nout, void* sink, int nin)
 
 bool Patch::createConnection(void* src, int nout, void* sink, int nin)
 {
-    if (!src || !sink || !ptr) return false;
+    if(! src || ! sink || ! ptr)
+        return false;
 
     bool canConnect = false;
 
@@ -523,7 +538,8 @@ bool Patch::createConnection(void* src, int nout, void* sink, int nin)
         {
             canConnect = libpd_canconnect(getPointer(), checkObject(src), nout, checkObject(sink), nin);
 
-            if (!canConnect) return;
+            if(! canConnect)
+                return;
 
             setCurrent();
 
@@ -537,7 +553,8 @@ bool Patch::createConnection(void* src, int nout, void* sink, int nin)
 
 void Patch::removeConnection(void* src, int nout, void* sink, int nin)
 {
-    if (!src || !sink || !ptr) return;
+    if(! src || ! sink || ! ptr)
+        return;
 
     instance->enqueueFunction(
         [this, src, nout, sink, nin]() mutable
@@ -559,9 +576,10 @@ void Patch::moveObjects(const std::vector<void*>& objects, int dx, int dy)
 
             glist_noselect(getPointer());
 
-            for (auto* obj : objects)
+            for(auto* obj : objects)
             {
-                if (!obj) continue;
+                if(! obj)
+                    continue;
 
                 glist_select(getPointer(), &checkObject(obj)->te_g);
             }
@@ -633,7 +651,7 @@ void Patch::setZoom(int newZoom)
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
-t_object* Patch::checkObject(void* obj) 
+t_object* Patch::checkObject(void* obj)
 {
     return pd_checkobject(static_cast<t_pd*>(obj));
 }
@@ -651,12 +669,13 @@ void Patch::keyPress(int keycode, int shift)
 
 String Patch::getTitle() const
 {
-    return {getPointer()->gl_name->s_name};
+    return { getPointer()->gl_name->s_name };
 }
 
 void Patch::setTitle(const String& title)
 {
-    if (!getPointer()) return;
+    if(! getPointer())
+        return;
 
     canvas_unbind(getPointer());
     getPointer()->gl_name = gensym(title.toRawUTF8());
@@ -664,4 +683,4 @@ void Patch::setTitle(const String& title)
     instance->titleChanged();
 }
 
-}  // namespace pd
+} // namespace pd

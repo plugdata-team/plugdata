@@ -37,15 +37,15 @@ enum ParameterCategory
     cExtra
 };
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>;  // name, type and pointer to value, list of items only for combobox and bool
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
 
-using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
+using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
 // used by console for a more optimised calculation
 static int getNumLines(int width, int stringWidth)
 {
     int numLines = 1;
-    while (width < stringWidth)
+    while(width < stringWidth)
     {
         stringWidth -= (width - 12);
         numLines++;
@@ -62,11 +62,11 @@ static int getNumLines(const String& text, int width, Font font = Font(Font::get
     Array<float> xOffsets;
     font.getGlyphPositions(text, glyphs, xOffsets);
 
-    for (int i = 0; i < xOffsets.size(); i++)
+    for(int i = 0; i < xOffsets.size(); i++)
     {
-        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n')
+        if((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n')
         {
-            for (int j = i + 1; j < xOffsets.size(); j++)
+            for(int j = i + 1; j < xOffsets.size(); j++)
             {
                 xOffsets.getReference(j) -= xOffsets[i];
             }
@@ -101,7 +101,7 @@ struct Sidebar : public Component
 
     void showAutomationPanel(bool show);
 
-    bool isShowingConsole() const ;
+    bool isShowingConsole() const;
 
     void showSidebar(bool show);
 
@@ -116,7 +116,7 @@ struct Sidebar : public Component
 
     static constexpr int dragbarWidth = 5;
 
-   private:
+private:
     PlugDataAudioProcessor* pd;
     ObjectParameters lastParameters;
 

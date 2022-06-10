@@ -27,13 +27,12 @@
 
 #include "../PluginEditor.h"
 
-#if !JUCE_MAC
+#if ! JUCE_MAC
 #define CUSTOM_SHADOW 1
 #else
 #define CUSTOM_SHADOW 0
 #endif
 
-                                                                
 namespace pd
 {
 class Patch;
@@ -41,7 +40,7 @@ class Patch;
 
 class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, private Value::Listener
 {
-   public:
+public:
     /** Structure used for the number of inputs and outputs. */
     struct PluginInOuts
     {
@@ -75,18 +74,20 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
           autoOpenMidiDevices(shouldAutoOpenMidiDevices)
     {
         shouldMuteInput.addListener(this);
-        shouldMuteInput = !isInterAppAudioConnected();
+        shouldMuteInput = ! isInterAppAudioConnected();
 
         createPlugin();
 
         auto inChannels = (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels());
 
-        if (preferredSetupOptions != nullptr) options = std::make_unique<AudioDeviceManager::AudioDeviceSetup>(*preferredSetupOptions);
+        if(preferredSetupOptions != nullptr)
+            options = std::make_unique<AudioDeviceManager::AudioDeviceSetup>(*preferredSetupOptions);
 
         auto audioInputRequired = (inChannels > 0);
 
-        if (audioInputRequired && RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
-            RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool granted) { init(granted, preferredDefaultDeviceName); });
+        if(audioInputRequired && RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && ! RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
+            RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool granted)
+                                        { init(granted, preferredDefaultDeviceName); });
         else
             init(audioInputRequired, preferredDefaultDeviceName);
     }
@@ -99,7 +100,8 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 #endif
         startPlaying();
 
-        if (autoOpenMidiDevices) startTimer(500);
+        if(autoOpenMidiDevices)
+            startTimer(500);
     }
 
     ~StandalonePluginHolder() override
@@ -127,21 +129,24 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     int getNumInputChannels() const
     {
-        if (processor == nullptr) return 0;
+        if(processor == nullptr)
+            return 0;
 
         return (channelConfiguration.size() > 0 ? channelConfiguration[0].numIns : processor->getMainBusNumInputChannels());
     }
 
     int getNumOutputChannels() const
     {
-        if (processor == nullptr) return 0;
+        if(processor == nullptr)
+            return 0;
 
         return (channelConfiguration.size() > 0 ? channelConfiguration[0].numOuts : processor->getMainBusNumOutputChannels());
     }
 
     static String getFilePatterns(const String& fileSuffix)
     {
-        if (fileSuffix.isEmpty()) return {};
+        if(fileSuffix.isEmpty())
+            return {};
 
         return (fileSuffix.startsWithChar('.') ? "*" : "*.") + fileSuffix;
     }
@@ -163,16 +168,19 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     {
         File f;
 
-        if (settings != nullptr) f = File(settings->getValue("lastStateFile"));
+        if(settings != nullptr)
+            f = File(settings->getValue("lastStateFile"));
 
-        if (f == File()) f = File::getSpecialLocation(File::userDocumentsDirectory);
+        if(f == File())
+            f = File::getSpecialLocation(File::userDocumentsDirectory);
 
         return f;
     }
 
     void setLastFile(const FileChooser& fc)
     {
-        if (settings != nullptr) settings->setValue("lastStateFile", fc.getResult().getFullPathName());
+        if(settings != nullptr)
+            settings->setValue("lastStateFile", fc.getResult().getFullPathName());
     }
 
     /** Pops up a dialog letting the user save the processor's state to a file. */
@@ -184,14 +192,16 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         stateFileChooser->launchAsync(flags,
                                       [this](const FileChooser& fc)
                                       {
-                                          if (fc.getResult() == File{}) return;
+                                          if(fc.getResult() == File {})
+                                              return;
 
                                           setLastFile(fc);
 
                                           MemoryBlock data;
                                           processor->getStateInformation(data);
 
-                                          if (!fc.getResult().replaceWithData(data.getData(), data.getSize())) AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, TRANS("Error whilst saving"), TRANS("Couldn't write to the specified file!"));
+                                          if(! fc.getResult().replaceWithData(data.getData(), data.getSize()))
+                                              AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, TRANS("Error whilst saving"), TRANS("Couldn't write to the specified file!"));
                                       });
     }
 
@@ -204,13 +214,14 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         stateFileChooser->launchAsync(flags,
                                       [this](const FileChooser& fc)
                                       {
-                                          if (fc.getResult() == File{}) return;
+                                          if(fc.getResult() == File {})
+                                              return;
 
                                           setLastFile(fc);
 
                                           MemoryBlock data;
 
-                                          if (fc.getResult().loadFileAsData(data))
+                                          if(fc.getResult().loadFileAsData(data))
                                               processor->setStateInformation(data.getData(), static_cast<int>(data.getSize()));
                                           else
                                               AlertWindow::showMessageBoxAsync(AlertWindow::WarningIcon, TRANS("Error whilst loading"), TRANS("Couldn't read from the specified file!"));
@@ -222,7 +233,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         player.setProcessor(processor.get());
 
 #if JucePlugin_Enable_IAA && JUCE_IOS
-        if (auto device = dynamic_cast<iOSAudioIODevice*>(deviceManager.getCurrentAudioDevice()))
+        if(auto device = dynamic_cast<iOSAudioIODevice*>(deviceManager.getCurrentAudioDevice()))
         {
             processor->setPlayHead(device->getAudioPlayHead());
             device->setMidiMessageCollector(&player.getMidiMessageCollector());
@@ -237,13 +248,13 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     void saveAudioDeviceState()
     {
-        if (settings != nullptr)
+        if(settings != nullptr)
         {
             auto xml = deviceManager.createStateXml();
 
             settings->setValue("audioSetup", xml.get());
 
-#if !(JUCE_IOS || JUCE_ANDROID)
+#if ! (JUCE_IOS || JUCE_ANDROID)
             settings->setValue("shouldMuteInput", static_cast<bool>(shouldMuteInput.getValue()));
 #endif
         }
@@ -253,11 +264,11 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     {
         std::unique_ptr<XmlElement> savedState;
 
-        if (settings != nullptr)
+        if(settings != nullptr)
         {
             savedState = settings->getXmlValue("audioSetup");
 
-#if !(JUCE_IOS || JUCE_ANDROID)
+#if ! (JUCE_IOS || JUCE_ANDROID)
             shouldMuteInput.setValue(false);
 #endif
         }
@@ -265,7 +276,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         auto inputChannels = getNumInputChannels();
         auto outputChannels = getNumOutputChannels();
 
-        if (inputChannels == 0 && outputChannels == 0 && processor->isMidiEffect())
+        if(inputChannels == 0 && outputChannels == 0 && processor->isMidiEffect())
         {
             // add a dummy output channel for MIDI effect plug-ins so they can receive audio callbacks
             outputChannels = 1;
@@ -276,7 +287,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     void savePluginState()
     {
-        if (settings != nullptr && processor != nullptr)
+        if(settings != nullptr && processor != nullptr)
         {
             MemoryBlock data;
             processor->getStateInformation(data);
@@ -287,11 +298,12 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     void reloadPluginState()
     {
-        if (settings != nullptr)
+        if(settings != nullptr)
         {
             MemoryBlock data;
 
-            if (data.fromBase64Encoding(settings->getValue("filterState")) && data.getSize() > 0) processor->setStateInformation(data.getData(), static_cast<int>(data.getSize()));
+            if(data.fromBase64Encoding(settings->getValue("filterState")) && data.getSize() > 0)
+                processor->setStateInformation(data.getData(), static_cast<int>(data.getSize()));
         }
     }
 
@@ -315,7 +327,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     // avoid feedback loop by default
     bool processorHasPotentialFeedbackLoop = true;
-    std::atomic<bool> muteInput{true};
+    std::atomic<bool> muteInput { true };
     Value shouldMuteInput;
     AudioBuffer<float> emptyBuffer;
     bool autoOpenMidiDevices;
@@ -325,7 +337,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     std::unique_ptr<FileChooser> stateFileChooser;
 
-   private:
+private:
     /*  This class can be used to ensure that audio callbacks use buffers with a
         predictable maximum size.
 
@@ -341,7 +353,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     */
     class CallbackMaxSizeEnforcer : public AudioIODeviceCallback
     {
-       public:
+    public:
         explicit CallbackMaxSizeEnforcer(AudioIODeviceCallback& callbackIn) : inner(callbackIn)
         {
         }
@@ -355,31 +367,31 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             inner.audioDeviceAboutToStart(device);
         }
 
-        void audioDeviceIOCallbackWithContext (const float** inputChannelData,
-                                               int numInputChannels,
-                                               float** outputChannelData,
-                                               int numOutputChannels,
-                                               int numSamples,
-                                               const AudioIODeviceCallbackContext& context) override
+        void audioDeviceIOCallbackWithContext(const float** inputChannelData,
+                                              int numInputChannels,
+                                              float** outputChannelData,
+                                              int numOutputChannels,
+                                              int numSamples,
+                                              const AudioIODeviceCallbackContext& context) override
         {
-            jassertquiet ((int) storedInputChannels.size()  == numInputChannels);
-            jassertquiet ((int) storedOutputChannels.size() == numOutputChannels);
+            jassertquiet((int) storedInputChannels.size() == numInputChannels);
+            jassertquiet((int) storedOutputChannels.size() == numOutputChannels);
 
             int position = 0;
 
-            while (position < numSamples)
+            while(position < numSamples)
             {
-                const auto blockLength = jmin (maximumSize, numSamples - position);
+                const auto blockLength = jmin(maximumSize, numSamples - position);
 
-                initChannelPointers (inputChannelData,  storedInputChannels,  position);
-                initChannelPointers (outputChannelData, storedOutputChannels, position);
+                initChannelPointers(inputChannelData, storedInputChannels, position);
+                initChannelPointers(outputChannelData, storedOutputChannels, position);
 
-                inner.audioDeviceIOCallbackWithContext (storedInputChannels.data(),
-                                                        (int) storedInputChannels.size(),
-                                                        storedOutputChannels.data(),
-                                                        (int) storedOutputChannels.size(),
-                                                        blockLength,
-                                                        context);
+                inner.audioDeviceIOCallbackWithContext(storedInputChannels.data(),
+                                                       (int) storedInputChannels.size(),
+                                                       storedOutputChannels.data(),
+                                                       (int) storedOutputChannels.size(),
+                                                       blockLength,
+                                                       context);
 
                 position += blockLength;
             }
@@ -390,7 +402,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             inner.audioDeviceStopped();
         }
 
-       private:
+    private:
         struct GetChannelWithOffset
         {
             int offset;
@@ -405,7 +417,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         template <typename Ptr, typename Vector>
         void initChannelPointers(Ptr&& source, Vector&& target, int offset)
         {
-            std::transform(source, source + target.size(), target.begin(), GetChannelWithOffset{offset});
+            std::transform(source, source + target.size(), target.begin(), GetChannelWithOffset { offset });
         }
 
         AudioIODeviceCallback& inner;
@@ -414,27 +426,27 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         std::vector<float*> storedOutputChannels;
     };
 
-    CallbackMaxSizeEnforcer maxSizeEnforcer{*this};
+    CallbackMaxSizeEnforcer maxSizeEnforcer { *this };
 
-    void audioDeviceIOCallbackWithContext (const float** inputChannelData,
-                                           int numInputChannels,
-                                           float** outputChannelData,
-                                           int numOutputChannels,
-                                           int numSamples,
-                                           const AudioIODeviceCallbackContext& context) override
+    void audioDeviceIOCallbackWithContext(const float** inputChannelData,
+                                          int numInputChannels,
+                                          float** outputChannelData,
+                                          int numOutputChannels,
+                                          int numSamples,
+                                          const AudioIODeviceCallbackContext& context) override
     {
-        if (muteInput)
+        if(muteInput)
         {
             emptyBuffer.clear();
             inputChannelData = emptyBuffer.getArrayOfReadPointers();
         }
 
-        player.audioDeviceIOCallbackWithContext (inputChannelData,
-                                                 numInputChannels,
-                                                 outputChannelData,
-                                                 numOutputChannels,
-                                                 numSamples,
-                                                 context);
+        player.audioDeviceIOCallbackWithContext(inputChannelData,
+                                                numInputChannels,
+                                                outputChannelData,
+                                                numOutputChannels,
+                                                numSamples,
+                                                context);
     }
 
     void audioDeviceAboutToStart(AudioIODevice* device) override
@@ -473,13 +485,15 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     {
         auto newMidiDevices = MidiInput::getAvailableDevices();
 
-        if (newMidiDevices != lastMidiDevices)
+        if(newMidiDevices != lastMidiDevices)
         {
-            for (auto& oldDevice : lastMidiDevices)
-                if (!newMidiDevices.contains(oldDevice)) deviceManager.setMidiInputDeviceEnabled(oldDevice.identifier, false);
+            for(auto& oldDevice : lastMidiDevices)
+                if(! newMidiDevices.contains(oldDevice))
+                    deviceManager.setMidiInputDeviceEnabled(oldDevice.identifier, false);
 
-            for (auto& newDevice : newMidiDevices)
-                if (!lastMidiDevices.contains(newDevice)) deviceManager.setMidiInputDeviceEnabled(newDevice.identifier, true);
+            for(auto& newDevice : newMidiDevices)
+                if(! lastMidiDevices.contains(newDevice))
+                    deviceManager.setMidiInputDeviceEnabled(newDevice.identifier, true);
 
             lastMidiDevices = newMidiDevices;
         }
@@ -505,7 +519,7 @@ class PlugDataWindow : public DocumentWindow
     DropShadow shadow = DropShadow(Colour(20, 20, 20).withAlpha(0.3f), 6, Point<int>(0, 0));
 #endif
 
-   public:
+public:
     typedef StandalonePluginHolder::PluginInOuts PluginInOuts;
 
     /** Creates a window with a given title and colour.
@@ -513,8 +527,7 @@ class PlugDataWindow : public DocumentWindow
         store its settings (it can also be null). If takeOwnershipOfSettings is
         true, then the settings object will be owned and deleted by this object.
     */
-    PlugDataWindow(const String& title, Colour backgroundColour, PropertySet* settingsToUse, bool takeOwnershipOfSettings, const String& preferredDefaultDeviceName = String(), const AudioDeviceManager::AudioDeviceSetup* preferredSetupOptions = nullptr,
-                   const Array<PluginInOuts>& constrainToConfiguration = {},
+    PlugDataWindow(const String& title, Colour backgroundColour, PropertySet* settingsToUse, bool takeOwnershipOfSettings, const String& preferredDefaultDeviceName = String(), const AudioDeviceManager::AudioDeviceSetup* preferredSetupOptions = nullptr, const Array<PluginInOuts>& constrainToConfiguration = {},
 #if JUCE_ANDROID || JUCE_IOS
                    bool autoOpenMidiDevices = true
 #else
@@ -530,14 +543,14 @@ class PlugDataWindow : public DocumentWindow
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
-        
+
         setOpaque(false);
-        
+
         auto* mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
         auto* c = editor->getConstrainer();
         setResizeLimits(c->getMinimumWidth() + 7, c->getMinimumHeight() + 7, c->getMaximumWidth() + 7, c->getMaximumHeight() + 7);
-    
+
         setContentOwned(mainComponent, true);
 
         const auto windowScreenBounds = [this]() -> Rectangle<int>
@@ -547,24 +560,24 @@ class PlugDataWindow : public DocumentWindow
 
             const auto& displays = Desktop::getInstance().getDisplays();
 
-            if (auto* props = pluginHolder->settings.get())
+            if(auto* props = pluginHolder->settings.get())
             {
                 constexpr int defaultValue = -100;
 
                 const auto x = props->getIntValue("windowX", defaultValue);
                 const auto y = props->getIntValue("windowY", defaultValue);
 
-                if (x != defaultValue && y != defaultValue)
+                if(x != defaultValue && y != defaultValue)
                 {
-                    const auto screenLimits = displays.getDisplayForRect({x, y, width, height})->userArea;
+                    const auto screenLimits = displays.getDisplayForRect({ x, y, width, height })->userArea;
 
-                    return {jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height};
+                    return { jlimit(screenLimits.getX(), jmax(screenLimits.getX(), screenLimits.getRight() - width), x), jlimit(screenLimits.getY(), jmax(screenLimits.getY(), screenLimits.getBottom() - height), y), width, height };
                 }
             }
 
             const auto displayArea = displays.getPrimaryDisplay()->userArea;
 
-            return {displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height};
+            return { displayArea.getCentreX() - width / 2, displayArea.getCentreY() - height / 2, width, height };
         }();
 
         setBoundsConstrained(windowScreenBounds);
@@ -595,18 +608,19 @@ class PlugDataWindow : public DocumentWindow
         clearContentComponent();
         pluginHolder->deletePlugin();
 
-        if (auto* props = pluginHolder->settings.get()) props->removeValue("filterState");
+        if(auto* props = pluginHolder->settings.get())
+            props->removeValue("filterState");
 
         pluginHolder->createPlugin();
         setContentOwned(new MainContentComponent(*this), true);
         pluginHolder->startPlaying();
     }
 
-    void closeButtonPressed() override;  // implemented in PlugDataApp.cpp
+    void closeButtonPressed() override; // implemented in PlugDataApp.cpp
 
     void maximiseButtonPressed() override
     {
-        setFullScreen(!isFullScreen());
+        setFullScreen(! isFullScreen());
     }
 
     // Fixes shadow with rounded edges on windows
@@ -624,7 +638,8 @@ class PlugDataWindow : public DocumentWindow
     {
         ResizableWindow::resized();
 
-        if (auto* b = getMaximiseButton()) b->setToggleState(isFullScreen(), dontSendNotification);
+        if(auto* b = getMaximiseButton())
+            b->setToggleState(isFullScreen(), dontSendNotification);
 
         auto titleBarArea = Rectangle<int>(0, 12, getWidth() - 8, 25);
 
@@ -663,15 +678,15 @@ class PlugDataWindow : public DocumentWindow
 
     std::unique_ptr<StandalonePluginHolder> pluginHolder;
 
-   private:
+private:
     class MainContentComponent : public Component, private ComponentListener, public MenuBarModel
     {
-       public:
+    public:
         MainContentComponent(PlugDataWindow& filterWindow) : owner(filterWindow), editor(owner.getAudioProcessor()->hasEditor() ? owner.getAudioProcessor()->createEditorIfNeeded() : new GenericAudioProcessorEditor(*owner.getAudioProcessor()))
         {
             inputMutedValue.referTo(owner.pluginHolder->getMuteInputValue());
 
-            if (editor != nullptr)
+            if(editor != nullptr)
             {
                 auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
 
@@ -689,12 +704,12 @@ class PlugDataWindow : public DocumentWindow
                 editor->setAlwaysOnTop(true);
             }
         }
-        
+
         AudioProcessorEditor* getEditor() { return editor.get(); }
 
         StringArray getMenuBarNames() override
         {
-            return {"File", "Edit"};
+            return { "File", "Edit" };
         }
 
         PopupMenu getMenuForIndex(int topLevelMenuIndex, const String& menuName) override
@@ -703,7 +718,7 @@ class PlugDataWindow : public DocumentWindow
 
             auto* commandManager = dynamic_cast<ApplicationCommandManager*>(editor.get());
 
-            if (topLevelMenuIndex == 0)
+            if(topLevelMenuIndex == 0)
             {
                 menu.addCommandItem(commandManager, CommandIDs::NewProject);
                 menu.addCommandItem(commandManager, CommandIDs::OpenProject);
@@ -735,7 +750,7 @@ class PlugDataWindow : public DocumentWindow
 #if JUCE_MAC
             MenuBarModel::setMacMainMenu(nullptr);
 #endif
-            if (editor != nullptr)
+            if(editor != nullptr)
             {
                 editor->removeComponentListener(this);
                 owner.pluginHolder->processor->editorBeingDeleted(editor.get());
@@ -746,24 +761,24 @@ class PlugDataWindow : public DocumentWindow
         void resized() override
         {
             auto r = getLocalBounds();
-            
-            if (editor != nullptr)
+
+            if(editor != nullptr)
             {
                 const auto newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
 
-                if (preventResizingEditor)
+                if(preventResizingEditor)
                     editor->setTopLeftPosition(newPos.roundToInt());
                 else
                     editor->setBoundsConstrained(editor->getLocalArea(this, r.toFloat()).withPosition(newPos).toNearestInt());
             }
         }
 
-       private:
+    private:
         void componentMovedOrResized(Component&, bool, bool) override
         {
             const ScopedValueSetter<bool> scope(preventResizingEditor, true);
 
-            if (editor != nullptr)
+            if(editor != nullptr)
             {
                 auto rect = getSizeToContainEditor();
 
@@ -773,7 +788,8 @@ class PlugDataWindow : public DocumentWindow
 
         Rectangle<int> getSizeToContainEditor() const
         {
-            if (editor != nullptr) return getLocalArea(editor.get(), editor->getLocalBounds());
+            if(editor != nullptr)
+                return getLocalArea(editor.get(), editor->getLocalBounds());
 
             return {};
         }
@@ -794,13 +810,14 @@ class PlugDataWindow : public DocumentWindow
 inline StandalonePluginHolder* StandalonePluginHolder::getInstance()
 {
 #if JucePlugin_Enable_IAA || JucePlugin_Build_Standalone
-    if (PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone)
+    if(PluginHostType::getPluginLoadedAs() == AudioProcessor::wrapperType_Standalone)
     {
         auto& desktop = Desktop::getInstance();
         const int numTopLevelWindows = desktop.getNumComponents();
 
-        for (int i = 0; i < numTopLevelWindows; ++i)
-            if (auto window = dynamic_cast<PlugDataWindow*>(desktop.getComponent(i))) return window->getPluginHolder();
+        for(int i = 0; i < numTopLevelWindows; ++i)
+            if(auto window = dynamic_cast<PlugDataWindow*>(desktop.getComponent(i)))
+                return window->getPluginHolder();
     }
 #endif
 

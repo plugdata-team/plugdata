@@ -25,7 +25,7 @@ namespace pd
 
 class Atom
 {
-   public:
+public:
     // The default constructor.
     inline Atom() : type(FLOAT), value(0), symbol()
     {
@@ -47,33 +47,33 @@ class Atom
     }
 
     // Check if the atom is a float.
-    inline bool isFloat() const 
+    inline bool isFloat() const
     {
         return type == FLOAT;
     }
 
     // Check if the atom is a string.
-    inline bool isSymbol() const 
+    inline bool isSymbol() const
     {
         return type == SYMBOL;
     }
 
     // Get the float value.
-    inline float getFloat() const 
+    inline float getFloat() const
     {
         return value;
     }
 
     // Get the string.
-    inline String const& getSymbol() const 
+    inline String const& getSymbol() const
     {
         return symbol;
     }
 
     // Compare two atoms.
-    inline bool operator==(Atom const& other) const 
+    inline bool operator==(Atom const& other) const
     {
-        if (type == SYMBOL)
+        if(type == SYMBOL)
         {
             return other.type == SYMBOL && symbol == other.symbol;
         }
@@ -83,7 +83,7 @@ class Atom
         }
     }
 
-   private:
+private:
     enum Type
     {
         FLOAT,
@@ -130,7 +130,7 @@ class Instance
         int midi3;
     } midievent;
 
-   public:
+public:
     Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
@@ -139,7 +139,7 @@ class Instance
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
-    int getBlockSize() const ;
+    int getBlockSize() const;
 
     void sendNoteOn(const int channel, const int pitch, const int velocity) const;
     void sendControlChange(const int channel, const int controller, const int value) const;
@@ -173,8 +173,8 @@ class Instance
     {
     }
 
-    virtual void receiveGuiUpdate(int type){};
-    virtual void synchroniseCanvas(void* cnv){};
+    virtual void receiveGuiUpdate(int type) {};
+    virtual void synchroniseCanvas(void* cnv) {};
 
     virtual void createPanel(int type, const char* snd, const char* location);
 
@@ -184,7 +184,7 @@ class Instance
     void sendList(const char* receiver, const std::vector<pd::Atom>& list) const;
     void sendMessage(const char* receiver, const char* msg, const std::vector<pd::Atom>& list) const;
 
-    virtual void receivePrint(const String& message){};
+    virtual void receivePrint(const String& message) {};
 
     virtual void receiveBang(const String& dest)
     {
@@ -205,11 +205,11 @@ class Instance
     {
     }
 
-    virtual void receiveDSPState(bool dsp){};
+    virtual void receiveDSPState(bool dsp) {};
 
-    virtual void updateConsole(){};
+    virtual void updateConsole() {};
 
-    virtual void titleChanged(){};
+    virtual void titleChanged() {};
 
     void enqueueFunction(const std::function<void(void)>& fn);
     void enqueueFunctionAsync(const std::function<void(void)>& fn);
@@ -223,7 +223,7 @@ class Instance
     void logMessage(const String& message);
     void logError(const String& error);
 
-    virtual void messageEnqueued(){};
+    virtual void messageEnqueued() {};
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
@@ -263,7 +263,7 @@ class Instance
     std::deque<std::tuple<String, int, int>> consoleMessages;
     std::deque<std::tuple<String, int, int>> consoleHistory;
 
-   private:
+private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
@@ -273,4 +273,4 @@ class Instance
 
     struct internal;
 };
-}  // namespace pd
+} // namespace pd

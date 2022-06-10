@@ -65,7 +65,7 @@ struct StatusbarSource
 
     std::atomic<bool> midiReceived = false;
     std::atomic<bool> midiSent = false;
-    std::atomic<float> level[2] = {0};
+    std::atomic<float> level[2] = { 0 };
 
     int numChannels;
 

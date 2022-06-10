@@ -27,19 +27,19 @@ struct ArrayDialog : public Component
         ok.onClick = [this, parent]
         {
             // Check if input is valid
-            if (nameEditor.isEmpty())
+            if(nameEditor.isEmpty())
             {
                 nameEditor.setColour(TextEditor::outlineColourId, Colours::red);
                 nameEditor.giveAwayKeyboardFocus();
                 nameEditor.repaint();
             }
-            if (sizeEditor.getText().getIntValue() < 0)
+            if(sizeEditor.getText().getIntValue() < 0)
             {
                 sizeEditor.setColour(TextEditor::outlineColourId, Colours::red);
                 sizeEditor.giveAwayKeyboardFocus();
                 sizeEditor.repaint();
             }
-            if (nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0)
+            if(nameEditor.getText().isNotEmpty() && sizeEditor.getText().getIntValue() >= 0)
             {
                 MessageManager::callAsync(
                     [this, parent]()
@@ -81,7 +81,7 @@ struct ArrayDialog : public Component
 
     std::function<void(int, String, String)> cb;
 
-   private:
+private:
     Label label = Label("savelabel", "Array Properties");
 
     Label nameLabel = Label("namelabel", "Name:");

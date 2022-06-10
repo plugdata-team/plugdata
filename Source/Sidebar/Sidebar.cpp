@@ -4,16 +4,16 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-#include <JuceHeader.h>
-#include "Pd/PdInstance.h"
 #include "LookAndFeel.h"
+#include "Pd/PdInstance.h"
 #include "PluginProcessor.h"
+#include <JuceHeader.h>
 
-#include "Sidebar.h"
-#include "Console.h"
-#include "Inspector.h"
-#include "DocumentBrowser.h"
 #include "AutomationPanel.h"
+#include "Console.h"
+#include "DocumentBrowser.h"
+#include "Inspector.h"
+#include "Sidebar.h"
 
 Sidebar::Sidebar(PlugDataAudioProcessor* instance) : pd(instance)
 {
@@ -28,8 +28,7 @@ Sidebar::Sidebar(PlugDataAudioProcessor* instance) : pd(instance)
 
     browser->setAlwaysOnTop(true);
     browser->addMouseListener(this, true);
-    
-    
+
     //setBounds(editor->getWidth() - lastWidth, 40, lastWidth, editor->getHeight() - 40);
 }
 
@@ -45,7 +44,8 @@ Sidebar::~Sidebar()
 void Sidebar::paint(Graphics& g)
 {
     // Makes sure the theme gets updated
-    if (automationPanel) automationPanel->viewport.repaint();
+    if(automationPanel)
+        automationPanel->viewport.repaint();
 
     int sWidth = sidebarHidden ? dragbarWidth : std::max(dragbarWidth, getWidth());
 
@@ -69,13 +69,14 @@ void Sidebar::resized()
     console->setBounds(bounds);
     inspector->setBounds(bounds);
     browser->setBounds(getLocalBounds());
-    if (automationPanel) automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
+    if(automationPanel)
+        automationPanel->setBounds(getLocalBounds().withTop(getHeight() - 300));
 }
 
 void Sidebar::mouseDown(const MouseEvent& e)
 {
     Rectangle<int> dragBar(0, dragbarWidth, getWidth(), getHeight());
-    if (dragBar.contains(e.getPosition()) && !sidebarHidden)
+    if(dragBar.contains(e.getPosition()) && ! sidebarHidden)
     {
         draggingSidebar = true;
         dragStartWidth = getWidth();
@@ -88,7 +89,7 @@ void Sidebar::mouseDown(const MouseEvent& e)
 
 void Sidebar::mouseDrag(const MouseEvent& e)
 {
-    if (draggingSidebar)
+    if(draggingSidebar)
     {
         int newWidth = dragStartWidth - e.getDistanceFromDragStartX();
         newWidth = std::min(newWidth, getParentWidth() / 2);
@@ -100,7 +101,7 @@ void Sidebar::mouseDrag(const MouseEvent& e)
 
 void Sidebar::mouseUp(const MouseEvent& e)
 {
-    if (draggingSidebar)
+    if(draggingSidebar)
     {
         // getCurrentCanvas()->checkBounds(); fix this
         draggingSidebar = false;
@@ -122,7 +123,7 @@ void Sidebar::showBrowser(bool show)
 {
     browser->setVisible(show);
     pinned = show;
-    if (show)
+    if(show)
     {
         browser->grabKeyboardFocus();
     }
@@ -135,7 +136,7 @@ bool Sidebar::isShowingBrowser()
 
 void Sidebar::showAutomationPanel(bool show)
 {
-    if (show)
+    if(show)
     {
         automationPanel = new AutomationPanel(pd);
         addAndMakeVisible(automationPanel);
@@ -154,19 +155,20 @@ void Sidebar::showAutomationPanel(bool show)
 #if PLUGDATA_STANDALONE
 void Sidebar::updateParameters()
 {
-    if (automationPanel)
+    if(automationPanel)
     {
         // Might be called from audio thread
-        MessageManager::callAsync([this]() { automationPanel->sliders.updateParameters(); });
+        MessageManager::callAsync([this]()
+                                  { automationPanel->sliders.updateParameters(); });
     };
 };
 #endif
 
 void Sidebar::showSidebar(bool show)
 {
-    sidebarHidden = !show;
+    sidebarHidden = ! show;
 
-    if (!show)
+    if(! show)
     {
         lastWidth = getWidth();
         int newWidth = dragbarWidth;
@@ -183,7 +185,7 @@ void Sidebar::pinSidebar(bool pin)
 {
     pinned = pin;
 
-    if (!pinned && lastParameters.empty())
+    if(! pinned && lastParameters.empty())
     {
         hideParameters();
     }
@@ -199,7 +201,7 @@ void Sidebar::showParameters(ObjectParameters& params)
     lastParameters = params;
     inspector->loadParameters(params);
 
-    if (!pinned)
+    if(! pinned)
     {
         browser->setVisible(false);
         inspector->setVisible(true);
@@ -211,7 +213,7 @@ void Sidebar::showParameters()
 {
     inspector->loadParameters(lastParameters);
 
-    if (!pinned)
+    if(! pinned)
     {
         browser->setVisible(false);
         inspector->setVisible(true);
@@ -220,13 +222,13 @@ void Sidebar::showParameters()
 }
 void Sidebar::hideParameters()
 {
-    if (!pinned)
+    if(! pinned)
     {
         inspector->setVisible(false);
         console->setVisible(true);
     }
 
-    if (pinned)
+    if(pinned)
     {
         ObjectParameters params = {};
         inspector->loadParameters(params);
@@ -235,7 +237,7 @@ void Sidebar::hideParameters()
     console->deselect();
 }
 
-bool Sidebar::isShowingConsole() const 
+bool Sidebar::isShowingConsole() const
 {
     return console->isVisible();
 }
