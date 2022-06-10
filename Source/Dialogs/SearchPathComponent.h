@@ -2,7 +2,7 @@
 
 class SearchPathComponent : public Component, public SettableTooltipClient, public FileDragAndDropTarget, private ListBoxModel
 {
-public:
+   public:
     //==============================================================================
     /** Creates an empty FileSearchPathListObject. */
     SearchPathComponent(ValueTree libraryTree) : tree(std::move(libraryTree))
@@ -18,14 +18,12 @@ public:
         addButton.setTooltip("Add search path");
         addButton.setName("statusbar:add");
         addAndMakeVisible(addButton);
-        addButton.onClick = [this]
-        { addPath(); };
+        addButton.onClick = [this] { addPath(); };
         addButton.setConnectedEdges(12);
 
         removeButton.setTooltip("Remove search path");
         addAndMakeVisible(removeButton);
-        removeButton.onClick = [this]
-        { deleteSelected(); };
+        removeButton.onClick = [this] { deleteSelected(); };
         removeButton.setConnectedEdges(12);
         removeButton.setName("statusbar:remove");
 
@@ -33,22 +31,19 @@ public:
         changeButton.setName("statusbar:change");
         addAndMakeVisible(changeButton);
         changeButton.setConnectedEdges(12);
-        changeButton.onClick = [this]
-        { editSelected(); };
+        changeButton.onClick = [this] { editSelected(); };
 
         upButton.setTooltip("Move selection up");
         upButton.setName("statusbar:up");
         addAndMakeVisible(upButton);
         upButton.setConnectedEdges(12);
-        upButton.onClick = [this]
-        { moveSelection(-1); };
+        upButton.onClick = [this] { moveSelection(-1); };
 
         upButton.setTooltip("Move selection down");
         downButton.setName("statusbar:down");
         addAndMakeVisible(downButton);
         downButton.setConnectedEdges(12);
-        downButton.onClick = [this]
-        { moveSelection(1); };
+        downButton.onClick = [this] { moveSelection(1); };
 
         resetButton.setTooltip("Reset to default");
         resetButton.setName("statusbar:down");
@@ -84,7 +79,7 @@ public:
     {
         path = FileSearchPath();
 
-        for(auto child : tree)
+        for (auto child : tree)
         {
             path.add(File(child.getProperty("Path").toString()));
         }
@@ -113,10 +108,9 @@ public:
     {
         g.setColour(rowIsSelected ? Colours::white : findColour(PlugDataColour::textColourId));
 
-        if(rowIsSelected)
-            g.fillAll(findColour(PlugDataColour::highlightColourId));
+        if (rowIsSelected) g.fillAll(findColour(PlugDataColour::highlightColourId));
 
-        Font f((float) height * 0.6f);
+        Font f((float)height * 0.6f);
         f.setHorizontalScale(1.0f);
         g.setFont(f);
 
@@ -125,7 +119,7 @@ public:
 
     void deleteKeyPressed(int row) override
     {
-        if(isPositiveAndBelow(row, path.getNumPaths()))
+        if (isPositiveAndBelow(row, path.getNumPaths()))
         {
             path.remove(row);
             internalChange();
@@ -140,8 +134,7 @@ public:
         chooser->launchAsync(chooserFlags,
                              [this, row](const FileChooser& fc)
                              {
-                                 if(fc.getResult() == File {})
-                                     return;
+                                 if (fc.getResult() == File{}) return;
 
                                  path.remove(row);
                                  path.add(fc.getResult(), row);
@@ -191,11 +184,11 @@ public:
 
     void filesDropped(const StringArray& filenames, int x, int y) override
     {
-        for(int i = filenames.size(); --i >= 0;)
+        for (int i = filenames.size(); --i >= 0;)
         {
             const File f(filenames[i]);
 
-            if(f.isDirectory())
+            if (f.isDirectory())
             {
                 auto row = listBox.getRowContainingPosition(0, y - listBox.getY());
                 path.add(f, row);
@@ -204,7 +197,7 @@ public:
         }
     }
 
-private:
+   private:
     //==============================================================================
     FileSearchPath path;
     File defaultBrowseTarget;
@@ -227,9 +220,9 @@ private:
     {
         path = FileSearchPath();
 
-        for(auto child : tree)
+        for (auto child : tree)
         {
-            if(child.hasType("Path"))
+            if (child.hasType("Path"))
             {
                 path.addIfNotAlreadyThere(File(child.getProperty("Path").toString()));
             }
@@ -243,10 +236,10 @@ private:
     {
         tree.removeAllChildren(nullptr);
 
-        for(int p = 0; p < path.getNumPaths(); p++)
+        for (int p = 0; p < path.getNumPaths(); p++)
         {
             auto dir = path[p];
-            if(dir.isDirectory())
+            if (dir.isDirectory())
             {
                 auto newPath = ValueTree("Path");
                 newPath.setProperty("Path", dir.getFullPathName(), nullptr);
@@ -273,11 +266,9 @@ private:
     {
         auto start = defaultBrowseTarget;
 
-        if(start == File())
-            start = path[0];
+        if (start == File()) start = path[0];
 
-        if(start == File())
-            start = File::getCurrentWorkingDirectory();
+        if (start == File()) start = File::getCurrentWorkingDirectory();
 
         chooser = std::make_unique<FileChooser>(TRANS("Add a folder..."), start, "*");
         auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
@@ -285,8 +276,7 @@ private:
         chooser->launchAsync(chooserFlags,
                              [this](const FileChooser& fc)
                              {
-                                 if(fc.getResult() == File {})
-                                     return;
+                                 if (fc.getResult() == File{}) return;
 
                                  path.add(fc.getResult(), listBox.getSelectedRow());
                                  internalChange();
@@ -310,11 +300,11 @@ private:
         jassert(delta == -1 || delta == 1);
         auto currentRow = listBox.getSelectedRow();
 
-        if(isPositiveAndBelow(currentRow, path.getNumPaths()))
+        if (isPositiveAndBelow(currentRow, path.getNumPaths()))
         {
             auto newRow = jlimit(0, path.getNumPaths() - 1, currentRow + delta);
 
-            if(currentRow != newRow)
+            if (currentRow != newRow)
             {
                 auto f = path[currentRow];
                 path.remove(currentRow);

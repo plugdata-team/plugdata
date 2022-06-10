@@ -9,7 +9,7 @@ extern "C"
 
 class PdArray
 {
-public:
+   public:
     enum DrawType
     {
         Points,
@@ -42,7 +42,7 @@ public:
         float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         libpd_array_get_scale(name.toRawUTF8(), &min, &max);
-        return { min, max };
+        return {min, max};
     }
 
     void setScale(std::array<float, 2> scale)
@@ -76,7 +76,7 @@ public:
         libpd_write_array(name.toRawUTF8(), static_cast<int>(pos), &input, 1);
     }
 
-private:
+   private:
     String name = "";
     void* instance = nullptr;
 
@@ -85,13 +85,12 @@ private:
 
 struct GraphicalArray : public Component
 {
-public:
+   public:
     Box* box;
 
     GraphicalArray(PlugDataAudioProcessor* instance, PdArray& graph, Box* parent) : array(graph), edited(false), pd(instance), box(parent)
     {
-        if(graph.getName().isEmpty())
-            return;
+        if (graph.getName().isEmpty()) return;
 
         vec.reserve(8192);
         temp.reserve(8192);
@@ -99,7 +98,7 @@ public:
         {
             array.read(vec);
         }
-        catch(...)
+        catch (...)
         {
             error = true;
         }
@@ -110,8 +109,7 @@ public:
 
     void setArray(PdArray& graph)
     {
-        if(graph.getName().isEmpty())
-            return;
+        if (graph.getName().isEmpty()) return;
         array = graph;
     }
 
@@ -120,7 +118,7 @@ public:
         g.setColour(box->findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
 
-        if(error)
+        if (error)
         {
             g.setColour(box->findColour(PlugDataColour::textColourId));
             g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
@@ -130,13 +128,12 @@ public:
         {
             const auto h = static_cast<float>(getHeight());
             const auto w = static_cast<float>(getWidth());
-            if(! vec.empty())
+            if (!vec.empty())
             {
                 const std::array<float, 2> scale = array.getScale();
-                if(scale[0] >= scale[1])
-                    return;
+                if (scale[0] >= scale[1]) return;
 
-                switch(array.getDrawType())
+                switch (array.getDrawType())
                 {
                     case PdArray::DrawType::Curve:
                     {
@@ -144,7 +141,7 @@ public:
                         const float dw = w / static_cast<float>(vec.size() - 1);
                         Path p;
                         p.startNewSubPath(0, h - (std::clamp(vec[0], scale[0], scale[1]) - scale[0]) * dh);
-                        for(size_t i = 1; i < vec.size() - 1; i += 2)
+                        for (size_t i = 1; i < vec.size() - 1; i += 2)
                         {
                             const float y1 = h - (std::clamp(vec[i - 1], scale[0], scale[1]) - scale[0]) * dh;
                             const float y2 = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
@@ -161,7 +158,7 @@ public:
                         const float dw = w / static_cast<float>(vec.size() - 1);
                         Path p;
                         p.startNewSubPath(0, h - (std::clamp(vec[0], scale[0], scale[1]) - scale[0]) * dh);
-                        for(size_t i = 1; i < vec.size(); ++i)
+                        for (size_t i = 1; i < vec.size(); ++i)
                         {
                             const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
                             p.lineTo(static_cast<float>(i) * dw, y);
@@ -175,7 +172,7 @@ public:
                         const float dh = h / (scale[1] - scale[0]);
                         const float dw = w / static_cast<float>(vec.size());
                         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-                        for(size_t i = 0; i < vec.size(); ++i)
+                        for (size_t i = 0; i < vec.size(); ++i)
                         {
                             const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
                             g.drawLine(static_cast<float>(i) * dw, y, static_cast<float>(i + 1) * dw, y);
@@ -191,8 +188,7 @@ public:
 
     void mouseDown(const MouseEvent& e) override
     {
-        if(error)
-            return;
+        if (error) return;
         edited = true;
 
         const auto s = static_cast<float>(vec.size() - 1);
@@ -206,8 +202,7 @@ public:
 
     void mouseDrag(const MouseEvent& e) override
     {
-        if(error)
-            return;
+        if (error) return;
 
         const auto s = static_cast<float>(vec.size() - 1);
         const auto w = static_cast<float>(getWidth());
@@ -230,7 +225,7 @@ public:
         // const CriticalSection* cs = pd->getCallbackLock();
 
         // Fix to make sure we don't leave any gaps while dragging
-        for(int n = interpStart; n <= interpEnd; n++)
+        for (int n = interpStart; n <= interpEnd; n++)
         {
             vec[n] = jmap<float>(n, interpStart, interpEnd + 1, min, max);
         }
@@ -243,12 +238,12 @@ public:
             {
                 try
                 {
-                    for(int n = 0; n < changed.size(); n++)
+                    for (int n = 0; n < changed.size(); n++)
                     {
                         array.write(interpStart + n, changed[n]);
                     }
                 }
-                catch(...)
+                catch (...)
                 {
                     error = true;
                 }
@@ -262,25 +257,24 @@ public:
 
     void mouseUp(const MouseEvent& e) override
     {
-        if(error)
-            return;
+        if (error) return;
         edited = false;
     }
 
     void update()
     {
-        if(! edited)
+        if (!edited)
         {
             error = false;
             try
             {
                 array.read(temp);
             }
-            catch(...)
+            catch (...)
             {
                 error = true;
             }
-            if(temp != vec)
+            if (temp != vec)
             {
                 vec.swap(temp);
                 repaint();
@@ -307,7 +301,7 @@ public:
 
 struct ArrayObject final : public GUIObject
 {
-public:
+   public:
     // Array component
     ArrayObject(void* obj, Box* box) : GUIObject(obj, box), array(getArray()), graph(cnv->pd, array, box)
     {
@@ -316,7 +310,7 @@ public:
         addAndMakeVisible(&graph);
 
         auto scale = array.getScale();
-        Array<var> arr = { var(scale[0]), var(scale[1]) };
+        Array<var> arr = {var(scale[0]), var(scale[1])};
         range = var(arr);
         size = var(static_cast<int>(graph.getArraySize()));
 
@@ -336,9 +330,9 @@ public:
 
         const String text = array.getName();
 
-        if(text.isNotEmpty())
+        if (text.isNotEmpty())
         {
-            if(! label)
+            if (!label)
             {
                 label = std::make_unique<Label>();
             }
@@ -368,7 +362,7 @@ public:
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
         auto* glist = static_cast<_glist*>(ptr);
-        box->setObjectBounds({ x, y, glist->gl_pixwidth, glist->gl_pixheight });
+        box->setObjectBounds({x, y, glist->gl_pixwidth, glist->gl_pixheight});
     }
 
     void checkBounds() override
@@ -377,7 +371,7 @@ public:
         int w = jlimit(100, maxSize, box->getWidth());
         int h = jlimit(40, maxSize, box->getHeight());
 
-        if(w != box->getWidth() || h != box->getHeight())
+        if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
         }
@@ -386,11 +380,7 @@ public:
     ObjectParameters defineParameters() override
     {
         return {
-            { "Name", tString, cGeneral, &name, {} },
-            { "Size", tInt, cGeneral, &size, {} },
-            { "Draw Mode", tCombo, cGeneral, &drawMode, { "Points", "Polygon", "Bezier Curve" } },
-            { "Y Range", tRange, cGeneral, &range, {} },
-            { "Save Contents", tBool, cGeneral, &saveContents, { "No", "Yes" } },
+            {"Name", tString, cGeneral, &name, {}}, {"Size", tInt, cGeneral, &size, {}}, {"Draw Mode", tCombo, cGeneral, &drawMode, {"Points", "Polygon", "Bezier Curve"}}, {"Y Range", tRange, cGeneral, &range, {}}, {"Save Contents", tBool, cGeneral, &saveContents, {"No", "Yes"}},
         };
     }
 
@@ -416,11 +406,11 @@ public:
         auto arrDrawMode = static_cast<int>(drawMode.getValue()) - 1;
 
         // This flag is swapped for some reason
-        if(arrDrawMode == 0)
+        if (arrDrawMode == 0)
         {
             arrDrawMode = 1;
         }
-        else if(arrDrawMode == 1)
+        else if (arrDrawMode == 1)
         {
             arrDrawMode = 0;
         }
@@ -454,15 +444,15 @@ public:
 
     void valueChanged(Value& value) override
     {
-        if(value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents))
+        if (value.refersToSameSourceAs(name) || value.refersToSameSourceAs(size) || value.refersToSameSourceAs(drawMode) || value.refersToSameSourceAs(saveContents))
         {
             updateSettings();
         }
-        else if(value.refersToSameSourceAs(range))
+        else if (value.refersToSameSourceAs(range))
         {
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
-            graph.array.setScale({ min, max });
+            graph.array.setScale({min, max});
             repaint();
         }
         else
@@ -473,17 +463,17 @@ public:
 
     void paintOverChildren(Graphics& g) override
     {
-        auto outlineColour = box->findColour(cnv->isSelected(box) && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
     PdArray getArray() const
     {
-        return { libpd_array_get_name(static_cast<t_canvas*>(ptr)->gl_list), cnv->pd->m_instance };
+        return {libpd_array_get_name(static_cast<t_canvas*>(ptr)->gl_list), cnv->pd->m_instance};
     }
 
-private:
+   private:
     Value name, size, drawMode, saveContents, range;
 
     PdArray array;

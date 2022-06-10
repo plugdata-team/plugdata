@@ -14,7 +14,7 @@ struct Spinner : public Component, public Timer
     void stopSpinning()
     {
         numSpinning--;
-        if(! numSpinning)
+        if (!numSpinning)
         {
             setVisible(false);
             stopTimer();
@@ -71,7 +71,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         DownloadTask(Deken& d, PackageInfo& info, File destFile)
             : deken(d),
               packageInfo(info),
-              task(URL(info.url).downloadToFile(destFile, URL::DownloadTaskOptions().withListener(this))) {
+              task(URL(info.url).downloadToFile(destFile, URL::DownloadTaskOptions().withListener(this))){
 
               };
 
@@ -95,7 +95,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
                     });
             };
 
-            if(! success)
+            if (!success)
             {
                 error("Download failed");
                 return;
@@ -108,7 +108,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
             auto result = zipfile.uncompressTo(downloadLocation.getParentDirectory());
             downloadLocation.deleteFile();
 
-            if(! result.wasOk())
+            if (!result.wasOk())
             {
                 error("Extraction failed: " + result.getErrorMessage());
                 return;
@@ -136,33 +136,32 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         {
             float progress = static_cast<long double>(task->getLengthDownloaded()) / static_cast<long double>(task->getTotalLength());
 
-            MessageManager::callAsync([this, progress]() mutable
-                                      { onProgress(progress); });
+            MessageManager::callAsync([this, progress]() mutable { onProgress(progress); });
         }
 
         std::function<void(float)> onProgress;
         std::function<void(bool)> onFinish;
     };
 
-public:
+   public:
     Deken() : ThreadPool(1)
     {
-        if(! filesystem.exists())
+        if (!filesystem.exists())
         {
             filesystem.createDirectory();
         }
 
-        if(pkgInfo.existsAsFile())
+        if (pkgInfo.existsAsFile())
         {
             try
             {
                 auto newTree = ValueTree::fromXml(pkgInfo.loadFileAsString());
-                if(newTree.getType() == Identifier("pkg_info"))
+                if (newTree.getType() == Identifier("pkg_info"))
                 {
                     packageState = newTree;
                 }
             }
-            catch(...)
+            catch (...)
             {
                 packageState = ValueTree("pkg_info");
             }
@@ -179,8 +178,7 @@ public:
 
         input.setName("sidebar::searcheditor");
 
-        input.onTextChange = [this]()
-        { startTimer(250); };
+        input.onTextChange = [this]() { startTimer(250); };
 
         clearButton.setName("statusbar:clearsearch");
         clearButton.onClick = [this]()
@@ -200,7 +198,7 @@ public:
         listBox.addMouseListener(this, true);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({ 1, 23, 3, 1 });
+        input.setBorder({1, 23, 3, 1});
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
@@ -225,8 +223,7 @@ public:
     // Check if busy when deleting settings component
     bool isBusy()
     {
-        if(downloads.size())
-            return true;
+        if (downloads.size()) return true;
 
         return getNumJobs();
     }
@@ -240,7 +237,7 @@ public:
     {
         PlugDataLook::paintStripes(g, 32, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() + 4);
 
-        if(errorMessage.isNotEmpty())
+        if (errorMessage.isNotEmpty())
         {
             g.setColour(Colours::red);
             g.drawText(errorMessage, getLocalBounds().removeFromBottom(28).withTrimmedLeft(8).translated(0, 2), Justification::centredLeft);
@@ -254,7 +251,7 @@ public:
 
         g.drawText(Icons::Search, 0, 0, 30, 30, Justification::centred);
 
-        if(input.getText().isEmpty())
+        if (input.getText().isEmpty())
         {
             g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
             g.setFont(Font());
@@ -278,12 +275,12 @@ public:
     {
         delete existingComponentToUpdate;
 
-        if(isPositiveAndBelow(rowNumber, downloads.size()))
+        if (isPositiveAndBelow(rowNumber, downloads.size()))
         {
             return new DekenRowComponent(*this, downloads[rowNumber]->packageInfo);
         }
 
-        else if(isPositiveAndBelow(rowNumber - downloads.size(), searchResult.size()))
+        else if (isPositiveAndBelow(rowNumber - downloads.size(), searchResult.size()))
         {
             return new DekenRowComponent(*this, searchResult.getReference(rowNumber - downloads.size()));
         }
@@ -305,14 +302,13 @@ public:
         addJob(
             [this, deken, result, query, searchType]() mutable
             {
-                if(! deken)
-                    return;
+                if (!deken) return;
                 SearchResult newResult;
 
                 // Add as job to ensure synchronous order
-                if(query.isEmpty())
+                if (query.isEmpty())
                 {
-                    for(auto child : packageState)
+                    for (auto child : packageState)
                     {
                         auto name = child.getType().toString();
                         auto description = child.getProperty("Description").toString();
@@ -322,9 +318,9 @@ public:
                         auto author = child.getProperty("Author").toString();
 
                         bool exists = false;
-                        for(auto* download : downloads)
+                        for (auto* download : downloads)
                         {
-                            if(download->packageInfo == PackageInfo(name, author, timestamp, url, description, version))
+                            if (download->packageInfo == PackageInfo(name, author, timestamp, url, description, version))
                             {
                                 exists = true;
                                 break;
@@ -333,7 +329,7 @@ public:
 
                         auto info = PackageInfo(name, author, timestamp, url, description, version);
 
-                        if(! getDownloadForPackage(info))
+                        if (!getDownloadForPackage(info))
                         {
                             newResult.addIfNotAlreadyThere(info);
                         }
@@ -343,8 +339,7 @@ public:
                         [this, deken, result, newResult]() mutable
                         {
                             // Check if it didn't get deleted
-                            if(! deken)
-                                return;
+                            if (!deken) return;
 
                             *result = newResult;
                             listBox.updateContent();
@@ -354,7 +349,7 @@ public:
                 }
 
                 // Set to name for now: there are not that many deken libraries to justify the other options
-                String type = StringArray({ "name", "objects", "libraries" })[searchType];
+                String type = StringArray({"name", "objects", "libraries"})[searchType];
 
                 // Create link for deken search request
                 auto url = URL("https://deken.puredata.info/search?" + type + "=" + query);
@@ -366,20 +361,19 @@ public:
                 int timer = 50;
 
                 // Try to connect with exponential backoff
-                while(! success && timer < 2000)
+                while (!success && timer < 2000)
                 {
                     Time::waitForMillisecondCounter(Time::getMillisecondCounter() + timer);
                     timer *= 2;
                     success = webstream.connect(nullptr);
                 }
 
-                if(! success)
+                if (!success)
                 {
                     MessageManager::callAsync(
                         [this, deken, result]()
                         {
-                            if(! deken)
-                                return;
+                            if (!deken) return;
 
                             result->clear();
                             listBox.updateContent();
@@ -398,20 +392,19 @@ public:
                 // Disable assertions:
                 // Sometimes the server passes an invalid result causing an assertion
                 // But the invalid result is no problem!
-                if(JSON::parse(json, parsedJson).wasOk())
+                if (JSON::parse(json, parsedJson).wasOk())
                 {
 #define JUCE_DEBUG 1
                     // Read json
                     auto* object = parsedJson["result"]["libraries"].getDynamicObject();
 
                     // Invalid result, update table and return
-                    if(! object)
+                    if (!object)
                     {
                         MessageManager::callAsync(
                             [this, deken, result]()
                             {
-                                if(! deken)
-                                    return;
+                                if (!deken) return;
 
                                 result->clear();
                                 listBox.updateContent();
@@ -422,22 +415,22 @@ public:
                     }
 
                     // Valid result, go through the options
-                    for(const auto result : object->getProperties())
+                    for (const auto result : object->getProperties())
                     {
                         SearchResult results;
                         String name = result.name.toString();
 
                         // Loop through the different versions
                         auto* versions = result.value.getDynamicObject();
-                        for(const auto v : versions->getProperties())
+                        for (const auto v : versions->getProperties())
                         {
                             // Loop through architectures
-                            for(auto& arch : *v.value.getArray())
+                            for (auto& arch : *v.value.getArray())
                             {
                                 auto* archs = arch["archs"].getArray();
                                 // Look for matching platform
                                 String platform = archs->getReference(0).toString();
-                                if(checkArchitecture(platform))
+                                if (checkArchitecture(platform))
                                 {
                                     // Extract info
                                     String author = arch["author"];
@@ -448,22 +441,21 @@ public:
                                     String version = arch["version"];
 
                                     // Add valid option
-                                    results.add({ name, author, timestamp, url, description, version });
+                                    results.add({name, author, timestamp, url, description, version});
                                 }
                             }
                         }
 
-                        if(! results.isEmpty())
+                        if (!results.isEmpty())
                         {
                             // Sort by alphabetically by timestamp to get latest version
                             // The timestamp format is yyyy:mm::dd hh::mm::ss so this should work
-                            std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2)
-                                      { return result1.timestamp.compare(result2.timestamp) > 0; });
+                            std::sort(results.begin(), results.end(), [](const auto& result1, const auto& result2) { return result1.timestamp.compare(result2.timestamp) > 0; });
 
                             auto info = results.getReference(0);
 
                             // check if already being downloaded
-                            if(! getDownloadForPackage(info))
+                            if (!getDownloadForPackage(info))
                             {
                                 newResult.addIfNotAlreadyThere(info);
                             }
@@ -474,8 +466,7 @@ public:
                 MessageManager::callAsync(
                     [this, deken, result, newResult]() mutable
                     {
-                        if(! deken)
-                            return;
+                        if (!deken) return;
                         *result = newResult;
                         listBox.updateContent();
                         searchSpinner.stopSpinning();
@@ -529,7 +520,7 @@ public:
     void uninstall(PackageInfo& packageInfo)
     {
         auto toRemove = packageState.getChildWithProperty("ID", packageInfo.packageId);
-        if(toRemove.isValid())
+        if (toRemove.isValid())
         {
             auto folder = File(toRemove.getProperty("Path").toString());
             folder.deleteRecursively();
@@ -560,7 +551,7 @@ public:
         pkgEntry.setProperty("URL", info.url, nullptr);
 
         // Prevent duplicate entries
-        if(packageState.getChildWithProperty("ID", info.packageId).isValid())
+        if (packageState.getChildWithProperty("ID", info.packageId).isValid())
         {
             packageState.removeChild(packageState.getChildWithProperty("ID", info.packageId), nullptr);
         }
@@ -575,9 +566,9 @@ public:
     // Checks if the current package is already being downloaded
     DownloadTask* getDownloadForPackage(PackageInfo& info)
     {
-        for(auto* download : downloads)
+        for (auto* download : downloads)
         {
-            if(download->packageInfo == info)
+            if (download->packageInfo == info)
             {
                 return download;
             }
@@ -586,7 +577,7 @@ public:
         return nullptr;
     }
 
-private:
+   private:
     // List component to list packages
     ListBox listBox;
 
@@ -661,7 +652,7 @@ private:
             setInstalled(deken.packageExists(packageInfo));
 
             // Check if already in progress
-            if(auto* task = deken.getDownloadForPackage(packageInfo))
+            if (auto* task = deken.getDownloadForPackage(packageInfo))
             {
                 attachToDownload(task);
             }
@@ -688,7 +679,7 @@ private:
         // Enables or disables buttons based on package state
         void setInstalled(bool installed)
         {
-            installButton.setVisible(! installed);
+            installButton.setVisible(!installed);
             reinstallButton.setVisible(installed);
             uninstallButton.setVisible(installed);
             installProgress = 0.0f;
@@ -704,16 +695,16 @@ private:
             g.drawFittedText(packageInfo.name, 5, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
 
             // draw progressbar
-            if(deken.getDownloadForPackage(packageInfo))
+            if (deken.getDownloadForPackage(packageInfo))
             {
                 float width = getWidth() - 90.0f;
                 float right = jmap(installProgress, 90.f, width);
 
                 Path downloadPath;
-                downloadPath.addLineSegment({ 90, 15, right, 15 }, 1.0f);
+                downloadPath.addLineSegment({90, 15, right, 15}, 1.0f);
 
                 Path fullPath;
-                fullPath.addLineSegment({ 90, 15, width, 15 }, 1.0f);
+                fullPath.addLineSegment({90, 15, width, 15}, 1.0f);
 
                 g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
                 g.strokePath(fullPath, PathStrokeType(11.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
@@ -740,17 +731,14 @@ private:
     static bool checkArchitecture(String platform)
     {
         // Check OS
-        if(platform.upToFirstOccurrenceOf("-", false, false) != os)
-            return false;
+        if (platform.upToFirstOccurrenceOf("-", false, false) != os) return false;
         platform = platform.fromFirstOccurrenceOf("-", false, false);
 
         // Check floatsize
-        if(platform.fromLastOccurrenceOf("-", false, false) != floatsize)
-            return false;
+        if (platform.fromLastOccurrenceOf("-", false, false) != floatsize) return false;
         platform = platform.upToLastOccurrenceOf("-", false, false);
 
-        if(machine.contains(platform))
-            return true;
+        if (machine.contains(platform)) return true;
 
         return false;
     }

@@ -34,7 +34,7 @@ using KeywordMap = std::unordered_map<String, StringArray>;
 // A class to store a Trie node
 class Trie
 {
-public:
+   public:
     bool isLeaf;
     Trie* character[CHAR_SIZE];
 
@@ -43,7 +43,7 @@ public:
     {
         isLeaf = false;
 
-        for(int i = 0; i < CHAR_SIZE; i++)
+        for (int i = 0; i < CHAR_SIZE; i++)
         {
             character[i] = nullptr;
         }
@@ -51,9 +51,9 @@ public:
 
     ~Trie()
     {
-        for(int i = 0; i < CHAR_SIZE; i++)
+        for (int i = 0; i < CHAR_SIZE; i++)
         {
-            if(character[i])
+            if (character[i])
             {
                 delete character[i];
             }
@@ -98,4 +98,4 @@ struct Library : public FileSystemWatcher::Listener
     FileSystemWatcher watcher;
 };
 
-} // namespace pd
+}  // namespace pd

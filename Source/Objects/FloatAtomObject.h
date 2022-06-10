@@ -12,7 +12,7 @@ struct FloatAtomObject final : public AtomObject
             auto* editor = input.getCurrentTextEditor();
             startEdition();
 
-            if(editor != nullptr)
+            if (editor != nullptr)
             {
                 editor->setInputRestrictions(0, ".-0123456789");
             }
@@ -37,14 +37,11 @@ struct FloatAtomObject final : public AtomObject
 
         addMouseListener(this, true);
 
-        dragger.dragStart = [this]()
-        { startEdition(); };
+        dragger.dragStart = [this]() { startEdition(); };
 
-        dragger.valueChanged = [this](float value)
-        { setValueOriginal(value); };
+        dragger.valueChanged = [this](float value) { setValueOriginal(value); };
 
-        dragger.dragEnd = [this]()
-        { stopEdition(); };
+        dragger.dragEnd = [this]() { stopEdition(); };
     }
 
     void checkBounds() override
@@ -53,7 +50,7 @@ struct FloatAtomObject final : public AtomObject
         int w = jlimit(30, maxSize, box->getWidth());
         int h = getAtomHeight() + Box::doubleMargin;
 
-        if(w != box->getWidth() || h != box->getHeight())
+        if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
         }
@@ -74,17 +71,17 @@ struct FloatAtomObject final : public AtomObject
 
     ObjectParameters defineParameters() override
     {
-        return { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+        return {{"Minimum", tFloat, cGeneral, &min, {}}, {"Maximum", tFloat, cGeneral, &max, {}}};
     }
 
     void valueChanged(Value& value) override
     {
-        if(value.refersToSameSourceAs(min))
+        if (value.refersToSameSourceAs(min))
         {
             setMinimum(static_cast<float>(min.getValue()));
             updateValue();
         }
-        else if(value.refersToSameSourceAs(max))
+        else if (value.refersToSameSourceAs(max))
         {
             setMaximum(static_cast<float>(max.getValue()));
             updateValue();
@@ -103,7 +100,7 @@ struct FloatAtomObject final : public AtomObject
     float getMinimum()
     {
         auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        if(std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon())
+        if (std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon())
         {
             return gatom->a_draglo;
         }
@@ -113,7 +110,7 @@ struct FloatAtomObject final : public AtomObject
     float getMaximum()
     {
         auto const* gatom = static_cast<t_fake_gatom const*>(ptr);
-        if(std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon())
+        if (std::abs(gatom->a_draglo) > std::numeric_limits<float>::epsilon() && std::abs(gatom->a_draghi) > std::numeric_limits<float>::epsilon())
         {
             return gatom->a_draghi;
         }
@@ -123,7 +120,7 @@ struct FloatAtomObject final : public AtomObject
     void setMinimum(float value)
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        if(std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon())
+        if (std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon())
         {
             gatom->a_draglo = value;
         }
@@ -131,7 +128,7 @@ struct FloatAtomObject final : public AtomObject
     void setMaximum(float value)
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        if(std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon())
+        if (std::abs(value) > std::numeric_limits<float>::epsilon() && std::abs(value) > std::numeric_limits<float>::epsilon())
         {
             gatom->a_draghi = value;
         }

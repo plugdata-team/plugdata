@@ -25,98 +25,85 @@ extern "C"
     {
         static void instance_multi_bang(pd::Instance* ptr, const char* recv)
         {
-            ptr->enqueueFunctionAsync([ptr, recv]()
-                                      { ptr->processMessage({ String("bang"), String(recv) }); });
+            ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({String("bang"), String(recv)}); });
         }
 
         static void instance_multi_float(pd::Instance* ptr, const char* recv, float f)
         {
-            ptr->enqueueFunctionAsync([ptr, recv, f]() mutable
-                                      { ptr->processMessage({ String("float"), String(recv), std::vector<Atom>(1, { f }) }); });
+            ptr->enqueueFunctionAsync([ptr, recv, f]() mutable { ptr->processMessage({String("float"), String(recv), std::vector<Atom>(1, {f})}); });
         }
 
         static void instance_multi_symbol(pd::Instance* ptr, const char* recv, const char* sym)
         {
-            ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable
-                                      { ptr->processMessage({ String("symbol"), String(recv), std::vector<Atom>(1, String(sym)) }); });
+            ptr->enqueueFunctionAsync([ptr, recv, sym]() mutable { ptr->processMessage({String("symbol"), String(recv), std::vector<Atom>(1, String(sym))}); });
         }
 
         static void instance_multi_list(pd::Instance* ptr, const char* recv, int argc, t_atom* argv)
         {
-            Message mess { String("list"), String(recv), std::vector<Atom>(argc) };
-            for(int i = 0; i < argc; ++i)
+            Message mess{String("list"), String(recv), std::vector<Atom>(argc)};
+            for (int i = 0; i < argc; ++i)
             {
-                if(argv[i].a_type == A_FLOAT)
+                if (argv[i].a_type == A_FLOAT)
                     mess.list[i] = Atom(atom_getfloat(argv + i));
-                else if(argv[i].a_type == A_SYMBOL)
+                else if (argv[i].a_type == A_SYMBOL)
                     mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
             }
 
-            ptr->enqueueFunctionAsync([ptr, mess]() mutable
-                                      { ptr->processMessage(std::move(mess)); });
+            ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
         }
 
         static void instance_multi_message(pd::Instance* ptr, const char* recv, const char* msg, int argc, t_atom* argv)
         {
-            Message mess { msg, String(recv), std::vector<Atom>(argc) };
-            for(int i = 0; i < argc; ++i)
+            Message mess{msg, String(recv), std::vector<Atom>(argc)};
+            for (int i = 0; i < argc; ++i)
             {
-                if(argv[i].a_type == A_FLOAT)
+                if (argv[i].a_type == A_FLOAT)
                     mess.list[i] = Atom(atom_getfloat(argv + i));
-                else if(argv[i].a_type == A_SYMBOL)
+                else if (argv[i].a_type == A_SYMBOL)
                     mess.list[i] = Atom(String(atom_getsymbol(argv + i)->s_name));
             }
-            ptr->enqueueFunctionAsync([ptr, mess]() mutable
-                                      { ptr->processMessage(std::move(mess)); });
+            ptr->enqueueFunctionAsync([ptr, mess]() mutable { ptr->processMessage(std::move(mess)); });
         }
 
         static void instance_multi_noteon(pd::Instance* ptr, int channel, int pitch, int velocity)
         {
-            ptr->enqueueFunctionAsync([ptr, channel, pitch, velocity]() mutable
-                                      { ptr->processMidiEvent({ midievent::NOTEON, channel, pitch, velocity }); });
+            ptr->enqueueFunctionAsync([ptr, channel, pitch, velocity]() mutable { ptr->processMidiEvent({midievent::NOTEON, channel, pitch, velocity}); });
         }
 
         static void instance_multi_controlchange(pd::Instance* ptr, int channel, int controller, int value)
         {
-            ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable
-                                      { ptr->processMidiEvent({ midievent::CONTROLCHANGE, channel, controller, value }); });
+            ptr->enqueueFunctionAsync([ptr, channel, controller, value]() mutable { ptr->processMidiEvent({midievent::CONTROLCHANGE, channel, controller, value}); });
         }
 
         static void instance_multi_programchange(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable
-                                      { ptr->processMidiEvent({ midievent::PROGRAMCHANGE, channel, value, 0 }); });
+            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
         }
 
         static void instance_multi_pitchbend(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable
-                                      { ptr->processMidiEvent({ midievent::PROGRAMCHANGE, channel, value, 0 }); });
+            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::PROGRAMCHANGE, channel, value, 0}); });
         }
 
         static void instance_multi_aftertouch(pd::Instance* ptr, int channel, int value)
         {
-            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable
-                                      { ptr->processMidiEvent({ midievent::AFTERTOUCH, channel, value, 0 }); });
+            ptr->enqueueFunctionAsync([ptr, channel, value]() mutable { ptr->processMidiEvent({midievent::AFTERTOUCH, channel, value, 0}); });
         }
 
         static void instance_multi_polyaftertouch(pd::Instance* ptr, int channel, int pitch, int value)
         {
-            ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable
-                                      { ptr->processMidiEvent({ midievent::POLYAFTERTOUCH, channel, pitch, value }); });
+            ptr->enqueueFunctionAsync([ptr, channel, pitch, value]() mutable { ptr->processMidiEvent({midievent::POLYAFTERTOUCH, channel, pitch, value}); });
         }
 
         static void instance_multi_midibyte(pd::Instance* ptr, int port, int byte)
         {
-            ptr->enqueueFunctionAsync([ptr, port, byte]() mutable
-                                      { ptr->processMidiEvent({ midievent::MIDIBYTE, port, byte, 0 }); });
+            ptr->enqueueFunctionAsync([ptr, port, byte]() mutable { ptr->processMidiEvent({midievent::MIDIBYTE, port, byte, 0}); });
         }
 
         static void instance_multi_print(pd::Instance* ptr, char const* s)
         {
             auto message = String(s);
-            ptr->enqueueFunctionAsync([ptr, message]() mutable
-                                      { ptr->processPrint(message); });
+            ptr->enqueueFunctionAsync([ptr, message]() mutable { ptr->processPrint(message); });
         }
     };
 }
@@ -132,12 +119,16 @@ Instance::Instance(String const& symbol)
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     m_midi_receiver =
-        libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange), reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch), reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
+        libpd_multi_midi_new(this, reinterpret_cast<t_libpd_multi_noteonhook>(internal::instance_multi_noteon), reinterpret_cast<t_libpd_multi_controlchangehook>(internal::instance_multi_controlchange), reinterpret_cast<t_libpd_multi_programchangehook>(internal::instance_multi_programchange),
+                             reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
+                             reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
 
-    m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol), reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+    m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+                                                  reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
 
-    m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol), reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
+    m_parameter_receiver = libpd_multi_receiver_new(this, "param", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
+                                                    reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
     m_atoms = malloc(sizeof(t_atom) * 512);
 
     // Register callback when pd's gui changes
@@ -148,7 +139,7 @@ Instance::Instance(String const& symbol)
         auto* pd = static_cast<t_pd*>(target);
 
         // redraw scalar
-        if(pd && ! strcmp((*pd)->c_name->s_name, "scalar"))
+        if (pd && !strcmp((*pd)->c_name->s_name, "scalar"))
         {
             static_cast<Instance*>(instance)->receiveGuiUpdate(2);
         }
@@ -158,11 +149,9 @@ Instance::Instance(String const& symbol)
         }
     };
 
-    auto panel_trigger = [](void* instance, int open, const char* snd, const char* location)
-    { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
+    auto panel_trigger = [](void* instance, int open, const char* snd, const char* location) { static_cast<Instance*>(instance)->createPanel(open, snd, location); };
 
-    auto synchronise_trigger = [](void* instance, void* cnv)
-    { static_cast<Instance*>(instance)->synchroniseCanvas(cnv); };
+    auto synchronise_trigger = [](void* instance, void* cnv) { static_cast<Instance*>(instance)->synchroniseCanvas(cnv); };
 
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger);
 
@@ -185,38 +174,38 @@ Instance::Instance(String const& symbol)
 
     // First find all the objects that need a full path and put them in a list
     // Adding new entries while iterating over them is a bad idea
-    for(i = o->c_nmethod, m = mlist; i--; m++)
+    for (i = o->c_nmethod, m = mlist; i--; m++)
     {
         String name(m->me_name->s_name);
 
-        if(name == "accum")
+        if (name == "accum")
         {
             insideCyclone = true;
         }
-        if(name == "above")
+        if (name == "above")
         {
             insideElse = true;
         }
 
-        if((insideCyclone || insideElse) && ! (name.contains("cyclone") || name.contains("else") || name == "Pow~"))
+        if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~"))
         {
             auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
 
             std::array<t_atomtype, 6> args;
-            for(int n = 0; n < 6; n++)
+            for (int n = 0; n < 6; n++)
             {
                 args[n] = static_cast<t_atomtype>(m->me_arg[n]);
             }
 
             auto* method = reinterpret_cast<t_newmethod>(m->me_fun);
 
-            newMethods.push_back({ newName, method, args });
+            newMethods.push_back({newName, method, args});
         }
-        if(name == "zerox")
+        if (name == "zerox")
         {
             insideCyclone = false;
         }
-        if(name == "zerocross")
+        if (name == "zerocross")
         {
             insideElse = false;
         }
@@ -224,7 +213,7 @@ Instance::Instance(String const& symbol)
 
     // Then create aliases for all these objects
     // We seperate this process in two parts because adding new objects while looping through objects causes problems
-    for(auto [name, method, args] : newMethods)
+    for (auto [name, method, args] : newMethods)
     {
         class_addcreator(method, gensym(name.toRawUTF8()), args[0], args[1], args[2], args[3], args[4], args[5]);
     }
@@ -333,8 +322,7 @@ void Instance::sendMidiByte(const int port, const int byte) const
 
 void Instance::sendBang(const char* receiver) const
 {
-    if(! m_instance)
-        return;
+    if (!m_instance) return;
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_bang(receiver);
@@ -342,8 +330,7 @@ void Instance::sendBang(const char* receiver) const
 
 void Instance::sendFloat(const char* receiver, float const value) const
 {
-    if(! m_instance)
-        return;
+    if (!m_instance) return;
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_float(receiver, value);
@@ -351,8 +338,7 @@ void Instance::sendFloat(const char* receiver, float const value) const
 
 void Instance::sendSymbol(const char* receiver, const char* symbol) const
 {
-    if(! m_instance)
-        return;
+    if (!m_instance) return;
 
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_symbol(receiver, symbol);
@@ -362,9 +348,9 @@ void Instance::sendList(const char* receiver, const std::vector<Atom>& list) con
 {
     auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    for(size_t i = 0; i < list.size(); ++i)
+    for (size_t i = 0; i < list.size(); ++i)
     {
-        if(list[i].isFloat())
+        if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
             libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
@@ -374,14 +360,13 @@ void Instance::sendList(const char* receiver, const std::vector<Atom>& list) con
 
 void Instance::sendMessage(const char* receiver, const char* msg, const std::vector<Atom>& list) const
 {
-    if(! static_cast<t_pdinstance*>(m_instance))
-        return;
+    if (!static_cast<t_pdinstance*>(m_instance)) return;
 
     auto* argv = static_cast<t_atom*>(m_atoms);
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
-    for(size_t i = 0; i < list.size(); ++i)
+    for (size_t i = 0; i < list.size(); ++i)
     {
-        if(list[i].isFloat())
+        if (list[i].isFloat())
             libpd_set_float(argv + i, list[i].getFloat());
         else
             libpd_set_symbol(argv + i, list[i].getSymbol().toRawUTF8());
@@ -391,21 +376,21 @@ void Instance::sendMessage(const char* receiver, const char* msg, const std::vec
 
 void Instance::processMessage(Message mess)
 {
-    if(mess.destination == "param")
+    if (mess.destination == "param")
     {
         int index = mess.list[0].getFloat();
         float value = std::clamp(mess.list[1].getFloat(), 0.0f, 1.0f);
         receiveParameter(index, value);
     }
-    else if(mess.selector == "bang")
+    else if (mess.selector == "bang")
         receiveBang(mess.destination);
-    else if(mess.selector == "float")
+    else if (mess.selector == "float")
         receiveFloat(mess.destination, mess.list[0].getFloat());
-    else if(mess.selector == "symbol")
+    else if (mess.selector == "symbol")
         receiveSymbol(mess.destination, mess.list[0].getSymbol());
-    else if(mess.selector == "list")
+    else if (mess.selector == "list")
         receiveList(mess.destination, mess.list);
-    else if(mess.selector == "dsp")
+    else if (mess.selector == "dsp")
         receiveDSPState(mess.list[0].getFloat());
     else
         receiveMessage(mess.destination, mess.selector, mess.list);
@@ -413,41 +398,40 @@ void Instance::processMessage(Message mess)
 
 void Instance::processMidiEvent(midievent event)
 {
-    if(event.type == midievent::NOTEON)
+    if (event.type == midievent::NOTEON)
         receiveNoteOn(event.midi1 + 1, event.midi2, event.midi3);
-    else if(event.type == midievent::CONTROLCHANGE)
+    else if (event.type == midievent::CONTROLCHANGE)
         receiveControlChange(event.midi1 + 1, event.midi2, event.midi3);
-    else if(event.type == midievent::PROGRAMCHANGE)
+    else if (event.type == midievent::PROGRAMCHANGE)
         receiveProgramChange(event.midi1 + 1, event.midi2);
-    else if(event.type == midievent::PITCHBEND)
+    else if (event.type == midievent::PITCHBEND)
         receivePitchBend(event.midi1 + 1, event.midi2);
-    else if(event.type == midievent::AFTERTOUCH)
+    else if (event.type == midievent::AFTERTOUCH)
         receiveAftertouch(event.midi1 + 1, event.midi2);
-    else if(event.type == midievent::POLYAFTERTOUCH)
+    else if (event.type == midievent::POLYAFTERTOUCH)
         receivePolyAftertouch(event.midi1 + 1, event.midi2, event.midi3);
-    else if(event.type == midievent::MIDIBYTE)
+    else if (event.type == midievent::MIDIBYTE)
         receiveMidiByte(event.midi1, event.midi2);
 }
 
 void Instance::processPrint(String print)
 {
     print = print.trimEnd();
-    MessageManager::callAsync([this, print]() mutable
-                              { receivePrint(print); });
+    MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
 }
 
 void Instance::processSend(dmessage mess)
 {
-    if(mess.object && ! mess.list.empty())
+    if (mess.object && !mess.list.empty())
     {
-        if(mess.selector == "list")
+        if (mess.selector == "list")
         {
             auto* argv = static_cast<t_atom*>(m_atoms);
-            for(size_t i = 0; i < mess.list.size(); ++i)
+            for (size_t i = 0; i < mess.list.size(); ++i)
             {
-                if(mess.list[i].isFloat())
+                if (mess.list[i].isFloat())
                     SETFLOAT(argv + i, mess.list[i].getFloat());
-                else if(mess.list[i].isSymbol())
+                else if (mess.list[i].isSymbol())
                 {
                     sys_lock();
                     SETSYMBOL(argv + i, gensym(mess.list[i].getSymbol().toRawUTF8()));
@@ -460,13 +444,13 @@ void Instance::processSend(dmessage mess)
             pd_list(static_cast<t_pd*>(mess.object), gensym("list"), static_cast<int>(mess.list.size()), argv);
             sys_unlock();
         }
-        else if(mess.selector == "float" && mess.list[0].isFloat())
+        else if (mess.selector == "float" && mess.list[0].isFloat())
         {
             sys_lock();
             pd_float(static_cast<t_pd*>(mess.object), mess.list[0].getFloat());
             sys_unlock();
         }
-        else if(mess.selector == "symbol")
+        else if (mess.selector == "symbol")
         {
             sys_lock();
             pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().toRawUTF8()));
@@ -498,32 +482,28 @@ void Instance::enqueueFunctionAsync(const std::function<void(void)>& fn)
 
 void Instance::enqueueMessages(const String& dest, const String& msg, std::vector<Atom>&& list)
 {
-    enqueueFunction([this, dest, msg, list]() mutable
-                    { processSend(dmessage { nullptr, dest, msg, std::move(list) }); });
+    enqueueFunction([this, dest, msg, list]() mutable { processSend(dmessage{nullptr, dest, msg, std::move(list)}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, std::vector<Atom> const& list)
 {
-    enqueueFunction([this, object, list]() mutable
-                    { processSend(dmessage { object, String(), "list", list }); });
+    enqueueFunction([this, object, list]() mutable { processSend(dmessage{object, String(), "list", list}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, const String& msg)
 {
-    enqueueFunction([this, object, msg]() mutable
-                    { processSend(dmessage { object, String(), "symbol", std::vector<Atom>(1, msg) }); });
+    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, String(), "symbol", std::vector<Atom>(1, msg)}); });
 }
 
 void Instance::enqueueDirectMessages(void* object, const float msg)
 {
-    enqueueFunction([this, object, msg]() mutable
-                    { processSend(dmessage { object, String(), "float", std::vector<Atom>(1, msg) }); });
+    enqueueFunction([this, object, msg]() mutable { processSend(dmessage{object, String(), "float", std::vector<Atom>(1, msg)}); });
 }
 
 void Instance::waitForStateUpdate()
 {
     // No action needed
-    if(m_function_queue.size_approx() == 0)
+    if (m_function_queue.size_approx() == 0)
     {
         return;
     }
@@ -532,8 +512,7 @@ void Instance::waitForStateUpdate()
     //  Append signal to resume thread at the end of the queue
     //  This will make sure that any actions we performed are definitely finished now
     //  If it can aquire a lock, it will dequeue all action immediately
-    enqueueFunction([this]()
-                    { updateWait.signal(); });
+    enqueueFunction([this]() { updateWait.signal(); });
 
     updateWait.wait();
     //}
@@ -554,7 +533,7 @@ void Instance::sendMessagesFromQueue()
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
 
     std::function<void(void)> callback;
-    while(m_function_queue.try_dequeue(callback))
+    while (m_function_queue.try_dequeue(callback))
     {
         callback();
     }
@@ -580,7 +559,7 @@ Patch Instance::openPatch(const File& toOpen)
             done = true;
         });
 
-    while(! done)
+    while (!done)
     {
         waitForStateUpdate();
     }
@@ -600,7 +579,7 @@ void Instance::createPanel(int type, const char* snd, const char* location)
 
     auto defaultFile = File(location);
 
-    if(type)
+    if (type)
     {
         MessageManager::callAsync(
             [this, obj, defaultFile]() mutable
@@ -654,8 +633,7 @@ void Instance::logMessage(const String& message)
 {
     consoleMessages.emplace_back(message, 0, Font(14).getStringWidth(message) + 12);
 
-    if(consoleMessages.size() > 800)
-        consoleMessages.pop_front();
+    if (consoleMessages.size() > 800) consoleMessages.pop_front();
 
     updateConsole();
 }
@@ -664,9 +642,8 @@ void Instance::logError(const String& error)
 {
     consoleMessages.emplace_back(error, 1, Font(14).getStringWidth(error) + 12);
 
-    if(consoleMessages.size() > 800)
-        consoleMessages.pop_front();
+    if (consoleMessages.size() > 800) consoleMessages.pop_front();
 
     updateConsole();
 }
-} // namespace pd
+}  // namespace pd

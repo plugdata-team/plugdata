@@ -55,18 +55,17 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
 
         PopupMenu::Item i;
         i.text = displayName;
-        i.itemID = (int) commandID;
+        i.itemID = (int)commandID;
         i.commandManager = parent;
         i.isEnabled = target != nullptr && (info.flags & ApplicationCommandInfo::isDisabled) == 0;
 
         String shortcutKey;
 
-        for(auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID))
+        for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID))
         {
             auto key = keypress.getTextDescriptionWithIcons();
 
-            if(shortcutKey.isNotEmpty())
-                shortcutKey << ", ";
+            if (shortcutKey.isNotEmpty()) shortcutKey << ", ";
 
             shortcutKey << key;
         }
@@ -106,9 +105,9 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
                        [parent](int result)
                        {
-                           if(result != 0)
+                           if (result != 0)
                            {
-                               if(auto* cnv = parent->getCurrentCanvas())
+                               if (auto* cnv = parent->getCurrentCanvas())
                                {
                                    cnv->attachNextObjectToMouse = true;
                                }
