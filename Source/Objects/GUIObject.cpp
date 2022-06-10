@@ -8,43 +8,43 @@
 
 extern "C"
 {
-#include <g_all_guis.h>
+#include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
-#include <m_pd.h>
+#include <g_all_guis.h>
 }
 
 #include "Box.h"
 #include "Canvas.h"
+#include "PluginEditor.h"
 #include "LookAndFeel.h"
 #include "Pd/PdPatch.h"
-#include "PluginEditor.h"
 
-#include "AtomObject.h"
 #include "IEMObject.h"
+#include "AtomObject.h"
 
-#include "ArrayObject.h"
+#include "TextObject.h"
+#include "ToggleObject.h"
+#include "MessageObject.h"
+#include "MouseObject.h"
 #include "BangObject.h"
+#include "RadioObject.h"
+#include "SliderObject.h"
+#include "ArrayObject.h"
+#include "GraphOnParent.h"
+#include "KeyboardObject.h"
+#include "MousePadObject.h"
+#include "NumberObject.h"
 #include "CanvasObject.h"
+#include "PictureObject.h"
+#include "VUMeterObject.h"
+#include "ListObject.h"
+#include "SubpatchObject.h"
 #include "CloneObject.h"
 #include "CommentObject.h"
 #include "FloatAtomObject.h"
-#include "GraphOnParent.h"
-#include "KeyboardObject.h"
-#include "ListObject.h"
-#include "MessageObject.h"
-#include "MouseObject.h"
-#include "MousePadObject.h"
-#include "NumberObject.h"
-#include "PictureObject.h"
-#include "RadioObject.h"
-#include "ScalarObject.h"
-#include "SliderObject.h"
-#include "SubpatchObject.h"
 #include "SymbolAtomObject.h"
-#include "TextObject.h"
-#include "ToggleObject.h"
-#include "VUMeterObject.h"
+#include "ScalarObject.h"
 
 ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv){};
 
@@ -92,7 +92,7 @@ void ObjectBase::closeOpenedSubpatchers()
     {
         tabbar->getTabbedButtonBar().setVisible(true);
         tabbar->setTabBarDepth(28);
-        // main.resized(); TODO: this currently crashes because it will access the deleted object, fix this!
+        //main.resized(); TODO: this currently crashes because it will access the deleted object, fix this!
     }
     else
     {
@@ -178,7 +178,7 @@ NonPatchable::~NonPatchable()
 GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false)
 {
     box->addComponentListener(this);
-    updateLabel();  // TODO: fix virtual call from constructor
+    updateLabel(); // TODO: fix virtual call from constructor
 
     setWantsKeyboardFocus(true);
 
@@ -238,7 +238,7 @@ ObjectParameters GUIObject::getParameters()
     return defineParameters();
 }
 
-float GUIObject::getValueOriginal() const
+float GUIObject::getValueOriginal() const 
 {
     return value;
 }
@@ -253,7 +253,7 @@ void GUIObject::setValueOriginal(float v)
     setValue(value);
 }
 
-float GUIObject::getValueScaled() const
+float GUIObject::getValueScaled() const 
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
@@ -270,7 +270,7 @@ void GUIObject::setValueScaled(float v)
     setValue(value);
 }
 
-void GUIObject::startEdition()
+void GUIObject::startEdition() 
 {
     edited = true;
     processor.enqueueMessages("gui", "mouse", {1.f});
@@ -278,7 +278,7 @@ void GUIObject::startEdition()
     value = getValue();
 }
 
-void GUIObject::stopEdition()
+void GUIObject::stopEdition() 
 {
     edited = false;
     processor.enqueueMessages("gui", "mouse", {0.f});
@@ -320,7 +320,7 @@ void GUIObject::componentMovedOrResized(Component& component, bool moved, bool r
     checkBounds();
 }
 
-void GUIObject::setValue(float value)
+void GUIObject::setValue(float value) 
 {
     cnv->pd->enqueueDirectMessages(ptr, value);
 }

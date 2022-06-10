@@ -115,7 +115,7 @@ struct DrawableTemplate final : public DrawablePath
         {
             int flags = object->x_flags;
             int closed = flags & CLOSED;
-
+            
             t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
 
             char outline[20], fill[20];
@@ -142,7 +142,7 @@ struct DrawableTemplate final : public DrawablePath
             if (glist->gl_isgraph) width *= glist_getzoom(glist);
 
             numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
-
+            
             if (closed)
             {
                 numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
@@ -155,7 +155,7 @@ struct DrawableTemplate final : public DrawablePath
             {
                 toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
             }
-
+            
             if (closed)
             {
                 toDraw.lineTo(pix[0], pix[1]);
@@ -173,7 +173,7 @@ struct DrawableTemplate final : public DrawablePath
                 setStrokeFill(Colour::fromString("FF" + String::fromUTF8(outline + 1)));
                 setStrokeThickness(width);
             }
-
+            
             auto drawBounds = toDraw.getBounds();
             // tcl/tk will show a dot for a 0px polygon
             // JUCE doesn't do this, so we have to fake it
@@ -184,7 +184,7 @@ struct DrawableTemplate final : public DrawablePath
                 setStrokeThickness(2);
                 setFill(getStrokeFill());
             }
-
+                
             setPath(toDraw);
         }
         else

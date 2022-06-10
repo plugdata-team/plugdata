@@ -641,7 +641,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
     {
         auto tableBounds = getLocalBounds();
         auto inputBounds = tableBounds.removeFromTop(28);
-
+        
         input.setBounds(inputBounds);
 
         closeButton.setBounds(inputBounds.removeFromRight(30));

@@ -101,7 +101,7 @@ struct Sidebar : public Component
 
     void showAutomationPanel(bool show);
 
-    bool isShowingConsole() const;
+    bool isShowingConsole() const ;
 
     void showSidebar(bool show);
 

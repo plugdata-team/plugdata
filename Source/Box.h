@@ -13,9 +13,9 @@ extern "C"
 #include <m_pd.h>
 }
 
+#include "Utility/ObjectGrid.h"
 #include "Edge.h"
 #include "Objects/GUIObject.h"
-#include "Utility/ObjectGrid.h"
 
 class Canvas;
 class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener

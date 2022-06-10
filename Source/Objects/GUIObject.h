@@ -129,17 +129,17 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
         return 0.0f;
     };
 
-    float getValueOriginal() const;
+    float getValueOriginal() const ;
 
     void setValueOriginal(float v);
 
-    float getValueScaled() const;
+    float getValueScaled() const ;
 
     void setValueScaled(float v);
 
-    void startEdition();
+    void startEdition() ;
 
-    void stopEdition();
+    void stopEdition() ;
 
     void mouseDown(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
@@ -151,7 +151,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
         return label.get();
     }
 
-    void setValue(float value);
+    void setValue(float value) ;
 
    protected:
     std::unique_ptr<Label> label;
