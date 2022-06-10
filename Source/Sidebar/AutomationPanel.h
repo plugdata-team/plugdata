@@ -12,7 +12,7 @@ struct AutomationComponent : public Component
 
     explicit AutomationComponent(PlugDataAudioProcessor* processor) : pd(processor)
     {
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
+        for(int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
             auto* slider = sliders.add(new Slider());
             auto* label = labels.add(new Label());
@@ -37,10 +37,10 @@ struct AutomationComponent : public Component
 
             button->onClick = [this, name]() mutable
             {
-                if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor()))
+                if(auto* editor = dynamic_cast<PlugDataPluginEditor*>(pd->getActiveEditor()))
                 {
                     auto* cnv = editor->getCurrentCanvas();
-                    if (cnv)
+                    if(cnv)
                     {
                         cnv->attachNextObjectToMouse = true;
                         cnv->boxes.add(new Box(cnv, "r " + name));
@@ -69,7 +69,7 @@ struct AutomationComponent : public Component
 #if PLUGDATA_STANDALONE
     void updateParameters()
     {
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
+        for(int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
             sliders[p]->setValue(pd->standaloneParams[p]);
         }
@@ -78,12 +78,12 @@ struct AutomationComponent : public Component
 
     void paint(Graphics& g) override
     {
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
+        for(int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
-            
             auto rect = Rectangle<int>(0, sliders[p]->getY(), getWidth(), sliders[p]->getHeight());
-            if(!g.clipRegionIntersects(rect)) continue;
-                
+            if(! g.clipRegionIntersects(rect))
+                continue;
+
             sliders[p]->setColour(Slider::backgroundColourId, findColour(p & 1 ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
             sliders[p]->setColour(Slider::trackColourId, findColour(PlugDataColour::textColourId));
 
@@ -99,7 +99,7 @@ struct AutomationComponent : public Component
     {
         auto fb = FlexBox(FlexBox::Direction::column, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
+        for(int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
             auto item = FlexItem(*sliders[p]).withMinHeight(19.0f).withMaxHeight(27);
             item.flexGrow = 1.0f;
@@ -108,20 +108,20 @@ struct AutomationComponent : public Component
         }
 
         fb.performLayout(getLocalBounds().withTrimmedLeft(55).withTrimmedRight(40).toFloat());
-        
+
         fb.items.clear();
-        
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
+
+        for(int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
             auto item = FlexItem(*labels[p]).withMinHeight(19.0f).withMaxHeight(27);
             item.flexGrow = 1.0f;
             item.flexShrink = 1.0f;
             fb.items.add(item);
         }
-        
+
         fb.performLayout(getLocalBounds().removeFromLeft(55));
 
-        for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
+        for(int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
             createButtons[p]->setBounds(sliders[p]->getBounds().withX(getWidth() - 40).withWidth(30));
         }
@@ -131,7 +131,7 @@ struct AutomationComponent : public Component
     OwnedArray<Label> labels;
     OwnedArray<Slider> sliders;
 
-#if !PLUGDATA_STANDALONE
+#if ! PLUGDATA_STANDALONE
     OwnedArray<SliderParameterAttachment> attachments;
 #endif
 };
@@ -147,7 +147,7 @@ struct AutomationPanel : public Component, public ScrollBar::Listener
 
         setWantsKeyboardFocus(false);
         viewport.setWantsKeyboardFocus(false);
-        
+
         addAndMakeVisible(viewport);
     }
 

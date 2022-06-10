@@ -19,7 +19,7 @@ struct SliderObject : public IEMObject
 
         slider.setColour(Slider::textBoxOutlineColourId, Colours::transparentBlack);
 
-        if (vertical)
+        if(vertical)
             slider.setSliderStyle(Slider::LinearBarVertical);
         else
             slider.setSliderStyle(Slider::LinearBar);
@@ -32,12 +32,13 @@ struct SliderObject : public IEMObject
 
         slider.setValue(getValueScaled());
 
-        slider.onDragStart = [this]() { startEdition(); };
+        slider.onDragStart = [this]()
+        { startEdition(); };
 
         slider.onValueChange = [this]()
         {
             const float val = slider.getValue();
-            if (isLogScale())
+            if(isLogScale())
             {
                 float minValue = static_cast<float>(min.getValue());
                 float maxValue = static_cast<float>(max.getValue());
@@ -50,7 +51,8 @@ struct SliderObject : public IEMObject
             }
         };
 
-        slider.onDragEnd = [this]() { stopEdition(); };
+        slider.onDragEnd = [this]()
+        { stopEdition(); };
 
         initialise();
     }
@@ -61,7 +63,7 @@ struct SliderObject : public IEMObject
         int w = jlimit(isVertical ? 23 : 50, maxSize, box->getWidth());
         int h = jlimit(isVertical ? 77 : 25, maxSize, box->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight())
+        if(w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
         }
@@ -69,7 +71,7 @@ struct SliderObject : public IEMObject
 
     void paintOverChildren(Graphics& g) override
     {
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = box->findColour(cnv->isSelected(box) && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
@@ -88,9 +90,9 @@ struct SliderObject : public IEMObject
     ObjectParameters defineParameters() override
     {
         return {
-            {"Minimum", tFloat, cGeneral, &min, {}},
-            {"Maximum", tFloat, cGeneral, &max, {}},
-            {"Logarithmic", tBool, cGeneral, &isLogarithmic, {"off", "on"}},
+            { "Minimum", tFloat, cGeneral, &min, {} },
+            { "Maximum", tFloat, cGeneral, &max, {} },
+            { "Logarithmic", tBool, cGeneral, &isLogarithmic, { "off", "on" } },
         };
     }
 
@@ -111,7 +113,7 @@ struct SliderObject : public IEMObject
 
     void setMinimum(float value)
     {
-        if (isVertical)
+        if(isVertical)
         {
             static_cast<t_vslider*>(ptr)->x_min = value;
         }
@@ -123,7 +125,7 @@ struct SliderObject : public IEMObject
 
     void setMaximum(float value)
     {
-        if (isVertical)
+        if(isVertical)
         {
             static_cast<t_vslider*>(ptr)->x_max = value;
         }
@@ -133,22 +135,22 @@ struct SliderObject : public IEMObject
         }
     }
 
-    bool jumpOnClick() const 
+    bool jumpOnClick() const
     {
         return isVertical ? (static_cast<t_vslider*>(ptr))->x_steady == 0 : (static_cast<t_hslider*>(ptr))->x_steady == 0;
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min))
+        if(value.refersToSameSourceAs(min))
         {
             setMinimum(static_cast<float>(min.getValue()));
         }
-        else if (value.refersToSameSourceAs(max))
+        else if(value.refersToSameSourceAs(max))
         {
             setMaximum(static_cast<float>(max.getValue()));
         }
-        else if (value.refersToSameSourceAs(isLogarithmic))
+        else if(value.refersToSameSourceAs(isLogarithmic))
         {
             setLogScale(isLogarithmic == var(true));
             min = getMinimum();
@@ -160,14 +162,14 @@ struct SliderObject : public IEMObject
         }
     }
 
-    bool isLogScale() const 
+    bool isLogScale() const
     {
         return isVertical ? (static_cast<t_hslider*>(ptr))->x_lin0_log1 != 0 : (static_cast<t_vslider*>(ptr))->x_lin0_log1 != 0;
     }
 
-    void setLogScale(bool log) 
+    void setLogScale(bool log)
     {
-        if (isVertical)
+        if(isVertical)
         {
             static_cast<t_vslider*>(ptr)->x_lin0_log1 = log;
         }

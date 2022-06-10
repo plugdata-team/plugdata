@@ -32,12 +32,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
 
-        if (getWidth() != width || getHeight() != height)
+        if(getWidth() != width || getHeight() != height)
         {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
         }
 
-        if (editor)
+        if(editor)
         {
             editor->setBounds(getLocalBounds());
         }
@@ -56,18 +56,18 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
         bool selected = cnv->isSelected(box);
 
-        auto outlineColour = findColour(selected && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = findColour(selected && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
 
-        if (!isValid)
+        if(! isValid)
         {
-            outlineColour = selected && !cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
+            outlineColour = selected && ! cnv->isGraph ? Colours::red.brighter(1.5) : Colours::red;
         }
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
-    void updateValue() override{};
+    void updateValue() override {};
 
     void lock(bool isLocked) override
     {
@@ -86,7 +86,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
     void mouseUp(const MouseEvent& e) override
     {
-        if (box->isEnabled() && !(e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && wasSelected)
+        if(box->isEnabled() && ! (e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && wasSelected)
         {
             showEditor();
         }
@@ -100,7 +100,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
     void textEditorReturnKeyPressed(TextEditor& ed) override
     {
-        if (editor != nullptr)
+        if(editor != nullptr)
         {
             editor->giveAwayKeyboardFocus();
         }
@@ -111,7 +111,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         // For resize-while-typing behaviour
         auto width = getBestTextWidth(ed.getText());
 
-        if (width > getWidth())
+        if(width > getWidth())
         {
             setSize(width, getHeight());
         }
@@ -125,7 +125,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        Rectangle<int> bounds = {x, y, textObj->te_width, h};
+        Rectangle<int> bounds = { x, y, textObj->te_width, h };
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int textWidth = getBestTextWidth(currentText);
@@ -133,7 +133,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         textWidthOffset = textWidth % fontWidth;
         textObjectWidth = bounds.getWidth();
 
-        if (textObjectWidth == 0)
+        if(textObjectWidth == 0)
         {
             textObjectWidth = (textWidth - textWidthOffset) / fontWidth;
         }
@@ -143,12 +143,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
 
-        box->setObjectBounds({bounds.getX(), bounds.getY(), width, height});
+        box->setObjectBounds({ bounds.getX(), bounds.getY(), width, height });
     }
 
     void hideEditor() override
     {
-        if (editor != nullptr)
+        if(editor != nullptr)
         {
             WeakReference<Component> deletionChecker(this);
             std::unique_ptr<TextEditor> outgoingEditor;
@@ -161,7 +161,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             auto newText = outgoingEditor->getText();
 
             bool changed;
-            if (currentText != newText)
+            if(currentText != newText)
             {
                 currentText = newText;
                 repaint();
@@ -177,7 +177,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             repaint();
 
             // update if the name has changed, or if pdobject is unassigned
-            if (changed)
+            if(changed)
             {
                 box->setType(newText);
             }
@@ -186,7 +186,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
     void showEditor() override
     {
-        if (editor == nullptr)
+        if(editor == nullptr)
         {
             editor = std::make_unique<TextEditor>(getName());
             editor->applyFontToAllText(font);
@@ -207,7 +207,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             editor->onFocusLost = [this]()
             {
                 // Necessary so the editor doesn't close when clicking on a suggestion
-                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
+                if(! reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
                 {
                     hideEditor();
                 }
@@ -221,7 +221,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             editor->setText(currentText, false);
             editor->addListener(this);
 
-            if (editor == nullptr)  // may be deleted by a callback
+            if(editor == nullptr) // may be deleted by a callback
                 return;
 
             editor->setHighlightedRegion(Range<int>(0, currentText.length()));
@@ -229,7 +229,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             resized();
             repaint();
 
-            if (isShowing())
+            if(isShowing())
             {
                 editor->grabKeyboardFocus();
             }
@@ -237,7 +237,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     }
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
-    TextEditor* getCurrentTextEditor() const 
+    TextEditor* getCurrentTextEditor() const
     {
         return editor.get();
     }
@@ -247,14 +247,14 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         return true;
     }
 
-   protected:
+protected:
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
-    BorderSize<int> border{1, 7, 1, 2};
+    BorderSize<int> border { 1, 7, 1, 2 };
     float minimumHorizontalScale = 0.9f;
 
     String currentText;
-    Font font{15.0f};
+    Font font { 15.0f };
 
     int textObjectWidth = 0;
     int textWidthOffset = 0;

@@ -24,7 +24,7 @@ class Storage
     t_gobj* infoObject = nullptr;
     t_glist* infoParent = nullptr;
 
-   public:
+public:
     Storage(t_glist* patch, Instance* inst);
 
     Storage() = delete;
@@ -47,7 +47,7 @@ class Storage
     String getInfo(const String& id, const String& property) const;
     void setInfo(const String& id, const String& property, const String& info, bool undoable = true);
 
-   private:
+private:
     void createObject();
 
     UndoManager undoManager;
@@ -57,4 +57,4 @@ class Storage
     friend class Instance;
     friend class Patch;
 };
-}  // namespace pd
+} // namespace pd

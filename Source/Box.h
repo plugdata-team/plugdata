@@ -13,15 +13,15 @@ extern "C"
 #include <m_pd.h>
 }
 
-#include "Utility/ObjectGrid.h"
 #include "Edge.h"
 #include "Objects/GUIObject.h"
+#include "Utility/ObjectGrid.h"
 
 class Canvas;
 class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener
 {
-   public:
-    Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
+public:
+    Box(Canvas* parent, const String& name = "", Point<int> position = { 100, 100 });
 
     Box(void* object, Canvas* parent);
 
@@ -91,7 +91,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     Point<int> mouseDownPos;
     bool attachedToMouse = false;
 
-   private:
+private:
     void initialise();
     bool hitTest(int x, int y) override;
 

@@ -18,7 +18,7 @@ class PlugDataLook;
 class PlugDataPluginEditor;
 class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, public Timer
 {
-   public:
+public:
     PlugDataAudioProcessor();
     ~PlugDataAudioProcessor() override;
 
@@ -75,13 +75,13 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     void receivePrint(const String& message) override
     {
-        if (message.isNotEmpty())
+        if(message.isNotEmpty())
         {
-            if (message.startsWith("error:"))
+            if(message.startsWith("error:"))
             {
                 logError(message.substring(7));
             }
-            else if (message.startsWith("verbose(4):"))
+            else if(message.startsWith("verbose(4):"))
             {
                 logError(message.substring(12));
             }
@@ -175,10 +175,10 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     static inline constexpr int numOutputBuses = 16;
 
 #if PLUGDATA_STANDALONE
-    std::atomic<float> standaloneParams[numParameters] = {0};
+    std::atomic<float> standaloneParams[numParameters] = { 0 };
 #endif
 
-   private:
+private:
     void processInternal();
 
     int audioAdvancement = 0;
@@ -191,11 +191,11 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     MidiBuffer midiBufferCopy;
 
     bool midiByteIsSysex = false;
-    uint8 midiByteBuffer[512] = {0};
+    uint8 midiByteBuffer[512] = { 0 };
     size_t midiByteIndex = 0;
 
-    std::array<std::atomic<float>*, numParameters> parameterValues = {nullptr};
-    std::array<float, numParameters> lastParameters = {0};
+    std::array<std::atomic<float>*, numParameters> parameterValues = { nullptr };
+    std::array<float, numParameters> lastParameters = { 0 };
 
     std::vector<pd::Atom> atoms_playhead;
 
@@ -204,7 +204,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     const CriticalSection* audioLock;
 
-#if !PLUGDATA_STANDALONE
+#if ! PLUGDATA_STANDALONE
 
     // Timer for grouping change messages when informing the DAW
     struct ParameterTimer : public Timer
@@ -213,7 +213,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
         void notifyChange(RangedAudioParameter* param)
         {
-            if (!isTimerRunning())
+            if(! isTimerRunning())
             {
                 parameter = param;
                 parameter->beginChangeGesture();

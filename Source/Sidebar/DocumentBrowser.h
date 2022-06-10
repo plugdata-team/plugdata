@@ -13,7 +13,7 @@
 // Base classes for communication between parent and child classes
 struct DocumentBrowserViewBase : public TreeView, public DirectoryContentsDisplayComponent
 {
-    DocumentBrowserViewBase(DirectoryContentsList& listToShow) : DirectoryContentsDisplayComponent(listToShow){};
+    DocumentBrowserViewBase(DirectoryContentsList& listToShow) : DirectoryContentsDisplayComponent(listToShow) {};
 };
 
 struct DocumentBrowserBase : public Component
@@ -22,7 +22,7 @@ struct DocumentBrowserBase : public Component
         : pd(processor),
           filter("*.pd", "*", "pure-data files"),
           updateThread("browserThread"),
-          directory(&filter, updateThread){
+          directory(&filter, updateThread) {
 
           };
 
@@ -37,12 +37,12 @@ struct DocumentBrowserBase : public Component
 //==============================================================================
 class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private ChangeListener
 {
-   public:
+public:
     DocumentBrowserItem(DocumentBrowserViewBase& treeComp, DirectoryContentsList* parentContents, int indexInContents, int indexInParent, const File& f) : file(f), owner(treeComp), parentContentsList(parentContents), indexInContentsList(indexInContents), subContentsList(nullptr, false)
     {
         DirectoryContentsList::FileInfo fileInfo;
 
-        if (parentContents != nullptr && parentContents->getFileInfo(indexInContents, fileInfo))
+        if(parentContents != nullptr && parentContents->getFileInfo(indexInContents, fileInfo))
         {
             fileSize = File::descriptionOfSizeInBytes(fileInfo.fileSize);
             isDirectory = fileInfo.isDirectory;
@@ -87,15 +87,15 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
 
     void itemOpennessChanged(bool isNowOpen) override
     {
-        if (isNowOpen)
+        if(isNowOpen)
         {
             clearSubItems();
 
             isDirectory = file.isDirectory();
 
-            if (isDirectory)
+            if(isDirectory)
             {
-                if (subContentsList == nullptr && parentContentsList != nullptr)
+                if(subContentsList == nullptr && parentContentsList != nullptr)
                 {
                     auto l = new DirectoryContentsList(parentContentsList->getFilter(), parentContentsList->getTimeSliceThread());
 
@@ -111,7 +111,7 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
 
     void removeSubContentsList()
     {
-        if (subContentsList != nullptr)
+        if(subContentsList != nullptr)
         {
             subContentsList->removeChangeListener(this);
             subContentsList.reset();
@@ -135,21 +135,21 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
     {
         clearSubItems();
 
-        if (isOpen() && subContentsList != nullptr)
+        if(isOpen() && subContentsList != nullptr)
         {
             int idx = 0;
             // Sort by folders first
-            for (int i = 0; i < subContentsList->getNumFiles(); ++i)
+            for(int i = 0; i < subContentsList->getNumFiles(); ++i)
             {
-                if (subContentsList->getFile(i).isDirectory())
+                if(subContentsList->getFile(i).isDirectory())
                 {
                     addSubItem(new DocumentBrowserItem(owner, subContentsList, i, idx, subContentsList->getFile(i)));
                     idx++;
                 }
             }
-            for (int i = 0; i < subContentsList->getNumFiles(); ++i)
+            for(int i = 0; i < subContentsList->getNumFiles(); ++i)
             {
-                if (subContentsList->getFile(i).existsAsFile())
+                if(subContentsList->getFile(i).existsAsFile())
                 {
                     addSubItem(new DocumentBrowserItem(owner, subContentsList, i, idx, subContentsList->getFile(i)));
                     idx++;
@@ -162,14 +162,14 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
     {
         const int x = 32;
 
-        if (isSelected())
+        if(isSelected())
             g.setColour(owner.findColour(DirectoryContentsDisplayComponent::highlightedTextColourId));
         else
             g.setColour(owner.findColour(DirectoryContentsDisplayComponent::textColourId));
 
         g.setFont(dynamic_cast<PlugDataLook*>(&owner.getLookAndFeel())->iconFont);
 
-        if (isDirectory)
+        if(isDirectory)
         {
             g.drawFittedText(Icons::Folder, Rectangle<int>(2, 2, x - 4, height - 4), Justification::centred, 1);
         }
@@ -189,24 +189,25 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
 
     bool selectFile(const File& target)
     {
-        if (file == target)
+        if(file == target)
         {
             setSelected(true, true);
             return true;
         }
 
-        if (target.isAChildOf(file))
+        if(target.isAChildOf(file))
         {
             setOpen(true);
 
-            for (int maxRetries = 500; --maxRetries > 0;)
+            for(int maxRetries = 500; --maxRetries > 0;)
             {
-                for (int i = 0; i < getNumSubItems(); ++i)
-                    if (auto* f = dynamic_cast<DocumentBrowserItem*>(getSubItem(i)))
-                        if (f->selectFile(target)) return true;
+                for(int i = 0; i < getNumSubItems(); ++i)
+                    if(auto* f = dynamic_cast<DocumentBrowserItem*>(getSubItem(i)))
+                        if(f->selectFile(target))
+                            return true;
 
                 // if we've just opened and the contents are still loading, wait for it..
-                if (subContentsList != nullptr && subContentsList->isStillLoading())
+                if(subContentsList != nullptr && subContentsList->isStillLoading())
                 {
                     Thread::sleep(10);
                     rebuildItemsFromContentList();
@@ -245,7 +246,7 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
 
     const File file;
 
-   private:
+private:
     DocumentBrowserViewBase& owner;
     DirectoryContentsList* parentContentsList;
     int indexInContentsList;
@@ -258,7 +259,7 @@ class DocumentBrowserItem : public TreeViewItem, private AsyncUpdater, private C
 
 class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserListener, public ScrollBar::Listener
 {
-   public:
+public:
     //==============================================================================
     /** Creates a listbox to show the contents of a specified directory.
      */
@@ -285,8 +286,9 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
         (and if the file isn't in the list, all other items will be deselected). */
     void setSelectedFile(const File& target) override
     {
-        if (auto* t = dynamic_cast<DocumentBrowserItem*>(getRootItem()))
-            if (!t->selectFile(target)) clearSelectedItems();
+        if(auto* t = dynamic_cast<DocumentBrowserItem*>(getRootItem()))
+            if(! t->selectFile(target))
+                clearSelectedItems();
     }
 
     //==============================================================================
@@ -304,7 +306,8 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     */
     File getSelectedFile(int index = 0) const override
     {
-        if (auto* item = dynamic_cast<const DocumentBrowserItem*>(getSelectedItem(index))) return item->file;
+        if(auto* item = dynamic_cast<const DocumentBrowserItem*>(getSelectedItem(index)))
+            return item->file;
 
         return {};
     }
@@ -340,7 +343,7 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
         int selectedIdx = -1;
 
         // Paint selected row
-        if (getNumSelectedFiles())
+        if(getNumSelectedFiles())
         {
             selectedIdx = getSelectedItem(0)->getRowNumberInTree();
         }
@@ -350,7 +353,7 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     // Paint file drop outline
     void paintOverChildren(Graphics& g) override
     {
-        if (isDraggingFile)
+        if(isDraggingFile)
         {
             g.setColour(findColour(PlugDataColour::highlightColourId));
             g.drawRect(getLocalBounds().reduced(1), 2.0f);
@@ -365,11 +368,11 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     /** Callback when the user double-clicks on a file in the browser. */
     void fileDoubleClicked(const File& file) override
     {
-        if (file.isDirectory())
+        if(file.isDirectory())
         {
             file.revealToUser();
         }
-        else if (file.existsAsFile())
+        else if(file.existsAsFile())
         {
             browser->pd->loadPatch(file);
         }
@@ -378,22 +381,23 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
     {
         browser->repaint();
     };
-    void fileClicked(const File&, const MouseEvent&) override{};
-    void browserRootChanged(const File&) override{};
+    void fileClicked(const File&, const MouseEvent&) override {};
+    void browserRootChanged(const File&) override {};
 
     bool isInterestedInFileDrag(const StringArray& files) override
     {
-        if (!browser->isVisible()) return false;
+        if(! browser->isVisible())
+            return false;
 
-        if (browser->isSearching())
+        if(browser->isSearching())
         {
             return false;
         }
 
-        for (auto& path : files)
+        for(auto& path : files)
         {
             auto file = File(path);
-            if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd")))
+            if(file.exists() && (file.isDirectory() || file.hasFileExtension("pd")))
             {
                 return true;
             }
@@ -404,15 +408,16 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
 
     void filesDropped(const StringArray& files, int x, int y) override
     {
-        for (auto& path : files)
+        for(auto& path : files)
         {
             auto file = File(path);
 
-            if (file.exists() && (file.isDirectory() || file.hasFileExtension("pd")))
+            if(file.exists() && (file.isDirectory() || file.hasFileExtension("pd")))
             {
                 auto alias = browser->directory.getDirectory().getChildFile(file.getFileName());
 
-                if (alias.exists()) alias.deleteFile();
+                if(alias.exists())
+                    alias.deleteFile();
                 File::createSymbolicLink(alias, file.getFullPathName(), false);
             }
         }
@@ -435,7 +440,7 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
         repaint();
     }
 
-   private:
+private:
     //==============================================================================
 
     DocumentBrowserBase* browser;
@@ -448,7 +453,7 @@ class DocumentBrowserView : public DocumentBrowserViewBase, public FileBrowserLi
 
 class FileSearchComponent : public Component, public ListBoxModel, public ScrollBar::Listener
 {
-   public:
+public:
     FileSearchComponent(DirectoryContentsList& directory) : searchPath(directory)
     {
         listBox.setModel(this);
@@ -463,7 +468,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
         input.onTextChange = [this]()
         {
             bool notEmpty = input.getText().isNotEmpty();
-            if (listBox.isVisible() != notEmpty)
+            if(listBox.isVisible() != notEmpty)
             {
                 listBox.setVisible(notEmpty);
                 getParentComponent()->repaint();
@@ -493,7 +498,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
         listBox.setVisible(false);
 
         input.setJustification(Justification::centredLeft);
-        input.setBorder({1, 23, 3, 1});
+        input.setBorder({ 1, 23, 3, 1 });
 
         listBox.setColour(ListBox::backgroundColourId, Colours::transparentBlack);
 
@@ -506,9 +511,9 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
     {
         int row = listBox.getSelectedRow();
 
-        if (isPositiveAndBelow(row, searchResult.size()))
+        if(isPositiveAndBelow(row, searchResult.size()))
         {
-            if (listBox.getRowPosition(row, true).contains(e.getEventRelativeTo(&listBox).getPosition()))
+            if(listBox.getRowPosition(row, true).contains(e.getEventRelativeTo(&listBox).getPosition()))
             {
                 openFile(searchResult.getReference(row));
             }
@@ -522,7 +527,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
 
     void paint(Graphics& g) override
     {
-        if (listBox.isVisible())
+        if(listBox.isVisible())
         {
             PlugDataLook::paintStripes(g, 24, listBox.getHeight() + 24, *this, -1, listBox.getViewport()->getViewPositionY() - 4);
         }
@@ -538,7 +543,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
 
     void paintListBoxItem(int rowNumber, Graphics& g, int w, int h, bool rowIsSelected) override
     {
-        if (rowIsSelected)
+        if(rowIsSelected)
         {
             g.setColour(findColour(PlugDataColour::highlightColourId));
             g.fillRect(1, 0, w - 3, h);
@@ -574,33 +579,35 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
     {
         clearSearchResults();
 
-        if (query.isEmpty()) return;
+        if(query.isEmpty())
+            return;
 
         auto addFile = [this, &query](const File& file)
         {
             auto fileName = file.getFileName();
 
-            if (!file.hasFileExtension("pd")) return;
+            if(! file.hasFileExtension("pd"))
+                return;
 
             // Insert in front if the query matches a whole word
-            if (fileName.containsWholeWordIgnoreCase(query))
+            if(fileName.containsWholeWordIgnoreCase(query))
             {
                 searchResult.insert(0, file);
             }
             // Insert in back if it contains the query
-            else if (fileName.containsIgnoreCase(query))
+            else if(fileName.containsIgnoreCase(query))
             {
                 searchResult.add(file);
             }
         };
 
-        for (int i = 0; i < searchPath.getNumFiles(); i++)
+        for(int i = 0; i < searchPath.getNumFiles(); i++)
         {
             auto file = searchPath.getFile(i);
 
-            if (file.isDirectory())
+            if(file.isDirectory())
             {
-                for (auto& child : RangedDirectoryIterator(file, true))
+                for(auto& child : RangedDirectoryIterator(file, true))
                 {
                     addFile(child.getFile());
                 }
@@ -613,7 +620,8 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
 
         listBox.updateContent();
 
-        if (listBox.getSelectedRow() == -1) listBox.selectRow(0, true, true);
+        if(listBox.getSelectedRow() == -1)
+            listBox.selectRow(0, true, true);
     }
 
     bool hasSelection()
@@ -629,7 +637,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
     {
         int row = listBox.getSelectedRow();
 
-        if (isPositiveAndBelow(row, searchResult.size()))
+        if(isPositiveAndBelow(row, searchResult.size()))
         {
             return searchResult[row];
         }
@@ -641,7 +649,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
     {
         auto tableBounds = getLocalBounds();
         auto inputBounds = tableBounds.removeFromTop(28);
-        
+
         input.setBounds(inputBounds);
 
         closeButton.setBounds(inputBounds.removeFromRight(30));
@@ -652,7 +660,7 @@ class FileSearchComponent : public Component, public ListBoxModel, public Scroll
 
     std::function<void(File&)> openFile;
 
-   private:
+private:
     ListBox listBox;
 
     DirectoryContentsList& searchPath;
@@ -667,10 +675,10 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
     {
         auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
-        if (pd->settingsTree.hasProperty("BrowserPath"))
+        if(pd->settingsTree.hasProperty("BrowserPath"))
         {
             auto customLocation = File(pd->settingsTree.getProperty("BrowserPath"));
-            if (customLocation.exists())
+            if(customLocation.exists())
             {
                 location = customLocation;
             }
@@ -687,7 +695,7 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
 
         searchComponent.openFile = [this](File& file)
         {
-            if (file.existsAsFile())
+            if(file.existsAsFile())
             {
                 pd->loadPatch(file);
             }
@@ -722,7 +730,7 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
                                      [this](FileChooser const& fileChooser)
                                      {
                                          auto const file = fileChooser.getResult();
-                                         if (file.exists())
+                                         if(file.exists())
                                          {
                                              auto path = file.getFullPathName();
                                              pd->settingsTree.setProperty("BrowserPath", path, nullptr);
@@ -742,11 +750,11 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
 
         revealButton.onClick = [this]()
         {
-            if (searchComponent.hasSelection())
+            if(searchComponent.hasSelection())
             {
                 searchComponent.getSelection().revealToUser();
             }
-            else if (fileList.getSelectedFile().exists())
+            else if(fileList.getSelectedFile().exists())
             {
                 fileList.getSelectedFile().revealToUser();
             }
@@ -754,7 +762,8 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
 
         addAndMakeVisible(searchComponent);
 
-        if (!fileList.getSelectedFile().exists()) fileList.moveSelectedRow(1);
+        if(! fileList.getSelectedFile().exists())
+            fileList.moveSelectedRow(1);
     }
 
     ~DocumentBrowser()
@@ -776,7 +785,8 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
 
     bool hitTest(int x, int y) override
     {
-        if (x < 5) return false;
+        if(x < 5)
+            return false;
 
         return true;
     }
@@ -788,9 +798,9 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
 
         auto fb = FlexBox(FlexBox::Direction::row, FlexBox::Wrap::noWrap, FlexBox::AlignContent::flexStart, FlexBox::AlignItems::stretch, FlexBox::JustifyContent::flexStart);
 
-        Array<TextButton*> buttons = {&revealButton, &loadFolderButton, &resetFolderButton};
+        Array<TextButton*> buttons = { &revealButton, &loadFolderButton, &resetFolderButton };
 
-        for (auto* b : buttons)
+        for(auto* b : buttons)
         {
             auto item = FlexItem(*b).withMinWidth(8.0f).withMinHeight(8.0f).withMaxHeight(27);
             item.flexGrow = 1.0f;
@@ -821,14 +831,14 @@ struct DocumentBrowser : public DocumentBrowserBase, public FileSystemWatcher::L
         g.drawLine(0, 28, getWidth(), 28);
     }
 
-   private:
+private:
     TextButton revealButton = TextButton(Icons::OpenedFolder);
     TextButton loadFolderButton = TextButton(Icons::Folder);
     TextButton resetFolderButton = TextButton(Icons::Restore);
 
     std::unique_ptr<FileChooser> openChooser;
 
-   public:
+public:
     DocumentBrowserView fileList;
     FileSearchComponent searchComponent;
     FileSystemWatcher watcher;

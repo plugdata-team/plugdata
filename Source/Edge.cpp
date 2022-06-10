@@ -30,19 +30,20 @@ void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat();
 
-    if (!isHovered)
+    if(! isHovered)
     {
         bounds = bounds.reduced(2);
     }
 
-    bool down = isMouseButtonDown() && !bool(box->locked.getValue());
-    bool over = isMouseOver() && !bool(box->locked.getValue());
+    bool down = isMouseButtonDown() && ! bool(box->locked.getValue());
+    bool over = isMouseOver() && ! bool(box->locked.getValue());
 
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::highlightColourId);
 
-    if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
+    if(down || over)
+        backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
-    if (static_cast<bool>(locked.getValue()))
+    if(static_cast<bool>(locked.getValue()))
     {
         backgroundColour = findColour(PlugDataColour::textColourId);
     }
@@ -50,7 +51,7 @@ void Edge::paint(Graphics& g)
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
     bool stateSaved = false;
-    if (!(box->isOver() || over || box->edgeHovered || isHovered) || static_cast<bool>(locked.getValue()))
+    if(! (box->isOver() || over || box->edgeHovered || isHovered) || static_cast<bool>(locked.getValue()))
     {
         g.saveState();
         g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
@@ -63,7 +64,7 @@ void Edge::paint(Graphics& g)
     g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
     g.drawEllipse(bounds, 1.0f);
 
-    if (stateSaved)
+    if(stateSaved)
     {
         g.restoreState();
     }
@@ -76,9 +77,10 @@ void Edge::resized()
 void Edge::mouseDrag(const MouseEvent& e)
 {
     // Ignore when locked
-    if (bool(locked.getValue())) return;
+    if(bool(locked.getValue()))
+        return;
 
-    if (!box->cnv->connectingEdge && e.getLengthOfMousePress() > 300)
+    if(! box->cnv->connectingEdge && e.getLengthOfMousePress() > 300)
     {
         box->cnv->connectingEdge = this;
         auto* cnv = findParentComponentOfClass<Canvas>();
@@ -88,14 +90,15 @@ void Edge::mouseDrag(const MouseEvent& e)
 
 void Edge::mouseUp(const MouseEvent& e)
 {
-    if (bool(locked.getValue())) return;
+    if(bool(locked.getValue()))
+        return;
 
-    if (!e.mouseWasDraggedSinceMouseDown())
+    if(! e.mouseWasDraggedSinceMouseDown())
     {
         createConnection();
     }
 
-    if (box->cnv->nearestEdge)
+    if(box->cnv->nearestEdge)
     {
         box->cnv->nearestEdge->isHovered = false;
         box->cnv->nearestEdge->repaint();
@@ -110,35 +113,37 @@ void Edge::mouseMove(const MouseEvent& e)
 void Edge::mouseEnter(const MouseEvent& e)
 {
     // Only show when not locked
-    isHovered = !bool(locked.getValue());
+    isHovered = ! bool(locked.getValue());
     box->edgeHovered = true;
-    for (auto& edge : box->edges) edge->repaint();
+    for(auto& edge : box->edges)
+        edge->repaint();
 }
 
 void Edge::mouseExit(const MouseEvent& e)
 {
     isHovered = false;
     box->edgeHovered = false;
-    for (auto& edge : box->edges) edge->repaint();
+    for(auto& edge : box->edges)
+        edge->repaint();
 }
 
 void Edge::createConnection()
 {
     // Check if this is the start or end action of connecting
-    if (box->cnv->connectingEdge)
+    if(box->cnv->connectingEdge)
     {
         // Check type for input and output
         bool sameDirection = isInlet == box->cnv->connectingEdge->isInlet;
 
-        bool connectionAllowed = box->cnv->connectingEdge->box != box && !sameDirection;
+        bool connectionAllowed = box->cnv->connectingEdge->box != box && ! sameDirection;
 
         // Don't create if this is the same edge
-        if (box->cnv->connectingEdge == this)
+        if(box->cnv->connectingEdge == this)
         {
             box->cnv->connectingEdge = nullptr;
         }
         // Create new connection if allowed
-        else if (connectionAllowed)
+        else if(connectionAllowed)
         {
             auto* cnv = findParentComponentOfClass<Canvas>();
             cnv->connections.add(new Connection(cnv, box->cnv->connectingEdge, this));
@@ -156,11 +161,11 @@ Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Box* b
 {
     // Find all edges
     Array<Edge*> allEdges;
-    for (auto* box : cnv->boxes)
+    for(auto* box : cnv->boxes)
     {
-        for (auto* edge : box->edges)
+        for(auto* edge : box->edges)
         {
-            if (edge->isInlet == inlet && edge->box != boxToExclude)
+            if(edge->isInlet == inlet && edge->box != boxToExclude)
             {
                 allEdges.add(edge);
             }
@@ -169,12 +174,13 @@ Edge* Edge::findNearestEdge(Canvas* cnv, Point<int> position, bool inlet, Box* b
 
     Edge* nearestEdge = nullptr;
 
-    for (auto& edge : allEdges)
+    for(auto& edge : allEdges)
     {
         auto bounds = edge->getCanvasBounds().expanded(150, 150);
-        if (bounds.contains(position))
+        if(bounds.contains(position))
         {
-            if (!nearestEdge) nearestEdge = edge;
+            if(! nearestEdge)
+                nearestEdge = edge;
 
             auto oldPos = nearestEdge->getCanvasBounds().getCentre();
             auto newPos = bounds.getCentre();

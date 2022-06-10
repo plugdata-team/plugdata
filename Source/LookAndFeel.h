@@ -88,7 +88,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
     class PlugData_DocumentWindowButton : public Button
     {
-       public:
+    public:
         PlugData_DocumentWindowButton(const String& name, Path normal, Path toggled) : Button(name), normalShape(std::move(normal)), toggledShape(std::move(toggled))
         {
         }
@@ -97,9 +97,9 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             auto colour = findColour(TextButton::textColourOffId);
 
-            g.setColour((!isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
+            g.setColour((! isEnabled() || shouldDrawButtonAsDown) ? colour.withAlpha(0.6f) : colour);
 
-            if (shouldDrawButtonAsHighlighted)
+            if(shouldDrawButtonAsHighlighted)
             {
                 g.setColour(findColour(Slider::thumbColourId));
             }
@@ -111,7 +111,7 @@ struct PlugDataLook : public LookAndFeel_V4
             g.fillPath(p, p.getTransformToScaleToFit(reducedRect, true));
         }
 
-       private:
+    private:
         Colour colour;
         Path normalShape, toggledShape;
 
@@ -120,7 +120,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
     int getSliderThumbRadius(Slider& s) override
     {
-        if (s.getName().startsWith("statusbar"))
+        if(s.getName().startsWith("statusbar"))
         {
             return 6;
         }
@@ -137,25 +137,26 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawButtonBackground(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown) override
     {
-        if (button.getName().startsWith("tab")) return;
+        if(button.getName().startsWith("tab"))
+            return;
 
-        if (button.getName().startsWith("toolbar"))
+        if(button.getName().startsWith("toolbar"))
         {
             drawToolbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if (button.getName().startsWith("statusbar"))
+        else if(button.getName().startsWith("statusbar"))
         {
             drawStatusbarButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if (button.getName().startsWith("suggestions"))
+        else if(button.getName().startsWith("suggestions"))
         {
             drawSuggestionButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if (button.getName().startsWith("pd"))
+        else if(button.getName().startsWith("pd"))
         {
             drawPdButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
-        else if (button.getName().startsWith("inspector"))
+        else if(button.getName().startsWith("inspector"))
         {
             drawInspectorButton(g, button, backgroundColour, shouldDrawButtonAsHighlighted, shouldDrawButtonAsDown);
         }
@@ -167,11 +168,11 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawButtonText(Graphics& g, TextButton& button, bool isMouseOverButton, bool isButtonDown) override
     {
-        if (button.getName().startsWith("suggestions"))
+        if(button.getName().startsWith("suggestions"))
         {
             drawSuggestionButtonText(g, button, isMouseOverButton, isButtonDown);
         }
-        else if (button.getName().startsWith("statusbar"))
+        else if(button.getName().startsWith("statusbar"))
         {
             drawStatusbarButtonText(g, button, isMouseOverButton, isButtonDown);
         }
@@ -183,25 +184,25 @@ struct PlugDataLook : public LookAndFeel_V4
 
     Font getTextButtonFont(TextButton& but, int buttonHeight) override
     {
-        if (but.getName().startsWith("toolbar"))
+        if(but.getName().startsWith("toolbar"))
         {
             return getToolbarFont(buttonHeight);
         }
-        if (but.getName().startsWith("statusbar") || but.getName().startsWith("tab"))
+        if(but.getName().startsWith("statusbar") || but.getName().startsWith("tab"))
         {
             return getStatusbarFont(buttonHeight);
         }
-        if (but.getName().startsWith("suggestions"))
+        if(but.getName().startsWith("suggestions"))
         {
             return getSuggestionFont(buttonHeight);
         }
 
-        return {buttonHeight / 1.7f};
+        return { buttonHeight / 1.7f };
     }
 
     void drawLinearSlider(Graphics& g, int x, int y, int width, int height, float sliderPos, float minSliderPos, float maxSliderPos, const Slider::SliderStyle style, Slider& slider) override
     {
-        if (slider.getName().startsWith("statusbar"))
+        if(slider.getName().startsWith("statusbar"))
         {
             drawVolumeSlider(g, x, y, width, height, sliderPos, minSliderPos, maxSliderPos, style, slider);
         }
@@ -213,7 +214,8 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawDocumentWindowTitleBar(DocumentWindow& window, Graphics& g, int w, int h, int titleSpaceX, int titleSpaceW, const Image* icon, bool drawTitleTextOnLeft) override
     {
-        if (w * h == 0) return;
+        if(w * h == 0)
+            return;
 
         g.setColour(findColour(ComboBox::backgroundColourId));
         g.fillAll();
@@ -232,25 +234,25 @@ struct PlugDataLook : public LookAndFeel_V4
         Path shape;
         auto crossThickness = 0.15f;
 
-        if (buttonType == DocumentWindow::closeButton)
+        if(buttonType == DocumentWindow::closeButton)
         {
-            shape.addLineSegment({0.0f, 0.0f, 1.0f, 1.0f}, crossThickness);
-            shape.addLineSegment({1.0f, 0.0f, 0.0f, 1.0f}, crossThickness);
+            shape.addLineSegment({ 0.0f, 0.0f, 1.0f, 1.0f }, crossThickness);
+            shape.addLineSegment({ 1.0f, 0.0f, 0.0f, 1.0f }, crossThickness);
 
             return new PlugData_DocumentWindowButton("close", shape, shape);
         }
 
-        if (buttonType == DocumentWindow::minimiseButton)
+        if(buttonType == DocumentWindow::minimiseButton)
         {
-            shape.addLineSegment({0.0f, 0.5f, 1.0f, 0.5f}, crossThickness);
+            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
             return new PlugData_DocumentWindowButton("minimise", shape, shape);
         }
 
-        if (buttonType == DocumentWindow::maximiseButton)
+        if(buttonType == DocumentWindow::maximiseButton)
         {
-            shape.addLineSegment({0.5f, 0.0f, 0.5f, 1.0f}, crossThickness);
-            shape.addLineSegment({0.0f, 0.5f, 1.0f, 0.5f}, crossThickness);
+            shape.addLineSegment({ 0.5f, 0.0f, 0.5f, 1.0f }, crossThickness);
+            shape.addLineSegment({ 0.0f, 0.5f, 1.0f, 0.5f }, crossThickness);
 
             Path fullscreenShape;
             fullscreenShape.startNewSubPath(45.0f, 100.0f);
@@ -278,7 +280,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         return 0;
     }
-    
+
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         g.setColour(findColour(button.getToggleState() ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
@@ -291,21 +293,21 @@ struct PlugDataLook : public LookAndFeel_V4
         g.setColour(button.findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(Line<float>(0, h - 0.5f, w, h - 0.5f), 1.0f);
 
-        if (button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1)
+        if(button.getIndex() != button.getTabbedButtonBar().getNumTabs() - 1)
         {
             g.drawLine(Line<float>(w - 0.5f, 0, w - 0.5f, h), 1.0f);
         }
 
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
-    
+
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, const int w, const int h) override
     {
     }
 
     Font getTabButtonFont(TabBarButton&, float height) override
     {
-        return {height * 0.4f};
+        return { height * 0.4f };
     }
 
     Font getToolbarFont(int buttonHeight)
@@ -320,7 +322,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
     Font getSuggestionFont(int buttonHeight)
     {
-        return {buttonHeight / 1.9f};
+        return { buttonHeight / 1.9f };
     }
 
     void drawPopupMenuBackground(Graphics& g, int width, int height) override
@@ -331,7 +333,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
         // Fill background if there's no support for transparent popupmenus
 #ifdef PLUGDATA_STANDALONE
-        if (!Desktop::canUseSemiTransparentWindows())
+        if(! Desktop::canUseSemiTransparentWindows())
         {
             g.fillAll(findColour(ResizableWindow::backgroundColourId));
         }
@@ -356,13 +358,14 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
     {
-        if (textEditor.getName() == "sidebar::searcheditor") return;
+        if(textEditor.getName() == "sidebar::searcheditor")
+            return;
 
-        if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
+        if(dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
         {
-            if (textEditor.isEnabled())
+            if(textEditor.isEnabled())
             {
-                if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly())
+                if(textEditor.hasKeyboardFocus(true) && ! textEditor.isReadOnly())
                 {
                     g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
                     g.drawRect(0, 0, width, height, 2);
@@ -402,7 +405,7 @@ struct PlugDataLook : public LookAndFeel_V4
         g.setColour(box.findColour(ComboBox::backgroundColourId));
         g.fillRoundedRectangle(boxBounds.toFloat(), cornerSize);
 
-        if (!inspectorElement)
+        if(! inspectorElement)
         {
             g.setColour(box.findColour(ComboBox::outlineColourId));
             g.drawRoundedRectangle(boxBounds.toFloat().reduced(0.5f, 0.5f), cornerSize, 1.0f);
@@ -410,9 +413,9 @@ struct PlugDataLook : public LookAndFeel_V4
 
         Rectangle<int> arrowZone(width - 20, 2, 14, height - 4);
         Path path;
-        path.startNewSubPath((float)arrowZone.getX() + 3.0f, (float)arrowZone.getCentreY() - 2.0f);
-        path.lineTo((float)arrowZone.getCentreX(), (float)arrowZone.getCentreY() + 3.0f);
-        path.lineTo((float)arrowZone.getRight() - 3.0f, (float)arrowZone.getCentreY() - 2.0f);
+        path.startNewSubPath((float) arrowZone.getX() + 3.0f, (float) arrowZone.getCentreY() - 2.0f);
+        path.lineTo((float) arrowZone.getCentreX(), (float) arrowZone.getCentreY() + 3.0f);
+        path.lineTo((float) arrowZone.getRight() - 3.0f, (float) arrowZone.getCentreY() - 2.0f);
         g.setColour(box.findColour(ComboBox::arrowColourId).withAlpha((box.isEnabled() ? 0.9f : 0.2f)));
 
         g.strokePath(path, PathStrokeType(2.0f));
@@ -430,11 +433,11 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         auto buttonArea = button.getLocalBounds();
 
-        if (shouldDrawButtonAsDown)
+        if(shouldDrawButtonAsDown)
         {
             g.setColour(backgroundColour.darker());
         }
-        else if (shouldDrawButtonAsHighlighted)
+        else if(shouldDrawButtonAsHighlighted)
         {
             g.setColour(backgroundColour.brighter());
         }
@@ -452,9 +455,11 @@ struct PlugDataLook : public LookAndFeel_V4
 
         auto baseColour = backgroundColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
 
-        if (shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted) baseColour = baseColour.contrasting(shouldDrawButtonAsDown ? 0.2f : 0.05f);
+        if(shouldDrawButtonAsDown || shouldDrawButtonAsHighlighted)
+            baseColour = baseColour.contrasting(shouldDrawButtonAsDown ? 0.2f : 0.05f);
 
-        if (!shouldDrawButtonAsHighlighted && !button.getToggleState()) baseColour = Colours::transparentBlack;
+        if(! shouldDrawButtonAsHighlighted && ! button.getToggleState())
+            baseColour = Colours::transparentBlack;
 
         g.setColour(baseColour);
         g.fillRect(bounds);
@@ -473,7 +478,8 @@ struct PlugDataLook : public LookAndFeel_V4
         auto rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
         auto textWidth = button.getWidth() - leftIndent - rightIndent;
 
-        if (textWidth > 0) g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::left, 2);
+        if(textWidth > 0)
+            g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::left, 2);
     }
 
     void drawStatusbarButtonText(Graphics& g, TextButton& button, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -481,15 +487,15 @@ struct PlugDataLook : public LookAndFeel_V4
         Font font(getTextButtonFont(button, button.getHeight()));
         g.setFont(font);
 
-        if (!button.isEnabled())
+        if(! button.isEnabled())
         {
             g.setColour(Colours::grey);
         }
-        else if (button.getToggleState())
+        else if(button.getToggleState())
         {
             g.setColour(button.findColour(Slider::thumbColourId));
         }
-        else if (shouldDrawButtonAsHighlighted)
+        else if(shouldDrawButtonAsHighlighted)
         {
             g.setColour(button.findColour(Slider::thumbColourId).brighter(0.8f));
         }
@@ -506,7 +512,8 @@ struct PlugDataLook : public LookAndFeel_V4
         const int rightIndent = jmin(fontHeight, 2 + cornerSize / (button.isConnectedOnRight() ? 4 : 2));
         const int textWidth = button.getWidth() - leftIndent - rightIndent;
 
-        if (textWidth > 0) g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
+        if(textWidth > 0)
+            g.drawFittedText(button.getButtonText(), leftIndent, yIndent, textWidth, button.getHeight() - yIndent * 2, Justification::centred, 2);
     }
 
     void drawPdButton(Graphics& g, Button& button, const Colour& backgroundColour, bool shouldDrawButtonAsHighlighted, bool shouldDrawButtonAsDown)
@@ -518,7 +525,8 @@ struct PlugDataLook : public LookAndFeel_V4
 
         auto highlightColour = findColour(TextButton::buttonOnColourId);
 
-        if (shouldDrawButtonAsDown || button.getToggleState()) baseColour = highlightColour;
+        if(shouldDrawButtonAsDown || button.getToggleState())
+            baseColour = highlightColour;
 
         baseColour = baseColour.withMultipliedSaturation(button.hasKeyboardFocus(true) ? 1.3f : 0.9f).withMultipliedAlpha(button.isEnabled() ? 1.0f : 0.5f);
 
@@ -529,10 +537,10 @@ struct PlugDataLook : public LookAndFeel_V4
         auto flatOnTop = button.isConnectedOnTop();
         auto flatOnBottom = button.isConnectedOnBottom();
 
-        if (flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
+        if(flatOnLeft || flatOnRight || flatOnTop || flatOnBottom)
         {
             Path path;
-            path.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize, cornerSize, !(flatOnLeft || flatOnTop), !(flatOnRight || flatOnTop), !(flatOnLeft || flatOnBottom), !(flatOnRight || flatOnBottom));
+            path.addRoundedRectangle(bounds.getX(), bounds.getY(), bounds.getWidth(), bounds.getHeight(), cornerSize, cornerSize, ! (flatOnLeft || flatOnTop), ! (flatOnRight || flatOnTop), ! (flatOnLeft || flatOnBottom), ! (flatOnRight || flatOnBottom));
 
             g.fillPath(path);
 
@@ -562,19 +570,19 @@ struct PlugDataLook : public LookAndFeel_V4
         backgroundTrack.startNewSubPath(startPoint);
         backgroundTrack.lineTo(endPoint);
         g.setColour(slider.findColour(Slider::backgroundColourId));
-        g.strokePath(backgroundTrack, {trackWidth, PathStrokeType::mitered});
+        g.strokePath(backgroundTrack, { trackWidth, PathStrokeType::mitered });
         Path valueTrack;
         Point<float> minPoint, maxPoint;
         auto kx = slider.isHorizontal() ? sliderPos : (x + width * 0.5f);
         auto ky = slider.isHorizontal() ? (y + height * 0.5f) : sliderPos;
         minPoint = startPoint;
-        maxPoint = {kx, ky};
+        maxPoint = { kx, ky };
         auto thumbWidth = getSliderThumbRadius(slider);
         valueTrack.startNewSubPath(minPoint);
         valueTrack.lineTo(maxPoint);
 
         g.setColour(slider.findColour(TextButton::buttonColourId));
-        g.strokePath(valueTrack, {trackWidth, PathStrokeType::mitered});
+        g.strokePath(valueTrack, { trackWidth, PathStrokeType::mitered });
         g.setColour(slider.findColour(Slider::thumbColourId));
 
         g.fillRoundedRectangle(Rectangle<float>(static_cast<float>(thumbWidth), static_cast<float>(24)).withCentre(maxPoint), 2.0f);
@@ -585,16 +593,16 @@ struct PlugDataLook : public LookAndFeel_V4
 
     void drawPropertyPanelSectionHeader(Graphics& g, const String& name, bool isOpen, int width, int height) override
     {
-        auto buttonSize = (float)height * 0.75f;
-        auto buttonIndent = ((float)height - buttonSize) * 0.5f;
+        auto buttonSize = (float) height * 0.75f;
+        auto buttonIndent = ((float) height - buttonSize) * 0.5f;
 
-        drawTreeviewPlusMinusBox(g, {buttonIndent, buttonIndent, buttonSize, buttonSize}, findColour(ResizableWindow::backgroundColourId), isOpen, false);
+        drawTreeviewPlusMinusBox(g, { buttonIndent, buttonIndent, buttonSize, buttonSize }, findColour(ResizableWindow::backgroundColourId), isOpen, false);
 
         auto textX = static_cast<int>((buttonIndent * 2.0f + buttonSize + 2.0f));
 
         g.setColour(findColour(PropertyComponent::labelTextColourId));
 
-        g.setFont({(float)height * 0.6f, Font::bold});
+        g.setFont({ (float) height * 0.6f, Font::bold });
         g.drawText(name, textX, 0, width - textX - 4, height, Justification::centredLeft, true);
     }
 
@@ -631,11 +639,11 @@ struct PlugDataLook : public LookAndFeel_V4
 
         void drawTextEditorOutline(Graphics& g, int width, int height, TextEditor& textEditor) override
         {
-            if (dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
+            if(dynamic_cast<AlertWindow*>(textEditor.getParentComponent()) == nullptr)
             {
-                if (textEditor.isEnabled())
+                if(textEditor.isEnabled())
                 {
-                    if (textEditor.hasKeyboardFocus(true) && !textEditor.isReadOnly())
+                    if(textEditor.hasKeyboardFocus(true) && ! textEditor.isReadOnly())
                     {
                         g.setColour(textEditor.findColour(TextEditor::focusedOutlineColourId));
                         g.drawRect(0, 0, width, height, 2);
@@ -657,7 +665,7 @@ struct PlugDataLook : public LookAndFeel_V4
             g.fillRect(sliderBounds);
 
             Path toDraw;
-            if (slider.isHorizontal())
+            if(slider.isHorizontal())
             {
                 sliderPos = jmap<float>(sliderPos, x, width - (2 * x), 1.0f, width);
                 auto b = sliderBounds.withTrimmedRight(width - sliderPos);
@@ -690,7 +698,7 @@ struct PlugDataLook : public LookAndFeel_V4
             g.setColour(button.findColour(ComboBox::outlineColourId));
             g.strokePath(path, PathStrokeType(1.0f));
 
-            if (shouldDrawButtonAsDown || button.getToggleState())
+            if(shouldDrawButtonAsDown || button.getToggleState())
             {
                 g.setColour(highlightColour);
                 g.fillRect(button.getLocalBounds().reduced(button.getWidth() * 0.25f));
@@ -728,8 +736,8 @@ struct PlugDataLook : public LookAndFeel_V4
         s.append(text, Font(tooltipFontSize, Font::bold), findColour(TooltipWindow::textColourId));
 
         TextLayout tl;
-        tl.createLayoutWithBalancedLineLengths(s, (float)maxToolTipWidth);
-        tl.draw(g, {static_cast<float>(width), static_cast<float>(height)});
+        tl.createLayoutWithBalancedLineLengths(s, (float) maxToolTipWidth);
+        tl.draw(g, { static_cast<float>(width), static_cast<float>(height) });
     }
 
     LookAndFeel* getPdLook()
@@ -743,14 +751,14 @@ struct PlugDataLook : public LookAndFeel_V4
         int y = -offset;
         int i = 0;
 
-        while (totalHeight)
+        while(totalHeight)
         {
-            if (totalHeight < itemHeight)
+            if(totalHeight < itemHeight)
             {
                 itemHeight = totalHeight;
             }
 
-            if (selected >= 0 && selected == i)
+            if(selected >= 0 && selected == i)
             {
                 g.setColour(owner.findColour(PlugDataColour::highlightColourId));
             }
@@ -840,7 +848,7 @@ struct PlugDataLook : public LookAndFeel_V4
     static void setDefaultFont(String fontName)
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
-        if (fontName == "Inter")
+        if(fontName == "Inter")
         {
             lnf.setDefaultSansSerifTypeface(lnf.defaultFont.getTypefacePtr());
         }
@@ -851,17 +859,17 @@ struct PlugDataLook : public LookAndFeel_V4
         }
     }
 
-    inline static const std::vector<std::vector<String>> colourNames = {{"tbLightColour", "cnvLightColour", "textLightColour", "dataLightColour", "outlineLightColour", "connectionLightColour", "signalLightColour"},
-                                                                        {"tbDarkColour", "cnvDarkColour", "textDarkColour", "dataDarkColour", "outlineDarkColour", "connectionDarkColour", "signalDarkColour"}};
+    inline static const std::vector<std::vector<String>> colourNames = { { "tbLightColour", "cnvLightColour", "textLightColour", "dataLightColour", "outlineLightColour", "connectionLightColour", "signalLightColour" },
+                                                                         { "tbDarkColour", "cnvDarkColour", "textDarkColour", "dataDarkColour", "outlineDarkColour", "connectionDarkColour", "signalDarkColour" } };
 
-    inline static const std::vector<std::vector<Colour>> defaultColours = {{Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0)},
-                                                                           {Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0)}};
+    inline static const std::vector<std::vector<Colour>> defaultColours = { { Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0) },
+                                                                            { Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0) } };
 
     inline static std::vector<std::vector<Colour>> colourSettings = defaultColours;
 
     void setTheme(bool useLightTheme)
     {
-        if (useLightTheme)
+        if(useLightTheme)
         {
             setColours(colourSettings[0]);
         }

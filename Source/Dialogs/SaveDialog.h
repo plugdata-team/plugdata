@@ -52,7 +52,7 @@ struct SaveDialog : public Component
 
     std::function<void(int)> cb;
 
-   private:
+private:
     Label savelabel;
 
     TextButton cancel = TextButton("Cancel");
