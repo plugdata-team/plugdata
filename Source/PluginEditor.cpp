@@ -174,16 +174,17 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
     toolbarButton(Pin)->onClick = [this]() { sidebar.pinSidebar(toolbarButton(Pin)->getToggleState()); };
 
     addAndMakeVisible(toolbarButton(Hide));
-
+    
     sidebar.setSize(250, pd.lastUIHeight - 40);
     setSize(pd.lastUIWidth, pd.lastUIHeight);
-
+    
     // Set minimum bounds
     setResizeLimits(835, 305, 999999, 999999);
-
+    
     tabbar.toFront(false);
     sidebar.toFront(false);
-
+    
+    
     // Make sure existing console messages are processed
     sidebar.updateConsole();
 }

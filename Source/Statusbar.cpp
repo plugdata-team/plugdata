@@ -7,10 +7,10 @@
 #include "Statusbar.h"
 #include "LookAndFeel.h"
 
+#include "PluginProcessor.h"
+#include "PluginEditor.h"
 #include "Canvas.h"
 #include "Connection.h"
-#include "PluginEditor.h"
-#include "PluginProcessor.h"
 
 struct LevelMeter : public Component, public Timer
 {
@@ -150,7 +150,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     locked.addListener(this);
     commandLocked.addListener(this);
-
+    
     powerButton = std::make_unique<TextButton>(Icons::Power);
     lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
@@ -312,6 +312,7 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     levelMeter->toBehind(&volumeSlider);
 
     setSize(getWidth(), statusbarHeight);
+
 }
 
 Statusbar::~Statusbar()
@@ -424,7 +425,10 @@ StatusbarSource::StatusbarSource()
 
 static bool hasRealEvents(MidiBuffer& buffer)
 {
-    return std::any_of(buffer.begin(), buffer.end(), [](const auto& event) { return !event.getMessage().isSysEx(); });
+    return std::any_of(buffer.begin(), buffer.end(),
+    [](const auto& event){
+        return !event.getMessage().isSysEx();
+    });
 }
 
 void StatusbarSource::processBlock(const AudioBuffer<float>& buffer, MidiBuffer& midiIn, MidiBuffer& midiOut, int channels)

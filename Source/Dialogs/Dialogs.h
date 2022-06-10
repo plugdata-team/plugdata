@@ -6,8 +6,8 @@
 
 #pragma once
 
-#include "LookAndFeel.h"
 #include <JuceHeader.h>
+#include "LookAndFeel.h"
 
 class PlugDataPluginEditor;
 

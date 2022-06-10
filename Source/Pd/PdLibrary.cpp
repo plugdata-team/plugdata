@@ -1,9 +1,9 @@
 
 extern "C"
 {
+#include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
-#include <m_pd.h>
 #include <s_stuff.h>
 }
 
@@ -73,7 +73,7 @@ bool Trie::search(const String& key)
 // Returns true if a given node has any children
 bool Trie::hasChildren()
 {
-    for (auto& i : character)
+    for (auto & i : character)
     {
         if (i)
         {
@@ -107,7 +107,7 @@ bool Trie::deletion(Trie*& curr, String key)
                 curr = nullptr;
                 return true;
             }
-
+    
             return false;
         }
     }
@@ -152,7 +152,7 @@ void Trie::suggestionsRec(String currPrefix, Suggestions& result)
         if (character[i])
         {
             // append current character to currPrefixString
-            // currPrefix += i;
+            //currPrefix += i;
             char letter = INDEX_TO_CHAR(i);
             currPrefix += String(&letter, 1);
 

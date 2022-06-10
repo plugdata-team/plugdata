@@ -278,7 +278,7 @@ struct PlugDataLook : public LookAndFeel_V4
     {
         return 0;
     }
-
+    
     void drawTabButton(TabBarButton& button, Graphics& g, bool isMouseOver, bool isMouseDown) override
     {
         g.setColour(findColour(button.getToggleState() ? PlugDataColour::canvasColourId : PlugDataColour::toolbarColourId));
@@ -298,7 +298,7 @@ struct PlugDataLook : public LookAndFeel_V4
 
         drawTabButtonText(button, g, isMouseOver, isMouseDown);
     }
-
+    
     void drawTabAreaBehindFrontButton(TabbedButtonBar& bar, Graphics& g, const int w, const int h) override
     {
     }

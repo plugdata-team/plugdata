@@ -76,7 +76,7 @@ struct AtomObject : public GUIObject
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_text.te_width = b.getWidth() / fontWidth;
     }
-
+    
     void resized() override
     {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
@@ -199,17 +199,17 @@ struct AtomObject : public GUIObject
         }
     }
 
-    float getFontHeight() const
+    float getFontHeight() const 
     {
         return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
     }
 
-    void setFontHeight(float newSize)
+    void setFontHeight(float newSize) 
     {
         static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;
     }
 
-    Rectangle<int> getLabelBounds() const
+    Rectangle<int> getLabelBounds() const 
     {
         auto objectBounds = box->getBounds().reduced(Box::margin);
         int fontHeight = getAtomHeight() - 6;
@@ -230,7 +230,7 @@ struct AtomObject : public GUIObject
         {  // top
             return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
         }
-
+        
         return labelBounds.withX(objectBounds.getX()).withY(objectBounds.getBottom());
     }
 
@@ -274,25 +274,25 @@ struct AtomObject : public GUIObject
         atom->a_label = gensym(newText.toRawUTF8());
     }
 
-    void setLabelPosition(int wherelabel)
+    void setLabelPosition(int wherelabel) 
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_wherelabel = wherelabel - 1;
     }
 
-    String getSendSymbol()
+    String getSendSymbol() 
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         return String(atom->a_symfrom->s_name);
     }
 
-    String getReceiveSymbol()
+    String getReceiveSymbol() 
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         return String(atom->a_symto->s_name);
     }
 
-    void setSendSymbol(const String& symbol) const
+    void setSendSymbol(const String& symbol) const 
     {
         if (symbol.isEmpty()) return;
 
@@ -301,7 +301,7 @@ struct AtomObject : public GUIObject
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
     }
 
-    void setReceiveSymbol(const String& symbol) const
+    void setReceiveSymbol(const String& symbol) const 
     {
         if (symbol.isEmpty()) return;
 

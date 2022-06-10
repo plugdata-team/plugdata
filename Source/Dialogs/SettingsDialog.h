@@ -1,6 +1,6 @@
-#include "../Utility/PropertiesPanel.h"
 #include "Deken.h"
 #include "SearchPathComponent.h"
+#include "../Utility/PropertiesPanel.h"
 
 struct ThemePanel : public Component, public Value::Listener
 {

@@ -7,15 +7,15 @@
 
 extern "C"
 {
-#include <m_imp.h>
 #include <m_pd.h>
+#include <m_imp.h>
 }
 
 #include "Box.h"
 #include "Connection.h"
-#include "LookAndFeel.h"
-#include "PluginEditor.h"
 #include "PluginProcessor.h"
+#include "PluginEditor.h"
+#include "LookAndFeel.h"
 
 #include "Utility/GraphArea.h"
 #include "Utility/SuggestionComponent.h"
@@ -72,7 +72,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
-        // viewport->setBufferedToImage(true);
+        //viewport->setBufferedToImage(true);
 
         // Apply zooming
         setTransform(parent.transform);
@@ -137,7 +137,12 @@ void Canvas::synchronise(bool updatePosition)
     patch.setCurrent(true);
 
     auto objects = patch.getObjects();
-    auto isObjectDeprecated = [&](void* obj) { return std::all_of(objects.begin(), objects.end(), [obj](const auto* obj2) { return obj != obj2; }); };
+    auto isObjectDeprecated = [&](void* obj)
+    {
+        return std::all_of(objects.begin(), objects.end(), [obj](const auto* obj2){
+            return obj != obj2;
+        });
+    };
 
     if (!(isGraph || presentationMode == var(true)))
     {
@@ -233,17 +238,17 @@ void Canvas::synchronise(bool updatePosition)
             }
 
             auto* it = std::find_if(connections.begin(), connections.end(),
-                                    [this, &connection, &srcno, &sinkno](Connection* c)
-                                    {
-                                        auto& [inno, inobj, outno, outobj] = connection;
+                                   [this, &connection, &srcno, &sinkno](Connection* c)
+                                   {
+                                       auto& [inno, inobj, outno, outobj] = connection;
 
-                                        if (!c->inlet || !c->outlet) return false;
+                                       if (!c->inlet || !c->outlet) return false;
 
-                                        bool sameStart = c->outbox == boxes[srcno];
-                                        bool sameEnd = c->inbox == boxes[sinkno];
+                                       bool sameStart = c->outbox == boxes[srcno];
+                                       bool sameEnd = c->inbox == boxes[sinkno];
 
-                                        return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
-                                    });
+                                       return c->inIdx == inno && c->outIdx == outno && sameStart && sameEnd;
+                                   });
 
             if (it == connections.end())
             {
@@ -431,6 +436,7 @@ void Canvas::mouseUp(const MouseEvent& e)
 {
     if (auto* box = dynamic_cast<Box*>(e.originalComponent))
     {
+        
         if (!popupMenu.getNumItems() && !ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown() && e.getDistanceFromDragStart() < 2)
         {
             deselectAll();

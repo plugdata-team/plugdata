@@ -33,6 +33,7 @@
 #define CUSTOM_SHADOW 0
 #endif
 
+                                                                
 namespace pd
 {
 class Patch;
@@ -354,21 +355,31 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             inner.audioDeviceAboutToStart(device);
         }
 
-        void audioDeviceIOCallbackWithContext(const float** inputChannelData, int numInputChannels, float** outputChannelData, int numOutputChannels, int numSamples, const AudioIODeviceCallbackContext& context) override
+        void audioDeviceIOCallbackWithContext (const float** inputChannelData,
+                                               int numInputChannels,
+                                               float** outputChannelData,
+                                               int numOutputChannels,
+                                               int numSamples,
+                                               const AudioIODeviceCallbackContext& context) override
         {
-            jassertquiet((int)storedInputChannels.size() == numInputChannels);
-            jassertquiet((int)storedOutputChannels.size() == numOutputChannels);
+            jassertquiet ((int) storedInputChannels.size()  == numInputChannels);
+            jassertquiet ((int) storedOutputChannels.size() == numOutputChannels);
 
             int position = 0;
 
             while (position < numSamples)
             {
-                const auto blockLength = jmin(maximumSize, numSamples - position);
+                const auto blockLength = jmin (maximumSize, numSamples - position);
 
-                initChannelPointers(inputChannelData, storedInputChannels, position);
-                initChannelPointers(outputChannelData, storedOutputChannels, position);
+                initChannelPointers (inputChannelData,  storedInputChannels,  position);
+                initChannelPointers (outputChannelData, storedOutputChannels, position);
 
-                inner.audioDeviceIOCallbackWithContext(storedInputChannels.data(), (int)storedInputChannels.size(), storedOutputChannels.data(), (int)storedOutputChannels.size(), blockLength, context);
+                inner.audioDeviceIOCallbackWithContext (storedInputChannels.data(),
+                                                        (int) storedInputChannels.size(),
+                                                        storedOutputChannels.data(),
+                                                        (int) storedOutputChannels.size(),
+                                                        blockLength,
+                                                        context);
 
                 position += blockLength;
             }
@@ -405,7 +416,12 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
     CallbackMaxSizeEnforcer maxSizeEnforcer{*this};
 
-    void audioDeviceIOCallbackWithContext(const float** inputChannelData, int numInputChannels, float** outputChannelData, int numOutputChannels, int numSamples, const AudioIODeviceCallbackContext& context) override
+    void audioDeviceIOCallbackWithContext (const float** inputChannelData,
+                                           int numInputChannels,
+                                           float** outputChannelData,
+                                           int numOutputChannels,
+                                           int numSamples,
+                                           const AudioIODeviceCallbackContext& context) override
     {
         if (muteInput)
         {
@@ -413,7 +429,12 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
             inputChannelData = emptyBuffer.getArrayOfReadPointers();
         }
 
-        player.audioDeviceIOCallbackWithContext(inputChannelData, numInputChannels, outputChannelData, numOutputChannels, numSamples, context);
+        player.audioDeviceIOCallbackWithContext (inputChannelData,
+                                                 numInputChannels,
+                                                 outputChannelData,
+                                                 numOutputChannels,
+                                                 numSamples,
+                                                 context);
     }
 
     void audioDeviceAboutToStart(AudioIODevice* device) override
@@ -509,14 +530,14 @@ class PlugDataWindow : public DocumentWindow
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
         pluginHolder = std::make_unique<StandalonePluginHolder>(settingsToUse, takeOwnershipOfSettings, preferredDefaultDeviceName, preferredSetupOptions, constrainToConfiguration, autoOpenMidiDevices);
-
+        
         setOpaque(false);
-
+        
         auto* mainComponent = new MainContentComponent(*this);
         auto* editor = mainComponent->getEditor();
         auto* c = editor->getConstrainer();
         setResizeLimits(c->getMinimumWidth() + 7, c->getMinimumHeight() + 7, c->getMaximumWidth() + 7, c->getMaximumHeight() + 7);
-
+    
         setContentOwned(mainComponent, true);
 
         const auto windowScreenBounds = [this]() -> Rectangle<int>
@@ -668,11 +689,8 @@ class PlugDataWindow : public DocumentWindow
                 editor->setAlwaysOnTop(true);
             }
         }
-
-        AudioProcessorEditor* getEditor()
-        {
-            return editor.get();
-        }
+        
+        AudioProcessorEditor* getEditor() { return editor.get(); }
 
         StringArray getMenuBarNames() override
         {
@@ -728,7 +746,7 @@ class PlugDataWindow : public DocumentWindow
         void resized() override
         {
             auto r = getLocalBounds();
-
+            
             if (editor != nullptr)
             {
                 const auto newPos = r.getTopLeft().toFloat().transformedBy(editor->getTransform().inverted());
