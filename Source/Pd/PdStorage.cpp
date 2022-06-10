@@ -63,7 +63,7 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
                     return;
                 }
             }
-        };
+        }
     }
 
     // If we're here, no object was found, so we create a new one

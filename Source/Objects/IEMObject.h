@@ -206,7 +206,7 @@ struct IEMObject : public GUIObject
         }
     }
 
-    Rectangle<int> getLabelBounds() const noexcept
+    Rectangle<int> getLabelBounds() const 
     {
         auto objectBounds = box->getBounds().reduced(Box::margin);
 
@@ -226,7 +226,7 @@ struct IEMObject : public GUIObject
         return objectBounds;
     }
 
-    String getSendSymbol() noexcept
+    String getSendSymbol() 
     {
         t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -237,7 +237,7 @@ struct IEMObject : public GUIObject
         return name;
     }
 
-    String getReceiveSymbol() noexcept
+    String getReceiveSymbol() 
     {
         t_symbol* srlsym[3];
         auto* iemgui = static_cast<t_iemgui*>(ptr);
@@ -250,7 +250,7 @@ struct IEMObject : public GUIObject
         return name;
     }
 
-    void setSendSymbol(const String& symbol) const noexcept
+    void setSendSymbol(const String& symbol) const 
     {
         if (symbol.isEmpty()) return;
 
@@ -270,7 +270,7 @@ struct IEMObject : public GUIObject
         }
     }
 
-    void setReceiveSymbol(const String& symbol) const noexcept
+    void setReceiveSymbol(const String& symbol) const 
     {
         if (symbol.isEmpty()) return;
 
@@ -313,45 +313,45 @@ struct IEMObject : public GUIObject
         return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
     }
 
-    Colour getBackgroundColour() const noexcept
+    Colour getBackgroundColour() const 
     {
         return Colour(static_cast<uint32>(libpd_iemgui_get_background_color(ptr)));
     }
 
-    Colour getForegroundColour() const noexcept
+    Colour getForegroundColour() const 
     {
         return Colour(static_cast<uint32>(libpd_iemgui_get_foreground_color(ptr)));
     }
 
-    Colour getLabelColour() const noexcept
+    Colour getLabelColour() const 
     {
         return Colour(static_cast<uint32>(libpd_iemgui_get_label_color(ptr)));
     }
 
-    void setBackgroundColour(Colour colour) noexcept
+    void setBackgroundColour(Colour colour) 
     {
         String colourStr = colour.toString();
         libpd_iemgui_set_background_color(ptr, colourStr.toRawUTF8());
     }
 
-    void setForegroundColour(Colour colour) noexcept
+    void setForegroundColour(Colour colour) 
     {
         String colourStr = colour.toString();
         libpd_iemgui_set_foreground_color(ptr, colourStr.toRawUTF8());
     }
 
-    void setLabelColour(Colour colour) noexcept
+    void setLabelColour(Colour colour) 
     {
         String colourStr = colour.toString();
         libpd_iemgui_set_label_color(ptr, colourStr.toRawUTF8());
     }
 
-    int getFontHeight() const noexcept
+    int getFontHeight() const 
     {
         return static_cast<t_iemgui*>(ptr)->x_fontsize;
     }
 
-    void setFontHeight(float newSize) noexcept
+    void setFontHeight(float newSize) 
     {
         static_cast<t_iemgui*>(ptr)->x_fontsize = newSize;
     }
@@ -398,7 +398,7 @@ struct IEMObject : public GUIObject
         iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
     }
 
-    void setLabelPosition(Point<int> position) noexcept
+    void setLabelPosition(Point<int> position) 
     {
         auto* iem = static_cast<t_iemgui*>(ptr);
         iem->x_ldx = position.x;

@@ -73,9 +73,9 @@ bool Trie::search(const String& key)
 // Returns true if a given node has any children
 bool Trie::hasChildren()
 {
-    for (int i = 0; i < CHAR_SIZE; i++)
+    for (auto & i : character)
     {
-        if (character[i])
+        if (i)
         {
             return true;  // child found
         }

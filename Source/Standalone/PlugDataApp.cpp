@@ -113,7 +113,7 @@ class PlugDataApp : public JUCEApplication
         /* load dynamic libraries specified with "-lib" args */
         t_namelist* nl;
         for (nl = STUFF->st_externlist; nl; nl = nl->nl_next)
-            if (!sys_load_lib(0, nl->nl_string)) post("%s: can't load library", nl->nl_string);
+            if (!sys_load_lib(nullptr, nl->nl_string)) post("%s: can't load library", nl->nl_string);
 
         /* open patches specifies with "-open" args */
         for (nl = sys_openlist; nl; nl = nl->nl_next)
@@ -128,18 +128,18 @@ class PlugDataApp : public JUCEApplication
         }
 
         namelist_free(sys_openlist);
-        sys_openlist = 0;
+        sys_openlist = nullptr;
         /* send messages specified with "-send" args */
         for (nl = sys_messagelist; nl; nl = nl->nl_next)
         {
             t_binbuf* b = binbuf_new();
             binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
-            binbuf_eval(b, 0, 0, 0);
+            binbuf_eval(b, nullptr, 0, nullptr);
             binbuf_free(b);
         }
 
         namelist_free(sys_messagelist);
-        sys_messagelist = 0;
+        sys_messagelist = nullptr;
     }
 
     void shutdown() override

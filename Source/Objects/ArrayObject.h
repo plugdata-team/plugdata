@@ -25,19 +25,19 @@ class PdArray
     PdArray() = default;
 
     // Gets the name of the array.
-    String getName() const noexcept
+    String getName() const 
     {
         return name;
     }
 
-    PdArray::DrawType getDrawType() const noexcept
+    PdArray::DrawType getDrawType() const 
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         return static_cast<DrawType>(libpd_array_get_style(name.toRawUTF8()));
     }
 
     // Gets the scale of the array.
-    std::array<float, 2> getScale() const noexcept
+    std::array<float, 2> getScale() const 
     {
         float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
@@ -45,7 +45,7 @@ class PdArray
         return {min, max};
     }
 
-    void setScale(std::array<float, 2> scale) noexcept
+    void setScale(std::array<float, 2> scale) 
     {
         auto& [min, max] = scale;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
@@ -282,7 +282,7 @@ struct GraphicalArray : public Component
         }
     }
 
-    size_t getArraySize() const noexcept
+    size_t getArraySize() const 
     {
         return vec.size();
     }
@@ -470,7 +470,7 @@ struct ArrayObject final : public GUIObject
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
-    PdArray getArray() const noexcept
+    PdArray getArray() const 
     {
         return {libpd_array_get_name(static_cast<t_canvas*>(ptr)->gl_list), cnv->pd->m_instance};
     }

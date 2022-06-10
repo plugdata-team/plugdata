@@ -428,7 +428,7 @@ void Box::updatePorts()
             edge->setTooltip(tooltip);
         }
 
-        // Dont show for graphs or presentation mode
+        // Don't show for graphs or presentation mode
         edge->setVisible(!(cnv->isGraph || cnv->presentationMode == var(true)));
         edge->repaint();
 

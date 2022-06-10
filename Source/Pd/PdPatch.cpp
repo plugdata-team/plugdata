@@ -72,7 +72,7 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile) : ptr(pat
     }
 }
 
-Rectangle<int> Patch::getBounds() const noexcept
+Rectangle<int> Patch::getBounds() const 
 {
     if (ptr)
     {
@@ -94,7 +94,7 @@ void Patch::close()
     libpd_closefile(ptr);
 }
 
-bool Patch::isDirty()
+bool Patch::isDirty() const
 {
     return getPointer()->gl_dirty;
 }
@@ -194,7 +194,7 @@ Connections Patch::getConnections() const
     return connections;
 }
 
-std::vector<void*> Patch::getObjects(bool onlyGui) noexcept
+std::vector<void*> Patch::getObjects(bool onlyGui) 
 {
     if (ptr)
     {
@@ -205,11 +205,7 @@ std::vector<void*> Patch::getObjects(bool onlyGui) noexcept
         {
             if (Storage::isInfoParent(y)) continue;
 
-            if (onlyGui && y->g_pd->c_gobj)
-            {
-                objects.push_back(static_cast<void*>(y));
-            }
-            else if (!onlyGui)
+            if ((onlyGui && y->g_pd->c_gobj) || !onlyGui)
             {
                 objects.push_back(static_cast<void*>(y));
             }
@@ -637,7 +633,7 @@ void Patch::setZoom(int newZoom)
     pd_typedmess(static_cast<t_pd*>(ptr), gensym("zoom"), 2, &arg);
 }
 
-t_object* Patch::checkObject(void* obj) noexcept
+t_object* Patch::checkObject(void* obj) 
 {
     return pd_checkobject(static_cast<t_pd*>(obj));
 }

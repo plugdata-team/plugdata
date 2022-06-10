@@ -239,7 +239,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     }
 
     /** Returns the currently-visible text editor, or nullptr if none is open. */
-    TextEditor* getCurrentTextEditor() const noexcept
+    TextEditor* getCurrentTextEditor() const 
     {
         return editor.get();
     }
