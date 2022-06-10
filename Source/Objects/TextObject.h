@@ -154,8 +154,6 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
 
-            if (auto* peer = getPeer()) peer->dismissPendingTextInput();
-
             outgoingEditor->setInputFilter(nullptr, false);
 
             cnv->hideSuggestions();

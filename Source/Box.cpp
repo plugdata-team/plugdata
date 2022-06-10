@@ -591,8 +591,6 @@ void Box::hideEditor()
         std::unique_ptr<TextEditor> outgoingEditor;
         std::swap(outgoingEditor, newObjectEditor);
 
-        if (auto* peer = getPeer()) peer->dismissPendingTextInput();
-
         outgoingEditor->setInputFilter(nullptr, false);
 
         cnv->hideSuggestions();
