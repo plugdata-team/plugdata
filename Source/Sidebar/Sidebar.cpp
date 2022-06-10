@@ -109,14 +109,8 @@ void Sidebar::mouseUp(const MouseEvent& e)
 
 void Sidebar::mouseMove(const MouseEvent& e)
 {
-    if (e.getPosition().getX() < dragbarWidth)
-    {
-        setMouseCursor(MouseCursor::LeftRightResizeCursor);
-    }
-    else
-    {
-        setMouseCursor(MouseCursor::NormalCursor);
-    }
+    bool resizeCursor = e.getPosition().getX() < dragbarWidth;
+    setMouseCursor(resizeCursor ? MouseCursor::LeftRightResizeCursor : MouseCursor::NormalCursor);
 }
 
 void Sidebar::mouseExit(const MouseEvent& e)
@@ -137,7 +131,7 @@ void Sidebar::showBrowser(bool show)
 bool Sidebar::isShowingBrowser()
 {
     return browser->isVisible();
-};
+}
 
 void Sidebar::showAutomationPanel(bool show)
 {
@@ -241,7 +235,7 @@ void Sidebar::hideParameters()
     console->deselect();
 }
 
-bool Sidebar::isShowingConsole() const noexcept
+bool Sidebar::isShowingConsole() const 
 {
     return console->isVisible();
 }

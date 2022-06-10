@@ -86,8 +86,6 @@ struct Dialog : public Component
 
 struct Dialogs
 {
-    Dialogs();
-
     static void showSaveDialog(Component* centre, String filename, std::function<void(int)> callback);
     static void showArrayDialog(Component* centre, std::function<void(int, String, String)> callback);
 

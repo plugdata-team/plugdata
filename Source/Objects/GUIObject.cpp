@@ -178,7 +178,7 @@ NonPatchable::~NonPatchable()
 GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false)
 {
     box->addComponentListener(this);
-    updateLabel();
+    updateLabel(); // TODO: fix virtual call from constructor
 
     setWantsKeyboardFocus(true);
 
@@ -238,7 +238,7 @@ ObjectParameters GUIObject::getParameters()
     return defineParameters();
 }
 
-float GUIObject::getValueOriginal() const noexcept
+float GUIObject::getValueOriginal() const 
 {
     return value;
 }
@@ -253,7 +253,7 @@ void GUIObject::setValueOriginal(float v)
     setValue(value);
 }
 
-float GUIObject::getValueScaled() const noexcept
+float GUIObject::getValueScaled() const 
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
@@ -270,7 +270,7 @@ void GUIObject::setValueScaled(float v)
     setValue(value);
 }
 
-void GUIObject::startEdition() noexcept
+void GUIObject::startEdition() 
 {
     edited = true;
     processor.enqueueMessages("gui", "mouse", {1.f});
@@ -278,7 +278,7 @@ void GUIObject::startEdition() noexcept
     value = getValue();
 }
 
-void GUIObject::stopEdition() noexcept
+void GUIObject::stopEdition() 
 {
     edited = false;
     processor.enqueueMessages("gui", "mouse", {0.f});
@@ -320,7 +320,7 @@ void GUIObject::componentMovedOrResized(Component& component, bool moved, bool r
     checkBounds();
 }
 
-void GUIObject::setValue(float value) noexcept
+void GUIObject::setValue(float value) 
 {
     cnv->pd->enqueueDirectMessages(ptr, value);
 }

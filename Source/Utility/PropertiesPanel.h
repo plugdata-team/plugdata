@@ -304,7 +304,7 @@ struct PropertiesPanel : public PropertyPanel
                 dragger->valueChanged = [this](float value){
                     property = value;
                 };
-            };
+            }
             
             label.setFont(Font(14));
 

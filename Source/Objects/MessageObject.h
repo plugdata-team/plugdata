@@ -87,7 +87,7 @@ struct MessageObject final : public GUIObject
     void checkBounds() override
     {
         int numLines = getNumLines(getText(), box->getWidth() - Box::doubleMargin - 5);
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());;
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
         int newWidth = getWidth() / fontWidth;
         
@@ -186,7 +186,7 @@ struct MessageObject final : public GUIObject
         }
     }
 
-    void click() noexcept
+    void click() 
     {
         cnv->pd->enqueueDirectMessages(ptr, 0);
     }
@@ -210,7 +210,7 @@ struct MessageObject final : public GUIObject
         GUIObject::valueChanged(v);
     }
 
-    String getSymbol() const noexcept
+    String getSymbol() const 
     {
         cnv->pd->setThis();
 
@@ -225,7 +225,7 @@ struct MessageObject final : public GUIObject
         return result;
     }
 
-    void setSymbol(String const& value) noexcept
+    void setSymbol(String const& value) 
     {
         cnv->pd->enqueueFunction(
             [this, value]() mutable

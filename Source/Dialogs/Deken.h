@@ -728,7 +728,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         }
     };
 
-    bool checkArchitecture(String platform)
+    static bool checkArchitecture(String platform)
     {
         // Check OS
         if (platform.upToFirstOccurrenceOf("-", false, false) != os) return false;
@@ -743,8 +743,8 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
         return false;
     }
 
-    String floatsize = String(PD_FLOATSIZE);
-    String os =
+    static inline const String floatsize = String(PD_FLOATSIZE);
+    static inline const String os =
 #if JUCE_LINUX
         "Linux"
 #elif JUCE_MAC
@@ -766,7 +766,7 @@ class Deken : public Component, public ListBoxModel, public ScrollBar::Listener,
 #endif
         ;
 
-    StringArray machine =
+    static inline const StringArray machine =
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
         {"amd64", "x86_64"}
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)

@@ -10,7 +10,7 @@ struct AutomationComponent : public Component
 {
     PlugDataAudioProcessor* pd;
 
-    AutomationComponent(PlugDataAudioProcessor* processor) : pd(processor)
+    explicit AutomationComponent(PlugDataAudioProcessor* processor) : pd(processor)
     {
         for (int p = 0; p < PlugDataAudioProcessor::numParameters; p++)
         {
@@ -138,7 +138,7 @@ struct AutomationComponent : public Component
 
 struct AutomationPanel : public Component, public ScrollBar::Listener
 {
-    AutomationPanel(PlugDataAudioProcessor* processor) : sliders(processor)
+    explicit AutomationPanel(PlugDataAudioProcessor* processor) : sliders(processor)
     {
         viewport.setViewedComponent(&sliders, false);
         viewport.setScrollBarsShown(true, false, false, false);

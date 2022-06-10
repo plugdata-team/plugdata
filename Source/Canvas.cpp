@@ -448,7 +448,7 @@ void Canvas::mouseUp(const MouseEvent& e)
         }
     }
 
-    // Releasing a connect by drag action
+    // Releasing a connect-by-drag action
     if (connectingWithDrag && connectingEdge)
     {
         if (nearestEdge)

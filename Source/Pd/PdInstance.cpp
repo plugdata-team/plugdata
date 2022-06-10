@@ -234,7 +234,7 @@ Instance::~Instance()
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
-int Instance::getBlockSize() const noexcept
+int Instance::getBlockSize() const 
 {
     return libpd_blocksize();
 }
