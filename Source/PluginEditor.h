@@ -82,7 +82,7 @@ class Canvas;
 class PlugDataAudioProcessor;
 class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener, public ValueTree::Listener, public ApplicationCommandTarget, public ApplicationCommandManager, public Timer
 {
-public:
+   public:
     explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
 
     ~PlugDataPluginEditor() override;
@@ -117,7 +117,10 @@ public:
     void updateDrawables();
 
     // Pass modifier keys to statusbar
-    void modifierKeysChanged(const ModifierKeys& modifiers) override { statusbar.modifierKeysChanged(modifiers); }
+    void modifierKeysChanged(const ModifierKeys& modifiers) override
+    {
+        statusbar.modifierKeysChanged(modifiers);
+    }
 
     void valueChanged(Value& v) override;
 
@@ -147,7 +150,7 @@ public:
 
     std::unique_ptr<Component> settingsDialog = nullptr;
 
-private:
+   private:
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 

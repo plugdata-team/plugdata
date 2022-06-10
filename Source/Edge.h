@@ -14,7 +14,7 @@ class Canvas;
 
 class Edge : public Component, public SettableTooltipClient
 {
-public:
+   public:
     Box* box;
 
     Edge(Box* parent, bool isInlet);
@@ -43,6 +43,6 @@ public:
 
     bool isHovered = false;
 
-private:
+   private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Edge)
 };

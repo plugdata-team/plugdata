@@ -20,7 +20,7 @@ struct BangObject final : public IEMObject
     {
         // Fix aspect ratio and apply limits
         int size = jlimit(30, maxSize, box->getWidth());
-        if(size != box->getHeight() || size != box->getWidth())
+        if (size != box->getHeight() || size != box->getWidth())
         {
             box->setSize(size, size);
         }
@@ -55,7 +55,7 @@ struct BangObject final : public IEMObject
     float getValue() override
     {
         // hack to trigger off the bang if no GUI update
-        if((static_cast<t_bng*>(ptr))->x_flashed > 0)
+        if ((static_cast<t_bng*>(ptr))->x_flashed > 0)
         {
             static_cast<t_bng*>(ptr)->x_flashed = 0;
             return 1.0f;
@@ -65,7 +65,7 @@ struct BangObject final : public IEMObject
 
     void update() override
     {
-        if(getValueOriginal() > std::numeric_limits<float>::epsilon())
+        if (getValueOriginal() > std::numeric_limits<float>::epsilon())
         {
             bangState = true;
             repaint();
@@ -75,11 +75,11 @@ struct BangObject final : public IEMObject
 
             int holdTime = bangHold.getValue();
 
-            if(timeSinceLast < static_cast<int>(bangHold.getValue()) * 2)
+            if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2)
             {
                 holdTime = timeSinceLast / 2;
             }
-            if(holdTime < bangInterrupt)
+            if (holdTime < bangInterrupt)
             {
                 holdTime = bangInterrupt.getValue();
             }
@@ -91,10 +91,9 @@ struct BangObject final : public IEMObject
                                   [deletionChecker, this]() mutable
                                   {
                                       // First check if this object still exists
-                                      if(! deletionChecker)
-                                          return;
+                                      if (!deletionChecker) return;
 
-                                      if(bangState)
+                                      if (bangState)
                                       {
                                           bangState = false;
                                           repaint();
@@ -106,18 +105,18 @@ struct BangObject final : public IEMObject
     ObjectParameters defineParameters() override
     {
         return {
-            { "Interrupt", tInt, cGeneral, &bangInterrupt, {} },
-            { "Hold", tInt, cGeneral, &bangHold, {} },
+            {"Interrupt", tInt, cGeneral, &bangInterrupt, {}},
+            {"Hold", tInt, cGeneral, &bangHold, {}},
         };
     }
 
     void valueChanged(Value& value) override
     {
-        if(value.refersToSameSourceAs(bangInterrupt))
+        if (value.refersToSameSourceAs(bangInterrupt))
         {
             static_cast<t_bng*>(ptr)->x_flashtime_break = bangInterrupt.getValue();
         }
-        if(value.refersToSameSourceAs(bangHold))
+        if (value.refersToSameSourceAs(bangHold))
         {
             static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
         }

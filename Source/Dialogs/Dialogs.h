@@ -20,12 +20,11 @@ struct Dialog : public Component
 
         setAlwaysOnTop(true);
 
-        if(showCloseButton)
+        if (showCloseButton)
         {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
             addAndMakeVisible(closeButton.get());
-            closeButton->onClick = [this]()
-            { onClose(); };
+            closeButton->onClick = [this]() { onClose(); };
             closeButton->setAlwaysOnTop(true);
         }
     }
@@ -46,7 +45,7 @@ struct Dialog : public Component
 #else
         g.fillRect(getLocalBounds());
 #endif
-        if(viewedComponent)
+        if (viewedComponent)
         {
             g.setColour(findColour(PlugDataColour::toolbarColourId));
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
@@ -58,13 +57,13 @@ struct Dialog : public Component
 
     void resized()
     {
-        if(viewedComponent)
+        if (viewedComponent)
         {
             viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({ getBounds().getCentreX(), y - (height / 2) });
+            viewedComponent->setCentrePosition({getBounds().getCentreX(), y - (height / 2)});
         }
 
-        if(closeButton)
+        if (closeButton)
         {
             closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
         }
@@ -79,8 +78,7 @@ struct Dialog : public Component
 
     Component* parentComponent;
 
-    std::function<void()> onClose = [this]()
-    { delete this; };
+    std::function<void()> onClose = [this]() { delete this; };
 
     std::unique_ptr<Component> viewedComponent = nullptr;
     std::unique_ptr<Button> closeButton = nullptr;

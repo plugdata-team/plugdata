@@ -23,21 +23,18 @@ struct ListObject final : public AtomObject
         label.onEditorShow = [this]()
         {
             auto* editor = label.getCurrentTextEditor();
-            if(editor != nullptr)
+            if (editor != nullptr)
             {
                 editor->setIndents(1, 2);
                 editor->setBorder(BorderSize<int>(2, 6, 2, 2));
             }
         };
 
-        dragger.dragStart = [this]()
-        { startEdition(); };
+        dragger.dragStart = [this]() { startEdition(); };
 
-        dragger.valueChanged = [this](float)
-        { updateFromGui(); };
+        dragger.valueChanged = [this](float) { updateFromGui(); };
 
-        dragger.dragEnd = [this]()
-        { stopEdition(); };
+        dragger.dragEnd = [this]() { stopEdition(); };
 
         updateValue();
 
@@ -50,18 +47,18 @@ struct ListObject final : public AtomObject
         array.addTokens(label.getText(), true);
         std::vector<pd::Atom> list;
         list.reserve(array.size());
-        for(auto const& elem : array)
+        for (auto const& elem : array)
         {
-            if(elem.getCharPointer().isDigit())
+            if (elem.getCharPointer().isDigit())
             {
-                list.push_back({ elem.getFloatValue() });
+                list.push_back({elem.getFloatValue()});
             }
             else
             {
-                list.push_back({ elem.toStdString() });
+                list.push_back({elem.toStdString()});
             }
         }
-        if(list != getList())
+        if (list != getList())
         {
             setList(list);
         }
@@ -73,7 +70,7 @@ struct ListObject final : public AtomObject
         int w = jlimit(35, maxSize, box->getWidth());
         int h = jlimit(Box::height - 2, maxSize, box->getHeight());
 
-        if(w != box->getWidth() || h != box->getHeight())
+        if (w != box->getWidth() || h != box->getHeight())
         {
             box->setSize(w, h);
         }
@@ -108,21 +105,21 @@ struct ListObject final : public AtomObject
 
     void update() override
     {
-        if(! edited && ! label.isBeingEdited())
+        if (!edited && !label.isBeingEdited())
         {
             auto const array = getList();
             String message;
-            for(auto const& atom : array)
+            for (auto const& atom : array)
             {
-                if(message.isNotEmpty())
+                if (message.isNotEmpty())
                 {
                     message += " ";
                 }
-                if(atom.isFloat())
+                if (atom.isFloat())
                 {
                     message += String(atom.getFloat());
                 }
-                else if(atom.isSymbol())
+                else if (atom.isSymbol())
                 {
                     message += String(atom.getSymbol());
                 }
@@ -139,13 +136,13 @@ struct ListObject final : public AtomObject
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         array.reserve(ac);
-        for(int i = 0; i < ac; ++i)
+        for (int i = 0; i < ac; ++i)
         {
-            if(av[i].a_type == A_FLOAT)
+            if (av[i].a_type == A_FLOAT)
             {
                 array.emplace_back(atom_getfloat(av + i));
             }
-            else if(av[i].a_type == A_SYMBOL)
+            else if (av[i].a_type == A_SYMBOL)
             {
                 array.emplace_back(atom_getsymbol(av + i)->s_name);
             }
@@ -162,7 +159,7 @@ struct ListObject final : public AtomObject
         cnv->pd->enqueueDirectMessages(ptr, value);
     }
 
-private:
+   private:
     Label label;
     DraggableListNumber dragger;
 };

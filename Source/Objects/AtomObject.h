@@ -4,20 +4,20 @@
 typedef struct _fake_gatom
 {
     t_text a_text;
-    int a_flavor; /* A_FLOAT, A_SYMBOL, or A_LIST */
-    t_glist* a_glist; /* owning glist */
-    t_float a_toggle; /* value to toggle to */
-    t_float a_draghi; /* high end of drag range */
-    t_float a_draglo; /* low end of drag range */
-    t_symbol* a_label; /* symbol to show as label next to box */
-    t_symbol* a_symfrom; /* "receive" name -- bind ourselves to this */
-    t_symbol* a_symto; /* "send" name -- send to this on output */
+    int a_flavor;          /* A_FLOAT, A_SYMBOL, or A_LIST */
+    t_glist* a_glist;      /* owning glist */
+    t_float a_toggle;      /* value to toggle to */
+    t_float a_draghi;      /* high end of drag range */
+    t_float a_draglo;      /* low end of drag range */
+    t_symbol* a_label;     /* symbol to show as label next to box */
+    t_symbol* a_symfrom;   /* "receive" name -- bind ourselves to this */
+    t_symbol* a_symto;     /* "send" name -- send to this on output */
     t_binbuf* a_revertbuf; /* binbuf to revert to if typing canceled */
-    int a_dragindex; /* index of atom being dragged */
+    int a_dragindex;       /* index of atom being dragged */
     int a_fontsize;
-    unsigned int a_shift : 1; /* was shift key down when drag started? */
-    unsigned int a_wherelabel : 2; /* 0-3 for left, right, above, below */
-    unsigned int a_grabbed : 1; /* 1 if we've grabbed keyboard */
+    unsigned int a_shift : 1;         /* was shift key down when drag started? */
+    unsigned int a_wherelabel : 2;    /* 0-3 for left, right, above, below */
+    unsigned int a_grabbed : 1;       /* 1 if we've grabbed keyboard */
     unsigned int a_doubleclicked : 1; /* 1 if dragging from a double click */
     t_symbol* a_expanded_to;
 } t_fake_gatom;
@@ -26,12 +26,12 @@ static t_atom* fake_gatom_getatom(t_fake_gatom* x)
 {
     int ac = binbuf_getnatom(x->a_text.te_binbuf);
     t_atom* av = binbuf_getvec(x->a_text.te_binbuf);
-    if(x->a_flavor == A_FLOAT && (ac != 1 || av[0].a_type != A_FLOAT))
+    if (x->a_flavor == A_FLOAT && (ac != 1 || av[0].a_type != A_FLOAT))
     {
         binbuf_clear(x->a_text.te_binbuf);
         binbuf_addv(x->a_text.te_binbuf, "f", 0.);
     }
-    else if(x->a_flavor == A_SYMBOL && (ac != 1 || av[0].a_type != A_SYMBOL))
+    else if (x->a_flavor == A_SYMBOL && (ac != 1 || av[0].a_type != A_SYMBOL))
     {
         binbuf_clear(x->a_text.te_binbuf);
         binbuf_addv(x->a_text.te_binbuf, "s", &s_);
@@ -63,7 +63,7 @@ struct AtomObject : public GUIObject
 
         w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
 
-        box->setObjectBounds({ x, y, w, getAtomHeight() });
+        box->setObjectBounds({x, y, w, getAtomHeight()});
     }
 
     void applyBounds() override
@@ -82,7 +82,7 @@ struct AtomObject : public GUIObject
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
         int height = jlimit(18, maxSize, getHeight());
-        if(getWidth() != width || getHeight() != height)
+        if (getWidth() != width || getHeight() != height)
         {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
         }
@@ -91,7 +91,7 @@ struct AtomObject : public GUIObject
     int getAtomHeight() const
     {
         int idx = static_cast<int>(labelHeight.getValue()) - 1;
-        if(idx == 0)
+        if (idx == 0)
         {
             return glist_fontheight(cnv->patch.getPointer()) + 8;
         }
@@ -119,7 +119,7 @@ struct AtomObject : public GUIObject
         triangle = triangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(triangle);
 
-        auto outlineColour = box->findColour(cnv->isSelected(box) && ! cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
@@ -128,39 +128,39 @@ struct AtomObject : public GUIObject
     {
         ObjectParameters params = defineParameters();
 
-        params.push_back({ "Height", tCombo, cGeneral, &labelHeight, { "auto", "8", "10", "12", "16", "24", "36" } });
+        params.push_back({"Height", tCombo, cGeneral, &labelHeight, {"auto", "8", "10", "12", "16", "24", "36"}});
 
-        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
-        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
+        params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
+        params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
 
-        params.push_back({ "Label", tString, cLabel, &labelText, {} });
-        params.push_back({ "Label Position", tCombo, cLabel, &labelX, { "left", "right", "top", "bottom" } });
+        params.push_back({"Label", tString, cLabel, &labelText, {}});
+        params.push_back({"Label Position", tCombo, cLabel, &labelX, {"left", "right", "top", "bottom"}});
 
         return params;
     }
 
     void valueChanged(Value& v) override
     {
-        if(v.refersToSameSourceAs(labelX))
+        if (v.refersToSameSourceAs(labelX))
         {
             setLabelPosition(static_cast<int>(labelX.getValue()));
             updateLabel();
         }
-        else if(v.refersToSameSourceAs(labelHeight))
+        else if (v.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
             updateBounds();
         }
-        else if(v.refersToSameSourceAs(labelText))
+        else if (v.refersToSameSourceAs(labelText))
         {
             setLabelText(labelText.toString());
             updateLabel();
         }
-        else if(v.refersToSameSourceAs(sendSymbol))
+        else if (v.refersToSameSourceAs(sendSymbol))
         {
             setSendSymbol(sendSymbol.toString());
         }
-        else if(v.refersToSameSourceAs(receiveSymbol))
+        else if (v.refersToSameSourceAs(receiveSymbol))
         {
             setReceiveSymbol(receiveSymbol.toString());
         }
@@ -174,9 +174,9 @@ struct AtomObject : public GUIObject
         int fontHeight = getAtomHeight() - 6;
         const String text = getExpandedLabelText();
 
-        if(text.isNotEmpty())
+        if (text.isNotEmpty())
         {
-            if(! label)
+            if (!label)
             {
                 label = std::make_unique<Label>();
             }
@@ -218,16 +218,16 @@ struct AtomObject : public GUIObject
         int labelPosition = static_cast<t_fake_gatom*>(ptr)->a_wherelabel;
         auto labelBounds = objectBounds.withSizeKeepingCentre(labelLength, fontHeight);
 
-        if(labelPosition == 0)
-        { // left
+        if (labelPosition == 0)
+        {  // left
             return labelBounds.withRightX(objectBounds.getX() - 4);
         }
-        if(labelPosition == 1)
-        { // right
+        if (labelPosition == 1)
+        {  // right
             return labelBounds.withX(objectBounds.getRight() + 4);
         }
-        if(labelPosition == 2)
-        { // top
+        if (labelPosition == 2)
+        {  // top
             return labelBounds.withX(objectBounds.getX()).withBottomY(objectBounds.getY());
         }
 
@@ -238,10 +238,10 @@ struct AtomObject : public GUIObject
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
-        if(sym)
+        if (sym)
         {
             auto const text = String(sym->s_name);
-            if(text.isNotEmpty() && text != "empty")
+            if (text.isNotEmpty() && text != "empty")
             {
                 return text;
             }
@@ -254,10 +254,10 @@ struct AtomObject : public GUIObject
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = gatom->a_label;
-        if(sym)
+        if (sym)
         {
             auto const text = String(sym->s_name);
-            if(text.isNotEmpty() && text != "empty")
+            if (text.isNotEmpty() && text != "empty")
             {
                 return text;
             }
@@ -268,8 +268,7 @@ struct AtomObject : public GUIObject
 
     void setLabelText(String newText)
     {
-        if(newText.isEmpty())
-            newText = "empty";
+        if (newText.isEmpty()) newText = "empty";
 
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_label = gensym(newText.toRawUTF8());
@@ -295,8 +294,7 @@ struct AtomObject : public GUIObject
 
     void setSendSymbol(const String& symbol) const
     {
-        if(symbol.isEmpty())
-            return;
+        if (symbol.isEmpty()) return;
 
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_symto = gensym(symbol.toRawUTF8());
@@ -305,24 +303,21 @@ struct AtomObject : public GUIObject
 
     void setReceiveSymbol(const String& symbol) const
     {
-        if(symbol.isEmpty())
-            return;
+        if (symbol.isEmpty()) return;
 
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        if(*atom->a_symfrom->s_name)
-            pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+        if (*atom->a_symfrom->s_name) pd_unbind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
         atom->a_symfrom = gensym(symbol.toRawUTF8());
-        if(*atom->a_symfrom->s_name)
-            pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
+        if (*atom->a_symfrom->s_name) pd_bind(&atom->a_text.te_pd, canvas_realizedollar(atom->a_glist, atom->a_symfrom));
     }
 
     /* prepend "-" as necessary to avoid empty strings, so we can
     use them in Pd messages. */
     static t_symbol* gatom_escapit(t_symbol* s)
     {
-        if(! *s->s_name)
+        if (!*s->s_name)
             return (gensym("-"));
-        else if(*s->s_name == '-')
+        else if (*s->s_name == '-')
         {
             char shmo[100];
             shmo[0] = '-';
@@ -343,11 +338,11 @@ struct AtomObject : public GUIObject
     in case someone wants to have a "#" in a name. */
     static t_symbol* gatom_unescapit(t_symbol* s)
     {
-        if(*s->s_name == '-')
+        if (*s->s_name == '-')
             return (gensym(s->s_name + 1));
         else
             return (iemgui_raute2dollar(s));
     }
 
-    const int atomSizes[7] = { 0, 8, 10, 12, 16, 24, 36 };
+    const int atomSizes[7] = {0, 8, 10, 12, 16, 24, 36};
 };

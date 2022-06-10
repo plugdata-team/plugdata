@@ -20,7 +20,7 @@ using PathPlan = std::vector<Point<int>>;
 class Canvas;
 class Connection : public Component, public ComponentListener
 {
-public:
+   public:
     int inIdx;
     int outIdx;
 
@@ -67,7 +67,7 @@ public:
 
     bool straightLineIntersectsObject(Line<int> first);
 
-private:
+   private:
     bool wasSelected = false;
     bool deleteOnMouseUp = false;
     bool segmented = false;

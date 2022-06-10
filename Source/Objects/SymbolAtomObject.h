@@ -20,7 +20,7 @@ struct SymbolAtomObject final : public AtomObject
             stopEdition();
 
             auto width = input.getFont().getStringWidth(input.getText()) + 36;
-            if(width < box->getWidth())
+            if (width < box->getWidth())
             {
                 box->setSize(width, box->getHeight());
                 checkBounds();
@@ -64,11 +64,11 @@ struct SymbolAtomObject final : public AtomObject
 
     void updateValue() override
     {
-        if(! edited)
+        if (!edited)
         {
             String v = getSymbol();
 
-            if(lastMessage != v && ! v.startsWith("click"))
+            if (lastMessage != v && !v.startsWith("click"))
             {
                 lastMessage = v;
                 update();
@@ -79,7 +79,7 @@ struct SymbolAtomObject final : public AtomObject
     void mouseDown(const MouseEvent& e) override
     {
         GUIObject::mouseDown(e);
-        if(cnv->isSelected(box) && ! box->selectionChanged)
+        if (cnv->isSelected(box) && !box->selectionChanged)
         {
             shouldOpenEditor = true;
         }
@@ -90,7 +90,7 @@ struct SymbolAtomObject final : public AtomObject
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if(isLocked)
+        if (isLocked)
         {
             input.showEditor();
             shouldOpenEditor = false;
@@ -101,12 +101,12 @@ struct SymbolAtomObject final : public AtomObject
 
     void valueChanged(Value& v) override
     {
-        if(v.refersToSameSourceAs(labelHeight))
+        if (v.refersToSameSourceAs(labelHeight))
         {
             updateLabel();
-            if(getParentComponent())
+            if (getParentComponent())
             {
-                box->updateBounds(); // update box size based on new font
+                box->updateBounds();  // update box size based on new font
             }
         }
         else
