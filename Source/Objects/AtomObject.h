@@ -76,9 +76,16 @@ struct AtomObject : public GUIObject
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_text.te_width = b.getWidth() / fontWidth;
     }
-
+    
     void resized() override
     {
+        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
+        int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
+        int height = jlimit(18, maxSize, getHeight());
+        if (getWidth() != width || getHeight() != height)
+        {
+            box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
+        }
     }
 
     int getAtomHeight() const
@@ -192,17 +199,17 @@ struct AtomObject : public GUIObject
         }
     }
 
-    float getFontHeight() const noexcept
+    float getFontHeight() const 
     {
         return static_cast<t_fake_gatom*>(ptr)->a_fontsize;
     }
 
-    void setFontHeight(float newSize) noexcept
+    void setFontHeight(float newSize) 
     {
         static_cast<t_fake_gatom*>(ptr)->a_fontsize = newSize;
     }
 
-    Rectangle<int> getLabelBounds() const noexcept
+    Rectangle<int> getLabelBounds() const 
     {
         auto objectBounds = box->getBounds().reduced(Box::margin);
         int fontHeight = getAtomHeight() - 6;
@@ -267,25 +274,25 @@ struct AtomObject : public GUIObject
         atom->a_label = gensym(newText.toRawUTF8());
     }
 
-    void setLabelPosition(int wherelabel) noexcept
+    void setLabelPosition(int wherelabel) 
     {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         gatom->a_wherelabel = wherelabel - 1;
     }
 
-    String getSendSymbol() noexcept
+    String getSendSymbol() 
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         return String(atom->a_symfrom->s_name);
     }
 
-    String getReceiveSymbol() noexcept
+    String getReceiveSymbol() 
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         return String(atom->a_symto->s_name);
     }
 
-    void setSendSymbol(const String& symbol) const noexcept
+    void setSendSymbol(const String& symbol) const 
     {
         if (symbol.isEmpty()) return;
 
@@ -294,7 +301,7 @@ struct AtomObject : public GUIObject
         atom->a_expanded_to = canvas_realizedollar(atom->a_glist, atom->a_symto);
     }
 
-    void setReceiveSymbol(const String& symbol) const noexcept
+    void setReceiveSymbol(const String& symbol) const 
     {
         if (symbol.isEmpty()) return;
 
@@ -323,7 +330,7 @@ struct AtomObject : public GUIObject
     }
 
     /* undo previous operation: strip leading "-" if found.  This is used
-    both to restore send, etc, names when loading from a file, and to
+    both to restore send, etc., names when loading from a file, and to
     set them from the properties dialog.  In the former case, since before
     version 0.52 '$" was aliases to "#", we also bash any "#" characters
     to "$".  This is unnecessary when reading files saved from 0.52 or later,

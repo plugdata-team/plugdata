@@ -67,7 +67,7 @@ struct ListObject final : public AtomObject
     void checkBounds() override
     {
         // Apply size limits
-        int w = jlimit(100, maxSize, box->getWidth());
+        int w = jlimit(35, maxSize, box->getWidth());
         int h = jlimit(Box::height - 2, maxSize, box->getHeight());
 
         if (w != box->getWidth() || h != box->getHeight())
@@ -128,7 +128,7 @@ struct ListObject final : public AtomObject
         }
     }
 
-    std::vector<pd::Atom> getList() const noexcept
+    std::vector<pd::Atom> getList() const 
     {
         std::vector<pd::Atom> array;
         cnv->pd->setThis();
@@ -154,7 +154,7 @@ struct ListObject final : public AtomObject
         return array;
     }
 
-    void setList(std::vector<pd::Atom> const& value) noexcept
+    void setList(std::vector<pd::Atom> const& value) 
     {
         cnv->pd->enqueueDirectMessages(ptr, value);
     }

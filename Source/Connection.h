@@ -77,7 +77,6 @@ class Connection : public Component, public ComponentListener
     PathPlan currentPlan;
 
     Value locked;
-    Value connectionStyle;
 
     Canvas* cnv;
 

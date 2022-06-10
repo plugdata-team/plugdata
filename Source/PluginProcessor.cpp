@@ -1092,7 +1092,7 @@ void PlugDataAudioProcessor::synchroniseCanvas(void* cnv)
                 }
             }
         });
-};
+}
 
 void PlugDataAudioProcessor::titleChanged()
 {

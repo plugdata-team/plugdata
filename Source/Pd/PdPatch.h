@@ -28,7 +28,7 @@ class Patch
     Patch(void* ptr, Instance* instance, File currentFile = File());
 
     // The compare equal operator.
-    bool operator==(Patch const& other) const noexcept
+    bool operator==(Patch const& other) const 
     {
         return getPointer() == other.getPointer();
     }
@@ -36,7 +36,7 @@ class Patch
     void close();
 
     // Gets the bounds of the patch.
-    Rectangle<int> getBounds() const noexcept;
+    Rectangle<int> getBounds() const ;
 
     void* createGraph(const String& name, int size, int x, int y);
     void* createGraphOnParent(int x, int y);
@@ -52,8 +52,6 @@ class Patch
 
     void selectObject(void*);
     void deselectAll();
-
-    bool isDirty();
 
     void setZoom(int zoom);
 
@@ -99,7 +97,7 @@ class Patch
     }
 
     // Gets the objects of the patch.
-    std::vector<void*> getObjects(bool onlyGui = false) noexcept;
+    std::vector<void*> getObjects(bool onlyGui = false) ;
 
     String getCanvasContent()
     {
@@ -112,7 +110,7 @@ class Patch
 
     int getIndex(void* obj);
 
-    static t_object* checkObject(void* obj) noexcept;
+    static t_object* checkObject(void* obj) ;
 
     void keyPress(int keycode, int shift);
 

@@ -173,7 +173,7 @@ bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
     {
         auto point1 = Point<float>(i.x1, i.y1);
 
-        // Skip points to reduce accuracy a little bit for better performance
+        // Skip points to reduce accuracy a bit for better performance
         for (int n = 0; n < accuracy; n++)
         {
             auto next = i.next();

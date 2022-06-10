@@ -154,7 +154,7 @@ struct DraggableListNumber : public DraggableNumber
     
     bool targetFound = false;
     
-    DraggableListNumber(Label& label) : DraggableNumber(label) {
+    explicit DraggableListNumber(Label& label) : DraggableNumber(label) {
     }
     
     void mouseDown(const MouseEvent& e) {

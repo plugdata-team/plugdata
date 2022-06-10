@@ -133,7 +133,7 @@ struct SliderObject : public IEMObject
         }
     }
 
-    bool jumpOnClick() const noexcept
+    bool jumpOnClick() const 
     {
         return isVertical ? (static_cast<t_vslider*>(ptr))->x_steady == 0 : (static_cast<t_hslider*>(ptr))->x_steady == 0;
     }
@@ -160,12 +160,12 @@ struct SliderObject : public IEMObject
         }
     }
 
-    bool isLogScale() const noexcept
+    bool isLogScale() const 
     {
         return isVertical ? (static_cast<t_hslider*>(ptr))->x_lin0_log1 != 0 : (static_cast<t_vslider*>(ptr))->x_lin0_log1 != 0;
     }
 
-    void setLogScale(bool log) noexcept
+    void setLogScale(bool log) 
     {
         if (isVertical)
         {

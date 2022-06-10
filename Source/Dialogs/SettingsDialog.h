@@ -12,7 +12,7 @@ struct ThemePanel : public Component, public Value::Listener
 
     OwnedArray<PropertiesPanel::Property> panels;
 
-    ThemePanel(ValueTree globalSettings) : settingsTree(globalSettings)
+    explicit ThemePanel(ValueTree globalSettings) : settingsTree(globalSettings)
     {
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
