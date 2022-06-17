@@ -51,8 +51,6 @@ struct PictureObject final : public GUIObject
                 path = filePath;
             }
         }
-
-        initialise();
     }
 
     ObjectParameters defineParameters() override

@@ -60,7 +60,6 @@ struct MessageObject final : public GUIObject
         };
 
         input.setMinimumHorizontalScale(0.9f);
-        initialise();
 
         box->addMouseListener(this, false);
     }

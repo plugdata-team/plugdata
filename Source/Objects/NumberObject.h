@@ -35,8 +35,6 @@ struct NumberObject final : public IEMObject
         min = getMinimum();
         max = getMaximum();
 
-        initialise();
-
         input.setEditable(true, false);
 
         addMouseListener(this, true);

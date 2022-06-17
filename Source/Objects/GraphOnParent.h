@@ -17,8 +17,6 @@ struct GraphOnParent final : public GUIObject
 
         updateCanvas();
 
-        initialise();
-
         resized();
         updateDrawables();
     }

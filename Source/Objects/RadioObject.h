@@ -11,7 +11,6 @@ struct RadioObject final : public IEMObject
 
         max = getMaximum();
 
-        initialise();
         updateRange();
 
         max.addListener(this);

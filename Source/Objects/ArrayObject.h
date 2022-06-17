@@ -320,8 +320,6 @@ struct ArrayObject final : public GUIObject
         labelColour = box->findColour(PlugDataColour::textColourId).toString();
 
         updateLabel();
-
-        initialise();
     }
 
     void updateLabel() override
