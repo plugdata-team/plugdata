@@ -37,8 +37,6 @@ struct ListObject final : public AtomObject
         dragger.dragEnd = [this]() { stopEdition(); };
 
         updateValue();
-
-        initialise();
     }
 
     void updateFromGui()
@@ -61,18 +59,6 @@ struct ListObject final : public AtomObject
         if (list != getList())
         {
             setList(list);
-        }
-    }
-
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(35, maxSize, box->getWidth());
-        int h = jlimit(Box::height - 2, maxSize, box->getHeight());
-
-        if (w != box->getWidth() || h != box->getHeight())
-        {
-            box->setSize(w, h);
         }
     }
 

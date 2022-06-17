@@ -51,8 +51,6 @@ struct SliderObject : public IEMObject
         };
 
         slider.onDragEnd = [this]() { stopEdition(); };
-
-        initialise();
     }
 
     void checkBounds() override

@@ -4,7 +4,6 @@ struct CanvasObject final : public IEMObject
     CanvasObject(void* ptr, Box* box) : IEMObject(ptr, box)
     {
         box->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
-        initialise();
     }
 
     void updateBounds() override

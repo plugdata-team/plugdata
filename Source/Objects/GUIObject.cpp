@@ -67,6 +67,20 @@ String ObjectBase::getText()
     return "";
 }
 
+String ObjectBase::getType() const
+{
+    if (ptr)
+    {
+        char const* name = libpd_get_object_class_name(ptr);
+        if (name)
+        {
+            return {name};
+        }
+    }
+    return {};
+}
+
+
 // Called in destructor of subpatch and graph class
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
@@ -323,19 +337,6 @@ void GUIObject::componentMovedOrResized(Component& component, bool moved, bool r
 void GUIObject::setValue(float value) 
 {
     cnv->pd->enqueueDirectMessages(ptr, value);
-}
-
-String GUIObject::getName() const
-{
-    if (ptr)
-    {
-        char const* name = libpd_get_object_class_name(ptr);
-        if (name)
-        {
-            return {name};
-        }
-    }
-    return {};
 }
 
 ObjectBase* GUIObject::createGui(void* ptr, Box* parent)

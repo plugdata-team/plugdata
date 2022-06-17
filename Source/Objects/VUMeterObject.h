@@ -4,7 +4,6 @@ struct VUMeterObject final : public IEMObject
 {
     VUMeterObject(void* ptr, Box* box) : IEMObject(ptr, box)
     {
-        initialise();
     }
 
     void checkBounds() override

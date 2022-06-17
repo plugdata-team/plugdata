@@ -247,6 +247,7 @@ void Box::setType(const String& newType, void* existingObject)
 
     if (gui)
     {
+        gui->initialise();
         gui->lock(locked == var(true));
         gui->updateValue();
         addAndMakeVisible(gui.get());
@@ -424,7 +425,7 @@ void Box::updatePorts()
 
         if (gui)
         {
-            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getName(), edge->edgeIdx, input ? numInputs : numOutputs, input);
+            String tooltip = cnv->pd->objectLibrary.getInletOutletTooltip(gui->getType(), edge->edgeIdx, input ? numInputs : numOutputs, input);
             edge->setTooltip(tooltip);
         }
 
