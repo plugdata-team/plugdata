@@ -203,6 +203,10 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
 
     const CriticalSection* audioLock;
+    
+    
+    static inline const String else_version = "ELSE v1.0-rc1";
+    static inline const String cyclone_version = "cyclone v0.6-0";
 
 #if !PLUGDATA_STANDALONE
 
@@ -229,6 +233,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     };
 
     ParameterTimer parameterTimers[numParameters];
+
+    
 #endif
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };
