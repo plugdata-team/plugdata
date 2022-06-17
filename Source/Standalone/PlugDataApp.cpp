@@ -165,6 +165,10 @@ class PlugDataApp : public JUCEApplication
             quit();
         }
     }
+    
+    PlugDataWindow* getWindow()  {
+        return mainWindow.get();
+    }
 
    protected:
     ApplicationProperties appProperties;

@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.12)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(RUN_CLANG_TIDY 0)
-set(UNIT_TEST 0)
+set(UNIT_TEST 1)
 
 if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
@@ -380,7 +380,7 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles}
 add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 
-add_executable(Tests ${TestFiles} ${PlugDataGlobalSources} ${PlugDataStandaloneSources})
+add_executable(Tests ${TestFiles} ${PlugDataGlobalSources})
 set_target_properties(Tests PROPERTIES CXX_STANDARD 17)
 
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugDataStandalone pd ${libs})
@@ -391,14 +391,19 @@ source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles}
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
 catch_discover_tests(Tests)
 
+target_compile_definitions(Tests PUBLIC TESTING=1)
+
 target_include_directories(Tests PUBLIC PLUGDATA_INCLUDE_DIRECTORY)
 target_include_directories(Tests PUBLIC ${CMAKE_CACHEFILE_DIR}/PlugDataStandalone_artefacts/JuceLibraryCode/)
 target_include_directories(Tests PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
-set_target_properties(Tests PROPERTIES PREFIX "")
 
+set_target_properties(Tests PROPERTIES PREFIX "")
+set_target_properties(Tests PROPERTIES CMAKE_CXX_VISIBILITY_PRESET hidden)
 set_target_properties(Tests PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
-#set_target_properties(Tests PROPERTIES XCODE_GENERATE_SCHEME ON)
+set_property(TARGET Tests PROPERTY CXX_VISIBILITY_PRESET hidden)
+set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+
 endif()
 
 if(MSVC)

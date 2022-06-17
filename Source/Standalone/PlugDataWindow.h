@@ -678,8 +678,8 @@ class PlugDataWindow : public DocumentWindow
                 // Menubar, only for standalone on mac
                 // Doesn't add any new features, but was easy to implement because we already have a command manager
                 setApplicationCommandManagerToWatch(commandManager);
-#if JUCE_MAC
-                MenuBarModel::setMacMainMenu(this);
+#if JUCE_MAC && !TESTING
+               // MenuBarModel::setMacMainMenu(this);
 #endif
 
                 editor->addComponentListener(this);
@@ -733,7 +733,7 @@ class PlugDataWindow : public DocumentWindow
         {
             setApplicationCommandManagerToWatch(nullptr);
 #if JUCE_MAC
-            MenuBarModel::setMacMainMenu(nullptr);
+            //MenuBarModel::setMacMainMenu(nullptr);
 #endif
             if (editor != nullptr)
             {
