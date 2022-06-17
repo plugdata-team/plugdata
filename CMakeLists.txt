@@ -65,16 +65,6 @@ file(GLOB PlugDataGlobalSources
     ${CMAKE_CACHEFILE_DIR}/PlugData_artefacts/JuceLibraryCode/JuceHeader.h)
 source_group("Source" FILES ${PlugDataGlobalSources})
 
-file(GLOB PlugDataFxGlobalSources
-    ${CMAKE_CACHEFILE_DIR}/PlugDataFx_artefacts/JuceLibraryCode/JuceHeader.h)
-source_group("Source" FILES ${PlugDataFxGlobalSources})
-
-if(APPLE)
-file(GLOB PlugDataMidiGlobalSources
-    ${CMAKE_CACHEFILE_DIR}/PlugDataMidi_artefacts/JuceLibraryCode/JuceHeader.h)
-source_group("Source" FILES ${PlugDataMidiGlobalSources})
-endif()
-
 file(GLOB PlugDataSources
     ${SOURCES_DIRECTORY}/*.h
     ${SOURCES_DIRECTORY}/*.cpp
@@ -387,7 +377,7 @@ set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 add_executable(Tests ${TestFiles} ${PlugDataGlobalSources})
 set_target_properties(Tests PROPERTIES CXX_STANDARD 17)
 
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugDataStandalone pd ${libs})
+target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugData pd-multi ${libs})
 
 
 
