@@ -126,8 +126,6 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
             lowC = 3;
             octaves = 4;
         }
-
-        initialise();
     }
 
     void updateBounds() override

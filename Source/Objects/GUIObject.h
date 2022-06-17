@@ -46,12 +46,15 @@ struct ObjectBase : public Component
 
     // Called whenever a drawable changes
     virtual void updateDrawables(){};
+    
+    virtual void initialise() {};
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()
     {
         return false;
     }
+    
 
     virtual void setText(const String&){};
 
@@ -61,6 +64,8 @@ struct ObjectBase : public Component
     {
         setInterceptsMouseClicks(isLocked, isLocked);
     }
+    
+    String getType() const;
 
     void moveToFront();
 
@@ -108,11 +113,9 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     virtual void update(){};
 
-    virtual void initialise();
+    void initialise() override;
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override;
-
-    String getName() const;
 
     static ObjectBase* createGui(void* ptr, Box* parent);
 

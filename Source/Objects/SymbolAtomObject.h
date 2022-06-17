@@ -28,10 +28,10 @@ struct SymbolAtomObject final : public AtomObject
         };
 
         input.setMinimumHorizontalScale(0.9f);
-        initialise();
 
         box->addMouseListener(this, false);
     }
+
 
     void lock(bool locked) override
     {

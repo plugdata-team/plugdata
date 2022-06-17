@@ -65,6 +65,18 @@ struct AtomObject : public GUIObject
 
         box->setObjectBounds({x, y, w, getAtomHeight()});
     }
+    
+    void checkBounds() override
+    {
+        // Apply size limits
+        int w = jlimit(30, maxSize, box->getWidth());
+        int h = getAtomHeight() + Box::doubleMargin;
+        
+        if (w != box->getWidth() || h != box->getHeight())
+        {
+            box->setSize(w, h);
+        }
+    }
 
     void applyBounds() override
     {

@@ -31,8 +31,6 @@ struct FloatAtomObject final : public AtomObject
         min = getMinimum();
         max = getMaximum();
 
-        initialise();
-
         input.setEditable(true, false);
 
         addMouseListener(this, true);
@@ -44,17 +42,6 @@ struct FloatAtomObject final : public AtomObject
         dragger.dragEnd = [this]() { stopEdition(); };
     }
 
-    void checkBounds() override
-    {
-        // Apply size limits
-        int w = jlimit(30, maxSize, box->getWidth());
-        int h = getAtomHeight() + Box::doubleMargin;
-        
-        if (w != box->getWidth() || h != box->getHeight())
-        {
-            box->setSize(w, h);
-        }
-    }
 
     void resized() override
     {
