@@ -388,7 +388,7 @@ catch_discover_tests(Tests)
 target_compile_definitions(Tests PUBLIC TESTING=1)
 
 target_include_directories(Tests PUBLIC PLUGDATA_INCLUDE_DIRECTORY)
-target_include_directories(Tests PUBLIC ${CMAKE_CACHEFILE_DIR}/PlugDataStandalone_artefacts/JuceLibraryCode/)
+target_include_directories(Tests PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/Tests/)
 target_include_directories(Tests PUBLIC "$<BUILD_INTERFACE:${PLUGDATA_INCLUDE_DIRECTORY}>")
 
 set_target_properties(Tests PROPERTIES PREFIX "")
