@@ -85,10 +85,15 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
 
         auto audioInputRequired = (inChannels > 0);
 
+        
+#if TESTING
+        //init(audioInputRequired, preferredDefaultDeviceName);
+#else
         if (audioInputRequired && RuntimePermissions::isRequired(RuntimePermissions::recordAudio) && !RuntimePermissions::isGranted(RuntimePermissions::recordAudio))
             RuntimePermissions::request(RuntimePermissions::recordAudio, [this, preferredDefaultDeviceName](bool granted) { init(granted, preferredDefaultDeviceName); });
         else
             init(audioInputRequired, preferredDefaultDeviceName);
+#endif
     }
 
     void init(bool enableAudioInput, const String& preferredDefaultDeviceName)

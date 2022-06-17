@@ -4,18 +4,11 @@
 #include <juce_core/system/juce_TargetPlatform.h>
 #include <Standalone/PlugDataApp.cpp>
 
-
 extern void stopLoop();
 extern juce::JUCEApplicationBase* juce_CreateApplication();
 
-bool initialise() {
-    juce::JUCEApplicationBase::createInstance = &::juce_CreateApplication;
-}
-
-bool initialised = initialise();
-
-
-#define StartApplication juce::ScopedJuceInitialiser_GUI gui; \
+#define StartApplication juce::JUCEApplicationBase::createInstance = &::juce_CreateApplication; \
+                         juce::ScopedJuceInitialiser_GUI gui; \
                          PlugDataApp app; \
                          app.initialise(""); \
                          auto editor = dynamic_cast<PlugDataPluginEditor*>(app.getWindow()->getContentComponent()->getChildComponent(0))
