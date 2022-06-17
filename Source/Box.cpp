@@ -324,7 +324,7 @@ void Box::resized()
         newObjectEditor->setBounds(getLocalBounds().reduced(margin));
     }
 
-    int edgeSize = 12;
+    int edgeSize = 13;
     int edgeHitBox = 4;
     int borderWidth = 14;
 
@@ -354,7 +354,7 @@ void Box::resized()
         const bool isInlet = edge->isInlet;
         const int position = index < numInputs ? index : index - numInputs;
         const int total = isInlet ? numInputs : numOutputs;
-        const float yPosition = (isInlet ? margin : getHeight() - margin) - edgeSize / 2.0f;
+        const float yPosition = (isInlet ? (margin + 1) : getHeight() - (margin + 1)) - edgeSize / 2.0f;
 
         const auto bounds = isInlet ? inletBounds : outletBounds;
 
@@ -632,7 +632,7 @@ void Box::openNewObjectEditor()
         newObjectEditor = std::make_unique<TextEditor>();
 
         auto* editor = newObjectEditor.get();
-        editor->applyFontToAllText(Font(15));
+        editor->applyFontToAllText(Font(14.5));
 
         copyAllExplicitColoursTo(*editor);
         editor->setColour(Label::textWhenEditingColourId, findColour(TextEditor::textColourId));
@@ -682,7 +682,7 @@ void Box::textEditorReturnKeyPressed(TextEditor& ed)
 void Box::textEditorTextChanged(TextEditor& ed)
 {
     // For resize-while-typing behaviour
-    auto width = Font(15).getStringWidth(ed.getText()) + 25;
+    auto width = Font(14.5).getStringWidth(ed.getText()) + 25;
 
     if (width > getWidth())
     {

@@ -16,8 +16,6 @@ extern "C"
     extern char* pd_version;
 }
 
-const String else_version = "ELSE v1.0-rc1";
-const String cyclone_version = "cyclone v0.6-0";
 
 AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
 {

@@ -28,7 +28,7 @@ Rectangle<int> Edge::getCanvasBounds()
 
 void Edge::paint(Graphics& g)
 {
-    auto bounds = getLocalBounds().toFloat();
+    auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
     if (!isHovered)
     {

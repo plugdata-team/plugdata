@@ -139,6 +139,6 @@ struct CommentObject final : public TextBase
 
     bool hideInGraph() override
     {
-        return true;
+        return false;
     }
 };
