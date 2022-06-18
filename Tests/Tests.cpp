@@ -1,5 +1,11 @@
-#include <PluginProcessor.h>
 #include <catch2/catch_all.hpp>
+
+// Workaround for windows
+#include <juce_graphics/juce_graphics.h>
+#define Rectangle juce::Rectangle
+
+#include <PluginProcessor.h>
+
 
 #include <juce_core/system/juce_TargetPlatform.h>
 #include <Standalone/PlugDataApp.cpp>
