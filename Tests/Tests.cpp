@@ -42,18 +42,31 @@ TEST_CASE("Plugin instance name", "[name]")
     CHECK_THAT(editor->pd.getName().toStdString(),
                Catch::Matchers::Equals("PlugData"));
     
-    
-
-    
     StopApplicationAfter(500);
+
 }
 
-TEST_CASE("Create Object", "[name]")
+TEST_CASE("Create and delete objects", "[name]")
 {
     StartApplication;
     
-    editor->getCurrentCanvas()->patch.createObject("metro 200", 200, 500);
-    editor->getCurrentCanvas()->patch.createObject("tgl", 300, 700);
+    auto* obj1 = editor->getCurrentCanvas()->patch.createObject("metro 200", 200, 500);
+    auto* obj2 = editor->getCurrentCanvas()->patch.createObject("tgl", 300, 700);
+    
+    editor->getCurrentCanvas()->synchronise();
+    
+    REQUIRE(editor->getCurrentCanvas()->boxes.getFirst()->getObjectBounds().getPosition() == Point<int>(200, 500));
+    
+    REQUIRE(editor->getCurrentCanvas()->boxes[0]->getPointer() == obj1);
+    REQUIRE(editor->getCurrentCanvas()->boxes[1]->getPointer() == obj2);
+    
+    editor->getCurrentCanvas()->patch.removeObject(obj1);
+    editor->getCurrentCanvas()->patch.removeObject(obj2);
+    
+    editor->getCurrentCanvas()->synchronise();
+    
+    REQUIRE(editor->getCurrentCanvas()->boxes.size() == 0);
+    
     
     StopApplicationAfter(500);
 }
