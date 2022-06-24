@@ -92,6 +92,13 @@ t_garray* libpd_array_get_byname(char const* name)
     return (t_fake_garray*)pd_findbyclass(gensym((char *)name), garray_class);
 }
 
+int libpd_array_get_size(const char* name)
+{
+    t_garray* garray = (t_garray*)libpd_array_get_byname(name);
+    return garray_getarray(garray)->a_n;
+}
+
+
 char const* libpd_array_get_name(void* ptr)
 {
     t_fake_garray* nptr = (t_fake_garray*)ptr;
