@@ -44,6 +44,14 @@ class PdArray
         libpd_array_get_scale(name.toRawUTF8(), &min, &max);
         return {min, max};
     }
+    
+    // Gets the scale of the array.
+    int size() const
+    {
+        float min = -1, max = 1;
+        libpd_set_instance(static_cast<t_pdinstance*>(instance));
+        return libpd_array_get_size(name.toRawUTF8());
+    }
 
     void setScale(std::array<float, 2> scale) 
     {
@@ -102,9 +110,12 @@ struct GraphicalArray : public Component
         {
             error = true;
         }
+        
+
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
+        setBufferedToImage(true);
     }
 
     void setArray(PdArray& graph)
@@ -163,6 +174,7 @@ struct GraphicalArray : public Component
                             const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
                             p.lineTo(static_cast<float>(i) * dw, y);
                         }
+                        std::cout << "paint! " << String((float)rand(), 3) << std::endl;
                         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
                         g.strokePath(p, PathStrokeType(1));
                         break;
@@ -260,6 +272,7 @@ struct GraphicalArray : public Component
         if (error) return;
         edited = false;
     }
+    
 
     void update()
     {
@@ -268,6 +281,7 @@ struct GraphicalArray : public Component
             error = false;
             try
             {
+                
                 array.read(temp);
             }
             catch (...)
@@ -280,11 +294,6 @@ struct GraphicalArray : public Component
                 repaint();
             }
         }
-    }
-
-    size_t getArraySize() const 
-    {
-        return vec.size();
     }
 
     PdArray array;
@@ -312,7 +321,7 @@ struct ArrayObject final : public GUIObject
         auto scale = array.getScale();
         Array<var> arr = {var(scale[0]), var(scale[1])};
         range = var(arr);
-        size = var(static_cast<int>(graph.getArraySize()));
+        size = var(static_cast<int>(graph.array.size()));
 
         name = String(array.getName());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
@@ -439,6 +448,12 @@ struct ArrayObject final : public GUIObject
 
     void updateValue() override
     {
+        int currentSize = graph.array.size();
+        if(graph.vec.size() != currentSize) {
+            
+            graph.vec.resize(currentSize);
+            size = currentSize;
+        }
         graph.update();
     }
 

@@ -150,12 +150,12 @@ bool Box::hitTest(int x, int y)
 
 void Box::mouseEnter(const MouseEvent& e)
 {
-    repaint();
+    //repaint();
 }
 
 void Box::mouseExit(const MouseEvent& e)
 {
-    repaint();
+    //repaint();
 }
 
 bool Box::isOver()
