@@ -1,6 +1,6 @@
 #include <catch2/catch_all.hpp>
 
-// Workaround for windows
+// Workaround for naming issue on windows
 #include <juce_graphics/juce_graphics.h>
 #define Rectangle juce::Rectangle
 
@@ -10,7 +10,10 @@
 #include <juce_core/system/juce_TargetPlatform.h>
 #include <Standalone/PlugDataApp.cpp>
 
+#if JUCE_MAC
 extern void stopLoop();
+#endif
+
 extern juce::JUCEApplicationBase* juce_CreateApplication();
 
 #define StartApplication juce::JUCEApplicationBase::createInstance = &::juce_CreateApplication; \
