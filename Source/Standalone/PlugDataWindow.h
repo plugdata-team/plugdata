@@ -344,80 +344,76 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
         only ever be called with a block with a length less than or equal to the
         expected block size.
     */
-    class CallbackMaxSizeEnforcer : public AudioIODeviceCallback
-    {
-       public:
-        explicit CallbackMaxSizeEnforcer(AudioIODeviceCallback& callbackIn) : inner(callbackIn)
+    class CallbackMaxSizeEnforcer  : public AudioIODeviceCallback
         {
-        }
+        public:
+            explicit CallbackMaxSizeEnforcer (AudioIODeviceCallback& callbackIn)
+                : inner (callbackIn) {}
 
-        void audioDeviceAboutToStart(AudioIODevice* device) override
-        {
-            maximumSize = device->getCurrentBufferSizeSamples();
-            storedInputChannels.resize(static_cast<size_t>(device->getActiveInputChannels().countNumberOfSetBits()));
-            storedOutputChannels.resize(static_cast<size_t>(device->getActiveOutputChannels().countNumberOfSetBits()));
-
-            inner.audioDeviceAboutToStart(device);
-        }
-
-        void audioDeviceIOCallbackWithContext (const float** inputChannelData,
-                                               int numInputChannels,
-                                               float** outputChannelData,
-                                               int numOutputChannels,
-                                               int numSamples,
-                                               const AudioIODeviceCallbackContext& context) override
-        {
-            jassertquiet ((int) storedInputChannels.size()  == numInputChannels);
-            jassertquiet ((int) storedOutputChannels.size() == numOutputChannels);
-
-            int position = 0;
-
-            while (position < numSamples)
+            void audioDeviceAboutToStart (AudioIODevice* device) override
             {
-                const auto blockLength = jmin (maximumSize, numSamples - position);
+                maximumSize = device->getCurrentBufferSizeSamples();
+                storedInputChannels .resize ((size_t) device->getActiveInputChannels() .countNumberOfSetBits());
+                storedOutputChannels.resize ((size_t) device->getActiveOutputChannels().countNumberOfSetBits());
 
-                initChannelPointers (inputChannelData,  storedInputChannels,  position);
-                initChannelPointers (outputChannelData, storedOutputChannels, position);
-
-                inner.audioDeviceIOCallbackWithContext (storedInputChannels.data(),
-                                                        (int) storedInputChannels.size(),
-                                                        storedOutputChannels.data(),
-                                                        (int) storedOutputChannels.size(),
-                                                        blockLength,
-                                                        context);
-
-                position += blockLength;
+                inner.audioDeviceAboutToStart (device);
             }
-        }
 
-        void audioDeviceStopped() override
-        {
-            inner.audioDeviceStopped();
-        }
-
-       private:
-        struct GetChannelWithOffset
-        {
-            int offset;
-
-            template <typename Ptr>
-            auto operator()(Ptr ptr) const noexcept -> Ptr
+            void audioDeviceIOCallbackWithContext (const float** inputChannelData,
+                                                   int numInputChannels,
+                                                   float** outputChannelData,
+                                                   int numOutputChannels,
+                                                   int numSamples,
+                                                   const AudioIODeviceCallbackContext& context) override
             {
-                return ptr + offset;
+                jassertquiet ((int) storedInputChannels.size()  == numInputChannels);
+                jassertquiet ((int) storedOutputChannels.size() == numOutputChannels);
+
+                int position = 0;
+
+                while (position < numSamples)
+                {
+                    const auto blockLength = jmin (maximumSize, numSamples - position);
+
+                    initChannelPointers (inputChannelData,  storedInputChannels,  position);
+                    initChannelPointers (outputChannelData, storedOutputChannels, position);
+
+                    inner.audioDeviceIOCallbackWithContext (storedInputChannels.data(),
+                                                            (int) storedInputChannels.size(),
+                                                            storedOutputChannels.data(),
+                                                            (int) storedOutputChannels.size(),
+                                                            blockLength,
+                                                            context);
+
+                    position += blockLength;
+                }
             }
+
+            void audioDeviceStopped() override
+            {
+                inner.audioDeviceStopped();
+            }
+
+        private:
+            struct GetChannelWithOffset
+            {
+                int offset;
+
+                template <typename Ptr>
+                auto operator() (Ptr ptr) const noexcept -> Ptr { return ptr + offset; }
+            };
+
+            template <typename Ptr, typename Vector>
+            void initChannelPointers (Ptr&& source, Vector&& target, int offset)
+            {
+                std::transform (source, source + target.size(), target.begin(), GetChannelWithOffset { offset });
+            }
+
+            AudioIODeviceCallback& inner;
+            int maximumSize = 0;
+            std::vector<const float*> storedInputChannels;
+            std::vector<float*> storedOutputChannels;
         };
-
-        template <typename Ptr, typename Vector>
-        void initChannelPointers(Ptr&& source, Vector&& target, int offset)
-        {
-            std::transform(source, source + target.size(), target.begin(), GetChannelWithOffset{offset});
-        }
-
-        AudioIODeviceCallback& inner;
-        int maximumSize = 0;
-        std::vector<const float*> storedInputChannels;
-        std::vector<float*> storedOutputChannels;
-    };
 
     CallbackMaxSizeEnforcer maxSizeEnforcer{*this};
 
