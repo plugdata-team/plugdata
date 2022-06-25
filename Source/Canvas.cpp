@@ -905,6 +905,8 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
 
+        pd->waitForStateUpdate();
+        
         // Update undo state
         main.updateCommandStatus();
     }
