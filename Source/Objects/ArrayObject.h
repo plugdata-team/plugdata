@@ -110,8 +110,6 @@ struct GraphicalArray : public Component
         {
             error = true;
         }
-        
-
 
         setInterceptsMouseClicks(true, false);
         setOpaque(false);
@@ -193,16 +191,18 @@ struct GraphicalArray : public Component
                     Point<float> lastPoint = Point<float>(0, startY);
                     Point<float> newPoint;
                     
-                    g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                    Path p;
                     for (size_t i = 1; i < points.size(); i++)
                     {
                         const float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
                         newPoint = Point<float>(static_cast<float>(i) * dw, y);
                         
-                        g.drawLine({lastPoint, newPoint}, 1.0f);
-                        
+                        p.addLineSegment({lastPoint, newPoint}, 1.0f);
                         lastPoint = newPoint;
                     }
+                    
+                    g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                    g.fillPath(p);
                     break;
                 }
                 case PdArray::DrawType::Points:
