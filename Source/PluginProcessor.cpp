@@ -572,35 +572,79 @@ void PlugDataAudioProcessor::sendParameters()
 void PlugDataAudioProcessor::sendPlayhead()
 {
     AudioPlayHead* playhead = getPlayHead();
-    AudioPlayHead::CurrentPositionInfo infos;
-    if (playhead && playhead->getCurrentPosition(infos))
+    if(!playhead) return;
+    
+    auto infos = playhead->getPosition();
+    
+    if (infos.hasValue())
     {
-        atoms_playhead[0] = static_cast<float>(infos.isPlaying);
+        atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
         sendMessage("playhead", "playing", atoms_playhead);
-        atoms_playhead[0] = static_cast<float>(infos.isRecording);
+        atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
         sendMessage("playhead", "recording", atoms_playhead);
-        atoms_playhead[0] = static_cast<float>(infos.isLooping);
-        atoms_playhead.push_back(static_cast<float>(infos.ppqLoopStart));
-        atoms_playhead.push_back(static_cast<float>(infos.ppqLoopEnd));
+
+        atoms_playhead[0] = static_cast<float>(infos->getIsLooping());
+        
+        auto loopPoints = infos->getLoopPoints();
+        if(loopPoints.hasValue()) {
+            atoms_playhead.push_back(static_cast<float>(loopPoints->ppqStart));
+            atoms_playhead.push_back(static_cast<float>(loopPoints->ppqEnd));
+        }
+        else {
+            atoms_playhead.push_back(0.0f);
+            atoms_playhead.push_back(0.0f);
+        }
         sendMessage("playhead", "looping", atoms_playhead);
-        atoms_playhead.resize(1);
-        atoms_playhead[0] = static_cast<float>(infos.editOriginTime);
-        sendMessage("playhead", "edittime", atoms_playhead);
-        atoms_playhead[0] = static_cast<float>(infos.frameRate.getEffectiveRate());
+        
+        if(infos->getEditOriginTime().hasValue()) {
+            atoms_playhead.resize(1);
+            atoms_playhead[0] = static_cast<float>(*infos->getEditOriginTime());
+            sendMessage("playhead", "edittime", atoms_playhead);
+        }
 
-        sendMessage("playhead", "framerate", atoms_playhead);
+        if(infos->getFrameRate().hasValue()) {
+            atoms_playhead[0] = static_cast<float>(infos->getFrameRate()->getEffectiveRate());
+            sendMessage("playhead", "framerate", atoms_playhead);
+        }
 
-        atoms_playhead[0] = static_cast<float>(infos.bpm);
-        sendMessage("playhead", "bpm", atoms_playhead);
-        atoms_playhead[0] = static_cast<float>(infos.ppqPositionOfLastBarStart);
-        sendMessage("playhead", "lastbar", atoms_playhead);
-        atoms_playhead[0] = static_cast<float>(infos.timeSigNumerator);
-        atoms_playhead.push_back(static_cast<float>(infos.timeSigDenominator));
-        sendMessage("playhead", "timesig", atoms_playhead);
+       
+        if(infos->getBpm().hasValue()) {
+            atoms_playhead[0] = static_cast<float>(*infos->getBpm());
+            sendMessage("playhead", "bpm", atoms_playhead);
+        }
+        
+        if(infos->getPpqPositionOfLastBarStart().hasValue()) {
+            atoms_playhead[0] = static_cast<float>(*infos->getPpqPositionOfLastBarStart());
+            sendMessage("playhead", "lastbar", atoms_playhead);
+        }
+        
+        if(infos->getTimeSignature().hasValue()) {
+            atoms_playhead[0] = static_cast<float>(infos->getTimeSignature()->numerator);
+            atoms_playhead.push_back(static_cast<float>(infos->getTimeSignature()->denominator));
+            sendMessage("playhead", "timesig", atoms_playhead);
+        }
 
-        atoms_playhead[0] = static_cast<float>(infos.ppqPosition);
-        atoms_playhead[1] = static_cast<float>(infos.timeInSamples);
-        atoms_playhead.push_back(static_cast<float>(infos.timeInSeconds));
+        if(infos->getPpqPosition().hasValue()) {
+            atoms_playhead[0] = static_cast<float>(*infos->getPpqPosition());
+        }
+        else {
+            atoms_playhead[0] = 0.0f;
+        }
+        
+        if(infos->getTimeInSamples().hasValue()) {
+            atoms_playhead[1] = static_cast<float>(*infos->getTimeInSamples());
+        }
+        else {
+            atoms_playhead[1] = 0.0f;
+        }
+        
+        if(infos->getTimeInSeconds().hasValue()) {
+            atoms_playhead.push_back(static_cast<float>(*infos->getTimeInSeconds()));
+        }
+        else {
+            atoms_playhead.push_back(0.0f);
+        }
+
         sendMessage("playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }
