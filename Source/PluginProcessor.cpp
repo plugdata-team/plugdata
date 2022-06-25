@@ -56,16 +56,17 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     parameters.replaceState(ValueTree("PlugData"));
 
-    MessageManager::callAsync([this](){
+    {
+        const MessageManagerLock mmLock;
+        
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
-    });
-    
-
-    // On first startup, initialise abstractions and settings
-    initialiseFilesystem();
-
-    // Initialise library for text autocompletion
-    objectLibrary.initialiseLibrary();
+        
+        // On first startup, initialise abstractions and settings
+        initialiseFilesystem();
+        
+        // Initialise library for text autocompletion
+        objectLibrary.initialiseLibrary();
+    }
 
     // Update pd search paths for abstractions
     updateSearchPaths();
