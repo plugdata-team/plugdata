@@ -123,6 +123,103 @@ struct GraphicalArray : public Component
         if (graph.getName().isEmpty()) return;
         array = graph;
     }
+    
+    std::vector<float> rescale(const std::vector<float>& v, const unsigned newSize)
+    {
+        if (v.empty()) {
+            return {};
+        }
+        
+        std::vector<float> result(newSize);
+          const std::size_t oldSize = v.size();
+          for (unsigned i=0; i < newSize; i++)
+          {
+            const unsigned idx = i*(oldSize-1) / newSize;
+            const unsigned mod = i*(oldSize-1) % newSize;
+
+            if (mod == 0)
+              result[i] = v[idx];
+            else
+            {
+              const float part = float(mod) / float(newSize);
+              result[i] = v[idx]*(1.0-part) + v[idx+1]*part;
+            }
+          }
+          return result;
+    }
+    
+    void paintGraph(Graphics& g) {
+        
+        const auto h = static_cast<float>(getHeight());
+        const auto w = static_cast<float>(getWidth());
+        std::vector<float> points = vec;
+        
+        if (!points.empty())
+        {
+            const std::array<float, 2> scale = array.getScale();
+            if (scale[0] >= scale[1]) return;
+            
+            // More than a point per pixel will cause insane loads, and isn't actually helpful
+            // Instead, linearly interpolate the vector to a max size of width in pixels
+            if (vec.size() >= getWidth()) {
+                points = rescale(points, getWidth());
+            }
+            
+            const float dh = h / (scale[1] - scale[0]);
+            const float dw = w / static_cast<float>(points.size() - 1);
+            
+            switch (array.getDrawType())
+            {
+                case PdArray::DrawType::Curve:
+                {
+                    Path p;
+                    p.startNewSubPath(0, h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh);
+                    
+                    for (size_t i = 1; i < points.size() - 1; i += 2)
+                    {
+                        const float y1 = h - (std::clamp(points[i - 1], scale[0], scale[1]) - scale[0]) * dh;
+                        const float y2 = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                        const float y3 = h - (std::clamp(points[i + 1], scale[0], scale[1]) - scale[0]) * dh;
+                        p.cubicTo(static_cast<float>(i - 1) * dw, y1, static_cast<float>(i) * dw, y2, static_cast<float>(i + 1) * dw, y3);
+                    }
+                    
+                    g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                    g.strokePath(p, PathStrokeType(1));
+                    break;
+                }
+                case PdArray::DrawType::Line:
+                {
+                    int startY = h - (std::clamp(points[0], scale[0], scale[1]) - scale[0]) * dh;
+                    Point<float> lastPoint = Point<float>(0, startY);
+                    Point<float> newPoint;
+                    
+                    g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                    for (size_t i = 1; i < points.size(); i++)
+                    {
+                        const float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                        newPoint = Point<float>(static_cast<float>(i) * dw, y);
+                        
+                        g.drawLine({lastPoint, newPoint}, 1.0f);
+                        
+                        lastPoint = newPoint;
+                    }
+                    break;
+                }
+                case PdArray::DrawType::Points:
+                {
+                    g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
+                    for (size_t i = 0; i < points.size(); i++)
+                    {
+                        const float y = h - (std::clamp(points[i], scale[0], scale[1]) - scale[0]) * dh;
+                        g.drawHorizontalLine(y, static_cast<float>(i) * dw, static_cast<float>(i + 1) * dw);
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    }
 
     void paint(Graphics& g) override
     {
@@ -137,64 +234,7 @@ struct GraphicalArray : public Component
         }
         else
         {
-            const auto h = static_cast<float>(getHeight());
-            const auto w = static_cast<float>(getWidth());
-            if (!vec.empty())
-            {
-                const std::array<float, 2> scale = array.getScale();
-                if (scale[0] >= scale[1]) return;
-
-                switch (array.getDrawType())
-                {
-                    case PdArray::DrawType::Curve:
-                    {
-                        const float dh = h / (scale[1] - scale[0]);
-                        const float dw = w / static_cast<float>(vec.size() - 1);
-                        Path p;
-                        p.startNewSubPath(0, h - (std::clamp(vec[0], scale[0], scale[1]) - scale[0]) * dh);
-                        for (size_t i = 1; i < vec.size() - 1; i += 2)
-                        {
-                            const float y1 = h - (std::clamp(vec[i - 1], scale[0], scale[1]) - scale[0]) * dh;
-                            const float y2 = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
-                            const float y3 = h - (std::clamp(vec[i + 1], scale[0], scale[1]) - scale[0]) * dh;
-                            p.cubicTo(static_cast<float>(i - 1) * dw, y1, static_cast<float>(i) * dw, y2, static_cast<float>(i + 1) * dw, y3);
-                        }
-                        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-                        g.strokePath(p, PathStrokeType(1));
-                        break;
-                    }
-                    case PdArray::DrawType::Line:
-                    {
-                        const float dh = h / (scale[1] - scale[0]);
-                        const float dw = w / static_cast<float>(vec.size() - 1);
-                        Path p;
-                        p.startNewSubPath(0, h - (std::clamp(vec[0], scale[0], scale[1]) - scale[0]) * dh);
-                        for (size_t i = 1; i < vec.size(); ++i)
-                        {
-                            const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
-                            p.lineTo(static_cast<float>(i) * dw, y);
-                        }
-                        std::cout << "paint! " << String((float)rand(), 3) << std::endl;
-                        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-                        g.strokePath(p, PathStrokeType(1));
-                        break;
-                    }
-                    case PdArray::DrawType::Points:
-                    {
-                        const float dh = h / (scale[1] - scale[0]);
-                        const float dw = w / static_cast<float>(vec.size());
-                        g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
-                        for (size_t i = 0; i < vec.size(); ++i)
-                        {
-                            const float y = h - (std::clamp(vec[i], scale[0], scale[1]) - scale[0]) * dh;
-                            g.drawLine(static_cast<float>(i) * dw, y, static_cast<float>(i + 1) * dw, y);
-                        }
-                        break;
-                    }
-                    default:
-                        break;
-                }
-            }
+            paintGraph(g);
         }
     }
 
@@ -281,7 +321,6 @@ struct GraphicalArray : public Component
             error = false;
             try
             {
-                
                 array.read(temp);
             }
             catch (...)
@@ -443,7 +482,7 @@ struct ArrayObject final : public GUIObject
                     });
             });
 
-        repaint();
+        graph.repaint();
     }
 
     void updateValue() override
@@ -468,7 +507,7 @@ struct ArrayObject final : public GUIObject
             auto min = static_cast<float>(range.getValue().getArray()->getReference(0));
             auto max = static_cast<float>(range.getValue().getArray()->getReference(1));
             graph.array.setScale({min, max});
-            repaint();
+            graph.repaint();
         }
         else
         {
