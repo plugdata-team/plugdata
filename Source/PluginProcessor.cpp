@@ -56,7 +56,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     parameters.replaceState(ValueTree("PlugData"));
 
-    MessageManager::callAsync([](){
+    MessageManager::callAsync([this](){
         LookAndFeel::setDefaultLookAndFeel(&lnf.get());
     });
     
