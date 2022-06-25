@@ -56,9 +56,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     parameters.replaceState(ValueTree("PlugData"));
 
-    // TODO: move to a better place!
-    LookAndFeel::setDefaultLookAndFeel(&lnf.get());
-
+    MessageManager::callAsync([](){
+        LookAndFeel::setDefaultLookAndFeel(&lnf.get());
+    });
+    
 
     // On first startup, initialise abstractions and settings
     initialiseFilesystem();
