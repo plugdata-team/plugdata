@@ -180,7 +180,7 @@ juce_add_plugin(PlugDataFx
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
     PLUGIN_MANUFACTURER_CODE    OCTA
     PLUGIN_CODE                 PlDf
-    FORMATS                     AU VST3 LV2
+    FORMATS                     AU VST3
     LV2URI                      https://github.com/timothyschoen/PlugData
     PRODUCT_NAME                "PlugDataFx"
     AU_MAIN_TYPE                kAudioUnitType_MusicEffect
