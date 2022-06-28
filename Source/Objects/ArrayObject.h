@@ -449,8 +449,6 @@ struct ArrayObject final : public GUIObject
     void updateParameters() override
     {
         //name = libpd_array_get_name(array.instance);
-        
-        
     }
 
     void updateSettings()
