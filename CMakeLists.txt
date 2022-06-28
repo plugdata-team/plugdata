@@ -2,8 +2,8 @@ cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-set(RUN_CLANG_TIDY 0)
-set(UNIT_TEST 1)
+option(RUN_CLANG_TIDY "" OFF)
+option(ENABLE_TESTING "" OFF)
 
 if(APPLE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
@@ -361,7 +361,8 @@ if(RUN_CLANG_TIDY)
 endif()
 
 # Set up testing framework
-if(UNIT_TEST)
+if(ENABLE_TESTING)
+
 enable_testing()
 if(APPLE)
 file(GLOB_RECURSE TestFiles CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.cpp" "${CMAKE_CURRENT_SOURCE_DIR}/Tests/*.mm")
@@ -378,8 +379,6 @@ add_executable(Tests ${TestFiles} ${PlugDataGlobalSources})
 set_target_properties(Tests PROPERTIES CXX_STANDARD 17)
 
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugData pd-multi ${libs})
-
-
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
