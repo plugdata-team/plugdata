@@ -407,6 +407,22 @@ void PlugDataPluginEditor::saveProject(const std::function<void()>& nestedCallba
     }
 }
 
+void PlugDataPluginEditor::updateGuiParameters()
+{
+    auto* cnv = getCurrentCanvas();
+
+    if (!cnv) return;
+
+    for (auto& box : cnv->boxes)
+    {
+        if (box->gui)
+        {
+            box->gui->updateParameters();
+            box->gui->repaint();
+        }
+    }
+}
+
 void PlugDataPluginEditor::updateValues()
 {
     auto* cnv = getCurrentCanvas();
@@ -415,7 +431,7 @@ void PlugDataPluginEditor::updateValues()
 
     for (auto& box : cnv->boxes)
     {
-        if (box->gui && box->isShowing())
+        if (box->gui)
         {
             box->gui->updateValue();
         }
@@ -632,6 +648,7 @@ void PlugDataPluginEditor::updateCommandStatus()
         bool allSegmented = true;
         bool allNotSegmented = true;
         bool hasSelection = false;
+        bool isDragging = cnv->isMouseOver() && cnv->isMouseButtonDown();
         for (auto& connection : cnv->getSelectionOfType<Connection>())
         {
             allSegmented = allSegmented && connection->isSegmented();
@@ -639,26 +656,28 @@ void PlugDataPluginEditor::updateCommandStatus()
             hasSelection = true;
         }
 
-        statusbar.connectionStyleButton->setEnabled(hasSelection && (allSegmented || allNotSegmented));
-        statusbar.connectionPathfind->setEnabled(hasSelection && allSegmented);
-        statusbar.connectionStyleButton->setToggleState(hasSelection && allSegmented, dontSendNotification);
+        statusbar.connectionStyleButton->setEnabled(!isDragging && hasSelection && (allSegmented || allNotSegmented));
+        statusbar.connectionPathfind->setEnabled(!isDragging && hasSelection && allSegmented);
+        statusbar.connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr) return;
 
         // First on pd's thread, get undo status
         pd.enqueueFunction(
-            [this, cnv, patchPtr]() mutable
+            [this, cnv, patchPtr, isDragging]() mutable
             {
-                canUndo = libpd_can_undo(patchPtr);
-                canRedo = libpd_can_redo(patchPtr);
+                canUndo = libpd_can_undo(patchPtr) && !isDragging && pd.locked == var(false);
+                canRedo = libpd_can_redo(patchPtr) && !isDragging && pd.locked == var(false);
 
+                std::cout << isDragging << std::endl;
+                
                 // Set button enablement on message thread
                 MessageManager::callAsync(
-                    [this]()
+                    [this]() mutable
                     {
-                        toolbarButton(Redo)->setEnabled(canRedo && pd.locked == var(false));
-                        toolbarButton(Undo)->setEnabled(canUndo && pd.locked == var(false));
+                        toolbarButton(Undo)->setEnabled(canUndo);
+                        toolbarButton(Redo)->setEnabled(canRedo);
 
                         // Application commands need to be updated when undo state changes
                         commandStatusChanged();
@@ -685,7 +704,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 {
     bool hasBoxSelection = false;
     bool hasSelection = false;
-
+    bool isDragging = false;
+    
     if (auto* cnv = getCurrentCanvas())
     {
         auto selectedBoxes = cnv->getSelectionOfType<Box>();
@@ -693,7 +713,10 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
+        isDragging = cnv->isMouseOver() && cnv->isMouseButtonDown();
     }
+    
+
 
     switch (commandID)
     {
@@ -723,7 +746,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Undo", "Undo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier);
-            result.setActive(canUndo);
+            result.setActive(!isDragging && canUndo);
 
             break;
         }
@@ -732,45 +755,48 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Redo", "Redo action", "General", 0);
             result.addDefaultKeypress(90, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(canRedo);
+            result.setActive(!isDragging && canRedo);
             break;
         }
         case CommandIDs::Lock:
         {
             result.setInfo("Lock", "Lock patch", "Edit", 0);
             result.addDefaultKeypress(69, ModifierKeys::commandModifier);
-            result.setActive(!static_cast<bool>(statusbar.presentationMode.getValue()));
+            result.setActive(!static_cast<bool>(!isDragging && statusbar.presentationMode.getValue()));
             break;
         }
         case CommandIDs::ConnectionPathfind:
         {
             result.setInfo("Tidy connection", "Find best path for connection", "Edit", 0);
             result.addDefaultKeypress(89, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
-            result.setActive(true);
+            result.setActive(!isDragging);
             break;
         }
         case CommandIDs::ConnectionStyle:
         {
             result.setInfo("Connection style", "Set connection style", "Edit", 0);
-            result.setActive(statusbar.connectionStyleButton->isEnabled());
+            result.setActive(!isDragging && statusbar.connectionStyleButton->isEnabled());
             break;
         }
         case CommandIDs::ZoomIn:
         {
             result.setInfo("Zoom in", "Zoom in", "Edit", 0);
             result.addDefaultKeypress(61, ModifierKeys::commandModifier);
+            result.setActive(!isDragging);
             break;
         }
         case CommandIDs::ZoomOut:
         {
             result.setInfo("Zoom out", "Zoom out", "Edit", 0);
             result.addDefaultKeypress(45, ModifierKeys::commandModifier);
+            result.setActive(!isDragging);
             break;
         }
         case CommandIDs::ZoomNormal:
         {
             result.setInfo("Zoom 100%", "Revert zoom to 100%", "Edit", 0);
             result.addDefaultKeypress(33, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
+            result.setActive(!isDragging);
             break;
         }
         case CommandIDs::Copy:
@@ -778,6 +804,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setInfo("Copy", "Copy", "Edit", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier);
             result.setActive(pd.locked == var(false) && hasBoxSelection);
+            result.setActive(!isDragging);
             break;
         }
         case CommandIDs::Paste:
@@ -785,6 +812,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setInfo("Paste", "Paste", "Edit", 0);
             result.addDefaultKeypress(86, ModifierKeys::commandModifier);
             result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging);
             break;
         }
         case CommandIDs::Cut:
@@ -792,27 +820,29 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setInfo("Cut", "Cut selection", "Edit", 0);
             result.addDefaultKeypress(88, ModifierKeys::commandModifier);
             result.setActive(pd.locked == var(false) && hasSelection);
+            result.setActive(!isDragging);
             break;
         }
         case CommandIDs::Delete:
         {
             result.setInfo("Delete", "Delete selection", "Edit", 0);
             result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false) && hasSelection);
+            result.setActive(!isDragging && pd.locked == var(false) && hasSelection);
             break;
         }
         case CommandIDs::Duplicate:
         {
+            
             result.setInfo("Duplicate", "Duplicate selection", "Edit", 0);
             result.addDefaultKeypress(68, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false) && hasBoxSelection);
+            result.setActive(!isDragging && pd.locked == var(false) && hasBoxSelection);
             break;
         }
         case CommandIDs::SelectAll:
         {
             result.setInfo("Select all", "Select all objects and connections", "Edit", 0);
             result.addDefaultKeypress(65, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::ShowBrowser:
@@ -827,116 +857,116 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("New Object", "Create new object", "Objects", 0);
             result.addDefaultKeypress(78, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewComment:
         {
             result.setInfo("New Comment", "Create new comment", "Objects", 0);
             result.addDefaultKeypress(67, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewBang:
         {
             result.setInfo("New Bang", "Create new bang", "Objects", 0);
             result.addDefaultKeypress(66, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewMessage:
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
             result.addDefaultKeypress(77, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewToggle:
         {
             result.setInfo("New Toggle", "Create new toggle", "Objects", 0);
             result.addDefaultKeypress(84, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewNumbox:
         {
             result.setInfo("New Number", "Create new number box", "Objects", 0);
             result.addDefaultKeypress(73, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewFloatAtom:
         {
             result.setInfo("New Floatatom", "Create new floatatom", "Objects", 0);
             result.addDefaultKeypress(70, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewSymbolAtom:
         {
             result.setInfo("New Symbolatom", "Create new symbolatom", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewListAtom:
         {
             result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalSlider:
         {
             result.setInfo("New Vertical Slider", "Create new vertical slider", "Objects", 0);
             result.addDefaultKeypress(83, ModifierKeys::noModifiers);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalSlider:
         {
             result.setInfo("New Horizontal Slider", "Create new horizontal slider", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVerticalRadio:
         {
             result.setInfo("New Vertical Radio", "Create new vertical radio", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewHorizontalRadio:
         {
             result.setInfo("New Horizontal Radio", "Create new horizontal radio", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewArray:
         {
             result.setInfo("New Array", "Create new array", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewGraphOnParent:
         {
             result.setInfo("New GraphOnParent", "Create new graph on parent", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewCanvas:
         {
             result.setInfo("New Canvas", "Create new canvas object", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewKeyboard:
         {
             result.setInfo("New Keyboard", "Create new keyboard", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         case CommandIDs::NewVUMeterObject:
         {
             result.setInfo("New VU Meter", "Create new VU meter", "Objects", 0);
-            result.setActive(pd.locked == var(false));
+            result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
         default:

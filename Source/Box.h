@@ -85,7 +85,6 @@ class Box : public Component, public Value::Listener, public Timer, private Text
     static inline constexpr int doubleMargin = margin * 2;
     static inline constexpr int height = 37;
 
-    bool selectionChanged = false;
     bool edgeHovered = false;
 
     Point<int> mouseDownPos;
@@ -99,6 +98,7 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     Rectangle<int> originalBounds;
     bool createEditorOnMouseDown = false;
+    bool selectionStateChanged = false;
 
     std::unique_ptr<TextEditor> newObjectEditor;
 

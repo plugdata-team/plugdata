@@ -1077,20 +1077,14 @@ void PlugDataAudioProcessor::receiveDSPState(bool dsp)
 
 void PlugDataAudioProcessor::receiveGuiUpdate(int type)
 {
-    if (callbackType != 0 && callbackType != type)
-    {
-        callbackType = 3;
-    }
-    else
-    {
-        callbackType = type;
-    }
-
+    callbackType |= (1 << type);
+    
     if(!isTimerRunning()) {
 
         startTimer(16);
     }
 }
+
 
 // TODO: Don't do this here!!!
 void PlugDataAudioProcessor::timerCallback()
@@ -1099,13 +1093,17 @@ void PlugDataAudioProcessor::timerCallback()
     {
         if (!callbackType) return;
 
-        if (callbackType == 1 || callbackType == 3)
+        if (callbackType & 2)
         {
              editor->updateValues();
         }
-        if(callbackType >= 2)
+        if (callbackType & 4)
         {
              editor->updateDrawables();
+        }
+        if (callbackType & 8)
+        {
+             editor->updateGuiParameters();
         }
 
         callbackType = 0;
