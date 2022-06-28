@@ -648,7 +648,8 @@ void PlugDataPluginEditor::updateCommandStatus()
         bool allSegmented = true;
         bool allNotSegmented = true;
         bool hasSelection = false;
-        bool isDragging = cnv->isMouseOver() && cnv->isMouseButtonDown();
+        
+        bool isDragging = cnv->isMouseButtonDown(true);
         for (auto& connection : cnv->getSelectionOfType<Connection>())
         {
             allSegmented = allSegmented && connection->isSegmented();
@@ -674,8 +675,6 @@ void PlugDataPluginEditor::updateCommandStatus()
                 canUndo = libpd_can_undo(patchPtr) && !isDragging && pd.locked == var(false);
                 canRedo = libpd_can_redo(patchPtr) && !isDragging && pd.locked == var(false);
 
-                std::cout << isDragging << std::endl;
-                
                 // Set button enablement on message thread
                 MessageManager::callAsync(
                     [this]() mutable
@@ -717,7 +716,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-        isDragging = cnv->isMouseOver() && cnv->isMouseButtonDown();
+        isDragging = cnv->isMouseButtonDown(true);
     }
     
 
