@@ -659,6 +659,10 @@ void PlugDataPluginEditor::updateCommandStatus()
         statusbar.connectionStyleButton->setEnabled(!isDragging && hasSelection && (allSegmented || allNotSegmented));
         statusbar.connectionPathfind->setEnabled(!isDragging && hasSelection && allSegmented);
         statusbar.connectionStyleButton->setToggleState(!isDragging && hasSelection && allSegmented, dontSendNotification);
+        
+        statusbar.lockButton->setEnabled(!isDragging);
+        statusbar.zoomIn->setEnabled(!isDragging);
+        statusbar.zoomOut->setEnabled(!isDragging);
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr) return;
