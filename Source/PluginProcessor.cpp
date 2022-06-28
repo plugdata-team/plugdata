@@ -964,7 +964,7 @@ Colour PlugDataAudioProcessor::getOutlineColour()
 Colour PlugDataAudioProcessor::getForegroundColour()
 {
     // currently the same as text colour, but still a function to make it easy to change in the future
-    return lnf->findColour(PlugDataColour::textColourId);
+    return lnf->findColour(PlugDataColour::textColourId).interpolatedWith(lnf->findColour(PlugDataColour::canvasColourId), 0.25f);
 }
 
 Colour PlugDataAudioProcessor::getBackgroundColour()
