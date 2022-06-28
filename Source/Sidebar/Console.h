@@ -281,7 +281,7 @@ struct Console : public Component
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors)) continue;
 
-                totalHeight += height;
+                totalHeight += std::max(0, height);
             }
 
             totalHeight -= numEmpty * 24;
