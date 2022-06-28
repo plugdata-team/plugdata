@@ -9,7 +9,7 @@
 
 #define TEETH_STACK 48000 //stack buf size, 1 sec at 48k for good measure
 #define TEETH_DELAY  10.0 //maximum delay
-#define TEETH_MIND 1 //minumum delay 
+#define TEETH_MIND 1 //minimum delay 
 #define TEETH_MAXD 4294967294 //max delay = 2**32 - 2
 
 #define TEETH_MINMS 0. //min delay in ms

@@ -98,8 +98,8 @@ stops it, f 60;
 #X text 129 425 loop <f>;
 #X text 93 441 loopinterp <f>;
 #X text 185 441 - non zero enables crossfading when looping \, <0>
-disbales it;
-#X text 185 425 - non zero enables looping \, <0> disbales it, f 60
+disables it;
+#X text 185 425 - non zero enables looping \, <0> disables it, f 60
 ;
 #X text 93 457 interptime <f>;
 #X text 185 457 - sets crossfading time in ms (default 50), f 60;

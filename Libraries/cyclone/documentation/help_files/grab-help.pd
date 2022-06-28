@@ -65,7 +65,7 @@ by this symbol. In this case \, there's no rightmost outlet.;
 #X text 172 365 number of outlets besides the rightmost one., f 58
 ;
 #X text 64 89 [grab] sends a message to another object and "grabs"
-its output \, sending it through its outlet(s) instead of the grabbed
+its output \, sending it through its outlet(s) isntead of the grabbed
 object.;
 #N canvas 628 102 705 394 examples 0;
 #X msg 92 36 length;
@@ -232,7 +232,7 @@ work even with GUI externals that have built-in receive names.;
 #X connect 16 0 11 0;
 #X connect 18 0 7 0;
 #X connect 19 0 0 0;
-#X restore 470 179 pd built-in \; recieve;
+#X restore 470 179 pd built-in \; receive;
 #N canvas 775 187 388 376 presets 0;
 #X obj 91 140 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 -228856 -1 -1 0 256;

@@ -23,7 +23,7 @@
 #define COUNTER_DOWN    1
 #define COUNTER_UPDOWN  2
 #define COUNTER_DEFMAX  16777216  // 2ˆ24
-#define COUNTER_CARRY 0 // defaut for carryflag
+#define COUNTER_CARRY 0 // default for carryflag
 #define COUNTER_COMPAT 0 // default for compatmode
 
 typedef struct _counter

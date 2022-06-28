@@ -29,7 +29,7 @@ char *mtok(char *input, char *delimiter) {
     //if reached the end, just return the static var, i think
     if(string == NULL)
         return string;
-    //return pointer of first occurence of delim
+    //return pointer of first occurrence of delim
     //added, keep going until first non delim
     char *end = strstr(string, delimiter);
     while(end == string){

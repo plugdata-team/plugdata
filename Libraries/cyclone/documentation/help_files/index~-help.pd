@@ -258,7 +258,7 @@ tasks than other objects such as [cyclone/play~] and [cyclone/wave~].
 #X text 217 409 - array channel (1-64) default 1;
 #X text 77 84 [index~] reads an array without interpolation. The input
 signal specifies the table index. It's like [tabread~] but works with
-multi channel arrays and index values are rounded instead of being
+multi channel arrays and index values are rounded isntead of being
 truncated.;
 #X obj 500 69 cyclone/setdsp~;
 #X connect 23 0 25 0;

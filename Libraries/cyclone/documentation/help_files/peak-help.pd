@@ -76,7 +76,7 @@ right outlet sends 1 when the input is not greater than the peak and
 ;
 #X text 173 403 set new 'peak' value, f 60;
 #X text 173 436 the current 'peak' (minimum) value, f 60;
-#X text 172 521 intial 'peak' value (default 0), f 36;
+#X text 172 521 initial 'peak' value (default 0), f 36;
 #X obj 189 234 cyclone/peak 4;
 #X text 173 380 2nd number sets new 'peak' \, then 1st element is input
 ;

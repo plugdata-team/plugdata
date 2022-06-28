@@ -341,7 +341,7 @@ static char *sprintf_gettext(int ac, t_atom *av, int *sizep)
 
 /* Called twice:  1st pass (with x == 0) is used for counting valid patterns;
    2nd pass (after object allocation) -- for initializing the proxies.
-   If there is a "%%" pattern, then the buffer is shrinked in the second pass
+   If there is a "%%" pattern, then the buffer is shrunk in the second pass
    (LATER rethink). */
 static int sprintf_parsepattern(t_sprintf *x, char **patternp)
 {

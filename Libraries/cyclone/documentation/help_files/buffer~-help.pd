@@ -1,4 +1,4 @@
-#N canvas 631 108 561 488 10;
+#N canvas 558 25 561 488 10;
 #X obj 5 462 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 5 281 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
@@ -39,7 +39,7 @@
 #X obj 570 190 cyclone/poke~;
 #X obj 570 168 cyclone/play~;
 #X obj 570 211 cyclone/record~;
-#X text 426 20 Cyclone has several objetcs that work in conjunction
+#X text 426 20 Cyclone has several objects that work in conjunction
 with [buffer~] \, they are:;
 #X msg 111 53 open;
 #X text 144 54 <= check internal array;
@@ -80,7 +80,7 @@ others have full multi channel capabilities.;
 #X connect 8 0 24 0;
 #X connect 13 0 12 0;
 #X restore 434 250 pd related objects;
-#N canvas 612 109 787 401 read/write 0;
+#N canvas 579 109 787 401 read/write 0;
 #X msg 447 63 read;
 #X msg 466 94 open;
 #X msg 507 95 close;
@@ -95,9 +95,6 @@ others have full multi channel capabilities.;
 #X text 588 147 reloads the last opened file;
 #X text 627 174 writes contents of buffer into a file, f 20;
 #X text 559 227 without symbol: opens dialog box, f 17;
-#X text 25 35 You can specify a sound file to load as the second argument
-ot via the "read" message. Buffer can currently load 'wav' and 'aif/aiff'
-sound files.;
 #X text 25 89 The "write" mesaage Saves the contents of [buffer~] into
 an audio file. A standard file dialog is opened for naming the file
 unless the word write is followed by a symbol \, in which case the
@@ -112,7 +109,7 @@ AIFF format.;
 write a filename to the specified format.;
 #X text 239 327 Numerical values are \; 16 - 16-bit integer (default)
 \; 24 - 24-bit integer \;;
-#X text 28 297 The "format" message sets the bit depth for writting
+#X text 28 297 The "format" message sets the bit depth for writing
 files \, it accepts floats or symbols:;
 #X text 449 320 symbol values are \; int16 - 16-bit integer (default)
 \; int24 - 24-bit integer \; float32 - 32-bit float \;;
@@ -120,14 +117,17 @@ files \, it accepts floats or symbols:;
 #X text 533 22 read a file specified by a symbol (.wav \, .aif/.aiff
 or .caf), f 33;
 #X text 540 200 formats: .wav \, .aif/.aiff or .caf;
-#X connect 0 0 21 0;
-#X connect 1 0 21 0;
-#X connect 2 0 21 0;
-#X connect 3 0 21 0;
-#X connect 4 0 21 0;
-#X connect 7 0 21 0;
-#X connect 9 0 21 0;
-#X connect 10 0 21 0;
+#X text 25 35 You can specify a sound file to load as the second argument
+or via the "read" message. Buffer can currently load 'wav' and 'aif/aiff'
+sound files.;
+#X connect 0 0 20 0;
+#X connect 1 0 20 0;
+#X connect 2 0 20 0;
+#X connect 3 0 20 0;
+#X connect 4 0 20 0;
+#X connect 7 0 20 0;
+#X connect 9 0 20 0;
+#X connect 10 0 20 0;
 #X restore 464 199 pd read/write;
 #X obj 268 216 ./out~;
 #X msg 254 158 start;
@@ -238,7 +238,7 @@ box), f 59;
 #X text 139 89 - sets bit depth - see [pd read/write] for details,
 f 59;
 #X text 64 189 sr <float>;
-#X text 139 189 - sets sample rate for writting a file (default: Patch's)
+#X text 139 189 - sets sample rate for writing a file (default: Patch's)
 , f 59;
 #X restore 374 290 pd All_Messages;
 #X obj 500 69 cyclone/setdsp~;

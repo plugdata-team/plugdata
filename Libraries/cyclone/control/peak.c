@@ -60,6 +60,6 @@ CYCLONE_OBJ_API void Peak_setup(void){
     class_addbang(peak_class, peak_bang);
     class_addfloat(peak_class, peak_float);
     class_addmethod(peak_class, (t_method)peak_ft1, gensym("ft1"), A_FLOAT, 0);
-    pd_error(peak_class, "Cyclone: please use [peak] instead of [Peak] to supress this error");
+    pd_error(peak_class, "Cyclone: please use [peak] instead of [Peak] to suppress this error");
     class_sethelpsymbol(peak_class, gensym("peak"));
 }

@@ -49,7 +49,7 @@ of any message sent to the input.;
 #X text 31 138 And still create the vanilla object from vanilla without
 namespaces as:;
 #X text 32 19 Pd also has a vanilla object named [append]. Cyclone
-avoids name clashing and overwritting an internal in Pd Vanilla \,
+avoids name clashing and overwriting an internal in Pd Vanilla \,
 but for that you need to use the cyclone namespace ("cyclone/" before
 the object name) \, as it's the common practice for cyclone's documentation.
 So you create it as:;

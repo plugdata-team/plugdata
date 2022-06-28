@@ -275,11 +275,11 @@ in "non-binary" mode \, you must use list messages (see below)., f
 by the 3rd float. This mode also allows a 4th optional list item that
 sets the ramp time (for fade in/out or crossfading)., f 62;
 #X text 40 156 - The 'dump' and 'dumptarget' are the same in this mode.
-The 'print' message is also the same but prints on the terminal instead.
+The 'print' message is also the same but prints on the terminal isntead.
 , f 62;
 #X text 40 371 - The dump message in non-binary mode gives you the
-curreent gain state. The 'print' message is the same but prints on
-the terminal instead. The 'dumptarget' message gives you the target
+current gain state. The 'print' message is the same but prints on
+the terminal isntead. The 'dumptarget' message gives you the target
 gain and may not be the same as the current state because of the ramp
 time., f 62;
 #X connect 0 0 13 0;

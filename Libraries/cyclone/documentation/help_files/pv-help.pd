@@ -65,7 +65,7 @@ objects;
 #X text 298 234 The best practice is to initialize the message of only
 of the related [pv] objects \, because another [pv] object with also
 another initialized message means that one message will overwrite the
-other \, and you don't have control of wich one will be stored.;
+other \, and you don't have control of which one will be stored.;
 #X obj 349 127 cyclone/pv any2 40 50 60;
 #X obj 100 265 cyclone/pv any;
 #X text 286 38 And it can be initialized with any message as an argument
@@ -198,7 +198,7 @@ objects with the same name. In Pd \, you can create [send] and [value]
 objects and they will communicate to each other.;
 #X text 40 55 Cyclone allows you to create a [pv] object with the same
 name used in a [send]/[value] object \, but note that [pv] name variables
-are completely independent and do not comunicate to pd vanilla's [send]
+are completely independent and do not communicate to pd vanilla's [send]
 or [value] objects.;
 #X text 41 117 Therefore \, you can have both [pv] and [value] with
 the same name in the same patch that they do not affect each other!

@@ -343,7 +343,7 @@ spread via both inlets and set samples per line and lines per buffer
 #X text 30 25 When in edit mode \, [scope~] shows its inlets. The [scope~]
 object below has a receive symbol \, so you can send messages to it
 via a [send] object (but not audio). In this case \, the inlets are
-supressed \, so we don't see it. The receive symbol can be set with
+suppressed \, so we don't see it. The receive symbol can be set with
 the receive message or the @receive attribute. If you set a receive
 name as "empty" then it can't receive messages anymore and the inlets
 are shown., f 73;

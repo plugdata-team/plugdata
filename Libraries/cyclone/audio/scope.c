@@ -85,7 +85,6 @@ typedef struct _handle{
     t_symbol       *h_bindsym;
     char            h_pathname[64], h_outlinetag[64];
     int             h_dragon, h_dragx, h_dragy;
-    int             h_selectedmode;
 }t_handle;
 
 static t_class *scope_class, *handle_class, *edit_proxy_class;
@@ -96,12 +95,11 @@ static void scope_getrect(t_gobj *z, t_glist *gl, int *xp1, int *yp1, int *xp2, 
 // ----------------- DRAW ----------------------------------------------------------------
 static void scope_draw_handle(t_scope *x, int state){
     t_handle *sh = (t_handle *)x->x_handle;
-    if(state){
-        if(sh->h_selectedmode == 0){
-            sys_vgui("canvas %s -width %d -height %d -bg %s -bd 0 -cursor bottom_right_corner\n",
-                sh->h_pathname, HANDLE_SIZE, HANDLE_SIZE, SCOPE_SELCOLOR);
-            sh->h_selectedmode = 1;
-        }
+    // always destroy (otherwise it may already exist)
+    sys_vgui("destroy %s\n", sh->h_pathname);
+    if(state){        
+        sys_vgui("canvas %s -width %d -height %d -bg %s -highlightthickness %d -cursor bottom_right_corner\n",
+            sh->h_pathname, HANDLE_SIZE, HANDLE_SIZE, SCOPE_SELCOLOR, 2*x->x_zoom);
         int x1, y1, x2, y2;
         scope_getrect((t_gobj *)x, x->x_glist, &x1, &y1, &x2, &y2);
         sys_vgui(".x%lx.c create window %d %d -anchor nw -width %d -height %d -window %s -tags all%lx\n",
@@ -115,10 +113,7 @@ static void scope_draw_handle(t_scope *x, int state){
         sys_vgui("bind %s <Button> {pdsend [concat %s _click 1 \\;]}\n", sh->h_pathname, sh->h_bindsym->s_name);
         sys_vgui("bind %s <ButtonRelease> {pdsend [concat %s _click 0 \\;]}\n", sh->h_pathname, sh->h_bindsym->s_name);
         sys_vgui("bind %s <Motion> {pdsend [concat %s _motion %%x %%y \\;]}\n", sh->h_pathname, sh->h_bindsym->s_name);
-    }
-    else{
-        sh->h_selectedmode = 0;
-        sys_vgui("destroy %s\n", sh->h_pathname);
+        sys_vgui("focus %s\n", sh->h_pathname); // because of a damn weird bug where it drew all over the canvas
     }
 }
 
@@ -376,8 +371,13 @@ static void scope_draw_all(t_scope* x){
 static void scope_vis(t_gobj *z, t_glist *glist, int vis){
     t_scope *x = (t_scope *)z;
     x->x_cv = glist_getcanvas(glist);
+    t_handle *sh = (t_handle *)x->x_handle;
+    if(x->x_edit) // bug hack, destroying even though 'draw_handle' also destroys it
+        // maybe it just should be with the 'else' "delete all" message
+        // we can just destroy this even if it doesn;t exist anyway,
+        // this was needed to avooid some tcl erros
+        sys_vgui("destroy %s\n", sh->h_pathname);
     if(vis){
-        t_handle *sh = (t_handle *)x->x_handle;
         sprintf(sh->h_pathname, ".x%lx.h%lx", (unsigned long)x->x_cv, (unsigned long)sh);
         sys_vgui(".x%lx.c bind all%lx <ButtonRelease> {pdsend [concat %s _mouserelease \\;]}\n", x->x_cv, x, x->x_bindsym->s_name);
         int bufsize = x->x_bufsize;
@@ -559,6 +559,7 @@ static void scope_receive(t_scope *x, t_symbol *s){
 }
 
 static void edit_proxy_any(t_edit_proxy *p, t_symbol *s, int ac, t_atom *av){
+    // weird as fuck, if I post something here, no bug!
     int edit = ac = 0;
     if(p->p_cnv){
         if(s == gensym("editmode"))
@@ -991,7 +992,7 @@ static void *scope_new(t_symbol *s, int ac, t_atom *av){
     pd_bind(&x->x_obj.ob_pd, x->x_bindsym = gensym(buf));
     x->x_edit = x->x_cv ->gl_edit;
     t_symbol *rcv = x->x_receive = x->x_rcv_raw = &s_;
-    x->x_bufsize = x->x_xymode = x->x_frozen = x->x_precount = sh->h_selectedmode = sh->h_dragon = 0;
+    x->x_bufsize = x->x_xymode = x->x_frozen = x->x_precount = sh->h_dragon = 0;
     x->x_flag = x->x_r_flag = x->x_rcv_set = x->x_select = 0;
     x->x_phase = x->x_bufphase = x->x_precount = 0;
     float width = 130, height = 130, period = 256, bufsize = x->x_lastbufsize = 128; // def values
@@ -1322,6 +1323,7 @@ CYCLONE_OBJ_API void scope_tilde_setup(void){
     scope_widgetbehavior.w_deletefn   = scope_delete;
     scope_widgetbehavior.w_visfn      = scope_vis;
     scope_widgetbehavior.w_clickfn    = (t_clickfn)scope_click;
+    #include "scope_dialog.c"
 }
 
 CYCLONE_OBJ_API void Scope_tilde_setup(void){  
@@ -1330,9 +1332,9 @@ CYCLONE_OBJ_API void Scope_tilde_setup(void){
     class_addmethod(scope_class, nullfn, gensym("signal"), 0);
     class_addmethod(scope_class, (t_method) scope_dsp, gensym("dsp"), A_CANT, 0);
     class_addfloat(scope_class, (t_method)scope_period);
-    class_addmethod(scope_class, (t_method)scope_period, gensym("calccount"), A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_bufsize, gensym("bufsize"), A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_dim, gensym("dim"), A_FLOAT, A_FLOAT, 0);
+    class_addmethod(scope_class, (t_method)scope_period, gensym("calccount"), A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_range, gensym("range"), A_FLOAT, A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_delay, gensym("delay"), A_FLOAT, 0);
     class_addmethod(scope_class, (t_method)scope_drawstyle, gensym("drawstyle"), A_FLOAT, 0);
@@ -1363,6 +1365,7 @@ CYCLONE_OBJ_API void Scope_tilde_setup(void){
     scope_widgetbehavior.w_deletefn   = scope_delete;
     scope_widgetbehavior.w_visfn      = scope_vis;
     scope_widgetbehavior.w_clickfn    = (t_clickfn)scope_click;
-    pd_error(scope_class, "Cyclone: please use [scope~] instead of [Scope~] to supress this error");
+    #include "scope_dialog.c"
+    pd_error(scope_class, "Cyclone: please use [scope~] instead of [Scope~] to suppress this error");
     class_sethelpsymbol(scope_class, gensym("scope~"));
 }

@@ -66,6 +66,7 @@ static int pong_setmode_help(char const * mode){
 };
 
 
+
 static void *pong_new(t_symbol *s, int argc, t_atom *argv){
 	//two optional args (lo, hi), then attributes for mode (str) and range (2 fl)
 	t_pong *x = (t_pong *)pd_new(pong_class);

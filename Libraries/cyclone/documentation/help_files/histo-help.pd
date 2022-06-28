@@ -83,7 +83,7 @@ to make probabilistic choices based on past history.;
 #X text 173 314 repeat the last output or input?, f 60;
 #X text 60 85 [histo] records how many times it received a positive
 integer (no floats allowed). An input number is sent out the left outlet
-and its occurence at the right outlet. A number in the right inlet
+and its occurrence at the right outlet. A number in the right inlet
 checks and outputs that number's histogram., f 62;
 #X text 173 374 check how many times this number was received;
 #X msg 167 160 0 \, 1 \, 1 \, 2 \, 2 \, 2 \, 2 \, 2, f 11;

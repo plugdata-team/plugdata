@@ -46,7 +46,7 @@
 #X text 133 256 random numbers;
 #X text 182 295 - generates unrepeated random number, f 59;
 #X text 134 329 clear;
-#X text 92 345 seed <flaot>;
+#X text 92 345 seed <float>;
 #X text 182 329 - clears the memory (the list of already generated
 numbers);
 #X text 182 403 - unrepeated random number output - when receiving

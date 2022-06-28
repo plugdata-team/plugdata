@@ -54,7 +54,7 @@ rescaled to 500 - 1100 Hz range:;
 outputs it ("hold") until the trigger signal rises again above the
 threshold after having dropped below it. This usually synchronizes
 one signal to the behavior of another.;
-#X text 196 488 - sets treshold value;
+#X text 196 488 - sets threshold value;
 #X obj 16 59 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
 0 255 255 255 0 0 Sample and hold;
 #X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0

@@ -8,7 +8,7 @@
 
 #define ALLPASS_STACK 48000 //stack buf size, 1 sec at 48k for good measure
 #define ALLPASS_DELAY  10.0 //maximum delay
-#define ALLPASS_MIND 1 //minumum delay 
+#define ALLPASS_MIND 1 //minimum delay 
 #define ALLPASS_MAXD 4294967294 //max delay = 2**32 - 2
 
 #define ALLPASS_MINMS 0. //min delay in ms

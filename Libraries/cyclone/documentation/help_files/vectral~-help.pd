@@ -95,7 +95,7 @@ than between samples.;
 #X text 31 249 Other objects in cyclone that perform ooperations on
 frames in a similar way are:;
 #X text 414 73 - rampsmooth: linear ramp \; - deltaclip: also provides
-a linear ramp \, but the parameter sets a minimum step change instead
+a linear ramp \, but the parameter sets a minimum step change isntead
 of a target time \; - slide: logarithmic ramp \;;
 #X text 411 12 By default \, [vector~] just bypasses the input signal
 with no filtering. So you need to set the mode of operation and values

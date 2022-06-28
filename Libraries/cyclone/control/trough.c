@@ -62,6 +62,6 @@ CYCLONE_OBJ_API void Trough_setup(void){
     class_addfloat(trough_class, trough_float);
     class_addmethod(trough_class, (t_method)trough_ft1,
         gensym("ft1"), A_FLOAT, 0);
-    pd_error(trough_class, "Cyclone: please use [trough] instead of [Trough] to supress this error");
+    pd_error(trough_class, "Cyclone: please use [trough] instead of [Trough] to suppress this error");
     class_sethelpsymbol(trough_class, gensym("trough"));
 }

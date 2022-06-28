@@ -708,15 +708,25 @@ static t_msg *collcommon_doread(t_collcommon *cc, t_symbol *fn, t_canvas *cv, in
 	t_msg *m = (t_msg *)(getbytes(sizeof(*m)));
 	m->m_flag = 0;
 	m->m_line = 0;
+    if(!fn && !(fn = cc->c_filename))  // !fn: 'readagain'
+        return(m);
     char buf[MAXPDSTRING];
-    if(!fn && !(fn = cc->c_filename))  /* !fn: 'readagain' */
-		return(m);
-    /* FIXME use open_via_path() */
-    if(cv || (cv = cc->c_lastcanvas))  /* !cv: 'read' w/o arg, 'readagain' */
+    /* FIXME use open_via_path()
+    if(cv || (cv = cc->c_lastcanvas))  // !cv: 'read' w/o arg, 'readagain'
 		canvas_makefilename(cv, fn->s_name, buf, MAXPDSTRING);
     else{
     	strncpy(buf, fn->s_name, MAXPDSTRING);
     	buf[MAXPDSTRING-1] = 0;
+    }*/
+    char *bufptr;
+    int fd = canvas_open(cv, fn->s_name, "", buf, &bufptr, MAXPDSTRING, 1);
+    if(fd > 0){
+        buf[strlen(buf)]='/';
+        sys_close(fd);
+    }
+    else{
+        post("[coll] file '%s' not found", fn->s_name);
+        return(m);
     }
     if(!cc->c_refs){
 		/* loading during object creation --
@@ -779,7 +789,7 @@ static t_msg *collcommon_doread(t_collcommon *cc, t_symbol *fn, t_canvas *cv, in
 static void collcommon_readhook(t_pd *z, t_symbol *fn, int ac, t_atom *av){
     ac = 0;
     av = NULL;
-    collcommon_doread((t_collcommon *)z, fn, 0, 0);
+    collcommon_doread((t_collcommon *)z, fn, ((t_coll *)z)->x_canvas, 0);
 }
 
 static void collcommon_tobinbuf(t_collcommon *cc, t_binbuf *bb){
@@ -871,7 +881,7 @@ static void coll_embedhook(t_pd *z, t_binbuf *bb, t_symbol *bindsym){
             binbuf_addsemi(bb);
         };
     };
-    obj_saveformat(x,bb);
+    obj_saveformat((t_object *)x, bb);
 }
 
 static void collcommon_editorhook(t_pd *z, t_symbol *s, int ac, t_atom *av){
@@ -1719,7 +1729,7 @@ static void coll_readagain(t_coll *x){
             //collcommon_doread(cc, 0, 0, 0);
         }
         else {
-            t_msg * msg = collcommon_doread(cc, 0, 0, 0);
+            t_msg * msg = collcommon_doread(cc, 0, x->x_canvas, 0);
             if((!COLL_ALLBANG) && msg->m_line > 0){
                 x->x_filebang = 1;
                 clock_delay(x->x_clock, 0);
@@ -1836,7 +1846,7 @@ static void *coll_threaded_fileio(void *ptr){
 			clock_delay(x->x_clock, 0);
 		}
 		else if(x->unsafe == 2) { //read
-			m = collcommon_doread(x->x_common, 0, 0, 1);
+			m = collcommon_doread(x->x_common, 0, x->x_canvas, 1);
 			if(m->m_flag)
 				coll_enqueue_threaded_msgs(x, m);
             if(m->m_line > 0){

@@ -74,7 +74,7 @@ incoming signal. This is also known as 'slew limiting'. It has a negative
 maximum delta for when the signal decays and a positive maximum delta
 for when it rises. When they're both 0 \, the signal doesn't shift.
 Below we divide by the sample rate to get the max amplitude shift per
-second instead of per sample., f 71;
+second isntead of per sample., f 71;
 #X text 358 225 rise delta per sample;
 #X obj 171 258 cyclone/deltaclip~ -2.26757e-05 2.26757e-05;
 #X text 224 226 decay delta per sample, f 11;

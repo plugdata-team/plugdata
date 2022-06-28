@@ -109,7 +109,7 @@ the counter as the index input.;
 #X obj 220 385 select 105;
 #X obj 116 418 print bangs;
 #X obj 234 360 print counter;
-#X text 30 93 [uzi] iterates in a programing loop fashion. So \, once
+#X text 30 93 [uzi] iterates in a programming loop fashion. So \, once
 it starts \, it goes all the way to the end as fast as possible. In
 order to stop it \, you need to break the loop with some logic as below
 \, where we use [select] to pause [uzi] when the counter reaches "105".
@@ -124,8 +124,8 @@ the middle of the loop.;
 0;
 #X text 143 259 <= start;
 #X text 185 294 <= resume;
-#X text 436 34 You can also use "break" instead of "pause" and "continue"
-instead of "resume".;
+#X text 436 34 You can also use "break" isntead of "pause" and "continue"
+isntead of "resume".;
 #X msg 613 359 offset 1;
 #X text 438 78 After pausing [uzi] \, you can reset the offset value.
 This changes the total number of bangs being sent in the end. In the
@@ -138,7 +138,7 @@ reaching 20!;
 #X text 439 214 But if you decrease the offset from "1" to "-9" \,
 the counter target is supposed to be "0". Imn this case \, it cannot
 continue outputting any bangs \, because the counter is already past
-the target \, so it only ouputs a bang in the middle outlet saying
+the target \, so it only outputs a bang in the middle outlet saying
 it's done!;
 #X obj 571 411 cyclone/uzi 10;
 #X obj 43 38 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0

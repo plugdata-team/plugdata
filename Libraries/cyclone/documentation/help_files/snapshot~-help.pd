@@ -159,12 +159,12 @@ is 0 (first sample). In the example below we move the offset to "10"
 #X text 92 528 @interval <float>;
 #X text 204 527 - sets interval in ms (default 0 - stopped);
 #N canvas 851 184 455 289 name 0;
-#X text 44 66 Cyclone avoids name clashing and overwritting an internal
-in Pd Vanilla \, so you need to have the cyclone folder properly installed
+#X text 44 66 Cyclone avoids name clashing and overwriting an internal
+in Pd Vanilla \, so you need to have the cyclone folder properly isntalled
 in Pd Vanilla's extra folder and create it as:;
 #X text 203 232 <= from Pd Vanilla;
 #X text 49 176 So \, if you still want the object from vanilla \, you
-even if you created the objects above \, you can still instantiate
+even if you created the objects above \, you can still isntantiate
 it as:;
 #X obj 159 129 cyclone/snapshot~;
 #X obj 137 232 snapshot~;

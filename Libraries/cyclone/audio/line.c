@@ -285,5 +285,5 @@ CYCLONE_OBJ_API void Line_tilde_setup(void)
     class_addmethod(line_class, (t_method)line_pause, gensym("pause"), 0);
     class_addmethod(line_class, (t_method)line_resume, gensym("resume"), 0);
     class_sethelpsymbol(line_class, gensym("line~"));
-    pd_error(line_class, "Cyclone: please use [cyclone/line~] instead of [Line~] to supress this error");
+    pd_error(line_class, "Cyclone: please use [cyclone/line~] instead of [Line~] to suppress this error");
 }
