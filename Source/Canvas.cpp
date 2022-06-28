@@ -72,7 +72,6 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
-        viewport->setBufferedToImage(true);
 
         // Apply zooming
         setTransform(parent.transform);
