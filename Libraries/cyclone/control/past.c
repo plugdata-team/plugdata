@@ -44,7 +44,7 @@ static void past_alloc(t_past *x, int argc){
         }
     else if(heaped && argc > PAST_STACK && argc > cursize){
         //if already heaped, incoming list can't fit into PAST_STACK and can't fit into allocated t_atom
-        //reallocate to accomodate larger list, update status
+        //reallocate to accommodate larger list, update status
         
         int toalloc = argc; //size to allocate
         //bounds checking for maxsize

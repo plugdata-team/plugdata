@@ -3,7 +3,7 @@
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 /*
   2017 Derek Kwan - moved thresh_anything contents to thresh_list, no longer accept anything/bang/symbol
-  but kept legacy code just incase 
+  but kept legacy code just in case 
 */
 
 #include <string.h>

@@ -41,7 +41,7 @@
 #X obj 138 237 cyclone/substitute that this;
 #X obj 138 267 print substituted;
 #X text 92 497 3) float/symbol;
-#X text 52 91 [substitue] exchanges an element (the first argument)
+#X text 52 91 [substitute] exchanges an element (the first argument)
 in an input message to another one (second argument).;
 #X text 190 312 - any message to have elements substituted or not;
 #X text 192 408 - the substituted message if a substitution occurred

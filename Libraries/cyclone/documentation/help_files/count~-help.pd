@@ -57,7 +57,7 @@ number;
 ;
 #X text 185 343 - sets minimum and maximum values without triggering
 ;
-#X text 185 428 - outputs minimum value or count values when trigered
+#X text 185 428 - outputs minimum value or count values when triggered
 ;
 #X text 185 489 - specify if it's initially off <0> or on <1> (default
 0);

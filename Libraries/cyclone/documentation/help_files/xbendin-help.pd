@@ -65,9 +65,9 @@ MIDI input data.;
 #X text 120 430 This object can be a good alternative to [bendin] object
 in pd vanilla \, since the [bendin]/[bendout] objects there have different
 range values and may be considered deprecated.;
-#X text 120 478 On the other hand \, if you are using Purr Data instead
+#X text 120 478 On the other hand \, if you are using Purr Data isntead
 \, then [bendin]/[bendout] have been fixed \, so you can can just use
-them instead and consider this object deprecated.;
+them isntead and consider this object deprecated.;
 #X connect 16 0 17 0;
 #X connect 17 0 21 0;
 #X connect 17 1 20 0;

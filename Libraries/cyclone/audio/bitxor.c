@@ -56,10 +56,7 @@ static t_int *bitxor_perform(t_int *w)
             left.if_float = *in1++;
             right.if_float = *in2++;
             result.if_int32 = left.if_int32 ^ right.if_int32;
-            if (BITWISE_ISDENORM(result.if_float))
-                *out++ = 0;
-            else
-                *out++ = result.if_float;
+           *out++ = result.if_float;
         }
             break;
         case 1: while (nblock--) // convert inputs to int
@@ -72,10 +69,7 @@ static t_int *bitxor_perform(t_int *w)
         {
             left.if_float = *in1++;
             result.if_int32 = left.if_int32 ^ ((int32_t)*in2++);
-            if (BITWISE_ISDENORM(result.if_float))
-                *out++ = 0;
-            else
-                *out++ = result.if_float;
+            *out++ = result.if_float;
         }
             break;
         case 3: while (nblock--) // left input as int
@@ -98,7 +92,7 @@ static t_int *bitxor_perform_noin2(t_int *w)
     t_i32_fl left, result;
     int32_t mask = x->x_mask;
     t_float inmask = *x->x_signalscalar;
-    if (!magic_isnan(inmask) && mask != (int32_t)inmask)
+    if (mask != (int32_t)inmask)
     {
         bitxor_intmask(x, inmask);
     }
@@ -111,10 +105,7 @@ static t_int *bitxor_perform_noin2(t_int *w)
     {
         left.if_float = *in++;
         result.if_int32 = left.if_int32 ^ mask;
-        if (BITWISE_ISDENORM(result.if_float))
-            *out++ = 0;
-        else
-            *out++ = result.if_float;
+        *out++ = result.if_float;
     }
     return (w + 5);
 }

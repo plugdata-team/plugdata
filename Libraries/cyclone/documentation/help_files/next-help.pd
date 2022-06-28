@@ -51,7 +51,7 @@ event;
 #X text 73 94 [next] sends a bang to the left outlet when an incoming
 message is not part of the same "logival event" as the previous message
 \, and a bang out its right outlet otherwise. An "event" is a single
-mesage \, a mouse click \, key press \, MIDI event.;
+message \, a mouse click \, key press \, MIDI event.;
 #N canvas 302 120 855 418 examples 0;
 #X msg 558 157 60 \, 63 \, 67 \, 70;
 #X obj 558 266 makenote 64 1000;

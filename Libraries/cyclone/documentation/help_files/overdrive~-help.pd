@@ -21,7 +21,7 @@
 -1 -1 0 1;
 #X obj 185 252 osc~ 206;
 #X text 250 500 - drive factor;
-#X text 248 576 - intial drive factor;
+#X text 248 576 - initial drive factor;
 #X text 341 231 drive factor;
 #X text 158 500 float/signal;
 #X text 248 537 - the distorted signal;

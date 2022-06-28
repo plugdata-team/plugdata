@@ -304,7 +304,7 @@ and 'carrybang' \, but also with the @carryflag attribute or message
 - 'carryflag 0' sets to 'carryint' (the default) and 'carryflag 1'
 to 'carrybang';
 #X text 53 204 carryint mode:;
-#X text 62 221 (defalut);
+#X text 62 221 (default);
 #X obj 554 137 cyclone/counter 2 1 5;
 #X obj 171 219 cyclone/counter 2 1 5;
 #X obj 253 296 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
@@ -661,7 +661,7 @@ disconsidering (truncating) the decimal part.;
 #X text 65 79 [counter] counts up and/or down by '1' in a given range.
 ;
 #X text 172 269 sets counter to minimum value (no output), f 60;
-#X text 172 312 sets counter to minimum value and ouputs it, f 60
+#X text 172 312 sets counter to minimum value and outputs it, f 60
 ;
 #X text 172 354 sets counter to maximum value and outputs it, f 60
 ;

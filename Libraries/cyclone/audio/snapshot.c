@@ -240,5 +240,5 @@ CYCLONE_OBJ_API void Snapshot_tilde_setup(void){
     class_addmethod(snapshot_class, (t_method)snapshot_stop, gensym("stop"), 0);
     class_addmethod(snapshot_class, (t_method)snapshot_sampleinterval, gensym("sampleinterval"), A_FLOAT, 0);
     class_sethelpsymbol(snapshot_class, gensym("snapshot~"));
-    pd_error(snapshot_class, "Cyclone: please use [cyclone/snapshot~] instead of [Snapshot~] to supress this error");
+    pd_error(snapshot_class, "Cyclone: please use [cyclone/snapshot~] instead of [Snapshot~] to suppress this error");
 }

@@ -581,8 +581,7 @@ static void seq_click(t_seq *x, t_floatarg xpos, t_floatarg ypos, t_floatarg shi
     sys_gui(" }\n");
 }
 
-// not available in Max and removed for not working or not being pertinent (hence, unsupported)
-/*
+
  static void seq_goto(t_seq *x, t_floatarg f1, t_floatarg f2){ // takes sec / ms
      if(x->x_nevents){
          t_seqevent *ev;
@@ -657,7 +656,7 @@ static void seq_pwd(t_seq *x, t_symbol *s){
     s = canvas_realizedollar(x->x_canvas, s);
     if(s && s->s_thing && (dir = panel_getopendir(x->x_filehandle)))
         pd_symbol(s->s_thing, dir);
-}*/
+}
 // end of extra
 
 static int seq_eventcomparehook(const void *e1, const void *e2){
@@ -901,25 +900,19 @@ static void seq_textwrite(t_seq *x, char *path){
 }
 
 static void seq_doread(t_seq *x, t_symbol *fn){
-    char buf[MAXPDSTRING];
-    /* FIXME use open_via_path() */
-    if(x->x_canvas)
-        canvas_makefilename(x->x_canvas, fn->s_name, buf, MAXPDSTRING);
-    else{
-        strncpy(buf, fn->s_name, MAXPDSTRING);
-        buf[MAXPDSTRING-1] = 0;
-    }
-    FILE *fp = sys_fopen(buf, "r");
-    if(!(fp)){
-        post("[seq] file '%s' not found", buf);
-        fclose(fp);
+    static char fname[MAXPDSTRING];
+    char *bufptr;
+    int fd = canvas_open(x->x_canvas, fn->s_name, "", fname, &bufptr, MAXPDSTRING, 1);
+    if(fd < 0){
+        post("[seq] file '%s' not found", fn->s_name);
         return;
     }
-    fclose(fp);
-    /* CHECKED all cases: arg or not, message and creation */
-//    post("seq: reading %s", fn->s_name);
-    if(!seq_mfread(x, buf))
-        seq_textread(x, buf);
+    else{
+        fname[strlen(fname)]='/';
+        sys_close(fd);
+    }
+    if(!seq_mfread(x, fname))
+        seq_textread(x, fname);
     x->x_playhead = 0;
     seq_update(x);
 }
@@ -1063,11 +1056,12 @@ CYCLONE_OBJ_API void seq_setup(void){
     class_addmethod(seq_class, (t_method)seq_pause, gensym("pause"), 0);
     class_addmethod(seq_class, (t_method)seq_continue, gensym("continue"), 0);
     class_addmethod(seq_class, (t_method)seq_click, gensym("click"), A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
-// not available in Max and removed for being considered problematic (hence, unsupported)
-/*  class_addmethod(seq_class, (t_method)seq_goto, gensym("goto"), A_DEFFLOAT, A_DEFFLOAT, 0);
+// not available in Max and not documented for being considered problematic (hence, unsupported)
+// see https://github.com/porres/pd-cyclone/issues/566
+  class_addmethod(seq_class, (t_method)seq_goto, gensym("goto"), A_DEFFLOAT, A_DEFFLOAT, 0);
     class_addmethod(seq_class, (t_method)seq_scoretime, gensym("scoretime"), A_SYMBOL, 0);
     class_addmethod(seq_class, (t_method)seq_tempo, gensym("tempo"), A_FLOAT, 0);
     class_addmethod(seq_class, (t_method)seq_cd, gensym("cd"), A_DEFSYM, 0);
-    class_addmethod(seq_class, (t_method)seq_pwd, gensym("pwd"), A_SYMBOL, 0);*/
+    class_addmethod(seq_class, (t_method)seq_pwd, gensym("pwd"), A_SYMBOL, 0);
     file_setup(seq_class, 0);
 }

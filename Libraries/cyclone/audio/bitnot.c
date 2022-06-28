@@ -42,10 +42,7 @@ static t_int * bitnot_perform(t_int *w)
     {
     	result.if_float = *in++;
         result.if_int32 = ~result.if_int32;
-        if (BITWISE_ISDENORM(result.if_float))
-        	*out++ = 0;
-        else
-        	*out++ = result.if_float;
+        *out++ = result.if_float;
     }
     return (w + 5);
 }

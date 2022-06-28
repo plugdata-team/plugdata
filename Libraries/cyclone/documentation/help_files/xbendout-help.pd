@@ -60,9 +60,9 @@ bytes of the MIDI pitch bend message (14 bit from 0 - 16383).;
 -228856 -1 -1 0 256;
 #X obj 2 392 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
 0;
-#X text 125 446 On the other hand \, if you are using Purr Data instead
+#X text 125 446 On the other hand \, if you are using Purr Data isntead
 \, then [bendin]/[bendout] have been fixed \, so you can can just use
-them instead and consider this object deprecated.;
+them isntead and consider this object deprecated.;
 #X text 125 402 This object can be a good alternative to [bendout]
 object in pd vanilla \, since the [bendin]/[bendout] objects there
 have different range values and may be considered deprecated.;

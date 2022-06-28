@@ -98,7 +98,7 @@ not really available for [sprintf]. Nonetheless \, the optional fields:
 single modifiers "h" and "l" are allowed., f 46;
 #X text 59 382 Inconsistency: If a format type is not supported or
 invalid \, [sprintf] doesn't create a corresponding inlet and prints
-an error instead. The Max version creates an inlet for whatever inserted
+an error isntead. The Max version creates an inlet for whatever inserted
 type \, invalid or not \, and only prints an error when trying to convert.
 ;
 #X connect 20 0 19 0;

@@ -41,7 +41,7 @@
 #X obj 66 150 loadbang;
 #X msg 66 180 1 2 3;
 #X obj 66 224 cyclone/iter;
-#X text 70 92 [iter] is similar to [unnpack] \, it splits a message
+#X text 70 92 [iter] is similar to [unnpack] \, it splist a message
 (to floats/symbols) but outputs them sequentially in the given order.
 ;
 #X msg 389 163 60 63 67;

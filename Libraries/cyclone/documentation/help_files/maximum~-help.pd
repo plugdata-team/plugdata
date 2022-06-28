@@ -46,7 +46,7 @@ argument.;
 0;
 #X text 88 595 you can use;
 #X obj 165 596 max~;
-#X text 201 596 from vanilla instead \, the only difference is that
+#X text 201 596 from vanilla isntead \, the only difference is that
 an argument turns the secondary inlet to a control inlet;
 #X text 93 117 Too similar to Pd Vanilla's [max~] (see "more info")
 ;

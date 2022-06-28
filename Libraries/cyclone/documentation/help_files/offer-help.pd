@@ -26,7 +26,7 @@
 #X text 124 394 clear;
 #X text 174 414 - 'y' value \, before setting 'x' in the left inlet
 , f 60;
-#X text 174 449 - 'y' value correspoding to a given 'x', f 60;
+#X text 174 449 - 'y' value corresponding to a given 'x', f 60;
 #X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -61,7 +61,7 @@
 the 'y' value from the corresponding 'x' (after retrieving \, the pair
 is deleted).;
 #X text 370 181 <= retrieve & delete;
-#X text 174 317 - 'x' value: outputs the corresponing 'y' value and
+#X text 174 317 - 'x' value: outputs the corresponding 'y' value and
 deletes the x/y pair. Sets the 'x' value of a x/y pair if the 'y' value
 was previously set in the right inlet.;
 #X text 174 360 - two integers: the x/y pair of values to store, f

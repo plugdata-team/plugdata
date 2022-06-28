@@ -32,11 +32,11 @@
 left signal is divided by the right inlet input (or argument) \, and
 the remainder is output.;
 #X text 194 308 - input to modulo operation;
-#X text 194 333 - a value by which to divide the incomming signal;
+#X text 194 333 - a value by which to divide the incoming signal;
 #X text 194 379 - the modulo of the operation (remainder of the division)
 ;
 #X text 139 378 signal;
-#X text 178 418 a value by which to divide the incomming signal (default
+#X text 178 418 a value by which to divide the incoming signal (default
 0);
 #X obj 390 170 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 -228856 -1 -1 0 256;

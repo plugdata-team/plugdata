@@ -20,8 +20,8 @@
 ;
 #X text 139 397 float/signal;
 #X text 46 213 float input;
-#X text 96 351 miliseconds;
-#X text 307 362 miliseconds;
+#X text 96 351 milliseconds;
+#X text 307 362 milliseconds;
 #X obj 2 4 cnv 15 553 42 empty empty empty 20 12 0 14 -233017 -66577
 0;
 #N canvas 0 22 450 278 (subpatch) 0;

@@ -257,7 +257,7 @@ issues in Pd!;
 #X connect 11 2 2 0;
 #X connect 18 0 10 1;
 #X connect 21 0 3 0;
-#X restore 105 548 pd backwards compatibility \; classic mode and inconcistencies
+#X restore 105 548 pd backwards compatibility \; classic mode and inconsistencies
 ;
 #X obj 51 183 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 -228856 -1 -1 0 256;

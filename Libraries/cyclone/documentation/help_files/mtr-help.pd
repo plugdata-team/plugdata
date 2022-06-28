@@ -50,7 +50,7 @@ as follows. Note that a semicolon ends each line.;
 #X text 18 28 Record tracks separately \, then play them back together
 ;
 #X text 429 41 The [mtr] object is not well designed to record raw
-MIDI data \, please use [cyclone/seq] instead. On the other hand \,
+MIDI data \, please use [cyclone/seq] isntead. On the other hand \,
 mtr is perfectly suited for recording sequences of numbers \, lists
 \, or symbols from virtually any object in Pd such as: specialized
 MIDI objects ([notein] / [pgmin]) \, GUIs (number box / slider) \,
@@ -84,7 +84,7 @@ back through the outlet directly below., f 63;
 #X text 250 153 <= stop recording and start playing;
 #N canvas 329 23 597 523 All_Messages 0;
 #X text 19 38 delay <float> -;
-#X text 19 68 first <flaot> -;
+#X text 19 68 first <float> -;
 #X text 115 38 in left inlet: sets a delay value in ms for all tracks
 to start playing. In other inlets: sets a delay time to that track
 only, f 77;
@@ -99,7 +99,7 @@ inlets: opens a file containing only the track that corresponds to
 the inlet, f 77;
 #X text 17 324 record <list> -;
 #X text 17 367 rewind <list> -;
-#X text 29 423 stop <lits> -;
+#X text 29 423 stop <list> -;
 #X text 115 8 in left inlet: clears all tracks. If followed track numbers
 \, clears those track(s). In other inlets: clears corresponding track
 , f 77;
@@ -129,7 +129,7 @@ those tracks. In other inlets: begins recording corresponding track
 #X text 115 367 in left inlet: goes to start of recorded sequence.
 Can be used when using the 'next' message. If [mtr] is playing or recording
 \, a stop message should precede it. If followed by track numbers \,
-it rewinds those tracks. In other inlets: rewinds corresponing track
+it rewinds those tracks. In other inlets: rewinds corresponding track
 , f 77;
 #X text 115 423 in left inlet: stops all recording/playing tracks.
 If followed by track numbers \, it stops those tracks. In other inlets:

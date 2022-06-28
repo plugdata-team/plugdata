@@ -193,7 +193,7 @@ static void *match_new(t_symbol *s, int ac, t_atom *av)
     x->x_pattern = x->x_patini;
     x->x_queue = x->x_queini;
     /* x->x_queend is not used unless x->x_patlen > 0,
-       LATER consider chosing a more defensive way... */
+       LATER consider choosing a more defensive way... */
     outlet_new((t_object *)x, &s_anything);
     match_clear(x);
     match_set(x, 0, ac, av);

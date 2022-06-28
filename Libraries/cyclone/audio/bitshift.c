@@ -46,10 +46,7 @@ static t_int * bitshift_perform(t_int *w)
         {
         	result.if_float = *in++;
         	result.if_int32 = result.if_int32 << shift;
-            if (BITWISE_ISDENORM(result.if_float))
-        		*out++ = 0;
-       		else
-        		*out++ = result.if_float;
+            *out++ = result.if_float;
         }
     }
     else if (x->x_rshift)
@@ -64,10 +61,7 @@ static t_int * bitshift_perform(t_int *w)
         {
             result.if_float = *in++;
         	result.if_int32 = result.if_int32 >> shift;
-            if (BITWISE_ISDENORM(result.if_float))
-        		*out++ = 0;
-       		else
-        		*out++ = result.if_float;
+            *out++ = result.if_float;
         }
     }
     else

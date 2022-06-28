@@ -76,7 +76,7 @@ input is checked;
 228 220 0 255 255 255 0 0 Objects cloned from Max/MSP;
 #X obj 363 5 cyclone/comment 425 24 DejaVu\ Sans\ Mono empty 0 224
 228 220 0 255 255 255 0 0 cyclone;
-#X text 81 89 [split] splits numbers in a given range from numbers
+#X text 81 89 [split] splist numbers in a given range from numbers
 outside it. If an input is in between a min/max value or equal to them
 \, the value is sent to the left outlet \, or to the right outlet otherwise.
 Unlike MAX \, it only deals with floats.;

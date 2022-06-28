@@ -22,7 +22,7 @@
 #X text 150 512 3) float;
 #X text 132 397 float/signal;
 #X text 132 419 float/signal;
-#X text 221 452 - ouput of transfer function lookup (waveshaping),
+#X text 221 452 - output of transfer function lookup (waveshaping),
 f 52;
 #N canvas 767 189 359 178 load_sample 0;
 #X obj 22 65 soundfiler;
@@ -69,7 +69,7 @@ effect. Check below., f 60;
 #N canvas 578 98 506 547 start/end 0;
 #X text 71 18 Input values (from -1 to 1) are mapped to table indexes.
 The default table size is 512 points \, so the default start and end
-points are \, repsectively \, 0 and 511 (since the table indexes are
+points are \, respectively \, 0 and 511 (since the table indexes are
 from 0 to 511).;
 #X text 73 80 You can specify another table size by setting an endpoint
 that corresponds to the last index (table size - 1).;

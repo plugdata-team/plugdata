@@ -71,7 +71,7 @@ and 0 otherwise., f 75;
 #X text 188 441 the current 'trough' (minimum) value, f 56;
 #X text 313 199 <= sets new trough (minimum);
 #X text 294 283 not a new trough;
-#X text 187 529 intial 'trough' value (default 128), f 36;
+#X text 187 529 initial 'trough' value (default 128), f 36;
 #N canvas 323 43 581 417 list_input 0;
 #X obj 130 294 tgl 18 0 empty empty empty 0 -6 0 8 -216373 -1 -1 0
 1;

@@ -63,7 +63,7 @@ objects \, which is not implemented in cyclone as of yet.;
 #X restore 438 241 pd inconsistencies;
 #N canvas 580 187 783 357 examples_1 0;
 #X text 12 295 With a float input \, values are truncated to integer
-values. Thus \, [delay~] doesnt't interpolate.;
+values. Thus \, [delay~] doesn't interpolate.;
 #X obj 439 268 -~;
 #X obj 571 210 sig~;
 #X obj 571 190 nbx 9 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
