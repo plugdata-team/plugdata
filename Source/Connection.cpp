@@ -157,8 +157,8 @@ bool Connection::hitTest(int x, int y)
 
     
     // Get outlet and inlet point
-    auto pstart = outlet->getCanvasBounds().getCentre().toFloat();
-    auto pend = inlet->getCanvasBounds().getCentre().toFloat();
+    auto pstart = getStartPoint().toFloat();
+    auto pend = getEndPoint().toFloat();
     
     
     if (cnv->isSelected(this) && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position)))
@@ -215,14 +215,18 @@ void Connection::paint(Graphics& g)
         baseColour = baseColour.brighter(0.6f);
     }
 
+    auto path = toDraw;
+    // needed to make the path align with the inlet/outlet's centre
+    path.applyTransform(AffineTransform::translation(0.5f, 0.0f));
+    
     g.setColour(baseColour.darker(0.1));
-    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+    g.strokePath(path, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
 
     g.setColour(baseColour.darker(0.2));
-    g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+    g.strokePath(path, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
 
     g.setColour(baseColour);
-    g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::rounded));
+    g.strokePath(path, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
 
     if (cnv->isSelected(this))
     {
@@ -437,9 +441,9 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 {
     if (!inlet || !outlet) return;
 
-    auto pstart = outlet->getCanvasBounds().getCentre();
-    auto pend = inlet->getCanvasBounds().getCentre();
-
+    auto pstart = getStartPoint();
+    auto pend = getEndPoint();
+    
     if (currentPlan.size() <= 2 || cnv->storage.getInfo(getId(), "Style") == "0")
     {
         updatePath();
@@ -479,6 +483,19 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     updatePath();
 }
 
+    
+
+Point<int> Connection::getStartPoint()
+{
+    return {outlet->getCanvasBounds().getCentreX(), outbox->getBottom() - Box::margin + 1};
+}
+
+Point<int> Connection::getEndPoint()
+{
+   
+    return  {inlet->getCanvasBounds().getCentreX(), inbox->getY() + Box::margin - 1};
+}
+
 void Connection::updatePath()
 {
     if (!outlet || !inlet) return;
@@ -490,8 +507,8 @@ void Connection::updatePath()
 
     origin = Rectangle<int>(left, top, right - left, bottom - top).getPosition();
 
-    auto pstart = outlet->getCanvasBounds().getCentre() - origin;
-    auto pend = inlet->getCanvasBounds().getCentre() - origin;
+    auto pstart = getStartPoint() - origin;
+    auto pend = getEndPoint() - origin;
 
     segmented = cnv->storage.getInfo(getId(), "Segmented") == "1";
 
@@ -579,8 +596,8 @@ void Connection::findPath()
 {
     if (!outlet || !inlet) return;
 
-    auto pstart = inlet->getCanvasBounds().getCentre();
-    auto pend = outlet->getCanvasBounds().getCentre();
+    auto pstart = getStartPoint();
+    auto pend = getEndPoint();
 
     auto pathStack = PathPlan();
     auto bestPath = PathPlan();
