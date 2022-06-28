@@ -7,8 +7,15 @@ struct ToggleObject final : public IEMObject
 
     ToggleObject(void* obj, Box* parent) : IEMObject(obj, parent)
     {
-        nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
+       
     }
+    
+    void updateParameters() override
+    {
+        nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
+        IEMObject::updateParameters();
+    }
+
 
     void paint(Graphics& g) override
     {

@@ -206,7 +206,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     
     
     static inline const String else_version = "ELSE v1.0-rc1";
-    static inline const String cyclone_version = "cyclone v0.6-0";
+    static inline const String cyclone_version = "cyclone v0.6-1";
 
 #if !PLUGDATA_STANDALONE
 
