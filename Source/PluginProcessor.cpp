@@ -39,6 +39,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
       pd::Instance("PlugData"),
       parameters(*this, nullptr)
 {
+    // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
     
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
@@ -55,7 +56,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     volume = parameters.getRawParameterValue("volume");
 
     parameters.replaceState(ValueTree("PlugData"));
-
     {
         const MessageManagerLock mmLock;
         
