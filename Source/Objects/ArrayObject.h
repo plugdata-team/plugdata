@@ -84,11 +84,8 @@ class PdArray
         libpd_write_array(name.toRawUTF8(), static_cast<int>(pos), &input, 1);
     }
 
-   private:
     String name = "";
     void* instance = nullptr;
-
-    friend class Instance;
 };
 
 struct GraphicalArray : public Component
@@ -447,6 +444,13 @@ struct ArrayObject final : public GUIObject
     void resized() override
     {
         graph.setBounds(getLocalBounds());
+    }
+    
+    void updateParameters() override
+    {
+        name = libpd_array_get_name(array.instance);
+        
+        
     }
 
     void updateSettings()

@@ -289,7 +289,7 @@ void Canvas::mouseDown(const MouseEvent& e)
 {
     auto* source = e.originalComponent;
     
-    main.updateCommandStatus();
+
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
     {
@@ -305,6 +305,7 @@ void Canvas::mouseDown(const MouseEvent& e)
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
             
+            
             if (!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown())
             {
                 deselectAll();
@@ -315,6 +316,8 @@ void Canvas::mouseDown(const MouseEvent& e)
         {
             updateSidebarSelection();
         }
+        
+        main.updateCommandStatus();
     }
     // Right click
     else
