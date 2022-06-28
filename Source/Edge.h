@@ -22,7 +22,6 @@ class Edge : public Component, public SettableTooltipClient
     void paint(Graphics&) override;
     void resized() override;
 
-    void mouseMove(const MouseEvent& e) override;
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
 
@@ -41,7 +40,7 @@ class Edge : public Component, public SettableTooltipClient
 
     Value locked;
 
-    bool isHovered = false;
+    bool isTargeted = false;
 
    private:
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Edge)

@@ -120,8 +120,11 @@ Point<int> ObjectGrid::handleMouseDrag(Box* toDrag, Point<int> dragOffset, Recta
     dragOffset = performHorizontalSnap(toDrag, dragOffset, viewBounds);
     
     // Update grid line when snapped
-    updateMarker();
-
+    // Async to make sure the objects position gets updated first...
+    MessageManager::callAsync([this](){
+        updateMarker();
+    });
+    
     return dragOffset;
 }
 

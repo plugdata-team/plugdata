@@ -30,7 +30,7 @@ void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
-    if (!isHovered)
+    if (!isTargeted && !isMouseOver())
     {
         bounds = bounds.reduced(2);
     }
@@ -50,7 +50,7 @@ void Edge::paint(Graphics& g)
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
     bool stateSaved = false;
-    if (!(box->isOver() || over || box->edgeHovered || isHovered) || static_cast<bool>(locked.getValue()))
+    if (!(box->isOver() || over || isTargeted || isMouseOver()) || static_cast<bool>(locked.getValue()))
     {
         g.saveState();
         g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));
@@ -97,30 +97,22 @@ void Edge::mouseUp(const MouseEvent& e)
 
     if (box->cnv->nearestEdge)
     {
-        box->cnv->nearestEdge->isHovered = false;
+        box->cnv->nearestEdge->isTargeted = false;
         box->cnv->nearestEdge->repaint();
         box->cnv->nearestEdge = nullptr;
     }
 }
 
-void Edge::mouseMove(const MouseEvent& e)
-{
-}
-
 void Edge::mouseEnter(const MouseEvent& e)
 {
-    // Only show when not locked
-    isHovered = !bool(locked.getValue());
-    box->edgeHovered = true;
     for (auto& edge : box->edges) edge->repaint();
 }
 
 void Edge::mouseExit(const MouseEvent& e)
 {
-    isHovered = false;
-    box->edgeHovered = false;
     for (auto& edge : box->edges) edge->repaint();
 }
+
 
 void Edge::createConnection()
 {

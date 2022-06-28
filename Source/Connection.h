@@ -47,6 +47,9 @@ class Connection : public Component, public ComponentListener
     void mouseDrag(const MouseEvent& e) override;
     void mouseUp(const MouseEvent& e) override;
     void mouseExit(const MouseEvent& e) override;
+    
+    Point<int> getStartPoint();
+    Point<int> getEndPoint();
 
     void reconnect(Edge* target, bool dragged);
 

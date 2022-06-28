@@ -148,23 +148,21 @@ bool Box::hitTest(int x, int y)
     return false;
 }
 
+
+// To make edges show/hide
 void Box::mouseEnter(const MouseEvent& e)
 {
-    //repaint();
+    repaint();
 }
 
 void Box::mouseExit(const MouseEvent& e)
 {
-    //repaint();
+    repaint();
 }
 
 bool Box::isOver()
 {
-    if (isMouseOverOrDragging())
-    {
-        return true;
-    }
-    if (gui && gui->isMouseOver())
+    if (isMouseOverOrDragging(true))
     {
         return true;
     }
@@ -352,7 +350,7 @@ void Box::resized()
         const bool isInlet = edge->isInlet;
         const int position = index < numInputs ? index : index - numInputs;
         const int total = isInlet ? numInputs : numOutputs;
-        const float yPosition = (isInlet ? (margin + 1) : getHeight() - (margin + 1)) - edgeSize / 2.0f;
+        const float yPosition = (isInlet ? (margin + 1) : getHeight() - margin) - edgeSize / 2.0f;
 
         const auto bounds = isInlet ? inletBounds : outletBounds;
 
