@@ -102,3 +102,5 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(Box)
 };
+
+

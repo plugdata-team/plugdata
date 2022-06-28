@@ -107,6 +107,8 @@ source_group("Source\\Standalone" FILES ${PlugDataStandaloneSources})
 
 #source_group("Source\\Pd" FILES ${PlugDataPdSources})
 
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/Resources/Info.plist" INFO_PLIST)
+
 
 juce_add_plugin(PlugDataStandalone
     VERSION                     ${PLUGDATA_VERSION}
@@ -133,7 +135,9 @@ juce_add_plugin(PlugDataStandalone
     VST2_CATEGORY               kPlugCategSynth
     VST3_COPY_DIR               ${PLUGDATA_VST3_INSTALL_LOCATION}
     AU_COPY_DIR                 ${PLUGDATA_AU_INSTALL_LOCATION}
-    APP_COPY_DIR                ${PLUGDATA_APP_INSTALL_LOCATION})
+    APP_COPY_DIR                ${PLUGDATA_APP_INSTALL_LOCATION}
+    PLIST_TO_MERGE              ${INFO_PLIST}
+    )
 
 juce_add_plugin(PlugData
     VERSION                     ${PLUGDATA_VERSION}
@@ -322,6 +326,11 @@ set(libs
 #  list(APPEND libs LIBSNDFILE_LIBRARIES libfluidsynth)  
 #endif()
 
+if(APPLE)
+set_target_properties(PlugDataStandalone PROPERTIES
+  RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/Resources/pd-file.icns")
+endif()
+
 if(MSVC)
   list(APPEND libs libpthreadVC3)
 elseif(APPLE)
@@ -396,6 +405,7 @@ set_target_properties(Tests PROPERTIES LIBRARY_OUTPUT_DIRECTORY ${PLUGDATA_PLUGI
 set_target_properties(Tests PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${PLUGDATA_PLUGINS_LOCATION})
 set_property(TARGET Tests PROPERTY CXX_VISIBILITY_PRESET hidden)
 set_property(TARGET Tests PROPERTY VISIBILITY_INLINES_HIDDEN ON)
+
 
 endif()
 
