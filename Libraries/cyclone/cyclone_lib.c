@@ -1,6 +1,6 @@
 /* Copyright © (2003-2020) - Krzysztof Czaja, Hans-Christoph Steiner,
  Fred Jan Kraan, Alexandre Porres, Derek Kwan, Matt Barber and others.");
- 
+
  * For information on usage and redistribution, and for a DISCLAIMER OF ALL
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
@@ -9,20 +9,20 @@
  Originally, the externals in cyclone used to come in a library called
  "cyclone", which included these 12 objects plus the "hammer" and "sickle"
  libraries (control/MAX and signal/MSP objects respectively).
- 
- The cyclone library is now restored, but only containing these 12 objects, 
- which are: [!-], [!/], [==~], [!=~], [<~], [<=~], [>~], [>=~], [!-~], [!/~], 
+
+ The cyclone library is now restored, but only containing these 12 objects,
+ which are: [!-], [!/], [==~], [!=~], [<~], [<=~], [>~], [>=~], [!-~], [!/~],
  [%~] and [+=~] - the original code for such objects was 'nettles.c'.
- 
+
  The cyclone library also adds the cyclone path to Pd so you can load all the
  objects compiled as separate binaries and abstractions.
- 
+
  Alternatively, alphanumeric versions of these objects are also included as
  single binaries in the cyclone package  */
 
 #include "m_pd.h"
 #include <common/api.h>
-#include "m_imp.h" 
+#include "m_imp.h"
 #include "common/shared.h"
 #include "common//magicbit.h"
 #include <math.h>
@@ -511,12 +511,12 @@ typedef struct _plusequals
     t_object x_obj;
     double  x_sum;
     t_inlet  *x_triglet;
-    
+
     // Magic
     t_glist *x_glist;
     t_float *x_signalscalar;
     int x_hasfeeders;
-    
+
 } t_plusequals;
 
 static t_class *plusequals_class;
@@ -529,7 +529,7 @@ static t_int *plusequals_perform(t_int *w)
     t_float *in2 = (t_float *)(w[4]);
     t_float *out = (t_float *)(w[5]);
     double sum = x->x_sum;
-    
+
     // MAGIC: poll float for error
     t_float scalar = *x->x_signalscalar;
     if (!magic_isnan(*x->x_signalscalar))
@@ -537,7 +537,7 @@ static t_int *plusequals_perform(t_int *w)
         magic_setnan(x->x_signalscalar);
         pd_error(x, "plusequals~: doesn't understand 'float'");
     }
-    
+
     while (nblock--)
     {
         float x1 = *in1++;
@@ -545,7 +545,7 @@ static t_int *plusequals_perform(t_int *w)
         // MAGIC
         if (x->x_hasfeeders) x2 = *in2++;
         else x2 = 0.0;
-        
+
         sum = sum * (x2 == 0);
         *out++ = sum += x1;
     }
@@ -558,14 +558,14 @@ static t_int *plusequals_perform_no_in(t_int *w)
     t_plusequals *x = (t_plusequals *)(w[1]);
     int nblock = (t_int)(w[2]);
     t_float *out = (t_float *)(w[5]);
-    
+
     // MAGIC: poll float for error
     if (!magic_isnan(*x->x_signalscalar))
     {
         magic_setnan(x->x_signalscalar);
         pd_error(x, "plusequals~: doesn't understand 'float'");
     }
-    
+
     while (nblock--)
     {
         *out++ = 0;
@@ -578,7 +578,7 @@ static void plusequals_dsp(t_plusequals *x, t_signal **sp)
     // MAGIC
     x->x_hasfeeders = magic_inlet_connection((t_object *)x, x->x_glist, 1, &s_signal);
     magic_setnan(x->x_signalscalar);
-    
+
     if (magic_inlet_connection((t_object *)x, x->x_glist, 0, &s_signal))
         dsp_add(plusequals_perform, 5, x, sp[0]->s_n,
                 sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec);
@@ -613,7 +613,7 @@ static void *plusequals_new(t_floatarg f)
     outlet_new((t_object *)x, &s_signal);
     // MAGIC
     x->x_signalscalar = obj_findsignalscalar((t_object *)x, 1);
-    
+
     return (x);
 }
 
@@ -670,17 +670,17 @@ void print_cyclone(t_cyclone *x){
     post("");
 }
 
+
 static void cyclone_about(t_cyclone *x){
     print_cyclone(x);
 }
 
 static void cyclone_version(t_cyclone *x){
-    int ac = 3;
-    t_atom at[ac];
+    t_atom at[3];
     SETFLOAT(at, cyclone_major);
     SETFLOAT(at+1, cyclone_minor);
     SETFLOAT(at+2, cyclone_bugfix);
-    outlet_list(x->x_obj.te_outlet,  &s_list, ac, at);
+    outlet_list(x->x_obj.te_outlet,  &s_list, 3, at);
 }
 
 
@@ -717,9 +717,9 @@ CYCLONE_API void cyclone_setup(void)
        print_cyclone(x);
        printed = 1;
     }
-    
+
 /* -- [!-] -- */
-    
+
     rminus_class = class_new(gensym("!-"),
 			     (t_newmethod)rminus_new, 0,
 			     sizeof(t_rev_op), 0, A_DEFFLOAT, 0);
@@ -730,7 +730,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(rminus_class, gensym("rminus"));
 
 /* -- [!/] -- */
-    
+
     rdiv_class = class_new(gensym("!/"),
 			   (t_newmethod)rdiv_new, 0,
 			   sizeof(t_rev_op), 0, A_DEFFLOAT, 0);
@@ -741,7 +741,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(rdiv_class, gensym("rdiv"));
 
 /* -- [==~] -- */
-    
+
     equals_class = class_new(gensym("==~"),
 			    (t_newmethod)equals_new, (t_method)equals_free,
                 sizeof(t_equals), CLASS_DEFAULT, A_DEFFLOAT, 0);
@@ -752,7 +752,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(equals_class, gensym("equals~"));
 
 /* -- [!=~] -- */
-    
+
     notequals_class = class_new(gensym("!=~"), (t_newmethod)notequals_new,
         (t_method)notequals_free, sizeof(t_notequals), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)notequals_new,
@@ -760,9 +760,9 @@ CYCLONE_API void cyclone_setup(void)
     class_addmethod(notequals_class, nullfn, gensym("signal"), 0);
     class_addmethod(notequals_class, (t_method)notequals_dsp, gensym("dsp"), A_CANT, 0);
     class_sethelpsymbol(notequals_class, gensym("notequals~"));
-    
+
 /* -- [<~] -- */
-    
+
     lessthan_class = class_new(gensym("<~"), (t_newmethod)lessthan_new,
         (t_method)lessthan_free, sizeof(t_lessthan), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)lessthan_new,
@@ -772,7 +772,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(lessthan_class, gensym("lessthan~"));
 
 /* -- [>~] -- */
-    
+
     greaterthan_class = class_new(gensym(">~"), (t_newmethod)greaterthan_new,
         (t_method)greaterthan_free, sizeof(t_greaterthan), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)greaterthan_new,
@@ -782,7 +782,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(greaterthan_class, gensym("greaterthan~"));
 
 /* -- [<=~] -- */
-    
+
     lessthaneq_class = class_new(gensym("<=~"), (t_newmethod)lessthaneq_new,
             (t_method)lessthaneq_free, sizeof(t_lessthaneq), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)lessthaneq_new,
@@ -792,7 +792,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(lessthaneq_class, gensym("lessthaneq~"));
 
 /* -- [>=~] -- */
-    
+
     greaterthaneq_class = class_new(gensym(">=~"), (t_newmethod)greaterthaneq_new,
         (t_method)greaterthaneq_free, sizeof(t_greaterthaneq), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)greaterthaneq_new,
@@ -802,7 +802,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(greaterthaneq_class, gensym("greaterthaneq~"));
 
 /* -- [!-~] -- */
-    
+
     rminus_tilde_class = class_new(gensym("!-~"), (t_newmethod)rminus_tilde_new,
             (t_method)rminus_tilde_free, sizeof(t_rminus_tilde), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)rminus_tilde_new,
@@ -810,9 +810,9 @@ CYCLONE_API void cyclone_setup(void)
     class_addmethod(rminus_tilde_class, nullfn, gensym("signal"), 0);
     class_addmethod(rminus_tilde_class, (t_method)rminus_tilde_dsp, gensym("dsp"), A_CANT, 0);
     class_sethelpsymbol(rminus_tilde_class, gensym("rminus~"));
-    
+
 /* -- [!/~] -- */
-    
+
     rdiv_tilde_class = class_new(gensym("!/~"), (t_newmethod)rdiv_tilde_new,
         (t_method)rdiv_tilde_free, sizeof(t_rdiv_tilde), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)rdiv_tilde_new,
@@ -822,7 +822,7 @@ CYCLONE_API void cyclone_setup(void)
     class_sethelpsymbol(rdiv_tilde_class, gensym("rdiv~"));
 
 /* -- [%~] -- */
-    
+
     modulo_class = class_new(gensym("%~"), (t_newmethod)modulo_new,
         (t_method)modulo_free, sizeof(t_modulo), CLASS_DEFAULT, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)modulo_new,
@@ -830,9 +830,9 @@ CYCLONE_API void cyclone_setup(void)
     class_addmethod(modulo_class, nullfn, gensym("signal"), 0);
     class_addmethod(modulo_class, (t_method)modulo_dsp, gensym("dsp"), A_CANT, 0);
     class_sethelpsymbol(modulo_class, gensym("modulo~"));
-    
+
 /* -- [+=~] -- */
-    
+
     plusequals_class = class_new(gensym("+=~"), (t_newmethod)plusequals_new,
             (t_method)plusequals_free, sizeof(t_plusequals), 0, A_DEFFLOAT, 0);
     class_addcreator((t_newmethod)plusequals_new,
@@ -847,3 +847,4 @@ CYCLONE_API void cyclone_setup(void)
     setup_single_lib();
 #endif // CYCLONE_SINGLE_LIBRARY
 }
+
