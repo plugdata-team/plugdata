@@ -31,6 +31,8 @@
 
 enum{SEQ_IDLEMODE, SEQ_RECMODE, SEQ_PLAYMODE, SEQ_SLAVEMODE};
 
+extern t_symbol* canvas_realizedollar(t_canvas *x, t_symbol *s);
+
 typedef struct _seqevent{
     double         e_delta;
     unsigned char  e_bytes[4];
