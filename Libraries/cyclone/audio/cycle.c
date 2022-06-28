@@ -181,7 +181,7 @@ static void cycle_gettable(t_cycle *x)
         }
     else if(heaped && wantsz > CYCYCLE_TABSIZE && wantsz > cursz){
         //if already heaped, incoming list can't fit into CYCYCLE_TABSIZE and can't fit into allocated t_atom
-        //reallocate to accomodate larger list, update status
+        //reallocate to accommodate larger list, update status
         
 
         //bounds checking for maxsize

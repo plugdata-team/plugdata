@@ -234,37 +234,40 @@ static void tablecommon_fromatoms(t_tablecommon *cc, int ac, t_atom *av)
     cc->c_increation = 0;
 }
 
-/* FIXME keep int precision: save/load directly, not through a bb */
-/* LATER binary files */
-static void tablecommon_doread(t_tablecommon *cc, t_symbol *fn, t_canvas *cv){
+// FIXME keep int precision: save/load directly, not through a bb
+// LATER binary files
+static void tablecommon_doread(t_tablecommon *cc, t_symbol *fn, t_table *x){
     t_binbuf *bb = binbuf_new();
     int ac;
     t_atom *av;
-    char buf[MAXPDSTRING];
-    if (!fn)
-        return;  /* CHECKME complaint */
-        /* FIXME use open_via_path() */
-    if (cv || (cv = cc->c_lastcanvas))  /* !cv: 'read' w/o arg */
-        canvas_makefilename(cv, fn->s_name, buf, MAXPDSTRING);
-    else{
-    	strncpy(buf, fn->s_name, MAXPDSTRING);
-    	buf[MAXPDSTRING-1] = 0;
+    char path[MAXPDSTRING];
+    if(!fn)
+        return;  // CHECKME complaint
+    char *bufptr;
+    int fd = canvas_open(x->x_glist, fn->s_name, "", path, &bufptr, MAXPDSTRING, 1);
+    if(fd > 0){
+        path[strlen(path)]='/';
+        sys_close(fd);
     }
-    binbuf_read(bb, buf, "", 0);
+    else{
+        post("[cyclone/table] file '%s' not found", fn->s_name);
+        return;
+    }
+    binbuf_read(bb, path, "", 0);
     if ((ac = binbuf_getnatom(bb)) && (av = binbuf_getvec(bb)) && av->a_type == A_SYMBOL &&
     av->a_w.w_symbol == gensym("table")){
         tablecommon_fromatoms(cc, ac - 1, av + 1);
-        post("[cyclone/table]: %s read successful", fn->s_name);  /* CHECKME */
+        post("[cyclone/table]: %s read successful", fn->s_name);  // CHECKME
     }
-#if 0  /* FIXME */
-    else  /* CHECKME complaint */
+#if 0  // FIXME
+    else  // CHECKME complaint
 	pd_error(cc, "[cyclone/table]: invalid file %s", fn->s_name);
 #endif
     binbuf_free(bb);
 }
 
 static void tablecommon_readhook(t_pd *z, t_symbol *fn, int ac, t_atom *av){
-    tablecommon_doread((t_tablecommon *)z, fn, 0); ac = 0; av = NULL;
+    tablecommon_doread((t_tablecommon *)z, fn, (t_table *)z); ac = 0; av = NULL;
 }
 
 static void tablecommon_dowrite(t_tablecommon *cc, t_symbol *fn, t_canvas *cv){
@@ -384,7 +387,7 @@ static void table_bind(t_table *x, t_symbol *name){
         if(name){
             pd_bind(&cc->c_pd, name);
             /* LATER rethink canvas unpredictability */
-            tablecommon_doread(cc, name, x->x_glist);
+            tablecommon_doread(cc, name, x);
         }
         else{
             cc->c_filename = 0;
@@ -456,7 +459,7 @@ static void table_update(t_table *x){
 static void table_read(t_table *x, t_symbol *s){
     t_tablecommon *cc = x->x_common;
     if(s && s != &s_)
-        tablecommon_doread(cc, s, x->x_glist);
+        tablecommon_doread(cc, s, x);
     else
         panel_open(cc->c_filehandle, 0);
     table_update(x);
@@ -708,7 +711,7 @@ static void table_dump(t_table *x, t_symbol *s, int ac, t_atom *av){
     {
 	/* Plain traversing by incrementing a pointer is not robust,
 	   because calling outlet_float() may invalidate the pointer.
-	   Continous storage does not require generic selfmod detection
+	   Continuous storage does not require generic selfmod detection
 	   (ala coll), so we can get away with the simpler test below. */
 	if (cc->c_length != thelength || cc->c_table != thetable)
 	    break;
@@ -911,5 +914,5 @@ CYCLONE_OBJ_API void Table_setup(void){
      but it's best to have it around just in case... */ // Delete this??????
     file_setup(tablecommon_class, 0);
     class_sethelpsymbol(table_class, gensym("table"));
-    pd_error(table_class, "Cyclone: please use [cyclone/table] instead of [Table] to supress this error");
+    pd_error(table_class, "Cyclone: please use [cyclone/table] instead of [Table] to suppress this error");
 }

@@ -154,5 +154,5 @@ CYCLONE_OBJ_API void Clip_setup(void)
     class_addlist(clip_class, clip_list);
     class_addmethod(clip_class, (t_method)clip_set, gensym("set"), A_GIMME, 0);
     class_sethelpsymbol(clip_class, gensym("clip"));
-    pd_error(clip_class, "Cyclone: please use [cyclone/clip] instead of [Clip] to supress this error");
+    pd_error(clip_class, "Cyclone: please use [cyclone/clip] instead of [Clip] to suppress this error");
 }

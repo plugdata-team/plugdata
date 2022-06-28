@@ -20,7 +20,7 @@
 #X obj 40 202 cyclone/cartopol~;
 #X text 36 31 Calculating the phase value from a real and imaginary
 part (cartesian coordinates):;
-#X text 32 304 The purpose of using two arguments instead of one is
+#X text 32 304 The purpose of using two arguments isntead of one is
 to gather information on the signs of the inputs in order to return
 the appropriate quadrant of the computed angle \, which is not possible
 for the single-argument arctangent function.;

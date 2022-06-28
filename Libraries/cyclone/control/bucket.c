@@ -156,6 +156,6 @@ CYCLONE_OBJ_API void Bucket_setup(void)
     class_addmethod(bucket_class, (t_method)bucket_set, gensym("set"), A_FLOAT, 0);
     class_addmethod(bucket_class, (t_method)bucket_ltor, gensym("l2r"), 0);
     class_addmethod(bucket_class, (t_method)bucket_rtol, gensym("r2l"), 0);
-    pd_error(bucket_class, "Cyclone: please use [bucket] instead of [Bucket] to supress this error");
+    pd_error(bucket_class, "Cyclone: please use [bucket] instead of [Bucket] to suppress this error");
     class_sethelpsymbol(bucket_class, gensym("bucket"));
 }

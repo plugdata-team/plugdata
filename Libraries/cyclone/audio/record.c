@@ -14,7 +14,7 @@ de-arsic/cybuffing
 NOTED CHANGES IN BEHAVIOR:
 start and end point inlets changed from float inlets to sig inlets
 end point inlet set to 0 no longer defaults to the whole array
-I can change this if necessariy,.. I just figure if you're sending a phasor that
+I can change this if necessary,.. I just figure if you're sending a phasor that
 starts 0 and goes to some number, you don't want
 the beginning of the ramp to default to the end of the whole array, right?
 */

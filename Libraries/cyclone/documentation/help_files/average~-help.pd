@@ -126,7 +126,7 @@ than "1" are simply ignored.;
 #X text 23 177 Each time [average~] receives a number value \, it clears
 the samples from the buffer \, even if the number is the same as the
 previously set number. So you may have to use the [change] object if
-you don't want the same number to clear ther buffer., f 60;
+you don't want the same number to clear the buffer., f 60;
 #X text 23 16 A moving/running average outputs a mean between a given
 number of last samples ('n') for each sample. Only integer values make
 sense \, so floats are converted to integers!, f 60;
@@ -148,7 +148,7 @@ sense \, so floats are converted to integers!, f 60;
 #X text 368 26 Absolute mode: only absolute values are considered (negative
 values atre converted to positive) \, then the mean is applied.;
 #X text 756 26 Rms mode: average is the root mean square. The arithmetic
-mean is peformed on the squares of the values \, then the square root
+mean is performed on the squares of the values \, then the square root
 is applied.;
 #X text 18 31 Bipolar mode (default): a plain arithmetic mean over
 positive and negative values.;

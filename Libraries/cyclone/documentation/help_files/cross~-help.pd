@@ -32,7 +32,7 @@
 #X text 181 355 clear;
 #X text 94 92 [cross~] is a of 3rd order butterworth crossover filter.
 ;
-#X text 95 112 It has two outlets for lowpass (left) and highpass (rigth)
+#X text 95 112 It has two outlets for lowpass (left) and highpass (right)
 filters that you can use separately or in combination to form a crossover
 filter.;
 #X obj 175 211 cyclone/cross~ 500;

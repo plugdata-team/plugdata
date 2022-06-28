@@ -177,7 +177,7 @@ static void substitute_anything(t_substitute *x,
 	    else if (x->x_repl.a_type == A_SYMBOL)
 	    {
                 //just replace the selector if the replace type is the symbol
-                //set matchndx to 0 to avoid the if in the message contructor clause below
+                //set matchndx to 0 to avoid the if in the message constructor clause below
 		s = x->x_repl.a_w.w_symbol;
 		matchndx = 0;
 

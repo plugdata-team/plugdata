@@ -118,7 +118,7 @@ on or off only if the submaster and master switches are off!;
 #X text 196 375 submaster "all on" switch;
 #X text 196 398 master "disable" switch;
 #X text 69 87 [decode] receives a number and looks for a corresponding
-outlet (numbered from left to right \, starting at 0) to swicth it
+outlet (numbered from left to right \, starting at 0) to switch it
 on (output: 1) and the others off (output: 0).;
 #X text 196 430 1 or 0 based on the input;
 #X obj 20 58 cyclone/comment 425 14 DejaVu\ Sans\ Mono empty 0 0 0

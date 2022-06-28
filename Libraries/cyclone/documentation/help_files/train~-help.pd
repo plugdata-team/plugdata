@@ -47,7 +47,7 @@ from 0 to 1 \, so it can be used as a metronome., f 57;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 304 3 pd;
 #X text 91 129 A pulse width of 0 has the smallest "on" pulse size
-(a single sample) \, while a pulse widht of 1 has the largest (the
+(a single sample) \, while a pulse width of 1 has the largest (the
 entire period except the last sample). The "onset phase" delays the
 "on" portion by a fraction of the total pulse period.;
 #X obj 19 54 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0

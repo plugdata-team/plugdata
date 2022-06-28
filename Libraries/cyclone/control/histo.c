@@ -107,6 +107,6 @@ CYCLONE_OBJ_API void Histo_setup(void){
     class_addfloat(histo_class, histo_float);
     class_addmethod(histo_class, (t_method)histo_ft1, gensym("ft1"), A_FLOAT, 0);
     class_addmethod(histo_class, (t_method)histo_clear, gensym("clear"), 0);
-    pd_error(histo_class, "Cyclone: please use [histo] instead of [Histo] to supress this error");
+    pd_error(histo_class, "Cyclone: please use [histo] instead of [Histo] to suppress this error");
     class_sethelpsymbol(histo_class, gensym("histo"));
 }

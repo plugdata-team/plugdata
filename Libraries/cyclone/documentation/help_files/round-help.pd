@@ -37,7 +37,7 @@
 #X obj 149 338 cyclone/round 1 @nearest 0;
 #X obj 149 369 nbx 6 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
 -228856 -1 -1 0 256;
-#X text 190 474 - value to round to (whose multple values will be approximated
+#X text 190 474 - value to round to (whose multiple values will be approximated
 to);
 #N canvas 617 207 311 298 lists 0;
 #X msg 87 117 0.5 5 8;

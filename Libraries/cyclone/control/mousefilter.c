@@ -66,7 +66,7 @@ static void mousefilter_alloc(t_mousefilter *x, int argc){
         }
     else if(heaped && argc > MOUSEFILTER_STACK && argc > cursize){
         //if already heaped, incoming list can't fit into MOUSEFILTER_STACK and can't fit into allocated t_atom
-        //reallocate to accomodate larger list, update status
+        //reallocate to accommodate larger list, update status
         
         int toalloc = argc; //size to allocate
         //bounds checking for maxsize

@@ -16,7 +16,7 @@ changed matrix_free to return void * instead of nothing
 - Derek Kwan 2016
 
 - porres made minor revisions to the code in 2021 (removed unnecessary
-dependencies, changed identation
+dependencies, changed indentation
 */
 
 #include "m_pd.h"
@@ -177,7 +177,7 @@ static void matrix_connect(t_matrix *x, t_symbol *s, int argc, t_atom *argv){
     celloffset = inlet_idx * x->x_numoutlets;
     while(argc > 0){ // parse the rest of the args as outlet indices
 		t_int outlet_idx, cell_idx, outlet_flidx = 0;
-		if(argv->a_type == A_FLOAT) // pasre arg as outlet idx, if symbol, let equal 0
+		if(argv->a_type == A_FLOAT) // parse arg as outlet idx, if symbol, let equal 0
 			outlet_flidx = (t_int)atom_getfloatarg(0, argc, argv);
 		outlet_idx = outlet_flidx;
 		if(outlet_idx < 0 || outlet_idx >= x->x_numoutlets){ // bounds checking for outlet index

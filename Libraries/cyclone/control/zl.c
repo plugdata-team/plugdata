@@ -269,7 +269,7 @@ static void zl_swap(t_atom *av, int i, int j) {
 // ********************************************************************
 
 /* Mode handlers:
-   If x_mode is positve, then the main routine uses an output 
+   If x_mode is positive, then the main routine uses an output
    buffer 'buf' (outbuf, or a separately allocated one).
    If it's 0, then the main routine is passed a null 'buf' 
    (see below). And if negative, then the main routine isn't called.
@@ -1575,7 +1575,7 @@ static void *zl_new(t_symbol *s, int argc, t_atom *argv){
     y->p_master = x;
     x->x_entered = 0;
     x->x_locked = 0;
-    x->x_mode = 0; // Unkown mode
+    x->x_mode = 0; // Unknown mode
     int sz = ZL_DEF_SIZE;
     int first_arg = 0;
     int size_arg = 0;

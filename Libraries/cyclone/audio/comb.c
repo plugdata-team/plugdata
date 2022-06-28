@@ -8,7 +8,7 @@
 
 #define COMB_STACK 48000 //stack buf size, 1 sec at 48k for good measure
 #define COMB_DELAY  10.0 //maximum delay
-#define COMB_MIND 1 //minumum delay 
+#define COMB_MIND 1 //minimum delay 
 #define COMB_MAXD 4294967294 //max delay = 2**32 - 2
 
 #define COMB_MINMS 0. //min delay in ms

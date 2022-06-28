@@ -120,5 +120,5 @@ CYCLONE_OBJ_API void Decode_setup(void)
     class_addmethod(decode_class, (t_method)decode_allon, gensym("ft1"), A_FLOAT, 0);
     class_addmethod(decode_class, (t_method)decode_alloff, gensym("ft2"), A_FLOAT, 0);
     class_sethelpsymbol(decode_class, gensym("decode"));
-    pd_error(decode_class, "Cyclone: please use [decode] instead of [Decode] to supress this error");
+    pd_error(decode_class, "Cyclone: please use [decode] instead of [Decode] to suppress this error");
 }

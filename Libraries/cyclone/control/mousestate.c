@@ -331,6 +331,6 @@ CYCLONE_OBJ_API void MouseState_setup(void){
     class_addmethod(mousestate_class, (t_method)mousestate_zero, gensym("zero"), 0);
     class_addmethod(mousestate_class, (t_method)mousestate_reset, gensym("reset"), 0);
     class_addmethod(mousestate_class, (t_method)mousestate_mode, gensym("mode"), A_FLOAT, 0);
-    pd_error(mousestate_class, "Cyclone: please use [mousestate] instead of [MouseState] to supress this error");
+    pd_error(mousestate_class, "Cyclone: please use [mousestate] instead of [MouseState] to suppress this error");
     class_sethelpsymbol(mousestate_class, gensym("mousestate"));
 }

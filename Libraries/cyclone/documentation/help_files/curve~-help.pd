@@ -685,7 +685,7 @@ envelope., f 70;
 value);
 #X text 184 379 - jumps immediately to that value (unless the duration
 is set before to other than 0 in the mid inlet);
-#X text 183 626 - curve factor from -1 to 1 (defalut 0 - linear);
+#X text 183 626 - curve factor from -1 to 1 (default 0 - linear);
 #X obj 19 53 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
 0 255 255 255 0 0 Curved ramp generator;
 #X obj 16 2 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0

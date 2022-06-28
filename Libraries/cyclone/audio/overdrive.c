@@ -19,7 +19,7 @@ static t_class *overdrive_class;
 
 // this is an actual behaviour in Max that was replicated in cyclone before.
 // it's a design flaw, redundanct and undocumented in Max and kept for backwards
-// compatibilty, but won't be documented anymore (Porres 2016).
+// compatibility, but won't be documented anymore (Porres 2016).
 static void overdrive_float(t_overdrive *x, t_float f)
 {
     x->x_drivefactor = f;

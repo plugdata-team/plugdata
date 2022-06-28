@@ -96,7 +96,7 @@ static void funnel_msg_set(t_funnel_proxy *x, t_symbol *s, int argc, t_atom * ar
         }
     else if(heaped && argc > (FUNNEL_INISIZE-1) && argc > (cursize-1)){
         //if already heaped, incoming list can't fit into FUNNEL_INISIZE-1 and can't fit into allocated t_atom
-        //reallocate to accomodate larger list, update status
+        //reallocate to accommodate larger list, update status
         
         int toalloc = argc + 1; //size to allocate
         //bounds checking for maxsize

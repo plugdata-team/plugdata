@@ -2,7 +2,7 @@
  * For information on usage and redistribution, and for a DISCLAIMER OF ALL
  * WARRANTIES, see the file, "LICENSE.txt," in this distribution.  */
 
-// Porres 2016 - checked no protection agains nan and fixed
+// Porres 2016 - checked no protection against nan and fixed
 
 #include <math.h>
 #include "m_pd.h"

@@ -328,13 +328,13 @@ value) outlets, f 68;
 #X text 120 193 sets the buffer pointer to the specified <float> buffer
 element, f 68;
 #X text 120 242 if a given 'x' doesn't exist \, interpolates the 'y'
-value from 2 neigbouring x/y pair, f 68;
+value from 2 neighbouring x/y pair, f 68;
 #X text 1 269 interptab <f \, s> -;
 #X text 120 285 sends the lowest 'y' value in the buffer to the left
 outlet, f 68;
 #X text 120 302 sends the highest 'y' value in the buffer to the left
 outlet, f 68;
-#X text 120 333 reads buffer contens from the file name specified by
+#X text 120 333 reads buffer contents from the file name specified by
 the symbol. If no symbol is given \, a file open box is shown, f 68
 ;
 #X text 120 360 writes buffer contents to the file name specified by

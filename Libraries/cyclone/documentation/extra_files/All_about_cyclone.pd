@@ -9,7 +9,7 @@
 #X text 2 400 ============================================================================================
 , f 92;
 #X obj 100 344 cyclone/comment 201 16 DejaVu\ Sans\ Mono empty 0 0
-0 0 0 190 190 200 1 0 List with all of the Cyclone's objetcs =>;
+0 0 0 190 190 200 1 0 List with all of the Cyclone's objects =>;
 #X text 72 502 Check declare's help file for more information.;
 #X text 2 638 ===========================================================================================
 , f 91;
@@ -72,4 +72,4 @@ Max/MSP;
 255 255 0 0 It also provides some level of compatibility between the
 two environments.;
 #X obj 26 36 cyclone/comment 141 14 DejaVu\ Sans\ Mono empty 0 224
-228 220 0 255 255 255 0 0 version: 0.6-1;
+228 220 0 255 255 255 0 0 version: 0.6-2;

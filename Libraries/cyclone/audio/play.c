@@ -19,7 +19,7 @@
 #include "common/shared.h"
 
 
-#define PLAY_MINITIME 0.023 //minumum ms for xfade. 1/44.1 rounded up
+#define PLAY_MINITIME 0.023 //minimum ms for xfade. 1/44.1 rounded up
 //note, loop starts fading in at stms, starts fading out at endms
 #define PLAY_LINTIME 50 //default interp time in ms
 #define PLAY_LOOP 0 //loop default setting

@@ -394,7 +394,7 @@ and scaling mode.;
 clone or part of cyclone!!!, f 37;
 #N canvas 767 210 368 317 mono-input 0;
 #X obj 110 124 osc~ 440;
-#X text 54 243 Conecting a second source to the right inlet makes it
+#X text 54 243 Connecting a second source to the right inlet makes it
 a stereo input again and vice-versa., f 38;
 #X text 68 64 Hence \, you don't need to bother and connect the same
 source into the two inlets., f 33;

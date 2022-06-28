@@ -47,7 +47,7 @@ form;
 #X obj 6 429 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
 0;
 #X obj 110 198 cyclone/cartopol~, f 21;
-#X text 125 437 If the right outlet ins't connected to anything \,
+#X text 125 437 If the right outlet isn't connected to anything \,
 the object won't compute the phase \, saving you some CPU.;
 #X obj 19 56 cyclone/comment 0 14 DejaVu\ Sans\ Mono empty 0 0 0 0
 0 255 255 255 0 0 Signal cartesian to polar conversion;

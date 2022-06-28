@@ -198,8 +198,8 @@ output);
 #X text 193 298 - a pair of pitch/velocity velues from note message
 ;
 #X text 121 346 sustain <f>;
-#X text 207 408 sustain pedal swicth: on <1> \, off <0>;
-#X text 193 346 - sustain pedal swicth: on <1> \, off <0>;
+#X text 207 408 sustain pedal switch: on <1> \, off <0>;
+#X text 193 346 - sustain pedal switch: on <1> \, off <0>;
 #X text 103 362 repeatmode <f>;
 #X text 193 362 - historical <0> \, re-trigger <1> & stop last <2>
 ;
@@ -244,7 +244,7 @@ note.;
 #X text 31 315 2 ('Stop last' mode): Playing the same note multiple
 times will not re-trigger as in re-trigger mode \, but when the sustain
 is off \, only one Note Off message corresponding to a repeated note
-is sent \, instead of all of them.;
+is sent \, isntead of all of them.;
 #X obj 533 264 cyclone/sustain @repeatmode 1 @sustain 1;
 #X connect 1 0 10 1;
 #X connect 2 0 10 0;

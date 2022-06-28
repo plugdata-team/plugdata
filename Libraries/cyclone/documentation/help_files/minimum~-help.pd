@@ -43,7 +43,7 @@ argument.;
 #X obj 2 572 cnv 3 550 3 empty empty more_info 8 12 0 13 -228856 -1
 0;
 #X text 88 588 you can use;
-#X text 201 589 from vanilla instead \, the only difference is that
+#X text 201 589 from vanilla isntead \, the only difference is that
 an argument turns the secondary inlet to a control inlet;
 #X obj 165 589 min~;
 #X text 93 118 Too similar to Pd Vanilla's [min~] (see "more info")

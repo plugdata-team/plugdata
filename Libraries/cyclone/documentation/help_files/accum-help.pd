@@ -113,7 +113,7 @@ value to it or mulplying it by a given factor.;
 #X text 203 351 - add to current value, f 51;
 #X text 203 377 - multiply with current value, f 51;
 #X text 148 409 float;
-#X text 203 442 - sets initial value (defaut 0), f 52;
+#X text 203 442 - sets initial value (default 0), f 52;
 #X text 203 409 - accumulated value, f 52;
 #X text 130 442 1) float;
 #X obj 16 4 cyclone/comment 0 33 DejaVu\ Sans\ Mono empty 0 0 0 0 0

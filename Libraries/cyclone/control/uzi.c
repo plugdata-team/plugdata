@@ -32,7 +32,7 @@ static void uzi_dobang(t_uzi *x)
     int nbangs = (int)x->x_nbangs;
     int offset = (int)x->x_offset;
 	x->x_running = UZI_RUNNING;
-// If resuming/continuing, count restart the counter from where it stoped, even if the offset has changed
+// If resuming/continuing, count restart the counter from where it stopped, even if the offset has changed
 // something like count = last_count
 	for (count = x->x_count; count < (offset + nbangs); count++)
 	{
@@ -141,6 +141,6 @@ CYCLONE_OBJ_API void Uzi_setup(void)
     class_addmethod(uzi_class, (t_method)uzi_resume, gensym("resume"), 0);
     class_addmethod(uzi_class, (t_method)uzi_resume, gensym("continue"), 0);
     class_addmethod(uzi_class, (t_method)uzi_offset, gensym("offset"), A_DEFFLOAT, 0);
-    pd_error(uzi_class, "Cyclone: please use [uzi] instead of [Uzi] to supress this error");
+    pd_error(uzi_class, "Cyclone: please use [uzi] instead of [Uzi] to suppress this error");
     class_sethelpsymbol(uzi_class, gensym("uzi"));
 }
