@@ -1,5 +1,5 @@
 // scope~'s properties dialog
-
+/*
 sys_gui("package provide dialog_scope 0.1\n");
 sys_gui("namespace eval ::dialog_scope:: {   \n");
 sys_gui("namespace export pdtk_scope_dialog\n");
@@ -643,3 +643,4 @@ sys_gui("proc ::dialog_scope::unbind_return {mytoplevel} {\n");
 sys_gui("bind $mytoplevel <KeyPress-Return> break\n");
 sys_gui("return 1\n");
 sys_gui("}\n");
+*/
