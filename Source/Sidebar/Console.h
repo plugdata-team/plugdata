@@ -54,6 +54,7 @@ struct Console : public Component
     ~Console() override
     {
     }
+    
 
     void resized() override
     {
@@ -112,7 +113,7 @@ struct Console : public Component
         }
     }
         
-    struct ConsoleComponent : public Component
+    struct ConsoleComponent : public Component, public Timer
     {
         struct ConsoleMessage : public Component
         {
@@ -181,11 +182,18 @@ struct Console : public Component
         Viewport& viewport;
 
         pd::Instance* pd;  // instance to get console messages from
+        
+        
 
         ConsoleComponent(pd::Instance* instance, std::array<TextButton, 5>& b, Viewport& v) : buttons(b), viewport(v), pd(instance)
         {
             setWantsKeyboardFocus(true);
             repaint();
+            startTimer(100);
+        }
+        
+        void timerCallback() override {
+            pd->processPrints();
         }
 
 
