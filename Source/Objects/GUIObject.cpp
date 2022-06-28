@@ -197,6 +197,10 @@ GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processo
     setWantsKeyboardFocus(true);
 
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&LookAndFeel::getDefaultLookAndFeel())->getPdLook());
+    
+    MessageManager::callAsync([this](){
+        updateParameters();
+    });
 }
 
 GUIObject::~GUIObject()
@@ -207,25 +211,7 @@ GUIObject::~GUIObject()
     delete lnf;
 }
 
-void GUIObject::mouseDown(const MouseEvent& e)
-{
-    if (box->commandLocked == var(true))
-    {
-        auto& sidebar = box->cnv->main.sidebar;
-        inspectorWasVisible = !sidebar.isShowingConsole();
-        sidebar.hideParameters();
-    }
-}
-
-void GUIObject::mouseUp(const MouseEvent& e)
-{
-    if (box->commandLocked == var(true) && inspectorWasVisible)
-    {
-        box->cnv->main.sidebar.showParameters();
-    }
-}
-
-void GUIObject::initialise()
+void GUIObject::updateParameters()
 {
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));

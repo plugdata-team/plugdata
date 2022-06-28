@@ -155,13 +155,20 @@ bool Connection::hitTest(int x, int y)
     Point<float> nearestPoint;
     toDraw.getNearestPoint(position, nearestPoint);
 
+    
     // Get outlet and inlet point
-    auto pstart = outlet->getCanvasBounds().getCentre().toFloat() - origin.toFloat();
-    auto pend = inlet->getCanvasBounds().getCentre().toFloat() - origin.toFloat();
-
+    auto pstart = outlet->getCanvasBounds().getCentre().toFloat();
+    auto pend = inlet->getCanvasBounds().getCentre().toFloat();
+    
+    
+    if (cnv->isSelected(this) && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position)))
+        return true;
+    
     // If we click too close to the inlet, don't register the click on the connection
-    if (pstart.getDistanceFrom(position) < 8.0f || pend.getDistanceFrom(position) < 8.0f) return false;
+    if (pstart.getDistanceFrom(position + getPosition().toFloat()) < 8.0f || pend.getDistanceFrom(position + getPosition().toFloat()) < 8.0f)
+        return false;
 
+    
     return nearestPoint.getDistanceFrom(position) < 5;
 }
 
@@ -565,7 +572,7 @@ void Connection::updatePath()
     offset = {-bounds.getX(), -bounds.getY()};
 
     startReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(8.5f));
-    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 8.5f)));
+    endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 9.5f)));
 }
 
 void Connection::findPath()

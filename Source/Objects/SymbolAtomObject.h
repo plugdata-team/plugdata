@@ -3,7 +3,6 @@ struct SymbolAtomObject final : public AtomObject
 {
     bool isDown = false;
     bool isLocked = false;
-    bool shouldOpenEditor = false;
 
     String lastMessage;
 
@@ -76,15 +75,6 @@ struct SymbolAtomObject final : public AtomObject
         }
     }
 
-    void mouseDown(const MouseEvent& e) override
-    {
-        GUIObject::mouseDown(e);
-        if (cnv->isSelected(box) && !box->selectionChanged)
-        {
-            shouldOpenEditor = true;
-        }
-    }
-
     void mouseUp(const MouseEvent& e) override
     {
         isDown = false;
@@ -93,7 +83,6 @@ struct SymbolAtomObject final : public AtomObject
         if (isLocked)
         {
             input.showEditor();
-            shouldOpenEditor = false;
         }
 
         repaint();

@@ -46,7 +46,6 @@ struct MousePadObject final : public GUIObject
 
     void mouseDown(const MouseEvent& e) override
     {
-        GUIObject::mouseDown(e);
         if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
 
         auto* x = static_cast<t_pad*>(ptr);

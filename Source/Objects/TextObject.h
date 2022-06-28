@@ -75,22 +75,16 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
     void mouseDown(const MouseEvent& e) override
     {
-        wasSelected = cnv->isSelected(box);
-        box->mouseDown(e.getEventRelativeTo(box));
-    }
-
-    void mouseDrag(const MouseEvent& e) override
-    {
-        box->mouseDrag(e.getEventRelativeTo(box));
+        //wasSelected = cnv->isSelected(box);
     }
 
     void mouseUp(const MouseEvent& e) override
     {
+        /*
         if (box->isEnabled() && !(e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && wasSelected)
         {
             showEditor();
-        }
-        box->mouseUp(e.getEventRelativeTo(box));
+        } */
     }
 
     int getBestTextWidth(const String& text)

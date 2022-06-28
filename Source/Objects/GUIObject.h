@@ -47,7 +47,7 @@ struct ObjectBase : public Component
     // Called whenever a drawable changes
     virtual void updateDrawables(){};
     
-    virtual void initialise() {};
+    virtual void updateParameters() {};
 
     // Flag to make object visible or hidden inside a GraphOnParent
     virtual bool hideInGraph()
@@ -113,7 +113,7 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
     virtual void update(){};
 
-    void initialise() override;
+    void updateParameters() override;
 
     void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
@@ -132,20 +132,16 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
         return 0.0f;
     };
 
-    float getValueOriginal() const ;
+    float getValueOriginal() const;
 
     void setValueOriginal(float v);
 
-    float getValueScaled() const ;
+    float getValueScaled() const;
 
     void setValueScaled(float v);
 
-    void startEdition() ;
-
-    void stopEdition() ;
-
-    void mouseDown(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
+    void startEdition();
+    void stopEdition();
 
     void valueChanged(Value& value) override{};
 
@@ -158,8 +154,6 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
 
    protected:
     std::unique_ptr<Label> label;
-
-    bool inspectorWasVisible = false;
 
     static inline constexpr int maxSize = 1000000;
 

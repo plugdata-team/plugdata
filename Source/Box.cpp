@@ -247,9 +247,9 @@ void Box::setType(const String& newType, void* existingObject)
 
     if (gui)
     {
-        gui->initialise();
         gui->lock(locked == var(true));
         gui->updateValue();
+        gui->addMouseListener(this, true);
         addAndMakeVisible(gui.get());
     }
 
@@ -292,9 +292,7 @@ void Box::paintOverChildren(Graphics& g)
 
 void Box::paint(Graphics& g)
 {
-    bool selected = cnv->isSelected(this);
-
-    if (selected && !cnv->isGraph)
+    if (cnv->isSelected(this) && !cnv->isGraph)
     {
         g.setColour(findColour(PlugDataColour::highlightColourId));
 
@@ -442,6 +440,9 @@ void Box::updatePorts()
 
 void Box::mouseDown(const MouseEvent& e)
 {
+    //assert(getLocalBounds().contains(e.getPosition()));
+    if(!getLocalBounds().contains(e.getPosition())) return;
+    
     if (!static_cast<bool>(locked.getValue()) && ModifierKeys::getCurrentModifiers().isAltDown())
     {
         openHelpPatch();
@@ -473,14 +474,11 @@ void Box::mouseDown(const MouseEvent& e)
         return;
     }
 
-    if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
-
-    bool isSelected = cnv->isSelected(this);
-    
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
     
     for (auto& rect : getCorners())
     {
-        if (rect.contains(e.position) && isSelected)
+        if (rect.contains(e.position) && cnv->isSelected(this))
         {
             // Start resize
             resizeZone = ResizableBorderComponent::Zone::fromPositionOnBorder(getLocalBounds().reduced(margin - 2), BorderSize<int>(5), e.getPosition());
@@ -492,19 +490,22 @@ void Box::mouseDown(const MouseEvent& e)
         }
     }
 
+    bool wasSelected = cnv->isSelected(this);
+    
     cnv->handleMouseDown(this, e);
-
-    if (isSelected != cnv->isSelected(this))
-    {
-        selectionChanged = true;
+    
+    //
+    if(cnv->isSelected(this) != wasSelected) {
+        selectionStateChanged = true;
     }
+    
 }
 
 void Box::mouseUp(const MouseEvent& e)
 {
     resizeZone = ResizableBorderComponent::Zone();
 
-    if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
 
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
@@ -546,14 +547,19 @@ void Box::mouseUp(const MouseEvent& e)
     {
         cnv->handleMouseUp(this, e);
     }
-
-    selectionChanged = false;
+    
+    if(gui && !selectionStateChanged && cnv->isSelected(this) && !e.mouseWasDraggedSinceMouseDown()) {
+        gui->showEditor();
+    }
+    
+    selectionStateChanged = false;
 }
 
 void Box::mouseDrag(const MouseEvent& e)
 {
-    if (cnv->isGraph || cnv->presentationMode == var(true) || cnv->pd->locked == var(true)) return;
+    if (cnv->isGraph || cnv->presentationMode == var(true) || locked == var(true) || commandLocked == var(true)) return;
 
+    
     if (resizeZone.isDraggingTopEdge() || resizeZone.isDraggingLeftEdge() || resizeZone.isDraggingBottomEdge() || resizeZone.isDraggingRightEdge())
     {
         Point<int> dragDistance = e.getOffsetFromDragStart();

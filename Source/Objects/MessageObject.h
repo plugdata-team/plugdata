@@ -17,7 +17,6 @@ struct MessageObject final : public GUIObject
 {
     bool isDown = false;
     bool isLocked = false;
-    bool shouldOpenEditor = false;
 
     String lastMessage;
 
@@ -169,7 +168,6 @@ struct MessageObject final : public GUIObject
 
     void mouseDown(const MouseEvent& e) override
     {
-        GUIObject::mouseDown(e);
         if (isLocked)
         {
             isDown = true;
@@ -178,10 +176,6 @@ struct MessageObject final : public GUIObject
             startEdition();
             click();
             stopEdition();
-        }
-        if (cnv->isSelected(box) && !box->selectionChanged)
-        {
-            shouldOpenEditor = true;
         }
     }
 
@@ -193,14 +187,6 @@ struct MessageObject final : public GUIObject
     void mouseUp(const MouseEvent& e) override
     {
         isDown = false;
-
-        // Edit messages when unlocked, edit atoms when locked
-        if (!isLocked && shouldOpenEditor && !e.mouseWasDraggedSinceMouseDown())
-        {
-            input.showEditor();
-            shouldOpenEditor = false;
-        }
-
         repaint();
     }
 
