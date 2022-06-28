@@ -304,6 +304,8 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
 
             lasso.beginLasso(e.getEventRelativeTo(this), this);
+            isDraggingLasso = true;
+            
             if (!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown())
             {
                 deselectAll();
@@ -420,11 +422,11 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
         if (connectingWithDrag && nearest && nearestEdge != nearest)
         {
-            nearest->isHovered = true;
+            nearest->isTargeted = true;
 
             if (nearestEdge)
             {
-                nearestEdge->isHovered = false;
+                nearestEdge->isTargeted = false;
                 nearestEdge->repaint();
             }
 
@@ -458,7 +460,7 @@ void Canvas::mouseUp(const MouseEvent& e)
     {
         if (nearestEdge)
         {
-            nearestEdge->isHovered = false;
+            nearestEdge->isTargeted = false;
             nearestEdge->repaint();
         }
         auto pos = e.getEventRelativeTo(this).getPosition();
@@ -467,7 +469,7 @@ void Canvas::mouseUp(const MouseEvent& e)
         if (nearest)
         {
             nearest->createConnection();
-            nearest->isHovered = false;
+            nearest->isTargeted = false;
         }
 
         connectingEdge = nullptr;
@@ -487,6 +489,7 @@ void Canvas::mouseUp(const MouseEvent& e)
     main.updateCommandStatus();
 
     lasso.endLasso();
+    isDraggingLasso = false;
 }
 
 void Canvas::updateSidebarSelection()

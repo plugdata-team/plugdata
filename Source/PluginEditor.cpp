@@ -649,7 +649,7 @@ void PlugDataPluginEditor::updateCommandStatus()
         bool allNotSegmented = true;
         bool hasSelection = false;
         
-        bool isDragging = cnv->isMouseButtonDown(true);
+        bool isDragging = cnv->isMouseButtonDown(true) && !cnv->isDraggingLasso;
         for (auto& connection : cnv->getSelectionOfType<Connection>())
         {
             allSegmented = allSegmented && connection->isSegmented();
@@ -716,10 +716,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-        isDragging = cnv->isMouseButtonDown(true);
+        isDragging = cnv->isMouseButtonDown(true) && !cnv->isDraggingLasso;
     }
-    
-
 
     switch (commandID)
     {

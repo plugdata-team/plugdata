@@ -173,8 +173,8 @@ class Instance
     {
     }
 
-    virtual void receiveGuiUpdate(int type) = 0;
-    virtual void synchroniseCanvas(void* cnv) = 0;
+    virtual void receiveGuiUpdate(int type) {};
+    virtual void synchroniseCanvas(void* cnv) {};
 
     virtual void createPanel(int type, const char* snd, const char* location);
 
