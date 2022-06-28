@@ -1,5 +1,6 @@
 @echo off
 del PlugData-%1.zip /Q
+del Plugins/Tests.exe /Q
 xcopy Plugins PlugData /S /H /E /I
 
 move PlugData\VST3\PlugData.vst3\Contents\x86-win\PlugData.vst3 PlugData\VST3\PlugData_temp.vst3

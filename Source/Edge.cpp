@@ -44,7 +44,7 @@ void Edge::paint(Graphics& g)
 
     if (static_cast<bool>(locked.getValue()))
     {
-        backgroundColour = findColour(PlugDataColour::textColourId);
+        backgroundColour = findColour(PlugDataColour::canvasColourId).contrasting(0.5f);
     }
 
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
