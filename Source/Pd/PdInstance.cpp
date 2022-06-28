@@ -102,8 +102,8 @@ extern "C"
 
         static void instance_multi_print(pd::Instance* ptr, char const* s)
         {
-            auto message = String(s);
-            ptr->enqueueFunctionAsync([ptr, message]() mutable { ptr->processPrint(message); });
+            auto message = std::string(s);
+            ptr->m_print_queue.enqueue(message);
         }
     };
 }
@@ -418,10 +418,31 @@ void Instance::processMidiEvent(midievent event)
         receiveMidiByte(event.midi1, event.midi2);
 }
 
-void Instance::processPrint(String print)
+void Instance::processPrints()
 {
-    print = print.trimEnd();
-    MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
+    std::string temp;
+    std::string print;
+    
+    while(m_print_queue.try_dequeue(print))
+    {
+        if(print.empty())
+        {
+            continue;
+        }
+        else if(print.back() == '\n')
+        {
+            while(print.back() == '\n' || print.back() == ' ') {
+                print.pop_back();
+            }
+            temp += print;
+            MessageManager::callAsync([this, temp]() mutable { receivePrint(temp); });
+            temp.clear();
+        }
+        else
+        {
+            temp += print;
+        }
+    }
 }
 
 void Instance::processSend(dmessage mess)
