@@ -414,6 +414,7 @@ void deltaclip_tilde_setup(void);
 void downsamp_tilde_setup(void);
 void edge_tilde_setup(void);
 void equals_tilde_setup(void);
+void funbuff_setup(void);
 void frameaccum_tilde_setup(void);
 void framedelta_tilde_setup(void);
 void gate_tilde_setup(void);
