@@ -667,18 +667,24 @@ void PlugDataPluginEditor::updateCommandStatus()
 
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr) return;
+        
+        auto deletionCheck = SafePointer<Component>(this);
 
         // First on pd's thread, get undo status
         pd.enqueueFunction(
-            [this, cnv, patchPtr, isDragging]() mutable
+            [this, cnv, patchPtr, isDragging, deletionCheck]() mutable
             {
+                if(!deletionCheck) return;
+                
                 canUndo = libpd_can_undo(patchPtr) && !isDragging && pd.locked == var(false);
                 canRedo = libpd_can_redo(patchPtr) && !isDragging && pd.locked == var(false);
 
                 // Set button enablement on message thread
                 MessageManager::callAsync(
-                    [this]() mutable
+                    [this, deletionCheck]() mutable
                     {
+                        if(!deletionCheck) return;
+                        
                         toolbarButton(Undo)->setEnabled(canUndo);
                         toolbarButton(Redo)->setEnabled(canRedo);
 
