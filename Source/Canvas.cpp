@@ -385,8 +385,6 @@ void Canvas::mouseDrag(const MouseEvent& e)
     // Ignore on graphs or when locked
     if (isGraph || locked == var(true)) return;
     
-    main.updateCommandStatus();
-
     auto viewportEvent = e.getEventRelativeTo(viewport);
 
     float scrollSpeed = 8.5f;
