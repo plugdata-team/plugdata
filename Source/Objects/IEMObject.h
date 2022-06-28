@@ -52,7 +52,7 @@ struct IEMObject : public GUIObject
         iemgui->x_h = b.getHeight();
     }
 
-    void initialise() override
+    void updateParameters() override
     {
         primaryColour = Colour(getForegroundColour()).toString();
         secondaryColour = Colour(getBackgroundColour()).toString();

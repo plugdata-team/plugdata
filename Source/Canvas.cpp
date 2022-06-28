@@ -72,7 +72,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         viewport = new Viewport;  // Owned by the tabbar, but doesn't exist for graph!
         viewport->setViewedComponent(this, false);
-        //viewport->setBufferedToImage(true);
+        viewport->setBufferedToImage(true);
 
         // Apply zooming
         setTransform(parent.transform);
@@ -289,6 +289,8 @@ void Canvas::synchronise(bool updatePosition)
 void Canvas::mouseDown(const MouseEvent& e)
 {
     auto* source = e.originalComponent;
+    
+    main.updateCommandStatus();
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
     {
@@ -381,6 +383,8 @@ void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
     if (isGraph || locked == var(true)) return;
+    
+    main.updateCommandStatus();
 
     auto viewportEvent = e.getEventRelativeTo(viewport);
 
@@ -434,6 +438,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
 void Canvas::mouseUp(const MouseEvent& e)
 {
+    main.updateCommandStatus();
     if (auto* box = dynamic_cast<Box*>(e.originalComponent))
     {
         
@@ -493,7 +498,11 @@ void Canvas::updateSidebarSelection()
         auto* box = lassoSelection.getFirst();
         auto params = box->gui ? box->gui->getParameters() : ObjectParameters();
 
-        if (!params.empty() || main.sidebar.isPinned())
+        if (commandLocked == var(true))
+        {
+            main.sidebar.hideParameters();
+        }
+        else if (!params.empty() || main.sidebar.isPinned())
         {
             main.sidebar.showParameters(params);
         }
@@ -748,6 +757,7 @@ void Canvas::checkBounds()
 {
     if (isGraph || !viewport) return;
 
+    
     updatingBounds = true;
 
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));

@@ -63,32 +63,6 @@ struct GraphOnParent final : public GUIObject
         setInterceptsMouseClicks(isLocked, isLocked);
     }
 
-    void mouseDown(const MouseEvent& e) override
-    {
-        GUIObject::mouseDown(e);
-
-        if (!isLocked)
-        {
-            box->mouseDown(e.getEventRelativeTo(box));
-        }
-    }
-
-    void mouseDrag(const MouseEvent& e) override
-    {
-        if (!isLocked)
-        {
-            box->mouseDrag(e.getEventRelativeTo(box));
-        }
-    }
-
-    void mouseUp(const MouseEvent& e) override
-    {
-        if (!isLocked)
-        {
-            box->mouseUp(e.getEventRelativeTo(box));
-        }
-    }
-
     void updateCanvas()
     {
         if (!canvas)

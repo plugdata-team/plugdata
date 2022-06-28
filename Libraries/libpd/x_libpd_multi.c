@@ -259,6 +259,7 @@ void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print)
         pd_bind(&x->x_obj.ob_pd, s);
         x->x_ptr = ptr;
         x->x_hook = hook_print;
+        
     }
     return x;
 }
