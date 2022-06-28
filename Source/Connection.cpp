@@ -154,12 +154,10 @@ bool Connection::hitTest(int x, int y)
 
     Point<float> nearestPoint;
     toDraw.getNearestPoint(position, nearestPoint);
-
     
     // Get outlet and inlet point
     auto pstart = getStartPoint().toFloat();
     auto pend = getEndPoint().toFloat();
-    
     
     if (cnv->isSelected(this) && (startReconnectHandle.contains(position) || endReconnectHandle.contains(position)))
         return true;
@@ -217,16 +215,16 @@ void Connection::paint(Graphics& g)
 
     auto path = toDraw;
     // needed to make the path align with the inlet/outlet's centre
-    path.applyTransform(AffineTransform::translation(0.5f, 0.0f));
+    //path.applyTransform(AffineTransform::translation(0.5f, 0.0f));
     
     g.setColour(baseColour.darker(0.1));
-    g.strokePath(path, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
+    g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
 
     g.setColour(baseColour.darker(0.2));
-    g.strokePath(path, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
+    g.strokePath(toDraw, PathStrokeType(1.5f, PathStrokeType::mitered, PathStrokeType::square));
 
     g.setColour(baseColour);
-    g.strokePath(path, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
+    g.strokePath(toDraw, PathStrokeType(0.5f, PathStrokeType::mitered, PathStrokeType::square));
 
     if (cnv->isSelected(this))
     {
@@ -487,13 +485,13 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
 
 Point<int> Connection::getStartPoint()
 {
-    return {outlet->getCanvasBounds().getCentreX(), outbox->getBottom() - Box::margin + 1};
+    return {outlet->getCanvasBounds().getCentreX(), outlet->getCanvasBounds().getCentreY()};
 }
 
 Point<int> Connection::getEndPoint()
 {
    
-    return  {inlet->getCanvasBounds().getCentreX(), inbox->getY() + Box::margin - 1};
+    return  {inlet->getCanvasBounds().getCentreX(), inlet->getCanvasBounds().getCentreY()};
 }
 
 void Connection::updatePath()
@@ -598,7 +596,7 @@ void Connection::findPath()
 
     auto pstart = getStartPoint();
     auto pend = getEndPoint();
-
+    
     auto pathStack = PathPlan();
     auto bestPath = PathPlan();
 
@@ -609,17 +607,17 @@ void Connection::findPath()
 
     int incrementX, incrementY;
 
-    auto distance = pend.getDistanceFrom(pstart);
-    auto bounds = Rectangle<int>(pstart, pend);
+    auto distance = pstart.getDistanceFrom(pend);
+    auto bounds = Rectangle<int>(pend, pstart);
 
     // Look for paths at an increasing resolution
     while (!numFound && resolution < 7 && distance > 40)
     {
         // Find paths on an resolution*resolution lattice ObjectGrid
-        incrementX = std::max(std::abs(pstart.x - pend.x) / resolution, resolution);
-        incrementY = std::max(std::abs(pstart.y - pend.y) / resolution, resolution);
+        incrementX = std::max(std::abs(pend.x - pstart.x) / resolution, resolution);
+        incrementY = std::max(std::abs(pend.y - pstart.y) / resolution, resolution);
 
-        numFound = findLatticePaths(bestPath, pathStack, pstart, pend, {incrementX, incrementY});
+        numFound = findLatticePaths(bestPath, pathStack, pend, pstart, {incrementX, incrementY});
         resolution++;
         pathStack.clear();
     }
@@ -650,24 +648,24 @@ void Connection::findPath()
     }
     else
     {
-        if (pstart.y < pend.y)
+        if (pend.y < pstart.y)
         {
-            int xHalfDistance = (pend.x - pstart.x) / 2;
+            int xHalfDistance = (pstart.x - pend.x) / 2;
 
-            simplifiedPath.push_back(pstart);  // double to make it draggable
+            simplifiedPath.push_back(pend);  // double to make it draggable
+            simplifiedPath.push_back(pend);
+            simplifiedPath.push_back({pend.x + xHalfDistance, pend.y});
+            simplifiedPath.push_back({pend.x + xHalfDistance, pstart.y});
             simplifiedPath.push_back(pstart);
-            simplifiedPath.push_back({pstart.x + xHalfDistance, pstart.y});
-            simplifiedPath.push_back({pstart.x + xHalfDistance, pend.y});
-            simplifiedPath.push_back(pend);
-            simplifiedPath.push_back(pend);
+            simplifiedPath.push_back(pstart);
         }
         else
         {
-            int yHalfDistance = (pend.y - pstart.y) / 2;
-            simplifiedPath.push_back(pstart);
-            simplifiedPath.push_back({pstart.x, pstart.y + yHalfDistance});
-            simplifiedPath.push_back({pend.x, pstart.y + yHalfDistance});
+            int yHalfDistance = (pstart.y - pend.y) / 2;
             simplifiedPath.push_back(pend);
+            simplifiedPath.push_back({pend.x, pend.y + yHalfDistance});
+            simplifiedPath.push_back({pstart.x, pend.y + yHalfDistance});
+            simplifiedPath.push_back(pstart);
         }
     }
     std::reverse(simplifiedPath.begin(), simplifiedPath.end());
@@ -760,9 +758,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck)
     {
         auto bounds = box->getBounds().expanded(3);
 
-        if (auto* graphics = box->gui.get()) bounds = graphics->getBounds().expanded(3) + box->getPosition();
-
-        if (box == outbox || box == inbox || !bounds.intersects(getLocalBounds())) continue;
+        if (box == outbox || box == inbox || !bounds.intersects(getBounds())) continue;
 
         auto intersectV = [](Line<int> first, Line<int> second)
         {
