@@ -21,7 +21,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Xcode"
+      run: cmake $GITHUB_WORKSPACE -G "Xcode" -DENABLE_TESTING=1
 
 #    - name: Import Code-Signing Certificates
 #      uses: Apple-Actions/import-codesign-certs@v1
@@ -78,12 +78,12 @@ jobs:
         submodules: recursive
 
     - name: Create Build Environment
-      run: cmake -E make_directory ${{github.workspace}}/build
+      run: cmake -E make_directory ${{github.workspace}}/build 
 
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A x64
+      run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A x64 -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -123,7 +123,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A Win32
+      run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A Win32 -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -164,7 +164,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles" -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -206,7 +206,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles" -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -249,7 +249,7 @@ jobs:
     - name: Configure CMake
       shell: bash
       working-directory: ${{github.workspace}}/build
-      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles"
+      run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles" -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
