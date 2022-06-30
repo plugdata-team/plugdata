@@ -527,6 +527,8 @@ class PlugDataWindow : public DocumentWindow
 #if CUSTOM_SHADOW
         setDropShadowEnabled(false);
 #endif
+        setUsingNativeTitleBar(false);
+        
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 
