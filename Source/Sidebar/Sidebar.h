@@ -44,6 +44,9 @@ using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and 
 // used by console for a more optimised calculation
 static int getNumLines(int width, int stringWidth)
 {
+    // On startup, width might be zero, this is a large optimisation in that case
+    if(width == 0) return 0;
+    
     int numLines = 1;
     while (width < stringWidth)
     {
