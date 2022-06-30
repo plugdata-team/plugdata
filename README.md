@@ -1,9 +1,9 @@
 # PlugData
 Plugin wrapper around PureData to allow patching in a wide selection of DAWs.
 
-<img width="1054" alt="Screenshot 2022-04-21 at 03 30 17" src="https://user-images.githubusercontent.com/44585538/164353656-c087ebe3-4325-4f02-89d9-ac57c5ca332f.png">
+<img width="1054" alt="Screenshot 2022-06-29 at 00 14 03" src="https://user-images.githubusercontent.com/44585538/176311724-b6e2e92b-1a0b-4f8d-a328-fc1c9cf0666c.png">
 
-<img width="1054" alt="Screenshot 2022-04-21 at 03 35 01" src="https://user-images.githubusercontent.com/44585538/164354121-bb196ebc-599e-4d4a-9083-ee580ad4317a.png">
+<img width="1054" alt="Screenshot 2022-06-29 at 00 18 35" src="https://user-images.githubusercontent.com/44585538/176312569-dca8f9f1-c4c7-4176-82c1-17378daf17fd.png">
 
 PlugData is a plugin wrapper for PureData, featuring a new GUI made with JUCE. This is still a WIP, and there are probably still some bugs. By default, it ships with the ELSE collection of externals and abstractions. The aim is to provide a more comfortable patching experience for a large selection of DAWs. It can also be used as a standalone replacement for pure-data.
 
@@ -80,14 +80,11 @@ FEATURES:
 
 PD COMPATIBILITY:
 - Fix missing canvas properties
-- Allow setting main canvas properties
 - Fix broken objects
-- Improve accuracy of pd's "draw on canvas" system (used by [circle] for example)
 - Support for dynamic patching
 
 BUGS:
 - Fix externals on Windows
-- Fix signing/notarising problem with some plugin hosts on Mac
 - Improve stability of custom connection paths
 
 OTHER:
