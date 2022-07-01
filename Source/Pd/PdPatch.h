@@ -133,7 +133,7 @@ class Patch
                                                                 {"nbx", "7 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour lblColour lblColour 0 256"},
                                                                 {"hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
                                                                 {"vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0"},
-                                                                {"cnv", "15 100 60 empty empty empty 20 12 0 14 lblColour fgColour"},
+                                                                {"cnv", "15 100 60 empty empty empty 20 12 0 14 lnColour lblColour"},
                                                                 {"vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0"},
                                                                 {"floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12"}};
 

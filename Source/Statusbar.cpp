@@ -191,10 +191,10 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
 
     addAndMakeVisible(presentationButton.get());
 
-    powerButton->setTooltip("Bypass");
+    powerButton->setTooltip("Mute");
     powerButton->setClickingTogglesState(true);
     powerButton->setConnectedEdges(12);
-    powerButton->setName("statusbar:bypass");
+    powerButton->setName("statusbar:mute");
     addAndMakeVisible(powerButton.get());
 
     powerButton->onClick = [this]() { powerButton->getToggleState() ? pd.startDSP() : pd.releaseDSP(); };

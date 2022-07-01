@@ -100,7 +100,7 @@ class StandalonePluginHolder : private AudioIODeviceCallback, private Timer, pri
     {
         setupAudioDevices(enableAudioInput, preferredDefaultDeviceName, options.get());
 #if JUCE_DEBUG
-        // reloadPluginState();
+        reloadPluginState();
 #endif
         startPlaying();
 
