@@ -23,24 +23,17 @@
 #include <juce_audio_formats/juce_audio_formats.h>
 #include <juce_audio_devices/juce_audio_devices.h>
 #include <juce_audio_plugin_client/juce_audio_plugin_client.h>
+#include <juce_dsp/juce_dsp.h>
 
+#include "BinaryData.h"
 
-#if JUCE_TARGET_HAS_BINARY_DATA
- #include "BinaryData.h"
-#endif
+using namespace juce;
 
-#if ! DONT_SET_USING_JUCE_NAMESPACE
- // If your code uses a lot of JUCE classes, then this will obviously save you
- // a lot of typing, but can be disabled by setting DONT_SET_USING_JUCE_NAMESPACE.
- using namespace juce;
-#endif
-
-#if ! JUCE_DONT_DECLARE_PROJECTINFO
+/*
 namespace ProjectInfo
 {
     const char* const  projectName    = "PlugData";
     const char* const  companyName    = "Octagon";
     const char* const  versionString  = "0.5.3";
     const int          versionNumber  =  0x503;
-}
-#endif
+} */

@@ -844,11 +844,10 @@ void sys_vgui(const char *fmt, ...)
         create_panel(1, path, symbol);
         
     }
-    if(strncmp(fmt + 8, "itemconfigure", strlen("itemconfigure")) == 0) {
-        update_gui_parameters(NULL);
+    
+    if(strlen(fmt) > 20 && strncmp(fmt + 8, "itemconfigure", strlen("itemconfigure")) == 0) {
+        update_gui_parameters();
     }
-    
-    
     
     /* disabled for now, could be used for dynamic patching
     if(strncmp(fmt, "pdtk_canvas_reflecttitle", strlen("pdtk_canvas_reflecttitle")) == 0) {
