@@ -15,8 +15,8 @@ struct CanvasObject final : public IEMObject
 
     void resized() override
     {
-        static_cast<t_my_canvas*>(ptr)->x_vis_w = getWidth() - 1;
-        static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight() - 1;
+        static_cast<t_my_canvas*>(ptr)->x_vis_w = getWidth();
+        static_cast<t_my_canvas*>(ptr)->x_vis_h = getHeight();
     }
 
     void checkBounds() override

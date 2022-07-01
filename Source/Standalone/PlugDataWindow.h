@@ -527,7 +527,7 @@ class PlugDataWindow : public DocumentWindow
 #if CUSTOM_SHADOW
         setDropShadowEnabled(false);
 #endif
-        setUsingNativeTitleBar(false);
+        //setUsingNativeTitleBar(false);
         
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
@@ -657,6 +657,10 @@ class PlugDataWindow : public DocumentWindow
         shadowImageR = shadowImage.getClippedImage(right);
 
 #endif
+        if(auto* content = getContentComponent()) {
+            content->repaint();
+        }
+        
     }
 
     virtual StandalonePluginHolder* getPluginHolder()

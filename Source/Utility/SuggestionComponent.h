@@ -294,7 +294,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         if ((e.getText() + mutableInput).contains(" "))
         {
             state = ShowingArguments;
-            auto found = library.arguments[typedText.upToFirstOccurrenceOf(" ", false, false)];
+            auto found = library.getArguments()[typedText.upToFirstOccurrenceOf(" ", false, false)];
             for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
             {
                 auto& [type, description, init] = found[i];
@@ -317,10 +317,12 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
         {
             auto& [name, autocomplete] = found[i];
+            
+            auto descriptions = library.getObjectDescriptions();
 
-            if (library.objectDescriptions.find(name) != library.objectDescriptions.end())
+            if (descriptions.find(name) != descriptions.end())
             {
-                buttons[i]->setText(name, library.objectDescriptions[name], true);
+                buttons[i]->setText(name, descriptions[name], true);
             }
             else
             {
