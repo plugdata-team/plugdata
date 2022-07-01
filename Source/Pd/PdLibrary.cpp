@@ -214,9 +214,8 @@ int Trie::autocomplete(String query, Suggestions& result)
 
 void Library::initialiseLibrary()
 {
-    /* TODO: Enable and test this for next release
-    Thread::launch([this](){
-        libraryLock.lock(); */
+    Thread::launch([this]() {
+        libraryLock.lock();
         
         appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
@@ -229,9 +228,14 @@ void Library::initialiseLibrary()
         watcher.addFolder(appDataDir);
         watcher.addListener(this);
         
-    /*
+        // Update docs in GUI
+        MessageManager::callAsync([this](){
+            appDirChanged();
+        });
+        
+        
         libraryLock.unlock();
-    }); */
+    });
 }
 
 
