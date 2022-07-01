@@ -106,10 +106,17 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
         {
             settingsTree.addListener(editor);
+            
+            for(auto* cnv : editor->canvases) {
+                // Make sure inlets/outlets are updated
+                for(auto* box : cnv->boxes) box->updatePorts();
+            }
         }
 
         updateSearchPaths();
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+        
+
     };
 
     if (settingsTree.hasProperty("Theme"))
