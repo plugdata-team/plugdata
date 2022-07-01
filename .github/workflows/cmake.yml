@@ -413,7 +413,7 @@ jobs:
 
     - name: Build
       shell: bash
-      run: mkdir build && cd build && CXX=g++ cmake .. -G "Unix Makefiles" -D && cmake --build . --config $BUILD_TYPE
+      run: mkdir build && cd build && CXX=g++ cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
