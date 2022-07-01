@@ -68,9 +68,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         objectLibrary.initialiseLibrary();
     }
 
-    // Update pd search paths for abstractions
-    updateSearchPaths();
-
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
     midiBufferOut.ensureSize(2048);
@@ -304,7 +301,15 @@ void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
 
 void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
-    prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate);
+    float oversampleFactor = 1 << oversampling;
+    auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
+    
+    prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor);
+    
+    oversampler.reset (new dsp::Oversampling<float> (maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandFIREquiripple, false));
+    
+    oversampler->initProcessing (samplesPerBlock);
+    
     // sendCurrentBusesLayoutInformation();
     audioAdvancement = 0;
     const auto blksize = static_cast<size_t>(Instance::getBlockSize());
@@ -389,6 +394,7 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     ScopedNoDenormals noDenormals;
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
+
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     {

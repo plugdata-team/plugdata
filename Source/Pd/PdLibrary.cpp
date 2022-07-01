@@ -34,6 +34,8 @@ void Trie::insert(const String& key)
     Trie* curr = this;
     for (char i : key)
     {
+        if(!curr) continue;
+        
         // create a new node if the path doesn't exist
         if (curr->character[i] == nullptr)
         {
@@ -212,11 +214,41 @@ int Trie::autocomplete(String query, Suggestions& result)
     return 0;
 }
 
+struct LambdaThread  : public Thread
+{
+    LambdaThread (std::function<void()> f) : Thread ("Library update thread"), fn (f) {
+        
+    }
+    
+    ~LambdaThread() {
+        stopThread(-1);
+    }
+
+    void run() override
+    {
+        fn();
+        fn = nullptr; // free any objects that the lambda might contain while the thread is still active
+    }
+
+    std::function<void()> fn;
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LambdaThread)
+    
+};
+
 void Library::initialiseLibrary()
 {
-    Thread::launch([this]() {
+    auto* pdinstance = pd_this;
+    
+    auto updateFn = [this, pdinstance]() {
+        
         libraryLock.lock();
         
+        // Make sure instance is set correctly for this thread
+        #ifdef PDINSTANCE
+          pd_setinstance(pdinstance);
+        #endif
+                
         appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
         updateLibrary();
@@ -233,9 +265,17 @@ void Library::initialiseLibrary()
             appDirChanged();
         });
         
-        
         libraryLock.unlock();
-    });
+        
+        MessageManager::callAsync([this]() {
+            delete thread;
+            thread = nullptr;
+        });
+       
+    };
+    
+    thread = new LambdaThread(updateFn);
+    thread->startThread();
 }
 
 
@@ -251,7 +291,8 @@ void Library::updateLibrary()
     t_class* o = pd_objectmaker;
 
     t_methodentry *mlist, *m;
-
+    
+    
 #if PDINSTANCE
     mlist = o->c_methods[pd_this->pd_instanceno];
 #else
@@ -471,7 +512,6 @@ void Library::changeCallback()
     appDirChanged();
     updateLibrary();
 }
-
 
 ObjectMap Library::getObjectDescriptions() {
     if(libraryLock.try_lock()) {

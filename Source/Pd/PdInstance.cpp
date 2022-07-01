@@ -599,7 +599,7 @@ void Instance::setThis()
 
 void Instance::createPanel(int type, const char* snd, const char* location)
 {
-    setThis();
+    
     auto* obj = gensym(snd)->s_thing;
 
     auto defaultFile = File(location);
