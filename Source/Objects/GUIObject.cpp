@@ -198,8 +198,10 @@ GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processo
 
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&LookAndFeel::getDefaultLookAndFeel())->getPdLook());
     
-    MessageManager::callAsync([this](){
-        updateParameters();
+    MessageManager::callAsync([_this = SafePointer<GUIObject>(this)]{
+        if(_this) {
+            _this->updateParameters();
+        }
     });
 }
 
