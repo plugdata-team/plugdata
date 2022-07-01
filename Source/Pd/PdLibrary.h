@@ -69,8 +69,17 @@ class Trie
     int autocomplete(String query, Suggestions& result);
 };
 
+
+
 struct Library : public FileSystemWatcher::Listener
 {
+    
+    ~Library() {
+        if(thread) {
+            thread->waitForThreadToExit(-1);
+            delete thread;
+        }
+    }
     void initialiseLibrary();
 
     void updateLibrary();
@@ -81,6 +90,8 @@ struct Library : public FileSystemWatcher::Listener
     String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
     void changeCallback() override;
+    
+    Thread* thread;
     
     ObjectMap getObjectDescriptions();
     KeywordMap getObjectKeywords();

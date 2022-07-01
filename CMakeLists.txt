@@ -320,6 +320,7 @@ set(libs
   PlugDataBinaryData
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
+  juce::juce_dsp
 )
 
 #if(LIBSNDFILE_FOUND)
