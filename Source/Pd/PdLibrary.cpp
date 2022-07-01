@@ -214,16 +214,26 @@ int Trie::autocomplete(String query, Suggestions& result)
 
 void Library::initialiseLibrary()
 {
-    appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
+    /* TODO: Enable and test this for next release
+    Thread::launch([this](){
+        libraryLock.lock(); */
+        
+        appDataDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
 
-    updateLibrary();
+        updateLibrary();
 
-    auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
+        auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
-    parseDocumentation(pddocPath);
-    watcher.addFolder(appDataDir);
-    watcher.addListener(this);
+        parseDocumentation(pddocPath);
+        
+        watcher.addFolder(appDataDir);
+        watcher.addListener(this);
+        
+    /*
+        libraryLock.unlock();
+    }); */
 }
+
 
 void Library::updateLibrary()
 {
@@ -417,7 +427,7 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
     auto name = boxname.upToFirstOccurrenceOf(" ", false, false);
     auto args = StringArray::fromTokens(boxname.fromFirstOccurrenceOf(" ", false, false), true);
 
-    auto findInfo = [&name, &args, &total, &idx](IODescriptionMap& map)
+    auto findInfo = [&name, &args, &total, &idx](IODescriptionMap map)
     {
         if (map.count(name))
         {
@@ -449,13 +459,55 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
         return String();
     };
 
-    return isInlet ? findInfo(inletDescriptions) : findInfo(outletDescriptions);
+    return isInlet ? findInfo(getInletDescriptions()) : findInfo(getOutletDescriptions());
 }
 
 void Library::changeCallback()
 {
     appDirChanged();
     updateLibrary();
+}
+
+
+ObjectMap Library::getObjectDescriptions() {
+    if(libraryLock.try_lock()) {
+        auto descriptions = objectDescriptions;
+        libraryLock.unlock();
+        return descriptions;
+    }
+    return {};
+}
+KeywordMap Library::getObjectKeywords() {
+    if(libraryLock.try_lock()) {
+        auto keywords = objectKeywords;
+        libraryLock.unlock();
+        return keywords;
+    }
+    return {};
+}
+IODescriptionMap Library::getInletDescriptions() {
+    if(libraryLock.try_lock()) {
+        auto descriptions = inletDescriptions;
+        libraryLock.unlock();
+        return descriptions;
+    }
+    return {};
+}
+IODescriptionMap Library::getOutletDescriptions() {
+    if(libraryLock.try_lock()) {
+        auto descriptions = outletDescriptions;
+        libraryLock.unlock();
+        return descriptions;
+    }
+    return {};
+}
+ArgumentMap Library::getArguments() {
+    if(libraryLock.try_lock()) {
+        auto args = arguments;
+        libraryLock.unlock();
+        return args;
+    }
+    return {};
 }
 
 }  // namespace pd
