@@ -739,7 +739,7 @@ class PlugDataWindow : public DocumentWindow
         ~MainContentComponent() override
         {
             setApplicationCommandManagerToWatch(nullptr);
-#if JUCE_MAC
+#if JUCE_MAC && !TESTING
             MenuBarModel::setMacMainMenu(nullptr);
 #endif
             if (editor != nullptr)

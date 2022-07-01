@@ -53,23 +53,27 @@ TEST_CASE("Create and delete objects", "[name]")
 {
     StartApplication;
     
-    auto* obj1 = editor->getCurrentCanvas()->patch.createObject("metro 200", 200, 500);
-    auto* obj2 = editor->getCurrentCanvas()->patch.createObject("tgl", 300, 700);
+    MessageManager::callAsync([=](){
+        
+       
+        auto* obj1 = editor->getCurrentCanvas()->patch.createObject("metro 200", 200, 500);
+        auto* obj2 = editor->getCurrentCanvas()->patch.createObject("tgl", 300, 700);
+        
+        editor->getCurrentCanvas()->synchronise();
+        
+        REQUIRE(editor->getCurrentCanvas()->boxes.getFirst()->getObjectBounds().getPosition() == Point<int>(200, 500));
+        
+        REQUIRE(editor->getCurrentCanvas()->boxes[0]->getPointer() == obj1);
+        REQUIRE(editor->getCurrentCanvas()->boxes[1]->getPointer() == obj2);
+        
+        editor->getCurrentCanvas()->patch.removeObject(obj1);
+        editor->getCurrentCanvas()->patch.removeObject(obj2);
+        
+        editor->getCurrentCanvas()->synchronise();
+        
+        REQUIRE(editor->getCurrentCanvas()->boxes.size() == 0);
     
-    editor->getCurrentCanvas()->synchronise();
+    });
     
-    REQUIRE(editor->getCurrentCanvas()->boxes.getFirst()->getObjectBounds().getPosition() == Point<int>(200, 500));
-    
-    REQUIRE(editor->getCurrentCanvas()->boxes[0]->getPointer() == obj1);
-    REQUIRE(editor->getCurrentCanvas()->boxes[1]->getPointer() == obj2);
-    
-    editor->getCurrentCanvas()->patch.removeObject(obj1);
-    editor->getCurrentCanvas()->patch.removeObject(obj2);
-    
-    editor->getCurrentCanvas()->synchronise();
-    
-    REQUIRE(editor->getCurrentCanvas()->boxes.size() == 0);
-    
-    
-    StopApplicationAfter(500);
+    StopApplicationAfter(1500);
 }
