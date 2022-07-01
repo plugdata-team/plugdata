@@ -81,20 +81,30 @@ struct Library : public FileSystemWatcher::Listener
     String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
     void changeCallback() override;
+    
+    ObjectMap getObjectDescriptions();
+    KeywordMap getObjectKeywords();
+    IODescriptionMap getInletDescriptions();
+    IODescriptionMap getOutletDescriptions();
+    ArgumentMap getArguments();
+    
 
+    std::function<void()> appDirChanged;
+    
+private:
     ObjectMap objectDescriptions;
     KeywordMap objectKeywords;
     IODescriptionMap inletDescriptions;
     IODescriptionMap outletDescriptions;
     ArgumentMap arguments;
+    
+    std::mutex libraryLock;
 
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
 
     std::unique_ptr<Trie> searchTree;
 
     File appDataDir;
-
-    std::function<void()> appDirChanged;
     FileSystemWatcher watcher;
 };
 

@@ -922,13 +922,12 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         
         // Update undo state
         main.updateCommandStatus();
+        
+        checkBounds();
+        didStartDragging = false;
     }
 
-    if (didStartDragging) didStartDragging = false;
-
     componentBeingDragged = nullptr;
-
-    checkBounds();
 
     component->repaint();
 }
