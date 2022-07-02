@@ -80,6 +80,22 @@ struct DraggableNumber : public MouseListener
         dragStart();
 
     }
+
+    
+    // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
+    void mouseEnter(const MouseEvent& e) {
+        if(e.mouseWasDraggedSinceMouseDown()) return;
+        
+        label.setMouseCursor(MouseCursor::NormalCursor);
+        label.updateMouseCursor();
+    }
+
+    void mouseExit(const MouseEvent& e) {
+        if(e.mouseWasDraggedSinceMouseDown()) return;
+        
+        label.setMouseCursor(MouseCursor::NormalCursor);
+        label.updateMouseCursor();
+    }
     
     void mouseDrag(const MouseEvent& e) {
         if (label.isBeingEdited()) return;

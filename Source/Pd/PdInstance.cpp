@@ -533,24 +533,12 @@ void Instance::waitForStateUpdate()
         return;
     }
 
-    // if (audioStarted) {
     //  Append signal to resume thread at the end of the queue
     //  This will make sure that any actions we performed are definitely finished now
     //  If it can aquire a lock, it will dequeue all action immediately
     enqueueFunction([this]() { updateWait.signal(); });
 
     updateWait.wait();
-    //}
-    // Should ensure that patches are loaded correctly when audio hasn't started yet
-    /*
-    else
-    {
-        std::function<void(void)> callback;
-        while (m_function_queue.try_dequeue(callback))
-        {
-            callback();
-        }
-    } */
 }
 
 void Instance::sendMessagesFromQueue()
