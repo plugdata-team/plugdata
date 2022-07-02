@@ -179,7 +179,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     std::atomic<float> standaloneParams[numParameters] = {0};
 #endif
     
-    int oversampling = 1;
+    // Zero means no oversampling
+    int oversampling = 0;
 
    private:
     void processInternal();
