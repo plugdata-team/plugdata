@@ -34,6 +34,8 @@ struct Statusbar : public Component, public Value::Listener
 
     std::unique_ptr<TextButton> powerButton, lockButton, connectionStyleButton, connectionPathfind, presentationButton, zoomIn, zoomOut, gridButton, themeButton, browserButton, automationButton;
 
+    TextButton oversampleSelector;
+    
     Label zoomLabel;
 
     Slider volumeSlider;
