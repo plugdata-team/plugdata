@@ -214,27 +214,6 @@ int Trie::autocomplete(String query, Suggestions& result)
     return 0;
 }
 
-struct LambdaThread  : public Thread
-{
-    LambdaThread (std::function<void()> f) : Thread ("Library update thread"), fn (f) {
-        
-    }
-    
-    ~LambdaThread() {
-        stopThread(-1);
-    }
-
-    void run() override
-    {
-        fn();
-        fn = nullptr; // free any objects that the lambda might contain while the thread is still active
-    }
-
-    std::function<void()> fn;
-
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LambdaThread)
-    
-};
 
 void Library::initialiseLibrary()
 {
@@ -266,61 +245,61 @@ void Library::initialiseLibrary()
         });
         
         libraryLock.unlock();
-        
-        MessageManager::callAsync([this]() {
-            delete thread;
-            thread = nullptr;
-        });
-       
     };
     
-    thread = new LambdaThread(updateFn);
-    thread->startThread();
+    thread = new LambdaThread();
+    thread->runLambda(updateFn);
 }
 
 
 void Library::updateLibrary()
 {
-    auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
-
-    auto pathTree = settingsTree.getChildWithName("Paths");
-
-    searchTree = std::make_unique<Trie>();
-
-    int i;
-    t_class* o = pd_objectmaker;
-
-    t_methodentry *mlist, *m;
-    
-    
+    auto updateFn = [this]() {
+        
+        auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
+        
+        auto pathTree = settingsTree.getChildWithName("Paths");
+        
+        searchTree = std::make_unique<Trie>();
+        
+        int i;
+        t_class* o = pd_objectmaker;
+        
+        t_methodentry *mlist, *m;
+        
+        
 #if PDINSTANCE
-    mlist = o->c_methods[pd_this->pd_instanceno];
+        mlist = o->c_methods[pd_this->pd_instanceno];
 #else
-    mlist = o->c_methods;
+        mlist = o->c_methods;
 #endif
-
-    for (i = o->c_nmethod, m = mlist; i--; m++)
-    {
-        String name(m->me_name->s_name);
-        searchTree->insert(m->me_name->s_name);
-    }
-
-    searchTree->insert("graph");
-
-    for (auto path : pathTree)
-    {
-        auto filePath = File(path.getProperty("Path").toString());
-
-        for (const auto& iter : RangedDirectoryIterator(filePath, true))
+        
+        for (i = o->c_nmethod, m = mlist; i--; m++)
         {
-            auto file = iter.getFile();
-            // Get pd files but not help files
-            if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help")))
+            String name(m->me_name->s_name);
+            searchTree->insert(m->me_name->s_name);
+        }
+        
+        searchTree->insert("graph");
+        
+        for (auto path : pathTree)
+        {
+            auto filePath = File(path.getProperty("Path").toString());
+            
+            for (const auto& iter : RangedDirectoryIterator(filePath, true))
             {
-                searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+                auto file = iter.getFile();
+                // Get pd files but not help files
+                if (file.getFileExtension() == ".pd" && !(file.getFileNameWithoutExtension().startsWith("help-") || file.getFileNameWithoutExtension().endsWith("-help")))
+                {
+                    searchTree->insert(file.getFileNameWithoutExtension().toStdString());
+                }
             }
         }
-    }
+    };
+    
+    jassert(thread);
+    thread->runLambda(updateFn);
 }
 
 void Library::parseDocumentation(const String& path)
