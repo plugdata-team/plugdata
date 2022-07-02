@@ -56,6 +56,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     volume = parameters.getRawParameterValue("volume");
 
     parameters.replaceState(ValueTree("PlugData"));
+    
+    
     {
         const MessageManagerLock mmLock;
         
@@ -112,6 +114,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
             }
         }
 
+        
         updateSearchPaths();
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
         
@@ -226,6 +229,8 @@ void PlugDataAudioProcessor::updateSearchPaths()
     // Reload pd search paths from settings
     auto pathTree = settingsTree.getChildWithName("Paths");
 
+    getCallbackLock()->enter();
+    
     libpd_clear_search_path();
     for (auto child : pathTree)
     {
@@ -241,6 +246,8 @@ void PlugDataAudioProcessor::updateSearchPaths()
         libpd_add_to_search_path(location.toRawUTF8());
     }
 
+    getCallbackLock()->exit();
+    
     objectLibrary.updateLibrary();
 }
 
