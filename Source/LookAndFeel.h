@@ -187,6 +187,10 @@ struct PlugDataLook : public LookAndFeel_V4
         {
             return getToolbarFont(buttonHeight);
         }
+        if (but.getName().startsWith("statusbar:oversample"))
+        {
+            return {buttonHeight / 2.2f};
+        }
         if (but.getName().startsWith("statusbar") || but.getName().startsWith("tab"))
         {
             return getStatusbarFont(buttonHeight);
@@ -392,7 +396,7 @@ struct PlugDataLook : public LookAndFeel_V4
         g.setColour(baseColour);
         g.fillRect(rect);
     }
-
+    
     void drawComboBox(Graphics& g, int width, int height, bool, int, int, int, int, ComboBox& box) override
     {
         bool inspectorElement = box.getName().startsWith("inspector");

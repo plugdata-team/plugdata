@@ -24,6 +24,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     static AudioProcessor::BusesProperties buildBusesProperties();
 
+    void setOversampling(int amount);
     void prepareToPlay(double sampleRate, int samplesPerBlock) override;
     void releaseResources() override;
 
@@ -31,7 +32,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 #endif
 
-    void processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages) override;
+   
     void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
 
     AudioProcessorEditor* createEditor() override;
@@ -92,7 +93,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
         }
     };
 
-    void process(AudioSampleBuffer&, MidiBuffer&);
+    void process(dsp::AudioBlock<float>, MidiBuffer&);
 
     void setCallbackLock(const CriticalSection* lock)
     {
@@ -142,7 +143,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     int lastUIWidth = 1000, lastUIHeight = 650;
 
-    AudioBuffer<float> processingBuffer;
+    std::vector<float*> channelPointers;
 
     std::atomic<float>* volume;
 
@@ -177,6 +178,8 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 #if PLUGDATA_STANDALONE
     std::atomic<float> standaloneParams[numParameters] = {0};
 #endif
+    
+    int oversampling = 1;
 
    private:
     void processInternal();
@@ -203,7 +206,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     int minOut = 2;
     
     std::unique_ptr<dsp::Oversampling<float>> oversampler;
-    int oversampling = 1;
 
     const CriticalSection* audioLock;
     

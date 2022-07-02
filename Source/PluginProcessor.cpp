@@ -67,6 +67,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
         // Initialise library for text autocompletion
         objectLibrary.initialiseLibrary();
     }
+    
+    channelPointers.reserve(32);
 
     // Set up midi buffers
     midiBufferIn.ensureSize(2048);
@@ -119,6 +121,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     if (settingsTree.hasProperty("Theme"))
     {
         setTheme(static_cast<bool>(settingsTree.getProperty("Theme")));
+    }
+    
+    if(settingsTree.hasProperty("Oversampling")) {
+        oversampling = static_cast<int>(settingsTree.getProperty("Oversampling"));
     }
 
     setLatencySamples(pd::Instance::getBlockSize());
@@ -299,6 +305,20 @@ void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
 {
 }
 
+void PlugDataAudioProcessor::setOversampling(int amount)
+{
+    settingsTree.setProperty("Oversampling", var(amount), nullptr);
+    saveSettings();
+    
+    oversampling = amount;
+    auto blockSize = AudioProcessor::getBlockSize();
+    auto sampleRate = AudioProcessor::getSampleRate();
+    
+    suspendProcessing(true);
+    prepareToPlay(sampleRate, blockSize);
+    suspendProcessing(false);
+}
+
 void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBlock)
 {
     float oversampleFactor = 1 << oversampling;
@@ -306,11 +326,11 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     
     prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor);
     
-    oversampler.reset (new dsp::Oversampling<float> (maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandFIREquiripple, false));
+    oversampler.reset (new dsp::Oversampling<float> (maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
     
     oversampler->initProcessing (samplesPerBlock);
     
-    // sendCurrentBusesLayoutInformation();
+    
     audioAdvancement = 0;
     const auto blksize = static_cast<size_t>(Instance::getBlockSize());
     const auto numIn = std::max(static_cast<size_t>(getTotalNumInputChannels()), static_cast<size_t>(2));
@@ -330,17 +350,12 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
 
     startDSP();
 
-    processingBuffer.setSize(2, samplesPerBlock);
-
     statusbarSource.prepareToPlay(getTotalNumOutputChannels());
-
-    // audioStarted = true;
 }
 
 void PlugDataAudioProcessor::releaseResources()
 {
     releaseDSP();
-    // audioStarted = false;
 }
 
 //#ifndef JucePlugin_PreferredChannelConfigurations
@@ -378,16 +393,7 @@ bool PlugDataAudioProcessor::isBusesLayoutSupported(const BusesLayout& layouts) 
     return ninch <= 32 && noutch <= 32;
 }
 
-void PlugDataAudioProcessor::processBlockBypassed(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
-{
-    ScopedNoDenormals noDenormals;
-    auto totalNumInputChannels = getTotalNumInputChannels();
 
-    processingBuffer.setSize(2, buffer.getNumSamples());
-
-    processingBuffer.copyFrom(0, 0, buffer, 0, 0, buffer.getNumSamples());
-    processingBuffer.copyFrom(1, 0, buffer, totalNumInputChannels == 2 ? 1 : 0, 0, buffer.getNumSamples());
-}
 
 void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer& midiMessages)
 {
@@ -404,14 +410,20 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     midiBufferCopy.clear();
     midiBufferCopy.addEvents(midiMessages, 0, buffer.getNumSamples(), audioAdvancement);
 
-    process(buffer, midiMessages);
+    auto targetBlock = dsp::AudioBlock<float>(buffer);
+    auto blockOut = oversampling > 0 ? oversampler->processSamplesUp(targetBlock) : targetBlock;
+    
+    process(blockOut, midiMessages);
+        
+    if(oversampling > 0) {
+        oversampler->processSamplesDown(targetBlock);
+    }
 
     buffer.applyGain(getParameters()[0]->getValue());
-
     statusbarSource.processBlock(buffer, midiBufferCopy, midiMessages, totalNumOutputChannels);
 }
 
-void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midiMessages)
+void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& midiMessages)
 {
     ScopedNoDenormals noDenormals;
     const int blockSize = Instance::getBlockSize();
@@ -420,15 +432,19 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
     const int numLeft = blockSize - adv;
     const int numIn = getTotalNumInputChannels();
     const int numOut = getTotalNumOutputChannels();
-    const float** bufferIn = buffer.getArrayOfReadPointers();
-    float** bufferOut = buffer.getArrayOfWritePointers();
+
+    channelPointers.clear();
+    for(int ch = 0; ch < std::max(numIn, numOut); ch++) {
+        channelPointers.push_back(buffer.getChannelPointer(ch));
+    }
+
     const bool midiConsume = acceptsMidi();
     const bool midiProduce = producesMidi();
 
-    auto const maxOuts = std::max(numOut, buffer.getNumChannels());
-    for (int i = numIn; i < maxOuts; ++i)
+    auto const maxOuts = std::max<int>(numOut, buffer.getNumChannels());
+    for (int ch = numIn; ch < maxOuts; ch++)
     {
-        buffer.clear(i, 0, numSamples);
+        buffer.getSingleChannelBlock(ch).clear();
     }
 
     // If the current number of samples in this block
@@ -440,12 +456,12 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
         for (int j = 0; j < numIn; ++j)
         {
             const int index = j * blockSize + adv;
-            std::copy_n(bufferIn[j], numSamples, audioBufferIn.data() + index);
+            FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j], numSamples);
         }
         for (int j = 0; j < numOut; ++j)
         {
             const int index = j * blockSize + adv;
-            std::copy_n(audioBufferOut.data() + index, numSamples, bufferOut[j]);
+            FloatVectorOperations::copy(channelPointers[j], audioBufferOut.data() + index, numSamples);
         }
         if (midiConsume)
         {
@@ -475,12 +491,12 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
         for (int j = 0; j < numIn; ++j)
         {
             const int index = j * blockSize + adv;
-            std::copy_n(bufferIn[j], numLeft, audioBufferIn.data() + index);
+            FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j], numLeft);
         }
         for (int j = 0; j < numOut; ++j)
         {
             const int index = j * blockSize + adv;
-            std::copy_n(audioBufferOut.data() + index, numLeft, bufferOut[j]);
+            FloatVectorOperations::copy(channelPointers[j], audioBufferOut.data() + index, numLeft);
         }
         if (midiConsume)
         {
@@ -501,12 +517,12 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
             for (int j = 0; j < numIn; ++j)
             {
                 const int index = j * blockSize;
-                std::copy_n(bufferIn[j] + pos, blockSize, audioBufferIn.data() + index);
+                FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j] + pos, blockSize);
             }
             for (int j = 0; j < numOut; ++j)
             {
                 const int index = j * blockSize;
-                std::copy_n(audioBufferOut.data() + index, blockSize, bufferOut[j] + pos);
+                FloatVectorOperations::copy(channelPointers[j] + pos, audioBufferOut.data() + index, blockSize);
             }
             if (midiConsume)
             {
@@ -529,12 +545,12 @@ void PlugDataAudioProcessor::process(AudioSampleBuffer& buffer, MidiBuffer& midi
             for (int j = 0; j < numIn; ++j)
             {
                 const int index = j * blockSize;
-                std::copy_n(bufferIn[j] + pos, remaining, audioBufferIn.data() + index);
+                FloatVectorOperations::copy(audioBufferIn.data() + index, channelPointers[j] + pos, remaining);
             }
             for (int j = 0; j < numOut; ++j)
             {
                 const int index = j * blockSize;
-                std::copy_n(audioBufferOut.data() + index, remaining, bufferOut[j] + pos);
+                FloatVectorOperations::copy(channelPointers[j] + pos, audioBufferOut.data() + index, remaining);
             }
             if (midiConsume)
             {
@@ -762,7 +778,7 @@ void PlugDataAudioProcessor::processInternal()
     sendMidiBuffer();
 
     // Process audio
-    std::copy_n(audioBufferOut.data() + (2 * 64), (minOut - 2) * 64, audioBufferIn.data() + (2 * 64));
+    FloatVectorOperations::copy(audioBufferIn.data() + (2 * 64), audioBufferOut.data() + (2 * 64), (minOut - 2) * 64);
     performDSP(audioBufferIn.data(), audioBufferOut.data());
 }
 

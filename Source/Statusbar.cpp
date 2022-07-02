@@ -151,6 +151,35 @@ Statusbar::Statusbar(PlugDataAudioProcessor& processor) : pd(processor)
     locked.addListener(this);
     commandLocked.addListener(this);
     
+    
+    oversampleSelector.setTooltip("Set oversampling");
+    oversampleSelector.setName("statusbar:oversample");
+    oversampleSelector.setColour(ComboBox::outlineColourId, Colours::transparentBlack);
+    
+    
+    oversampleSelector.setButtonText(String(1 << pd.oversampling) + "x");
+    
+    oversampleSelector.onClick = [this](){
+        PopupMenu menu;
+        menu.addItem(1, "1x");
+        menu.addItem(2, "2x");
+        menu.addItem(3, "4x");
+        menu.addItem(4, "8x");
+        
+        auto* editor = pd.getActiveEditor();
+        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(&oversampleSelector).withParentComponent(editor),
+                           [this](int result)
+                           {
+                               if (result != 0)
+                               {
+                                   oversampleSelector.setButtonText(String(1 << (result - 1)) + "x");
+                                   pd.setOversampling(result - 1);
+                               }
+                           });
+    };
+    addAndMakeVisible(oversampleSelector);
+    
+    
     powerButton = std::make_unique<TextButton>(Icons::Power);
     lockButton = std::make_unique<TextButton>(Icons::Lock);
     connectionStyleButton = std::make_unique<TextButton>(Icons::ConnectionStyle);
@@ -373,6 +402,9 @@ void Statusbar::resized()
     int levelMeterPosition = position(100, true);
     levelMeter->setBounds(levelMeterPosition, 0, 100, getHeight());
     volumeSlider.setBounds(levelMeterPosition, 0, 100, getHeight());
+    
+    // Offset to make text look centred
+    oversampleSelector.setBounds(position(getHeight(), true) + 3, 0, getHeight(), getHeight());
 
     midiBlinker->setBounds(position(55, true), 0, 55, getHeight());
 }
