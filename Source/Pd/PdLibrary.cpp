@@ -254,7 +254,8 @@ void Library::initialiseLibrary()
 
 void Library::updateLibrary()
 {
-    auto updateFn = [this]() {
+    auto* pdinstance = pd_this;
+    auto updateFn = [this, pdinstance]() {
         
         auto settingsTree = ValueTree::fromXml(appDataDir.getChildFile("Settings.xml").loadFileAsString());
         
@@ -269,7 +270,7 @@ void Library::updateLibrary()
         
         
 #if PDINSTANCE
-        mlist = o->c_methods[pd_this->pd_instanceno];
+        mlist = o->c_methods[pdinstance->pd_instanceno];
 #else
         mlist = o->c_methods;
 #endif
