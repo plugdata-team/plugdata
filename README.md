@@ -9,7 +9,7 @@ PlugData is a plugin wrapper for PureData, featuring a new GUI made with JUCE. T
 
 ## Installation
 
-Linux users are adviced to install PlugData using the repositories [here](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata). Arch users can also install [the AUR package](https://aur.archlinux.org/packages/plugdata-git).
+Linux users are advised to install PlugData using the repositories [here](https://software.opensuse.org//download.html?project=home%3Aplugdata&package=plugdata). Arch users can also install [the AUR package](https://aur.archlinux.org/packages/plugdata-git).
 
 For Mac and Windows, you can find the last stable-ish release in the releases section on the right, or download a recent build from the actions tab.
 
