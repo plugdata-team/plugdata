@@ -249,6 +249,8 @@ int PlugDataApp::parseSystemArguments(const String& arguments)
     {
         argv[i] = args.getReference(i).toRawUTF8();
     }
+    
+    sys_lock();
 
     t_audiosettings as;
     /* get the current audio parameters.  These are set
@@ -527,6 +529,9 @@ int PlugDataApp::parseSystemArguments(const String& arguments)
     for (; argc > 0; argc--, argv++) sys_openlist = namelist_append_files(sys_openlist, *argv);
 
     sys_set_audio_settings(&as);
+    sys_unlock();
+
+    
     return (0);
 }
 

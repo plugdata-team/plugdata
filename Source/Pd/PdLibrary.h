@@ -69,7 +69,34 @@ class Trie
     int autocomplete(String query, Suggestions& result);
 };
 
+struct LambdaThread  : public Thread
+{
+    LambdaThread () : Thread ("Library update thread") {
+        
+    }
+    
+    ~LambdaThread() {
+        stopThread(-1);
+    }
 
+    void run() override
+    {
+        fn();
+        fn = nullptr; // free any objects that the lambda might contain while the thread is still active
+    }
+    
+    void runLambda(std::function<void()> func) {
+        fn = func;
+        startThread();
+    }
+    
+private:
+    
+    std::function<void()> fn;
+    
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LambdaThread)
+    
+};
 
 struct Library : public FileSystemWatcher::Listener
 {
@@ -91,7 +118,7 @@ struct Library : public FileSystemWatcher::Listener
 
     void changeCallback() override;
     
-    Thread* thread;
+    LambdaThread* thread;
     
     ObjectMap getObjectDescriptions();
     KeywordMap getObjectKeywords();
