@@ -463,8 +463,8 @@ void Connection::componentMovedOrResized(Component& component, bool wasMoved, bo
     auto& position = pstart;
     if (&component == inlet || &component == inbox)
     {
-        idx1 = currentPlan.size() - 1;
-        idx2 = currentPlan.size() - 2;
+        idx1 = static_cast<int>(currentPlan.size() - 1);
+        idx2 = static_cast<int>(currentPlan.size() - 2);
         position = pend;
     }
 
@@ -557,7 +557,7 @@ void Connection::updatePath()
         };
 
         snap(pstart, 0, 1);
-        snap(pend, currentPlan.size() - 1, currentPlan.size() - 2);
+        snap(pend, static_cast<int>(currentPlan.size() - 1), static_cast<int>(currentPlan.size() - 2));
 
         Path connectionPath;
         connectionPath.startNewSubPath(pstart.toFloat());

@@ -434,7 +434,7 @@ void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& 
 {
     ScopedNoDenormals noDenormals;
     const int blockSize = Instance::getBlockSize();
-    const int numSamples = buffer.getNumSamples();
+    const int numSamples = static_cast<int>(buffer.getNumSamples());
     const int adv = audioAdvancement >= 64 ? 0 : audioAdvancement;
     const int numLeft = blockSize - adv;
     const int numIn = getTotalNumInputChannels();
@@ -448,7 +448,7 @@ void PlugDataAudioProcessor::process(dsp::AudioBlock<float> buffer, MidiBuffer& 
     const bool midiConsume = acceptsMidi();
     const bool midiProduce = producesMidi();
 
-    auto const maxOuts = std::max<int>(numOut, buffer.getNumChannels());
+    auto const maxOuts = std::max(numOut, std::max(numIn, numOut));
     for (int ch = numIn; ch < maxOuts; ch++)
     {
         buffer.getSingleChannelBlock(ch).clear();
