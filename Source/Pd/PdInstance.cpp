@@ -431,7 +431,7 @@ void Instance::processPrints()
         }
         else if(print.back() == '\n')
         {
-            while(print.back() == '\n' || print.back() == ' ') {
+            while(!print.empty() && (print.back() == '\n' || print.back() == ' ')) {
                 print.pop_back();
             }
             temp += print;

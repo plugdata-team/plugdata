@@ -93,7 +93,7 @@ struct Console : public Component
         // Draw background if we don't have enough messages to fill the panel
         int h = 24;
         int y = console->getTotalHeight();
-        int idx = console->messages.size();
+        int idx = static_cast<int>(console->messages.size());
         while(y < console->getHeight()) {
             
             if(y + h > console->getHeight()) {

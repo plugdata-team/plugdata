@@ -19,7 +19,7 @@ struct ThemePanel : public Component, public Value::Listener
         panels.add(new PropertiesPanel::FontComponent("Default font", fontValue, 0));
 
         // Get current colour
-        int numColours = PlugDataLook::colourNames[0].size();
+        auto numColours = PlugDataLook::colourNames[0].size();
         colours.resize(2);
 
         for (int i = 0; i < numColours; i++)
@@ -53,7 +53,7 @@ struct ThemePanel : public Component, public Value::Listener
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
-            int numColours = PlugDataLook::colourNames[0].size();
+            auto numColours = PlugDataLook::colourNames[0].size();
             for (int i = 0; i < 2; i++)
             {
                 for (int j = 0; j < numColours; j++)
@@ -86,7 +86,8 @@ struct ThemePanel : public Component, public Value::Listener
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
             getTopLevelComponent()->repaint();
         }
-        int numColours = PlugDataLook::colourNames[0].size();
+        
+        auto numColours = PlugDataLook::colourNames[0].size();
         for (int i = 0; i < 2; i++)
         {
             for (int j = 0; j < numColours; j++)

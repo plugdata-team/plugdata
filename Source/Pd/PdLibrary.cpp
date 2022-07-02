@@ -394,7 +394,7 @@ void Library::parseDocumentation(const String& path)
         if (sections.count("inlets"))
         {
             auto section = getSections(sections["inlets"].first, numbers);
-            inletDescriptions[name].resize(section.size());
+            inletDescriptions[name].resize(static_cast<int>(section.size()));
             for (auto [number, content] : section)
             {
                 String tooltip;
@@ -412,7 +412,7 @@ void Library::parseDocumentation(const String& path)
         if (sections.count("outlets"))
         {
             auto section = getSections(sections["outlets"].first, numbers);
-            outletDescriptions[name].resize(section.size());
+            outletDescriptions[name].resize(static_cast<int>(section.size()));
             for (auto [number, content] : section)
             {
                 String tooltip;

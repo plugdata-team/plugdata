@@ -231,7 +231,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         int yScroll = port->getViewPositionY();
         port->setBounds(getLocalBounds());
         buttonholder->setBounds(0, 0, getWidth(), std::min(numOptions, 20) * 22 + 2);
-
+        
         for (int i = 0; i < buttons.size(); i++) buttons[i]->setBounds(2, (i * 22) + 2, getWidth() - 2, 23);
 
         const int resizerSize = 12;
@@ -295,16 +295,18 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         {
             state = ShowingArguments;
             auto found = library.getArguments()[typedText.upToFirstOccurrenceOf(" ", false, false)];
-            for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
+            for (int i = 0; i < std::min<int>(buttons.size(), static_cast<int>(found.size())); i++)
             {
                 auto& [type, description, init] = found[i];
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
             }
+            
+            numOptions = static_cast<int>(found.size());
 
-            for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("", "", false);
+            for (int i = numOptions; i < buttons.size(); i++) buttons[i]->setText("", "", false);
 
-            numOptions = found.size();
+            
 
             setVisible(numOptions);
             currentidx = 0;
@@ -314,7 +316,9 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
 
-        for (int i = 0; i < std::min<int>(buttons.size(), found.size()); i++)
+        numOptions = static_cast<int>(found.size());
+        
+        for (int i = 0; i < std::min<int>(buttons.size(), numOptions); i++)
         {
             auto& [name, autocomplete] = found[i];
             
@@ -331,9 +335,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             buttons[i]->setInterceptsMouseClicks(true, false);
         }
 
-        for (int i = found.size(); i < buttons.size(); i++) buttons[i]->setText("", "", false);
-
-        numOptions = found.size();
+        for (int i = numOptions; i < buttons.size(); i++) buttons[i]->setText("", "", false);
 
         // Get length of user-typed text
         int textlen = e.getText().substring(0, start).length();
