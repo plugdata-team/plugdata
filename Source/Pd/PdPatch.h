@@ -58,6 +58,10 @@ class Patch
     void copy();
     void paste();
     void duplicate();
+    
+    
+    void startUndoSequence(String name);
+    void endUndoSequence(String name);
 
     void undo();
     void redo();

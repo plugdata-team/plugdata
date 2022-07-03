@@ -491,9 +491,9 @@ void Canvas::mouseUp(const MouseEvent& e)
             nearestEdge->createConnection();
         }
 
-        //if(e.mods.isShiftDown() && connectingEdges.size() == 1) {
+        if(!e.mods.isShiftDown() || connectingEdges.size() != 1) {
             connectingEdges.clear();
-        //}
+        }
         
         nearestEdge = nullptr;
         connectingWithDrag = false;
@@ -951,11 +951,11 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     
     if(boxSnappingInbetween) {
         auto* c = connectionToSnapInbetween.getComponent();
+        
         patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
         
         patch.createConnection(c->outbox->getPointer(), c->outIdx, boxSnappingInbetween->getPointer(), 0);
         patch.createConnection(boxSnappingInbetween->getPointer(), 0, c->inbox->getPointer(), c->inIdx);
-        
         
         boxSnappingInbetween->edges[0]->isTargeted = false;
         boxSnappingInbetween->edges[boxSnappingInbetween->numInputs]->isTargeted = false;
