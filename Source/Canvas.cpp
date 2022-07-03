@@ -386,7 +386,30 @@ void Canvas::mouseDown(const MouseEvent& e)
 void Canvas::mouseDrag(const MouseEvent& e)
 {
     // Ignore on graphs or when locked
-    if (isGraph || locked == var(true)) return;
+    if (isGraph || locked == var(true) || commandLocked == var(true))  {
+        bool hasToggled = false;
+        
+        // Behaviour for dragging over toggles, bang and radiogroup to toggle them
+        for(auto* box : boxes) {
+            if(!box->getBounds().contains(e.getEventRelativeTo(this).getPosition()) || !box->gui) continue;
+        
+            if(auto* obj = dynamic_cast<GUIObject*>(box->gui.get())) {
+                obj->toggleObject(e.getEventRelativeTo(obj).getPosition());
+                hasToggled = true;
+                break;
+            }
+        }
+        
+        if(!hasToggled) {
+            for(auto* box : boxes) {
+                if(auto* obj = dynamic_cast<GUIObject*>(box->gui.get())) {
+                    obj->untoggleObject();
+                }
+            }
+        }
+
+        return;
+    }
     
     auto viewportEvent = e.getEventRelativeTo(viewport);
 
@@ -925,6 +948,21 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
         checkBounds();
         didStartDragging = false;
     }
+    
+    if(boxSnappingInbetween) {
+        auto* c = connectionToSnapInbetween.getComponent();
+        patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+        
+        patch.createConnection(c->outbox->getPointer(), c->outIdx, boxSnappingInbetween->getPointer(), 0);
+        patch.createConnection(boxSnappingInbetween->getPointer(), 0, c->inbox->getPointer(), c->inIdx);
+        
+        
+        boxSnappingInbetween->edges[0]->isTargeted = false;
+        boxSnappingInbetween->edges[boxSnappingInbetween->numInputs]->isTargeted = false;
+        boxSnappingInbetween = nullptr;
+        
+        synchronise();
+    }
 
     componentBeingDragged = nullptr;
 
@@ -945,10 +983,39 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     {
         dragDistance = grid.handleMouseDrag(componentBeingDragged, dragDistance, viewport->getViewArea());
     }
+    
+    auto selection = getSelectionOfType<Box>();
 
-    for (auto* box : getSelectionOfType<Box>())
+    for (auto* box : selection)
     {
         box->setTopLeftPosition(box->mouseDownPos + dragDistance);
+    }
+    
+    // Behaviour for shift-dragging objects over
+    if(boxSnappingInbetween) {
+        bool stillSnapped = false;
+        if(connectionToSnapInbetween->intersectsObject(boxSnappingInbetween)) {
+            stillSnapped = true;
+            return;
+        }
+        
+        // If we're here, it's not snapping anymore
+        boxSnappingInbetween->edges[0]->isTargeted = false;
+        boxSnappingInbetween->edges[boxSnappingInbetween->numInputs]->isTargeted = false;
+        boxSnappingInbetween = nullptr;
+    }
+    
+    if(e.mods.isShiftDown() && selection.size() == 1) {
+        auto* box = selection.getFirst();
+        if(box->numInputs >= 1 && box->numOutputs >= 0)
+        for(auto* connection : connections) {
+            if(connection->intersectsObject(box)) {
+                box->edges[0]->isTargeted = true;
+                box->edges[box->numInputs]->isTargeted = true;
+                connectionToSnapInbetween = connection;
+                boxSnappingInbetween = box;
+            }
+        }
     }
 }
 

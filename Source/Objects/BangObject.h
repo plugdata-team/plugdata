@@ -7,6 +7,7 @@ struct BangObject final : public IEMObject
     Value bangHold = Value(40.0f);
 
     bool bangState = false;
+    bool alreadyBanged = false;
 
     BangObject(void* obj, Box* parent) : IEMObject(obj, parent)
     {
@@ -22,6 +23,19 @@ struct BangObject final : public IEMObject
         {
             box->setSize(size, size);
         }
+    }
+    void toggleObject(Point<int> position) override {
+        if(!alreadyBanged) {
+            startEdition();
+            setValueOriginal(1);
+            stopEdition();
+            update();
+            alreadyBanged = true;
+        }
+    }
+    
+    void untoggleObject() override {
+        alreadyBanged = false;
     }
 
     void mouseDown(const MouseEvent& e) override
