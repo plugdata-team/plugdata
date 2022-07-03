@@ -98,7 +98,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     OwnedArray<DrawablePath> drawables;
 
     bool connectingWithDrag = false;
-    SafePointer<Edge> connectingEdge;
+    Array<SafePointer<Edge>> connectingEdges;
     SafePointer<Edge> nearestEdge;
 
     pd::Patch& patch;

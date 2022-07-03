@@ -72,8 +72,9 @@ class Connection : public Component, public ComponentListener
 
    private:
     bool wasSelected = false;
-    bool deleteOnMouseUp = false;
     bool segmented = false;
+    
+    Array<SafePointer<Connection>> reconnecting;
 
     Rectangle<float> startReconnectHandle, endReconnectHandle;
 

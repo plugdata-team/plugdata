@@ -270,7 +270,6 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
     String filterNewText(TextEditor& e, const String& newInput) override
     {
         if(!currentBox)  {
-            
             return newInput;
         }
         
@@ -306,10 +305,9 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             for (int i = numOptions; i < buttons.size(); i++) buttons[i]->setText("", "", false);
 
-            
-
             setVisible(numOptions);
             currentidx = 0;
+
             return mutableInput;
         }
 
@@ -351,11 +349,11 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         if (newInput.isEmpty() || e.getCaretPosition() != textlen)
         {
             highlightEnd = 0;
-            return mutableInput;
         }
         
         // Limit it to minimum of the number of buttons and the number of suggestions
         int numButtons = std::min(20, numOptions);
+        
         currentidx = (currentidx + numButtons) % numButtons;
         
         // Retrieve best suggestion

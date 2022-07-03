@@ -148,7 +148,7 @@ Connection::~Connection()
 
 bool Connection::hitTest(int x, int y)
 {
-    if (locked == var(true) || cnv->connectingEdge) return false;
+    if (locked == var(true) || !cnv->connectingEdges.isEmpty()) return false;
 
     Point<float> position = Point<float>(static_cast<float>(x), static_cast<float>(y));
 
@@ -167,7 +167,7 @@ bool Connection::hitTest(int x, int y)
         return false;
 
     
-    return nearestPoint.getDistanceFrom(position) < 5;
+    return nearestPoint.getDistanceFrom(position) < 3;
 }
 
 bool Connection::intersects(Rectangle<float> toCheck, int accuracy) const
@@ -374,16 +374,24 @@ void Connection::mouseUp(const MouseEvent& e)
     {
         reconnect(outlet, false);
     }
-    if (deleteOnMouseUp)
+    if (reconnecting.size())
     {
-        SafePointer<Connection> deletionChecker(this);
+        for(auto& c : reconnecting) {
+            if(c) {
+                //cnv->connections.removeObject(c.getComponent());
+            }
+        }
+        reconnecting.clear();
+        /*
         MessageManager::callAsync(
-            [this, deletionChecker]() mutable
+            [this]() mutable
             {
-                if (!deletionChecker) return;
-
-                cnv->connections.removeObject(this);
-            });
+                for(auto& c : reconnecting) {
+                    if(c.getComponent()) {
+                        cnv->connections.removeObject(c.getComponent());
+                    }
+                }
+            }); */
     }
 }
 
@@ -406,33 +414,40 @@ int Connection::getClosestLineIdx(const Point<int>& position, const PathPlan& pl
 
 void Connection::reconnect(Edge* target, bool dragged)
 {
-    cnv->connectingEdge = nullptr;
+    if(!reconnecting.isEmpty()) return;
+    
+    auto& otherEdge = target == inlet ? outlet : inlet;
+    
+    Array<Connection*> connections = {this};
+    
+    if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown()) {
+        for(auto* c : otherEdge->box->getConnections()) {
+            if(c == this || !cnv->isSelected(c)) continue;
+            
+            connections.add(c);
+        }
+    }
+    
+    for(auto* c : connections) {
+        
+            if (cnv->patch.hasConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx))
+            {
+                // Delete connection from pd if we haven't done that yet
+                cnv->patch.removeConnection(c->outbox->getPointer(), c->outIdx, c->inbox->getPointer(), c->inIdx);
+            }
+            
+            // Create new connection
+            cnv->connectingEdges.add(target->isInlet ? c->inlet : c->outlet);
 
-    if (cnv->patch.hasConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx))
-    {
-        // Delete connection from pd if we haven't done that yet
-        cnv->patch.removeConnection(outbox->getPointer(), outIdx, inbox->getPointer(), inIdx);
+            cnv->connectingWithDrag = true;
+            c->setVisible(false);
+
+            reconnecting.add(SafePointer(c));
+
+        // Make sure we're deselected and remove object
+        cnv->setSelected(c, false);
     }
 
-    // Create new connection
-    cnv->connectingEdge = target;
-
-    if (dragged)
-    {
-        cnv->connectingWithDrag = true;
-        setVisible(false);
-
-        // Don't delete immediately as that would interrupt the mousedrag event
-        deleteOnMouseUp = true;
-    }
-    // Delete immediately if clicked
-    else
-    {
-        MessageManager::callAsync([this]() mutable { cnv->connections.removeObject(this); });
-    }
-
-    // Make sure we're deselected and remove object
-    cnv->setSelected(this, false);
 }
 
 void Connection::componentMovedOrResized(Component& component, bool wasMoved, bool wasResized)
