@@ -507,7 +507,7 @@ void Box::mouseUp(const MouseEvent& e)
 
     if (e.getDistanceFromDragStart() > 10 || e.getLengthOfMousePress() > 600)
     {
-        cnv->connectingEdge = nullptr;
+        cnv->connectingEdges.clear();
     }
 
     if (!originalBounds.isEmpty() && originalBounds.withPosition(0, 0) != getLocalBounds())
