@@ -468,7 +468,10 @@ void Canvas::mouseUp(const MouseEvent& e)
             nearestEdge->createConnection();
         }
 
-        connectingEdges.clear();
+        //if(e.mods.isShiftDown() && connectingEdges.size() == 1) {
+            connectingEdges.clear();
+        //}
+        
         nearestEdge = nullptr;
         connectingWithDrag = false;
         repaint();
