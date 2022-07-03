@@ -131,7 +131,10 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     {
         return 0.0f;
     };
-
+    
+    virtual void toggleObject(Point<int> position) {};
+    virtual void untoggleObject() {};
+    
     float getValueOriginal() const;
 
     void setValueOriginal(float v);

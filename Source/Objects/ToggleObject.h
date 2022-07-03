@@ -3,6 +3,7 @@
 struct ToggleObject final : public IEMObject
 {
     bool toggleState = false;
+    bool alreadyToggled = false;
     Value nonZero;
 
     ToggleObject(void* obj, Box* parent) : IEMObject(obj, parent)
@@ -38,7 +39,22 @@ struct ToggleObject final : public IEMObject
         g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
         g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
     }
-
+    
+    void toggleObject(Point<int> position) override {
+        if(!alreadyToggled) {
+            startEdition();
+            auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
+            setValueOriginal(newValue);
+            toggleState = newValue;
+            stopEdition();
+            alreadyToggled = true;
+        }
+    }
+    
+    void untoggleObject() override {
+        alreadyToggled = false;
+    }
+    
     void mouseDown(const MouseEvent& e) override
     {
         startEdition();

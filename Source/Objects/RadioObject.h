@@ -61,7 +61,17 @@ struct RadioObject final : public IEMObject
             dial->x_gui.x_h = getHeight();
         }
     }
+    
+    void toggleObject(Point<int> position) override {
+        for(auto* button : radioButtons) {
+            if(button->getBounds().contains(position)) {
+                button->triggerClick();
+               
+            }
+        }
+    }
 
+    
     float getValue() override
     {
         return isVertical ? (static_cast<t_vdial*>(ptr))->x_on : (static_cast<t_hdial*>(ptr))->x_on;

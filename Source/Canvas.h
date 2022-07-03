@@ -132,6 +132,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     bool attachNextObjectToMouse = false;
 
    private:
+    
+    SafePointer<Box> boxSnappingInbetween;
+    SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<Component*> lasso;
