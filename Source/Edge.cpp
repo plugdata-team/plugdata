@@ -93,6 +93,7 @@ void Edge::mouseUp(const MouseEvent& e)
     if (!e.mouseWasDraggedSinceMouseDown())
     {
         bool needsClearing = !box->cnv->connectingEdges.isEmpty();
+        if(box->cnv->connectingEdges.size() == 1 && e.mods.isShiftDown()) needsClearing = false;
         createConnection();
         if(needsClearing) box->cnv->connectingEdges.clear();
     }
