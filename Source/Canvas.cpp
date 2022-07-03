@@ -296,9 +296,9 @@ void Canvas::mouseDown(const MouseEvent& e)
         // Connecting objects by dragging
         if (source == this || source == graphArea)
         {
-            if (connectingEdge)
+            if (!connectingEdges.isEmpty())
             {
-                connectingEdge = nullptr;
+                connectingEdges.clear();
                 repaint();
             }
 
@@ -416,8 +416,10 @@ void Canvas::mouseDrag(const MouseEvent& e)
     // Drag lasso
     lasso.dragLasso(e);
 
-    if (connectingWithDrag && connectingEdge)
+    if (connectingWithDrag && !connectingEdges.isEmpty())
     {
+        auto& connectingEdge = connectingEdges.getReference(0);
+        
         auto* nearest = Edge::findNearestEdge(this, e.getEventRelativeTo(this).getPosition(), !connectingEdge->isInlet, connectingEdge->box);
 
         if (connectingWithDrag && nearest && nearestEdge != nearest)
@@ -454,31 +456,24 @@ void Canvas::mouseUp(const MouseEvent& e)
             setSelected(box, true);
         }
     }
-
+    
+    
     // Releasing a connect-by-drag action
-    if (connectingWithDrag && connectingEdge)
+    if (connectingWithDrag && !connectingEdges.isEmpty() && nearestEdge)
     {
-        if (nearestEdge)
-        {
-            nearestEdge->isTargeted = false;
-            nearestEdge->repaint();
-        }
-        auto pos = e.getEventRelativeTo(this).getPosition();
-        auto* nearest = Edge::findNearestEdge(this, pos, !connectingEdge->isInlet, connectingEdge->box);
-
-        if (nearest)
-        {
-            nearest->createConnection();
-            nearest->isTargeted = false;
+        nearestEdge->isTargeted = false;
+        nearestEdge->repaint();
+        
+        for(auto& edge : connectingEdges) {
+            nearestEdge->createConnection();
         }
 
-        connectingEdge = nullptr;
+        connectingEdges.clear();
         nearestEdge = nullptr;
         connectingWithDrag = false;
-
         repaint();
     }
-    else if (connectingWithDrag && !connectingEdge)
+    else if (connectingWithDrag && connectingEdges.isEmpty())
     {
         connectingWithDrag = false;
         repaint();
@@ -522,11 +517,12 @@ void Canvas::updateSidebarSelection()
 
 void Canvas::paintOverChildren(Graphics& g)
 {
+    Point<float> mousePos = getMouseXYRelative().toFloat();
+    
     // Draw connections in the making over everything else
-    if (connectingEdge)
+    for(auto& edge : connectingEdges)
     {
-        Point<float> mousePos = getMouseXYRelative().toFloat();
-        Point<int> edgePos = connectingEdge->getCanvasBounds().getCentre();
+        Point<int> edgePos = edge->getCanvasBounds().getCentre();
 
         Path path;
         path.startNewSubPath(edgePos.toFloat());
@@ -539,7 +535,7 @@ void Canvas::paintOverChildren(Graphics& g)
 
 void Canvas::mouseMove(const MouseEvent& e)
 {
-    if (connectingEdge)
+    if (!connectingEdges.isEmpty())
     {
         repaint();
     }
@@ -793,7 +789,7 @@ void Canvas::valueChanged(Value& v)
     // When lock changes
     if (v.refersToSameSourceAs(locked))
     {
-        if (connectingEdge) connectingEdge = nullptr;
+        if (!connectingEdges.isEmpty()) connectingEdges.clear();
         deselectAll();
         repaint();
     }

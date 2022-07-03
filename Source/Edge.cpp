@@ -78,9 +78,9 @@ void Edge::mouseDrag(const MouseEvent& e)
     // Ignore when locked
     if (bool(locked.getValue())) return;
 
-    if (!box->cnv->connectingEdge && e.getLengthOfMousePress() > 300)
+    if (box->cnv->connectingEdges.isEmpty() && e.getLengthOfMousePress() > 300)
     {
-        box->cnv->connectingEdge = this;
+        createConnection();
         auto* cnv = findParentComponentOfClass<Canvas>();
         cnv->connectingWithDrag = true;
     }
@@ -92,14 +92,18 @@ void Edge::mouseUp(const MouseEvent& e)
 
     if (!e.mouseWasDraggedSinceMouseDown())
     {
+        bool needsClearing = !box->cnv->connectingEdges.isEmpty();
         createConnection();
+        if(needsClearing) box->cnv->connectingEdges.clear();
     }
 
-    if (box->cnv->nearestEdge)
+    if (box->cnv->nearestEdge && !box->cnv->connectingEdges.isEmpty() && box->cnv->connectingEdges.getReference(0).getComponent() == this && getLocalBounds().contains(e.getPosition()))
     {
         box->cnv->nearestEdge->isTargeted = false;
         box->cnv->nearestEdge->repaint();
         box->cnv->nearestEdge = nullptr;
+        box->cnv->connectingEdges.clear();
+        
     }
 }
 
@@ -117,30 +121,45 @@ void Edge::mouseExit(const MouseEvent& e)
 void Edge::createConnection()
 {
     // Check if this is the start or end action of connecting
-    if (box->cnv->connectingEdge)
+    if (!box->cnv->connectingEdges.isEmpty())
     {
-        // Check type for input and output
-        bool sameDirection = isInlet == box->cnv->connectingEdge->isInlet;
+        for(auto& edge : box->cnv->connectingEdges) {
+            // Check type for input and output
+            bool sameDirection = isInlet == edge->isInlet;
 
-        bool connectionAllowed = box->cnv->connectingEdge->box != box && !sameDirection;
+            bool connectionAllowed = edge->box != box && !sameDirection;
 
-        // Don't create if this is the same edge
-        if (box->cnv->connectingEdge == this)
-        {
-            box->cnv->connectingEdge = nullptr;
-        }
-        // Create new connection if allowed
-        else if (connectionAllowed)
-        {
-            auto* cnv = findParentComponentOfClass<Canvas>();
-            cnv->connections.add(new Connection(cnv, box->cnv->connectingEdge, this));
-            box->cnv->connectingEdge = nullptr;
+            // Don't create if this is the same edge
+            if (edge == this)
+            {
+                box->cnv->connectingEdges.remove(&edge);
+            }
+            // Create new connection if allowed
+            else if (connectionAllowed)
+            {
+                auto* cnv = findParentComponentOfClass<Canvas>();
+                cnv->connections.add(new Connection(cnv, edge, this));
+            }
         }
     }
     // Else set this edge as start of a connection
     else
     {
-        box->cnv->connectingEdge = this;
+        if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isShiftDown() && box->cnv->isSelected(box)) {
+            int position = box->edges.indexOf(this);
+            position = isInlet ? position : position - box->numInputs;
+            for(auto* selectedBox : box->cnv->getSelectionOfType<Box>()) {
+                if(isInlet && position < selectedBox->numInputs) {
+                    box->cnv->connectingEdges.add(selectedBox->edges[position]);
+                }
+                else if(!isInlet && position < selectedBox->numOutputs) {
+                    box->cnv->connectingEdges.add(selectedBox->edges[selectedBox->numInputs + position]);
+                }
+            }
+        }
+        else {
+            box->cnv->connectingEdges.add(this);
+        }
     }
 }
 
