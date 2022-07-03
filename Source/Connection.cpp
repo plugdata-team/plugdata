@@ -377,10 +377,15 @@ void Connection::mouseUp(const MouseEvent& e)
     if (reconnecting.size())
     {
         for(auto& c : reconnecting) {
-            if(c) {
-                //cnv->connections.removeObject(c.getComponent());
+           
+                auto* canvas = cnv;
+                MessageManager::callAsync([c, canvas]() {
+                    if(c) {
+                        canvas->connections.removeObject(c.getComponent());
+                    }
+                });
+               
             }
-        }
         reconnecting.clear();
         /*
         MessageManager::callAsync(
@@ -444,8 +449,8 @@ void Connection::reconnect(Edge* target, bool dragged)
 
             reconnecting.add(SafePointer(c));
 
-        // Make sure we're deselected and remove object
-        cnv->setSelected(c, false);
+            // Make sure we're deselected and remove object
+            cnv->setSelected(c, false);
     }
 
 }
