@@ -10,12 +10,6 @@
 [submodule "Libraries/concurrentqueue"]
 	path = Libraries/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
-[submodule "Libraries/curl"]
-	path = Libraries/curl
-	url = https://github.com/curl/curl.git
-[submodule "Libraries/openssl"]
-	path = Libraries/openssl
-	url = https://github.com/openssl/openssl.git
 [submodule "Libraries/ELSE/sfont~/fluidsynth"]
 	path = Libraries/ELSE/sfont~/fluidsynth
 	url = https://github.com/chirs241097/fluidsynth-sans-glib.git
