@@ -55,6 +55,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     volume = parameters.getRawParameterValue("volume");
 
+    // TODO: ?? what does this do
     parameters.replaceState(ValueTree("PlugData"));
     
     
