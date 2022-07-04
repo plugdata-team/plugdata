@@ -134,7 +134,6 @@ jobs:
         submodules: recursive
 
     - name: Create Build Environment
-      shell: bash
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
