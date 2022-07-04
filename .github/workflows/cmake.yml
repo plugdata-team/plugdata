@@ -138,6 +138,7 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
+      shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A Win32 -DENABLE_TESTING=1
 
