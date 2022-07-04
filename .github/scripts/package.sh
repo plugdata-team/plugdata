@@ -9,7 +9,10 @@ cp LICENSE PlugData/LICENSE.txt
 
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  zip -r -q PlugData-$1.zip PlugData
+  hdiutil create ./tmp.dmg -ov -volname "PlugData-MacOS-Universal" -fs HFS+ -srcfolder "./PlugData/"
+  hdiutil convert ./tmp.dmg -format UDZO -o PlugData-MacOS-Universal.dmg
+
+  rm -f ./tmp.dmg
 else
   mv PlugData PlugData-$1
 fi
