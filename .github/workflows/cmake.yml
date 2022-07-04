@@ -61,7 +61,7 @@ jobs:
     - name: Code-sign Artefacts
       env:
         AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
       run: |
         gon -log-level=debug -log-json .github/scripts/MacOS/gon_regular.json
         gon -log-level=debug -log-json .github/scripts/MacOS/gon_fx.json
@@ -83,7 +83,7 @@ jobs:
       with:
         prerelease: true
         draft: true
-        files: PlugData-MacOS-Universal.dmg
+        files: PlugData-MacOS-Universal.pkg
 
   windows-64-build:
     runs-on: windows-2019
