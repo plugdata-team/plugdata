@@ -11,7 +11,8 @@ cp LICENSE PlugData/LICENSE.txt
 if [[ "$OSTYPE" == "darwin"* ]]; then
   hdiutil create ./tmp.dmg -ov -volname "PlugData-MacOS-Universal" -fs HFS+ -srcfolder "./PlugData/"
   hdiutil convert ./tmp.dmg -format UDZO -o PlugData-MacOS-Universal.dmg
-
+  
+  gon -log-level=debug -log-json .github/scripts/notarize.json
   rm -f ./tmp.dmg
 else
   mv PlugData PlugData-$1
