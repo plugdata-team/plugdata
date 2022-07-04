@@ -1,11 +1,11 @@
 {
-    "source" : ["./Plugins/VST3/PlugData.vst3/Contents/MacOS/PlugData", "./Plugins/AU/PlugData.component/Contents/MacOS/PlugData", "./Plugins/Standalone/PlugData.app/Contents/MacOS/PlugData"],
+    "source" : ["./Plugins/VST3/PlugData.vst3/Contents/MacOS/PlugData", "./Plugins/AU/PlugData.component/Contents/MacOS/PlugData", "./Plugins/Standalone/PlugData.app/Contents/MacOS/PlugData", "./Plugins/LV2/PlugData.lv2/libPlugData.so"],
     "bundle_id" : "com.Octagon.PlugData",
     "apple_id": {
             "username" : "timschoen123@gmail.com",
             "password":  "@env:AC_PASSWORD"
     },
     "sign" : {
-        "application_identity" : "56F3651ED4A313CA72A1755E92EC4EA68FCCE14F"
+        "application_identity" : "Developer ID Application: Timothy Schoen"
     }
 }
