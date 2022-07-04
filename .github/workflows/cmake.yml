@@ -274,6 +274,40 @@ jobs:
         draft: true
         files: PlugData-Ubuntu-18.04-x64
 
+  fedora-build:
+      runs-on: ubuntu-latest
+      container: fedora:35
+      steps:
+      - name: Update git
+        run: sudo dnf install -y git
+      - uses: actions/checkout@v3
+        with:
+          submodules: recursive
+        env:
+          PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+      - name: Install Dependencies
+        run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
+      - name: Build
+          run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+
+      - name: Prepare Artefacts
+        working-directory: ${{github.workspace}}
+          run: ./.github/scripts/package.sh Fedora-35-x64
+
+      - name: Archive Artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: PlugData-Fedora-35-x64
+          path: PlugData-Fedora-35-x64
+
+      - name: Release Artifacts
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/')
+        with:
+          prerelease: true
+          draft: true
+          files: PlugData-Fedora-35-x64
+          
   arch-build:
     runs-on: ubuntu-latest
     container:
