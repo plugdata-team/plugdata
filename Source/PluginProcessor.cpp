@@ -55,10 +55,10 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     volume = parameters.getRawParameterValue("volume");
 
-    // TODO: ?? what does this do
+    // Make sure that the parameter valuetree has a name, to prevent assertion failures
     parameters.replaceState(ValueTree("PlugData"));
     
-    
+    // scope for locking message manager
     {
         const MessageManagerLock mmLock;
         
