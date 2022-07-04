@@ -6,6 +6,6 @@
             "password":  "@env:AC_PASSWORD"
         },
     "sign" :{
-        "application_identity" : "56F3651ED4A313CA72A1755E92EC4EA68FCCE14F"
+        "application_identity" : "Developer ID Application: Timothy Schoen"
     }
 }
