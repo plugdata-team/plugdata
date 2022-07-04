@@ -5,7 +5,7 @@
       },
     "notarize": [
       {
-      "path": "./PlugData-MacOS-Universal.dmg",
+      "path": "./PlugData-MacOS-Universal.pkg",
       "bundle_id": "com.Octagon.PlugData",
       "staple": true
       }
