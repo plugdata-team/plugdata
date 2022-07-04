@@ -425,10 +425,8 @@ void Instance::processPrints()
     
     while(m_print_queue.try_dequeue(print))
     {
-        if(print.empty())
-        {
-            continue;
-        }
+        if(print.empty()) continue;
+        
         else if(print.back() == '\n')
         {
             while(!print.empty() && (print.back() == '\n' || print.back() == ' ')) {
