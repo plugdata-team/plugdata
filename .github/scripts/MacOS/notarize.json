@@ -1,0 +1,13 @@
+{
+  "apple_id": {
+          "username" : "timschoen123@gmail.com",
+          "password":  "@env:AC_PASSWORD"
+      },
+    "notarize": [
+      {
+      "path": "./PlugData-MacOS-Universal.dmg",
+      "bundle_id": "com.Octagon.PlugData",
+      "staple": true
+      }
+    ]
+}
