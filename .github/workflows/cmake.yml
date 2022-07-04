@@ -288,11 +288,11 @@ jobs:
       - name: Install Dependencies
         run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
       - name: Build
-          run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+        run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
-          run: ./.github/scripts/package.sh Fedora-35-x64
+        run: ./.github/scripts/package.sh Fedora-35-x64
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
@@ -307,7 +307,7 @@ jobs:
           prerelease: true
           draft: true
           files: PlugData-Fedora-35-x64
-          
+
   arch-build:
     runs-on: ubuntu-latest
     container:
