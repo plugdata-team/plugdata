@@ -19,26 +19,39 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -G "Xcode" -DENABLE_TESTING=1
 
     - name: Import Code-Signing Certificates
-      uses: Apple-Actions/import-codesign-certs@v1
-      with:
-        # The certificates in a PKCS12 file encoded as a base64 string
-        p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
-        # The password used to import the PKCS12 file.
-        p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+      env:
+        KEYCHAIN: "sign.keychain"
+        INSTALLER_CERT_MAC_PATH: "/tmp/PlugDataCert.p12"
+        KEYCHAIN_PASSWORD: keychainpassword # Arbitrary password for a keychain that exists only for the duration of the job, so not secret
+      run: |
+        echo "${{ secrets.INSTALLER_CERT_MAC_P12 }}" | base64 --decode > "${{ env.INSTALLER_CERT_MAC_PATH }}"
+        security create-keychain -p "${{ env.KEYCHAIN_PASSWORD }}" "${{ env.KEYCHAIN }}"
+        security default-keychain -s "${{ env.KEYCHAIN }}"
+        security unlock-keychain -p "${{ env.KEYCHAIN_PASSWORD }}" "${{ env.KEYCHAIN }}"
+        security import \
+          "${{ env.INSTALLER_CERT_MAC_PATH }}" \
+          -k "${{ env.KEYCHAIN }}" \
+          -f pkcs12 \
+          -A \
+          -T /usr/bin/codesign \
+          -P "${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}"
+        security set-key-partition-list \
+          -S apple-tool:,apple: \
+          -s \
+          -k "${{ env.KEYCHAIN_PASSWORD }}" \
+          "${{ env.KEYCHAIN }}"
 
-    - name: Install gon via HomeBrew for code signing and app notarization
+    - name: Install Gon (for signing and notarization)
       run: |
         brew tap mitchellh/gon
         brew install mitchellh/gon/gon
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Code-sign Artefacts
@@ -52,7 +65,6 @@ jobs:
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
-      shell: bash
       run: ./.github/scripts/package.sh MacOS-Universal
 
     - name: Notarize Artefacts
@@ -81,13 +93,11 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build 
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A x64 -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
@@ -121,13 +131,11 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -G "Visual Studio 16 2019" -A Win32 -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
@@ -162,18 +170,15 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles" -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
-      shell: bash
       run: ./.github/scripts/package.sh Ubuntu-22.04-x64
 
     - name: Archive Artifacts
@@ -204,18 +209,15 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles" -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
-      shell: bash
       run: ./.github/scripts/package.sh Ubuntu-20.04-x64
 
     - name: Archive Artifacts
@@ -247,18 +249,15 @@ jobs:
       run: cmake -E make_directory ${{github.workspace}}/build
 
     - name: Configure CMake
-      shell: bash
       working-directory: ${{github.workspace}}/build
       run: cmake $GITHUB_WORKSPACE -G "Unix Makefiles" -DENABLE_TESTING=1
 
     - name: Build
       working-directory: ${{github.workspace}}/build
-      shell: bash
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
-      shell: bash
       run: ./.github/scripts/package.sh Ubuntu-18.04-x64
 
     - name: Archive Artifacts
@@ -288,13 +287,11 @@ jobs:
       - name: Install Dependencies
         run: sudo dnf install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel
       - name: Build
-        shell: bash
-        run: mkdir build && cd build && cmake -DENABLE_TESTING=1 ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
+          run: mkdir build && cd build && cmake -DENABLE_TESTING=1 ..  -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
       - name: Prepare Artefacts
         working-directory: ${{github.workspace}}
-        shell: bash
-        run: ./.github/scripts/package.sh Fedora-35-x64
+          run: ./.github/scripts/package.sh Fedora-35-x64
 
       - name: Archive Artifacts
         uses: actions/upload-artifact@v3
@@ -329,12 +326,10 @@ jobs:
       run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc11 pkgconf
 
     - name: Build
-      shell: bash
       run: mkdir build && cd build && CC=/usr/bin/gcc-11 CXX=/usr/bin/g++-11 cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
-      shell: bash
       run: ./.github/scripts/package.sh Arch-x64
 
     - name: Archive Artifacts
@@ -370,12 +365,10 @@ jobs:
       run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++
 
     - name: Build
-      shell: bash
       run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
-      shell: bash
       run: ./.github/scripts/package.sh OpenSUSE-x64
 
     - name: Archive Artifacts
@@ -412,12 +405,10 @@ jobs:
       run: apt install -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++
 
     - name: Build
-      shell: bash
       run: mkdir build && cd build && CXX=g++ cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
-      shell: bash
       run: ./.github/scripts/package.sh Debian-x64
 
     - name: Archive Artifacts
