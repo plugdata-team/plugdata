@@ -51,7 +51,7 @@ jobs:
 #      with:
 #        product-path: "PlugData-MacOS-Universal.pkg"
 #        appstore-connect-username: ${{ secrets.AC_USERNAME }}
-#        appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+#        appstore-connect-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
 #    - name: "Staple Release Build"
 #      uses: devbotsxyz/xcode-staple@v1
 #      with:
