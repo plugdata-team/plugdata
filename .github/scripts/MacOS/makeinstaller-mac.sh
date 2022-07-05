@@ -20,10 +20,10 @@ fi
 PRODUCT_NAME=PlugData
 
 
-LV2="./Plugins/LV2/."
-VST3="./Plugins/VST3/."
-AU="./Plugins/AU/."
-APP="./Plugins/Standalone/."
+LV2="./PlugData/LV2/."
+VST3="./PlugData/VST3/."
+AU="./PlugData/AU/."
+APP="./PlugData/Standalone/."
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
