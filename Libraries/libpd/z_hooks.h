@@ -9,7 +9,8 @@
  *
  */
 
-#pragma once
+#ifndef __Z_HOOKS_H__
+#define __Z_HOOKS_H__
 
 #include "z_libpd.h"
 
@@ -19,6 +20,7 @@
 // no libpd_printhook as libpd_set_printhook() sets internal sys_printhook
 extern t_libpd_banghook libpd_banghook;
 extern t_libpd_floathook libpd_floathook;
+extern t_libpd_doublehook libpd_doublehook;
 extern t_libpd_symbolhook libpd_symbolhook;
 extern t_libpd_listhook libpd_listhook;
 extern t_libpd_messagehook libpd_messagehook;
@@ -30,3 +32,5 @@ extern t_libpd_pitchbendhook libpd_pitchbendhook;
 extern t_libpd_aftertouchhook libpd_aftertouchhook;
 extern t_libpd_polyaftertouchhook libpd_polyaftertouchhook;
 extern t_libpd_midibytehook libpd_midibytehook;
+
+#endif
