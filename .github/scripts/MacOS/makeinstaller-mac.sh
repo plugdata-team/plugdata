@@ -108,7 +108,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
     <title>${PRODUCT_NAME} ${VERSION}</title>
-    <license file=".github/scripts/MacOS/LICENSE.rtf" mime-type="application/rtf"/>
+    <license file="LICENSE.rtf" mime-type="application/rtf"/>
     ${VST3_PKG_REF}
     ${AU_PKG_REF}
     ${LV2_PKG_REF}
