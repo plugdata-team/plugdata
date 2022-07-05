@@ -8,7 +8,7 @@ env:
 
 jobs:
   macos-universal-build:
-    runs-on: macos-10.15
+    runs-on: macos-latest
 
     steps:
     - uses: actions/checkout@v3
@@ -57,10 +57,10 @@ jobs:
     - name: Codesign AU plugin
       working-directory: ${{github.workspace}}
       run: |
-      codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
-      codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
-      codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
-    
+        codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
+        codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
+        codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
+      
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
       run: ./.github/scripts/package.sh MacOS-Universal
