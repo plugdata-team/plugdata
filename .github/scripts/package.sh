@@ -1,6 +1,5 @@
 #!/bin/bash
 
-rm -f PlugData-$1
 rm -rf Plugins/Release
 rm -f Plugins/Tests
 cp -r Plugins PlugData

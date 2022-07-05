@@ -58,12 +58,12 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ./.github/scripts/package.sh MacOS-Universal
 
-    - name: "Notarize Release Build"
-      uses: devbotsxyz/xcode-notarize@v1
-      with:
-        product-path: "PlugData-MacOS-Universal.pkg"
-        appstore-connect-username: ${{ secrets.AC_USERNAME }}
-        appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+#    - name: "Notarize Release Build"
+#      uses: devbotsxyz/xcode-notarize@v1
+#      with:
+#        product-path: "PlugData-MacOS-Universal.pkg"
+#        appstore-connect-username: ${{ secrets.AC_USERNAME }}
+#        appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
