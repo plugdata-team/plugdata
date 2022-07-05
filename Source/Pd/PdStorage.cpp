@@ -18,9 +18,7 @@ extern "C"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_multi.h"
 
-    extern t_class* text_class;
-
-    void canvas_map(t_canvas* x, t_floatarg f);
+void canvas_map(t_canvas* x, t_floatarg f);
 }
 
 namespace pd
@@ -42,8 +40,8 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
             if (obj != nullptr && obj->g_next == nullptr)
             {
                 // Skip non-text object to prevent crash on libpd_get_object_text
-                if (pd_class(&glist->gl_list->g_pd) != text_class) continue;
-
+                if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text") continue;
+                
                 // Get object text to return the content of the comment
                 char* text;
                 int size;
@@ -278,7 +276,7 @@ bool Storage::isInfoParent(t_glist* glist)
         char* text;
         int size;
 
-        if (pd_class(&glist->gl_list->g_pd) != text_class) return false;
+        if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text") return false;
 
         libpd_get_object_text(glist->gl_list, &text, &size);
 

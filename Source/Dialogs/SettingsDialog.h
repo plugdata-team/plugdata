@@ -149,7 +149,7 @@ struct ThemePanel : public Component, public Value::Listener
 
 extern "C"
 {
-    extern char* pd_version;
+    EXTERN char* pd_version;
 }
 
 struct AboutPanel : public Component

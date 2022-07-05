@@ -11,7 +11,11 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Dialogs/Dialogs.h"
+
+extern "C"
+{
 #include "x_libpd_mod_utils.h"
+}
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {

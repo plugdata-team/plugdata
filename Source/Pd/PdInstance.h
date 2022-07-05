@@ -7,13 +7,13 @@
 #pragma once
 
 #include <JuceHeader.h>
-#include <z_libpd.h>
 
 #include <map>
 #include <utility>
 
 extern "C"
 {
+#include <z_libpd.h>
 #include "s_libpd_inter.h"
 }
 
