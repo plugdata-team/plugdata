@@ -324,7 +324,7 @@ endif()
 
 
 if(MSVC)
-    add_library(pd DYNAMIC ${SOURCE_FILES})
+    add_library(pd SHARED ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
     set_property(TARGET pd PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/)
 else()
