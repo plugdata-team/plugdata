@@ -246,7 +246,6 @@ include_directories(ELSE/Source/)
 include_directories(ELSE/Aliases/)
 include_directories(ELSE/shared)
 source_group(ELSE FILES ${ELSE_SOURCES})
-list(APPEND SOURCE_FILES ${ELSE_SOURCES})
 
 file(GLOB_RECURSE CYCLONE_SOURCES
     ./cyclone/cyclone_lib.c
@@ -258,7 +257,6 @@ file(GLOB_RECURSE CYCLONE_SOURCES
 include_directories(cyclone/)
 include_directories(cyclone/shared/)
 source_group(cyclone FILES ${CYCLONE_SOURCES})
-list(APPEND SOURCE_FILES ${CYCLONE_SOURCES})
 
 #------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
@@ -316,6 +314,8 @@ else()
     add_library(pd STATIC ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 endif()
+
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES})
 
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 

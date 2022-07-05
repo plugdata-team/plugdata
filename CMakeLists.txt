@@ -230,18 +230,18 @@ target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandalon
 
 juce_generate_juce_header(PlugData)
 set_target_properties(PlugData PROPERTIES CXX_STANDARD 17)
-target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources} ${ELSESources})
+target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources})
 
 juce_generate_juce_header(PlugDataFx)
 set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 17)
-target_sources(PlugDataFx PRIVATE ${PlugDataSources} ${ELSESources})
+target_sources(PlugDataFx PRIVATE ${PlugDataSources})
 
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
 
 set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 17)
 set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
-target_sources(PlugDataMidi PRIVATE ${PlugDataSources} ${ELSESources})
+target_sources(PlugDataMidi PRIVATE ${PlugDataSources})
 endif()
 
 
@@ -320,6 +320,7 @@ set(libs
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
   juce::juce_dsp
+  externals
 )
 
 #if(LIBSNDFILE_FOUND)
