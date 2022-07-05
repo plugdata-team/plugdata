@@ -45,7 +45,7 @@ Name: "vst3"; Description: "VST3 Plugin (.vst3)"; Types: full custom;
 [Files]
 Source: "..\..\..\Plugins\VST3\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\VST3\"; Components:vst3; Flags: ignoreversion recursesubdirs;
 Source: "..\..\..\Plugins\LV2\**"; Excludes: "*.exe,*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\LV2\"; Components:lv2; Flags: ignoreversion recursesubdirs;
-Source: "..\..\..\Plugins\Standalone\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commonpf}\PlugData\"; Components:app; Flags: ignoreversion recursesubdirs;
+Source: "..\..\..\Plugins\Standalone\**"; Excludes: "*.pdb,*.exp,*.ilk,*.ico,*.ini"; DestDir: "{commonpf}\PlugData\"; Components:app; Flags: ignoreversion recursesubdirs;
 ; Source: "..\build-win\PlugData.vst3\Desktop.ini"; DestDir: "{cf32}\VST3\PlugData.vst3\"; Components:vst3; Flags: overwritereadonly ignoreversion; Attribs: hidden system;
 ; Source: "..\build-win\PlugData.vst3\PlugIn.ico"; DestDir: "{cf32}\VST3\PlugData.vst3\"; Components:vst3; Flags: overwritereadonly ignoreversion; Attribs: hidden system;
 
