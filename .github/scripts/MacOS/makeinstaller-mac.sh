@@ -6,6 +6,7 @@
 # Documentation for pkgbuild and productbuild: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
 
 
+
 # version
 if [ "$PLUGIN_VERSION" != "" ]; then
   VERSION="$PLUGIN_VERSION"
@@ -59,6 +60,11 @@ build_flavor()
 
   rm -r $TMPDIR
 }
+
+codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
+codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
+codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
+
 
 # try to build LV2 package
 if [[ -d $PRODUCTS/$LV2 ]]; then
