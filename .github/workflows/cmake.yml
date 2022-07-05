@@ -23,7 +23,7 @@ jobs:
       run: cmake $GITHUB_WORKSPACE -G "Xcode"
 
     - name: Import Code-Signing Certificates (1/2)
-      uses: apple-actions/import-codesign-certs@v1
+      uses: figleafteam/import-codesign-certs@v2
       with: 
         p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
         p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
@@ -35,6 +35,7 @@ jobs:
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
       run: ./.github/scripts/package.sh MacOS-Universal
+
 
     - name: Import Code-Signing Certificates (2/2)
       uses: apple-actions/import-codesign-certs@v1
