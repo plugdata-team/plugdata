@@ -20,13 +20,11 @@ fi
 
 PRODUCT_NAME=PlugData
 
-# locations
-PRODUCTS="Plugins"
 
-LV2="/LV2/."
-VST3="/VST3/."
-AU="/AU/."
-APP="/Standalone/."
+LV2="./Plugins/LV2/."
+VST3="./Plugins/VST3/."
+AU="./Plugins/AU/."
+APP="./Plugins/Standalone/."
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
@@ -52,58 +50,63 @@ build_flavor()
   echo --- BUILDING ${PRODUCT_NAME}_${flavor}.pkg ---
 
   mkdir -p $TMPDIR
-  cp -a $PRODUCTS/$flavorprod $TMPDIR
+  cp -a $flavorprod $TMPDIR
 
   pkgbuild --root $TMPDIR --identifier $ident --version $VERSION --install-location $loc ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg #|| exit 1
 
   rm -r $TMPDIR
 }
 
-codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
-codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
-codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
+sudo chmod -R 777 ./Plugins/
+
+security default-keychain -s sign_temp_1
+security unlock-keychain -p ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }} sign_temp_1
+
+codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
+codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
+codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
 
 
 # try to build LV2 package
-if [[ -d $PRODUCTS/$LV2 ]]; then
-  build_flavor "LV2" $LV2 "com.Octagon.PlugData.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2"
+if [[ -d $LV2 ]]; then
+  build_flavor "LV2" $LV2 "com.Octagon.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2"
 fi
 
 # # try to build VST3 package
-if [[ -d $PRODUCTS/$VST3 ]]; then
-  build_flavor "VST3" $VST3 "com.Octagon.PlugData.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3"
+if [[ -d $VST3 ]]; then
+  build_flavor "VST3" $VST3 "com.Octagon.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3"
 fi
 
 # # try to build AU package
-if [[ -d $PRODUCTS/$AU ]]; then
-  build_flavor "AU" $AU "com.Octagon.PlugData.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components"
+if [[ -d $AU ]]; then
+  build_flavor "AU" $AU "com.Octagon.au.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/Components"
 fi
 
 # try to build App package
-if [[ -d $PRODUCTS/$APP ]]; then
-  build_flavor "APP" $APP "com.Octagon.PlugData.app.pkg.${PRODUCT_NAME}" "/Applications"
+if [[ -d $APP ]]; then
+  build_flavor "APP" $APP "com.Octagon.app.pkg.${PRODUCT_NAME}" "/Applications"
 fi
 
 
-if [[ -d $PRODUCTS/$VST3 ]]; then
-	VST3_PKG_REF="<pkg-ref id=\"com.Octagon.PlugData.vst3.pkg.${PRODUCT_NAME}\"/>"
-	VST3_CHOICE="<line choice=\"com.Octagon.PlugData.vst3.pkg.${PRODUCT_NAME}\"/>"
-	VST3_CHOICE_DEF="<choice id=\"com.Octagon.PlugData.vst3.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"VST3 Plug-in\"><pkg-ref id=\"com.Octagon.PlugData.vst3.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.PlugData.vst3.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_VST3.pkg</pkg-ref>"
+if [[ -d $VST3 ]]; then
+	VST3_PKG_REF="<pkg-ref id=\"com.Octagon.vst3.pkg.${PRODUCT_NAME}\"/>"
+	VST3_CHOICE="<line choice=\"com.Octagon.vst3.pkg.${PRODUCT_NAME}\"/>"
+	VST3_CHOICE_DEF="<choice id=\"com.Octagon.vst3.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"VST3 Plug-in\"><pkg-ref id=\"com.Octagon.vst3.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.vst3.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_VST3.pkg</pkg-ref>"
 fi
-if [[ -d $PRODUCTS/$LV2 ]]; then
-	LV2_PKG_REF="<pkg-ref id=\"com.Octagon.PlugData.lv2.pkg.${PRODUCT_NAME}\"/>"
-	LV2_CHOICE="<line choice=\"com.Octagon.PlugData.lv2.pkg.${PRODUCT_NAME}\"/>"
-	LV2_CHOICE_DEF="<choice id=\"com.Octagon.PlugData.lv2.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"LV2 Plug-in\"><pkg-ref id=\"com.Octagon.PlugData.lv2.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.PlugData.lv2.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_LV2.pkg</pkg-ref>"
+if [[ -d $LV2 ]]; then
+	LV2_PKG_REF="<pkg-ref id=\"com.Octagon.lv2.pkg.${PRODUCT_NAME}\"/>"
+	LV2_CHOICE="<line choice=\"com.Octagon.lv2.pkg.${PRODUCT_NAME}\"/>"
+	LV2_CHOICE_DEF="<choice id=\"com.Octagon.lv2.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"LV2 Plug-in\"><pkg-ref id=\"com.Octagon.lv2.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.lv2.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_LV2.pkg</pkg-ref>"
 fi
-if [[ -d $PRODUCTS/$AU ]]; then
-	AU_PKG_REF="<pkg-ref id=\"com.Octagon.PlugData.au.pkg.${PRODUCT_NAME}\"/>"
-	AU_CHOICE="<line choice=\"com.Octagon.PlugData.au.pkg.${PRODUCT_NAME}\"/>"
-	AU_CHOICE_DEF="<choice id=\"com.Octagon.PlugData.au.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Audio Unit Plug-in\"><pkg-ref id=\"com.Octagon.PlugData.au.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.PlugData.au.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AU.pkg</pkg-ref>"
+if [[ -d $AU ]]; then
+	AU_PKG_REF="<pkg-ref id=\"com.Octagon.au.pkg.${PRODUCT_NAME}\"/>"
+	AU_CHOICE="<line choice=\"com.Octagon.au.pkg.${PRODUCT_NAME}\"/>"
+	AU_CHOICE_DEF="<choice id=\"com.Octagon.au.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Audio Unit Plug-in\"><pkg-ref id=\"com.Octagon.au.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.au.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_AU.pkg</pkg-ref>"
 fi
-if [[ -d $PRODUCTS/$APP ]]; then
-	APP_PKG_REF="<pkg-ref id=\"com.Octagon.PlugData.app.pkg.${PRODUCT_NAME}\"/>"
-	APP_CHOICE="<line choice=\"com.Octagon.PlugData.app.pkg.${PRODUCT_NAME}\"/>"
-	APP_CHOICE_DEF="<choice id=\"com.Octagon.PlugData.app.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Standalone App\"><pkg-ref id=\"com.Octagon.PlugData.app.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.PlugData.app.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_APP.pkg</pkg-ref>"
+if [[ -d $APP ]]; then
+	APP_PKG_REF="<pkg-ref id=\"com.Octagon.app.pkg.${PRODUCT_NAME}\"/>"
+	APP_CHOICE="<line choice=\"com.Octagon.app.pkg.${PRODUCT_NAME}\"/>"
+	APP_CHOICE_DEF="<choice id=\"com.Octagon.app.pkg.${PRODUCT_NAME}\" visible=\"true\" start_selected=\"true\" title=\"Standalone App\"><pkg-ref id=\"com.Octagon.app.pkg.${PRODUCT_NAME}\"/></choice><pkg-ref id=\"com.Octagon.app.pkg.${PRODUCT_NAME}\" version=\"${VERSION}\" onConclusion=\"none\">${PRODUCT_NAME}_APP.pkg</pkg-ref>"
 fi
 
 
@@ -139,5 +142,7 @@ productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_
 rm ${TARGET_DIR}/distribution.xml
 rm -r $PKG_DIR
 
+security default-keychain -s sign_temp_2
+security unlock-keychain -p ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }} sign_temp_2
 
-productsign -f -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
+productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
