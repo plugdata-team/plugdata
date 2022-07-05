@@ -57,10 +57,9 @@ jobs:
     - name: Codesign AU plugin
           working-directory: ${{ runner.workspace }}/Plugins/
           run: | 
-          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /VST3/*.vst3 --timestamp
-          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /LV2/*.lv2 --timestamp
-          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /Standalone/*.app --timestamp
-          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /AU/*.component --timestamp
+          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./VST3/*.vst3 --timestamp
+          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Standalone/*.app --timestamp
+          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./AU/*.component --timestamp
         
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
