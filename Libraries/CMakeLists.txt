@@ -313,13 +313,6 @@ endif()
 
 if(MSVC)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
-    if(MSVC_STATIC_RUNTIME)
-        foreach(RFLAG CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
-            if(${RFLAG} MATCHES "/MD")
-                string(REGEX REPLACE "/MD" "/MT" ${RFLAG} "${${RFLAG}}")
-            endif()
-        endforeach()
-    endif()
 else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-compare-distinct-pointer-types -Wno-pointer-sign -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
@@ -329,12 +322,16 @@ endif()
 # TARGETS
 #------------------------------------------------------------------------------#
 
-add_library(pd STATIC ${SOURCE_FILES})
-target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+
 if(MSVC)
-  target_compile_definitions(pd PRIVATE PTW32_STATIC_LIB=1)
-  set_property(TARGET pd PROPERTY LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/)
+    add_library(pd DYNAMIC ${SOURCE_FILES})
+    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+    set_property(TARGET pd PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/)
+else()
+    add_library(pd STATIC ${SOURCE_FILES})
+    target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 endif()
+
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_library(pd-multi STATIC ${SOURCE_FILES})
