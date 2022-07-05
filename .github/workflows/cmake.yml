@@ -37,9 +37,9 @@ jobs:
       run: ./.github/scripts/package.sh MacOS-Universal
 
     - name: Import Code-Signing Certificates (2/2)
-      keychain: signing_temp2
       uses: apple-actions/import-codesign-certs@v1
       with: 
+        keychain: signing_temp2
         p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
         p12-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
 
