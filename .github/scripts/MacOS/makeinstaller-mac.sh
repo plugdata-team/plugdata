@@ -136,4 +136,4 @@ rm ${TARGET_DIR}/distribution.xml
 rm -r $PKG_DIR
 
 
-productsign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
+productsign -f -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
