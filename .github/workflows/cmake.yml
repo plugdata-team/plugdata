@@ -159,6 +159,7 @@ jobs:
         prerelease: true
         draft: true
         files: PlugData-Win32
+
   ubuntu-22_04-build:
     runs-on: ubuntu-22.04
     steps:
