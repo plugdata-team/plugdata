@@ -9,7 +9,8 @@
  *
  */
 
-#pragma once
+#ifndef __X_LIBPDREC_H__
+#define __X_LIBPDREC_H__
 
 #include "m_pd.h"
 
@@ -22,3 +23,4 @@ void libpdreceive_setup(void);
 // create a new libpd source receiver with a given name symbol
 void *libpdreceive_new(t_symbol *);
 
+#endif
