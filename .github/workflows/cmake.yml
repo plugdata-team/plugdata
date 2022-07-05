@@ -49,41 +49,37 @@ jobs:
           -k "${{ env.KEYCHAIN_PASSWORD }}" \
           "${{ env.KEYCHAIN }}"
 
-    - name: Install Gon (for signing and notarization)
-      run: |
-        brew tap mitchellh/gon
-        brew install mitchellh/gon/gon
 
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
 
-    - name: Code-sign Artefacts
-      env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      run: |
-        gon -log-level=debug -log-json .github/scripts/MacOS/gon_regular.json
-        gon -log-level=debug -log-json .github/scripts/MacOS/gon_fx.json
-        gon -log-level=debug -log-json .github/scripts/MacOS/gon_midi.json
-
+    - name: Codesign AU plugin
+          working-directory: ${{ runner.workspace }}/Plugins/
+          run: | 
+          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /VST3/*.vst3 --timestamp
+          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /LV2/*.lv2 --timestamp
+          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /Standalone/*.app --timestamp
+          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" /AU/*.component --timestamp
+        
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
       run: ./.github/scripts/package.sh MacOS-Universal
 
-    - name: Notarize Artefacts
-      env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
-      run: gon -log-level=debug -log-json .github/scripts/MacOS/notarize.json
-
-    - name: Release Artifacts
-      uses: softprops/action-gh-release@v1
-      if: startsWith(github.ref, 'refs/tags/')
+    - name: "Notarize Release Build"
+      uses: devbotsxyz/xcode-notarize@v1
       with:
-        prerelease: true
-        draft: true
-        files: PlugData-MacOS-Universal.pkg
+        product-path: "PlugData-MacOS-Universal.pkg"
+        appstore-connect-username: ${{ secrets.AC_USERNAME }}
+        appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+
+  - name: Release Artifacts
+    uses: softprops/action-gh-release@v1
+    if: startsWith(github.ref, 'refs/tags/')
+    with:
+      prerelease: true
+      draft: true
+      files: PlugData-MacOS-Universal.pkg
 
   windows-64-build:
     runs-on: windows-2019
@@ -115,7 +111,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: PlugData-Win64
-        path: PlugData-Win64
+        path: PlugData-Win64.exe
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
@@ -155,7 +151,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: PlugData-Win32
-        path: PlugData-Win32
+        path: PlugData-Win32.exe
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
