@@ -320,7 +320,6 @@ set(libs
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
   juce::juce_dsp
-  externals
 )
 
 #if(LIBSNDFILE_FOUND)
