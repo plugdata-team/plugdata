@@ -1,7 +1,7 @@
 echo "------------------------------------------------------------------"
 echo "Making Installer ..."
 
-python update_installer-win.py "$1"
+python ".github\scripts\Windows\update-win.py $1"
 
 if [[ "$PROCESSOR_ARCHITECTURE" == "X86"* ]]; then
 "$PROGRAMFILES\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
