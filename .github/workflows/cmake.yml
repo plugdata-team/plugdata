@@ -26,29 +26,33 @@ jobs:
       env:
         AC_USERNAME: ${{ secrets.AC_USERNAME }}
         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-        KEYCHAIN: "sign.keychain"
-        INSTALLER_CERT_MAC_PATH: "/tmp/PlugDataCert.p12"
         KEYCHAIN_PASSWORD: keychainpassword # Arbitrary password for a keychain that exists only for the duration of the job, so not secret
-        CERT_MAC_P12: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
-        CERT_MAC_P12_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
-      run: |
-        echo "${{ env.CERT_MAC_P12 }}" | base64 --decode > "${{ env.INSTALLER_CERT_MAC_PATH }}"
-        security create-keychain -p "${{ env.KEYCHAIN_PASSWORD }}" "${{ env.KEYCHAIN }}"
-        security default-keychain -s "${{ env.KEYCHAIN }}"
-        security unlock-keychain -p "${{ env.KEYCHAIN_PASSWORD }}" "${{ env.KEYCHAIN }}"
-        security import \
-          "${{ env.INSTALLER_CERT_MAC_PATH }}" \
-          -k "${{ env.KEYCHAIN }}" \
-          -f pkcs12 \
-          -A \
-          -T /usr/bin/codesign \
-          -P "${{ env.CERT_MAC_P12_PASSWORD }}"
-        security set-key-partition-list \
-          -S apple-tool:,apple: \
-          -s \
-          -k "${{ env.KEYCHAIN_PASSWORD }}" \
-          "${{ env.KEYCHAIN }}"
+        DEVELOPER_ID_APPLICATION_CER: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
+        DEVELOPER_ID_APPLICATION_KEY: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+        DEVELOPER_ID_INSTALLER_CER: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
+        DEVELOPER_ID_INSTALLER_KEY: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
+      - name:
+        run: | 
+          ----- Create certificate files from secrets base64 -----
+          echo ${{ secrets.DEVELOPER_ID_INSTALLER_CER }} | base64 --decode > certificate_installer.cer
+          echo ${{ secrets.DEVELOPER_ID_INSTALLER_KEY }} | base64 --decode > certificate_installer.key
+          echo ${{ secrets.DEVELOPER_ID_APPLICATION_CER }} | base64 --decode > certificate_application.cer
+          echo ${{ secrets.DEVELOPER_ID_APPLICATION_KEY }} | base64 --decode > certificate_application.key
 
+          ----- Create p12 file -----
+          openssl pkcs12 -export -name zup -in certificate_installer.cer -inkey certificate_installer.key -passin pass:${{ AC_PASSWORD }} -out certificate_installer.p12 -passout pass:${{ AC_PASSWORD }}
+          openssl pkcs12 -export -name zup -in certificate_application.cer -inkey certificate_application.key -passin pass:${{ AC_PASSWORD }} -out certificate_application.p12 -passout pass:${{ AC_PASSWORD }}
+
+          ----- Configure Keychain -----
+          KEYCHAIN_PATH=$RUNNER_TEMP/app-signing.keychain-db
+          security create-keychain -p "${{ KEYCHAIN_PASSWORD }}" $KEYCHAIN_PATH
+          security set-keychain-settings -lut 21600 $KEYCHAIN_PATH
+          security unlock-keychain -p "${{ KEYCHAIN_PASSWORD }}" $KEYCHAIN_PATH
+
+          ----- Import certificates on Keychain -----
+          security import certificate_installer.p12 -P "${{ AC_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security import certificate_application.p12 -P "${{ AC_PASSWORD }}" -A -t cert -f pkcs12 -k $KEYCHAIN_PATH
+          security list-keychain -d user -s $KEYCHAIN_PATH
 
     - name: Build
       working-directory: ${{github.workspace}}/build
@@ -64,6 +68,10 @@ jobs:
 #        product-path: "PlugData-MacOS-Universal.pkg"
 #        appstore-connect-username: ${{ secrets.AC_USERNAME }}
 #        appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+#    - name: "Staple Release Build"
+#      uses: devbotsxyz/xcode-staple@v1
+#      with:
+#        product-path: PlugData-MacOS-Universal.pkg
 
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
