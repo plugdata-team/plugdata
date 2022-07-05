@@ -55,11 +55,12 @@ jobs:
       run: cmake --build . --config $BUILD_TYPE
 
     - name: Codesign AU plugin
-          run: |
-          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
-          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
-          codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
-        
+      working-directory: ${{github.workspace}}
+      run: |
+      codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
+      codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
+      codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
+    
     - name: Prepare Artefacts
       working-directory: ${{github.workspace}}
       run: ./.github/scripts/package.sh MacOS-Universal
