@@ -38,7 +38,7 @@ jobs:
 
 
     - name: Import Code-Signing Certificates (2/2)
-      uses: apple-actions/import-codesign-certs@v1
+      uses: figleafteam/import-codesign-certs@v2
       with: 
         keychain: signing_temp2
         p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
