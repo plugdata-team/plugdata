@@ -14,7 +14,7 @@ SolidCompression=yes
 OutputDir=.\
 ArchitecturesInstallIn64BitMode=x64
 OutputBaseFilename=PlugData Installer
-LicenseFile=./LICENSE
+LicenseFile=.\LICENSE.rtf
 SetupLogging=yes
 ShowComponentSizes=no
 ; WizardImageFile=installer_bg-win.bmp
@@ -43,9 +43,9 @@ Name: "vst3"; Description: "VST3 Plugin (.vst3)"; Types: full custom;
 ; Name: "{commonpf}\PlugData\"; Attribs: readonly; Components:lv2; 
 
 [Files]
-Source: "Plugins\VST3\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\VST3\\"; Components:vst3; Flags: ignoreversion recursesubdirs;
-Source: "Plugins\LV2\**"; Excludes: *.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{cf32}\VST3\PlugData.vst3\"; Components:lv2; Flags: ignoreversion recursesubdirs;
-Source: "Plugins\PlugData.exe\"; Excludes: "\Contents\x86_64\*,*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{cf32}\VST3\PlugData.vst3\"; Components:vst3; Flags: ignoreversion recursesubdirs;
+Source: "..\..\..\Plugins\VST3\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\VST3\"; Components:vst3; Flags: ignoreversion recursesubdirs;
+Source: "..\..\..\Plugins\LV2\**"; Excludes: "*.exe,*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\LV2\"; Components:lv2; Flags: ignoreversion recursesubdirs;
+Source: "..\..\..\Plugins\Standalone\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commonpf}\PlugData\"; Components:app; Flags: ignoreversion recursesubdirs;
 ; Source: "..\build-win\PlugData.vst3\Desktop.ini"; DestDir: "{cf32}\VST3\PlugData.vst3\"; Components:vst3; Flags: overwritereadonly ignoreversion; Attribs: hidden system;
 ; Source: "..\build-win\PlugData.vst3\PlugIn.ico"; DestDir: "{cf32}\VST3\PlugData.vst3\"; Components:vst3; Flags: overwritereadonly ignoreversion; Attribs: hidden system;
 
