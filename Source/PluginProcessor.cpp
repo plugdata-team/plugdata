@@ -13,7 +13,7 @@
 
 extern "C"
 {
-    extern char* pd_version;
+    EXTERN char* pd_version;
 }
 
 

@@ -50,6 +50,9 @@ typedef void (*t_libpd_multi_printhook)(void* ptr, const char *recv);
 
 void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print);
 
+
+int parse_startup_arguments(const char** args, size_t argc);
+
 #ifdef __cplusplus
 }
 #endif

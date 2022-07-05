@@ -87,21 +87,6 @@ option(PD_EXTRA "Compile extras" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
 
 #------------------------------------------------------------------------------#
-# OUTPUT DIRECTORY
-#------------------------------------------------------------------------------#
-if(DEFINED LIBPD_OUTPUT_DIRECTORY)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${LIBPD_OUTPUT_DIRECTORY})
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${LIBPD_OUTPUT_DIRECTORY})
-set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY ${LIBPD_OUTPUT_DIRECTORY})
-foreach(OUTPUTCONFIG ${CMAKE_CONFIGURATION_TYPES})
-    string(TOUPPER ${OUTPUTCONFIG} OUTPUTCONFIG)
-    set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${LIBPD_OUTPUT_DIRECTORY})
-    set(CMAKE_LIBRARY_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${LIBPD_OUTPUT_DIRECTORY})
-    set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_${OUTPUTCONFIG} ${LIBPD_OUTPUT_DIRECTORY})
-endforeach(OUTPUTCONFIG CMAKE_CONFIGURATION_TYPES)
-endif()
-
-#------------------------------------------------------------------------------#
 # SOURCES
 #------------------------------------------------------------------------------#
 set(SOURCE_FILES)
@@ -135,7 +120,7 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/g_canvas.c
     ${PD_PATH}/src/g_canvas.h
     ${PD_PATH}/src/g_clone.c
-		${PD_PATH}/src/g_editor_extras.c
+    ${PD_PATH}/src/g_editor_extras.c
     ${PD_PATH}/src/g_editor.c
     ${PD_PATH}/src/g_graph.c
     ${PD_PATH}/src/g_guiconnect.c
@@ -151,8 +136,8 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/g_text.c
     ${PD_PATH}/src/g_toggle.c
     ${PD_PATH}/src/g_traversal.c
-		${PD_PATH}/src/g_undo.c
-		${PD_PATH}/src/g_undo.h
+    ${PD_PATH}/src/g_undo.c
+    ${PD_PATH}/src/g_undo.h
     ${PD_PATH}/src/g_vdial.c
     ${PD_PATH}/src/g_vslider.c
     ${PD_PATH}/src/g_vumeter.c
@@ -170,9 +155,9 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/s_audio.c
     ${PD_PATH}/src/s_audio_dummy.c
     ${PD_PATH}/src/s_loader.c
-    ${PD_PATH}/src/s_main.c
-		${PD_PATH}/src/s_net.c
-		${PD_PATH}/src/s_net.h
+    ${PD_PATH}/src/s_main.c	
+    ${PD_PATH}/src/s_net.c
+    ${PD_PATH}/src/s_net.h
     ${PD_PATH}/src/s_path.c
     ${PD_PATH}/src/s_print.c
     ${PD_PATH}/src/s_stuff.h
@@ -313,7 +298,7 @@ endif()
 
 
 if(MSVC)
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
+    #set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /w")
 else(CMAKE_C_COMPILER_ID MATCHES "Clang|GNU")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wno-compare-distinct-pointer-types -Wno-pointer-sign -Wno-int-conversion -Wno-unused-variable -Wno-int-to-pointer-cast -Wno-pointer-to-int-cast -Wno-incompatible-pointer-types -Wno-parentheses -Wno-unused-value")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS} -ffast-math -funroll-loops -fomit-frame-pointer -O3")
@@ -323,11 +308,10 @@ endif()
 # TARGETS
 #------------------------------------------------------------------------------#
 
-
 if(MSVC)
     add_library(pd SHARED ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
-    set_property(TARGET pd PROPERTY LIBRARY_OUTPUT_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/)
+    target_link_libraries(pd PRIVATE libpthreadVC3)
 else()
     add_library(pd STATIC ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
@@ -375,7 +359,17 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   target_link_libraries(pd-multi ${CMAKE_DL_LIBS})
 
 elseif(MSVC)
-  target_link_libraries(pd PUBLIC "-Wl,--export-all-symbols,--whole-archive ws2_32 kernel32 -static-libgcc")
+  target_link_libraries(pd PUBLIC ws2_32)
+
+  add_custom_command(TARGET pd POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.dll"
+        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.dll)
+
+  add_custom_command(TARGET pd POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy
+        "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
+        ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 endif()
 
 # LINK PTHREAD
