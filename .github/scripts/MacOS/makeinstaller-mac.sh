@@ -52,7 +52,10 @@ build_flavor()
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
 
-  pkgbuild --root $TMPDIR --identifier $ident --version $VERSION --install-location $loc ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg #|| exit 1
+  #pkgbuild --root $TMPDIR --identifier $ident --version $VERSION --install-location $loc ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist #|| exit 1
+  pkgbuild --analyze --root $TMPDIR ${TMPDIR}/${PRODUCT_NAME}_${flavor}.plist
+  plutil -replace BundleIsRelocatable -bool NO ${TMPDIR}/${PRODUCT_NAME}_${flavor}.plist
+  pkgbuild --root $TMPDIR --identifier $ident --version $VERSION  --install-location $loc --component-plist ${TMPDIR}/${PRODUCT_NAME}_${flavor}.plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg
 
   rm -r $TMPDIR
 }
@@ -67,14 +70,15 @@ codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plug
 codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
 
 
-# try to build LV2 package
-if [[ -d $LV2 ]]; then
-  build_flavor "LV2" $LV2 "com.Octagon.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2"
-fi
 
 # # try to build VST3 package
 if [[ -d $VST3 ]]; then
   build_flavor "VST3" $VST3 "com.Octagon.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3"
+fi
+
+# try to build LV2 package
+if [[ -d $LV2 ]]; then
+  build_flavor "LV2" $LV2 "com.Octagon.lv2.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/LV2"
 fi
 
 # # try to build AU package
@@ -135,8 +139,6 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
 XMLEND
 
 # build installation bundle
-# --resources .
-
 productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_DIR} "${TARGET_DIR}/$OUTPUT_BASE_FILENAME"
 
 rm ${TARGET_DIR}/distribution.xml
