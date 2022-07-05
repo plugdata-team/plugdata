@@ -3,18 +3,20 @@ scriptpath = "./.github/scripts/Windows/PlugData.iss"
 
 def main():
 
-  version = 0
+  version = "v0.6.0"
+  print(version)
   
   if len(sys.argv) != 2:
     print("Usage: update_installer_version.py version")
     sys.exit(1)
   else:
-    version = int(sys.argv[1])
+    version = str(sys.argv[1])
 
-    print("Updating Windows Installer version info...")
+    print("Updating Windows Installer version info to " + version)
   
     for line in fileinput.input(scriptpath,inplace=1):
         if "AppVersion" in line:
-        line="AppVersion=" + str(version) + "\n"
+            line="AppVersion=" + version + "\n"
+        sys.stdout.write(line)
 
-    sys.stdout.write(line)
+main()
