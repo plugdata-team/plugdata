@@ -25,15 +25,17 @@ jobs:
     - name: Import Code-Signing Certificates (1/2)
       uses: apple-actions/import-codesign-certs@v1
       with: 
+        keychain: "sign_temp_1"
         p12-file-base64: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_P12_BASE64 }}
         p12-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
     - name: Import Code-Signing Certificates (2/2)
       uses: apple-actions/import-codesign-certs@v1
       with: 
+        keychain: "sign_temp_2"
         p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
         p12-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
-        
+
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
