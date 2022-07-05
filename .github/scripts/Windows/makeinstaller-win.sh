@@ -1,9 +1,7 @@
 echo "------------------------------------------------------------------"
 echo "Making Installer ..."
 
-python ".github\scripts\Windows\update-win.py $1"
-
-
+python ".github\scripts\Windows\update-version.py $1"
 
 if "$(uname -m)" == "x86_64" then
 "$PROGRAMFILES (x86)\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
