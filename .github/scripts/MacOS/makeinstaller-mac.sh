@@ -6,7 +6,6 @@
 # Documentation for pkgbuild and productbuild: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
 
 
-
 # version
 if [ "$1" != "" ]; then
   VERSION="$1"
@@ -51,25 +50,13 @@ build_flavor()
 
   mkdir -p $TMPDIR
   cp -a $flavorprod $TMPDIR
-
-  #pkgbuild --root $TMPDIR --identifier $ident --version $VERSION --install-location $loc ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.plist #|| exit 1
+  
   pkgbuild --analyze --root $TMPDIR ${TMPDIR}/${PRODUCT_NAME}_${flavor}.plist
   plutil -replace BundleIsRelocatable -bool NO ${TMPDIR}/${PRODUCT_NAME}_${flavor}.plist
   pkgbuild --root $TMPDIR --identifier $ident --version $VERSION  --install-location $loc --component-plist ${TMPDIR}/${PRODUCT_NAME}_${flavor}.plist ${PKG_DIR}/${PRODUCT_NAME}_${flavor}.pkg
 
   rm -r $TMPDIR
 }
-
-sudo chmod -R 777 ./Plugins/
-
-security default-keychain -s sign_temp_1
-security unlock-keychain -p ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }} sign_temp_1
-
-codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
-codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
-codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
-
-
 
 # # try to build VST3 package
 if [[ -d $VST3 ]]; then

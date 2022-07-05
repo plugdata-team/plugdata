@@ -6,11 +6,11 @@ cp -r Plugins PlugData
 cp README.md PlugData/README.md
 cp LICENSE PlugData/LICENSE.txt
 
-
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  ./.github/scripts/MacOS/makeinstaller-mac.sh ${GITHUB_REF##*/}
+  sudo chmod -R 777 ./Plugins/
+  codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
+  codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
+  codesign -f -v -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
  mv PlugData PlugData-$1
-else
-  ./.github/scripts/Windows/makeinstaller-win.sh ${GITHUB_REF##*/}
 fi

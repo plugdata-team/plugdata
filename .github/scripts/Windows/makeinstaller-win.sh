@@ -1,10 +1,9 @@
 echo "------------------------------------------------------------------"
 echo "Making Installer ..."
 
-python ".github\scripts\Windows\update-version.py $1"
+python ".github\scripts\Windows\update-version.py" $1
 
-arch=$(uname -m)
-if [[ $arch == x86_64* ]]; then
+if [[ $2 == "x64" ]]; then
 "$PROGRAMFILES (x86)\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
 cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win64.exe"
 else
