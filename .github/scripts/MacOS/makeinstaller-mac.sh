@@ -8,9 +8,7 @@
 
 
 # version
-if [ "$PLUGIN_VERSION" != "" ]; then
-  VERSION="$PLUGIN_VERSION"
-elif [ "$1" != "" ]; then
+if [ "$1" != "" ]; then
   VERSION="$1"
 fi
 
