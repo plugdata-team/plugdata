@@ -333,6 +333,7 @@ add_library(pd STATIC ${SOURCE_FILES})
 target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
 if(MSVC)
   target_compile_definitions(pd PRIVATE PTW32_STATIC_LIB=1)
+  set_property(TARGET pd PROPERTY LIBRARY_OUTPUT_DIRECTORY_DEBUG ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/)
 endif()
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
