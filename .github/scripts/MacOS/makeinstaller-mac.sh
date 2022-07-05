@@ -131,7 +131,4 @@ productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_
 rm ${TARGET_DIR}/distribution.xml
 rm -r $PKG_DIR
 
-security default-keychain -s sign_temp_2
-security unlock-keychain -p ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }} sign_temp_2
-
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
