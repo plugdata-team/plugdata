@@ -32,10 +32,10 @@ jobs:
         DEVELOPER_ID_INSTALLER_CER: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
         DEVELOPER_ID_INSTALLER_KEY: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
       run: | 
-        echo ${{ env.DEVELOPER_ID_INSTALLER_CER }} | base64 --decode > certificate_installer.cer
-        echo ${{ env.DEVELOPER_ID_INSTALLER_KEY }} | base64 --decode > certificate_installer.key
-        echo ${{ env.DEVELOPER_ID_APPLICATION_CER }} | base64 --decode > certificate_application.cer
-        echo ${{ env.DEVELOPER_ID_APPLICATION_KEY }} | base64 --decode > certificate_application.key
+        echo "${{ env.DEVELOPER_ID_INSTALLER_CER }}" | base64 --decode > "certificate_installer.cer"
+        echo "${{ env.DEVELOPER_ID_INSTALLER_KEY }}" | base64 --decode > "certificate_installer.key"
+        echo "${{ env.DEVELOPER_ID_APPLICATION_CER }}" | base64 --decode > "certificate_application.cer"
+        echo "${{ env.DEVELOPER_ID_APPLICATION_KEY }}" | base64 --decode > "certificate_application.key"
 
         openssl pkcs12 -export -name zup -in certificate_installer.cer -inkey certificate_installer.key -passin pass:${{ env.AC_PASSWORD }} -out certificate_installer.p12 -passout pass:${{ env.AC_PASSWORD }}
         openssl pkcs12 -export -name zup -in certificate_application.cer -inkey certificate_application.key -passin pass:${{ env.AC_PASSWORD }} -out certificate_application.p12 -passout pass:${{ env.AC_PASSWORD }}
