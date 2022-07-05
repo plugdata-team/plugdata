@@ -3,12 +3,14 @@ echo "Making Installer ..."
 
 python ".github\scripts\Windows\update-win.py $1"
 
-if [[ "$PROCESSOR_ARCHITECTURE" == "X86"* ]]; then
-"$PROGRAMFILES\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
-cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win32.exe"
-else
+
+
+if "$(uname -m)" == "x86_64" then
 "$PROGRAMFILES (x86)\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
 cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win64.exe"
+else
+"$PROGRAMFILES\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
+cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win32.exe"
 fi
 
 # - Codesign Installer for Windows 8+
