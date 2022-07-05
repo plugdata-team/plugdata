@@ -26,7 +26,7 @@
 
 extern "C"
 {
-#include <s_stuff.h>
+#include <x_libpd_multi.h>
 }
 
 #ifdef _WIN32
@@ -38,14 +38,83 @@ extern "C"
 #define snprintf _snprintf
 #endif
 
-extern "C"
-{
-    static t_namelist* sys_openlist;
-    static t_namelist* sys_messagelist;
-}
-
 class PlugDataApp : public JUCEApplication
 {
+    struct t_namelist    /* element in a linked list of stored strings */
+    {
+        struct t_namelist *nl_next;  /* next in list */
+        char *nl_string;            /* the string */
+    };
+
+    t_namelist *namelist_append_files(t_namelist *listwas, const char *s)
+    {
+        const char *npos;
+        char temp[MAXPDSTRING];
+        t_namelist *nl = listwas;
+
+        npos = s;
+        do
+        {
+            npos = strtokcpy(temp, sizeof(temp), npos, ':');
+            if (! *temp) continue;
+            nl = namelist_append(nl, temp, 0);
+        }
+            while (npos);
+        return (nl);
+    }
+
+    t_namelist *namelist_append(t_namelist *listwas, const char *s, int allowdup)
+    {
+        t_namelist *nl, *nl2;
+        nl2 = (t_namelist *)(getbytes(sizeof(*nl)));
+        nl2->nl_next = 0;
+        nl2->nl_string = (char *)getbytes(strlen(s) + 1);
+        strcpy(nl2->nl_string, s);
+        sys_unbashfilename(nl2->nl_string, nl2->nl_string);
+        if (!listwas)
+            return (nl2);
+        else
+        {
+            for (nl = listwas; ;)
+            {
+                if (!allowdup && !strcmp(nl->nl_string, s))
+                {
+                    freebytes(nl2->nl_string, strlen(nl2->nl_string) + 1);
+                    return (listwas);
+                }
+                if (!nl->nl_next)
+                    break;
+                nl = nl->nl_next;
+            }
+            nl->nl_next = nl2;
+        }
+        return (listwas);
+    }
+    
+    void namelist_free(t_namelist *listwas)
+    {
+        t_namelist *nl, *nl2;
+        for (nl = listwas; nl; nl = nl2)
+        {
+            nl2 = nl->nl_next;
+            t_freebytes(nl->nl_string, strlen(nl->nl_string) + 1);
+            t_freebytes(nl, sizeof(*nl));
+        }
+    }
+    static const char *strtokcpy(char *to, size_t to_len, const char *from, char delim)
+    {
+        unsigned int i = 0;
+
+            for (; i < (to_len - 1) && from[i] && from[i] != delim; i++)
+                    to[i] = from[i];
+            to[i] = '\0';
+
+            if (i && from[i] != '\0')
+                    return from + i + 1;
+
+            return NULL;
+    }
+    
    public:
     PlugDataApp()
     {
@@ -110,36 +179,6 @@ class PlugDataApp : public JUCEApplication
 
         parseSystemArguments(arguments);
 
-        /* load dynamic libraries specified with "-lib" args */
-        t_namelist* nl;
-        for (nl = STUFF->st_externlist; nl; nl = nl->nl_next)
-            if (!sys_load_lib(nullptr, nl->nl_string)) post("%s: can't load library", nl->nl_string);
-
-        /* open patches specifies with "-open" args */
-        for (nl = sys_openlist; nl; nl = nl->nl_next)
-        {
-            auto toOpen = File(String(nl->nl_string));
-
-            auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
-            if (pd && toOpen.existsAsFile())
-            {
-                pd->loadPatch(toOpen);
-            }
-        }
-
-        namelist_free(sys_openlist);
-        sys_openlist = nullptr;
-        /* send messages specified with "-send" args */
-        for (nl = sys_messagelist; nl; nl = nl->nl_next)
-        {
-            t_binbuf* b = binbuf_new();
-            binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
-            binbuf_eval(b, nullptr, 0, nullptr);
-            binbuf_free(b);
-        }
-
-        namelist_free(sys_messagelist);
-        sys_messagelist = nullptr;
     }
 
     void shutdown() override
@@ -250,289 +289,41 @@ int PlugDataApp::parseSystemArguments(const String& arguments)
         argv[i] = args.getReference(i).toRawUTF8();
     }
     
-    sys_lock();
+    int retval = parse_startup_arguments(argv, argc);
+    
+    static t_namelist *sys_openlist;
+    static t_namelist *sys_messagelist;
 
-    t_audiosettings as;
-    /* get the current audio parameters.  These are set
-    by the preferences mechanism (sys_loadpreferences()) or
-    else are the default.  Overwrite them with any results
-    of argument parsing, and store them again. */
-    sys_get_audio_settings(&as);
-    while ((argc > 0) && **argv == '-')
-    {
-        /* audio flags */
-        if (!strcmp(*argv, "-r") && argc > 1 && sscanf(argv[1], "%d", &as.a_srate) >= 1)
-        {
-            argc -= 2;
-            argv += 2;
-        }
-        /*
-        else if (!strcmp(*argv, "-inchannels"))
-        {
-            if (argc < 2 ||
-                !sys_parsedevlist(&as.a_nchindev,
-                    as.a_chindevvec, MAXAUDIOINDEV, argv[1]))
-                        goto usage;
-            argc -= 2; argv += 2;
-        }
-        else if (!strcmp(*argv, "-outchannels"))
-        {
-            if (argc < 2 ||
-                !sys_parsedevlist(&as.a_nchoutdev,
-                    as.a_choutdevvec, MAXAUDIOINDEV, argv[1]))
-                        goto usage;
-            argc -= 2; argv += 2;
-        }
-        else if (!strcmp(*argv, "-channels"))
-        {
-            if (argc < 2 ||
-                !sys_parsedevlist(&as.a_nchindev,
-                    as.a_chindevvec, MAXAUDIOINDEV, argv[1]) ||
-                !sys_parsedevlist(&as.a_nchoutdev,
-                    as.a_choutdevvec, MAXAUDIOINDEV, argv[1]))
-                        goto usage;
-            argc -= 2; argv += 2;
-        }
-        else if (!strcmp(*argv, "-soundbuf") || (!strcmp(*argv, "-audiobuf")))
-        {
-            if (argc < 2)
-                goto usage;
-
-            as.a_advance = atoi(argv[1]);
-            argc -= 2; argv += 2;
-        }
-        else if (!strcmp(*argv, "-callback"))
-        {
-            as.a_callback = 1;
-            argc--; argv++;
-        }
-        else if (!strcmp(*argv, "-nocallback"))
-        {
-            as.a_callback = 0;
-            argc--; argv++;
-        }
-        else if (!strcmp(*argv, "-blocksize"))
-        {
-            as.a_blocksize = atoi(argv[1]);
-            argc -= 2; argv += 2;
-        }*/
-        else if (!strcmp(*argv, "-sleepgrain"))
-        {
-            if (argc < 2) goto usage;
-            sys_sleepgrain = 1000 * atof(argv[1]);
-            argc -= 2;
-            argv += 2;
-        }
-        else if (!strcmp(*argv, "-nodac"))
-        {
-            as.a_noutdev = as.a_nchoutdev = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-noadc"))
-        {
-            as.a_nindev = as.a_nchindev = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-nosound") || !strcmp(*argv, "-noaudio"))
-        {
-            as.a_noutdev = as.a_nchoutdev = as.a_nindev = as.a_nchindev = 0;
-            argc--;
-            argv++;
-        }
-        /* MIDI flags */
-        else if (!strcmp(*argv, "-nomidiin"))
-        {
-            sys_nmidiin = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-nomidiout"))
-        {
-            sys_nmidiout = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-nomidi"))
-        {
-            sys_nmidiin = sys_nmidiout = 0;
-            argc--;
-            argv++;
-        }
-        /* other flags */
-        else if (!strcmp(*argv, "-path"))
-        {
-            if (argc < 2) goto usage;
-            STUFF->st_temppath = namelist_append_files(STUFF->st_temppath, argv[1]);
-            argc -= 2;
-            argv += 2;
-        }
-        else if (!strcmp(*argv, "-nostdpath"))
-        {
-            sys_usestdpath = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-stdpath"))
-        {
-            sys_usestdpath = 1;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-helppath"))
-        {
-            if (argc < 2) goto usage;
-            STUFF->st_helppath = namelist_append_files(STUFF->st_helppath, argv[1]);
-            argc -= 2;
-            argv += 2;
-        }
-        else if (!strcmp(*argv, "-open"))
-        {
-            if (argc < 2) goto usage;
-
-            sys_openlist = namelist_append_files(sys_openlist, argv[1]);
-            argc -= 2;
-            argv += 2;
-        }
-        else if (!strcmp(*argv, "-lib"))
-        {
-            if (argc < 2) goto usage;
-
-            STUFF->st_externlist = namelist_append_files(STUFF->st_externlist, argv[1]);
-            argc -= 2;
-            argv += 2;
-        }
-        else if (!strcmp(*argv, "-verbose"))
-        {
-            sys_verbose++;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-noverbose"))
-        {
-            sys_verbose = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-version"))
-        {
-            // sys_version = 1;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-d") && argc > 1 && sscanf(argv[1], "%d", &sys_debuglevel) >= 1)
-        {
-            argc -= 2;
-            argv += 2;
-        }
-        else if (!strcmp(*argv, "-loadbang"))
-        {
-            sys_noloadbang = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-noloadbang"))
-        {
-            sys_noloadbang = 1;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-nostderr"))
-        {
-            sys_printtostderr = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-stderr"))
-        {
-            sys_printtostderr = 1;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-send"))
-        {
-            if (argc < 2) goto usage;
-
-            sys_messagelist = namelist_append(sys_messagelist, argv[1], 1);
-            argc -= 2;
-            argv += 2;
-        }
-        else if (!strcmp(*argv, "-batch"))
-        {
-            // sys_batch = 1;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-nobatch"))
-        {
-            // sys_batch = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-autopatch"))
-        {
-            // sys_noautopatch = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-noautopatch"))
-        {
-            // sys_noautopatch = 1;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-compatibility"))
-        {
-            float f;
-            if (argc < 2) goto usage;
-
-            if (sscanf(argv[1], "%f", &f) < 1) goto usage;
-            pd_compatibilitylevel = 0.5 + 100. * f; /* e.g., 2.44 --> 244 */
-            argv += 2;
-            argc -= 2;
-        }
-        else if (!strcmp(*argv, "-sleep"))
-        {
-            // sys_nosleep = 0;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-nosleep"))
-        {
-            // sys_nosleep = 1;
-            argc--;
-            argv++;
-        }
-        else if (!strcmp(*argv, "-noprefs")) /* did this earlier */
-            argc--, argv++;
-        else if (!strcmp(*argv, "-prefsfile") && argc > 1) /* this too */
-            argc -= 2, argv += 2;
-        else
-        {
-        usage:
-            // sys_printusage();
-            return (1);
-        }
-    }
-    /*
-    if (sys_batch)
-        sys_dontstartgui = 1;
-    if (sys_dontstartgui)
-        sys_printtostderr = 1; */
-#ifdef _WIN32
-    if (sys_printtostderr) /* we need to tell Windows to output UTF-8 */
-        SetConsoleOutputCP(CP_UTF8);
-#endif
-    // if (!sys_defaultfont)
-    //     sys_defaultfont = DEFAULTFONT;
     for (; argc > 0; argc--, argv++) sys_openlist = namelist_append_files(sys_openlist, *argv);
 
-    sys_set_audio_settings(&as);
-    sys_unlock();
+    /* open patches specifies with "-open" args */
+    for (auto* nl = sys_openlist; nl; nl = nl->nl_next)
+    {
+        
+        auto toOpen = File(String(nl->nl_string));
 
+        auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
+        if (pd && toOpen.existsAsFile())
+        {
+            pd->loadPatch(toOpen);
+        }
+    }
+
+
+    /* send messages specified with "-send" args */
+    for (auto* nl = sys_messagelist; nl; nl = nl->nl_next)
+    {
+        t_binbuf* b = binbuf_new();
+        binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
+        binbuf_eval(b, nullptr, 0, nullptr);
+        binbuf_free(b);
+    }
+
+    namelist_free(sys_messagelist);
+    sys_messagelist = nullptr;
     
-    return (0);
+    return retval;
 }
+
 
 JUCE_CREATE_APPLICATION_DEFINE(PlugDataApp);

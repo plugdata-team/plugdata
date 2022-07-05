@@ -1,6 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
@@ -225,7 +226,7 @@ endif()
 
 juce_generate_juce_header(PlugDataStandalone)
 set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 17)
-target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources} ${ELSESources})
+target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources})
 
 juce_generate_juce_header(PlugData)
 set_target_properties(PlugData PROPERTIES CXX_STANDARD 17)
@@ -273,9 +274,6 @@ if(UNIX AND NOT APPLE)
     JUCE_USE_XRENDER=1
     )
     target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
-
-elseif(MSVC)
-target_link_libraries(PlugDataStandalone PUBLIC "-Wl,--export-all-symbols,--whole-archive ws2_32 kernel32 -static-libgcc")
 endif()
 
 target_compile_definitions(PlugDataStandalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
@@ -341,7 +339,12 @@ elseif(UNIX AND NOT APPLE)
   list(APPEND libs curl)
 endif()
 
+if(MSVC)
+#target_compile_definitions(PlugDataStandalone PRIVATE PD_INTERNAL=0)
+target_link_libraries(PlugDataStandalone PRIVATE pd ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/pd.lib ${libs})
+else()
 target_link_libraries(PlugDataStandalone PRIVATE pd ${libs})
+endif()
 target_link_libraries(PlugData PRIVATE pd-multi ${libs})
 target_link_libraries(PlugDataFx PRIVATE pd-multi ${libs})
 

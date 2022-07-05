@@ -11,7 +11,11 @@
 #include <vector>
 
 #include "PdInstance.h"
+
+extern "C"
+{
 #include "x_libpd_mod_utils.h"
+}
 
 namespace pd
 {
