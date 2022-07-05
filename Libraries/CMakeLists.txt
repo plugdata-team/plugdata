@@ -306,16 +306,21 @@ endif()
 # TARGETS
 #------------------------------------------------------------------------------#
 
+add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES})
+target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+
 if(MSVC)
     add_library(pd SHARED ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
-    target_link_libraries(pd PRIVATE libpthreadVC3)
+    target_link_libraries(pd PRIVATE libpthreadVC3 externals)
 else()
     add_library(pd STATIC ${SOURCE_FILES})
     target_compile_definitions(pd PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+    target_link_libraries(pd PRIVATE externals)
 endif()
 
-add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES})
+target_link_libraries(pd-multi PRIVATE externals)
+
 
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
