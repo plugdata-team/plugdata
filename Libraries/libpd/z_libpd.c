@@ -24,6 +24,14 @@
 #include "m_imp.h"
 #include "g_all_guis.h"
 
+// pd_init() doesn't call socket_init() which is needed on windows for
+// libpd_start_gui() to work
+#if (defined(_WIN32) || defined(_WIN64)) && PD_MINOR_VERSION > 50
+# include "s_net.h"
+# define SOCKET_INIT socket_init();
+#else
+# define SOCKET_INIT
+#endif
 
 #if PD_MINOR_VERSION < 46
 # define HAVE_SCHED_TICK_ARG
@@ -91,6 +99,7 @@ int libpd_init(void) {
   libpdreceive_setup();
   STUFF->st_searchpath = NULL;
   sys_libdir = gensym("");
+  SOCKET_INIT
   post("pd %d.%d.%d%s", PD_MAJOR_VERSION, PD_MINOR_VERSION,
     PD_BUGFIX_VERSION, PD_TEST_VERSION);
 #ifdef LIBPD_EXTRA
@@ -284,6 +293,20 @@ int libpd_write_array(const char *name, int offset, const float *src, int n) {
   return 0;
 }
 
+int libpd_read_array_double(double *dest, const char *name, int offset, int n) {
+  sys_lock();
+  MEMCPY(*dest++, (vec++)->w_float)
+  sys_unlock();
+  return 0;
+}
+
+int libpd_write_array_double(const char *name, int offset, const double *src, int n) {
+  sys_lock();
+  MEMCPY((vec++)->w_float, *src++)
+  sys_unlock();
+  return 0;
+}
+
 int libpd_bang(const char *recv) {
   void *obj;
   sys_lock();
@@ -298,7 +321,7 @@ int libpd_bang(const char *recv) {
   return 0;
 }
 
-int libpd_float(const char *recv, float x) {
+static int libpd_dofloat(const char *recv, t_float x) {
   void *obj;
   sys_lock();
   obj = get_object(recv);
@@ -310,6 +333,14 @@ int libpd_float(const char *recv, float x) {
   pd_float(obj, x);
   sys_unlock();
   return 0;
+}
+
+int libpd_float(const char *recv, float x) {
+  return libpd_dofloat(recv, x);
+}
+
+int libpd_double(const char *recv, double x) {
+  return libpd_dofloat(recv, x);
 }
 
 int libpd_symbol(const char *recv, const char *symbol) {
@@ -347,6 +378,10 @@ void libpd_add_float(float x) {
   ADD_ARG(SETFLOAT);
 }
 
+void libpd_add_double(double x) {
+  ADD_ARG(SETFLOAT);
+}
+
 void libpd_add_symbol(const char *symbol) {
   t_symbol *x;
   sys_lock();
@@ -365,6 +400,10 @@ int libpd_finish_message(const char *recv, const char *msg) {
 
 void libpd_set_float(t_atom *a, float x) {
   SETFLOAT(a, x);
+}
+
+void libpd_set_double(t_atom *v, double x) {
+  SETFLOAT(v, x);
 }
 
 void libpd_set_symbol(t_atom *a, const char *symbol) {
@@ -430,7 +469,13 @@ void libpd_set_banghook(const t_libpd_banghook hook) {
 }
 
 void libpd_set_floathook(const t_libpd_floathook hook) {
+  libpd_doublehook = 0;
   libpd_floathook = hook;
+}
+
+void libpd_set_doublehook(const t_libpd_doublehook hook) {
+  libpd_doublehook = hook;
+  libpd_floathook = 0;
 }
 
 void libpd_set_symbolhook(const t_libpd_symbolhook hook) {
@@ -454,6 +499,10 @@ int libpd_is_symbol(t_atom *a) {
 }
 
 float libpd_get_float(t_atom *a) {
+  return (a)->a_w.w_float;
+}
+
+double libpd_get_double(t_atom *a) {
   return (a)->a_w.w_float;
 }
 

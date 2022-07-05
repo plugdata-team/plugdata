@@ -17,8 +17,8 @@
 static t_class *libpdrec_class;
 
 typedef struct _libpdrec {
-    t_object x_obj;
-    t_symbol *x_sym;
+  t_object x_obj;
+  t_symbol *x_sym;
 } t_libpdrec;
 
 static void libpdrecbang(t_libpdrec *x) {
@@ -27,6 +27,7 @@ static void libpdrecbang(t_libpdrec *x) {
 
 static void libpdrecfloat(t_libpdrec *x, t_float f) {
   if (libpd_floathook) (*libpd_floathook)(x->x_sym->s_name, f);
+  if (libpd_doublehook) (*libpd_doublehook)(x->x_sym->s_name, f);
 }
 
 static void libpdrecsymbol(t_libpdrec *x, t_symbol *s) {
