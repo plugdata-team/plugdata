@@ -59,9 +59,9 @@ build_flavor()
   rm -r $TMPDIR
 }
 
-#codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
-#codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
-#codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
+codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3 --timestamp
+codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/Standalone/*.app --timestamp
+codesign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component --timestamp
 
 
 # try to build LV2 package
@@ -134,10 +134,10 @@ XMLEND
 # build installation bundle
 # --resources .
 
-#productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_DIR} "${TARGET_DIR}/$OUTPUT_BASE_FILENAME"
+productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_DIR} "${TARGET_DIR}/$OUTPUT_BASE_FILENAME"
 
-#rm ${TARGET_DIR}/distribution.xml
-#rm -r $PKG_DIR
+rm ${TARGET_DIR}/distribution.xml
+rm -r $PKG_DIR
 
 
 #productsign -f -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
