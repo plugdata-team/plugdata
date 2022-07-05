@@ -307,7 +307,10 @@ endif()
 #------------------------------------------------------------------------------#
 
 add_library(externals STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES})
+add_library(externals-multi STATIC ${ELSE_SOURCES} ${CYCLONE_SOURCES})
+
 target_compile_definitions(externals PRIVATE ${LIBPD_COMPILE_DEFINITIONS})
+target_compile_definitions(externals-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
 
 if(MSVC)
     add_library(pd SHARED ${SOURCE_FILES})
@@ -319,16 +322,16 @@ endif()
 
 
 
-
-set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
-
 add_library(pd-multi STATIC ${SOURCE_FILES})
 target_compile_definitions(pd-multi PRIVATE ${LIBPD_COMPILE_DEFINITIONS} PDINSTANCE=1 PDTHREADS=1)
 if(MSVC)
   target_compile_definitions(pd-multi PRIVATE PTW32_STATIC_LIB=1 "EXTERN= ")
 endif()
-set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(externals PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(externals-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 #------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
 #------------------------------------------------------------------------------#
@@ -356,11 +359,11 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
   find_library(MATH_LIB m)
 
   target_link_libraries(pd ${MATH_LIB}$ {CMAKE_DL_LIBS} externals)
-  target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
+  target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
 
 elseif(MSVC)
   target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 externals)
-  target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 externals)
+  target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 externals-multi)
 
   add_custom_command(TARGET pd POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -373,7 +376,7 @@ elseif(MSVC)
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
   target_link_libraries(pd PUBLIC externals)
-  target_link_libraries(pd-multi PUBLIC externals)
+  target_link_libraries(pd-multi PUBLIC externals-multi)
 endif()
 
 # LINK PTHREAD
