@@ -358,7 +358,7 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
 
   find_library(MATH_LIB m)
 
-  target_link_libraries(pd ${MATH_LIB}$ {CMAKE_DL_LIBS} externals)
+  target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
   target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
 
 elseif(MSVC)
