@@ -65,13 +65,19 @@ jobs:
 #        appstore-connect-username: ${{ secrets.AC_USERNAME }}
 #        appstore-connect-password: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
 
+    - name: Archive Artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: PlugData-MacOS-Universal
+        path: PlugData-MacOS-Universal.pkg
+
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
       if: startsWith(github.ref, 'refs/tags/')
       with:
         prerelease: true
         draft: true
-        files: PlugData-MacOS-Universal.pkg
+        files: PlugData-MacOS-Universal
 
   windows-64-build:
     runs-on: windows-2019
