@@ -13,5 +13,5 @@ if [[ "$OSTYPE" == "darwin"* ]]; then
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
  mv PlugData PlugData-$1
 else
-  mv PlugData PlugData-$1
+  ./.github/scripts/Windows/makeinstaller-win.sh 0.6.0
 fi
