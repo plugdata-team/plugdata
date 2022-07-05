@@ -3,10 +3,10 @@ echo "Making Installer ..."
 
 if [[ "$PROCESSOR_ARCHITECTURE" == "x86"* ]]; then
 "$PROGRAMFILES\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
-cp ".\installer\PlugData Installer.exe" ".\PlugData-Win32.exe"
+cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win32.exe"
 else
 "$PROGRAMFILES (x86)\Inno Setup 6\iscc.exe" ".github\scripts\Windows\PlugData.iss"
-cp ".\installer\PlugData Installer.exe" ".\PlugData-Win64.exe"
+cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win64.exe"
 fi
 
 # - Codesign Installer for Windows 8+
