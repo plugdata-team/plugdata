@@ -29,7 +29,7 @@ VST3="/VST3/."
 AU="/AU/."
 APP="/Standalone/."
 
-OUTPUT_BASE_FILENAME="${PRODUCT_NAME}-MacOS-Universal.pkg"
+OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
 TARGET_DIR="./"
 PKG_DIR=${TARGET_DIR}/pkgs
@@ -134,3 +134,6 @@ productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_
 
 rm ${TARGET_DIR}/distribution.xml
 rm -r $PKG_DIR
+
+
+productsign -f -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
