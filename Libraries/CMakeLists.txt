@@ -319,7 +319,7 @@ else()
     target_link_libraries(pd PRIVATE externals)
 endif()
 
-target_link_libraries(pd-multi PRIVATE externals)
+
 
 
 set_target_properties(pd PROPERTIES POSITION_INDEPENDENT_CODE ON)
@@ -331,6 +331,7 @@ if(MSVC)
 endif()
 set_target_properties(pd-multi PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+target_link_libraries(pd-multi PRIVATE externals)
 
 #------------------------------------------------------------------------------#
 # GENERATOR OPTIONS
