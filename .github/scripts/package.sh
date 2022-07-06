@@ -9,7 +9,7 @@ cp LICENSE PlugData/LICENSE.txt
 if [[ "$OSTYPE" == "darwin"* ]]; then
   sudo chmod -R 777 ./Plugins/
 
-echo $MACOS_CERTIFICATE | base64 —decode > certificate.p12
+echo $MACOS_CERTIFICATE | base64 —D > certificate.p12
 security create-keychain -p $AC_PASSWORD build.keychain
 security default-keychain -s build.keychain
 security unlock-keychain -p $AC_PASSWORD build.keychain
