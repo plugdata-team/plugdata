@@ -54,11 +54,11 @@ jobs:
       working-directory: ${{github.workspace}}
       run: ./.github/scripts/makeinstaller.sh
 
-    - name: Notarize Artefacts
-      env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
-      run: gon -log-level=debug -log-json .github/scripts/MacOS/notarize.json
+    #- name: Notarize Artefacts
+    #  env:
+    #    AC_USERNAME: ${{ secrets.AC_USERNAME }}
+    #    AC_PASSWORD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
+    #  run: gon -log-level=debug -log-json .github/scripts/MacOS/notarize.json
       
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
