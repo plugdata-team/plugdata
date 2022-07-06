@@ -39,24 +39,13 @@ jobs:
     - name: Import Code-Signing Certificates (2/2)
       uses: figleafteam/import-codesign-certs@v2
       with: 
+        keychain-name: "installer-keychain"
         p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
         p12-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
 
     - name: Creating Installer
       working-directory: ${{github.workspace}}
       run: ./.github/scripts/makeinstaller.sh
-
-    - name: "Notarize Release Build"
-      uses: devbotsxyz/xcode-notarize@v1
-      with:
-        product-path: "PlugData-MacOS-Universal.pkg"
-        appstore-connect-username: ${{ secrets.AC_USERNAME }}
-        appstore-connect-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
-        
-    - name: "Staple Release Build"
-      uses: devbotsxyz/xcode-staple@v1
-      with:
-        product-path: PlugData-MacOS-Universal.pkg
 
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
