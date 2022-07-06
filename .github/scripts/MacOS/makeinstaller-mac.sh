@@ -133,5 +133,5 @@ rm -r $PKG_DIR
 
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
 
-xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "installer-keychain" --wait
-xcrun stapler staple "PlugData-MacOS-Universal.dmg"
+xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "installer-keychain" --wait || true
+xcrun stapler staple "PlugData-MacOS-Universal.dmg" || true
