@@ -133,6 +133,6 @@ rm -r $PKG_DIR
 
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
 
-xcrun notarytool store-credentials --apple-id "timschoen123@gmail.com" --password ${AC_PASSWORD}
+xcrun notarytool store-credentials --apple-id "${AC_USERNAME} --password ${AC_PASSWORD}
 xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --wait || true
 xcrun stapler staple "PlugData-MacOS-Universal.pkg" || true
