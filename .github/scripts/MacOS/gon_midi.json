@@ -1,5 +1,5 @@
 {
-    "source" : ["./Plugins/AU/PlugDataMidi.component/Contents/MacOS/PlugDataMidi"],
+    "source" : ["./Plugins/AU/PlugDataMidi.component/"],
     "bundle_id" : "com.Octagon.PlugDataMidi",
     "apple_id": {
             "username" : "timschoen123@gmail.com",
