@@ -39,7 +39,6 @@ jobs:
     - name: Import Code-Signing Certificates (2/2)
       uses: figleafteam/import-codesign-certs@v2
       with: 
-        keychain-name: "installer-keychain"
         p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
         p12-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
 
