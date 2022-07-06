@@ -60,7 +60,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: PlugData-MacOS-Universal
-        path: PlugData-MacOS-Universal.pkg
+        path: PlugData # temp
 
     - name: Release Artifacts
       uses: softprops/action-gh-release@v1
