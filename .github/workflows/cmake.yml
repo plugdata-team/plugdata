@@ -23,9 +23,9 @@ jobs:
       run: cmake $GITHUB_WORKSPACE -G "Xcode"
 
     - name: Install Gon (for signing and notarization)
-          run: |
-            brew tap mitchellh/gon
-            brew install mitchellh/gon/gon
+      run: |
+        brew tap mitchellh/gon
+        brew install mitchellh/gon/gon
 
     - name: Import Code-Signing Certificates (1/2)
       uses: figleafteam/import-codesign-certs@v2
