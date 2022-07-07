@@ -19,11 +19,10 @@ fi
 
 PRODUCT_NAME=PlugData
 
-
-LV2="./PlugData/LV2/."
-VST3="./PlugData/VST3/."
-AU="./PlugData/AU/."
-APP="./PlugData/Standalone/."
+LV2="./Plugins/LV2/."
+VST3="./Plugins/VST3/."
+AU="./Plugins/AU/."
+APP="./Plugins/Standalone/."
 
 OUTPUT_BASE_FILENAME="${PRODUCT_NAME}.pkg"
 
@@ -59,13 +58,13 @@ build_flavor()
 }
 
 # Sign app with hardened runtime and audio entitlement
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Entitlements.plist ./PlugData/Standalone/*.app
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" --options runtime --entitlements ./Resources/Entitlements.plist ./Plugins/Standalone/*.app
 
 # Sign plugins
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./PlugData/VST3/*.vst3
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./PlugData/AU/*.component
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./PlugData/LV2/PlugData.lv2/libPlugData.so
-/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./PlugData/LV2/PlugDataFx.lv2/libPlugDataFx.so
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/VST3/*.vst3
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/AU/*.component
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/PlugData.lv2/libPlugData.so
+/usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/PlugDataFx.lv2/libPlugDataFx.so
 
 
 
@@ -146,7 +145,7 @@ rm -r $PKG_DIR
 # Sign installer
 productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
 
-# Notarize installer
+# Notarize installer (continue anyway if it fails)
 xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L" || true
 xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "notary_login" --wait || true
 xcrun stapler staple "PlugData-MacOS-Universal.pkg" || true
