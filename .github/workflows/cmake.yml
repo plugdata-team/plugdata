@@ -26,7 +26,13 @@ jobs:
       run: |
         brew tap mitchellh/gon
         brew install mitchellh/gon/gon
-        
+
+    - name: Import Code-Signing Certificates
+      uses: apple-actions/import-codesign-certs@v1
+      with: 
+        p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
+        p12-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
+
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
@@ -40,11 +46,6 @@ jobs:
         MACOS_CERTIFICATE_PWD: ${{ secrets.APPLE_DEVELOPER_CERTIFICATE_PASSWORD }}
       run: ./.github/scripts/package.sh MacOS-Universal
 
-    - name: Import Code-Signing Certificates (2/2)
-      uses: figleafteam/import-codesign-certs@v2
-      with: 
-        p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
-        p12-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
 
     - name: Creating Installer
       working-directory: ${{github.workspace}}
