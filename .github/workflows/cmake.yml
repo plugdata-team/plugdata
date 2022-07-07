@@ -38,8 +38,8 @@ jobs:
         AC_USERNAME: ${{ secrets.AC_USERNAME }}
         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
       run: |
-      VERSION=$(git describe --tags --abbrev=0)
-      ./.github/scripts/package-macOS.sh
+        VERSION=$(git describe --tags --abbrev=0)
+        ./.github/scripts/package-macOS.sh
 
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
@@ -81,9 +81,9 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: bash
       run: |
-      ARCH="x64"
-      VERSION=$(git describe --tags --abbrev=0)
-      ./.github/scripts/package-Windows.sh
+        ARCH="x64"
+        VERSION=$(git describe --tags --abbrev=0)
+        ./.github/scripts/package-Windows.sh
 
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
@@ -124,9 +124,9 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: bash
       run: |
-      ARCH="x86"
-      VERSION=$(git describe --tags --abbrev=0)
-      ./.github/scripts/package-Windows.sh
+        ARCH="x86"
+        VERSION=$(git describe --tags --abbrev=0)
+        ./.github/scripts/package-Windows.sh
 
     - name: Archive Artifacts
       uses: actions/upload-artifact@v3
