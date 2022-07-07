@@ -27,12 +27,6 @@ jobs:
         brew tap mitchellh/gon
         brew install mitchellh/gon/gon
 
-    - name: Import Code-Signing Certificates
-      uses: apple-actions/import-codesign-certs@v1
-      with: 
-        p12-file-base64: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_P12_BASE64 }}
-        p12-password: ${{ secrets.APPLE_INSTALLER_CERTIFICATE_PASSWORD }}
-
     - name: Build
       working-directory: ${{github.workspace}}/build
       run: cmake --build . --config $BUILD_TYPE
