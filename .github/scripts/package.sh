@@ -7,10 +7,10 @@ cp README.md PlugData/README.md
 cp LICENSE PlugData/LICENSE.txt
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-  ./.github/script/MacOS/makeinstaller-mac.sh ${GITHUB_REF#refs/*/}
+  ./.github/scripts/MacOS/makeinstaller-mac.sh ${GITHUB_REF#refs/*/}
 elif [[ "$OSTYPE" == "linux-gnu"* ]]; then
  mv PlugData PlugData-$1
 else
-   ./.github/script/Windows/makeinstaller-win.sh ${GITHUB_REF#refs/*/} $1
+   ./.github/scripts/Windows/makeinstaller-win.sh ${GITHUB_REF#refs/*/} $1
 fi
 
