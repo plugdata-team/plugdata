@@ -6,14 +6,8 @@
 # Documentation for pkgbuild and productbuild: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
 
 
-# version
-if [ "$1" != "" ]; then
-  VERSION="$1"
-fi
-
 if [ "$VERSION" == "" ]; then
-  echo "You must specify the version you are packaging as the first argument!"
-  echo "eg: makeinstaller-mac.sh 0.6.0"
+  echo "You must specify the version as an environment variable!"
   exit 1
 fi
 
@@ -66,8 +60,6 @@ build_flavor()
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/PlugData.lv2/libPlugData.so
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./Plugins/LV2/PlugDataFx.lv2/libPlugDataFx.so
 
-
-
 # # try to build VST3 package
 if [[ -d $VST3 ]]; then
   build_flavor "VST3" $VST3 "com.Octagon.vst3.pkg.${PRODUCT_NAME}" "/Library/Audio/Plug-Ins/VST3"
@@ -116,7 +108,7 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
 <?xml version="1.0" encoding="utf-8"?>
 <installer-gui-script minSpecVersion="1">
     <title>PlugData Installer</title>
-    <license file="LICENSE" mime-type="application/rtf"/>
+    <license file="LICENSE.rtf" mime-type="application/rtf"/>
     ${VST3_PKG_REF}
     ${AU_PKG_REF}
     ${LV2_PKG_REF}
@@ -135,17 +127,18 @@ cat > ${TARGET_DIR}/distribution.xml << XMLEND
 </installer-gui-script>
 XMLEND
 
+textutil -convert rtf LICENSE -output LICENSE.rtf
 
 # Build installer
-productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_DIR} "${TARGET_DIR}/$OUTPUT_BASE_FILENAME"
+productbuild --resources ./ --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_DIR} "${TARGET_DIR}/$OUTPUT_BASE_FILENAME"
 
 rm ${TARGET_DIR}/distribution.xml
 rm -r $PKG_DIR
 
 # Sign installer
-productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
+#productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
 
 # Notarize installer (continue anyway if it fails)
-xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L" || true
-xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "notary_login" --wait || true
-xcrun stapler staple "PlugData-MacOS-Universal.pkg" || true
+#xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L" || true
+#xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "notary_login" --wait || true
+#xcrun stapler staple "PlugData-MacOS-Universal.pkg" || true
