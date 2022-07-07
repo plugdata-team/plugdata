@@ -37,15 +37,7 @@ jobs:
       env:
         AC_USERNAME: ${{ secrets.AC_USERNAME }}
         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      run: ./.github/scripts/package.sh MacOS-Universal
-
-
-    - name: Creating Installer
-      working-directory: ${{github.workspace}}
-      env:
-        AC_USERNAME: ${{ secrets.AC_USERNAME }}
-        AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-      run: ./.github/scripts/makeinstaller.sh
+      run: ./.github/scripts/package.sh
 
     #- name: Notarize Artefacts
     #  env:
