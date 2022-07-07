@@ -1,32 +1,27 @@
-echo "------------------------------------------------------------------"
-echo "Making Installer ..."
-
-ArchitecturesInstallIn64BitMode
-
-64BitMode = ""
+X64BitMode=""
 
 if [[ $ARCH == "x64" ]]; then
-  64BitMode = "x64"
+  X64BitMode="x64"
 fi
 
-cat > "PlugData.iss" <<- EndOfInstallerScript
+cat > ./PlugData.iss <<-EOL
 [Setup]
 AppName=PlugData
 AppContact=timschoen123@gmail.com
-AppCopyright= Distributed under GPLv3 license
+AppCopyright=Distributed under GPLv3 license
 AppPublisher=OCTAGONAUDIO
 AppPublisherURL=https://github.com/timothyschoen/PlugData
 AppSupportURL=https://github.com/timothyschoen/PlugData
-AppVersion=${VERSION}
+AppVerName=$VERSION
 VersionInfoVersion=1.0.0
 DefaultDirName={commonpf}\PlugData
 DefaultGroupName=PlugData
 Compression=lzma2
 SolidCompression=yes
 OutputDir=.\
-ArchitecturesInstallIn64BitMode=${64BitMode}
+ArchitecturesInstallIn64BitMode=$X64BitMode
 OutputBaseFilename=PlugData Installer
-LicenseFile=..\..\..\LICENSE
+LicenseFile=LICENSE
 SetupLogging=yes
 ShowComponentSizes=yes
 
@@ -76,9 +71,9 @@ end;
 
 [UninstallDelete]
 Type: files; Name: "{app}\InstallationLogFile.log"
-EndOfInstallerScript
+EOL
 
-iscc.exe "PlugData.iss"
+iscc.exe PlugData.iss
 
 if [[ $ARCH == "x64" ]]; then
 cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win64.exe"
