@@ -1,8 +1,10 @@
 X64BitMode=""
 
-if [[ $ARCH == "x64" ]]; then
+if [[ $1 == "x64" ]]; then
   X64BitMode="x64"
 fi
+
+VERSION=${GITHUB_REF#refs/*/}
 
 cat > ./PlugData.iss <<-EOL
 [Setup]
@@ -75,7 +77,7 @@ EOL
 
 iscc.exe PlugData.iss
 
-if [[ $ARCH == "x64" ]]; then
+if [[ $1 == "x64" ]]; then
 cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win64.exe"
 else
 cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win32.exe"

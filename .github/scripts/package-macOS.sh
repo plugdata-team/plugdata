@@ -5,11 +5,7 @@
 
 # Documentation for pkgbuild and productbuild: https://developer.apple.com/library/archive/documentation/DeveloperTools/Reference/DistributionDefinitionRef/Chapters/Distribution_XML_Ref.html
 
-
-if [ "$VERSION" == "" ]; then
-  echo "You must specify the version as an environment variable!"
-  exit 1
-fi
+VERSION=${GITHUB_REF#refs/*/}
 
 PRODUCT_NAME=PlugData
 
