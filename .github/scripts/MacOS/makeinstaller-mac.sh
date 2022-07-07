@@ -131,7 +131,7 @@ productbuild --distribution ${TARGET_DIR}/distribution.xml --package-path ${PKG_
 rm ${TARGET_DIR}/distribution.xml
 rm -r $PKG_DIR
 
-productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
+#productsign -s "Developer ID Installer: Timothy Schoen (7SV7JPRR2L)" ${PRODUCT_NAME}.pkg ${PRODUCT_NAME}-MacOS-Universal.pkg
 
 #xcrun notarytool store-credentials "notary_login" --apple-id ${AC_USERNAME} --password ${AC_PASSWORD} --team-id "7SV7JPRR2L"
 #xcrun notarytool submit ./PlugData-MacOS-Universal.pkg --keychain-profile "notary_login" --wait || true
