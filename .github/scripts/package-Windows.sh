@@ -78,9 +78,9 @@ EOL
 iscc.exe PlugData.iss
 
 if [[ $1 == "x64" ]]; then
-cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win64.exe"
+cp ".\PlugData Installer.exe" ".\PlugData-Win64.exe"
 else
-cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win32.exe"
+cp ".\PlugData Installer.exe" ".\PlugData-Win32.exe"
 fi
 
 # - Codesign Installer for Windows 8+
