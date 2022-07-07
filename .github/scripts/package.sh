@@ -9,13 +9,6 @@ cp LICENSE PlugData/LICENSE.txt
 if [[ "$OSTYPE" == "darwin"* ]]; then
   sudo chmod -R 777 ./Plugins/
 
-echo $MACOS_CERTIFICATE | base64 --decode > certificate.p12
-security create-keychain -p $AC_PASSWORD build.keychain
-security default-keychain -s build.keychain
-security unlock-keychain -p $AC_PASSWORD build.keychain
-security import certificate.p12 -k build.keychain -P $MACOS_CERTIFICATE_PWD -T /usr/bin/codesign
-security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k $AC_PASSWORD build.keychain
-
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./PlugData/VST3/*.vst3
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./PlugData/Standalone/*.app
 /usr/bin/codesign --force -s "Developer ID Application: Timothy Schoen (7SV7JPRR2L)" ./PlugData/AU/*.component
