@@ -37,7 +37,7 @@ jobs:
       env:
         AC_USERNAME: ${{ secrets.AC_USERNAME }}
         AC_PASSWORD: ${{ secrets.AC_PASSWORD }}
-        VERSION: ${GITHUB_REF#refs/*/}
+        VERSION: ${{ GITHUB_REF#refs/*/ }}
       run: ./.github/scripts/package-macOS.sh
 
     - name: Archive Artifacts
@@ -79,7 +79,7 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: bash
       env:
-        VERSION: ${GITHUB_REF#refs/*/}
+        VERSION: ${{ GITHUB_REF#refs/*/ }}
         ARCH: "x64"
       run: ./.github/scripts/package-Windows.sh ${GITHUB_REF#refs/*/} "x64"
 
@@ -122,7 +122,7 @@ jobs:
       working-directory: ${{github.workspace}}
       shell: bash
       env:
-        VERSION: ${GITHUB_REF#refs/*/}
+        VERSION: ${{ GITHUB_REF#refs/*/ }}
         ARCH: "x86"
       run: ./.github/scripts/package-Windows.sh
 
