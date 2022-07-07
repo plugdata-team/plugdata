@@ -43,9 +43,9 @@ Name: "lv2"; Description: "LV2 Plugin (.lv2)"; Types: full custom;
 Name: "vst3"; Description: "VST3 Plugin (.vst3)"; Types: full custom;
 
 [Files]
-Source: "..\..\..\Plugins\VST3\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\VST3\"; Components:vst3; Flags: ignoreversion recursesubdirs;
-Source: "..\..\..\Plugins\LV2\**"; Excludes: "*.exe,*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\LV2\"; Components:lv2; Flags: ignoreversion recursesubdirs;
-Source: "..\..\..\Plugins\Standalone\**"; Excludes: "*.pdb,*.exp,*.ilk,*.ico,*.ini"; DestDir: "{commonpf}\PlugData\"; Components:app; Flags: ignoreversion recursesubdirs;
+Source: ".\Plugins\VST3\**"; Excludes: "*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\VST3\"; Components:vst3; Flags: ignoreversion recursesubdirs;
+Source: ".Plugins\LV2\**"; Excludes: "*.exe,*.pdb,*.exp,*.lib,*.ilk,*.ico,*.ini"; DestDir: "{commoncf}\LV2\"; Components:lv2; Flags: ignoreversion recursesubdirs;
+Source: ".Plugins\Standalone\**"; Excludes: "*.pdb,*.exp,*.ilk,*.ico,*.ini"; DestDir: "{commonpf}\PlugData\"; Components:app; Flags: ignoreversion recursesubdirs;
 
 [Icons]
 Name: "{group}\PlugData"; Filename: "{app}\PlugData.exe"
