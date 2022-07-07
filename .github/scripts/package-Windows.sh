@@ -1,3 +1,15 @@
+echo "------------------------------------------------------------------"
+echo "Making Installer ..."
+
+ArchitecturesInstallIn64BitMode
+
+64BitMode = ""
+
+if [[ $ARCH == "x64" ]]; then
+  64BitMode = "x64"
+fi
+
+cat > "PlugData.iss" <<- EndOfInstallerScript
 [Setup]
 AppName=PlugData
 AppContact=timschoen123@gmail.com
@@ -5,20 +17,18 @@ AppCopyright= Distributed under GPLv3 license
 AppPublisher=OCTAGONAUDIO
 AppPublisherURL=https://github.com/timothyschoen/PlugData
 AppSupportURL=https://github.com/timothyschoen/PlugData
-AppVersion=v0.6.0
-VersionInfoVersion=0.6.0
+AppVersion=${VERSION}
+VersionInfoVersion=1.0.0
 DefaultDirName={commonpf}\PlugData
 DefaultGroupName=PlugData
 Compression=lzma2
 SolidCompression=yes
 OutputDir=.\
-ArchitecturesInstallIn64BitMode=x64
+ArchitecturesInstallIn64BitMode=${64BitMode}
 OutputBaseFilename=PlugData Installer
 LicenseFile=..\..\..\LICENSE
 SetupLogging=yes
-ShowComponentSizes=no
-; WizardImageFile=installer_bg-win.bmp
-; WizardSmallImageFile=installer_icon-win.bmp
+ShowComponentSizes=yes
 
 [Types]
 Name: "full"; Description: "Full installation"
@@ -26,7 +36,7 @@ Name: "custom"; Description: "Custom installation"; Flags: iscustom
 
 [Messages]
 WelcomeLabel1=Welcome to the PlugData installer
-SetupWindowTitle=PlugData installer
+SetupWindowTitle=PlugData Installer
 SelectDirLabel3=The standalone application and supporting files will be installed in the following folder.
 SelectDirBrowseLabel=To continue, click Next. If you would like to select a different folder (not recommended), click Browse.
 
@@ -47,11 +57,9 @@ Name: "{group}\PlugData"; Filename: "{app}\PlugData.exe"
 var
   OkToCopyLog : Boolean;
 
-
 procedure InitializeWizard;
 begin
 end;
-
 
 procedure CurStepChanged(CurStep: TSetupStep);
 begin
@@ -68,3 +76,20 @@ end;
 
 [UninstallDelete]
 Type: files; Name: "{app}\InstallationLogFile.log"
+EndOfInstallerScript
+
+iscc.exe "PlugData.iss"
+
+if [[ $ARCH == "x64" ]]; then
+cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win64.exe"
+else
+cp ".github\scripts\Windows\PlugData Installer.exe" ".\PlugData-Win32.exe"
+fi
+
+# - Codesign Installer for Windows 8+
+# -"C:\Program Files (x86)\Microsoft SDKs\Windows\v7.1A\Bin\signtool.exe" sign /f "XXXXX.p12" /p XXXXX /d "PlugData Installer" ".\installer\PlugData Installer.exe"
+
+# -if %1 == 1 (
+# -copy ".\installer\PlugData Installer.exe" ".\installer\PlugData Demo Installer.exe"
+# -del ".\installer\PlugData Installer.exe"
+# -)
