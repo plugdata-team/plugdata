@@ -283,17 +283,9 @@ struct SettingsDialog : public Component
 
         dialog->onClose = [this, dialog]()
         {
-            // Check if deken is busy, else clean up settings dialog
-            if (!dynamic_cast<Deken*>(panels[4])->isBusy())
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor()))
             {
-                if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor()))
-                {
-                    editor->settingsDialog.reset(nullptr);
-                }
-            }
-            else
-            {
-                dialog->setVisible(false);
+                editor->settingsDialog.reset(nullptr);
             }
         };
 
