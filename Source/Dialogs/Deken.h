@@ -4,6 +4,7 @@
 // Use an alternative http library
 // This one is slightly faster and easier to clean up than JUCE's web handling
 #include "../Utility/HTTP.h"
+
 struct Spinner : public Component, public Timer
 {
     bool isSpinning = false;

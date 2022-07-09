@@ -146,9 +146,12 @@ using ssize_t = int;
 #define NOMINMAX
 #endif // NOMINMAX
 
+// Prevent duplicate definition with juce::Rectangle
+#define Rectangle Win32_Rectangle
 #include <io.h>
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#undef Rectangle
 
 #ifndef WSA_FLAG_NO_HANDLE_INHERIT
 #define WSA_FLAG_NO_HANDLE_INHERIT 0x80
