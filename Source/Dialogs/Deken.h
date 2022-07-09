@@ -154,18 +154,17 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         
         if (pkgInfo.existsAsFile())
         {
-            try
+            auto newTree = ValueTree::fromXml(pkgInfo.loadFileAsString());
+            if (newTree.isValid() && newTree.getType() == Identifier("pkg_info"))
             {
-                auto newTree = ValueTree::fromXml(pkgInfo.loadFileAsString());
-                if (newTree.getType() == Identifier("pkg_info"))
-                {
-                    packageState = newTree;
-                }
+                packageState = newTree;
             }
-            catch (...)
-            {
+            else {
                 packageState = ValueTree("pkg_info");
             }
+        }
+        else {
+            packageState = ValueTree("pkg_info");
         }
         
         packageState.addListener(this);
@@ -225,7 +224,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
             for(auto obj : objects) {
                 result.add(obj["name"]);
             }
-        } catch (...) {
+        } catch (json::parse_error& e) {
             std::cerr << "Invalid JSON response from deken" << std::endl;
         }
         
@@ -329,7 +328,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
                 }
             }
         }
-        catch (...)
+        catch (json::parse_error& e)
         {
             std::cerr << "Error: invalid JSON response from deken" << std::endl;
         }
@@ -564,15 +563,6 @@ public:
             input.setEnabled(true);
             updateSpinner.stopSpinning();
         }
-    }
-    
-    // Check if busy when deleting settings component
-    // TODO: this is obsolete
-    bool isBusy()
-    {
-        //if (downloads.size()) return true;
-        
-        return false; //packageManager.isThreadRunning();
     }
     
     void scrollBarMoved(ScrollBar* scrollBarThatHasMoved, double newRangeStart) override
