@@ -196,23 +196,9 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         
         // Create link for deken search request
         auto objectDataUrl = URL("https://deken.puredata.info/info.json?url=" + url);
-        
-        // Open webstream
-        WebInputStream webstream(objectDataUrl, false);
-        
-        bool success = webstream.connect(nullptr);
-        int timer = 50;
-        
-        // Try to connect with exponential backoff
-        while (!success && timer < 2000)
-        {
-            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + timer);
-            timer *= 2;
-            success = webstream.connect(nullptr);
-        }
-        
+
         // Read JSON result from search query
-        auto json = webstream.readString();
+        auto json = objectDataUrl.readEntireTextStream();
         
         try {
             // Parse outer JSON layer
@@ -241,38 +227,8 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         // Create link for deken search request
         auto url = URL("https://deken.puredata.info/search.json");
         
-        // Open webstream
-        WebInputStream webstream(url, false);
-        
-        bool success = webstream.connect(nullptr);
-        int timer = 50;
-        
-        // Try to connect with exponential backoff
-        while (!success && timer < 2000)
-        {
-            Time::waitForMillisecondCounter(Time::getMillisecondCounter() + timer);
-            timer *= 2;
-            success = webstream.connect(nullptr);
-        }
-        
-        if (!success)
-        {
-            // TODO: handle errors
-            /*
-             MessageManager::callAsync(
-             [this, deken]()
-             {
-             if (!deken) return;
-             
-             input.setEnabled(true);
-             input.setText("");
-             updateSpinner.stopSpinning();
-             showError("Failed to connect to server");
-             }); */
-        }
-        
         // Read JSON result from search query
-        auto json = webstream.readString();
+        auto json = url.readEntireTextStream();
         
         // In case the JSON is invalid
         try
