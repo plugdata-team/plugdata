@@ -130,8 +130,9 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
             MessageManager::callAsync(
                                       [this]() mutable
                                       {
-                                          manager.downloads.removeObject(this);
                                           onFinish(true);
+                                          manager.downloads.removeObject(this);
+              
                                       });
         }
         
@@ -780,15 +781,17 @@ private:
         
         void attachToDownload(PackageManager::DownloadTask* task)
         {
-            task->onProgress = [this](float progress)
+            task->onProgress = [_this = SafePointer(this)](float progress)
             {
-                installProgress = progress;
-                repaint();
+                if(!_this) return;
+                _this->installProgress = progress;
+                _this->repaint();
             };
-            task->onFinish = [this](bool result)
+            task->onFinish = [_this = SafePointer(this)](bool result)
             {
-                setInstalled(result);
-                deken.filterResults();
+                if(!_this) return;
+                _this->setInstalled(result);
+                _this->deken.filterResults();
             };
             
             installButton.setVisible(false);
