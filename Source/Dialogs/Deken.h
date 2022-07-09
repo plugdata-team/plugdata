@@ -188,6 +188,10 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     
     void run() override
     {
+        // Continue on pipe errors
+#ifndef _MSC_VER
+        signal(SIGPIPE, SIG_IGN);
+#endif
         allPackages = getAvailablePackages();
         sendChangeMessage();
     }
