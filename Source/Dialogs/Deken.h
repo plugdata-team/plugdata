@@ -176,7 +176,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     
     ~PackageManager()
     {
-        stopThread(-1);
+        stopThread(0);
     }
     
     
