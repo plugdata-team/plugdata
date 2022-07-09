@@ -1,25 +1,23 @@
 #pragma once
 #include "../Utility/JSON.h"
 
+// Use an alternative http library
+// This one is slightly faster and easier to clean up than JUCE's web handling
+#include "../Utility/HTTP.h"
 struct Spinner : public Component, public Timer
 {
-    int numSpinning = 0;
+    bool isSpinning = false;
     
     void startSpinning()
     {
-        numSpinning++;
         setVisible(true);
         startTimer(20);
     }
     
     void stopSpinning()
     {
-        numSpinning--;
-        if (!numSpinning)
-        {
-            setVisible(false);
-            stopTimer();
-        }
+        setVisible(false);
+        stopTimer();
     }
     
     void timerCallback() override
@@ -66,6 +64,8 @@ using namespace nlohmann;
 
 struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTree::Listener
 {
+
+    
     struct DownloadTask : public URL::DownloadTaskListener
     {
         PackageManager& manager;
@@ -175,7 +175,8 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     
     ~PackageManager()
     {
-        stopThread(0);
+        webstream.stop();
+        stopThread(-1);
     }
     
     
@@ -190,19 +191,21 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         sendChangeMessage();
     }
     
-    StringArray getObjectInfo(const String& url) {
+    StringArray getObjectInfo(const String& objectUrl) {
         
         StringArray result;
+    
+        auto url = "/info.json?url=" + objectUrl.toStdString();
+        auto response = webstream.Get(url.c_str());
         
-        // Create link for deken search request
-        auto objectDataUrl = URL("https://deken.puredata.info/info.json?url=" + url);
+        if(!response || response->status) return {};
 
         // Read JSON result from search query
-        auto json = objectDataUrl.readEntireTextStream();
+        auto json = response->body;
         
         try {
             // Parse outer JSON layer
-            auto parsedJson = json::parse(json.toStdString());
+            auto parsedJson = json::parse(json);
             
             // Read json
             auto objects = (*((*(parsedJson["result"]["libraries"].begin())).begin())).at(0)["objects"];
@@ -220,21 +223,21 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     PackageList getAvailablePackages()
     {
         PackageList packages;
-        
-        // Set to name for now: there are not that many deken libraries to justify the other options
-        String type = StringArray({"name", "objects", "libraries"})[0];
-        
         // Create link for deken search request
-        auto url = URL("https://deken.puredata.info/search.json");
+        auto response = webstream.Get("/search.json");
         
+        if(!response || response->status) return {};
+
         // Read JSON result from search query
-        auto json = url.readEntireTextStream();
+        auto json = response->body;
+        
+        if(threadShouldExit()) return {};
         
         // In case the JSON is invalid
         try
         {
             // JUCE json parsing unfortunately fails to parse deken's json...
-            auto parsedJson = json::parse(json.toStdString());
+            auto parsedJson = json::parse(json);
             
             // Read json
             auto object = parsedJson["result"]["libraries"];
@@ -243,6 +246,8 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
             for (const auto versions : object)
             {
                 PackageList results;
+                
+                if(threadShouldExit()) return {};
                 
                 // Loop through the different versions
                 for (auto v : versions)
@@ -382,6 +387,9 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         
         return nullptr;
     }
+    
+    httplib::Client webstream = httplib::Client("http://deken.puredata.info");
+
     
     PackageList allPackages;
     
