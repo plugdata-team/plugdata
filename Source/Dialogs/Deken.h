@@ -67,49 +67,55 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
 {
 
     
-    struct DownloadTask : public URL::DownloadTaskListener
+    struct DownloadTask : public Thread
     {
         PackageManager& manager;
         PackageInfo packageInfo;
-        File destination;
+        File downloadLocation;
+        String page;
+        std::unique_ptr<httplib::Client> client;
         
-        std::unique_ptr<URL::DownloadTask> task;
-        
-        DownloadTask(PackageManager& m, PackageInfo& info, File destFile)
-        : manager(m),
+        DownloadTask(PackageManager& m, PackageInfo& info, File destination)
+        : Thread("Download Thread"),
+        manager(m),
         packageInfo(info),
-        task(URL(info.url).downloadToFile(destFile, URL::DownloadTaskOptions().withListener(this))){
-            
-        };
-        
-        // Finish installation process
-        void finished(URL::DownloadTask* task, bool success) override
+        downloadLocation(destination)
         {
-            /*
-            auto error = [this](String message)
-            {
-                MessageManager::callAsync(
-                                          [this, message]() mutable
-                                          {
-                                              deken.repaint();
-                                              
-                                              deken.showError(message);
-                                              onFinish(false);
-                                              
-                                              auto& m = packageM;
-                                              d.downloads.removeObject(this);
-                                              d.filterResults();
-                                              d.listBox.updateContent();
-                                          });
-            }; */
+            auto url = URL(info.url);
+            auto domain = "http://" + url.getDomain();
+            page = "/" + url.getSubPath();
             
-            if (!success)
-            {
-                //error("Download failed");
-                return;
-            }
+            client = std::make_unique<httplib::Client>(domain.toRawUTF8());
+            client->set_connection_timeout(2);
             
-            auto downloadLocation = task->getTargetLocation();
+            startThread();
+        }
+        
+        void run() override {
+            std::string body;
+            auto res = client->Get(
+               page.toRawUTF8(),
+                [&](const httplib::Response &response) {
+                
+                return true;
+                },
+                [&](const char *data, size_t data_length) {
+                
+                    body.append(data, data_length);
+                return true;
+                },
+               [this](uint64_t len, uint64_t total) {
+                   
+                   float progress = static_cast<long double>(len) / static_cast<long double>(total);
+                   
+                   MessageManager::callAsync([this, progress]() mutable { onProgress(progress); });
+                   
+                 return !threadShouldExit();
+               });
+
+            
+            downloadLocation.replaceWithText(body);
+            
             // Install
             auto zipfile = ZipFile(downloadLocation);
             
@@ -136,11 +142,9 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
                                       });
         }
         
-        void progress(URL::DownloadTask* task, int64 bytesDownloaded, int64 totalLength) override
-        {
-            float progress = static_cast<long double>(task->getLengthDownloaded()) / static_cast<long double>(task->getTotalLength());
-            
-            MessageManager::callAsync([this, progress]() mutable { onProgress(progress); });
+        ~DownloadTask() {
+            client->stop();
+            stopThread(-1);
         }
         
         std::function<void(float)> onProgress;
@@ -205,7 +209,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         auto url = "/info.json?url=" + objectUrl.toStdString();
         auto response = webstream.Get(url.c_str());
         
-        if(!response || response->status) return {};
+        if(!response) return {};
 
         // Read JSON result from search query
         auto json = response->body;
@@ -233,7 +237,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         // Create link for deken search request
         auto response = webstream.Get("/search.json");
         
-        if(!response || response->status) return {};
+        if(!response) return {};
 
         // Read JSON result from search query
         auto json = response->body;
@@ -348,8 +352,6 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     
     DownloadTask* install(PackageInfo packageInfo)
     {
-        // Make sure https is used
-        packageInfo.url = packageInfo.url.replaceFirstOccurrenceOf("http://", "https://");
         auto filename = packageInfo.url.fromLastOccurrenceOf("/", false, false);
         auto destFile = PackageManager::filesystem.getChildFile(filename);
         
