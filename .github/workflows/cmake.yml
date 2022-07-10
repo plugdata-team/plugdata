@@ -56,7 +56,7 @@ jobs:
         files: PlugData-MacOS-Universal
 
   windows-64-build:
-    runs-on: windows-2019
+    runs-on: windows-2022
 
     steps:
     - uses: actions/checkout@v3
