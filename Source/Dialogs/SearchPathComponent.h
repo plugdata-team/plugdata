@@ -46,7 +46,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         downButton.onClick = [this] { moveSelection(1); };
 
         resetButton.setTooltip("Reset to default");
-        resetButton.setName("statusbar:down");
+        resetButton.setName("statusbar:reset");
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
         resetButton.onClick = [this]()
@@ -157,19 +157,17 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         const int statusbarHeight = 32;
         const int statusbarY = getHeight() - statusbarHeight;
 
-        const int buttonSize = 32;
-
         listBox.setBounds(0, 0, getWidth(), statusbarY);
 
         auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
 
-        addButton.setBounds(statusbarBounds.removeFromLeft(buttonSize));
-        removeButton.setBounds(statusbarBounds.removeFromLeft(buttonSize));
+        addButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
+        removeButton.setBounds(statusbarBounds.removeFromLeft(statusbarHeight));
 
-        downButton.setBounds(statusbarBounds.removeFromRight(buttonSize));
-        upButton.setBounds(statusbarBounds.removeFromRight(buttonSize));
-        changeButton.setBounds(statusbarBounds.removeFromRight(buttonSize));
-        resetButton.setBounds(statusbarBounds.removeFromRight(buttonSize));
+        downButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
+        upButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
+        changeButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
+        resetButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
     }
 
     void paint(Graphics& g) override
