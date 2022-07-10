@@ -469,14 +469,15 @@ void libpd_set_banghook(const t_libpd_banghook hook) {
 }
 
 void libpd_set_floathook(const t_libpd_floathook hook) {
-  libpd_doublehook = 0;
+  //libpd_doublehook = 0;
   libpd_floathook = hook;
 }
 
+/*
 void libpd_set_doublehook(const t_libpd_doublehook hook) {
   libpd_doublehook = hook;
   libpd_floathook = 0;
-}
+} */
 
 void libpd_set_symbolhook(const t_libpd_symbolhook hook) {
   libpd_symbolhook = hook;

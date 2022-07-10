@@ -223,7 +223,6 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_multi.h
     ${LIBPD_PATH}/s_libpd_inter.c
     ${LIBPD_PATH}/s_libpd_inter.h
-
 )
 
 include_directories(${LIBPD_PATH})
