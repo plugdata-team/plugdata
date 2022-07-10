@@ -92,7 +92,9 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         }
         
         void run() override {
-            std::string body;
+            
+            downloadLocation.deleteFile();
+            
             auto res = client->Get(
                page.toRawUTF8(),
                 [&](const httplib::Response &response) {
@@ -100,8 +102,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
                 return true;
                 },
                 [&](const char *data, size_t data_length) {
-                
-                    body.append(data, data_length);
+                    downloadLocation.appendData(data, data_length);
                 return true;
                 },
                [this](uint64_t len, uint64_t total) {
@@ -113,9 +114,6 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
                  return !threadShouldExit();
                });
 
-            
-            downloadLocation.replaceWithText(body);
-            
             // Install
             auto zipfile = ZipFile(downloadLocation);
             
