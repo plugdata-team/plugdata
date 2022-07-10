@@ -499,6 +499,17 @@ public:
         addAndMakeVisible(input);
         addAndMakeVisible(updateSpinner);
         
+    
+        refreshButton.setTooltip("Refresh packages");
+        refreshButton.setName("statusbar:refresh");
+        addAndMakeVisible(refreshButton);
+        refreshButton.setConnectedEdges(12);
+        refreshButton.onClick = [this]()
+        {
+            packageManager.startThread();
+            packageManager.sendChangeMessage();
+        };
+        
         if(packageManager.isThreadRunning()) {
             input.setEnabled(false);
             input.setText("Updating Packages...");
@@ -690,6 +701,10 @@ public:
         auto tableBounds = getLocalBounds().withTrimmedBottom(30);
         auto inputBounds = tableBounds.removeFromTop(28);
         
+        const int statusbarHeight = 32;
+        const int statusbarY = getHeight() - statusbarHeight;
+        auto statusbarBounds = Rectangle<int>(2, statusbarY + 6, getWidth() - 6, statusbarHeight);
+        
         input.setBounds(inputBounds);
         
         clearButton.setBounds(inputBounds.removeFromRight(30));
@@ -697,6 +712,8 @@ public:
         
         tableBounds.removeFromLeft(Sidebar::dragbarWidth);
         listBox.setBounds(tableBounds);
+    
+        refreshButton.setBounds(statusbarBounds.removeFromRight(statusbarHeight));
     }
     
     // Show error message in statusbar
@@ -715,6 +732,8 @@ private:
     
     // Current search result
     PackageList searchResult;
+    
+    TextButton refreshButton = TextButton(Icons::Refresh);
     
     // Create a single package manager that exists even when the dialog is not open
     // This allows more efficient pre-fetching of packages, and also makes it easy to
