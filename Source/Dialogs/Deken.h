@@ -145,6 +145,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         
         std::function<void(float)> onProgress;
         std::function<void(bool)> onFinish;
+        bool isFinished = false;
     };
 
     PackageManager() : Thread("Deken thread")
@@ -775,7 +776,9 @@ private:
             // Check if already in progress
             if (auto* task = deken.packageManager.getDownloadForPackage(packageInfo))
             {
-                attachToDownload(task);
+                if(!task->isFinished) {
+                    attachToDownload(task);
+                }
             }
         }
         
@@ -787,11 +790,11 @@ private:
                 _this->installProgress = progress;
                 _this->repaint();
             };
-            task->onFinish = [_this = SafePointer(this)](bool result)
+            task->onFinish = [this, task](bool result)
             {
-                if(!_this) return;
-                _this->setInstalled(result);
-                _this->deken.filterResults();
+                 task->isFinished = true;
+                 setInstalled(result);
+                 deken.filterResults();
             };
             
             installButton.setVisible(false);
