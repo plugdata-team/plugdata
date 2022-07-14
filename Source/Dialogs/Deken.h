@@ -575,6 +575,10 @@ public:
         filterResults();
     }
     
+    ~Deken() {
+        packageManager->removeActionListener(this);
+    }
+    
     // Package update starts
     void actionListenerCallback (const String &message) override {
         
