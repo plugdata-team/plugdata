@@ -138,6 +138,9 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
+    
+    // Start package manager to download package info in the background
+    Dialogs::initialiseDeken();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
