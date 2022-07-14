@@ -91,6 +91,10 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
 
         };
         
+        ~DownloadTask() {
+            stopThread(-1);
+        }
+        
         void run() override {
             
             MemoryBlock dekData;
@@ -211,7 +215,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         packageState.addListener(this);
         
         sendChangeMessage();
-        startThread();
+        startThread(3);
     }
     
     ~PackageManager() {
@@ -222,7 +226,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     
     void update() {
         sendChangeMessage();
-        startThread();
+        startThread(3);
     }
     
     void run() override
@@ -549,7 +553,7 @@ public:
         refreshButton.setConnectedEdges(12);
         refreshButton.onClick = [this]()
         {
-            packageManager->startThread();
+            packageManager->startThread(3);
             packageManager->sendChangeMessage();
         };
         
