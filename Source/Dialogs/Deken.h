@@ -1,10 +1,6 @@
 #pragma once
 #include "../Utility/JSON.h"
 
-// Use an alternative http library
-// This one is slightly faster and easier to clean up than JUCE's web handling
-#include "../Utility/HTTP.h"
-
 struct Spinner : public Component, public Timer
 {
     bool isSpinning = false;
@@ -63,93 +59,133 @@ using PackageList = Array<PackageInfo>;
 
 using namespace nlohmann;
 
-struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTree::Listener
+struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTree::Listener, public DeletedAtShutdown
 {
-
-    
     struct DownloadTask : public Thread
     {
         PackageManager& manager;
         PackageInfo packageInfo;
-        File downloadLocation;
-        String page;
-        std::unique_ptr<httplib::Client> client;
+        File destination;
         
-        DownloadTask(PackageManager& m, PackageInfo& info, File destination)
-        : Thread("Download Thread"),
+        std::unique_ptr<InputStream> instream;
+        
+        DownloadTask(PackageManager& m, PackageInfo& info, File destFile)
+        :
+        Thread("Download Thread"),
         manager(m),
-        packageInfo(info),
-        downloadLocation(destination)
+        packageInfo(info)
         {
-            auto url = URL(info.url);
-            auto domain = "http://" + url.getDomain();
-            page = "/" + url.getSubPath();
+            int statusCode = 0;
+            instream = URL(info.url).createInputStream(URL::InputStreamOptions (URL::ParameterHandling::inAddress)
+                                                                                  .withConnectionTimeoutMs (5000)
+                                                       .withStatusCode(&statusCode));
             
-            client = std::make_unique<httplib::Client>(domain.toRawUTF8());
-            client->set_connection_timeout(2);
+           
+            if (instream != nullptr && statusCode == 200)
+            {
+                startThread(3);
+            }
             
-            startThread();
-        }
+            destination = destFile;
+            
+
+        };
         
         void run() override {
             
-            downloadLocation.deleteFile();
+            MemoryBlock dekData;
             
-            auto res = client->Get(
-               page.toRawUTF8(),
-                [&](const httplib::Response &response) {
-                
-                return true;
-                },
-                [&](const char *data, size_t data_length) {
-                    downloadLocation.appendData(data, data_length);
-                return true;
-                },
-               [this](uint64_t len, uint64_t total) {
-                   
-                   float progress = static_cast<long double>(len) / static_cast<long double>(total);
-                   
-                   MessageManager::callAsync([this, progress]() mutable { onProgress(progress); });
-                   
-                 return !threadShouldExit();
-               });
+            int64 totalBytes = instream->getTotalLength();
+            int64 bytesDownloaded = 0;
+            
+            MemoryOutputStream mo (dekData, true);
 
-            // Install
-            auto zipfile = ZipFile(downloadLocation);
-            
-            auto result = zipfile.uncompressTo(downloadLocation.getParentDirectory());
-            downloadLocation.deleteFile();
-            
-            if (!result.wasOk())
+            for (;;)
             {
-                //error("Extraction failed: " + result.getErrorMessage());
-                return;
+                if (threadShouldExit())
+                    return;
+
+                auto written = mo.writeFromInputStream (*instream, 8192);
+
+                if (written == 0)
+                    break;
+
+                bytesDownloaded += written;
+                
+                float progress = static_cast<long double>(bytesDownloaded) / static_cast<long double>(totalBytes);
+                
+                MessageManager::callAsync([this, progress]() mutable {
+                    onProgress(progress);
+                });
             }
+            
+            MemoryInputStream input (dekData, false);
+            ZipFile zip (input);
+            
+            auto result = zip.uncompressTo(destination.getParentDirectory());
             
             String extractedPath = filesystem.getChildFile(packageInfo.name).getFullPathName();
             
             // Tell deken about the newly installed package
             manager.addPackageToRegister(packageInfo, extractedPath);
             
+            
             MessageManager::callAsync(
                                       [this]() mutable
                                       {
                                           onFinish(true);
+                                          waitForThreadToExit(-1);
                                           manager.downloads.removeObject(this);
               
                                       });
         }
         
-        ~DownloadTask() {
-            client->stop();
-            stopThread(-1);
+        
+        
+        // Finish installation process
+        void finished(URL::DownloadTask* task, bool success)
+        {
+            /*
+            auto error = [this](String message)
+            {
+                MessageManager::callAsync(
+                                          [this, message]() mutable
+                                          {
+                                              deken.repaint();
+                                              
+                                              deken.showError(message);
+                                              onFinish(false);
+                                              
+                                              auto& m = packageM;
+                                              d.downloads.removeObject(this);
+                                              d.filterResults();
+                                              d.listBox.updateContent();
+                                          });
+            }; */
+            
+            if (!success)
+            {
+                //error("Download failed");
+                return;
+            }
+            
+            auto downloadLocation = task->getTargetLocation();
+            // Install
+            auto zipfile = ZipFile(downloadLocation);
+            
+            auto result = zipfile.uncompressTo(downloadLocation.getParentDirectory());
+            downloadLocation.deleteFile();
+            
+
+            
+
         }
         
         std::function<void(float)> onProgress;
         std::function<void(bool)> onFinish;
         bool isFinished = false;
     };
-
+    
     PackageManager() : Thread("Deken thread")
     {
         if (!filesystem.exists())
@@ -178,12 +214,11 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         startThread();
     }
     
-    ~PackageManager()
-    {
-        webstream.stop();
+    ~PackageManager() {
+        if(webstream) webstream->cancel();
+        downloads.clear();
         stopThread(-1);
     }
-    
     
     void update() {
         sendChangeMessage();
@@ -203,18 +238,20 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     StringArray getObjectInfo(const String& objectUrl) {
         
         StringArray result;
-    
-        auto url = "/info.json?url=" + objectUrl.toStdString();
-        auto response = webstream.Get(url.c_str());
         
-        if(!response) return {};
-
-        // Read JSON result from search query
-        auto json = response->body;
+        webstream = std::make_unique<WebInputStream>(URL("https://deken.puredata.info/info.json?url=" + objectUrl), false);
+        webstream->connect(nullptr);
+        
+        if(webstream->isError()) return {};
+        
+        // Read json result
+        auto json = webstream->readString();
+        
+        if(json.isEmpty()) return {};
         
         try {
             // Parse outer JSON layer
-            auto parsedJson = json::parse(json);
+            auto parsedJson = json::parse(json.toStdString());
             
             // Read json
             auto objects = (*((*(parsedJson["result"]["libraries"].begin())).begin())).at(0)["objects"];
@@ -232,13 +269,16 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     PackageList getAvailablePackages()
     {
         PackageList packages;
-        // Create link for deken search request
-        auto response = webstream.Get("/search.json");
         
-        if(!response) return {};
-
-        // Read JSON result from search query
-        auto json = response->body;
+        webstream = std::make_unique<WebInputStream>(URL("https://deken.puredata.info/search.json"), false);
+        webstream->connect(nullptr);
+        
+        if(webstream->isError()) return {};
+        
+        // Read json result
+        auto json = webstream->readString();
+        
+        if(json.isEmpty()) return {};
         
         if(threadShouldExit()) return {};
         
@@ -246,7 +286,7 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         try
         {
             // JUCE json parsing unfortunately fails to parse deken's json...
-            auto parsedJson = json::parse(json);
+            auto parsedJson = json::parse(json.toStdString());
             
             // Read json
             auto object = parsedJson["result"]["libraries"];
@@ -350,6 +390,9 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     
     DownloadTask* install(PackageInfo packageInfo)
     {
+        // Make sure https is used
+        packageInfo.url = packageInfo.url.replaceFirstOccurrenceOf("http://", "https://");
+        
         auto filename = packageInfo.url.fromLastOccurrenceOf("/", false, false);
         auto destFile = PackageManager::filesystem.getChildFile(filename);
         
@@ -394,8 +437,6 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
         
         return nullptr;
     }
-    
-    httplib::Client webstream = httplib::Client("http://deken.puredata.info");
 
     
     PackageList allPackages;
@@ -410,6 +451,8 @@ struct PackageManager : public Thread, public ChangeBroadcaster, public ValueTre
     
     // Thread for unzipping and installing packages
     OwnedArray<DownloadTask> downloads;
+    
+    std::unique_ptr<WebInputStream> webstream;
     
     static inline const String floatsize = String(PD_FLOATSIZE);
     static inline const String os =
@@ -506,11 +549,11 @@ public:
         refreshButton.setConnectedEdges(12);
         refreshButton.onClick = [this]()
         {
-            packageManager.startThread();
-            packageManager.sendChangeMessage();
+            packageManager->startThread();
+            packageManager->sendChangeMessage();
         };
         
-        if(packageManager.isThreadRunning()) {
+        if(packageManager->isThreadRunning()) {
             input.setEnabled(false);
             input.setText("Updating Packages...");
             updateSpinner.startSpinning();
@@ -519,7 +562,7 @@ public:
             updateSpinner.setVisible(false);
         }
         
-        packageManager.addChangeListener(this);
+        packageManager->addChangeListener(this);
         filterResults();
     }
     
@@ -527,7 +570,8 @@ public:
     // Package update starts
     void changeListenerCallback(ChangeBroadcaster* source) override {
         
-        bool running = dynamic_cast<Thread*>(source)->isThreadRunning();
+        auto* thread = dynamic_cast<Thread*>(source);
+        bool running = thread->isThreadRunning();
         
         if(running) {
             
@@ -583,7 +627,7 @@ public:
     
     int getNumRows() override
     {
-        return searchResult.size() + packageManager.downloads.size();
+        return searchResult.size() + packageManager->downloads.size();
     }
     
     void paintListBoxItem(int rowNumber, Graphics& g, int width, int height, bool rowIsSelected) override
@@ -595,13 +639,13 @@ public:
         delete existingComponentToUpdate;
         
         
-        if (isPositiveAndBelow(rowNumber, packageManager.downloads.size()))
+        if (isPositiveAndBelow(rowNumber, packageManager->downloads.size()))
         {
-            return new DekenRowComponent(*this, packageManager.downloads[rowNumber]->packageInfo);
+            return new DekenRowComponent(*this, packageManager->downloads[rowNumber]->packageInfo);
         }
-        else if (isPositiveAndBelow(rowNumber - packageManager.downloads.size(), searchResult.size()))
+        else if (isPositiveAndBelow(rowNumber - packageManager->downloads.size(), searchResult.size()))
         {
-            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - packageManager.downloads.size()));
+            return new DekenRowComponent(*this, searchResult.getReference(rowNumber - packageManager->downloads.size()));
         }
         
         return nullptr;
@@ -618,7 +662,7 @@ public:
         // Show installed packages when query is empty
         if (query.isEmpty())
         {
-            for (auto child : packageManager.packageState)
+            for (auto child : packageManager->packageState)
             {
                 auto name = child.getType().toString();
                 auto description = child.getProperty("Description").toString();
@@ -630,7 +674,7 @@ public:
                 
                 auto info = PackageInfo(name, author, timestamp, url, description, version, objects);
                 
-                if (!packageManager.getDownloadForPackage(info))
+                if (!packageManager->getDownloadForPackage(info))
                 {
                     newResult.addIfNotAlreadyThere(info);
                 }
@@ -643,7 +687,7 @@ public:
             return;
         }
         
-        auto& allPackages = packageManager.allPackages;
+        auto& allPackages = packageManager->allPackages;
         
         // First check for name match
         for(const auto& result : allPackages) {
@@ -684,7 +728,7 @@ public:
         
         // Downloads are already always visible, so filter them out here
         newResult.removeIf([this](const PackageInfo& package){
-            for(const auto* download : packageManager.downloads) {
+            for(const auto* download : packageManager->downloads) {
                 if(download->packageInfo == package) {
                     return true;
                 }
@@ -738,7 +782,8 @@ private:
     // Create a single package manager that exists even when the dialog is not open
     // This allows more efficient pre-fetching of packages, and also makes it easy to
     // continue downloading when the dialog closes
-    static inline PackageManager packageManager;
+    // Inherits from deletedAtShutdown to handle cleaning up
+    static inline PackageManager* packageManager = new PackageManager;
     
     TextEditor input;
     TextButton clearButton = TextButton(Icons::Clear);
@@ -760,7 +805,7 @@ private:
         float installProgress;
         ValueTree packageState;
         
-        DekenRowComponent(Deken& parent, PackageInfo& info) : deken(parent), packageInfo(info), packageState(deken.packageManager.packageState)
+        DekenRowComponent(Deken& parent, PackageInfo& info) : deken(parent), packageInfo(info), packageState(deken.packageManager->packageState)
         {
             addChildComponent(installButton);
             addChildComponent(reinstallButton);
@@ -773,27 +818,27 @@ private:
             uninstallButton.onClick = [this]()
             {
                 setInstalled(false);
-                deken.packageManager.uninstall(packageInfo);
+                deken.packageManager->uninstall(packageInfo);
                 deken.filterResults();
             };
             
             reinstallButton.onClick = [this]()
             {
-                auto* downloadTask = deken.packageManager.install(packageInfo);
+                auto* downloadTask = deken.packageManager->install(packageInfo);
                 attachToDownload(downloadTask);
             };
             
             installButton.onClick = [this]()
             {
-                auto* downloadTask = deken.packageManager.install(packageInfo);
+                auto* downloadTask = deken.packageManager->install(packageInfo);
                 attachToDownload(downloadTask);
             };
             
             // Check if package is already installed
-            setInstalled(deken.packageManager.packageExists(packageInfo));
+            setInstalled(deken.packageManager->packageExists(packageInfo));
             
             // Check if already in progress
-            if (auto* task = deken.packageManager.getDownloadForPackage(packageInfo))
+            if (auto* task = deken.packageManager->getDownloadForPackage(packageInfo))
             {
                 if(!task->isFinished) {
                     attachToDownload(task);
@@ -840,7 +885,7 @@ private:
             g.drawFittedText(packageInfo.name, 5, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
             
             // draw progressbar
-            if (deken.packageManager.getDownloadForPackage(packageInfo))
+            if (deken.packageManager->getDownloadForPackage(packageInfo))
             {
                 float width = getWidth() - 90.0f;
                 float right = jmap(installProgress, 90.f, width);
