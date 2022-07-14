@@ -138,8 +138,10 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
             MemoryInputStream input (dekData, false);
             ZipFile zip (input);
             
-            if (zip.getNumEntries() == 0)
-                return Result::fail ("The downloaded file was not a valid Deken package");
+            if (zip.getNumEntries() == 0) {
+                finish(Result::fail ("The downloaded file was not a valid Deken package"));
+                return;
+            }
             
             auto extractedPath = filesystem.getChildFile(packageInfo.name).getFullPathName();
             auto result = zip.uncompressTo(filesystem);
