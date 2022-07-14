@@ -59,20 +59,21 @@ using PackageList = Array<PackageInfo>;
 
 using namespace nlohmann;
 
+
+struct PackageSorter
+{
+    static void sort(ValueTree& packageState) {
+        PackageSorter sorter;
+        packageState.sort(sorter, nullptr, true);
+    }
+    
+    static int compareElements (const ValueTree& first, const ValueTree& second) {
+        return first.getType().toString().compare(second.getType().toString());
+    }
+};
+
 struct PackageManager : public Thread, public ActionBroadcaster, public ValueTree::Listener, public DeletedAtShutdown
 {
-    struct PackageSorter
-    {
-        static void sort(ValueTree& packageState) {
-            PackageSorter sorter;
-            packageState.sort(sorter, nullptr, true);
-        }
-        
-        static int compareElements (const ValueTree& first, const ValueTree& second) {
-            return first.getType().toString().compare(second.getType().toString());
-        }
-    };
-    
     
     struct DownloadTask : public Thread
     {
@@ -80,6 +81,7 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
         PackageInfo packageInfo;
         
         std::unique_ptr<InputStream> instream;
+        
         
         DownloadTask(PackageManager& m, PackageInfo& info)
         :
@@ -105,6 +107,7 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
         ~DownloadTask() {
             stopThread(-1);
         }
+        
         
         void run() override {
             MemoryBlock dekData;
@@ -161,18 +164,19 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
             MessageManager::callAsync(
                                       [this, result]() mutable
                                       {
-                                          onFinish(result);
+                                          // Make sure lambda still exists after deletion
+                                          auto finishCopy = onFinish;
                                           waitForThreadToExit(-1);
                                           
-                                          // self-destruct
+                                          // Self-destruct
                                           manager.downloads.removeObject(this);
-              
+                                          
+                                          finishCopy(result);
                                       });
         }
                 
         std::function<void(float)> onProgress;
         std::function<void(Result)> onFinish;
-        bool isFinished = false;
     };
     
     PackageManager() : Thread("Deken thread")
@@ -198,7 +202,6 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
         }
         
         packageState.addListener(this);
-        PackageSorter::sort(packageState);
         
         sendActionMessage("");
         startThread(3);
@@ -208,6 +211,7 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
         if(webstream) webstream->cancel();
         downloads.clear();
         stopThread(-1);
+        clearSingletonInstance();
     }
     
     void update() {
@@ -396,8 +400,6 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
     {
         // Make sure https is used
         packageInfo.url = packageInfo.url.replaceFirstOccurrenceOf("http://", "https://");
-
-        // Download file and return unique ptr to task object
         return downloads.add(new DownloadTask(*this, packageInfo));
     }
     
@@ -418,8 +420,6 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
             packageState.removeChild(packageState.getChildWithProperty("ID", info.packageId), nullptr);
         }
         packageState.appendChild(pkgEntry, nullptr);
-        
-        PackageSorter::sort(packageState);
     }
     
     
@@ -684,6 +684,9 @@ public:
         // Show installed packages when query is empty
         if (query.isEmpty())
         {
+            // make sure installed packages are sorted alphabetically
+            PackageSorter::sort(packageManager->packageState);
+            
             for (auto child : packageManager->packageState)
             {
                 auto name = child.getType().toString();
@@ -858,9 +861,7 @@ private:
             // Check if already in progress
             if (auto* task = deken.packageManager->getDownloadForPackage(packageInfo))
             {
-                if(!task->isFinished) {
-                    attachToDownload(task);
-                }
+                attachToDownload(task);
             }
         }
         
@@ -873,17 +874,17 @@ private:
                 _this->repaint();
             };
             
-            task->onFinish = [this, task](Result result)
-            {
-                task->isFinished = true;
+            task->onFinish = [_this = SafePointer(this), task](Result result)
+            {                
+                if(!_this) return;
                 
                 if(result.wasOk()) {
-                    setInstalled(result);
-                    deken.filterResults();
+                    _this->setInstalled(result);
+                    _this->deken.filterResults();
                 }
                 else {
-                    deken.showError(result.getErrorMessage());
-                    deken.filterResults();
+                    _this->deken.showError(result.getErrorMessage());
+                    _this->deken.filterResults();
                 }
 
             };
