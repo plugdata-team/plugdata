@@ -94,9 +94,8 @@ echo "   -- Building libsndfile"
 if curl --silent -LO https://github.com/libsndfile/libsndfile/releases/download/$SNDFILE_VERSION/$SNDFILENAME.tar.xz; then
     unxz $SNDFILENAME.tar.xz >> output.log 2>&1
     tar xvf $SNDFILENAME.tar >> output.log 2>&1
-    mkdir $SNDFILENAME
     cd $SNDFILENAME
-    mkdir build
+    mkdir -p build
     cd build
     cmake .. -DBUILD_SHARED_LIBS=0 -DALSA_FOUND=0 -DBUILD_REGTEST=0 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
     cmake --build . --target sndfile
@@ -108,7 +107,7 @@ echo "   -- Building fluidsynth"
 rm -rf fluidsynth
 cp -rf ../../Libraries/ELSE/sfont~/fluidsynth ./fluidsynth
 cd fluidsynth
-mkdir build
+mkdir -p build
 cd build
 cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET="10.11" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -Denable-libsndfile=1 -Denable-aufile=0 -Denable-dbus=0 -Denable-ipv6=0 -Denable-jack=0 -Denable-ladspa=0 -Denable-midishare=0 -Denable-opensles=0 -Denable-oboe=0 -Denable-oss=0 -Denable-readline=0 -Denable-winmidi=0 -Denable-waveout=0 -Denable-network=0 -Denable-pulseaudio=0 -Denable-dsound=0 -Denable-sdl2=0 -Denable-coreaudio=0 -Denable-coremidi=0 -Denable-framework=0 -Denable-threads=1 -Denable-openmp=0 -Denable-alsa=0 -Denable-pkgconfig=0 -DBUILD_SHARED_LIBS=0 >> output.log 2>&1
 cmake --build . --target libfluidsynth >> output.log 2>&1
