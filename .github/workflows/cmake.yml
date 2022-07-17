@@ -306,7 +306,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc11 pkgconf libsndfile
+      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf libsndfile
 
     - name: Build
       run: mkdir build && cd build && CC=/usr/bin/gcc-11 CXX=/usr/bin/g++-11 cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
