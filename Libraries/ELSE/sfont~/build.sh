@@ -95,11 +95,8 @@ if curl --silent -LO https://github.com/libsndfile/libsndfile/releases/download/
     unxz $SNDFILENAME.tar.xz >> output.log 2>&1
     tar xvf $SNDFILENAME.tar >> output.log 2>&1
     cd $SNDFILENAME
-    mkdir -p build
-    cd build
-    cmake .. -DBUILD_SHARED_LIBS=0 -DALSA_FOUND=0 -DBUILD_REGTEST=0 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64"
-    cmake --build . --target sndfile
-    cd ..
+    ./configure --disable-shared --disable-alsa --disable-mpeg --disable-full-suite CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    make
     cd ..
 fi
 
