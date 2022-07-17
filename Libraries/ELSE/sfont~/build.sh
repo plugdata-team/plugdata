@@ -60,6 +60,7 @@ echo "   -- Building libflac"
 if curl --silent -LO https://downloads.xiph.org/releases/flac/flac-$FLACVERSION.tar.xz; then
     unxz flac-$FLACVERSION.tar.xz >> output.log 2>&1
     tar xvf flac-$FLACVERSION.tar >> output.log 2>&1
+    ls
     cd flac-$FLACVERSION
     ./configure --enable-static --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"  >> output.log 2>&1
     make -j$JOBS >> output.log 2>&1
