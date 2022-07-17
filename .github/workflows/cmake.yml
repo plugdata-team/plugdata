@@ -306,7 +306,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf libsndfile
+      run: pacman -S --noconfirm alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf libsndfile python
 
     - name: Build
       run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
@@ -345,7 +345,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel libsndfile-devel gcc gcc-c++ xz curl
+      run: zypper install -y cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel libsndfile-devel gcc gcc-c++ xz curl tar libogg-devel
 
     - name: Build
       run: mkdir build && cd build && cmake -DENABLE_TESTING=1 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
