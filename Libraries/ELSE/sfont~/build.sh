@@ -95,7 +95,7 @@ if curl --silent -LO https://github.com/libsndfile/libsndfile/releases/download/
     unxz $SNDFILENAME.tar.xz >> output.log 2>&1
     tar xvf $SNDFILENAME.tar >> output.log 2>&1
     cd $SNDFILENAME
-    ./configure --disable-shared --disable-alsa --disable-mpeg --disable-full-suite CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    ./configure --enable-static --disable-alsa --disable-mpeg --disable-full-suite CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"
     make
     cd ..
 fi
