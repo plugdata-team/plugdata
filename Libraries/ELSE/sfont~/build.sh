@@ -79,6 +79,7 @@ fi
 
 # libsndfile
 
+echo "WORKING DIR: $(pwd)"
 export FLAC_CFLAGS="-I$(pwd)/flac-$FLACVERSION/include"
 export FLAC_LIBS="$(pwd)/flac-$FLACVERSION/src/libFLAC/.libs/libFLAC.a"
 export OGG_CFLAGS="-I$(pwd)/libogg-$OGGVERSION/include"
@@ -90,12 +91,17 @@ export VORBISENC_LIBS="$(pwd)/libvorbis-$VORBISVERSION/lib/.libs/libvorbisenc.a"
 export OPUS_CFLAGS="-I$(pwd)/opus-$OPUSVERSION/include"
 export OPUS_LIBS="$(pwd)/opus-$OPUSVERSION/.libs/libopus.a"
 
+cp -a "$(pwd)/opus-$OPUSVERSION/include/." "../tmp"
+mkdir "$(pwd)/opus-$OPUSVERSION/include/opus"
+cp -a "../tmp/." "$(pwd)/opus-$OPUSVERSION/include/opus"
+
+
 echo "   -- Building libsndfile"
 if curl --silent -LO https://github.com/libsndfile/libsndfile/releases/download/$SNDFILE_VERSION/$SNDFILENAME.tar.xz; then
     unxz $SNDFILENAME.tar.xz >> output.log 2>&1
     tar xvf $SNDFILENAME.tar >> output.log 2>&1
     cd $SNDFILENAME
-    ./configure --enable-static --disable-alsa --disable-mpeg --disable-full-suite CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    ./configure --enable-static --disable-sqlite --disable-alsa --disable-mpeg --disable-full-suite CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"
     make
     cd ..
 fi
