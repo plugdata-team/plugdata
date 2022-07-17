@@ -56,7 +56,7 @@ help :
 	@echo "It requires all the normal build tools require to build libsndfile plus wget."
 	@echo
 
-config : $(working_dir)/Stamp/install-libs $(build_dir)/libfluidsynth.a
+config : $(working_dir)/Stamp/install-libs
 
 clean :
 	rm -rf $(working_dir)/flac-* $(working_dir)/libogg-* $(working_dir)/libvorbis-* $(working_dir)/opus-*
@@ -119,5 +119,6 @@ $(working_dir)/Stamp/install-libs : $(working_dir)/Stamp/extract $(working_dir)/
 	(cd $(working_dir)/$(sndfile_name) && CFLAGS=$(FLAGS) ./configure $(sndfile_options) && make all install)
 	(cd $(working_dir)/fluidsynth && mkdir -p Build && cd Build && cmake ${fluidsynth_options} .. && cmake --build . --target libfluidsynth)
 	(cd $(working_dir) && cp ./fluidsynth/Build/src/libfluidsynth.a ../fluidsynth/lib/libfluidsynth.a && cp -rf ./fluidsynth/Build/include/* ../fluidsynth/include/ && cp -rf ./fluidsynth/include/* ../fluidsynth/include/)
+
 	touch $@
 
