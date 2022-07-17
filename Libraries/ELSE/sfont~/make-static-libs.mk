@@ -56,7 +56,7 @@ help :
 	@echo "It requires all the normal build tools require to build libsndfile plus wget."
 	@echo
 
-config : $(working_dir)/Stamp/install-libs
+config : $(working_dir)/Stamp/install-libs $(build_dir)/libfluidsynth.a
 
 clean :
 	rm -rf $(working_dir)/flac-* $(working_dir)/libogg-* $(working_dir)/libvorbis-* $(working_dir)/opus-*
