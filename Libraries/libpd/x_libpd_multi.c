@@ -661,7 +661,7 @@ void setup_rand0x2ef_tilde();
 void setup_rand0x2ei();
 void setup_rand0x2ei_tilde();
 void setup_rand0x2eseq();
-#ifdef ENABLE_SFONT
+#if ENABLE_SFONT
 void sfont_tilde_setup();
 #endif
 void randpulse_tilde_setup();
@@ -1135,7 +1135,7 @@ void libpd_multi_init(void)
         setup_rand0x2ef();
         setup_rand0x2ef_tilde();
         s2f_tilde_setup();
-#ifdef ENABLE_SFONT
+#if ENABLE_SFONT
         sfont_tilde_setup();
 #endif
         setup_rand0x2ei();
