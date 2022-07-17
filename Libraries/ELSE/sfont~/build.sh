@@ -105,8 +105,8 @@ rm -rf fluidsynth
 cp -rf ../../Libraries/ELSE/sfont~/fluidsynth ./fluidsynth
 mkdir -p fluidsynth/build
 cd fluidsynth/build
-cmake .. -CMAKE_OSX_DEPLOYMENT_TARGET="10.11" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -Denable-libsndfile=1 -Denable-aufile=0 -Denable-dbus=0 -Denable-ipv6=0 -Denable-jack=0 -Denable-ladspa=0 -Denable-midishare=0 -Denable-opensles=0 -Denable-oboe=0 -Denable-oss=0 -Denable-readline=0 -Denable-winmidi=0 -Denable-waveout=0 -Denable-network=0 -Denable-pulseaudio=0 -Denable-dsound=0 -Denable-sdl2=0 -Denable-coreaudio=0 -Denable-coremidi=0 -Denable-framework=0 -Denable-threads=1 -Denable-openmp=0 -Denable-alsa=0 -Denable-pkgconfig=0 -DBUILD_SHARED_LIBS=0 >> output.log 2>&1
-cmake --build . --target libfluidsynth >> output.log 2>&1
+cmake .. -DCMAKE_OSX_DEPLOYMENT_TARGET="10.11" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -Denable-libsndfile=1 -Denable-aufile=0 -Denable-dbus=0 -Denable-ipv6=0 -Denable-jack=0 -Denable-ladspa=0 -Denable-midishare=0 -Denable-opensles=0 -Denable-oboe=0 -Denable-oss=0 -Denable-readline=0 -Denable-winmidi=0 -Denable-waveout=0 -Denable-network=0 -Denable-pulseaudio=0 -Denable-dsound=0 -Denable-sdl2=0 -Denable-coreaudio=0 -Denable-coremidi=0 -Denable-framework=0 -Denable-threads=1 -Denable-openmp=0 -Denable-alsa=0 -Denable-pkgconfig=0 -DBUILD_SHARED_LIBS=0
+cmake --build . --target libfluidsynth
 cd ../..
 
 cp ./fluidsynth/build/src/libfluidsynth.a ../fluidsynth/lib/libfluidsynth.a
@@ -120,4 +120,4 @@ cp $OGG_LIBS ../fluidsynth/lib/libogg.a
 cp $FLAC_LIBS ../fluidsynth/lib/libFLAC.a
 
 cd ..
-rm -rf work
+#rm -rf work
