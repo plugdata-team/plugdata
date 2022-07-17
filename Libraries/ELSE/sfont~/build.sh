@@ -38,20 +38,20 @@ touch output.log
 # libogg
 echo "   -- Building libogg"
 if curl --silent -LO https://downloads.xiph.org/releases/ogg/libogg-$OGGVERSION.tar.gz; then
-    tar zxvf libogg-$OGGVERSION.tar.gz >> output.log 2>&1
+    tar zxvf libogg-$OGGVERSION.tar.gz
     cd libogg-$OGGVERSION
-    ./configure --disable-shared CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
-    make -j$JOBS >> output.log 2>&1
+    ./configure --disable-shared CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    make -j$JOBS
     cd ..
 fi
 
 # libvorbis
 echo "   -- Building libvorbis"
 if curl --silent -LO https://downloads.xiph.org/releases/vorbis/libvorbis-$VORBISVERSION.tar.gz; then
-    tar zxvf libvorbis-$VORBISVERSION.tar.gz >> output.log 2>&1
+    tar zxvf libvorbis-$VORBISVERSION.tar.gz
     cd libvorbis-$VORBISVERSION
-    ./configure --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
-    make -j$JOBS >> output.log 2>&1
+    ./configure --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    make -j$JOBS
 cd ..
 fi
 
@@ -59,7 +59,7 @@ fi
 echo "   -- Building libflac"
 if curl --silent -LO https://downloads.xiph.org/releases/flac/flac-$FLACVERSION.tar.xz; then
     unxz flac-$FLACVERSION.tar.xz
-    tar xvf flac-$FLACVERSION.tar >> output.log 2>&1
+    tar xvf flac-$FLACVERSION.tar
     ls
     cd flac-$FLACVERSION
     ./configure --enable-static --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"  >> output.log 2>&1
