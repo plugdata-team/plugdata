@@ -336,14 +336,15 @@ set(libs
 )
 
 if(ENABLE_SFONT)
- list(APPEND libs 
+ list(APPEND libs  
   "${SFONT_LIB_DIR}/libfluidsynth.a"
+  "${SFONT_LIB_DIR}/libsndfile.a"
   "${SFONT_LIB_DIR}/libogg.a"
   "${SFONT_LIB_DIR}/libopus.a"
   "${SFONT_LIB_DIR}/libFLAC.a"
-  "${SFONT_LIB_DIR}/libsndfile.a"
   "${SFONT_LIB_DIR}/libvorbis.a"
-  "${SFONT_LIB_DIR}/libvorbisenc.a")
+  "${SFONT_LIB_DIR}/libvorbisenc.a"
+  )
 endif()
 
 # Add pd file icons for mac
