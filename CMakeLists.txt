@@ -286,7 +286,7 @@ if(UNIX AND NOT APPLE)
     JUCE_MODAL_LOOPS_PERMITTED=1
     JUCE_USE_XRENDER=1
     )
-    target_link_libraries(PlugDataStandalone PUBLIC "-Wl,-export-dynamic")
+    target_link_libraries(PlugDataStandalone PUBLIC "-fPIC -Wl,-export-dynamic")
 endif()
 
 target_compile_definitions(PlugDataStandalone PUBLIC ${PLUGDATA_COMPILE_DEFINITIONS} ${STANDALONE_COMPILE_DEFINITIONS})
