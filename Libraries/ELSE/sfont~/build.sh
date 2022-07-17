@@ -12,9 +12,9 @@ OGG_INCDIR="$(pwd)/libogg-$OGGVERSION/include"
 OGG_LIBDIR="$(pwd)/libogg-$OGGVERSION/src/.libs"
 
 if [[ "$OSTYPE" == "darwin"* ]]; then
-ARCHS="-arch arm64 -arch x86_64"
+FLAGS="-arch arm64 -arch x86_64"
 else
-ARCHS=""
+FLAGS="-fPIC"
 fi
 
 mkdir -p fluidsynth
@@ -40,7 +40,7 @@ echo "   -- Building libogg"
 if curl --silent -LO https://downloads.xiph.org/releases/ogg/libogg-$OGGVERSION.tar.gz; then
     tar zxvf libogg-$OGGVERSION.tar.gz >> output.log 2>&1
     cd libogg-$OGGVERSION
-    ./configure --disable-shared CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
+    ./configure --disable-shared CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
     make -j$JOBS >> output.log 2>&1
     cd ..
 fi
@@ -50,7 +50,7 @@ echo "   -- Building libvorbis"
 if curl --silent -LO https://downloads.xiph.org/releases/vorbis/libvorbis-$VORBISVERSION.tar.gz; then
     tar zxvf libvorbis-$VORBISVERSION.tar.gz >> output.log 2>&1
     cd libvorbis-$VORBISVERSION
-    ./configure --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
+    ./configure --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
     make -j$JOBS >> output.log 2>&1
 cd ..
 fi
@@ -62,7 +62,7 @@ if curl --silent -LO https://downloads.xiph.org/releases/flac/flac-$FLACVERSION.
     tar xvf flac-$FLACVERSION.tar >> output.log 2>&1
     ls
     cd flac-$FLACVERSION
-    ./configure --enable-static --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"  >> output.log 2>&1
+    ./configure --enable-static --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"  >> output.log 2>&1
     make -j$JOBS >> output.log 2>&1
     cd ..
 fi
@@ -72,7 +72,7 @@ echo "   -- Building libopus"
 if curl --silent -LO https://archive.mozilla.org/pub/opus/opus-$OPUSVERSION.tar.gz; then
     tar zxvf opus-$OPUSVERSION.tar.gz >> output.log 2>&1
     cd opus-$OPUSVERSION
-    ./configure --disable-shared --disable-rtcd CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    ./configure --disable-shared --disable-rtcd CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"
     make -j$JOBS
     cd ..
 fi
@@ -95,7 +95,7 @@ if curl --silent -LO https://github.com/libsndfile/libsndfile/releases/download/
     unxz $SNDFILENAME.tar.xz >> output.log 2>&1
     tar xvf $SNDFILENAME.tar >> output.log 2>&1
     cd $SNDFILENAME
-    ./configure --enable-static --disable-alsa --disable-mpeg --disable-full-suite CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    ./configure --enable-static --disable-alsa --disable-mpeg --disable-full-suite CC="gcc ${FLAGS}" CXX="g++ ${FLAGS}" CPP="gcc -E"  CXXCPP="g++ -E"
     make
     cd ..
 fi
