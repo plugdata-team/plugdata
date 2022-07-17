@@ -10,9 +10,6 @@
 [submodule "Libraries/concurrentqueue"]
 	path = Libraries/concurrentqueue
 	url = https://github.com/cameron314/concurrentqueue.git
-[submodule "Libraries/ELSE/sfont~/fluidsynth"]
-	path = Libraries/ELSE/sfont~/fluidsynth
-	url = https://github.com/FluidSynth/fluidsynth.git
 [submodule "Libraries/Catch2"]
 	path = Libraries/Catch2
 	url = https://github.com/catchorg/Catch2.git

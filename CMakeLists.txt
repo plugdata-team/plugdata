@@ -6,6 +6,19 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 
+if(UNIX)
+option(ENABLE_SFONT "" ON)
+else()
+option(ENABLE_SFONT "" OFF)
+endif()
+
+if(ENABLE_SFONT)
+message("-- Building fluidsynth")
+execute_process(COMMAND ./build.sh 
+  WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/ 
+  )
+endif()
+
 if(APPLE)
   set(CMAKE_XCODE_BUILD_SYSTEM "12" CACHE STRING "" FORCE)
   set(CMAKE_OSX_DEPLOYMENT_TARGET "10.11" CACHE STRING "Minimum OS X deployment version")
@@ -292,7 +305,6 @@ endif()
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/pure-data/src")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/libpd/")
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/concurrentqueue/")
-list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/fluidsynth/include")
 
 list(APPEND PLUGDATA_INCLUDE_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Source/")
 
@@ -314,17 +326,22 @@ file(GLOB PlugDataBinaryDataSources
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
+set(SFONT_LIB_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/fluidsynth/lib/")
 
 set(libs
   PlugDataBinaryData
   juce::juce_audio_utils
   juce::juce_audio_plugin_client
   juce::juce_dsp
+  "${SFONT_LIB_DIR}/libfluidsynth.a"
+  "${SFONT_LIB_DIR}/libogg.a"
+  "${SFONT_LIB_DIR}/libopus.a"
+  "${SFONT_LIB_DIR}/libFLAC.a"
+  "${SFONT_LIB_DIR}/libsndfile.a"
+  "${SFONT_LIB_DIR}/libvorbis.a"
+  "${SFONT_LIB_DIR}/libvorbisenc.a"
 )
 
-#if(LIBSNDFILE_FOUND)
-#  list(APPEND libs LIBSNDFILE_LIBRARIES libfluidsynth)  
-#endif()
 
 if(APPLE)
 set_target_properties(PlugDataStandalone PROPERTIES

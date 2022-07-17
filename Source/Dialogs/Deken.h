@@ -41,7 +41,6 @@ struct PackageInfo
         this->version = version;
         this->objects = objects;
         packageId = Base64::toBase64(name + "_" + version + "_" + timestamp + "_" + author);
-        
     }
     
     // fast compare by ID
