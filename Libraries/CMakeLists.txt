@@ -209,7 +209,12 @@ source_group(cyclone FILES ${CYCLONE_SOURCES})
 #------------------------------------------------------------------------------#
 # COMPILE DEFINITIONS
 #------------------------------------------------------------------------------#
-set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1 ENABLE_SFONT=${ENABLE_SFONT})
+
+set(LIBPD_COMPILE_DEFINITIONS PD=1 USEAPI_DUMMY=1 PD_INTERNAL=1)
+
+if(ENABLE_SFONT)
+    list(APPEND LIBPD_COMPILE_DEFINITIONS ENABLE_SFONT=1)
+endif()
 
 # COMPILE DEFINITIONS OPTIONS
 #------------------------------------------------------------------------------#
