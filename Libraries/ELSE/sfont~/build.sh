@@ -9,19 +9,29 @@ SNDFILENAME=libsndfile-$SNDFILE_VERSION
 OGG_INCDIR="$(pwd)/libogg-$OGGVERSION/include"
 OGG_LIBDIR="$(pwd)/libogg-$OGGVERSION/src/.libs"
 
-
-
 if [[ "$OSTYPE" == "darwin"* ]]; then
 ARCHS="-arch arm64 -arch x86_64"
 else
 ARCHS=""
 fi
 
+mkdir -p fluidsynth
+mkdir -p fluidsynth/lib
+mkdir -p fluidsynth/include
+
+cd fluidsynth/lib
+NUM_LIBS=$(ls | wc -l)
+if [[ NUM_LIBS -eq 7 ]]; then
+  # Fluidsynth was built already
+  exit 0
+fi
+
+cd ../..
 
 mkdir -p work
 cd work
 
-rm output.log 2> /dev/null
+rm -p output.log 2> /dev/null
 touch output.log
 # libogg
 echo "   -- Building libogg"
@@ -93,11 +103,6 @@ cd fluidsynth/build
 cmake .. -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -Denable-aufile=0 -Denable-dbus=0 -Denable-ipv6=0 -Denable-jack=0 -Denable-ladspa=0 -Denable-midishare=0 -Denable-opensles=0 -Denable-oboe=0 -Denable-oss=0 -Denable-readline=0 -Denable-winmidi=0 -Denable-waveout=0 -Denable-libsndfile=1 -Denable-network=0 -Denable-pulseaudio=0 -Denable-dsound=1 -Denable-sdl2=0 -Denable-coreaudio=0 -Denable-coremidi=0 -Denable-framework=0 -Denable-threads=0 -DBUILD_SHARED_LIBS=0 >> output.log 2>&1
 cmake --build . --target libfluidsynth >> output.log 2>&1
 cd ../..
-
-rm -rf ../fluidsynth
-mkdir -p ../fluidsynth
-mkdir -p ../fluidsynth/lib
-mkdir -p ../fluidsynth/include
 
 cp ./fluidsynth/build/src/libfluidsynth.a ../fluidsynth/lib/libfluidsynth.a
 cp -rf ./fluidsynth/build/include/* ../fluidsynth/include/
