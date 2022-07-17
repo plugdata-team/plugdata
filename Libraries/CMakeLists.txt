@@ -177,9 +177,9 @@ list(APPEND SOURCE_FILES ${LIBPD_SOURCES})
 # ELSE SOURCES
 #------------------------------------------------------------------------------#
 file(GLOB_RECURSE ELSE_SOURCES
-    ./ELSE/Source/*.c
-    ./ELSE/Aliases/*.c
-    ./ELSE/shared/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Source/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/Aliases/*.c
+    ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/shared/*.c
     )
     
 if(ENABLE_SFONT)
