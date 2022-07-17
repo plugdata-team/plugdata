@@ -114,7 +114,7 @@ cd ..
 cp ./fluidsynth/build/src/libfluidsynth.a ../fluidsynth/lib/libfluidsynth.a
 cp -rf ./fluidsynth/build/include/* ../fluidsynth/include/
 cp -rf ./fluidsynth/include/* ../fluidsynth/include/
-cp $SNDFILENAME/build/libsndfile.a ../fluidsynth/lib/libsndfile.a
+cp $SNDFILENAME/src/.libs/libsndfile.a ../fluidsynth/lib/libsndfile.a
 cp $OPUS_LIBS ../fluidsynth/lib/libopus.a
 cp $VORBIS_LIBS ../fluidsynth/lib/libvorbis.a
 cp $VORBISENC_LIBS ../fluidsynth/lib/libvorbisenc.a
