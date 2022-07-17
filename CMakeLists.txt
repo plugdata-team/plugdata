@@ -14,7 +14,7 @@ endif()
 
 if(ENABLE_SFONT)
 message("-- Building fluidsynth")
-execute_process(COMMAND ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/build.sh 
+execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/make-static-libs.mk config
   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}  
   )
 endif()
