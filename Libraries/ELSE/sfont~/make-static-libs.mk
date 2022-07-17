@@ -34,10 +34,10 @@ stamp_dir = $(working_dir)/Stamp
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	FLAGS="-arch arm64 -arch x86_64"
+	FLAGS="-arch arm64 -arch x86_64 -O3"
 endif
 ifeq ($(UNAME_S),Linux)
-	FLAGS="-fPIC"
+	FLAGS="-fPIC -O3"
 endif
 
 build_dir = $(shell pwd)/fluidsynth
@@ -117,6 +117,7 @@ $(working_dir)/Stamp/install-libs : $(working_dir)/Stamp/extract $(working_dir)/
 	(cd $(working_dir)/$(flac_version) && CFLAGS=$(FLAGS) ./configure $(config_options) && make all install)
 	(cd $(working_dir)/$(opus_version) && CFLAGS=$(FLAGS) ./configure $(config_options) && make all install)
 	(cd $(working_dir)/$(sndfile_name) && CFLAGS=$(FLAGS) ./configure $(sndfile_options) && make all install)
-	(cd $(working_dir)/fluidsynth && mkdir -p Build && cd Build && cmake ${fluidsynth_options} .. && cmake --build . --target libfluidsynth && cp ./src/libfluidsynth.a $(build_dir)/lib/libfluidsynth.a)
+	(cd $(working_dir)/fluidsynth && mkdir -p Build && cd Build && cmake ${fluidsynth_options} .. && cmake --build . --target libfluidsynth)
+	(cd $(working_dir) && cp ./fluidsynth/Build/src/libfluidsynth.a ../fluidsynth/lib/libfluidsynth.a && cp -rf ./fluidsynth/Build/include/* ../fluidsynth/include/ && cp -rf ./fluidsynth/include/* ../fluidsynth/include/)
 	touch $@
 
