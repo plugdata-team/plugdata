@@ -72,7 +72,7 @@ echo "   -- Building libopus"
 if curl --silent -LO https://archive.mozilla.org/pub/opus/opus-$OPUSVERSION.tar.gz; then
     tar zxvf opus-$OPUSVERSION.tar.gz >> output.log 2>&1
     cd opus-$OPUSVERSION
-    ./configure --disable-shared CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"
+    ./configure --disable-shared --disable-rtcd CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"
     make -j$JOBS
     cd ..
 fi
