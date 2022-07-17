@@ -58,7 +58,7 @@ fi
 # libFLAC
 echo "   -- Building libflac"
 if curl --silent -LO https://downloads.xiph.org/releases/flac/flac-$FLACVERSION.tar.xz; then
-    unxz flac-$FLACVERSION.tar.xz >> output.log 2>&1
+    unxz flac-$FLACVERSION.tar.xz
     tar xvf flac-$FLACVERSION.tar >> output.log 2>&1
     ls
     cd flac-$FLACVERSION
