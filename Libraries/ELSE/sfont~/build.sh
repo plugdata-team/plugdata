@@ -37,42 +37,44 @@ rm -p output.log 2> /dev/null
 touch output.log
 # libogg
 echo "   -- Building libogg"
-curl -LO https://downloads.xiph.org/releases/ogg/libogg-$OGGVERSION.tar.gz >> output.log 2>&1
-tar zxvf libogg-$OGGVERSION.tar.gz >> output.log 2>&1
-cd libogg-$OGGVERSION
-./configure --disable-shared CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
-make -j$JOBS >> output.log 2>&1
-cd ..
-
+if curl --silent -LO https://downloads.xiph.org/releases/ogg/libogg-$OGGVERSION.tar.gz; then
+    tar zxvf libogg-$OGGVERSION.tar.gz >> output.log 2>&1
+    cd libogg-$OGGVERSION
+    ./configure --disable-shared CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
+    make -j$JOBS >> output.log 2>&1
+    cd ..
+fi
 
 # libvorbis
 echo "   -- Building libvorbis"
-curl -LO https://downloads.xiph.org/releases/vorbis/libvorbis-$VORBISVERSION.tar.gz >> output.log 2>&1
-tar zxvf libvorbis-$VORBISVERSION.tar.gz >> output.log 2>&1
-cd libvorbis-$VORBISVERSION
-./configure --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
-make -j$JOBS >> output.log 2>&1
+if curl --silent -LO https://downloads.xiph.org/releases/vorbis/libvorbis-$VORBISVERSION.tar.gz; then
+    tar zxvf libvorbis-$VORBISVERSION.tar.gz >> output.log 2>&1
+    cd libvorbis-$VORBISVERSION
+    ./configure --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
+    make -j$JOBS >> output.log 2>&1
 cd ..
-
+fi
 
 # libFLAC
 echo "   -- Building libflac"
-curl -LO https://downloads.xiph.org/releases/flac/flac-$FLACVERSION.tar.xz >> output.log 2>&1
-unxz flac-$FLACVERSION.tar.xz >> output.log 2>&1
-tar xvf flac-$FLACVERSION.tar >> output.log 2>&1
-cd flac-$FLACVERSION
-./configure --enable-static --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"  >> output.log 2>&1
-make -j$JOBS >> output.log 2>&1
-cd ..
+if curl --silent -LO https://downloads.xiph.org/releases/flac/flac-$FLACVERSION.tar.xz; then
+    unxz flac-$FLACVERSION.tar.xz >> output.log 2>&1
+    tar xvf flac-$FLACVERSION.tar >> output.log 2>&1
+    cd flac-$FLACVERSION
+    ./configure --enable-static --disable-shared --with-ogg-includes=$OGG_INCDIR --with-ogg-libraries=$OGG_LIBDIR CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E"  >> output.log 2>&1
+    make -j$JOBS >> output.log 2>&1
+    cd ..
+fi
 
 # libopus
 echo "   -- Building libopus"
-curl -LO https://archive.mozilla.org/pub/opus/opus-$OPUSVERSION.tar.gz >> output.log 2>&1
-tar zxvf opus-$OPUSVERSION.tar.gz >> output.log 2>&1
-cd opus-$OPUSVERSION
-./configure --disable-shared CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
-make -j$JOBS >> output.log 2>&1
-cd ..
+if curl --silent -LO https://archive.mozilla.org/pub/opus/opus-$OPUSVERSION.tar.gz; then
+    tar zxvf opus-$OPUSVERSION.tar.gz >> output.log 2>&1
+    cd opus-$OPUSVERSION
+    ./configure --disable-shared CC="gcc ${ARCHS}" CXX="g++ ${ARCHS}" CPP="gcc -E"  CXXCPP="g++ -E" >> output.log 2>&1
+    make -j$JOBS >> output.log 2>&1
+    cd ..
+fi
 
 # libsndfile
 
@@ -88,14 +90,15 @@ export OPUS_CFLAGS="-I$(pwd)/opus-$OPUSVERSION/include"
 export OPUS_LIBS="$(pwd)/opus-$OPUSVERSION/.libs/libopus.a"
 
 echo "   -- Building libsndfile"
-curl -LO https://github.com/libsndfile/libsndfile/releases/download/$SNDFILE_VERSION/$SNDFILENAME.tar.xz >> output.log 2>&1
-unxz $SNDFILENAME.tar.xz >> output.log 2>&1
-tar xvf $SNDFILENAME.tar >> output.log 2>&1
-mkdir -p $SNDFILENAME/build
-cd $SNDFILENAME/build
-cmake .. -DBUILD_SHARED_LIBS=0 -DALSA_FOUND=0 -DBUILD_REGTEST=0 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" >> output.log 2>&1
-cmake --build . --target sndfile >> output.log 2>&1
-cd ../..
+if curl --silent -LO https://github.com/libsndfile/libsndfile/releases/download/$SNDFILE_VERSION/$SNDFILENAME.tar.xz; then
+    unxz $SNDFILENAME.tar.xz >> output.log 2>&1
+    tar xvf $SNDFILENAME.tar >> output.log 2>&1
+    mkdir -p $SNDFILENAME/build
+    cd $SNDFILENAME/build
+    cmake .. -DBUILD_SHARED_LIBS=0 -DALSA_FOUND=0 -DBUILD_REGTEST=0 -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" >> output.log 2>&1
+    cmake --build . --target sndfile >> output.log 2>&1
+    cd ../..
+fi
 
 echo "   -- Building fluidsynth"
 rm -rf fluidsynth
