@@ -12,12 +12,6 @@ else()
 option(ENABLE_SFONT "" OFF)
 endif()
 
-if(ENABLE_SFONT)
-message("-- Building fluidsynth")
-execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/ELSE/sfont~/make-static-libs.mk config
-  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}  
-  )
-endif()
 
 if(APPLE)
   set(CMAKE_XCODE_BUILD_SYSTEM "12" CACHE STRING "" FORCE)
@@ -47,6 +41,7 @@ set(JUCE_ENABLE_MODULE_SOURCE_GROUPS ON CACHE BOOL "" FORCE)
 set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(PlugData VERSION 0.5.3 LANGUAGES C CXX)
+
 
 add_subdirectory(Libraries/)
 
@@ -326,7 +321,6 @@ file(GLOB PlugDataBinaryDataSources
 juce_add_binary_data(PlugDataBinaryData SOURCES ${PlugDataBinaryDataSources})
 set_target_properties(PlugDataBinaryData PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
-set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/lib")
 
 set(libs
   PlugDataBinaryData
@@ -334,18 +328,6 @@ set(libs
   juce::juce_audio_plugin_client
   juce::juce_dsp
 )
-
-if(ENABLE_SFONT)
- list(APPEND libs  
-  "${SFONT_LIB_DIR}/libfluidsynth.a"
-  "${SFONT_LIB_DIR}/libsndfile.a"
-  "${SFONT_LIB_DIR}/libogg.a"
-  "${SFONT_LIB_DIR}/libopus.a"
-  "${SFONT_LIB_DIR}/libFLAC.a"
-  "${SFONT_LIB_DIR}/libvorbis.a"
-  "${SFONT_LIB_DIR}/libvorbisenc.a"
-  )
-endif()
 
 # Add pd file icons for mac
 if(APPLE)
