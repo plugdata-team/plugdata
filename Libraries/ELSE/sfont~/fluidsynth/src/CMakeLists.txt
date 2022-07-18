@@ -20,17 +20,18 @@
 # CMake based build system. Pedro Lopez-Cabanillas <plcl@users.sf.net>
 
 include_directories (
-    ${CMAKE_BINARY_DIR}
-    ${CMAKE_SOURCE_DIR}/src
-    ${CMAKE_SOURCE_DIR}/src/drivers
-    ${CMAKE_SOURCE_DIR}/src/synth
-    ${CMAKE_SOURCE_DIR}/src/rvoice
-    ${CMAKE_SOURCE_DIR}/src/midi
-    ${CMAKE_SOURCE_DIR}/src/utils
-    ${CMAKE_SOURCE_DIR}/src/sfloader
-    ${CMAKE_SOURCE_DIR}/src/bindings
-    ${CMAKE_SOURCE_DIR}/include
-    ${CMAKE_BINARY_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}../
+    ${CMAKE_CURRENT_SOURCE_DIR}/
+    ${CMAKE_CURRENT_SOURCE_DIR}/drivers
+    ${CMAKE_CURRENT_SOURCE_DIR}/synth
+    ${CMAKE_CURRENT_SOURCE_DIR}/rvoice
+    ${CMAKE_CURRENT_SOURCE_DIR}/midi
+    ${CMAKE_CURRENT_SOURCE_DIR}/utils
+    ${CMAKE_CURRENT_SOURCE_DIR}/sfloader
+    ${CMAKE_CURRENT_SOURCE_DIR}/bindings
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_BINARY_DIR}/../include
+    ${CMAKE_CURRENT_BINARY_DIR}/include
 )
 
 include_directories (
@@ -224,32 +225,32 @@ set ( libfluidsynth_SOURCES
 )
 
 set ( public_HEADERS
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/audio.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/event.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/gen.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/ladspa.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/log.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/midi.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/misc.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/mod.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/seq.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/seqbind.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/settings.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/sfont.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/shell.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/synth.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/types.h
-    ${CMAKE_SOURCE_DIR}/include/fluidsynth/voice.h
-    ${CMAKE_BINARY_DIR}/include/fluidsynth/version.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/audio.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/event.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/gen.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/ladspa.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/log.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/midi.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/misc.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/mod.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/seq.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/seqbind.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/settings.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/sfont.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/shell.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/synth.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/types.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/voice.h
+    ${CMAKE_CURRENT_BINARY_DIR}/../include/fluidsynth/version.h
 )
 
 set ( public_main_HEADER
-    ${CMAKE_BINARY_DIR}/include/fluidsynth.h
+    ${CMAKE_CURRENT_BINARY_DIR}../include/fluidsynth.h
 )
 
-configure_file ( ${CMAKE_SOURCE_DIR}/include/fluidsynth/version.h.in 
-                 ${CMAKE_BINARY_DIR}/include/fluidsynth/version.h )
-configure_file ( ${CMAKE_SOURCE_DIR}/include/fluidsynth.cmake
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth/version.h.in 
+                 ${CMAKE_CURRENT_BINARY_DIR}/../include/fluidsynth/version.h )
+configure_file ( ${CMAKE_CURRENT_SOURCE_DIR}/../include/fluidsynth.cmake
                  ${public_main_HEADER} )
 
 if ( WIN32 )

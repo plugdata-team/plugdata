@@ -1,7 +1,5 @@
 // based on delwrite~/delread4~
 
-#define PDINSTANCE 1
-
 #include "m_pd.h"
 #include <string.h>
 #include "g_canvas.h"
