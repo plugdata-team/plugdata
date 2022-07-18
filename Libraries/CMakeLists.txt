@@ -344,12 +344,12 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
 
   find_library(MATH_LIB m)
 
-  target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} ${SFONT_LIBS} externals)
-  target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} ${SFONT_LIBS} externals-multi)
+  target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals ${SFONT_LIBS})
+  target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi ${SFONT_LIBS} )
 
 elseif(MSVC)
-  target_link_libraries(pd PUBLIC libpthreadVC3 ${SFONT_LIBS} ws2_32 externals)
-  target_link_libraries(pd-multi PUBLIC libpthreadVC3 ${SFONT_LIBS} ws2_32 externals-multi)
+  target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 externals ${SFONT_LIBS})
+  target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 externals-multi ${SFONT_LIBS}) 
 
   add_custom_command(TARGET pd POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -361,8 +361,8 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
-  target_link_libraries(pd PUBLIC ${SFONT_LIBS} externals)
-  target_link_libraries(pd-multi PUBLIC ${SFONT_LIBS} externals-multi)
+  target_link_libraries(pd PUBLIC externals ${SFONT_LIBS})
+  target_link_libraries(pd-multi PUBLIC externals-multi ${SFONT_LIBS})
 endif()
 
 # LINK PTHREAD
