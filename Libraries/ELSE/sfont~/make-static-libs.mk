@@ -101,15 +101,8 @@ $(working_dir)/Stamp/extract : $(working_dir)/Stamp/tarballs
 	touch $@
 
 $(working_dir)/Stamp/build-ogg : $(working_dir)/Stamp/extract
-ifeq ($(disable_ogg_crc), true)
-	echo "Ogg/CRC enabled"
-	(cd $(working_dir) && git clone https://github.com/xiph/ogg $(ogg_version))
-	(cd $(working_dir)/$(ogg_version) && ./autogen.sh && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-crc && make all install)
-else
-	echo "Ogg/CRC disabled"
 	(cd $(working_dir) && tar xf Tarballs/$(ogg_tarball))
 	(cd $(working_dir)/$(ogg_version) && CFLAGS=$(FLAGS) ./configure $(config_options) && make all install)
-endif
 	touch $@
 
 $(working_dir)/Stamp/install-libs : $(working_dir)/Stamp/extract $(working_dir)/Stamp/build-ogg
