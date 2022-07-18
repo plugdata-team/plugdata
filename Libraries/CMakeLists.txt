@@ -14,6 +14,40 @@ endif()
 
 add_subdirectory(JUCE)
 
+if(ENABLE_SFONT)
+	message("-- Building fluidsynth")
+	if(MSVC)
+	 execute_process(COMMAND vcpkg.exe install libsndfile:x64-windows-static)
+	 execute_process(COMMAND vcpkg.exe integrate install)
+	 add_subdirectory(ELSE/sfont~/fluidsynth)
+	else()
+	execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config
+ 	 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}  
+  	)
+endif()
+endif()
+
+
+set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/lib")
+set(SFONT_LIBS "")
+
+if(ENABLE_SFONT AND NOT MSVC)
+ list(APPEND SFONT_LIBS
+  "${SFONT_LIB_DIR}/libfluidsynth.a"
+  "${SFONT_LIB_DIR}/libsndfile.a"
+  "${SFONT_LIB_DIR}/libogg.a"
+  "${SFONT_LIB_DIR}/libopus.a"
+  "${SFONT_LIB_DIR}/libFLAC.a"
+  "${SFONT_LIB_DIR}/libvorbis.a"
+  "${SFONT_LIB_DIR}/libvorbisenc.a"
+  )
+elseif(ENABLE_SFONT AND MSVC)
+ list(APPEND SFONT_LIBS
+   fluidsynth
+   SndFile::sndfile
+  )
+endif()
+
 
 #------------------------------------------------------------------------------#
 
@@ -310,12 +344,12 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
 
   find_library(MATH_LIB m)
 
-  target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} externals)
-  target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi)
+  target_link_libraries(pd ${MATH_LIB} ${CMAKE_DL_LIBS} ${SFONT_LIBS} externals)
+  target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} ${SFONT_LIBS} externals-multi)
 
 elseif(MSVC)
-  target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 externals)
-  target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 externals-multi)
+  target_link_libraries(pd PUBLIC libpthreadVC3 ${SFONT_LIBS} ws2_32 externals)
+  target_link_libraries(pd-multi PUBLIC libpthreadVC3 ${SFONT_LIBS} ws2_32 externals-multi)
 
   add_custom_command(TARGET pd POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy
@@ -327,8 +361,8 @@ elseif(MSVC)
         "${CMAKE_CURRENT_BINARY_DIR}/$<CONFIGURATION>/pd.lib"
         ${CMAKE_SOURCE_DIR}/Plugins/Standalone/pd.lib)
 elseif(APPLE)
-  target_link_libraries(pd PUBLIC externals)
-  target_link_libraries(pd-multi PUBLIC externals-multi)
+  target_link_libraries(pd PUBLIC ${SFONT_LIBS} externals)
+  target_link_libraries(pd-multi PUBLIC ${SFONT_LIBS} externals-multi)
 endif()
 
 # LINK PTHREAD
