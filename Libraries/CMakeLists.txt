@@ -184,7 +184,7 @@ file(GLOB_RECURSE ELSE_SOURCES
     
 if(ENABLE_SFONT)
 list(APPEND ELSE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/sfont~.c)
-include_directories(../${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/include)
+include_directories(${CMAKE_CURRENT_BINARY_DIR}/../fluidsynth/include)
 endif()
 
 include_directories(ELSE/Source/)
