@@ -414,7 +414,7 @@ set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 add_executable(Tests ${TestFiles} ${PlugDataGlobalSources})
 set_target_properties(Tests PROPERTIES CXX_STANDARD 17)
 
-target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugData ${libs})
+target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugDataStandalone ${libs})
 
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/Tests PREFIX "" FILES ${TestFiles})
 include(${Catch2_SOURCE_DIR}/extras/Catch.cmake)
