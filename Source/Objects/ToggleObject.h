@@ -62,6 +62,9 @@ struct ToggleObject final : public IEMObject
         setValueOriginal(newValue);
         toggleState = newValue;
         stopEdition();
+        
+        // Make sure we don't re-toggle with an accidental drag
+        alreadyToggled = true;
 
         repaint();
     }
