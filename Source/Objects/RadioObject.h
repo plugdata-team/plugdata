@@ -2,7 +2,6 @@
 struct RadioObject final : public IEMObject
 {
     int lastState = 0;
-
     bool isVertical;
 
     RadioObject(bool vertical, void* obj, Box* parent) : IEMObject(obj, parent)
@@ -66,7 +65,14 @@ struct RadioObject final : public IEMObject
         for(auto* button : radioButtons) {
             if(button->getBounds().contains(position)) {
                 button->triggerClick();
-               
+            }
+        }
+    }
+    
+    void mouseDown(const MouseEvent& e) override {
+        for(auto* button : radioButtons) {
+            if(button->getBounds().contains(e.getPosition())) {
+                button->triggerClick();
             }
         }
     }
@@ -116,19 +122,17 @@ struct RadioObject final : public IEMObject
             radioButtons[i]->setRadioGroupId(1001);
             radioButtons[i]->setClickingTogglesState(true);
             radioButtons[i]->setName("radiobutton");
-            radioButtons[i]->setInterceptsMouseClicks(true, false);
+            radioButtons[i]->setInterceptsMouseClicks(false, false);
             radioButtons[i]->setTriggeredOnMouseDown(true);
 
             radioButtons[i]->setColour(ComboBox::outlineColourId, Colours::transparentBlack);
             radioButtons[i]->setColour(TextButton::buttonColourId, Colours::transparentBlack);
             addAndMakeVisible(radioButtons[i]);
 
+            // Only gets called through triggerclick, needed to handle dragging
             radioButtons[i]->onClick = [this, i]() mutable
             {
-                if (!radioButtons[i]->getToggleState()) return;
-
                 lastState = i;
-
                 startEdition();
                 setValueOriginal(i);
                 stopEdition();

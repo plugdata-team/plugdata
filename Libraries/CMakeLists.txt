@@ -21,8 +21,10 @@ if(ENABLE_SFONT)
 	 execute_process(COMMAND vcpkg.exe integrate install)
 	 add_subdirectory(ELSE/sfont~/fluidsynth)
 	else()
-	execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config > output.log 2>&1
+	execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config > output.log 2>&1 
  	 WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}  
+     OUTPUT_QUIET
+     ERROR_QUIET
   	)
 endif()
 endif()
