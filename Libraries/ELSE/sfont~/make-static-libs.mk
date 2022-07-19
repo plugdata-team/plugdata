@@ -41,7 +41,7 @@ ifeq ($(UNAME_S),Linux)
 endif
 
 build_dir = $(shell pwd)/fluidsynth
-config_options = --prefix=$(build_dir) --disable-shared --enable-option-checking CPP="gcc -E"  CXXCPP="g++ -E"
+config_options = --prefix=$(build_dir) --disable-option-checking --disable-shared --disable-dependency-tracking --enable-option-checking CPP="gcc -E"  CXXCPP="g++ -E"
 sndfile_options = $(config_options) --disable-sqlite --disable-alsa --disable-mpeg --disable-full-suite
 fluidsynth_options = -DCMAKE_POSITION_INDEPENDENT_CODE=1 -DCMAKE_OSX_DEPLOYMENT_TARGET="10.11" -DCMAKE_OSX_ARCHITECTURES="arm64;x86_64" -Denable-libsndfile=1 -Denable-aufile=0 -Denable-dbus=0 -Denable-ipv6=0 -Denable-jack=0 -Denable-ladspa=0 -Denable-midishare=0 -Denable-opensles=0 -Denable-oboe=0 -Denable-oss=0 -Denable-readline=0 -Denable-winmidi=0 -Denable-waveout=0 -Denable-network=0 -Denable-pulseaudio=0 -Denable-dsound=0 -Denable-sdl2=0 -Denable-coreaudio=0 -Denable-coremidi=0 -Denable-framework=0 -Denable-threads=1 -Denable-openmp=0 -Denable-alsa=0 -Denable-pkgconfig=0 -DBUILD_SHARED_LIBS=0
 
@@ -102,12 +102,12 @@ $(working_dir)/Stamp/extract : $(working_dir)/Stamp/tarballs
 
 $(working_dir)/Stamp/build-ogg : $(working_dir)/Stamp/extract
 	(cd $(working_dir) && tar xf Tarballs/$(ogg_tarball))
-	(cd $(working_dir)/$(ogg_version) && CFLAGS=$(FLAGS) ./configure $(config_options) && make all install)
+	(cd $(working_dir)/$(ogg_version) && CFLAGS=$(FLAGS) ./configure $(config_options) || 1 && make all install)
 	touch $@
 
 $(working_dir)/Stamp/install-libs : $(working_dir)/Stamp/extract $(working_dir)/Stamp/build-ogg
-	(cd $(working_dir)/$(vorbis_version) && CFLAGS=$(FLAGS) ./configure $(config_options) && make all install)
-	(cd $(working_dir)/$(flac_version) && CFLAGS=$(FLAGS) ./configure $(config_options) && make all install)
+	(cd $(working_dir)/$(vorbis_version) && CFLAGS=$(FLAGS) ./configure --disable-oggtest $(config_options) && make all install)
+	(cd $(working_dir)/$(flac_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-thorough-tests --disable-cpplibs  --disable-examples  --disable-oggtest --disable-doxygen-docs --disable-xmms-plugin && make all install)
 	(cd $(working_dir)/$(opus_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-rtcd --disable-extra-programs --disable-doc && make all install)
 	(cd $(working_dir)/$(sndfile_name) && CFLAGS=$(FLAGS) ./configure $(sndfile_options) && make all install)
 	(cd $(working_dir)/fluidsynth && mkdir -p Build && cd Build && cmake ${fluidsynth_options} .. && cmake --build . --target libfluidsynth)
