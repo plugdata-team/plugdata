@@ -43,6 +43,10 @@ struct BangObject final : public IEMObject
         startEdition();
         setValueOriginal(1);
         stopEdition();
+        
+        // Make sure we don't re-click with an accidental drag
+        alreadyBanged = true;
+        
         update();
     }
 
