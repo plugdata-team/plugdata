@@ -5,12 +5,8 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON)
 
 option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
-
-if(UNIX)
 option(ENABLE_SFONT "" ON)
-else()
-option(ENABLE_SFONT "" OFF)
-endif()
+
 
 
 if(APPLE)
