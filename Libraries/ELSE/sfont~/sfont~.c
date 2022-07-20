@@ -24,7 +24,7 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include <fluidsynth.h>
 #include <string.h>
 
-#ifdef _MSVC
+#ifdef _MSC_VER
 #include <Windows.h>
 #else
 #include <unistd.h>
