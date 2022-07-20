@@ -20,12 +20,39 @@ if(ENABLE_SFONT)
     message("-- Building fluidsynth")
 
     if(MSVC)
+    # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
         set(static_ext "lib")
         execute_process(
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/lib
-            COMMAND ${CMAKE_COMMAND} -E tar xzf {CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/Win64_libs.zip
-            COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/Win64_libs ${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/lib
-            COMMAND ${CMAKE_COMMAND} -E remove_directory ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/Win64_libs
+            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/
+        )
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/win_deps.zip
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fluidsynth
+        )
+             set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/")
+             
+            list(APPEND SFONT_LIBS
+                ${SFONT_LIB_DIR}/lib64/FLAC.lib
+                ${SFONT_LIB_DIR}/lib64/libfluidsynth.lib
+                ${SFONT_LIB_DIR}/lib64/libmp3lame-static.lib
+                ${SFONT_LIB_DIR}/lib64/libmpghip-static.lib
+                ${SFONT_LIB_DIR}/lib64/mpg123.lib
+                ${SFONT_LIB_DIR}/lib64/ogg.lib
+                ${SFONT_LIB_DIR}/lib64/opus.lib
+                ${SFONT_LIB_DIR}/lib64/sndfile.lib
+                ${SFONT_LIB_DIR}/lib64/vorbis.lib
+                ${SFONT_LIB_DIR}/lib64/vorbisenc.lib
+
+                ${SFONT_LIB_DIR}/lib/FLAC.lib
+                ${SFONT_LIB_DIR}/lib/libfluidsynth.lib
+                ${SFONT_LIB_DIR}/lib/libmp3lame-static.lib
+                ${SFONT_LIB_DIR}/lib/libmpghip-static.lib
+                ${SFONT_LIB_DIR}/lib/mpg123.lib
+                ${SFONT_LIB_DIR}/lib/ogg.lib
+                ${SFONT_LIB_DIR}/lib/opus.lib
+                ${SFONT_LIB_DIR}/lib/sndfile.lib
+                ${SFONT_LIB_DIR}/lib/vorbis.lib
+                ${SFONT_LIB_DIR}/lib/vorbisenc.lib
         )
 
     else()
@@ -37,7 +64,6 @@ if(ENABLE_SFONT)
             OUTPUT_QUIET
            # ERROR_QUIET
         )
-
         set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/lib")
         list(APPEND SFONT_LIBS
             "${SFONT_LIB_DIR}/libfluidsynth.${static_ext}"
@@ -48,6 +74,7 @@ if(ENABLE_SFONT)
             "${SFONT_LIB_DIR}/libvorbis.${static_ext}"
             "${SFONT_LIB_DIR}/libvorbisenc.${static_ext}"
         )
+    endif()
 
         # Check if build succeeded, otherwise disable sfont
         foreach(LIB ${SFONT_LIBS})
@@ -57,7 +84,6 @@ if(ENABLE_SFONT)
                 set(ENABLE_SFONT 0)
             endif()
         endforeach()
-    endif()
 endif()
 
 # ------------------------------------------------------------------------------#
@@ -354,8 +380,8 @@ if("${CMAKE_SYSTEM}" MATCHES "Linux")
     target_link_libraries(pd-multi ${MATH_LIB} ${CMAKE_DL_LIBS} externals-multi ${SFONT_LIBS})
 
 elseif(MSVC)
-    target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 externals ${SFONT_LIBS})
-    target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 externals-multi ${SFONT_LIBS})
+    target_link_libraries(pd PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals ${SFONT_LIBS})
+    target_link_libraries(pd-multi PUBLIC libpthreadVC3 ws2_32 Shlwapi.lib externals-multi ${SFONT_LIBS})
 
     add_custom_command(TARGET pd POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy
