@@ -23,7 +23,12 @@ Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #include "../shared/elsefile.h"
 #include <fluidsynth.h>
 #include <string.h>
+
+#ifdef _MSVC
+#include <Windows.h>
+#else
 #include <unistd.h>
+#endif
 
 #define MAXSYSEXSIZE 1024 // Size of sysex data list (excluding the F0 [240] and F7 [247] bytes)
 
