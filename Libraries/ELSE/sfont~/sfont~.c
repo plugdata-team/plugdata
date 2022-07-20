@@ -278,7 +278,7 @@ static void sfont_scale(t_sfont *x, t_symbol *s, int ac, t_atom *av){
         set_key_tuning(x, NULL);
         return;
     }
-    double scale[ac];
+    double* scale = calloc(sizeof(double), ac);
     int n_m1 = ac-1;
     int i;
     for(i = 0; i < ac; i++) // set array{
@@ -298,6 +298,7 @@ static void sfont_scale(t_sfont *x, t_symbol *s, int ac, t_atom *av){
         pitches[i] = (sum += (scale[count] - scale[count-1]));
     }
     set_key_tuning(x, pitches);
+    free(scale);
 }
 
 static void sfont_base(t_sfont *x, t_float f){
