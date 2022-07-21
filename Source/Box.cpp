@@ -705,7 +705,7 @@ void Box::openHelpPatch() const
 
         auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
         const auto* name = class_gethelpname(pdclass);
-
+        
         String firstName = String(name) + "-help.pd";
         String secondName = "help-" + String(name) + ".pd";
 

@@ -299,11 +299,15 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
                 auto& [type, description, init] = found[i];
                 buttons[i]->setText(type, description, false);
                 buttons[i]->setInterceptsMouseClicks(false, false);
+                buttons[i]->setToggleState(false, dontSendNotification);
             }
             
             numOptions = static_cast<int>(found.size());
 
-            for (int i = numOptions; i < buttons.size(); i++) buttons[i]->setText("", "", false);
+            for (int i = numOptions; i < buttons.size(); i++)  {
+                buttons[i]->setText("", "", false);
+                buttons[i]->setToggleState(false, dontSendNotification);
+            }
 
             setVisible(numOptions);
             currentidx = 0;
@@ -349,6 +353,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
         if (newInput.isEmpty() || e.getCaretPosition() != textlen)
         {
             highlightEnd = 0;
+            return mutableInput;
         }
         
         // Limit it to minimum of the number of buttons and the number of suggestions

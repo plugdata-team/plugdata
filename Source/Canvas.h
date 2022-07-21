@@ -123,6 +123,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     ObjectGrid grid = ObjectGrid(this);
 
     Point<int> canvasOrigin = {0, 0};
+    Point<int> canvasDragStartPosition = {0, 0};
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
