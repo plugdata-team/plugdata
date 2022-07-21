@@ -20,7 +20,7 @@ class Patch;
 
 class Box;
 
-struct ObjectBase : public Component
+struct ObjectBase : public Component, public SettableTooltipClient
 {
     void* ptr;
     Box* box;
