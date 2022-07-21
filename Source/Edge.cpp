@@ -30,19 +30,20 @@ void Edge::paint(Graphics& g)
 {
     auto bounds = getLocalBounds().toFloat().reduced(0.5f);
 
-    if (!isTargeted && !isMouseOver())
+    bool isLocked = static_cast<bool>(locked.getValue());
+    bool down = isMouseButtonDown();
+    bool over = isMouseOver();
+    
+    if ((!isTargeted && !over) || isLocked)
     {
         bounds = bounds.reduced(2);
     }
-
-    bool down = isMouseButtonDown() && !bool(box->locked.getValue());
-    bool over = isMouseOver() && !bool(box->locked.getValue());
-
+    
     auto backgroundColour = isSignal ? findColour(PlugDataColour::signalColourId) : findColour(PlugDataColour::highlightColourId);
 
-    if (down || over) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
+    if ((down || over) && !isLocked) backgroundColour = backgroundColour.contrasting(down ? 0.2f : 0.05f);
 
-    if (static_cast<bool>(locked.getValue()))
+    if (isLocked)
     {
         backgroundColour = findColour(PlugDataColour::canvasColourId).contrasting(0.5f);
     }
@@ -50,7 +51,7 @@ void Edge::paint(Graphics& g)
     // Instead of drawing pie segments, just clip the graphics region to the visible edges of the box
     // This is much faster!
     bool stateSaved = false;
-    if (!(box->isOver() || over || isTargeted) || static_cast<bool>(locked.getValue()))
+    if (!(box->isOver() || over || isTargeted) || isLocked)
     {
         g.saveState();
         g.reduceClipRegion(getLocalArea(box, box->getLocalBounds().reduced(Box::margin)));

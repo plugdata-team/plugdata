@@ -396,6 +396,10 @@ void Box::updatePorts()
     while (numInputs > oldNumInputs) edges.insert(oldNumInputs++, new Edge(this, true));
     while (numOutputs < oldNumOutputs) edges.remove(numInputs + (--oldNumOutputs));
     while (numOutputs > oldNumOutputs) edges.insert(numInputs + (++oldNumOutputs), new Edge(this, false));
+    
+    if(gui) {
+        setTooltip(cnv->pd->objectLibrary.getObjectDescriptions()[gui->getType()]);
+    }
 
     int numIn = 0;
     int numOut = 0;

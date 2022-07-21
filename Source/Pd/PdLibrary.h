@@ -82,7 +82,6 @@ struct LambdaThread  : public Thread
     void run() override
     {
         fn();
-        fn = nullptr; // free any objects that the lambda might contain while the thread is still active
     }
     
     void runLambda(std::function<void()> func) {

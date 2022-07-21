@@ -18,7 +18,7 @@ extern "C"
 #include "Objects/GUIObject.h"
 
 class Canvas;
-class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener
+class Box : public Component, public Value::Listener, public Timer, private TextEditor::Listener, public SettableTooltipClient
 {
    public:
     Box(Canvas* parent, const String& name = "", Point<int> position = {100, 100});
