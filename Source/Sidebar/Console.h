@@ -113,7 +113,7 @@ struct Console : public Component
         }
     }
         
-    struct ConsoleComponent : public Component, public Timer
+    struct ConsoleComponent : public Component
     {
         struct ConsoleMessage : public Component
         {
@@ -189,13 +189,7 @@ struct Console : public Component
         {
             setWantsKeyboardFocus(true);
             repaint();
-            startTimer(100);
         }
-        
-        void timerCallback() override {
-            pd->processPrints();
-        }
-
 
         void focusLost(FocusChangeType cause) override
         {

@@ -14,6 +14,7 @@ extern "C"
 #include "x_libpd_extra_utils.h"
 #include "x_libpd_mod_utils.h"
 #include "x_libpd_multi.h"
+#include "z_print_util.h"
 }
 
 #include "PdInstance.h"
@@ -102,8 +103,8 @@ extern "C"
 
         static void instance_multi_print(pd::Instance* ptr, char const* s)
         {
-            auto message = std::string(s);
-            ptr->m_print_queue.enqueue(message);
+            auto message = String(s);
+             ptr->enqueueFunctionAsync([ptr, message]() mutable { ptr->processPrint(message); });
         }
     };
 }
@@ -123,6 +124,8 @@ Instance::Instance(String const& symbol)
                              reinterpret_cast<t_libpd_multi_pitchbendhook>(internal::instance_multi_pitchbend), reinterpret_cast<t_libpd_multi_aftertouchhook>(internal::instance_multi_aftertouch), reinterpret_cast<t_libpd_multi_polyaftertouchhook>(internal::instance_multi_polyaftertouch),
                              reinterpret_cast<t_libpd_multi_midibytehook>(internal::instance_multi_midibyte));
     m_print_receiver = libpd_multi_print_new(this, reinterpret_cast<t_libpd_multi_printhook>(internal::instance_multi_print));
+    
+    
 
     m_message_receiver = libpd_multi_receiver_new(this, "pd", reinterpret_cast<t_libpd_multi_banghook>(internal::instance_multi_bang), reinterpret_cast<t_libpd_multi_floathook>(internal::instance_multi_float), reinterpret_cast<t_libpd_multi_symbolhook>(internal::instance_multi_symbol),
                                                   reinterpret_cast<t_libpd_multi_listhook>(internal::instance_multi_list), reinterpret_cast<t_libpd_multi_messagehook>(internal::instance_multi_message));
@@ -418,29 +421,10 @@ void Instance::processMidiEvent(midievent event)
         receiveMidiByte(event.midi1, event.midi2);
 }
 
-void Instance::processPrints()
+void Instance::processPrint(String print)
 {
-    std::string temp;
-    std::string print;
-    
-    while(m_print_queue.try_dequeue(print))
-    {
-        if(print.empty()) continue;
-        
-        else if(print.back() == '\n')
-        {
-            while(!print.empty() && (print.back() == '\n' || print.back() == ' ')) {
-                print.pop_back();
-            }
-            temp += print;
-            MessageManager::callAsync([this, temp]() mutable { receivePrint(temp); });
-            temp.clear();
-        }
-        else
-        {
-            temp += print;
-        }
-    }
+    print = print.trimEnd();
+    MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
 }
 
 void Instance::processSend(dmessage mess)

@@ -240,6 +240,8 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_multi.h
     ${LIBPD_PATH}/s_libpd_inter.c
     ${LIBPD_PATH}/s_libpd_inter.h
+    ${LIBPD_PATH}/z_print_util.c
+    ${LIBPD_PATH}/z_print_util.h
 )
 
 include_directories(${LIBPD_PATH})
