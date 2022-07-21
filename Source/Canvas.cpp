@@ -430,6 +430,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
     // For fixing coords when zooming
     float scale = (1.0f / static_cast<float>(pd->zoomScale.getValue()));
 
+    
     // Auto scroll when dragging close to the edge
     if (viewport->autoScroll(viewportEvent.x * scale, viewportEvent.y * scale, 50, scrollSpeed))
     {
@@ -916,6 +917,8 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
     {
         component->repaint();
     }
+    
+    canvasDragStartPosition = getPosition();
 }
 
 // Call from component's mouseUp
@@ -935,7 +938,10 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
 
         auto distance = Point<int>(e.getDistanceFromDragStartX(), e.getDistanceFromDragStartY());
 
-        distance = grid.handleMouseUp(distance);
+        // In case we dragged near the edge and the canvas moved
+        auto canvasMoveOffset = canvasDragStartPosition - getPosition();
+        
+        distance = grid.handleMouseUp(distance) + canvasMoveOffset;
 
         // When done dragging objects, update positions to pd
         patch.moveObjects(objects, distance.x, distance.y);
@@ -988,7 +994,9 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
 
     for (auto* box : selection)
     {
-        box->setTopLeftPosition(box->mouseDownPos + dragDistance);
+        // In case we dragged near the edge and the canvas moved
+        auto canvasMoveOffset = canvasDragStartPosition - getPosition();
+        box->setTopLeftPosition(box->mouseDownPos + dragDistance + canvasMoveOffset);
     }
     
     // Behaviour for shift-dragging objects over

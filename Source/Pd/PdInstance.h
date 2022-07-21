@@ -227,7 +227,7 @@ class Instance
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
-    void processPrints();
+    void processPrint(String print);
     void processMidiEvent(midievent event);
     void processSend(dmessage mess);
 
@@ -265,8 +265,6 @@ class Instance
 
    private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
-    
-    moodycamel::ConcurrentQueue<std::string> m_print_queue = moodycamel::ConcurrentQueue<std::string>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;

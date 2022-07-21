@@ -24,6 +24,8 @@
 #include "m_imp.h"
 #include "g_all_guis.h"
 
+#include "z_print_util.h"
+
 // pd_init() doesn't call socket_init() which is needed on windows for
 // libpd_start_gui() to work
 #if (defined(_WIN32) || defined(_WIN64)) && PD_MINOR_VERSION > 50
@@ -461,7 +463,8 @@ int libpd_exists(const char *recv) {
 }
 
 void libpd_set_printhook(const t_libpd_printhook hook) {
-  sys_printhook = (t_printhook) hook;
+  libpd_set_concatenated_printhook(hook);
+  sys_printhook = libpd_print_concatenator;
 }
 
 void libpd_set_banghook(const t_libpd_banghook hook) {
