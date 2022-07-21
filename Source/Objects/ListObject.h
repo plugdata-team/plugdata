@@ -38,6 +38,11 @@ struct ListObject final : public AtomObject
 
         updateValue();
     }
+    
+    void updateValue() override
+    {
+        std::cout << "update!" << std::endl;
+    }
 
     void updateFromGui()
     {
@@ -88,6 +93,7 @@ struct ListObject final : public AtomObject
         bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(bottomTriangle);
     }
+    
 
     void update() override
     {
