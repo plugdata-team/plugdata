@@ -210,8 +210,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     const CriticalSection* audioLock;
     
-    
-    static inline const String else_version = "ELSE v1.0-rc2 (without sfont~)";
+    static inline const String else_version = "ELSE v1.0-rc2";
     static inline const String cyclone_version = "cyclone v0.6-1";
 
 #if !PLUGDATA_STANDALONE
