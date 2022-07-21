@@ -145,7 +145,7 @@ jobs:
         submodules: recursive
 
     - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev libsndfile-dev
+      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
@@ -184,7 +184,7 @@ jobs:
         submodules: recursive
 
     - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev libsndfile-dev curl libopus-dev
+      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
@@ -224,7 +224,7 @@ jobs:
         submodules: recursive
 
     - name: Install Dependencies
-      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev libsndfile-dev curl libopus-dev
+      run: sudo apt -qq update && sudo apt install  -y libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev
 
     - name: Create Build Environment
       run: cmake -E make_directory ${{github.workspace}}/build
@@ -267,7 +267,7 @@ jobs:
         env:
           PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
       - name: Install Dependencies
-        run: sudo dnf install -y wget cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel libsndfile-devel xz curl
+        run: sudo dnf install -y wget cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel gcc-c++ libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel xz
       - name: Build
         run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
 
@@ -306,7 +306,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: pacman -S --noconfirm wget alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf libsndfile python
+      run: pacman -S --noconfirm wget alsa-lib freetype2 libx11 libxcursor libxext libxinerama libxrandr libxrender webkit2gtk cmake make gcc pkgconf python
 
     - name: Build
       run: mkdir build && cd build && CC=/usr/bin/gcc CXX=/usr/bin/g++ cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
@@ -345,7 +345,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: zypper install -y xz wget curl tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel libsndfile-devel gcc gcc-c++ libogg-devel libopus-devel
+      run: zypper install -y xz wget tar gzip cmake alsa-lib-devel libXinerama-devel freetype-devel libcurl-devel libXcomposite-devel freeglut-devel libXrandr-devel libXcursor-devel freetype2-devel gcc gcc-c++
 
     - name: Build
       run: mkdir build && cd build && cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
@@ -385,7 +385,7 @@ jobs:
         PATH: /usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
 
     - name: Install Dependencies
-      run: apt install -y wget libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev libsndfile-dev cmake make gcc g++ curl
+      run: apt install -y wget libasound2-dev libjack-jackd2-dev libcurl4-openssl-dev libfreetype6-dev libx11-dev libxcomposite-dev libxcursor-dev libxcursor-dev libxext-dev libxinerama-dev libxrandr-dev libxrender-dev libwebkit2gtk-4.0-dev libglu1-mesa-dev mesa-common-dev cmake make gcc g++
 
     - name: Build
       run: mkdir build && cd build && CXX=g++ cmake -DENABLE_TESTING=0 .. -G "Unix Makefiles" && cmake --build . --config $BUILD_TYPE
