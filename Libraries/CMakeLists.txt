@@ -16,79 +16,81 @@ add_subdirectory(JUCE)
 
 set(SFONT_LIBS "")
 
+# ------------------------------------------------------------------------------#
+set(CMAKE_MACOSX_RPATH ON)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+# Switch to enable/disable sfont~, in case the build fails or you want to speed up the build
 if(ENABLE_SFONT)
     message("-- Building fluidsynth")
 
+    set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/")
+
     if(MSVC)
-    # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
-        set(static_ext "lib")
-        execute_process(
-            COMMAND ${CMAKE_COMMAND} -E make_directory ${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/
-        )
+        # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
         execute_process(
             COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/win_deps.zip
-            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/fluidsynth
-        )
-             set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/")
-             
-            list(APPEND SFONT_LIBS
-                ${SFONT_LIB_DIR}/lib64/FLAC.lib
-                ${SFONT_LIB_DIR}/lib64/libfluidsynth.lib
-                ${SFONT_LIB_DIR}/lib64/libmp3lame-static.lib
-                ${SFONT_LIB_DIR}/lib64/libmpghip-static.lib
-                ${SFONT_LIB_DIR}/lib64/mpg123.lib
-                ${SFONT_LIB_DIR}/lib64/ogg.lib
-                ${SFONT_LIB_DIR}/lib64/opus.lib
-                ${SFONT_LIB_DIR}/lib64/sndfile.lib
-                ${SFONT_LIB_DIR}/lib64/vorbis.lib
-                ${SFONT_LIB_DIR}/lib64/vorbisenc.lib
-
-                ${SFONT_LIB_DIR}/lib/FLAC.lib
-                ${SFONT_LIB_DIR}/lib/libfluidsynth.lib
-                ${SFONT_LIB_DIR}/lib/libmp3lame-static.lib
-                ${SFONT_LIB_DIR}/lib/libmpghip-static.lib
-                ${SFONT_LIB_DIR}/lib/mpg123.lib
-                ${SFONT_LIB_DIR}/lib/ogg.lib
-                ${SFONT_LIB_DIR}/lib/opus.lib
-                ${SFONT_LIB_DIR}/lib/sndfile.lib
-                ${SFONT_LIB_DIR}/lib/vorbis.lib
-                ${SFONT_LIB_DIR}/lib/vorbisenc.lib
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         )
 
+        list(APPEND SFONT_LIBS
+            ${SFONT_LIB_DIR}/lib64/FLAC.lib
+            ${SFONT_LIB_DIR}/lib64/libfluidsynth.lib
+            ${SFONT_LIB_DIR}/lib64/libmp3lame-static.lib
+            ${SFONT_LIB_DIR}/lib64/libmpghip-static.lib
+            ${SFONT_LIB_DIR}/lib64/mpg123.lib
+            ${SFONT_LIB_DIR}/lib64/ogg.lib
+            ${SFONT_LIB_DIR}/lib64/opus.lib
+            ${SFONT_LIB_DIR}/lib64/sndfile.lib
+            ${SFONT_LIB_DIR}/lib64/vorbis.lib
+            ${SFONT_LIB_DIR}/lib64/vorbisenc.lib
+
+            ${SFONT_LIB_DIR}/lib/FLAC.lib
+            ${SFONT_LIB_DIR}/lib/libfluidsynth.lib
+            ${SFONT_LIB_DIR}/lib/libmp3lame-static.lib
+            ${SFONT_LIB_DIR}/lib/libmpghip-static.lib
+            ${SFONT_LIB_DIR}/lib/mpg123.lib
+            ${SFONT_LIB_DIR}/lib/ogg.lib
+            ${SFONT_LIB_DIR}/lib/opus.lib
+            ${SFONT_LIB_DIR}/lib/sndfile.lib
+            ${SFONT_LIB_DIR}/lib/vorbis.lib
+            ${SFONT_LIB_DIR}/lib/vorbisenc.lib
+        )
     else()
-        set(static_ext "a")
-        
         # Build fluidsynth and dependencies from source, silence the makefile
         execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
             OUTPUT_QUIET
-           # ERROR_QUIET
+            #ERROR_QUIET
         )
-        set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/lib")
         list(APPEND SFONT_LIBS
-            "${SFONT_LIB_DIR}/libfluidsynth.${static_ext}"
-            "${SFONT_LIB_DIR}/libsndfile.${static_ext}"
-            "${SFONT_LIB_DIR}/libogg.${static_ext}"
-            "${SFONT_LIB_DIR}/libopus.${static_ext}"
-            "${SFONT_LIB_DIR}/libFLAC.${static_ext}"
-            "${SFONT_LIB_DIR}/libvorbis.${static_ext}"
-            "${SFONT_LIB_DIR}/libvorbisenc.${static_ext}"
+            ${SFONT_LIB_DIR}/lib/libfluidsynth.a
+            ${SFONT_LIB_DIR}/lib/libsndfile.a
+            ${SFONT_LIB_DIR}/lib/libogg.a
+            ${SFONT_LIB_DIR}/lib/libopus.a
+            ${SFONT_LIB_DIR}/lib/libFLAC.a
+            ${SFONT_LIB_DIR}/lib/libvorbis.a
+            ${SFONT_LIB_DIR}/lib/libvorbisenc.a
         )
     endif()
 
-        # Check if build succeeded, otherwise disable sfont
-        foreach(LIB ${SFONT_LIBS})
-            if(NOT EXISTS ${LIB})
-                message("Error building fluidsynth: Library not found (${LIB})")
-                message("Disabling sfont object")
-                set(ENABLE_SFONT 0)
-            endif()
-        endforeach()
+    # Check if build succeeded, otherwise disable sfont
+    foreach(LIB ${SFONT_LIBS})
+        if(NOT EXISTS ${LIB})
+            set(FAILED_LIBS ${FAILED_LIBS} ${LIB})
+            set(ENABLE_SFONT 0)
+        endif()
+    endforeach()
+
+    if(FAILED_LIBS)
+    message("Error building fluidsynth: Libraries not found:")
+    foreach(LIB ${FAILED_LIBS})
+        message(${LIB})
+    endforeach()
+    message("Disabling sfont object")
+    endif()
 endif()
 
-# ------------------------------------------------------------------------------#
-set(CMAKE_MACOSX_RPATH ON)
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 set(PD_PATH "pure-data/")
 set(LIBPD_PATH "libpd/")
