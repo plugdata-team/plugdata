@@ -581,7 +581,6 @@ void Instance::createPanel(int type, const char* snd, const char* location)
             {
                 auto constexpr folderChooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories | FileBrowserComponent::canSelectFiles;
                 openChooser = std::make_unique<FileChooser>("Open...", defaultFile, "", true);
-
                 openChooser->launchAsync(folderChooserFlags,
                                          [this, obj](FileChooser const& fileChooser)
                                          {
@@ -594,7 +593,7 @@ void Instance::createPanel(int type, const char* snd, const char* location)
                                                      
                                                      // Convert slashes to backslashes
                                                     #if JUCE_WINDOWS
-                                                     pathname = pathname.replaceCharacter('/', '\\');
+                                                     pathname = pathname.replaceCharacter('\\', '/');
                                                     #endif
 
                                                      t_atom argv[1];
