@@ -7,8 +7,6 @@ struct GraphOnParent final : public GUIObject
     // Graph On Parent
     GraphOnParent(void* obj, Box* box) : GUIObject(obj, box), subpatch({ptr, cnv->pd})
     {
-        setInterceptsMouseClicks(box->locked == var(false), true);
-
         isGraphChild = true;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
 
@@ -19,8 +17,14 @@ struct GraphOnParent final : public GUIObject
 
         resized();
         updateDrawables();
+        
+        canReceiveMouseEvent = [this](int x, int y){
+            return hitTest(x, y);
+        };
+        
+        box->setInterceptsMouseClicks(false, true);
     }
-
+    
     void checkBounds() override
     {
         // Apply size limits
@@ -60,8 +64,23 @@ struct GraphOnParent final : public GUIObject
     void lock(bool locked) override
     {
         isLocked = locked;
-        setInterceptsMouseClicks(isLocked, isLocked);
+        box->setInterceptsMouseClicks(false, true);
     }
+    
+    // Graph on parent should pass mouseevents on if they don't hit
+    bool hitTest(int x, int y) override {
+        if(!canvas) return true;
+        if(!isLocked) return true;
+        
+        for(auto& obj : canvas->boxes) {
+            if(obj->getScreenBounds().contains(getScreenPosition() + Point<int>(x, y))) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
 
     void updateCanvas()
     {
@@ -77,6 +96,7 @@ struct GraphOnParent final : public GUIObject
         auto b = getPatch()->getBounds();
         canvas->setBounds(-b.getX(), -b.getY(), b.getWidth() + b.getX(), b.getHeight() + b.getY());
         canvas->setLookAndFeel(&LookAndFeel::getDefaultLookAndFeel());
+        canvas->locked.referTo(cnv->locked);
     }
 
     void updateValue() override
@@ -123,6 +143,7 @@ struct GraphOnParent final : public GUIObject
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
         
+        // Strangly, the title goes below the graph content in pd
         auto text = getText();
         
         if(!static_cast<bool>(hideNameAndArgs.getValue()) && text != "graph") {
@@ -132,6 +153,8 @@ struct GraphOnParent final : public GUIObject
             g.drawFittedText(text, textArea, Justification::left, 1, 1.0f);
         }
     }
+    
+    
 
     pd::Patch* getPatch() override
     {

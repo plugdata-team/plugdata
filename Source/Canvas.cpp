@@ -33,6 +33,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
     {
         setLookAndFeel(&main.getLookAndFeel());
         parentGraph->addAndMakeVisible(this);
+        setInterceptsMouseClicks(false, true);
         isGraph = true;
     }
     else
@@ -289,7 +290,6 @@ void Canvas::mouseDown(const MouseEvent& e)
 {
     auto* source = e.originalComponent;
     
-
     // Left-click
     if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
     {
@@ -304,7 +304,6 @@ void Canvas::mouseDown(const MouseEvent& e)
 
             lasso.beginLasso(e.getEventRelativeTo(this), this);
             isDraggingLasso = true;
-            
             
             if (!ModifierKeys::getCurrentModifiers().isShiftDown() && !ModifierKeys::getCurrentModifiers().isCommandDown())
             {

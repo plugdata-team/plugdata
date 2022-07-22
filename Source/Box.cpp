@@ -124,6 +124,10 @@ void Box::valueChanged(Value& v)
 
 bool Box::hitTest(int x, int y)
 {
+    if(gui && !gui->canReceiveMouseEvent(x + margin, y + margin)) {
+        return false;
+    }
+    
     // Mouse over object
     if (getLocalBounds().reduced(margin).contains(x, y))
     {
@@ -717,10 +721,24 @@ void Box::openHelpPatch() const
     }
 
     auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
-    String name = gui->getHelpName();
+    String helpName;
     
-    String firstName = name + "-help.pd";
-    String secondName = "help-" + name + ".pd";
+    if(pdclass == canvas_class && canvas_isabstraction((t_canvas *)getPointer())) {
+        char namebuf[MAXPDSTRING];
+        t_object *ob = (t_object *)getPointer();
+        int ac = binbuf_getnatom(ob->te_binbuf);
+        t_atom *av = binbuf_getvec(ob->te_binbuf);
+        if (ac < 1)
+            return;
+        atom_string(av, namebuf, MAXPDSTRING);
+        helpName = String(namebuf).fromLastOccurrenceOf("/", false, false);
+    }
+    else {
+        helpName = class_gethelpname(pdclass);
+    }
+
+    String firstName = helpName + "-help.pd";
+    String secondName = "help-" + helpName + ".pd";
 
     auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
     {
