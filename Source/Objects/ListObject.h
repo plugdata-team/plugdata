@@ -39,11 +39,6 @@ struct ListObject final : public AtomObject
         updateValue();
     }
     
-    void updateValue() override
-    {
-        std::cout << "update!" << std::endl;
-    }
-
     void updateFromGui()
     {
         auto array = StringArray();
@@ -95,7 +90,7 @@ struct ListObject final : public AtomObject
     }
     
 
-    void update() override
+    void updateValue() override
     {
         if (!edited && !label.isBeingEdited())
         {
