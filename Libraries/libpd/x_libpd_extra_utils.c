@@ -104,6 +104,11 @@ char const* libpd_array_get_name(void* ptr)
     t_fake_garray* nptr = (t_fake_garray*)ptr;
     return nptr->x_realname->s_name;
 }
+char const* libpd_array_get_unexpanded_name(void* ptr)
+{
+    t_fake_garray* nptr = (t_fake_garray*)ptr;
+    return nptr->x_name->s_name;
+}
 
 void libpd_array_get_scale(char const* name, float* min, float* max)
 {
