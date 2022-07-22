@@ -518,7 +518,9 @@ void Connection::updatePath()
     auto pstart = getStartPoint() - origin;
     auto pend = getEndPoint() - origin;
     
-    segmented = cnv->storage.getInfo(getId(), "Segmented") == "1";
+    if(lastId.isEmpty()) lastId = getId();
+    
+    segmented = cnv->storage.getInfo(lastId, "Segmented") == "1";
     
     if (!segmented)
     {
