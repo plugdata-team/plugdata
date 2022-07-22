@@ -86,12 +86,15 @@ struct ObjectBase : public Component, public SettableTooltipClient
     {
         return {};
     };
+    
+    virtual bool canReceiveMouseEvent(int x, int y) {
+        return true;
+    }
 
     void closeOpenedSubpatchers();
 
     String getText();
     
-    std::function<bool(int, int)> canReceiveMouseEvent = [](int x, int y){ return true; };
 };
 
 // Class for non-patchable objects

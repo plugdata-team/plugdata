@@ -17,11 +17,24 @@ struct GraphOnParent final : public GUIObject
 
         resized();
         updateDrawables();
+    }
+    
+    // Called by box to make sure clicks on empty parts of the graph are passed on
+    bool canReceiveMouseEvent(int x, int y) override {
+        if(!canvas) return true;
+        if(!isLocked) return true;
         
-        // Called by box to make sure clicks on empty parts of the graph are passed on
-        canReceiveMouseEvent = [this](int x, int y){
-            return hitTest(x, y);
-        };
+        for(auto& obj : canvas->boxes) {
+            if(!obj->gui) continue;
+            
+            auto localPoint = obj->getLocalPoint(box, Point<int>(x, y));
+            
+            if(obj->hitTest(localPoint.x, localPoint.y)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
     
     void checkBounds() override
@@ -63,20 +76,6 @@ struct GraphOnParent final : public GUIObject
     void lock(bool locked) override
     {
         isLocked = locked;
-    }
-    
-    // Graph on parent should pass mouseevents on if they don't hit
-    bool hitTest(int x, int y) override {
-        if(!canvas) return true;
-        if(!isLocked) return true;
-        
-        for(auto& obj : canvas->boxes) {
-            if(obj->getScreenBounds().contains(getScreenPosition() + Point<int>(x, y))) {
-                return true;
-            }
-        }
-        
-        return false;
     }
     
 
