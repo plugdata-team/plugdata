@@ -33,7 +33,8 @@ public:
     // Gets the text label of the array.
     String getText() const
     {
-        return libpd_array_get_unexpanded_name(instance);
+        libpd_set_instance(static_cast<t_pdinstance*>(instance));
+        return libpd_array_get_unexpanded_name(libpd_array_get_byname(name.toRawUTF8()));
     }
     
     
@@ -366,7 +367,7 @@ public:
         range = var(arr);
         size = var(static_cast<int>(graph.array.size()));
         
-        name = String(array.getName());
+        name = String(array.getText());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
         
         labelColour = box->findColour(PlugDataColour::textColourId).toString();
@@ -455,7 +456,7 @@ public:
     
     void updateParameters() override
     {
-        //name = libpd_array_get_name(array.instance);
+        name = libpd_array_get_unexpanded_name(libpd_array_get_byname(array.getName().toRawUTF8()));
     }
     
     void updateSettings()
