@@ -124,6 +124,7 @@ struct GraphOnParent final : public GUIObject
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
         
         auto text = getText();
+        
         if(!static_cast<bool>(hideNameAndArgs.getValue()) && text != "graph") {
             g.setColour(box->findColour(PlugDataColour::textColourId));
             g.setFont(Font(15));
