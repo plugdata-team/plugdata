@@ -124,7 +124,7 @@ void Box::valueChanged(Value& v)
 
 bool Box::hitTest(int x, int y)
 {
-    if(gui && !gui->canReceiveMouseEvent(x + margin, y + margin)) {
+    if(gui && !gui->canReceiveMouseEvent(x, y)) {
         return false;
     }
     
