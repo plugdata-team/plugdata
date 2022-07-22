@@ -311,7 +311,8 @@ void Canvas::mouseDown(const MouseEvent& e)
             }
         }
 
-        if (auto* box = dynamic_cast<Box*>(source))
+        // Update selected object in sidebar when we click a box
+        if (dynamic_cast<Box*>(source) || source->findParentComponentOfClass<Box>())
         {
             updateSidebarSelection();
         }
@@ -636,7 +637,7 @@ void Canvas::deselectAll()
         if (c) c->repaint();
 
     selectedComponents.deselectAll();
-    main.sidebar.hideParameters();
+    
 }
 
 void Canvas::copySelection()
@@ -897,7 +898,14 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
 {
     if (!isSelected(component))
     {
-        if (!(e.mods.isShiftDown() || e.mods.isCommandDown())) deselectAll();
+        if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))  {
+            deselectAll();
+            
+            // Deselect boxes
+            for (auto* c : selectedComponents) {
+                if (c != this) setSelected(component, false);
+            }
+        }
 
         setSelected(component, true);
     }
