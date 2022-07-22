@@ -53,7 +53,7 @@ help :
 	@echo "to libFLAC, libogg and libvorbis. It should work on Linux and Mac OS X. It might"
 	@echo "work on Windows with a correctly set up MinGW."
 	@echo
-	@echo "It requires all the normal build tools require to build libsndfile plus wget."
+	@echo "It requires all the normal build tools require to build libsndfile."
 	@echo
 
 config : $(working_dir)/Stamp/install-libs
@@ -63,32 +63,32 @@ clean :
 	rm -rf $(working_dir)/bin $(working_dir)/include $(working_dir)/lib $(working_dir)/share
 	rm -f $(working_dir)/Stamp/install $(working_dir)/Stamp/extract $(working_dir)/Stamp/build-ogg
 
-$(working_dir)/Stamp/init :
-	mkdir -p $(stamp_dir) $(tarball_dir)
-	touch $@
+#$(working_dir)/Stamp/init :
+#	mkdir -p $(stamp_dir) $(tarball_dir)
+#	touch $@
+#
+#$(working_dir)/Tarballs/$(flac_tarball) : $(working_dir)/Stamp/init
+#	(cd $(tarball_dir) && wget $(download_url)flac/$(flac_tarball) -O $(flac_tarball))
+#	touch $@
+#
+#$(working_dir)/Tarballs/$(ogg_tarball) : $(working_dir)/Stamp/init
+#	(cd $(tarball_dir) && wget $(download_url)ogg/$(ogg_tarball) -O $(ogg_tarball))
+#	touch $@
+#
+#$(working_dir)/Tarballs/$(vorbis_tarball) : $(working_dir)/Stamp/init
+#	(cd $(tarball_dir) && wget $(download_url)vorbis/$(vorbis_tarball) -O $(vorbis_tarball))
+#	touch $@
+#
+#$(working_dir)/Tarballs/$(opus_tarball) : $(working_dir)/Stamp/init
+#	(cd $(tarball_dir) && wget https://archive.mozilla.org/pub/opus/$(opus_tarball) -O $(opus_tarball))
+#	touch $@
 
-$(working_dir)/Tarballs/$(flac_tarball) : $(working_dir)/Stamp/init
-	(cd $(tarball_dir) && wget $(download_url)flac/$(flac_tarball) -O $(flac_tarball))
-	touch $@
+#$(working_dir)/Tarballs/$(sndfile_tarball) : $(working_dir)/Stamp/init
+#	(cd $(tarball_dir) && wget https://github.com/libsndfile/libsndfile/releases/download/$(sndfile_version)/$(sndfile_name).tar.xz -O $(sndfile_tarball))
+#	touch $@
 
-$(working_dir)/Tarballs/$(ogg_tarball) : $(working_dir)/Stamp/init
-	(cd $(tarball_dir) && wget $(download_url)ogg/$(ogg_tarball) -O $(ogg_tarball))
-	touch $@
-
-$(working_dir)/Tarballs/$(vorbis_tarball) : $(working_dir)/Stamp/init
-	(cd $(tarball_dir) && wget $(download_url)vorbis/$(vorbis_tarball) -O $(vorbis_tarball))
-	touch $@
-
-$(working_dir)/Tarballs/$(opus_tarball) : $(working_dir)/Stamp/init
-	(cd $(tarball_dir) && wget https://archive.mozilla.org/pub/opus/$(opus_tarball) -O $(opus_tarball))
-	touch $@
-
-$(working_dir)/Tarballs/$(sndfile_tarball) : $(working_dir)/Stamp/init
-	(cd $(tarball_dir) && wget https://github.com/libsndfile/libsndfile/releases/download/$(sndfile_version)/$(sndfile_name).tar.xz -O $(sndfile_tarball))
-	touch $@
-
-$(working_dir)/Stamp/tarballs : $(working_dir)/Tarballs/$(flac_tarball) $(working_dir)/Tarballs/$(ogg_tarball) $(working_dir)/Tarballs/$(vorbis_tarball) $(working_dir)/Tarballs/$(opus_tarball) $(working_dir)/Tarballs/$(sndfile_tarball)
-	touch $@
+#$(working_dir)/Stamp/tarballs : $(working_dir)/Tarballs/$(flac_tarball) $(working_dir)/Tarballs/$(ogg_tarball) $(working_dir)/Tarballs/$(vorbis_tarball) $(working_dir)/Tarballs/$(opus_tarball) $(working_dir)/Tarballs/$(sndfile_tarball)
+#	touch $@
 
 
 $(working_dir)/Stamp/extract : $(working_dir)/Stamp/tarballs

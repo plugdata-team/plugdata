@@ -57,6 +57,13 @@ if(ENABLE_SFONT)
             ${SFONT_LIB_DIR}/lib/vorbisenc.lib
         )
     else()
+
+        # Unpack sources of dependencies
+        execute_process(
+            COMMAND ${CMAKE_COMMAND} -E tar xzf ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/unix_deps.zip
+            WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        )
+
         # Build fluidsynth and dependencies from source, silence the makefile
         execute_process(COMMAND make -f ${CMAKE_CURRENT_SOURCE_DIR}/ELSE/sfont~/make-static-libs.mk config
             WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
