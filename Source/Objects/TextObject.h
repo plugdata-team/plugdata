@@ -69,25 +69,12 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
 
     void updateValue() override{};
 
+    // Override to cancel default behaviour
     void lock(bool isLocked) override
     {
     }
 
-    void mouseDown(const MouseEvent& e) override
-    {
-        //wasSelected = cnv->isSelected(box);
-    }
-
-    void mouseUp(const MouseEvent& e) override
-    {
-        /*
-        if (box->isEnabled() && !(e.mouseWasDraggedSinceMouseDown() || e.mods.isPopupMenu()) && wasSelected)
-        {
-            showEditor();
-        } */
-    }
-
-    int getBestTextWidth(const String& text)
+    virtual int getBestTextWidth(const String& text)
     {
         return std::max<float>(round(font.getStringWidthFloat(text) + 14.0f), 32);
     }
@@ -245,7 +232,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
     Justification justification = Justification::centredLeft;
     std::unique_ptr<TextEditor> editor;
     BorderSize<int> border{1, 7, 1, 2};
-    float minimumHorizontalScale = 0.9f;
+    float minimumHorizontalScale = 0.8f;
 
     String currentText;
     Font font{15.0f};

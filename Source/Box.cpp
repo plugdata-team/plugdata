@@ -702,55 +702,59 @@ void Box::openHelpPatch() const
 {
     auto getHelp = [this]() -> pd::Patch
     {
-        static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
-
-        auto* ptr = getPointer();
-        if (!ptr) return {nullptr, nullptr};
-
-        auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
-        const auto* name = class_gethelpname(pdclass);
         
-        String firstName = String(name) + "-help.pd";
-        String secondName = "help-" + String(name) + ".pd";
-
-        auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
-        {
-            for (const auto& fileIter : RangedDirectoryIterator(searchDir, true))
-            {
-                auto file = fileIter.getFile();
-                if (file.getFileName() == firstName || file.getFileName() == secondName)
-                {
-                    return file;
-                }
-            }
-
-            return File();
-        };
-
-        // Paths to search
-        // First, only search vanilla, then search all documentation
-        std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
-
-        for (auto& path : paths)
-        {
-            auto file = findHelpPatch(path);
-            if (file.existsAsFile())
-            {
-                auto name = file.getFileName();
-                auto fullPath = file.getParentDirectory().getFullPathName();
-                sys_lock();
-                auto* pdPatch = glob_evalfile(nullptr, gensym(name.toRawUTF8()), gensym(fullPath.toRawUTF8()));
-                sys_unlock();
-                return {pdPatch, cnv->pd, file.getChildFile(secondName)};
-            }
-        }
-        
-        return {nullptr, nullptr};
     };
 
     cnv->pd->setThis();
+    
     // Find name of help file
-    auto helpPatch = getHelp();
+    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+
+    auto* ptr = getPointer();
+    if (!ptr)  {
+        cnv->pd->logMessage("Couldn't find help file");
+        return;
+    }
+
+    auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
+    String name = gui->getHelpName();
+    
+    String firstName = name + "-help.pd";
+    String secondName = "help-" + name + ".pd";
+
+    auto findHelpPatch = [&firstName, &secondName](const File& searchDir) -> File
+    {
+        for (const auto& fileIter : RangedDirectoryIterator(searchDir, true))
+        {
+            auto file = fileIter.getFile();
+            if (file.getFileName() == firstName || file.getFileName() == secondName)
+            {
+                return file;
+            }
+        }
+
+        return File();
+    };
+
+    // Paths to search
+    // First, only search vanilla, then search all documentation
+    std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
+
+    pd::Patch helpPatch = {nullptr, nullptr};
+    
+    for (auto& path : paths)
+    {
+        auto file = findHelpPatch(path);
+        if (file.existsAsFile())
+        {
+            auto name = file.getFileName();
+            auto fullPath = file.getParentDirectory().getFullPathName();
+            sys_lock();
+            auto* pdPatch = glob_evalfile(nullptr, gensym(name.toRawUTF8()), gensym(fullPath.toRawUTF8()));
+            sys_unlock();
+            helpPatch = {pdPatch, cnv->pd, file.getChildFile(secondName)};
+        }
+    }
 
     if (!helpPatch.getPointer())
     {
