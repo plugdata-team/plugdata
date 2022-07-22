@@ -80,19 +80,6 @@ String ObjectBase::getType() const
     return {};
 }
 
-String ObjectBase::getHelpName() const
-{
-
-    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
-
-    if (!ptr) return "";
-
-    auto* pdclass = pd_class(static_cast<t_pd*>(ptr));
-    const auto* name = class_gethelpname(pdclass);
-
-    return name;
-};
-
 // Called in destructor of subpatch and graph class
 // Makes sure that any tabs refering to the now deleted patch will be closed
 void ObjectBase::closeOpenedSubpatchers()
