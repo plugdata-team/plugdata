@@ -622,6 +622,7 @@ void PlugDataAudioProcessor::sendPlayhead()
     {
         atoms_playhead[0] = static_cast<float>(infos->getIsPlaying());
         sendMessage("playhead", "playing", atoms_playhead);
+        
         atoms_playhead[0] = static_cast<float>(infos->getIsRecording());
         sendMessage("playhead", "recording", atoms_playhead);
 
@@ -667,6 +668,7 @@ void PlugDataAudioProcessor::sendPlayhead()
         }
 
         if(infos->getPpqPosition().hasValue()) {
+            
             atoms_playhead[0] = static_cast<float>(*infos->getPpqPosition());
         }
         else {
@@ -686,7 +688,7 @@ void PlugDataAudioProcessor::sendPlayhead()
         else {
             atoms_playhead.push_back(0.0f);
         }
-
+        
         sendMessage("playhead", "position", atoms_playhead);
         atoms_playhead.resize(1);
     }

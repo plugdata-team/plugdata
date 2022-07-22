@@ -589,10 +589,16 @@ void Instance::createPanel(int type, const char* snd, const char* location)
                                              enqueueFunction(
                                                  [obj, file]() mutable
                                                  {
-                                                     const auto* path = file.getFullPathName().toRawUTF8();
+                                                     
+                                                     String pathname = file.getFullPathName().toRawUTF8();
+                                                     
+                                                     // Convert slashes to backslashes
+                                                    #if JUCE_WINDOWS
+                                                     pathname = pathname.replaceCharacter('/', '\\');
+                                                    #endif
 
                                                      t_atom argv[1];
-                                                     libpd_set_symbol(argv, path);
+                                                     libpd_set_symbol(argv, pathname.toRawUTF8());
                                                      pd_typedmess(obj, gensym("callback"), 1, argv);
                                                  });
                                          });
