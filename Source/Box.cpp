@@ -819,3 +819,4 @@ void Box::openSubpatch() const
     cnv->main.addTab(newCanvas);
     newCanvas->checkBounds();
 }
+
