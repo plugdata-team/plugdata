@@ -9,6 +9,11 @@ struct SubpatchObject final : public TextBase, public Value::Listener
         isGraphChild.addListener(this);
         hideNameAndArgs.addListener(this);
     }
+    
+    String getHelpName() const override
+    {
+        
+    }
 
     void updateValue() override
     {

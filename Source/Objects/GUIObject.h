@@ -88,6 +88,8 @@ struct ObjectBase : public Component, public SettableTooltipClient
     };
 
     void closeOpenedSubpatchers();
+    
+    virtual String getHelpName() const;
 
     String getText();
 };

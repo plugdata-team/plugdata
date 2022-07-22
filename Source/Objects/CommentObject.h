@@ -136,7 +136,7 @@ struct CommentObject final : public TextBase
             editor->grabKeyboardFocus();
         }
     }
-
+    
     bool hideInGraph() override
     {
         return false;
