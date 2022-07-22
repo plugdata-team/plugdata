@@ -637,7 +637,7 @@ void Canvas::deselectAll()
         if (c) c->repaint();
 
     selectedComponents.deselectAll();
-    
+    main.sidebar.hideParameters();
 }
 
 void Canvas::copySelection()
@@ -899,11 +899,13 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
     if (!isSelected(component))
     {
         if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))  {
-            deselectAll();
             
-            // Deselect boxes
+            // Deselect boxes and connections
             for (auto* c : selectedComponents) {
-                if (c != this) setSelected(component, false);
+                if (c != this)  {
+                    setSelected(component, false);
+                    c->repaint();
+                }
             }
         }
 
