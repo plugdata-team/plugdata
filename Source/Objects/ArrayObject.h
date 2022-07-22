@@ -30,6 +30,13 @@ public:
         return name;
     }
     
+    // Gets the text label of the array.
+    String getText() const
+    {
+        return libpd_array_get_unexpanded_name(instance);
+    }
+    
+    
     PdArray::DrawType getDrawType() const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
@@ -226,7 +233,7 @@ public:
         if (error)
         {
             g.setColour(box->findColour(PlugDataColour::textColourId));
-            g.drawText("array " + array.getName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
+            g.drawText("array " + array.getText() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
             error = false;
         }
         else
@@ -371,7 +378,7 @@ public:
     {
         int fontHeight = 14.0f;
         
-        const String text = array.getName();
+        const String text = array.getText();
         
         if (text.isNotEmpty())
         {
