@@ -18,11 +18,10 @@ struct GraphOnParent final : public GUIObject
         resized();
         updateDrawables();
         
+        // Called by box to make sure clicks on empty parts of the graph are passed on
         canReceiveMouseEvent = [this](int x, int y){
             return hitTest(x, y);
         };
-        
-        box->setInterceptsMouseClicks(false, true);
     }
     
     void checkBounds() override
@@ -64,7 +63,6 @@ struct GraphOnParent final : public GUIObject
     void lock(bool locked) override
     {
         isLocked = locked;
-        box->setInterceptsMouseClicks(false, true);
     }
     
     // Graph on parent should pass mouseevents on if they don't hit
