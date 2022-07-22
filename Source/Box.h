@@ -62,6 +62,8 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
     void textEditorReturnKeyPressed(TextEditor& ed) override;
     void textEditorTextChanged(TextEditor& ed) override;
+    
+    bool hitTest(int x, int y) override;
 
     bool isOver();
 
@@ -90,7 +92,6 @@ class Box : public Component, public Value::Listener, public Timer, private Text
 
    private:
     void initialise();
-    bool hitTest(int x, int y) override;
 
     void openNewObjectEditor();
 
