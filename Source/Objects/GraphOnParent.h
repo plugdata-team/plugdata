@@ -173,7 +173,6 @@ struct GraphOnParent final : public GUIObject
     {
         if (v.refersToSameSourceAs(isGraphChild))
         {
-            box->cnv->main.sidebar.hideParameters();
             subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
             updateValue();
         }
