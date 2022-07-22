@@ -704,11 +704,6 @@ void Box::textEditorTextChanged(TextEditor& ed)
 
 void Box::openHelpPatch() const
 {
-    auto getHelp = [this]() -> pd::Patch
-    {
-        
-    };
-
     cnv->pd->setThis();
     
     // Find name of help file

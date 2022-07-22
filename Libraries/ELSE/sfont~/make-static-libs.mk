@@ -22,14 +22,15 @@ fluidsynth_dir = $(root_dir)/fluidsynth
 #-------------------------------------------------------------------------------
 # Code follows.
 
-ogg_tarball = $(ogg_version).tar.xz
-vorbis_tarball = $(vorbis_version).tar.xz
-flac_tarball = $(flac_version).tar.xz
-opus_tarball = $(opus_version).tar.gz
-sndfile_tarball = $(sndfile_name).tar.xz
-download_url = http://downloads.xiph.org/releases/
+#ogg_tarball = $(ogg_version).tar.xz
+#vorbis_tarball = $(vorbis_version).tar.xz
+#flac_tarball = $(flac_version).tar.xz
+#opus_tarball = $(opus_version).tar.gz
+#sndfile_tarball = $(sndfile_name).tar.xz
+#download_url = http://downloads.xiph.org/releases/
+#tarball_dir = $(working_dir)/Tarballs
 working_dir = fluidsynth_deps
-tarball_dir = $(working_dir)/Tarballs
+
 stamp_dir = $(working_dir)/Stamp
 
 UNAME_S := $(shell uname -s)
@@ -90,22 +91,12 @@ clean :
 #$(working_dir)/Stamp/tarballs : $(working_dir)/Tarballs/$(flac_tarball) $(working_dir)/Tarballs/$(ogg_tarball) $(working_dir)/Tarballs/$(vorbis_tarball) $(working_dir)/Tarballs/$(opus_tarball) $(working_dir)/Tarballs/$(sndfile_tarball)
 #	touch $@
 
-
-$(working_dir)/Stamp/extract : $(working_dir)/Stamp/tarballs
-	(cd $(working_dir) && tar xf Tarballs/$(ogg_tarball))
-	(cd $(working_dir) && tar xf Tarballs/$(flac_tarball))
-	(cd $(working_dir) && tar xf Tarballs/$(vorbis_tarball))
-	(cd $(working_dir) && tar xf Tarballs/$(opus_tarball))
-	(cd $(working_dir) && tar xf Tarballs/$(sndfile_tarball))
-	(cd $(working_dir) && cp -r $(fluidsynth_dir) ./fluidsynth)
-	touch $@
-
-$(working_dir)/Stamp/build-ogg : $(working_dir)/Stamp/extract
+$(working_dir)/Stamp/build-ogg
 	(cd $(working_dir) && tar xf Tarballs/$(ogg_tarball))
 	(cd $(working_dir)/$(ogg_version) && CFLAGS=$(FLAGS) ./configure $(config_options) || 1 && make all install)
 	touch $@
 
-$(working_dir)/Stamp/install-libs : $(working_dir)/Stamp/extract $(working_dir)/Stamp/build-ogg
+$(working_dir)/Stamp/install-libs : $(working_dir)/Stamp/build-ogg
 	(cd $(working_dir)/$(vorbis_version) && CFLAGS=$(FLAGS) ./configure --disable-oggtest $(config_options) && make all install)
 	(cd $(working_dir)/$(flac_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-thorough-tests --disable-cpplibs  --disable-examples  --disable-oggtest --disable-doxygen-docs --disable-xmms-plugin && make all install)
 	(cd $(working_dir)/$(opus_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-rtcd --disable-extra-programs --disable-doc && make all install)
