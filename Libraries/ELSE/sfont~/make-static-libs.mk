@@ -22,13 +22,6 @@ fluidsynth_dir = $(root_dir)/fluidsynth
 #-------------------------------------------------------------------------------
 # Code follows.
 
-#ogg_tarball = $(ogg_version).tar.xz
-#vorbis_tarball = $(vorbis_version).tar.xz
-#flac_tarball = $(flac_version).tar.xz
-#opus_tarball = $(opus_version).tar.gz
-#sndfile_tarball = $(sndfile_name).tar.xz
-#download_url = http://downloads.xiph.org/releases/
-#tarball_dir = $(working_dir)/Tarballs
 working_dir = fluidsynth_deps
 
 stamp_dir = $(working_dir)/Stamp
@@ -64,39 +57,8 @@ clean :
 	rm -rf $(working_dir)/bin $(working_dir)/include $(working_dir)/lib $(working_dir)/share
 	rm -f $(working_dir)/Stamp/install $(working_dir)/Stamp/extract $(working_dir)/Stamp/build-ogg
 
-#$(working_dir)/Stamp/init :
-#	mkdir -p $(stamp_dir) $(tarball_dir)
-#	touch $@
-#
-#$(working_dir)/Tarballs/$(flac_tarball) : $(working_dir)/Stamp/init
-#	(cd $(tarball_dir) && wget $(download_url)flac/$(flac_tarball) -O $(flac_tarball))
-#	touch $@
-#
-#$(working_dir)/Tarballs/$(ogg_tarball) : $(working_dir)/Stamp/init
-#	(cd $(tarball_dir) && wget $(download_url)ogg/$(ogg_tarball) -O $(ogg_tarball))
-#	touch $@
-#
-#$(working_dir)/Tarballs/$(vorbis_tarball) : $(working_dir)/Stamp/init
-#	(cd $(tarball_dir) && wget $(download_url)vorbis/$(vorbis_tarball) -O $(vorbis_tarball))
-#	touch $@
-#
-#$(working_dir)/Tarballs/$(opus_tarball) : $(working_dir)/Stamp/init
-#	(cd $(tarball_dir) && wget https://archive.mozilla.org/pub/opus/$(opus_tarball) -O $(opus_tarball))
-#	touch $@
-
-#$(working_dir)/Tarballs/$(sndfile_tarball) : $(working_dir)/Stamp/init
-#	(cd $(tarball_dir) && wget https://github.com/libsndfile/libsndfile/releases/download/$(sndfile_version)/$(sndfile_name).tar.xz -O $(sndfile_tarball))
-#	touch $@
-
-#$(working_dir)/Stamp/tarballs : $(working_dir)/Tarballs/$(flac_tarball) $(working_dir)/Tarballs/$(ogg_tarball) $(working_dir)/Tarballs/$(vorbis_tarball) $(working_dir)/Tarballs/$(opus_tarball) $(working_dir)/Tarballs/$(sndfile_tarball)
-#	touch $@
-
-$(working_dir)/Stamp/build-ogg
-	(cd $(working_dir) && tar xf Tarballs/$(ogg_tarball))
+$(working_dir)/Stamp/install-libs:
 	(cd $(working_dir)/$(ogg_version) && CFLAGS=$(FLAGS) ./configure $(config_options) || 1 && make all install)
-	touch $@
-
-$(working_dir)/Stamp/install-libs : $(working_dir)/Stamp/build-ogg
 	(cd $(working_dir)/$(vorbis_version) && CFLAGS=$(FLAGS) ./configure --disable-oggtest $(config_options) && make all install)
 	(cd $(working_dir)/$(flac_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-thorough-tests --disable-cpplibs  --disable-examples  --disable-oggtest --disable-doxygen-docs --disable-xmms-plugin && make all install)
 	(cd $(working_dir)/$(opus_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-rtcd --disable-extra-programs --disable-doc && make all install)
