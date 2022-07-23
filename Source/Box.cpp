@@ -528,9 +528,6 @@ void Box::mouseUp(const MouseEvent& e)
             {
                 if (!box || !gui) return;
 
-                auto b = getBounds() - cnv->canvasOrigin;
-                b.reduce(margin, margin);
-
                 // Used for size changes, could also be used for properties
                 auto* obj = static_cast<t_gobj*>(getPointer());
                 auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
@@ -572,6 +569,8 @@ void Box::mouseDrag(const MouseEvent& e)
 
         auto newBounds = resizeZone.resizeRectangleBy(originalBounds, dragDistance);
         setBounds(newBounds);
+        if(gui) gui->checkBounds();
+        
     }
     // Let canvas handle moving
     else
