@@ -10,6 +10,6 @@
 
 namespace ProjectInfo
 {
-const char* const companyName = "Octagon";
+const char* const companyName = "PlugData";
 const char* const versionString = "0.5.3";
 }  // namespace ProjectInfo
