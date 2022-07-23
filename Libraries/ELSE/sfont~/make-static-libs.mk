@@ -28,7 +28,7 @@ stamp_dir = $(working_dir)/Stamp
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	FLAGS="-arch arm64 -arch x86_64 -O3 -mmacosx-version-min=11.0"
+	FLAGS="-arch arm64 -arch x86_64 -O3 -mmacosx-version-min=10.11"
 else
 	FLAGS="-fPIC -O3"
 endif
