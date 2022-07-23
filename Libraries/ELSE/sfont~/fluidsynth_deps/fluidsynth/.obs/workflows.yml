@@ -1,5 +1,0 @@
-workflow:
-  steps:
-    - branch_package:
-        source_project: home:derselbst:anmp
-        source_package: fluidsynth
