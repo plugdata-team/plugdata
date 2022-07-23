@@ -34,6 +34,8 @@ struct ObjectBase : public Component, public SettableTooltipClient
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
     virtual void showEditor(){};
     virtual void hideEditor(){};
+    
+    virtual void checkBounds(){};
 
     // Called whenever any GUI object's value changes
     virtual void updateValue() = 0;
@@ -123,8 +125,6 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void componentMovedOrResized(Component& component, bool moved, bool resized) override;
 
     static ObjectBase* createGui(void* ptr, Box* parent);
-
-    virtual void checkBounds(){};
 
     // Get rid of this mess!!
     virtual ObjectParameters defineParameters();
