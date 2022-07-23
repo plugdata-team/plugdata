@@ -28,9 +28,8 @@ stamp_dir = $(working_dir)/Stamp
 
 UNAME_S := $(shell uname -s)
 ifeq ($(UNAME_S),Darwin)
-	FLAGS="-arch arm64 -arch x86_64 -O3"
-endif
-ifeq ($(UNAME_S),Linux)
+	FLAGS="-arch arm64 -arch x86_64 -O3 -mmacosx-version-min=11.0"
+else
 	FLAGS="-fPIC -O3"
 endif
 
@@ -58,6 +57,7 @@ clean :
 	rm -f $(working_dir)/Stamp/install $(working_dir)/Stamp/extract $(working_dir)/Stamp/build-ogg
 
 $(working_dir)/Stamp/install-libs:
+	mkdir -p $(stamp_dir)
 	(cd $(working_dir)/$(ogg_version) && CFLAGS=$(FLAGS) ./configure $(config_options) || 1 && make all install)
 	(cd $(working_dir)/$(vorbis_version) && CFLAGS=$(FLAGS) ./configure --disable-oggtest $(config_options) && make all install)
 	(cd $(working_dir)/$(flac_version) && CFLAGS=$(FLAGS) ./configure $(config_options) --disable-thorough-tests --disable-cpplibs  --disable-examples  --disable-oggtest --disable-doxygen-docs --disable-xmms-plugin && make all install)

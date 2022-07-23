@@ -858,7 +858,7 @@ struct PlugDataLook : public LookAndFeel_V4
     inline static const std::vector<std::vector<String>> colourNames = {{"tbLightColour", "cnvLightColour", "textLightColour", "dataLightColour", "outlineLightColour", "connectionLightColour", "signalLightColour"},
                                                                         {"tbDarkColour", "cnvDarkColour", "textDarkColour", "dataDarkColour", "outlineDarkColour", "connectionDarkColour", "signalDarkColour"}};
 
-    inline static const std::vector<std::vector<Colour>> defaultColours = {{Colour(225, 225, 225), Colour(245, 245, 245), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0)},
+    inline static const std::vector<std::vector<Colour>> defaultColours = {{Colour(228, 228, 228), Colour(250, 250, 250), Colour(90, 90, 90), Colour(0, 122, 255), Colour(168, 168, 168), Colour(179, 179, 179), Colour(255, 133, 0)},
                                                                            {Colour(25, 25, 25), Colour(35, 35, 35), Colour(255, 255, 255), Colour(66, 162, 200), Colour(105, 105, 105), Colour(225, 225, 225), Colour(255, 133, 0)}};
 
     inline static std::vector<std::vector<Colour>> colourSettings = defaultColours;
