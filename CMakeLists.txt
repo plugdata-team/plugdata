@@ -42,7 +42,7 @@ project(PlugData VERSION 0.5.3 LANGUAGES C CXX)
 add_subdirectory(Libraries/)
 
 set(PLUGDATA_VERSION                    "0.5.3")
-set(PLUGDATA_COMPANY_NAME               "Octagon")
+set(PLUGDATA_COMPANY_NAME               "PlugData")
 set(PLUGDATA_COMPANY_COPYRIGHT          "PlugData by Timothy Schoen")
 set(PLUGDATA_COMPANY_WEBSITE            "github.com/timothyschoen/plugdata")
 set(PLUGDATA_ICON_BIG                   "${CMAKE_CURRENT_SOURCE_DIR}/Resources/plugd_logo.png")
