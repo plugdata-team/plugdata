@@ -63,7 +63,7 @@ Connection::Connection(Canvas* parent, Edge* s, Edge* e, bool exists) : cnv(pare
     cnv->addAndMakeVisible(this);
     setAlwaysOnTop(true);
     
-    // Update position
+    // Update position (TODO: don't invoke virtual functions from constructor!)
     componentMovedOrResized(*outlet, true, true);
     componentMovedOrResized(*inlet, true, true);
     
@@ -212,11 +212,7 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
-    
-    auto path = toDraw;
-    // needed to make the path align with the inlet/outlet's centre
-    //path.applyTransform(AffineTransform::translation(0.5f, 0.0f));
-    
+
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
     
@@ -620,7 +616,6 @@ void Connection::findPath()
     int incrementX, incrementY;
     
     auto distance = pstart.getDistanceFrom(pend);
-    auto bounds = Rectangle<int>(pend, pstart);
     
     // Look for paths at an increasing resolution
     while (!numFound && resolution < 7 && distance > 40)
@@ -718,16 +713,16 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     // Get current stack to revert to after each trial
     auto pathCopy = pathStack;
     
-    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<int> outlet, Point<int> inlet, bool isX)
+    auto followLine = [this, &count, &pathCopy, &bestPath, &pathStack, &increment](Point<int> currentOutlet, Point<int> currentInlet, bool isX)
     {
-        auto& coord1 = isX ? outlet.x : outlet.y;
-        auto& coord2 = isX ? inlet.x : inlet.y;
+        auto& coord1 = isX ? currentOutlet.x : currentOutlet.y;
+        auto& coord2 = isX ? currentInlet.x : currentInlet.y;
         auto& incr = isX ? increment.x : increment.y;
         
         if (std::abs(coord1 - coord2) >= incr)
         {
             coord1 > coord2 ? coord1 -= incr : coord1 += incr;
-            count += findLatticePaths(bestPath, pathStack, outlet, inlet, increment);
+            count += findLatticePaths(bestPath, pathStack, currentOutlet, currentInlet, increment);
             pathStack = pathCopy;
         }
     };

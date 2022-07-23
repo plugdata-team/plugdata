@@ -10,7 +10,6 @@
 #include "Canvas.h"
 #include "Connection.h"
 #include "Edge.h"
-#include "PluginEditor.h"
 #include "LookAndFeel.h"
 
 extern "C"
@@ -215,7 +214,7 @@ void Box::setType(const String& newType, void* existingObject)
     // Change box type
     String type = newType.upToFirstOccurrenceOf(" ", false, false);
 
-    void* objectPtr = nullptr;
+    void* objectPtr;
     // "exists" indicates that this object already exists in pd
     // When setting exists to true, the gui needs to be assigned already
     if (!existingObject)
@@ -672,8 +671,10 @@ void Box::openNewObjectEditor()
         addAndMakeVisible(editor);
         editor->addListener(this);
 
+        /* I don't think so??
         if (editor == nullptr)  // may be deleted by a callback
             return;
+            */
 
         resized();
         repaint();

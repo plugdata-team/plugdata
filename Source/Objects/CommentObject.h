@@ -68,9 +68,8 @@ struct CommentObject final : public TextBase
             // update if the name has changed, or if pdobject is unassigned
             if (changed)
             {
-                SafePointer<CommentObject> obj;
                 cnv->pd->enqueueFunction(
-                    [this, obj]() mutable
+                    [this, obj = SafePointer<CommentObject>(this)]() mutable
                     {
                         if (!obj) return;
 
@@ -78,10 +77,10 @@ struct CommentObject final : public TextBase
                         libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, currentText.getNumBytesAsUTF8());
 
                         MessageManager::callAsync(
-                            [this, obj]()
+                            [obj]()
                             {
                                 if (!obj) return;
-                                box->updateBounds();
+                                obj->box->updateBounds();
                             });
                     });
 

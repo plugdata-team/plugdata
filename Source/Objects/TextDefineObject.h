@@ -1,16 +1,8 @@
 
-struct CodeEditor
-{
-    
-};
-
+// Actual text object, marked final for optimisation
 struct TextDefineObject final : public TextBase
 {
-
-    CodeEditor editor;
-    
-    TextDefineObject(void* obj, Box* parent) : TextBase(obj, parent, true)
+    TextDefineObject(void* obj, Box* parent, bool isValid = true) : TextBase(obj, parent, isValid)
     {
-        
     }
 };

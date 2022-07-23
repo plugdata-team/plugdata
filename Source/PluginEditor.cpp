@@ -12,10 +12,6 @@
 #include "Connection.h"
 #include "Dialogs/Dialogs.h"
 
-extern "C"
-{
-#include "x_libpd_mod_utils.h"
-}
 
 PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioProcessorEditor(&p), pd(p), statusbar(p), sidebar(&p)
 {
@@ -676,7 +672,7 @@ void PlugDataPluginEditor::updateCommandStatus()
 
         // First on pd's thread, get undo status
         pd.enqueueFunction(
-            [this, cnv, patchPtr, isDragging, deletionCheck]() mutable
+            [this, patchPtr, isDragging, deletionCheck]() mutable
             {
                 if(!deletionCheck) return;
                 
@@ -1065,7 +1061,6 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::ConnectionPathfind:
         {
-            auto* cnv = getCurrentCanvas();
             statusbar.connectionStyleButton->setToggleState(true, sendNotification);
             for (auto* con : cnv->connections)
             {
@@ -1134,6 +1129,4 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
             return false;
         }
     }
-
-    return false;
 }
