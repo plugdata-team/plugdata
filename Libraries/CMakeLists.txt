@@ -24,7 +24,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 if(ENABLE_SFONT)
     message("-- Building fluidsynth")
 
-    set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth/")
+    set(SFONT_LIB_DIR "${CMAKE_CURRENT_BINARY_DIR}/fluidsynth")
 
     if(MSVC)
         # Building fluidsynth on Windows is a hassle, so I've prebuilt all the static deps once, shipped in a zipfile
