@@ -45,6 +45,7 @@ extern "C"
 #include "FloatAtomObject.h"
 #include "SymbolAtomObject.h"
 #include "ScalarObject.h"
+#include "TextDefineObject.h"
 
 ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv){};
 
@@ -398,7 +399,10 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
     {
         return new PictureObject(ptr, parent);
     }
-    
+    else if (name == "text define")
+    {
+        return new TextDefineObject(ptr, parent);
+    }
     else if (name == "gatom")
     {
         if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
