@@ -6,12 +6,10 @@
 #include <JuceHeader.h>
 
 #include "Dialogs.h"
-#include "LookAndFeel.h"
 
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-#include "Standalone/PlugDataWindow.h"
 
 #include "SaveDialog.h"
 #include "ArrayDialog.h"

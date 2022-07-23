@@ -355,7 +355,7 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.addSeparator();
         popupMenu.addItem(10, "Properties", e.originalComponent == this);
 
-        auto callback = [this, &lassoSelection, box](int result)
+        auto callback = [this, box](int result)
         {
             popupMenu.clear();
             if (result < 1) return;

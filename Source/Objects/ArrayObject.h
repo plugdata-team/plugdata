@@ -56,7 +56,6 @@ public:
     // Gets the scale of the array.
     int size() const
     {
-        float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         return libpd_array_get_size(name.toRawUTF8());
     }
