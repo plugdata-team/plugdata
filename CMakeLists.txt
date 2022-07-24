@@ -132,7 +132,7 @@ juce_add_plugin(PlugDataStandalone
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
-    PLUGIN_MANUFACTURER_CODE    OCTA
+    PLUGIN_MANUFACTURER_CODE    PlDt
     PLUGIN_CODE                 PlDt
     FORMATS                     Standalone
     PRODUCT_NAME                "PlugData"
@@ -161,8 +161,8 @@ juce_add_plugin(PlugData
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
-    PLUGIN_MANUFACTURER_CODE    OCTA
-    PLUGIN_CODE                 PlDt
+    PLUGIN_MANUFACTURER_CODE    PlDt
+    PLUGIN_CODE                 PdIn
     FORMATS                     AU VST3 LV2
     LV2URI                      https://github.com/timothyschoen/PlugData
     PRODUCT_NAME                "PlugData"
@@ -188,8 +188,8 @@ juce_add_plugin(PlugDataFx
     IS_MIDI_EFFECT              FALSE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
-    PLUGIN_MANUFACTURER_CODE    OCTA
-    PLUGIN_CODE                 PlDf
+    PLUGIN_MANUFACTURER_CODE    PlDt
+    PLUGIN_CODE                 PdFx
     FORMATS                     AU VST3 LV2
     LV2URI                      https://github.com/timothyschoen/PlugDataFx
     PRODUCT_NAME                "PlugDataFx"
@@ -215,8 +215,8 @@ juce_add_plugin(PlugDataMidi
     IS_MIDI_EFFECT              TRUE
     EDITOR_WANTS_KEYBOARD_FOCUS TRUE
     COPY_PLUGIN_AFTER_BUILD     ${COPY_PLUGIN_AFTER_BUILD}
-    PLUGIN_MANUFACTURER_CODE    OCTA
-    PLUGIN_CODE                 PlDm
+    PLUGIN_MANUFACTURER_CODE    PlDt
+    PLUGIN_CODE                 PdMd
     FORMATS                     AU
     PRODUCT_NAME                "PlugDataMidi"
     AU_MAIN_TYPE                kAudioUnitType_MIDIProcessor

@@ -160,7 +160,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             };
         }
 
-        addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary | ComponentPeer::StyleFlags::windowIgnoresKeyPresses);
+        addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary);
         setVisible(false);
         toFront(false);
 

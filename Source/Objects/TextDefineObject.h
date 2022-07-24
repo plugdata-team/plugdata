@@ -25,7 +25,7 @@ struct TextEditorDialog : public Component
 {
     
     TextEditorDialog() {
-        
+        addToDesktop(ComponentPeer::windowIsTemporary);
     }
 };
 
