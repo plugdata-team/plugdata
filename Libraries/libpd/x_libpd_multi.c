@@ -502,6 +502,7 @@ void bandstop_tilde_setup();
 void setup_bend0x2ein();
 void setup_bend0x2eout();
 void setup_bl0x2eosc_tilde();
+void blosc_tilde_setup();
 void bicoeff_setup();
 void biquads_tilde_setup();
 void blocksize_tilde_setup();
@@ -978,6 +979,7 @@ void libpd_multi_init(void)
         setup_bend0x2ein();
         setup_bend0x2eout();
         setup_bl0x2eosc_tilde();
+        blosc_tilde_setup();
         bicoeff_setup();
         biquads_tilde_setup();
         blocksize_tilde_setup();

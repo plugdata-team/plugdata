@@ -45,9 +45,10 @@ struct IEMObject : public GUIObject
     void applyBounds() override
     {
         auto b = box->getObjectBounds();
-        libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
-
+    
         auto* iemgui = static_cast<t_iemgui*>(ptr);
+        iemgui->x_obj.te_xpix = b.getX();
+        iemgui->x_obj.te_ypix = b.getY();
         iemgui->x_w = b.getWidth();
         iemgui->x_h = b.getHeight();
     }
@@ -166,6 +167,7 @@ struct IEMObject : public GUIObject
     void updateBounds() override
     {
         auto* iemgui = static_cast<t_iemgui*>(ptr);
+        
         box->setObjectBounds({iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h});
     }
 
@@ -394,8 +396,8 @@ struct IEMObject : public GUIObject
         if (newText != "empty")
         {
             iemgui->x_lab_unexpanded = gensym(newText.toRawUTF8());
+            iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
         }
-        iemgui->x_lab = canvas_realizedollar(iemgui->x_glist, iemgui->x_lab_unexpanded);
     }
 
     void setLabelPosition(Point<int> position) 
