@@ -290,8 +290,13 @@ void Canvas::mouseDown(const MouseEvent& e)
 {
     auto* source = e.originalComponent;
     
+    // Middle mouse click
+    if(viewport && ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
+        setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
+        viewportPositionBeforeMiddleDrag = viewport->getViewPosition();
+    }
     // Left-click
-    if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
+    else if (!ModifierKeys::getCurrentModifiers().isRightButtonDown())
     {
         // Connecting objects by dragging
         if (source == this || source == graphArea)
@@ -418,11 +423,9 @@ void Canvas::mouseDrag(const MouseEvent& e)
     // Middle mouse pan
     if (ModifierKeys::getCurrentModifiers().isMiddleButtonDown())
     {
-        beginDragAutoRepeat(40);
-
         auto delta = Point<int>{viewportEvent.getDistanceFromDragStartX(), viewportEvent.getDistanceFromDragStartY()};
-
-        viewport->setViewPosition(viewport->getViewPositionX() + delta.x * (1.0f / scrollSpeed), viewport->getViewPositionY() + delta.y * (1.0f / scrollSpeed));
+        
+        viewport->setViewPosition(viewportPositionBeforeMiddleDrag.x - delta.x, viewportPositionBeforeMiddleDrag.y - delta.y);
 
         return;  // Middle mouse button cancels any other drag actions
     }
@@ -466,6 +469,7 @@ void Canvas::mouseDrag(const MouseEvent& e)
 
 void Canvas::mouseUp(const MouseEvent& e)
 {
+    setMouseCursor(MouseCursor::NormalCursor);
     main.updateCommandStatus();
     if (auto* box = dynamic_cast<Box*>(e.originalComponent))
     {
