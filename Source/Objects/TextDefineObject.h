@@ -24,8 +24,18 @@ struct t_fake_text_define
 struct TextEditorDialog : public Component
 {
     
+    std::function<void(String)> onClose;
+    
     TextEditorDialog() {
+        // Position in centre of screen
+        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(300, 400));
         addToDesktop(ComponentPeer::windowIsTemporary);
+        setVisible(true);
+    }
+    
+    void paint(Graphics& g)
+    {
+        g.fillAll(Colours::green);
     }
 };
 
@@ -33,9 +43,28 @@ struct TextEditorDialog : public Component
 struct TextDefineObject final : public TextBase
 {
     
+    std::unique_ptr<TextEditorDialog> textEditor;
+    
     TextDefineObject(void* obj, Box* parent, bool isValid = true) : TextBase(obj, parent, isValid)
     {
         
+    }
+    
+    
+    void lock(bool isLocked) override {
+        setInterceptsMouseClicks(isLocked, false);
+    }
+    
+    void mouseDown(const MouseEvent& e) override
+    {
+        openTextEditor();
+    }
+    
+    void openTextEditor() {
+        textEditor = std::make_unique<TextEditorDialog>();
+        textEditor->onClose = [this](String lastText){
+            setText(lastText);
+        };
     }
     
     void setText(String text) {
