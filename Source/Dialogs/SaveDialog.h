@@ -1,6 +1,7 @@
 struct SaveDialog : public Component
 {
-    SaveDialog(Component* editor, Dialog* parent, const String& filename) : savelabel("savelabel", "Save Changes to \"" + filename + "\"?")
+    SaveDialog(Component* editor, Dialog* parent, const String& filename) :
+    savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
     {
         setSize(400, 200);
         addAndMakeVisible(savelabel);

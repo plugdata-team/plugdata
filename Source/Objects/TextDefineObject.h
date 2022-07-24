@@ -1,3 +1,5 @@
+#include "../Dialogs/Dialogs.h"
+#include "../Dialogs/TextEditor.h"
 
 struct t_fake_textbuf
 {
@@ -21,23 +23,7 @@ struct t_fake_text_define
     unsigned char x_keep;   /* whether to embed contents in patch on save */
 };
 
-struct TextEditorDialog : public Component
-{
-    
-    std::function<void(String)> onClose;
-    
-    TextEditorDialog() {
-        // Position in centre of screen
-        setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(300, 400));
-        addToDesktop(ComponentPeer::windowIsTemporary);
-        setVisible(true);
-    }
-    
-    void paint(Graphics& g)
-    {
-        g.fillAll(Colours::green);
-    }
-};
+
 
 // Actual text object, marked final for optimisation
 struct TextDefineObject final : public TextBase
@@ -45,11 +31,10 @@ struct TextDefineObject final : public TextBase
     
     std::unique_ptr<TextEditorDialog> textEditor;
     
-    TextDefineObject(void* obj, Box* parent, bool isValid = true) : TextBase(obj, parent, isValid)
+    TextDefineObject(void* obj, Box* parent, bool isValid = true) : TextBase(obj, parent, isValid), textEditor(nullptr)
     {
         
     }
-    
     
     void lock(bool isLocked) override {
         setInterceptsMouseClicks(isLocked, false);
@@ -61,9 +46,23 @@ struct TextDefineObject final : public TextBase
     }
     
     void openTextEditor() {
+        if(textEditor) {
+            textEditor->toFront(true);
+            return;
+        }
+        
         textEditor = std::make_unique<TextEditorDialog>();
+        textEditor->editor.setText(getText());
         textEditor->onClose = [this](String lastText){
-            setText(lastText);
+            Dialogs::showSaveDialog(textEditor.get(), "", [this, lastText](int result) mutable {
+                if(result == 2) {
+                    setText(lastText);
+                    textEditor.reset(nullptr);
+                }
+                if(result == 1) {
+                    textEditor.reset(nullptr);
+                }
+            });
         };
     }
     
@@ -73,7 +72,6 @@ struct TextDefineObject final : public TextBase
         binbuf_clear(binbuf);
         binbuf_text(binbuf, text.toRawUTF8(), text.getNumBytesAsUTF8());
     }
-    
     
     String getText() {
         auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
