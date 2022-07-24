@@ -606,7 +606,8 @@ void Box::hideEditor()
 
         cnv->hideSuggestions();
 
-        auto newText = outgoingEditor->getText();
+        // Get entered text, remove extra spaces at the end
+        auto newText = outgoingEditor->getText().trimEnd();
         outgoingEditor.reset();
 
         repaint();
