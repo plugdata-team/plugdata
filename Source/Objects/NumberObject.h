@@ -51,9 +51,6 @@ struct NumberObject final : public IEMObject
         int x, y, w, h;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        auto* nbx = static_cast<t_my_numbox*>(ptr);
-        w = nbx->x_numwidth * glist_fontwidth(cnv->patch.getPointer());
-
         box->setObjectBounds({x, y, w, h});
     }
 
@@ -77,6 +74,7 @@ struct NumberObject final : public IEMObject
 
         auto* nbx = static_cast<t_my_numbox*>(ptr);
         nbx->x_numwidth = b.getWidth() / fontWidth;
+        nbx->x_gui.x_w = b.getWidth();
         nbx->x_gui.x_h = b.getHeight();
     }
 
