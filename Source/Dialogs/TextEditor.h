@@ -330,7 +330,7 @@ public:
     /** Set the font to be applied to all text. */
     void setFont (Font fontToUse) { font = fontToUse; lines.font = fontToUse; }
     
-    String getText() const;
+    StringArray getText() const;
     
     /** Replace the whole document content. */
     void replaceAll (const String& content);
@@ -564,7 +564,7 @@ public:
     void setFont (Font font);
     
     void setText (const String& text);
-    String getText() const;
+    StringArray getText() const;
     
     void translateView (float dx, float dy);
     void scaleView (float scaleFactor, float verticalCenter);
@@ -572,7 +572,7 @@ public:
     //==========================================================================
     void resized() override;
     void paint (Graphics& g) override;
-    void paintOverChildren (Graphics& g) override;
+
     void mouseDown (const MouseEvent& e) override;
     void mouseDrag (const MouseEvent& e) override;
     void mouseDoubleClick (const MouseEvent& e) override;
@@ -592,14 +592,10 @@ private:
     void renderTextUsingAttributedStringSingle (Graphics& g);
     void renderTextUsingAttributedString (Graphics& g);
     void renderTextUsingGlyphArrangement (Graphics& g);
-    void resetProfilingData();
-    bool enableSyntaxHighlighting = true;
+
+    bool enableSyntaxHighlighting = false;
     bool allowCoreGraphics = true;
-    bool drawProfilingInfo = false;
-    float accumulatedTimeInPaint = 0.f;
-    float lastTimeInPaint = 0.f;
-    float lastTokeniserTime = 0.f;
-    int numPaintCalls = 0;
+
     RenderScheme renderScheme = RenderScheme::usingGlyphArrangement;
     
     //==========================================================================
@@ -625,7 +621,7 @@ struct TextEditorDialog : public Component
     
     PlugDataTextEditor editor;
     
-    std::function<void(String)> onClose;
+    std::function<void(StringArray)> onClose;
     
     TextEditorDialog() : resizer(this, &constrainer) {
         
