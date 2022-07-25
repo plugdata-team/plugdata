@@ -48,7 +48,7 @@ Box::Box(Canvas* parent, const String& name, Point<int> position) : cnv(parent)
     {
         createEditorOnMouseDown = true;
     }
-    else if(!gui)
+    else
     {
         showEditor();
     }
