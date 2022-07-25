@@ -53,7 +53,7 @@ struct TextDefineObject final : public TextBase
         
         textEditor = std::make_unique<TextEditorDialog>();
         textEditor->editor.setText(getText());
-        textEditor->onClose = [this](String lastText){
+        textEditor->onClose = [this](StringArray lastText){
             Dialogs::showSaveDialog(textEditor.get(), "", [this, lastText](int result) mutable {
                 if(result == 2) {
                     setText(lastText);
@@ -66,11 +66,20 @@ struct TextDefineObject final : public TextBase
         };
     }
     
-    void setText(String text) {
+    void setText(StringArray text) {
         auto& textbuf = static_cast<t_fake_text_define*>(ptr)->x_textbuf;
         auto* binbuf = textbuf.b_binbuf;
         binbuf_clear(binbuf);
-        binbuf_text(binbuf, text.toRawUTF8(), text.getNumBytesAsUTF8());
+        
+        std::vector<t_atom> atoms;
+        atoms.reserve(text.size());
+        for(auto& line : text) {
+            t_atom lineAtom;
+            SETSYMBOL(&lineAtom, gensym(line.toRawUTF8()));
+            atoms.push_back(lineAtom);
+        }
+        
+        binbuf_restore(binbuf, static_cast<int>(atoms.size()), atoms.data());
     }
     
     String getText() {
@@ -80,9 +89,15 @@ struct TextDefineObject final : public TextBase
         char** bufp = new char*;
         int* lenp = new int;
         
-        binbuf_gettext(binbuf, bufp, lenp);
+        String result;
         
-        return String::fromUTF8(*bufp, *lenp);
+        auto argc = binbuf_getnatom(binbuf);
+        auto* argv = binbuf_getvec(binbuf);
+        for(int i = 0; i < argc; i++) {
+            result += String::fromUTF8(atom_getsymbol(argv + i)->s_name) + "\n";
+        }
+        
+        return result;
         
     }
 };

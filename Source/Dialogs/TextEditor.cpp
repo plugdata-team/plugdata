@@ -14,12 +14,8 @@
 #define GUTTER_WIDTH 48.f
 #define CURSOR_WIDTH 3.f
 #define TEXT_INDENT 4.f
-#define TEST_MULTI_CARET_EDITING true
-#define TEST_SYNTAX_SUPPORT true
-#define ENABLE_CARET_BLINK false
-#define PROFILE_PAINTS false
-
-static bool DEBUG_TOKENS = false;
+#define TEST_MULTI_CARET_EDITING false
+#define ENABLE_CARET_BLINK true
 
 //==============================================================================
 Caret::Caret (const TextDocument& document) : document (document)
@@ -44,18 +40,10 @@ void Caret::updateSelections()
 
 void Caret::paint (Graphics& g)
 {
-#if PROFILE_PAINTS
-    auto start = Time::getMillisecondCounterHiRes();
-#endif
-    
     g.setColour (getParentComponent()->findColour (CaretComponent::caretColourId).withAlpha (squareWave (phase)));
     
     for (const auto &r : getCaretRectangles())
         g.fillRect (r);
-    
-#if PROFILE_PAINTS
-    std::cout << "[Caret::paint] " << Time::getMillisecondCounterHiRes() - start << std::endl;
-#endif
 }
 
 float Caret::squareWave (float wt) const
@@ -63,7 +51,7 @@ float Caret::squareWave (float wt) const
     //(Time::getCurrentTime().getMillisecondCounter() % 2000) > 2000
     const float delta = 0.222f;
     const float A = 1.0;
-    return 0.5f + A / 3.14159f * std::atanf (std::cosf (wt) / delta);
+    return 0.5f + A / 3.14159f * std::atan(std::cos(wt) / delta);
 }
 
 void Caret::timerCallback()
@@ -114,10 +102,6 @@ void GutterComponent::updateSelections()
 
 void GutterComponent::paint (Graphics& g)
 {
-#if PROFILE_PAINTS
-    auto start = Time::getMillisecondCounterHiRes();
-#endif
-    
     /*
      Draw the gutter background, shadow, and outline
      ------------------------------------------------------------------
@@ -172,10 +156,6 @@ void GutterComponent::paint (Graphics& g)
     {
         memoizedGlyphArrangements (r.rowNumber).draw(g, verticalTransform);
     }
-    
-#if PROFILE_PAINTS
-    std::cout << "[GutterComponent::paint] " << Time::getMillisecondCounterHiRes() - start << std::endl;
-#endif
 }
 
 GlyphArrangement GutterComponent::getLineNumberGlyphs (int row) const
@@ -224,10 +204,6 @@ void HighlightComponent::updateSelections()
 
 void HighlightComponent::paint (Graphics& g)
 {
-#if PROFILE_PAINTS
-    auto start = Time::getMillisecondCounterHiRes();
-#endif
-    
     g.addTransform (transform);
     auto highlight = getParentComponent()->findColour (CodeEditorComponent::highlightColourId);
     
@@ -236,10 +212,6 @@ void HighlightComponent::paint (Graphics& g)
     
     g.setColour (highlight.darker());
     g.strokePath (outlinePath, PathStrokeType (1.f));
-    
-#if PROFILE_PAINTS
-    std::cout << "[HighlightComponent::paint] " << Time::getMillisecondCounterHiRes() - start << std::endl;
-#endif
 }
 
 Path HighlightComponent::getOutlinePath (const Array<Rectangle<float>>& rectangles)
@@ -512,21 +484,6 @@ GlyphArrangement GlyphArrangementArray::getGlyphs (int index,
     auto glyphSource = withTrailingSpace ? entry.glyphsWithTrailingSpace : entry.glyphs;
     auto glyphs = GlyphArrangement();
     
-    if (DEBUG_TOKENS)
-    {
-        String line;
-        String hex ("0123456789abcdefg");
-        
-        for (auto token : entry.tokens)
-            line << hex[token % 16];
-        
-        if (withTrailingSpace)
-            line << " ";
-        
-        glyphSource.clear();
-        glyphSource.addLineOfText (font, line, 0.f, 0.f);
-    }
-    
     for (int n = 0; n < glyphSource.getNumGlyphs(); ++n)
     {
         if (token == -1 || entry.tokens.getUnchecked (n) == token)
@@ -579,12 +536,12 @@ void TextDocument::replaceAll (const String& content)
     }
 }
 
-String TextDocument::getText() const
+StringArray TextDocument::getText() const
 {
-    String text;
+    StringArray text;
     for (int i = 0; i < lines.size(); i++)
     {
-        text += lines[i] + "\n\r";
+        text.add(lines[i]);
     }
     
     return text;
@@ -1122,7 +1079,7 @@ void PlugDataTextEditor::setText (const String& text)
     repaint();
 }
 
-String PlugDataTextEditor::getText () const
+StringArray PlugDataTextEditor::getText () const
 {
     return document.getText();
 }
@@ -1185,7 +1142,6 @@ void PlugDataTextEditor::resized()
     highlight.setBounds (getLocalBounds());
     caret.setBounds (getLocalBounds());
     gutter.setBounds (getLocalBounds());
-    resetProfilingData();
 }
 
 void PlugDataTextEditor::paint (Graphics& g)
@@ -1210,34 +1166,6 @@ void PlugDataTextEditor::paint (Graphics& g)
             renderSchemeString = "glyph arr.";
             break;
     }
-    
-    lastTimeInPaint = Time::getMillisecondCounterHiRes() - start;
-    accumulatedTimeInPaint += lastTimeInPaint;
-    numPaintCalls += 1;
-    
-    if (drawProfilingInfo)
-    {
-        String info;
-        info += "paint mode         : " + renderSchemeString + "\n";
-        info += "cache glyph bounds : " + String (document.lines.cacheGlyphArrangement ? "yes" : "no") + "\n";
-        info += "core graphics      : " + String (allowCoreGraphics ? "yes" : "no") + "\n";
-        info += "syntax highlight   : " + String (enableSyntaxHighlighting ? "yes" : "no") + "\n";
-        info += "mean render time   : " + String (accumulatedTimeInPaint / numPaintCalls) + " ms\n";
-        info += "last render time   : " + String (lastTimeInPaint) + " ms\n";
-        info += "tokeniser time     : " + String (lastTokeniserTime) + " ms\n";
-        
-        g.setColour (findColour (CodeEditorComponent::defaultTextColourId));
-        g.setFont (Font ("Courier New", 12, 0));
-        g.drawMultiLineText (info, getWidth() - 280, 10, 280);
-    }
-    
-#if PROFILE_PAINTS
-    std::cout << "[PlugDataTextEditor::paint] " << lastTimeInPaint << std::endl;
-#endif
-}
-
-void PlugDataTextEditor::paintOverChildren (Graphics& g)
-{
 }
 
 void PlugDataTextEditor::mouseDown (const MouseEvent& e)
@@ -1246,44 +1174,7 @@ void PlugDataTextEditor::mouseDown (const MouseEvent& e)
     {
         return;
     }
-    else if (e.mods.isRightButtonDown())
-    {
-        PopupMenu menu;
-        
-        menu.addItem (1, "Render scheme: AttributedStringSingle", true, renderScheme == RenderScheme::usingAttributedStringSingle, nullptr);
-        menu.addItem (2, "Render scheme: AttributedString", true, renderScheme == RenderScheme::usingAttributedString, nullptr);
-        menu.addItem (3, "Render scheme: GlyphArrangement", true, renderScheme == RenderScheme::usingGlyphArrangement, nullptr);
-        menu.addItem (4, "Cache glyph positions", true, document.lines.cacheGlyphArrangement, nullptr);
-        menu.addItem (5, "Allow Core Graphics", true, allowCoreGraphics, nullptr);
-        menu.addItem (6, "Syntax highlighting", true, enableSyntaxHighlighting, nullptr);
-        menu.addItem (7, "Draw profiling info", true, drawProfilingInfo, nullptr);
-        menu.addItem (8, "Debug tokens", true, DEBUG_TOKENS, nullptr);
-        
-        auto targetArea = Rectangle<int>(10, 10).withCentre(e.getPosition());
-        
-        menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withParentComponent(this).withTargetScreenArea(targetArea),
-                           [this](int result){
-            
-            switch (result)
-            {
-                case 1: renderScheme = RenderScheme::usingAttributedStringSingle; break;
-                case 2: renderScheme = RenderScheme::usingAttributedString; break;
-                case 3: renderScheme = RenderScheme::usingGlyphArrangement; break;
-                case 4: document.lines.cacheGlyphArrangement = ! document.lines.cacheGlyphArrangement; break;
-                case 5: allowCoreGraphics = ! allowCoreGraphics; break;
-                case 6: enableSyntaxHighlighting = ! enableSyntaxHighlighting; break;
-                case 7: drawProfilingInfo = ! drawProfilingInfo; break;
-                case 8: DEBUG_TOKENS = ! DEBUG_TOKENS; break;
-            }
-        });
-        
-        
-        
-        resetProfilingData();
-        repaint();
-        return;
-    }
-    
+
     auto selections = document.getSelections();
     auto index = document.findIndexNearestPosition (e.position.transformedBy (transform.inverted()));
     
@@ -1565,8 +1456,6 @@ void PlugDataTextEditor::renderTextUsingAttributedStringSingle (Graphics& g)
         }
     }
     
-    lastTokeniserTime = Time::getMillisecondCounterHiRes() - start;
-    
     if (allowCoreGraphics)
     {
         s.draw (g, bounds);
@@ -1589,8 +1478,6 @@ void PlugDataTextEditor::renderTextUsingAttributedString (Graphics& g)
     auto originalHeight = document.getFont().getHeight();
     auto font = document.getFont().withHeight (originalHeight * transform.getScaleFactor());
     auto rows = document.findRowsIntersecting (g.getClipBounds().toFloat().transformedBy (transform.inverted()));
-    
-    lastTokeniserTime = 0.f;
     
     for (const auto& r: rows)
     {
@@ -1621,8 +1508,6 @@ void PlugDataTextEditor::renderTextUsingAttributedString (Graphics& g)
                 previous = si.t;
                 s.append (token, font, colour);
             }
-            
-            lastTokeniserTime += Time::getMillisecondCounterHiRes() - start;
         }
         if (allowCoreGraphics)
         {
@@ -1663,8 +1548,6 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement (Graphics& g)
         document.clearTokens (rows);
         document.applyTokens (rows, zones);
         
-        lastTokeniserTime = Time::getMillisecondCounterHiRes() - start;
-        
         for (int n = 0; n < colourScheme.types.size(); ++n)
         {
             g.setColour (colourScheme.types[n].colour);
@@ -1673,15 +1556,7 @@ void PlugDataTextEditor::renderTextUsingGlyphArrangement (Graphics& g)
     }
     else
     {
-        lastTokeniserTime = 0.f;
         document.findGlyphsIntersecting (g.getClipBounds().toFloat()).draw (g);
     }
     g.restoreState();
 }
-
-void PlugDataTextEditor::resetProfilingData()
-{
-    accumulatedTimeInPaint = 0.f;
-    numPaintCalls = 0;
-}
-
