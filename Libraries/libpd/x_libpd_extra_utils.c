@@ -22,10 +22,12 @@ typedef struct _fake_garray
     t_glist *x_glist;
     t_symbol *x_name;
     t_symbol *x_realname;
-    char x_usedindsp;
-    char x_saveit;
-    char x_listviewing;
-    char x_hidename;
+    unsigned int x_usedindsp:1;    /* 1 if some DSP routine is using this */
+    unsigned int x_saveit:1;       /* we should save this with parent */
+    unsigned int x_savesize:1;     /* save size too */
+    unsigned int x_listviewing:1;  /* list view window is open */
+    unsigned int x_hidename:1;     /* don't print name above graph */
+    unsigned int x_edit:1;         /* we can edit the array */
 } t_fake_garray;
 
 typedef struct _gatom
@@ -92,9 +94,15 @@ t_garray* libpd_array_get_byname(char const* name)
     return (t_fake_garray*)pd_findbyclass(gensym((char *)name), garray_class);
 }
 
+int libpd_array_get_saveit(char const* name)
+{
+    t_fake_garray* garray = (t_fake_garray*)libpd_array_get_byname(name);
+    return garray->x_saveit;
+}
+
 int libpd_array_get_size(const char* name)
 {
-    t_garray* garray = (t_garray*)libpd_array_get_byname(name);
+    t_garray* garray = libpd_array_get_byname(name);
     return garray_getarray(garray)->a_n;
 }
 

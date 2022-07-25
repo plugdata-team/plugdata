@@ -32,6 +32,7 @@ void libpd_array_set_scale(char const* name, float min, float max);
 
 int libpd_array_get_size(char const* name);
 int libpd_array_get_style(char const* name);
+int libpd_array_get_saveit(char const* name);
 
 unsigned int libpd_iemgui_get_background_color(void* ptr);
 unsigned int libpd_iemgui_get_foreground_color(void* ptr);
