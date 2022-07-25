@@ -798,8 +798,6 @@ class PlugDataWindow : public DocumentWindow
         JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(MainContentComponent)
     };
 
-    std::function<void(int)> checkCanvas;
-
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataWindow)
 };
 
