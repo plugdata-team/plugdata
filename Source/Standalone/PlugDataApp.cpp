@@ -219,6 +219,7 @@ void PlugDataWindow::closeButtonPressed()
 #if JUCE_MAC
     if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isCommandDown()) {
         return;
+        
     }
 #endif
     
@@ -226,7 +227,8 @@ void PlugDataWindow::closeButtonPressed()
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor()))
     {
-        checkCanvas = [this, editor](int i) mutable
+        std::function<void(int)> checkCanvas;
+        checkCanvas = [this, editor, checkCanvas](int i) mutable
         {
             auto* cnv = editor->canvases[i];
             bool isLast = i == editor->canvases.size() - 1;
@@ -237,12 +239,12 @@ void PlugDataWindow::closeButtonPressed()
             if (cnv->patch.isDirty())
             {
                 Dialogs::showSaveDialog(editor, cnv->patch.getTitle(),
-                                        [this, editor, cnv, i, isLast](int result) mutable
+                                        [this, editor, cnv, checkCanvas, i, isLast](int result) mutable
                                         {
                                             if (result == 2)
                                             {
                                                 editor->saveProject(
-                                                    [this, cnv, editor, i, isLast]() mutable
+                                                    [this, cnv, editor, checkCanvas, i, isLast]() mutable
                                                     {
                                                         if (isLast)
                                                         {
