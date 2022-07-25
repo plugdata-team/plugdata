@@ -876,6 +876,7 @@ void PlugDataAudioProcessor::getStateInformation(MemoryBlock& destData)
     }
 
     ostream.writeInt(getLatencySamples());
+    ostream.writeInt(oversampling);
     ostream.writeFloat(static_cast<float>(tailLength.getValue()));
     ostream.writeInt(static_cast<int>(xmlBlock.getSize()));
     ostream.write(xmlBlock.getData(), xmlBlock.getSize());
@@ -935,6 +936,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
             }
 
             auto latency = istream.readInt();
+            auto oversampling = istream.readInt();
             auto tail = istream.readFloat();
             auto xmlSize = istream.readInt();
 
@@ -949,7 +951,8 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
                 if (xmlState->hasTagName(parameters.state.getType())) parameters.replaceState(ValueTree::fromXml(*xmlState));
 
             setLatencySamples(latency);
-
+            setOversampling(oversampling);
+            
             suspendProcessing(false);
 
             freebytes(copy, sizeInBytes);
