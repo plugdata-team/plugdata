@@ -786,13 +786,15 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(PlugDataColour::meterColourId, secondColour.brighter());
         setColour(PlugDataColour::connectionColourId, connectionColour);
         setColour(PlugDataColour::signalColourId, signalColour);
-
+        
+        
         setColour(PopupMenu::highlightedBackgroundColourId, highlightColour);
         setColour(TextButton::textColourOnId, highlightColour);
         setColour(Slider::thumbColourId, highlightColour);
         setColour(ScrollBar::thumbColourId, highlightColour);
         setColour(DirectoryContentsDisplayComponent::highlightColourId, highlightColour);
-
+        setColour(CaretComponent::caretColourId, highlightColour);
+                  
         setColour(TextButton::buttonColourId, firstColour);
         setColour(TextButton::buttonOnColourId, firstColour);
         setColour(ComboBox::backgroundColourId, firstColour);

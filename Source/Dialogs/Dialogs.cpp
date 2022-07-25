@@ -14,22 +14,34 @@
 #include "SaveDialog.h"
 #include "ArrayDialog.h"
 #include "SettingsDialog.h"
+#include "TextEditorDialog.h"
 #include "Canvas.h"
 
-void Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
+Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(StringArray, bool)> callback)
+{
+    auto* editor = new TextEditorDialog(filename);
+    editor->editor.setText(text);
+    editor->onClose = std::move(callback);
+    return editor;
+}
+
+
+Component* Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
 {
     auto* dialog = new Dialog(centre, 400, 130, 160, false);
     auto* saveDialog = new SaveDialog(centre, dialog, filename);
 
     dialog->setViewedComponent(saveDialog);
     saveDialog->cb = std::move(callback);
+    return saveDialog;
 }
-void Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
+Component* Dialogs::showArrayDialog(Component* centre, std::function<void(int, String, String)> callback)
 {
     auto* dialog = new Dialog(centre, 300, 180, 200, false);
     auto* arrayDialog = new ArrayDialog(centre, dialog);
     dialog->setViewedComponent(arrayDialog);
     arrayDialog->cb = std::move(callback);
+    return arrayDialog;
 }
 
 Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
