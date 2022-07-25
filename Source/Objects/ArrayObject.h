@@ -24,6 +24,11 @@ public:
     // The default constructor.
     PdArray() = default;
     
+    
+    bool willSaveContent() const {
+        return libpd_array_get_saveit(name.toRawUTF8());
+    }
+    
     // Gets the name of the array.
     String getName() const
     {
@@ -365,7 +370,7 @@ public:
         Array<var> arr = {var(scale[0]), var(scale[1])};
         range = var(arr);
         size = var(static_cast<int>(graph.array.size()));
-        
+        saveContents = array.willSaveContent();
         name = String(array.getText());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
         
@@ -455,7 +460,14 @@ public:
     
     void updateParameters() override
     {
-        name = libpd_array_get_unexpanded_name(libpd_array_get_byname(array.getName().toRawUTF8()));
+        auto params = getParameters();
+        for (auto& [name, type, cat, value, list] : params)
+        {
+            value->addListener(this);
+
+            // Push current parameters to pd
+            valueChanged(*value);
+        }
     }
     
     void updateSettings()
