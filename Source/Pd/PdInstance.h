@@ -16,7 +16,7 @@ extern "C"
 #include <z_libpd.h>
 #include "s_libpd_inter.h"
 
-extern int libpd_process_nodsp(void);
+EXTERN int libpd_process_nodsp(void);
 }
 
 #include "PdPatch.h"
