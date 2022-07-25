@@ -729,7 +729,7 @@ void GutterComponent::paint (Graphics& g)
     }
     else
     {
-        g.setColour (ln.darker (0.2f));
+        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawVerticalLine (GUTTER_WIDTH - 1.f, 0.f, getHeight());
     }
     
@@ -756,10 +756,9 @@ void GutterComponent::paint (Graphics& g)
         }
     }
     
-    g.setColour (getParentComponent()->findColour (CodeEditorComponent::lineNumberTextId));
-    
     for (const auto& r : rowData)
     {
+        g.setColour (getParentComponent()->findColour (r.isRowSelected ? PlugDataColour::highlightColourId : PlugDataColour::textColourId));
         memoizedGlyphArrangements (r.rowNumber).draw(g, verticalTransform);
     }
 }
@@ -2170,9 +2169,9 @@ struct TextEditorDialog : public Component
     
     std::function<void(StringArray, bool)> onClose;
     
-    String name;
+    String title;
     
-    TextEditorDialog(String name) : resizer(this, &constrainer) {
+    TextEditorDialog(String name) : resizer(this, &constrainer), title(name) {
         
         closeButton.reset(LookAndFeel::getDefaultLookAndFeel().createDocumentWindowButton(DocumentWindow::closeButton));
         addAndMakeVisible(closeButton.get());
@@ -2193,8 +2192,9 @@ struct TextEditorDialog : public Component
         
         // Position in centre of screen
         setBounds(Desktop::getInstance().getDisplays().getPrimaryDisplay()->userArea.withSizeKeepingCentre(600, 400));
-        addAndMakeVisible(resizer);
+       
         addAndMakeVisible(editor);
+        addAndMakeVisible(resizer);
         
         editor.grabKeyboardFocus();
     }
@@ -2202,7 +2202,7 @@ struct TextEditorDialog : public Component
     void resized() {
         resizer.setBounds(getLocalBounds());
         closeButton->setBounds(getLocalBounds().removeFromTop(30).removeFromRight(30).translated(-5, 5));
-        editor.setBounds(getLocalBounds().withTrimmedTop(40));
+        editor.setBounds(getLocalBounds().withTrimmedTop(40).withTrimmedBottom(20));
     }
     
     
@@ -2220,12 +2220,12 @@ struct TextEditorDialog : public Component
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
         
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawLine(48, 39.5, getWidth(), 39.5);
+        g.drawHorizontalLine(39, 48, getWidth());
+        g.drawHorizontalLine(getHeight() - 20, 48, getWidth());
         
-        if(!name.isEmpty()) {
+        if(!title.isEmpty()) {
             g.setColour(findColour(PlugDataColour::textColourId));
-            g.drawText(name, 0, 0, 40, getWidth(), Justification::centred);
+            g.drawText(title, 0, 0, getWidth(), 40, Justification::centred);
         }
-        
     }
 };
