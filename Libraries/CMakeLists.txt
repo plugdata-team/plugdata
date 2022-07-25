@@ -239,6 +239,7 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/z_hooks.c
     ${LIBPD_PATH}/z_hooks.h
     ${LIBPD_PATH}/z_libpd.c
+    ${LIBPD_PATH}/z_libpd.h
     ${LIBPD_PATH}/x_libpd_extra_utils.c
     ${LIBPD_PATH}/x_libpd_extra_utils.h
     ${LIBPD_PATH}/x_libpd_mod_utils.c

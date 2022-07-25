@@ -20,6 +20,8 @@ extern "C"
 #include "PdInstance.h"
 #include "PdPatch.h"
 
+
+
 extern "C"
 {
     struct pd::Instance::internal
@@ -241,15 +243,17 @@ Instance::~Instance()
     libpd_free_instance(static_cast<t_pdinstance*>(m_instance));
 }
 
+
 int Instance::getBlockSize() const 
 {
     return libpd_blocksize();
 }
 
-void Instance::prepareDSP(const int nins, const int nouts, const double samplerate)
+void Instance::prepareDSP(const int nins, const int nouts, const double samplerate, const int blockSize)
 {
     libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
     libpd_init_audio(nins, nouts, static_cast<int>(samplerate));
+    continuityChecker.prepare(samplerate, blockSize, std::max(nins, nouts));
 }
 
 void Instance::startDSP()

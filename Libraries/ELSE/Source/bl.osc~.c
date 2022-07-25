@@ -164,7 +164,8 @@ static t_int* blosc_perform(t_int *w) {
             double phase_dev = phase_offset - x->last_phase_offset;
             if(phase_dev >= 1 || phase_dev <= -1)
                 phase_dev = fmod(phase_dev, 1);
-            x->phase = phasewrap(x->phase);
+            
+            x->phase = phasewrap(x->phase + phase_dev);
         }
         
         switch(x->shape){
@@ -240,11 +241,11 @@ static void* blosc_new(t_symbol *s, int ac, t_atom *av){
             x->x_polyblep.shape = SAW2;
         ac--, av++;
     }
-    int has_pwn = x->x_polyblep.shape <= SQUARE;
+    int has_pwm = x->x_polyblep.shape <= SQUARE;
     if(ac && av->a_type == A_FLOAT){
         init_freq = av->a_w.w_float;
         ac--; av++;
-        if(ac && av->a_type == A_FLOAT && has_pwn){
+        if(ac && av->a_type == A_FLOAT && has_pwm){
             x->x_polyblep.pulse_width = av->a_w.w_float;
             ac--; av++;
         }
@@ -256,7 +257,7 @@ static void* blosc_new(t_symbol *s, int ac, t_atom *av){
     x->x_f = init_freq;
     // Outlet
     outlet_new(&x->x_obj, &s_signal);
-    if(has_pwn){ // Pulse width inlet
+    if(has_pwm){ // Pulse width inlet
         x->x_inlet_width = inlet_new(&x->x_obj, &x->x_obj.ob_pd,  &s_signal, &s_signal);
         pd_float((t_pd *)x->x_inlet_width, x->x_polyblep.pulse_width);
     }

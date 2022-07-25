@@ -42,6 +42,22 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     // Make sure to use dots for decimal numbers, pd requires that
     std::setlocale(LC_ALL, "C");
     
+    // continuityChecker keeps track of whether audio is running and creates a backup scheduler in case it isn't
+    continuityChecker.setCallback([this](t_float* in, t_float* out){
+        
+        if(isNonRealtime()) return false;
+        
+        if(getCallbackLock()->tryEnter()) {
+            
+            // Dequeue messages
+            sendMessagesFromQueue();
+            
+            libpd_set_instance(static_cast<t_pdinstance*>(m_instance));
+            libpd_process_nodsp();
+            getCallbackLock()->exit();
+        }
+    });
+    
     parameters.createAndAddParameter(std::make_unique<AudioParameterFloat>(ParameterID("volume", 1), "Volume", NormalisableRange<float>(0.0f, 1.0f, 0.001f, 0.75f, false), 1.0f));
 
     // General purpose automation parameters you can get by using "receive param1" etc.
@@ -335,7 +351,7 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     float oversampleFactor = 1 << oversampling;
     auto maxChannels = std::max(getTotalNumInputChannels(), getTotalNumOutputChannels());
     
-    prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor);
+    prepareDSP(getTotalNumInputChannels(), getTotalNumOutputChannels(), sampleRate * oversampleFactor, samplesPerBlock * oversampleFactor);
     
     oversampler.reset (new dsp::Oversampling<float> (maxChannels, oversampling, dsp::Oversampling<float>::filterHalfBandPolyphaseIIR, false));
     
@@ -412,6 +428,9 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     auto totalNumInputChannels = getTotalNumInputChannels();
     auto totalNumOutputChannels = getTotalNumOutputChannels();
 
+    continuityChecker.setNonRealtime(isNonRealtime());
+    continuityChecker.setTimer();
+    
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     {

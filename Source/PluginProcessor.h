@@ -31,7 +31,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 #ifndef JucePlugin_PreferredChannelConfigurations
     bool isBusesLayoutSupported(const BusesLayout& layouts) const override;
 #endif
-
    
     void processBlock(AudioBuffer<float>&, MidiBuffer&) override;
 
