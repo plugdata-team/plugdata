@@ -907,7 +907,7 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
             // Deselect boxes and connections
             for (auto* c : selectedComponents) {
                 if (c != this)  {
-                    setSelected(component, false);
+                    setSelected(c, false);
                     c->repaint();
                 }
             }
