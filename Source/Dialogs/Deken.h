@@ -1,6 +1,175 @@
 #pragma once
 #include "../Utility/JSON.h"
 
+struct MD5
+{
+    MD5(const String& input) {
+        processBlock(input.toRawUTF8(), input.getNumBytesAsUTF8());
+    }
+    
+    inline static String encode(const String& input) {
+        auto encoded = MD5(input);
+        return encoded.getResult();
+    }
+    
+    String getResult() noexcept
+    {
+        uint8_t encodedLength[8];
+        copyWithEndiannessConversion (encodedLength, count, 8);
+
+        // Pad out to 56 mod 64.
+        auto index = (count[0] >> 3) & 0x3f;
+        auto paddingLength = (index < 56 ? 56 : 120) - index;
+
+        uint8_t paddingBuffer[64] = { 0x80 }; // first byte is 0x80, remaining bytes are zero.
+
+        processBlock (paddingBuffer, (size_t) paddingLength);
+        processBlock (encodedLength, 8);
+        
+        uint8 result[16];
+
+        copyWithEndiannessConversion (result, state, 16);
+        
+        return String::toHexString (result, sizeof (result), 0);
+    }
+    
+private:
+    void processBlock(const void* data, size_t dataSize) noexcept
+    {
+        auto bufferPos = ((count[0] >> 3) & 0x3f);
+
+        count[0] += (uint32_t) (dataSize << 3);
+
+        if (count[0] < ((uint32_t) dataSize << 3))
+            count[1]++;
+
+        count[1] += (uint32_t) (dataSize >> 29);
+
+        auto spaceLeft = (size_t) 64 - (size_t) bufferPos;
+        size_t i = 0;
+
+        if (dataSize >= spaceLeft)
+        {
+            memcpy (buffer + bufferPos, data, spaceLeft);
+            transform (buffer);
+
+            for (i = spaceLeft; i + 64 <= dataSize; i += 64)
+                transform (static_cast<const char*> (data) + i);
+
+            bufferPos = 0;
+        }
+
+        memcpy (buffer + bufferPos, static_cast<const char*> (data) + i, dataSize - i);
+    }
+
+    void transform(const void* bufferToTransform) noexcept
+    {
+        auto a = state[0];
+        auto b = state[1];
+        auto c = state[2];
+        auto d = state[3];
+
+        uint32_t x[16];
+        copyWithEndiannessConversion (x, bufferToTransform, 64);
+
+        enum Constants
+        {
+            S11 = 7, S12 = 12, S13 = 17, S14 = 22, S21 = 5, S22 = 9,  S23 = 14, S24 = 20,
+            S31 = 4, S32 = 11, S33 = 16, S34 = 23, S41 = 6, S42 = 10, S43 = 15, S44 = 21
+        };
+
+        FF (a, b, c, d, x[ 0], S11, 0xd76aa478);     FF (d, a, b, c, x[ 1], S12, 0xe8c7b756);
+        FF (c, d, a, b, x[ 2], S13, 0x242070db);     FF (b, c, d, a, x[ 3], S14, 0xc1bdceee);
+        FF (a, b, c, d, x[ 4], S11, 0xf57c0faf);     FF (d, a, b, c, x[ 5], S12, 0x4787c62a);
+        FF (c, d, a, b, x[ 6], S13, 0xa8304613);     FF (b, c, d, a, x[ 7], S14, 0xfd469501);
+        FF (a, b, c, d, x[ 8], S11, 0x698098d8);     FF (d, a, b, c, x[ 9], S12, 0x8b44f7af);
+        FF (c, d, a, b, x[10], S13, 0xffff5bb1);     FF (b, c, d, a, x[11], S14, 0x895cd7be);
+        FF (a, b, c, d, x[12], S11, 0x6b901122);     FF (d, a, b, c, x[13], S12, 0xfd987193);
+        FF (c, d, a, b, x[14], S13, 0xa679438e);     FF (b, c, d, a, x[15], S14, 0x49b40821);
+
+        GG (a, b, c, d, x[ 1], S21, 0xf61e2562);     GG (d, a, b, c, x[ 6], S22, 0xc040b340);
+        GG (c, d, a, b, x[11], S23, 0x265e5a51);     GG (b, c, d, a, x[ 0], S24, 0xe9b6c7aa);
+        GG (a, b, c, d, x[ 5], S21, 0xd62f105d);     GG (d, a, b, c, x[10], S22, 0x02441453);
+        GG (c, d, a, b, x[15], S23, 0xd8a1e681);     GG (b, c, d, a, x[ 4], S24, 0xe7d3fbc8);
+        GG (a, b, c, d, x[ 9], S21, 0x21e1cde6);     GG (d, a, b, c, x[14], S22, 0xc33707d6);
+        GG (c, d, a, b, x[ 3], S23, 0xf4d50d87);     GG (b, c, d, a, x[ 8], S24, 0x455a14ed);
+        GG (a, b, c, d, x[13], S21, 0xa9e3e905);     GG (d, a, b, c, x[ 2], S22, 0xfcefa3f8);
+        GG (c, d, a, b, x[ 7], S23, 0x676f02d9);     GG (b, c, d, a, x[12], S24, 0x8d2a4c8a);
+
+        HH (a, b, c, d, x[ 5], S31, 0xfffa3942);     HH (d, a, b, c, x[ 8], S32, 0x8771f681);
+        HH (c, d, a, b, x[11], S33, 0x6d9d6122);     HH (b, c, d, a, x[14], S34, 0xfde5380c);
+        HH (a, b, c, d, x[ 1], S31, 0xa4beea44);     HH (d, a, b, c, x[ 4], S32, 0x4bdecfa9);
+        HH (c, d, a, b, x[ 7], S33, 0xf6bb4b60);     HH (b, c, d, a, x[10], S34, 0xbebfbc70);
+        HH (a, b, c, d, x[13], S31, 0x289b7ec6);     HH (d, a, b, c, x[ 0], S32, 0xeaa127fa);
+        HH (c, d, a, b, x[ 3], S33, 0xd4ef3085);     HH (b, c, d, a, x[ 6], S34, 0x04881d05);
+        HH (a, b, c, d, x[ 9], S31, 0xd9d4d039);     HH (d, a, b, c, x[12], S32, 0xe6db99e5);
+        HH (c, d, a, b, x[15], S33, 0x1fa27cf8);     HH (b, c, d, a, x[ 2], S34, 0xc4ac5665);
+
+        II (a, b, c, d, x[ 0], S41, 0xf4292244);     II (d, a, b, c, x[ 7], S42, 0x432aff97);
+        II (c, d, a, b, x[14], S43, 0xab9423a7);     II (b, c, d, a, x[ 5], S44, 0xfc93a039);
+        II (a, b, c, d, x[12], S41, 0x655b59c3);     II (d, a, b, c, x[ 3], S42, 0x8f0ccc92);
+        II (c, d, a, b, x[10], S43, 0xffeff47d);     II (b, c, d, a, x[ 1], S44, 0x85845dd1);
+        II (a, b, c, d, x[ 8], S41, 0x6fa87e4f);     II (d, a, b, c, x[15], S42, 0xfe2ce6e0);
+        II (c, d, a, b, x[ 6], S43, 0xa3014314);     II (b, c, d, a, x[13], S44, 0x4e0811a1);
+        II (a, b, c, d, x[ 4], S41, 0xf7537e82);     II (d, a, b, c, x[11], S42, 0xbd3af235);
+        II (c, d, a, b, x[ 2], S43, 0x2ad7d2bb);     II (b, c, d, a, x[ 9], S44, 0xeb86d391);
+
+        state[0] += a;
+        state[1] += b;
+        state[2] += c;
+        state[3] += d;
+    }
+
+    uint8_t buffer[64] = {};
+    uint32_t state[4] = { 0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476 };
+    uint32_t count[2] = {};
+
+    static void copyWithEndiannessConversion(void* output, const void* input, size_t numBytes) noexcept
+    {
+       #if JUCE_LITTLE_ENDIAN
+        memcpy (output, input, numBytes);
+       #else
+        auto dst = static_cast<uint8_t*> (output);
+        auto src = static_cast<const uint8_t*> (input);
+
+        for (size_t i = 0; i < numBytes; i += 4)
+        {
+            dst[i + 0] = src[i + 3];
+            dst[i + 1] = src[i + 2];
+            dst[i + 2] = src[i + 1];
+            dst[i + 3] = src[i + 0];
+        }
+       #endif
+    }
+
+    static uint32_t rotateLeft(uint32_t x, uint32_t n) noexcept     { return (x << n) | (x >> (32 - n)); }
+
+    static uint32_t F(uint32_t x, uint32_t y, uint32_t z) noexcept  { return (x & y) | (~x & z); }
+    static uint32_t G(uint32_t x, uint32_t y, uint32_t z) noexcept  { return (x & z) | (y & ~z); }
+    static uint32_t H(uint32_t x, uint32_t y, uint32_t z) noexcept  { return x ^ y ^ z; }
+    static uint32_t I(uint32_t x, uint32_t y, uint32_t z) noexcept  { return y ^ (x | ~z); }
+
+    static void FF(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s, uint32_t ac) noexcept
+    {
+        a = rotateLeft (a + F (b, c, d) + x + ac, s) + b;
+    }
+
+    static void GG(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s, uint32_t ac) noexcept
+    {
+        a = rotateLeft (a + G (b, c, d) + x + ac, s) + b;
+    }
+
+    static void HH(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s, uint32_t ac) noexcept
+    {
+        a = rotateLeft (a + H (b, c, d) + x + ac, s) + b;
+    }
+
+    static void II(uint32_t& a, uint32_t b, uint32_t c, uint32_t d, uint32_t x, uint32_t s, uint32_t ac) noexcept
+    {
+        a = rotateLeft (a + I (b, c, d) + x + ac, s) + b;
+    }
+};
+
 struct Spinner : public Component, public Timer
 {
     bool isSpinning = false;
@@ -73,6 +242,7 @@ struct PackageSorter
 
 struct PackageManager : public Thread, public ActionBroadcaster, public ValueTree::Listener, public DeletedAtShutdown
 {
+    
     
     struct DownloadTask : public Thread
     {
@@ -192,15 +362,19 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
             {
                 packageState = newTree;
             }
-            else {
-                packageState = ValueTree("pkg_info");
-            }
         }
-        else {
-            packageState = ValueTree("pkg_info");
+        
+        if (cacheFile.existsAsFile())
+        {
+            auto newTree = ValueTree::fromXml(cacheFile.loadFileAsString());
+            if (newTree.isValid() && newTree.getType() == Identifier("cache"))
+            {
+                cacheState = newTree;
+            }
         }
         
         packageState.addListener(this);
+        cacheState.addListener(this);
         
         sendActionMessage("");
         startThread(3);
@@ -266,6 +440,31 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
         return result;
     }
     
+    PackageList readFromCache()
+    {
+        PackageList result;
+        
+        auto state = cacheState.getChildWithName("State");
+        for(auto package : state) {
+            auto name = package.getProperty("Name").toString();
+            auto author = package.getProperty("Author").toString();
+            auto timestamp = package.getProperty("Timestamp").toString();
+            auto url = package.getProperty("URL").toString();
+            auto description = package.getProperty("Description").toString();
+            auto version = package.getProperty("Version").toString();
+            StringArray objects;
+            
+            for(auto object : package.getChildWithName("Objects")) {
+                objects.add(object.getProperty("Name").toString());
+            }
+            
+            result.add(PackageInfo(name, author, timestamp, url, description, version, objects));
+        }
+
+        return result;
+    }
+    
+    
     PackageList getAvailablePackages()
     {
         PackageList packages;
@@ -281,11 +480,22 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
         // Read json result
         auto json = webstream->readString();
         
+        
         if(json.isEmpty()) {
             sendActionMessage("Invalid response from Deken server");
             return {};
         }
         
+        auto checksum = MD5::encode(json);
+        
+        // Caching: don't update objects if the index file is the same!
+        // Getting all the objects from the packages takes a long time
+        auto cachedContent = cacheState.getProperty("Index").toString();
+        if(cachedContent.isNotEmpty() && cachedContent == checksum) {
+            return readFromCache();
+        }
+        
+        cacheState.setProperty("Index", checksum, nullptr);
         
         if(threadShouldExit()) return {};
         
@@ -350,6 +560,32 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
             sendActionMessage("Invalid response from Deken server");
         }
         
+        ValueTree packageCache = ValueTree("State");
+        
+        for(auto& package : packages) {
+                ValueTree pkgEntry = ValueTree("Package");
+                pkgEntry.setProperty("Name", package.name, nullptr);
+                pkgEntry.setProperty("ID", package.packageId, nullptr);
+                pkgEntry.setProperty("Author", package.author, nullptr);
+                pkgEntry.setProperty("Timestamp", package.timestamp, nullptr);
+                pkgEntry.setProperty("Description", package.description, nullptr);
+                pkgEntry.setProperty("Version", package.version, nullptr);
+                pkgEntry.setProperty("URL", package.url, nullptr);
+                
+                ValueTree objects("Objects");
+                for(auto& object : package.objects) {
+                    auto objectTree = ValueTree("Object");
+                    objectTree.setProperty("Name", object, nullptr);
+                    objects.appendChild(objectTree, nullptr);
+                }
+            
+                pkgEntry.appendChild(objects, nullptr);
+                packageCache.appendChild(pkgEntry, nullptr);
+        }
+        
+        cacheState.removeChild(cacheState.indexOf(cacheState.getChildWithName("State")), nullptr);
+        cacheState.appendChild(packageCache, nullptr);
+        
         return packages;
     }
     
@@ -371,17 +607,32 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
     // When a property in our pkginfo changes, save it immediately
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, const Identifier& property) override
     {
-        pkgInfo.replaceWithText(packageState.toXmlString());
+        if(treeWhosePropertyHasChanged == packageState) {
+            pkgInfo.replaceWithText(packageState.toXmlString());
+        }
+        else if(treeWhosePropertyHasChanged == cacheState) {
+            cacheFile.replaceWithText(cacheState.toXmlString());
+        }
     }
     
     void valueTreeChildAdded(ValueTree& parentTree, ValueTree& childWhichHasBeenAdded) override
     {
-        pkgInfo.replaceWithText(packageState.toXmlString());
+        if(parentTree == packageState) {
+            pkgInfo.replaceWithText(packageState.toXmlString());
+        }
+        else if(parentTree == cacheState) {
+            cacheFile.replaceWithText(cacheState.toXmlString());
+        }
     }
     
     void valueTreeChildRemoved(ValueTree& parentTree, ValueTree& childWhichHasBeenRemoved, int indexFromWhichChildWasRemoved) override
     {
-        pkgInfo.replaceWithText(packageState.toXmlString());
+        if(parentTree == packageState) {
+            pkgInfo.replaceWithText(packageState.toXmlString());
+        }
+        else if(parentTree == cacheState) {
+            cacheFile.replaceWithText(cacheState.toXmlString());
+        }
     }
     
     void uninstall(PackageInfo& packageInfo)
@@ -448,9 +699,12 @@ struct PackageManager : public Thread, public ActionBroadcaster, public ValueTre
     
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
+    File cacheFile = filesystem.getChildFile(".cache");
+    
     
     // Package state tree, keeps track of which packages are installed and saves it to pkgInfo
     ValueTree packageState = ValueTree("pkg_info");
+    ValueTree cacheState = ValueTree("cache");
     
     // Thread for unzipping and installing packages
     OwnedArray<DownloadTask> downloads;
@@ -565,6 +819,8 @@ public:
         
         if(packageManager->isThreadRunning()) {
             input.setEnabled(false);
+            refreshButton.setEnabled(false);
+            clearButton.setEnabled(false);
             input.setText("Updating Packages...");
             updateSpinner.startSpinning();
         }
@@ -598,6 +854,8 @@ public:
             
             input.setText("Updating packages...");
             input.setEnabled(false);
+            refreshButton.setEnabled(false);
+            clearButton.setEnabled(false);
             updateSpinner.startSpinning();
         }
         else {
@@ -607,6 +865,8 @@ public:
                 input.setText("");
             }
            
+            refreshButton.setEnabled(true);
+            clearButton.setEnabled(true);
             input.setEnabled(true);
             updateSpinner.stopSpinning();
         }

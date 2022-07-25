@@ -1,5 +1,4 @@
 #include "../Dialogs/Dialogs.h"
-#include "../Dialogs/TextEditor.h"
 
 struct t_fake_textbuf
 {
@@ -29,7 +28,7 @@ struct t_fake_text_define
 struct TextDefineObject final : public TextBase
 {
     
-    std::unique_ptr<TextEditorDialog> textEditor;
+    std::unique_ptr<Component> textEditor;
     
     TextDefineObject(void* obj, Box* parent, bool isValid = true) : TextBase(obj, parent, isValid), textEditor(nullptr)
     {
@@ -51,19 +50,26 @@ struct TextDefineObject final : public TextBase
             return;
         }
         
-        textEditor = std::make_unique<TextEditorDialog>();
-        textEditor->editor.setText(getText());
-        textEditor->onClose = [this](StringArray lastText){
-            Dialogs::showSaveDialog(textEditor.get(), "", [this, lastText](int result) mutable {
-                if(result == 2) {
-                    setText(lastText);
-                    textEditor.reset(nullptr);
-                }
-                if(result == 1) {
-                    textEditor.reset(nullptr);
-                }
-            });
-        };
+        auto name = String(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
+        
+        textEditor.reset(
+                         Dialogs::showTextEditorDialog(getText(), name, [this](StringArray lastText, bool hasChanged){
+                             
+                             if(!hasChanged) {
+                                 textEditor.reset(nullptr);
+                                 return;
+                             }
+                             
+                             Dialogs::showSaveDialog(textEditor.get(), "", [this, lastText](int result) mutable {
+                                 if(result == 2) {
+                                     setText(lastText);
+                                     textEditor.reset(nullptr);
+                                 }
+                                 if(result == 1) {
+                                     textEditor.reset(nullptr);
+                                 }
+                             });
+                         }));
     }
     
     void setText(StringArray text) {
