@@ -725,6 +725,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewProject:
         {
             result.setInfo("New Project", "Create a new project", "General", 0);
+            result.addDefaultKeypress(84, ModifierKeys::commandModifier);
             break;
         }
         case CommandIDs::OpenProject:
@@ -1013,7 +1014,38 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::CloseTab:
         {
-            if(tabbar.getNumTabs() <= 1) return;
+            if(tabbar.getNumTabs() <= 1)  {
+                
+                // In the standalone, if we close the last tab, ask to save it and close the window
+#if PLUGDATA_STANDALONE
+                
+                if (cnv->patch.isDirty())
+                {
+                    Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
+                                            [this](int result) mutable
+                                            {
+                        if (result == 2)
+                        {
+                            saveProject(
+                                        [this]() mutable
+                                        {
+                                            JUCEApplication::quit();
+                                        });
+                        }
+                        else if (result == 1)
+                        {
+                            JUCEApplication::quit();
+                        }
+                                            // last option: cancel, where we end the chain
+                    });
+                }
+                else
+                {
+                    JUCEApplication::quit();
+                }
+#endif
+                return true;
+            }
             
             int currentIdx = tabbar.getCurrentTabIndex();
             auto* closeButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(currentIdx)->getExtraComponent());
