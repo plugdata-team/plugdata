@@ -24,6 +24,7 @@ enum CommandIDs
     OpenProject,
     SaveProject,
     SaveProjectAs,
+    CloseTab,
     Undo,
     Redo,
 
@@ -86,7 +87,6 @@ class PlugDataPluginEditor : public AudioProcessorEditor, public Value::Listener
     explicit PlugDataPluginEditor(PlugDataAudioProcessor&);
 
     ~PlugDataPluginEditor() override;
-    void showNewObjectMenu();
 
     void paint(Graphics& g) override;
     void paintOverChildren(Graphics& g) override;
