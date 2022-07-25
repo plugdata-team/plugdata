@@ -529,6 +529,11 @@ class PlugDataWindow : public DocumentWindow
 #endif
         //setUsingNativeTitleBar(false);
         
+        // Clear the cmd-w command on Mac
+#if JUCE_MAC
+        getCloseButton()->clearShortcuts();
+#endif
+        
         setTitleBarHeight(0);
         setTitleBarButtonsRequired(DocumentWindow::minimiseButton | DocumentWindow::maximiseButton | DocumentWindow::closeButton, false);
 

@@ -216,8 +216,12 @@ class PlugDataApp : public JUCEApplication
 
 void PlugDataWindow::closeButtonPressed()
 {
-    pluginHolder->savePluginState();
-
+#if JUCE_MAC
+    if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isCommandDown()) {
+        return;
+    }
+#endif
+    
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor()))
