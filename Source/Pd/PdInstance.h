@@ -154,10 +154,6 @@ struct ContinuityChecker : public Timer
                 return;
             }
             
-            if(canvas_dspstate) {
-                canvas_suspend_dsp();
-            }
-            
             for(int i = 0; i < numBlocksPerCallback; i++) {
                 std::fill(emptyInBuffer.begin(), emptyInBuffer.end(), 0.0f);
                 
