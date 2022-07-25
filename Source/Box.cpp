@@ -659,11 +659,7 @@ void Box::openNewObjectEditor()
 
         editor->onFocusLost = [this]()
         {
-            // Necessary so the editor doesn't close when clicking on a suggestion
-            if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
-            {
-                hideEditor();
-            }
+            hideEditor();
         };
 
         cnv->showSuggestions(this, editor);

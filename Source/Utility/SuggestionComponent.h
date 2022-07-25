@@ -40,7 +40,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
 
             auto font = getLookAndFeel().getTextButtonFont(*this, getHeight());
             g.setFont(font);
-            g.setColour((getToggleState() ? Colours::white : findColour(TextButton::textColourOffId)).withMultipliedAlpha(isEnabled() ? 1.0f : 0.5f));
+            g.setColour(getToggleState() ? Colours::white : findColour(PlugDataColour::textColourId));
             auto yIndent = jmin(4, proportionOfHeight(0.3f));
             auto cornerSize = jmin(getHeight(), getWidth()) / 2;
             auto fontHeight = roundToInt(font.getHeight() * 0.6f);
@@ -54,7 +54,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             {
                 auto textLength = font.getStringWidth(getButtonText());
 
-                g.setColour(findColour(PlugDataColour::canvasOutlineColourId));
+                g.setColour(getToggleState() ? Colours::white : findColour(PlugDataColour::canvasOutlineColourId));
 
                 auto yIndent = jmin(4, proportionOfHeight(0.3f));
                 auto cornerSize = jmin(getHeight(), getWidth()) / 2;
@@ -160,7 +160,7 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             };
         }
 
-        addToDesktop(ComponentPeer::StyleFlags::windowIsTemporary);
+        addToDesktop(ComponentPeer::windowIsTemporary | ComponentPeer::windowIgnoresKeyPresses);
         setVisible(false);
         toFront(false);
 
@@ -315,6 +315,8 @@ class SuggestionComponent : public Component, public KeyListener, public TextEdi
             return mutableInput;
         }
 
+        buttons[currentidx]->setToggleState(true, dontSendNotification);
+        
         // Update suggestions
         auto found = library.autocomplete(typedText.toStdString());
 
