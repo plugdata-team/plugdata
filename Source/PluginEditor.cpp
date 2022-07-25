@@ -126,7 +126,7 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
     // New object button
     toolbarButton(Add)->setTooltip("Create Object");
-    toolbarButton(Add)->onClick = [this]() { showNewObjectMenu(); };
+    toolbarButton(Add)->onClick = [this]() { Dialogs::showObjectMenu(this, toolbarButton(Add)); };
 
     // Show settings
     toolbarButton(Settings)->setTooltip("Settings");
@@ -201,11 +201,6 @@ PlugDataPluginEditor::~PlugDataPluginEditor()
     pd.settingsTree.removeListener(this);
     pd.locked.removeListener(this);
     pd.zoomScale.removeListener(this);
-}
-
-void PlugDataPluginEditor::showNewObjectMenu()
-{
-    Dialogs::showObjectMenu(this, toolbarButton(Add));
 }
 
 void PlugDataPluginEditor::paint(Graphics& g)
@@ -749,6 +744,12 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.addDefaultKeypress(83, ModifierKeys::commandModifier | ModifierKeys::shiftModifier);
             break;
         }
+        case CommandIDs::CloseTab:
+        {
+            result.setInfo("Close tab", "Close currently opened tab", "General", 0);
+            result.addDefaultKeypress(87, ModifierKeys::commandModifier);
+            break;
+        }
         case CommandIDs::Undo:
         {
             result.setInfo("Undo", "Undo action", "General", 0);
@@ -1008,6 +1009,18 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         case CommandIDs::SaveProjectAs:
         {
             saveProjectAs();
+            return true;
+        }
+        case CommandIDs::CloseTab:
+        {
+            if(tabbar.getNumTabs() <= 1) return;
+            
+            int currentIdx = tabbar.getCurrentTabIndex();
+            auto* closeButton = dynamic_cast<TextButton*>(tabbar.getTabbedButtonBar().getTabButton(currentIdx)->getExtraComponent());
+            
+            // Virtually click the close button
+            closeButton->triggerClick();
+            
             return true;
         }
         case CommandIDs::Copy:
