@@ -65,6 +65,9 @@ Box::Box(void* object, Canvas* parent)
 
 Box::~Box()
 {
+    // Ensure there's no pointer to this object in the selection
+    cnv->setSelected(this, false);
+    
     if (attachedToMouse)
     {
         stopTimer();
