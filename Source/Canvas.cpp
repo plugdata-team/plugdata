@@ -93,8 +93,10 @@ Canvas::~Canvas()
     delete suggestor;
 }
 
+
 void Canvas::paint(Graphics& g)
 {
+
     if (!isGraph)
     {
         lasso.setColour(LassoComponent<Box>::lassoFillColourId, findColour(PlugDataColour::highlightColourId).withAlpha(0.3f));
