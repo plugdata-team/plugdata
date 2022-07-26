@@ -13,14 +13,8 @@ class PlugDataPluginEditor;
 
 struct Dialog : public Component
 {
-    Dialog(Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent(editor->getParentComponent()), height(childHeight), width(childWidth), y(yPosition)
+    Dialog(Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent(editor), height(childHeight), width(childWidth), y(yPosition)
     {
-        // ugly workaround, used by [text define]
-        // TODO: instead, require users of this class to enter the correct component
-        if(!editor->getParentComponent()) {
-            parentComponent = editor;
-        }
-        
         parentComponent->addAndMakeVisible(this);
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
