@@ -47,7 +47,7 @@ Component* Dialogs::showArrayDialog(Component* centre, std::function<void(int, S
 Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
 {
     auto* editor = processor.getActiveEditor();
-    auto* dialog = new Dialog(editor, 675, 500, editor->getBounds().getCentreY() + 250, true);
+    auto* dialog = new Dialog(editor->getParentComponent(), 675, 500, editor->getBounds().getCentreY() + 250, true);
     auto* settingsDialog = new SettingsDialog(processor, dialog, manager, settingsTree);
     dialog->setViewedComponent(settingsDialog);
     return dialog;

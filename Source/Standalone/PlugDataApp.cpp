@@ -238,7 +238,7 @@ void PlugDataWindow::closeButtonPressed()
 
             if (cnv->patch.isDirty())
             {
-                Dialogs::showSaveDialog(editor, cnv->patch.getTitle(),
+                Dialogs::showSaveDialog(editor->getParentComponent(), cnv->patch.getTitle(),
                                         [this, editor, cnv, checkCanvas, i, isLast](int result) mutable
                                         {
                                             if (result == 2)

@@ -557,7 +557,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                 auto* cnv = getCanvas(idx);
                 if (cnv && cnv->patch.isDirty())
                 {
-                    Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
+                    Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
                                             [this, deleteFunc](int result) mutable
                                             {
                                                 if (result == 2)
@@ -1021,7 +1021,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
                 
                 if (cnv->patch.isDirty())
                 {
-                    Dialogs::showSaveDialog(this, cnv->patch.getTitle(),
+                    Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
                                             [this](int result) mutable
                                             {
                         if (result == 2)
@@ -1145,7 +1145,7 @@ bool PlugDataPluginEditor::perform(const InvocationInfo& info)
         }
         case CommandIDs::NewArray:
         {
-            Dialogs::showArrayDialog(this,
+            Dialogs::showArrayDialog(getParentComponent(),
                                      [this](int result, const String& name, const String& size)
                                      {
                                          if (result)
