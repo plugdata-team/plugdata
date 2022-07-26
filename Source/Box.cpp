@@ -668,11 +668,6 @@ void Box::openNewObjectEditor()
         addAndMakeVisible(editor);
         editor->addListener(this);
 
-        /* I don't think so??
-        if (editor == nullptr)  // may be deleted by a callback
-            return;
-            */
-
         resized();
         repaint();
 
