@@ -103,6 +103,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     pd::Patch& patch;
 
+    // Needs to be allocated before box and connection so they can deselect themselves in the destructor
+    SelectedItemSet<Component*> selectedComponents;
+    
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
 
@@ -147,7 +150,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     bool didStartDragging{false};
 
-    SelectedItemSet<Component*> selectedComponents;
+
 
     Box* componentBeingDragged{nullptr};
 
