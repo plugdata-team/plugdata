@@ -89,6 +89,7 @@ Canvas::Canvas(PlugDataPluginEditor& parent, pd::Patch& p, Component* parentGrap
 
 Canvas::~Canvas()
 {
+    isBeingDeleted = true;
     delete graphArea;
     delete suggestor;
 }

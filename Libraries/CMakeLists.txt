@@ -110,6 +110,11 @@ option(PD_UTILS "Compile libpd utilities" OFF)
 option(PD_EXTRA "Compile extras" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
 
+execute_process(
+            COMMAND ${CMAKE_COMMAND} -E rm ${PD_PATH}/src/z_libpd.h
+            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+        )
+        
 # ------------------------------------------------------------------------------#
 # SOURCES
 # ------------------------------------------------------------------------------#

@@ -19,8 +19,11 @@ struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
 class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
-{
+{    
    public:
+    
+    bool isBeingDeleted = false;
+    
     Canvas(PlugDataPluginEditor& parent, pd::Patch& patch, Component* parentGraph = nullptr);
 
     ~Canvas() override;

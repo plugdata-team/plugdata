@@ -130,11 +130,21 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 
     void updateBounds() override
     {
-        int x, y, w, h;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        auto* keyboard = static_cast<t_keyboard*>(ptr);
-        box->setObjectBounds({x, y, keyboard->x_width, keyboard->x_height});
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+            if(!_this) return;
+            
+            int x, y, w, h;
+            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            
+            auto* keyboard = static_cast<t_keyboard*>(ptr);
+            
+            auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
+            
+            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds]() mutable {
+                if(!_this) return;
+                box->setObjectBounds(bounds);
+            });
+        });
     }
 
     void checkBounds() override

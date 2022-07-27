@@ -166,9 +166,17 @@ struct IEMObject : public GUIObject
 
     void updateBounds() override
     {
-        auto* iemgui = static_cast<t_iemgui*>(ptr);
-        
-        box->setObjectBounds({iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h});
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)]() {
+            if(!_this) return;
+            
+            auto* iemgui = static_cast<t_iemgui*>(ptr);
+            auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
+            
+            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds]() mutable {
+                if(!_this) return;
+                box->setObjectBounds(bounds);
+            });
+        });
     }
 
     void updateLabel() override
