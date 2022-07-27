@@ -166,13 +166,13 @@ struct IEMObject : public GUIObject
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)]() {
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
             if(!_this) return;
             
             auto* iemgui = static_cast<t_iemgui*>(ptr);
             auto bounds = Rectangle<int>(iemgui->x_obj.te_xpix, iemgui->x_obj.te_ypix, iemgui->x_w, iemgui->x_h);
             
-            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds]() mutable {
+            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
                 if(!_this) return;
                 box->setObjectBounds(bounds);
             });

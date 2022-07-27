@@ -7,6 +7,7 @@ option(RUN_CLANG_TIDY "" OFF)
 option(ENABLE_TESTING "" OFF)
 option(ENABLE_SFONT "" ON)
 
+set (CMAKE_CXX_STANDARD 20)
 
 
 if(APPLE)
@@ -229,21 +230,21 @@ set_target_properties(PlugDataFx PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBR
 endif()
 
 juce_generate_juce_header(PlugDataStandalone)
-set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 17)
+set_target_properties(PlugDataStandalone PROPERTIES CXX_STANDARD 20)
 target_sources(PlugDataStandalone PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources})
 
 juce_generate_juce_header(PlugData)
-set_target_properties(PlugData PROPERTIES CXX_STANDARD 17)
+set_target_properties(PlugData PROPERTIES CXX_STANDARD 20)
 target_sources(PlugData PRIVATE ${PlugDataSources} ${PlugDataStandaloneSources})
 
 juce_generate_juce_header(PlugDataFx)
-set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 17)
+set_target_properties(PlugDataFx PROPERTIES CXX_STANDARD 20)
 target_sources(PlugDataFx PRIVATE ${PlugDataSources})
 
 if(APPLE)
 juce_generate_juce_header(PlugDataMidi)
 
-set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 17)
+set_target_properties(PlugDataMidi PROPERTIES CXX_STANDARD 20)
 set_target_properties(PlugDataMidi PROPERTIES CMAKE_XCODE_ATTRIBUTE_CLANG_CXX_LIBRARY "libc++")
 target_sources(PlugDataMidi PRIVATE ${PlugDataSources})
 endif()
@@ -390,7 +391,7 @@ add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 set(Catch2_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/Libraries/Catch2)
 
 add_executable(Tests ${TestFiles})
-set_target_properties(Tests PROPERTIES CXX_STANDARD 17)
+set_target_properties(Tests PROPERTIES CXX_STANDARD 20)
 
 target_link_libraries(Tests PRIVATE Catch2::Catch2WithMain PlugDataStandalone ${libs})
 
