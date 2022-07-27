@@ -311,52 +311,49 @@ int libpd_process_raw_double(const double *inBuffer, double *outBuffer) {
   t_garray *garray = (t_garray *) pd_findbyclass(gensym(name), garray_class); \
   if (!garray) {sys_unlock(); return -1;} \
 
-int libpd_arraysize(const char *name) {
+int libpd_arraysize(void* garray) {
   int retval;
   sys_lock();
-  GETARRAY
   retval = garray_npoints(garray);
   sys_unlock();
   return retval;
 }
 
-int libpd_resize_array(const char *name, long size) {
+int libpd_resize_array(void* garray, long size) {
   sys_lock();
-  GETARRAY
   garray_resize_long(garray, size);
   sys_unlock();
   return 0;
 }
 
 #define MEMCPY(_x, _y) \
-  GETARRAY \
   if (n < 0 || offset < 0 || offset + n > garray_npoints(garray)) return -2; \
   t_word *vec = ((t_word *) garray_vec(garray)) + offset; \
   int i; \
   for (i = 0; i < n; i++) _x = _y;
 
-int libpd_read_array(float *dest, const char *name, int offset, int n) {
+int libpd_read_array(float *dest, void* garray, int offset, int n) {
   sys_lock();
   MEMCPY(*dest++, (vec++)->w_float)
   sys_unlock();
   return 0;
 }
 
-int libpd_write_array(const char *name, int offset, const float *src, int n) {
+int libpd_write_array(void* garray, int offset, const float *src, int n) {
   sys_lock();
   MEMCPY((vec++)->w_float, *src++)
   sys_unlock();
   return 0;
 }
 
-int libpd_read_array_double(double *dest, const char *name, int offset, int n) {
+int libpd_read_array_double(double *dest, void* garray, int offset, int n) {
   sys_lock();
   MEMCPY(*dest++, (vec++)->w_float)
   sys_unlock();
   return 0;
 }
 
-int libpd_write_array_double(const char *name, int offset, const double *src, int n) {
+int libpd_write_array_double(void* garray, int offset, const double *src, int n) {
   sys_lock();
   MEMCPY((vec++)->w_float, *src++)
   sys_unlock();

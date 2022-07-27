@@ -181,7 +181,8 @@ int Trie::autocomplete(String query, Suggestions& result)
     {
         int index = CHAR_TO_INDEX(query[level]);
 
-        // noString in the Trie has this prefix
+        // no String in the Trie has this prefix
+        // TODO: why does this crash every now and then???
         if (index < 0 || index >= 127 || !pCrawl->character[index]) return 0;
 
         pCrawl = pCrawl->character[index];

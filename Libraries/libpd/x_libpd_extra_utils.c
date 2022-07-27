@@ -94,34 +94,31 @@ t_garray* libpd_array_get_byname(char const* name)
     return (t_fake_garray*)pd_findbyclass(gensym((char *)name), garray_class);
 }
 
-int libpd_array_get_saveit(char const* name)
+int libpd_array_get_saveit(void* garray)
 {
-    t_fake_garray* garray = (t_fake_garray*)libpd_array_get_byname(name);
-    return garray->x_saveit;
+    return ((t_fake_garray*)garray)->x_saveit;
 }
 
-int libpd_array_get_size(const char* name)
+int libpd_array_get_size(void* garray)
 {
-    t_garray* garray = libpd_array_get_byname(name);
     return garray_getarray(garray)->a_n;
 }
 
 
-char const* libpd_array_get_name(void* ptr)
+char const* libpd_array_get_name(void* array)
 {
-    t_fake_garray* nptr = (t_fake_garray*)ptr;
+    t_fake_garray* nptr = (t_fake_garray*)array;
     return nptr->x_realname->s_name;
 }
-char const* libpd_array_get_unexpanded_name(void* ptr)
+char const* libpd_array_get_unexpanded_name(void* array)
 {
-    t_fake_garray* nptr = (t_fake_garray*)ptr;
+    t_fake_garray* nptr = (t_fake_garray*)array;
     return nptr->x_name->s_name;
 }
 
-void libpd_array_get_scale(char const* name, float* min, float* max)
+void libpd_array_get_scale(void* array, float* min, float* max)
 {
     t_canvas const *cnv;
-    t_fake_garray const *array = libpd_array_get_byname(name);
     if(array)
     {
         cnv = ((t_fake_garray*)array)->x_glist;
@@ -136,10 +133,9 @@ void libpd_array_get_scale(char const* name, float* min, float* max)
     *max = 1;
 }
 
-void libpd_array_set_scale(char const* name, float min, float max)
+void libpd_array_set_scale(void* array, float min, float max)
 {
     t_canvas* cnv;
-    t_fake_garray* array = libpd_array_get_byname(name);
     if(array)
     {
         cnv = ((t_fake_garray*)array)->x_glist;
@@ -152,12 +148,12 @@ void libpd_array_set_scale(char const* name, float min, float max)
     }
 }
 
-int libpd_array_get_style(char const* name)
+int libpd_array_get_style(void* array)
 {
-    t_fake_garray const *array = libpd_array_get_byname(name);
-    if(array && array->x_scalar)
+    t_fake_garray* arr = (t_fake_garray*)array;
+    if(arr && arr->x_scalar)
     {
-        t_scalar *scalar = array->x_scalar;
+        t_scalar *scalar = arr->x_scalar;
         t_template *scalartplte = template_findbyname(scalar->sc_template);
         if(scalartplte)
         {
