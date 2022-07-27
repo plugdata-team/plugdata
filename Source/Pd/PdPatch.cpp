@@ -180,7 +180,7 @@ Connections Patch::getConnections() const
     
     Connections connections;
     
-    instance->getCallbackLock()->enter();
+    //instance->getCallbackLock()->enter();
     
     t_outconnect* oc;
     t_linetraverser t;
@@ -195,7 +195,7 @@ Connections Patch::getConnections() const
         connections.push_back({t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2});
     }
     
-    instance->getCallbackLock()->exit();
+    //instance->getCallbackLock()->exit();
     
     return connections;
 }
