@@ -102,7 +102,7 @@ struct BangObject final : public IEMObject
 
             lastBang = currentTime;
 
-            auto deletionChecker = SafePointer<Component>(this);
+            auto deletionChecker = SafePointer(this);
             Timer::callAfterDelay(holdTime,
                                   [deletionChecker, this]() mutable
                                   {

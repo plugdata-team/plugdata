@@ -663,7 +663,7 @@ void PlugDataPluginEditor::updateCommandStatus()
         auto* patchPtr = cnv->patch.getPointer();
         if (!patchPtr) return;
         
-        auto deletionCheck = SafePointer<Component>(this);
+        auto deletionCheck = SafePointer(this);
 
         // First on pd's thread, get undo status
         pd.enqueueFunction(

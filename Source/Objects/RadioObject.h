@@ -100,7 +100,7 @@ struct RadioObject final : public IEMObject
 
 
         
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
             if(!_this) return;
             
             int x = 0, y = 0, w = 0, h = 0;
@@ -118,7 +118,7 @@ struct RadioObject final : public IEMObject
                 bounds.setSize(dial->x_gui.x_w * dial->x_number, dial->x_gui.x_h);
             }
             
-            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds]() mutable {
+            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
                 if(!_this) return;
                 
                 box->setObjectBounds(bounds);

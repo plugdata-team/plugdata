@@ -104,7 +104,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
         // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
         
         
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
             if(!_this) return;
             
             int x, y, w, h;
@@ -119,7 +119,7 @@ struct TextBase : public ObjectBase, public TextEditor::Listener
             int textWidth = getBestTextWidth(currentText);
             
             
-            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds, fontWidth, textWidth]() mutable {
+            MessageManager::callAsync([this, _this = SafePointer(this), bounds, fontWidth, textWidth]() mutable {
                 
                 if(!_this) return;
                 

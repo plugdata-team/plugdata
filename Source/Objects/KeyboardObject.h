@@ -130,7 +130,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
             if(!_this) return;
             
             int x, y, w, h;
@@ -140,7 +140,7 @@ struct KeyboardObject final : public GUIObject, public MidiKeyboardStateListener
             
             auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
             
-            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds]() mutable {
+            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
                 if(!_this) return;
                 box->setObjectBounds(bounds);
             });
