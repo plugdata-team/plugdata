@@ -56,7 +56,7 @@ struct AtomObject : public GUIObject
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
             if(!_this) return;
             
             auto* gatom = static_cast<t_fake_gatom*>(ptr);
@@ -68,7 +68,7 @@ struct AtomObject : public GUIObject
             
             auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
             
-            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds](){
+            MessageManager::callAsync([this, _this = SafePointer(this), bounds](){
                 if(!_this) return;
                 box->setObjectBounds(bounds);
             });

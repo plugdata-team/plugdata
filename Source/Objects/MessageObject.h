@@ -66,7 +66,7 @@ struct MessageObject final : public GUIObject
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
             
             if(!_this) return;
             
@@ -86,7 +86,7 @@ struct MessageObject final : public GUIObject
             
             auto bounds = Rectangle<int>(x, y, w, h);
             
-            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds]() mutable {
+            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
                 
                 if(!_this) return;
                 
