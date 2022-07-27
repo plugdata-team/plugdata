@@ -56,14 +56,24 @@ struct AtomObject : public GUIObject
 
     void updateBounds() override
     {
-        auto* gatom = static_cast<t_fake_gatom*>(ptr);
-        int x, y, w, h;
-
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
-
-        box->setObjectBounds({x, y, w, getAtomHeight()});
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+            if(!_this) return;
+            
+            auto* gatom = static_cast<t_fake_gatom*>(ptr);
+            int x, y, w, h;
+            
+            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            
+            w = std::max<int>(4, gatom->a_text.te_width) * glist_fontwidth(cnv->patch.getPointer());
+            
+            auto bounds = Rectangle<int>(x, y, w, getAtomHeight());
+            
+            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds](){
+                if(!_this) return;
+                box->setObjectBounds(bounds);
+            });
+            
+        });
     }
     
     void checkBounds() override
@@ -181,6 +191,8 @@ struct AtomObject : public GUIObject
     void updateLabel() override
     {
         int idx = std::clamp<int>(labelHeight.getValue(), 1, 7);
+        
+        // TODO: fix data race
         setFontHeight(atomSizes[idx - 1]);
 
         int fontHeight = getAtomHeight() - 6;

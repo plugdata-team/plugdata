@@ -177,7 +177,10 @@ int Patch::getIndex(void* obj)
 
 Connections Patch::getConnections() const
 {
+    
     Connections connections;
+    
+    instance->getCallbackLock()->enter();
     
     t_outconnect* oc;
     t_linetraverser t;
@@ -186,10 +189,13 @@ Connections Patch::getConnections() const
     // Get connections from pd
     linetraverser_start(&t, x);
     
+    // TODO: fix data race
     while ((oc = linetraverser_next(&t)))
     {
         connections.push_back({t.tr_inno, t.tr_ob, t.tr_outno, t.tr_ob2});
     }
+    
+    instance->getCallbackLock()->exit();
     
     return connections;
 }

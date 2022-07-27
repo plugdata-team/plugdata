@@ -93,6 +93,8 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
 void Storage::loadInfoFromPatch()
 {
     if (!infoObject) return;
+    
+    // TODO: fix data race
 
     // Make sure the canvas has a window to ensure correct behaviour
     canvas_setcurrent(infoParent);

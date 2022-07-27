@@ -39,6 +39,7 @@ struct MessageObject final : public GUIObject
                 checkBounds();
             }
         };
+        
 
         // For the autoresize while typing feature
         input.onEditorShow = [this]()
@@ -65,21 +66,34 @@ struct MessageObject final : public GUIObject
 
     void updateBounds() override
     {
-        int x = 0, y = 0, w = 0, h = 0;
-
-        // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
-        auto* textObj = static_cast<t_text*>(ptr);
-
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-        int width = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
-
-        if (textObj->te_width == 0)
-        {
-            width = Font(15).getStringWidth(getText()) + 19;
-        }
-
-        box->setObjectBounds({x, y, width, h});
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+            
+            if(!_this) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            
+            // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
+            auto* textObj = static_cast<t_text*>(ptr);
+            
+            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            
+            w = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
+            
+            if (textObj->te_width == 0)
+            {
+                w = Font(15).getStringWidth(getText()) + 19;
+            }
+            
+            auto bounds = Rectangle<int>(x, y, w, h);
+            
+            MessageManager::callAsync([this, _this = SafePointer<Component>(this), bounds]() mutable {
+                
+                if(!_this) return;
+                
+                box->setObjectBounds(bounds);
+            });
+            
+        });
     }
 
     void checkBounds() override
@@ -132,6 +146,21 @@ struct MessageObject final : public GUIObject
         input.setText(String(getSymbol()), sendNotification);
     }
 
+    void paint(Graphics& g) override
+    {
+        input.setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+        input.setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
+        input.setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+        
+        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+        
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+        
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+    }
+    
     void paintOverChildren(Graphics& g) override
     {
         GUIObject::paintOverChildren(g);
@@ -161,7 +190,6 @@ struct MessageObject final : public GUIObject
                 lastMessage = v;
 
                 update();
-                // repaint();
             }
         }
     }

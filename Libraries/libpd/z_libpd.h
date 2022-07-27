@@ -112,23 +112,23 @@ EXTERN int libpd_process_raw_double(const double *inBuffer, double *outBuffer);
 
 /// get the size of an array by name
 /// returns size or negative error code if non-existent
-EXTERN int libpd_arraysize(const char *name);
+EXTERN int libpd_arraysize(void* garray);
 
 /// (re)size an array by name; sizes <= 0 are clipped to 1
 /// returns 0 on success or negative error code if non-existent
-EXTERN int libpd_resize_array(const char *name, long size);
+EXTERN int libpd_resize_array(void* garray, long size);
 
 /// read n values from named src array and write into dest starting at an offset
 /// note: performs no bounds checking on dest
 /// returns 0 on success or a negative error code if the array is non-existent
 /// or offset + n exceeds range of array
-EXTERN int libpd_read_array(float *dest, const char *name, int offset, int n);
+EXTERN int libpd_read_array(float *dest, void* garray, int offset, int n);
 
 /// read n values from src and write into named dest array starting at an offset
 /// note: performs no bounds checking on src
 /// returns 0 on success or a negative error code if the array is non-existent
 /// or offset + n exceeds range of array
-EXTERN int libpd_write_array(const char *name, int offset,
+EXTERN int libpd_write_array(void* garray, int offset,
     const float *src, int n);
 
 /// read n values from named src array and write into dest starting at an offset
@@ -137,7 +137,7 @@ EXTERN int libpd_write_array(const char *name, int offset,
 /// returns 0 on success or a negative error code if the array is non-existent
 /// or offset + n exceeds range of array
 /// double-precision variant of libpd_read_array()
-EXTERN int libpd_read_array_double(double *dest, const char *src,
+EXTERN int libpd_read_array_double(double *dest, void* garray,
     int offset, int n);
 
 /// read n values from src and write into named dest array starting at an offset
@@ -146,7 +146,7 @@ EXTERN int libpd_read_array_double(double *dest, const char *src,
 /// returns 0 on success or a negative error code if the array is non-existent
 /// or offset + n exceeds range of array
 /// double-precision variant of libpd_write_array()
-EXTERN int libpd_write_array_double(const char *dest, int offset,
+EXTERN int libpd_write_array_double(void* garray, int offset,
     const double *src, int n);
 
 /* sending messages to pd */
