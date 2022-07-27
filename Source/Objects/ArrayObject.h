@@ -17,8 +17,9 @@ public:
         Curve
     };
     
-    PdArray(String arrayName, void* arrayInstance) : name(std::move(arrayName)), instance(arrayInstance)
+    PdArray(void* arrayPtr, void* instancePtr) : ptr(arrayPtr), instance(instancePtr)
     {
+        
     }
     
     // The default constructor.
@@ -26,27 +27,28 @@ public:
     
     
     bool willSaveContent() const {
-        return libpd_array_get_saveit(name.toRawUTF8());
+        return libpd_array_get_saveit(ptr);
     }
     
     // Gets the name of the array.
     String getName() const
     {
-        return name;
+        return libpd_array_get_name(ptr);
     }
     
     // Gets the text label of the array.
     String getText() const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return libpd_array_get_unexpanded_name(libpd_array_get_byname(name.toRawUTF8()));
+        return libpd_array_get_unexpanded_name(ptr);
     }
     
     
     PdArray::DrawType getDrawType() const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return static_cast<DrawType>(libpd_array_get_style(name.toRawUTF8()));
+        
+        return static_cast<DrawType>(libpd_array_get_style(ptr));
     }
     
     // Gets the scale of the array.
@@ -54,7 +56,7 @@ public:
     {
         float min = -1, max = 1;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_array_get_scale(name.toRawUTF8(), &min, &max);
+        libpd_array_get_scale(ptr, &min, &max);
         return {min, max};
     }
     
@@ -62,7 +64,7 @@ public:
     int size() const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return libpd_array_get_size(name.toRawUTF8());
+        return libpd_array_get_size(ptr);
     }
     
     void setScale(std::array<float, 2> scale)
@@ -70,33 +72,33 @@ public:
         auto& [min, max] = scale;
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         
-        libpd_array_set_scale(name.toRawUTF8(), min, max);
+        libpd_array_set_scale(ptr, min, max);
     }
     
     // Gets the values of the array.
     void read(std::vector<float>& output) const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        int const size = libpd_arraysize(name.toRawUTF8());
+        int const size = libpd_arraysize(ptr);
         output.resize(static_cast<size_t>(size));
-        libpd_read_array(output.data(), name.toRawUTF8(), 0, size);
+        libpd_read_array(output.data(), ptr, 0, size);
     }
     
     // Writes the values of the array.
     void write(std::vector<float> const& input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_write_array(name.toRawUTF8(), 0, input.data(), static_cast<int>(input.size()));
+        libpd_write_array(ptr, 0, input.data(), static_cast<int>(input.size()));
     }
     
     // Writes a value of the array.
     void write(const size_t pos, float const input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_write_array(name.toRawUTF8(), static_cast<int>(pos), &input, 1);
+        libpd_write_array(ptr, static_cast<int>(pos), &input, 1);
     }
     
-    String name = "";
+    void* ptr = nullptr;
     void* instance = nullptr;
 };
 
@@ -105,9 +107,9 @@ struct GraphicalArray : public Component
 public:
     Box* box;
     
-    GraphicalArray(PlugDataAudioProcessor* instance, PdArray& graph, Box* parent) : array(graph), edited(false), pd(instance), box(parent)
+    GraphicalArray(PlugDataAudioProcessor* instance, PdArray& arr, Box* parent) : array(arr), edited(false), pd(instance), box(parent)
     {
-        if (graph.getName().isEmpty()) return;
+        if (!array.ptr) return;
         
         vec.reserve(8192);
         temp.reserve(8192);
@@ -127,7 +129,7 @@ public:
     
     void setArray(PdArray& graph)
     {
-        if (graph.getName().isEmpty()) return;
+        if (!array.ptr) return;
         array = graph;
     }
     
@@ -312,7 +314,7 @@ public:
         
         lastIndex = index;
         
-        pd->enqueueMessages(stringArray.toStdString(), array.getName().toStdString(), {});
+        pd->enqueueDirectMessages(array.ptr, stringArray);
         repaint();
     }
     
@@ -371,7 +373,7 @@ public:
         range = var(arr);
         size = var(static_cast<int>(graph.array.size()));
         saveContents = array.willSaveContent();
-        name = String(array.getText());
+        name = String(array.getName());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
         
         labelColour = box->findColour(PlugDataColour::textColourId).toString();
@@ -413,11 +415,22 @@ public:
     
     void updateBounds() override
     {
-        int x = 0, y = 0, w = 0, h = 0;
-        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer<Component>(this)](){
+            if(!_this) return;
+            
+            int x = 0, y = 0, w = 0, h = 0;
+            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+            
+            auto* glist = static_cast<_glist*>(ptr);
+            auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
+            
+            MessageManager::callAsync([this,  _this = SafePointer<Component>(this), bounds]() mutable {
+                if(!_this) return;
+                
+                box->setObjectBounds(bounds);
+            });
+        });
         
-        auto* glist = static_cast<_glist*>(ptr);
-        box->setObjectBounds({x, y, glist->gl_pixwidth, glist->gl_pixheight});
     }
     
     void checkBounds() override
@@ -488,17 +501,21 @@ public:
         
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
         
+        
         cnv->pd->enqueueFunction(
                                  [this, arrName, arrSize, flags]() mutable
                                  {
-                                     auto* garray = static_cast<t_garray*>(libpd_array_get_byname(array.getName().toRawUTF8()));
+                                     auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
                                      garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
+                                     
+                                     box->cnv->pd->getCallbackLock()->enter();
+                                     array = getArray();
+                                     graph.setArray(array);
+                                     box->cnv->pd->getCallbackLock()->exit();
                                      
                                      MessageManager::callAsync(
                                                                [this]()
                                                                {
-                                                                   array = getArray();
-                                                                   graph.setArray(array);
                                                                    updateLabel();
                                                                });
                                  });
@@ -545,7 +562,14 @@ public:
     
     PdArray getArray() const
     {
-        return {libpd_array_get_name(static_cast<t_canvas*>(ptr)->gl_list), cnv->pd->m_instance};
+        auto* c = static_cast<t_canvas*>(ptr);
+        auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
+        
+        //gobj_
+        
+        
+        
+        return {glist, cnv->pd->m_instance};
     }
     
 private:
