@@ -508,14 +508,11 @@ public:
                                      auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
                                      garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
                                      
-                                     box->cnv->pd->getCallbackLock()->enter();
-                                     array = getArray();
-                                     graph.setArray(array);
-                                     box->cnv->pd->getCallbackLock()->exit();
-                                     
                                      MessageManager::callAsync(
                                                                [this]()
                                                                {
+                                                                   array = getArray();
+                                                                   graph.setArray(array);
                                                                    updateLabel();
                                                                });
                                  });

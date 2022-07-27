@@ -2070,7 +2070,9 @@ void PlugDataTextEditor::renderTextUsingAttributedString (Graphics& g)
      */
     auto colourScheme = CPlusPlusCodeTokeniser().getDefaultColourScheme();
     auto originalHeight = document.getFont().getHeight();
-    auto font = document.getFont().withHeight (originalHeight * transform.getScaleFactor());
+    
+    auto scaleFactor = std::sqrt (std::abs (transform.getDeterminant()));
+    auto font = document.getFont().withHeight (originalHeight * scaleFactor);
     auto rows = document.findRowsIntersecting (g.getClipBounds().toFloat().transformedBy (transform.inverted()));
     
     for (const auto& r: rows)
