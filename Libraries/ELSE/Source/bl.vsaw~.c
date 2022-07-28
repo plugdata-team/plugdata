@@ -29,7 +29,7 @@ typedef struct blvsaw{
     t_inlet* x_inlet_width;
 }t_blvsaw;
 
-t_class *bl_oscillators;
+t_class *bl_vsaw;
 
 static t_float phasewrap(t_float phase){
     while (phase < 0.0)
@@ -124,7 +124,7 @@ static void blvsaw_free(t_blvsaw *x){
 
 static void* blvsaw_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    t_blvsaw* x = (t_blvsaw *)pd_new(bl_oscillators);
+    t_blvsaw* x = (t_blvsaw *)pd_new(bl_vsaw);
     x->x_polyblep.pulse_width = 0;
     x->x_polyblep.freq_in_seconds_per_sample = 0;
     x->x_polyblep.phase = 0.0;
@@ -153,8 +153,8 @@ static void* blvsaw_new(t_symbol *s, int ac, t_atom *av){
 }
 
 void setup_bl0x2evsaw_tilde(void){
-    bl_oscillators = class_new(gensym("bl.vsaw~"), (t_newmethod)blvsaw_new,
+    bl_vsaw = class_new(gensym("bl.vsaw~"), (t_newmethod)blvsaw_new,
         (t_method)blvsaw_free, sizeof(t_blvsaw), 0, A_GIMME, A_NULL);
-    CLASS_MAINSIGNALIN(bl_oscillators, t_blvsaw, x_f);
-    class_addmethod(bl_oscillators, (t_method)blvsaw_dsp, gensym("dsp"), A_NULL);
+    CLASS_MAINSIGNALIN(bl_vsaw, t_blvsaw, x_f);
+    class_addmethod(bl_vsaw, (t_method)blvsaw_dsp, gensym("dsp"), A_NULL);
 }
