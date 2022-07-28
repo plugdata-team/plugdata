@@ -82,7 +82,7 @@ static void mtx_retarget(t_mtx *x, int cellndx){
 
 static void mtx_float(t_mtx *x, t_float f){
     f = 0;
-    pd_error(x, "mtx~: no method for float");
+    pd_error(x, "[mtx~]: no method for float");
 }
 
 static void mtx_list(t_mtx *x, t_symbol *s, int argc, t_atom *argv){
@@ -96,8 +96,11 @@ static void mtx_list(t_mtx *x, t_symbol *s, int argc, t_atom *argv){
     onoff = 0;
     gain = 0;
     fade = 0;
-    if (argc < 3) //ignore if less than 3 args
+    if(argc < 3){ //ignore if less than 3 args
+        if(argc == 1)
+            pd_error(x, "[mtx~]: no method for float");
         return;
+    }
     int argnum = 0;
     while(argc > 0){ //argument parsing
         t_float argval = 0; //if not float, set equal to 0, else get value

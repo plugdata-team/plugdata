@@ -24,15 +24,15 @@ static void cusp_list(t_cusp *x, t_symbol *s, int argc, t_atom * argv){
     int argnum = 0; // current argument
     while(argc)
     {
-        if(argv -> a_type != A_FLOAT)
-        {
-            pd_error(x, "cusp~: list needs to only contain floats");
+        if(argc == 1){
+            obj_list(&x->x_obj, 0, argc, argv);
+            return;
         }
-        else
-        {
+        if(argv->a_type != A_FLOAT)
+            pd_error(x, "cusp~: list needs to only contain floats");
+        else{
             t_float curf = atom_getfloatarg(0, argc, argv);
-            switch(argnum)
-            {
+            switch(argnum){
                 case 0:
                     x->x_a = curf;
                     break;
@@ -91,26 +91,22 @@ static t_int *cusp_perform(t_int *w)
 }
 
 
-static void cusp_dsp(t_cusp *x, t_signal **sp)
-{
+static void cusp_dsp(t_cusp *x, t_signal **sp){
     x->x_sr = sp[0]->s_sr;
     dsp_add(cusp_perform, 4, x, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
 }
 
-static void *cusp_free(t_cusp *x)
-{
+static void *cusp_free(t_cusp *x){
     outlet_free(x->x_outlet);
-    return (void *)x;
+    return(void *)x;
 }
 
-static void *cusp_new(t_symbol *s, int ac, t_atom *av)
-{
+static void *cusp_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_cusp *x = (t_cusp *)pd_new(cusp_class);
     x->x_sr = sys_getsr();
     t_float hz = x->x_sr * 0.5, a = 1, b = 1.9, yn = 0; // default parameters
-    if (ac && av->a_type == A_FLOAT)
-    {
+    if(ac && av->a_type == A_FLOAT){
         hz = av->a_w.w_float;
         ac--; av++;
         if (ac && av->a_type == A_FLOAT)
@@ -122,20 +118,19 @@ static void *cusp_new(t_symbol *s, int ac, t_atom *av)
                 if (ac && av->a_type == A_FLOAT)
                     yn = av->a_w.w_float;
     }
-    if(hz >= 0) x->x_phase = 1;
+    if(hz >= 0)
+        x->x_phase = 1;
     x->x_freq  = hz;
     x->x_a = a;
     x->x_b = b;
     x->x_yn = yn;
     x->x_outlet = outlet_new(&x->x_obj, &s_signal);
-    return (x);
+    return(x);
 }
 
-void cusp_tilde_setup(void)
-{
-    cusp_class = class_new(gensym("cusp~"),
-        (t_newmethod)cusp_new, (t_method)cusp_free,
-        sizeof(t_cusp), 0, A_GIMME, 0);
+void cusp_tilde_setup(void){
+    cusp_class = class_new(gensym("cusp~"), (t_newmethod)cusp_new,
+        (t_method)cusp_free, sizeof(t_cusp), 0, A_GIMME, 0);
     CLASS_MAINSIGNALIN(cusp_class, t_cusp, x_freq);
     class_addlist(cusp_class, cusp_list);
     class_addmethod(cusp_class, (t_method)cusp_dsp, gensym("dsp"), A_CANT, 0);

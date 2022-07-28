@@ -41,27 +41,6 @@ static void routetype_symbol(t_routetype *x, t_symbol *s){
         outlet_symbol(x->x_out_reject, s);
 }
 
-static void routetype_list(t_routetype *x, t_symbol *sel, int argc, t_atom *argv){
-    t_symbol *dummy = sel;
-    dummy = NULL;
-    if(argc == 0){
-        routetype_bang(x);
-        return;
-    }
-    if(argc == 1 && argv[0].a_type == A_SYMBOL){
-        routetype_symbol(x, atom_getsymbol(argv));
-        return;
-    }
-    if(argc == 1 && argv[0].a_type == A_FLOAT){
-        routetype_float(x, atom_getfloat(argv));
-        return;
-    }
-    if(x->x_l)
-        outlet_list(x->x_out_list, gensym("list"), argc, argv);
-    else if(x->x_r)
-        outlet_list(x->x_out_reject, gensym("list"), argc, argv);
-}
-
 static void routetype_anything(t_routetype *x, t_symbol *sel, int argc, t_atom *argv){
     if(x->x_a)
         outlet_anything(x->x_out_anything, sel, argc, argv);
@@ -76,10 +55,30 @@ static void routetype_pointer(t_routetype *x, t_gpointer *gp){
         outlet_pointer(x->x_out_pointer, gp);
 }
 
+static void routetype_list(t_routetype *x, t_symbol *sel, int argc, t_atom *argv){
+    sel = NULL;
+    if(!argc){
+        routetype_bang(x);
+        return;
+    }
+    if(argc == 1){
+        if(argv[0].a_type == A_SYMBOL)
+            routetype_symbol(x, atom_getsymbol(argv));
+        else if(argv[0].a_type == A_FLOAT)
+            routetype_float(x, atom_getfloat(argv));
+        else if(argv[0].a_type == A_POINTER)
+            routetype_pointer(x, argv[0].a_w.w_gpointer);
+        return;
+    }
+    if(x->x_l)
+        outlet_list(x->x_out_list, gensym("list"), argc, argv);
+    else if(x->x_r)
+        outlet_list(x->x_out_reject, gensym("list"), argc, argv);
+}
+
 static void *routetype_new(t_symbol *s, int argc, t_atom *argv){
     t_routetype *x = (t_routetype *)pd_new(routetype_class);
-    t_symbol *dummy = s;
-    dummy = NULL;
+    s = NULL;
     x->x_b = x->x_f = x->x_s = x->x_l = x->x_a = x->x_r = 0;
     int c = argc;
     if(!argc){
@@ -129,13 +128,13 @@ static void *routetype_new(t_symbol *s, int argc, t_atom *argv){
     }
     return(x);
 errstate:
-    pd_error(x, "routetype: improper args");
-    return NULL;
+    pd_error(x, "[routetype]: improper args");
+    return(NULL);
 }
 
 void routetype_setup(void){
-    routetype_class = class_new(gensym("routetype"), (t_newmethod)routetype_new,
-                                0, sizeof(t_routetype), 0, A_GIMME, 0);
+    routetype_class = class_new(gensym("routetype"),
+        (t_newmethod)routetype_new, 0, sizeof(t_routetype), 0, A_GIMME, 0);
     class_addbang(routetype_class, routetype_bang);
     class_addfloat(routetype_class, routetype_float);
     class_addsymbol(routetype_class, routetype_symbol);

@@ -8,9 +8,7 @@ static t_class *quantizer_class;
 typedef struct _quantizer{
 	t_object    x_obj;
 	t_float     x_step;
-    t_int       x_bytes;
     t_int       x_mode;
-    t_atom     *x_at;
 }t_quantizer;
 
 static void quantizer_mode(t_quantizer *x, t_float f){
@@ -36,25 +34,15 @@ static float get_qtz(t_quantizer *x, t_float f){
 		}
 		else // quantizer is <= 0, do nothing
 			qtz = f;
-		return qtz;
-}
-
-static void quantizer_float(t_quantizer *x, t_float f){
-    outlet_float(x->x_obj.ob_outlet, get_qtz(x, f));
+		return(qtz);
 }
 
 static void quantizer_list(t_quantizer *x, t_symbol *s, int argc, t_atom *argv){
     s = NULL;
-    int old_bytes = x->x_bytes, i;
-    x->x_bytes = argc*sizeof(t_atom);
-    x->x_at = (t_atom *)t_resizebytes(x->x_at, old_bytes, x->x_bytes);
-	for(i = 0; i < argc; i++) // get output list
-		SETFLOAT(x->x_at+i, get_qtz(x, atom_getfloatarg(i, argc, argv)));
-	outlet_list(x->x_obj.ob_outlet, &s_list, argc, x->x_at);
-}
-                 
-void quantizer_free(t_quantizer *x){
-    t_freebytes(x->x_at, x->x_bytes);
+    t_atom at[argc];
+	for(int i = 0; i < argc; i++) // get output list
+		SETFLOAT(at+i, get_qtz(x, atom_getfloatarg(i, argc, argv)));
+	outlet_list(x->x_obj.ob_outlet, &s_list, argc, at);
 }
 
 static void *quantizer_new(t_symbol *s, int argc, t_atom *argv){
@@ -102,8 +90,6 @@ static void *quantizer_new(t_symbol *s, int argc, t_atom *argv){
         x->x_mode = 3;
     floatinlet_new(&x->x_obj, &x->x_step);
     outlet_new(&x->x_obj, 0);
-    x->x_bytes = sizeof(t_atom);
-    x->x_at = (t_atom *)getbytes(x->x_bytes);
     return(x);
 errstate:
     pd_error(x, "quantizer: improper args");
@@ -112,8 +98,7 @@ errstate:
 
 void quantizer_setup(void){
 	quantizer_class = class_new(gensym("quantizer"), (t_newmethod)quantizer_new,
-        (t_method)quantizer_free, sizeof(t_quantizer), 0, A_GIMME, 0);
-	class_addfloat(quantizer_class, (t_method)quantizer_float);
+        0, sizeof(t_quantizer), 0, A_GIMME, 0);
 	class_addlist(quantizer_class, (t_method)quantizer_list);	
 	class_addmethod(quantizer_class, (t_method)quantizer_mode,  gensym("mode"), A_FLOAT, 0);
 }

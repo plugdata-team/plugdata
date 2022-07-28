@@ -233,9 +233,13 @@ static void messbox_proxy_output(t_messbox_proxy* x, t_symbol *s, int ac,
 }
 */
 
-static void messbox_list(t_messbox* x, t_symbol *s, int ac,
-    t_atom *av){
+static void messbox_list(t_messbox* x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
+    if(!ac){ // bang
+        sys_vgui("pdsend \"%s [string map {\\$0 %s} [%s get 0.0 end]]\"\n",
+            x->x_proxy->x_bind_sym->s_name, x->x_dollzero->s_name, x->text_id);
+        return;
+    }
     char buf[MAXPDSTRING];
     sprintf(buf, "\\$0 %s", x->x_dollzero->s_name);
     char symbuf[32]; // should be enough?
@@ -261,11 +265,6 @@ static void messbox_list(t_messbox* x, t_symbol *s, int ac,
 static void messbox_proxy_anything(t_messbox_proxy* x, t_symbol *s, int ac,
     t_atom *av){
     outlet_anything(x->p_master->x_obj.ob_outlet, s, ac, av);
-}
-
-static void messbox_bang(t_messbox* x){
-    sys_vgui("pdsend \"%s [string map {\\$0 %s} [%s get 0.0 end]]\"\n",
-        x->x_proxy->x_bind_sym->s_name, x->x_dollzero->s_name, x->text_id);
 }
 
 static void messbox_append(t_messbox* x,  t_symbol *s, int ac, t_atom *av){
@@ -603,21 +602,19 @@ static void *messbox_new(t_symbol *s, int ac, t_atom *av){
 void messbox_setup(void){
     messbox_class = class_new(gensym("messbox"), (t_newmethod)messbox_new,
         (t_method)messbox_free, sizeof(t_messbox), 0, A_GIMME, 0);
-    messbox_proxy_class = class_new(0, 0, 0,
-				 sizeof(t_messbox_proxy),
-				 CLASS_PD | CLASS_NOINLET, 0);
-    class_addbang(messbox_class, (t_method)messbox_bang);
+    messbox_proxy_class = class_new(0, 0, 0, sizeof(t_messbox_proxy),
+        CLASS_PD | CLASS_NOINLET, 0);
     class_addlist(messbox_class, (t_method)messbox_list);
     class_addanything(messbox_proxy_class, (t_method)messbox_proxy_anything);
     class_addmethod(messbox_class, (t_method)messbox_size, gensym("size"), A_GIMME, 0);
     class_addmethod(messbox_class, (t_method)messbox_fontsize, gensym("fontsize"), A_GIMME, 0);
     class_addmethod(messbox_class, (t_method)messbox_bold, gensym("bold"), A_GIMME, 0);
-
     class_addmethod(messbox_class, (t_method)messbox_set, gensym("set"), A_GIMME, 0);
     class_addmethod(messbox_class, (t_method)messbox_append, gensym("append"), A_GIMME, 0);
     class_addmethod(messbox_class, (t_method)messbox_bgcolor, gensym("bgcolor"), A_GIMME, 0);
     class_addmethod(messbox_class, (t_method)messbox_fgcolor, gensym("fgcolor"), A_GIMME, 0);
-    class_addmethod(messbox_class, (t_method)messbox_click, gensym("click"), A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
+    class_addmethod(messbox_class, (t_method)messbox_click, gensym("click"),
+        A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
     class_addmethod(messbox_class, (t_method)messbox_resize_callback, gensym("_resize"), A_FLOAT, 0);
     class_addmethod(messbox_class, (t_method)messbox_motion_callback, gensym("_motion"), A_FLOAT, A_FLOAT, 0);
     class_setwidget(messbox_class, &messbox_widgetbehavior);

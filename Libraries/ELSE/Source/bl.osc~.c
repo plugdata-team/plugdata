@@ -43,11 +43,9 @@ t_class *bl_oscillators;
 static t_float phasewrap(t_float phase){
     while (phase < 0.0)
         phase += 1.0;
-    
     while(phase >= 1.0)
         phase -= 1.0;
-    
-    return phase;
+    return(phase);
 }
 
 static t_float square(t_float x){
@@ -55,7 +53,7 @@ static t_float square(t_float x){
 }
 
 static t_float blep(t_float phase, t_float dt){
-    if (phase < dt)
+    if(phase < dt)
         return(-square(phase / dt - 1));
     else if(phase > 1 - dt)
         return(square((phase - 1) / dt + 1));
@@ -68,7 +66,7 @@ static t_float blamp(t_float phase, t_float dt){
         phase = phase / dt - 1.0;
         return(-1.0 / 3.0 * square(phase) * phase);
     }
-    else if (phase > 1.0 - dt){
+    else if(phase > 1.0 - dt){
         phase = (phase - 1.0) / dt + 1.0;
         return(1.0 / 3.0 * square(phase) * phase);
     }
@@ -139,23 +137,21 @@ static t_float saw(const t_polyblep* x){
 static t_int* blosc_perform(t_int *w) {
     t_polyblep* x      = (t_polyblep*)(w[1]);
     t_int n            = (t_int)(w[2]);
-    int no_pwm         = x->shape >= SAW;
+    int pwm            = x->shape < SAW;
     t_float* freq_vec  = (t_float *)(w[3]);
     t_float* width_vec = (t_float *)(w[4]);
-    t_float* sync_vec  = (t_float *)(w[no_pwm ? 4 : 5]);
-    t_float* phase_vec = (t_float *)(w[no_pwm ? 5 : 6]);
-    t_float* out       = (t_float *)(w[no_pwm ? 6 : 7]);
+    t_float* sync_vec  = (t_float *)(w[4+pwm]);
+    t_float* phase_vec = (t_float *)(w[5+pwm]);
+    t_float* out       = (t_float *)(w[6+pwm]);
     while(n--){
         t_float freq = *freq_vec++;
         t_float sync = *sync_vec++;
         t_float phase_offset = *phase_vec++;
         t_float pulse_width = *width_vec++;
-        // Update frequency
-        x->freq_in_seconds_per_sample = freq / x->sr;
+        x->freq_in_seconds_per_sample = freq / x->sr; // Update frequency
         // Update pulse width, limit between 0 and 1
         x->pulse_width = fmax(fmin(0.99, pulse_width), 0.01);
         t_float y;
-        
         if(sync > 0 && sync <= 1){ // Phase sync
             x->phase = sync;
             x->phase = phasewrap(x->phase);
@@ -164,10 +160,8 @@ static t_int* blosc_perform(t_int *w) {
             double phase_dev = phase_offset - x->last_phase_offset;
             if(phase_dev >= 1 || phase_dev <= -1)
                 phase_dev = fmod(phase_dev, 1);
-            
             x->phase = phasewrap(x->phase + phase_dev);
         }
-        
         switch(x->shape){
             case TRIANGLE:{
                 y = tri(x);
@@ -191,14 +185,12 @@ static t_int* blosc_perform(t_int *w) {
             }
             default: y = 0.0;
         }
-        
         x->phase += x->freq_in_seconds_per_sample;
         x->phase = phasewrap(x->phase);
         x->last_phase_offset = phase_offset;
-        
         *out++ = y;  // Send to output
     }
-    return(w + (no_pwm ? 7 : 8));
+    return(w+7+pwm);
 }
 
 static void blosc_dsp(t_blosc *x, t_signal **sp){
@@ -241,11 +233,11 @@ static void* blosc_new(t_symbol *s, int ac, t_atom *av){
             x->x_polyblep.shape = SAW2;
         ac--, av++;
     }
-    int has_pwm = x->x_polyblep.shape <= SQUARE;
+    int pwm = x->x_polyblep.shape <= SQUARE;
     if(ac && av->a_type == A_FLOAT){
         init_freq = av->a_w.w_float;
         ac--; av++;
-        if(ac && av->a_type == A_FLOAT && has_pwm){
+        if(ac && av->a_type == A_FLOAT && pwm){
             x->x_polyblep.pulse_width = av->a_w.w_float;
             ac--; av++;
         }
@@ -255,18 +247,15 @@ static void* blosc_new(t_symbol *s, int ac, t_atom *av){
         }
     }
     x->x_f = init_freq;
-    // Outlet
     outlet_new(&x->x_obj, &s_signal);
-    if(has_pwm){ // Pulse width inlet
+    if(pwm){ // Pulse width inlet
         x->x_inlet_width = inlet_new(&x->x_obj, &x->x_obj.ob_pd,  &s_signal, &s_signal);
         pd_float((t_pd *)x->x_inlet_width, x->x_polyblep.pulse_width);
     }
     else
         x->x_inlet_width = NULL;
-    // Sync inlet
     x->x_inlet_sync = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
-        pd_float((t_pd *)x->x_inlet_sync, 0);
-    // Phase inlet
+    pd_float((t_pd *)x->x_inlet_sync, 0);
     x->x_inlet_phase = inlet_new(&x->x_obj, &x->x_obj.ob_pd, &s_signal, &s_signal);
     pd_float((t_pd *)x->x_inlet_phase, init_phase);
     return(void *)x;

@@ -25,6 +25,10 @@ static void quad_list(t_quad *x, t_symbol *s, int argc, t_atom * argv)
     int argnum = 0; // current argument
     while(argc)
     {
+        if(argc == 1){
+            obj_list(&x->x_obj, 0, argc, argv);
+            return;
+        }
         if(argv -> a_type != A_FLOAT)
         {
             pd_error(x, "latoocarfian~: list arguments needs to only contain floats");
@@ -108,14 +112,12 @@ static void *quad_free(t_quad *x)
     return (void *)x;
 }
 
-static void *quad_new(t_symbol *s, int ac, t_atom *av)
-{
+static void *quad_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_quad *x = (t_quad *)pd_new(quad_class);
     x->x_sr = sys_getsr();
     t_float hz = x->x_sr * 0.5, a = 1, b = -1, c = -0.75, yn = 0; // default parameters
-    if (ac && av->a_type == A_FLOAT)
-    {
+    if(ac && av->a_type == A_FLOAT){
         hz = av->a_w.w_float;
         ac--; av++;
         if (ac && av->a_type == A_FLOAT)
@@ -137,14 +139,12 @@ static void *quad_new(t_symbol *s, int ac, t_atom *av)
     x->x_c = c;
     x->x_yn = yn;
     x->x_outlet = outlet_new(&x->x_obj, &s_signal);
-    return (x);
+    return(x);
 }
 
-void quad_tilde_setup(void)
-{
-    quad_class = class_new(gensym("quad~"),
-        (t_newmethod)quad_new, (t_method)quad_free,
-        sizeof(t_quad), 0, A_GIMME, 0);
+void quad_tilde_setup(void){
+    quad_class = class_new(gensym("quad~"), (t_newmethod)quad_new,
+        (t_method)quad_free, sizeof(t_quad), 0, A_GIMME, 0);
     CLASS_MAINSIGNALIN(quad_class, t_quad, x_freq);
     class_addlist(quad_class, quad_list);
     class_addmethod(quad_class, (t_method)quad_dsp, gensym("dsp"), A_CANT, 0);

@@ -13,11 +13,11 @@
 #include "mifi.h"
 
 #define PANIC_VOID                  0xFF
-#define MIDI_INISEQSIZE             256     // LATER rethink
-#define MIDI_INITEMPOMAPSIZE        128     // LATER rethink
-#define MIDI_EOM                    255     // end of message marker, LATER rethink
+#define MIDI_INISEQSIZE             256    // LATER rethink
+#define MIDI_INITEMPOMAPSIZE        128    // LATER rethink
+#define MIDI_META                   255    // META marker
 #define MIDI_TICKSPERSEC            48
-#define MIDI_MINTICKDELAY           1.      // LATER rethink
+#define MIDI_MINTICKDELAY           1.     // LATER rethink
 #define MIDI_TICKEPSILON ((double) .0001)
 #define MIDI_STARTEPSILON          .0001   // if inside: play unmodified
 #define MIDI_TEMPOEPSILON          .0001   // if inside: pause
@@ -203,21 +203,22 @@ static int midi_dogrowing(t_midi *x, int nevents, int ntempi){
 }
 
 static void midi_complete(t_midi *x){
-    if(x->x_evelength < x->x_expectedlength){ /* CHECKED no warning if no data after status byte requiring data */
+    if(x->x_evelength < x->x_expectedlength){
+        // no warning if no data after status byte requiring data
         if(x->x_evelength > 1)
-            post("midi: truncated midi message");  /* CHECKED */
-    /* CHECKED nothing stored */
+            post("midi: truncated midi message");  // CHECKED
+    // CHECKED nothing stored
     }
     else{
         t_midievent *ep = &x->x_sequence[x->x_nevents];
         ep->e_delta = clock_gettimesince(x->x_prevtime);
         x->x_prevtime = clock_getlogicaltime();
         if(x->x_evelength < 4)
-            ep->e_bytes[x->x_evelength] = MIDI_EOM;
+            ep->e_bytes[x->x_evelength] = MIDI_META;
         x->x_nevents++;
         if(x->x_nevents >= x->x_midisize){
             int nexisting = x->x_midisize;
-        /* store-ahead scheme, LATER consider using x_currevent */
+        // store-ahead scheme, LATER consider using x_currevent
             int nrequested = x->x_nevents + 1;
             x->x_sequence = grow_withdata(&nrequested, &nexisting, &x->x_midisize, x->x_sequence,
                   MIDI_INISEQSIZE, x->x_midiini, sizeof(*x->x_sequence));
@@ -525,7 +526,7 @@ static void midi_dump(t_midi *x){
         unsigned char *bp = ep->e_bytes;
         outlet_float(((t_object *)x)->ob_outlet, (float)*bp);
         int i;
-        for(i = 0, bp++; i < 3 && *bp != MIDI_EOM; i++, bp++)
+        for(i = 0, bp++; i < 3 && *bp != MIDI_META; i++, bp++)
             outlet_float(((t_object *)x)->ob_outlet, (float)*bp);
         ep++;
     }
@@ -541,15 +542,15 @@ static void midi_clocktick(t_midi *x){
         output = (t_float)*bp++;
         outlet_float(((t_object *)x)->ob_outlet, output);
         panic_input(x, output);
-        if(*bp != MIDI_EOM){
+        if(*bp != MIDI_META){
             output = (t_float)*bp++;
             outlet_float(((t_object *)x)->ob_outlet, output);
             panic_input(x, output);
-            if(*bp != MIDI_EOM){
+            if(*bp != MIDI_META){
                 output = (t_float)*bp++;
                 outlet_float(((t_object *)x)->ob_outlet, output);
                 panic_input(x, output);
-                if(*bp != MIDI_EOM){
+                if(*bp != MIDI_META){
                     output = (t_float)*bp++;
                     outlet_float(((t_object *)x)->ob_outlet, output);
                     panic_input(x, output);
@@ -651,10 +652,10 @@ static int midi_mrhook(t_mifiread *mr, void *hookdata, int evtype){
             sev->e_bytes[0] = status | mifiread_getchannel(mr);
             sev->e_bytes[1] = mifiread_getdata1(mr);
             if(MIFI_ONEDATABYTE(status) || evtype == 0x2f)
-                sev->e_bytes[2] = MIDI_EOM;
+                sev->e_bytes[2] = MIDI_META;
             else{
                 sev->e_bytes[2] = mifiread_getdata2(mr);
-                sev->e_bytes[3] = MIDI_EOM;
+                sev->e_bytes[3] = MIDI_META;
             }
         }
         else if(x->x_eventreadhead == x->x_nevents){
@@ -748,7 +749,7 @@ static int midi_mfwrite(t_midi *x, char *path){
         unsigned char *bp = sev->e_bytes;
         unsigned status = *bp & 0xf0;
         if(status > 127 && status < 240){
-            if(!mifiwrite_channelevent(mw, sev->e_delta, status, *bp & 0x0f, bp[1], bp[2])){  /* MIDI_EOM ignored */
+            if(!mifiwrite_channelevent(mw, sev->e_delta, status, *bp & 0x0f, bp[1], bp[2])){  /* MIDI_META ignored */
                 pd_error(x, "[midi] cannot write channel event %d", status);
                 goto mfwritefailed;
             }
@@ -794,7 +795,7 @@ static int midi_fromatoms(t_midi *x, int ac, t_atom *av){
             }
             else if(av->a_type == A_SEMI && i > 0){
                 if(i < 4)
-                    ep->e_bytes[i] = MIDI_EOM;
+                    ep->e_bytes[i] = MIDI_META;
                 nevents++;
                 ep++;
                 i = -1;
@@ -834,7 +835,7 @@ static void midi_tobinbuf(t_midi *x, t_binbuf *bb){
         SETFLOAT(ap, ep->e_delta);  // CHECKED same for sysex continuation
         ap++;
         SETFLOAT(ap, *bp);
-        for(i = 0, ap++, bp++; i < 3 && *bp != MIDI_EOM; i++, ap++, bp++)
+        for(i = 0, ap++, bp++; i < 3 && *bp != MIDI_META; i++, ap++, bp++)
             SETFLOAT(ap, *bp);
         binbuf_add(bb, i + 2, at);
         binbuf_addsemi(bb);

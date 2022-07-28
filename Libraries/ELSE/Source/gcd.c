@@ -7,8 +7,8 @@ static t_class *gcd_class;
 
 typedef struct _gcd{
     t_object    x_obj;
-    float        x_right;
-    float        x_output;
+    float       x_right;
+    float       x_output;
     t_outlet   *x_outlet;
 }t_gcd;
 
@@ -22,25 +22,20 @@ float gcd_calculate(float f1, float f2){
         return(fabs((float)b));
 }
 
-static void gcd_bang(t_gcd *x){
-    outlet_float(x->x_outlet, (t_float)x->x_output);
-}
-
-static void gcd_float(t_gcd *x, t_floatarg f){
-    x->x_output = gcd_calculate(f, x->x_right);
-    gcd_bang(x);
-}
-
 static void gcd_list(t_gcd *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    float a = 0, b = 0;
-    a = atom_getfloat(av);
-    for(int i = 1; i < ac; i++){
-        b = atom_getfloat(av+i);
-        a = gcd_calculate(a, b);
+    float a = atom_getfloat(av), b = 0;
+    if(!ac) // bang
+        outlet_float(x->x_outlet, (t_float)x->x_output);
+    else if(ac == 1) // float
+        outlet_float(x->x_outlet, (t_float)(x->x_output = gcd_calculate(a, x->x_right)));
+    else{
+        for(int i = 1; i < ac; i++){
+            b = atom_getfloat(av+i);
+            a = gcd_calculate(a, b);
+        }
+        outlet_float(x->x_outlet, (t_float)(x->x_output = a));
     }
-    x->x_output = a;
-    gcd_bang(x);
 }
 
 static void *gcd_new(t_floatarg f){
@@ -53,7 +48,5 @@ static void *gcd_new(t_floatarg f){
 
 void gcd_setup(void){
     gcd_class = class_new(gensym("gcd"), (t_newmethod)gcd_new, 0, sizeof(t_gcd), 0, A_DEFFLOAT, 0);
-    class_addbang(gcd_class, (t_method)gcd_bang);
-    class_addfloat(gcd_class, gcd_float);
     class_addlist(gcd_class, gcd_list);
 }

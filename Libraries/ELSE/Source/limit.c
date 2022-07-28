@@ -86,26 +86,18 @@ static void limit_anything(t_limit *x, t_symbol *s, int ac, t_atom *av){
     }
 }
 
-static void limit_bang(t_limit *x){
-    x->x_selector = &s_bang;
-    limit_anything(x, x->x_selector, 0, 0);
-}
-
-static void limit_float(t_limit *x, t_float f){
-    x->x_selector = &s_float;
-    x->x_float = f;
-    limit_anything(x, x->x_selector, 0, 0);
-}
-
-static void limit_symbol(t_limit *x, t_symbol *s){
-    x->x_selector = &s_symbol;
-    x->x_symbol = s;
-    limit_anything(x, x->x_selector, 0, 0);
-}
-
 static void limit_list(t_limit *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    x->x_selector = &s_list;
+    if(!ac)
+        x->x_selector = &s_bang;
+    else if(ac == 1){
+        if(av->a_type == A_FLOAT)
+            x->x_selector = &s_float;
+        else if(av->a_type == A_SYMBOL)
+            x->x_selector = &s_symbol;
+    }
+    else
+        x->x_selector = &s_list;
     limit_anything(x, x->x_selector, ac, av);
 }
 
@@ -135,9 +127,6 @@ static void *limit_new(t_floatarg f1, t_floatarg f2){
 void limit_setup(void){
     limit_class = class_new(gensym("limit"), (t_newmethod)limit_new,
         (t_method)limit_free, sizeof(t_limit), 0, A_DEFFLOAT, A_DEFFLOAT, 0);
-    class_addbang(limit_class, limit_bang);
-    class_addfloat(limit_class, limit_float);
-    class_addsymbol(limit_class, limit_symbol);
     class_addlist(limit_class, limit_list);
     class_addanything(limit_class, limit_anything);
 }

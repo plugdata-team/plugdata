@@ -716,9 +716,10 @@ static void comment_float(t_comment *x, t_float f){
 }
 
 static void comment_list(t_comment *x, t_symbol *s, int ac, t_atom *av){
-    t_symbol *dummy = s;
-    dummy = NULL;
-    if(ac > 1 && av->a_type == A_FLOAT && av[1].a_type == A_SYMBOL){
+    s = NULL;
+    if(ac == 1 && av->a_type == A_FLOAT)
+        comment_float(x, atom_getfloat(av));
+    else if(ac > 1 && av->a_type == A_FLOAT && av[1].a_type == A_SYMBOL){
         int press = (int)av->a_w.w_float;
 //        post("press = %d, symbol = %s", press, av[1].a_w.w_symbol->s_name);
         if(av[1].a_w.w_symbol == gensym("Shift_L")){

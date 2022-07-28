@@ -9,13 +9,11 @@ struct RadioObject final : public IEMObject {
         isVertical = vertical;
 
         max = getMaximum();
-
+        max.addListener(this);
+        
         updateRange();
 
-        max.addListener(this);
-
         int selected = getValueOriginal();
-
         if (selected < radioButtons.size()) {
             radioButtons[selected]->setToggleState(true, dontSendNotification);
         }

@@ -6,11 +6,10 @@
 #include <unistd.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
 #include "m_pd.h"
 #include "elsefile.h"
+#include <stdlib.h>
+#include <string.h>
 
 #ifdef FLT_MAX
 #define SHARED_FLT_MAX  FLT_MAX
@@ -125,10 +124,7 @@ static void rec_track_donext(t_rec_track *tp){
         }
     }
 endoftrack:
-//    post("eot tp->tr_mode = %d", tp->tr_mode);
     if(tp->tr_mode == REC_PLAYMODE){
-//        if(tp->tr_ixnext > 0)
-//            outlet_bang(tp->tr_owner->x_bangout);
         tp->tr_ixnext = 0; // ready to go in stop mode after play
     }
     tp->tr_atdelta = 0;
@@ -181,6 +177,14 @@ static void rec_track_doadd(t_rec_track *tp, int ac, t_atom *av){
     }
 }
 
+static void rec_track_bang(t_rec_track *tp){
+    if(tp->tr_mode == REC_RECMODE){
+        t_atom at[1];
+        SETSYMBOL(&at[0], gensym("bang"));
+        rec_track_doadd(tp, 1, at);
+    }
+}
+
 static void rec_track_float(t_rec_track *tp, t_float f){
     if(tp->tr_mode == REC_RECMODE){
         t_atom at;
@@ -199,6 +203,17 @@ static void rec_track_symbol(t_rec_track *tp, t_symbol *s){
 }
 
 static void rec_track_list(t_rec_track *tp, t_symbol *s, int ac, t_atom *av){
+    if(!ac){
+        rec_track_bang(tp);
+        return;
+    }
+    if(ac == 1){
+        if(av->a_type == A_FLOAT)
+            rec_track_float(tp, atom_getfloat(av));
+        else if(av->a_type == A_SYMBOL)
+            rec_track_symbol(tp, atom_getsymbol(av));
+        return;
+    }
     if(tp->tr_mode == REC_RECMODE){
         if(av->a_type == A_FLOAT)
             rec_track_doadd(tp, ac, av);
@@ -229,14 +244,6 @@ static void rec_track_anything(t_rec_track *tp, t_symbol *s, int ac, t_atom *av)
         }
         rec_track_doadd(tp, ac+1, at);
         free(at);
-    }
-}
-
-static void rec_track_bang(t_rec_track *tp){
-    if(tp->tr_mode == REC_RECMODE){
-        t_atom at[1];
-        SETSYMBOL(&at[0], gensym("bang"));
-        rec_track_doadd(tp, 1, at);
     }
 }
 
@@ -353,7 +360,7 @@ static void rec_doread(t_rec *x, t_symbol *fname){
     int fd = canvas_open(x->x_canvas, fname->s_name, "", path, &bufptr, MAXPDSTRING, 1);
     if(fd > 0){
         path[strlen(path)]='/';
-        close(fd);
+        sys_close(fd);
     }
     else{
         post("[rec] file '%s' not found", fname->s_name);
@@ -463,7 +470,7 @@ static int rec_writetrack(t_rec *x, t_rec_track *tp, FILE *fp){
     return(0);
 }
 
-/* CHECKED empty sequence stored as an empty elsefile */
+// CHECKED empty sequence stored as an empty elsefile
 static void rec_dowrite(t_rec *x, t_symbol *fname){
     int failed = 0;
     char path[MAXPDSTRING];
@@ -474,7 +481,6 @@ static void rec_dowrite(t_rec *x, t_symbol *fname){
     	strncpy(path, fname->s_name, MAXPDSTRING);
     	path[MAXPDSTRING-1] = 0;
     }
-    /* CHECKED no global message */
     if((fp = sys_fopen(path, "w"))){
         int id;  // single-track writing does not seem to work (a bug?)
         t_rec_track **tpp;
@@ -483,9 +489,8 @@ static void rec_dowrite(t_rec *x, t_symbol *fname){
                 break;
         fclose(fp);
     }
-    else{
+    else
         failed = 1;
-    }
     if(failed)
         pd_error(x, "[rec]: writing text elsefile \"%s\" failed", path);
 }
@@ -590,13 +595,10 @@ static void *rec_new(t_symbol * s, int ac, t_atom *av){
 }
 
 void rec_setup(void){
-    rec_track_class = class_new(gensym("_rec_track"), 0, 0, sizeof(t_rec_track), CLASS_PD | CLASS_NOINLET, 0);
-    class_addbang(rec_track_class, rec_track_bang);
-    class_addfloat(rec_track_class, rec_track_float);
-    class_addsymbol(rec_track_class, rec_track_symbol);
-    class_addanything(rec_track_class, rec_track_anything);
+    rec_track_class = class_new(gensym("_rec_track"), 0, 0,
+        sizeof(t_rec_track), CLASS_PD | CLASS_NOINLET, 0);
     class_addlist(rec_track_class, rec_track_list);
-    
+    class_addanything(rec_track_class, rec_track_anything);
     rec_class = class_new(gensym("rec"), (t_newmethod)rec_new,
         (t_method)rec_free, sizeof(t_rec), 0, A_GIMME, 0);
     class_addmethod(rec_class, (t_method)rec_record, gensym("record"), A_GIMME, 0);
@@ -608,6 +610,6 @@ void rec_setup(void){
     class_addmethod(rec_class, (t_method)rec_read, gensym("open"), A_DEFSYM, 0);
     class_addmethod(rec_class, (t_method)rec_write, gensym("save"), A_DEFSYM, 0);
     class_addmethod(rec_class, (t_method)rec_speed, gensym("speed"), A_DEFFLOAT, 0);
-    class_addmethod(rec_class, (t_method)rec_click, gensym("click"), A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, A_FLOAT, 0);
+    class_addmethod(rec_class, (t_method)rec_click, gensym("click"), 0);
     elsefile_setup();
 }

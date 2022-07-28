@@ -1,7 +1,6 @@
 // by schiavoni and porres 2017-2020
 
 #include "m_pd.h"
-#include <stdio.h>
 #include <stdlib.h>
 
 static t_class *median_class;

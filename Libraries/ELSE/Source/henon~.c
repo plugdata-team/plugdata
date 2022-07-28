@@ -31,6 +31,10 @@ static void henon_coeffs(t_henon *x, t_floatarg f1, t_floatarg f2)
 static void henon_list(t_henon *x, t_symbol *s, int argc, t_atom * argv)
 {
     s = NULL;
+    if(argc == 1){
+        obj_list(&x->x_obj, 0, argc, argv);
+        return;
+    }
     if (argc != 2)
         {
         pd_error(x, "henon~: list size needs to be = 2");

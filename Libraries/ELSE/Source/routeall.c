@@ -176,8 +176,6 @@ static void *routeall_new(t_symbol *s, int argc, t_atom *argv){
 void routeall_setup(void){
     routeall_class = class_new(gensym("routeall"), (t_newmethod)routeall_new,
         0, sizeof(t_routeall), 0, A_GIMME, 0);
-    class_addbang(routeall_class, routeall_bang);
-    class_addsymbol(routeall_class, routeall_symbol);
     class_addlist(routeall_class, routeall_list);
     class_addanything(routeall_class, routeall_anything);
 }

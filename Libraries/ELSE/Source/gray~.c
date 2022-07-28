@@ -7,10 +7,10 @@
 static t_class *gray_class;
 
 typedef struct _gray{
-    t_object  x_obj;
-    int x_base;
-    t_random_state x_rstate;
-    t_outlet *x_outlet;
+    t_object        x_obj;
+    int             x_base;
+    t_random_state  x_rstate;
+    t_outlet       *x_outlet;
 
 } t_gray;
 
@@ -52,7 +52,7 @@ static t_int *gray_perform(t_int *w){
     	*out++ = base * 4.65661287308e-10f; // That's 1/(2^31), so normalizes the int to 1.0
 	}
     x->x_base = base;
-    return (w + 5);
+    return(w+5);
 }
 
 static void gray_dsp(t_gray *x, t_signal **sp){
@@ -63,7 +63,7 @@ static void *gray_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_gray *x = (t_gray *)pd_new(gray_class);
     static int seed = 1;
-    if ((ac) && (av->a_type == A_FLOAT))
+    if(ac && (av->a_type == A_FLOAT))
         random_init(&x->x_rstate, atom_getfloatarg(0, ac, av));
     else
     	random_init(&x->x_rstate, seed++);
@@ -74,7 +74,7 @@ static void *gray_new(t_symbol *s, int ac, t_atom *av){
 
 void gray_tilde_setup(void){
     gray_class = class_new(gensym("gray~"), (t_newmethod)gray_new,
-                            0, sizeof(t_gray), 0, A_GIMME, 0);
+        0, sizeof(t_gray), 0, A_GIMME, 0);
     class_addmethod(gray_class, (t_method)gray_dsp, gensym("dsp"), A_CANT, 0);
-    class_addlist(gray_class, gray_float);
+    class_addfloat(gray_class, gray_float);
 }
