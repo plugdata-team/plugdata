@@ -21,10 +21,10 @@
 #X obj 204 155 != 0;
 #X obj 204 202 change;
 #X obj 204 178 + 1;
-#X obj 69 323 else/xselect~ 2 10 2;
-#X obj 335 115 else/args;
-#X obj 322 295 else/f2s~ 10;
-#X obj 335 90 else/lb;
+#X obj 69 323 xselect~ 2 10 2;
+#X obj 335 115 args;
+#X obj 322 295 f2s~ 10;
+#X obj 335 90 lb;
 #X obj 504 155 declare -path else;
 #X connect 0 0 21 1;
 #X connect 1 0 0 0;

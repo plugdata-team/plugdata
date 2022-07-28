@@ -41,7 +41,7 @@
 #X connect 10 2 4 0;
 #X connect 10 3 4 1;
 #X restore 49 171 pd meter;
-#X obj 160 93 else/vu~ \$1 \$2;
+#X obj 160 93 vu~ \$1 \$2;
 #X obj 324 114 declare -path else;
 #X connect 2 0 7 0;
 #X connect 2 0 13 0;

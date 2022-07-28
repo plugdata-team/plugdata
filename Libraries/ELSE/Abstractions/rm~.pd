@@ -15,8 +15,8 @@
 #X obj 217 163 sel 0;
 #X obj 217 185 del 10;
 #X msg 217 208 0;
-#X obj 177 104 else/f2s~ 5 \$1;
-#X obj 45 247 else/xselect~ 2 10 2;
+#X obj 177 104 f2s~ 5 \$1;
+#X obj 45 247 xselect~ 2 10 2;
 #X obj 301 91 declare -path else;
 #X connect 0 0 16 1;
 #X connect 1 0 0 0;

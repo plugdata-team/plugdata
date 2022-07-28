@@ -36,7 +36,7 @@
 #X obj 304 242 unpack float float;
 #X msg 219 227 2;
 #X obj 219 270 s \$0-unit;
-#X obj 91 50 else/lb 3;
+#X obj 91 50 lb 3;
 #X obj 134 142 route -on -ms -hz float list -mul, f 43;
 #X obj 444 128 max 1e-38;
 #X obj 107 199 t a b;
@@ -44,8 +44,8 @@
 #X obj 192 199 t a b;
 #X obj 346 167 t a b;
 #X obj 346 191 list split 1;
-#X obj 346 216 else/swap2;
-#X obj 134 117 else/args -;
+#X obj 346 216 swap2;
+#X obj 134 117 args -;
 #X connect 1 0 13 0;
 #X connect 2 0 3 0;
 #X connect 3 0 0 0;
@@ -97,8 +97,8 @@
 #X obj 170 289 * 1;
 #X msg 185 256 1;
 #X msg 225 256 60;
-#X obj 69 98 else/rand.f -1 1;
-#X obj 170 355 else/changed;
+#X obj 69 98 rand.f -1 1;
+#X obj 170 355 changed;
 #X obj 218 67 r \$0-unit;
 #X obj 275 195 r \$0-unit;
 #X connect 0 0 15 0;

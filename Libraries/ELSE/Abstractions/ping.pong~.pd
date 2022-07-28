@@ -19,10 +19,10 @@
 #X obj 369 160 clip -1 1;
 #X obj 135 306 delwrite~ \$0-pong 5000;
 #X obj 104 334 delwrite~ \$0-ping 5000;
-#X obj 369 197 else/f2s~ 50;
-#X obj 153 174 else/f2s~ 50;
-#X obj 306 297 else/f2s~ 50;
-#X obj 429 61 else/lb;
+#X obj 369 197 f2s~ 50;
+#X obj 153 174 f2s~ 50;
+#X obj 306 297 f2s~ 50;
+#X obj 429 61 lb;
 #X obj 502 141 declare -path else;
 #X connect 0 0 7 0;
 #X connect 0 0 18 0;

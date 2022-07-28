@@ -81,7 +81,7 @@
 #X obj 153 43 inlet;
 #X obj 168 123 f \$1;
 #X obj 168 168 s \$0-i;
-#X obj 187 91 else/lb;
+#X obj 187 91 lb;
 #X connect 0 0 1 0;
 #X connect 1 0 2 0;
 #X connect 3 0 1 0;

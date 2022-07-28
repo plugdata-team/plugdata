@@ -5,11 +5,11 @@
 #X obj 86 37 inlet;
 #X obj 86 164 outlet;
 #X obj 86 134 *;
-#X obj 86 103 else/hot;
+#X obj 86 103 hot;
 #N canvas 405 147 261 223 sr 0;
 #X obj 80 71 change;
-#X obj 80 47 else/sr~ -ms;
-#X obj 80 95 else/nmess 1;
+#X obj 80 47 sr~ -ms;
+#X obj 80 95 nmess 1;
 #X msg 80 118 set \$1;
 #X obj 149 159 outlet;
 #X connect 0 0 2 0;

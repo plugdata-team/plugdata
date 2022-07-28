@@ -34,7 +34,7 @@
 #X obj 122 262 == 1;
 #X obj 238 300 s \$0-freq;
 #X obj 338 194 s \$0-rate;
-#X obj 238 131 else/args -;
+#X obj 238 131 args -;
 #X connect 1 0 0 0;
 #X connect 3 0 2 0;
 #X connect 4 0 14 0;
@@ -54,7 +54,7 @@
 #X connect 13 0 9 0;
 #X connect 16 0 5 0;
 #X restore 94 118 pd args;
-#X obj 61 57 else/lb 3, f 10;
+#X obj 61 57 lb 3, f 10;
 #X connect 3 0 0 0;
 #X connect 3 1 2 0;
 #X connect 3 2 1 0;
@@ -171,7 +171,7 @@
 #X obj 113 270 v out_\$0;
 #X obj 145 131 expr dir_\$0 > 0;
 #X obj 113 338 sel 1;
-#X obj 113 368 else/rand.f -1 1;
+#X obj 113 368 rand.f -1 1;
 #X connect 0 0 5 0;
 #X connect 0 1 6 0;
 #X connect 1 0 3 0;

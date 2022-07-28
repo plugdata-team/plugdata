@@ -114,10 +114,10 @@
 #X obj 16 149 s \$0-a;
 #X obj 73 152 s \$0-ph;
 #X obj 278 209 s \$0-pi;
-#X obj 236 49 else/sr~;
-#X obj 17 94 else/pack2 \$0-amp \$0-fase, f 15;
-#X obj 219 182 else/pi;
-#X obj 90 23 else/lb;
+#X obj 236 49 sr~;
+#X obj 17 94 pack2 \$0-amp \$0-fase, f 15;
+#X obj 219 182 pi;
+#X obj 90 23 lb;
 #X connect 2 0 8 0;
 #X connect 3 0 0 0;
 #X connect 5 0 4 0;
@@ -156,9 +156,9 @@
 \; ($f5 * sinW_\$0[$f1]) + ($f6 * sin2W_\$0[$f1]) \; 1 - ($f2 * cosW_\$0[$f1])
 - ($f3 * cos2W_\$0[$f1]) \; 0 - ($f2 * sinW_\$0[$f1]) - ($f3 * sin2W_\$0[$f1])
 , f 57;
-#X obj 121 238 else/car2pol;
-#X obj 343 234 else/car2pol;
-#X obj 171 325 else/lin2db;
+#X obj 121 238 car2pol;
+#X obj 343 234 car2pol;
+#X obj 171 325 lin2db;
 #X connect 0 0 11 0;
 #X connect 1 0 5 1;
 #X connect 3 0 18 0;
@@ -217,7 +217,7 @@
 #X obj 183 88 r \$0-pi;
 #X obj 137 49 inlet;
 #X obj 138 206 outlet;
-#X obj 140 166 else/wrap2;
+#X obj 140 166 wrap2;
 #X connect 0 0 1 0;
 #X connect 0 1 5 2;
 #X connect 1 0 5 1;
@@ -239,8 +239,8 @@
 #X restore 200 266 pd tabwrite-phase;
 #X obj 82 49 t b l b;
 #X msg 52 79 clear;
-#X obj 101 178 else/loop 400;
-#X obj 101 116 else/group 5;
+#X obj 101 178 loop 400;
+#X obj 101 116 group 5;
 #X connect 1 0 5 0;
 #X connect 1 1 6 0;
 #X connect 2 0 9 0;

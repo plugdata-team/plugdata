@@ -17,7 +17,7 @@
 #X obj 255 324 *~;
 #X obj 87 218 expr~ $v1 % size_\$0 \; if(wrap_\$0 || in_\$0 == 0 \,
 1 \, if(in_\$0 >= 0 \, $v1 >= size_\$0 \, $v1 < size_\$0)), f 31;
-#X obj 87 144 else/ramp~ 1 0;
+#X obj 87 144 ramp~ 1 0;
 #X obj 262 91 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc #000000
 #000000;
 #X floatatom 206 151 5 0 0 0 - - - 0;
@@ -42,7 +42,7 @@
 #X msg 155 178 resize \$1;
 #X obj 155 202 s n_\$0;
 #X obj 85 35 table n_\$0;
-#X obj 79 70 else/blocksize~;
+#X obj 79 70 blocksize~;
 #X obj 79 118 change;
 #X obj 160 107 loadbang;
 #X msg 161 133 64;
@@ -73,7 +73,7 @@
 #X obj 72 118 f \$2;
 #X obj 60 17 inlet;
 #X obj 60 62 route wrap;
-#X obj 72 92 else/lb;
+#X obj 72 92 lb;
 #X connect 1 0 2 0;
 #X connect 2 0 8 0;
 #X connect 2 0 9 0;

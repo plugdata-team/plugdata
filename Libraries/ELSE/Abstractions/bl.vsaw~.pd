@@ -13,8 +13,8 @@
 #X obj 188 161 outlet;
 #X obj 151 122 unpack f f f;
 #X obj 232 159 outlet;
-#X obj 147 84 else/args;
-#X obj 147 48 else/lb;
+#X obj 147 84 args;
+#X obj 147 48 lb;
 #X connect 2 0 0 0;
 #X connect 2 1 1 0;
 #X connect 2 2 3 0;
@@ -22,8 +22,8 @@
 #X connect 5 0 4 0;
 #X restore 60 15 pd init;
 #X f 18;
-#X obj 112 132 else/brickwall~;
-#X obj 112 102 else/vsaw~;
+#X obj 112 132 brickwall~;
+#X obj 112 102 vsaw~;
 #X obj 284 67 declare -path else;
 #X connect 0 0 10 0;
 #X connect 1 0 10 1;

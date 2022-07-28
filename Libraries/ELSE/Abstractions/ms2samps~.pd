@@ -5,7 +5,7 @@
 #X obj 45 26 inlet~;
 #X obj 45 153 outlet~;
 #X obj 45 88 *~ 0;
-#X obj 90 97 else/sr~ -khz;
+#X obj 90 97 sr~ -khz;
 #X obj 230 55 declare -path else;
 #X connect 2 0 4 0;
 #X connect 4 0 3 0;

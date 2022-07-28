@@ -7,11 +7,11 @@
 #X obj 82 75 t b a;
 #X text 265 163 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 267 144 Alexandre Torres Porres (2017);
-#X obj 114 102 else/iterate;
-#X obj 114 129 else/any2symbol;
-#X obj 114 158 else/separate /;
-#X obj 82 294 else/group;
-#X obj 114 257 else/ratio2cents;
+#X obj 114 102 iterate;
+#X obj 114 129 any2symbol;
+#X obj 114 158 separate /;
+#X obj 82 294 group;
+#X obj 114 257 ratio2cents;
 #X obj 286 94 declare -path else;
 #X connect 1 0 4 0;
 #X connect 2 0 11 0;

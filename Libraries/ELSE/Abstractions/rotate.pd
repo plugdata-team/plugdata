@@ -18,10 +18,10 @@
 #X msg 149 413 0;
 #X obj 59 193 t a b;
 #X msg 180 412 1;
-#X obj 202 337 else/insert append;
-#X obj 46 469 else/selector;
-#X obj 59 159 else/routetype a;
-#X obj 143 254 else/router;
+#X obj 202 337 insert append;
+#X obj 46 469 selector;
+#X obj 59 159 routetype a;
+#X obj 143 254 router;
 #X obj 316 78 declare -path else;
 #X connect 0 0 5 0;
 #X connect 1 0 3 0;

@@ -19,7 +19,7 @@
 #X msg 232 76 0;
 #X obj 171 20 inlet;
 #X obj 325 56 route float;
-#X obj 249 229 else/lb;
+#X obj 249 229 lb;
 #X connect 0 0 3 1;
 #X connect 0 0 6 0;
 #X connect 1 0 14 0;
@@ -45,7 +45,7 @@
 #X text 292 133 Alexandre Torres Porres (2018);
 #X obj 47 83 sigmund~ -npts 2048 -hop 512 -npeak 50 tracks;
 #X obj 47 52 inlet~ fwd;
-#X obj 79 154 clone 50 else/freeze.osc.clone~;
+#X obj 79 154 clone 50 freeze.osc.clone~;
 #X obj 342 81 declare -path else;
 #X connect 1 0 7 0;
 #X connect 2 0 1 2;

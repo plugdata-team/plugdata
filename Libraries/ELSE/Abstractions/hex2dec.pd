@@ -24,7 +24,7 @@
 #X obj 124 525 expr i_\$0 = i_\$0 + 1 \; sum_\$0 = sum_\$0 + if($f1
 <= 57 \, $f1 -48 \, if($f1 > 57 && $f1 < 88 \, $f1 - 55 \, $f1 -87))
 * pow(16 \, i_\$0), f 52;
-#X obj 124 205 else/router;
+#X obj 124 205 router;
 #X connect 0 0 11 0;
 #X connect 1 0 13 0;
 #X connect 1 1 2 0;
@@ -50,14 +50,14 @@
 #X obj 219 125 route bang;
 #X obj 219 82 loadbang;
 #X obj 111 250 route float;
-#X obj 111 219 else/iterate;
+#X obj 111 219 iterate;
 #X obj 84 194 t b a;
-#X obj 84 413 else/group;
+#X obj 84 413 group;
 #X msg 219 165 0x0;
 #X obj 127 286 t b s b;
 #X text 233 229 Alexandre Torres Porres (2018-2021);
-#X obj 84 164 else/message 0;
-#X obj 219 104 else/args;
+#X obj 84 164 message 0;
+#X obj 219 104 args;
 #X obj 307 86 declare -path else;
 #X connect 0 0 1 0;
 #X connect 0 0 2 0;

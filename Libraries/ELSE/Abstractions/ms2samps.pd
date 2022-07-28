@@ -5,13 +5,13 @@
 #X obj 92 168 *;
 #X text 234 137 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 236 118 Alexandre Torres Porres (2017);
-#X obj 92 137 else/hot;
+#X obj 92 137 hot;
 #N canvas 89 120 261 223 sr 0;
 #X obj 80 71 change;
-#X obj 80 95 else/nmess 1;
+#X obj 80 95 nmess 1;
 #X msg 80 118 set \$1;
 #X obj 149 159 outlet;
-#X obj 80 47 else/sr~ -khz;
+#X obj 80 47 sr~ -khz;
 #X connect 0 0 1 0;
 #X connect 1 0 2 0;
 #X connect 1 1 3 0;

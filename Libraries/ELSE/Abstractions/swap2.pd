@@ -3,7 +3,7 @@
 #X obj 58 40 inlet;
 #X text 231 102 Part of ELSE \; https://github.com/porres/pd-else;
 #X obj 139 40 inlet;
-#X obj 59 126 else/message;
+#X obj 59 126 message;
 #X obj 58 86 trigger bang anything;
 #X obj 59 167 outlet;
 #X obj 181 167 outlet;

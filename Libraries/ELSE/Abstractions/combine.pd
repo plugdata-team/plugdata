@@ -19,12 +19,12 @@
 #X msg 423 240 0;
 #X obj 143 346 >;
 #X obj 206 205 pipe;
-#X obj 238 419 else/group;
-#X obj 44 176 else/router;
-#X obj 113 280 else/nmess 1;
-#X obj 369 158 else/lb;
+#X obj 238 419 group;
+#X obj 44 176 router;
+#X obj 113 280 nmess 1;
+#X obj 369 158 lb;
 #X obj 383 90 declare -path else;
-#X obj 369 189 else/args;
+#X obj 369 189 args;
 #X connect 0 0 17 0;
 #X connect 1 0 19 0;
 #X connect 2 0 0 0;

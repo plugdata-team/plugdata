@@ -21,10 +21,10 @@
 #X msg 66 263 0;
 #X obj 66 295 change;
 #X msg 96 263 1;
-#X obj 198 108 else/args;
-#X obj 81 476 else/rand.f -1 1;
-#X obj 81 324 else/tempo 0 100 -ms;
-#X obj 198 83 else/lb;
+#X obj 198 108 args;
+#X obj 81 476 rand.f -1 1;
+#X obj 81 324 tempo 0 100 -ms;
+#X obj 198 83 lb;
 #X obj 315 131 declare -path else;
 #X connect 0 0 14 0;
 #X connect 4 0 7 0;
