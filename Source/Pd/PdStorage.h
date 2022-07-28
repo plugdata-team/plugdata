@@ -12,31 +12,28 @@
 
 #include "PdInstance.h"
 
-extern "C"
-{
+extern "C" {
 #include "x_libpd_mod_utils.h"
 }
 
-namespace pd
-{
+namespace pd {
 
-class Storage
-{
+class Storage {
     t_glist* parentPatch = nullptr;
     Instance* instance = nullptr;
 
     t_gobj* infoObject = nullptr;
     t_glist* infoParent = nullptr;
 
-   public:
+public:
     Storage(t_glist* patch, Instance* inst);
 
     Storage() = delete;
 
-    void setInfoId(const String& oldId, const String& newId);
+    void setInfoId(String const& oldId, String const& newId);
     void confirmIds();
 
-    bool hasInfo(const String& id) const;
+    bool hasInfo(String const& id) const;
     void storeInfo();
     void loadInfoFromPatch();
 
@@ -48,10 +45,10 @@ class Storage
     static bool isInfoParent(t_gobj* obj);
     static bool isInfoParent(t_glist* glist);
 
-    String getInfo(const String& id, const String& property) const;
-    void setInfo(const String& id, const String& property, const String& info, bool undoable = true);
+    String getInfo(String const& id, String const& property) const;
+    void setInfo(String const& id, String const& property, String const& info, bool undoable = true);
 
-   private:
+private:
     void createObject();
 
     UndoManager undoManager;
@@ -61,4 +58,4 @@ class Storage
     friend class Instance;
     friend class Patch;
 };
-}  // namespace pd
+} // namespace pd

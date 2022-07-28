@@ -13,15 +13,14 @@
 
 class Canvas;
 
-namespace pd
-{
+namespace pd {
 class Patch;
 }
 
 class Box;
 
-struct ObjectBase : public Component, public SettableTooltipClient
-{
+struct ObjectBase : public Component
+    , public SettableTooltipClient {
     void* ptr;
     Box* box;
     Canvas* cnv;
@@ -32,10 +31,10 @@ struct ObjectBase : public Component, public SettableTooltipClient
 
     // Functions to show and hide a text editor
     // Used internally, or to trigger a text editor when creating a new object (comment, message, new text object etc.)
-    virtual void showEditor(){};
-    virtual void hideEditor(){};
-    
-    virtual void checkBounds(){};
+    virtual void showEditor() {};
+    virtual void hideEditor() {};
+
+    virtual void checkBounds() {};
 
     // Called whenever any GUI object's value changes
     virtual void updateValue() = 0;
@@ -47,8 +46,8 @@ struct ObjectBase : public Component, public SettableTooltipClient
     virtual void applyBounds() = 0;
 
     // Called whenever a drawable changes
-    virtual void updateDrawables(){};
-    
+    virtual void updateDrawables() {};
+
     virtual void updateParameters() {};
 
     // Flag to make object visible or hidden inside a GraphOnParent
@@ -56,9 +55,8 @@ struct ObjectBase : public Component, public SettableTooltipClient
     {
         return false;
     }
-    
 
-    virtual void setText(const String&){};
+    virtual void setText(String const&) {};
 
     // Most objects ignore mouseclicks when locked
     // Objects can override this to do custom locking behaviour
@@ -66,7 +64,7 @@ struct ObjectBase : public Component, public SettableTooltipClient
     {
         setInterceptsMouseClicks(isLocked, isLocked);
     }
-    
+
     String getType() const;
 
     void moveToFront();
@@ -88,37 +86,37 @@ struct ObjectBase : public Component, public SettableTooltipClient
     {
         return {};
     };
-    
-    virtual bool canReceiveMouseEvent(int x, int y) {
+
+    virtual bool canReceiveMouseEvent(int x, int y)
+    {
         return true;
     }
 
     void closeOpenedSubpatchers();
 
     String getText();
-    
 };
 
 // Class for non-patchable objects
-struct NonPatchable : public ObjectBase
-{
+struct NonPatchable : public ObjectBase {
     NonPatchable(void* obj, Box* parent);
     ~NonPatchable();
 
-    virtual void updateValue(){};
-    virtual void updateBounds(){};
-    virtual void applyBounds(){};
+    virtual void updateValue() {};
+    virtual void updateBounds() {};
+    virtual void applyBounds() {};
 };
 
-struct GUIObject : public ObjectBase, public ComponentListener, public Value::Listener
-{
+struct GUIObject : public ObjectBase
+    , public ComponentListener
+    , public Value::Listener {
     GUIObject(void* obj, Box* parent);
 
     ~GUIObject() override;
 
     void updateValue() override;
 
-    virtual void update(){};
+    virtual void update() {};
 
     void updateParameters() override;
 
@@ -130,16 +128,16 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     virtual ObjectParameters defineParameters();
     ObjectParameters getParameters() override;
 
-    virtual void updateLabel(){};
+    virtual void updateLabel() {};
 
     virtual float getValue()
     {
         return 0.0f;
     };
-    
+
     virtual void toggleObject(Point<int> position) {};
     virtual void untoggleObject() {};
-    
+
     float getValueOriginal() const;
 
     void setValueOriginal(float v);
@@ -151,16 +149,16 @@ struct GUIObject : public ObjectBase, public ComponentListener, public Value::Li
     void startEdition();
     void stopEdition();
 
-    void valueChanged(Value& value) override{};
+    void valueChanged(Value& value) override {};
 
     Label* getLabel() override
     {
         return label.get();
     }
 
-    void setValue(float value) ;
+    void setValue(float value);
 
-   protected:
+protected:
     std::unique_ptr<Label> label;
 
     static inline constexpr int maxSize = 1000000;

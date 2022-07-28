@@ -16,52 +16,51 @@
 static t_namelist* sys_openlist;
 static t_namelist* sys_messagelist;
 
-static t_class *libpd_multi_receiver_class;
+static t_class* libpd_multi_receiver_class;
 
-typedef struct _libpd_multi_receiver
-{
-    t_object    x_obj;
-    t_symbol*   x_sym;
-    void*       x_ptr;
+typedef struct _libpd_multi_receiver {
+    t_object x_obj;
+    t_symbol* x_sym;
+    void* x_ptr;
 
-    t_libpd_multi_banghook      x_hook_bang;
-    t_libpd_multi_floathook     x_hook_float;
-    t_libpd_multi_symbolhook    x_hook_symbol;
-    t_libpd_multi_listhook      x_hook_list;
-    t_libpd_multi_messagehook   x_hook_message;
+    t_libpd_multi_banghook x_hook_bang;
+    t_libpd_multi_floathook x_hook_float;
+    t_libpd_multi_symbolhook x_hook_symbol;
+    t_libpd_multi_listhook x_hook_list;
+    t_libpd_multi_messagehook x_hook_message;
 } t_libpd_multi_receiver;
 
-static void libpd_multi_receiver_bang(t_libpd_multi_receiver *x)
+static void libpd_multi_receiver_bang(t_libpd_multi_receiver* x)
 {
-    if(x->x_hook_bang)
+    if (x->x_hook_bang)
         x->x_hook_bang(x->x_ptr, x->x_sym->s_name);
 }
 
-static void libpd_multi_receiver_float(t_libpd_multi_receiver *x, t_float f)
+static void libpd_multi_receiver_float(t_libpd_multi_receiver* x, t_float f)
 {
-    if(x->x_hook_float)
+    if (x->x_hook_float)
         x->x_hook_float(x->x_ptr, x->x_sym->s_name, f);
 }
 
-static void libpd_multi_receiver_symbol(t_libpd_multi_receiver *x, t_symbol *s)
+static void libpd_multi_receiver_symbol(t_libpd_multi_receiver* x, t_symbol* s)
 {
-    if(x->x_hook_symbol)
+    if (x->x_hook_symbol)
         x->x_hook_symbol(x->x_ptr, x->x_sym->s_name, s->s_name);
 }
 
-static void libpd_multi_receiver_list(t_libpd_multi_receiver *x, t_symbol *s, int argc, t_atom *argv)
+static void libpd_multi_receiver_list(t_libpd_multi_receiver* x, t_symbol* s, int argc, t_atom* argv)
 {
-    if(x->x_hook_list)
+    if (x->x_hook_list)
         x->x_hook_list(x->x_ptr, x->x_sym->s_name, argc, argv);
 }
 
-static void libpd_multi_receiver_anything(t_libpd_multi_receiver *x, t_symbol *s, int argc, t_atom *argv)
+static void libpd_multi_receiver_anything(t_libpd_multi_receiver* x, t_symbol* s, int argc, t_atom* argv)
 {
-    if(x->x_hook_message)
+    if (x->x_hook_message)
         x->x_hook_message(x->x_ptr, x->x_sym->s_name, s->s_name, argc, argv);
 }
 
-static void libpd_multi_receiver_free(t_libpd_multi_receiver *x)
+static void libpd_multi_receiver_free(t_libpd_multi_receiver* x)
 {
     pd_unbind(&x->x_obj.ob_pd, x->x_sym);
 }
@@ -70,26 +69,25 @@ static void libpd_multi_receiver_setup(void)
 {
     sys_lock();
     libpd_multi_receiver_class = class_new(gensym("libpd_multi_receiver"), (t_newmethod)NULL, (t_method)libpd_multi_receiver_free,
-                                           sizeof(t_libpd_multi_receiver), CLASS_DEFAULT, A_NULL, 0);
+        sizeof(t_libpd_multi_receiver), CLASS_DEFAULT, A_NULL, 0);
     class_addbang(libpd_multi_receiver_class, libpd_multi_receiver_bang);
-    class_addfloat(libpd_multi_receiver_class,libpd_multi_receiver_float);
+    class_addfloat(libpd_multi_receiver_class, libpd_multi_receiver_float);
     class_addsymbol(libpd_multi_receiver_class, libpd_multi_receiver_symbol);
     class_addlist(libpd_multi_receiver_class, libpd_multi_receiver_list);
     class_addanything(libpd_multi_receiver_class, libpd_multi_receiver_anything);
     sys_unlock();
 }
 
-void* libpd_multi_receiver_new(void* ptr, char const *s,
-                               t_libpd_multi_banghook hook_bang,
-                               t_libpd_multi_floathook hook_float,
-                               t_libpd_multi_symbolhook hook_symbol,
-                               t_libpd_multi_listhook hook_list,
-                               t_libpd_multi_messagehook hook_message)
+void* libpd_multi_receiver_new(void* ptr, char const* s,
+    t_libpd_multi_banghook hook_bang,
+    t_libpd_multi_floathook hook_float,
+    t_libpd_multi_symbolhook hook_symbol,
+    t_libpd_multi_listhook hook_list,
+    t_libpd_multi_messagehook hook_message)
 {
 
-    t_libpd_multi_receiver *x = (t_libpd_multi_receiver *)pd_new(libpd_multi_receiver_class);
-    if(x)
-    {
+    t_libpd_multi_receiver* x = (t_libpd_multi_receiver*)pd_new(libpd_multi_receiver_class);
+    if (x) {
         sys_lock();
         x->x_sym = gensym(s);
         sys_unlock();
@@ -104,28 +102,25 @@ void* libpd_multi_receiver_new(void* ptr, char const *s,
     return x;
 }
 
+static t_class* libpd_multi_midi_class;
 
-static t_class *libpd_multi_midi_class;
+typedef struct _libpd_multi_midi {
+    t_object x_obj;
+    void* x_ptr;
 
-typedef struct _libpd_multi_midi
-{
-    t_object    x_obj;
-    void*       x_ptr;
-
-    t_libpd_multi_noteonhook            x_hook_noteon;
-    t_libpd_multi_controlchangehook     x_hook_controlchange;
-    t_libpd_multi_programchangehook     x_hook_programchange;
-    t_libpd_multi_pitchbendhook         x_hook_pitchbend;
-    t_libpd_multi_aftertouchhook        x_hook_aftertouch;
-    t_libpd_multi_polyaftertouchhook    x_hook_polyaftertouch;
-    t_libpd_multi_midibytehook          x_hook_midibyte;
+    t_libpd_multi_noteonhook x_hook_noteon;
+    t_libpd_multi_controlchangehook x_hook_controlchange;
+    t_libpd_multi_programchangehook x_hook_programchange;
+    t_libpd_multi_pitchbendhook x_hook_pitchbend;
+    t_libpd_multi_aftertouchhook x_hook_aftertouch;
+    t_libpd_multi_polyaftertouchhook x_hook_polyaftertouch;
+    t_libpd_multi_midibytehook x_hook_midibyte;
 } t_libpd_multi_midi;
 
 static void libpd_multi_noteon(int channel, int pitch, int velocity)
 {
     t_libpd_multi_midi* x = (t_libpd_multi_midi*)gensym("#libpd_multi_midi")->s_thing;
-    if(x && x->x_hook_noteon)
-    {
+    if (x && x->x_hook_noteon) {
         x->x_hook_noteon(x->x_ptr, channel, pitch, velocity);
     }
 }
@@ -133,8 +128,7 @@ static void libpd_multi_noteon(int channel, int pitch, int velocity)
 static void libpd_multi_controlchange(int channel, int controller, int value)
 {
     t_libpd_multi_midi* x = (t_libpd_multi_midi*)gensym("#libpd_multi_midi")->s_thing;
-    if(x && x->x_hook_controlchange)
-    {
+    if (x && x->x_hook_controlchange) {
         x->x_hook_controlchange(x->x_ptr, channel, controller, value);
     }
 }
@@ -142,8 +136,7 @@ static void libpd_multi_controlchange(int channel, int controller, int value)
 static void libpd_multi_programchange(int channel, int value)
 {
     t_libpd_multi_midi* x = (t_libpd_multi_midi*)gensym("#libpd_multi_midi")->s_thing;
-    if(x && x->x_hook_programchange)
-    {
+    if (x && x->x_hook_programchange) {
         x->x_hook_programchange(x->x_ptr, channel, value);
     }
 }
@@ -151,8 +144,7 @@ static void libpd_multi_programchange(int channel, int value)
 static void libpd_multi_pitchbend(int channel, int value)
 {
     t_libpd_multi_midi* x = (t_libpd_multi_midi*)gensym("#libpd_multi_midi")->s_thing;
-    if(x && x->x_hook_pitchbend)
-    {
+    if (x && x->x_hook_pitchbend) {
         x->x_hook_pitchbend(x->x_ptr, channel, value);
     }
 }
@@ -160,8 +152,7 @@ static void libpd_multi_pitchbend(int channel, int value)
 static void libpd_multi_aftertouch(int channel, int value)
 {
     t_libpd_multi_midi* x = (t_libpd_multi_midi*)gensym("#libpd_multi_midi")->s_thing;
-    if(x && x->x_hook_aftertouch)
-    {
+    if (x && x->x_hook_aftertouch) {
         x->x_hook_aftertouch(x->x_ptr, channel, value);
     }
 }
@@ -169,8 +160,7 @@ static void libpd_multi_aftertouch(int channel, int value)
 static void libpd_multi_polyaftertouch(int channel, int pitch, int value)
 {
     t_libpd_multi_midi* x = (t_libpd_multi_midi*)gensym("#libpd_multi_midi")->s_thing;
-    if(x && x->x_hook_polyaftertouch)
-    {
+    if (x && x->x_hook_polyaftertouch) {
         x->x_hook_polyaftertouch(x->x_ptr, channel, pitch, value);
     }
 }
@@ -178,13 +168,12 @@ static void libpd_multi_polyaftertouch(int channel, int pitch, int value)
 static void libpd_multi_midibyte(int port, int byte)
 {
     t_libpd_multi_midi* x = (t_libpd_multi_midi*)gensym("#libpd_multi_midi")->s_thing;
-    if(x && x->x_hook_midibyte)
-    {
+    if (x && x->x_hook_midibyte) {
         x->x_hook_midibyte(x->x_ptr, port, byte);
     }
 }
 
-static void libpd_multi_midi_free(t_libpd_multi_midi *x)
+static void libpd_multi_midi_free(t_libpd_multi_midi* x)
 {
     pd_unbind(&x->x_obj.ob_pd, gensym("#libpd_multi_midi"));
 }
@@ -193,54 +182,50 @@ static void libpd_multi_midi_setup(void)
 {
     sys_lock();
     libpd_multi_midi_class = class_new(gensym("libpd_multi_midi"), (t_newmethod)NULL, (t_method)libpd_multi_midi_free,
-                                       sizeof(t_libpd_multi_midi), CLASS_DEFAULT, A_NULL, 0);
+        sizeof(t_libpd_multi_midi), CLASS_DEFAULT, A_NULL, 0);
     sys_unlock();
 }
 
 void* libpd_multi_midi_new(void* ptr,
-                           t_libpd_multi_noteonhook hook_noteon,
-                           t_libpd_multi_controlchangehook hook_controlchange,
-                           t_libpd_multi_programchangehook hook_programchange,
-                           t_libpd_multi_pitchbendhook hook_pitchbend,
-                           t_libpd_multi_aftertouchhook hook_aftertouch,
-                           t_libpd_multi_polyaftertouchhook hook_polyaftertouch,
-                           t_libpd_multi_midibytehook hook_midibyte)
+    t_libpd_multi_noteonhook hook_noteon,
+    t_libpd_multi_controlchangehook hook_controlchange,
+    t_libpd_multi_programchangehook hook_programchange,
+    t_libpd_multi_pitchbendhook hook_pitchbend,
+    t_libpd_multi_aftertouchhook hook_aftertouch,
+    t_libpd_multi_polyaftertouchhook hook_polyaftertouch,
+    t_libpd_multi_midibytehook hook_midibyte)
 {
 
-    t_libpd_multi_midi *x = (t_libpd_multi_midi *)pd_new(libpd_multi_midi_class);
-    if(x)
-    {
+    t_libpd_multi_midi* x = (t_libpd_multi_midi*)pd_new(libpd_multi_midi_class);
+    if (x) {
         sys_lock();
         t_symbol* s = gensym("#libpd_multi_midi");
         sys_unlock();
         pd_bind(&x->x_obj.ob_pd, s);
         x->x_ptr = ptr;
-        x->x_hook_noteon        = hook_noteon;
+        x->x_hook_noteon = hook_noteon;
         x->x_hook_controlchange = hook_controlchange;
         x->x_hook_programchange = hook_programchange;
-        x->x_hook_pitchbend     = hook_pitchbend;
-        x->x_hook_aftertouch    = hook_aftertouch;
-        x->x_hook_polyaftertouch= hook_polyaftertouch;
-        x->x_hook_midibyte      = hook_midibyte;
+        x->x_hook_pitchbend = hook_pitchbend;
+        x->x_hook_aftertouch = hook_aftertouch;
+        x->x_hook_polyaftertouch = hook_polyaftertouch;
+        x->x_hook_midibyte = hook_midibyte;
     }
     return x;
 }
 
+static t_class* libpd_multi_print_class;
 
-static t_class *libpd_multi_print_class;
-
-typedef struct _libpd_multi_print
-{
-    t_object    x_obj;
-    void*       x_ptr;
+typedef struct _libpd_multi_print {
+    t_object x_obj;
+    void* x_ptr;
     t_libpd_multi_printhook x_hook;
 } t_libpd_multi_print;
 
-static void libpd_multi_print(const char* message)
+static void libpd_multi_print(char const* message)
 {
     t_libpd_multi_print* x = (t_libpd_multi_print*)gensym("#libpd_multi_print")->s_thing;
-    if(x && x->x_hook)
-    {
+    if (x && x->x_hook) {
         x->x_hook(x->x_ptr, message);
     }
 }
@@ -249,46 +234,42 @@ static void libpd_multi_print_setup(void)
 {
     sys_lock();
     libpd_multi_print_class = class_new(gensym("libpd_multi_print"), (t_newmethod)NULL, (t_method)NULL,
-                                       sizeof(t_libpd_multi_print), CLASS_DEFAULT, A_NULL, 0);
+        sizeof(t_libpd_multi_print), CLASS_DEFAULT, A_NULL, 0);
     sys_unlock();
 }
 
 void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print)
 {
- 
-    t_libpd_multi_print *x = (t_libpd_multi_print *)pd_new(libpd_multi_print_class);
-    if(x)
-    {
+
+    t_libpd_multi_print* x = (t_libpd_multi_print*)pd_new(libpd_multi_print_class);
+    if (x) {
         sys_lock();
         t_symbol* s = gensym("#libpd_multi_print");
         sys_unlock();
         pd_bind(&x->x_obj.ob_pd, s);
         x->x_ptr = ptr;
         x->x_hook = hook_print;
-        
     }
     return x;
 }
 
-
 // font char metric triples: pointsize width(pixels) height(pixels)
 static int defaultfontshit[] = {
-    8,  5,  11,  10, 6,  13,  12, 7,  16,  16, 10, 19,  24, 14, 29,  36, 22, 44,
-    16, 10, 22,  20, 12, 26,  24, 14, 32,  32, 20, 38,  48, 28, 58,  72, 44, 88
+    8, 5, 11, 10, 6, 13, 12, 7, 16, 16, 10, 19, 24, 14, 29, 36, 22, 44,
+    16, 10, 22, 20, 12, 26, 24, 14, 32, 32, 20, 38, 48, 28, 58, 72, 44, 88
 }; // normal & zoomed (2x)
-#define NDEFAULTFONT (sizeof(defaultfontshit)/sizeof(*defaultfontshit))
+#define NDEFAULTFONT (sizeof(defaultfontshit) / sizeof(*defaultfontshit))
 
 static void libpd_defaultfont_init(void)
 {
     int i;
-    t_atom zz[NDEFAULTFONT+2];
+    t_atom zz[NDEFAULTFONT + 2];
     SETSYMBOL(zz, gensym("."));
-    SETFLOAT(zz+1,0);
-    for (i = 0; i < (int)NDEFAULTFONT; i++)
-    {
-        SETFLOAT(zz+i+2, defaultfontshit[i]);
+    SETFLOAT(zz + 1, 0);
+    for (i = 0; i < (int)NDEFAULTFONT; i++) {
+        SETFLOAT(zz + i + 2, defaultfontshit[i]);
     }
-    pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2+NDEFAULTFONT, zz);
+    pd_typedmess(gensym("pd")->s_thing, gensym("init"), 2 + NDEFAULTFONT, zz);
 }
 
 // cyclone objects functions declaration
@@ -483,9 +464,6 @@ void typeroute_tilde_setup(void);
 void vectral_tilde_setup(void);
 void wave_tilde_setup(void);
 void zerox_tilde_setup(void);
-
-
-
 
 void above_tilde_setup();
 void add_tilde_setup();
@@ -741,12 +719,10 @@ void xselect_tilde_setup();
 void xselect2_tilde_setup();
 void zerocross_tilde_setup();
 
-
 void libpd_multi_init(void)
 {
     static int initialized = 0;
-    if(!initialized)
-    {
+    if (!initialized) {
         libpd_set_noteonhook(libpd_multi_noteon);
         libpd_set_controlchangehook(libpd_multi_controlchange);
         libpd_set_programchangehook(libpd_multi_programchange);
@@ -758,7 +734,7 @@ void libpd_multi_init(void)
 
         libpd_set_verbose(0);
         libpd_init();
-        
+
         libpd_multi_receiver_setup();
         libpd_multi_midi_setup();
         libpd_multi_print_setup();
@@ -766,7 +742,7 @@ void libpd_multi_init(void)
         libpd_set_verbose(4);
 
         socket_init();
-        
+
         // cyclone objects
         cyclone_setup();
         accum_setup();
@@ -858,7 +834,7 @@ void libpd_multi_init(void)
         xnotein_setup();
         xnoteout_setup();
         zl_setup();
-        
+
         acos_tilde_setup();
         acosh_tilde_setup();
         allpass_tilde_setup();
@@ -962,7 +938,6 @@ void libpd_multi_init(void)
 
         // else objects initialization
 
-        
         above_tilde_setup();
         add_tilde_setup();
         adsr_tilde_setup();
@@ -1216,12 +1191,12 @@ void libpd_multi_init(void)
         xselect_tilde_setup();
         xselect2_tilde_setup();
         zerocross_tilde_setup();
-        
+
         initialized = 1;
     }
 }
 
-int parse_startup_arguments(const char** argv, size_t argc)
+int parse_startup_arguments(char const** argv, size_t argc)
 {
     sys_lock();
 
@@ -1231,11 +1206,9 @@ int parse_startup_arguments(const char** argv, size_t argc)
     else are the default.  Overwrite them with any results
     of argument parsing, and store them again. */
     sys_get_audio_settings(&as);
-    while ((argc > 0) && **argv == '-')
-    {
+    while ((argc > 0) && **argv == '-') {
         /* audio flags */
-        if (!strcmp(*argv, "-r") && argc > 1 && sscanf(argv[1], "%d", &as.a_srate) >= 1)
-        {
+        if (!strcmp(*argv, "-r") && argc > 1 && sscanf(argv[1], "%d", &as.a_srate) >= 1) {
             argc -= 2;
             argv += 2;
         }
@@ -1289,200 +1262,151 @@ int parse_startup_arguments(const char** argv, size_t argc)
             as.a_blocksize = atoi(argv[1]);
             argc -= 2; argv += 2;
         }*/
-        else if (!strcmp(*argv, "-sleepgrain"))
-        {
-            if (argc < 2) goto usage;
+        else if (!strcmp(*argv, "-sleepgrain")) {
+            if (argc < 2)
+                goto usage;
             sys_sleepgrain = 1000 * atof(argv[1]);
             argc -= 2;
             argv += 2;
-        }
-        else if (!strcmp(*argv, "-nodac"))
-        {
+        } else if (!strcmp(*argv, "-nodac")) {
             as.a_noutdev = as.a_nchoutdev = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-noadc"))
-        {
+        } else if (!strcmp(*argv, "-noadc")) {
             as.a_nindev = as.a_nchindev = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-nosound") || !strcmp(*argv, "-noaudio"))
-        {
+        } else if (!strcmp(*argv, "-nosound") || !strcmp(*argv, "-noaudio")) {
             as.a_noutdev = as.a_nchoutdev = as.a_nindev = as.a_nchindev = 0;
             argc--;
             argv++;
         }
         /* MIDI flags */
-        else if (!strcmp(*argv, "-nomidiin"))
-        {
+        else if (!strcmp(*argv, "-nomidiin")) {
             sys_nmidiin = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-nomidiout"))
-        {
+        } else if (!strcmp(*argv, "-nomidiout")) {
             sys_nmidiout = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-nomidi"))
-        {
+        } else if (!strcmp(*argv, "-nomidi")) {
             sys_nmidiin = sys_nmidiout = 0;
             argc--;
             argv++;
         }
         /* other flags */
-        else if (!strcmp(*argv, "-path"))
-        {
-            if (argc < 2) goto usage;
+        else if (!strcmp(*argv, "-path")) {
+            if (argc < 2)
+                goto usage;
             STUFF->st_temppath = namelist_append_files(STUFF->st_temppath, argv[1]);
             argc -= 2;
             argv += 2;
-        }
-        else if (!strcmp(*argv, "-nostdpath"))
-        {
+        } else if (!strcmp(*argv, "-nostdpath")) {
             sys_usestdpath = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-stdpath"))
-        {
+        } else if (!strcmp(*argv, "-stdpath")) {
             sys_usestdpath = 1;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-helppath"))
-        {
-            if (argc < 2) goto usage;
+        } else if (!strcmp(*argv, "-helppath")) {
+            if (argc < 2)
+                goto usage;
             STUFF->st_helppath = namelist_append_files(STUFF->st_helppath, argv[1]);
             argc -= 2;
             argv += 2;
-        }
-        else if (!strcmp(*argv, "-open"))
-        {
-            if (argc < 2) goto usage;
+        } else if (!strcmp(*argv, "-open")) {
+            if (argc < 2)
+                goto usage;
 
             sys_openlist = namelist_append_files(sys_openlist, argv[1]);
             argc -= 2;
             argv += 2;
-        }
-        else if (!strcmp(*argv, "-lib"))
-        {
-            if (argc < 2) goto usage;
+        } else if (!strcmp(*argv, "-lib")) {
+            if (argc < 2)
+                goto usage;
 
             STUFF->st_externlist = namelist_append_files(STUFF->st_externlist, argv[1]);
             argc -= 2;
             argv += 2;
-        }
-        else if (!strcmp(*argv, "-verbose"))
-        {
+        } else if (!strcmp(*argv, "-verbose")) {
             sys_verbose++;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-noverbose"))
-        {
+        } else if (!strcmp(*argv, "-noverbose")) {
             sys_verbose = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-version"))
-        {
+        } else if (!strcmp(*argv, "-version")) {
             // sys_version = 1;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-d") && argc > 1 && sscanf(argv[1], "%d", &sys_debuglevel) >= 1)
-        {
+        } else if (!strcmp(*argv, "-d") && argc > 1 && sscanf(argv[1], "%d", &sys_debuglevel) >= 1) {
             argc -= 2;
             argv += 2;
-        }
-        else if (!strcmp(*argv, "-loadbang"))
-        {
+        } else if (!strcmp(*argv, "-loadbang")) {
             sys_noloadbang = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-noloadbang"))
-        {
+        } else if (!strcmp(*argv, "-noloadbang")) {
             sys_noloadbang = 1;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-nostderr"))
-        {
+        } else if (!strcmp(*argv, "-nostderr")) {
             sys_printtostderr = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-stderr"))
-        {
+        } else if (!strcmp(*argv, "-stderr")) {
             sys_printtostderr = 1;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-send"))
-        {
-            if (argc < 2) goto usage;
+        } else if (!strcmp(*argv, "-send")) {
+            if (argc < 2)
+                goto usage;
 
             sys_messagelist = namelist_append(sys_messagelist, argv[1], 1);
             argc -= 2;
             argv += 2;
-        }
-        else if (!strcmp(*argv, "-batch"))
-        {
+        } else if (!strcmp(*argv, "-batch")) {
             // sys_batch = 1;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-nobatch"))
-        {
+        } else if (!strcmp(*argv, "-nobatch")) {
             // sys_batch = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-autopatch"))
-        {
+        } else if (!strcmp(*argv, "-autopatch")) {
             // sys_noautopatch = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-noautopatch"))
-        {
+        } else if (!strcmp(*argv, "-noautopatch")) {
             // sys_noautopatch = 1;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-compatibility"))
-        {
+        } else if (!strcmp(*argv, "-compatibility")) {
             float f;
-            if (argc < 2) goto usage;
+            if (argc < 2)
+                goto usage;
 
-            if (sscanf(argv[1], "%f", &f) < 1) goto usage;
+            if (sscanf(argv[1], "%f", &f) < 1)
+                goto usage;
             pd_compatibilitylevel = 0.5 + 100. * f; /* e.g., 2.44 --> 244 */
             argv += 2;
             argc -= 2;
-        }
-        else if (!strcmp(*argv, "-sleep"))
-        {
+        } else if (!strcmp(*argv, "-sleep")) {
             // sys_nosleep = 0;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-nosleep"))
-        {
+        } else if (!strcmp(*argv, "-nosleep")) {
             // sys_nosleep = 1;
             argc--;
             argv++;
-        }
-        else if (!strcmp(*argv, "-noprefs")) /* did this earlier */
+        } else if (!strcmp(*argv, "-noprefs")) /* did this earlier */
             argc--, argv++;
         else if (!strcmp(*argv, "-prefsfile") && argc > 1) /* this too */
             argc -= 2, argv += 2;
-        else
-        {
+        else {
         usage:
             // sys_printusage();
             sys_unlock();
@@ -1507,8 +1431,8 @@ int parse_startup_arguments(const char** argv, size_t argc)
     /* load dynamic libraries specified with "-lib" args */
     t_namelist* nl;
     for (nl = STUFF->st_externlist; nl; nl = nl->nl_next)
-        if (!sys_load_lib(NULL, nl->nl_string)) post("%s: can't load library", nl->nl_string);
+        if (!sys_load_lib(NULL, nl->nl_string))
+            post("%s: can't load library", nl->nl_string);
 
-    
     return (0);
 }

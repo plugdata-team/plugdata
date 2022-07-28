@@ -1,22 +1,24 @@
 
-struct CanvasObject final : public IEMObject
-{
-    CanvasObject(void* ptr, Box* box) : IEMObject(ptr, box)
+struct CanvasObject final : public IEMObject {
+    CanvasObject(void* ptr, Box* box)
+        : IEMObject(ptr, box)
     {
         box->setColour(PlugDataColour::canvasOutlineColourId, Colours::transparentBlack);
     }
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
-            if(!_this) return;
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-            
+
             auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w, static_cast<t_my_canvas*>(ptr)->x_vis_h);
-            
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds](){
-                if(!_this) return;
+
+            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() {
+                if (!_this)
+                    return;
                 box->setObjectBounds(bounds);
             });
         });
@@ -34,8 +36,7 @@ struct CanvasObject final : public IEMObject
         int w = jlimit(20, maxSize, box->getWidth());
         int h = jlimit(20, maxSize, box->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight())
-        {
+        if (w != box->getWidth() || h != box->getHeight()) {
             box->setSize(w, h);
         }
     }
@@ -49,19 +50,19 @@ struct CanvasObject final : public IEMObject
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
 
-    void updateValue() override{};
+    void updateValue() override {};
 
     ObjectParameters getParameters() override
     {
         ObjectParameters params;
-        params.push_back({"Background", tColour, cAppearance, &secondaryColour, {}});
-        params.push_back({"Send Symbol", tString, cGeneral, &sendSymbol, {}});
-        params.push_back({"Receive Symbol", tString, cGeneral, &receiveSymbol, {}});
-        params.push_back({"Label", tString, cLabel, &labelText, {}});
-        params.push_back({"Label Colour", tColour, cLabel, &labelColour, {}});
-        params.push_back({"Label X", tInt, cLabel, &labelX, {}});
-        params.push_back({"Label Y", tInt, cLabel, &labelY, {}});
-        params.push_back({"Label Height", tInt, cLabel, &labelHeight, {}});
+        params.push_back({ "Background", tColour, cAppearance, &secondaryColour, {} });
+        params.push_back({ "Send Symbol", tString, cGeneral, &sendSymbol, {} });
+        params.push_back({ "Receive Symbol", tString, cGeneral, &receiveSymbol, {} });
+        params.push_back({ "Label", tString, cLabel, &labelText, {} });
+        params.push_back({ "Label Colour", tColour, cLabel, &labelColour, {} });
+        params.push_back({ "Label X", tInt, cLabel, &labelX, {} });
+        params.push_back({ "Label Y", tInt, cLabel, &labelY, {} });
+        params.push_back({ "Label Height", tInt, cLabel, &labelHeight, {} });
         return params;
     }
 };

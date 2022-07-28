@@ -13,13 +13,11 @@ struct DocumentBrowser;
 struct AutomationPanel;
 struct PlugDataAudioProcessor;
 
-namespace pd
-{
+namespace pd {
 struct Instance;
 }
 
-enum ParameterType
-{
+enum ParameterType {
     tString,
     tInt,
     tFloat,
@@ -29,27 +27,26 @@ enum ParameterType
     tRange
 };
 
-enum ParameterCategory
-{
+enum ParameterCategory {
     cGeneral,
     cAppearance,
     cLabel,
     cExtra
 };
 
-using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>;  // name, type and pointer to value, list of items only for combobox and bool
+using ObjectParameter = std::tuple<String, ParameterType, ParameterCategory, Value*, std::vector<String>>; // name, type and pointer to value, list of items only for combobox and bool
 
-using ObjectParameters = std::vector<ObjectParameter>;  // List of elements and update function
+using ObjectParameters = std::vector<ObjectParameter>; // List of elements and update function
 
 // used by console for a more optimised calculation
 static int getNumLines(int width, int stringWidth)
 {
     // On startup, width might be zero, this is a large optimisation in that case
-    if(width == 0) return 0;
-    
+    if (width == 0)
+        return 0;
+
     int numLines = 1;
-    while (width < stringWidth)
-    {
+    while (width < stringWidth) {
         stringWidth -= (width - 12);
         numLines++;
     }
@@ -57,7 +54,7 @@ static int getNumLines(int width, int stringWidth)
     return numLines;
 }
 // Used by text objects for estimating best text height for a set width
-static int getNumLines(const String& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
+static int getNumLines(String const& text, int width, Font font = Font(Font::getDefaultSansSerifFontName(), 13, 0))
 {
     int numLines = 1;
 
@@ -65,12 +62,9 @@ static int getNumLines(const String& text, int width, Font font = Font(Font::get
     Array<float> xOffsets;
     font.getGlyphPositions(text, glyphs, xOffsets);
 
-    for (int i = 0; i < xOffsets.size(); i++)
-    {
-        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n')
-        {
-            for (int j = i + 1; j < xOffsets.size(); j++)
-            {
+    for (int i = 0; i < xOffsets.size(); i++) {
+        if ((xOffsets[i] + 12) >= static_cast<float>(width) || text.getCharPointer()[i] == '\n') {
+            for (int j = i + 1; j < xOffsets.size(); j++) {
                 xOffsets.getReference(j) -= xOffsets[i];
             }
             numLines++;
@@ -80,8 +74,7 @@ static int getNumLines(const String& text, int width, Font font = Font(Font::get
     return numLines;
 }
 
-struct Sidebar : public Component
-{
+struct Sidebar : public Component {
     explicit Sidebar(PlugDataAudioProcessor* instance);
 
     ~Sidebar() override;
@@ -89,11 +82,11 @@ struct Sidebar : public Component
     void paint(Graphics& g) override;
     void resized() override;
 
-    void mouseDown(const MouseEvent& e) override;
-    void mouseUp(const MouseEvent& e) override;
-    void mouseDrag(const MouseEvent& e) override;
-    void mouseMove(const MouseEvent& e) override;
-    void mouseExit(const MouseEvent& e) override;
+    void mouseDown(MouseEvent const& e) override;
+    void mouseUp(MouseEvent const& e) override;
+    void mouseDrag(MouseEvent const& e) override;
+    void mouseMove(MouseEvent const& e) override;
+    void mouseExit(MouseEvent const& e) override;
 
     void showParameters(ObjectParameters& params);
     void showParameters();
@@ -104,7 +97,7 @@ struct Sidebar : public Component
 
     void showAutomationPanel(bool show);
 
-    bool isShowingConsole() const ;
+    bool isShowingConsole() const;
 
     void showSidebar(bool show);
 
@@ -119,7 +112,7 @@ struct Sidebar : public Component
 
     static constexpr int dragbarWidth = 5;
 
-   private:
+private:
     PlugDataAudioProcessor* pd;
     ObjectParameters lastParameters;
 

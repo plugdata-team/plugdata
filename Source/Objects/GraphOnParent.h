@@ -1,11 +1,12 @@
 
-struct GraphOnParent final : public GUIObject
-{
+struct GraphOnParent final : public GUIObject {
     bool isLocked = false;
 
-   public:
+public:
     // Graph On Parent
-    GraphOnParent(void* obj, Box* box) : GUIObject(obj, box), subpatch({ptr, cnv->pd})
+    GraphOnParent(void* obj, Box* box)
+        : GUIObject(obj, box)
+        , subpatch({ ptr, cnv->pd })
     {
         isGraphChild = true;
         hideNameAndArgs = static_cast<bool>(subpatch.getPointer()->gl_hidetext);
@@ -18,49 +19,54 @@ struct GraphOnParent final : public GUIObject
         resized();
         updateDrawables();
     }
-    
+
     // Called by box to make sure clicks on empty parts of the graph are passed on
-    bool canReceiveMouseEvent(int x, int y) override {
-        if(!canvas) return true;
-        if(!isLocked) return true;
-        
-        for(auto& obj : canvas->boxes) {
-            if(!obj->gui) continue;
-            
+    bool canReceiveMouseEvent(int x, int y) override
+    {
+        if (!canvas)
+            return true;
+        if (!isLocked)
+            return true;
+
+        for (auto& obj : canvas->boxes) {
+            if (!obj->gui)
+                continue;
+
             auto localPoint = obj->getLocalPoint(box, Point<int>(x, y));
-            
-            if(obj->hitTest(localPoint.x, localPoint.y)) {
+
+            if (obj->hitTest(localPoint.x, localPoint.y)) {
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
     void checkBounds() override
     {
         // Apply size limits
         int w = jlimit(25, maxSize, box->getWidth());
         int h = jlimit(25, maxSize, box->getHeight());
 
-        if (w != box->getWidth() || h != box->getHeight())
-        {
+        if (w != box->getWidth() || h != box->getHeight()) {
             box->setSize(w, h);
         }
     }
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
-            if(!_this) return;
-            
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
             auto bounds = Rectangle<int>(x, y, w, h);
-            
+
             MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if(!_this) return;
-                
+                if (!_this)
+                    return;
+
                 box->setObjectBounds(bounds);
             });
         });
@@ -85,12 +91,10 @@ struct GraphOnParent final : public GUIObject
     {
         isLocked = locked;
     }
-    
 
     void updateCanvas()
     {
-        if (!canvas)
-        {
+        if (!canvas) {
             canvas = std::make_unique<Canvas>(cnv->main, subpatch, this);
 
             // Make sure that the graph doesn't become the current canvas
@@ -107,8 +111,7 @@ struct GraphOnParent final : public GUIObject
     void updateValue() override
     {
         // Change from subpatch to graph
-        if (!static_cast<t_canvas*>(ptr)->gl_isgraph)
-        {
+        if (!static_cast<t_canvas*>(ptr)->gl_isgraph) {
             cnv->setSelected(box, false);
             box->cnv->main.sidebar.hideParameters();
             box->setType(getText(), ptr);
@@ -117,12 +120,11 @@ struct GraphOnParent final : public GUIObject
 
         updateCanvas();
 
-        if (!canvas) return;
+        if (!canvas)
+            return;
 
-        for (auto& box : canvas->boxes)
-        {
-            if (box->gui)
-            {
+        for (auto& box : canvas->boxes) {
+            if (box->gui) {
                 box->gui->updateValue();
             }
         }
@@ -130,11 +132,10 @@ struct GraphOnParent final : public GUIObject
 
     void updateDrawables() override
     {
-        if (!canvas) return;
-        for (auto& box : canvas->boxes)
-        {
-            if (box->gui)
-            {
+        if (!canvas)
+            return;
+        for (auto& box : canvas->boxes) {
+            if (box->gui) {
                 box->gui->updateDrawables();
             }
         }
@@ -147,19 +148,17 @@ struct GraphOnParent final : public GUIObject
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
-        
+
         // Strangly, the title goes below the graph content in pd
         auto text = getText();
-        
-        if(!static_cast<bool>(hideNameAndArgs.getValue()) && text != "graph") {
+
+        if (!static_cast<bool>(hideNameAndArgs.getValue()) && text != "graph") {
             g.setColour(box->findColour(PlugDataColour::textColourId));
             g.setFont(Font(15));
             auto textArea = getLocalBounds().removeFromTop(20).withTrimmedLeft(5);
             g.drawFittedText(text, textArea, Justification::left, 1, 1.0f);
         }
     }
-    
-    
 
     pd::Patch* getPatch() override
     {
@@ -173,24 +172,21 @@ struct GraphOnParent final : public GUIObject
 
     ObjectParameters getParameters() override
     {
-        return {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
+        return { { "Is graph", tBool, cGeneral, &isGraphChild, { "No", "Yes" } }, { "Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, { "No", "Yes" } } };
     };
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(isGraphChild))
-        {
+        if (v.refersToSameSourceAs(isGraphChild)) {
             subpatch.getPointer()->gl_isgraph = static_cast<bool>(isGraphChild.getValue());
             updateValue();
-        }
-        else if (v.refersToSameSourceAs(hideNameAndArgs))
-        {
+        } else if (v.refersToSameSourceAs(hideNameAndArgs)) {
             subpatch.getPointer()->gl_hidetext = static_cast<bool>(hideNameAndArgs.getValue());
             repaint();
         }
     }
 
-   private:
+private:
     Value isGraphChild = Value(var(false));
     Value hideNameAndArgs = Value(var(false));
 

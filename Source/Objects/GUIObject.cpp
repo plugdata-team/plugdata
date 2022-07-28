@@ -6,8 +6,7 @@
 
 #include "GUIObject.h"
 
-extern "C"
-{
+extern "C" {
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
@@ -47,35 +46,38 @@ extern "C"
 #include "ScalarObject.h"
 #include "TextDefineObject.h"
 
-ObjectBase::ObjectBase(void* obj, Box* parent) : ptr(obj), box(parent), cnv(box->cnv){}
+ObjectBase::ObjectBase(void* obj, Box* parent)
+    : ptr(obj)
+    , box(parent)
+    , cnv(box->cnv)
+{
+}
 
 String ObjectBase::getText()
 {
-    if (!cnv->patch.checkObject(ptr)) return "";
-    
+    if (!cnv->patch.checkObject(ptr))
+        return "";
+
     char* text = nullptr;
     int size = 0;
     cnv->pd->setThis();
-    
+
     libpd_get_object_text(ptr, &text, &size);
-    if (text && size)
-    {
+    if (text && size) {
         String txt(text, size);
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
         return txt;
     }
-    
+
     return "";
 }
 
 String ObjectBase::getType() const
 {
-    if (ptr)
-    {
+    if (ptr) {
         char const* name = libpd_get_object_class_name(ptr);
-        if (name)
-        {
-            return {name};
+        if (name) {
+            return { name };
         }
     }
     return {};
@@ -87,29 +89,25 @@ void ObjectBase::closeOpenedSubpatchers()
 {
     auto& main = box->cnv->main;
     auto* tabbar = &main.tabbar;
-    
-    if (!tabbar) return;
-    
-    for (int n = 0; n < tabbar->getNumTabs(); n++)
-    {
+
+    if (!tabbar)
+        return;
+
+    for (int n = 0; n < tabbar->getNumTabs(); n++) {
         auto* cnv = main.getCanvas(n);
-        if (cnv && cnv->patch == *getPatch())
-        {
+        if (cnv && cnv->patch == *getPatch()) {
             auto* deleted_patch = &cnv->patch;
             main.canvases.removeObject(cnv);
             tabbar->removeTab(n);
             main.pd.patches.removeObject(deleted_patch, false);
         }
     }
-    
-    if (tabbar->getNumTabs() > 1)
-    {
+
+    if (tabbar->getNumTabs() > 1) {
         tabbar->getTabbedButtonBar().setVisible(true);
         tabbar->setTabBarDepth(28);
-        //main.resized(); TODO: this currently crashes because it will access the deleted object, fix this!
-    }
-    else
-    {
+        // main.resized(); TODO: this currently crashes because it will access the deleted object, fix this!
+    } else {
         tabbar->getTabbedButtonBar().setVisible(false);
         tabbar->setTabBarDepth(1);
         // main.resized();  TODO: same thing
@@ -118,41 +116,43 @@ void ObjectBase::closeOpenedSubpatchers()
 
 void ObjectBase::moveToFront()
 {
-    auto glist_getindex = [](t_glist* x, t_gobj* y)
-    {
+    auto glist_getindex = [](t_glist* x, t_gobj* y) {
         t_gobj* y2;
         int indx;
-        for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next) indx++;
+        for (y2 = x->gl_list, indx = 0; y2 && y2 != y; y2 = y2->g_next)
+            indx++;
         return (indx);
     };
-    
-    auto glist_nth = [](t_glist* x, int n) -> t_gobj*
-    {
+
+    auto glist_nth = [](t_glist* x, int n) -> t_gobj* {
         t_gobj* y;
         int indx;
         for (y = x->gl_list, indx = 0; y; y = y->g_next, indx++)
-            if (indx == n) return (y);
-        
+            if (indx == n)
+                return (y);
+
         jassertfalse;
         return nullptr;
     };
-    
+
     auto* canvas = static_cast<t_canvas*>(cnv->patch.getPointer());
     t_gobj* y = static_cast<t_gobj*>(ptr);
-    
+
     t_gobj *y_prev = nullptr, *y_next = nullptr;
-    
+
     /* if there is an object before ours (in other words our index is > 0) */
-    if (int idx = glist_getindex(canvas, y)) y_prev = glist_nth(canvas, idx - 1);
-    
+    if (int idx = glist_getindex(canvas, y))
+        y_prev = glist_nth(canvas, idx - 1);
+
     /* if there is an object after ours */
-    if (y->g_next) y_next = y->g_next;
-    
+    if (y->g_next)
+        y_next = y->g_next;
+
     t_gobj* y_end = glist_nth(canvas, glist_getindex(canvas, 0) - 1);
-    
+
     y_end->g_next = y;
     y->g_next = NULL;
-    
+
     /* now fix links in the hole made in the list due to moving of the oldy
      * (we know there is oldy_next as y_end != oldy in canvas_done_popup)
      */
@@ -169,17 +169,18 @@ void ObjectBase::paint(Graphics& g)
     getLookAndFeel().setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
     getLookAndFeel().setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
-    
+
     g.setColour(box->findColour(PlugDataColour::toolbarColourId));
     g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
-    
+
     auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
-    
+
     g.setColour(outlineColour);
     g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
 }
 
-NonPatchable::NonPatchable(void* obj, Box* parent) : ObjectBase(obj, parent)
+NonPatchable::NonPatchable(void* obj, Box* parent)
+    : ObjectBase(obj, parent)
 {
     // Make object invisible
     box->setVisible(false);
@@ -189,17 +190,20 @@ NonPatchable::~NonPatchable()
 {
 }
 
-GUIObject::GUIObject(void* obj, Box* parent) : ObjectBase(obj, parent), processor(*parent->cnv->pd), edited(false)
+GUIObject::GUIObject(void* obj, Box* parent)
+    : ObjectBase(obj, parent)
+    , processor(*parent->cnv->pd)
+    , edited(false)
 {
     box->addComponentListener(this);
     updateLabel(); // TODO: fix virtual call from constructor
-    
+
     setWantsKeyboardFocus(true);
-    
+
     setLookAndFeel(dynamic_cast<PlugDataLook*>(&LookAndFeel::getDefaultLookAndFeel())->getPdLook());
-    
-    MessageManager::callAsync([_this = SafePointer<GUIObject>(this)]{
-        if(_this) {
+
+    MessageManager::callAsync([_this = SafePointer<GUIObject>(this)] {
+        if (_this) {
             _this->updateParameters();
         }
     });
@@ -217,16 +221,15 @@ void GUIObject::updateParameters()
 {
     getLookAndFeel().setColour(Label::textWhenEditingColourId, box->findColour(Label::textWhenEditingColourId));
     getLookAndFeel().setColour(Label::textColourId, box->findColour(Label::textColourId));
-    
+
     auto params = getParameters();
-    for (auto& [name, type, cat, value, list] : params)
-    {
+    for (auto& [name, type, cat, value, list] : params) {
         value->addListener(this);
-        
+
         // Push current parameters to pd
         valueChanged(*value);
     }
-    
+
     repaint();
 }
 
@@ -240,7 +243,7 @@ ObjectParameters GUIObject::getParameters()
     return defineParameters();
 }
 
-float GUIObject::getValueOriginal() const 
+float GUIObject::getValueOriginal() const
 {
     return value;
 }
@@ -249,17 +252,17 @@ void GUIObject::setValueOriginal(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     value = (minimum < maximum) ? std::max(std::min(v, maximum), minimum) : std::max(std::min(v, minimum), maximum);
-    
+
     setValue(value);
 }
 
-float GUIObject::getValueScaled() const 
+float GUIObject::getValueScaled() const
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     return (minimum < maximum) ? (value - minimum) / (maximum - minimum) : 1.f - (value - maximum) / (minimum - maximum);
 }
 
@@ -267,62 +270,59 @@ void GUIObject::setValueScaled(float v)
 {
     auto minimum = static_cast<float>(min.getValue());
     auto maximum = static_cast<float>(max.getValue());
-    
+
     value = (minimum < maximum) ? std::max(std::min(v, 1.f), 0.f) * (maximum - minimum) + minimum : (1.f - std::max(std::min(v, 1.f), 0.f)) * (minimum - maximum) + maximum;
     setValue(value);
 }
 
-void GUIObject::startEdition() 
+void GUIObject::startEdition()
 {
     edited = true;
-    processor.enqueueMessages("gui", "mouse", {1.f});
-    
+    processor.enqueueMessages("gui", "mouse", { 1.f });
+
     value = getValue();
 }
 
-void GUIObject::stopEdition() 
+void GUIObject::stopEdition()
 {
     edited = false;
-    processor.enqueueMessages("gui", "mouse", {0.f});
+    processor.enqueueMessages("gui", "mouse", { 0.f });
 }
 
 void GUIObject::updateValue()
 {
-    if (!edited)
-    {
+    if (!edited) {
         auto thisPtr = SafePointer<GUIObject>(this);
         box->cnv->pd->enqueueFunction(
-                                      [thisPtr]()
-                                      {
-                                          if (!thisPtr) return;
-                                          
-                                          float const v = thisPtr->getValue();
-                                          if (thisPtr->value != v)
-                                          {
-                                              MessageManager::callAsync(
-                                                                        [thisPtr, v]() mutable
-                                                                        {
-                                                                            if (thisPtr)
-                                                                            {
-                                                                                thisPtr->value = v;
-                                                                                thisPtr->update();
-                                                                            }
-                                                                        });
-                                          }
-                                      });
+            [thisPtr]() {
+                if (!thisPtr)
+                    return;
+
+                float const v = thisPtr->getValue();
+                if (thisPtr->value != v) {
+                    MessageManager::callAsync(
+                        [thisPtr, v]() mutable {
+                            if (thisPtr) {
+                                thisPtr->value = v;
+                                thisPtr->update();
+                            }
+                        });
+                }
+            });
     }
 }
 
 void GUIObject::componentMovedOrResized(Component& component, bool moved, bool resized)
 {
     updateLabel();
-    
-    if (!resized) return;
-    
+
+    if (!resized)
+        return;
+
     checkBounds();
 }
 
-void GUIObject::setValue(float value) 
+void GUIObject::setValue(float value)
 {
     cnv->pd->enqueueDirectMessages(ptr, value);
 }
@@ -330,136 +330,89 @@ void GUIObject::setValue(float value)
 ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
 {
     const String name = libpd_get_object_class_name(ptr);
-    if (name == "bng")
-    {
+    if (name == "bng") {
         return new BangObject(ptr, parent);
     }
-    if (name == "hsl")
-    {
+    if (name == "hsl") {
         return new SliderObject(false, ptr, parent);
     }
-    if (name == "vsl")
-    {
+    if (name == "vsl") {
         return new SliderObject(true, ptr, parent);
     }
-    if (name == "tgl")
-    {
+    if (name == "tgl") {
         return new ToggleObject(ptr, parent);
     }
-    if (name == "nbx")
-    {
+    if (name == "nbx") {
         return new NumberObject(ptr, parent);
     }
-    if (name == "vradio")
-    {
+    if (name == "vradio") {
         return new RadioObject(true, ptr, parent);
     }
-    if (name == "hradio")
-    {
+    if (name == "hradio") {
         return new RadioObject(false, ptr, parent);
     }
-    if (name == "cnv")
-    {
+    if (name == "cnv") {
         return new CanvasObject(ptr, parent);
     }
-    if (name == "vu")
-    {
+    if (name == "vu") {
         return new VUMeterObject(ptr, parent);
     }
-    if (name == "text")
-    {
+    if (name == "text") {
         auto* textObj = static_cast<t_text*>(ptr);
-        if (textObj->te_type == T_OBJECT)
-        {
+        if (textObj->te_type == T_OBJECT) {
             return new TextObject(ptr, parent, false);
-        }
-        else
-        {
+        } else {
             return new CommentObject(ptr, parent);
         }
     }
     // Check size to prevent confusing it with else/message
-    if (name == "message" && static_cast<t_gobj*>(ptr)->g_pd->c_size == sizeof(t_message))
-    {
+    if (name == "message" && static_cast<t_gobj*>(ptr)->g_pd->c_size == sizeof(t_message)) {
         return new MessageObject(ptr, parent);
-    }
-    else if (name == "pad")
-    {
+    } else if (name == "pad") {
         return new MousePadObject(ptr, parent);
-    }
-    else if (name == "mouse")
-    {
+    } else if (name == "mouse") {
         return new MouseObject(ptr, parent);
-    }
-    else if (name == "keyboard")
-    {
+    } else if (name == "keyboard") {
         return new KeyboardObject(ptr, parent);
-    }
-    else if (name == "pic")
-    {
+    } else if (name == "pic") {
         return new PictureObject(ptr, parent);
-    }
-    else if (name == "text define")
-    {
+    } else if (name == "text define") {
         return new TextDefineObject(ptr, parent);
-    }
-    else if (name == "gatom")
-    {
+    } else if (name == "gatom") {
         if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_FLOAT)
             return new FloatAtomObject(ptr, parent);
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_SYMBOL)
             return new SymbolAtomObject(ptr, parent);
         else if (static_cast<t_fake_gatom*>(ptr)->a_flavor == A_NULL)
             return new ListObject(ptr, parent);
-    }
-    else if (name == "canvas" || name == "graph")
-    {
-        if (static_cast<t_canvas*>(ptr)->gl_list)
-        {
+    } else if (name == "canvas" || name == "graph") {
+        if (static_cast<t_canvas*>(ptr)->gl_list) {
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
-            if (c && c->c_name && (String(c->c_name->s_name) == "array"))
-            {
+            if (c && c->c_name && (String(c->c_name->s_name) == "array")) {
                 return new ArrayObject(ptr, parent);
-            }
-            else if (static_cast<t_canvas*>(ptr)->gl_isgraph)
-            {
+            } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 return new GraphOnParent(ptr, parent);
-            }
-            else
-            {  // abstraction or subpatch
+            } else { // abstraction or subpatch
                 return new SubpatchObject(ptr, parent);
             }
-        }
-        else if (static_cast<t_canvas*>(ptr)->gl_isgraph)
-        {
+        } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
             return new GraphOnParent(ptr, parent);
-        }
-        else
-        {
+        } else {
             return new SubpatchObject(ptr, parent);
         }
-    }
-    else if (name == "clone")
-    {
+    } else if (name == "clone") {
         return new CloneObject(ptr, parent);
-    }
-    else if (name == "pd")
-    {
+    } else if (name == "pd") {
         return new SubpatchObject(ptr, parent);
-    }
-    else if (name == "scalar")
-    {
+    } else if (name == "scalar") {
         auto* gobj = static_cast<t_gobj*>(ptr);
-        if (gobj->g_pd == scalar_class)
-        {
+        if (gobj->g_pd == scalar_class) {
             return new ScalarObject(ptr, parent);
         }
-    }
-    else if (!pd_checkobject(static_cast<t_pd*>(ptr)))
-    {
+    } else if (!pd_checkobject(static_cast<t_pd*>(ptr))) {
         // Object is not a patcher object but something else
         return new NonPatchable(ptr, parent);
     }
-    
+
     return new TextObject(ptr, parent);
 }

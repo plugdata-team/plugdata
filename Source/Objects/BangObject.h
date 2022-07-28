@@ -1,6 +1,5 @@
 
-struct BangObject final : public IEMObject
-{
+struct BangObject final : public IEMObject {
     uint32_t lastBang = 0;
 
     Value bangInterrupt = Value(100.0f);
@@ -9,7 +8,8 @@ struct BangObject final : public IEMObject
     bool bangState = false;
     bool alreadyBanged = false;
 
-    BangObject(void* obj, Box* parent) : IEMObject(obj, parent)
+    BangObject(void* obj, Box* parent)
+        : IEMObject(obj, parent)
     {
         bangInterrupt = static_cast<t_bng*>(ptr)->x_flashtime_break;
         bangHold = static_cast<t_bng*>(ptr)->x_flashtime_hold;
@@ -19,13 +19,13 @@ struct BangObject final : public IEMObject
     {
         // Fix aspect ratio and apply limits
         int size = jlimit(30, maxSize, box->getWidth());
-        if (size != box->getHeight() || size != box->getWidth())
-        {
+        if (size != box->getHeight() || size != box->getWidth()) {
             box->setSize(size, size);
         }
     }
-    void toggleObject(Point<int> position) override {
-        if(!alreadyBanged) {
+    void toggleObject(Point<int> position) override
+    {
+        if (!alreadyBanged) {
             startEdition();
             setValueOriginal(1);
             stopEdition();
@@ -33,20 +33,21 @@ struct BangObject final : public IEMObject
             alreadyBanged = true;
         }
     }
-    
-    void untoggleObject() override {
+
+    void untoggleObject() override
+    {
         alreadyBanged = false;
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         startEdition();
         setValueOriginal(1);
         stopEdition();
-        
+
         // Make sure we don't re-click with an accidental drag
         alreadyBanged = true;
-        
+
         update();
     }
 
@@ -54,11 +55,11 @@ struct BangObject final : public IEMObject
     {
         IEMObject::paint(g);
 
-        const auto bounds = getLocalBounds().reduced(1).toFloat();
-        const auto width = std::max(bounds.getWidth(), bounds.getHeight());
+        auto const bounds = getLocalBounds().reduced(1).toFloat();
+        auto const width = std::max(bounds.getWidth(), bounds.getHeight());
 
-        const float circleOuter = 80.f * (width * 0.01f);
-        const float circleThickness = std::max(width * 0.06f, 1.5f);
+        float const circleOuter = 80.f * (width * 0.01f);
+        float const circleThickness = std::max(width * 0.06f, 1.5f);
 
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.drawEllipse(bounds.reduced(width - circleOuter), circleThickness);
@@ -71,8 +72,7 @@ struct BangObject final : public IEMObject
     float getValue() override
     {
         // hack to trigger off the bang if no GUI update
-        if ((static_cast<t_bng*>(ptr))->x_flashed > 0)
-        {
+        if ((static_cast<t_bng*>(ptr))->x_flashed > 0) {
             static_cast<t_bng*>(ptr)->x_flashed = 0;
             return 1.0f;
         }
@@ -81,8 +81,7 @@ struct BangObject final : public IEMObject
 
     void update() override
     {
-        if (getValueOriginal() > std::numeric_limits<float>::epsilon())
-        {
+        if (getValueOriginal() > std::numeric_limits<float>::epsilon()) {
             bangState = true;
             repaint();
 
@@ -91,12 +90,10 @@ struct BangObject final : public IEMObject
 
             int holdTime = bangHold.getValue();
 
-            if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2)
-            {
+            if (timeSinceLast < static_cast<int>(bangHold.getValue()) * 2) {
                 holdTime = timeSinceLast / 2;
             }
-            if (holdTime < bangInterrupt)
-            {
+            if (holdTime < bangInterrupt) {
                 holdTime = bangInterrupt.getValue();
             }
 
@@ -104,45 +101,40 @@ struct BangObject final : public IEMObject
 
             auto deletionChecker = SafePointer(this);
             Timer::callAfterDelay(holdTime,
-                                  [deletionChecker, this]() mutable
-                                  {
-                                      // First check if this object still exists
-                                      if (!deletionChecker) return;
+                [deletionChecker, this]() mutable {
+                    // First check if this object still exists
+                    if (!deletionChecker)
+                        return;
 
-                                      if (bangState)
-                                      {
-                                          bangState = false;
-                                          repaint();
-                                      }
-                                  });
+                    if (bangState) {
+                        bangState = false;
+                        repaint();
+                    }
+                });
         }
     }
 
     ObjectParameters defineParameters() override
     {
         return {
-            {"Interrupt", tInt, cGeneral, &bangInterrupt, {}},
-            {"Hold", tInt, cGeneral, &bangHold, {}},
+            { "Interrupt", tInt, cGeneral, &bangInterrupt, {} },
+            { "Hold", tInt, cGeneral, &bangHold, {} },
         };
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(bangInterrupt))
-        {
+        if (value.refersToSameSourceAs(bangInterrupt)) {
             static_cast<t_bng*>(ptr)->x_flashtime_break = bangInterrupt.getValue();
         }
-        if (value.refersToSameSourceAs(bangHold))
-        {
+        if (value.refersToSameSourceAs(bangHold)) {
             static_cast<t_bng*>(ptr)->x_flashtime_hold = bangHold.getValue();
-        }
-        else
-        {
+        } else {
             IEMObject::valueChanged(value);
         }
     }
 
-    float getMaximum() const 
+    float getMaximum() const
     {
         return (static_cast<t_my_numbox*>(ptr))->x_max;
     }

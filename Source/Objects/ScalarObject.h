@@ -4,12 +4,10 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct _fielddesc
-{
+struct _fielddesc {
     char fd_type; /* LATER consider removing this? */
     char fd_var;
-    union
-    {
+    union {
         t_float fd_float;    /* the field is a constant float */
         t_symbol* fd_symbol; /* the field is a constant symbol */
         t_symbol* fd_varsym; /* the field is variable and this is the name */
@@ -21,8 +19,7 @@ struct _fielddesc
     float fd_quantum; /* quantization in value */
 };
 
-struct t_curve
-{
+struct t_curve {
     t_object x_obj;
     int x_flags; /* CLOSED, BEZ, NOMOUSERUN, NOMOUSEEDIT */
     t_fielddesc x_fillcolor;
@@ -42,8 +39,7 @@ struct t_curve
 #define A_ARRAY 55    /* LATER decide whether to enshrine this in m_pd.h */
 
 struct t_curve;
-struct DrawableTemplate final : public DrawablePath
-{
+struct DrawableTemplate final : public DrawablePath {
     t_scalar* scalar;
     t_curve* object;
     int baseX, baseY;
@@ -53,15 +49,12 @@ struct DrawableTemplate final : public DrawablePath
      the above are setting up the fielddesc itself. */
     static t_float fielddesc_getfloat(t_fielddesc* f, t_template* templ, t_word* wp, int loud)
     {
-        if (f->fd_type == A_FLOAT)
-        {
+        if (f->fd_type == A_FLOAT) {
             if (f->fd_var)
                 return (template_getfloat(templ, f->fd_un.fd_varsym, wp, loud));
             else
                 return (f->fd_un.fd_float);
-        }
-        else
-        {
+        } else {
             return (0);
         }
     }
@@ -70,29 +63,35 @@ struct DrawableTemplate final : public DrawablePath
     {
         int n2 = (n == 9 ? 8 : n); /* 0 to 8 */
         int ret = (n2 << 5);       /* 0 to 256 in 9 steps */
-        if (ret > 255) ret = 255;
+        if (ret > 255)
+            ret = 255;
         return (ret);
     }
 
     static void numbertocolor(int n, char* s)
     {
         int red, blue, green;
-        if (n < 0) n = 0;
+        if (n < 0)
+            n = 0;
         red = n / 100;
         blue = ((n / 10) % 10);
         green = n % 10;
         sprintf(s, "#%2.2x%2.2x%2.2x", rangecolor(red), rangecolor(blue), rangecolor(green));
     }
 
-    DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y) : scalar(s), object(reinterpret_cast<t_curve*>(obj)), canvas(cnv), baseX(x), baseY(y)
+    DrawableTemplate(t_scalar* s, t_gobj* obj, Canvas* cnv, int x, int y)
+        : scalar(s)
+        , object(reinterpret_cast<t_curve*>(obj))
+        , canvas(cnv)
+        , baseX(x)
+        , baseY(y)
     {
     }
 
     void update()
     {
-        if (String(object->x_obj.te_g.g_pd->c_name->s_name) == "drawtext")
-        {
-            return;  // not supported yet
+        if (String(object->x_obj.te_g.g_pd->c_name->s_name) == "drawtext") {
+            return; // not supported yet
         }
 
         auto* glist = canvas->patch.getPointer();
@@ -104,28 +103,26 @@ struct DrawableTemplate final : public DrawablePath
         auto* data = scalar->sc_vec;
 
         /* see comment in plot_vis() */
-        if (!fielddesc_getfloat(&object->x_vis, templ, data, 0))
-        {
+        if (!fielddesc_getfloat(&object->x_vis, templ, data, 0)) {
             return;
         }
 
         auto bounds = canvas->isGraph ? canvas->getParentComponent()->getLocalBounds() : canvas->getLocalBounds();
 
-        if (n > 1)
-        {
+        if (n > 1) {
             int flags = object->x_flags;
             int closed = flags & CLOSED;
-            
+
             t_float width = fielddesc_getfloat(&object->x_width, templ, data, 1);
 
             char outline[20], fill[20];
             int pix[200];
-            if (n > 100) n = 100;
+            if (n > 100)
+                n = 100;
 
             canvas->pd->getCallbackLock()->enter();
 
-            for (i = 0, f = object->x_vec; i < n; i++, f += 2)
-            {
+            for (i = 0, f = object->x_vec; i < n; i++, f += 2) {
                 // glist->gl_havewindow = canvas->isGraphChild;
                 // glist->gl_isgraph = canvas->isGraph;
 
@@ -138,65 +135,59 @@ struct DrawableTemplate final : public DrawablePath
 
             canvas->pd->getCallbackLock()->exit();
 
-            if (width < 1) width = 1;
-            if (glist->gl_isgraph) width *= glist_getzoom(glist);
+            if (width < 1)
+                width = 1;
+            if (glist->gl_isgraph)
+                width *= glist_getzoom(glist);
 
             numbertocolor(fielddesc_getfloat(&object->x_outlinecolor, templ, data, 1), outline);
-            
-            if (closed)
-            {
+
+            if (closed) {
                 numbertocolor(fielddesc_getfloat(&object->x_fillcolor, templ, data, 1), fill);
             }
 
             Path toDraw;
 
             toDraw.startNewSubPath(pix[0], pix[1]);
-            for (i = 1; i < n; i++)
-            {
+            for (i = 1; i < n; i++) {
                 toDraw.lineTo(pix[2 * i], pix[2 * i + 1]);
             }
-            
-            if (closed)
-            {
+
+            if (closed) {
                 toDraw.lineTo(pix[0], pix[1]);
             }
 
             String objName = String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name);
-            if (objName.startsWith("fill"))
-            {
+            if (objName.startsWith("fill")) {
                 setFill(Colour::fromString("FF" + String::fromUTF8(fill + 1)));
                 setStrokeThickness(0.0f);
-            }
-            else
-            {
+            } else {
                 setFill(Colours::transparentBlack);
                 setStrokeFill(Colour::fromString("FF" + String::fromUTF8(outline + 1)));
                 setStrokeThickness(width);
             }
-            
+
             auto drawBounds = toDraw.getBounds();
             // tcl/tk will show a dot for a 0px polygon
             // JUCE doesn't do this, so we have to fake it
-            if (closed && drawBounds.isEmpty())
-            {
+            if (closed && drawBounds.isEmpty()) {
                 toDraw.clear();
                 toDraw.addEllipse(drawBounds.withSizeKeepingCentre(5, 5));
                 setStrokeThickness(2);
                 setFill(getStrokeFill());
             }
-                
+
             setPath(toDraw);
-        }
-        else
+        } else
             post("warning: curves need at least two points to be graphed");
     }
 };
 
-struct ScalarObject final : public NonPatchable
-{
+struct ScalarObject final : public NonPatchable {
     OwnedArray<DrawableTemplate> templates;
 
-    ScalarObject(void* obj, Box* box) : NonPatchable(obj, box)
+    ScalarObject(void* obj, Box* box)
+        : NonPatchable(obj, box)
     {
         box->setVisible(false);
 
@@ -207,10 +198,10 @@ struct ScalarObject final : public NonPatchable
         t_float basex, basey;
         scalar_getbasexy(x, &basex, &basey);
 
-        for (y = templatecanvas->gl_list; y; y = y->g_next)
-        {
-            const t_parentwidgetbehavior* wb = pd_getparentwidget(&y->g_pd);
-            if (!wb) continue;
+        for (y = templatecanvas->gl_list; y; y = y->g_next) {
+            t_parentwidgetbehavior const* wb = pd_getparentwidget(&y->g_pd);
+            if (!wb)
+                continue;
 
             auto* drawable = templates.add(new DrawableTemplate(x, y, cnv, static_cast<int>(basex), static_cast<int>(basey)));
             cnv->addAndMakeVisible(drawable);
@@ -221,8 +212,7 @@ struct ScalarObject final : public NonPatchable
 
     void updateDrawables() override
     {
-        for (auto& drawable : templates)
-        {
+        for (auto& drawable : templates) {
             drawable->update();
         }
     }
