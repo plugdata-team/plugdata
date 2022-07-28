@@ -31,13 +31,13 @@ public:
     }
     
     // Gets the name of the array.
-    String getName() const
+    String getExpandedName() const
     {
         return libpd_array_get_name(ptr);
     }
     
     // Gets the text label of the array.
-    String getText() const
+    String getUnexpandedName() const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
         return libpd_array_get_unexpanded_name(ptr);
@@ -240,7 +240,7 @@ public:
         if (error)
         {
             g.setColour(box->findColour(PlugDataColour::textColourId));
-            g.drawText("array " + array.getText() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
+            g.drawText("array " + array.getUnexpandedName() + " is invalid", 0, 0, getWidth(), getHeight(), Justification::centred);
             error = false;
         }
         else
@@ -373,7 +373,7 @@ public:
         range = var(arr);
         size = var(static_cast<int>(graph.array.size()));
         saveContents = array.willSaveContent();
-        name = String(array.getName());
+        name = String(array.getUnexpandedName());
         drawMode = static_cast<int>(array.getDrawType()) + 1;
         
         labelColour = box->findColour(PlugDataColour::textColourId).toString();
@@ -385,7 +385,7 @@ public:
     {
         int fontHeight = 14.0f;
         
-        const String text = array.getText();
+        const String text = array.getExpandedName();
         
         if (text.isNotEmpty())
         {
@@ -561,10 +561,6 @@ public:
     {
         auto* c = static_cast<t_canvas*>(ptr);
         auto* glist = reinterpret_cast<t_garray*>(c->gl_list);
-        
-        //gobj_
-        
-        
         
         return {glist, cnv->pd->m_instance};
     }
