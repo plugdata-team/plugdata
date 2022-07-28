@@ -114,6 +114,10 @@ struct MessageObject final : public GUIObject
 
     void showEditor() override
     {
+        input.setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
+        input.setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
+        input.setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
+        
         input.showEditor();
     }
 
@@ -144,21 +148,6 @@ struct MessageObject final : public GUIObject
     void update() override
     {
         input.setText(String(getSymbol()), sendNotification);
-    }
-
-    void paint(Graphics& g) override
-    {
-        input.setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
-        input.setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
-        input.setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
-        
-        g.setColour(box->findColour(PlugDataColour::toolbarColourId));
-        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
-        
-        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
-        
-        g.setColour(outlineColour);
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     }
     
     void paintOverChildren(Graphics& g) override
