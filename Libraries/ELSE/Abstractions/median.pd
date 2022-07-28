@@ -15,7 +15,7 @@
 #X obj 31 58 route float list;
 #X obj 77 88 t b l;
 #X obj 145 97 trigger l l;
-#X obj 145 74 else/sort;
+#X obj 145 74 sort;
 #X obj 402 70 declare -path else;
 #X connect 0 0 11 0;
 #X connect 1 0 2 0;

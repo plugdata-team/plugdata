@@ -34,10 +34,10 @@
 #X obj 46 67 select 0;
 #X obj 150 171 s \$0-n;
 #X obj 150 147 expr 1./$f1;
-#X obj 118 198 else/loop;
-#X msg 145 374 obj 60 \$1 else/echo_unit \$4 \$5 \, connect \$2 0 \$3
+#X obj 118 198 loop;
+#X msg 145 374 obj 60 \$1 echo_unit \$4 \$5 \, connect \$2 0 \$3
 0 \, connect \$2 1 \$3 1, f 47;
-#X msg 126 444 obj 60 50 else/echo_unit 5 \$1 \, connect 0 0 2 0;
+#X msg 126 444 obj 60 50 echo_unit 5 \$1 \, connect 0 0 2 0;
 #X connect 0 0 7 0;
 #X connect 2 0 10 0;
 #X connect 2 1 15 0;
@@ -66,7 +66,7 @@
 #X obj 103 196 s \$0-size;
 #X obj 103 170 expr 1 + $f1 * 0.5;
 #X obj 103 144 clip 0 1;
-#X obj 119 85 else/lb 2;
+#X obj 119 85 lb 2;
 #X obj 215 80 declare -path else;
 #X connect 0 0 5 0;
 #X connect 2 0 5 0;

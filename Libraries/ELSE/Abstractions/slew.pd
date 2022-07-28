@@ -63,7 +63,7 @@
 #X obj 315 365 max 1;
 #N canvas 841 179 435 453 init 0;
 #X obj 91 156 route -rate;
-#X obj 91 96 else/loadbanger 2;
+#X obj 91 96 loadbanger 2;
 #X obj 207 233 s \$0-rate;
 #X msg 207 131 5;
 #X obj 165 260 unpack;
@@ -99,7 +99,7 @@
 #X obj 225 301 s \$0-last;
 #X msg 243 131 0 0;
 #X obj 91 183 list split 1;
-#X obj 91 123 else/args -;
+#X obj 91 123 args -;
 #X connect 0 0 10 0;
 #X connect 0 1 4 0;
 #X connect 1 0 11 0;

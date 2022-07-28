@@ -15,9 +15,9 @@
 #X obj 313 359 v mix_\$0;
 #X msg 162 247 1;
 #X obj 207 452 s \$0-thresh;
-#X obj 109 62 else/lb 2;
+#X obj 109 62 lb 2;
 #X obj 109 177 t a b;
-#X obj 109 123 else/args -;
+#X obj 109 123 args -;
 #X connect 0 0 5 0;
 #X connect 4 0 11 0;
 #X connect 4 1 1 0;
@@ -58,11 +58,11 @@
 #X obj 138 76 abs~;
 #X text 189 29 control;
 #X text 50 28 in;
-#X obj 138 102 else/lin2db~;
-#X obj 154 171 else/f2s~ 10;
-#X obj 162 281 else/f2s~ 10;
-#X obj 120 369 else/lag2~;
-#X obj 120 399 else/db2lin~;
+#X obj 138 102 lin2db~;
+#X obj 154 171 f2s~ 10;
+#X obj 162 281 f2s~ 10;
+#X obj 120 369 lag2~;
+#X obj 120 399 db2lin~;
 #X connect 0 0 13 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;

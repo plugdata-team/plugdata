@@ -5,7 +5,7 @@
 #X obj 176 200 outlet;
 #N canvas 491 149 659 346 score 0;
 #X msg 261 167 click;
-#X obj 261 124 else/click;
+#X obj 261 124 click;
 #X msg 204 167 close;
 #X obj 80 27 inlet;
 #X obj 431 248 s \$0-text;
@@ -17,10 +17,10 @@
 #X obj 399 159 text search \$0-score;
 #N canvas 386 71 406 295 init 0;
 #X obj 98 37 loadbang;
-#X obj 98 61 else/args;
+#X obj 98 61 args;
 #X obj 98 88 route symbol;
 #X obj 98 224 outlet;
-#X obj 98 123 else/canvas.file 1;
+#X obj 98 123 canvas.file 1;
 #X msg 221 155 \$1 file not found;
 #X obj 221 185 print [score];
 #X msg 98 172 read \$1;
@@ -227,7 +227,7 @@
 #N canvas 483 126 335 256 parse 0;
 #X obj 194 95 list trim;
 #X obj 89 95 list split 1;
-#X obj 48 169 else/message;
+#X obj 48 169 message;
 #N canvas 475 23 788 681 delay 0;
 #X obj 116 84 - 1;
 #X obj 116 155 t f f;
@@ -248,7 +248,7 @@
 #X obj 527 342 s \$0-stop;
 #X obj 495 403 s \$0-bar-n;
 #X obj 495 308 t f b;
-#X obj 180 412 else/nmess;
+#X obj 180 412 nmess;
 #X msg 247 382 1;
 #X obj 26 257 v type_\$0;
 #X obj 26 288 t f f;
@@ -268,12 +268,12 @@
 #X obj 487 138 trigger bang list;
 #X obj 487 168 v bpm_\$0;
 #X obj 623 198 unpack f f f, f 18;
-#X obj 141 176 else/add;
+#X obj 141 176 add;
 #X msg 279 340 0;
 #X obj 29 17 inlet;
 #X obj 510 345 s \$0-init;
 #X obj 279 314 r \$0-init;
-#X obj 29 142 else/router;
+#X obj 29 142 router;
 #X obj 141 85 r \$0-init;
 #X msg 153 115 1;
 #X obj 105 306 s \$0-finished;
@@ -281,7 +281,7 @@
 #X msg 103 82 0;
 #X obj 29 639 outlet;
 #X obj 141 204 t f f;
-#X obj 141 234 else/router;
+#X obj 141 234 router;
 #X obj 73 271 t f b;
 #X obj 405 79 route float list, f 24;
 #X obj 804 345 v Q_\$0;
@@ -319,7 +319,7 @@
 #X obj 343 183 v S2_\$0;
 #X msg 150 108 0;
 #X obj 120 375 delay;
-#X obj 203 375 else/bpm;
+#X obj 203 375 bpm;
 #X obj 367 230 v bpm_\$0;
 #X obj 407 469 outlet;
 #X obj 343 150 b;
@@ -359,7 +359,7 @@
 #X obj 746 227 s N_\$0;
 #X obj 481 476 s \$0-data-out;
 #X msg 444 506 tempo \$1 permin;
-#X obj 247 432 else/bpm;
+#X obj 247 432 bpm;
 #X obj 247 463 expr bpm_\$0 / $f1;
 #X obj 73 347 expr $f1 - N_\$0, f 16;
 #X obj 590 286 expr N_\$0 * ln_Q_\$0 / delta_\$0 \; ln(Q_\$0) \; S2_\$0/S1_\$0
@@ -427,7 +427,7 @@
 #X obj 148 243 delay;
 #X obj 207 241 r \$0-stop-delay;
 #X msg 207 265 stop;
-#X obj 291 56 else/routeall timesig;
+#X obj 291 56 routeall timesig;
 #X obj 377 473 s \$0-data-out;
 #X msg 377 446 bar \$1;
 #X obj 662 150 v bar_\$0;
@@ -459,12 +459,12 @@
 #X obj 420 152 trigger bang bang bang;
 #X obj 180 442 t b b;
 #X obj 291 83 s \$0-time-sig;
-#X obj 295 533 else/message;
+#X obj 295 533 message;
 #X obj 376 502 r \$0-time-sig;
-#X obj 295 565 else/changed;
+#X obj 295 565 changed;
 #X obj 405 534 r \$0-rewind;
 #X obj 295 595 s \$0-data-out;
-#X obj 342 224 else/separate /;
+#X obj 342 224 separate /;
 #X obj 342 189 symbol;
 #X obj 342 253 unpack;
 #X obj 342 286 s \$0-n_beats;
@@ -537,9 +537,9 @@
 #X obj 88 168 route float;
 #X obj 201 201 list;
 #X obj 201 89 t b l l;
-#X obj 53 240 else/router, f 16;
+#X obj 53 240 router, f 16;
 #X obj 85 307 s \$0-stop;
-#X obj 201 57 else/router;
+#X obj 201 57 router;
 #X obj 275 23 r \$0-route;
 #X text 167 365 data;
 #X text 58 365 event;

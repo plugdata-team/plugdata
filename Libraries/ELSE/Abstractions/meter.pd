@@ -11,8 +11,8 @@
 #X obj 169 140 != 0;
 #X msg 123 139 1;
 #X obj 169 168 outlet;
-#X obj 124 90 else/args;
-#X obj 124 67 else/lb;
+#X obj 124 90 args;
+#X obj 124 67 lb;
 #X connect 0 0 2 0;
 #X connect 0 1 1 0;
 #X connect 1 0 3 0;

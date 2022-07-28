@@ -3,11 +3,11 @@
 #X obj 70 37 inlet;
 #X obj 70 263 outlet;
 #X obj 163 138 * 100;
-#X obj 163 176 else/add;
+#X obj 163 176 add;
 #X obj 70 78 trigger bang list bang, f 27;
 #X msg 256 132 0;
-#X obj 163 109 else/iterate;
-#X obj 70 220 else/group;
+#X obj 163 109 iterate;
+#X obj 70 220 group;
 #X text 321 147 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 323 128 Alexandre Torres Porres (2021);
 #X obj 347 89 declare -path else;

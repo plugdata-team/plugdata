@@ -63,9 +63,9 @@
 #X obj 162 196 >= 0;
 #X obj 73 123 route -trim, f 12;
 #X obj 100 269 outlet;
-#X obj 73 93 else/args -;
+#X obj 73 93 args -;
 #X msg 100 192 1;
-#X obj 73 68 else/lb;
+#X obj 73 68 lb;
 #X obj 73 145 t f b;
 #X connect 0 0 2 0;
 #X connect 2 0 1 0;
@@ -77,7 +77,7 @@
 #X connect 8 0 2 0;
 #X connect 8 1 6 0;
 #X restore 167 82 pd set;
-#X obj 80 114 else/router 2, f 15;
+#X obj 80 114 router 2, f 15;
 #X obj 274 65 declare -path else;
 #X connect 0 0 6 0;
 #X connect 4 0 7 0;

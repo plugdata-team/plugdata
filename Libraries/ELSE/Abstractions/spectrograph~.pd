@@ -103,7 +103,7 @@
 #X obj 392 116 * 0.5;
 #X obj 109 180 expr pow(size_\$0 - 1 \, $f1/( size_\$0 - 2)) \; $f1
 + 1;
-#X obj 109 152 else/loop;
+#X obj 109 152 loop;
 #X connect 3 0 4 0;
 #X connect 4 0 11 0;
 #X connect 4 1 9 0;
@@ -149,8 +149,8 @@
 #X obj 61 137 *~ 0;
 #X text 230 146 normalization;
 #X obj 105 147 expr 1./($f1*0.25);
-#X obj 61 96 else/mag~;
-#X obj 61 46 else/hann~;
+#X obj 61 96 mag~;
+#X obj 61 46 hann~;
 #X connect 0 0 7 0;
 #X connect 0 1 7 1;
 #X connect 1 0 6 0;
@@ -253,7 +253,7 @@
 #X obj 168 372 r \$0-name;
 #X floatatom 296 388 5 0 0 0 - - - 0;
 #X msg 175 169 set \$1;
-#X obj 164 338 else/pack2 bounds 0 0.5 512 0;
+#X obj 164 338 pack2 bounds 0 0.5 512 0;
 #X connect 0 0 3 0;
 #X connect 3 0 4 0;
 #X connect 4 0 5 0;
@@ -287,7 +287,7 @@
 #X obj 301 106 r \$0-log;
 #X obj 524 111 r \$0-set-rate;
 #X msg 524 135 set \$1;
-#X obj 84 158 else/pack2 0 0 0 0 0 100, f 74;
+#X obj 84 158 pack2 0 0 0 0 0 100, f 74;
 #X connect 0 0 12 0;
 #X connect 1 0 12 1;
 #X connect 2 0 12 0;
@@ -388,8 +388,8 @@
 #X obj 686 249 moses;
 #X msg 686 269 0;
 #X obj 740 349 s \$0-set-rate;
-#X obj 509 232 else/changed;
-#X obj 713 292 else/changed;
+#X obj 509 232 changed;
+#X obj 713 292 changed;
 #X connect 1 0 14 0;
 #X connect 2 0 15 0;
 #X connect 3 0 5 0;
@@ -446,8 +446,8 @@
 #X connect 4 0 5 0;
 #X connect 4 0 6 0;
 #X restore 442 524 pd rate;
-#X obj 85 172 else/args -;
-#X obj 306 119 else/loadbanger;
+#X obj 85 172 args -;
+#X obj 306 119 loadbanger;
 #X connect 0 0 7 0;
 #X connect 2 0 1 0;
 #X connect 3 0 12 0;
@@ -482,8 +482,8 @@
 #X connect 25 0 17 0;
 #X restore 138 68 pd set;
 #X obj 138 115 block~ 1024;
-#X obj 288 156 else/canvas.setname \$0-patch 1;
-#X obj 288 175 else/canvas.setname \$0-parent 2;
+#X obj 288 156 canvas.setname \$0-patch 1;
+#X obj 288 175 canvas.setname \$0-parent 2;
 #X obj 373 95 declare -path else;
 #X connect 0 0 6 0;
 #X connect 2 0 13 0;

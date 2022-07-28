@@ -9,11 +9,11 @@
 #X text 518 109 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 520 90 Alexandre Torres Porres (2020);
 #X obj 42 193 outlet;
-#X obj 352 52 else/lb;
-#X obj 352 75 else/args;
-#X obj 74 87 else/iterate;
+#X obj 352 52 lb;
+#X obj 352 75 args;
+#X obj 74 87 iterate;
 #X obj 42 55 t b l;
-#X obj 42 154 else/group;
+#X obj 42 154 group;
 #X obj 555 57 declare -path else;
 #X connect 0 0 12 0;
 #X connect 2 0 13 0;

@@ -7,11 +7,11 @@
 #X obj 359 17 inlet;
 #X text 518 109 Part of ELSE \; https://github.com/porres/pd-else;
 #X obj 42 193 outlet;
-#X obj 372 52 else/lb;
-#X obj 372 75 else/args;
-#X obj 74 87 else/iterate;
+#X obj 372 52 lb;
+#X obj 372 75 args;
+#X obj 74 87 iterate;
 #X obj 42 55 t b l;
-#X obj 42 154 else/group;
+#X obj 42 154 group;
 #X text 520 90 Alexandre Torres Porres (2021);
 #X obj 74 121 expr 12 * log($f1 / A4_\$0)/log(2) + 69;
 #X obj 529 60 declare -path else;

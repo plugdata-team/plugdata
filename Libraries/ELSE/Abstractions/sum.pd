@@ -10,7 +10,7 @@
 #X msg 179 125 resize \$1;
 #X text 330 155 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 332 136 Alexandre Torres Porres (2019);
-#X obj 108 63 else/message;
+#X obj 108 63 message;
 #X obj 311 87 declare -path else;
 #X connect 0 0 6 0;
 #X connect 1 0 7 0;

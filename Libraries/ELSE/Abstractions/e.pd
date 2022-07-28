@@ -11,9 +11,9 @@
 #X obj 191 206 t b f;
 #X obj 248 371 * 1;
 #X obj 191 268 exp;
-#X obj 145 151 else/args;
-#X obj 283 280 else/click;
-#X obj 102 128 else/lb 2;
+#X obj 145 151 args;
+#X obj 283 280 click;
+#X obj 102 128 lb 2;
 #X obj 81 266 b;
 #X obj 335 123 declare -path else;
 #X connect 0 0 14 0;

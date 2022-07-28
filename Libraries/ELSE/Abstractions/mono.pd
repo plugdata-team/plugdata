@@ -52,8 +52,8 @@
 * on_\$0 \; notes_\$0[voice_\$0] = ($f2 + 1) * on_\$0 \; velocities_\$0[voice_\$0]
 = $f3 \; voice_\$0 = $f1 \; on_\$0 = $f3 > 0;
 #X obj 71 484 - 1;
-#X obj 245 213 else/loop 10;
-#X obj 107 44 else/voices -list -retrig 1 10 1;
+#X obj 245 213 loop 10;
+#X obj 107 44 voices -list -retrig 1 10 1;
 #X connect 2 0 42 0;
 #X connect 3 0 42 1;
 #X connect 4 0 23 0;
@@ -163,7 +163,7 @@
 #X obj 15 136 t f b;
 #X obj 56 136 t f b;
 #X obj 97 136 t f b;
-#X obj 15 83 else/args -;
+#X obj 15 83 args -;
 #X obj 15 56 loadbang;
 #X connect 0 0 3 0;
 #X connect 1 0 3 0;

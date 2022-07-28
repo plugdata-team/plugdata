@@ -15,8 +15,8 @@
 #X obj 153 132 list;
 #X obj 143 162 outlet;
 #X obj 67 162 outlet;
-#X obj 109 49 else/lb -init;
-#X obj 109 72 else/args;
+#X obj 109 49 lb -init;
+#X obj 109 72 args;
 #X connect 0 0 1 0;
 #X connect 0 1 2 1;
 #X connect 0 1 3 0;
@@ -35,7 +35,7 @@
 #X obj 107 95 t b a;
 #X obj 134 119 list;
 #X obj 161 249 list;
-#X obj 161 277 else/message;
+#X obj 161 277 message;
 #X obj 335 111 declare -path else;
 #X connect 2 0 18 1;
 #X connect 3 0 6 1;

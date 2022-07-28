@@ -65,11 +65,11 @@
 #X obj 114 287 v phase_\$0;
 #X msg 114 257 1;
 #X obj 114 227 sel 1;
-#X obj 62 79 else/lb 3, f 23;
+#X obj 62 79 lb 3, f 23;
 #X obj 357 212 list split 1;
 #X msg 291 82 5;
 #X obj 114 189 expr phase_\$0 == 0 && dir_\$0 == -1, f 18;
-#X obj 257 147 else/args -;
+#X obj 257 147 args -;
 #X connect 3 0 2 0;
 #X connect 4 0 8 0;
 #X connect 4 1 8 0;

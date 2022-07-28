@@ -18,9 +18,9 @@
 #X msg 245 122 1;
 #X obj 245 144 atan;
 #X obj 245 166 * 8;
-#X obj 89 335 else/message set hann_\$0;
-#X obj 108 158 else/blocksize~;
-#X obj 108 240 else/loop;
+#X obj 89 335 message set hann_\$0;
+#X obj 108 158 blocksize~;
+#X obj 108 240 loop;
 #X connect 0 0 9 0;
 #X connect 1 0 4 0;
 #X connect 3 0 6 0;

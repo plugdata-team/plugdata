@@ -16,7 +16,7 @@
 #X obj 201 296 *~;
 #X obj 201 55 noise~;
 #X obj 201 88 *~ 2;
-#X obj 80 262 else/lastvalue~;
+#X obj 80 262 lastvalue~;
 #X connect 0 0 6 0;
 #X connect 0 0 9 0;
 #X connect 1 0 0 1;
@@ -60,10 +60,10 @@
 #X text 225 320 Matt Barber (2020);
 #X obj 178 81 route float bang;
 #X obj 232 115 f;
-#X obj 274 115 else/nyquist~;
-#X obj 179 186 else/fold~ 0 1;
-#X obj 178 54 else/args;
-#X obj 178 29 else/lb;
+#X obj 274 115 nyquist~;
+#X obj 179 186 fold~ 0 1;
+#X obj 178 54 args;
+#X obj 178 29 lb;
 #X obj 337 71 declare -path else;
 #X connect 0 0 13 0;
 #X connect 1 0 2 1;

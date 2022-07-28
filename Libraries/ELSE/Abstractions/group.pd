@@ -24,7 +24,7 @@
 #X obj 155 193 outlet;
 #X obj 189 81 r \$0-trim;
 #X obj 187 142 list trim;
-#X obj 152 111 else/router;
+#X obj 152 111 router;
 #X connect 0 0 4 0;
 #X connect 2 0 4 1;
 #X connect 3 0 1 0;
@@ -41,9 +41,9 @@
 #X obj 291 184 route -trim float;
 #X msg 215 114 0;
 #X msg 287 249 1;
-#X obj 224 72 else/lb 2;
+#X obj 224 72 lb 2;
 #X obj 260 219 t a b;
-#X obj 291 146 else/args -;
+#X obj 291 146 args -;
 #X connect 1 0 0 0;
 #X connect 1 1 4 0;
 #X connect 3 0 1 0;

@@ -11,14 +11,14 @@
 #X obj 52 143 route float bang reset, f 11;
 #X text 204 116 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 204 99 Alexandre Torres Porres (2020), f 33;
-#X obj 339 199 else/args;
+#X obj 339 199 args;
 #X msg 228 302 1;
-#X obj 171 350 else/nmess;
+#X obj 171 350 nmess;
 #X msg 346 280 0;
 #X msg 339 256 1;
 #X obj 341 533 f;
-#X obj 270 302 else/nmess 0;
-#X obj 339 175 else/lb;
+#X obj 270 302 nmess 0;
+#X obj 339 175 lb;
 #X obj 241 77 declare -path else;
 #X connect 1 0 6 0;
 #X connect 2 0 8 0;

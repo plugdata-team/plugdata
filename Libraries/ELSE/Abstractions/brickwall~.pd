@@ -271,9 +271,9 @@
 #X text 53 105 "global" nyquist;
 #X obj 163 158 * 0.75;
 #X obj 163 130 change;
-#X obj 163 104 else/nyquist~;
-#X obj 363 266 else/pi 0.5;
-#X obj 163 81 else/lb;
+#X obj 163 104 nyquist~;
+#X obj 363 266 pi 0.5;
+#X obj 163 81 lb;
 #X connect 0 0 1 0;
 #X connect 0 1 2 0;
 #X connect 4 0 8 0;

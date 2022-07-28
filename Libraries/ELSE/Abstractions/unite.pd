@@ -49,8 +49,8 @@
 #X msg 528 205 symbol;
 #X obj 305 149 t b b;
 #X obj 483 241 select s;
-#X obj 305 188 else/args;
-#X obj 305 115 else/lb;
+#X obj 305 188 args;
+#X obj 305 115 lb;
 #X connect 0 0 8 0;
 #X connect 2 0 4 0;
 #X connect 2 1 9 0;

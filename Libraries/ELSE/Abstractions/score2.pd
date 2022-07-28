@@ -137,12 +137,12 @@
 #X obj 537 138 trigger bang list;
 #X obj 537 168 v bpm_\$0;
 #X obj 673 198 unpack f f f, f 18;
-#X obj 191 176 else/add;
+#X obj 191 176 add;
 #X msg 337 370 0;
 #X obj 42 17 inlet;
 #X obj 560 345 s \$0-init;
 #X obj 337 314 r \$0-init;
-#X obj 79 142 else/router;
+#X obj 79 142 router;
 #X obj 191 85 r \$0-init;
 #X msg 203 115 1;
 #X obj 145 306 s \$0-finished;
@@ -150,9 +150,9 @@
 #X msg 153 82 0;
 #X obj 297 539 outlet;
 #X obj 191 204 t f f;
-#X obj 191 234 else/router;
+#X obj 191 234 router;
 #X obj 113 271 t f b;
-#X obj 411 424 else/bpm;
+#X obj 411 424 bpm;
 #X obj 79 474 *;
 #X obj 42 106 * 4;
 #X obj 455 79 route float list, f 24;
@@ -199,7 +199,7 @@
 #X obj 342 183 v S2_\$0;
 #X msg 149 108 0;
 #X obj 119 375 delay;
-#X obj 202 375 else/bpm;
+#X obj 202 375 bpm;
 #X obj 366 230 v bpm_\$0;
 #X obj 406 469 outlet;
 #X obj 342 150 b;
@@ -305,7 +305,7 @@
 #X restore 241 162 pd get-tempo;
 #N canvas 194 235 384 321 bar_count 0;
 #X msg 154 164 reset;
-#X obj 154 211 else/count -reset 1;
+#X obj 154 211 count -reset 1;
 #X obj 154 122 r \$0-rewind;
 #X obj 105 147 b;
 #X obj 105 75 inlet;
@@ -316,7 +316,7 @@
 #X connect 3 0 1 0;
 #X connect 4 0 3 0;
 #X restore 69 221 pd bar_count;
-#X obj 69 107 else/routeall | tempo;
+#X obj 69 107 routeall | tempo;
 #X obj 413 250 s \$0-duration;
 #X obj 351 379 s \$0-event-data;
 #X obj 134 279 s \$0-data-out;
@@ -324,7 +324,7 @@
 #N canvas 597 23 465 442 route-check 0;
 #X obj 151 215 v type_\$0;
 #X obj 151 278 sel 1;
-#X obj 77 101 else/router;
+#X obj 77 101 router;
 #X obj 151 246 t f f;
 #X obj 205 249 == 1;
 #X obj 205 277 s \$0-route;
@@ -340,9 +340,9 @@
 #N canvas 255 47 579 457 check 0;
 #X obj 125 118 route bang;
 #X msg 192 147 \$1;
-#X obj 192 173 else/frac2dec;
+#X obj 192 173 frac2dec;
 #X obj 63 24 inlet;
-#X obj 63 262 else/router, f 38;
+#X obj 63 262 router, f 38;
 #X msg 277 206 1;
 #X msg 326 208 0;
 #X obj 63 373 outlet;
@@ -409,7 +409,7 @@
 #X restore 44 122 pd parse;
 #N canvas 491 149 659 346 score 0;
 #X msg 271 165 click;
-#X obj 271 124 else/click;
+#X obj 271 124 click;
 #X msg 204 168 close;
 #X obj 80 27 inlet;
 #X obj 450 245 s \$0-text;
@@ -421,10 +421,10 @@
 #X obj 418 156 text search \$0-score;
 #N canvas 386 71 510 382 init 0;
 #X obj 98 37 loadbang;
-#X obj 98 61 else/args;
+#X obj 98 61 args;
 #X obj 98 88 route symbol;
 #X obj 98 264 outlet;
-#X obj 98 160 else/canvas.file 1;
+#X obj 98 160 canvas.file 1;
 #X msg 221 192 \$1 file not found;
 #X obj 221 222 print [score2];
 #X msg 98 220 read \$1;

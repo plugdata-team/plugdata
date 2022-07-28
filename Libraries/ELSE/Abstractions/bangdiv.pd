@@ -35,8 +35,8 @@
 #X obj 162 92 moses 0;
 #X obj 218 111 %;
 #X obj 143 29 inlet;
-#X obj 275 183 else/args;
-#X obj 275 161 else/lb;
+#X obj 275 183 args;
+#X obj 275 161 lb;
 #X obj 346 82 declare -path else;
 #X connect 0 0 1 0;
 #X connect 1 0 11 0;
