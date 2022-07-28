@@ -11,17 +11,19 @@
 
 class PlugDataPluginEditor;
 
-struct Dialog : public Component
-{
-    Dialog(Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton) : parentComponent(editor), height(childHeight), width(childWidth), y(yPosition)
+struct Dialog : public Component {
+    Dialog(Component* editor, int childWidth, int childHeight, int yPosition, bool showCloseButton)
+        : parentComponent(editor)
+        , height(childHeight)
+        , width(childWidth)
+        , y(yPosition)
     {
         parentComponent->addAndMakeVisible(this);
         setBounds(0, 0, parentComponent->getWidth(), parentComponent->getHeight());
 
         setAlwaysOnTop(true);
 
-        if (showCloseButton)
-        {
+        if (showCloseButton) {
             closeButton.reset(getLookAndFeel().createDocumentWindowButton(4));
             addAndMakeVisible(closeButton.get());
             closeButton->onClick = [this]() { onClose(); };
@@ -45,8 +47,7 @@ struct Dialog : public Component
 #else
         g.fillRect(getLocalBounds());
 #endif
-        if (viewedComponent)
-        {
+        if (viewedComponent) {
             g.setColour(findColour(PlugDataColour::toolbarColourId));
             g.fillRoundedRectangle(viewedComponent->getBounds().toFloat(), 5.0f);
 
@@ -57,19 +58,17 @@ struct Dialog : public Component
 
     void resized()
     {
-        if (viewedComponent)
-        {
+        if (viewedComponent) {
             viewedComponent->setSize(width, height);
-            viewedComponent->setCentrePosition({getBounds().getCentreX(), y - (height / 2)});
+            viewedComponent->setCentrePosition({ getBounds().getCentreX(), y - (height / 2) });
         }
 
-        if (closeButton)
-        {
+        if (closeButton) {
             closeButton->setBounds(viewedComponent->getRight() - 35, viewedComponent->getY() + 8, 28, 28);
         }
     }
 
-    void mouseDown(const MouseEvent& e)
+    void mouseDown(MouseEvent const& e)
     {
         onClose();
     }
@@ -84,16 +83,15 @@ struct Dialog : public Component
     std::unique_ptr<Button> closeButton = nullptr;
 };
 
-struct Dialogs
-{
+struct Dialogs {
     static Component* showTextEditorDialog(String text, String filename, std::function<void(StringArray, bool)> callback);
-    
+
     static Component* showSaveDialog(Component* centre, String filename, std::function<void(int)> callback);
     static Component* showArrayDialog(Component* centre, std::function<void(int, String, String)> callback);
 
-    static Component* createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree);
+    static Component* createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree);
 
     static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
-    
+
     static void initialiseDeken();
 };

@@ -15,8 +15,7 @@
 #include "z_libpd.h"
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 /// concatenate print messages into single lines before returning them to the
@@ -38,7 +37,7 @@ EXTERN void libpd_set_concatenated_printhook(const t_libpd_printhook hook);
 /// note: the char pointer argument is only good for the duration of the print
 ///       callback; if you intend to use the argument after the callback has
 ///       returned, you need to make a defensive copy
-EXTERN void libpd_print_concatenator(const char *s);
+EXTERN void libpd_print_concatenator(char const* s);
 
 #ifdef __cplusplus
 }

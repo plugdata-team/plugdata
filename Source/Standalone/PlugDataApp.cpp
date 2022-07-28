@@ -24,61 +24,55 @@
 #include "../Canvas.h"
 #include "../PluginProcessor.h"
 
-extern "C"
-{
+extern "C" {
 #include <x_libpd_multi.h>
 }
 
 #ifdef _WIN32
-#include <io.h>
-#include <windows.h>
-#include <winbase.h>
+#    include <io.h>
+#    include <windows.h>
+#    include <winbase.h>
 #endif
 #ifdef _MSC_VER /* This is only for Microsoft's compiler, not cygwin, e.g. */
-#define snprintf _snprintf
+#    define snprintf _snprintf
 #endif
 
-class PlugDataApp : public JUCEApplication
-{
-    struct t_namelist    /* element in a linked list of stored strings */
+class PlugDataApp : public JUCEApplication {
+    struct t_namelist /* element in a linked list of stored strings */
     {
-        struct t_namelist *nl_next;  /* next in list */
-        char *nl_string;            /* the string */
+        struct t_namelist* nl_next; /* next in list */
+        char* nl_string;            /* the string */
     };
 
-    t_namelist *namelist_append_files(t_namelist *listwas, const char *s)
+    t_namelist* namelist_append_files(t_namelist* listwas, char const* s)
     {
-        const char *npos;
+        char const* npos;
         char temp[MAXPDSTRING];
-        t_namelist *nl = listwas;
+        t_namelist* nl = listwas;
 
         npos = s;
-        do
-        {
+        do {
             npos = strtokcpy(temp, sizeof(temp), npos, ':');
-            if (! *temp) continue;
+            if (!*temp)
+                continue;
             nl = namelist_append(nl, temp, 0);
-        }
-            while (npos);
+        } while (npos);
         return (nl);
     }
 
-    t_namelist *namelist_append(t_namelist *listwas, const char *s, int allowdup)
+    t_namelist* namelist_append(t_namelist* listwas, char const* s, int allowdup)
     {
         t_namelist *nl, *nl2;
-        nl2 = (t_namelist *)(getbytes(sizeof(*nl)));
+        nl2 = (t_namelist*)(getbytes(sizeof(*nl)));
         nl2->nl_next = 0;
-        nl2->nl_string = (char *)getbytes(strlen(s) + 1);
+        nl2->nl_string = (char*)getbytes(strlen(s) + 1);
         strcpy(nl2->nl_string, s);
         sys_unbashfilename(nl2->nl_string, nl2->nl_string);
         if (!listwas)
             return (nl2);
-        else
-        {
-            for (nl = listwas; ;)
-            {
-                if (!allowdup && !strcmp(nl->nl_string, s))
-                {
+        else {
+            for (nl = listwas;;) {
+                if (!allowdup && !strcmp(nl->nl_string, s)) {
                     freebytes(nl2->nl_string, strlen(nl2->nl_string) + 1);
                     return (listwas);
                 }
@@ -90,32 +84,31 @@ class PlugDataApp : public JUCEApplication
         }
         return (listwas);
     }
-    
-    void namelist_free(t_namelist *listwas)
+
+    void namelist_free(t_namelist* listwas)
     {
         t_namelist *nl, *nl2;
-        for (nl = listwas; nl; nl = nl2)
-        {
+        for (nl = listwas; nl; nl = nl2) {
             nl2 = nl->nl_next;
             t_freebytes(nl->nl_string, strlen(nl->nl_string) + 1);
             t_freebytes(nl, sizeof(*nl));
         }
     }
-    static const char *strtokcpy(char *to, size_t to_len, const char *from, char delim)
+    static char const* strtokcpy(char* to, size_t to_len, char const* from, char delim)
     {
         unsigned int i = 0;
 
-            for (; i < (to_len - 1) && from[i] && from[i] != delim; i++)
-                    to[i] = from[i];
-            to[i] = '\0';
+        for (; i < (to_len - 1) && from[i] && from[i] != delim; i++)
+            to[i] = from[i];
+        to[i] = '\0';
 
-            if (i && from[i] != '\0')
-                    return from + i + 1;
+        if (i && from[i] != '\0')
+            return from + i + 1;
 
-            return NULL;
+        return NULL;
     }
-    
-   public:
+
+public:
     PlugDataApp()
     {
         PluginHostType::jucePlugInClientCurrentWrapperType = AudioProcessor::wrapperType_Standalone;
@@ -148,15 +141,13 @@ class PlugDataApp : public JUCEApplication
     }
 
     // For opening files with PlugData standalone and parsing commandline arguments
-    void anotherInstanceStarted(const String& commandLine) override
+    void anotherInstanceStarted(String const& commandLine) override
     {
         auto file = File(commandLine.upToFirstOccurrenceOf(" ", false, false));
-        if (file.existsAsFile())
-        {
+        if (file.existsAsFile()) {
             auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
 
-            if (pd && file.existsAsFile())
-            {
+            if (pd && file.existsAsFile()) {
                 pd->loadPatch(file);
             }
         }
@@ -167,9 +158,9 @@ class PlugDataApp : public JUCEApplication
         return new PlugDataWindow(getApplicationName(), LookAndFeel::getDefaultLookAndFeel().findColour(ResizableWindow::backgroundColourId), appProperties.getUserSettings(), false, {}, nullptr, {});
     }
 
-    int parseSystemArguments(const String& arguments);
+    int parseSystemArguments(String const& arguments);
 
-    void initialise(const String& arguments) override
+    void initialise(String const& arguments) override
     {
         LookAndFeel::getDefaultLookAndFeel().setColour(ResizableWindow::backgroundColourId, Colours::transparentBlack);
 
@@ -178,7 +169,6 @@ class PlugDataApp : public JUCEApplication
         mainWindow->setVisible(true);
 
         parseSystemArguments(arguments);
-
     }
 
     void shutdown() override
@@ -189,27 +179,26 @@ class PlugDataApp : public JUCEApplication
 
     void systemRequestedQuit() override
     {
-        if (mainWindow) mainWindow->pluginHolder->savePluginState();
+        if (mainWindow)
+            mainWindow->pluginHolder->savePluginState();
 
-        if (ModalComponentManager::getInstance()->cancelAllModalComponents())
-        {
+        if (ModalComponentManager::getInstance()->cancelAllModalComponents()) {
             Timer::callAfterDelay(100,
-                                  []()
-                                  {
-                                      if (auto app = JUCEApplicationBase::getInstance()) app->systemRequestedQuit();
-                                  });
-        }
-        else
-        {
+                []() {
+                    if (auto app = JUCEApplicationBase::getInstance())
+                        app->systemRequestedQuit();
+                });
+        } else {
             quit();
         }
     }
-    
-    PlugDataWindow* getWindow()  {
+
+    PlugDataWindow* getWindow()
+    {
         return mainWindow.get();
     }
 
-   protected:
+protected:
     ApplicationProperties appProperties;
     std::unique_ptr<PlugDataWindow> mainWindow;
 };
@@ -217,65 +206,46 @@ class PlugDataApp : public JUCEApplication
 void PlugDataWindow::closeButtonPressed()
 {
 #if JUCE_MAC
-    if(Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isCommandDown()) {
+    if (Desktop::getInstance().getMainMouseSource().getCurrentModifiers().isCommandDown()) {
         return;
-        
     }
 #endif
-    
+
     // Show an ask to save dialog for each patch that is dirty
     // Because save dialog uses an asynchronous callback, we can't loop over them (so have to chain them)
-    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor()))
-    {
+    if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(pluginHolder->processor->getActiveEditor())) {
         std::function<void(int)> checkCanvas;
-        checkCanvas = [this, editor, checkCanvas](int i) mutable
-        {
+        checkCanvas = [this, editor, checkCanvas](int i) mutable {
             auto* cnv = editor->canvases[i];
             bool isLast = i == editor->canvases.size() - 1;
             editor->tabbar.setCurrentTabIndex(i);
 
             i++;
 
-            if (cnv->patch.isDirty())
-            {
+            if (cnv->patch.isDirty()) {
                 Dialogs::showSaveDialog(editor->getParentComponent(), cnv->patch.getTitle(),
-                                        [this, editor, cnv, checkCanvas, i, isLast](int result) mutable
-                                        {
-                                            if (result == 2)
-                                            {
-                                                editor->saveProject(
-                                                    [this, cnv, editor, checkCanvas, i, isLast]() mutable
-                                                    {
-                                                        if (isLast)
-                                                        {
-                                                            JUCEApplication::quit();
-                                                        }
-                                                        else
-                                                        {
-                                                            checkCanvas(i);
-                                                        }
-                                                    });
-                                            }
-                                            else if (result == 1)
-                                            {
-                                                if (isLast)
-                                                {
-                                                    JUCEApplication::quit();
-                                                }
-                                                else
-                                                {
-                                                    checkCanvas(i);
-                                                }
-                                            }
-                                            // last option: cancel, where we end the chain
-                                        });
-            }
-            else if (!isLast)
-            {
+                    [this, editor, cnv, checkCanvas, i, isLast](int result) mutable {
+                        if (result == 2) {
+                            editor->saveProject(
+                                [this, cnv, editor, checkCanvas, i, isLast]() mutable {
+                                    if (isLast) {
+                                        JUCEApplication::quit();
+                                    } else {
+                                        checkCanvas(i);
+                                    }
+                                });
+                        } else if (result == 1) {
+                            if (isLast) {
+                                JUCEApplication::quit();
+                            } else {
+                                checkCanvas(i);
+                            }
+                        }
+                        // last option: cancel, where we end the chain
+                    });
+            } else if (!isLast) {
                 checkCanvas(i);
-            }
-            else
-            {
+            } else {
                 JUCEApplication::quit();
             }
         };
@@ -284,41 +254,37 @@ void PlugDataWindow::closeButtonPressed()
     }
 }
 
-int PlugDataApp::parseSystemArguments(const String& arguments)
+int PlugDataApp::parseSystemArguments(String const& arguments)
 {
     auto args = StringArray::fromTokens(arguments, true);
     size_t argc = args.size();
-    const char** argv = new const char*[argc];
+    char const** argv = new char const*[argc];
 
-    for (int i = 0; i < args.size(); i++)
-    {
+    for (int i = 0; i < args.size(); i++) {
         argv[i] = args.getReference(i).toRawUTF8();
     }
-    
-    int retval = parse_startup_arguments(argv, argc);
-    
-    static t_namelist *sys_openlist;
-    static t_namelist *sys_messagelist;
 
-    for (; argc > 0; argc--, argv++) sys_openlist = namelist_append_files(sys_openlist, *argv);
+    int retval = parse_startup_arguments(argv, argc);
+
+    static t_namelist* sys_openlist;
+    static t_namelist* sys_messagelist;
+
+    for (; argc > 0; argc--, argv++)
+        sys_openlist = namelist_append_files(sys_openlist, *argv);
 
     /* open patches specifies with "-open" args */
-    for (auto* nl = sys_openlist; nl; nl = nl->nl_next)
-    {
-        
+    for (auto* nl = sys_openlist; nl; nl = nl->nl_next) {
+
         auto toOpen = File(String(nl->nl_string));
 
         auto* pd = dynamic_cast<PlugDataAudioProcessor*>(mainWindow->getAudioProcessor());
-        if (pd && toOpen.existsAsFile())
-        {
+        if (pd && toOpen.existsAsFile()) {
             pd->loadPatch(toOpen);
         }
     }
 
-
     /* send messages specified with "-send" args */
-    for (auto* nl = sys_messagelist; nl; nl = nl->nl_next)
-    {
+    for (auto* nl = sys_messagelist; nl; nl = nl->nl_next) {
         t_binbuf* b = binbuf_new();
         binbuf_text(b, nl->nl_string, strlen(nl->nl_string));
         binbuf_eval(b, nullptr, 0, nullptr);
@@ -327,9 +293,8 @@ int PlugDataApp::parseSystemArguments(const String& arguments)
 
     namelist_free(sys_messagelist);
     sys_messagelist = nullptr;
-    
+
     return retval;
 }
-
 
 JUCE_CREATE_APPLICATION_DEFINE(PlugDataApp);

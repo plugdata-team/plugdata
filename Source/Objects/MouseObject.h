@@ -1,9 +1,7 @@
 
 // Else "mouse" component
-struct MouseObject final : public TextBase
-{
-    typedef struct _mouse
-    {
+struct MouseObject final : public TextBase {
+    typedef struct _mouse {
         t_object x_obj;
         int x_hzero;
         int x_vzero;
@@ -15,7 +13,8 @@ struct MouseObject final : public TextBase
         t_outlet* x_vertical;
     } t_mouse;
 
-    MouseObject(void* ptr, Box* box) : TextBase(ptr, box)
+    MouseObject(void* ptr, Box* box)
+        : TextBase(ptr, box)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
     }
@@ -25,20 +24,17 @@ struct MouseObject final : public TextBase
         Desktop::getInstance().removeGlobalMouseListener(this);
     }
 
-    void mouseMove(const MouseEvent& e) override
+    void mouseMove(MouseEvent const& e) override
     {
         // Do this with a mouselistener?
         auto pos = Desktop::getInstance().getMousePosition();
 
-        if (Desktop::getInstance().getMouseSource(0)->isDragging())
-        {
+        if (Desktop::getInstance().getMouseSource(0)->isDragging()) {
             t_atom args[1];
             SETFLOAT(args, 0);
 
             pd_typedmess((t_pd*)ptr, gensym("_up"), 1, args);
-        }
-        else
-        {
+        } else {
             t_atom args[1];
             SETFLOAT(args, 1);
 

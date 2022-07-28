@@ -1,16 +1,13 @@
 // ELSE pic
-struct PictureObject final : public GUIObject
-{
-    typedef struct _edit_proxy
-    {
+struct PictureObject final : public GUIObject {
+    typedef struct _edit_proxy {
         t_object p_obj;
         t_symbol* p_sym;
         t_clock* p_clock;
         struct _pic* p_cnv;
     } t_edit_proxy;
 
-    typedef struct _pic
-    {
+    typedef struct _pic {
         t_object x_obj;
         t_glist* x_glist;
         t_edit_proxy* x_proxy;
@@ -39,15 +36,14 @@ struct PictureObject final : public GUIObject
         t_outlet* x_outlet;
     } t_pic;
 
-    PictureObject(void* ptr, Box* box) : GUIObject(ptr, box)
+    PictureObject(void* ptr, Box* box)
+        : GUIObject(ptr, box)
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
-        if (pic && pic->x_filename)
-        {
+        if (pic && pic->x_filename) {
             auto filePath = String(pic->x_filename->s_name);
-            if (File(filePath).existsAsFile())
-            {
+            if (File(filePath).existsAsFile()) {
                 path = filePath;
             }
         }
@@ -55,17 +51,14 @@ struct PictureObject final : public GUIObject
 
     ObjectParameters defineParameters() override
     {
-        return {{"File", tString, cGeneral, &path, {}}};
+        return { { "File", tString, cGeneral, &path, {} } };
     };
 
     void paint(Graphics& g) override
     {
-        if (imageFile.existsAsFile())
-        {
+        if (imageFile.existsAsFile()) {
             g.drawImageAt(img, 0, 0);
-        }
-        else
-        {
+        } else {
             g.setFont(30);
             g.setColour(box->findColour(PlugDataColour::textColourId));
             g.drawText("?", getLocalBounds(), Justification::centred);
@@ -79,8 +72,7 @@ struct PictureObject final : public GUIObject
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(path))
-        {
+        if (value.refersToSameSourceAs(path)) {
             openFile(path.toString());
         }
     }
@@ -97,16 +89,18 @@ struct PictureObject final : public GUIObject
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
-            if(!_this) return;
-            
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
             auto bounds = Rectangle<int>(x, y, w, h);
-            
+
             MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if(!_this) return;
-                
+                if (!_this)
+                    return;
+
                 box->setObjectBounds(bounds);
             });
         });
@@ -116,12 +110,9 @@ struct PictureObject final : public GUIObject
     {
         auto* pic = static_cast<t_pic*>(ptr);
 
-        if (!imageFile.existsAsFile())
-        {
+        if (!imageFile.existsAsFile()) {
             box->setSize(50, 50);
-        }
-        else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth())
-        {
+        } else if (pic->x_height != img.getHeight() || pic->x_width != img.getWidth()) {
             box->setSize(img.getWidth(), img.getHeight());
         }
     }
@@ -134,12 +125,9 @@ struct PictureObject final : public GUIObject
 
         auto searchPath = File(String(canvas_getdir(cnv->patch.getPointer())->s_name));
 
-        if (searchPath.getChildFile(pathString).existsAsFile())
-        {
+        if (searchPath.getChildFile(pathString).existsAsFile()) {
             imageFile = searchPath.getChildFile(pathString);
-        }
-        else
-        {
+        } else {
             imageFile = File(pathString);
         }
 
@@ -158,18 +146,16 @@ struct PictureObject final : public GUIObject
         repaint();
     }
 
-    static const char* pic_filepath(t_pic* x, const char* filename)
+    static char const* pic_filepath(t_pic* x, char const* filename)
     {
         static char fname[MAXPDSTRING];
         char* bufptr;
         int fd = open_via_path(canvas_getdir(glist_getcanvas(x->x_glist))->s_name, filename, "", fname, &bufptr, MAXPDSTRING, 1);
-        if (fd > 0)
-        {
+        if (fd > 0) {
             fname[strlen(fname)] = '/';
             sys_close(fd);
             return (fname);
-        }
-        else
+        } else
             return (0);
     }
 

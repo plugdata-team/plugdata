@@ -11,8 +11,7 @@
 #include <map>
 #include <utility>
 
-extern "C"
-{
+extern "C" {
 #include <z_libpd.h>
 #include "s_libpd_inter.h"
 
@@ -22,72 +21,78 @@ EXTERN int libpd_process_nodsp(void);
 #include "PdPatch.h"
 #include "concurrentqueue.h"
 
-namespace pd
-{
+namespace pd {
 
-class Atom
-{
-   public:
+class Atom {
+public:
     // The default constructor.
-    inline Atom() : type(FLOAT), value(0), symbol()
+    inline Atom()
+        : type(FLOAT)
+        , value(0)
+        , symbol()
     {
     }
 
     // The float constructor.
-    inline Atom(const float val) : type(FLOAT), value(val), symbol()
+    inline Atom(float const val)
+        : type(FLOAT)
+        , value(val)
+        , symbol()
     {
     }
 
     // The string constructor.
-    inline Atom(String sym) : type(SYMBOL), value(0), symbol(std::move(sym))
+    inline Atom(String sym)
+        : type(SYMBOL)
+        , value(0)
+        , symbol(std::move(sym))
     {
     }
 
     // The c-string constructor.
-    inline Atom(const char* sym) : type(SYMBOL), value(0), symbol(sym)
+    inline Atom(char const* sym)
+        : type(SYMBOL)
+        , value(0)
+        , symbol(sym)
     {
     }
 
     // Check if the atom is a float.
-    inline bool isFloat() const 
+    inline bool isFloat() const
     {
         return type == FLOAT;
     }
 
     // Check if the atom is a string.
-    inline bool isSymbol() const 
+    inline bool isSymbol() const
     {
         return type == SYMBOL;
     }
 
     // Get the float value.
-    inline float getFloat() const 
+    inline float getFloat() const
     {
         return value;
     }
 
     // Get the string.
-    inline String const& getSymbol() const 
+    inline String const& getSymbol() const
     {
         return symbol;
     }
 
     // Compare two atoms.
-    inline bool operator==(Atom const& other) const 
+    inline bool operator==(Atom const& other) const
     {
-        if (type == SYMBOL)
-        {
+        if (type == SYMBOL) {
             return other.type == SYMBOL && symbol == other.symbol;
-        }
-        else
-        {
+        } else {
             return other.type == FLOAT && value == other.value;
         }
     }
 
-   private:
-    enum Type
-    {
+private:
+    enum Type {
         FLOAT,
         SYMBOL
     };
@@ -98,142 +103,146 @@ class Atom
 
 class Patch;
 
-struct ContinuityChecker : public Timer
-{
-    
-    struct BackupTimer : public HighResolutionTimer
-    {
+struct ContinuityChecker : public Timer {
+
+    struct BackupTimer : public HighResolutionTimer {
         t_pdinstance* pd;
-        
+
         std::atomic<bool>& hasTicked;
-        
+
         std::vector<t_float> emptyInBuffer;
         std::vector<t_float> emptyOutBuffer;
-        
+
         std::function<void(t_float*, t_float*)> callback;
-        
+
         int numBlocksPerCallback;
         int intervalMs;
-        
-        BackupTimer(std::atomic<bool>& ticked) : hasTicked(ticked) {
+
+        BackupTimer(std::atomic<bool>& ticked)
+            : hasTicked(ticked)
+        {
         }
-        
-        void prepare(int samplesPerBlock, int schedulerInterval, int numChannels) {
+
+        void prepare(int samplesPerBlock, int schedulerInterval, int numChannels)
+        {
             pd = pd_this;
-            
+
             numBlocksPerCallback = samplesPerBlock / libpd_blocksize();
             intervalMs = schedulerInterval;
-            
+
             emptyInBuffer.resize(numChannels * samplesPerBlock);
             emptyOutBuffer.resize(numChannels * samplesPerBlock);
         }
-        
-        void startScheduler() {
-            if(isTimerRunning()) return;
 
-            
+        void startScheduler()
+        {
+            if (isTimerRunning())
+                return;
+
             startTimer(intervalMs);
 #if JUCE_DEBUG
-            std::cout <<  "backup scheduler started" << std::endl;
+            std::cout << "backup scheduler started" << std::endl;
 #endif
         }
-        
-        void stopScheduler() {
-            if(!isTimerRunning()) return;
-            
+
+        void stopScheduler()
+        {
+            if (!isTimerRunning())
+                return;
+
             stopTimer();
-            
+
 #if JUCE_DEBUG
-            std::cout <<  "backup scheduler stopped" << std::endl;
+            std::cout << "backup scheduler stopped" << std::endl;
 #endif
         }
-        
-        void hiResTimerCallback() override {
-            if(hasTicked) {
+
+        void hiResTimerCallback() override
+        {
+            if (hasTicked) {
                 stopScheduler();
                 return;
             }
-            
-            for(int i = 0; i < numBlocksPerCallback; i++) {
+
+            for (int i = 0; i < numBlocksPerCallback; i++) {
                 std::fill(emptyInBuffer.begin(), emptyInBuffer.end(), 0.0f);
-                
+
                 callback(emptyInBuffer.data(), emptyOutBuffer.data());
-                
+
                 std::fill(emptyOutBuffer.begin(), emptyOutBuffer.end(), 0.0f);
             }
         }
     };
-    
-    ContinuityChecker() : backupTimer(hasTicked) {};
-    
-    void setCallback(std::function<void(t_float*, t_float*)> cb) {
+
+    ContinuityChecker()
+        : backupTimer(hasTicked) {};
+
+    void setCallback(std::function<void(t_float*, t_float*)> cb)
+    {
         backupTimer.callback = std::move(cb);
     }
-    
-    void prepare(double sampleRate, int samplesPerBlock, int numChannels) {
+
+    void prepare(double sampleRate, int samplesPerBlock, int numChannels)
+    {
         timePerBlock = std::round((samplesPerBlock / sampleRate) * 1000.0);
-        
+
         backupTimer.prepare(samplesPerBlock, timePerBlock, numChannels);
-        
+
         startTimer(timePerBlock);
     }
-    
+
     void setTimer()
     {
         lastTime = Time::getCurrentTime().getMillisecondCounterHiRes();
         hasTicked = true;
     }
-    
-    void setNonRealtime(bool nonRealtime){
+
+    void setNonRealtime(bool nonRealtime)
+    {
         isNonRealtime = nonRealtime;
-        if(isNonRealtime)  backupTimer.stopScheduler();
+        if (isNonRealtime)
+            backupTimer.stopScheduler();
     }
 
     void timerCallback() override
     {
         int timePassed = Time::getCurrentTime().getMillisecondCounterHiRes() - lastTime;
-        
+
         // Scheduler
-        if(timePassed > 2 * timePerBlock && !hasTicked && !isNonRealtime) {
+        if (timePassed > 2 * timePerBlock && !hasTicked && !isNonRealtime) {
             backupTimer.startScheduler();
         }
-        
+
         hasTicked = false;
     }
-    
+
     t_pdinstance* pd;
-    
+
     std::atomic<double> lastTime;
     std::atomic<bool> hasTicked;
-    
+
     std::atomic<bool> isNonRealtime = false;
     int timePerBlock;
-    
+
     BackupTimer backupTimer;
-    
 };
 
-class Instance
-{
-    struct Message
-    {
+class Instance {
+    struct Message {
         String selector;
         String destination;
         std::vector<pd::Atom> list;
     };
 
-    struct dmessage
-    {
+    struct dmessage {
         void* object;
         String destination;
         String selector;
         std::vector<pd::Atom> list;
     };
 
-    typedef struct midievent
-    {
-        enum
-        {
+    typedef struct midievent {
+        enum {
             NOTEON,
             CONTROLCHANGE,
             PROGRAMCHANGE,
@@ -247,100 +256,100 @@ class Instance
         int midi3;
     } midievent;
 
-   public:
+public:
     Instance(String const& symbol);
     Instance(Instance const& other) = delete;
     virtual ~Instance();
 
-    void prepareDSP(const int nins, const int nouts, const double samplerate, const int blockSize);
+    void prepareDSP(int const nins, int const nouts, double const samplerate, int const blockSize);
     void startDSP();
     void releaseDSP();
     void performDSP(float const* inputs, float* outputs);
     int getBlockSize() const;
 
-    void sendNoteOn(const int channel, const int pitch, const int velocity) const;
-    void sendControlChange(const int channel, const int controller, const int value) const;
-    void sendProgramChange(const int channel, const int value) const;
-    void sendPitchBend(const int channel, const int value) const;
-    void sendAfterTouch(const int channel, const int value) const;
-    void sendPolyAfterTouch(const int channel, const int pitch, const int value) const;
-    void sendSysEx(const int port, const int byte) const;
-    void sendSysRealTime(const int port, const int byte) const;
-    void sendMidiByte(const int port, const int byte) const;
+    void sendNoteOn(int const channel, int const pitch, int const velocity) const;
+    void sendControlChange(int const channel, int const controller, int const value) const;
+    void sendProgramChange(int const channel, int const value) const;
+    void sendPitchBend(int const channel, int const value) const;
+    void sendAfterTouch(int const channel, int const value) const;
+    void sendPolyAfterTouch(int const channel, int const pitch, int const value) const;
+    void sendSysEx(int const port, int const byte) const;
+    void sendSysRealTime(int const port, int const byte) const;
+    void sendMidiByte(int const port, int const byte) const;
 
-    virtual void receiveNoteOn(const int channel, const int pitch, const int velocity)
+    virtual void receiveNoteOn(int const channel, int const pitch, int const velocity)
     {
     }
-    virtual void receiveControlChange(const int channel, const int controller, const int value)
+    virtual void receiveControlChange(int const channel, int const controller, int const value)
     {
     }
-    virtual void receiveProgramChange(const int channel, const int value)
+    virtual void receiveProgramChange(int const channel, int const value)
     {
     }
-    virtual void receivePitchBend(const int channel, const int value)
+    virtual void receivePitchBend(int const channel, int const value)
     {
     }
-    virtual void receiveAftertouch(const int channel, const int value)
+    virtual void receiveAftertouch(int const channel, int const value)
     {
     }
-    virtual void receivePolyAftertouch(const int channel, const int pitch, const int value)
+    virtual void receivePolyAftertouch(int const channel, int const pitch, int const value)
     {
     }
-    virtual void receiveMidiByte(const int port, const int byte)
+    virtual void receiveMidiByte(int const port, int const byte)
     {
     }
 
     virtual void receiveGuiUpdate(int type) {};
     virtual void synchroniseCanvas(void* cnv) {};
 
-    virtual void createPanel(int type, const char* snd, const char* location);
+    virtual void createPanel(int type, char const* snd, char const* location);
 
-    void sendBang(const char* receiver) const;
-    void sendFloat(const char* receiver, float const value) const;
-    void sendSymbol(const char* receiver, const char* symbol) const;
-    void sendList(const char* receiver, const std::vector<pd::Atom>& list) const;
-    void sendMessage(const char* receiver, const char* msg, const std::vector<pd::Atom>& list) const;
+    void sendBang(char const* receiver) const;
+    void sendFloat(char const* receiver, float const value) const;
+    void sendSymbol(char const* receiver, char const* symbol) const;
+    void sendList(char const* receiver, std::vector<pd::Atom> const& list) const;
+    void sendMessage(char const* receiver, char const* msg, std::vector<pd::Atom> const& list) const;
 
-    virtual void receivePrint(const String& message){};
+    virtual void receivePrint(String const& message) {};
 
-    virtual void receiveBang(const String& dest)
+    virtual void receiveBang(String const& dest)
     {
     }
-    virtual void receiveFloat(const String& dest, float num)
+    virtual void receiveFloat(String const& dest, float num)
     {
     }
-    virtual void receiveSymbol(const String& dest, const String& symbol)
+    virtual void receiveSymbol(String const& dest, String const& symbol)
     {
     }
-    virtual void receiveList(const String& dest, const std::vector<pd::Atom>& list)
+    virtual void receiveList(String const& dest, std::vector<pd::Atom> const& list)
     {
     }
-    virtual void receiveMessage(const String& dest, const String& msg, const std::vector<pd::Atom>& list)
+    virtual void receiveMessage(String const& dest, String const& msg, std::vector<pd::Atom> const& list)
     {
     }
     virtual void receiveParameter(int idx, float value)
     {
     }
 
-    virtual void receiveDSPState(bool dsp){};
+    virtual void receiveDSPState(bool dsp) {};
 
-    virtual void updateConsole(){};
+    virtual void updateConsole() {};
 
-    virtual void titleChanged(){};
+    virtual void titleChanged() {};
 
-    void enqueueFunction(const std::function<void(void)>& fn);
-    void enqueueFunctionAsync(const std::function<void(void)>& fn);
+    void enqueueFunction(std::function<void(void)> const& fn);
+    void enqueueFunctionAsync(std::function<void(void)> const& fn);
 
-    void enqueueMessages(const String& dest, const String& msg, std::vector<pd::Atom>&& list);
+    void enqueueMessages(String const& dest, String const& msg, std::vector<pd::Atom>&& list);
 
     void enqueueDirectMessages(void* object, std::vector<pd::Atom> const& list);
-    void enqueueDirectMessages(void* object, const String& msg);
-    void enqueueDirectMessages(void* object, const float msg);
+    void enqueueDirectMessages(void* object, String const& msg);
+    void enqueueDirectMessages(void* object, float const msg);
 
-    void logMessage(const String& message);
-    void logError(const String& error);
+    void logMessage(String const& message);
+    void logError(String const& error);
 
-    virtual void messageEnqueued(){};
+    virtual void messageEnqueued() {};
 
     void sendMessagesFromQueue();
     void processMessage(Message mess);
@@ -348,7 +357,7 @@ class Instance
     void processMidiEvent(midievent event);
     void processSend(dmessage mess);
 
-    Patch openPatch(const File& toOpen);
+    Patch openPatch(File const& toOpen);
 
     virtual Colour getForegroundColour() = 0;
     virtual Colour getBackgroundColour() = 0;
@@ -359,7 +368,7 @@ class Instance
 
     void waitForStateUpdate();
 
-    virtual const CriticalSection* getCallbackLock()
+    virtual CriticalSection const* getCallbackLock()
     {
         return nullptr;
     };
@@ -380,17 +389,17 @@ class Instance
     std::deque<std::tuple<String, int, int>> consoleMessages;
     std::deque<std::tuple<String, int, int>> consoleHistory;
 
-   private:
+private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
     std::unique_ptr<FileChooser> saveChooser;
     std::unique_ptr<FileChooser> openChooser;
 
     WaitableEvent updateWait;
-  
+
 protected:
     ContinuityChecker continuityChecker;
 
     struct internal;
 };
-}  // namespace pd
+} // namespace pd

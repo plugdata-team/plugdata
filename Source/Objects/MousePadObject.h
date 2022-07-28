@@ -1,15 +1,13 @@
 
 // ELSE mousepad
-struct MousePadObject final : public GUIObject
-{
+struct MousePadObject final : public GUIObject {
     bool isLocked = false;
     bool isPressed = false;
 
-    typedef struct _pad
-    {
+    typedef struct _pad {
         t_object x_obj;
         t_glist* x_glist;
-        void* x_proxy;  // dont have this object and dont need it
+        void* x_proxy; // dont have this object and dont need it
         t_symbol* x_bindname;
         int x_x;
         int x_y;
@@ -21,7 +19,8 @@ struct MousePadObject final : public GUIObject
         unsigned char x_color[3];
     } t_pad;
 
-    MousePadObject(void* ptr, Box* box) : GUIObject(ptr, box)
+    MousePadObject(void* ptr, Box* box)
+        : GUIObject(ptr, box)
     {
         Desktop::getInstance().addGlobalMouseListener(this);
 
@@ -44,9 +43,10 @@ struct MousePadObject final : public GUIObject
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
     };
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
+        if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked)
+            return;
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
@@ -67,14 +67,15 @@ struct MousePadObject final : public GUIObject
         // glist_grab(x->x_glist, &x->x_obj.te_g, (t_glistmotionfn)pad_motion, 0, (float)xpix, (float)ypix);
     }
 
-    void mouseDrag(const MouseEvent& e) override
+    void mouseDrag(MouseEvent const& e) override
     {
         mouseMove(e);
     }
 
-    void mouseMove(const MouseEvent& e) override
+    void mouseMove(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked) return;
+        if (!getScreenBounds().contains(e.getScreenPosition()) || !isLocked)
+            return;
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[3];
@@ -93,9 +94,10 @@ struct MousePadObject final : public GUIObject
         sys_unlock();
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
-        if (!getScreenBounds().contains(e.getScreenPosition()) && !isPressed) return;
+        if (!getScreenBounds().contains(e.getScreenPosition()) && !isPressed)
+            return;
 
         auto* x = static_cast<t_pad*>(ptr);
         t_atom at[1];
@@ -115,16 +117,18 @@ struct MousePadObject final : public GUIObject
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
-            if(!_this) return;
-            
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
             auto bounds = Rectangle<int>(x, y, w, h);
-            
+
             MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if(!_this) return;
-                
+                if (!_this)
+                    return;
+
                 box->setObjectBounds(bounds);
             });
         });

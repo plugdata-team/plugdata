@@ -13,8 +13,7 @@
 #define __Z_LIBPD_H__
 
 #ifdef __cplusplus
-extern "C"
-{
+extern "C" {
 #endif
 
 #include "m_pd.h"
@@ -34,20 +33,20 @@ EXTERN void libpd_clear_search_path(void);
 /// add a path to the libpd search paths
 /// relative paths are relative to the current working directory
 /// unlike desktop pd, *no* search paths are set by default (ie. extra)
-EXTERN void libpd_add_to_search_path(const char *path);
+EXTERN void libpd_add_to_search_path(char const* path);
 
 /* opening patches */
 
 /// open a patch by filename and parent dir path
 /// returns an opaque patch handle pointer or NULL on failure
-EXTERN void *libpd_openfile(const char *name, const char *dir);
+EXTERN void* libpd_openfile(char const* name, char const* dir);
 
 /// close a patch by patch handle pointer
-EXTERN void libpd_closefile(void *p);
+EXTERN void libpd_closefile(void* p);
 
 /// get the $0 id of the patch handle pointer
 /// returns $0 value or 0 if the patch is non-existent
-EXTERN int libpd_getdollarzero(void *p);
+EXTERN int libpd_getdollarzero(void* p);
 
 /* audio processing */
 
@@ -62,8 +61,8 @@ EXTERN int libpd_init_audio(int inChannels, int outChannels, int sampleRate);
 /// buffer sizes are based on # of ticks and channels where:
 ///     size = ticks * libpd_blocksize() * (in/out)channels
 /// returns 0 on success
-EXTERN int libpd_process_float(const int ticks,
-    const float *inBuffer, float *outBuffer);
+EXTERN int libpd_process_float(int const ticks,
+    float const* inBuffer, float* outBuffer);
 
 /// process interleaved short samples from inBuffer -> libpd -> outBuffer
 /// buffer sizes are based on # of ticks and channels where:
@@ -72,23 +71,23 @@ EXTERN int libpd_process_float(const int ticks,
 /// so any values received from pd patches beyond -1 to 1 will result in garbage
 /// note: for efficiency, does *not* clip input
 /// returns 0 on success
-EXTERN int libpd_process_short(const int ticks,
-    const short *inBuffer, short *outBuffer);
+EXTERN int libpd_process_short(int const ticks,
+    short const* inBuffer, short* outBuffer);
 
 /// process interleaved double samples from inBuffer -> libpd -> outBuffer
 /// buffer sizes are based on # of ticks and channels where:
 ///     size = ticks * libpd_blocksize() * (in/out)channels
 /// note: only full-precision when compiled with PD_FLOATSIZE=64
 /// returns 0 on success
-EXTERN int libpd_process_double(const int ticks,
-    const double *inBuffer, double *outBuffer);
+EXTERN int libpd_process_double(int const ticks,
+    double const* inBuffer, double* outBuffer);
 
 /// process non-interleaved float samples from inBuffer -> libpd -> outBuffer
 /// copies buffer contents to/from libpd without striping
 /// buffer sizes are based on a single tick and # of channels where:
 ///     size = libpd_blocksize() * (in/out)channels
 /// returns 0 on success
-EXTERN int libpd_process_raw(const float *inBuffer, float *outBuffer);
+EXTERN int libpd_process_raw(float const* inBuffer, float* outBuffer);
 
 /// process non-interleaved short samples from inBuffer -> libpd -> outBuffer
 /// copies buffer contents to/from libpd without striping
@@ -98,7 +97,7 @@ EXTERN int libpd_process_raw(const float *inBuffer, float *outBuffer);
 /// so any values received from pd patches beyond -1 to 1 will result in garbage
 /// note: for efficiency, does *not* clip input
 /// returns 0 on success
-EXTERN int libpd_process_raw_short(const short *inBuffer, short *outBuffer);
+EXTERN int libpd_process_raw_short(short const* inBuffer, short* outBuffer);
 
 /// process non-interleaved double samples from inBuffer -> libpd -> outBuffer
 /// copies buffer contents to/from libpd without striping
@@ -106,7 +105,7 @@ EXTERN int libpd_process_raw_short(const short *inBuffer, short *outBuffer);
 ///     size = libpd_blocksize() * (in/out)channels
 /// note: only full-precision when compiled with PD_FLOATSIZE=64
 /// returns 0 on success
-EXTERN int libpd_process_raw_double(const double *inBuffer, double *outBuffer);
+EXTERN int libpd_process_raw_double(double const* inBuffer, double* outBuffer);
 
 /* array access */
 
@@ -122,14 +121,14 @@ EXTERN int libpd_resize_array(void* garray, long size);
 /// note: performs no bounds checking on dest
 /// returns 0 on success or a negative error code if the array is non-existent
 /// or offset + n exceeds range of array
-EXTERN int libpd_read_array(float *dest, void* garray, int offset, int n);
+EXTERN int libpd_read_array(float* dest, void* garray, int offset, int n);
 
 /// read n values from src and write into named dest array starting at an offset
 /// note: performs no bounds checking on src
 /// returns 0 on success or a negative error code if the array is non-existent
 /// or offset + n exceeds range of array
 EXTERN int libpd_write_array(void* garray, int offset,
-    const float *src, int n);
+    float const* src, int n);
 
 /// read n values from named src array and write into dest starting at an offset
 /// note: performs no bounds checking on dest
@@ -137,7 +136,7 @@ EXTERN int libpd_write_array(void* garray, int offset,
 /// returns 0 on success or a negative error code if the array is non-existent
 /// or offset + n exceeds range of array
 /// double-precision variant of libpd_read_array()
-EXTERN int libpd_read_array_double(double *dest, void* garray,
+EXTERN int libpd_read_array_double(double* dest, void* garray,
     int offset, int n);
 
 /// read n values from src and write into named dest array starting at an offset
@@ -147,30 +146,30 @@ EXTERN int libpd_read_array_double(double *dest, void* garray,
 /// or offset + n exceeds range of array
 /// double-precision variant of libpd_write_array()
 EXTERN int libpd_write_array_double(void* garray, int offset,
-    const double *src, int n);
+    double const* src, int n);
 
 /* sending messages to pd */
 
 /// send a bang to a destination receiver
 /// ex: libpd_bang("foo") will send a bang to [s foo] on the next tick
 /// returns 0 on success or -1 if receiver name is non-existent
-EXTERN int libpd_bang(const char *recv);
+EXTERN int libpd_bang(char const* recv);
 
 /// send a float to a destination receiver
 /// ex: libpd_float("foo", 1) will send a 1.0 to [s foo] on the next tick
 /// returns 0 on success or -1 if receiver name is non-existent
-EXTERN int libpd_float(const char *recv, float x);
+EXTERN int libpd_float(char const* recv, float x);
 
 /// send a double to a destination receiver
 /// ex: libpd_double("foo", 1.1) will send a 1.1 to [s foo] on the next tick
 /// note: only full-precision when compiled with PD_FLOATSIZE=64
 /// returns 0 on success or -1 if receiver name is non-existent
-EXTERN int libpd_double(const char *recv, double x);
+EXTERN int libpd_double(char const* recv, double x);
 
 /// send a symbol to a destination receiver
 /// ex: libpd_symbol("foo", "bar") will send "bar" to [s foo] on the next tick
 /// returns 0 on success or -1 if receiver name is non-existent
-EXTERN int libpd_symbol(const char *recv, const char *symbol);
+EXTERN int libpd_symbol(char const* recv, char const* symbol);
 
 /* sending compound messages: sequenced function calls */
 
@@ -188,7 +187,7 @@ EXTERN void libpd_add_float(float x);
 EXTERN void libpd_add_double(double x);
 
 /// add a symbol to the current message in progress
-EXTERN void libpd_add_symbol(const char *symbol);
+EXTERN void libpd_add_symbol(char const* symbol);
 
 /// finish current message and send as a list to a destination receiver
 /// returns 0 on success or -1 if receiver name is non-existent
@@ -198,7 +197,7 @@ EXTERN void libpd_add_symbol(const char *symbol);
 ///     libpd_add_float(2);
 ///     libpd_add_symbol("bar");
 ///     libpd_finish_list("foo");
-EXTERN int libpd_finish_list(const char *recv);
+EXTERN int libpd_finish_list(char const* recv);
 
 /// finish current message and send as a typed message to a destination receiver
 /// note: typed message handling currently only supports up to 4 elements
@@ -208,19 +207,19 @@ EXTERN int libpd_finish_list(const char *recv);
 ///     libpd_start_message(1);
 ///     libpd_add_float(1);
 ///     libpd_finish_message("pd", "dsp");
-EXTERN int libpd_finish_message(const char *recv, const char *msg);
+EXTERN int libpd_finish_message(char const* recv, char const* msg);
 
 /* sending compound messages: atom array */
 
 /// write a float value to the given atom
-EXTERN void libpd_set_float(t_atom *a, float x);
+EXTERN void libpd_set_float(t_atom* a, float x);
 
 /// write a double value to the given atom
 /// note: only full-precision when compiled with PD_FLOATSIZE=64
-EXTERN void libpd_set_double(t_atom *v, double x);
+EXTERN void libpd_set_double(t_atom* v, double x);
 
 /// write a symbol value to the given atom
-EXTERN void libpd_set_symbol(t_atom *a, const char *symbol);
+EXTERN void libpd_set_symbol(t_atom* a, char const* symbol);
 
 /// send an atom array of a given length as a list to a destination receiver
 /// returns 0 on success or -1 if receiver name is non-existent
@@ -230,7 +229,7 @@ EXTERN void libpd_set_symbol(t_atom *a, const char *symbol);
 ///     libpd_set_float(v + 1, 2);
 ///     libpd_set_symbol(v + 2, "bar");
 ///     libpd_list("foo", 3, v);
-EXTERN int libpd_list(const char *recv, int argc, t_atom *argv);
+EXTERN int libpd_list(char const* recv, int argc, t_atom* argv);
 
 /// send a atom array of a given length as a typed message to a destination
 /// receiver, returns 0 on success or -1 if receiver name is non-existent
@@ -238,8 +237,8 @@ EXTERN int libpd_list(const char *recv, int argc, t_atom *argv);
 ///     t_atom v[1];
 ///     libpd_set_float(v, 1);
 ///     libpd_message("pd", "dsp", 1, v);
-EXTERN int libpd_message(const char *recv, const char *msg,
-    int argc, t_atom *argv);
+EXTERN int libpd_message(char const* recv, char const* msg,
+    int argc, t_atom* argv);
 
 /* receiving messages from pd */
 
@@ -247,32 +246,32 @@ EXTERN int libpd_message(const char *recv, const char *msg,
 /// ex: libpd_bind("foo") adds a "virtual" [r foo] which forwards messages to
 ///     the libpd message hooks
 /// returns an opaque receiver pointer or NULL on failure
-EXTERN void *libpd_bind(const char *recv);
+EXTERN void* libpd_bind(char const* recv);
 
 /// unsubscribe and free a source receiver object created by libpd_bind()
-EXTERN void libpd_unbind(void *p);
+EXTERN void libpd_unbind(void* p);
 
 /// check if a source receiver object exists with a given name
 /// returns 1 if the receiver exists, otherwise 0
-EXTERN int libpd_exists(const char *recv);
+EXTERN int libpd_exists(char const* recv);
 
 /// print receive hook signature, s is the string to be printed
 /// note: default behavior returns individual words and spaces:
 ///     line "hello 123" is received in 4 parts -> "hello", " ", "123\n"
-typedef void (*t_libpd_printhook)(const char *s);
+typedef void (*t_libpd_printhook)(char const* s);
 
 /// bang receive hook signature, recv is the source receiver name
-typedef void (*t_libpd_banghook)(const char *recv);
+typedef void (*t_libpd_banghook)(char const* recv);
 
 /// float receive hook signature, recv is the source receiver name
-typedef void (*t_libpd_floathook)(const char *recv, float x);
+typedef void (*t_libpd_floathook)(char const* recv, float x);
 
 /// double receive hook signature, recv is the source receiver name
 /// note: only full-precision when compiled with PD_FLOATSIZE=64
-typedef void (*t_libpd_doublehook)(const char *recv, double x);
+typedef void (*t_libpd_doublehook)(char const* recv, double x);
 
 /// symbol receive hook signature, recv is the source receiver name
-typedef void (*t_libpd_symbolhook)(const char *recv, const char *symbol);
+typedef void (*t_libpd_symbolhook)(char const* recv, char const* symbol);
 
 /// list receive hook signature, recv is the source receiver name
 /// argc is the list length and vector argv contains the list elements
@@ -289,7 +288,7 @@ typedef void (*t_libpd_symbolhook)(const char *recv, const char *symbol);
 ///       }
 ///     }
 /// note: check for both float and symbol types as atom may also be a pointer
-typedef void (*t_libpd_listhook)(const char *recv, int argc, t_atom *argv);
+typedef void (*t_libpd_listhook)(char const* recv, int argc, t_atom* argv);
 
 /// typed message hook signature, recv is the source receiver name and msg is
 /// the typed message name: a message like [; foo bar 1 2 a b( will trigger a
@@ -308,8 +307,8 @@ typedef void (*t_libpd_listhook)(const char *recv, int argc, t_atom *argv);
 ///       }
 ///     }
 /// note: check for both float and symbol types as atom may also be a pointer
-typedef void (*t_libpd_messagehook)(const char *recv, const char *msg,
-    int argc, t_atom *argv);
+typedef void (*t_libpd_messagehook)(char const* recv, char const* msg,
+    int argc, t_atom* argv);
 
 /// set the print receiver hook, prints to stdout by default
 /// note: do not call this while DSP is running
@@ -349,28 +348,28 @@ EXTERN void libpd_set_messagehook(const t_libpd_messagehook hook);
 
 /// check if an atom is a float type: 0 or 1
 /// note: no NULL check is performed
-EXTERN int libpd_is_float(t_atom *a);
+EXTERN int libpd_is_float(t_atom* a);
 
 /// check if an atom is a symbol type: 0 or 1
 /// note: no NULL check is performed
-EXTERN int libpd_is_symbol(t_atom *a);
+EXTERN int libpd_is_symbol(t_atom* a);
 
 /// get the float value of an atom
 /// note: no NULL or type checks are performed
-EXTERN float libpd_get_float(t_atom *a);
+EXTERN float libpd_get_float(t_atom* a);
 
 /// returns the double value of an atom
 /// note: no NULL or type checks are performed
 /// note: only full-precision when compiled with PD_FLOATSIZE=64
-EXTERN double libpd_get_double(t_atom *a);
+EXTERN double libpd_get_double(t_atom* a);
 
 /// returns the symbol value of an atom
 /// note: no NULL or type checks are performed
-EXTERN const char *libpd_get_symbol(t_atom *a);
+EXTERN char const* libpd_get_symbol(t_atom* a);
 
 /// increment to the next atom in an atom vector
 /// returns next atom or NULL, assuming the atom vector is NULL-terminated
-EXTERN t_atom *libpd_next_atom(t_atom *a);
+EXTERN t_atom* libpd_next_atom(t_atom* a);
 
 /* sending MIDI messages to pd */
 
@@ -513,7 +512,7 @@ EXTERN void libpd_set_midibytehook(const t_libpd_midibytehook hook);
 /// requires the path to pd's main folder that contains bin/, tcl/, etc
 /// for a macOS .app bundle: /path/to/Pd-#.#-#.app/Contents/Resources
 /// returns 0 on success
-EXTERN int libpd_start_gui(const char *path);
+EXTERN int libpd_start_gui(char const* path);
 
 /// stop the pd vanilla GUI
 EXTERN void libpd_stop_gui(void);
@@ -530,24 +529,24 @@ EXTERN int libpd_poll_gui(void);
 
 /// create a new pd instance
 /// returns new instance or NULL when libpd is not compiled with PDINSTANCE
-EXTERN t_pdinstance *libpd_new_instance(void);
+EXTERN t_pdinstance* libpd_new_instance(void);
 
 /// set the current pd instance
 /// subsequent libpd calls will affect this instance only
 /// does nothing when libpd is not compiled with PDINSTANCE
-EXTERN void libpd_set_instance(t_pdinstance *p);
+EXTERN void libpd_set_instance(t_pdinstance* p);
 
 /// free a pd instance
 /// does nothing when libpd is not compiled with PDINSTANCE
-EXTERN void libpd_free_instance(t_pdinstance *p);
+EXTERN void libpd_free_instance(t_pdinstance* p);
 
 /// get the current pd instance
-EXTERN t_pdinstance *libpd_this_instance(void);
+EXTERN t_pdinstance* libpd_this_instance(void);
 
 /// get a pd instance by index
 /// returns NULL if index is out of bounds or "this" instance when libpd is not
 /// compiled with PDINSTANCE
-EXTERN t_pdinstance *libpd_get_instance(int index);
+EXTERN t_pdinstance* libpd_get_instance(int index);
 
 /// get the number of pd instances
 /// returns number or 1 when libpd is not compiled with PDINSTANCE

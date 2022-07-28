@@ -1,32 +1,30 @@
 #include "../Utility/DraggableNumber.h"
 
-struct NumberObject final : public IEMObject
-{
+struct NumberObject final : public IEMObject {
     Label input;
     DraggableNumber dragger;
 
-    NumberObject(void* obj, Box* parent) : IEMObject(obj, parent), dragger(input)
+    NumberObject(void* obj, Box* parent)
+        : IEMObject(obj, parent)
+        , dragger(input)
     {
-        input.onEditorShow = [this]()
-        {
+        input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
 
-            editor->setBorder({0, 10, 0, 0});
+            editor->setBorder({ 0, 10, 0, 0 });
 
-            if (editor != nullptr)
-            {
+            if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
             }
         };
 
-        input.onEditorHide = [this]()
-        {
+        input.onEditorHide = [this]() {
             setValueOriginal(input.getText().getFloatValue());
             stopEdition();
         };
 
-        input.setBorderSize({1, 15, 1, 1});
+        input.setBorderSize({ 1, 15, 1, 1 });
 
         addAndMakeVisible(input);
 
@@ -48,16 +46,18 @@ struct NumberObject final : public IEMObject
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
-            if(!_this) return;
-            
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
             int x = 0, y = 0, w = 0, h = 0;
             libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
             auto bounds = Rectangle<int>(x, y, w, h);
-            
+
             MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if(!_this) return;
-                
+                if (!_this)
+                    return;
+
                 box->setObjectBounds(bounds);
             });
         });
@@ -68,8 +68,7 @@ struct NumberObject final : public IEMObject
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
         int height = jlimit(18, maxSize, getHeight());
-        if (getWidth() != width || getHeight() != height)
-        {
+        if (getWidth() != width || getHeight() != height) {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
         }
     }
@@ -100,32 +99,27 @@ struct NumberObject final : public IEMObject
 
     ObjectParameters defineParameters() override
     {
-        return {{"Minimum", tFloat, cGeneral, &min, {}}, {"Maximum", tFloat, cGeneral, &max, {}}};
+        return { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(min))
-        {
+        if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
             updateValue();
-        }
-        else if (value.refersToSameSourceAs(max))
-        {
+        } else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
             updateValue();
-        }
-        else
-        {
+        } else {
             IEMObject::valueChanged(value);
         }
     }
 
     void paintOverChildren(Graphics& g) override
     {
-        const int indent = 9;
+        int const indent = 9;
 
-        const Rectangle<int> iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
+        Rectangle<int> const iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
 
         Path corner;
 

@@ -21,6 +21,6 @@
 void libpdreceive_setup(void);
 
 // create a new libpd source receiver with a given name symbol
-void *libpdreceive_new(t_symbol *);
+void* libpdreceive_new(t_symbol*);
 
 #endif

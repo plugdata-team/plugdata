@@ -8,8 +8,7 @@
 #include "PdPatch.h"
 #include "PdInstance.h"
 
-extern "C"
-{
+extern "C" {
 #include <m_pd.h>
 #include <g_canvas.h>
 #include <m_imp.h>
@@ -21,27 +20,26 @@ extern "C"
 void canvas_map(t_canvas* x, t_floatarg f);
 }
 
-namespace pd
-{
+namespace pd {
 
-Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(inst)
+Storage::Storage(t_glist* patch, Instance* inst)
+    : parentPatch(patch)
+    , instance(inst)
 {
     instance->getCallbackLock()->enter();
 
-    for (t_gobj* y = patch->gl_list; y; y = y->g_next)
-    {
+    for (t_gobj* y = patch->gl_list; y; y = y->g_next) {
         const String name = libpd_get_object_class_name(y);
 
-        if (name == "graph" || name == "canvas")
-        {
+        if (name == "graph" || name == "canvas") {
             auto* glist = pd_checkglist(&y->g_pd);
             auto* obj = glist->gl_list;
 
-            if (obj != nullptr && obj->g_next == nullptr)
-            {
+            if (obj != nullptr && obj->g_next == nullptr) {
                 // Skip non-text object to prevent crash on libpd_get_object_text
-                if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text") continue;
-                
+                if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text")
+                    continue;
+
                 // Get object text to return the content of the comment
                 char* text;
                 int size;
@@ -52,12 +50,11 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
                 freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
                 // Found an existing storage object!
-                if (name.startsWith("plugdatainfo"))
-                {
+                if (name.startsWith("plugdatainfo")) {
                     infoObject = glist->gl_list;
                     infoParent = glist;
                     instance->getCallbackLock()->exit();
-                    loadInfoFromPatch();  // load info from existsing object
+                    loadInfoFromPatch(); // load info from existsing object
                     return;
                 }
             }
@@ -92,8 +89,9 @@ Storage::Storage(t_glist* patch, Instance* inst) : parentPatch(patch), instance(
 // Function to load state tree from existing patch, only called on init
 void Storage::loadInfoFromPatch()
 {
-    if (!infoObject) return;
-    
+    if (!infoObject)
+        return;
+
     // TODO: fix data race
 
     // Make sure the canvas has a window to ensure correct behaviour
@@ -113,18 +111,14 @@ void Storage::loadInfoFromPatch()
     canvas_map(infoParent, 0);
     canvas_vis(infoParent, 0);
 
-    try
-    {
+    try {
         auto tree = ValueTree::fromXml(content);
 
-        if (tree.isValid())
-        {
+        if (tree.isValid()) {
             extraInfo = tree;
             return;
         }
-    }
-    catch (...)
-    {
+    } catch (...) {
         std::cerr << "error loading state" << std::endl;
     }
 }
@@ -132,7 +126,8 @@ void Storage::loadInfoFromPatch()
 // Function to store state tree in pd patch
 void Storage::storeInfo()
 {
-    if (!infoObject) return;
+    if (!infoObject)
+        return;
 
     String newname = "plugdatainfo " + extraInfo.toXmlString(XmlElement::TextFormat().singleLine());
 
@@ -143,16 +138,15 @@ void Storage::storeInfo()
 // Function to change the id of an entry
 // This will be called when the position of an object or connection changes,
 // to ensure correct indexing
-void Storage::setInfoId(const String& oldId, const String& newId)
+void Storage::setInfoId(String const& oldId, String const& newId)
 {
-    if (!infoObject) return;
+    if (!infoObject)
+        return;
 
-    for (auto s : extraInfo)
-    {
-        if (s.getProperty("ID") == oldId && s.getProperty("Updated") == var(false))
-        {
+    for (auto s : extraInfo) {
+        if (s.getProperty("ID") == oldId && s.getProperty("Updated") == var(false)) {
             s.setProperty("ID", newId, nullptr);
-            s.setProperty("Updated", true, nullptr);  // Updated flag in case we temporarily need conflicting IDs
+            s.setProperty("Updated", true, nullptr); // Updated flag in case we temporarily need conflicting IDs
             return;
         }
     }
@@ -160,43 +154,43 @@ void Storage::setInfoId(const String& oldId, const String& newId)
 
 void Storage::confirmIds()
 {
-    for (auto s : extraInfo) s.setProperty("Updated", false, nullptr);
+    for (auto s : extraInfo)
+        s.setProperty("Updated", false, nullptr);
     storeInfo();
 }
 
 // Check if info exists
-bool Storage::hasInfo(const String& id) const
+bool Storage::hasInfo(String const& id) const
 {
     auto child = extraInfo.getChildWithProperty("ID", id);
     return child.isValid();
 }
 
 // Get info from local state
-String Storage::getInfo(const String& id, const String& property) const
+String Storage::getInfo(String const& id, String const& property) const
 {
     return extraInfo.getChildWithProperty("ID", id).getProperty(property).toString();
 }
 
 // Set info to local state
 // Also pushes the change into pd patch
-void Storage::setInfo(const String& id, const String& property, const String& info, bool undoable)
+void Storage::setInfo(String const& id, String const& property, String const& info, bool undoable)
 {
     jassert(property != "Updated" && property != "ID");
 
     auto tree = ValueTree("InfoObj");
 
     auto existingInfo = extraInfo.getChildWithProperty("ID", id);
-    if (existingInfo.isValid())
-    {
+    if (existingInfo.isValid()) {
         tree = existingInfo;
     }
 
-    if (!existingInfo.isValid())
-    {
+    if (!existingInfo.isValid()) {
         extraInfo.appendChild(tree, nullptr);
     }
 
-    if (undoable) createUndoAction();
+    if (undoable)
+        createUndoAction();
 
     tree.setProperty("ID", id, nullptr);
     tree.setProperty("Updated", false, nullptr);
@@ -212,8 +206,7 @@ void Storage::undoIfNeeded()
 
     t_undo* udo = canvas_undo_get(parentPatch);
 
-    if (udo && udo->u_last && !strcmp(udo->u_last->name, "plugdata_undo"))
-    {
+    if (udo && udo->u_last && !strcmp(udo->u_last->name, "plugdata_undo")) {
         undoManager.undo();
     }
 
@@ -229,8 +222,7 @@ void Storage::redoIfNeeded()
 
     t_undo* udo = canvas_undo_get(parentPatch);
 
-    if (udo && udo->u_last && !strcmp(udo->u_last->next->name, "plugdata_undo"))
-    {
+    if (udo && udo->u_last && !strcmp(udo->u_last->next->name, "plugdata_undo")) {
         undoManager.redo();
     }
 
@@ -243,7 +235,8 @@ void Storage::redoIfNeeded()
 // Called from setInfo
 void Storage::createUndoAction()
 {
-    if (!parentPatch || !infoParent) return;
+    if (!parentPatch || !infoParent)
+        return;
 
     undoManager.beginNewTransaction();
 
@@ -259,8 +252,7 @@ void Storage::createUndoAction()
 bool Storage::isInfoParent(t_gobj* obj)
 {
     const String name = libpd_get_object_class_name(obj);
-    if (name == "graph" || name == "canvas")
-    {
+    if (name == "graph" || name == "canvas") {
         auto* glist = pd_checkglist(&obj->g_pd);
         return isInfoParent(glist);
     }
@@ -273,24 +265,23 @@ bool Storage::isInfoParent(t_glist* glist)
 {
     auto* obj = glist->gl_list;
     // Check if the glist has one object (and not more or less)
-    if (obj != nullptr && obj->g_next == nullptr)
-    {
+    if (obj != nullptr && obj->g_next == nullptr) {
         char* text;
         int size;
 
-        if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text") return false;
+        if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text")
+            return false;
 
         libpd_get_object_text(glist->gl_list, &text, &size);
 
         String name = String(CharPointer_UTF8(text), size);
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
-        if (name.startsWith("plugdatainfo"))
-        {
+        if (name.startsWith("plugdatainfo")) {
             return true;
         }
     }
     return false;
 }
 
-}  // namespace pd
+} // namespace pd

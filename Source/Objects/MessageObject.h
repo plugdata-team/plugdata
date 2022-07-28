@@ -1,59 +1,51 @@
 
-typedef struct _messresponder
-{
+typedef struct _messresponder {
     t_pd mr_pd;
     t_outlet* mr_outlet;
 } t_messresponder;
 
-typedef struct _message
-{
+typedef struct _message {
     t_text m_text;
     t_messresponder m_messresponder;
     t_glist* m_glist;
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public GUIObject
-{
+struct MessageObject final : public GUIObject {
     bool isDown = false;
     bool isLocked = false;
 
     String lastMessage;
 
-    MessageObject(void* obj, Box* parent) : GUIObject(obj, parent)
+    MessageObject(void* obj, Box* parent)
+        : GUIObject(obj, parent)
     {
         addAndMakeVisible(input);
 
         input.setInterceptsMouseClicks(false, false);
 
-        input.onTextChange = [this]()
-        {
+        input.onTextChange = [this]() {
             startEdition();
             setSymbol(input.getText().toStdString());
             stopEdition();
 
             auto width = Font(15).getStringWidth(input.getText()) + 35;
-            if (width < box->getWidth())
-            {
+            if (width < box->getWidth()) {
                 box->setSize(width, box->getHeight());
                 checkBounds();
             }
         };
-        
 
         // For the autoresize while typing feature
-        input.onEditorShow = [this]()
-        {
+        input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
 
             editor->setMultiLine(true, true);
             editor->setReturnKeyStartsNewLine(true);
-            editor->onTextChange = [this, editor]()
-            {
+            editor->onTextChange = [this, editor]() {
                 auto width = input.getFont().getStringWidth(editor->getText()) + 35;
 
-                if (width > box->getWidth())
-                {
+                if (width > box->getWidth()) {
                     box->setSize(width, box->getHeight());
                 }
             };
@@ -66,33 +58,31 @@ struct MessageObject final : public GUIObject
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)](){
-            
-            if(!_this) return;
-            
+        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+            if (!_this)
+                return;
+
             int x = 0, y = 0, w = 0, h = 0;
-            
+
             // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
             auto* textObj = static_cast<t_text*>(ptr);
-            
+
             libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-            
+
             w = textObj->te_width * glist_fontwidth(cnv->patch.getPointer());
-            
-            if (textObj->te_width == 0)
-            {
+
+            if (textObj->te_width == 0) {
                 w = Font(15).getStringWidth(getText()) + 19;
             }
-            
+
             auto bounds = Rectangle<int>(x, y, w, h);
-            
+
             MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                
-                if(!_this) return;
-                
+                if (!_this)
+                    return;
+
                 box->setObjectBounds(bounds);
             });
-            
         });
     }
 
@@ -102,12 +92,11 @@ struct MessageObject final : public GUIObject
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
         int newHeight = (numLines * 19) + Box::doubleMargin + 2;
         int newWidth = getWidth() / fontWidth;
-        
+
         static_cast<t_text*>(ptr)->te_width = newWidth;
         newWidth = std::max((newWidth * fontWidth), 35) + Box::doubleMargin;
-        
-        if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth()))
-        {
+
+        if (getParentComponent() && (box->getHeight() != newHeight || newWidth != box->getWidth())) {
             box->setSize(newWidth, newHeight);
         }
     }
@@ -117,7 +106,7 @@ struct MessageObject final : public GUIObject
         input.setColour(Label::textColourId, box->findColour(PlugDataColour::textColourId));
         input.setColour(Label::textWhenEditingColourId, box->findColour(PlugDataColour::textColourId));
         input.setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
-        
+
         input.showEditor();
     }
 
@@ -139,8 +128,7 @@ struct MessageObject final : public GUIObject
     void resized() override
     {
         input.setBounds(getLocalBounds());
-        if (auto* editor = input.getCurrentTextEditor())
-        {
+        if (auto* editor = input.getCurrentTextEditor()) {
             editor->setBounds(getLocalBounds());
         }
     }
@@ -149,7 +137,7 @@ struct MessageObject final : public GUIObject
     {
         input.setText(String(getSymbol()), sendNotification);
     }
-    
+
     void paintOverChildren(Graphics& g) override
     {
         GUIObject::paintOverChildren(g);
@@ -162,20 +150,17 @@ struct MessageObject final : public GUIObject
         g.setColour(box->findColour(PlugDataColour::canvasOutlineColourId));
         g.fillPath(flagPath);
 
-        if (isDown)
-        {
+        if (isDown) {
             g.drawRoundedRectangle(b.reduced(1).toFloat(), 2.0f, 3.0f);
         }
     }
 
     void updateValue() override
     {
-        if (!edited)
-        {
+        if (!edited) {
             String v = getSymbol();
 
-            if (lastMessage != v && !v.startsWith("click"))
-            {
+            if (lastMessage != v && !v.startsWith("click")) {
                 lastMessage = v;
 
                 update();
@@ -183,10 +168,9 @@ struct MessageObject final : public GUIObject
         }
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
-        if (isLocked)
-        {
+        if (isLocked) {
             isDown = true;
             repaint();
 
@@ -196,12 +180,12 @@ struct MessageObject final : public GUIObject
         }
     }
 
-    void click() 
+    void click()
     {
         cnv->pd->enqueueDirectMessages(ptr, 0);
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
         repaint();
@@ -212,7 +196,7 @@ struct MessageObject final : public GUIObject
         GUIObject::valueChanged(v);
     }
 
-    String getSymbol() const 
+    String getSymbol() const
     {
         cnv->pd->setThis();
 
@@ -227,11 +211,10 @@ struct MessageObject final : public GUIObject
         return result;
     }
 
-    void setSymbol(String const& value) 
+    void setSymbol(String const& value)
     {
         cnv->pd->enqueueFunction(
-            [this, value]() mutable
-            {
+            [this, value]() mutable {
                 auto* cstr = value.toRawUTF8();
                 auto* messobj = static_cast<t_message*>(ptr);
                 binbuf_clear(messobj->m_text.te_binbuf);

@@ -1,7 +1,6 @@
-struct SaveDialog : public Component
-{
-    SaveDialog(Component* editor, Dialog* parent, const String& filename) :
-    savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
+struct SaveDialog : public Component {
+    SaveDialog(Component* editor, Dialog* parent, String const& filename)
+        : savelabel("savelabel", filename.isEmpty() ? "Save Changes?" : "Save Changes to \"" + filename + "\"?")
     {
         setSize(400, 200);
         addAndMakeVisible(savelabel);
@@ -9,29 +8,23 @@ struct SaveDialog : public Component
         addAndMakeVisible(dontsave);
         addAndMakeVisible(save);
 
-        cancel.onClick = [this, parent]
-        {
+        cancel.onClick = [this, parent] {
             MessageManager::callAsync(
-                [this, parent]()
-                {
+                [this, parent]() {
                     cb(0);
                     parent->onClose();
                 });
         };
-        save.onClick = [this, parent]
-        {
+        save.onClick = [this, parent] {
             MessageManager::callAsync(
-                [this, parent]()
-                {
+                [this, parent]() {
                     cb(2);
                     parent->onClose();
                 });
         };
-        dontsave.onClick = [this, parent]
-        {
+        dontsave.onClick = [this, parent] {
             MessageManager::callAsync(
-                [this, parent]()
-                {
+                [this, parent]() {
                     cb(1);
                     parent->onClose();
                 });
@@ -53,7 +46,7 @@ struct SaveDialog : public Component
 
     std::function<void(int)> cb;
 
-   private:
+private:
     Label savelabel;
 
     TextButton cancel = TextButton("Cancel");

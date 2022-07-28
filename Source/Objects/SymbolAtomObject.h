@@ -1,26 +1,24 @@
 
-struct SymbolAtomObject final : public AtomObject
-{
+struct SymbolAtomObject final : public AtomObject {
     bool isDown = false;
     bool isLocked = false;
 
     String lastMessage;
 
-    SymbolAtomObject(void* obj, Box* parent) : AtomObject(obj, parent)
+    SymbolAtomObject(void* obj, Box* parent)
+        : AtomObject(obj, parent)
     {
         addAndMakeVisible(input);
 
         input.setInterceptsMouseClicks(false, false);
 
-        input.onTextChange = [this]()
-        {
+        input.onTextChange = [this]() {
             startEdition();
             setSymbol(input.getText().toStdString());
             stopEdition();
 
             auto width = input.getFont().getStringWidth(input.getText()) + 36;
-            if (width < box->getWidth())
-            {
+            if (width < box->getWidth()) {
                 box->setSize(width, box->getHeight());
                 checkBounds();
             }
@@ -30,7 +28,6 @@ struct SymbolAtomObject final : public AtomObject
 
         box->addMouseListener(this, false);
     }
-
 
     void lock(bool locked) override
     {
@@ -50,7 +47,7 @@ struct SymbolAtomObject final : public AtomObject
         input.setText(String(getSymbol()), sendNotification);
     }
 
-    void setSymbol(String const& value) 
+    void setSymbol(String const& value)
     {
         cnv->pd->enqueueDirectMessages(ptr, value.toStdString());
     }
@@ -63,25 +60,22 @@ struct SymbolAtomObject final : public AtomObject
 
     void updateValue() override
     {
-        if (!edited)
-        {
+        if (!edited) {
             String v = getSymbol();
 
-            if (lastMessage != v && !v.startsWith("click"))
-            {
+            if (lastMessage != v && !v.startsWith("click")) {
                 lastMessage = v;
                 update();
             }
         }
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
 
         // Edit messages when unlocked, edit atoms when locked
-        if (isLocked)
-        {
+        if (isLocked) {
             input.showEditor();
         }
 
@@ -90,16 +84,12 @@ struct SymbolAtomObject final : public AtomObject
 
     void valueChanged(Value& v) override
     {
-        if (v.refersToSameSourceAs(labelHeight))
-        {
+        if (v.refersToSameSourceAs(labelHeight)) {
             updateLabel();
-            if (getParentComponent())
-            {
-                box->updateBounds();  // update box size based on new font
+            if (getParentComponent()) {
+                box->updateBounds(); // update box size based on new font
             }
-        }
-        else
-        {
+        } else {
             AtomObject::valueChanged(v);
         }
     }
