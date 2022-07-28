@@ -27,8 +27,8 @@
 #X obj 119 62 route float seed;
 #X msg 197 99 seed \$1;
 #X obj 119 24 inlet;
-#X obj 358 206 else/args;
-#X obj 313 147 else/lb;
+#X obj 358 206 args;
+#X obj 313 147 lb;
 #X connect 1 0 4 0;
 #X connect 1 1 2 0;
 #X connect 1 1 15 0;
@@ -45,7 +45,7 @@
 #X connect 15 0 3 0;
 #X connect 16 0 1 0;
 #X restore 101 75 pd init;
-#X obj 101 254 else/rand.f 0 127;
+#X obj 101 254 rand.f 0 127;
 #X obj 283 104 declare -path else;
 #X connect 0 0 11 0;
 #X connect 2 0 4 0;

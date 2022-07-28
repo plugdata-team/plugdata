@@ -17,7 +17,7 @@
 #X obj 239 227 table \$0-back 2048;
 #X obj 239 206 table \$0-front 2048;
 #X obj 237 87 sel 1;
-#X obj 77 131 else/ffdelay~ 512;
+#X obj 77 131 ffdelay~ 512;
 #X connect 2 0 3 0;
 #X connect 2 0 12 0;
 #X connect 5 0 0 0;
@@ -79,8 +79,8 @@
 #X obj 74 74 expr~ if($v1 == 0 && $v2 == 0 \, 1 \, $v1) \; $v2;
 #X obj 74 153 /~;
 #X obj 305 153 /~;
-#X obj 89 125 else/mag~;
-#X obj 320 126 else/mag~;
+#X obj 89 125 mag~;
+#X obj 320 126 mag~;
 #X connect 2 0 4 1;
 #X connect 3 0 4 0;
 #X connect 4 0 5 0;
@@ -143,9 +143,9 @@
 #X connect 23 0 10 0;
 #X connect 23 0 11 0;
 #X restore 55 170 pd phase-accum;
-#X obj 44 112 else/hann~;
-#X obj 116 113 else/hann~;
-#X obj 75 238 else/hann~;
+#X obj 44 112 hann~;
+#X obj 116 113 hann~;
+#X obj 75 238 hann~;
 #X connect 1 0 2 0;
 #X connect 2 0 12 0;
 #X connect 2 1 13 0;
@@ -177,7 +177,7 @@
 #X obj 88 95 != 0;
 #X obj 88 249 outlet~;
 #X obj 88 36 inlet;
-#X obj 88 217 else/f2s~ 200;
+#X obj 88 217 f2s~ 200;
 #X connect 1 0 8 0;
 #X connect 2 0 0 0;
 #X connect 2 0 1 0;
@@ -193,7 +193,7 @@
 #X restore 137 136 pd select;
 #X text 236 114 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 238 95 Alexandre Torres Porres (2018);
-#X obj 60 136 else/xfade~;
+#X obj 60 136 xfade~;
 #X obj 223 65 declare -path else;
 #X connect 0 0 7 1;
 #X connect 1 0 4 0;

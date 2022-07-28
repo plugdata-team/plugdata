@@ -18,8 +18,8 @@
 #X obj 269 189 - 1;
 #X obj 269 162 clip 0 1;
 #X obj 269 217 s \$0-wet;
-#X obj 51 102 else/args;
-#X obj 51 78 else/lb;
+#X obj 51 102 args;
+#X obj 51 78 lb;
 #X connect 0 0 3 0;
 #X connect 1 0 2 0;
 #X connect 4 0 3 0;
@@ -36,10 +36,10 @@
 #X obj 191 112 r \$0-depth;
 #X obj 218 189 r \$0-wet;
 #X obj 89 142 osc~;
-#X obj 46 245 else/comb.rev~ 200 1 1, f 25;
-#X obj 191 141 else/f2s~ 10;
-#X obj 89 168 else/rescale~ 0;
-#X obj 218 215 else/f2s~ 10;
+#X obj 46 245 comb.rev~ 200 1 1, f 25;
+#X obj 191 141 f2s~ 10;
+#X obj 89 168 rescale~ 0;
+#X obj 218 215 f2s~ 10;
 #X obj 337 68 declare -path else;
 #X connect 0 0 7 0;
 #X connect 3 0 12 0;

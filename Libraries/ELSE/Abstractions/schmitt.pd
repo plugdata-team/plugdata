@@ -14,7 +14,7 @@
 #X text 299 130 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 301 111 Alexandre Torres Porres (2017);
 #X obj 59 218 change;
-#X obj 234 69 else/lb;
+#X obj 234 69 lb;
 #X obj 363 79 declare -path else;
 #X connect 3 0 1 0;
 #X connect 4 0 1 0;

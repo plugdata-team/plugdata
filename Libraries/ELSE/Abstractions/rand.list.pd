@@ -4,11 +4,11 @@
 #X obj 139 44 inlet;
 #X obj 86 306 outlet;
 #X obj 86 273 tabread \$0-list;
-#X obj 139 178 else/buffer \$0-list;
+#X obj 139 178 buffer \$0-list;
 #X obj 236 247 table \$0-list 1;
 #X obj 86 242 random 1;
 #X obj 139 209 list length;
-#X obj 189 105 else/args;
+#X obj 189 105 args;
 #X obj 189 79 loadbang;
 #X obj 189 132 route bang;
 #X text 310 179 Part of ELSE \; https://github.com/porres/pd-else;

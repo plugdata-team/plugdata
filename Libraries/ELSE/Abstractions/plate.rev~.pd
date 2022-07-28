@@ -15,8 +15,8 @@
 #X obj 157 255 *~;
 #X obj 82 255 *~;
 #X obj 172 222 +~ 1;
-#X obj 205 116 else/float2sig~ 10;
-#X obj 82 205 else/xfade~ 2;
+#X obj 205 116 float2sig~ 10;
+#X obj 82 205 xfade~ 2;
 #X connect 0 0 11 0;
 #X connect 3 0 12 0;
 #X connect 3 0 12 1;
@@ -125,7 +125,7 @@
 #X obj 119 57 inlet~;
 #X obj 124 235 outlet~;
 #X obj 140 145 expr~ 1 - $v1;
-#X obj 186 114 else/float2sig~ 20;
+#X obj 186 114 float2sig~ 20;
 #X connect 0 0 4 0;
 #X connect 1 0 0 0;
 #X connect 2 0 6 0;
@@ -144,7 +144,7 @@
 #X obj 119 57 inlet~;
 #X obj 124 235 outlet~;
 #X obj 140 145 expr~ 1 - $v1;
-#X obj 186 114 else/float2sig~ 20;
+#X obj 186 114 float2sig~ 20;
 #X connect 0 0 4 0;
 #X connect 1 0 0 0;
 #X connect 2 0 6 0;
@@ -156,7 +156,7 @@
 #X obj 445 154 r \$0-fbgain;
 #X obj 233 279 r \$0-clear;
 #X obj 469 213 r \$0-clear;
-#X obj 445 177 else/float2sig~ 20;
+#X obj 445 177 float2sig~ 20;
 #X connect 0 0 1 0;
 #X connect 1 0 2 0;
 #X connect 2 0 3 0;
@@ -210,10 +210,10 @@
 #X obj 120 39 inlet~;
 #X obj 120 193 outlet~;
 #X obj 47 65 r \$0-clear;
-#X obj 120 92 else/allpass.rev~ 4.771 0.75 1;
-#X obj 120 116 else/allpass.rev~ 3.595 0.75 1;
-#X obj 120 138 else/allpass.rev~ 12.73 0.625 1;
-#X obj 120 161 else/allpass.rev~ 9.307 0.625 1;
+#X obj 120 92 allpass.rev~ 4.771 0.75 1;
+#X obj 120 116 allpass.rev~ 3.595 0.75 1;
+#X obj 120 138 allpass.rev~ 12.73 0.625 1;
+#X obj 120 161 allpass.rev~ 9.307 0.625 1;
 #X connect 0 0 3 0;
 #X connect 2 0 3 0;
 #X connect 2 0 4 0;
@@ -229,8 +229,8 @@
 #X obj 164 93 osc~ 0.1;
 #X obj 94 213 outlet~;
 #X obj 147 60 r \$0-clear;
-#X obj 91 154 else/allpass.rev~ 35 0.7 1;
-#X obj 164 115 else/rescale~ 26.51 34.51, f 13;
+#X obj 91 154 allpass.rev~ 35 0.7 1;
+#X obj 164 115 rescale~ 26.51 34.51, f 13;
 #X connect 0 0 4 0;
 #X connect 1 0 5 0;
 #X connect 3 0 4 0;
@@ -242,8 +242,8 @@
 #X obj 76 34 inlet~;
 #X obj 76 215 outlet~;
 #X obj 138 69 r \$0-clear;
-#X obj 76 161 else/allpass.rev~ 35 0.7 1;
-#X obj 152 121 else/rescale~ 18.58 26.58, f 14;
+#X obj 76 161 allpass.rev~ 35 0.7 1;
+#X obj 152 121 rescale~ 18.58 26.58, f 14;
 #X connect 0 0 5 0;
 #X connect 1 0 4 0;
 #X connect 3 0 4 0;
@@ -256,7 +256,7 @@
 #X obj 139 320 outlet~;
 #X obj 265 91 r \$0-fbgain;
 #X obj 254 227 r \$0-clear;
-#X obj 265 118 else/float2sig~ 20;
+#X obj 265 118 float2sig~ 20;
 #X connect 0 0 2 1;
 #X connect 1 0 3 1;
 #X connect 2 0 8 0;
@@ -290,7 +290,7 @@
 #X obj 63 173 outlet~;
 #X obj 63 84 r \$0-predelay;
 #X obj 63 147 delread4~ \$0-predelay;
-#X obj 63 124 else/float2sig~ 25;
+#X obj 63 124 float2sig~ 25;
 #X connect 2 0 4 0;
 #X connect 3 0 1 0;
 #X connect 4 0 3 0;
@@ -306,7 +306,7 @@
 #X obj 124 235 outlet~;
 #X obj 182 97 r \$0-cutoff;
 #X obj 183 195 expr~ 1 - $v1;
-#X obj 183 137 else/float2sig~ 20;
+#X obj 183 137 float2sig~ 20;
 #X connect 0 0 3 0;
 #X connect 1 0 0 0;
 #X connect 2 0 1 0;
@@ -354,8 +354,8 @@
 #X obj 98 115 unpack f f f f f;
 #X obj 57 86 t a b;
 #X msg 98 86 50 0.5 0.25 0.75 0.75;
-#X obj 57 63 else/args;
-#X obj 57 40 else/lb;
+#X obj 57 63 args;
+#X obj 57 40 lb;
 #X connect 5 0 0 0;
 #X connect 5 1 4 0;
 #X connect 5 2 1 0;

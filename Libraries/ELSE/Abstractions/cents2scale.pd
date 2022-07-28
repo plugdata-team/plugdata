@@ -2,12 +2,12 @@
 #X declare -path else;
 #X obj 110 163 list length;
 #X obj 110 190 - 1;
-#X obj 110 248 else/loop -offset 1;
-#X obj 204 86 else/op / 100;
+#X obj 110 248 loop -offset 1;
+#X obj 204 86 op / 100;
 #X obj 209 166 array define scale_\$0;
-#X obj 130 110 else/buffer scale_\$0, f 11;
+#X obj 130 110 buffer scale_\$0, f 11;
 #X obj 110 280 expr scale_\$0[$f1] - scale_\$0[$f1-1];
-#X obj 74 326 else/group;
+#X obj 74 326 group;
 #X obj 74 80 t b l l, f 11;
 #X obj 74 46 inlet;
 #X obj 74 360 outlet;

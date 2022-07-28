@@ -31,8 +31,8 @@
 #X obj 105 202 s \$0-rand;
 #X msg 271 164 seed \$1;
 #X obj 272 192 s \$0-rand;
-#X obj 120 85 else/args;
-#X obj 93 26 else/lb;
+#X obj 120 85 args;
+#X obj 93 26 lb;
 #X connect 1 0 2 0;
 #X connect 1 0 6 0;
 #X connect 1 1 9 0;
@@ -64,8 +64,8 @@
 #X obj 248 361 r \$0-rand;
 #X text 311 208 Alexandre Torres Porres (2019);
 #X obj 203 337 expr $f1 >= 1 || $f1 <= 0;
-#X obj 203 383 else/rand.f 0 127;
-#X obj 248 423 else/hot;
+#X obj 203 383 rand.f 0 127;
+#X obj 248 423 hot;
 #X obj 316 107 declare -path else;
 #X connect 0 0 4 0;
 #X connect 2 0 25 0;

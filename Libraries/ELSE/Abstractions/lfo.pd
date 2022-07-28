@@ -173,7 +173,7 @@
 #X obj 141 184 outlet;
 #X obj 142 94 * 2;
 #X obj 142 121 + 0.5;
-#X obj 141 150 else/fold;
+#X obj 141 150 fold;
 #X connect 0 0 2 0;
 #X connect 2 0 3 0;
 #X connect 3 0 4 0;
@@ -201,7 +201,7 @@
 #X obj 116 57 r \$0-width;
 #X obj 116 162 expr 1 - $f1;
 #X msg 147 114 0.5;
-#X obj 147 93 else/lb;
+#X obj 147 93 lb;
 #X connect 0 0 5 0;
 #X connect 0 0 6 0;
 #X connect 2 0 3 0;
@@ -387,13 +387,13 @@
 #X obj 184 225 t a b;
 #X obj 245 225 t a b;
 #X obj 333 218 list split 1;
-#X obj 333 245 else/swap2;
+#X obj 333 245 swap2;
 #X obj 449 177 list split 1;
-#X obj 449 204 else/swap2;
+#X obj 449 204 swap2;
 #X obj 194 130 route -sin -tri -saw -vsaw -square list float, f 47
 ;
-#X obj 96 106 else/args -;
-#X obj 45 78 else/lb 2;
+#X obj 96 106 args -;
+#X obj 45 78 lb 2;
 #X connect 0 1 19 0;
 #X connect 5 0 1 0;
 #X connect 5 1 2 0;

@@ -20,7 +20,7 @@
 #X obj 170 311 spigot;
 #X obj 106 312 spigot 1;
 #X obj 223 39 inlet;
-#X obj 208 192 else/lb;
+#X obj 208 192 lb;
 #X obj 306 178 declare -path else;
 #X connect 0 0 9 0;
 #X connect 1 0 3 0;

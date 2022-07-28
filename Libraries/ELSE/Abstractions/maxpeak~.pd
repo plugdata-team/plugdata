@@ -10,9 +10,9 @@
 #X text 335 137 Alexandre Torres Porres (2019);
 #X obj 176 291 outlet;
 #X msg 204 127 set -100;
-#X obj 96 110 else/lin2db~;
-#X obj 176 254 else/trig2bang~;
-#X obj 176 227 else/above~;
+#X obj 96 110 lin2db~;
+#X obj 176 254 trig2bang~;
+#X obj 176 227 above~;
 #X obj 375 93 declare -path else;
 #X connect 0 0 10 0;
 #X connect 1 0 3 0;

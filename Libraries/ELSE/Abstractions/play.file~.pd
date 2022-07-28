@@ -14,12 +14,12 @@
 #N canvas 581 23 651 398 open 0;
 #X obj 216 164 openpanel;
 #X obj 216 106 route bang, f 17;
-#X obj 227 135 else/click;
+#X obj 227 135 click;
 #X msg 315 321 open \$1 \, 1;
 #X obj 216 54 inlet;
 #X obj 315 356 outlet;
 #X obj 348 54 inlet;
-#X obj 373 183 else/canvas.file 1;
+#X obj 373 183 canvas.file 1;
 #X obj 478 233 print [sample~];
 #X msg 478 207 \$1 file not found;
 #X obj 315 295 symbol;
@@ -89,8 +89,8 @@
 #X obj 330 352 r \$0-set-symbol_arg;
 #X obj 259 619 v n_ch_\$0;
 #X obj 31 41 trigger bang bang, f 19;
-#X obj 31 94 else/break -;
-#X obj 31 67 else/args;
+#X obj 31 94 break -;
+#X obj 31 67 args;
 #N canvas 149 123 230 240 route 0;
 #X obj 49 84 route bang;
 #X obj 49 36 inlet;
@@ -106,7 +106,7 @@
 #X restore 77 169 pd route;
 #X obj 56 118 r \$0-reroute;
 #X obj 229 105 list;
-#X obj 313 387 else/canvas.file 1;
+#X obj 313 387 canvas.file 1;
 #X obj 418 444 print [sample~];
 #X msg 418 418 \$1 file not found;
 #X obj 313 436 s \$0-file-found;
@@ -174,7 +174,7 @@
 #X text 239 184 2nd is filename;
 #X obj 205 254 s \$0-set-symbol_arg;
 #X obj 121 344 s \$0-to_symbolarg;
-#X obj 205 207 else/routetype anything;
+#X obj 205 207 routetype anything;
 #X connect 0 0 2 0;
 #X connect 1 0 2 1;
 #X connect 2 0 9 0;
@@ -234,8 +234,8 @@
 \$5 \$6 0 \; \$1-sampler obj \$2 200 r \$1-didit \, obj \$2 240 outlet
 \, connect \$4 0 \$3 0, f 55;
 #X obj 334 439 + 5;
-#X obj 168 54 else/loadbanger -init 5;
-#X obj 211 144 else/loop;
+#X obj 168 54 loadbanger -init 5;
+#X obj 211 144 loop;
 #X connect 1 0 26 0;
 #X connect 2 0 3 0;
 #X connect 3 0 17 0;
@@ -273,7 +273,7 @@
 #X restore 382 174 pd init;
 #X text 375 241 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 377 222 Alexandre Torres Porres (2018-2020);
-#X obj 372 116 else/canvas.setname \$0-sampler 1;
+#X obj 372 116 canvas.setname \$0-sampler 1;
 #X obj 420 84 declare -path else;
 #X connect 0 0 3 0;
 #X connect 1 0 8 0;

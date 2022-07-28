@@ -95,10 +95,10 @@
 #X msg 114 257 1;
 #X obj 114 227 sel 1;
 #X obj 114 189 expr phase_\$0 == 0 && dir_\$0 == 1, f 18;
-#X obj 63 78 else/lb 3, f 23;
+#X obj 63 78 lb 3, f 23;
 #X obj 356 213 list split 1;
-#X obj 356 247 else/swap2;
-#X obj 257 147 else/args -;
+#X obj 356 247 swap2;
+#X obj 257 147 args -;
 #X connect 2 0 1 0;
 #X connect 4 0 3 0;
 #X connect 5 0 9 0;

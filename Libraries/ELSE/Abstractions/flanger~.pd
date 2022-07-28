@@ -10,10 +10,10 @@
 #X msg 91 197 tri;
 #X obj 91 243 outlet;
 #X obj 181 243 outlet;
-#X obj 79 65 else/loadbanger;
+#X obj 79 65 loadbanger;
 #X obj 79 124 route -tri bang;
 #X obj 59 153 t a b;
-#X obj 79 93 else/args -;
+#X obj 79 93 args -;
 #X connect 0 0 1 0;
 #X connect 3 0 6 0;
 #X connect 4 0 5 0;
@@ -28,10 +28,10 @@
 #X obj 170 169 / 127;
 #X obj 170 198 *;
 #X obj 256 192 max 0;
-#X obj 108 260 else/comb.rev~ 100 1, f 36;
-#X obj 170 228 else/f2s~ 10;
-#X obj 170 142 else/lfo;
-#X obj 357 168 else/f2s~ 10;
+#X obj 108 260 comb.rev~ 100 1, f 36;
+#X obj 170 228 f2s~ 10;
+#X obj 170 142 lfo;
+#X obj 357 168 f2s~ 10;
 #X obj 460 188 declare -path else;
 #X connect 0 0 13 0;
 #X connect 4 0 16 0;

@@ -7,7 +7,7 @@ cd Library
 mkdir Abstractions
 mkdir Abstractions/else
 cp ../../Libraries/pure-data/extra/*.pd ./Abstractions
-cp ../../Libraries/ELSE/camomile/*.pd ./Abstractions/else
+cp ../../Libraries/ELSE/Abstractions/*.pd ./Abstractions/else
 cp ../playhead.pd ./Abstractions
 
 rm ./Abstractions/else/All_objects.pd

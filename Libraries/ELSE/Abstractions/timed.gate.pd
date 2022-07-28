@@ -16,8 +16,8 @@
 #X obj 438 300 == 0;
 #X obj 107 411 spigot 1;
 #X obj 97 91 route bang float retrigger ms;
-#X obj 357 140 else/args;
-#X obj 357 111 else/lb;
+#X obj 357 140 args;
+#X obj 357 111 lb;
 #X obj 526 216 declare -path else;
 #X connect 0 0 8 0;
 #X connect 1 0 7 0;

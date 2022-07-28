@@ -32,9 +32,9 @@
 #X obj 148 170 route bang symbol float list -time;
 #X obj 487 131 pdcontrol;
 #X msg 487 104 dir 1;
-#X obj 148 141 else/break -;
-#X obj 148 87 else/args;
-#X obj 69 211 else/unmerge 3;
+#X obj 148 141 break -;
+#X obj 148 87 args;
+#X obj 69 211 unmerge 3;
 #X connect 0 0 21 0;
 #X connect 2 0 5 0;
 #X connect 3 0 2 0;
@@ -74,8 +74,8 @@
 2 0 6 0, f 41;
 #X obj 171 224 + 7;
 #X msg 114 278 obj \$1 70 inlet~ \, connect \$3 0 6 \$2, f 19;
-#X obj 64 29 else/lb -init 2;
-#X obj 103 147 else/loop;
+#X obj 64 29 lb -init 2;
+#X obj 103 147 loop;
 #X connect 0 0 1 0;
 #X connect 0 1 10 0;
 #X connect 0 1 12 0;
@@ -113,7 +113,7 @@
 #X obj 156 177 savepanel;
 #X obj 117 68 inlet;
 #X obj 156 273 outlet;
-#X obj 205 110 else/click;
+#X obj 205 110 click;
 #X connect 0 0 7 0;
 #X connect 1 0 0 0;
 #X connect 2 0 0 0;
@@ -124,8 +124,8 @@
 #X connect 6 0 4 0;
 #X connect 8 0 5 0;
 #X restore 388 152 pd set;
-#X obj 417 95 else/canvas.setname \$0-patch 1;
-#X obj 436 179 else/sr~;
+#X obj 417 95 canvas.setname \$0-patch 1;
+#X obj 436 179 sr~;
 #X obj 424 62 declare -path else;
 #X connect 0 0 12 0;
 #X connect 1 0 4 0;

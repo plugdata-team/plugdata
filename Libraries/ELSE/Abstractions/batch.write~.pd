@@ -21,9 +21,9 @@
 #X obj 151 103 trigger anything bang;
 #X obj 151 158 route bang symbol float list;
 #X obj 192 295 s \$0-array;
-#X obj 151 129 else/break -;
-#X obj 151 75 else/args;
-#X obj 99 209 else/unmerge 2;
+#X obj 151 129 break -;
+#X obj 151 75 args;
+#X obj 99 209 unmerge 2;
 #X connect 0 0 10 0;
 #X connect 2 0 1 0;
 #X connect 4 0 3 0;
@@ -51,10 +51,10 @@
 #X obj 247 272 + 2;
 #X obj 128 110 r \$0-array;
 #X obj 95 249 s \$0-filename;
-#X obj 95 23 else/lb -init 3;
-#X msg 354 329 obj 175 175 else/tabwriter~ -ch \$1 \, connect 0 0 6
+#X obj 95 23 lb -init 3;
+#X msg 354 329 obj 175 175 tabwriter~ -ch \$1 \, connect 0 0 6
 1 \, connect 2 0 6 0, f 35;
-#X obj 208 195 else/loop;
+#X obj 208 195 loop;
 #X obj 146 149 symbol;
 #X obj 97 182 sel s;
 #X obj 95 146 symbol;
@@ -101,7 +101,7 @@
 #X obj 99 47 inlet;
 #X obj 99 243 outlet;
 #X obj 159 82 r \$0-filename;
-#X obj 137 159 else/router;
+#X obj 137 159 router;
 #X connect 0 0 7 0;
 #X connect 1 0 9 1;
 #X connect 2 0 9 0;
@@ -116,7 +116,7 @@
 #X connect 9 1 3 0;
 #X restore 157 217 pd array_size;
 #X obj 173 111 symbol;
-#X obj 308 84 else/canvas.setname \$0-patch 1;
+#X obj 308 84 canvas.setname \$0-patch 1;
 #X obj 351 152 declare -path else;
 #X connect 0 0 13 0;
 #X connect 1 0 4 0;

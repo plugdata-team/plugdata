@@ -32,8 +32,8 @@
 #X obj 515 346 t b f;
 #X text 429 122 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 431 103 Alexandre Torres Porres (2017);
-#X obj 292 141 else/args;
-#X obj 292 117 else/lb;
+#X obj 292 141 args;
+#X obj 292 117 lb;
 #X obj 477 65 declare -path else;
 #X connect 0 0 23 0;
 #X connect 1 0 2 0;

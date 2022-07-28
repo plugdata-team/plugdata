@@ -617,7 +617,7 @@ fg float in float gridx float gridy, f 93;
 #X obj 229 124 message \; \$0-this-patch donecanvasdialog 1 -1 0 0
 0 0 0 0 0 0 0, f 31;
 #X obj 312 55 declare -path else;
-#X obj 50 73 else/lb;
+#X obj 50 73 lb;
 #X connect 0 0 13 0;
 #X connect 1 0 2 0;
 #X connect 3 0 2 0;
@@ -1198,7 +1198,7 @@ max_x_\$0 || $f2 != max_y_\$0, f 20;
 #X obj 127 170 s \$0-mouse-x;
 #X obj 75 18 inlet;
 #X obj 106 239 sel 1;
-#X obj 106 213 else/mouse;
+#X obj 106 213 mouse;
 #X connect 1 0 0 0;
 #X connect 1 1 2 0;
 #X connect 2 0 5 0;

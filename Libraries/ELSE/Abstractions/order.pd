@@ -20,7 +20,7 @@
 #X obj 122 208 until;
 #X obj 122 181 list length;
 #X obj 122 153 trigger anything anything bang;
-#X obj 326 121 else/lb;
+#X obj 326 121 lb;
 #X obj 413 153 declare -path else;
 #X connect 0 0 14 1;
 #X connect 1 0 2 0;

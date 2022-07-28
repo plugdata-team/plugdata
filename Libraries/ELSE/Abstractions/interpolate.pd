@@ -5,8 +5,8 @@
 ;
 #X obj 333 196 array define s_\$0;
 #X obj 333 226 array define t_\$0;
-#X obj 85 333 else/loop;
-#X obj 62 413 else/group;
+#X obj 85 333 loop;
+#X obj 62 413 group;
 #X obj 62 467 outlet;
 #X obj 214 36 inlet;
 #X text 260 294 Part of ELSE \; https://github.com/porres/pd-else;
@@ -28,7 +28,7 @@
 #X obj 175 288 array set s_\$0;
 #X obj 73 158 route bang -exp;
 #X msg 186 214 0;
-#X obj 73 129 else/args -;
+#X obj 73 129 args -;
 #X connect 0 0 1 0;
 #X connect 0 1 7 0;
 #X connect 5 0 11 0;
@@ -57,7 +57,7 @@
 #X obj 283 59 inlet;
 #X obj 193 224 > 0.5;
 #X obj 64 59 inlet;
-#X obj 283 390 else/router;
+#X obj 283 390 router;
 #X obj 193 288 t f f;
 #X obj 195 319 !=;
 #X obj 121 59 inlet;
@@ -76,7 +76,7 @@
 #X obj 329 297 s \$0-size;
 #X obj 206 258 v pos_\$0;
 #X obj 145 190 float;
-#X obj 121 388 else/router;
+#X obj 121 388 router;
 #X obj 227 491 list;
 #X obj 195 418 t l b;
 #X obj 196 558 array set s_\$0;

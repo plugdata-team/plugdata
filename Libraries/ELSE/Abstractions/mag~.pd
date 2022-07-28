@@ -15,7 +15,7 @@
 #X obj 105 207 *~ 0;
 #X msg 143 165 1;
 #X msg 112 165 0;
-#X obj 143 88 else/lb;
+#X obj 143 88 lb;
 #X obj 250 97 declare -path else;
 #X connect 2 0 3 1;
 #X connect 2 0 3 0;

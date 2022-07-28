@@ -1,8 +1,8 @@
 #N canvas 378 94 649 430 12;
 #X declare -path else;
 #X obj 83 47 inlet;
-#X obj 84 320 else/group;
-#X obj 116 234 else/loop;
+#X obj 84 320 group;
+#X obj 116 234 loop;
 #X obj 176 209 + 1;
 #X obj 116 264 expr pow(ratio_\$0 \, $f1/$f2) * base_\$0, f 27;
 #X obj 84 169 t b b;
@@ -24,10 +24,10 @@
 #X obj 224 44 inlet;
 #X obj 279 44 inlet;
 #N canvas 630 357 322 201 args 0;
-#X obj 75 77 else/args;
+#X obj 75 77 args;
 #X msg 156 77 1 2 2;
 #X obj 104 124 outlet;
-#X obj 75 44 else/lb 3;
+#X obj 75 44 lb 3;
 #X obj 228 119 outlet;
 #X msg 216 76 set 1 2;
 #X connect 0 0 2 0;
@@ -38,7 +38,7 @@
 #X connect 5 0 4 0;
 #X restore 95 80 pd args;
 #X obj 184 213 swap 2;
-#X obj 171 182 else/hot;
+#X obj 171 182 hot;
 #X connect 0 0 11 0;
 #X connect 0 1 11 1;
 #X connect 0 2 3 0;

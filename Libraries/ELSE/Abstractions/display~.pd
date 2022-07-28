@@ -46,8 +46,8 @@
 #X obj 352 235 expr 64 / $f1 \; if(\$2 <= 0 \, 100 \, \$2);
 #X obj 50 429 outlet;
 #X obj 73 75 t b b b;
-#X obj 352 209 else/sr~ -khz;
-#X obj 73 34 else/lb;
+#X obj 352 209 sr~ -khz;
+#X obj 73 34 lb;
 #X connect 0 0 2 0;
 #X connect 1 0 6 0;
 #X connect 1 0 9 0;
@@ -184,8 +184,8 @@
 #X obj 259 132 spigot;
 #X msg 364 133 0;
 #X msg 324 131 1;
-#X obj 309 160 else/any2symbol;
-#X obj 309 182 else/changed;
+#X obj 309 160 any2symbol;
+#X obj 309 182 changed;
 #X obj 522 233 declare -path else;
 #X connect 3 0 18 0;
 #X connect 4 0 6 0;

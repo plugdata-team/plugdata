@@ -5,7 +5,7 @@
 #X msg 124 133 0;
 #X obj 124 66 route bang float;
 #X obj 178 96 t b f;
-#X obj 72 237 else/router;
+#X obj 72 237 router;
 #X obj 72 66 t a b;
 #X obj 146 266 outlet;
 #X obj 72 266 outlet;
@@ -16,7 +16,7 @@
 #X obj 241 128 f \$1;
 #X obj 210 160 max 0;
 #X obj 146 208 >;
-#X obj 241 104 else/loadbanger;
+#X obj 241 104 loadbanger;
 #X obj 392 83 declare -path else;
 #X connect 0 0 1 0;
 #X connect 1 0 0 1;

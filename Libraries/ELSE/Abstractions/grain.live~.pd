@@ -5,7 +5,7 @@
 #X text 323 175 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 325 156 Alexandre Torres Porres (2020);
 #N canvas 302 191 436 393 route 0;
-#X obj 223 257 else/insert all;
+#X obj 223 257 insert all;
 #X msg 238 227 set \$1;
 #X obj 223 318 outlet;
 #X obj 84 26 inlet;
@@ -14,8 +14,8 @@
 #X obj 129 189 r \$0-n;
 #X obj 129 164 s \$0-n;
 #X obj 129 136 clip 1 256;
-#X obj 238 199 else/dollsym 1;
-#X obj 48 231 else/loop 16;
+#X obj 238 199 dollsym 1;
+#X obj 48 231 loop 16;
 #X obj 286 26 inlet;
 #X obj 286 76 route float;
 #X obj 84 68 route bang n set, f 20;
@@ -39,17 +39,17 @@
 #N canvas 0 226 1366 520 init 0;
 #X obj 618 435 outlet;
 #X obj 146 211 symbol;
-#X obj 289 233 else/insert all amp;
-#X obj 372 268 else/insert all size;
-#X obj 725 297 else/insert all pan;
+#X obj 289 233 insert all amp;
+#X obj 372 268 insert all size;
+#X obj 725 297 insert all pan;
 #X msg 167 282 all set \$1;
 #X obj 167 174 unpack f s;
-#X obj 977 242 else/insert all scale;
-#X obj 835 268 else/insert all autotune;
+#X obj 977 242 insert all scale;
+#X obj 835 268 insert all autotune;
 #X obj 67 303 message;
 #X obj 67 333 route bang;
 #X obj 112 78 args -;
-#X obj 595 268 else/insert all transp;
+#X obj 595 268 insert all transp;
 #X obj 1303 177 s pd-\$0-delwrite~;
 #X msg 1303 122 clear \, obj 50 50 inlet~ \, obj 50 100 delwrite~ \$1-buf
 \$2 \, connect 0 0 1 0, f 32;
@@ -57,18 +57,18 @@
 #X msg 1177 139 connect 0 0 2 0;
 #X obj 1178 107 t b b;
 #X obj 1177 49 t b f;
-#X obj 1099 268 else/insert all length;
+#X obj 1099 268 insert all length;
 #X obj 1114 155 max 500;
-#X obj 1227 302 else/insert all pos;
+#X obj 1227 302 insert all pos;
 #X obj 1303 94 pack \$0 5000;
-#X obj 489 299 else/insert all dur;
+#X obj 489 299 insert all dur;
 #X obj 95 256 s \$0-n;
 #X obj 95 218 clip 1 256, f 5;
 #X msg 1341 267 all sync 1;
-#X obj 1422 233 else/insert all rev;
-#X obj 1550 265 else/insert all env;
-#X obj 167 256 else/dollsym 1;
-#X obj 42 26 else/lb 3;
+#X obj 1422 233 insert all rev;
+#X obj 1550 265 insert all env;
+#X obj 167 256 dollsym 1;
+#X obj 42 26 lb 3;
 #X obj 112 107 route -n symbol list -amp -size -dur -transp -pan -autotune
 -scale -length -pos -sync -rev -env, f 104;
 #X connect 1 0 29 0;
@@ -2838,7 +2838,7 @@
 #X coords 0 1 8191 0 100 50 1 0 0;
 #X restore 456 105 graph;
 #X restore 354 113 pd env-tables;
-#X obj 63 193 clone else/grain.live.grain 256 \$0-buf \$0, f 23;
+#X obj 63 193 clone grain.live.grain 256 \$0-buf \$0, f 23;
 #X obj 347 80 declare -path else;
 #X connect 4 0 10 1;
 #X connect 5 0 10 1;

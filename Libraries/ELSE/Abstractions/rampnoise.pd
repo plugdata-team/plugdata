@@ -26,8 +26,8 @@
 #X obj 93 232 s \$0-lb;
 #X obj 105 202 s \$0-rand;
 #X obj 121 121 route float;
-#X obj 120 85 else/args;
-#X obj 93 26 else/lb;
+#X obj 120 85 args;
+#X obj 93 26 lb;
 #X connect 1 0 2 0;
 #X connect 1 0 3 0;
 #X connect 1 1 5 0;
@@ -47,7 +47,7 @@
 #X obj 248 361 r \$0-rand;
 #X text 311 208 Alexandre Torres Porres (2019);
 #X obj 203 337 expr $f1 >= 1 || $f1 <= 0;
-#X obj 203 383 else/rand.f 0 127;
+#X obj 203 383 rand.f 0 127;
 #X obj 243 106 declare -path else;
 #X connect 0 0 3 0;
 #X connect 3 0 9 0;

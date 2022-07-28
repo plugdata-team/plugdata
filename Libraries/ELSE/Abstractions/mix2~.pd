@@ -248,7 +248,7 @@
 #X obj 278 171 s \$0-panR-set;
 #X obj 59 164 s \$0-set-slider1;
 #X obj 88 124 s \$0-set-slider2;
-#X obj 416 161 else/lb;
+#X obj 416 161 lb;
 #X connect 0 0 5 0;
 #X connect 1 0 12 0;
 #X connect 4 0 3 0;
@@ -273,10 +273,10 @@
 #X obj 144 49 inlet~;
 #X obj 81 276 outlet~;
 #X obj 143 277 outlet~;
-#X obj 80 219 else/pan2~;
-#X obj 152 219 else/pan2~;
-#X obj 215 131 else/float2sig~ 20;
-#X obj 341 124 else/float2sig~ 20;
+#X obj 80 219 pan2~;
+#X obj 152 219 pan2~;
+#X obj 215 131 float2sig~ 20;
+#X obj 341 124 float2sig~ 20;
 #X connect 0 0 10 0;
 #X connect 1 0 8 1;
 #X connect 2 0 9 1;

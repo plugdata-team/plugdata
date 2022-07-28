@@ -6,13 +6,13 @@
 #X text 249 262 Part of ELSE \; https://github.com/porres/pd-else;
 #X obj 200 150 route bang;
 #X obj 200 107 loadbang;
-#X obj 125 242 else/iterate;
+#X obj 125 242 iterate;
 #X obj 125 266 route float;
 #X obj 98 213 t b a;
-#X obj 98 332 else/group;
+#X obj 98 332 group;
 #X text 251 243 Alexandre Torres Porres (2018-2021);
-#X obj 98 189 else/message 0;
-#X obj 200 129 else/args;
+#X obj 98 189 message 0;
+#X obj 200 129 args;
 #X obj 125 291 makefilename 0x%X;
 #X obj 321 137 declare -path else;
 #X connect 0 0 11 0;
