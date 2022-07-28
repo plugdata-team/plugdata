@@ -975,7 +975,6 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
     {
         const MessageManagerLock mmLock;
         auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
-        cnv->synchronise();
         editor->addTab(cnv, true);
     }
 

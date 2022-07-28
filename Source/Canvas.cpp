@@ -283,7 +283,12 @@ void Canvas::synchronise(bool updatePosition)
     }
 
     // Resize canvas to fit objects
-    checkBounds();
+    // By checking asynchronously, we make sure the boxes bounds have been updated
+    MessageManager::callAsync([this](){
+        pd->waitForStateUpdate();
+        checkBounds();
+    });
+    
 
     main.updateCommandStatus();
     repaint();
@@ -789,7 +794,6 @@ void Canvas::redo()
 void Canvas::checkBounds()
 {
     if (isGraph || !viewport) return;
-
     
     updatingBounds = true;
 
