@@ -1,10 +1,9 @@
-//
+// based on pddplink
 
-#include <stdio.h>
-#include <string.h>
 #include "m_pd.h"
-#include "m_imp.h"  /* FIXME need access to c_externdir... */
+#include "m_imp.h"  // FIXME need access to c_externdir...
 #include "g_canvas.h"
+#include <string.h>
 
 typedef struct _openfile{
     t_object   x_ob;
@@ -21,7 +20,7 @@ typedef struct _openfile{
 static t_class *openfile_class;
 static t_class *openfilebox_class;
 
-/* Code that might be merged back to g_text.c starts here: */
+// Code that might be merged back to g_text.c starts here: 
 
 static void openfile_getrect(t_gobj *z, t_glist *glist, int *xp1, int *yp1, int *xp2, int *yp2){
     t_openfile *x = (t_openfile *)z;

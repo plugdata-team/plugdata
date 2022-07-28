@@ -32,6 +32,10 @@ static void standard_k(t_standard *x, t_float f)
 static void standard_list(t_standard *x, t_symbol *s, int argc, t_atom * argv)
 {
     s= NULL;
+    if(argc == 1){
+        obj_list(&x->x_obj, 0, argc, argv);
+        return;
+    }
     if (argc > 2)
         {
         pd_error(x, "standard~: list size needs to be = 2");
@@ -162,6 +166,6 @@ void standard_tilde_setup(void)
         sizeof(t_standard), 0, A_GIMME, 0);
     CLASS_MAINSIGNALIN(standard_class, t_standard, x_freq);
     class_addlist(standard_class, standard_list);
-    class_addmethod(standard_class, (t_method)standard_dsp, gensym("dsp"), A_CANT, 0);
     class_addmethod(standard_class, (t_method)standard_k, gensym("k"), A_DEFFLOAT, 0);
+    class_addmethod(standard_class, (t_method)standard_dsp, gensym("dsp"), A_CANT, 0);
 }

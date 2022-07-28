@@ -1,7 +1,7 @@
+// based on cyclone sprintf
 
-#include <stdio.h>
-#include <string.h>
 #include "m_pd.h"
+#include <string.h>
 
 // Pattern types
 #define format_LITERAL      1
@@ -150,12 +150,8 @@ static void format_dooutput(t_format *x){
     }
 }
 
-static void format_proxy_bang(t_format_proxy *x){
-    pd_error(x, "[format]: no method for bang in secondary inlets");
-}
-
 static void format_proxy_float(t_format_proxy *x, t_float f){
-    char buf[format_MAXWIDTH + 1];  /* LATER rethink */
+    char buf[format_MAXWIDTH + 1];  // LATER rethink
     SETFLOAT(&x->p_atom, f);
     format_proxy_checkit(x, buf);
     if (x->p_id == 0 && x->p_valid)
@@ -164,18 +160,17 @@ static void format_proxy_float(t_format_proxy *x, t_float f){
 
 static void format_proxy_symbol(t_format_proxy *x, t_symbol *s){
     char buf[format_MAXWIDTH + 1];  // LATER rethink
-    if (s && *s->s_name)
+    if(s && *s->s_name)
         SETSYMBOL(&x->p_atom, s);
     else
         SETFLOAT(&x->p_atom, 0);
     format_proxy_checkit(x, buf);
-    if (x->p_id == 0 && x->p_valid)
+    if(x->p_id == 0 && x->p_valid)
         format_dooutput(x->p_master);  // CHECKED: only first inlet
 }
 
 static void format_dolist(t_format *x, t_symbol *s, int ac, t_atom *av, int startid){
-    t_symbol *dummy = s;
-    dummy = NULL;
+    s = NULL;
     int cnt = x->x_nslots - startid;
     if(ac > cnt)
         ac = cnt;
@@ -200,37 +195,23 @@ static void format_doanything(t_format *x, t_symbol *s, int ac, t_atom *av, int 
 }
 
 static void format_proxy_list(t_format_proxy *x, t_symbol *s, int ac, t_atom *av){
-    format_dolist(x->p_master, s, ac, av, x->p_id);
+    if(!ac) // bang
+        format_dooutput(x->p_master);
+    else
+        format_dolist(x->p_master, s, ac, av, x->p_id);
 }
 
 static void format_proxy_anything(t_format_proxy *x, t_symbol *s, int ac, t_atom *av){
     format_doanything(x->p_master, s, ac, av, x->p_id);
 }
 
-static void format_bang(t_format *x){
-    if(x->x_nslots)
-        format_dooutput(x);
-    else
-        pd_error(x, "[format]: no variable arguments given");
-}
-
-static void format_float(t_format *x, t_float f){
-    if(x->x_nslots)
-        format_proxy_float((t_format_proxy *)x->x_proxies[0], f);
-    else
-        pd_error(x, "[format]: no variable arguments given");
-}
-
-static void format_symbol(t_format *x, t_symbol *s){
-    if(x->x_nslots)
-        format_proxy_symbol((t_format_proxy *)x->x_proxies[0], s);
-    else
-        pd_error(x, "[format]: no variable arguments given");
-}
-
 static void format_list(t_format *x, t_symbol *s, int ac, t_atom *av){
-    if(x->x_nslots)
-        format_dolist(x, s, ac, av, 0);
+    if(x->x_nslots){
+        if(!ac) // bang
+            format_dooutput(x);
+        else
+            format_dolist(x, s, ac, av, 0);
+    }
     else
         pd_error(x, "[format]: no variable arguments given");
 }
@@ -474,16 +455,13 @@ static void *format_new(t_symbol *s, int ac, t_atom *av){
 void format_setup(void){
     format_class = class_new(gensym("format"), (t_newmethod)format_new,
         (t_method)format_free, sizeof(t_format), 0, A_GIMME, 0);
-    class_addbang(format_class, format_bang);
-    class_addfloat(format_class, format_float);
-    class_addsymbol(format_class, format_symbol);
     class_addlist(format_class, format_list);
     class_addanything(format_class, format_anything);
     format_proxy_class = class_new(gensym("_format_proxy"), 0, 0,
         sizeof(t_format_proxy), CLASS_PD | CLASS_NOINLET, 0);
-    class_addbang(format_proxy_class, format_proxy_bang);
+/*    class_addbang(format_proxy_class, format_proxy_bang);
     class_addfloat(format_proxy_class, format_proxy_float);
-    class_addsymbol(format_proxy_class, format_proxy_symbol);
+    class_addsymbol(format_proxy_class, format_proxy_symbol);*/
     class_addlist(format_proxy_class, format_proxy_list);
     class_addanything(format_proxy_class, format_proxy_anything);
 }

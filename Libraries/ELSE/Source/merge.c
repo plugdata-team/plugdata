@@ -1,4 +1,5 @@
 
+
 #include "m_pd.h"
 #include <stdlib.h>
 
@@ -10,7 +11,7 @@ struct _merge_inlet;
 typedef struct _merge{
     t_object              x_obj;
     int                   x_numinlets;
-    int                   x_length; // total length of all atoms from merge_inlet
+    int                   x_length;     // total length of all atoms from merge_inlet
     int                   x_trim;
     struct _merge_inlet*  x_ins;
 }t_merge;
@@ -58,52 +59,28 @@ static void merge_inlet_atoms(t_merge_inlet *x, int ac, t_atom * av ){
 }
 
 static void merge_inlet_list(t_merge_inlet *x, t_symbol* s, int ac, t_atom* av){
-    t_symbol *dummy = s;
-    dummy = NULL;
+    s = NULL;
+    if(!ac){
+        merge_output(x->x_owner);
+        return;
+    }
     merge_inlet_atoms(x, ac, av);
     if(x->x_trig == 1)
         merge_output(x->x_owner);
 }
 
-static void merge_inlet_bang(t_merge_inlet *x){
-    merge_output(x->x_owner);
-}
-
 static void merge_inlet_anything(t_merge_inlet *x, t_symbol* s, int ac, t_atom* av){
-    // we want to treat "bob tom" and "list bob tom" as the same
-    // default way is to treat first symbol as selector, we don't want this!
-    if(s == gensym("list")){
-        t_atom * tofeed = (t_atom *)getbytes((ac+1)*sizeof(t_atom));
-        SETSYMBOL(tofeed, s);
-        atoms_copy(ac, av, tofeed+1);
-        merge_inlet_list(x, 0, ac+1, tofeed);
-        freebytes(tofeed, (ac+1)*sizeof(t_atom));
-    }
-    else
-        merge_inlet_list(x, 0, ac, av);
-}
-
-static void merge_inlet_float(t_merge_inlet *x, float f){
-    t_atom * newatom;
-    newatom = (t_atom *)getbytes(1 * sizeof(t_atom));
-    SETFLOAT(newatom, f);
-    merge_inlet_list(x, 0, 1, newatom);
-    freebytes(newatom, 1*sizeof(t_atom));
-}
-
-static void merge_inlet_symbol(t_merge_inlet *x, t_symbol* s){
-    t_atom * newatom;
-    newatom = (t_atom *)getbytes(1 * sizeof(t_atom));
-    SETSYMBOL(newatom, s);
-    merge_inlet_list(x, 0, 1, newatom);
-    freebytes(newatom, 1*sizeof(t_atom));
+    t_atom at[ac+1];
+    SETSYMBOL(at, s);
+    atoms_copy(ac, av, at+1);
+    merge_inlet_list(x, 0, ac+1, at);
 }
 
 static void* merge_free(t_merge *x){
     for(int i = 0; i < x->x_numinlets; i++)
         freebytes(x->x_ins[i].x_atoms, x->x_ins[i].x_numatoms*sizeof(t_atom));
     freebytes(x->x_ins, x->x_numinlets * sizeof(t_merge_inlet));
-    return (void *)free;
+    return(void *)free;
 }
 
 static void *merge_new(t_symbol *s, int ac, t_atom* av){
@@ -179,11 +156,8 @@ extern void merge_setup(void){
     t_class* c = NULL;
     c = class_new(gensym("merge-inlet"), 0, 0, sizeof(t_merge_inlet), CLASS_PD, 0);
     if(c){
-        class_addbang(c,    (t_method)merge_inlet_bang);
-        class_addfloat(c,   (t_method)merge_inlet_float);
-        class_addsymbol(c,  (t_method)merge_inlet_symbol);
-        class_addlist(c,    (t_method)merge_inlet_list);
-        class_addanything(c,(t_method)merge_inlet_anything);
+        class_addlist(c, (t_method)merge_inlet_list);
+        class_addanything(c, (t_method)merge_inlet_anything);
     }
     merge_inlet_class = c;
     c = class_new(gensym("merge"), (t_newmethod)merge_new, (t_method)merge_free,

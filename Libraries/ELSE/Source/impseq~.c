@@ -16,21 +16,12 @@ typedef struct _impseq{
     int         x_bang;
 }t_impseq;
 
-static void impseq_bang(t_impseq *x){
-    x->x_bang = 1;
-}
-
-void impseq_float(t_impseq *x, t_floatarg f){
-    if(x->x_length > 1){
-        x->x_impseq = (float*)malloc(MAXLEN * sizeof(float));
-        x->x_length = 1;
-    }
-    x->x_impseq[0] = f;
-    x->x_bang = 1;
-}
-
 static void impseq_list(t_impseq *x, t_symbol *s, int ac, t_atom * av){
     s = NULL;
+    if(ac == 0){
+        x->x_bang = 1;
+        return;
+    }
     if(x->x_length != ac){
         x->x_impseq = (float*)malloc(MAXLEN * sizeof(float));
         x->x_length = ac;
@@ -118,8 +109,6 @@ void impseq_tilde_setup(void){
     impseq_class = class_new(gensym("impseq~"), (t_newmethod)impseq_new, 0,
         sizeof(t_impseq), 0, A_GIMME, 0);
     class_addmethod(impseq_class, nullfn, gensym("signal"), 0);
-    class_addbang(impseq_class, (t_method)impseq_bang);
-    class_addfloat(impseq_class, (t_method)impseq_float);
     class_addlist(impseq_class, (t_method)impseq_list);
     class_addmethod(impseq_class,(t_method)impseq_dsp,gensym("dsp"), A_CANT, 0);
     class_addmethod(impseq_class,(t_method)impseq_goto,gensym("goto"),A_FLOAT,0);

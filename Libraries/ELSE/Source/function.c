@@ -566,7 +566,16 @@ static void function_set(t_function *x, t_symbol* s, int ac,t_atom *av){
         post("[function] wrong format for 'set' message");
 }
 
-static void function_list(t_function *x, t_symbol* s, int ac,t_atom *av){
+static void function_list(t_function *x, t_symbol* s, int ac, t_atom *av){
+    if(!ac){
+        function_bang(x);
+        return;
+    }
+    if(ac == 1){
+        if(av->a_type == A_FLOAT)
+            function_float(x, atom_getfloat(av));
+        return;
+    }
     if((ac >> 1) > MAX_SIZE){
         pd_error(x, "[function]: too many lines, maximum is %d", MAX_SIZE);
         return;
@@ -1082,8 +1091,6 @@ errstate:
 void function_setup(void){
     function_class = class_new(gensym("function"), (t_newmethod)function_new,
         (t_method)function_free, sizeof(t_function), 0, A_GIMME,0);
-    class_addbang(function_class, function_bang);
-    class_addfloat(function_class, function_float);
     class_addlist(function_class, function_list);
     class_addmethod(function_class, (t_method)function_loadbang, gensym("loadbang"), A_DEFFLOAT, 0);
     class_addmethod(function_class, (t_method)function_resize, gensym("resize"), 0);

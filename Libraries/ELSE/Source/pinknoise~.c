@@ -130,8 +130,8 @@ static void *pinknoise_new(t_symbol *s, int ac, t_atom *av){
 
 void pinknoise_tilde_setup(void){
     pinknoise_class = class_new(gensym("pinknoise~"), (t_newmethod)pinknoise_new,
-            0, sizeof(t_pinknoise), 0, A_GIMME, 0);
+        0, sizeof(t_pinknoise), 0, A_GIMME, 0);
     class_addmethod(pinknoise_class, (t_method)pinknoise_dsp, gensym("dsp"), A_CANT, 0);
-    class_addlist(pinknoise_class, pinknoise_float);
+    class_addfloat(pinknoise_class, pinknoise_float);
     class_addmethod(pinknoise_class, (t_method)pink_oct, gensym("oct"), A_FLOAT, 0);
 }

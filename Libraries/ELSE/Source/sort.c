@@ -109,10 +109,6 @@ static void doit(t_sort *x, int bang){
         pd_error(x, "[sort]: empty buffer, no output");
 }
 
-static void sort_bang(t_sort *x){
-    doit(x, 1);
-}
-
 static void sort_realloc(t_sortdata *d, int size){
     if(size > MAXSIZE)
         size = MAXSIZE;
@@ -134,6 +130,10 @@ static void set_size(t_sort *x, t_sortdata *d, int ac){
 
 static void sort_list(t_sort *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
+    if(!ac){ // bang
+        doit(x, 1);
+        return;
+    }
     set_size(x, &x->x_inbuf1, ac);
     memcpy(x->x_inbuf1.d_buf, av, x->x_inbuf1.d_natoms*sizeof(*x->x_inbuf1.d_buf));
     doit(x, 0);
@@ -178,8 +178,7 @@ static void *sort_new(t_floatarg f){
 
 void sort_setup(void){
     sort_class = class_new(gensym("sort"), (t_newmethod)sort_new,
-            (t_method)sort_free, sizeof(t_sort), 0, A_DEFFLOAT, 0);
-    class_addbang(sort_class, sort_bang);
+        (t_method)sort_free, sizeof(t_sort), 0, A_DEFFLOAT, 0);
     class_addlist(sort_class, sort_list);
     class_addanything(sort_class, sort_anything);
 }

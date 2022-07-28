@@ -1,3 +1,4 @@
+// porres
 
 #include "m_pd.h"
 #include "string.h"
@@ -10,32 +11,14 @@ typedef struct _args{
     t_canvas  *x_canvas;
     int        x_argc;
     t_atom    *x_argv;
-    int             x_break;
-    int             x_broken;
-    char            x_separator;
+    int        x_break;
+    int        x_broken;
+    char       x_separator;
 }t_args;
 
 static void copy_atoms(t_atom *src, t_atom *dst, int n){
     while(n--)
         *dst++ = *src++;
-}
-
-static void args_list(t_args *x, t_symbol *s, int argc, t_atom *argv){
-    t_symbol *dummy = s;
-    dummy = NULL;
-    t_binbuf* b = x->x_canvas->gl_obj.te_binbuf;
-    if(!x || !x->x_canvas || !b)
-        return;
-    t_atom name[1];
-    SETSYMBOL(name, atom_getsymbol(binbuf_getvec(b)));
-    binbuf_clear(b);
-    binbuf_add(b, 1, name);
-    binbuf_add(b, argc, argv);
-    if(x->x_argc)
-        freebytes(x->x_argv, x->x_argc * sizeof(x->x_argv));
-    x->x_argc = argc;
-    x->x_argv = getbytes(argc * sizeof(*(x->x_argv)));
-    copy_atoms(argv, x->x_argv, argc);
 }
 
 static void args_break(t_args *x, t_symbol *s, int ac, t_atom *av){
@@ -82,14 +65,34 @@ static void args_bang(t_args *x){
     }
 }
 
+static void args_list(t_args *x, t_symbol *s, int argc, t_atom *argv){
+    if(!argc){
+        args_bang(x);
+        return;
+    }
+    s = NULL;
+    t_binbuf* b = x->x_canvas->gl_obj.te_binbuf;
+    if(!x || !x->x_canvas || !b)
+        return;
+    t_atom name[1];
+    SETSYMBOL(name, atom_getsymbol(binbuf_getvec(b)));
+    binbuf_clear(b);
+    binbuf_add(b, 1, name);
+    binbuf_add(b, argc, argv);
+    if(x->x_argc)
+        freebytes(x->x_argv, x->x_argc * sizeof(x->x_argv));
+    x->x_argc = argc;
+    x->x_argv = getbytes(argc * sizeof(*(x->x_argv)));
+    copy_atoms(argv, x->x_argv, argc);
+}
+
 static void args_free(t_args *x){
     if(x->x_argc)
         freebytes(x->x_argv, x->x_argc * sizeof(x->x_argv));
 }
 
 static void *args_new(t_symbol *s, int ac, t_atom* av){
-    t_symbol *dummy = s;
-    dummy = NULL;
+    s = NULL;
     t_args *x = (t_args *)pd_new(args_class);
     x->x_canvas = canvas_getrootfor(canvas_getcurrent());
     int depth = 0;
@@ -122,5 +125,4 @@ void args_setup(void){
     args_class = class_new(gensym("args"), (t_newmethod)args_new,
         (t_method)args_free, sizeof(t_args), 0, A_GIMME, 0);
     class_addlist(args_class, (t_method)args_list);
-    class_addbang(args_class, (t_method)args_bang);
 }

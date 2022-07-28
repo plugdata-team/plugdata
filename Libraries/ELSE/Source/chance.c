@@ -32,9 +32,18 @@ static void chance_output(t_chance *x, t_floatarg f){
     }
 }
 
+static void chance_bang(t_chance *x){
+    int val = x->x_val;
+    t_float random = ((float)((val & 0x7fffffff) - 0x40000000)) * (float)(1.0 / 0x40000000);
+    chance_output(x, x->x_range * (random + 1) / 2);
+    x->x_val = val * 435898247 + 382842987;
+}
+
 static void chance_list(t_chance *x, t_symbol *s, int argc, t_atom *argv){
     s = NULL;
-    if(!x->x_coin){
+    if(!argc)
+        chance_bang(x);
+    else if(!x->x_coin){
         x->x_range = 0;
         for(int i = 0; i < x->x_ac; i++){
             if(argv->a_type == A_FLOAT){
@@ -44,13 +53,6 @@ static void chance_list(t_chance *x, t_symbol *s, int argc, t_atom *argv){
             }
         }
     }
-}
-
-static void chance_bang(t_chance *x){
-    int val = x->x_val;
-    t_float random = ((float)((val & 0x7fffffff) - 0x40000000)) * (float)(1.0 / 0x40000000);
-    chance_output(x, x->x_range * (random + 1) / 2);
-    x->x_val = val * 435898247 + 382842987;
 }
 
 static void chance_seed(t_chance *x, t_float f){
@@ -146,6 +148,5 @@ void chance_setup(void){
     chance_class = class_new(gensym("chance"), (t_newmethod)chance_new,
         0, sizeof(t_chance), 0, A_GIMME, 0);
     class_addmethod(chance_class, (t_method)chance_seed, gensym("seed"), A_DEFFLOAT, 0);
-    class_addbang(chance_class, chance_bang);
     class_addlist(chance_class, chance_list);
 }
