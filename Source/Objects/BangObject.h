@@ -134,8 +134,4 @@ struct BangObject final : public IEMObject {
         }
     }
 
-    float getMaximum() const
-    {
-        return (static_cast<t_my_numbox*>(ptr))->x_max;
-    }
 };

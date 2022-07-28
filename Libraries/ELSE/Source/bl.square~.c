@@ -29,7 +29,7 @@ typedef struct blsquare{
     t_inlet* x_inlet_width;
 }t_blsquare;
 
-t_class *bl_oscillators;
+t_class *bl_square;
 
 static t_float phasewrap(t_float phase){
     while (phase < 0.0)
@@ -111,7 +111,7 @@ static void blsquare_free(t_blsquare *x){
 
 static void* blsquare_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    t_blsquare* x = (t_blsquare *)pd_new(bl_oscillators);
+    t_blsquare* x = (t_blsquare *)pd_new(bl_square);
     x->x_polyblep.pulse_width = 0.5;
     x->x_polyblep.freq_in_seconds_per_sample = 0;
     x->x_polyblep.phase = 0.0;
@@ -140,8 +140,8 @@ static void* blsquare_new(t_symbol *s, int ac, t_atom *av){
 }
 
 void setup_bl0x2esquare_tilde(void){
-    bl_oscillators = class_new(gensym("bl.square~"), (t_newmethod)blsquare_new,
+    bl_square = class_new(gensym("bl.square~"), (t_newmethod)blsquare_new,
         (t_method)blsquare_free, sizeof(t_blsquare), 0, A_GIMME, A_NULL);
-    CLASS_MAINSIGNALIN(bl_oscillators, t_blsquare, x_f);
-    class_addmethod(bl_oscillators, (t_method)blsquare_dsp, gensym("dsp"), A_NULL);
+    CLASS_MAINSIGNALIN(bl_square, t_blsquare, x_f);
+    class_addmethod(bl_square, (t_method)blsquare_dsp, gensym("dsp"), A_NULL);
 }

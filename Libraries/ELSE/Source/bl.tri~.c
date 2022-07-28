@@ -28,7 +28,7 @@ typedef struct bltri{
     t_inlet*    x_inlet_phase;
 }t_bltri;
 
-t_class *bl_oscillators;
+t_class *bl_tri;
 
 static t_float phasewrap(t_float phase){
     while(phase < 0.0)
@@ -117,7 +117,7 @@ static void bltri_free(t_bltri *x){
 
 static void* bltri_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    t_bltri* x = (t_bltri *)pd_new(bl_oscillators);
+    t_bltri* x = (t_bltri *)pd_new(bl_tri);
     x->x_polyblep.pulse_width = 0;
     x->x_polyblep.freq_in_seconds_per_sample = 0;
     x->x_polyblep.phase = 0.0;
@@ -144,8 +144,8 @@ static void* bltri_new(t_symbol *s, int ac, t_atom *av){
 }
 
 void setup_bl0x2etri_tilde(void){
-    bl_oscillators = class_new(gensym("bl.tri~"), (t_newmethod)bltri_new,
+    bl_tri = class_new(gensym("bl.tri~"), (t_newmethod)bltri_new,
         (t_method)bltri_free, sizeof(t_bltri), 0, A_GIMME, A_NULL);
-    CLASS_MAINSIGNALIN(bl_oscillators, t_bltri, x_f);
-    class_addmethod(bl_oscillators, (t_method)bltri_dsp, gensym("dsp"), A_NULL);
+    CLASS_MAINSIGNALIN(bl_tri, t_bltri, x_f);
+    class_addmethod(bl_tri, (t_method)bltri_dsp, gensym("dsp"), A_NULL);
 }
