@@ -1,11 +1,20 @@
 //
 
 #include "m_pd.h"
+
+#define _USE_MATH_DEFINES
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <complex.h>
+
+#if _MSC_VER
+#define t_complex _Dcomplex
+#else
+#define t_complex complex double
+#endif
 
 // TODO: some of these aren't used
 #define LPHASOR      (8*sizeof(uint32_t)) // the phasor logsize
@@ -72,9 +81,9 @@ void butter_init(butter_state states[3]){
     }
 }
 
-complex double complex_with_angle(const t_float angle){ return cos(angle) + sin(angle) * I; }
-t_float complex_norm2(const complex double x){return creal(x)*creal(x)+cimag(x)*cimag(x);}
-t_float complex_norm(const complex double x){return sqrt(complex_norm2(x));}
+t_complex complex_with_angle(const t_float angle){ return cos(angle) + sin(angle) * I; }
+t_float complex_norm2(const t_complex x){return creal(x)*creal(x)+cimag(x)*cimag(x);}
+t_float complex_norm(const t_complex x){return sqrt(complex_norm2(x));}
 
 void set_butter_hp(butter_state states[3], t_float freq){
     //  This computes the poles for a highpass butterworth filter, transformed to the
@@ -89,21 +98,21 @@ void set_butter_hp(butter_state states[3], t_float freq){
         freq = max;
     // prewarp cutoff frequency
     t_float omega = 2.0 * tan(M_PI * freq);
-    complex double pole = complex_with_angle( (2*sections + 1) * M_PI / (4*sections)); // first pole of lowpass filter with omega == 1
-    complex double pole_inc = complex_with_angle(M_PI / (2*sections)); // phasor to get to next pole, see Porat p. 331
-    complex double b = -1; // normalize at NY
-    complex double c = 1;  // all zeros will be at DC
+    t_complex pole = complex_with_angle( (2*sections + 1) * M_PI / (4*sections)); // first pole of lowpass filter with omega == 1
+    t_complex pole_inc = complex_with_angle(M_PI / (2*sections)); // phasor to get to next pole, see Porat p. 331
+    t_complex b = -1; // normalize at NY
+    t_complex c = 1;  // all zeros will be at DC
     for(int i = 0; i < sections; i++){
         butter_state* s = states + i;
         // setup the biquad with the computed pole and zero and unit gain at NY
         pole *= pole_inc;            // comp next (lowpass) pole
-        complex double a = omega/pole;
+        t_complex a = omega/pole;
         s->ar = creal(a);
         s->ai = cimag(a);
         s->c0 = 1.0;
         s->c1 = 2.0 * (creal(a) - creal(b));
         s->c2 = (complex_norm2(a) - complex_norm2(b) - s->c1 * creal(a)) / cimag(a);
-        complex double invComplexGain = ((c-a)*(c-conj(a)))/((c-b)*(c-conj(b)));
+        t_complex invComplexGain = ((c-a)*(c-conj(a)))/((c-b)*(c-conj(b)));
         t_float invGain = complex_norm(invComplexGain);
         s->c0 *= invGain;
         s->c1 *= invGain;
