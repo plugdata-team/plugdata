@@ -4,9 +4,9 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject final : public TextBase
-{
-    CommentObject(void* obj, Box* box) : TextBase(obj, box)
+struct CommentObject final : public TextBase {
+    CommentObject(void* obj, Box* box)
+        : TextBase(obj, box)
     {
     }
 
@@ -19,28 +19,26 @@ struct CommentObject final : public TextBase
         g.drawFittedText(currentText, textArea, justification, numLines, minimumHorizontalScale);
 
         auto selected = cnv->isSelected(box);
-        if (box->locked == var(false) && (box->isOver() || selected) && !cnv->isGraph)
-        {
+        if (box->locked == var(false) && (box->isOver() || selected) && !cnv->isGraph) {
             g.setColour(selected ? box->findColour(PlugDataColour::highlightColourId) : box->findColour(PlugDataColour::canvasOutlineColourId));
 
             g.drawRect(getLocalBounds().toFloat(), 0.5f);
         }
     }
 
-    void mouseEnter(const MouseEvent& e) override
+    void mouseEnter(MouseEvent const& e) override
     {
         repaint();
     }
 
-    void mouseExit(const MouseEvent& e) override
+    void mouseExit(MouseEvent const& e) override
     {
         repaint();
     }
 
     void hideEditor() override
     {
-        if (editor != nullptr)
-        {
+        if (editor != nullptr) {
             WeakReference<Component> deletionChecker(this);
             std::unique_ptr<TextEditor> outgoingEditor;
             std::swap(outgoingEditor, editor);
@@ -50,14 +48,11 @@ struct CommentObject final : public TextBase
             auto newText = outgoingEditor->getText();
 
             bool changed;
-            if (currentText != newText)
-            {
+            if (currentText != newText) {
                 currentText = newText;
                 repaint();
                 changed = true;
-            }
-            else
-            {
+            } else {
                 changed = false;
             }
 
@@ -66,20 +61,19 @@ struct CommentObject final : public TextBase
             repaint();
 
             // update if the name has changed, or if pdobject is unassigned
-            if (changed)
-            {
+            if (changed) {
                 cnv->pd->enqueueFunction(
-                    [this, obj = SafePointer<CommentObject>(this)]() mutable
-                    {
-                        if (!obj) return;
+                    [this, obj = SafePointer<CommentObject>(this)]() mutable {
+                        if (!obj)
+                            return;
 
                         auto* newName = currentText.toRawUTF8();
                         libpd_renameobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), newName, currentText.getNumBytesAsUTF8());
 
                         MessageManager::callAsync(
-                            [obj]()
-                            {
-                                if (!obj) return;
+                            [obj]() {
+                                if (!obj)
+                                    return;
                                 obj->box->updateBounds();
                             });
                     });
@@ -91,8 +85,7 @@ struct CommentObject final : public TextBase
 
     void showEditor() override
     {
-        if (editor == nullptr)
-        {
+        if (editor == nullptr) {
             editor = std::make_unique<TextEditor>(getName());
             editor->applyFontToAllText(font);
 
@@ -109,11 +102,9 @@ struct CommentObject final : public TextBase
             editor->setIndents(0, 0);
             editor->setJustification(justification);
 
-            editor->onFocusLost = [this]()
-            {
+            editor->onFocusLost = [this]() {
                 // Necessary so the editor doesn't close when clicking on a suggestion
-                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true))
-                {
+                if (!reinterpret_cast<Component*>(cnv->suggestor)->hasKeyboardFocus(true)) {
                     hideEditor();
                 }
             };
@@ -124,7 +115,7 @@ struct CommentObject final : public TextBase
             editor->setText(currentText, false);
             editor->addListener(this);
 
-            if (editor == nullptr)  // may be deleted by a callback
+            if (editor == nullptr) // may be deleted by a callback
                 return;
 
             editor->setHighlightedRegion(Range<int>(0, currentText.length()));
@@ -135,7 +126,7 @@ struct CommentObject final : public TextBase
             editor->grabKeyboardFocus();
         }
     }
-    
+
     bool hideInGraph() override
     {
         return false;

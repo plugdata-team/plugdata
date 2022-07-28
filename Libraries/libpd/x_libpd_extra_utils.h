@@ -8,16 +8,12 @@
 
 #ifdef __cplusplus
 
-
-extern "C"
-{
+extern "C" {
 #endif
 #include <m_pd.h>
 #include "z_libpd.h"
 
-
-
-void* libpd_create_canvas(const char* name, const char* path);
+void* libpd_create_canvas(char const* name, char const* path);
 
 char const* libpd_get_object_class_name(void* ptr);
 void libpd_get_object_text(void* ptr, char** text, int* size);
@@ -38,12 +34,11 @@ unsigned int libpd_iemgui_get_background_color(void* ptr);
 unsigned int libpd_iemgui_get_foreground_color(void* ptr);
 unsigned int libpd_iemgui_get_label_color(void* ptr);
 
-void libpd_iemgui_set_background_color(void* ptr, const char* hex);
-void libpd_iemgui_set_foreground_color(void* ptr, const char* hex);
-void libpd_iemgui_set_label_color(void* ptr, const char* hex);
+void libpd_iemgui_set_background_color(void* ptr, char const* hex);
+void libpd_iemgui_set_foreground_color(void* ptr, char const* hex);
+void libpd_iemgui_set_label_color(void* ptr, char const* hex);
 
 float libpd_get_canvas_font_height(t_canvas* cnv);
-
 
 #ifdef __cplusplus
 }

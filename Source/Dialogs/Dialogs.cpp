@@ -10,7 +10,6 @@
 #include "PluginEditor.h"
 #include "PluginProcessor.h"
 
-
 #include "SaveDialog.h"
 #include "ArrayDialog.h"
 #include "SettingsDialog.h"
@@ -24,7 +23,6 @@ Component* Dialogs::showTextEditorDialog(String text, String filename, std::func
     editor->onClose = std::move(callback);
     return editor;
 }
-
 
 Component* Dialogs::showSaveDialog(Component* centre, String filename, std::function<void(int)> callback)
 {
@@ -44,7 +42,7 @@ Component* Dialogs::showArrayDialog(Component* centre, std::function<void(int, S
     return arrayDialog;
 }
 
-Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, const ValueTree& settingsTree)
+Component* Dialogs::createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree)
 {
     auto* editor = processor.getActiveEditor();
     auto* dialog = new Dialog(editor->getParentComponent(), 675, 500, editor->getBounds().getCentreY() + 250, true);
@@ -58,8 +56,7 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     PopupMenu menu;
 
     // Custom function because JUCE adds "shortcut:" before some keycommands, which looks terrible!
-    auto createCommandItem = [parent](const CommandID commandID, const String& displayName)
-    {
+    auto createCommandItem = [parent](const CommandID commandID, String const& displayName) {
         ApplicationCommandInfo info(*parent->getCommandForID(commandID));
         auto* target = parent->ApplicationCommandManager::getTargetForCommand(commandID, info);
 
@@ -71,11 +68,11 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
 
         String shortcutKey;
 
-        for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID))
-        {
+        for (auto& keypress : parent->getKeyMappings()->getKeyPressesAssignedToCommand(commandID)) {
             auto key = keypress.getTextDescriptionWithIcons();
 
-            if (shortcutKey.isNotEmpty()) shortcutKey << ", ";
+            if (shortcutKey.isNotEmpty())
+                shortcutKey << ", ";
 
             shortcutKey << key;
         }
@@ -113,19 +110,17 @@ void Dialogs::showObjectMenu(PlugDataPluginEditor* parent, Component* target)
     menu.addItem(createCommandItem(CommandIDs::NewVUMeterObject, "VU Meter"));
 
     menu.showMenuAsync(PopupMenu::Options().withMinimumWidth(100).withMaximumNumColumns(1).withTargetComponent(target).withParentComponent(parent),
-                       [parent](int result)
-                       {
-                           if (result != 0)
-                           {
-                               if (auto* cnv = parent->getCurrentCanvas())
-                               {
-                                   cnv->attachNextObjectToMouse = true;
-                               }
-                           }
-                       });
+        [parent](int result) {
+            if (result != 0) {
+                if (auto* cnv = parent->getCurrentCanvas()) {
+                    cnv->attachNextObjectToMouse = true;
+                }
+            }
+        });
 }
 
 // Make sure the singleton gets initialised to begin downloading package data in the background
-void Dialogs::initialiseDeken() {
+void Dialogs::initialiseDeken()
+{
     PackageManager::getInstance();
 }

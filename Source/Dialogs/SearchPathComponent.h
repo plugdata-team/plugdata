@@ -1,11 +1,14 @@
 #pragma once
 
-class SearchPathComponent : public Component, public SettableTooltipClient, public FileDragAndDropTarget, private ListBoxModel
-{
-   public:
+class SearchPathComponent : public Component
+    , public SettableTooltipClient
+    , public FileDragAndDropTarget
+    , private ListBoxModel {
+public:
     //==============================================================================
     /** Creates an empty FileSearchPathListObject. */
-    SearchPathComponent(ValueTree libraryTree) : tree(std::move(libraryTree))
+    SearchPathComponent(ValueTree libraryTree)
+        : tree(std::move(libraryTree))
     {
         listBox.setOutlineThickness(0);
         listBox.setRowHeight(24);
@@ -49,8 +52,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         resetButton.setName("statusbar:reset");
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
-        resetButton.onClick = [this]()
-        {
+        resetButton.onClick = [this]() {
             auto libraryDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
 
             auto abstractionsDir = libraryDir.getChildFile("Abstractions");
@@ -69,7 +71,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
     //==============================================================================
     /** Returns the path as it is currently shown. */
-    const FileSearchPath& getPath() const
+    FileSearchPath const& getPath() const
     {
         return path;
     }
@@ -79,8 +81,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
     {
         path = FileSearchPath();
 
-        for (auto child : tree)
-        {
+        for (auto child : tree) {
             path.add(File(child.getProperty("Path").toString()));
         }
 
@@ -91,7 +92,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
         This is only used if the current file hasn't been set.
     */
-    void setDefaultBrowseTarget(const File& newDefaultDirectory)
+    void setDefaultBrowseTarget(File const& newDefaultDirectory)
 
     {
         defaultBrowseTarget = newDefaultDirectory;
@@ -108,7 +109,8 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
     {
         g.setColour(rowIsSelected ? Colours::white : findColour(PlugDataColour::textColourId));
 
-        if (rowIsSelected) g.fillAll(findColour(PlugDataColour::highlightColourId));
+        if (rowIsSelected)
+            g.fillAll(findColour(PlugDataColour::highlightColourId));
 
         Font f((float)height * 0.6f);
         f.setHorizontalScale(1.0f);
@@ -119,8 +121,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
     void deleteKeyPressed(int row) override
     {
-        if (isPositiveAndBelow(row, path.getNumPaths()))
-        {
+        if (isPositiveAndBelow(row, path.getNumPaths())) {
             path.remove(row);
             internalChange();
         }
@@ -132,17 +133,17 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 
         chooser->launchAsync(chooserFlags,
-                             [this, row](const FileChooser& fc)
-                             {
-                                 if (fc.getResult() == File{}) return;
+            [this, row](FileChooser const& fc) {
+                if (fc.getResult() == File {})
+                    return;
 
-                                 path.remove(row);
-                                 path.add(fc.getResult(), row);
-                                 internalChange();
-                             });
+                path.remove(row);
+                path.add(fc.getResult(), row);
+                internalChange();
+            });
     }
 
-    void listBoxItemDoubleClicked(int row, const MouseEvent&) override
+    void listBoxItemDoubleClicked(int row, MouseEvent const&) override
     {
         returnKeyPressed(row);
     }
@@ -154,8 +155,8 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
     void resized() override
     {
-        const int statusbarHeight = 32;
-        const int statusbarY = getHeight() - statusbarHeight;
+        int const statusbarHeight = 32;
+        int const statusbarY = getHeight() - statusbarHeight;
 
         listBox.setBounds(0, 0, getWidth(), statusbarY);
 
@@ -175,19 +176,17 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         PlugDataLook::paintStripes(g, listBox.getRowHeight(), listBox.getHeight(), listBox, listBox.getSelectedRow(), listBox.getViewport()->getViewPositionY(), true);
     }
 
-    bool isInterestedInFileDrag(const StringArray&) override
+    bool isInterestedInFileDrag(StringArray const&) override
     {
         return true;
     }
 
-    void filesDropped(const StringArray& filenames, int x, int y) override
+    void filesDropped(StringArray const& filenames, int x, int y) override
     {
-        for (int i = filenames.size(); --i >= 0;)
-        {
+        for (int i = filenames.size(); --i >= 0;) {
             const File f(filenames[i]);
 
-            if (f.isDirectory())
-            {
+            if (f.isDirectory()) {
                 auto row = listBox.getRowContainingPosition(0, y - listBox.getY());
                 path.add(f, row);
                 internalChange();
@@ -195,7 +194,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         }
     }
 
-   private:
+private:
     //==============================================================================
     FileSearchPath path;
     File defaultBrowseTarget;
@@ -218,10 +217,8 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
     {
         path = FileSearchPath();
 
-        for (auto child : tree)
-        {
-            if (child.hasType("Path"))
-            {
+        for (auto child : tree) {
+            if (child.hasType("Path")) {
                 path.addIfNotAlreadyThere(File(child.getProperty("Path").toString()));
             }
         }
@@ -234,11 +231,9 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
     {
         tree.removeAllChildren(nullptr);
 
-        for (int p = 0; p < path.getNumPaths(); p++)
-        {
+        for (int p = 0; p < path.getNumPaths(); p++) {
             auto dir = path[p];
-            if (dir.isDirectory())
-            {
+            if (dir.isDirectory()) {
                 auto newPath = ValueTree("Path");
                 newPath.setProperty("Path", dir.getFullPathName(), nullptr);
                 tree.appendChild(newPath, nullptr);
@@ -252,7 +247,7 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
 
     void updateButtons()
     {
-        const bool anythingSelected = listBox.getNumSelectedRows() > 0;
+        bool const anythingSelected = listBox.getNumSelectedRows() > 0;
 
         removeButton.setEnabled(anythingSelected);
         changeButton.setEnabled(anythingSelected);
@@ -264,21 +259,23 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
     {
         auto start = defaultBrowseTarget;
 
-        if (start == File()) start = path[0];
+        if (start == File())
+            start = path[0];
 
-        if (start == File()) start = File::getCurrentWorkingDirectory();
+        if (start == File())
+            start = File::getCurrentWorkingDirectory();
 
         chooser = std::make_unique<FileChooser>(TRANS("Add a folder..."), start, "*");
         auto chooserFlags = FileBrowserComponent::openMode | FileBrowserComponent::canSelectDirectories;
 
         chooser->launchAsync(chooserFlags,
-                             [this](const FileChooser& fc)
-                             {
-                                 if (fc.getResult() == File{}) return;
+            [this](FileChooser const& fc) {
+                if (fc.getResult() == File {})
+                    return;
 
-                                 path.add(fc.getResult(), listBox.getSelectedRow());
-                                 internalChange();
-                             });
+                path.add(fc.getResult(), listBox.getSelectedRow());
+                internalChange();
+            });
     }
 
     void deleteSelected()
@@ -298,12 +295,10 @@ class SearchPathComponent : public Component, public SettableTooltipClient, publ
         jassert(delta == -1 || delta == 1);
         auto currentRow = listBox.getSelectedRow();
 
-        if (isPositiveAndBelow(currentRow, path.getNumPaths()))
-        {
+        if (isPositiveAndBelow(currentRow, path.getNumPaths())) {
             auto newRow = jlimit(0, path.getNumPaths() - 1, currentRow + delta);
 
-            if (currentRow != newRow)
-            {
+            if (currentRow != newRow) {
                 auto f = path[currentRow];
                 path.remove(currentRow);
                 path.add(f, newRow);

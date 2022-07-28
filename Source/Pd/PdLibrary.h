@@ -12,8 +12,7 @@
 #include <array>
 #include <vector>
 
-namespace pd
-{
+namespace pd {
 
 using IODescription = juce::Array<std::pair<String, bool>>;
 using IODescriptionMap = std::unordered_map<String, IODescription>;
@@ -32,9 +31,8 @@ using KeywordMap = std::unordered_map<String, StringArray>;
 #define CHAR_TO_INDEX(c) (static_cast<int>(c) - static_cast<int>('\0'))
 #define INDEX_TO_CHAR(c) static_cast<char>(c + static_cast<int>('\0'))
 // A class to store a Trie node
-class Trie
-{
-   public:
+class Trie {
+public:
     bool isLeaf;
     Trie* character[CHAR_SIZE];
 
@@ -43,39 +41,37 @@ class Trie
     {
         isLeaf = false;
 
-        for (int i = 0; i < CHAR_SIZE; i++)
-        {
+        for (int i = 0; i < CHAR_SIZE; i++) {
             character[i] = nullptr;
         }
     }
 
     ~Trie()
     {
-        for (int i = 0; i < CHAR_SIZE; i++)
-        {
-            if (character[i])
-            {
+        for (int i = 0; i < CHAR_SIZE; i++) {
+            if (character[i]) {
                 delete character[i];
             }
         }
     }
 
-    void insert(const String& key);
+    void insert(String const& key);
     bool deletion(Trie*&, String);
-    bool search(const String&);
+    bool search(String const&);
     bool hasChildren();
 
     void suggestionsRec(String currPrefix, Suggestions& result);
     int autocomplete(String query, Suggestions& result);
 };
 
-struct LambdaThread  : public Thread
-{
-    LambdaThread () : Thread ("Library update thread") {
-        
+struct LambdaThread : public Thread {
+    LambdaThread()
+        : Thread("Library update thread")
+    {
     }
-    
-    ~LambdaThread() {
+
+    ~LambdaThread()
+    {
         stopThread(-1);
     }
 
@@ -83,25 +79,24 @@ struct LambdaThread  : public Thread
     {
         fn();
     }
-    
-    void runLambda(std::function<void()> func) {
+
+    void runLambda(std::function<void()> func)
+    {
         fn = func;
         startThread();
     }
-    
+
 private:
-    
     std::function<void()> fn;
-    
-    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR (LambdaThread)
-    
+
+    JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(LambdaThread)
 };
 
-struct Library : public FileSystemWatcher::Listener
-{
-    
-    ~Library() {
-        if(thread) {
+struct Library : public FileSystemWatcher::Listener {
+
+    ~Library()
+    {
+        if (thread) {
             thread->waitForThreadToExit(-1);
             delete thread;
         }
@@ -109,32 +104,31 @@ struct Library : public FileSystemWatcher::Listener
     void initialiseLibrary();
 
     void updateLibrary();
-    void parseDocumentation(const String& path);
+    void parseDocumentation(String const& path);
 
     Suggestions autocomplete(String query) const;
 
     String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
     void changeCallback() override;
-    
+
     LambdaThread* thread;
-    
+
     ObjectMap getObjectDescriptions();
     KeywordMap getObjectKeywords();
     IODescriptionMap getInletDescriptions();
     IODescriptionMap getOutletDescriptions();
     ArgumentMap getArguments();
-    
 
     std::function<void()> appDirChanged;
-    
+
 private:
     ObjectMap objectDescriptions;
     KeywordMap objectKeywords;
     IODescriptionMap inletDescriptions;
     IODescriptionMap outletDescriptions;
     ArgumentMap arguments;
-    
+
     std::mutex libraryLock;
 
     std::unordered_map<String, std::pair<StringArray, StringArray>> edgeDescriptions;
@@ -145,4 +139,4 @@ private:
     FileSystemWatcher watcher;
 };
 
-}  // namespace pd
+} // namespace pd

@@ -2,8 +2,8 @@
 #include "SearchPathComponent.h"
 #include "../Utility/PropertiesPanel.h"
 
-struct ThemePanel : public Component, public Value::Listener
-{
+struct ThemePanel : public Component
+    , public Value::Listener {
     ValueTree settingsTree;
     Value fontValue;
     std::vector<std::vector<Value>> colours;
@@ -12,7 +12,8 @@ struct ThemePanel : public Component, public Value::Listener
 
     OwnedArray<PropertiesPanel::Property> panels;
 
-    explicit ThemePanel(ValueTree globalSettings) : settingsTree(globalSettings)
+    explicit ThemePanel(ValueTree globalSettings)
+        : settingsTree(globalSettings)
     {
         fontValue.setValue(LookAndFeel::getDefaultLookAndFeel().getTypefaceForFont(Font())->getName());
         fontValue.addListener(this);
@@ -22,10 +23,8 @@ struct ThemePanel : public Component, public Value::Listener
         auto numColours = PlugDataLook::colourNames[0].size();
         colours.resize(2);
 
-        for (int i = 0; i < numColours; i++)
-        {
-            for (int j = 0; j < 2; j++)
-            {
+        for (int i = 0; i < numColours; i++) {
+            for (int j = 0; j < 2; j++) {
                 colours[j].resize(numColours);
                 colours[j][i].setValue(PlugDataLook::colourSettings[j][i].toString());
                 colours[j][i].addListener(this);
@@ -33,8 +32,7 @@ struct ThemePanel : public Component, public Value::Listener
             }
         }
 
-        for (auto* panel : panels)
-        {
+        for (auto* panel : panels) {
             panel->setHideLabel(true);
             addAndMakeVisible(panel);
         }
@@ -43,8 +41,7 @@ struct ThemePanel : public Component, public Value::Listener
         resetButton.setName("statusbar:down");
         addAndMakeVisible(resetButton);
         resetButton.setConnectedEdges(12);
-        resetButton.onClick = [this]()
-        {
+        resetButton.onClick = [this]() {
             auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
             lnf.colourSettings = lnf.defaultColours;
 
@@ -54,10 +51,8 @@ struct ThemePanel : public Component, public Value::Listener
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
 
             auto numColours = PlugDataLook::colourNames[0].size();
-            for (int i = 0; i < 2; i++)
-            {
-                for (int j = 0; j < numColours; j++)
-                {
+            for (int i = 0; i < 2; i++) {
+                for (int j = 0; j < numColours; j++) {
                     colours[i][j] = lnf.colourSettings[i][j].toString();
                     settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
                 }
@@ -66,10 +61,8 @@ struct ThemePanel : public Component, public Value::Listener
             lnf.setTheme(lnf.isUsingLightTheme);
             getTopLevelComponent()->repaint();
 
-            for (auto* panel : panels)
-            {
-                if (auto* colourPanel = dynamic_cast<PropertiesPanel::ColourComponent*>(panel))
-                {
+            for (auto* panel : panels) {
+                if (auto* colourPanel = dynamic_cast<PropertiesPanel::ColourComponent*>(panel)) {
                     colourPanel->updateColour();
                 }
             }
@@ -80,20 +73,16 @@ struct ThemePanel : public Component, public Value::Listener
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getLookAndFeel());
 
-        if (v.refersToSameSourceAs(fontValue))
-        {
+        if (v.refersToSameSourceAs(fontValue)) {
             lnf.setDefaultFont(fontValue.toString());
             settingsTree.setProperty("DefaultFont", fontValue.getValue(), nullptr);
             getTopLevelComponent()->repaint();
         }
-        
+
         auto numColours = PlugDataLook::colourNames[0].size();
-        for (int i = 0; i < 2; i++)
-        {
-            for (int j = 0; j < numColours; j++)
-            {
-                if (v.refersToSameSourceAs(colours[i][j]))
-                {
+        for (int i = 0; i < 2; i++) {
+            for (int j = 0; j < numColours; j++) {
+                if (v.refersToSameSourceAs(colours[i][j])) {
                     lnf.colourSettings[i][j] = Colour::fromString(v.toString());
                     settingsTree.setProperty(lnf.colourNames[i][j], lnf.colourSettings[i][j].toString(), nullptr);
                     lnf.setTheme(lnf.isUsingLightTheme);
@@ -136,8 +125,7 @@ struct ThemePanel : public Component, public Value::Listener
 
         bounds.removeFromTop(23);
 
-        for (int i = 0; i < panels.size() / 2; i++)
-        {
+        for (int i = 0; i < panels.size() / 2; i++) {
             auto panelBounds = bounds.removeFromTop(23);
             panels[i * 2 + 1]->setBounds(panelBounds.removeFromRight(getWidth() / 4));
             panels[i * 2 + 2]->setBounds(panelBounds);
@@ -147,13 +135,11 @@ struct ThemePanel : public Component, public Value::Listener
     }
 };
 
-extern "C"
-{
-    EXTERN char* pd_version;
+extern "C" {
+EXTERN char* pd_version;
 }
 
-struct AboutPanel : public Component
-{
+struct AboutPanel : public Component {
     Image logo = ImageFileFormat::loadFrom(BinaryData::plugd_logo_png, BinaryData::plugd_logo_pngSize);
 
     void paint(Graphics& g) override
@@ -174,22 +160,18 @@ struct AboutPanel : public Component
         g.drawFittedText("Made with JUCE", 150, 230, getWidth() - 150, 50, Justification::left, 2);
 
         g.drawFittedText("Special thanks to: Deskew Technologies, ludnny and Joshua A.C. Newman for supporting this project", 150, 270, getWidth() - 150, 50, Justification::left, 2);
-  
 
         g.drawFittedText("This program is published under the terms of the GPL3 license", 150, 300, getWidth() - 150, 50, Justification::left, 2);
-        
 
-
-
-        Rectangle<float> logoBounds = {40.0f, 20.0f, logo.getWidth() / 2.0f, logo.getHeight() / 2.0f};
+        Rectangle<float> logoBounds = { 40.0f, 20.0f, logo.getWidth() / 2.0f, logo.getHeight() / 2.0f };
 
         g.drawImage(logo, logoBounds);
     }
 };
 
-struct DAWAudioSettings : public Component
-{
-    explicit DAWAudioSettings(AudioProcessor& p) : processor(p)
+struct DAWAudioSettings : public Component {
+    explicit DAWAudioSettings(AudioProcessor& p)
+        : processor(p)
     {
         addAndMakeVisible(latencySlider);
         latencySlider.setRange(0, 88200, 1);
@@ -226,7 +208,8 @@ struct DAWAudioSettings : public Component
 
     void visibilityChanged() override
     {
-        if (!isVisible()) return;
+        if (!isVisible())
+            return;
 
         auto* proc = dynamic_cast<PlugDataAudioProcessor*>(&processor);
         latencySlider.setValue(processor.getLatencySamples());
@@ -241,24 +224,21 @@ struct DAWAudioSettings : public Component
     Slider tailLengthSlider;
 };
 
-struct SettingsDialog : public Component
-{
-    SettingsDialog(AudioProcessor& processor, Dialog* dialog, AudioDeviceManager* manager, const ValueTree& settingsTree) : audioProcessor(processor)
+struct SettingsDialog : public Component {
+    SettingsDialog(AudioProcessor& processor, Dialog* dialog, AudioDeviceManager* manager, ValueTree const& settingsTree)
+        : audioProcessor(processor)
     {
         setVisible(false);
 
-        toolbarButtons = {new TextButton(Icons::Audio), new TextButton(Icons::Pencil), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals), new TextButton(Icons::Info)};
+        toolbarButtons = { new TextButton(Icons::Audio), new TextButton(Icons::Pencil), new TextButton(Icons::Search), new TextButton(Icons::Keyboard), new TextButton(Icons::Externals), new TextButton(Icons::Info) };
 
         currentPanel = std::clamp(lastPanel.load(), 0, toolbarButtons.size() - 1);
 
         auto* editor = dynamic_cast<ApplicationCommandManager*>(processor.getActiveEditor());
 
-        if (manager)
-        {
+        if (manager) {
             panels.add(new AudioDeviceSelectorComponent(*manager, 1, 2, 1, 2, true, true, true, false));
-        }
-        else
-        {
+        } else {
             panels.add(new DAWAudioSettings(processor));
         }
         panels.add(new ThemePanel(settingsTree));
@@ -267,8 +247,7 @@ struct SettingsDialog : public Component
         panels.add(new Deken());
         panels.add(new AboutPanel());
 
-        for (int i = 0; i < toolbarButtons.size(); i++)
-        {
+        for (int i = 0; i < toolbarButtons.size(); i++) {
             toolbarButtons[i]->setClickingTogglesState(true);
             toolbarButtons[i]->setRadioGroupId(0110);
             toolbarButtons[i]->setConnectedEdges(12);
@@ -281,10 +260,8 @@ struct SettingsDialog : public Component
 
         toolbarButtons[currentPanel]->setToggleState(true, sendNotification);
 
-        dialog->onClose = [this, dialog]()
-        {
-            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor()))
-            {
+        dialog->onClose = [this, dialog]() {
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(audioProcessor.getActiveEditor())) {
                 editor->settingsDialog.reset(nullptr);
             }
         };
@@ -303,10 +280,8 @@ struct SettingsDialog : public Component
         auto b = getLocalBounds().withTrimmedTop(toolbarHeight).withTrimmedBottom(6);
 
         int toolbarPosition = 2;
-        for (auto& button : toolbarButtons)
-        {
-            if (button == toolbarButtons.getLast())
-            {
+        for (auto& button : toolbarButtons) {
+            if (button == toolbarButtons.getLast()) {
                 button->setBounds(getWidth() - 100, 1, 70, toolbarHeight - 2);
                 break;
             }
@@ -336,8 +311,7 @@ struct SettingsDialog : public Component
         g.fillRoundedRectangle(toolbarBounds, 5.0f);
         g.fillRect(toolbarBounds.withTop(10.0f));
 
-        if (currentPanel > 0)
-        {
+        if (currentPanel > 0) {
             auto statusbarBounds = getLocalBounds().reduced(1).removeFromBottom(32).toFloat();
             g.setColour(findColour(PlugDataColour::toolbarColourId));
 
@@ -351,8 +325,7 @@ struct SettingsDialog : public Component
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawLine(0.0f, toolbarHeight, getWidth(), toolbarHeight);
 
-        if (currentPanel > 0)
-        {
+        if (currentPanel > 0) {
             g.drawLine(0.0f, getHeight() - 33, getWidth(), getHeight() - 33);
         }
     }

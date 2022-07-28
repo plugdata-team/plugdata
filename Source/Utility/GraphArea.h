@@ -1,10 +1,12 @@
 // Graph bounds component
-struct GraphArea : public Component, public ComponentDragger
-{
+struct GraphArea : public Component
+    , public ComponentDragger {
     ResizableCornerComponent resizer;
     Canvas* canvas;
 
-    explicit GraphArea(Canvas* parent) : resizer(this, nullptr), canvas(parent)
+    explicit GraphArea(Canvas* parent)
+        : resizer(this, nullptr)
+        , canvas(parent)
     {
         addAndMakeVisible(resizer);
         updateBounds();
@@ -18,28 +20,27 @@ struct GraphArea : public Component, public ComponentDragger
 
     bool hitTest(int x, int y) override
     {
-        return !getLocalBounds().reduced(8).contains(Point<int>{x, y});
+        return !getLocalBounds().reduced(8).contains(Point<int> { x, y });
     }
 
-    void mouseMove(const MouseEvent& e) override
+    void mouseMove(MouseEvent const& e) override
     {
-        if (canvas->locked == var(false))
-        {
+        if (canvas->locked == var(false)) {
             setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
         }
     }
 
-    void mouseDown(const MouseEvent& e) override
+    void mouseDown(MouseEvent const& e) override
     {
         startDraggingComponent(this, e);
     }
 
-    void mouseDrag(const MouseEvent& e) override
+    void mouseDrag(MouseEvent const& e) override
     {
         dragComponent(this, e, nullptr);
     }
 
-    void mouseUp(const MouseEvent& e) override
+    void mouseUp(MouseEvent const& e) override
     {
         setPdBounds();
         repaint();
@@ -59,8 +60,7 @@ struct GraphArea : public Component, public ComponentDragger
     {
         t_canvas* cnv = canvas->patch.getPointer();
         // TODO: make this thread safe
-        if (cnv)
-        {
+        if (cnv) {
             cnv->gl_pixwidth = getWidth();
             cnv->gl_pixheight = getHeight();
             cnv->gl_xmargin = getX() - canvas->canvasOrigin.x;

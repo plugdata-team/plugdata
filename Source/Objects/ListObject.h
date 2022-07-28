@@ -1,7 +1,8 @@
 
-struct ListObject final : public AtomObject
-{
-    ListObject(void* obj, Box* parent) : AtomObject(obj, parent), dragger(label)
+struct ListObject final : public AtomObject {
+    ListObject(void* obj, Box* parent)
+        : AtomObject(obj, parent)
+        , dragger(label)
     {
         label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
         label.setMinimumHorizontalScale(1.f);
@@ -13,18 +14,15 @@ struct ListObject final : public AtomObject
         setInterceptsMouseClicks(true, false);
         addAndMakeVisible(label);
 
-        label.onEditorHide = [this]()
-        {
+        label.onEditorHide = [this]() {
             startEdition();
             updateFromGui();
             stopEdition();
         };
 
-        label.onEditorShow = [this]()
-        {
+        label.onEditorShow = [this]() {
             auto* editor = label.getCurrentTextEditor();
-            if (editor != nullptr)
-            {
+            if (editor != nullptr) {
                 editor->setIndents(1, 2);
                 editor->setBorder(BorderSize<int>(2, 6, 2, 2));
             }
@@ -38,26 +36,21 @@ struct ListObject final : public AtomObject
 
         updateValue();
     }
-    
+
     void updateFromGui()
     {
         auto array = StringArray();
         array.addTokens(label.getText(), true);
         std::vector<pd::Atom> list;
         list.reserve(array.size());
-        for (auto const& elem : array)
-        {
-            if (elem.getCharPointer().isDigit())
-            {
-                list.push_back({elem.getFloatValue()});
-            }
-            else
-            {
-                list.push_back({elem.toStdString()});
+        for (auto const& elem : array) {
+            if (elem.getCharPointer().isDigit()) {
+                list.push_back({ elem.getFloatValue() });
+            } else {
+                list.push_back({ elem.toStdString() });
             }
         }
-        if (list != getList())
-        {
+        if (list != getList()) {
             setList(list);
         }
     }
@@ -88,26 +81,19 @@ struct ListObject final : public AtomObject
         bottomTriangle = bottomTriangle.createPathWithRoundedCorners(4.0f);
         g.fillPath(bottomTriangle);
     }
-    
 
     void updateValue() override
     {
-        if (!edited && !label.isBeingEdited())
-        {
+        if (!edited && !label.isBeingEdited()) {
             auto const array = getList();
             String message;
-            for (auto const& atom : array)
-            {
-                if (message.isNotEmpty())
-                {
+            for (auto const& atom : array) {
+                if (message.isNotEmpty()) {
                     message += " ";
                 }
-                if (atom.isFloat())
-                {
+                if (atom.isFloat()) {
                     message += String(atom.getFloat());
-                }
-                else if (atom.isSymbol())
-                {
+                } else if (atom.isSymbol()) {
                     message += String(atom.getSymbol());
                 }
             }
@@ -115,7 +101,7 @@ struct ListObject final : public AtomObject
         }
     }
 
-    std::vector<pd::Atom> getList() const 
+    std::vector<pd::Atom> getList() const
     {
         std::vector<pd::Atom> array;
         cnv->pd->setThis();
@@ -123,30 +109,24 @@ struct ListObject final : public AtomObject
         int ac = binbuf_getnatom(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         t_atom* av = binbuf_getvec(static_cast<t_fake_gatom*>(ptr)->a_text.te_binbuf);
         array.reserve(ac);
-        for (int i = 0; i < ac; ++i)
-        {
-            if (av[i].a_type == A_FLOAT)
-            {
+        for (int i = 0; i < ac; ++i) {
+            if (av[i].a_type == A_FLOAT) {
                 array.emplace_back(atom_getfloat(av + i));
-            }
-            else if (av[i].a_type == A_SYMBOL)
-            {
+            } else if (av[i].a_type == A_SYMBOL) {
                 array.emplace_back(atom_getsymbol(av + i)->s_name);
-            }
-            else
-            {
+            } else {
                 array.emplace_back();
             }
         }
         return array;
     }
 
-    void setList(std::vector<pd::Atom> const& value) 
+    void setList(std::vector<pd::Atom> const& value)
     {
         cnv->pd->enqueueDirectMessages(ptr, value);
     }
 
-   private:
+private:
     Label label;
     DraggableListNumber dragger;
 };

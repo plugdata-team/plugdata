@@ -1,22 +1,20 @@
 
 
-struct ToggleObject final : public IEMObject
-{
+struct ToggleObject final : public IEMObject {
     bool toggleState = false;
     bool alreadyToggled = false;
     Value nonZero;
 
-    ToggleObject(void* obj, Box* parent) : IEMObject(obj, parent)
+    ToggleObject(void* obj, Box* parent)
+        : IEMObject(obj, parent)
     {
-       
     }
-    
+
     void updateParameters() override
     {
         nonZero = static_cast<t_toggle*>(ptr)->x_nonzero;
         IEMObject::updateParameters();
     }
-
 
     void paint(Graphics& g) override
     {
@@ -28,20 +26,20 @@ struct ToggleObject final : public IEMObject
 
         auto crossBounds = getLocalBounds().reduced(6).toFloat();
 
-        if (getWidth() < 20)
-        {
+        if (getWidth() < 20) {
             crossBounds = crossBounds.expanded(20 - getWidth());
         }
 
-        const auto max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
-        const auto strokeWidth = std::max(max * 0.15f, 2.0f);
+        auto const max = std::max(crossBounds.getWidth(), crossBounds.getHeight());
+        auto const strokeWidth = std::max(max * 0.15f, 2.0f);
 
-        g.drawLine({crossBounds.getTopLeft(), crossBounds.getBottomRight()}, strokeWidth);
-        g.drawLine({crossBounds.getBottomLeft(), crossBounds.getTopRight()}, strokeWidth);
+        g.drawLine({ crossBounds.getTopLeft(), crossBounds.getBottomRight() }, strokeWidth);
+        g.drawLine({ crossBounds.getBottomLeft(), crossBounds.getTopRight() }, strokeWidth);
     }
-    
-    void toggleObject(Point<int> position) override {
-        if(!alreadyToggled) {
+
+    void toggleObject(Point<int> position) override
+    {
+        if (!alreadyToggled) {
             startEdition();
             auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
             setValueOriginal(newValue);
@@ -50,19 +48,20 @@ struct ToggleObject final : public IEMObject
             alreadyToggled = true;
         }
     }
-    
-    void untoggleObject() override {
+
+    void untoggleObject() override
+    {
         alreadyToggled = false;
     }
-    
-    void mouseDown(const MouseEvent& e) override
+
+    void mouseDown(MouseEvent const& e) override
     {
         startEdition();
         auto newValue = getValueOriginal() != 0 ? 0 : static_cast<float>(nonZero.getValue());
         setValueOriginal(newValue);
         toggleState = newValue;
         stopEdition();
-        
+
         // Make sure we don't re-toggle with an accidental drag
         alreadyToggled = true;
 
@@ -73,8 +72,7 @@ struct ToggleObject final : public IEMObject
     {
         // Fix aspect ratio and apply limits
         int size = jlimit(30, maxSize, box->getWidth());
-        if (size != box->getHeight() || size != box->getWidth())
-        {
+        if (size != box->getHeight() || size != box->getWidth()) {
             box->setSize(size, size);
         }
     }
@@ -82,20 +80,17 @@ struct ToggleObject final : public IEMObject
     ObjectParameters defineParameters() override
     {
         return {
-            {"Non-zero value", tInt, cGeneral, &nonZero, {}},
+            { "Non-zero value", tInt, cGeneral, &nonZero, {} },
         };
     }
 
     void valueChanged(Value& value) override
     {
-        if (value.refersToSameSourceAs(nonZero))
-        {
+        if (value.refersToSameSourceAs(nonZero)) {
             float val = nonZero.getValue();
             max = val;
             static_cast<t_toggle*>(ptr)->x_nonzero = val;
-        }
-        else
-        {
+        } else {
             IEMObject::valueChanged(value);
         }
     }

@@ -13,56 +13,51 @@
 #include <g_all_guis.h>
 #include "x_libpd_multi.h"
 
-
 // False GARRAY
-typedef struct _fake_garray
-{
+typedef struct _fake_garray {
     t_gobj x_gobj;
-    t_scalar *x_scalar;
-    t_glist *x_glist;
-    t_symbol *x_name;
-    t_symbol *x_realname;
-    unsigned int x_usedindsp:1;    /* 1 if some DSP routine is using this */
-    unsigned int x_saveit:1;       /* we should save this with parent */
-    unsigned int x_savesize:1;     /* save size too */
-    unsigned int x_listviewing:1;  /* list view window is open */
-    unsigned int x_hidename:1;     /* don't print name above graph */
-    unsigned int x_edit:1;         /* we can edit the array */
+    t_scalar* x_scalar;
+    t_glist* x_glist;
+    t_symbol* x_name;
+    t_symbol* x_realname;
+    unsigned int x_usedindsp : 1;   /* 1 if some DSP routine is using this */
+    unsigned int x_saveit : 1;      /* we should save this with parent */
+    unsigned int x_savesize : 1;    /* save size too */
+    unsigned int x_listviewing : 1; /* list view window is open */
+    unsigned int x_hidename : 1;    /* don't print name above graph */
+    unsigned int x_edit : 1;        /* we can edit the array */
 } t_fake_garray;
 
-typedef struct _gatom
-{
+typedef struct _gatom {
     t_text a_text;
-    int a_flavor;           /* A_FLOAT, A_SYMBOL, or A_LIST */
-    t_glist *a_glist;       /* owning glist */
-    t_float a_toggle;       /* value to toggle to */
-    t_float a_draghi;       /* high end of drag range */
-    t_float a_draglo;       /* low end of drag range */
-    t_symbol *a_label;      /* symbol to show as label next to box */
-    t_symbol *a_symfrom;    /* "receive" name -- bind ourselves to this */
-    t_symbol *a_symto;      /* "send" name -- send to this on output */
-    t_binbuf *a_revertbuf;  /* binbuf to revert to if typing canceled */
-    int a_dragindex;        /* index of atom being dragged */
+    int a_flavor;          /* A_FLOAT, A_SYMBOL, or A_LIST */
+    t_glist* a_glist;      /* owning glist */
+    t_float a_toggle;      /* value to toggle to */
+    t_float a_draghi;      /* high end of drag range */
+    t_float a_draglo;      /* low end of drag range */
+    t_symbol* a_label;     /* symbol to show as label next to box */
+    t_symbol* a_symfrom;   /* "receive" name -- bind ourselves to this */
+    t_symbol* a_symto;     /* "send" name -- send to this on output */
+    t_binbuf* a_revertbuf; /* binbuf to revert to if typing canceled */
+    int a_dragindex;       /* index of atom being dragged */
     int a_fontsize;
-    unsigned int a_shift:1;         /* was shift key down when drag started? */
-    unsigned int a_wherelabel:2;    /* 0-3 for left, right, above, below */
-    unsigned int a_grabbed:1;       /* 1 if we've grabbed keyboard */
-    unsigned int a_doubleclicked:1; /* 1 if dragging from a double click */
-    t_symbol *a_expanded_to; /* a_symto after $0, $1, ...  expansion */
+    unsigned int a_shift : 1;         /* was shift key down when drag started? */
+    unsigned int a_wherelabel : 2;    /* 0-3 for left, right, above, below */
+    unsigned int a_grabbed : 1;       /* 1 if we've grabbed keyboard */
+    unsigned int a_doubleclicked : 1; /* 1 if dragging from a double click */
+    t_symbol* a_expanded_to;          /* a_symto after $0, $1, ...  expansion */
 } t_fake_gatom;
 
-void* libpd_create_canvas(const char* name, const char* path)
+void* libpd_create_canvas(char const* name, char const* path)
 {
-    t_canvas* cnv = (t_canvas *)libpd_openfile(name, path);
-    if(cnv)
-    {
+    t_canvas* cnv = (t_canvas*)libpd_openfile(name, path);
+    if (cnv) {
         canvas_vis(cnv, 1.f);
         glob_setfilename(NULL, gensym(name), gensym(path));
         canvas_rename(cnv, gensym(name), gensym(path));
     }
     return cnv;
 }
-
 
 char const* libpd_get_object_class_name(void* ptr)
 {
@@ -71,7 +66,8 @@ char const* libpd_get_object_class_name(void* ptr)
 
 void libpd_get_object_text(void* ptr, char** text, int* size)
 {
-    *text = NULL; *size = 0;
+    *text = NULL;
+    *size = 0;
     binbuf_gettext(((t_text*)ptr)->te_binbuf, text, size);
 }
 
@@ -80,18 +76,21 @@ void libpd_get_object_bounds(void* patch, void* ptr, int* x, int* y, int* w, int
     t_canvas* cnv = patch;
     while (cnv->gl_owner && !cnv->gl_havewindow && cnv->gl_isgraph)
         cnv = cnv->gl_owner;
-    
-    *x = 0; *y = 0; *w = 0; *h = 0;
-    
-    gobj_getrect((t_gobj *)ptr, cnv, x, y, w, h);
-    
+
+    *x = 0;
+    *y = 0;
+    *w = 0;
+    *h = 0;
+
+    gobj_getrect((t_gobj*)ptr, cnv, x, y, w, h);
+
     *w -= *x;
     *h -= *y;
 }
 
 t_garray* libpd_array_get_byname(char const* name)
 {
-    return (t_fake_garray*)pd_findbyclass(gensym((char *)name), garray_class);
+    return (t_fake_garray*)pd_findbyclass(gensym((char*)name), garray_class);
 }
 
 int libpd_array_get_saveit(void* garray)
@@ -103,7 +102,6 @@ int libpd_array_get_size(void* garray)
 {
     return garray_getarray(garray)->a_n;
 }
-
 
 char const* libpd_array_get_name(void* array)
 {
@@ -118,12 +116,10 @@ char const* libpd_array_get_unexpanded_name(void* array)
 
 void libpd_array_get_scale(void* array, float* min, float* max)
 {
-    t_canvas const *cnv;
-    if(array)
-    {
+    t_canvas const* cnv;
+    if (array) {
         cnv = ((t_fake_garray*)array)->x_glist;
-        if(cnv)
-        {
+        if (cnv) {
             *min = cnv->gl_y2;
             *max = cnv->gl_y1;
             return;
@@ -136,11 +132,9 @@ void libpd_array_get_scale(void* array, float* min, float* max)
 void libpd_array_set_scale(void* array, float min, float max)
 {
     t_canvas* cnv;
-    if(array)
-    {
+    if (array) {
         cnv = ((t_fake_garray*)array)->x_glist;
-        if(cnv)
-        {
+        if (cnv) {
             cnv->gl_y2 = min;
             cnv->gl_y1 = max;
             return;
@@ -151,18 +145,15 @@ void libpd_array_set_scale(void* array, float min, float max)
 int libpd_array_get_style(void* array)
 {
     t_fake_garray* arr = (t_fake_garray*)array;
-    if(arr && arr->x_scalar)
-    {
-        t_scalar *scalar = arr->x_scalar;
-        t_template *scalartplte = template_findbyname(scalar->sc_template);
-        if(scalartplte)
-        {
+    if (arr && arr->x_scalar) {
+        t_scalar* scalar = arr->x_scalar;
+        t_template* scalartplte = template_findbyname(scalar->sc_template);
+        if (scalartplte) {
             return (int)template_getfloat(scalartplte, gensym("style"), scalar->sc_vec, 0);
         }
     }
     return 0;
 }
-
 
 static unsigned int convert_from_iem_color(int const color)
 {
@@ -170,10 +161,10 @@ static unsigned int convert_from_iem_color(int const color)
     return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
 }
 
-
-static unsigned int convert_to_iem_color(const char* hex)
+static unsigned int convert_to_iem_color(char const* hex)
 {
-    if(strlen(hex) == 8) hex += 2; // remove alpha channel if needed
+    if (strlen(hex) == 8)
+        hex += 2; // remove alpha channel if needed
     int col = (int)strtol(hex, 0, 16);
     return col & 0xFFFFFF;
 }
@@ -193,50 +184,38 @@ unsigned int libpd_iemgui_get_label_color(void* ptr)
     return convert_from_iem_color(((t_iemgui*)ptr)->x_lcol);
 }
 
-void libpd_iemgui_set_background_color(void* ptr, const char* hex)
+void libpd_iemgui_set_background_color(void* ptr, char const* hex)
 {
     ((t_iemgui*)ptr)->x_bcol = convert_to_iem_color(hex);
 }
 
-void libpd_iemgui_set_foreground_color(void* ptr, const char* hex)
+void libpd_iemgui_set_foreground_color(void* ptr, char const* hex)
 {
     ((t_iemgui*)ptr)->x_fcol = convert_to_iem_color(hex);
 }
 
-void libpd_iemgui_set_label_color(void* ptr, const char* hex)
+void libpd_iemgui_set_label_color(void* ptr, char const* hex)
 {
     ((t_iemgui*)ptr)->x_lcol = convert_to_iem_color(hex);
 }
 
-
 float libpd_get_canvas_font_height(t_canvas* cnv)
 {
-    const int fontsize = glist_getfont(cnv);
-    const float zoom = (float)glist_getzoom(cnv);
+    int const fontsize = glist_getfont(cnv);
+    float const zoom = (float)glist_getzoom(cnv);
     //[8 :8.31571] [10 :9.9651] [12 :11.6403] [16 :16.6228] [24 :23.0142] [36 :36.0032]
-    if(fontsize == 8)
-    {
-        return 8.31571 * zoom; //9.68f * zoom;
-    }
-    else if(fontsize == 10)
-    {
-        return 9.9651 * zoom; //11.6f * zoom;
-    }
-    else if(fontsize == 12)
-    {
-        return 11.6403 *zoom; //13.55f * zoom;
-    }
-    else if(fontsize == 16)
-    {
-        return 16.6228 * zoom; //19.35f * zoom;
-    }
-    else if(fontsize == 24)
-    {
-        return 23.0142 * zoom; //26.79f * zoom;
-    }
-    else if(fontsize == 36)
-    {
-        return 36.0032 * zoom; //41.91f * zoom;
+    if (fontsize == 8) {
+        return 8.31571 * zoom; // 9.68f * zoom;
+    } else if (fontsize == 10) {
+        return 9.9651 * zoom; // 11.6f * zoom;
+    } else if (fontsize == 12) {
+        return 11.6403 * zoom; // 13.55f * zoom;
+    } else if (fontsize == 16) {
+        return 16.6228 * zoom; // 19.35f * zoom;
+    } else if (fontsize == 24) {
+        return 23.0142 * zoom; // 26.79f * zoom;
+    } else if (fontsize == 36) {
+        return 36.0032 * zoom; // 41.91f * zoom;
     }
     return glist_fontheight(cnv);
 }
