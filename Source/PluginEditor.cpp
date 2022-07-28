@@ -83,6 +83,8 @@ PlugDataPluginEditor::PlugDataPluginEditor(PlugDataAudioProcessor& p) : AudioPro
 
         cnv->synchronise();
         updateValues();
+        updateDrawables();
+        updateGuiParameters();
     };
 
     tabbar.setOutline(0);
