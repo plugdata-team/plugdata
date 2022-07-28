@@ -17,16 +17,15 @@ typedef struct _biquads{
     t_int     x_bypass;
     int 	  x_numfilt; // number of biquad filters
 	double 	  x_coeff[MAX_COEFFS]; // array of coeffs
-/* the coeff array is an easy/cheap way of doing this
- without malloc/calloc-ing - maybe worth changing in the future */
-} t_biquads;
+// the coeff array is an easy/cheap way of doing this
+// without malloc/calloc-ing - maybe worth changing in the future
+}t_biquads;
 
 void *biquads_new(void);
 
 void biquads_clear(t_biquads *x){
-  int i;
-  for(i = 0; i < x->x_numfilt; i++)
-	x->x_xnm1[i] = x->x_xnm2[i] = x->x_ynm1[i] = x->x_ynm2[i] = 0.f;
+    for(int i = 0; i < x->x_numfilt; i++)
+        x->x_xnm1[i] = x->x_xnm2[i] = x->x_ynm1[i] = x->x_ynm2[i] = 0.f;
 }
 
 void biquads_bypass(t_biquads *x, t_floatarg f){
@@ -118,7 +117,7 @@ void *biquads_new(void){
 
 void biquads_tilde_setup(void){
     biquads_class = class_new(gensym("biquads~"), (t_newmethod)biquads_new,
-            (t_method)biquads_free, sizeof(t_biquads), CLASS_DEFAULT, 0);
+        (t_method)biquads_free, sizeof(t_biquads), CLASS_DEFAULT, 0);
     class_addmethod(biquads_class, nullfn, gensym("signal"), 0);
     class_addmethod(biquads_class, (t_method) biquads_dsp, gensym("dsp"), A_CANT, 0);
     class_addmethod(biquads_class, (t_method) biquads_clear, gensym("clear"), 0);

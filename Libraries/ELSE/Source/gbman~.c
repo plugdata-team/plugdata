@@ -21,7 +21,11 @@ typedef struct _gbman
 static void gbman_list(t_gbman *x, t_symbol *s, int argc, t_atom * argv)
 {
     s = NULL;
-    if (argc > 2)
+    if(argc == 1){
+        obj_list(&x->x_obj, 0, argc, argv);
+        return;
+    }
+    if (argc != 2)
         {
         pd_error(x, "gbman~: list size needs to be = 2");
         }

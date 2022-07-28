@@ -1,10 +1,10 @@
+// based on something I forgot now
 
-#include <stdio.h>
+#include "m_pd.h"
+#include "m_imp.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
-#include <m_pd.h>
-#include <m_imp.h>
 
 static t_class *colors_class;
 
@@ -262,7 +262,7 @@ static void *colors_new(t_symbol *s){
 
 void colors_setup(void){
     colors_class = class_new(gensym("colors"), (t_newmethod)colors_new,
-                (t_method)colors_free, sizeof(t_colors), 0, A_DEFSYMBOL, 0);
+        (t_method)colors_free, sizeof(t_colors), 0, A_DEFSYMBOL, 0);
     class_addbang(colors_class, (t_method)colors_bang);
     class_addmethod(colors_class, (t_method)colors_hsl, gensym("hsl"), A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
     class_addmethod(colors_class, (t_method)colors_hsv, gensym("hsv"), A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);

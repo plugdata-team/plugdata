@@ -1,8 +1,8 @@
 // Feedback Delay Networks with a householder matrix (In - 2/n 11T)
 // modified fom [creb/fdn~] by Porres
 
-// TODO (from original code) - Add: delay time generation code / prime calculation for delay lengths
-//       / more diffuse feedback matrix (hadamard) & check filtering code
+// TODO (from original code) - Add: delay time generation code / prime calculation for
+// delay lengths more diffuse feedback matrix (hadamard) & check filtering code
 
 /*   Copyright (c) 2000-2003 by Tom Schouten                                *
  *   This program is free software; you can redistribute it and/or modify   *
@@ -21,20 +21,18 @@
 
 #include "m_pd.h"
 #include <stdlib.h>
-#include <stdio.h>
 #include <string.h>
 #include <math.h>
 
-typedef  union _isdenorm {
+typedef  union _isdenorm{
     t_float f;
     uint32_t ui;
 }t_isdenorm;
 
-static inline int denorm_check(t_float f)
-{
+static inline int denorm_check(t_float f){
     t_isdenorm mask;
     mask.f = f;
-    return ((mask.ui & 0x07f800000) == 0);
+    return((mask.ui & 0x07f800000) == 0);
 }
 
 // por mim essa merda toda vem pra baixo
@@ -414,7 +412,7 @@ static void *fdn_new(t_symbol *s, int ac, t_atom *av){
     return(void *)x;
 errstate:
     pd_error(x, "[fdn.rev~]: improper args");
-    return NULL;
+    return(NULL);
 }
 
 void setup_fdn0x2erev_tilde(void){
@@ -426,7 +424,7 @@ void setup_fdn0x2erev_tilde(void){
     class_addmethod(fdn_class, (t_method)fdn_time, gensym("time"), A_DEFFLOAT, 0);
     class_addmethod(fdn_class, (t_method)fdn_damping, gensym("damping"), A_DEFFLOAT, 0);
     class_addmethod(fdn_class, (t_method)fdn_set, gensym("set"),
-                    A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
+        A_DEFFLOAT, A_DEFFLOAT, A_DEFFLOAT, 0);
     class_addmethod(fdn_class, (t_method)fdn_exp, gensym("exp"), A_DEFFLOAT, 0);
     class_addmethod(fdn_class, (t_method)fdn_clear, gensym("clear"), 0);
     class_addmethod(fdn_class, (t_method)fdn_print, gensym("print"), 0);

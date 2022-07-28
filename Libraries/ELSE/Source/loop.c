@@ -1,4 +1,4 @@
-    // porres 2017
+// porres 2017
 
 #include "m_pd.h"
 #include "math.h"
@@ -56,10 +56,8 @@ static void loop_do_loop(t_loop *x){ // The Actual Loop
 }
 
 static void loop_bang(t_loop *x){
-//    post("loop_bang");
     if(x->x_status != RUNNING){
         x->x_count = x->x_counter_start; // reset
-//        post("before loop_do_loop");
         loop_do_loop(x);
     }
 }
@@ -87,7 +85,6 @@ static void loop_set(t_loop *x, t_symbol *s, int ac, t_atom *av){
         return;
     }
     else{
-        post("else");
         s = NULL;
         x->x_counter_start = atom_getfloat(av);
         x->x_target = atom_getfloat(av+1);
@@ -115,8 +112,14 @@ static void loop_float(t_loop *x, t_float f){
 }
 
 static void loop_list(t_loop *x, t_symbol *s, int ac, t_atom *av){
-//    post("loop_list");
     s = NULL;
+    if(ac < 2){
+        if(!ac)
+            loop_bang(x);
+        else if(ac == 1)
+            loop_float(x, atom_getfloat(av));
+        return;
+    }
     x->x_counter_start = atom_getfloat(av);
     x->x_target = atom_getfloat(av+1);
     if(ac == 3){
@@ -228,8 +231,6 @@ errstate:
 
 void loop_setup(void){
     loop_class = class_new(gensym("loop"), (t_newmethod)loop_new, 0, sizeof(t_loop), 0, A_GIMME, 0);
-    class_addbang(loop_class, loop_bang);
-    class_addfloat(loop_class, loop_float);
     class_addlist(loop_class, loop_list);
     class_addmethod(loop_class, (t_method)loop_pause, gensym("pause"), 0);
     class_addmethod(loop_class, (t_method)loop_continue, gensym("continue"), 0);

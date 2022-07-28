@@ -2,7 +2,6 @@
 
 #include "m_pd.h"
 #include "g_canvas.h"
-#include <stdio.h>
 #include <string.h>
 
 typedef struct _mouse_gui{

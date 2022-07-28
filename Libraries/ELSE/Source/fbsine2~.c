@@ -18,9 +18,8 @@ typedef struct _fbsine2{
     double    x_phase;
     t_float   x_sr;
     t_float   x_freq;
-    t_outlet  *x_outlet;
+    t_outlet *x_outlet;
 }t_fbsine2;
-
 
 static void fbsine2_clear(t_fbsine2 *x){
     x->x_xn = x->x_yn = 0;
@@ -66,8 +65,12 @@ static void fbsine2_coeffs(t_fbsine2 *x, t_symbol *s, int argc, t_atom * argv){
 static void fbsine2_list(t_fbsine2 *x, t_symbol *s, int argc, t_atom * argv){
     s = NULL;
     if(argc){
+        if(argc == 1){
+            obj_list(&x->x_obj, 0, argc, argv);
+            return;
+        }
         if(argc > 2){
-            pd_error(x, "fbsine2~: list size needs to be <= 2");
+            pd_error(x, "fbsine2~: list size needs to be = 2");
             return;
         }
         int argnum = 0; // current argument
@@ -132,7 +135,7 @@ static t_int *fbsine2_perform(t_int *w){
     x->x_phase = phase;
     x->x_xn = xn;
     x->x_yn = yn;
-    return(w + 5);
+    return(w+5);
 }
 
 static void fbsine2_dsp(t_fbsine2 *x, t_signal **sp){
@@ -142,7 +145,7 @@ static void fbsine2_dsp(t_fbsine2 *x, t_signal **sp){
 
 static void *fbsine2_free(t_fbsine2 *x){
     outlet_free(x->x_outlet);
-    return (void *)x;
+    return(void *)x;
 }
 
 static void *fbsine2_new(t_symbol *s, int ac, t_atom *av){
@@ -158,7 +161,7 @@ static void *fbsine2_new(t_symbol *s, int ac, t_atom *av){
     double yn = 0.1;
     int argnum = 0; // argument number
     while(ac){
-            if(av -> a_type != A_FLOAT)
+            if(av->a_type != A_FLOAT)
                 goto errstate;
             else{
                 t_float curf = atom_getfloatarg(0, ac, av);
@@ -187,8 +190,7 @@ static void *fbsine2_new(t_symbol *s, int ac, t_atom *av){
                 };
                 argnum++;
             };
-            ac--;
-            av++;
+            ac--, av++;
         };
     if(hz >= 0)
         x->x_phase = 1;
@@ -200,16 +202,15 @@ static void *fbsine2_new(t_symbol *s, int ac, t_atom *av){
     x->x_xn = xn;
     x->x_yn = yn;
     x->x_outlet = outlet_new(&x->x_obj, &s_signal);
-    return (x);
+    return(x);
     errstate:
-        pd_error(x, "fbsine2~: arguments needs to only contain floats");
+        pd_error(x, "[fbsine2~]: arguments needs to only contain floats");
         return NULL;
 }
 
 void fbsine2_tilde_setup(void){
-    fbsine2_class = class_new(gensym("fbsine2~"),
-        (t_newmethod)fbsine2_new, (t_method)fbsine2_free,
-        sizeof(t_fbsine2), 0, A_GIMME, 0);
+    fbsine2_class = class_new(gensym("fbsine2~"), (t_newmethod)fbsine2_new,
+        (t_method)fbsine2_free, sizeof(t_fbsine2), 0, A_GIMME, 0);
     CLASS_MAINSIGNALIN(fbsine2_class, t_fbsine2, x_freq);
     class_addmethod(fbsine2_class, (t_method)fbsine2_dsp, gensym("dsp"), A_CANT, 0);
     class_addlist(fbsine2_class, fbsine2_list);

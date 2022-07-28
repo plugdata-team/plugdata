@@ -70,8 +70,12 @@ static void lorenz_coeffs(t_lorenz *x, t_symbol *s, int argc, t_atom * argv){
 static void lorenz_list(t_lorenz *x, t_symbol *s, int argc, t_atom * argv){
     s = NULL;
     if(argc){
+        if(argc == 1){
+            obj_list(&x->x_obj, 0, argc, argv);
+            return;
+        }
         if(argc > 3){
-            pd_error(x, "lorenz~: list size needs to be <= 3");
+            pd_error(x, "[lorenz~]: list size needs to be <= 3");
             return;
         }
         int argnum = 0; // current argument

@@ -13,6 +13,13 @@ typedef struct _unmerge{
 static t_class *unmerge_class;
 
 static void unmerge_list(t_unmerge *x, t_symbol *s, int ac, t_atom *av){
+    if(ac == 1){
+        if(av->a_type == A_FLOAT)
+            outlet_float(x->x_outlets[0], atom_getfloat(av));
+        else if(av->a_type == A_SYMBOL)
+            outlet_symbol(x->x_outlets[0], atom_getsymbol(av));
+        return;
+    }
     int size = x->x_size < 1 ? 1 : x->x_size;
     int nouts = x->x_nouts;
     int length = size * nouts;
@@ -64,14 +71,6 @@ static void unmerge_anything(t_unmerge * x, t_symbol *s, int ac, t_atom * av){
         newlist[i+1] = av[i];
     unmerge_list(x, NULL, ac+1, newlist);
     t_freebytes(newlist, (ac+1) * sizeof(*newlist));
-}
-
-static void unmerge_float(t_unmerge *x, t_float f){
-    outlet_float(x->x_outlets[0], f);
-}
-
-static void unmerge_symbol(t_unmerge *x, t_symbol *s){
-    outlet_symbol(x->x_outlets[0], s);
 }
 
 static void unmerge_free(t_unmerge *x){
@@ -131,8 +130,6 @@ static void *unmerge_new(t_symbol *s, int ac, t_atom* av){
 void unmerge_setup(void){
     unmerge_class = class_new(gensym("unmerge"), (t_newmethod)unmerge_new,
         (t_method)unmerge_free, sizeof(t_unmerge), 0, A_GIMME, 0);
-    class_addfloat(unmerge_class, unmerge_float);
     class_addlist(unmerge_class, unmerge_list);
     class_addanything(unmerge_class, unmerge_anything);
-    class_addsymbol(unmerge_class, unmerge_symbol);
 }

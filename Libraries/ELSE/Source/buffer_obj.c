@@ -180,6 +180,8 @@ static void buffer_set(t_buffer *x, t_symbol *s, int ac, t_atom *av){
 
 static void buffer_setarray(t_buffer *x, t_symbol *s, int argc, t_atom *argv){
     s = NULL;
+    if(!argc)
+        return;
     buffer_resize(x, argc);
     char *itemp, *firstitem;
     int stride, nitem, arrayonset, i;
@@ -196,8 +198,12 @@ static void buffer_setarray(t_buffer *x, t_symbol *s, int argc, t_atom *argv){
 }
 
 static void buffer_list(t_buffer *x, t_symbol *s, int ac, t_atom *av){
-    buffer_setarray(x, s, ac, av);
-    outlet_list(x->x_tc.tc_obj.ob_outlet, 0, ac, av);
+    if(!ac)
+        buffer_bang(x);
+    else{
+        buffer_setarray(x, s, ac, av);
+        outlet_list(x->x_tc.tc_obj.ob_outlet, 0, ac, av);
+    }
 }
 
 static void buffer_proxy_list(t_buffer_proxy *p, t_symbol *s, int ac, t_atom *av){
@@ -207,7 +213,6 @@ static void buffer_proxy_list(t_buffer_proxy *p, t_symbol *s, int ac, t_atom *av
 
 void buffer_setup(void){
     buffer_class = class_new(gensym("buffer"), (t_newmethod)buffer_new, 0, sizeof(t_buffer), 0, A_DEFSYMBOL, 0);
-    class_addbang(buffer_class, buffer_bang);
     class_addlist(buffer_class, buffer_list);
     class_addmethod(buffer_class, (t_method)buffer_set, gensym("set"), A_GIMME, 0);
     class_addmethod(buffer_class, (t_method)buffer_name, gensym("name"), A_DEFSYMBOL, 0);

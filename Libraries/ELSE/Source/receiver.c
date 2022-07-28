@@ -132,12 +132,23 @@ static void receiver_pointer(t_receiver *x, t_gpointer *gp){
     outlet_pointer(x->x_obj.ob_outlet, gp);
 }
 
-static void receiver_list(t_receiver *x, t_symbol *s, int argc, t_atom *argv){
-    outlet_list(x->x_obj.ob_outlet, s, argc, argv);
+static void receiver_list(t_receiver *x, t_symbol *s, int ac, t_atom *av){
+    if(!ac)
+        receiver_bang(x);
+    else if(ac == 1){
+        if((av)->a_type == A_SYMBOL)
+           receiver_symbol(x, atom_getsymbol(av));
+        else if((av)->a_type == A_FLOAT)
+            receiver_float(x, atom_getfloat(av));
+        else if((av)->a_type == A_POINTER)
+            receiver_pointer(x, av->a_w.w_gpointer);
+    }
+    else
+        outlet_list(x->x_obj.ob_outlet, s, ac, av);
 }
 
-static void receiver_anything(t_receiver *x, t_symbol *s, int argc, t_atom *argv){
-    outlet_anything(x->x_obj.ob_outlet, s, argc, argv);
+static void receiver_anything(t_receiver *x, t_symbol *s, int ac, t_atom *av){
+    outlet_anything(x->x_obj.ob_outlet, s, ac, av);
 }
 
 static void *receiver_new(t_symbol *s, int ac, t_atom *av){

@@ -162,12 +162,22 @@ static void hot_proxy_dolist(t_hot_proxy *x, int ac, t_atom *av, int doit){
 }
 
 static void hot_proxy_list(t_hot_proxy *x, t_symbol *s, int ac, t_atom *av){
+    if(!ac){
+        hot_proxy_bang(x);
+        return;
+    }
+    else if(ac == 1){
+        if(av->a_type == A_FLOAT)
+            hot_proxy_float(x, atom_getfloat(av));
+        else if(av->a_type == A_SYMBOL)
+            hot_proxy_symbol(x, atom_getsymbol(av));
+        return;
+    }
     s = NULL;
     hot_proxy_dolist(x, ac, av, 1);
 }
 
-static void hot_proxy_doanything(t_hot_proxy *x,
-				   t_symbol *s, int ac, t_atom *av, int doit){
+static void hot_proxy_doanything(t_hot_proxy *x, t_symbol *s, int ac, t_atom *av, int doit){
     if (x->p_master->x_multiatom){
         /* LATER rethink and CHECKME */
         if (s == &s_symbol){
@@ -227,6 +237,17 @@ static void hot_pointer(t_hot *x, t_gpointer *gp){
 }
 
 static void hot_list(t_hot *x, t_symbol *s, int ac, t_atom *av){
+    if(!ac){
+        hot_bang(x);
+        return;
+    }
+    else if(ac == 1){
+        if(av->a_type == A_FLOAT)
+            hot_float(x, atom_getfloat(av));
+        else if(av->a_type == A_SYMBOL)
+            hot_symbol(x, atom_getsymbol(av));
+        return;
+    }
     s = NULL;
     hot_proxy_dolist((t_hot_proxy *)x->x_proxies[0], ac, av, 1);
 }
@@ -299,26 +320,17 @@ static void *hot_new(t_floatarg f){
     return (x);
 }
 
-void hot_setup(void)
-{
+void hot_setup(void){
     hot_class = class_new(gensym("hot"), (t_newmethod)hot_new, (t_method)hot_free,
-			    sizeof(t_hot), 0, A_DEFFLOAT, 0);
-    class_addbang(hot_class, hot_bang);
-    class_addfloat(hot_class, hot_float);
-    class_addsymbol(hot_class, hot_symbol);
-    class_addpointer(hot_class, hot_pointer);
+        sizeof(t_hot), 0, A_DEFFLOAT, 0);
     class_addlist(hot_class, hot_list);
     class_addanything(hot_class, hot_anything);
+    class_addpointer(hot_class, hot_pointer);
     class_addmethod(hot_class, (t_method)hot_set, gensym("set"), A_GIMME, 0);
     hot_proxy_class = class_new(gensym("_hot_proxy"), 0, 0,
-				  sizeof(t_hot_proxy),
-				  CLASS_PD | CLASS_NOINLET, 0);
-    class_addbang(hot_proxy_class, hot_proxy_bang);
-    class_addfloat(hot_proxy_class, hot_proxy_float);
-    class_addsymbol(hot_proxy_class, hot_proxy_symbol);
-    class_addpointer(hot_proxy_class, hot_proxy_pointer);
+        sizeof(t_hot_proxy), CLASS_PD | CLASS_NOINLET, 0);
     class_addlist(hot_proxy_class, hot_proxy_list);
     class_addanything(hot_proxy_class, hot_proxy_anything);
-    class_addmethod(hot_proxy_class, (t_method)hot_proxy_set,
-		    gensym("set"), A_GIMME, 0);
+    class_addpointer(hot_proxy_class, hot_proxy_pointer);
+    class_addmethod(hot_proxy_class, (t_method)hot_proxy_set, gensym("set"), A_GIMME, 0);
 }

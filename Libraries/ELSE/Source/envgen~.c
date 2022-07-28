@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <math.h>
 
-
 #define MAX_SEGS  64 // maximum line segments
 
 static t_class *envgen_proxy;
@@ -289,19 +288,8 @@ static void envgen_exp(t_envgen *x, t_symbol *s, int ac, t_atom *av){
     envgen_init(x, ac, av);
 }
 
-static void envgen_list(t_envgen *x,t_symbol* s, int ac,t_atom* av){
-    s = NULL;
-    x->x_exp = 0;
-    envgen_init(x, ac, av);
-}
-
 static void envgen_bang(t_envgen *x){
     envgen_attack(x, x->x_ac, x->x_av);
-}
-
-static void envgen_rel(t_envgen *x){
-    if(x->x_release)
-        envgen_release(x, x->x_ac_rel, x->x_av_rel);
 }
 
 static void envgen_float(t_envgen *x, t_floatarg f){
@@ -313,6 +301,26 @@ static void envgen_float(t_envgen *x, t_floatarg f){
         if(x->x_release)
             envgen_release(x, x->x_ac_rel, x->x_av_rel);
     }
+}
+
+static void envgen_list(t_envgen *x,t_symbol* s, int ac, t_atom* av){
+    s = NULL;
+    if(!ac){
+        envgen_bang(x);
+        return;
+    }
+    if(ac == 1){
+        if(av->a_type == A_FLOAT)
+            envgen_float(x, atom_getfloat(av));
+        return;
+    }
+    x->x_exp = 0;
+    envgen_init(x, ac, av);
+}
+
+static void envgen_rel(t_envgen *x){
+    if(x->x_release)
+        envgen_release(x, x->x_ac_rel, x->x_av_rel);
 }
 
 static void envgen_setgain(t_envgen *x, t_floatarg f){
@@ -518,9 +526,7 @@ void envgen_tilde_setup(void){
         (t_method)envgen_free, sizeof(t_envgen), CLASS_DEFAULT, A_GIMME, 0);
     class_addmethod(envgen_class, nullfn, gensym("signal"), 0);
     class_addmethod(envgen_class, (t_method)envgen_dsp, gensym("dsp"), A_CANT, 0);
-    class_addfloat(envgen_class, envgen_float);
     class_addlist(envgen_class, envgen_list);
-    class_addbang(envgen_class, envgen_bang);
     class_addmethod(envgen_class, (t_method)envgen_setgain, gensym("setgain"), A_FLOAT, 0);
     class_addmethod(envgen_class, (t_method)envgen_set, gensym("set"), A_GIMME, 0);
     class_addmethod(envgen_class, (t_method)envgen_exp, gensym("exp"), A_GIMME, 0);

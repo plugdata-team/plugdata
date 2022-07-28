@@ -13,19 +13,6 @@ typedef struct _rand_seq{
 
 static t_class *rand_seq_class;
 
-static void rand_seq_list(t_rand_seq *x, t_symbol*s, int ac, t_atom *av){
-    t_symbol *dummy = s;
-    dummy = NULL;
-    if(ac){
-        if(ac > x->x_nvalues)
-            ac = x->x_nvalues;
-        for(int i = 0; i < ac; i++){
-            int v = (int)av[i].a_w.w_float;
-            *(x->x_probs + i) = v < 0 ? 0 : v;
-        }
-    }
-}
-
 static void rand_seq_n(t_rand_seq *x, t_float f){
     int n = (int)f;
     if(n < 1)
@@ -84,6 +71,20 @@ static void rand_seq_bang(t_rand_seq *x){
     }
     if(candidates)
         freebytes(candidates,  nevalues*sizeof(int));
+}
+
+static void rand_seq_list(t_rand_seq *x, t_symbol*s, int ac, t_atom *av){
+    s = NULL;
+    if(!ac)
+        rand_seq_bang(x);
+    else{
+        if(ac > x->x_nvalues)
+            ac = x->x_nvalues;
+        for(int i = 0; i < ac; i++){
+            int v = (int)av[i].a_w.w_float;
+            *(x->x_probs + i) = v < 0 ? 0 : v;
+        }
+    }
 }
 
 static void rand_seq_set(t_rand_seq *x, t_float f, t_float v){
@@ -164,8 +165,7 @@ static void rand_seq_free(t_rand_seq *x){
 
 void setup_rand0x2eseq(void){
     rand_seq_class = class_new(gensym("rand.seq"), (t_newmethod)rand_seq_new,
-            (t_method)rand_seq_free, sizeof(t_rand_seq), 0, A_GIMME, 0);
-    class_addbang(rand_seq_class, rand_seq_bang);
+        (t_method)rand_seq_free, sizeof(t_rand_seq), 0, A_GIMME, 0);
     class_addlist(rand_seq_class, rand_seq_list);
     class_addmethod(rand_seq_class, (t_method)rand_seq_eq, gensym("eq"), A_FLOAT, 0);
     class_addmethod(rand_seq_class, (t_method)rand_seq_inc, gensym("inc"), A_FLOAT, 0);
