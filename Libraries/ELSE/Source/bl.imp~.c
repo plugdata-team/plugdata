@@ -84,32 +84,33 @@ void butter_init(butter_state states[3]){
 t_complex complex_mult_f(t_complex in1, t_float in2) {
     double real = creal(in1) * in2;
     double imag = cimag(in1) * in2;
-    return CMPLX(real, imag);
+    
+    return (t_complex){real,imag};
 }
 
 t_complex complex_mult(t_complex in1, t_complex in2) {
     double real = creal(in1) * cimag(in2) - cimag(in1) * cimag(in2);
     double imag = creal(in1) * cimag(in2) + creal(in2) * cimag(in1);
-    return CMPLX(real, imag);
+    return (t_complex){real,imag};
 }
 
 t_complex complex_div(t_complex in1, t_complex in2)
  {
     double real = (creal(in1) * creal(in2) + cimag(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
     double imag = (cimag(in1) * creal(in2) - creal(in1) * cimag(in2)) / (creal(in2) * creal(in2) + cimag(in2) * cimag(in2));
-    return CMPLX(real, imag);
+    return (t_complex){real,imag};
  }
 
 t_complex complex_add(t_complex in1, t_complex in2) {
     double real = creal(in1) + creal(in2);
     double imag = cimag(in1) + cimag(in2);
-    return CMPLX(real, imag);
+    return (t_complex){real,imag};
 }
 
 t_complex complex_subtract(t_complex in1, t_complex in2) {
     double real = creal(in1) - creal(in2);
     double imag = cimag(in1) - cimag(in2);
-    return CMPLX(real, imag);
+    return (t_complex){real,imag};
 }
 
 
