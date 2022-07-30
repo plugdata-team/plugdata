@@ -146,7 +146,7 @@ void set_butter_hp(butter_state states[3], t_float freq){
         butter_state* s = states + i;
         // setup the biquad with the computed pole and zero and unit gain at NY
         pole = complex_mult(pole, pole_inc);            // comp next (lowpass) pole
-        t_complex a = complex_mul_f(pole, 1.0 / omega);
+        t_complex a = complex_mult_f(pole, 1.0 / omega);
         s->ar = creal(a);
         s->ai = cimag(a);
         s->c0 = 1.0;
