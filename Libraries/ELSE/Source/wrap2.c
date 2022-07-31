@@ -2,6 +2,7 @@
  
 #include "m_pd.h"
 #include <math.h>
+#include <stdlib.h>
 
 static t_class *wrap2_class;
 
@@ -46,10 +47,11 @@ static void wrap2_list(t_wrap2 *x, t_symbol *s, int ac, t_atom *av){
     }
     if(ac == 1)
         outlet_float(x->x_outlet, convert(x->x_f = atom_getfloat(av), x->x_min, x->x_max));
-    t_atom at[ac];
+    t_atom* at = calloc(ac, sizeof(t_atom));
     for(int i = 0; i < ac; i++)
         SETFLOAT(at+i, convert(atom_getfloatarg(i, ac, av), x->x_min, x->x_max));
     outlet_list(x->x_outlet, 0, ac, at);
+    free(at);
 }
 
 static void wrap2_set(t_wrap2 *x, t_float f){

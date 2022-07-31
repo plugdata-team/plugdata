@@ -70,10 +70,11 @@ static void merge_inlet_list(t_merge_inlet *x, t_symbol* s, int ac, t_atom* av){
 }
 
 static void merge_inlet_anything(t_merge_inlet *x, t_symbol* s, int ac, t_atom* av){
-    t_atom at[ac+1];
+    t_atom* at = calloc(ac + 1, sizeof(t_atom));
     SETSYMBOL(at, s);
     atoms_copy(ac, av, at+1);
     merge_inlet_list(x, 0, ac+1, at);
+    free(at);
 }
 
 static void* merge_free(t_merge *x){

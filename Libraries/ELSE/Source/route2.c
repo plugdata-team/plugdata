@@ -1,4 +1,5 @@
 #include "m_pd.h"
+#include <stdlib.h>
 
 static t_class *route2_class;
 
@@ -68,7 +69,7 @@ static void route2_list(t_route2 *x, t_symbol *s, int ac, t_atom *av){
 }
 
 static void route2_anything(t_route2 *x, t_symbol *s, int ac, t_atom *av){
-    t_atom at[ac+1];
+    t_atom* at = calloc(ac + 1, sizeof(t_atom));
     SETSYMBOL(at, s);
     for(int i = 0; i < ac; i++){
         if((av+i)->a_type == A_FLOAT)
@@ -78,6 +79,7 @@ static void route2_anything(t_route2 *x, t_symbol *s, int ac, t_atom *av){
         }
     }
     route2_list(x, s = &s_list, ac+1, at);
+    free(at);
 }
 
 static void route2_free(t_route2 *x){

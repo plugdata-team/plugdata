@@ -81,15 +81,15 @@ void butter_init(butter_state states[3]){
     }
 }
 
-t_complex complex_mult_f(t_complex in1, t_float in2) {
-    double real = creal(in1) * (double)in2;
-    double imag = cimag(in1) * (double)in2;
+t_complex complex_div_f(t_float in1, t_complex in2) {
+    double real = (double)in1 / creal(in2);
+    double imag = (double)in1 / cimag(in2);
     
     return (t_complex){real,imag};
 }
 
 t_complex complex_mult(t_complex in1, t_complex in2) {
-    double real = creal(in1) * cimag(in2) - cimag(in1) * cimag(in2);
+    double real = creal(in1) * creal(in2) - cimag(in1) * cimag(in2);
     double imag = creal(in1) * cimag(in2) + creal(in2) * cimag(in1);
     return (t_complex){real,imag};
 }
@@ -115,11 +115,11 @@ t_complex complex_subtract(t_complex in1, t_complex in2) {
 
 
 t_complex complex_with_angle(const t_float angle){
-    return complex_mult_f((t_complex){0.0, 1.0}, cosf(angle) + sinf(angle));
+    return (t_complex){cosf(angle), sinf(angle)};
 }
 
 t_float complex_norm2(const t_complex x){
-    return creal(x) * creal(x) +  cimag(x) * cimag(x);
+    return creal(x) * creal(x) + cimag(x) * cimag(x);
 }
 t_float complex_norm(const t_complex x){
     return sqrt(complex_norm2(x));
@@ -146,7 +146,7 @@ void set_butter_hp(butter_state states[3], t_float freq){
         butter_state* s = states + i;
         // setup the biquad with the computed pole and zero and unit gain at NY
         pole = complex_mult(pole, pole_inc);            // comp next (lowpass) pole
-        t_complex a = complex_mult_f(pole, 1.0 / omega);
+        t_complex a = complex_div_f(omega, pole);
         s->ar = creal(a);
         s->ai = cimag(a);
         s->c0 = 1.0;

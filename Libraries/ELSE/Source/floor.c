@@ -2,6 +2,7 @@
 
 #include "m_pd.h"
 #include <math.h>
+#include <stdlib.h>
 
 static t_class *floor_class;
 
@@ -14,10 +15,11 @@ static void floor_list(t_floor *x, t_symbol *s, int ac, t_atom *av){
     if(ac == 1)
         outlet_float(x->x_obj.ob_outlet, floor(atom_getfloat(av)));
     else if(ac > 1){
-        t_atom at[ac];
+        t_atom* at = calloc(ac, sizeof(t_atom));
         for(int i = 0; i < ac; i++)
             SETFLOAT(at+i, floor(atom_getfloatarg(i, ac, av)));
         outlet_list(x->x_obj.ob_outlet, &s_list, ac, at);
+        free(at);
     }
 }
 
