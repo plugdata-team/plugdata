@@ -2,6 +2,7 @@
  
 #include "m_pd.h"
 #include <math.h>
+#include <stdlib.h>
 
 #define TWO_PI 3.14159265358979323846 * 2
 
@@ -28,10 +29,11 @@ static void hz2rad_list(t_hz2rad *x, t_symbol *s, int ac, t_atom *av){
     if(ac == 1)
         outlet_float(x->x_outlet, convert(x->x_f = atom_getfloat(av)));
     else if(ac > 1){
-        t_atom at[ac];
+        t_atom* at = calloc(ac, sizeof(t_atom));
         for(int i = 0; i < ac; i++)
             SETFLOAT(at+i, convert(atom_getfloatarg(i, ac, av)));
         outlet_list(x->x_obj.ob_outlet, &s_list, ac, at);
+        free(at);
     }
 }
 

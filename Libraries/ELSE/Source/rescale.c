@@ -2,6 +2,7 @@
  
 #include "m_pd.h"
 #include <math.h>
+#include <stdlib.h>
 
 static t_class *rescale_class;
 
@@ -56,10 +57,11 @@ static void rescale_list(t_rescale *x, t_symbol *s, int ac, t_atom *av){
     else if(ac == 1)
         outlet_float(x->x_obj.ob_outlet, convert(x, atom_getfloat(av)));
     else{
-        t_atom at[ac];
+        t_atom* at = calloc(ac, sizeof(t_atom));
         for(int i = 0; i < ac; i++)
             SETFLOAT(at+i, convert(x, atom_getfloatarg(i, ac, av)));
         outlet_list(x->x_obj.ob_outlet, &s_list, ac, at);
+        free(at);
     }
 }
 
