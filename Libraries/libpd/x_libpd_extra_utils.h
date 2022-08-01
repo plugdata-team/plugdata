@@ -30,8 +30,6 @@ int libpd_array_get_size(void* array);
 int libpd_array_get_style(void* array);
 int libpd_array_get_saveit(void* array);
 
-EXTERN int libpd_array_get_size(void* garray);
-
 // (re)size an array by name; sizes <= 0 are clipped to 1
 // returns 0 on success or negative error code if non-existent
 EXTERN int libpd_array_resize(void* garray, long size);
