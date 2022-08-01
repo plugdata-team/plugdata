@@ -10,7 +10,7 @@ struct RadioObject final : public IEMObject {
 
         max = getMaximum();
         max.addListener(this);
-        
+
         updateRange();
 
         int selected = getValueOriginal();

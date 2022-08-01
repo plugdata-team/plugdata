@@ -32,7 +32,6 @@
 
 // sample buffers
 static t_float bli[N]; // band limited impulse
-static t_float bls[N]; // band limited step
 
 t_class *blimp_class;
 
@@ -209,7 +208,7 @@ static inline t_float _get_bandlimited_discontinuity(t_blimpctl *ctl, t_float *t
 }
 
 // advance phasor and update waveplayers on phase wrap
-static void _bang_phasor(t_blimpctl *ctl, t_float freq){
+static void _bang_phasor(t_blimpctl *ctl, t_float freq, t_float sync, t_float phasemod){
     uint32_t phase = ctl->c_phase;
     uint32_t phase_inc;
     uint32_t oldphase;
@@ -217,8 +216,14 @@ static void _bang_phasor(t_blimpctl *ctl, t_float freq){
     t_float scale = ctl->c_scale;
     // get increment
     t_float inc = freq * ctl->c_phase_inc_scale;
+    inc += (phasemod * ctl->c_phase_inc_scale);
     // calculate new phase the increment (and the phase) should be a multiple of S
     if(inc < 0.0) inc = -inc;
+    
+    if(sync > 0 && sync <= 1){ // Phase sync: TODO: how to calculate old_phase
+        //inc = OLD_PHASE - _float_to_phase(sync);
+    }
+    
     phase_inc = ((uint32_t)inc) & ~(S-1);
     oldphase = phase;
     phase += phase_inc;
@@ -248,21 +253,27 @@ static void _bang_phasor(t_blimpctl *ctl, t_float freq){
 }
 
 static t_int *blimp_perform_imp(t_int *w){
-    t_float *freq     = (t_float *)(w[3]);
-    t_float *out      = (t_float *)(w[4]);
+    t_float *freq_vec     = (t_float *)(w[3]);
+    t_float *sync_vec     = (t_float *)(w[4]);
+    t_float *phasemod_vec = (t_float *)(w[5]);
+    t_float *out      = (t_float *)(w[6]);
     t_blimpctl *ctl   = (t_blimpctl *)(w[1]);
     t_int n           = (t_int)(w[2]);
+    
     // set postfilter cutoff
-    set_butter_hp(ctl->c_butter, 0.85 * (*freq / sys_getsr()));
+    set_butter_hp(ctl->c_butter, 0.85 * (*freq_vec / sys_getsr()));
+    
     while(n--){
-        t_float frequency = *freq++;
+        t_float freq = *freq_vec++;
+        t_float sync = *sync_vec++;
+        t_float phasemod = *phasemod_vec++;
         t_float sample = _get_bandlimited_discontinuity(ctl, bli);
         // highpass filter output to remove DC offset and low frequency aliasing
         butter_bang_smooth(ctl->c_butter, sample, &sample, 0.05);
         *out++ = sample * 2;
-        _bang_phasor(ctl, frequency); // advance phasor
+        _bang_phasor(ctl, freq, sync, phasemod); // advance phasor
     }
-    return(w+5);
+    return(w+7);
 }
 
 static void blimp_phase(t_blimp *x, t_float f){
@@ -383,25 +394,20 @@ static void build_tables(void){
         real[i] *= scale;
     // store bli table
     _store(bli, real, (t_float)S, N);
-    // _printm(bli, "h", N);
-    // integrate impulse and invert to produce a step function from 1->0 
-    sum = 0.0;
-    for(i = 0; i < N; i++){
-        sum += real[i];
-        real[i] = (1.0 - sum);
-    }
-    // store decimated bls tables
-    _store(bls, real, 1.0, N);
 }
 
 static void blimp_dsp(t_blimp *x, t_signal **sp){
     x->x_ctl.c_phase_inc_scale = 4.0 * ((t_float)(1<<(LPHASOR-2))) / sys_getsr();
-    dsp_add(blimp_perform_imp, 4, &x->x_ctl, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec);
+    dsp_add(blimp_perform_imp, 6, &x->x_ctl, sp[0]->s_n, sp[0]->s_vec, sp[1]->s_vec, sp[2]->s_vec, sp[3]->s_vec);
 }
 
 static void *blimp_new(t_symbol *s){
     t_blimp *x = (t_blimp *)pd_new(blimp_class);
+    
+    inlet_new(&x->x_obj, &x->x_obj.ob_pd,  &s_signal, &s_signal);
+    inlet_new(&x->x_obj, &x->x_obj.ob_pd,  &s_signal, &s_signal);
     outlet_new(&x->x_obj, gensym("signal"));
+    
     butter_init(x->x_ctl.c_butter);
     // init oscillators
     for(int i = 0; i < VOICES; i++){

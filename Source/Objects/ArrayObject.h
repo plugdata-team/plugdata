@@ -76,23 +76,23 @@ public:
     void read(std::vector<float>& output) const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        int const size = libpd_arraysize(ptr);
+        int const size = libpd_array_get_size(ptr);
         output.resize(static_cast<size_t>(size));
-        libpd_read_array(output.data(), ptr, 0, size);
+        libpd_array_read(output.data(), ptr, 0, size);
     }
 
     // Writes the values of the array.
     void write(std::vector<float> const& input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_write_array(ptr, 0, input.data(), static_cast<int>(input.size()));
+        libpd_array_write(ptr, 0, input.data(), static_cast<int>(input.size()));
     }
 
     // Writes a value of the array.
     void write(const size_t pos, float const input)
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        libpd_write_array(ptr, static_cast<int>(pos), &input, 1);
+        libpd_array_write(ptr, static_cast<int>(pos), &input, 1);
     }
 
     void* ptr = nullptr;

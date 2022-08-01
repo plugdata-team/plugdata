@@ -117,6 +117,7 @@ struct GUIObject : public ObjectBase
     void updateValue() override;
 
     virtual void update() {};
+    virtual void updateFromAudioThread() {};
 
     void updateParameters() override;
 
