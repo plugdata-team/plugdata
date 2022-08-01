@@ -1,12 +1,11 @@
 #include "../Utility/DraggableNumber.h"
 
 struct FloatAtomObject final : public AtomObject {
-    Label input;
-    DraggableNumber dragger;
+
+    DraggableNumber input;
 
     FloatAtomObject(void* obj, Box* parent)
         : AtomObject(obj, parent)
-        , dragger(input)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -24,20 +23,18 @@ struct FloatAtomObject final : public AtomObject {
 
         addAndMakeVisible(input);
 
-        input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
 
-        input.setEditable(true, false);
-
         addMouseListener(this, true);
 
-        dragger.dragStart = [this]() { startEdition(); };
+        input.dragStart = [this]() { startEdition(); };
 
-        dragger.valueChanged = [this](float value) { setValueOriginal(value); };
+        input.valueChanged = [this](float value) { setValueOriginal(value); };
 
-        dragger.dragEnd = [this]() { stopEdition(); };
+        input.dragEnd = [this]() { stopEdition(); };
     }
 
     void resized() override
@@ -50,7 +47,17 @@ struct FloatAtomObject final : public AtomObject {
 
     void update() override
     {
-        input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+    }
+    
+    void lock(bool isLocked) override
+    {
+        setInterceptsMouseClicks(isLocked, isLocked);
+        
+        // We don't want selection in edit mode to lead to selection in run mode
+        if(hasKeyboardFocus(true)) {
+            giveAwayKeyboardFocus();
+        }
     }
 
     ObjectParameters defineParameters() override

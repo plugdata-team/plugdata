@@ -224,8 +224,7 @@ struct PropertiesPanel : public PropertyPanel
     {
         Value& property;
         
-        Label minLabel, maxLabel;
-        std::unique_ptr<DraggableNumber> minDragger, maxDragger;
+        DraggableNumber minLabel, maxLabel;
         
         float min, max;
         
@@ -235,41 +234,38 @@ struct PropertiesPanel : public PropertyPanel
             max = value.getValue().getArray()->getReference(1);
             
             addAndMakeVisible(minLabel);
-            minLabel.setEditable(true, false);
+            minLabel.setEditableOnClick(true);
             minLabel.addMouseListener(this, true);
             minLabel.setText(String(min), dontSendNotification);
             
             addAndMakeVisible(maxLabel);
-            maxLabel.setEditable(true, false);
+            maxLabel.setEditableOnClick(true);
             maxLabel.addMouseListener(this, true);
             maxLabel.setText(String(max), dontSendNotification);
 
-            minDragger = std::make_unique<DraggableNumber>(minLabel);
-            maxDragger = std::make_unique<DraggableNumber>(maxLabel);
-            
-            maxDragger->setMinimum(min);
-            minDragger->setMaximum(max);
+            maxLabel.setMinimum(min);
+            minLabel.setMaximum(max);
             
             auto setMinimum = [this](float value){
                 min = value;
                 Array<var> arr = {min, max};
-                maxDragger->setMinimum(min + 1e-5f);
+                maxLabel.setMinimum(min + 1e-5f);
                 property = var(arr);
             };
             
             auto setMaximum = [this](float value){
                 max = value;
                 Array<var> arr = {min, max};
-                minDragger->setMaximum(max - 1e-5f);
+                minLabel.setMaximum(max - 1e-5f);
                 property = var(arr);
             };
             
-            minDragger->valueChanged = setMinimum;
+            minLabel.valueChanged = setMinimum;
             minLabel.onTextChange = [this, setMinimum](){
                 setMinimum(minLabel.getText().getFloatValue());
             };
 
-            maxDragger->valueChanged = setMaximum;
+            maxLabel.valueChanged = setMaximum;
             maxLabel.onTextChange = [this, setMaximum](){
                 setMaximum(maxLabel.getText().getFloatValue());
             };
@@ -287,30 +283,32 @@ struct PropertiesPanel : public PropertyPanel
     template <typename T>
     struct EditableComponent : public Property
     {
-        Label label;
+        std::unique_ptr<Label> label;
         Value& property;
-        std::unique_ptr<DraggableNumber> dragger;
 
         EditableComponent(String propertyName, Value& value, int idx) : Property(propertyName, idx), property(value)
         {
-            addAndMakeVisible(label);
-            label.setEditable(true, false);
-            label.getTextValue().referTo(property);
-            label.addMouseListener(this, true);
-            
             if constexpr (std::is_arithmetic<T>::value)  {
-                dragger = std::make_unique<DraggableNumber>(label);
+                label = std::make_unique<DraggableNumber>();
                 
-                dragger->valueChanged = [this](float value){
+                dynamic_cast<DraggableNumber*>(label.get())->valueChanged = [this](float value){
                     property = value;
                 };
             }
+            else {
+                label = std::make_unique<Label>();
+            }
             
-            label.setFont(Font(14));
+            addAndMakeVisible(label.get());
+            label->setEditable(true, false);
+            label->getTextValue().referTo(property);
+            label->addMouseListener(this, true);
+            
+            label->setFont(Font(14));
 
-            label.onEditorShow = [this]()
+            label->onEditorShow = [this]()
             {
-                auto* editor = label.getCurrentTextEditor();
+                auto* editor = label->getCurrentTextEditor();
 
                 if constexpr (std::is_floating_point<T>::value)
                 {
@@ -327,7 +325,7 @@ struct PropertiesPanel : public PropertyPanel
 
         void resized() override
         {
-            label.setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
+            label->setBounds(getLocalBounds().removeFromRight(getWidth() / (2 - hideLabel)));
         }
     };
 };
