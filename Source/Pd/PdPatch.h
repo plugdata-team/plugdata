@@ -133,7 +133,7 @@ private:
         { "hsl", "128 17 0 127 0 0 empty empty empty -2 -8 0 10 bgColour fgColour lblColour 0 1" },
         { "vsl", "17 128 0 127 0 0 empty empty empty 0 -9 0 10 bgColour fgColour lblColour 0 1" },
         { "bng", "25 250 50 0 empty empty empty 17 7 0 10 bgColour fgColour lblColour" },
-        { "nbx", "5 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour lblColour lblColour 0 256" },
+        { "nbx", "4 21 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10 bgColour lblColour lblColour 0 256" },
         { "hradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
         { "vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 lnColour lblColour" },

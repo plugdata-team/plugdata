@@ -1,12 +1,10 @@
 #include "../Utility/DraggableNumber.h"
 
 struct NumberObject final : public IEMObject {
-    Label input;
-    DraggableNumber dragger;
+    DraggableNumber input;
 
     NumberObject(void* obj, Box* parent)
         : IEMObject(obj, parent)
-        , dragger(input)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -28,20 +26,18 @@ struct NumberObject final : public IEMObject {
 
         addAndMakeVisible(input);
 
-        input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
 
-        input.setEditable(true, false);
-
         addMouseListener(this, true);
 
-        dragger.dragStart = [this]() { startEdition(); };
+        input.dragStart = [this]() { startEdition(); };
 
-        dragger.valueChanged = [this](float value) { setValueOriginal(value); };
+        input.valueChanged = [this](float value) { setValueOriginal(value); };
 
-        dragger.dragEnd = [this]() { stopEdition(); };
+        input.dragEnd = [this]() { stopEdition(); };
     }
 
     void updateBounds() override
@@ -91,10 +87,33 @@ struct NumberObject final : public IEMObject {
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }
+    
+    void focusGained(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
+    void focusLost(FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
+    void focusOfChildComponentChanged (FocusChangeType cause) override
+    {
+        repaint();
+    }
+    
+    void lock(bool isLocked) override
+    {
+        setInterceptsMouseClicks(isLocked, isLocked);
+        input.setWantsKeyboardFocus(isLocked);
+        
+        repaint();
+    }
 
     void update() override
     {
-        input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
     }
 
     ObjectParameters defineParameters() override
@@ -121,12 +140,16 @@ struct NumberObject final : public IEMObject {
 
         Rectangle<int> const iconBounds = getLocalBounds().withWidth(indent - 4).withHeight(getHeight() - 8).translated(4, 4);
 
-        Path corner;
+        Path triangle;
 
-        corner.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
+        triangle.addTriangle(iconBounds.getTopLeft().toFloat(), iconBounds.getTopRight().toFloat() + Point<float>(0, (iconBounds.getHeight() / 2.)), iconBounds.getBottomLeft().toFloat());
 
-        g.setColour(Colour(getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f));
-        g.fillPath(corner);
+        auto normalColour = Colour(getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f);
+        auto highlightColour = findColour(PlugDataColour::highlightColourId);
+        bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(box->locked.getValue());
+        
+        g.setColour(highlighed ? highlightColour : normalColour);
+        g.fillPath(triangle);
     }
 
     float getValue() override

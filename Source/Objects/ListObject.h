@@ -2,37 +2,36 @@
 struct ListObject final : public AtomObject {
     ListObject(void* obj, Box* parent)
         : AtomObject(obj, parent)
-        , dragger(label)
     {
-        label.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
-        label.setMinimumHorizontalScale(1.f);
-        label.setJustificationType(Justification::centredLeft);
-        label.setBorderSize(BorderSize<int>(2, 6, 2, 2));
-        label.setText(String(getValueOriginal()), dontSendNotification);
-        label.setEditable(true, false);
+        listLabel.setBounds(2, 0, getWidth() - 2, getHeight() - 1);
+        listLabel.setMinimumHorizontalScale(1.f);
+        listLabel.setJustificationType(Justification::centredLeft);
+        listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
+        listLabel.setText(String(getValueOriginal()), dontSendNotification);
+        listLabel.setEditable(true, false);
 
         setInterceptsMouseClicks(true, false);
-        addAndMakeVisible(label);
+        addAndMakeVisible(listLabel);
 
-        label.onEditorHide = [this]() {
+        listLabel.onEditorHide = [this]() {
             startEdition();
             updateFromGui();
             stopEdition();
         };
 
-        label.onEditorShow = [this]() {
-            auto* editor = label.getCurrentTextEditor();
+        listLabel.onEditorShow = [this]() {
+            auto* editor = listLabel.getCurrentTextEditor();
             if (editor != nullptr) {
                 editor->setIndents(1, 2);
                 editor->setBorder(BorderSize<int>(2, 6, 2, 2));
             }
         };
 
-        dragger.dragStart = [this]() { startEdition(); };
+        listLabel.dragStart = [this]() { startEdition(); };
 
-        dragger.valueChanged = [this](float) { updateFromGui(); };
+        listLabel.valueChanged = [this](float) { updateFromGui(); };
 
-        dragger.dragEnd = [this]() { stopEdition(); };
+        listLabel.dragEnd = [this]() { stopEdition(); };
 
         updateValue();
     }
@@ -40,7 +39,7 @@ struct ListObject final : public AtomObject {
     void updateFromGui()
     {
         auto array = StringArray();
-        array.addTokens(label.getText(), true);
+        array.addTokens(listLabel.getText(), true);
         std::vector<pd::Atom> list;
         list.reserve(array.size());
         for (auto const& elem : array) {
@@ -63,7 +62,7 @@ struct ListObject final : public AtomObject {
     {
         AtomObject::resized();
 
-        label.setBounds(getLocalBounds());
+        listLabel.setBounds(getLocalBounds());
     }
 
     void paint(Graphics& g) override
@@ -84,7 +83,7 @@ struct ListObject final : public AtomObject {
 
     void updateValue() override
     {
-        if (!edited && !label.isBeingEdited()) {
+        if (!edited && !listLabel.isBeingEdited()) {
             auto const array = getList();
             String message;
             for (auto const& atom : array) {
@@ -97,7 +96,7 @@ struct ListObject final : public AtomObject {
                     message += String(atom.getSymbol());
                 }
             }
-            label.setText(message, NotificationType::dontSendNotification);
+            listLabel.setText(message, NotificationType::dontSendNotification);
         }
     }
 
@@ -127,6 +126,5 @@ struct ListObject final : public AtomObject {
     }
 
 private:
-    Label label;
-    DraggableListNumber dragger;
+    DraggableListNumber listLabel;
 };
