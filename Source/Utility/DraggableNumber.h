@@ -52,7 +52,8 @@ struct DraggableNumber : public Label {
             showEditor();
             auto* editor = getCurrentTextEditor();
             auto chr = key.getTextCharacter();
-            auto text = String(static_cast<const wchar_t*>(&chr), 1);
+            auto text = String();
+            text += chr;
             editor->setText(text);
             
             return true;
