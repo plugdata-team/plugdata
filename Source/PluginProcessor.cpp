@@ -46,7 +46,7 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     // continuityChecker keeps track of whether audio is running and creates a backup scheduler in case it isn't
     continuityChecker.setCallback([this](t_float* in, t_float* out){
         
-        if(isNonRealtime()) return false;
+        if(isNonRealtime()) return;
         
         if(getCallbackLock()->tryEnter()) {
             

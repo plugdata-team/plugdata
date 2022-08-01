@@ -1,7 +1,7 @@
 #pragma once
 #include <JuceHeader.h>
 
-struct DraggableNumber : public MouseListener {
+struct DraggableNumber : public Label {
 
     float dragValue = 0.0f;
     bool shift = false;
@@ -10,20 +10,23 @@ struct DraggableNumber : public MouseListener {
     bool isMinLimited = false, isMaxLimited = false;
     float min, max;
 
-    Label& label;
     std::function<void(float)> valueChanged = [](float) {};
     std::function<void()> dragStart = []() {};
     std::function<void()> dragEnd = []() {};
 
-    DraggableNumber(Label& labelToAttachTo)
-        : label(labelToAttachTo)
+    DraggableNumber()
     {
-        label.addMouseListener(this, false);
+        setWantsKeyboardFocus(true);
     }
 
     ~DraggableNumber()
     {
-        label.removeMouseListener(this);
+    }
+    
+    void setEditableOnClick(bool editable)
+    {
+        setEditable(true, false);
+        setInterceptsMouseClicks(true, true);
     }
 
     void setMaximum(float maximum)
@@ -37,21 +40,60 @@ struct DraggableNumber : public MouseListener {
         isMinLimited = true;
         min = minimum;
     }
-
-    void mouseDown(MouseEvent const& e)
+    
+    bool keyPressed (const KeyPress &key) override
     {
-        if (label.isBeingEdited())
+        // Otherwise it might catch a shortcut
+        if(key.getModifiers().isCommandDown()) return false;
+        
+        if (!getCurrentTextEditor() && ((key.getTextCharacter() >= '0' && key.getTextCharacter() <= '9') || key.getTextCharacter() == '+' || key.getTextCharacter() == '-' || key.getTextCharacter() == '.' || key.getTextCharacter() == 'e' || key.getTextCharacter() == 'E'))
+        {
+            
+            showEditor();
+            auto* editor = getCurrentTextEditor();
+            auto chr = key.getTextCharacter();
+            editor->setText(String(&chr, 1));
+            
+            return true;
+        }
+        
+        return false;
+    }
+    
+    
+    // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
+    void mouseEnter(MouseEvent const& e) override
+    {
+        if (e.mouseWasDraggedSinceMouseDown())
+            return;
+
+        setMouseCursor(MouseCursor::NormalCursor);
+        updateMouseCursor();
+    }
+
+    void mouseExit(MouseEvent const& e) override
+    {
+        if (e.mouseWasDraggedSinceMouseDown())
+            return;
+
+        setMouseCursor(MouseCursor::NormalCursor);
+        updateMouseCursor();
+    }
+
+    void mouseDown(MouseEvent const& e) override
+    {
+        if (isBeingEdited())
             return;
 
         shift = e.mods.isShiftDown();
-        dragValue = label.getText().getFloatValue();
+        dragValue = getText().getFloatValue();
 
-        auto const textArea = label.getBorderSize().subtractedFrom(label.getLocalBounds());
+        auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         GlyphArrangement glyphs;
-        glyphs.addFittedText(label.getFont(), label.getText(), textArea.getX(), 0., textArea.getWidth(), label.getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
+        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
-        float decimalX = label.getWidth();
+        float decimalX = getWidth();
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
             auto const& glyph = glyphs.getGlyph(i);
             if (glyph.getCharacter() == '.') {
@@ -67,7 +109,7 @@ struct DraggableNumber : public MouseListener {
             GlyphArrangement decimalsGlyph;
             static const String decimalStr("000000");
 
-            decimalsGlyph.addFittedText(label.getFont(), decimalStr, decimalX, 0, label.getWidth(), label.getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
+            decimalsGlyph.addFittedText(getFont(), decimalStr, decimalX, 0, getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
             for (int i = 0; i < decimalsGlyph.getNumGlyphs(); ++i) {
                 auto const& glyph = decimalsGlyph.getGlyph(i);
@@ -81,33 +123,15 @@ struct DraggableNumber : public MouseListener {
         dragStart();
     }
 
-    // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
-    void mouseEnter(MouseEvent const& e)
+
+    void mouseDrag(MouseEvent const& e) override
     {
-        if (e.mouseWasDraggedSinceMouseDown())
-            return;
-
-        label.setMouseCursor(MouseCursor::NormalCursor);
-        label.updateMouseCursor();
-    }
-
-    void mouseExit(MouseEvent const& e)
-    {
-        if (e.mouseWasDraggedSinceMouseDown())
-            return;
-
-        label.setMouseCursor(MouseCursor::NormalCursor);
-        label.updateMouseCursor();
-    }
-
-    void mouseDrag(MouseEvent const& e)
-    {
-        if (label.isBeingEdited())
+        if (isBeingEdited())
             return;
 
         // Hide cursor and set unbounded mouse movement
-        label.setMouseCursor(MouseCursor::NoCursor);
-        label.updateMouseCursor();
+        setMouseCursor(MouseCursor::NoCursor);
+        updateMouseCursor();
 
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
@@ -132,24 +156,26 @@ struct DraggableNumber : public MouseListener {
         if (isMaxLimited)
             newValue = std::min(newValue, max);
 
-        label.setText(formatNumber(newValue), dontSendNotification);
+        setText(formatNumber(newValue), dontSendNotification);
         valueChanged(newValue);
     }
 
-    void mouseUp(MouseEvent const& e)
+    void mouseUp(MouseEvent const& e) override
     {
-        if (label.isBeingEdited())
+        if (isBeingEdited())
             return;
 
         // Show cursor again
-        label.setMouseCursor(MouseCursor::NormalCursor);
-        label.updateMouseCursor();
+        setMouseCursor(MouseCursor::NormalCursor);
+        updateMouseCursor();
 
         // Reset mouse position to where it was first clicked and disable unbounded movement
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
+        
+        Label::mouseUp(e);
     }
 
     String formatNumber(float value)
@@ -157,7 +183,7 @@ struct DraggableNumber : public MouseListener {
         String text;
         text << value;
 
-        while (text.length() > 1 && label.getFont().getStringWidth(text) > label.getWidth() - 5) {
+        while (text.length() > 1 && getFont().getStringWidth(text) > getWidth() - 5) {
             text = text.dropLastCharacters(1);
         }
         if (!text.containsChar('.'))
@@ -173,24 +199,23 @@ struct DraggableListNumber : public DraggableNumber {
 
     bool targetFound = false;
 
-    explicit DraggableListNumber(Label& label)
-        : DraggableNumber(label)
+    explicit DraggableListNumber()
     {
     }
 
     void mouseDown(MouseEvent const& e)
     {
-        if (label.isBeingEdited())
+        if (isBeingEdited())
             return;
 
         shift = e.mods.isShiftDown();
 
-        auto const textArea = label.getBorderSize().subtractedFrom(label.getBounds());
+        auto const textArea = getBorderSize().subtractedFrom(getBounds());
 
         GlyphArrangement glyphs;
-        glyphs.addFittedText(label.getFont(), label.getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, label.getMinimumHorizontalScale());
+        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), textArea.getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
-        auto text = label.getText();
+        auto text = getText();
         targetFound = false;
         // Loop to find start of item
         for (int i = 0; i < glyphs.getNumGlyphs(); i++) {
@@ -235,12 +260,12 @@ struct DraggableListNumber : public DraggableNumber {
 
     void mouseDrag(MouseEvent const& e)
     {
-        if (label.isBeingEdited() || !targetFound)
+        if (isBeingEdited() || !targetFound)
             return;
 
         // Hide cursor and set unbounded mouse movement
-        label.setMouseCursor(MouseCursor::NoCursor);
-        label.updateMouseCursor();
+        setMouseCursor(MouseCursor::NoCursor);
+        updateMouseCursor();
 
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
@@ -258,25 +283,25 @@ struct DraggableListNumber : public DraggableNumber {
         auto replacement = String();
         replacement << newValue;
 
-        auto newText = label.getText().replaceSection(numberStartIdx, length, replacement);
+        auto newText = getText().replaceSection(numberStartIdx, length, replacement);
 
         // In case the length of the number changes
         if (length != replacement.length()) {
             numberEndIdx = replacement.length() + numberStartIdx;
         }
 
-        label.setText(newText, dontSendNotification);
+        setText(newText, dontSendNotification);
         valueChanged(0);
     }
 
     void mouseUp(MouseEvent const& e)
     {
-        if (label.isBeingEdited() || !targetFound)
+        if (isBeingEdited() || !targetFound)
             return;
 
         // Show cursor again
-        label.setMouseCursor(MouseCursor::NormalCursor);
-        label.updateMouseCursor();
+        setMouseCursor(MouseCursor::NormalCursor);
+        updateMouseCursor();
 
         // Reset mouse position to where it was first clicked and disable unbounded movement
         auto mouseSource = Desktop::getInstance().getMainMouseSource();

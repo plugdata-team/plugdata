@@ -26,14 +26,13 @@ struct t_number_tilde
 
 
 struct NumberTildeObject final : public GUIObject, public Timer {
-    Label input;
-    DraggableNumber dragger;
+    DraggableNumber input;
 
     int nextInterval = 100;
     std::atomic<int> mode = 0;
     
     NumberTildeObject(void* obj, Box* parent)
-        : GUIObject(obj, parent), dragger(input)
+        : GUIObject(obj, parent)
     {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
@@ -53,21 +52,20 @@ struct NumberTildeObject final : public GUIObject, public Timer {
 
         addAndMakeVisible(input);
 
-        input.setText(dragger.formatNumber(getValue()), dontSendNotification);
+        input.setText(input.formatNumber(getValue()), dontSendNotification);
 
         min = getMinimum();
         max = getMaximum();
 
-        input.setEditable(true, false);
-
         addMouseListener(this, true);
 
-        dragger.valueChanged = [this](float value) { setValue(value); };
+        input.valueChanged = [this](float value) { setValue(value); };
         
         mode = static_cast<t_number_tilde*>(ptr)->x_output_mode;
         
         startTimer(nextInterval);
     }
+    
 
     void updateBounds() override
     {
@@ -145,7 +143,7 @@ struct NumberTildeObject final : public GUIObject, public Timer {
     
     void timerCallback() override
     {
-        input.setText(dragger.formatNumber(getValueOriginal()), dontSendNotification);
+        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
         startTimer(nextInterval);
     }
 
