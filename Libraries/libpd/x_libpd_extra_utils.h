@@ -30,6 +30,26 @@ int libpd_array_get_size(void* array);
 int libpd_array_get_style(void* array);
 int libpd_array_get_saveit(void* array);
 
+EXTERN int libpd_array_get_size(void* garray);
+
+// (re)size an array by name; sizes <= 0 are clipped to 1
+// returns 0 on success or negative error code if non-existent
+EXTERN int libpd_array_resize(void* garray, long size);
+
+// read n values from named src array and write into dest starting at an offset
+// note: performs no bounds checking on dest
+// returns 0 on success or a negative error code if the array is non-existent
+// or offset + n exceeds range of array
+EXTERN int libpd_array_read(float* dest, void* garray, int offset, int n);
+
+// read n values from src and write into named dest array starting at an offset
+// note: performs no bounds checking on src
+// returns 0 on success or a negative error code if the array is non-existent
+// or offset + n exceeds range of array
+EXTERN int libpd_array_write(void* garray, int offset,
+    float const* src, int n);
+
+
 unsigned int libpd_iemgui_get_background_color(void* ptr);
 unsigned int libpd_iemgui_get_foreground_color(void* ptr);
 unsigned int libpd_iemgui_get_label_color(void* ptr);
@@ -39,6 +59,9 @@ void libpd_iemgui_set_foreground_color(void* ptr, char const* hex);
 void libpd_iemgui_set_label_color(void* ptr, char const* hex);
 
 float libpd_get_canvas_font_height(t_canvas* cnv);
+
+int libpd_process_nodsp(void);
+
 
 #ifdef __cplusplus
 }

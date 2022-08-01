@@ -13,6 +13,7 @@
 
 extern "C"
 {
+    #include "x_libpd_extra_utils.h"
     EXTERN char* pd_version;
 }
 

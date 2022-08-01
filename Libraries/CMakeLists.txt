@@ -109,11 +109,6 @@ set(LIBPD_OUTPUT_DIRECTORY "./..")
 option(PD_UTILS "Compile libpd utilities" OFF)
 option(PD_EXTRA "Compile extras" ON)
 option(PD_LOCALE "Set the LC_NUMERIC number format to the default C locale" ON)
-
-execute_process(
-            COMMAND ${CMAKE_COMMAND} -E rm ${PD_PATH}/src/z_libpd.h
-            WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
-        )
         
 # ------------------------------------------------------------------------------#
 # SOURCES
@@ -209,6 +204,9 @@ file(GLOB PD_SOURCES
     ${PD_PATH}/src/x_vexp.c
     ${PD_PATH}/src/x_vexp_fun.c
     ${PD_PATH}/src/x_vexp_if.c
+    ${PD_PATH}/src/z_hooks.c
+    ${PD_PATH}/src/z_libpd.c
+    ${PD_PATH}/src/z_print_util.c
 )
 include_directories(${PD_PATH}/src)
 source_group(pd FILES ${PD_SOURCES})
@@ -241,10 +239,6 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/s_libpdmidi.c
     ${LIBPD_PATH}/x_libpdreceive.c
     ${LIBPD_PATH}/x_libpdreceive.h
-    ${LIBPD_PATH}/z_hooks.c
-    ${LIBPD_PATH}/z_hooks.h
-    ${LIBPD_PATH}/z_libpd.c
-    ${LIBPD_PATH}/z_libpd.h
     ${LIBPD_PATH}/x_libpd_extra_utils.c
     ${LIBPD_PATH}/x_libpd_extra_utils.h
     ${LIBPD_PATH}/x_libpd_mod_utils.c
@@ -253,8 +247,6 @@ set(LIBPD_SOURCES
     ${LIBPD_PATH}/x_libpd_multi.h
     ${LIBPD_PATH}/s_libpd_inter.c
     ${LIBPD_PATH}/s_libpd_inter.h
-    ${LIBPD_PATH}/z_print_util.c
-    ${LIBPD_PATH}/z_print_util.h
 )
 
 include_directories(${LIBPD_PATH})

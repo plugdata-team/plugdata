@@ -133,5 +133,4 @@ struct BangObject final : public IEMObject {
             IEMObject::valueChanged(value);
         }
     }
-
 };

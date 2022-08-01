@@ -10,6 +10,8 @@
 #include <m_pd.h>
 #include <m_imp.h>
 #include <g_canvas.h>
+#include <s_stuff.h>
+#include <m_imp.h>
 #include <g_all_guis.h>
 #include "x_libpd_multi.h"
 
@@ -218,4 +220,88 @@ float libpd_get_canvas_font_height(t_canvas* cnv)
         return 36.0032 * zoom; // 41.91f * zoom;
     }
     return glist_fontheight(cnv);
+}
+
+int libpd_array_resize(void* garray, long size)
+{
+    sys_lock();
+    garray_resize_long(garray, size);
+    sys_unlock();
+    return 0;
+}
+
+#define MEMCPY(_x, _y)                                              \
+    if (n < 0 || offset < 0 || offset + n > garray_npoints(garray)) \
+        return -2;                                                  \
+    t_word* vec = ((t_word*)garray_vec(garray)) + offset;           \
+    int i;                                                          \
+    for (i = 0; i < n; i++)                                         \
+        _x = _y;
+
+int libpd_array_read(float* dest, void* garray, int offset, int n)
+{
+    sys_lock();
+    MEMCPY(*dest++, (vec++)->w_float)
+    sys_unlock();
+    return 0;
+}
+
+int libpd_array_write(void* garray, int offset, float const* src, int n)
+{
+    sys_lock();
+    MEMCPY((vec++)->w_float, *src++)
+    sys_unlock();
+    return 0;
+}
+
+#define PROCESS_NODSP()                                      \
+    size_t n_in = STUFF->st_inchannels * DEFDACBLKSIZE;      \
+    size_t n_out = STUFF->st_outchannels * DEFDACBLKSIZE;    \
+    t_sample* p;                                             \
+    size_t i;                                                \
+    sys_lock();                                              \
+    sys_pollgui();                                           \
+    for (p = STUFF->st_soundin, i = 0; i < n_in; i++) {      \
+        *p++ = 0.0;                                          \
+    }                                                        \
+    memset(STUFF->st_soundout, 0, n_out * sizeof(t_sample)); \
+    sched_tick_nodsp();                                      \
+    sys_unlock();                                            \
+    return 0;
+
+#define TIMEUNITPERMSEC (32. * 441.)
+#define TIMEUNITPERSECOND (TIMEUNITPERMSEC * 1000.)
+#define SYSTIMEPERTICK \
+    ((STUFF->st_schedblocksize / STUFF->st_dacsr) * TIMEUNITPERSECOND)
+
+struct _clock {
+    double c_settime; // in TIMEUNITS; <0 if unset
+    void* c_owner;
+    void (*c_fn)(void*); // clock fn
+    struct _clock* c_next;
+    t_float c_unit; // >0 if in TIMEUNITS; <0 if in samples
+};
+
+
+static void sched_tick_nodsp(void)
+{
+    double next_sys_time = pd_this->pd_systime + SYSTIMEPERTICK;
+    int countdown = 5000;
+    while (pd_this->pd_clock_setlist && pd_this->pd_clock_setlist->c_settime < next_sys_time) {
+        t_clock* c = pd_this->pd_clock_setlist;
+        pd_this->pd_systime = c->c_settime;
+        clock_unset(pd_this->pd_clock_setlist);
+        outlet_setstacklim();
+        (*c->c_fn)(c->c_owner);
+        if (!countdown--) {
+            countdown = 5000;
+            (void)sys_pollgui();
+        }
+    }
+    pd_this->pd_systime = next_sys_time;
+}
+
+int libpd_process_nodsp(void)
+{
+    PROCESS_NODSP()
 }
