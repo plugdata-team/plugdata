@@ -512,8 +512,9 @@ void Canvas::mouseUp(const MouseEvent& e)
         connectingWithDrag = false;
         repaint();
     }
-    else if (connectingWithDrag && connectingEdges.isEmpty())
+    else if (connectingWithDrag)
     {
+        connectingEdges.clear();
         connectingWithDrag = false;
         repaint();
     }
@@ -830,6 +831,9 @@ void Canvas::valueChanged(Value& v)
         if (!connectingEdges.isEmpty()) connectingEdges.clear();
         deselectAll();
         repaint();
+        
+        // Makes sure no objects keep keyboard focus after locking/unlocking
+        grabKeyboardFocus();
     }
     else if (v.refersToSameSourceAs(commandLocked))
     {
