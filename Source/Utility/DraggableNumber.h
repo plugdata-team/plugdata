@@ -48,7 +48,6 @@ struct DraggableNumber : public Label {
         
         if (!getCurrentTextEditor() && ((key.getTextCharacter() >= '0' && key.getTextCharacter() <= '9') || key.getTextCharacter() == '+' || key.getTextCharacter() == '-' || key.getTextCharacter() == '.' || key.getTextCharacter() == 'e' || key.getTextCharacter() == 'E'))
         {
-            
             showEditor();
             auto* editor = getCurrentTextEditor();
             auto chr = key.getTextCharacter();
@@ -56,6 +55,17 @@ struct DraggableNumber : public Label {
             text += chr;
             editor->setText(text);
             
+            return true;
+        }
+        
+        if(!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::upKey) {
+            auto newValue = getText().getFloatValue();
+            setText(String(formatNumber(newValue + 1)), sendNotification);
+            return true;
+        }
+        if(!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::downKey) {
+            auto newValue = getText().getFloatValue();
+            setText(String(formatNumber(newValue - 1)), sendNotification);
             return true;
         }
         
