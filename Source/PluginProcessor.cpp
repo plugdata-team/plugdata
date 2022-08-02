@@ -792,7 +792,7 @@ void PlugDataAudioProcessor::sendMidiBuffer()
 
 void PlugDataAudioProcessor::processInternal()
 {
-    // setThis();
+    setThis();
 
     // clear midi out
     if (producesMidi())
