@@ -2,7 +2,7 @@
 
 struct NumberObject final : public IEMObject {
     DraggableNumber input;
-
+    
     NumberObject(void* obj, Box* parent)
         : IEMObject(obj, parent)
     {
@@ -106,8 +106,6 @@ struct NumberObject final : public IEMObject {
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
-        input.setWantsKeyboardFocus(isLocked);
-        
         repaint();
     }
 
@@ -149,6 +147,8 @@ struct NumberObject final : public IEMObject {
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(box->locked.getValue());
         
         g.setColour(highlighed ? highlightColour : normalColour);
+        
+        std::cout << highlighed << std::endl;
         g.fillPath(triangle);
     }
 
