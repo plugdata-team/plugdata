@@ -46,11 +46,13 @@ struct DraggableNumber : public Label {
         // Otherwise it might catch a shortcut
         if(key.getModifiers().isCommandDown()) return false;
         
-        if (!getCurrentTextEditor() && ((key.getTextCharacter() >= '0' && key.getTextCharacter() <= '9') || key.getTextCharacter() == '+' || key.getTextCharacter() == '-' || key.getTextCharacter() == '.' || key.getTextCharacter() == 'e' || key.getTextCharacter() == 'E'))
+        auto chr = key.getTextCharacter();
+        
+        if (!getCurrentTextEditor() && ((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.'))
         {
             showEditor();
             auto* editor = getCurrentTextEditor();
-            auto chr = key.getTextCharacter();
+            
             auto text = String();
             text += chr;
             editor->setText(text);
