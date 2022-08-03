@@ -6,6 +6,7 @@ struct DraggableNumber : public Label {
     float dragValue = 0.0f;
     bool shift = false;
     int decimalDrag = 0;
+    int numDecimalsToShow = 0;
 
     bool isMinLimited = false, isMaxLimited = false;
     float min, max;
@@ -62,12 +63,12 @@ struct DraggableNumber : public Label {
         
         if(!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::upKey) {
             auto newValue = getText().getFloatValue();
-            setText(String(formatNumber(newValue + 1)), sendNotification);
+            setText(String(newValue + 1), sendNotification);
             return true;
         }
         if(!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::downKey) {
             auto newValue = getText().getFloatValue();
-            setText(String(formatNumber(newValue - 1)), sendNotification);
+            setText(String(newValue - 1), sendNotification);
             return true;
         }
         
@@ -105,7 +106,7 @@ struct DraggableNumber : public Label {
         auto const textArea = getBorderSize().subtractedFrom(getLocalBounds());
 
         GlyphArrangement glyphs;
-        glyphs.addFittedText(getFont(), getText(), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
+        glyphs.addFittedText(getFont(), formatNumber(dragValue), textArea.getX(), 0., textArea.getWidth(), getHeight(), Justification::centredLeft, 1, getMinimumHorizontalScale());
 
         float decimalX = getWidth();
         for (int i = 0; i < glyphs.getNumGlyphs(); ++i) {
@@ -134,9 +135,27 @@ struct DraggableNumber : public Label {
             }
         }
 
+        numDecimalsToShow = decimalDrag;
+        
         dragStart();
     }
 
+    void paint (Graphics& g) override
+    {
+        if (!isBeingEdited())
+        {
+            g.setColour(findColour(Label::textColourId));
+            g.setFont(getFont());
+        
+            auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
+
+            g.drawFittedText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, getJustificationType(),
+                              jmax (1, (int) ((float) textArea.getHeight() / getFont().getHeight())),
+                              getMinimumHorizontalScale());
+
+        }
+    }
+    
 
     void mouseDrag(MouseEvent const& e) override
     {
@@ -170,7 +189,10 @@ struct DraggableNumber : public Label {
         if (isMaxLimited)
             newValue = std::min(newValue, max);
 
-        setText(formatNumber(newValue), dontSendNotification);
+        setText(String(newValue), dontSendNotification);
+        
+        numDecimalsToShow = decimal;
+        
         valueChanged(newValue);
     }
 
@@ -192,11 +214,10 @@ struct DraggableNumber : public Label {
         Label::mouseUp(e);
     }
 
-    String formatNumber(float value)
+    String formatNumber(float value, int precision = -1)
     {
-        String text;
-        text << value;
-
+        auto text = String(value, precision);
+        
         while (text.length() > 1 && getFont().getStringWidth(text) > getWidth() - 5) {
             text = text.dropLastCharacters(1);
         }
@@ -284,7 +305,7 @@ struct DraggableListNumber : public DraggableNumber {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        // const int decimal = decimalDrag + e.mods.isShiftDown();
+        const int decimal = decimalDrag + e.mods.isShiftDown();
         float const increment = 1.;
         float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
