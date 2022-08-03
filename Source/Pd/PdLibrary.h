@@ -96,6 +96,7 @@ struct Library : public FileSystemWatcher::Listener {
 
     ~Library()
     {
+        appDirChanged = nullptr;
         if (thread) {
             thread->waitForThreadToExit(-1);
             delete thread;
@@ -110,7 +111,7 @@ struct Library : public FileSystemWatcher::Listener {
 
     String getInletOutletTooltip(String boxname, int idx, int total, bool isInlet);
 
-    void changeCallback() override;
+    void fsChangeCallback() override;
 
     LambdaThread* thread;
 

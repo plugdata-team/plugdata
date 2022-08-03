@@ -59,12 +59,12 @@ public:
     public:
         virtual ~Listener() = default;
 
-        virtual void changeCallback() = 0;
+        virtual void fsChangeCallback() = 0;
 
         // group changes together
         void timerCallback()
         {
-            changeCallback();
+            fsChangeCallback();
             stopTimer();
         }
         /* Called when any file in the listened to folder changes with the name of
