@@ -103,10 +103,8 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
 
     sendMessagesFromQueue();
 
-    objectLibrary.appDirChanged = [this, _this = Component::SafePointer(this)]()
+    objectLibrary.appDirChanged = [this]()
     {
-        if(!_this) return;
-        
         auto newTree = ValueTree::fromXml(settingsFile.loadFileAsString());
 
         // Prevents causing an update loop
