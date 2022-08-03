@@ -220,11 +220,15 @@ void Library::initialiseLibrary()
 
         watcher.addFolder(appDataDir);
         watcher.addListener(this);
+        
+        if(thread->threadShouldExit()) return;
 
         // Update docs in GUI
         MessageManager::callAsync([this]() {
             appDirChanged();
         });
+        
+        
 
         libraryLock.unlock();
     };
