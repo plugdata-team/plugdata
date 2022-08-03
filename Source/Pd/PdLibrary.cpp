@@ -225,10 +225,9 @@ void Library::initialiseLibrary()
 
         // Update docs in GUI
         MessageManager::callAsync([this]() {
-            appDirChanged();
+            if(appDirChanged) appDirChanged();
         });
-        
-        
+
 
         libraryLock.unlock();
     };
@@ -443,7 +442,7 @@ String Library::getInletOutletTooltip(String boxname, int idx, int total, bool i
     return isInlet ? findInfo(getInletDescriptions()) : findInfo(getOutletDescriptions());
 }
 
-void Library::changeCallback()
+void Library::fsChangeCallback()
 {
     appDirChanged();
     updateLibrary();
