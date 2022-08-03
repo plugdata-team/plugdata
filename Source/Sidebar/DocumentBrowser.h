@@ -728,7 +728,7 @@ struct DocumentBrowser : public DocumentBrowserBase
     }
 
     // Called when folder changes
-    void changeCallback() override
+    void fsChangeCallback() override
     {
         directory.refresh();
         fileList.refresh();
