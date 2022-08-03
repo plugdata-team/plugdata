@@ -23,9 +23,10 @@ AudioProcessor::BusesProperties PlugDataAudioProcessor::buildBusesProperties()
     AudioProcessor::BusesProperties busesProperties;
 
     busesProperties.addBus(true, "Main Input", AudioChannelSet::stereo(), true);
-    busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
-    
+
     for (int i = 1; i < numInputBuses; i++) busesProperties.addBus(true, "Aux Input " + String(i), AudioChannelSet::stereo(), false);
+
+    busesProperties.addBus(false, "Main Output", AudioChannelSet::stereo(), true);
 
     for (int i = 1; i < numOutputBuses; i++) busesProperties.addBus(false, "Aux " + String(i), AudioChannelSet::stereo(), false);
 
@@ -249,6 +250,8 @@ void PlugDataAudioProcessor::updateSearchPaths()
     // Reload pd search paths from settings
     auto pathTree = settingsTree.getChildWithName("Paths");
 
+    setThis();
+    
     getCallbackLock()->enter();
     
     libpd_clear_search_path();
@@ -325,7 +328,7 @@ void PlugDataAudioProcessor::setCurrentProgram(int index)
 
 const String PlugDataAudioProcessor::getProgramName(int index)
 {
-    return {};
+    return "Init preset";
 }
 
 void PlugDataAudioProcessor::changeProgramName(int index, const String& newName)
