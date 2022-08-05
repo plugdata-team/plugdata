@@ -378,6 +378,7 @@ void PlugDataPluginEditor::saveProjectAs(const std::function<void()>& nestedCall
                                      pd.settingsTree.setProperty("LastChooserPath", result.getParentDirectory().getFullPathName(), nullptr);
 
                                      result.deleteFile();
+                                     result = result.withFileExtension(".pd");
 
                                      getCurrentCanvas()->patch.savePatch(result);
                                  }
