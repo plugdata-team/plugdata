@@ -832,7 +832,8 @@ struct PlugDataLook : public LookAndFeel_V4
         setColour(DirectoryContentsDisplayComponent::textColourId, textColour);
         setColour(FileBrowserComponent::currentPathBoxArrowColourId, textColour);
         setColour(Slider::textBoxTextColourId, textColour);
-
+        setColour(AlertWindow::textColourId, textColour);
+        
         setColour(DirectoryContentsDisplayComponent::highlightedTextColourId, Colours::white);
 
         setColour(TooltipWindow::outlineColourId, outlineColour);
