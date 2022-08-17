@@ -839,6 +839,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Delete", "Delete selection", "Edit", 0);
             result.addDefaultKeypress(KeyPress::backspaceKey, ModifierKeys::noModifiers);
+            result.addDefaultKeypress(KeyPress::deleteKey, ModifierKeys::noModifiers);
+
             result.setActive(!isDragging && pd.locked == var(false) && hasSelection);
             break;
         }
