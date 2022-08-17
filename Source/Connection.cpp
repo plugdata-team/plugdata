@@ -779,7 +779,7 @@ bool Connection::straightLineIntersectsObject(Line<int> toCheck)
     
     for (const auto& box : cnv->boxes)
     {
-        auto bounds = box->getBounds().expanded(4).toFloat();
+        auto bounds = box->getBounds().expanded(1).toFloat();
         
         if (box == outbox || box == inbox) continue;
         
