@@ -616,14 +616,14 @@ void Connection::findPath()
     pathStack.reserve(8);
     
     auto numFound = 0;
-    auto resolution = 3;
+    auto resolution = 4;
     
     int incrementX, incrementY;
     
     auto distance = pstart.getDistanceFrom(pend);
     
     // Look for paths at an increasing resolution
-    while (!numFound && resolution < 7 && distance > 40)
+    while (!numFound && resolution < 8 && distance > 40)
     {
         // Find paths on a resolution*resolution lattice ObjectGrid
         incrementX = std::max(std::abs(pend.x - pstart.x) / resolution, resolution);
@@ -776,37 +776,14 @@ bool Connection::intersectsObject(Box* object)
 
 bool Connection::straightLineIntersectsObject(Line<int> toCheck)
 {
+    
     for (const auto& box : cnv->boxes)
     {
-        auto bounds = box->getBounds().expanded(3);
+        auto bounds = box->getBounds().expanded(4).toFloat();
         
-        if (box == outbox || box == inbox || !bounds.intersects(getBounds())) continue;
+        if (box == outbox || box == inbox) continue;
         
-        auto intersectV = [](Line<int> first, Line<int> second)
-        {
-            if (first.getStartY() > first.getEndY())
-            {
-                first = {first.getEnd(), first.getStart()};
-            }
-            
-            return first.getStartX() > second.getStartX() && first.getStartX() < second.getEndX() && second.getStartY() > first.getStartY() && second.getStartY() < first.getEndY();
-        };
-        
-        auto intersectH = [](Line<int> first, Line<int> second)
-        {
-            if (first.getStartX() > first.getEndX())
-            {
-                first = {first.getEnd(), first.getStart()};
-            }
-            
-            return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY() && second.getStartX() > first.getStartX() && second.getStartX() < first.getEndX();
-        };
-        
-        bool intersectsV = toCheck.isVertical() && (intersectV(toCheck, Line<int>(bounds.getTopLeft(), bounds.getTopRight())) || intersectV(toCheck, Line<int>(bounds.getBottomRight(), bounds.getBottomLeft())));
-        
-        bool intersectsH = toCheck.isHorizontal() && (intersectH(toCheck, Line<int>(bounds.getTopRight(), bounds.getBottomRight())) || intersectH(toCheck, Line<int>(bounds.getTopLeft(), bounds.getBottomLeft())));
-        if (intersectsV || intersectsH)
-        {
+        if(bounds.intersects(toCheck.toFloat())) {
             return true;
         }
     }
