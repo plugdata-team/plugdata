@@ -159,9 +159,9 @@ struct AboutPanel : public Component {
         g.drawFittedText("Inter font by Rasmus Andersson", 150, 210, getWidth() - 150, 50, Justification::left, 2);
         g.drawFittedText("Made with JUCE", 150, 230, getWidth() - 150, 50, Justification::left, 2);
 
-        g.drawFittedText("Special thanks to: Deskew Technologies, ludnny and Joshua A.C. Newman for supporting this project", 150, 270, getWidth() - 150, 50, Justification::left, 2);
+        g.drawFittedText("Special thanks to: Deskew Technologies, ludnny and kreth608, Joshua A.C. Newman for supporting this project", 150, 270, getWidth() - 200, 80, Justification::left, 3);
 
-        g.drawFittedText("This program is published under the terms of the GPL3 license", 150, 300, getWidth() - 150, 50, Justification::left, 2);
+        g.drawFittedText("This program is published under the terms of the GPL3 license", 150, 340, getWidth() - 150, 50, Justification::left, 2);
 
         Rectangle<float> logoBounds = { 40.0f, 20.0f, logo.getWidth() / 2.0f, logo.getHeight() / 2.0f };
 
