@@ -150,12 +150,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
 
     // Multi-dragger variables
     const int minimumMovementToStartDrag = 10;
-
-    bool didStartDragging{false};
-
-
-
-    Box* componentBeingDragged{nullptr};
+    bool didStartDragging = false;
+    Box* componentBeingDragged = nullptr;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};

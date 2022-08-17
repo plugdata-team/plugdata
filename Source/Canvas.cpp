@@ -115,14 +115,14 @@ void Canvas::paint(Graphics& g)
 
     if (locked == var(false) && commandLocked == var(false) && !isGraph)
     {
-        const int ObjectGridSize = 25;
+        const int objectGridSize = 25;
         const Rectangle<int> clipBounds = g.getClipBounds();
 
         g.setColour(findColour(PlugDataColour::canvasColourId).contrasting(0.42));
 
-        for (int x = canvasOrigin.getX() + ObjectGridSize; x < clipBounds.getRight(); x += ObjectGridSize)
+        for (int x = canvasOrigin.getX() + objectGridSize; x < clipBounds.getRight(); x += objectGridSize)
         {
-            for (int y = canvasOrigin.getY() + ObjectGridSize; y < clipBounds.getBottom(); y += ObjectGridSize)
+            for (int y = canvasOrigin.getY() + objectGridSize; y < clipBounds.getBottom(); y += objectGridSize)
             {
                 g.fillRect(x, y, 1, 1);
             }
