@@ -363,6 +363,7 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
     libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
 }
 
+
 void Instance::processMessage(Message mess)
 {
     if (mess.destination == "param") {
@@ -433,6 +434,7 @@ void Instance::processSend(dmessage mess)
             sys_lock();
             pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().toRawUTF8()));
             sys_unlock();
+            
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);

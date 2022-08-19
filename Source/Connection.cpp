@@ -217,7 +217,7 @@ void Connection::paint(Graphics& g)
         baseColour = outlet->isSignal ? signalColour : dataColour;
         baseColour = baseColour.brighter(0.6f);
     }
-
+    
     g.setColour(baseColour.darker(0.1));
     g.strokePath(toDraw, PathStrokeType(2.5f, PathStrokeType::mitered, PathStrokeType::square));
     
@@ -603,6 +603,93 @@ void Connection::updatePath()
     endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 9.5f)));
 }
 
+struct ConnectionGrid
+{
+    struct GridLine
+    {
+        Line<int> line;
+        bool intersects;
+    };
+    
+    int ySize;
+    Array<GridLine> lines;
+
+    
+    ConnectionGrid(int xResolution, int yResolution, Rectangle<int> bounds, Array<Rectangle<int>> obstacles)
+    {
+        int xSize = (bounds.getRight() - bounds.getX()) / xResolution;
+        ySize = (bounds.getBottom() - bounds.getY()) / yResolution;
+        
+        lines.resize(xSize * ySize * 2);
+        
+        for(int x = bounds.getX(); x < bounds.getRight() - xResolution; x += xResolution)
+        {
+            for(int y = bounds.getY(); y < bounds.getBottom() - yResolution; y += yResolution)
+            {
+                auto lineX = Line<int>({x, y}, {x, y + yResolution});
+                auto lineY = Line<int>({x, y}, {x + xResolution, y});
+                
+                bool intersectsX = false;
+                bool intersectsY = false;
+                
+                for(auto& obstacle : obstacles) {
+                    if(obstacle.toFloat().intersects(lineX.toFloat())) {
+                        intersectsX = true;
+                        break;
+                    }
+                }
+                for(auto& obstacle : obstacles) {
+                    if(obstacle.toFloat().intersects(lineY.toFloat())) {
+                        intersectsY = true;
+                        break;
+                    }
+                }
+                
+                int xIdx = (((x - bounds.getX()) / xResolution) * ySize + ((y - bounds.getY()) / yResolution)) * 2;
+                int yIdx = xIdx + 1;
+                
+                lines[xIdx] = {lineX, intersectsX};
+                lines[yIdx] = {lineY, intersectsY};
+                
+                std::cout << xIdx << std::endl;
+            }
+        }
+    }
+    
+    void findPath()
+    {
+        Array<Line<int>> result;
+        followPath(0, {}, result);
+        std::cout << "Done" << std::endl;
+        
+        for(auto& line : result) {
+            std::cout << " x1: " << line.getStartX() << " x1: " << line.getEndX();
+            std::cout << " y1: " << line.getStartY() << " y1: " << line.getEndY() << std::endl;
+        }
+        
+    }
+    
+    void followPath(int idx, Array<Line<int>> path, Array<Line<int>>& result)
+    {
+        if(!result.isEmpty()) return;
+        
+        if(idx >= lines.size()) {
+            result = path;
+            return;
+        }
+        
+        
+        if(!lines[idx].intersects) {
+            path.add(lines[idx].line);
+            followPath(idx + 1, path, result);
+            followPath(idx + ySize, path, result);
+        }
+
+    }
+};
+
+
+
 void Connection::findPath()
 {
     if (!outlet || !inlet) return;
@@ -616,21 +703,46 @@ void Connection::findPath()
     pathStack.reserve(8);
     
     auto numFound = 0;
-    auto resolution = 4;
     
     int incrementX, incrementY;
     
     auto distance = pstart.getDistanceFrom(pend);
+    auto distanceX = std::abs(pstart.x - pend.x);
+    auto distanceY = std::abs(pstart.y - pend.y);
     
+    int maxXResolution = std::min(distanceX / 10, 16);
+    int maxYResolution = std::min(distanceY / 10, 16);
+    
+    int resolutionX = 9;
+    int resolutionY = 9;
+    
+    auto obstacles = Array<Rectangle<int>>();
+    auto searchBounds = Rectangle<int>(pstart, pend);
+    
+    for(auto* box : cnv->boxes) {
+        if(box->getBounds().intersects(searchBounds)) {
+            obstacles.add(box->getBounds());
+        }
+    }
+    
+    auto grid = ConnectionGrid(10, 10, searchBounds, obstacles);
+    
+    grid.findPath();
     // Look for paths at an increasing resolution
-    while (!numFound && resolution < 8 && distance > 40)
+    while (!numFound && resolutionX < maxXResolution && distance > 40)
     {
+        
         // Find paths on a resolution*resolution lattice ObjectGrid
-        incrementX = std::max(std::abs(pend.x - pstart.x) / resolution, resolution);
-        incrementY = std::max(std::abs(pend.y - pstart.y) / resolution, resolution);
+        incrementX = distanceX / resolutionX;
+        incrementY = distanceY / resolutionY;
         
         numFound = findLatticePaths(bestPath, pathStack, pend, pstart, {incrementX, incrementY});
-        resolution++;
+        
+        if(resolutionX < maxXResolution) resolutionX++;
+        if(resolutionY < maxXResolution) resolutionY++;
+        
+        if(resolutionX > maxXResolution || resolutionY > maxYResolution) break;
+        
         pathStack.clear();
     }
     
@@ -691,6 +803,16 @@ void Connection::findPath()
 
 int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<int> pstart, Point<int> pend, Point<int> increment)
 {
+    
+    auto obstacles = Array<Box*>();
+    auto searchBounds = Rectangle<int>(pstart, pend);
+    
+    for(auto* box : cnv->boxes) {
+        if(box->getBounds().intersects(searchBounds)) {
+            obstacles.add(box);
+        }
+    }
+    
     // Stop after we've found a path
     if (!bestPath.empty()) return 0;
     
@@ -698,7 +820,7 @@ int Connection::findLatticePaths(PathPlan& bestPath, PathPlan& pathStack, Point<
     pathStack.push_back(pstart);
     
     // Check if it intersects any box
-    if (pathStack.size() > 1 && straightLineIntersectsObject(Line<int>(pathStack.back(), *(pathStack.end() - 2))))
+    if (pathStack.size() > 1 && straightLineIntersectsObject(Line<int>(pathStack.back(), *(pathStack.end() - 2)), obstacles))
     {
         return 0;
     }
@@ -768,25 +890,56 @@ bool Connection::intersectsObject(Box* object)
 {
     auto b = (object->getBounds() - getPosition()).toFloat();
     return toDraw.intersectsLine({b.getTopLeft(), b.getTopRight()})
-        || toDraw.intersectsLine({b.getTopLeft(), b.getBottomLeft()})
-        || toDraw.intersectsLine({b.getBottomRight(), b.getBottomLeft()})
-        || toDraw.intersectsLine({b.getBottomRight(), b.getTopRight()});
+    || toDraw.intersectsLine({b.getTopLeft(), b.getBottomLeft()})
+    || toDraw.intersectsLine({b.getBottomRight(), b.getBottomLeft()})
+    || toDraw.intersectsLine({b.getBottomRight(), b.getTopRight()});
 }
 
 
-bool Connection::straightLineIntersectsObject(Line<int> toCheck)
+bool Connection::straightLineIntersectsObject(Line<int> toCheck, Array<Box*>& boxes)
 {
     
-    for (const auto& box : cnv->boxes)
+    for (const auto& box : boxes)
     {
-        auto bounds = box->getBounds().expanded(1).toFloat();
+        auto bounds = box->getBounds().expanded(1);
         
-        if (box == outbox || box == inbox) continue;
+        if (box == outbox || box == inbox || !bounds.intersects(getBounds())) continue;
         
-        if(bounds.intersects(toCheck.toFloat())) {
+        auto intersectV = [](Line<int> first, Line<int> second)
+        {
+            if (first.getStartY() > first.getEndY())
+            {
+                first = {first.getEnd(), first.getStart()};
+            }
+            
+            return first.getStartX() > second.getStartX() && first.getStartX() < second.getEndX() && second.getStartY() > first.getStartY() && second.getStartY() < first.getEndY();
+        };
+        
+        auto intersectH = [](Line<int> first, Line<int> second)
+        {
+            if (first.getStartX() > first.getEndX())
+            {
+                first = {first.getEnd(), first.getStart()};
+            }
+            
+            return first.getStartY() > second.getStartY() && first.getStartY() < second.getEndY() && second.getStartX() > first.getStartX() && second.getStartX() < first.getEndX();
+        };
+        
+        bool intersectsV = toCheck.isVertical() && (intersectV(toCheck, Line<int>(bounds.getTopLeft(), bounds.getTopRight())) || intersectV(toCheck, Line<int>(bounds.getBottomRight(), bounds.getBottomLeft())));
+        
+        bool intersectsH = toCheck.isHorizontal() && (intersectH(toCheck, Line<int>(bounds.getTopRight(), bounds.getBottomRight())) || intersectH(toCheck, Line<int>(bounds.getTopLeft(), bounds.getBottomLeft())));
+        if (intersectsV || intersectsH)
+        {
             return true;
         }
+        
+        /*
+         if(bounds.toFloat().intersects(toCheck.toFloat())) {
+         return true;
+         } TODO: benchmark these two options */
+        // TODO: possible mark areas that have already been visited?
     }
     
     return false;
 }
+

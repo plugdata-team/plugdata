@@ -69,7 +69,7 @@ struct NumberTildeObject final : public GUIObject, public Timer {
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+        pd->enqueueFunction([this, _this = SafePointer(this)]() {
             if (!_this)
                 return;
 
@@ -151,9 +151,9 @@ struct NumberTildeObject final : public GUIObject, public Timer {
     {
         auto* object = static_cast<t_number_tilde*>(ptr);
         
-        box->cnv->pd->getCallbackLock()->enter();
+        pd->getCallbackLock()->enter();
         object->x_set_val = newValue;
-        box->cnv->pd->getCallbackLock()->exit();
+        pd->getCallbackLock()->exit();
     }
     
     float getValue() override
