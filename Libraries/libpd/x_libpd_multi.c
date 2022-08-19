@@ -240,7 +240,6 @@ static void libpd_multi_print_setup(void)
 
 void* libpd_multi_print_new(void* ptr, t_libpd_multi_printhook hook_print)
 {
-
     t_libpd_multi_print* x = (t_libpd_multi_print*)pd_new(libpd_multi_print_class);
     if (x) {
         sys_lock();
