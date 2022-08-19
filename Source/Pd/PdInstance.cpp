@@ -127,9 +127,7 @@ struct pd::Instance::internal {
             
           length = 0;
         }
-    
     }
-    
 };
 }
 
@@ -156,7 +154,6 @@ Instance::Instance(String const& symbol)
 
     // Register callback when pd's gui changes
     // Needs to be done on pd's thread
-
     auto gui_trigger = [](void* instance, void* target) {
         auto* pd = static_cast<t_pd*>(target);
 
