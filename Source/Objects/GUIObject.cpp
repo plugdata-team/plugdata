@@ -51,6 +51,7 @@ ObjectBase::ObjectBase(void* obj, Box* parent)
     : ptr(obj)
     , box(parent)
     , cnv(box->cnv)
+    , pd(box->cnv->pd)
 {
 }
 
@@ -294,7 +295,7 @@ void GUIObject::updateValue()
 {
     if (!edited) {
         auto thisPtr = SafePointer<GUIObject>(this);
-        box->cnv->pd->enqueueFunction(
+        pd->enqueueFunction(
             [thisPtr]() {
                 if (!thisPtr)
                     return;

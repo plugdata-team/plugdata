@@ -8,7 +8,7 @@ struct CanvasObject final : public IEMObject {
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+        pd->enqueueFunction([this, _this = SafePointer(this)]() {
             if (!_this)
                 return;
             int x = 0, y = 0, w = 0, h = 0;

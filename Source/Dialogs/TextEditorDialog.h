@@ -582,7 +582,7 @@ public:
     void setFont(Font font);
 
     void setText(String const& text);
-    StringArray getText() const;
+    String getText() const;
 
     void translateView(float dx, float dy);
     void scaleView(float scaleFactor, float verticalCenter);
@@ -1602,9 +1602,9 @@ void PlugDataTextEditor::setText(String const& text)
     repaint();
 }
 
-StringArray PlugDataTextEditor::getText() const
+String PlugDataTextEditor::getText() const
 {
-    return document.getText();
+    return document.getText().joinIntoString("\r");
 }
 
 void PlugDataTextEditor::translateView(float dx, float dy)
@@ -2063,7 +2063,7 @@ struct TextEditorDialog : public Component {
 
     PlugDataTextEditor editor;
 
-    std::function<void(StringArray, bool)> onClose;
+    std::function<void(String, bool)> onClose;
 
     String title;
 
@@ -2115,8 +2115,8 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g)
     {
-        g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 6.0f, 1.0f);
+        //g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        //g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 6.0f, 1.0f);
     }
 
     void paint(Graphics& g)

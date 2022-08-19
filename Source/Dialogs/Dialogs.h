@@ -84,7 +84,7 @@ struct Dialog : public Component {
 };
 
 struct Dialogs {
-    static Component* showTextEditorDialog(String text, String filename, std::function<void(StringArray, bool)> callback);
+    static Component* showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback);
 
     static Component* showSaveDialog(Component* centre, String filename, std::function<void(int)> callback);
     static Component* showArrayDialog(Component* centre, std::function<void(int, String, String)> callback);
