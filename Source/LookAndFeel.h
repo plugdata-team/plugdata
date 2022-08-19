@@ -51,6 +51,8 @@ struct Icons
     inline static const CharPointer_UTF8 Up = CharPointer_UTF8("\xef\x81\xa2");
     inline static const CharPointer_UTF8 Down = CharPointer_UTF8("\xef\x81\xa3");
     inline static const CharPointer_UTF8 Edit = CharPointer_UTF8("\xef\x81\x80");
+    inline static const CharPointer_UTF8 ThinDown = CharPointer_UTF8 ("\xef\x84\x87");
+    inline static const CharPointer_UTF8 Sine = CharPointer_UTF8 ("\xee\xa1\x95");
 };
 
 enum PlugDataColour

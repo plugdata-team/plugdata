@@ -39,9 +39,6 @@ struct IEMObject : public GUIObject {
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
-        
-        std::cout << primaryColour.toString() << std::endl;
-        std::cout << secondaryColour.toString() << std::endl;
     }
 
     void applyBounds() override
