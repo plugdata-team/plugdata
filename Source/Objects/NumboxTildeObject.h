@@ -35,6 +35,8 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
     int nextInterval = 100;
     std::atomic<int> mode = 0;
     
+    Value interval, ramp, init;
+    
     NumboxTildeObject(void* obj, Box* parent)
         : GUIObject(obj, parent)
     {
@@ -60,7 +62,24 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
 
         min = getMinimum();
         max = getMaximum();
-
+        
+        auto* object = static_cast<t_numbox*>(ptr);
+        interval = object->x_rate;
+        ramp = object->x_ramp_ms;
+        init = object->x_set_val;
+        
+        primaryColour = "ff" + String(object->x_fg->s_name + 1);
+        secondaryColour = "ff" + String(object->x_bg->s_name + 1);
+        
+        std::cout << primaryColour.toString() << std::endl;
+        std::cout << secondaryColour.toString() << std::endl;
+        
+        auto fg = Colour::fromString(primaryColour.toString());
+        getLookAndFeel().setColour(Label::textColourId, fg);
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
+        getLookAndFeel().setColour(TextEditor::textColourId, fg);
+        
+        
         addMouseListener(this, true);
 
         input.valueChanged = [this](float value) { setValue(value); };
@@ -68,6 +87,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         mode = static_cast<t_numbox*>(ptr)->x_outmode;
         
         startTimer(nextInterval);
+        repaint();
     }
     
     void updateBounds() override
@@ -122,18 +142,67 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
 
     ObjectParameters defineParameters() override
     {
-        return { { "Minimum", tFloat, cGeneral, &min, {} }, { "Maximum", tFloat, cGeneral, &max, {} } };
+        return {
+            { "Minimum", tFloat, cGeneral, &min, {} },
+            { "Maximum", tFloat, cGeneral, &max, {} },
+            { "Interval (ms)", tFloat, cGeneral, &interval, {} },
+            { "Ramp time (ms)", tFloat, cGeneral, &ramp, {} },
+            { "Initial value", tFloat, cGeneral, &init, {} },
+            { "Foreground", tColour, cAppearance, &primaryColour, {} },
+            { "Background", tColour, cAppearance, &secondaryColour, {} },
+        };
     }
+
 
     void valueChanged(Value& value) override
     {
         if (value.refersToSameSourceAs(min)) {
             setMinimum(static_cast<float>(min.getValue()));
             updateValue();
-        } else if (value.refersToSameSourceAs(max)) {
+        }
+        else if (value.refersToSameSourceAs(max)) {
             setMaximum(static_cast<float>(max.getValue()));
             updateValue();
         }
+        else if (value.refersToSameSourceAs(interval)) {
+            auto* nbx = static_cast<t_numbox*>(ptr);
+            nbx->x_rate = static_cast<float>(interval.getValue());
+
+        }
+        else if (value.refersToSameSourceAs(ramp)) {
+            auto* nbx = static_cast<t_numbox*>(ptr);
+            nbx->x_ramp_ms = static_cast<float>(ramp.getValue());
+        }
+        else if (value.refersToSameSourceAs(init)) {
+            auto* nbx = static_cast<t_numbox*>(ptr);
+            //nbx->x_set_val = static_cast<float>(ramp.getValue());
+        }
+        else if (value.refersToSameSourceAs(primaryColour)) {
+            setForegroundColour(primaryColour.toString());
+        }
+        else if (value.refersToSameSourceAs(secondaryColour)) {
+            setBackgroundColour(secondaryColour.toString());
+        }
+    }
+    
+    void setForegroundColour(String colour)
+    {
+        // Remove alpha channel and add #
+        
+        ((t_numbox*)ptr)->x_fg = gensym(("#" + colour.substring(2)).toRawUTF8());
+        
+        auto col = Colour::fromString(colour);
+        getLookAndFeel().setColour(Label::textColourId, col);
+        getLookAndFeel().setColour(Label::textWhenEditingColourId, col);
+        getLookAndFeel().setColour(TextEditor::textColourId, col);
+        
+        repaint();
+    }
+
+    void setBackgroundColour(String colour)
+    {
+        ((t_numbox*)ptr)->x_bg = gensym(("#" + colour.substring(2)).toRawUTF8());
+        repaint();
     }
 
     void paintOverChildren(Graphics& g) override
@@ -143,6 +212,20 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         g.setFont(22.f);
         g.drawFittedText("~", getLocalBounds().withWidth(getHeight()).withX(2).withY(-1),
             juce::Justification::centred, 1);
+    }
+    
+    void paint(Graphics& g) override
+    {
+        g.setColour(Colour::fromString(secondaryColour.toString()));
+        g.fillRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f);
+
+        auto outlineColour = box->findColour(cnv->isSelected(box) && !cnv->isGraph ? PlugDataColour::highlightColourId : PlugDataColour::canvasOutlineColourId);
+
+        g.setColour(outlineColour);
+        g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+        
+        std::cout << primaryColour.toString() << std::endl;
+        std::cout << secondaryColour.toString() << std::endl;
     }
     
     void timerCallback() override
@@ -165,7 +248,8 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         }
         
         pd->getCallbackLock()->enter();
-        pd_typedmess(static_cast<t_pd*>(ptr), gensym("set"), 1, &at);
+        pd_float(static_cast<t_pd*>(ptr), newValue);
+        //pd_typedmess(static_cast<t_pd*>(ptr), gensym("set"), 1, &at);
         pd->getCallbackLock()->exit();
     }
     
@@ -197,7 +281,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         
         input.setMinimum(value);
         
-        if(static_cast<float>(min.getValue()) <= static_cast<float>(max.getValue())) {
+        if(static_cast<float>(min.getValue()) < static_cast<float>(max.getValue())) {
 
             setValueOriginal(std::clamp(getValueOriginal(), value, static_cast<float>(max.getValue())));
         }
@@ -209,7 +293,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         
         input.setMaximum(value);
         
-        if(static_cast<float>(max.getValue()) <= static_cast<float>(min.getValue())) {
+        if(static_cast<float>(max.getValue()) > static_cast<float>(min.getValue())) {
             setValueOriginal(std::clamp(getValueOriginal(), static_cast<float>(min.getValue()), value));
         }
     }

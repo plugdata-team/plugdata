@@ -60,6 +60,9 @@ float libpd_get_canvas_font_height(t_canvas* cnv);
 
 int libpd_process_nodsp(void);
 
+unsigned int convert_from_iem_color(int const color);
+unsigned int convert_to_iem_color(char const* hex);
+
 
 #ifdef __cplusplus
 }

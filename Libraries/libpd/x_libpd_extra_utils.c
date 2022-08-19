@@ -157,13 +157,13 @@ int libpd_array_get_style(void* array)
     return 0;
 }
 
-static unsigned int convert_from_iem_color(int const color)
+unsigned int convert_from_iem_color(int const color)
 {
     unsigned int const c = (unsigned int)(color << 8 | 0xFF);
     return ((0xFF << 24) | ((c >> 24) << 16) | ((c >> 16) << 8) | (c >> 8));
 }
 
-static unsigned int convert_to_iem_color(char const* hex)
+unsigned int convert_to_iem_color(char const* hex)
 {
     if (strlen(hex) == 8)
         hex += 2; // remove alpha channel if needed
