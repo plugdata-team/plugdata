@@ -57,6 +57,7 @@ struct DraggableNumber : public Label {
             auto text = String();
             text += chr;
             editor->setText(text);
+            editor->moveCaretToEnd(false);
             
             return true;
         }

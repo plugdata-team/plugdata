@@ -227,7 +227,7 @@ void GUIObject::updateParameters()
     auto params = getParameters();
     for (auto& [name, type, cat, value, list] : params) {
         value->addListener(this);
-
+        
         // Push current parameters to pd
         valueChanged(*value);
     }
