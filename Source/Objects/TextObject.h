@@ -100,7 +100,7 @@ struct TextBase : public ObjectBase
 
         // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
 
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+        pd->enqueueFunction([this, _this = SafePointer(this)]() {
             if (!_this)
                 return;
 

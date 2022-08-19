@@ -24,6 +24,7 @@ struct ObjectBase : public Component
     void* ptr;
     Box* box;
     Canvas* cnv;
+    PlugDataAudioProcessor* pd;
 
     ObjectBase(void* obj, Box* parent);
 

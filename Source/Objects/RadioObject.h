@@ -88,7 +88,7 @@ struct RadioObject final : public IEMObject {
         int x = 0, y = 0, w = 0, h = 0;
         libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+        pd->enqueueFunction([this, _this = SafePointer(this)]() {
             if (!_this)
                 return;
 

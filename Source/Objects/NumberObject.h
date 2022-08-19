@@ -46,7 +46,7 @@ struct NumberObject final : public IEMObject {
 
     void updateBounds() override
     {
-        box->cnv->pd->enqueueFunction([this, _this = SafePointer(this)]() {
+        pd->enqueueFunction([this, _this = SafePointer(this)]() {
             if (!_this)
                 return;
 

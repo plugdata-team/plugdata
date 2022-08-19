@@ -833,7 +833,7 @@ void Canvas::valueChanged(Value& v)
         repaint();
         
         // Makes sure no objects keep keyboard focus after locking/unlocking
-        grabKeyboardFocus();
+        if(isShowing() && isVisible()) grabKeyboardFocus();
     }
     else if (v.refersToSameSourceAs(commandLocked))
     {

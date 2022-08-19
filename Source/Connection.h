@@ -69,7 +69,7 @@ class Connection : public Component, public ComponentListener
     void findPath();
 
     bool intersectsObject(Box* object);
-    bool straightLineIntersectsObject(Line<int> first);
+    bool straightLineIntersectsObject(Line<int> toCheck, Array<Box*>& boxes);
 
    private:
     bool wasSelected = false;

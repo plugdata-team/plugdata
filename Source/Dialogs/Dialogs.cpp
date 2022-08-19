@@ -16,7 +16,7 @@
 #include "TextEditorDialog.h"
 #include "Canvas.h"
 
-Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(StringArray, bool)> callback)
+Component* Dialogs::showTextEditorDialog(String text, String filename, std::function<void(String, bool)> callback)
 {
     auto* editor = new TextEditorDialog(filename);
     editor->editor.setText(text);
