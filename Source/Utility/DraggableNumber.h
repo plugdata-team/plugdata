@@ -147,13 +147,9 @@ struct DraggableNumber : public Label {
         {
             g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
-        
+            
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
-
-            g.drawFittedText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, getJustificationType(),
-                              jmax (1, (int) ((float) textArea.getHeight() / getFont().getHeight())),
-                              getMinimumHorizontalScale());
-
+            g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::left, false);
         }
     }
     
