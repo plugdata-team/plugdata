@@ -39,6 +39,9 @@ struct IEMObject : public GUIObject {
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
+        
+        std::cout << primaryColour.toString() << std::endl;
+        std::cout << secondaryColour.toString() << std::endl;
     }
 
     void applyBounds() override
@@ -106,7 +109,8 @@ struct IEMObject : public GUIObject {
         } else if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             setForegroundColour(colour);
-
+            
+            // TODO: move this!
             getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
             getLookAndFeel().setColour(Slider::thumbColourId, colour);
             getLookAndFeel().setColour(Slider::trackColourId, colour);
