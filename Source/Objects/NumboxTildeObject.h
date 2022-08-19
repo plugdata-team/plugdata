@@ -43,8 +43,6 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
 
-            editor->setBorder({ 0, 15, 0, 0 });
-
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
             }
@@ -53,8 +51,6 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         input.onEditorHide = [this]() {
             setValue(input.getText().getFloatValue());
         };
-
-        input.setBorderSize({ 1, 20, 1, 1 });
 
         addAndMakeVisible(input);
 
@@ -108,8 +104,15 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
 
     void checkBounds() override
     {
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-        int width = jlimit(30, maxSize, (getWidth() / fontWidth) * fontWidth);
+        auto* nbx = static_cast<t_numbox*>(ptr);
+        
+        nbx->x_fontsize = getHeight() - 4;
+        
+        int width = getWidth();
+        int numWidth = (2.0f * (-6.0f + width - nbx->x_fontsize)) / (4.0f + nbx->x_fontsize);
+        width = (nbx->x_fontsize - (nbx->x_fontsize/2)+2) * (numWidth+2) + 2;
+        
+        
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);
@@ -121,19 +124,19 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         auto b = box->getObjectBounds();
         libpd_moveobj(cnv->patch.getPointer(), static_cast<t_gobj*>(ptr), b.getX(), b.getY());
 
-        int fontWidth = glist_fontwidth(cnv->patch.getPointer());
-
         auto* nbx = static_cast<t_numbox*>(ptr);
-        nbx->x_numwidth = b.getWidth() / fontWidth;
-        
         nbx->x_width = b.getWidth();
         nbx->x_height = b.getHeight();
+        nbx->x_fontsize = b.getHeight() - 4;
+        
+        nbx->x_numwidth = (2.0f * (-6.0f + b.getWidth() - nbx->x_fontsize))/(4.0f + nbx->x_fontsize);
     }
 
     void resized() override
     {
-        input.setBounds(getLocalBounds());
+        input.setBounds(getLocalBounds().withTrimmedLeft(getHeight() - 4));
         input.setFont(getHeight() - 6);
+        
     }
 
 
@@ -172,7 +175,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         }
         else if (value.refersToSameSourceAs(init)) {
             auto* nbx = static_cast<t_numbox*>(ptr);
-            //nbx->x_set_val = static_cast<float>(ramp.getValue());
+            nbx->x_set_val = static_cast<float>(init.getValue());
         }
         else if (value.refersToSameSourceAs(primaryColour)) {
             setForegroundColour(primaryColour.toString());
@@ -206,7 +209,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
     {
         g.setColour(findColour(PlugDataColour::highlightColourId));
         
-        auto iconBounds = Rectangle<int>(1, 0, getHeight(), getHeight());
+        auto iconBounds = Rectangle<int>(2, 0, getHeight(), getHeight());
         
         auto font = dynamic_cast<PlugDataLook&>(box->getLookAndFeel()).iconFont.withHeight(getHeight() - 8);
         g.setFont(font);
@@ -256,7 +259,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         mode = object->x_outmode;
         nextInterval = object->x_rate;
         
-        return mode ? object->x_set_val : object->x_in_val;
+        return mode ? object->x_display : object->x_in_val;
     }
 
     float getMinimum()

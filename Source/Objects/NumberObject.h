@@ -3,8 +3,6 @@
 struct NumberObject final : public IEMObject {
     DraggableNumber input;
     
-    int numWidth;
-    
     NumberObject(void* obj, Box* parent)
         : IEMObject(obj, parent)
     {
@@ -33,8 +31,6 @@ struct NumberObject final : public IEMObject {
         min = getMinimum();
         max = getMaximum();
         
-        numWidth = static_cast<t_my_numbox*>(ptr)->x_numwidth;
-
         addMouseListener(this, true);
 
         input.dragStart = [this]() { startEdition(); };
@@ -86,7 +82,6 @@ struct NumberObject final : public IEMObject {
         nbx->x_gui.x_h = b.getHeight();
         
         nbx->x_numwidth = (b.getWidth() / 9) - 1;
-        //std::cout << nbx->x_numwidth << std::endl;
     }
     
     void resized() override
