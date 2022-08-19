@@ -603,93 +603,6 @@ void Connection::updatePath()
     endReconnectHandle = Rectangle<float>(5, 5).withCentre(toDraw.getPointAlongPath(std::max(toDraw.getLength() - 8.5f, 9.5f)));
 }
 
-struct ConnectionGrid
-{
-    struct GridLine
-    {
-        Line<int> line;
-        bool intersects;
-    };
-    
-    int ySize;
-    Array<GridLine> lines;
-
-    
-    ConnectionGrid(int xResolution, int yResolution, Rectangle<int> bounds, Array<Rectangle<int>> obstacles)
-    {
-        int xSize = (bounds.getRight() - bounds.getX()) / xResolution;
-        ySize = (bounds.getBottom() - bounds.getY()) / yResolution;
-        
-        lines.resize(xSize * ySize * 2);
-        
-        for(int x = bounds.getX(); x < bounds.getRight() - xResolution; x += xResolution)
-        {
-            for(int y = bounds.getY(); y < bounds.getBottom() - yResolution; y += yResolution)
-            {
-                auto lineX = Line<int>({x, y}, {x, y + yResolution});
-                auto lineY = Line<int>({x, y}, {x + xResolution, y});
-                
-                bool intersectsX = false;
-                bool intersectsY = false;
-                
-                for(auto& obstacle : obstacles) {
-                    if(obstacle.toFloat().intersects(lineX.toFloat())) {
-                        intersectsX = true;
-                        break;
-                    }
-                }
-                for(auto& obstacle : obstacles) {
-                    if(obstacle.toFloat().intersects(lineY.toFloat())) {
-                        intersectsY = true;
-                        break;
-                    }
-                }
-                
-                int xIdx = (((x - bounds.getX()) / xResolution) * ySize + ((y - bounds.getY()) / yResolution)) * 2;
-                int yIdx = xIdx + 1;
-                
-                lines[xIdx] = {lineX, intersectsX};
-                lines[yIdx] = {lineY, intersectsY};
-                
-                std::cout << xIdx << std::endl;
-            }
-        }
-    }
-    
-    void findPath()
-    {
-        Array<Line<int>> result;
-        followPath(0, {}, result);
-        std::cout << "Done" << std::endl;
-        
-        for(auto& line : result) {
-            std::cout << " x1: " << line.getStartX() << " x1: " << line.getEndX();
-            std::cout << " y1: " << line.getStartY() << " y1: " << line.getEndY() << std::endl;
-        }
-        
-    }
-    
-    void followPath(int idx, Array<Line<int>> path, Array<Line<int>>& result)
-    {
-        if(!result.isEmpty()) return;
-        
-        if(idx >= lines.size()) {
-            result = path;
-            return;
-        }
-        
-        
-        if(!lines[idx].intersects) {
-            path.add(lines[idx].line);
-            followPath(idx + 1, path, result);
-            followPath(idx + ySize, path, result);
-        }
-
-    }
-};
-
-
-
 void Connection::findPath()
 {
     if (!outlet || !inlet) return;
@@ -725,9 +638,6 @@ void Connection::findPath()
         }
     }
     
-    auto grid = ConnectionGrid(10, 10, searchBounds, obstacles);
-    
-    grid.findPath();
     // Look for paths at an increasing resolution
     while (!numFound && resolutionX < maxXResolution && distance > 40)
     {
