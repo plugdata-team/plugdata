@@ -21,6 +21,7 @@ extern "C" {
 
 extern "C" {
 struct pd::Instance::internal {
+    
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
         ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String(recv) }); });
@@ -98,9 +99,37 @@ struct pd::Instance::internal {
 
     static void instance_multi_print(pd::Instance* ptr, char const* s)
     {
-        auto message = String(s);
-        ptr->enqueueFunctionAsync([ptr, message]() mutable { ptr->processPrint(message); });
+        auto* concatenatedLine = ptr->printConcatBuffer;
+        static int length = 0;
+        concatenatedLine[length] = '\0';
+
+        int len = (int) strlen(s);
+        while (length + len >= 2048) {
+          int d = 2048 - 1 - length;
+          strncat(concatenatedLine, s, d);
+            
+          // Send concatenated line to PlugData!
+          ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
+          s += d;
+          len -= d;
+          length = 0;
+          concatenatedLine[0] = '\0';
+        }
+
+        strncat(concatenatedLine, s, len);
+        length += len;
+
+        if (length > 0 && concatenatedLine[length - 1] == '\n') {
+          concatenatedLine[length - 1] = '\0';
+            
+          // Send concatenated line to PlugData!
+          ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
+            
+          length = 0;
+        }
+    
     }
+    
 };
 }
 
