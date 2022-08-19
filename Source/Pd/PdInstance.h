@@ -387,6 +387,8 @@ public:
     std::deque<std::tuple<String, int, int>> consoleMessages;
     std::deque<std::tuple<String, int, int>> consoleHistory;
 
+    char printConcatBuffer[2048];
+    
 private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
