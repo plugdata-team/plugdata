@@ -1,37 +1,41 @@
 #include "../Utility/DraggableNumber.h"
 
-struct t_number_tilde
-{
-    t_iemgui x_gui;
-    t_outlet *x_signal_outlet;
-    t_outlet *x_float_outlet;
-    t_clock  *x_clock_reset;
-    t_clock  *x_clock_wait;
-    t_clock  *x_clock_repaint;
-    t_float x_in_val;
-    t_float x_out_val;
-    t_float x_set_val;
-    t_float x_ramp_val;
-    t_float x_ramp_time;
-    t_float x_ramp;
-    t_float x_last_out;
-    t_float x_maximum;
-    t_float x_minimum;
-    t_float  x_interval_ms;
-    int      x_numwidth;
-    int      x_output_mode;
-    int      x_needs_update;
-    char     x_buf[IEMGUI_MAX_NUM_LEN];
-};
+typedef struct _numbox{
+    t_object  x_obj;
+    t_clock  *x_clock_update;
+    t_symbol *x_fg;
+    t_symbol *x_bg;
+    t_glist  *x_glist;
+    t_float   x_display;
+    t_float   x_in_val;
+    t_float   x_out_val;
+    t_float   x_set_val;
+    t_float   x_max;
+    t_float   x_min;
+    t_float   x_sr_khz;
+    t_float   x_inc;
+    t_float   x_ramp_step;
+    t_float   x_ramp_val;
+    int       x_ramp_ms;
+    int       x_rate;
+    int       x_numwidth;
+    int       x_fontsize;
+    int       x_clicked;
+    int       x_width, x_height;
+    int       x_zoom;
+    int       x_outmode;
+    char      x_buf[32]; // number buffer
+} t_numbox;
 
 
-struct NumberTildeObject final : public GUIObject, public Timer {
+
+struct NumboxTildeObject final : public GUIObject, public Timer {
     DraggableNumber input;
 
     int nextInterval = 100;
     std::atomic<int> mode = 0;
     
-    NumberTildeObject(void* obj, Box* parent)
+    NumboxTildeObject(void* obj, Box* parent)
         : GUIObject(obj, parent)
     {
         input.onEditorShow = [this]() {
@@ -61,12 +65,11 @@ struct NumberTildeObject final : public GUIObject, public Timer {
 
         input.valueChanged = [this](float value) { setValue(value); };
         
-        mode = static_cast<t_number_tilde*>(ptr)->x_output_mode;
+        mode = static_cast<t_numbox*>(ptr)->x_outmode;
         
         startTimer(nextInterval);
     }
     
-
     void updateBounds() override
     {
         pd->enqueueFunction([this, _this = SafePointer(this)]() {
@@ -103,10 +106,11 @@ struct NumberTildeObject final : public GUIObject, public Timer {
 
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
-        auto* nbx = static_cast<t_number_tilde*>(ptr);
+        auto* nbx = static_cast<t_numbox*>(ptr);
         nbx->x_numwidth = b.getWidth() / fontWidth;
-        nbx->x_gui.x_w = b.getWidth();
-        nbx->x_gui.x_h = b.getHeight();
+        
+        nbx->x_width = b.getWidth();
+        nbx->x_height = b.getHeight();
     }
 
     void resized() override
@@ -143,48 +147,64 @@ struct NumberTildeObject final : public GUIObject, public Timer {
     
     void timerCallback() override
     {
-        input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+        if(!mode) {
+            input.setText(input.formatNumber(getValueOriginal()), dontSendNotification);
+        }
+        
         startTimer(nextInterval);
     }
 
     void setValue(float newValue)
     {
-        auto* object = static_cast<t_number_tilde*>(ptr);
+        t_atom at;
+        SETFLOAT(&at, newValue);
+        setValueOriginal(newValue);
         
         pd->getCallbackLock()->enter();
-        object->x_set_val = newValue;
+        pd_typedmess(static_cast<t_pd*>(ptr), gensym("set"), 1, &at);
         pd->getCallbackLock()->exit();
     }
     
     float getValue() override
     {
-        auto* object = static_cast<t_number_tilde*>(ptr);
+        auto* object = static_cast<t_numbox*>(ptr);
         
         // Kinda ugly, but use this audio-thread function to update all the variables
         
-        mode = object->x_output_mode;
-        nextInterval = object->x_interval_ms;
+        mode = object->x_outmode;
+        nextInterval = object->x_rate;
         
-        return object->x_output_mode ? object->x_set_val : object->x_in_val;
+        return mode ? object->x_set_val : object->x_in_val;
     }
 
     float getMinimum()
     {
-        return (static_cast<t_number_tilde*>(ptr))->x_minimum;
+        return (static_cast<t_numbox*>(ptr))->x_min;
     }
 
     float getMaximum()
     {
-        return (static_cast<t_number_tilde*>(ptr))->x_maximum;
+        return (static_cast<t_numbox*>(ptr))->x_max;
     }
 
     void setMinimum(float value)
     {
-        static_cast<t_number_tilde*>(ptr)->x_minimum = value;
+        static_cast<t_numbox*>(ptr)->x_min = value;
+        
+        if(static_cast<float>(min.getValue()) <= static_cast<float>(max.getValue())) {
+            input.setMinimum(value);
+            setValue(std::clamp(getValueOriginal(), value, static_cast<float>(max.getValue())));
+        }
     }
 
     void setMaximum(float value)
     {
-        static_cast<t_number_tilde*>(ptr)->x_maximum = value;
+        static_cast<t_numbox*>(ptr)->x_max = value;
+        
+        if(static_cast<float>(max.getValue()) <= static_cast<float>(min.getValue())) {
+            input.setMaximum(value);
+            setValue(std::clamp(getValueOriginal(), static_cast<float>(min.getValue()), value));
+
+        }
     }
 };

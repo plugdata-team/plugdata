@@ -138,7 +138,9 @@ private:
         { "vradio", "20 1 0 8 empty empty empty 0 -8 0 10 bgColour fgColour lblColour 0" },
         { "cnv", "15 100 60 empty empty empty 20 12 0 14 lnColour lblColour" },
         { "vu", "20 120 empty empty -1 -8 0 10 bgColour lblColour 1 0" },
-        { "floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12" } };
+        { "floatatom", "5 -3.40282e+38 3.40282e+38 0 empty - - 12" },
+        { "numbox~", "4 16 100 bgColour fgColour 10 0 0 0" }
+    };
 
     friend class Instance;
     friend class Gui;

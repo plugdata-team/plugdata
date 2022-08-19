@@ -34,7 +34,7 @@ extern "C" {
 #include "KeyboardObject.h"
 #include "MousePadObject.h"
 #include "NumberObject.h"
-#include "NumberTildeObject.h"
+#include "NumboxTildeObject.h"
 #include "CanvasObject.h"
 #include "PictureObject.h"
 #include "VUMeterObject.h"
@@ -347,8 +347,8 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
     if (name == "nbx") {
         return new NumberObject(ptr, parent);
     }
-    if (name == "number~") {
-        return new NumberTildeObject(ptr, parent);
+    if (name == "numbox~") {
+        return new NumboxTildeObject(ptr, parent);
     }
     if (name == "vradio") {
         return new RadioObject(true, ptr, parent);
