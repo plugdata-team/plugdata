@@ -160,6 +160,10 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         SETFLOAT(&at, newValue);
         setValueOriginal(newValue);
         
+        if(newValue == 0) {
+            std::cout << "Hey!" << std::endl;
+        }
+        
         pd->getCallbackLock()->enter();
         pd_typedmess(static_cast<t_pd*>(ptr), gensym("set"), 1, &at);
         pd->getCallbackLock()->exit();
@@ -191,9 +195,11 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
     {
         static_cast<t_numbox*>(ptr)->x_min = value;
         
+        input.setMinimum(value);
+        
         if(static_cast<float>(min.getValue()) <= static_cast<float>(max.getValue())) {
-            input.setMinimum(value);
-            setValue(std::clamp(getValueOriginal(), value, static_cast<float>(max.getValue())));
+
+            setValueOriginal(std::clamp(getValueOriginal(), value, static_cast<float>(max.getValue())));
         }
     }
 
@@ -201,10 +207,10 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
     {
         static_cast<t_numbox*>(ptr)->x_max = value;
         
+        input.setMaximum(value);
+        
         if(static_cast<float>(max.getValue()) <= static_cast<float>(min.getValue())) {
-            input.setMaximum(value);
-            setValue(std::clamp(getValueOriginal(), static_cast<float>(min.getValue()), value));
-
+            setValueOriginal(std::clamp(getValueOriginal(), static_cast<float>(min.getValue()), value));
         }
     }
 };
