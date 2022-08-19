@@ -421,7 +421,7 @@ void minmax_tilde_setup(void);
 void modulo_tilde_setup(void);
 void mstosamps_tilde_setup(void);
 void notequals_tilde_setup(void);
-void number_tilde_setup(void);
+void numbox_tilde_setup(void);
 void onepole_tilde_setup(void);
 void overdrive_tilde_setup(void);
 void peakamp_tilde_setup(void);
@@ -898,7 +898,7 @@ void libpd_multi_init(void)
         modulo_tilde_setup();
         mstosamps_tilde_setup();
         notequals_tilde_setup();
-        number_tilde_setup();
+        numbox_tilde_setup();
         onepole_tilde_setup();
         overdrive_tilde_setup();
         peakamp_tilde_setup();
