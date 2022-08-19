@@ -184,9 +184,9 @@ struct DraggableNumber : public Label {
             newValue = static_cast<int64_t>(newValue);
         }
 
-        if (isMinLimited)
+        if (isMinLimited && min < max)
             newValue = std::max(newValue, min);
-        if (isMaxLimited)
+        if (isMaxLimited && max > min)
             newValue = std::min(newValue, max);
 
         setText(String(newValue), dontSendNotification);
