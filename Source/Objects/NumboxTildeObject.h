@@ -43,7 +43,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
 
-            editor->setBorder({ 0, 10, 0, 0 });
+            editor->setBorder({ 0, 15, 0, 0 });
 
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
@@ -54,7 +54,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
             setValue(input.getText().getFloatValue());
         };
 
-        input.setBorderSize({ 1, 22, 1, 1 });
+        input.setBorderSize({ 1, 20, 1, 1 });
 
         addAndMakeVisible(input);
 
@@ -70,10 +70,7 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         
         primaryColour = "ff" + String(object->x_fg->s_name + 1);
         secondaryColour = "ff" + String(object->x_bg->s_name + 1);
-        
-        std::cout << primaryColour.toString() << std::endl;
-        std::cout << secondaryColour.toString() << std::endl;
-        
+
         auto fg = Colour::fromString(primaryColour.toString());
         getLookAndFeel().setColour(Label::textColourId, fg);
         getLookAndFeel().setColour(Label::textWhenEditingColourId, fg);
@@ -208,9 +205,13 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
     void paintOverChildren(Graphics& g) override
     {
         g.setColour(findColour(PlugDataColour::highlightColourId));
-
-        g.setFont(22.f);
-        g.drawFittedText("~", getLocalBounds().withWidth(getHeight()).withX(2).withY(-1),
+        
+        auto iconBounds = Rectangle<int>(1, 0, getHeight(), getHeight());
+        
+        auto font = dynamic_cast<PlugDataLook&>(box->getLookAndFeel()).iconFont.withHeight(getHeight() - 8);
+        g.setFont(font);
+        
+        g.drawFittedText(mode ? Icons::ThinDown : Icons::Sine, iconBounds,
             juce::Justification::centred, 1);
     }
     
@@ -223,9 +224,6 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
 
         g.setColour(outlineColour);
         g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 2.0f, 1.0f);
-        
-        std::cout << primaryColour.toString() << std::endl;
-        std::cout << secondaryColour.toString() << std::endl;
     }
     
     void timerCallback() override
@@ -242,10 +240,6 @@ struct NumboxTildeObject final : public GUIObject, public Timer {
         t_atom at;
         SETFLOAT(&at, newValue);
         setValueOriginal(newValue);
-        
-        if(newValue == 0) {
-            std::cout << "Hey!" << std::endl;
-        }
         
         pd->getCallbackLock()->enter();
         pd_float(static_cast<t_pd*>(ptr), newValue);
