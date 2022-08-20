@@ -20,6 +20,14 @@ float random_frand(uint32_t *s1, uint32_t *s2, uint32_t *s3){
     return(u.f - 3.f);
 }
 
+int rand_int(unsigned int *statep, int range)
+{
+    int result;
+    *statep = *statep * 472940017 + 832416023;
+    result = ((double)range) * ((double)*statep) * (1./4294967296.);
+    return (result < range ? result : range - 1);
+}
+
 int32_t random_hash(int32_t inKey){
     // Thomas Wang's integer hash (a faster hash for integers, also very good).
     // http://www.concentric.net/~Ttwang/tech/inthash.htm
