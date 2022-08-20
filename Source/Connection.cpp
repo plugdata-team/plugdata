@@ -623,11 +623,11 @@ void Connection::findPath()
     auto distanceX = std::abs(pstart.x - pend.x);
     auto distanceY = std::abs(pstart.y - pend.y);
     
-    int maxXResolution = std::min(distanceX / 10, 16);
-    int maxYResolution = std::min(distanceY / 10, 16);
+    int maxXResolution = std::min(distanceX / 10, 14);
+    int maxYResolution = std::min(distanceY / 10, 14);
     
-    int resolutionX = 9;
-    int resolutionY = 9;
+    int resolutionX = 6;
+    int resolutionY = 6;
     
     auto obstacles = Array<Rectangle<int>>();
     auto searchBounds = Rectangle<int>(pstart, pend);
