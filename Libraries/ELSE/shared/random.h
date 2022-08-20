@@ -14,6 +14,7 @@ void random_init(t_random_state* rstate, float f);
 unsigned int get_seed(t_symbol *s, int ac, t_atom *av, int n);
 uint32_t random_trand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
 float random_frand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
+int rand_int(unsigned int *statep, int range);
 
 // These are for [pink~]
 
