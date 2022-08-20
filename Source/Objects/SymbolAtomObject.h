@@ -22,6 +22,12 @@ struct SymbolAtomObject final : public AtomObject {
                 box->setSize(width, box->getHeight());
                 checkBounds();
             }
+            
+        };
+        
+        input.onEditorShow = [this](){
+            auto* editor = input.getCurrentTextEditor();
+            editor->setBorder({1, 1, 0, 0});
         };
 
         input.setMinimumHorizontalScale(0.9f);
