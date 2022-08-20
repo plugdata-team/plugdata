@@ -1,0 +1,83 @@
+#N canvas 411 64 949 567 12;
+#X declare -path else;
+#X obj 144 222 out~;
+#X obj 210 396 noise~;
+#X obj 335 407 setdsp~ 1;
+#X obj 234 507 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 180 507 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 128 507 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.584714 256;
+#X obj 234 480 rms~;
+#X obj 180 480 rms~;
+#X obj 128 480 rms~;
+#X text 334 183 check the help file for more details, f 19;
+#X obj 161 139 osc~ 300;
+#X obj 226 139 osc~ 350;
+#X obj 291 139 osc~ 400;
+#X obj 358 139 osc~ 450;
+#X text 160 116 inlet 1;
+#X text 229 117 inlet 2;
+#X text 294 116 inlet 3;
+#X text 360 116 inlet 4;
+#X obj 144 183 xselect2~ 4, f 24;
+#X obj 79 87 hsl 128 15 0 3 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 76 138 f2s~ 10;
+#X floatatom 76 112 6 0 0 0 - - -;
+#X obj 150 445 xgate2~ 3;
+#X obj 133 358 hsl 128 15 0 2 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 130 409 f2s~ 10;
+#X floatatom 130 383 6 0 0 0 - - -;
+#X text 93 32 The [xselect2~] lets you perform the crossfade between
+channels. Check its help file., f 46;
+#X obj 559 354 xgate2~ 3;
+#X obj 562 193 hsl 128 15 0 2 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 559 245 f2s~ 10;
+#X floatatom 559 219 6 0 0 0 - - -;
+#X obj 784 244 osc~ 880;
+#X obj 552 404 spread~ 3 2;
+#X obj 619 288 xselect2~ 3, f 24;
+#X obj 662 245 osc~ 440;
+#X obj 729 244 noise~;
+#X obj 664 47 declare -path else;
+#X obj 547 452 out~;
+#X text 81 298 Similarly \, [xgate2~] also lets you specify the crossfading
+point. Check its help file., f 46;
+#X text 508 117 Here we also use the [spread~] object \, from the ELSE
+library \, that spreads any number of input signals to any number of
+output signals., f 52;
+#X connect 1 0 22 1;
+#X connect 6 0 3 0;
+#X connect 7 0 4 0;
+#X connect 8 0 5 0;
+#X connect 10 0 18 1;
+#X connect 11 0 18 2;
+#X connect 12 0 18 3;
+#X connect 13 0 18 4;
+#X connect 18 0 0 0;
+#X connect 19 0 21 0;
+#X connect 20 0 18 0;
+#X connect 21 0 20 0;
+#X connect 22 0 8 0;
+#X connect 22 1 7 0;
+#X connect 22 2 6 0;
+#X connect 23 0 25 0;
+#X connect 24 0 22 0;
+#X connect 25 0 24 0;
+#X connect 27 0 32 0;
+#X connect 27 1 32 1;
+#X connect 27 2 32 2;
+#X connect 28 0 30 0;
+#X connect 29 0 33 0;
+#X connect 29 0 27 0;
+#X connect 30 0 29 0;
+#X connect 31 0 33 3;
+#X connect 32 0 37 0;
+#X connect 32 1 37 1;
+#X connect 33 0 27 1;
+#X connect 34 0 33 1;
+#X connect 35 0 33 2;

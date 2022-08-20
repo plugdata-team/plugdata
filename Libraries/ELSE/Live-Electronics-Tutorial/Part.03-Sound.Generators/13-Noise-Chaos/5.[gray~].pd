@@ -1,0 +1,26 @@
+#N canvas 312 23 696 547 12;
+#X declare -path else;
+#X obj 137 459 out~;
+#X obj 504 16 declare -path else;
+#X text 40 49 The [gray~] object from ELSE uses "gray code" to change
+bits randomly. A "gray code" is a list of numbers where you change
+one bit at a time. They're useful for many sorts of things and was
+not really intended to generate audible audio \, but hey \, why not?
+, f 88;
+#X obj 367 296 spectrograph~ 1024 1 0 300 140 100;
+#X obj 50 311 meter~;
+#X text 554 273 [spectograph~];
+#X obj 137 296 graph~ 441 10 -1 1 200 140 #dfdfdf 0 1;
+#X obj 137 219 gray~;
+#X text 40 112 This object was inspired by a SuperCollider class and
+it is based on it. Since it is not a standard noise source for audio
+applications \, there is no principle for its spectral quality \, unlike
+[white~] \, [pink~] and [brown~]. It does favor frequency content in
+the lower range and sits somewhere in between [brown~] and [pink~]
+\, but the sound quality is quite "harsh" and "glitchy" \, whatever
+that means \, but you can see how the waveform has a tendency for harsh
+discontinuities., f 88;
+#X connect 6 0 0 0;
+#X connect 7 0 3 0;
+#X connect 7 0 4 0;
+#X connect 7 0 6 0;

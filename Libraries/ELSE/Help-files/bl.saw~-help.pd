@@ -1,4 +1,4 @@
-#N canvas 500 78 567 513 10;
+#N canvas 500 38 561 439 10;
 #X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -20,11 +20,11 @@
 0;
 #X obj 203 41 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 480 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 410 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 229 188 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X obj 229 118 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X text 289 187 <= hz;
+#X text 289 117 <= hz;
 #X obj 3 4 cnv 15 301 42 empty empty bl.saw~ 20 20 2 37 #e0e0e0 #000000
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -32,42 +32,37 @@
 #X restore 2 4 graph;
 #X obj 22 41 cnv 4 4 4 empty empty Bandlimited 0 28 2 18 #e0e0e0 #000000
 0;
-#X text 60 141 Because this is an abstraction and Pd is still limited
-in the way it handles it \, this object does not have any arguments.
-, f 67;
-#X text 452 244 see also:;
-#X obj 229 248 else/out~;
-#X obj 3 427 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X text 452 174 see also:;
+#X obj 229 178 else/out~;
+#X obj 3 357 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 452 266 else/saw~;
-#X obj 3 317 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 452 196 else/saw~;
+#X obj 3 247 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 391 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 321 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 122 400 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 122 330 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 123 325 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 122 255 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 165 326 float/signal -;
-#X text 269 326 frequency in hz;
-#X obj 122 347 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 165 256 float/signal -;
+#X text 269 256 frequency in hz;
+#X obj 122 277 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 165 368 float/signal -;
-#X obj 122 367 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 165 298 float/signal -;
+#X obj 122 297 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 201 400 signal -;
-#X text 270 368 phase offset (modulation input);
-#X text 270 348 phase sync (ressets internal phase);
-#X text 165 348 float/signal -;
-#X text 267 400 sawtooth wave signal;
+#X text 201 330 signal -;
+#X text 270 298 phase offset (modulation input);
+#X text 270 278 phase sync (ressets internal phase);
+#X text 165 278 float/signal -;
+#X text 267 330 sawtooth wave signal;
+#X text 159 369 1) float;
+#X text 218 388 - initial phase offset (default 0);
+#X text 218 369 - frequency in hertz (default 0);
+#X text 159 388 2) float;
+#X obj 229 143 else/bl.saw~ 400;
 #X text 60 88 [bl.saw~] is a sawtooth oscillator like [else/saw~] \,
-but it is bandlimited with the upsampling/filtering technique. This
-makes the object quite inefficient CPU wise \, but is an easy way to
-implement a bandlimited oscillator., f 67;
-#X text 159 439 1) float;
-#X text 218 458 - initial phase offset (default 0);
-#X text 218 439 - frequency in hertz (default 0);
-#X text 159 458 2) float;
-#X obj 229 213 else/bl.saw~ 400;
-#X connect 11 0 40 0;
-#X connect 40 0 18 0;
+but it is bandlimited., f 56;
+#X connect 11 0 38 0;
+#X connect 38 0 17 0;

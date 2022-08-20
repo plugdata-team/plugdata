@@ -43,7 +43,7 @@
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -113,7 +113,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -149,11 +149,9 @@
 #X text 181 295 signal;
 #X text 145 377 float/signal;
 #X text 229 409 - timed gate;
-#X obj 309 252 else/display~ 9;
 #X text 187 310 float;
 #X text 226 295 - impulse trigger with the gate value;
 #X text 227 310 - control trigger with the gate value;
-#X obj 86 251 else/display~ 9;
 #X msg 51 171 0.1;
 #X msg 86 171 -0.9;
 #X msg 128 171 13;
@@ -163,14 +161,13 @@
 #X text 203 177 gate time;
 #X obj 309 194 else/zerocross~;
 #X obj 309 164 else/sine~ 1;
-#N canvas 938 106 450 420 more 0;
+#N canvas 916 106 450 420 more 0;
 #X obj 74 250 else/imp~ 0.5;
 #X obj 74 283 *~;
 #X obj 106 283 noise~;
-#X obj 74 341 else/display~ 9;
 #X text 69 222 random impulses;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -240,7 +237,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -273,10 +270,8 @@
 #X connect 9 0 0 0;
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 277 259 pd;
-#X obj 65 161 else/display~ 9;
 #X obj 65 107 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000;
-#X obj 221 159 else/display~ 9;
 #X obj 221 105 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X msg 251 104 1.5;
@@ -287,15 +282,18 @@ gate value from a signal or float input., f 53;
 #X obj 65 131 else/timed.gate~ 1000;
 #X obj 221 129 else/timed.gate~ 1000 0.5;
 #X obj 74 311 else/timed.gate~ 1000;
+#X obj 65 161 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 221 159 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 74 341 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 0 0 1 0;
-#X connect 1 0 14 0;
+#X connect 1 0 11 0;
 #X connect 2 0 1 1;
-#X connect 7 0 12 0;
-#X connect 9 0 13 0;
+#X connect 5 0 9 0;
+#X connect 6 0 10 0;
+#X connect 7 0 10 0;
+#X connect 9 0 12 0;
 #X connect 10 0 13 0;
-#X connect 12 0 6 0;
-#X connect 13 0 8 0;
-#X connect 14 0 3 0;
+#X connect 11 0 14 0;
 #X restore 487 218 pd more \; examples;
 #X text 176 460 2) float - initial gate amplitude (default 1);
 #X text 193 325 bang;
@@ -304,7 +302,7 @@ gate value from a signal or float input., f 53;
 #X text 227 355 - non-zero sets to retrigger mode;
 #X text 176 476 3) float - non-zero sets to retrigger mode;
 #N canvas 900 250 464 307 retrigger 0;
-#X obj 176 233 else/display~ 9;
+#X obj 176 233 else/numbox~ 9;
 #X msg 298 164 retrigger \$1;
 #X obj 298 142 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000 0 1;
@@ -312,7 +310,7 @@ gate value from a signal or float input., f 53;
 is triggered \, but you can change to "retrigger" mode \, where a new
 timed gate starts before the last was finished., f 53;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -382,7 +380,7 @@ timed gate starts before the last was finished., f 53;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -437,12 +435,14 @@ if 0 or less is given \, no gate is output.;
 #X text 157 340 ms <float>;
 #X obj 16 40 cnv 4 4 4 empty empty Signal 0 28 2 18 #e0e0e0 #000000
 0;
-#X connect 31 0 47 0;
-#X connect 32 0 47 0;
-#X connect 33 0 47 0;
-#X connect 34 0 47 1;
-#X connect 37 0 49 0;
-#X connect 38 0 37 0;
-#X connect 46 0 47 0;
-#X connect 47 0 30 0;
-#X connect 49 0 26 0;
+#X obj 309 252 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 86 251 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 29 0 45 0;
+#X connect 30 0 45 0;
+#X connect 31 0 45 0;
+#X connect 32 0 45 1;
+#X connect 35 0 47 0;
+#X connect 36 0 35 0;
+#X connect 44 0 45 0;
+#X connect 45 0 53 0;
+#X connect 47 0 52 0;

@@ -1,0 +1,48 @@
+#N canvas 563 59 612 496 12;
+#X declare -path else;
+#X obj 347 20 declare -path else;
+#X obj 73 43 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000
+0 1;
+#X obj 106 305 bng 22 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X floatatom 348 210 5 0 0 0 - - - 12;
+#X text 70 301 beat bang, f 4;
+#X obj 186 421 out~;
+#X obj 270 308 hsl 150 19 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 267 335 7 0 0 0 - - - 12;
+#X msg 144 121 timesig 7/8;
+#X msg 132 95 timesig 6/8;
+#X msg 106 44 timesig 15/8 3;
+#X text 393 211 tempo;
+#X msg 154 146 timesig 4/4;
+#X msg 169 170 timesig 3/4;
+#X msg 119 69 timesig 15/8 5;
+#X text 323 336 phase (0-1);
+#X listbox 348 272 12 0 0 0 - - - 0;
+#X obj 186 305 display;
+#X obj 186 371 metronome~;
+#X msg 176 204 timesig 3/4 + 3/8;
+#X text 303 70 This is a high level metronome. It is here because you
+can use the bar count to fire a sequence with select. Or select a specific
+beat in a bar \, kind of like a timeline in a DAW (hint \, hint). Check
+its help file for details., f 34;
+#X text 56 377 See also the [metronome~] object for audio clicks.,
+f 13;
+#X obj 106 241 metronome 90, f 35;
+#X connect 1 0 22 0;
+#X connect 3 0 22 1;
+#X connect 6 0 7 0;
+#X connect 8 0 22 0;
+#X connect 9 0 22 0;
+#X connect 10 0 22 0;
+#X connect 12 0 22 0;
+#X connect 13 0 22 0;
+#X connect 14 0 22 0;
+#X connect 17 0 18 0;
+#X connect 18 0 5 0;
+#X connect 19 0 22 0;
+#X connect 22 0 2 0;
+#X connect 22 1 17 0;
+#X connect 22 2 6 0;
+#X connect 22 3 16 0;

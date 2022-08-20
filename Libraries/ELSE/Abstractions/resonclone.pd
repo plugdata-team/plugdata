@@ -7,10 +7,10 @@
 #X text 319 151 This is an abstraction used on the [bpbank~] object
 , f 27;
 #X obj 49 35 inlet~ fwd;
-#X obj 161 94 f2s~;
-#X obj 89 94 f2s~;
-#X obj 236 94 f2s~;
-#X obj 49 129 resonant~;
+#X obj 161 94 else/f2s~;
+#X obj 89 94 else/f2s~;
+#X obj 236 94 else/f2s~;
+#X obj 49 129 else/resonant~;
 #X obj 131 57 route freq decay amp ramp;
 #X obj 343 54 declare -path else;
 #X connect 1 0 0 0;

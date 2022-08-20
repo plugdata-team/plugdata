@@ -1,0 +1,36 @@
+#N canvas 372 329 572 427 12;
+#X declare -path else;
+#X obj 387 125 declare -path else;
+#X obj 72 145 meter;
+#X floatatom 72 184 5 0 0 0 - - -;
+#X obj 218 261 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X msg 202 133 set 512 50 290;
+#X obj 202 101 loadbang;
+#X obj 202 313 fdn.rev~ -time 4;
+#X obj 218 229 tempo 60 100 -on;
+#X obj 218 284 impseq~;
+#X obj 440 270 setdsp~ 1;
+#X obj 237 366 dac~;
+#X text 121 28 This is the patch used in the pd~ example \, which is
+very CPU intensive., f 42;
+#X obj 272 169 r tempo;
+#X floatatom 272 199 5 0 0 0 - - -;
+#X text 331 168 <= receive control messages;
+#X text 406 223 DSP needs to be on here also, f 15;
+#X obj 72 240 stdout;
+#X text 39 274 [stdout] sends messages to the first outlet, f 15;
+#X text 36 351 [dac~] communicates with the extra signal outlets,
+f 24;
+#X text 211 366 =>;
+#X connect 1 0 2 0;
+#X connect 2 0 16 0;
+#X connect 3 0 8 0;
+#X connect 4 0 6 0;
+#X connect 5 0 4 0;
+#X connect 6 0 10 0;
+#X connect 6 1 10 1;
+#X connect 7 0 3 0;
+#X connect 8 0 6 0;
+#X connect 12 0 13 0;
+#X connect 13 0 7 1;

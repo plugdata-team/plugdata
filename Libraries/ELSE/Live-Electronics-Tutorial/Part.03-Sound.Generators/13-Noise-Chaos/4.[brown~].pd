@@ -1,0 +1,61 @@
+#N canvas 362 32 846 659 12;
+#X declare -path else;
+#X obj 665 19 declare -path else;
+#X obj 107 576 out~;
+#X obj 107 548 brown~;
+#X obj 529 248 graph~ 441 10 -1 1 200 140 #dfdfdf 0 1;
+#X obj 529 139 *~ 0.125;
+#X obj 529 178 fexpr~ if(($x1+$y1) > 1 \, 2 - ($x1+$y1) \, if(($x1+$y1)
+< -1 \, -2 - ($x1+$y1) \, ($x1+$y1))), f 39;
+#X text 29 17 The [brown~] object is a brown noise generator that has
+a decay of 6 dB per octave by default \, so it sounds less hissy than
+white noise. The name is not from a color analogy \, instead it refers
+to "brownian noise" \, which is produced by brownian motion (the random
+motion of particles suspended in a medium like a liquid or a gas).
+It is named after Robert Brown \, who documented the erratic motion
+for multiple types of inanimate particles in water. Brown noise is
+also known as "red noise" \, which is in fact a color analogy because
+red light has longer wavelengths (hence \, it's lower in the spectrum).
+, f 64;
+#X obj 529 105 noise~;
+#X text 29 278 You can use [noise~] to create brown noise since its
+output are random values that can be used as random steps. White noise
+output is from -1 to 1 so you have to multiply it by 0.125 to get random
+steps up or down (whose maximum amplitude is 0.125)., f 64;
+#X text 29 345 We then need to sum this maximum step value to the last
+output and perform bound checks. We do this with the [fexpr~] object
+and the way this object works only becomes clear later in this tutorial
+when we study advanced filters., f 64;
+#X obj 549 415 out~;
+#X obj 593 89 hsl 135 16 0.01 1 1 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X floatatom 590 113 6 0 0 0 - - - 0;
+#X text 524 60 Vanilla implementation of brown noise., f 31;
+#X text 640 112 <-- change step;
+#X text 29 168 Brownian motion is a type of random walk. We'll see
+more about random walk later when studying chaotic and stochastic random
+control \, but the way it works is simple. From a starting value point
+\, you have a random step up or down whose maximum value is 0.125 \,
+then when you reach that step you have another random move up or down.
+If you cross the -1 or 1 bounds \, the value is folded back (1.02 becomes
+0.98 \, for instance)., f 64;
+#X text 30 413 You can change the maximum step but that alters the
+spectral quality \, where higher steps sound more like white noise
+and smaller values sound less bright (or more "red")., f 64;
+#X obj 528 492 spectrograph~ 1024 1 0 300 140 100;
+#X floatatom 107 517 5 0 0 0 - - - 0;
+#X text 155 516 change step;
+#X obj 110 490 hsl 135 16 0.01 1 1 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X text 268 546 [brown~] also has an impulse input and we'll see that
+in "20-Stochastic" when studying drunk walks., f 30;
+#X connect 2 0 1 0;
+#X connect 3 0 10 0;
+#X connect 3 0 17 0;
+#X connect 4 0 5 0;
+#X connect 5 0 3 0;
+#X connect 7 0 4 0;
+#X connect 11 0 12 0;
+#X connect 12 0 4 1;
+#X connect 18 0 2 0;
+#X connect 20 0 18 0;

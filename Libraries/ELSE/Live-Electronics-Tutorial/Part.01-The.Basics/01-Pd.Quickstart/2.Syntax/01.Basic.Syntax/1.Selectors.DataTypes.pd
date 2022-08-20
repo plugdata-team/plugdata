@@ -1,0 +1,53 @@
+#N canvas 261 44 960 418 12;
+#X msg 121 289 4;
+#X msg 110 329 1 oi 3 5;
+#X msg 121 226 bang;
+#X text 77 227 bang;
+#X msg 121 262 symbol oi;
+#X msg 111 355 list um 2;
+#X text 71 262 Symbol;
+#X text 175 329 (implicit);
+#X text 68 342 List;
+#X text 151 288 (implicit);
+#X text 74 290 float;
+#X msg 307 251 turn on;
+#X msg 307 283 open file4.aif;
+#X text 52 188 Special selectors:;
+#X msg 307 313 stop;
+#X msg 373 251 turn off;
+#X text 306 207 Messages with other selectors:, f 16;
+#X text 346 313 just a selector;
+#X msg 627 189 list;
+#X msg 638 218 list x;
+#X text 667 188 becomes a bang;
+#X text 693 218 becomes a symbol;
+#X msg 661 287 float 5;
+#X msg 667 313 list 3 5;
+#X text 737 288 selector ignored, f 8;
+#X text 502 20 Conceptually \, a list message containing just one float
+is the same as a float message. In the same way \, a list containing
+just a symbol is the same as a list message. Finally \, an empty list
+is conceptually the same as a bang message. Technically \, these are
+different \, but objects in Pd treat these special cases of lists as
+such. One example is the [print] object., f 62;
+#X text 502 115 Note also how [print] ignores the 'float' selector
+\, as well as the 'list' selector when the first element is a float
+- this reinforces the idea that these selectors should be implicit.
+, f 62;
+#X text 49 19 A message selector is the first symbol in a message and
+defines its data type. The special types (the most common messages
+that Pd objects understand) are: float \, symbol \, list \, bang and
+pointer (this one used for data structures only). The "float" selector
+doesn't need to be specified and neither does "list" if its first element
+is a float. Other message selectors can be anything else defined by
+the user as objects in Pd can also deal with other message types. If
+a message contains only one symbol \, like "stop" \, it is considered
+a selector with no actual message attached.;
+#X msg 649 253 list 4;
+#X text 703 253 becomes a float;
+#X obj 627 349 print;
+#X connect 18 0 30 0;
+#X connect 19 0 30 0;
+#X connect 22 0 30 0;
+#X connect 23 0 30 0;
+#X connect 28 0 30 0;

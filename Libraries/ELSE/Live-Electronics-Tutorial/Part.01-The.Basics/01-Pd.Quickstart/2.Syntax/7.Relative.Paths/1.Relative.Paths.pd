@@ -1,0 +1,35 @@
+#N canvas 360 119 884 400 12;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-array 100 float 4;
+#X coords 0 1 99 -1 200 140 1 0 0;
+#X restore 543 238 graph;
+#X obj 593 182 send \$0-array;
+#X text 750 118 <= click;
+#X text 36 200 When specifying relative paths \, you can use the prefix
+"./" that specifies "this folder" \, which is not needed as it is implicitly
+defined when we don't use it. The “../” prefix \, on the other
+hand \, refers to the parent directory \, and “../../” is the parent’s
+parent directory and so on…, f 60;
+#X text 36 280 These can be expanded to subfolders. If you have a prefix
+like “files/” (or “./files”) \, Pd searches inside a subfolder
+named “files” in A) \, B) and C). Conversely \, something like
+“../files” will look in a subfolder named “files” in the parent
+patch as relative to A) \, B) and C).;
+#X msg 609 149 write ./txt/table2.txt;
+#X msg 593 119 read ./txt/table1.txt;
+#X text 36 32 Pd can load files and externals in a patch. You can specify
+an absolute directory for that (which is a complete path \, from root
+\, and not very convenient)., f 60;
+#X text 36 85 But Pd also automatically searches for these in specific
+folders. Hence \, we can use them or use folders relative to them instead.
+In order of priority \, such folders are \; - A) The folder where the
+patch is saved \; - B) User Added Paths (set in Pd => Preferences =>
+Path) \; - C) Pd’s Standard Path (a.k.a. the “extra” folder inside
+Pd’s Application).;
+#X text 488 19 As an example we send the "read" message to an array
+\, where Pd looks for a "table.txt" file inside a subfolder named "txt".
+Since the file is included in a folder in case "A)" \, this task is
+performed successfully. The write message works in the same way., f
+51;
+#X connect 5 0 1 0;
+#X connect 6 0 1 0;

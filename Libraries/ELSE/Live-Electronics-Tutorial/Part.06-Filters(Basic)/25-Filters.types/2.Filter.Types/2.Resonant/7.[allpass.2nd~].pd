@@ -1,0 +1,34 @@
+#N canvas 483 99 606 614 12;
+#X declare -path else;
+#X obj 237 231 nbx 5 14 100 10000 1 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 100 256;
+#X obj 309 262 nbx 5 14 0.1 100 1 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 0.1 256;
+#X text 295 230 resonant/center frequency;
+#X text 367 261 resonance;
+#X obj 165 287 allpass.2nd~ 1000 0.1;
+#X obj 147 235 noise~;
+#X obj 147 366 out~;
+#X obj 147 323 *~;
+#X text 77 131 In this example \, in order to show how an allpass filter
+can affect the sound \, we sum a noise input to the filtered output
+\, which cancels frequencies by phase opposition \, rather like a bandstop
+filter., f 62;
+#X text 61 457 The resonant frequency is the point at which the pahse
+is shifted to 180º \, so it is the frequency point we have a full
+phase cancellation. This is also considered a kind of resonant filter
+because the the steepness of phase distortion is determined by the
+Q parameter. In the context of this example \, where it acts like a
+bandstop filter \, it is like the Q parameter controls the bandwidth
+of the band rejection., f 69;
+#X text 61 555 See its help file for more details.;
+#X obj 398 17 declare -path else;
+#X text 77 63 An allpass filter does not affect the frequency response
+\, only the phase. This filter will be better presented in a later
+and more advanced section on filters., f 62;
+#X connect 0 0 4 1;
+#X connect 1 0 4 2;
+#X connect 4 0 7 1;
+#X connect 5 0 7 0;
+#X connect 5 0 4 0;
+#X connect 7 0 6 0;

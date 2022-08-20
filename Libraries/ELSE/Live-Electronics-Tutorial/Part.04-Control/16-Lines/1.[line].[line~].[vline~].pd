@@ -1,0 +1,93 @@
+#N canvas 567 42 834 683 12;
+#X declare -path else;
+#X msg 138 272 \$1 1000;
+#X obj 138 302 line 0 1;
+#X floatatom 138 246 6 0 0 0 - - -;
+#X obj 138 212 tgl 16 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 552 203 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 552 272 line~;
+#X obj 555 323 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 141 333 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 171 1;
+#X text 196 272 ramp of 1000 ms;
+#X text 204 302 one value at every 1 ms;
+#X obj 710 222 setdsp~ 1;
+#X obj 552 298 s2f~;
+#X obj 642 28 declare -path else;
+#X obj 165 196 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 165 220 rand.f 0 1;
+#X text 67 246 target =>;
+#X text 74 210 click =>;
+#X text 440 61 The [line~] object is the audio rate counterpart \,
+and thus it generates values at each new sample. One restrain is that
+it always start generating values at the beginning of a block of audio
+and it also can only finish a ramp at the end of a block of audio -
+so it doesn't have the best time resolution., f 49;
+#X obj 466 188 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 466 212 rand.f 0 1;
+#X msg 552 243 \$1 1000;
+#X obj 144 571 line;
+#X obj 147 597 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X msg 144 544 0 \, 1 1000;
+#X obj 144 492 metro 1000;
+#X obj 144 466 tgl 17 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 144 517 bng 17 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 165 465 <= click;
+#X text 22 364 If we send it a single value \, it considers the time
+period to be 0 and jumps immediately to that value. We could then send
+it two messages where the first is just a float \, then \, in practical
+terms \, it can be considered as the starting point of the ramp. See
+it below., f 53;
+#X obj 446 530 vline~;
+#X msg 446 498 0 \, 1 1000 500 \, 0 1000 2000 \, 1 500 3000;
+#X obj 449 589 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 446 561 s2f~;
+#X text 443 366 The [vline~] object \, in contrast \, has a higher
+resolution. It can start and finish a ramp at any point in time. Moreover
+\, it accepts a third scheduling parameter \, which is the time in
+ms before starting the ramp. You can then send it several messages
+and schedule different line segments at once to set compound line segments.
+, f 48;
+#X text 501 527 go to zero \, wait 500 ms \, go to 1 in 1000 ms then
+after 500 ms go to zero in 1000 ms and go back to 1 in 500 ms, f 43
+;
+#X text 22 105 They expect a list message with a target value and a
+time period to reach it. The 1st argument of [line] defines the starting
+point. By default \, it generates a value at an interval rate of 20
+ms \, but you can change it with the 2nd argument or third inlet.,
+f 53;
+#X text 234 649 More details in the help file of each object.;
+#X text 22 14 This example checks the 'line' family from Pd's native
+objects. The simplest form of generating lines is to generate single
+ramps. That is \, generating a single line segment from a start point
+to an end point. This is what [line] and [line~] do \, but [vline~]
+can generate more complex and compound line segments., f 54;
+#X connect 0 0 1 0;
+#X connect 1 0 7 0;
+#X connect 2 0 0 0;
+#X connect 3 0 2 0;
+#X connect 4 0 20 0;
+#X connect 5 0 11 0;
+#X connect 11 0 6 0;
+#X connect 13 0 14 0;
+#X connect 14 0 2 0;
+#X connect 18 0 19 0;
+#X connect 19 0 20 0;
+#X connect 20 0 5 0;
+#X connect 21 0 22 0;
+#X connect 23 0 21 0;
+#X connect 24 0 26 0;
+#X connect 25 0 24 0;
+#X connect 26 0 23 0;
+#X connect 29 0 32 0;
+#X connect 30 0 29 0;
+#X connect 32 0 31 0;

@@ -1,0 +1,70 @@
+#N canvas 459 57 842 452 12;
+#X declare -path else;
+#X obj 478 280 mtof;
+#X obj 534 347 *~;
+#X obj 478 223 trigger f b;
+#X obj 552 269 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X floatatom 478 252 5 0 0 0 - - - 0;
+#X obj 552 311 decay2~ 50 500;
+#X obj 534 379 out~;
+#X obj 478 311 bl.tri~;
+#X obj 288 21 declare -path else;
+#X text 258 142 <= click to open;
+#X msg 478 55 line 0 \, auto;
+#X obj 741 226 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 493 145 stop;
+#X obj 95 142 text define -k \$0-seq;
+#A set 0 69 \; 0.5 60 \; 0.5 60 \; 0.5 69 \; 0.5 69 \; 1.5 60 \; 0.5
+60 \; 0.5 69 \; 0.5 69 \; 0.5 60 \; 0.5 62 \; 0.5 60 \; 0.5 59 \; 0.5
+59 \; 0.5 59 \; 0.5 68 \; 0.5 68 \; 3 \;;
+#X text 761 228 done;
+#X floatatom 539 121 5 0.1 5 0 - - - 0;
+#X text 603 89 <= change the tempo, f 9;
+#X msg 539 145 tempo \$1 permin;
+#X msg 506 90 30;
+#X msg 539 90 60;
+#X msg 571 90 120;
+#X text 42 51 We now have basically the same example as before \, but
+the previous example was closely related to the [qlist] example and
+now we use [text sequence] differenlty in a more meaningful musical
+way \, with tempo in bpm instead of being based in ms., f 55;
+#X obj 478 191 text sequence \$0-seq -w 1 -t 60 permin;
+#X text 42 179 So now every 'wait' time is specified in 'beats' \,
+where "1" is one beat \, "0.5" is half a beat \, "1.5" is one and a
+half beat and so on. If you're thinking of a regular 4/4 time signature
+\, each beat is a "quarter note" \, so "0.5" is an eight note \, "1.5"
+is a dotted quarter note and so on. But note that the wait time means
+how long to wait for the pitch value (the second item in the list)
+to come out., f 55;
+#X text 42 299 In this example we're not using the -g flag \, so the
+MIDI pitch comes out the left outlet. in order to specify that the
+first item on the list is a wait time \, we use the "-w 1" flag. The
+tempo can also be specified via the '-t' flag and here we have 60 BPM.
+, f 55;
+#X obj 741 259 s \$0-loop;
+#X obj 478 27 r \$0-loop;
+#X text 571 55 <= rewind and start automatically;
+#X text 42 378 A single wait number outputs a bang (which is 0 length
+list). This happens at the end of the sequence as some sort of 'rest'
+before the loop restarts., f 55;
+#X connect 0 0 7 0;
+#X connect 1 0 6 0;
+#X connect 2 0 4 0;
+#X connect 2 1 3 0;
+#X connect 3 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 1 1;
+#X connect 7 0 1 0;
+#X connect 10 0 22 0;
+#X connect 11 0 25 0;
+#X connect 12 0 22 0;
+#X connect 15 0 17 0;
+#X connect 17 0 22 0;
+#X connect 18 0 15 0;
+#X connect 19 0 15 0;
+#X connect 20 0 15 0;
+#X connect 22 0 2 0;
+#X connect 22 2 11 0;
+#X connect 26 0 10 0;

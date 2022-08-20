@@ -1,0 +1,95 @@
+#N canvas 352 88 1101 625 12;
+#X symbolatom 74 201 20 0 0 0 - - - 0;
+#X obj 663 243 symbol \$0-x;
+#X obj 663 216 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X symbolatom 663 284 10 0 0 0 - - - 0;
+#X obj 198 486 text fromlist example;
+#X obj 231 573 text define example;
+#X msg 226 448 list \\\$1 is literal and \$1 is not;
+#X text 378 573 <= click to open text window, f 16;
+#X msg 74 137 symbol one\ symbol;
+#X msg 84 168 symbol one\\\,\\\ symbol;
+#X msg 276 137 list one\ item two 3;
+#X symbolatom 276 201 10 0 0 0 - - - 0;
+#X symbolatom 365 201 10 0 0 0 - - - 0;
+#X floatatom 455 201 5 0 0 0 - - - 0;
+#X obj 276 168 unpack symbol symbol float;
+#X text 278 116 three items list;
+#X text 42 524 This way \, the messages above get properly stored in
+the text object \, which is an object that defines and manipulates
+texts in Pd., f 53;
+#X obj 645 321 s;
+#X obj 654 369 r \$0-x;
+#X floatatom 654 405 5 0 0 0 - - - 0;
+#X floatatom 599 267 5 0 0 0 - - - 0;
+#X obj 877 208 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X symbolatom 877 310 10 0 0 0 - - - 0;
+#X obj 859 340 s;
+#X floatatom 914 409 5 0 0 0 - - - 0;
+#X floatatom 813 268 5 0 0 0 - - - 0;
+#X obj 877 235 symbol \\\$0-x;
+#X obj 914 373 r \\\$0-x;
+#X text 36 381 Click on the messages to store them in the [text] object.
+, f 21;
+#X text 564 106 We've seen how this can be useful to set a receive
+name in a GUI and save it as a literal '\$0' without expanding to the
+patch ID number. In the next example we have to do things differently.
+See below how the symbol to the left gets expanded when it comes out
+of the [symbol] object \, whereas the one to the right does not.,
+f 68;
+#X text 570 453 Now let's understand that in order to match the [receive
+\$0-x] object \, you cannot set it as a "symbol \\\$0-x" in a symbol
+box. You actually need the expanded symbol that comes out of the object
+[symbol \$0-x]., f 65;
+#X text 570 519 Setting with the escaped "\\\$0-x" symbol can only
+match an object with a literal "\\\$0-x" \, and it must be clear now
+how it is not the same thing \, as [receive \\\$0-x] is not actually
+loading the locality variable., f 65;
+#X text 52 24 The backlash character is used in Pd to escape special
+characters that are handled differently in Pd. Such characters are:
+commas \, semicolons \, space dollar signs (as in the locality syntax)
+and the backlash character itself. See below how to create symbols
+with commas and spaces., f 66;
+#X text 52 239 Here's another example. Below we have a list where commas
+and semicolons are escaped and therefore they are not treated as they
+normally would. The comma does not separate the message and the semicolon
+does not define a send address. Note \, however \, how the backslash
+needs to be after a space \, so you end up with an item followed separately
+by a comma or a semicolon \, otherwise it is treated as part of the
+element it is attached to., f 66;
+#X floatatom 226 421 5 0 0 0 - - - 0;
+#X text 270 420 sets the value of non literal "\$1";
+#X msg 894 264 symbol \\\$0-x;
+#X text 990 265 same thing;
+#X text 955 295 and same if you, f 16;
+#X text 955 311 type '\$0-x' into;
+#X text 955 326 the symbol box, f 16;
+#X msg 198 376 list Hi \\\, how are you? \\\; Fine \\\, thanks! \\\;
+;
+#X text 565 25 Note that if you type the messages "one symbol" and
+"one \, symbol" in a symbol box \, you'll see it automatically generates
+a preceding backslash character for the space and comma. This will
+also happen for the other special characters (such as semicolons and
+dollar signs)., f 68;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X connect 3 0 17 1;
+#X connect 6 0 4 0;
+#X connect 8 0 0 0;
+#X connect 9 0 0 0;
+#X connect 10 0 14 0;
+#X connect 14 0 11 0;
+#X connect 14 1 12 0;
+#X connect 14 2 13 0;
+#X connect 18 0 19 0;
+#X connect 20 0 17 0;
+#X connect 21 0 26 0;
+#X connect 22 0 23 1;
+#X connect 25 0 23 0;
+#X connect 26 0 22 0;
+#X connect 27 0 24 0;
+#X connect 34 0 6 0;
+#X connect 36 0 22 0;
+#X connect 41 0 4 0;

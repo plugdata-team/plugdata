@@ -1,0 +1,76 @@
+#N canvas 498 76 861 624 12;
+#X declare -path else;
+#X obj 544 278 +~;
+#X obj 503 191 nbx 4 14 -1e+37 1e+37 0 1 empty carrier empty 0 -8 0
+10 #dcdcdc #000000 #000000 200 256;
+#X obj 562 214 osc~;
+#X obj 562 246 *~;
+#X obj 562 191 nbx 4 14 -1e+37 1e+37 0 1 empty mod empty 0 -8 0 10
+#dcdcdc #000000 #000000 1 256;
+#X obj 621 192 nbx 4 14 0 1e+37 0 1 empty index empty 0 -8 0 10 #dcdcdc
+#000000 #000000 10 256;
+#X obj 90 336 cnv 15 298 138 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 478 328 (subpatch) 0;
+#X array \$0-Spectrum 128 float 0;
+#X coords 0 1024 127 0 300 140 1 0 0;
+#X restore 89 335 graph;
+#X text 181 475 500Hz;
+#X text 128 474 250Hz;
+#X text 88 474 50Hz;
+#X text 236 475 750Hz;
+#X text 298 475 1KHz;
+#X text 343 476 1.25KHz;
+#X text 506 72 Vibrato;
+#X obj 544 307 sine~;
+#X obj 544 533 out~;
+#X obj 544 341 graph~ 1000 15;
+#X text 499 171 Carrier;
+#X text 566 172 Mod.;
+#X text 620 174 Index;
+#X msg 490 90 \; carrier 200 \; mod 1 \; index 10;
+#X msg 702 90 \; carrier 369 \; mod 100 \; index 400;
+#X msg 596 90 \; carrier 400 \; mod 100 \; index 100;
+#X text 700 73 Inharmonic;
+#X text 593 73 Harmonic;
+#X text 119 506 Increase the modulation index and see the creation
+of partials above, f 40;
+#X obj 684 31 declare -path else;
+#X text 38 30 Again we have the same structure \, but now using [sine~]
+instead of [osc~]. Besides a vibrato example \, we have proper FM examples.
+Similarly to Amplitude Modulation \, side band partials are created
+\, spaced by frequency bands equal to the modulating frequency \, but
+FM may produce several side bands., f 55;
+#X text 38 143 The bigger the modulation index \, the more partials
+we have and thus we can create rich and complex waveforms. If the carrier
+and modulating frequencies have a simple harmonic ratio \, the result
+is a harmonic waveform \, and inharmonic otherwise. Click on the message
+boxes for the preset examples., f 55;
+#N canvas 610 140 335 270 FFT 0;
+#X obj 73 32 inlet~;
+#X obj 74 111 rfft~;
+#X obj 150 92 block~ 4096;
+#X obj 74 215 tabwrite~ \$0-Spectrum;
+#X obj 102 177 tempo 240 -on;
+#X obj 74 137 mag~;
+#X obj 74 77 hann~;
+#X connect 0 0 6 0;
+#X connect 1 0 5 0;
+#X connect 1 1 5 1;
+#X connect 4 0 3 0;
+#X connect 5 0 3 0;
+#X connect 6 0 1 0;
+#X restore 560 503 pd FFT;
+#X obj 490 45 loadbang;
+#X obj 621 214 f2s~ 10;
+#X connect 0 0 15 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 3 0 0 1;
+#X connect 4 0 2 0;
+#X connect 5 0 32 0;
+#X connect 15 0 17 0;
+#X connect 17 0 30 0;
+#X connect 17 0 16 0;
+#X connect 31 0 21 0;
+#X connect 32 0 3 1;

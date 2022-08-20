@@ -1,0 +1,43 @@
+#N canvas 495 87 562 689 12;
+#X declare -path else;
+#X obj 191 538 free.rev~;
+#X text 58 57 The [free.rev~] object from ELSE is an abstraction that
+implements the widely known 'freeverb' open source algorithm., f 59
+;
+#X text 58 106 It uses a Schroeder/Moorer model design \, with 8 comb
+filters in parallel going into 4 stages of allpass filters., f 59
+;
+#X text 58 142 This example is a bit more sophisticated. Like the FDN
+reverberastors \, it has a 'decay' parameter (which affects the feedback
+coefficient of the comb filters) and a high frequency damping parameter
+(that controls the cutoff of an internal lowpass filter).;
+#X obj 194 376 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 -228856
+-1 -1 12700 0;
+#X floatatom 191 402 5 0 0 0 - - -;
+#X floatatom 274 426 5 0 0 0 - - -;
+#X msg 274 452 damp \$1;
+#X obj 277 403 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 -228856
+-1 -1 1100 0;
+#X msg 191 428 decay \$1;
+#X obj 352 439 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 -228856
+-1 -1 12700 0;
+#X floatatom 349 462 5 0 0 0 - - -;
+#X msg 349 486 wet \$1;
+#X obj 331 16 declare -path else;
+#X obj 128 338 play.file~ 1 didge.aif 1 1;
+#X obj 175 577 out~;
+#X text 58 219 Additionally \, it has a 'width' parameter that controls
+how much both inputs are mixed or not. This controls the stereo spread.
+Open the abstraction to check it out. Check also its help file.;
+#X connect 0 0 15 0;
+#X connect 0 1 15 1;
+#X connect 4 0 5 0;
+#X connect 5 0 9 0;
+#X connect 6 0 7 0;
+#X connect 7 0 0 0;
+#X connect 8 0 6 0;
+#X connect 9 0 0 0;
+#X connect 10 0 11 0;
+#X connect 11 0 12 0;
+#X connect 12 0 0 0;
+#X connect 14 0 0 0;

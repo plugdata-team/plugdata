@@ -1,0 +1,65 @@
+#N canvas 664 84 865 625 12;
+#X declare -path else;
+#X obj 665 303 *~;
+#X obj 615 262 r~ \$0-sample;
+#X obj 711 255 nbx 5 14 -20000 20000 0 1 empty \$0-freq empty 0 -8
+0 10 -228856 -1 -1 100 256;
+#X obj 711 278 osc~;
+#X obj 630 135 *~;
+#X obj 705 53 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-freq empty 0 -8 0
+10 -228856 -1 -1 0 256;
+#X obj 705 77 osc~;
+#X text 740 76 AM;
+#X text 745 279 RM;
+#X obj 175 293 s~ \$0-sample;
+#X obj 608 81 r~ \$0-sample;
+#X obj 630 171 out~;
+#X obj 665 340 out~;
+#X text 38 335 Let's test both the classic AM example and the RM one.
+In both cases \, the side band frequencies are created for each sine
+wave component in the carrier signal., f 71;
+#X obj 190 221 out~;
+#X text 38 83 Actually \, much of what we see as a synthesis technique
+topic is actually in respect to a processing technique. In the same
+way \, many effect processes are widely used in syhtesis (such as filtering).
+Hence \, there's only a fine line between synthesis techniques and
+audio processing.;
+#X obj 667 537 out~;
+#X obj 713 474 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 773 473 Hz;
+#X obj 667 499 rm~ 150;
+#X obj 667 445 r~ \$0-sample;
+#X obj 705 105 rescale~;
+#X text 38 473 The ELSE library has a simple and straight forward Ring
+Modulation object called [rm~]. It uses [osc~] as the modulator and
+the frequency input is given as the argument or via the right inlet.
+It's worth noting it treats a 0 Hz input as a bypass. This is important
+because at 0 Hz \, the oscillator outputs whatever amplitude value
+according to that instantaneous phase \, and it won't likely be "1"
+\, so you have an undesired gain change., f 71;
+#X obj 533 29 declare -path else;
+#X obj 175 185 play.file~ bubul.wav 1 1;
+#X text 38 19 In this example \, we have a sample as the carrier instead
+of an oscillator \, which illustrates the usage of amplitude modulation
+as an effects processor rather than a "synthesis technique"., f 60
+;
+#X text 38 389 Note how the AM still presents the original sound's
+sine components \, but the generated side band frequencies interfere
+with them \, so it's more common to see an AM as a tremolo effect (that
+we'll see later). The RM example may sound more interesting \, because
+it removes the original sine components., f 71;
+#X connect 0 0 12 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 3 0 0 1;
+#X connect 4 0 11 0;
+#X connect 5 0 6 0;
+#X connect 6 0 21 0;
+#X connect 10 0 4 0;
+#X connect 17 0 19 1;
+#X connect 19 0 16 0;
+#X connect 20 0 19 0;
+#X connect 21 0 4 1;
+#X connect 24 0 9 0;
+#X connect 24 0 14 0;

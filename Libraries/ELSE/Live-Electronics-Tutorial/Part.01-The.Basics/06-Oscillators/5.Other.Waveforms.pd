@@ -1,0 +1,77 @@
+#N canvas 535 58 569 692 12;
+#X declare -path else;
+#X text 42 235 -1;
+#X text 50 266 1;
+#X text 44 374 -1;
+#X obj 286 134 cnv 15 224 110 empty empty empty 20 12 0 14 -220534
+-66577 0;
+#X obj 62 135 cnv 15 223 110 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array sinusoid 4410 float 0;
+#X coords 0 1.1 4409 -1.1 450 112 1 0 0;
+#X restore 61 134 graph;
+#X text 48 127 1;
+#X obj 288 274 cnv 15 224 110 empty empty empty 20 12 0 14 -220534
+-66577 0;
+#X obj 64 274 cnv 15 223 110 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array triangular 4410 float 0;
+#X coords 0 1.1 4409 -1.1 450 112 1;
+#X restore 63 273 graph;
+#X obj 288 412 cnv 15 224 110 empty empty empty 20 12 0 14 -220534
+-66577 0;
+#X obj 64 412 cnv 15 223 110 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array sawtooth 4410 float 0;
+#X coords 0 1.1 4409 -1.1 450 112 1 0 0;
+#X restore 63 411 graph;
+#N canvas 664 380 438 388 plot 0;
+#X obj 93 47 t b f;
+#X obj 154 309 tabwrite~ triangular;
+#X obj 80 299 sine~ 20;
+#X obj 282 148 square~ 20;
+#X obj 93 24 initmess 0;
+#X obj 225 215 saw~ 20;
+#X obj 164 284 tri~ 20;
+#X obj 70 329 tabwrite~ sinusoid;
+#X obj 217 243 tabwrite~ sawtooth;
+#X obj 274 175 tabwrite~ square;
+#X obj 237 51 declare -path else;
+#X connect 0 0 1 0;
+#X connect 0 0 7 0;
+#X connect 0 0 8 0;
+#X connect 0 0 9 0;
+#X connect 0 1 2 1;
+#X connect 0 1 3 2;
+#X connect 0 1 5 1;
+#X connect 0 1 6 1;
+#X connect 2 0 7 0;
+#X connect 3 0 9 0;
+#X connect 4 0 0 0;
+#X connect 5 0 8 0;
+#X connect 6 0 1 0;
+#X restore 463 655 pd plot;
+#X obj 291 544 cnv 15 224 110 empty empty empty 20 12 0 14 -220534
+-66577 0;
+#X obj 67 544 cnv 15 223 110 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array square 4410 float 0;
+#X coords 0 1.1 4409 -1.1 450 112 1 0 0;
+#X restore 66 543 graph;
+#X text 45 182 0;
+#X text 50 321 0;
+#X text 50 404 1;
+#X text 44 512 -1;
+#X text 50 459 0;
+#X text 48 536 1;
+#X text 42 644 -1;
+#X text 48 591 0;
+#X text 80 12 The sinusoidal oscillator was shown in this section in
+more detail. This is the simplest oscillator and generates a pure tone.
+These other waveforms are also basic and important waveforms in computer
+music \, they are: Triangular \, Sawtooth and Square. Check the graphs
+below \, which include 2 cycles per waveform.;

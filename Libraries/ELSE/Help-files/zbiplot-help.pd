@@ -31,7 +31,7 @@
 #X obj 27 36 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000;
 #X text 209 16 gain;
-#X obj 54 70 else/bicoeff eq 500 10 24;
+#X obj 54 70 else/bicoeff2 eq 500 10 24;
 #X obj 54 131 else/zbiplot;
 #X obj 399 31 nbx 5 14 0.01 1 1 0 empty empty empty 0 -8 0 10 #dcdcdc
 #000000 #000000 0 256;
@@ -44,7 +44,7 @@
 #000000;
 #X text 499 12 gain;
 #X obj 308 87 else/coeff2pz;
-#X obj 308 65 else/bicoeff lowshelf 500 10 24;
+#X obj 308 65 else/bicoeff2 lowshelf 500 10 24;
 #X text 405 14 Slope;
 #X obj 54 96 else/insert coeff;
 #X connect 0 0 7 1;

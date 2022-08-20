@@ -1,0 +1,35 @@
+#N canvas 617 55 539 691 12;
+#X declare -path else;
+#X text 68 331 "soft sync";
+#X obj 229 442 out~;
+#X obj 228 289 nbx 5 14 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 100 256;
+#X obj 212 517 graph~ 500 20;
+#X obj 153 288 nbx 5 14 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 150 256;
+#X obj 228 351 impulse~;
+#X obj 212 402 sine~;
+#X obj 153 331 max~;
+#X text 54 64 So \, how is the "soft sync" technique "softer" than
+"hard sync"? There are different ways to soften out. It can be that
+instead of resetting the oscillator \, you just reverse the waveform
+direction. Other options can just deactivate hard syncing in certain
+cases \, such as when the interval relationship between master and
+slave goes beyond a certain range.;
+#X text 54 175 In this example we prevent the slave frequency to go
+lower than the masters to avoid resetting the period before it has
+been completed. We do this with the native [max~] object \, which is
+a maximum function and keeps the slave frequency the same as the master's
+if it is lower., f 58;
+#X text 232 270 master;
+#X text 157 270 slave;
+#X obj 312 26 declare -path else;
+#X obj 153 361 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 2 0 5 0;
+#X connect 2 0 7 1;
+#X connect 4 0 7 0;
+#X connect 5 0 6 1;
+#X connect 6 0 1 0;
+#X connect 6 0 3 0;
+#X connect 7 0 13 0;
+#X connect 13 0 6 0;

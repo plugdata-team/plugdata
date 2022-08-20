@@ -1,0 +1,28 @@
+#N canvas 546 46 489 632 12;
+#X declare -path else;
+#X floatatom 127 236 5 0 0 0 - - -;
+#X obj 127 290 *~;
+#X obj 209 246 bng 30 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 127 261 osc~ 100;
+#X obj 127 543 out~;
+#X obj 127 384 graph~ 500 13;
+#X obj 127 343 shaper~ 0.5 0.7 0.2 0.5 0.5 0.3;
+#X text 39 53 The [shaper~] object also generates chebyshev transfer
+functions from a list of coefficients \, starting with the fundamental
+"t1". The waveform with the actual components is only given when the
+input amplitude is from -1 to 1 \, for other amplitude values we have
+other waveforms., f 58;
+#X obj 209 297 envgen~ 3000 1 3000 0;
+#X text 39 137 The patch below sends an enveloped sine through [shaper~].
+Again \, the example reinforces the fact that the input amplitude has
+an impact in the result \, and this is a strong characteristic of waveshaping
+as said before., f 58;
+#X obj 302 14 declare -path else;
+#X connect 0 0 3 0;
+#X connect 1 0 6 0;
+#X connect 2 0 8 0;
+#X connect 3 0 1 0;
+#X connect 5 0 4 0;
+#X connect 6 0 5 0;
+#X connect 8 0 1 1;

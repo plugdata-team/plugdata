@@ -1,0 +1,127 @@
+#N canvas 333 93 771 534 12;
+#X declare -path else;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-log_freq 1024 float 0;
+#X coords 0 0 1023 -100 600 150 1 0 0;
+#X restore 86 341 graph;
+#X obj 87 342 cnv 15 598 148 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#X text 664 492 Nyquist;
+#X text 81 491 0;
+#X obj 603 119 nbx 7 18 -1e+37 1e+37 0 0 empty freq empty 0 -8 0 14
+-228856 -1 -1 64.58 256;
+#X obj 404 104 + 1;
+#X obj 404 39 vradio 20 1 0 2 empty source empty 0 -8 0 10 -228856
+-1 -1 0;
+#X obj 454 123 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+-228856 -1 -1 0 256;
+#X obj 454 156 osc~ 680;
+#X obj 457 98 hsl 128 15 20 20000 1 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X text 61 407 dB;
+#N canvas 457 23 543 506 FFT 0;
+#X obj 73 154 rfft~;
+#X obj 73 56 inlet~;
+#X obj 194 347 loadbang;
+#X obj 194 372 tgl 15 0 empty empty empty 0 -6 0 10 -228856 -1 -1 1
+1;
+#X obj 194 393 metro 205;
+#X obj 73 319 /~ 512;
+#X obj 162 149 block~ 2048 4;
+#X obj 118 435 tabwrite~ \$0-log_freq;
+#N canvas 398 158 906 511 log_freq 0;
+#X obj 37 43 inlet~;
+#X obj 36 465 outlet~;
+#X obj 36 196 tabreceive~ \$0-log_index;
+#X obj 246 194 tabwrite \$0-log_index;
+#X obj 218 95 loadbang;
+#X obj 81 285 cnv 15 298 148 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-log_index 1024 float 0;
+#X coords 0 1024 1023 0 300 150 1;
+#X restore 80 284 graph;
+#X obj 196 96 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 37 121 tabsend~ \$0-Amp;
+#X obj 37 157 table \$0-Amp 1024;
+#X obj 36 228 tabread4~ \$0-Amp;
+#X obj 612 325 expr pow(2 \, $f1/12);
+#X floatatom 612 301 0 0 12 0 - - -;
+#X floatatom 612 348 0 0 0 0 - - -;
+#X obj 218 149 expr pow(1023 \, $f1/1022) \; $f1 + 1;
+#X obj 615 281 hsl 128 15 0 12 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 218 121 loop 1023;
+#X text 539 300 semitones;
+#X text 568 348 ratio;
+#X text 451 170 Let's go back to the theory of musical intervals. Below
+we have a division of the octave in 12 parts \, so an input in semitones
+from 0 to 12 is converted to logarhythmic ratios as below (we just adapt
+this to a wider range that depends on the index values \, see to the
+left).;
+#X text 451 93 The array named "\$0-log_index" loads values of a logarhythmic
+scale used as indexes to read the FFT data \, which is stored in a
+table named "\$0-Amp" via the [tabsend~] object. In this way \, [tabreceive~
+\$0-log_index] throws the table indexes and we use them to access the
+FFT with [tabread4~ \$0-Amp].;
+#X connect 0 0 8 0;
+#X connect 2 0 10 0;
+#X connect 4 0 16 0;
+#X connect 7 0 16 0;
+#X connect 10 0 1 0;
+#X connect 11 0 13 0;
+#X connect 12 0 11 0;
+#X connect 14 0 3 0;
+#X connect 14 1 3 1;
+#X connect 15 0 12 0;
+#X connect 16 0 14 0;
+#X restore 73 259 pd log_freq;
+#X obj 73 348 lin2db~;
+#X obj 73 199 mag~;
+#X obj 73 380 max~ -100;
+#X obj 73 108 hann~;
+#X text 257 226 This patch is the same as the last example \, but we
+have a new stage \, which is the [pd log_freq] subpatch that converts
+to logarhythmic frequency \, open it and check it out., f 36;
+#X text 156 259 <= click;
+#X connect 0 0 10 0;
+#X connect 0 1 10 1;
+#X connect 1 0 12 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 7 0;
+#X connect 5 0 9 0;
+#X connect 8 0 5 0;
+#X connect 9 0 11 0;
+#X connect 10 0 8 0;
+#X connect 11 0 7 0;
+#X connect 12 0 0 0;
+#X restore 475 226 pd FFT;
+#X obj 454 263 out~;
+#X obj 454 189 xselect~ 2 100 1;
+#X obj 603 146 bl.saw~;
+#X text 430 40 Sine;
+#X text 429 62 Sawtooth;
+#X text 523 226 <= Open;
+#X obj 603 92 initmess 64.58;
+#X text 71 335 0;
+#X text 47 483 -100;
+#X text 64 88 Besides a logarhythmic amplitude display \, we can also
+convert and have a logarhythmic frequency representation \, since frequency
+is usually represented that way., f 42;
+#X text 64 153 Note however that FFT is linear and the conversion doesn't
+change that. For being linear \, FFT has less resolution for lower
+frequencies than higher ones., f 42;
+#X text 62 226 Open the [pd FFT] subpatch for details.;
+#X obj 588 34 declare -path else;
+#X connect 4 0 14 0;
+#X connect 5 0 13 0;
+#X connect 6 0 5 0;
+#X connect 7 0 8 0;
+#X connect 8 0 13 0;
+#X connect 9 0 7 0;
+#X connect 13 0 11 0;
+#X connect 13 0 12 0;
+#X connect 14 0 13 1;
+#X connect 18 0 4 0;

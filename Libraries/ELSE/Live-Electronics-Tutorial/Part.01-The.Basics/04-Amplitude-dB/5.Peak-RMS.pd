@@ -1,0 +1,155 @@
+#N canvas 231 76 1015 532 12;
+#X declare -path else;
+#X obj 210 325 *~;
+#X obj 231 277 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 228 303 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 260 395 nbx 8 20 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 260 450 nbx 8 20 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X text 377 455 RMS (dB);
+#X text 374 398 RMS (linear);
+#X obj 210 243 osc~ 500;
+#X text 310 303 (linear);
+#N canvas 324 131 1042 568 RMS 0;
+#X obj 224 309 / 1024;
+#X obj 224 384 sqrt;
+#X floatatom 224 349 8 0 0 0 - - - 0;
+#X msg 224 451 \; rms const \$1;
+#X floatatom 224 265 8 0 0 0 - - - 0;
+#X obj 136 35 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 133 61 0 0 0 0 - - - 0;
+#X obj 66 301 osc~ 500;
+#X obj 115 370 *~;
+#X obj 481 287 cnv 15 498 238 empty empty empty 20 12 0 14 #e0e0e0
+#404040 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array sine 1027 float 0;
+#X array rms 1027 float 0;
+#X coords 0 1 1026 -1 500 240 1;
+#X restore 480 286 graph;
+#X text 469 278 1;
+#X text 468 398 0;
+#X text 462 515 -1;
+#X obj 224 425 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 115 426 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 24 424 RMS (linear);
+#X obj 115 400 rms~;
+#X obj 224 161 loop 1024;
+#X msg 160 167 0;
+#X msg 246 95 \; sine sinesum 1024 \$1;
+#X text 258 385 square root;
+#X text 291 343 arithmetic mean, f 10;
+#X text 278 302 divide by table size, f 11;
+#X text 288 259 sum of all values squared, f 14;
+#X obj 224 229 v sum;
+#X text 295 161 loop of 1024 iterations;
+#X text 402 94 creates a sine into a table with 1024 points, f 23
+;
+#X text 273 36 Peak Amplitude (linear);
+#X obj 224 195 expr pow(sine[$f1] \, 2) + sum;
+#X text 498 162 The Root Mean Square is obtained by the square root
+of the arithmetic mean of the squares of a set of values. To the left
+\, we calculate that step by step in a patch and compare it to the
+analysis of [rms~]., f 70;
+#X text 577 226 Below we have the graph of the resulting sinusoid and
+the root mean square line for this period window.;
+#X text 310 423 RMS (linear);
+#X obj 160 122 t b b b f;
+#X connect 0 0 2 0;
+#X connect 1 0 14 0;
+#X connect 2 0 1 0;
+#X connect 4 0 0 0;
+#X connect 5 0 6 0;
+#X connect 6 0 8 1;
+#X connect 6 0 33 0;
+#X connect 7 0 8 0;
+#X connect 8 0 17 0;
+#X connect 14 0 3 0;
+#X connect 17 0 15 0;
+#X connect 18 0 29 0;
+#X connect 19 0 25 0;
+#X connect 25 0 4 0;
+#X connect 29 0 25 0;
+#X connect 33 0 19 0;
+#X connect 33 1 25 0;
+#X connect 33 2 18 0;
+#X connect 33 3 20 0;
+#X restore 810 192 pd RMS;
+#X obj 123 394 nbx 8 20 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 123 447 nbx 8 20 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 123 369 peak~ 4096;
+#X obj 260 367 rms~ 4096;
+#X obj 260 423 lin2db;
+#X obj 123 421 lin2db;
+#X obj 569 143 noise~;
+#X obj 660 179 env~;
+#X obj 660 207 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 92 250 setdsp~ 1;
+#X obj 569 182 rms~ -db;
+#X obj 569 209 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 618 354 noise~;
+#X obj 618 468 print~;
+#X obj 585 438 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 687 347 linear;
+#X msg 704 371 db;
+#X text 51 24 Peak amplitude is the highest absolute amplitude in a
+time window \, and RMS is given as a root mean square \, which is useful
+for signals that vary from negative to positive \, as it is the case
+with audio., f 60;
+#X text 531 64 Both [peak~] and [rms~] are based on Pd's native [env~]
+object \, which reports the RMS amplitude \, but in a different dB
+standard scale (from 0 to 100). The [peak~] and [rms~] objects can
+report the ampitude as either linear or dBFS.;
+#X text 244 277 Peak Amplitude;
+#X text 29 395 Peak (linear);
+#X text 53 446 Peak (dB);
+#X text 51 97 A mean average has a better analytical advantage as it
+takes into account all samples in a time window \, not only the highest
+one. The [rms~] object from ELSE reports us the RMS amplitude \, while
+[peak~] \, also from ELSE \, reports us the peak amplitude.;
+#X text 51 176 See both in action below and note how the RMS is about
+3 dB lower than the peak amplitude for sinusoids., f 60;
+#X text 759 171 More about RMS:;
+#X obj 618 399 mov.rms~ 4096;
+#X text 752 400 window size of 4096;
+#X text 733 371 dBFS output;
+#X text 735 346 linear output;
+#X obj 767 22 declare -path else;
+#X text 525 256 The [mov.rms~] \, from ElSE \, gives us another kind
+of RMS that is "moving". This means it returns a different RMS value
+for each sample \, according to an analysis done in the previous samples.
+Check more info about every object here in their help files., f 62
+;
+#X obj 618 433 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 12 0;
+#X connect 0 0 13 0;
+#X connect 1 0 2 0;
+#X connect 2 0 0 1;
+#X connect 3 0 14 0;
+#X connect 7 0 0 0;
+#X connect 10 0 15 0;
+#X connect 12 0 10 0;
+#X connect 13 0 3 0;
+#X connect 14 0 4 0;
+#X connect 15 0 11 0;
+#X connect 16 0 17 0;
+#X connect 16 0 20 0;
+#X connect 17 0 18 0;
+#X connect 20 0 21 0;
+#X connect 22 0 35 0;
+#X connect 24 0 23 0;
+#X connect 25 0 35 0;
+#X connect 26 0 35 0;
+#X connect 35 0 41 0;
+#X connect 41 0 23 0;

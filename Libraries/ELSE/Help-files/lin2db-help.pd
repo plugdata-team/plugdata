@@ -1,31 +1,24 @@
-#N canvas 505 53 561 444 10;
-#X obj 3 293 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#N canvas 505 53 560 390 10;
+#X obj 3 259 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 347 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 291 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 384 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 3 328 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 82 356 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 82 300 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 83 301 cnv 17 3 37 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 83 267 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 3 417 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 359 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X text 247 202 Linear Amplitude;
-#X obj 191 176 hsl 180 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#X text 249 175 Linear Amplitude;
+#X obj 191 149 hsl 180 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
 #000000 #000000 0 1;
-#X obj 188 202 nbx 5 14 -100 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#X obj 188 175 nbx 5 14 -100 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
 #000000 #000000 0 256;
-#X obj 188 257 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X text 249 257 dBFS;
-#X text 155 303 float;
-#X text 157 356 float;
-#X text 78 131 Conversion expression: dbFS = log10(amp) * 20 \, see
-the implementation inside the abstraction.;
-#X text 78 85 [lin2db] is a simple abstraction that converts amplitude
-values from linear to a deciBel Full Scale (dBFS). Minimum output value
-is "-999".;
+#X text 261 233 dBFS;
+#X text 155 269 float;
+#X text 157 300 float;
 #X obj 3 3 cnv 15 301 42 empty empty lin2db 20 20 2 37 #e0e0e0 #000000
 0;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
@@ -58,15 +51,18 @@ is "-999".;
 ;
 #X obj 246 40 cnv 4 4 4 empty empty dBFS 0 28 2 18 #e0e0e0 #000000
 0;
-#X text 206 303 - linear amplitude value;
-#X text 202 356 - converted dBFS amplitude value;
-#X obj 160 200 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
-#000000 #000000;
-#X text 147 393 1) float - value to be converted (default 0);
-#X text 161 320 bang;
-#X text 206 320 - convert last received value;
-#X obj 188 230 else/lin2db;
+#X text 206 269 - linear amplitude value;
+#X text 202 300 - converted dBFS amplitude value;
+#X obj 188 203 else/lin2db;
+#X floatatom 188 230 9 0 0 0 - - - 12;
+#X text 187 337 (none);
+#X text 78 85 [lin2db] is a simple abstraction that converts amplitude
+values from linear to a deciBel Full Scale (dBFS). Conversion expression:
+dbFS = log10(amp) * 20 \, see the implementation inside the abstraction.
+, f 62;
+#X text 25 187 see also:;
+#X obj 25 230 else/lin2db~;
+#X obj 25 206 else/db2lin;
 #X connect 7 0 8 0;
-#X connect 8 0 36 0;
-#X connect 32 0 36 0;
-#X connect 36 0 9 0;
+#X connect 8 0 29 0;
+#X connect 29 0 30 0;

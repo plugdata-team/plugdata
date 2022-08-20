@@ -1,0 +1,56 @@
+#N canvas 399 23 656 509 12;
+#X declare -path else;
+#X obj 337 298 out~;
+#X obj 149 351 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 480 17 declare -path else;
+#X obj 149 322 tempo 60;
+#X obj 122 232 tgl 17 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X text 67 231 on/off;
+#X floatatom 175 264 5 0 0 0 - - - 0;
+#X text 215 264 bpm;
+#X text 450 255 60 bpm \, swing parameter of 100 and 'on' by default.
+, f 13;
+#X msg 149 221 mul \$1;
+#X msg 149 185 0.5;
+#X msg 186 186 2;
+#X text 218 185 multiplier;
+#X text 14 53 ELSE's [tempo] is an abstraction based on [metro] and
+similar to it. A big difference is its 'swing' parameter that makes
+the beats more irregular. The [tempo] object has a frequency multiplier
+parameter \, we have mentioned how [metro] has a sort of frequency
+divider instead \, like in [metro] \, this parameter only takes effect
+after the next bang. If you want immediate changes use the bpm change
+instead. By default \, [tempo]'s unit is in bmp \, but you can change
+to ms. The [tempo~] object is the signal version of [tempo] and it
+outputs impulses instead of bangs. Check examples to the right and
+their help files., f 87;
+#X floatatom 202 296 5 0 100 0 - - - 0;
+#X text 242 296 swing;
+#X obj 84 349 noise~;
+#X obj 84 383 *~;
+#X obj 149 381 decay~ 200;
+#X obj 84 417 out~;
+#X text 267 387 The swing parameter is set as percentage of possible
+deviation. For a 60 bpm tempo and a swing value of 100% we have random
+values up to 100% faster or slower \, which correspond to deviationn
+from 60 to 120 bpm or 60 to 30 bpm., f 46;
+#X obj 337 268 tempo~ 60 100;
+#X obj 337 230 tgl 17 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X text 364 226 on/off;
+#X connect 1 0 18 0;
+#X connect 3 0 1 0;
+#X connect 4 0 3 0;
+#X connect 6 0 3 1;
+#X connect 9 0 3 0;
+#X connect 9 0 21 0;
+#X connect 10 0 9 0;
+#X connect 11 0 9 0;
+#X connect 14 0 3 2;
+#X connect 16 0 17 0;
+#X connect 17 0 19 0;
+#X connect 18 0 17 1;
+#X connect 21 0 0 0;
+#X connect 22 0 21 0;

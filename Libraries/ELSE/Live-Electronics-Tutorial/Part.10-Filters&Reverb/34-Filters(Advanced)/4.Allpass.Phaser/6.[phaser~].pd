@@ -1,0 +1,71 @@
+#N canvas 476 23 656 614 12;
+#X declare -path else;
+#X obj 146 355 out~;
+#X obj 220 278 rescale~ 100 1000;
+#X obj 121 166 s~ \$0-in;
+#X obj 145 278 r~ \$0-in;
+#X obj 488 221 rescale~ 100 1000;
+#X obj 395 210 r~ \$0-in;
+#X obj 395 340 out~;
+#X obj 395 294 +~;
+#X obj 88 241 hsl 80 17 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X msg 85 267 wet \$1;
+#X obj 220 250 osc~ 0.2;
+#X obj 488 192 osc~ 0.2;
+#X obj 413 260 allpass.filt~ 12, f 22;
+#X text 55 240 dry;
+#X text 176 240 wet;
+#X text 57 38 You can also use [allpass.filt~] to implement a phaser
+effect. The ELSE library includes a [phaser~] object that is an abstraction
+based on the [allpass.filt~] object. It's just a bit more convenient.
+, f 55;
+#X obj 146 319 phaser~ 12, f 11;
+#N canvas 527 76 427 378 phaser-stereo 0;
+#X obj 111 280 outlet~;
+#X obj 208 279 outlet~;
+#X obj 111 114 bl.saw~;
+#X obj 208 122 bl.saw~;
+#X obj 111 221 phaser~ 16;
+#X obj 208 222 phaser~ 14;
+#X obj 275 155 osc~ 0.2;
+#X obj 275 182 rescale~ 100 1000;
+#X obj 208 95 + 0.5;
+#X obj 208 48 inlet;
+#X connect 2 0 4 0;
+#X connect 3 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 1 0;
+#X connect 6 0 7 0;
+#X connect 7 0 5 1;
+#X connect 7 0 4 1;
+#X connect 8 0 3 0;
+#X connect 9 0 2 0;
+#X connect 9 0 8 0;
+#X restore 343 478 pd phaser-stereo;
+#X text 167 463 Here's a stereo setting with [phaser~] click ==>,
+f 25;
+#X obj 480 57 declare -path else;
+#X obj 121 126 play.file~ guitar.wav 1 1;
+#X obj 350 516 out~;
+#X obj 343 451 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 40 256;
+#X obj 343 424 initmess 40;
+#X text 405 449 Hz;
+#X connect 1 0 16 1;
+#X connect 3 0 16 0;
+#X connect 4 0 12 1;
+#X connect 5 0 7 0;
+#X connect 5 0 12 0;
+#X connect 7 0 6 0;
+#X connect 8 0 9 0;
+#X connect 9 0 16 0;
+#X connect 10 0 1 0;
+#X connect 11 0 4 0;
+#X connect 12 0 7 1;
+#X connect 16 0 0 0;
+#X connect 17 0 21 0;
+#X connect 17 1 21 1;
+#X connect 20 0 2 0;
+#X connect 22 0 17 0;
+#X connect 23 0 22 0;

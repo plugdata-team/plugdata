@@ -1,0 +1,68 @@
+#N canvas 778 81 557 681 12;
+#X declare -path else;
+#X obj 125 179 sqrt;
+#X msg 125 156 2;
+#X msg 87 177 2;
+#X text 95 453 Cents;
+#X obj 136 422 ratio2cents;
+#X obj 136 481 cents2ratio;
+#X obj 136 449 display;
+#X obj 136 510 display;
+#X obj 136 392 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 68 10 0
+12 -228856 -1 -1 0 256;
+#X obj 319 450 display;
+#X obj 319 511 display;
+#X obj 319 393 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 68 10 0
+12 -228856 -1 -1 0 256;
+#X text 279 393 Cents;
+#X text 279 515 Cents;
+#X obj 319 423 cents2ratio;
+#X obj 319 482 ratio2cents;
+#X text 155 155 tritone;
+#X text 41 178 octave;
+#X text 93 391 Ratio;
+#X text 91 514 Ratio;
+#X text 279 452 Ratio;
+#X obj 125 235 log 2;
+#X obj 125 264 * 1200;
+#X obj 376 13 declare -path else;
+#X text 76 331 The ELSE library has objects that convert to and back
+from cents \, they are: [ratio2cents] and [cents2ratio]., f 55;
+#X text 68 561 Musical intervals in cents are clearly related to the
+equal temperament system \, where we can then compare musical intervals
+to our 12 tone system. To get the value in cents from the 12 equal
+temperament intervals \, just multiply the number of semitones to 100
+- for example \, a major sixth has 9 semintones \, therefore: 900 cents.
+, f 63;
+#X obj 125 208 nbx 5 18 0 1e+37 0 0 empty empty Ratio 68 10 0 12 -228856
+-1 -1 0 256;
+#X text 51 49 1 Cent is a subdivision of the semitone in 100 equal
+parts. An octave then has 1200 cents! The formula to get the cents
+from an interval ratio is the same as the previous one to get the number
+of semitones \, but you multiply it by 1200 instead of 12! The opposite
+conversion is also presented below., f 65;
+#X obj 300 209 nbx 5 18 -1e+37 1e+37 0 0 empty empty Cents 68 10 0
+12 -228856 -1 -1 0 256;
+#X obj 300 286 nbx 5 18 -1e+37 1e+37 0 0 empty empty Ratio 68 10 0
+12 -228856 -1 -1 0 256;
+#X obj 300 245 expr pow(2 \, $f1/1200);
+#X text 253 137 Try also positive ratios below 1 and negative cents.
+They indicate an interval below instead of an above., f 36;
+#X obj 125 296 nbx 5 18 -1e+37 1e+37 0 0 empty empty Cents 68 10 0
+12 -228856 -1 -1 0 256;
+#X connect 0 0 26 0;
+#X connect 1 0 0 0;
+#X connect 2 0 26 0;
+#X connect 4 0 6 0;
+#X connect 5 0 7 0;
+#X connect 6 0 5 0;
+#X connect 8 0 4 0;
+#X connect 9 0 15 0;
+#X connect 11 0 14 0;
+#X connect 14 0 9 0;
+#X connect 15 0 10 0;
+#X connect 21 0 22 0;
+#X connect 22 0 32 0;
+#X connect 26 0 21 0;
+#X connect 28 0 30 0;
+#X connect 30 0 29 0;

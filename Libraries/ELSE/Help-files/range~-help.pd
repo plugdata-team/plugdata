@@ -65,8 +65,8 @@
 #X text 237 277 - resets minimum and maximum values;
 #X text 71 88 [range~] analyzes and outputs the signal's range (minimum
 and maximum) values.;
-#X obj 313 211 else/display~ 10;
-#X obj 190 211 else/display~ 10;
+#X obj 313 215 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 190 215 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 19 0 42 0;
 #X connect 19 1 41 0;
 #X connect 29 0 19 0;

@@ -1,0 +1,197 @@
+#N canvas 495 60 848 541 12;
+#X declare -path else;
+#X obj 626 191 osc~ 440;
+#X obj 577 234 env~;
+#X floatatom 577 263 5 0 0 0 - - -;
+#X obj 626 231 out~;
+#X obj 161 455 fader~ hann;
+#X obj 81 478 fader~ lin;
+#X obj 247 455 fader~ hannsin;
+#X obj 247 478 fader~ linsin;
+#N canvas 360 30 598 521 contant-power(3db) 0;
+#X obj 43 287 cnv 15 348 198 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-sqrt_in 441 float 0;
+#X array \$0-sqrt_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 42 286 graph;
+#X obj 45 45 cnv 15 348 198 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-sin_in 441 float 0;
+#X array \$0-sin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 44 44 graph;
+#N canvas 742 165 509 418 plot 0;
+#X obj 274 124 loadbang;
+#X obj 247 48 phasor~ 100;
+#X obj 82 125 loadbang;
+#X obj 55 49 phasor~ -100;
+#X obj 274 302 loadbang;
+#X obj 247 226 phasor~ 100;
+#X obj 82 303 loadbang;
+#X obj 55 227 phasor~ -100;
+#X obj 54 156 tabwrite~ \$0-sqrt_out;
+#X obj 246 156 tabwrite~ \$0-sqrt_in;
+#X obj 54 334 tabwrite~ \$0-sin_out;
+#X obj 246 334 tabwrite~ \$0-sin_in;
+#X obj 55 93 fader~ sqrt;
+#X obj 55 271 fader~ sin;
+#X obj 247 271 fader~ sin;
+#X obj 247 92 fader~ sqrt;
+#X connect 0 0 9 0;
+#X connect 1 0 15 0;
+#X connect 2 0 8 0;
+#X connect 3 0 12 0;
+#X connect 4 0 11 0;
+#X connect 5 0 14 0;
+#X connect 6 0 10 0;
+#X connect 7 0 13 0;
+#X connect 12 0 8 0;
+#X connect 13 0 10 0;
+#X connect 14 0 11 0;
+#X connect 15 0 9 0;
+#X restore 340 253 pd plot;
+#X text 415 136 <= sine/cosine;
+#X text 417 372 <= square root;
+#X restore 91 343 pd contant-power(3db);
+#N canvas 240 70 642 513 compromise(4.5db) 0;
+#X obj 40 44 cnv 15 348 198 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-hannsin_in 441 float 0;
+#X array \$0-hannsin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 39 43 graph;
+#N canvas 742 165 509 418 plot 0;
+#X obj 274 124 loadbang;
+#X obj 247 48 phasor~ 100;
+#X obj 82 125 loadbang;
+#X obj 55 49 phasor~ -100;
+#X obj 274 302 loadbang;
+#X obj 247 226 phasor~ 100;
+#X obj 82 303 loadbang;
+#X obj 55 227 phasor~ -100;
+#X obj 55 93 fader~ hannsin;
+#X obj 247 92 fader~ hannsin;
+#X obj 55 271 fader~ linsin;
+#X obj 247 271 fader~ linsin;
+#X obj 54 156 tabwrite~ \$0-hannsin_out;
+#X obj 246 156 tabwrite~ \$0-hannsin_in;
+#X obj 54 334 tabwrite~ \$0-linsin_out;
+#X obj 246 334 tabwrite~ \$0-linsin_in;
+#X connect 0 0 13 0;
+#X connect 1 0 9 0;
+#X connect 2 0 12 0;
+#X connect 3 0 8 0;
+#X connect 4 0 15 0;
+#X connect 5 0 11 0;
+#X connect 6 0 14 0;
+#X connect 7 0 10 0;
+#X connect 8 0 12 0;
+#X connect 9 0 13 0;
+#X connect 10 0 14 0;
+#X connect 11 0 15 0;
+#X restore 335 252 pd plot;
+#X obj 40 284 cnv 15 348 198 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-linsin_in 441 float 0;
+#X array \$0-linsin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 39 283 graph;
+#X text 403 367 <= linsin: an average of linear and sine/cosine functions
+, f 31;
+#X text 397 137 <= hannsin: an average of hann with sine/cosine functions
+, f 30;
+#X restore 91 365 pd compromise(4.5db);
+#N canvas 221 110 680 526 constant-voltage(6db) 0;
+#X obj 40 41 cnv 15 348 198 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-hann_in 441 float 0;
+#X array \$0-hann_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 39 40 graph;
+#N canvas 233 311 515 432 plot 0;
+#X obj 274 123 loadbang;
+#X obj 247 47 phasor~ 100;
+#X obj 82 124 loadbang;
+#X obj 55 48 phasor~ -100;
+#X obj 54 155 tabwrite~ \$0-hann_out;
+#X obj 246 155 tabwrite~ \$0-hann_in;
+#X obj 247 91 fader~ hann;
+#X obj 55 92 fader~ hann;
+#X obj 274 301 loadbang;
+#X obj 247 225 phasor~ 100;
+#X obj 82 302 loadbang;
+#X obj 55 226 phasor~ -100;
+#X obj 247 270 fader~ lin;
+#X obj 55 270 fader~ lin;
+#X obj 246 333 tabwrite~ \$0-lin_in;
+#X obj 54 333 tabwrite~ \$0-lin_out;
+#X connect 0 0 5 0;
+#X connect 1 0 6 0;
+#X connect 2 0 4 0;
+#X connect 3 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 4 0;
+#X connect 8 0 14 0;
+#X connect 9 0 12 0;
+#X connect 10 0 15 0;
+#X connect 11 0 13 0;
+#X connect 12 0 14 0;
+#X connect 13 0 15 0;
+#X restore 336 247 pd plot;
+#X obj 41 274 cnv 15 348 198 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 452 302 (subpatch) 0;
+#X array \$0-lin_in 441 float 0;
+#X array \$0-lin_out 441 float 0;
+#X coords 0 1.01 441 0 350 200 1 0 0;
+#X restore 40 273 graph;
+#X text 406 130 <= "hann" \, half the cycle of a cosine.;
+#X text 411 358 <= linear function, f 33;
+#X restore 91 321 pd constant-voltage(6db);
+#X obj 287 318 setdsp~ 1;
+#X text 18 15 A "Pan law" or "pan rule" is a rule of thumb for managing
+the compensation of summing two signal sources. In an ideal room \,
+when you have one signal in two speakers \, you have a gain of 6 dBSPL.
+In such case \, you need to attenuate the signal by 6 dB.;
+#X text 18 168 But anyway \, we've also seen equal power functions
+\, and this is because attenuating 3 dB is more in line with the acoustic
+reality of everyday acoustic rooms. Equal power functions \, such
+as sine and cosine \, is another type of dB law \, the "3 dB" one.
+;
+#X text 445 324 It's funny that we have so many rules of thumb \, which
+means we do not have one single rule of thumb. In the end \, it's more
+up to you. In the world of live electronic music production and performance
+\, what is important is a control that "feels better" on your finger
+tips and ears., f 53;
+#X text 18 92 And that is our first "Pan Law" \, the 6 dB law. We've
+seen how a linear crossfade attenuates 6 dB in the middle point. This
+means that a linear function is a type of 6 dB Pan Law! Also \, let's
+remind it is a type of constant voltage function., f 59;
+#X obj 81 454 fader~ sin;
+#X obj 161 478 fader~ sqrt;
+#X text 27 410 All of these functions are present in the [fader~] object
+from ELSE. Check its help file for more info., f 52;
+#X text 18 244 There's also a third law \, which is a compromise between
+the 6 and 3 dB laws. We're literally talking about a point in between
+of 4.5 dB. Check the subpatches below to see more examples of functions
+that can be used for each law.;
+#X text 483 63 One thing to be clear is that whatever pan law you have
+\, you never have the input signal being duplicated when in the middle
+point \, as there's always an attenuation. If you want to just send
+the same signal equally to two speakers \, just duplicate the mono
+like it happens for [out~]:, f 45;
+#X text 445 422 There's a clearer distinction between the 3 dB rule
+and 6 dB rule \, in which is that you have much more attenuation in
+the middle point with the 6 dB law. Now \, this can sound less equal
+in your setup \, but could also be part of a conscious decision in
+a partiular musical gesture. Again \, it's up to you..., f 53;
+#X obj 651 29 declare -path else;
+#X connect 0 0 1 0;
+#X connect 0 0 3 0;
+#X connect 1 0 2 0;

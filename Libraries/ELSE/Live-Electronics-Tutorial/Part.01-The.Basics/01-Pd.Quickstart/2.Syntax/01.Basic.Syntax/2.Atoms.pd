@@ -1,0 +1,28 @@
+#N canvas 497 61 506 418 12;
+#X text 40 16 Atoms in Pd are single elements of a message. An element
+(or atom) can be either a float \, a symbol or a pointer. A list then
+can have any arbitrary combination of these three atoms., f 61;
+#X text 40 66 Most usually \, we'll deal with floats and lists of floats
+in Pd. Pointers and lists of pointers are just used in the context
+of Data Structures \, an advanced and rather obscure feature of Pure
+Data we'll see later on., f 61;
+#X msg 127 255 100000;
+#X msg 127 280 1e+06;
+#X msg 196 255 -100000;
+#X msg 196 280 -1e+06;
+#X msg 274 255 0.0001;
+#X msg 274 280 1e-05;
+#X msg 344 255 -0.0001;
+#X msg 344 280 -1e-05;
+#X text 40 130 A number atom is always a float in Pd. More specifically
+\, it's a 32 bit floating point number. Even if a number is an integer
+\, it is considered as a 32 bit float in Pd. All that is not in the
+format of a float is considered in Pd as a symvol string. Numbers in
+Pd have a display resolution of 6 digits and they are represented in
+scientific notation if this resolution is exceeded. All examples below
+are float atoms:, f 61;
+#X msg 155 363 hey;
+#X msg 193 363 "1.2";
+#X text 42 322 Anything else (as below) is a symbol:;
+#X msg 248 363 (12);
+#X msg 295 363 nananana;

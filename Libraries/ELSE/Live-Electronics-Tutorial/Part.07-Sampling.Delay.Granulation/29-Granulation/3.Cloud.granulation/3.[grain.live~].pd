@@ -1,0 +1,44 @@
+#N canvas 741 42 545 600 12;
+#X declare -path else;
+#X obj 192 421 out~;
+#X obj 340 21 declare -path else;
+#X text 99 525 This example is the basis of the [grain.live~] object
+from ELSE \, check its help file., f 31;
+#X obj 328 540 grain.live~;
+#X obj 241 281 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X msg 241 310 all bang;
+#X obj 241 251 metro 1000;
+#X obj 241 220 tgl 17 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#N canvas 842 62 450 300 delwrite~ 0;
+#X obj 93 59 inlet~;
+#X obj 93 115 delwrite~ \$0-buffer 5000;
+#X obj 93 175 outlet~;
+#X connect 0 0 1 0;
+#X restore 122 303 pd delwrite~;
+#X obj 122 239 play.file~ bubul.wav 1 1, f 13;
+#X text 41 61 And now we adapt the last example to play grains from
+a delay line (a ring buffer). We now have a transposition parameter
+that affects the pitch \, which is the same principle from the pitch
+shifting patch via gtanulation. For more details open the [clone] object
+to see how it works., f 65;
+#X text 41 143 The delay line is written here on the parent window
+in a subpatch that is connected to the [clone] object. This is done
+in order to enforce the order of execution., f 65;
+#X obj 347 295 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X msg 347 327 all \$1;
+#X text 331 273 synchronous;
+#X text 366 294 on/off;
+#X obj 187 367 clone grain.live 16 \$0-buffer, f 16;
+#X connect 4 0 5 0;
+#X connect 5 0 16 1;
+#X connect 6 0 4 0;
+#X connect 7 0 6 0;
+#X connect 8 0 16 0;
+#X connect 9 0 8 0;
+#X connect 12 0 13 0;
+#X connect 13 0 16 2;
+#X connect 16 0 0 0;
+#X connect 16 1 0 1;

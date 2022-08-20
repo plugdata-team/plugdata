@@ -42,7 +42,7 @@
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -112,7 +112,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -152,9 +152,9 @@
 #X text 153 223 output;
 #X text 88 92 [ceil~] is a ceil math function for signals.;
 #X text 134 60 (for signals);
-#X obj 205 221 else/display~ 4;
-#X obj 205 157 else/display~ 8;
 #X text 180 271 signal;
-#X connect 7 0 30 0;
-#X connect 22 0 29 0;
-#X connect 30 0 22 0;
+#X obj 205 221 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 205 157 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 7 0 31 0;
+#X connect 22 0 30 0;
+#X connect 31 0 22 0;

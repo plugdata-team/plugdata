@@ -1,0 +1,89 @@
+#N canvas 351 115 1015 410 12;
+#X declare -path else;
+#X obj 32 260 vsl 16 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 85 233 *~;
+#X obj 31 171 osc~ 440;
+#X obj 85 273 out~;
+#X obj 854 166 impseq~;
+#X obj 777 270 vsl 18 100 0 1 0 0 ewtwet wefwert empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 800 363 0;
+#X text 800 264 1;
+#X obj 836 250 *~;
+#X obj 854 136 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 836 293 out~;
+#X obj 854 204 decay2~ 100 2000;
+#X msg 922 166 0.5;
+#X text 21 98 Here we have an attack stage of 50 ms and a release stage
+of 450 ms - the total duration of the envelope is 500 ms.;
+#X obj 103 155 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 103 182 envgen~ 50 1 450 0;
+#X text 52 351 0;
+#X text 52 252 1;
+#X obj 777 242 s2f~;
+#X obj 32 226 s2f~;
+#X obj 752 19 declare -path else;
+#X obj 505 278 vsl 16 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 560 247 *~;
+#X obj 506 185 osc~ 440;
+#X obj 560 287 out~;
+#X obj 578 138 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 525 369 0;
+#X text 525 270 1;
+#X obj 505 244 s2f~;
+#X text 610 137 exponential;
+#X obj 775 184 osc~ 440;
+#X obj 275 263 vsl 16 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 328 236 *~;
+#X obj 274 174 osc~ 440;
+#X obj 328 276 out~;
+#X text 295 354 0;
+#X text 295 255 1;
+#X obj 275 229 s2f~;
+#X obj 346 185 vline~;
+#X msg 346 158 1 50 \, 0 450 50;
+#X text 21 18 An "AR" envelope has an "attack" and a "release" stage.
+The attack is the first stage that starts at 0 and goes to the peak
+amplitude. Right after the attack is finished we have the release stage
+going back to 0 - let's see this first implemented with [envgen~] and
+[vline~] \, both linearly .;
+#X text 489 58 We can have a exponential setting for [envgen~]. Also
+\, the [decay2~] object from ELSE is another exponential envelope and
+a variant of [decay~] that has an attack stage \, which is the first
+argument - but the total duration still depends on the decay time.
+, f 68;
+#X obj 578 196 envgen~ 50 1 450 0;
+#X obj 594 169 initmess expl 4 4;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X connect 4 0 11 0;
+#X connect 8 0 10 0;
+#X connect 9 0 4 0;
+#X connect 11 0 8 1;
+#X connect 11 0 18 0;
+#X connect 12 0 11 0;
+#X connect 14 0 15 0;
+#X connect 15 0 1 1;
+#X connect 15 0 19 0;
+#X connect 18 0 5 0;
+#X connect 19 0 0 0;
+#X connect 22 0 24 0;
+#X connect 23 0 22 0;
+#X connect 25 0 42 0;
+#X connect 28 0 21 0;
+#X connect 30 0 8 0;
+#X connect 32 0 34 0;
+#X connect 33 0 32 0;
+#X connect 37 0 31 0;
+#X connect 38 0 32 1;
+#X connect 38 0 37 0;
+#X connect 39 0 38 0;
+#X connect 42 0 22 1;
+#X connect 42 0 28 0;
+#X connect 43 0 42 0;

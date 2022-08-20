@@ -1,0 +1,148 @@
+#N canvas 354 50 880 625 12;
+#X declare -path else;
+#X text 49 394 0 Hz;
+#X text 69 570 0;
+#X obj 86 267 cnv 15 198 138 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 86 446 cnv 15 198 138 empty empty empty 20 12 0 14 -232822 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-freq1 882 float 0;
+#X coords 0 100 881 0 200 140 1 0 0;
+#X restore 85 266 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase1 882 float 0;
+#X coords 0 1 881 0 200 140 1 0 0;
+#X restore 85 445 graph;
+#X text 70 435 1;
+#X text 158 416 20 ms;
+#X text 165 593 20 ms;
+#X text 37 258 100 hz;
+#X text 43 327 50 Hz;
+#X text 327 573 0;
+#X obj 349 267 cnv 15 198 138 empty empty empty 20 12 0 14 -233017
+-66577 0;
+#X obj 343 446 cnv 15 198 138 empty empty empty 20 12 0 14 -232822
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-freq2 882 float 0;
+#X coords 0 0 881 -100 200 140 1 0 0;
+#X restore 348 266 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase2 882 float 0;
+#X coords 0 1 881 0 200 140 1 0 0;
+#X restore 342 445 graph;
+#X text 328 438 1;
+#X text 424 412 20 ms;
+#X text 422 593 20 ms;
+#X text 308 258 0 hz;
+#X text 299 327 -50 Hz;
+#X text 293 394 -100 Hz;
+#X text 614 575 0;
+#X obj 634 266 cnv 15 198 138 empty empty empty 20 12 0 14 -233017
+-66577 0;
+#X obj 630 448 cnv 15 198 138 empty empty empty 20 12 0 14 -232822
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-Square 1764 float 0;
+#X coords 0 100 1763 -100 200 140 1 0 0;
+#X restore 633 265 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-Triangular 1764 float 0;
+#X coords 0 1 1763 0 200 140 1 0 0;
+#X restore 629 447 graph;
+#X text 615 440 1;
+#X text 580 394 -100 Hz;
+#X text 709 592 40 ms;
+#X text 598 326 0 Hz;
+#X text 585 260 100 Hz;
+#X text 594 292 50 Hz;
+#X text 583 363 -50 Hz;
+#X text 713 415 40 ms;
+#X text 21 15 Now we look deeper into the relationship between Frequency
+and Phase modulation. It's been mentioned how a frequency signal can
+be converted to a phase signal and vice versa via integral/derivative.
+This means we can convert waveform functions \, as this section shows.
+In this example we see how a square wave function as the frequency
+signal becomes a triangular function as the phase signal., f 59;
+#X text 21 128 The first step is to realize how a constant frequency
+signal generates a phase ramp. We know that the frequency is the angular
+velocity and that the phase signal is the angular position. If the
+frequency is positive \, the ramp increases at a rate according to
+the frequency. But if the frequency is negative \, we have a decreasing
+ramp., f 59;
+#X text 459 125 If we put this together and have a square wave signal
+as the frequency input \, alternating between 50 and -50 \, the result
+is a triangular wave as the phase signal., f 56;
+#N canvas 194 23 839 310 plot 0;
+#X obj 140 139 phasor~;
+#N canvas 813 285 475 296 plot 0;
+#X obj 149 31 inlet~;
+#X obj 296 40 inlet~;
+#X obj 320 132 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 320 79 loadbang;
+#X obj 149 223 tabwrite~ \$0-freq1;
+#X obj 295 223 tabwrite~ \$0-phase1;
+#X connect 0 0 4 0;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 2 0 5 0;
+#X connect 3 0 2 0;
+#X restore 94 190 pd plot;
+#X obj 140 87 sig~ 50;
+#X obj 299 148 phasor~;
+#N canvas 813 285 450 300 plot 0;
+#X obj 97 35 inlet~;
+#X obj 248 44 inlet~;
+#X obj 292 136 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 292 83 loadbang;
+#X obj 97 227 tabwrite~ \$0-freq2;
+#X obj 249 227 tabwrite~ \$0-phase2;
+#X connect 0 0 4 0;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 2 0 5 0;
+#X connect 3 0 2 0;
+#X restore 253 195 pd plot;
+#X obj 299 96 sig~ -50;
+#X obj 497 156 phasor~;
+#N canvas 468 46 528 302 plot 0;
+#X obj 209 69 inlet~;
+#X obj 295 71 inlet~;
+#X obj 117 67 inlet;
+#X obj 117 181 tabwrite~ \$0-Square;
+#X obj 295 184 tabwrite~ \$0-Triangular;
+#X connect 0 0 3 0;
+#X connect 1 0 4 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X restore 451 198 pd plot;
+#X obj 646 86 declare -path else;
+#X text 502 178 <== phase;
+#X text 412 178 freq ==>;
+#X text 153 112 <= Freq;
+#X text 144 161 <= Position;
+#X obj 686 149 setdsp~ 1;
+#X obj 474 118 vline~;
+#X msg 474 90 50 \, -50 0 20;
+#X obj 451 62 loadbang;
+#X connect 0 0 1 1;
+#X connect 2 0 0 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 1;
+#X connect 5 0 3 0;
+#X connect 5 0 4 0;
+#X connect 6 0 7 2;
+#X connect 14 0 6 0;
+#X connect 14 0 7 1;
+#X connect 15 0 14 0;
+#X connect 16 0 7 0;
+#X connect 16 0 15 0;
+#X restore 790 191 pd plot;
+#X text 492 191 The graphs are generated in this subpatch:;
+#X text 459 26 Let's check the graphs below. First we have a frequency
+of 50 hz. In a period of 20 ms \, this corresponds to a full cycle
+from 0 to 1! Conversely \, a negative frequency of -50 hz produces
+a cycle from 1 to 0 in 20 ms. Check the graphs below., f 56;

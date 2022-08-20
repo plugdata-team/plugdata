@@ -1,0 +1,79 @@
+#N struct 1003-DS float x float y array 1003-table 1003-element;
+#N struct 1003-element float y array z float;
+#N struct float float y;
+#N canvas 288 57 654 594 12;
+#N canvas 535 136 489 261 template 0;
+#X obj 45 112 struct \$0-DS float x float y array \$0-table \$0-element
+;
+#X text 53 27 Data Structure named "\$0-DS" holding coordinates floats
+"x/y" and an array named "\$0-table" using the element struct named
+"\$0-element" defined in the other subpatch., f 53;
+#X text 54 182 Drawing for \$0-table.;
+#X obj 216 182 plot \$0-table 900 4 0 0 75;
+#X restore 374 146 pd template;
+#N canvas 959 195 334 221 \$0-display 1;
+#X scalar 1003-DS 10 105 \; -59 \; 30 \; 31 \; 55 \; 10 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; \; 54 \; 0 \; \; 0 \; 0 \; \;
+0 \; 0 \; \; \;;
+#X coords 0 221 1 220 0 0 0;
+#X restore 374 173 pd \$0-display;
+#N canvas 442 23 479 322 \$0-element 1;
+#X obj 98 205 filledpolygon 0 0 1 -2 -2 2 -2 2 2 -2 2;
+#X text 95 175 draw a black dot to represent the value:;
+#X obj 95 129 struct \$0-element float y array z float;
+#X text 33 42 The element is defined as a struct of name "\$0-element"
+containing now a float field named "y" and an array field named 'z'
+with float type.;
+#X text 202 255 plot the 'z' array;
+#X obj 114 256 plot z 50 2;
+#X restore 374 120 pd \$0-element;
+#X obj 450 261 pointer;
+#X text 163 305 <= sets size;
+#X obj 341 291 append \$0-DS x y;
+#X obj 118 335 array size -s \$0-DS \$0-table;
+#X obj 450 231 r \$0-pointer;
+#X obj 341 250 r \$0-coords;
+#X obj 118 277 r \$0-size;
+#X floatatom 118 305 5 0 0 0 - - - 0;
+#X obj 77 118 initmess \; pd-\$0-display clear \, vis 1 \; \$0-pointer
+traverse pd-\$0-display \, bang \; \$0-coords 10 105 \; \$0-size 4
+;
+#X floatatom 53 402 5 0 0 0 - - - 0;
+#X obj 190 373 hradio 15 1 0 4 empty empty empty 0 -8 0 10 #dfdfdf
+#000000 #000000 0;
+#X obj 190 399 element \$0-DS \$0-table;
+#X obj 53 438 setsize \$0-element z;
+#X text 375 363 Use [element] to send pointers to the element of the
+array and then use [setsize] to set the size of the array for each
+element., f 33;
+#X text 46 19 In this example we have an array composed of arrays.
+This means that each element of the array contains an array field.
+In this example we have the simple "float" field for the embedded array
+\, but you could have an extra template for its elements and include
+yet more fields in it including more arrays nested indefinitely.,
+f 81;
+#X obj 186 478 hradio 15 1 0 4 empty empty empty 0 -8 0 10 #dfdfdf
+#000000 #000000 0;
+#X floatatom 112 526 5 0 0 0 - - - 0;
+#X obj 186 501 element \$0-element z;
+#X obj 112 552 set float y;
+#X text 357 482 we now get pointers from the neted array (field 'z')
+and set the 'y' values for its template (float). Note you can't click
+and drag for the nested array values., f 34;
+#X connect 3 0 5 2;
+#X connect 5 0 6 1;
+#X connect 5 0 14 1;
+#X connect 7 0 3 0;
+#X connect 8 0 5 0;
+#X connect 9 0 10 0;
+#X connect 10 0 6 0;
+#X connect 12 0 15 0;
+#X connect 13 0 14 0;
+#X connect 14 0 15 1;
+#X connect 14 0 20 1;
+#X connect 18 0 20 0;
+#X connect 19 0 21 0;
+#X connect 20 0 21 1;

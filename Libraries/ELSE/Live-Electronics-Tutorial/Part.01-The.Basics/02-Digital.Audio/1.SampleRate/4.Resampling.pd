@@ -1,0 +1,87 @@
+#N canvas 546 114 557 482 12;
+#X declare -path else;
+#X obj 196 278 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 440 256;
+#N canvas 435 46 937 528 Resampling 0;
+#X obj 224 358 samplerate~;
+#X obj 224 393 nbx 6 20 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+-228856 -1 -1 0 256;
+#X msg 243 133 0.5;
+#X msg 228 106 0.25;
+#X msg 264 157 1;
+#X msg 277 189 2;
+#X msg 285 213 4;
+#X msg 203 83 0.125;
+#X msg 289 243 8;
+#X obj 316 324 block~;
+#X obj 128 312 osc~ 440;
+#X msg 316 288 set 64 1 \$1;
+#X obj 128 24 inlet~ lin;
+#X obj 128 461 outlet~ lin;
+#X obj 32 461 outlet~ hold;
+#X text 247 79 Downsamping by 1/8;
+#X text 270 106 Downsamping by 1/4;
+#X text 275 131 Downsamping by 1/2;
+#X text 296 156 No Resampling;
+#X text 307 188 Upsamping by 2x;
+#X text 313 212 Upsamping by 4x;
+#X text 319 242 Upsamping by 8x;
+#X text 470 76 The resampling is done by a ratio value that needs to
+be a power of two \, either for upsampling (2 \, 4 \, 8 \, 16 \, 32
+\, etc...) as well as downsampling (1/2 \, 1/4 \, 1/8 \, 1/16 \, 1/32
+\, etc...). Click on the messages to the left and see how [samplerate~]
+reports us a new sample rate according to the resampling.;
+#X text 471 169 Note how downsampling will also generate a decimation
+effect in the same way we've seen so far. This is because we also need
+to do an "upsampling" and either hold or create interpolated values.
+, f 59;
+#X text 471 238 Whenever there's an "upsamplig" \, new samples are
+created and need to be filled. this is done in the [inlet~] and [outlet~]
+objects. The argument specifies what to do with the extra samples \,
+"lin" performs a linear interpolation \, "hold" just holds the values.
+A third option is "pad" (the default) \, which just fills the extra
+values with zeroes., f 59;
+#X obj 223 303 t b f;
+#X text 470 336 Resampling is the 3rd argument [block~] or [switch~]
+receives. The first is the block size \, the second is the overlap
+(something we'll see in FFT).;
+#X connect 0 0 1 0;
+#X connect 2 0 25 0;
+#X connect 3 0 25 0;
+#X connect 4 0 25 0;
+#X connect 5 0 25 0;
+#X connect 6 0 25 0;
+#X connect 7 0 25 0;
+#X connect 8 0 25 0;
+#X connect 10 0 13 0;
+#X connect 10 0 14 0;
+#X connect 11 0 9 0;
+#X connect 12 0 10 0;
+#X connect 25 0 0 0;
+#X connect 25 1 11 0;
+#X restore 196 332 pd Resampling;
+#X obj 196 303 sig~;
+#X text 300 443 linear;
+#X text 208 441 hold;
+#X obj 184 383 out~;
+#X obj 290 383 out~;
+#X obj 330 303 display;
+#X obj 330 276 sr~;
+#X text 42 53 It was mentioned how [block~] and [switch~] can also
+locally change the sample rate - performing both "downsampling" and
+"upsampling". In fact \, the [inlet~] and [outlet~] objects are actually
+the objects that perform the resampling.;
+#X obj 196 251 initmess 440;
+#X obj 309 10 declare -path else;
+#X text 42 126 This also makes sense inside a subpatch \, to avoid
+conflicts again with [adc~] and [dac~] in the same way as with the
+block size \, because [adc~] and [dac~] need to have the same sample
+rate defined in Pd. See below the sample rate in which Pd is running.
+Next \, open the [pd Resampling] subpatch to check how the resampling
+happens.;
+#X connect 0 0 2 0;
+#X connect 1 0 5 0;
+#X connect 1 1 6 0;
+#X connect 2 0 1 0;
+#X connect 8 0 7 0;
+#X connect 10 0 0 0;

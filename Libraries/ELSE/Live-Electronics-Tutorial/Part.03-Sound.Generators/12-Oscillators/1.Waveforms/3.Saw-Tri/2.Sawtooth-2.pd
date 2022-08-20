@@ -1,0 +1,110 @@
+#N canvas 574 57 831 529 12;
+#X declare -path else;
+#X obj 58 220 nbx 5 14 1 3000 0 1 empty empty empty 0 -8 0 10 -228856
+-1 -1 26 256;
+#X obj 189 180 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 474 324 (subpatch) 0;
+#X array saw2 4099 float 0;
+#X coords 0 1 4098 -1 200 140 1 0 0;
+#X restore 188 179 graph;
+#X text 171 177 1;
+#X text 166 298 -1;
+#X obj 78 369 nbx 5 14 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10
+-228856 -1 -1 123.471 256;
+#X text 51 368 Hz;
+#X obj 78 428 out~;
+#X text 39 201 # of harmonics;
+#X obj 573 214 nbx 5 14 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10
+-228856 -1 -1 164.814 256;
+#X obj 585 278 out~;
+#X obj 573 345 graph~ 441 8;
+#X obj 573 242 saw2~;
+#N canvas 212 77 267 219 sequencer 0;
+#X obj 44 97 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 44 73 tempo 240;
+#X obj 44 47 inlet;
+#X obj 44 161 outlet;
+#X obj 44 136 mtof;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 3 0;
+#X restore 573 190 pd sequencer;
+#X obj 573 167 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#N canvas 212 77 267 219 sequencer 0;
+#X obj 44 94 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 44 70 tempo 240;
+#X obj 44 47 inlet;
+#X obj 44 147 outlet;
+#X obj 44 126 mtof;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 3 0;
+#X restore 78 342 pd sequencer;
+#X obj 78 319 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 78 394 tabosc4~ saw2;
+#X text 23 17 This variation of the sawtooth waveform sounds exactly
+the same. The only difference is in the waveform \, which is achieved
+by inverting the polarity of all the even partials., f 61;
+#N canvas 335 155 948 460 saw2 0;
+#X text 100 156 p;
+#X obj 39 47 inlet;
+#X obj 118 141 loop;
+#X obj 117 261 list prepend sinesum 4096;
+#X msg 117 349 normalize 1;
+#X obj 117 287 list trim;
+#X msg 118 115 1 \$1;
+#X obj 117 310 trigger bang anything;
+#X text 612 176 Example with 32 partials:;
+#X msg 428 198 1 -0.5 0.333333 -0.25 0.2 -0.166667 0.142857 -0.125
+0.111111 -0.1 0.090909 -0.0833333 0.076923 -0.0714286 0.0666667 -0.0625
+0.0588235 -0.0555556 0.0526315 -0.05 0.047619 -0.0454545 0.0434782
+-0.0416667 0.04 -0.0384615 0.037037 -0.0357143 0.0344827 -0.0333333
+0.0322581 -0.03125;
+#X obj 118 173 expr if ($f1 % 2 == 0 \, -1/$f1 \, 1/$f1);
+#X text 429 129 Sawtooth s: partials decrease in an order of "1/p"
+\, where "p" is the partial number - but every even partial has an inverted
+polarity;
+#X obj 261 389 send saw2;
+#X obj 39 88 trigger bang float bang;
+#X obj 118 233 list store;
+#X msg 118 200 append \$1;
+#X connect 1 0 13 0;
+#X connect 2 0 10 0;
+#X connect 3 0 5 0;
+#X connect 4 0 12 0;
+#X connect 5 0 7 0;
+#X connect 6 0 2 0;
+#X connect 7 0 4 0;
+#X connect 7 1 12 0;
+#X connect 10 0 15 0;
+#X connect 13 0 14 0;
+#X connect 13 1 6 0;
+#X connect 13 2 14 1;
+#X connect 14 0 3 0;
+#X connect 15 0 14 0;
+#X restore 58 244 pd saw2;
+#X text 23 72 Enter the number of harmonics and see the resulting waveform
+below. Realize that \, in order to generate a perfect sawtooth \, you
+need an infinite harmonic series. Open the [pd saw2] subpatch for more
+details., f 61;
+#X obj 616 35 declare -path else;
+#X text 498 81 The ELSE library also provides a [saw2~] variant waveform
+\, but "perfect" (with infinite harmonics). Check its help file for
+more details., f 41;
+#X connect 0 0 19 0;
+#X connect 5 0 17 0;
+#X connect 9 0 12 0;
+#X connect 12 0 10 0;
+#X connect 12 0 11 0;
+#X connect 13 0 9 0;
+#X connect 14 0 13 0;
+#X connect 15 0 5 0;
+#X connect 16 0 15 0;
+#X connect 17 0 7 0;

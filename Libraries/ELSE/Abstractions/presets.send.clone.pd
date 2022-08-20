@@ -1,10 +1,10 @@
 #N canvas 430 251 414 296 12;
 #X declare -path else;
-#X obj 267 129 dollsym 2;
+#X obj 267 129 else/dollsym 2;
 #X obj 77 34 inlet;
 #N canvas 679 546 525 390 morph 0;
-#X obj 127 263 morph;
-#X obj 149 157 insert set;
+#X obj 127 263 else/morph;
+#X obj 149 157 else/insert set;
 #X obj 127 52 inlet;
 #X obj 127 316 outlet;
 #X obj 160 196 r \$0-time;
@@ -28,12 +28,12 @@
 #N canvas 939 390 404 403 interp 0;
 #X obj 219 26 inlet;
 #X obj 89 317 outlet;
-#X obj 89 274 interpolate, f 19;
+#X obj 89 274 else/interpolate, f 19;
 #X obj 89 180 r \$0-interp;
 #X obj 89 241 spigot;
 #X obj 128 215 r \$0-i-mode;
 #X obj 43 78 r \$0-set;
-#X obj 43 148 insert start;
+#X obj 43 148 else/insert start;
 #X msg 252 222 exp \$1;
 #X obj 43 113 route float list;
 #X obj 252 198 r \$0-exp;
@@ -57,7 +57,7 @@
 #X obj 371 207 s \$0-interp;
 #X obj 426 185 s \$0-set;
 #X obj 87 238 list split 1;
-#X obj 46 317 message;
+#X obj 46 317 else/message;
 #X obj 87 272 t b a;
 #X obj 131 274 list trim;
 #X obj 165 360 outlet;
@@ -93,7 +93,7 @@
 #X obj 304 401 route symbol;
 #X obj 304 427 t b b;
 #X msg 304 456 1;
-#X obj 158 490 router;
+#X obj 158 490 else/router;
 #X msg 205 225 0;
 #X obj 285 216 t b b l, f 13;
 #X obj 159 140 t l l b;
@@ -102,7 +102,7 @@
 #X obj 262 537 outlet;
 #X text 321 536 has a symbol;
 #X text 63 536 only floats;
-#X obj 159 97 routetype float list, f 15;
+#X obj 159 97 else/routetype float list, f 15;
 #X connect 0 0 6 0;
 #X connect 0 1 1 1;
 #X connect 1 0 2 0;
@@ -132,9 +132,9 @@
 #X text 80 470 morph;
 #X text 265 470 bypass;
 #X text 140 470 interpolate;
-#X obj 83 285 router 2 1, f 26;
-#X obj 83 401 router;
-#X obj 262 188 hot;
+#X obj 83 285 else/router 2 1, f 26;
+#X obj 83 401 else/router;
+#X obj 262 188 else/hot;
 #X obj 262 155 != 0;
 #X obj 262 97 r \$0-time;
 #X obj 262 222 ||;

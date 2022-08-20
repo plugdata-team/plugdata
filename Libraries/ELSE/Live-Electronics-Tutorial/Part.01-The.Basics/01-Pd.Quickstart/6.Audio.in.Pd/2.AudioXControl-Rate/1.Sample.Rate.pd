@@ -1,0 +1,99 @@
+#N canvas 238 39 1006 611 12;
+#X declare -path else;
+#X obj 196 228 samplerate~;
+#X obj 196 186 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 196 268 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 651 235 *;
+#X floatatom 632 205 0 0 0 0 - - - 0;
+#X floatatom 651 263 0 0 0 0 - - - 0;
+#X floatatom 805 205 0 0 0 0 - - - 0;
+#X floatatom 828 263 0 0 0 0 - - - 0;
+#X obj 828 235 /;
+#X obj 132 399 osc~ 440;
+#X obj 132 439 out~;
+#X obj 669 206 sr~ -khz;
+#X obj 846 206 sr~ -khz;
+#X obj 570 528 nbx 9 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X obj 344 248 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 525 524 *;
+#X floatatom 525 493 0 0 0 0 - - - 0;
+#X floatatom 525 551 0 0 0 0 - - - 0;
+#X obj 570 498 sr~ -ms;
+#X text 502 555 ms;
+#X text 34 18 An audio object operates in a given sample (or audio)
+rate., f 65;
+#X text 219 187 <= click;
+#X text 233 474 <= click and drag;
+#X text 530 50 Convert between number of samples and time units:;
+#X text 748 203 samples;
+#X text 595 263 samples;
+#X text 592 205 ms *;
+#X text 794 264 ms *;
+#X text 468 492 samples;
+#X obj 703 488 ms2samps;
+#X floatatom 793 454 5 0 0 0 - - - 0;
+#X floatatom 703 516 5 0 0 0 - - - 0;
+#X obj 703 541 samps2ms;
+#X floatatom 703 567 5 0 0 0 - - - 0;
+#X text 530 76 In digital audio \, we can count time by the number
+of samples. This surely depends on the sample rate. To convert milliseconds
+(ms) to number of samples \, we just need to multiply it by the sample
+rate in Kilohertz (Khz). The opposite conversion is to divide by the
+sample rate in Khz. Below \, we use [sr~] \, which can also give you
+the sample rate in Khz with the -khz flag.;
+#X obj 793 485 ms2samps~;
+#X obj 793 538 samps2ms~;
+#X text 34 40 The native [samplerate~] object gives us the current
+sample rate Pd is running on (which can be set in audio settings).
+By default \, the sample rate is 44.1 Khz (44100 samples per second).
+this is a quite common sample rate for digital audio., f 65;
+#X text 40 313 In this way \, when the DSP is on \, all audio objects
+that output audio generate signal values for each sample in this given
+rate. For instance \, the oscillator below spits 44100 amplitude samples
+per second., f 63;
+#X text 54 521 Note also that the [out~] object also has a toggle that
+turns the DSP on or off \, and that when we click and drag the slider
+\, it turns the audio engine on if it is off., f 55;
+#X text 658 303 * 1 second contains 1000 ms.;
+#X obj 828 12 declare -path else;
+#X obj 344 210 sr~ -khz;
+#X text 34 107 The [sr~] object from ELSE also gives you the sample
+rate \, which is automatically sent out when you load the patch or
+change it and it can also give you the sample rate in different units
+- check its help file., f 65;
+#X obj 69 197 setdsp~ 1;
+#X obj 793 564 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 793 511 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X text 862 511 <-- [numbox~];
+#X text 538 341 [sr~] also gives the period of the sample rate in ms
+instead of its frequency. This is the period between two samples. By
+multiplying the number of samples to this value \, we can also convert
+it to ms. But an easier alternative from the ELSE library is with the
+[ms2samps] and [samps2ms] or also with [ms2samps~]/[samps2ms~]. We
+use [numbox~] from ELSE to display signal values.;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 3 0 5 0;
+#X connect 4 0 3 0;
+#X connect 6 0 8 0;
+#X connect 8 0 7 0;
+#X connect 9 0 10 0;
+#X connect 11 0 3 1;
+#X connect 12 0 8 1;
+#X connect 13 0 15 1;
+#X connect 15 0 17 0;
+#X connect 16 0 15 0;
+#X connect 18 0 13 0;
+#X connect 29 0 31 0;
+#X connect 30 0 29 0;
+#X connect 30 0 35 0;
+#X connect 31 0 32 0;
+#X connect 32 0 33 0;
+#X connect 35 0 46 0;
+#X connect 36 0 45 0;
+#X connect 42 0 14 0;
+#X connect 46 0 36 0;

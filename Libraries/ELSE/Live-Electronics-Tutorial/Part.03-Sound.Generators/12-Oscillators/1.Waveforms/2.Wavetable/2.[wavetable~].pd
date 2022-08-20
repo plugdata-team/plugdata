@@ -1,0 +1,58 @@
+#N canvas 597 23 566 602 12;
+#X declare -path else;
+#X obj 241 291 soundfiler;
+#X obj 234 361 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array wave 512 float 0;
+#X coords 0 1 511 -1 200 140 1;
+#X restore 233 360 graph;
+#X obj 68 208 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+-228856 -1 -1 0 256;
+#X text 146 208 Hz;
+#X msg 241 266 read -resize \$1 wave;
+#X obj 241 200 openpanel;
+#X obj 241 171 bng 23 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 68 281 out~;
+#X text 33 112 It's relatively easy to find around waveforms as .wav
+or .aif files to be used in Pd. to load them into an array \, we use
+the native [soundfiler] object., f 68;
+#N canvas 227 209 415 252 sequencer 0;
+#X obj 172 91 mtof;
+#X obj 144 170 *~;
+#X obj 144 199 outlet~;
+#X obj 162 30 tempo 240 -on;
+#X obj 172 54 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 39 131 wavetable~ wave;
+#X obj 162 139 envgen~ 50 1 150 1 50 0;
+#X connect 0 0 5 0;
+#X connect 1 0 2 0;
+#X connect 3 0 4 0;
+#X connect 3 0 6 0;
+#X connect 4 0 0 0;
+#X connect 5 0 1 0;
+#X connect 6 0 1 1;
+#X restore 70 360 pd sequencer;
+#X obj 70 397 out~;
+#X floatatom 241 315 5 0 0 0 - - -;
+#X text 284 315 <= number of samples;
+#X text 271 171 Load another file;
+#X text 33 63 The ELSE library provides [wavetable~] \, another wavetable
+oscillator for Pd. In this example \, instead of generating a waveform
+\, we load it from a sound file., f 68;
+#X text 65 520 One difference from [wavetable~] to [tabosc4~] is that
+it can load tables of any size \, so it doesn't have to be a power
+of 2 plus 3 extra points.;
+#X obj 68 240 wavetable~ wave 50;
+#X obj 347 22 declare -path else;
+#X obj 251 230 initmess symbol baglama.wav;
+#X connect 0 0 12 0;
+#X connect 3 0 17 0;
+#X connect 5 0 0 0;
+#X connect 6 0 5 0;
+#X connect 7 0 6 0;
+#X connect 10 0 11 0;
+#X connect 17 0 8 0;
+#X connect 19 0 5 0;

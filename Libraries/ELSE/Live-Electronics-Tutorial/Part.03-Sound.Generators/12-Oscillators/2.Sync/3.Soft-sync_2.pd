@@ -1,0 +1,58 @@
+#N canvas 671 50 496 680 12;
+#X declare -path else;
+#X text 54 350 Slave;
+#X obj 145 410 osc~;
+#X text 224 302 master;
+#X obj 145 383 *~;
+#X obj 163 329 /~ 2;
+#X obj 95 351 nbx 5 14 -1e+37 1e+37 0 0 empty slave empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 163 304 nbx 5 14 -1e+37 1e+37 0 0 empty master empty 0 -8 0
+10 -228856 -1 -1 0 256;
+#N canvas 786 159 450 300 sequencer 0;
+#X obj 195 193 mtof;
+#X obj 72 132 metro 200;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array sequencer 16 float 3;
+#A 0 -6 -8 -8 -3 -8 1 4 4 -3 -5 -5 -1 2 6 7 7;
+#X coords 0 12 16 -12 100 70 1;
+#X restore 223 104 graph;
+#X obj 72 193 v i;
+#X obj 195 221 outlet;
+#X obj 72 107 inlet;
+#X obj 72 155 expr (i + 1) % 16 \; sequencer[i] + 45;
+#X connect 0 0 4 0;
+#X connect 1 0 6 0;
+#X connect 5 0 1 0;
+#X connect 6 0 3 0;
+#X connect 6 1 0 0;
+#X restore 95 270 pd sequencer;
+#X obj 95 247 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 95 319 * 1.8;
+#X obj 163 355 square~;
+#X obj 145 442 graph~ 500 20;
+#X text 29 170 We implement this with a square wave with half of the
+master's frequency. This way \, at every period transition \, we have
+a sign reversal from 1 to -1 \, which we use to mulitpy to the slave's
+frequency., f 59;
+#X text 218 355 <== square with half the frequency, f 18;
+#X obj 292 26 declare -path else;
+#X text 29 67 In this example \, we have s Soft Sync patch where the
+direction of the oscillator reverses instead of being reset. This
+is to avoid a harsh clicks that happen when there's a big amplitude
+jump when resetting the oscillator. Hence \, this type of sync does
+not generate discontinuities in the signal and sounds much softer.
+;
+#X obj 145 596 out~;
+#X connect 1 0 11 0;
+#X connect 3 0 1 0;
+#X connect 4 0 10 0;
+#X connect 5 0 3 0;
+#X connect 6 0 4 0;
+#X connect 7 0 9 0;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X connect 9 0 5 0;
+#X connect 10 0 3 1;
+#X connect 11 0 16 0;

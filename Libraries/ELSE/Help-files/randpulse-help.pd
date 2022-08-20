@@ -1,4 +1,4 @@
-#N canvas 475 23 560 459 10;
+#N canvas 380 23 562 535 10;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -18,17 +18,17 @@
 0;
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 3 335 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 355 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 371 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 3 440 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 122 344 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 112 364 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 3 434 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 504 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X text 200 344 signal -;
-#X text 187 379 1) float;
-#X text 187 396 2) float;
+#X text 190 364 signal -;
+#X text 167 448 1) float;
+#X text 167 465 2) float;
 #X obj 251 141 nbx 5 14 -50 50 0 0 empty empty empty 0 -8 0 10 #dcdcdc
 #000000 #000000 0 256;
 #X text 311 139 <= hz;
@@ -37,34 +37,31 @@
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
-#X text 256 379 - frequency in hertz (default 0);
-#X text 256 396 - initial pulse width (default 0.5);
+#X text 236 448 - frequency in hertz (default 0);
+#X text 236 465 - initial pulse width (default 0.5);
 #X obj 3 239 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 123 247 cnv 17 3 37 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 113 247 cnv 17 3 52 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 122 289 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 112 309 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 122 309 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 112 329 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 165 289 float/signal - pulse width (from 0 to 1);
-#X text 164 248 float/signal - frequency in hz;
-#X text 164 311 float/signal - phase sync (ressets internal phase)
+#X text 145 309 float/signal - pulse width (from 0 to 1);
+#X text 144 248 float/signal - frequency in hz;
+#X text 144 331 float/signal - phase sync (ressets internal phase)
 ;
 #X obj 24 40 cnv 4 4 4 empty empty Random 0 28 2 18 #e0e0e0 #000000
 0;
-#X text 163 267 seed <float>;
-#X text 243 266 - sets seed value;
-#X text 255 344 random pulse signal;
-#X text 254 414 - seed (default \, internal);
-#X text 187 414 3) float;
+#X text 143 287 seed <float>;
+#X text 245 364 random pulse signal;
 #X obj 251 168 else/randpulse 1;
 #X obj 251 200 else/display;
 #X text 59 87 [randpulse] is a random pulse oscillator (which alternates
 between a random value and 0 \, or on/off) at control rate with a default
 resolution of 1 ms). It accepts negative frequencies \, has inlets
 for pulse width and sync., f 67;
-#N canvas 414 239 721 374 rate 0;
+#N canvas 411 138 721 374 rate 0;
 #X obj 204 159 else/display;
 #X obj 204 127 else/sr~ -ms;
 #X obj 498 214 else/status;
@@ -80,7 +77,6 @@ for pulse width and sync., f 67;
 #dcdcdc #000000 #000000 0 256;
 #X text 37 279 You can change the rate with the -rate flag or the "rate"
 message. This affects the period resolution, f 55;
-#X obj 498 139 else/randpulse 3 -rate 20;
 #X text 36 36 [randpulse] is an actual oscillator with a running phase
 \, which runs at a given rate. A signal oscillator runs at the sample
 rate which has a period in ms given by the [sr~] object., f 55;
@@ -88,17 +84,63 @@ rate which has a period in ms given by the [sr~] object., f 55;
 is 1 ms and the minimum rate is 0.1 ms. The maximum frequency that
 [pulse] can run is half the frequency of the given rate (500 hz default).
 , f 55;
+#X obj 498 139 else/randpulse -rate 20 3;
 #X connect 1 0 0 0;
 #X connect 2 0 3 0;
 #X connect 2 1 3 1;
 #X connect 3 0 8 0;
-#X connect 4 0 10 0;
+#X connect 4 0 12 0;
 #X connect 5 0 4 0;
 #X connect 6 0 5 0;
 #X connect 7 0 2 0;
-#X connect 10 0 7 0;
-#X restore 483 214 pd rate;
-#X text 44 177 see also:;
-#X obj 44 200 else/randpulse~;
-#X connect 16 0 35 0;
-#X connect 35 0 36 0;
+#X connect 12 0 7 0;
+#X restore 481 175 pd rate;
+#X text 34 167 see also:;
+#X obj 34 190 else/randpulse~;
+#X obj 6 388 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 116 418 -seed <float>: sets seed (default: unique internal)
+, f 54;
+#X text 223 287 - a float sets seed \, no float sets a unique internal
+;
+#N canvas 459 157 771 253 seed 0;
+#X text 30 19 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X text 31 165 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 52;
+#X text 30 98 Seeds are kept locally \, which means that if two [randpulse]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [randpulse] object twice with the same seed
+to repeat the output., f 52;
+#X text 387 25 Sync [randpulse] objects with a seed value;
+#X msg 382 63 seed;
+#X text 632 62 <-- set seed;
+#X floatatom 382 178 10 0 0 0 - - - 16;
+#X obj 466 63 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000;
+#X msg 572 63 seed 123;
+#X floatatom 572 178 10 0 0 0 - - - 16;
+#X obj 382 135 else/randpulse -seed 123 0.5;
+#X obj 572 135 else/randpulse -seed 123 0.5;
+#X connect 4 0 10 0;
+#X connect 4 0 11 0;
+#X connect 7 0 10 0;
+#X connect 7 0 11 0;
+#X connect 8 0 10 0;
+#X connect 8 0 11 0;
+#X connect 10 0 6 0;
+#X connect 11 0 9 0;
+#X restore 481 202 pd seed;
+#X text 167 482 3) float;
+#X text 236 482 - initial phase (default 0);
+#X text 143 269 rate <float>;
+#X text 223 269 - sets refresh rate in ms;
+#X text 116 400 -rate <float>: sets refresh rate in ms (default 1)
+, f 54;
+#X obj 34 213 else/randpulse2;
+#X connect 16 0 32 0;
+#X connect 32 0 33 0;

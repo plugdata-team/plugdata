@@ -1,0 +1,90 @@
+#N struct 1003-DS float x float y array z float;
+#N struct float float y;
+#N canvas 174 45 820 539 12;
+#X obj 674 140 pointer;
+#X obj 463 173 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#N canvas 133 454 518 264 template 0;
+#X obj 100 116 struct \$0-DS float x float y array z float;
+#X obj 339 183 plot z;
+#X text 75 169 The [plot] object is used to give drawing instructions
+for arrays. It needs the array field name ("z")., f 35;
+#X text 37 22 Here's the Data Structure for the array. It is named
+"\$0-DS" and holds the coordinates floats "x/y" and an array named
+"z" using a float template. This 'float' template also holds the value
+of 'y' \, which is the vertical dimension of the array so you can click
+on the array and change the values of y., f 64;
+#X restore 157 138 pd template;
+#X obj 469 429 pointer;
+#X obj 469 486 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 83 350 When you create a subpatch \, on its properties you
+have "Y units per pixel" set to "-1"., f 39;
+#X text 51 326 IMPORTANT NOTE:, f 19;
+#X text 39 17 This example shows how to add and set an "array". An
+array is a collection of elements of the same data type \, which can
+be a float \, a symbol \, a text and even an array itself., f 49;
+#X obj 565 169 append \$0-DS x y;
+#N canvas 1020 209 316 192 \$0-display 1;
+#X scalar 1003-DS 25 75 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0
+\; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \; 0 \;
+0 \; 0 \; 0 \; 0 \; 0 \; \;;
+#X coords 0 192 1 191 0 0 0;
+#X restore 157 166 pd \$0-display;
+#X obj 463 139 r \$0-size;
+#X obj 565 130 r \$0-coords;
+#X obj 674 113 r \$0-pointer;
+#X obj 469 400 message traverse pd-\$0-display \, next;
+#X obj 469 379 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 490 375 <= click;
+#X text 83 446 Check the properties for [pd \$0-display] and see that
+it has been corrected (right click on it and select "properties").
+, f 41;
+#X text 83 398 This makes the array values inverted \, so you need
+to change it to "1" in the properties., f 41;
+#X obj 463 200 setsize \$0-DS z;
+#X text 40 83 In its simplest form \, we're adding an array with floats.
+Check the subpatches below., f 49;
+#X obj 75 219 initmess \; pd-\$0-display clear \, vis 1 \; \$0-pointer
+traverse pd-\$0-display \, bang \; \$0-coords 25 75 \; \$0-size 256
+;
+#X text 442 17 When creating an array \, its default size is only 1
+element \, but you can use [setsize] to set its size. In a similar
+fashion \, this object needs a struct name \, the array name and a
+pointer to it in the right inlet., f 44;
+#X text 397 248 The [getsize] object is similar to [setsize]. It needs
+a struct name and an array name \, which can also be given as arguments.
+It sends the array size when it receives a pointer to it. Here we use
+the [pointer] object to send it a pointer. We use the "traverse" message
+and then ask for the "next" object \, so we get the pointer to the
+first object (that is \, the added array) instead of the head of the
+list., f 56;
+#X obj 469 457 getsize \$0-DS z;
+#X connect 0 0 8 2;
+#X connect 1 0 18 0;
+#X connect 3 0 23 0;
+#X connect 8 0 18 1;
+#X connect 10 0 1 0;
+#X connect 11 0 8 0;
+#X connect 12 0 0 0;
+#X connect 13 0 3 0;
+#X connect 14 0 13 0;
+#X connect 23 0 4 0;

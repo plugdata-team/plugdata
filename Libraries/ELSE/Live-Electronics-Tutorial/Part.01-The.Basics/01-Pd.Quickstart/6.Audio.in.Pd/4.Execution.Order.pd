@@ -1,0 +1,78 @@
+#N canvas 592 49 564 645 12;
+#X declare -path else;
+#X obj 114 281 t b b;
+#X obj 146 328 vsnapshot~;
+#X floatatom 146 355 0 0 0 0 - - -;
+#X obj 60 327 vsnapshot~;
+#X floatatom 60 354 0 0 0 0 - - -;
+#X obj 128 390 -;
+#X floatatom 128 420 0 0 0 0 - - -;
+#X obj 60 170 ramp~ 1 0 44100;
+#X obj 114 253 tempo 120 -on;
+#X obj 329 202 cnv 15 79 60 empty empty empty 20 12 0 14 -228986 -66577
+0;
+#X obj 416 247 t b b;
+#X obj 448 288 vsnapshot~;
+#X floatatom 448 315 0 0 0 0 - - -;
+#X obj 317 289 vsnapshot~;
+#X floatatom 317 316 0 0 0 0 - - -;
+#X obj 430 350 -;
+#X floatatom 430 380 0 0 0 0 - - -;
+#N canvas 885 201 309 205 send 0;
+#X obj 107 39 inlet~;
+#X obj 87 118 outlet~;
+#X text 141 119 <== dummy outlet;
+#X obj 107 72 send~ \$0-count-2;
+#X connect 0 0 3 0;
+#X restore 331 209 pd send;
+#N canvas 831 310 293 168 receive 0;
+#X obj 75 29 inlet~;
+#X obj 94 118 outlet~;
+#X text 128 28 <== dummy inlet;
+#X obj 94 87 receive~ \$0-count-2;
+#X connect 3 0 1 0;
+#X restore 331 238 pd receive;
+#X obj 317 171 ramp~ 1 0 44100;
+#X obj 416 221 tempo 120 -on;
+#X obj 72 198 send~ \$0-count;
+#X obj 163 298 receive~ \$0-count;
+#X obj 220 172 setdsp~ 1;
+#X text 158 420 <= one block of delay;
+#X text 342 381 no delay ==>;
+#X text 86 475 The "dummy" [inlet~] / [outlet~] objects are only used
+to connect the subpatches and have no other purpose than that \, but
+that's what forces the order of execution anyway.;
+#X obj 365 21 declare -path else;
+#X text 85 530 The same mechanism can be applied to other similar objects
+like: [tabsend~]/[tabreceive~] & [throw~]/[catch~] pairs. We'll also
+see later in this tutorial how to use this mechanism when it comes
+to managing delay lines with [delwrite~] and [delread~]/[delread4~]
+pairs., f 59;
+#X text 62 57 Even without feedback \, objects like [send~] / [receive~]
+may not be in sync and generate a block of delay. This depends on the
+order of creation but you can force an order of execution by connecting
+these objects with subpatches and dummy in/outlets (see [pd send] e
+[pd receive] below)., f 61;
+#X connect 0 0 3 0;
+#X connect 0 1 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 5 1;
+#X connect 3 0 4 0;
+#X connect 4 0 5 0;
+#X connect 5 0 6 0;
+#X connect 7 0 3 0;
+#X connect 7 0 21 0;
+#X connect 8 0 0 0;
+#X connect 10 0 13 0;
+#X connect 10 1 11 0;
+#X connect 11 0 12 0;
+#X connect 12 0 15 1;
+#X connect 13 0 14 0;
+#X connect 14 0 15 0;
+#X connect 15 0 16 0;
+#X connect 17 0 18 0;
+#X connect 18 0 11 0;
+#X connect 19 0 17 0;
+#X connect 19 0 13 0;
+#X connect 20 0 10 0;
+#X connect 22 0 1 0;

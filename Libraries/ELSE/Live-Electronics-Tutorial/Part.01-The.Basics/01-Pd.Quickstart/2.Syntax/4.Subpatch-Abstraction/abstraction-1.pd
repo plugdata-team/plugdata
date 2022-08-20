@@ -1,0 +1,27 @@
+#N canvas 699 398 746 366 12;
+#X obj 61 28 inlet;
+#X obj 61 287 outlet;
+#X obj 177 287 outlet;
+#X obj 177 214 float \$2;
+#X obj 61 214 symbol \$1;
+#X obj 61 156 trigger bang bang;
+#X text 252 207 \$1 = 1st argument \; \$2 = 2nd argument.;
+#X text 239 64 This is an example of an abstraction \, a very simple
+one that only loads arguments from the parent patch and outputs it.
+;
+#X text 239 102 Arguments are loaded inside objects with dollar signs
+(not to be confused with the usage of dollar signs inside messages!)
+, f 60;
+#X text 421 161 Whenever you see arguments with "\$1" \, "\$2" and
+so on \, it's a clear clue that the patch is meant to be used as an
+abstraction and loaded inside a parent to load arguments from it.,
+f 34;
+#X text 288 265 Note that the arguments are shown inside parenthesis
+in the title bar on the top of the patch window \, next to the abstraction
+name., f 53;
+#X connect 0 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 5 0 4 0;
+#X connect 5 1 3 0;
+#X coords 0 0 1 1 100 100 0;

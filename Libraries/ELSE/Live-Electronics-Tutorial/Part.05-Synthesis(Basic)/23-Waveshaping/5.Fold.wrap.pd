@@ -1,0 +1,49 @@
+#N canvas 303 57 925 543 12;
+#X declare -path else;
+#X floatatom 163 107 5 0 0 0 - - -;
+#X obj 163 179 *~;
+#X obj 238 140 hsl 128 15 0 4 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 235 162 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 163 141 osc~ 200;
+#X obj 163 224 fold~;
+#X obj 163 268 graph~ 200 21;
+#X floatatom 577 131 5 0 0 0 - - -;
+#X obj 577 203 *~;
+#X obj 652 164 hsl 128 15 0 4 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 649 186 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 577 165 osc~ 200;
+#X obj 577 298 graph~ 200 21;
+#X obj 577 248 wrap2~;
+#X obj 235 188 f2s~ 50;
+#X obj 649 212 f2s~ 50;
+#X text 26 17 The [fold~] object from ELSE performs "wavefolding" \,
+which can be considered as a type of waveshaper. What it does is that
+when it reaches the maximum and minimum points (-1 and 1 by default)
+\, it folds back. Check it out.;
+#X obj 739 13 declare -path else;
+#X obj 163 432 out~;
+#X obj 577 456 out~;
+#X text 472 49 On the other hand \, [wrap2~] from ELSE performs a "wrapping"
+function for a specific range (-1 and 1) by default. You can change
+the range in both [fold~] and [wrap2~] \, of course \, check their
+help files., f 59;
+#X connect 0 0 4 0;
+#X connect 1 0 5 0;
+#X connect 2 0 3 0;
+#X connect 3 0 14 0;
+#X connect 4 0 1 0;
+#X connect 5 0 6 0;
+#X connect 6 0 18 0;
+#X connect 7 0 11 0;
+#X connect 8 0 13 0;
+#X connect 9 0 10 0;
+#X connect 10 0 15 0;
+#X connect 11 0 8 0;
+#X connect 12 0 19 0;
+#X connect 13 0 12 0;
+#X connect 14 0 1 1;
+#X connect 15 0 8 1;

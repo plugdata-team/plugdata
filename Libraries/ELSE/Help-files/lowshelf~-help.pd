@@ -77,7 +77,7 @@ f * PI/nyquist \; G = pow(10 \, db/40) \; alphaS = sin(w) * sqrt((G*G
 #X obj 87 54 loadbang;
 #X obj 87 156 outlet;
 #X obj 254 89 r \$0-G;
-#X obj 87 127 else/bicoeff lowshelf 1000 0.1 12;
+#X obj 87 127 else/bicoeff2 lowshelf 1000 0.1 12;
 #X connect 0 0 5 0;
 #X connect 1 0 5 1;
 #X connect 2 0 5 0;

@@ -1,0 +1,458 @@
+#N canvas 531 61 966 622 12;
+#X declare -path else;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array shape_\$0 1024 float 0;
+#X coords 0 1 1023 -1 300 150 2 0 0;
+#X restore 52 452 graph;
+#X obj 53 453 cnv 15 298 148 empty empty empty 20 12 0 14 -207924 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array output_\$0 1024 float 0;
+#X coords 0 1 1023 -1 300 150 1 0 0;
+#X restore 386 455 graph;
+#X obj 387 456 cnv 15 298 148 empty empty empty 20 12 0 14 -199862
+-66577 0;
+#X obj 13 20 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t0 1024 float 0;
+#X coords 0 1.1 1023 -1.1 150 100 1;
+#X restore 12 19 graph;
+#X obj 168 20 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t1 1024 float 0;
+#X coords 0 1.1 1023 -1.1 150 100 1;
+#X restore 167 19 graph;
+#X obj 323 20 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t2 1024 float 0;
+#X coords 0 1.1 1023 -1.1 150 100 1;
+#X restore 322 19 graph;
+#X obj 479 20 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t3 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 478 19 graph;
+#X obj 633 20 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t4 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 632 19 graph;
+#X obj 789 20 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t5 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 788 19 graph;
+#X obj 13 202 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t6 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 12 201 graph;
+#X obj 168 202 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t7 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 167 201 graph;
+#X obj 323 202 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t8 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 322 201 graph;
+#X obj 479 202 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t9 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 478 201 graph;
+#X obj 633 202 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t10 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 632 201 graph;
+#X obj 789 202 cnv 15 148 98 empty empty empty 20 12 0 14 -237178 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array t11 1024 float 0;
+#X coords 0 1 1023 -1 150 100 1;
+#X restore 788 201 graph;
+#N canvas 761 496 708 303 plot 0;
+#X obj 52 33 r \$0-shape;
+#X obj 61 163 trigger bang float;
+#X obj 440 192 pi;
+#X obj 440 220 v pi;
+#X obj 52 111 delay 5;
+#X obj 354 195 initmess \; amp-set 0 \; hz 200;
+#X obj 52 189 loop 1024;
+#X obj 207 115 f \$0;
+#X msg 207 142 \; shape_\$1 normalize 1;
+#X obj 253 70 expr shape_\$0[$f1] = t0[$f1] * c0 + t1[$f1] * c1 + t2[$f1]
+* c2 + t3[$f1] * c3 + t4[$f1] * c4 + t5[$f1] * c5 + t6[$f1] * c6 +
+t7[$f1] * c7 + t8[$f1] * c8 + t9[$f1] * c9 + t10[$f1] * c10 + t11[$f1]
+* c11;
+#X obj 52 214 expr output_\$0[$f1] = shape_\$0[(sin($f1 * 2*pi / 1023)
+* $f2) * 512 + 512], f 39;
+#X obj 61 140 r \$0-amp;
+#X obj 52 64 t b b b, f 16;
+#X obj 253 45 loop 1024;
+#X connect 0 0 12 0;
+#X connect 1 0 6 0;
+#X connect 1 1 10 1;
+#X connect 2 0 3 0;
+#X connect 4 0 6 0;
+#X connect 6 0 10 0;
+#X connect 7 0 8 0;
+#X connect 11 0 1 0;
+#X connect 12 0 4 0;
+#X connect 12 1 7 0;
+#X connect 12 2 13 0;
+#X connect 13 0 9 0;
+#X restore 299 433 pd plot;
+#N canvas 45 80 1015 521 (subpatch) 0;
+#X obj 240 303 v c0;
+#X obj 213 277 t b f;
+#X obj 213 327 s \$0-shape;
+#X obj 313 275 t b f;
+#X obj 313 325 s \$0-shape;
+#X obj 393 277 t b f;
+#X obj 393 327 s \$0-shape;
+#X obj 477 275 t b f;
+#X obj 477 325 s \$0-shape;
+#X obj 565 275 t b f;
+#X obj 565 325 s \$0-shape;
+#X obj 649 273 t b f;
+#X obj 649 323 s \$0-shape;
+#X obj 225 394 t b f;
+#X obj 225 444 s \$0-shape;
+#X obj 309 392 t b f;
+#X obj 309 442 s \$0-shape;
+#X obj 389 394 t b f;
+#X obj 389 444 s \$0-shape;
+#X obj 473 392 t b f;
+#X obj 473 442 s \$0-shape;
+#X obj 561 392 t b f;
+#X obj 561 442 s \$0-shape;
+#X obj 645 390 t b f;
+#X obj 645 440 s \$0-shape;
+#X obj 340 301 v c1;
+#X obj 420 303 v c2;
+#X obj 504 301 v c3;
+#X obj 592 301 v c4;
+#X obj 676 299 v c5;
+#X obj 252 420 v c6;
+#X obj 336 417 v c7;
+#X obj 416 420 v c8;
+#X obj 500 418 v c9;
+#X obj 588 418 v c10;
+#X obj 672 416 v c11;
+#X obj 225 369 r T6(x);
+#X obj 309 370 r T7(x);
+#X obj 389 370 r T8(x);
+#X obj 473 368 r T9(x);
+#X obj 561 369 r T10(x);
+#X obj 645 367 r T11(x);
+#X obj 213 233 r T0(x);
+#X obj 315 232 r T1(x);
+#X obj 396 237 r T2(x);
+#X obj 478 229 r T3(x);
+#X obj 565 233 r T4(x);
+#X obj 649 230 r T5(x);
+#X obj 101 101 cnv 15 838 50 empty empty empty 20 12 0 14 -204148 -66577
+0;
+#X obj 121 125 nbx 4 18 -100 100 0 0 T0(x) empty empty 0 -8 0 14 -261561
+-1 -1 -0.8 256;
+#X text 142 105 t0;
+#X obj 187 125 nbx 4 18 -100 100 0 0 T1(x) empty empty 0 -8 0 14 -261561
+-1 -1 1 256;
+#X obj 255 125 nbx 4 18 -100 100 0 0 T2(x) empty empty 0 -8 0 14 -261561
+-1 -1 1 256;
+#X obj 321 125 nbx 4 18 -100 100 0 0 T3(x) empty empty 0 -8 0 14 -261561
+-1 -1 1.35 256;
+#X obj 387 125 nbx 4 18 -100 100 0 0 T4(x) empty empty 0 -8 0 14 -261561
+-1 -1 1.26 256;
+#X obj 453 125 nbx 4 18 -100 100 0 0 T5(x) empty empty 0 -8 0 14 -261561
+-1 -1 0.03 256;
+#X text 208 105 t1;
+#X text 276 105 t2;
+#X text 342 105 t3;
+#X text 408 105 t4;
+#X text 474 105 t5;
+#X obj 521 125 nbx 4 18 -100 100 0 0 T6(x) empty empty 0 -8 0 14 -261561
+-1 -1 0 256;
+#X obj 587 125 nbx 4 18 -100 100 0 0 T7(x) empty empty 0 -8 0 14 -261561
+-1 -1 0.19 256;
+#X obj 655 125 nbx 4 18 -100 100 0 0 T8(x) empty empty 0 -8 0 14 -261561
+-1 -1 0 256;
+#X obj 721 125 nbx 4 18 -100 100 0 0 T9(x) empty empty 0 -8 0 14 -261561
+-1 -1 0 256;
+#X obj 787 125 nbx 4 18 -100 100 0 0 T10(x) empty empty 0 -8 0 14 -261561
+-1 -1 0 256;
+#X obj 853 125 nbx 4 18 -100 100 0 0 T11(x) empty empty 0 -8 0 14 -261561
+-1 -1 0 256;
+#X text 542 105 t6;
+#X text 608 105 t7;
+#X text 676 105 t8;
+#X text 742 105 t9;
+#X text 808 105 t10;
+#X text 874 105 t11;
+#X connect 1 0 2 0;
+#X connect 1 1 0 0;
+#X connect 3 0 4 0;
+#X connect 3 1 25 0;
+#X connect 5 0 6 0;
+#X connect 5 1 26 0;
+#X connect 7 0 8 0;
+#X connect 7 1 27 0;
+#X connect 9 0 10 0;
+#X connect 9 1 28 0;
+#X connect 11 0 12 0;
+#X connect 11 1 29 0;
+#X connect 13 0 14 0;
+#X connect 13 1 30 0;
+#X connect 15 0 16 0;
+#X connect 15 1 31 0;
+#X connect 17 0 18 0;
+#X connect 17 1 32 0;
+#X connect 19 0 20 0;
+#X connect 19 1 33 0;
+#X connect 21 0 22 0;
+#X connect 21 1 34 0;
+#X connect 23 0 24 0;
+#X connect 23 1 35 0;
+#X connect 36 0 13 0;
+#X connect 37 0 15 0;
+#X connect 38 0 17 0;
+#X connect 39 0 19 0;
+#X connect 40 0 21 0;
+#X connect 41 0 23 0;
+#X connect 42 0 1 0;
+#X connect 43 0 3 0;
+#X connect 44 0 5 0;
+#X connect 45 0 7 0;
+#X connect 46 0 9 0;
+#X connect 47 0 11 0;
+#X coords 0 -1 1 1 840 52 2 100 100;
+#X restore 98 132 pd;
+#X obj 761 449 *~;
+#X text 40 445 1;
+#X text 34 588 -1;
+#X text 372 448 1;
+#X text 366 595 -1;
+#X text 371 523 0;
+#X obj 761 512 out~;
+#X obj 761 409 osc~ 200;
+#X obj 761 483 shaper~ shape_\$0;
+#X obj 834 449 f2s~ 10;
+#X text 6 153 Coefficients:;
+#X text 698 320 We can listen to the result with [shaper~]. The "output_\$0"
+table is the result of a sine wave through the transfer function.,
+f 33;
+#X text 441 394 The formulas for each polinomial is given in this subpatch:
+, f 37;
+#N canvas 193 76 1279 736 polinomials 0;
+#X text 578 119 T2(x);
+#X text 1129 117 T4(x);
+#X text 165 271 T5(x);
+#X text 288 456 T8(x);
+#X text 1172 470 T10(x);
+#X obj 815 493 expr~ 512*pow($v1 \, 10) - 1280*pow($v1 \, 8) + 1120*pow($v1
+\, 6) - 400*pow($v1 \, 4) + 50*pow($v1 \, 2) - 1;
+#X text 277 142 T1(x);
+#X obj 217 141 expr~ $v1;
+#X text 941 612 T11(x);
+#X obj 72 96 tabwrite~ t0;
+#X obj 72 39 r \$0-bang;
+#X obj 343 569 samplerate~;
+#X floatatom 343 620 0 0 0 0 - - -;
+#X obj 343 646 s \$0-hz;
+#X obj 217 61 r \$0-hz;
+#X msg 273 60 0;
+#X obj 207 170 tabwrite~ t1;
+#X obj 207 26 r \$0-bang;
+#X obj 457 64 r \$0-hz;
+#X msg 513 63 0;
+#X obj 447 29 r \$0-bang;
+#X obj 457 140 expr~ 2 * pow($v1 \, 2) - 1;
+#X obj 447 166 tabwrite~ t2;
+#X obj 665 53 r \$0-hz;
+#X msg 721 52 0;
+#X obj 655 18 r \$0-bang;
+#X obj 665 131 expr~ 4 * pow($v1 \, 3) - 3*$v1;
+#X text 803 109 T3(x);
+#X obj 933 60 r \$0-hz;
+#X msg 989 59 0;
+#X obj 923 25 r \$0-bang;
+#X obj 933 139 expr~ 8*pow($v1 \, 4) - 8*pow($v1 \, 2) + 1;
+#X obj 46 212 r \$0-hz;
+#X msg 102 211 0;
+#X obj 36 177 r \$0-bang;
+#X obj 46 291 expr~ 16*pow($v1 \, 5) - 20*pow($v1 \, 3) + 5*$v1, f
+22;
+#X obj 359 217 r \$0-hz;
+#X msg 419 215 0;
+#X obj 349 182 r \$0-bang;
+#X obj 359 295 expr~ 32*pow($v1 \, 6) - 48*pow($v1 \, 4) + 18*pow($v1
+\, 2) - 1, f 34;
+#X text 559 275 T6(x);
+#X obj 778 211 r \$0-hz;
+#X msg 834 210 0;
+#X obj 768 176 r \$0-bang;
+#X obj 778 299 expr~ 64*pow($v1 \, 7) - 112*pow($v1 \, 5) + 56*pow($v1
+\, 3) - 7*$v1;
+#X text 1125 276 T7(x);
+#X obj 655 157 tabwrite~ t3;
+#X obj 923 167 tabwrite~ t4;
+#X obj 36 332 tabwrite~ t5;
+#X obj 349 344 tabwrite~ t6;
+#X obj 768 338 tabwrite~ t7;
+#X obj 49 398 r \$0-hz;
+#X msg 105 397 0;
+#X obj 39 363 r \$0-bang;
+#X obj 49 480 expr~ 128*pow($v1 \, 8) - 256*pow($v1 \, 6) + 160*pow($v1
+\, 4) - 32*pow($v1 \, 2) + 1, f 39;
+#X obj 469 379 r \$0-hz;
+#X msg 525 378 0;
+#X obj 459 344 r \$0-bang;
+#X obj 469 458 expr~ 256*pow($v1 \, 9) - 576*pow($v1 \, 7) + 432*pow($v1
+\, 5) - 120*pow($v1 \, 3) + 9*$v1, f 42;
+#X text 719 436 T9(x);
+#X obj 815 412 r \$0-hz;
+#X msg 871 411 0;
+#X obj 805 377 r \$0-bang;
+#X obj 587 553 r \$0-hz;
+#X msg 643 552 0;
+#X obj 577 518 r \$0-bang;
+#X obj 587 635 expr~ 1024*pow($v1 \, 11) - 2816*pow($v1 \, 9) + 2816*pow($v1
+\, 7) - 1232*pow($v1 \, 5) + 220*pow($v1 \, 3) - 11*$v1;
+#X obj 192 660 s \$0-bang;
+#X obj 192 616 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 39 521 tabwrite~ t8;
+#X obj 459 499 tabwrite~ t9;
+#X obj 577 676 tabwrite~ t11;
+#X obj 804 535 tabwrite~ t10;
+#X text 128 70 T0(x);
+#X obj 258 637 switch~;
+#X obj 258 603 tgl 30 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 343 595 / 1024;
+#X obj 241 570 del 500;
+#X msg 375 534 \; pd dsp 1;
+#X obj 457 113 vsaw~ 0 1;
+#X obj 665 103 vsaw~ 0 1;
+#X obj 359 266 vsaw~ 0 1;
+#X obj 46 261 vsaw~ 0 1;
+#X obj 778 262 vsaw~ 0 1;
+#X obj 933 110 vsaw~ 0 1;
+#X obj 815 464 vsaw~ 0 1;
+#X obj 587 604 vsaw~ 0 1;
+#X obj 469 428 vsaw~ 0 1;
+#X obj 49 447 vsaw~ 0 1;
+#X obj 217 109 vsaw~ 0 1;
+#X obj 192 541 loadbanger 3, f 22;
+#X obj 82 69 sig~ 1;
+#X connect 5 0 72 0;
+#X connect 7 0 16 0;
+#X connect 10 0 9 0;
+#X connect 11 0 76 0;
+#X connect 12 0 13 0;
+#X connect 14 0 89 0;
+#X connect 15 0 89 2;
+#X connect 17 0 15 0;
+#X connect 17 0 16 0;
+#X connect 18 0 79 0;
+#X connect 19 0 79 2;
+#X connect 20 0 19 0;
+#X connect 20 0 22 0;
+#X connect 21 0 22 0;
+#X connect 23 0 80 0;
+#X connect 24 0 80 2;
+#X connect 25 0 24 0;
+#X connect 25 0 46 0;
+#X connect 26 0 46 0;
+#X connect 28 0 84 0;
+#X connect 29 0 84 2;
+#X connect 30 0 29 0;
+#X connect 30 0 47 0;
+#X connect 31 0 47 0;
+#X connect 32 0 82 0;
+#X connect 33 0 82 2;
+#X connect 34 0 33 0;
+#X connect 34 0 48 0;
+#X connect 35 0 48 0;
+#X connect 36 0 81 0;
+#X connect 37 0 81 2;
+#X connect 38 0 37 0;
+#X connect 38 0 49 0;
+#X connect 39 0 49 0;
+#X connect 41 0 83 0;
+#X connect 42 0 83 2;
+#X connect 43 0 42 0;
+#X connect 43 0 50 0;
+#X connect 44 0 50 0;
+#X connect 51 0 88 0;
+#X connect 52 0 88 2;
+#X connect 53 0 52 0;
+#X connect 53 0 69 0;
+#X connect 54 0 69 0;
+#X connect 55 0 87 0;
+#X connect 56 0 87 2;
+#X connect 57 0 56 0;
+#X connect 57 0 70 0;
+#X connect 58 0 70 0;
+#X connect 60 0 85 0;
+#X connect 61 0 85 2;
+#X connect 62 0 61 0;
+#X connect 62 0 72 0;
+#X connect 63 0 86 0;
+#X connect 64 0 86 2;
+#X connect 65 0 64 0;
+#X connect 65 0 71 0;
+#X connect 66 0 71 0;
+#X connect 68 0 67 0;
+#X connect 75 0 74 0;
+#X connect 76 0 12 0;
+#X connect 77 0 75 0;
+#X connect 79 0 21 0;
+#X connect 80 0 26 0;
+#X connect 81 0 39 0;
+#X connect 82 0 35 0;
+#X connect 83 0 44 0;
+#X connect 84 0 31 0;
+#X connect 85 0 5 0;
+#X connect 86 0 66 0;
+#X connect 87 0 58 0;
+#X connect 88 0 54 0;
+#X connect 89 0 7 0;
+#X connect 90 0 68 0;
+#X connect 90 1 75 0;
+#X connect 90 1 77 0;
+#X connect 90 2 11 0;
+#X connect 90 2 78 0;
+#X connect 91 0 9 0;
+#X restore 605 413 pd polinomials;
+#X obj 837 416 hsl 100 20 0 1 0 0 \$0-amp empty empty -2 -8 0 10 -228856
+-1 -1 9900 1;
+#X text 856 418 Amplitude;
+#X obj 824 588 declare -path else;
+#X text 37 319 Chebyshev polinomials as transfer functions generate
+harmonics for a sine wave input. For instance \, t2 generates the 2nd
+harmonic (an octave above) \, t5 the 5th and so on - t0 generates a
+DC component (0 Hz) and t1 is a linear function (hence \, the original
+input or 'fundamental'), f 46;
+#X text 387 321 Enter coefficient values above in the number boxes
+\, they set the amplitude of each function/component in the final transfer
+function (the "shape_\$0" table)., f 41;
+#X connect 30 0 38 0;
+#X connect 37 0 30 0;
+#X connect 38 0 36 0;
+#X connect 39 0 30 1;
+#X connect 44 0 39 0;

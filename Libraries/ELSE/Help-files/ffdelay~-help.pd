@@ -97,19 +97,19 @@ can have :, f 63;
 #X obj 279 132 hsl 128 15 0 32 0 0 empty empty empty -2 -8 0 10 #dcdcdc
 #000000 #000000 0 1;
 #X obj 54 141 else/ramp~ 1 0 64;
-#X obj 54 250 else/display~;
-#X text 125 254 <== This number reflects the delay amount;
 #X text 49 39 The [ffdelay~] object uses a cubic (4 point) interpolation
 \, but between 0 and 1 \, it uses a regular linear interpolation.,
 f 44;
 #X obj 366 16 else/setdsp~;
 #X obj 69 185 else/ffdelay~ -size 32 -samps 0.666;
-#X connect 0 0 4 0;
-#X connect 1 0 8 1;
+#X obj 54 250 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X text 125 251 <-- This number reflects the delay amount;
+#X connect 0 0 7 0;
+#X connect 1 0 6 1;
 #X connect 2 0 1 0;
 #X connect 3 0 0 0;
-#X connect 3 0 8 0;
-#X connect 8 0 0 1;
+#X connect 3 0 6 0;
+#X connect 6 0 0 1;
 #X restore 440 248 pd interpolation;
 #X text 247 301 - changes the delay size, f 41;
 #X text 205 285 signal - signal input into the delay line, f 48;

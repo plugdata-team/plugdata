@@ -1,0 +1,113 @@
+#N canvas 306 44 938 588 12;
+#X declare -path else;
+#X obj 349 456 loadbang;
+#X obj 45 314 s~ \$0-in;
+#X obj 45 256 sig~ 40;
+#X obj 45 230 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 547 139 r~ \$0-in;
+#X obj 694 416 r~ \$0-in;
+#X obj 831 443 r~ \$0-fb;
+#X obj 321 326 hsl 128 15 -0.999 0.999 0 0 empty fb empty -2 -6 0 8
+#dcdcdc #000000 #000000 0 1;
+#X text 352 325 feedback;
+#X floatatom 318 348 0 0 0 0 - - - 0;
+#X floatatom 132 235 5 0 0 0 - - - 0;
+#X floatatom 247 304 5 0 75 0 - - - 0;
+#X floatatom 180 263 5 1 100 0 - - - 0;
+#X obj 135 213 hsl 128 15 0.01 3 1 0 empty rate empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 184 212 rate;
+#X obj 250 281 hsl 128 15 5 75 1 0 empty delmax empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 183 241 hsl 128 15 0 8 0 0 empty delmin empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 221 240 delay min.;
+#X text 280 280 delay max.;
+#X obj 132 269 osc~;
+#X obj 46 346 r~ \$0-in;
+#X text 47 206 Input;
+#X obj 318 405 s~ \$0-fb;
+#X obj 719 137 r~ \$0-in;
+#X obj 842 167 r~ \$0-fb;
+#X msg 349 487 \; rate 0.07 \; delmin 0.1 \; delmax 8 \; fb 0.9;
+#X msg 240 487 \; rate 0.04 \; delmin 0.4 \; delmax 16 \; fb -0.8;
+#X obj 95 492 out~;
+#X obj 739 507 out~;
+#X obj 739 473 comb.rev~ 75 1 1 0;
+#X obj 547 198 comb.rev~ 75 1 1 0;
+#X obj 719 196 comb.rev~ 75 1 1 0;
+#X obj 719 228 out~;
+#X obj 547 230 out~;
+#X obj 154 330 rescale~;
+#X obj 45 286 bl.saw~;
+#X obj 180 287 f2s~ 10;
+#X obj 247 327 f2s~ 10;
+#X obj 318 371 f2s~ 10;
+#X obj 556 505 out~;
+#X obj 556 442 r~ \$0-in;
+#X obj 174 367 s~ \$0-lfo;
+#X obj 577 168 r~ \$0-lfo;
+#X obj 749 166 r~ \$0-lfo;
+#X obj 769 416 r~ \$0-lfo;
+#X text 34 23 Originally \, the Flanger FX was developed by holding
+the "flange" of a tape roll to change its speed \, then mix with the
+original signal \, which generates phase cancelling because of the
+phase differences between the original and the delayed signal., f
+61;
+#X text 239 467 Presets:;
+#X obj 556 473 flanger~ 0.1 10 0.8;
+#X text 34 99 A flanger can be implemented with both a feedforward
+and a feedback delay line. First \, let's see an example with just
+a single feedback line below (the same as last example). The rate is
+the frequency of the LFO that controls the delay time in ms \, and
+a "depth" is given by the minimum and maximum delay times., f 61;
+#X text 529 112 feedforward flanger;
+#X text 718 112 feedback flanger;
+#X obj 735 13 declare -path else;
+#X text 499 53 The [comb.rev~] object below now uses just a feedforward
+line for a feedforward flanger \, but also just a feedback line as
+the patch to the right.;
+#X text 497 296 And now for a flanger with both feedforward and feedback
+lines. Note that a negative feedback value can cancel the feed forward
+line because of the polarity inversion. We avoid it by using the same
+coefficient for both feed forward and feed back lines. This is the
+basis of the simple [flanger~] object from the ELSE library \, which
+takes directly a rate \, depth and coefficient values \, check its
+help file., f 56;
+#X obj 96 408 fbdelay~ -gain 75;
+#X connect 0 0 25 0;
+#X connect 2 0 35 0;
+#X connect 3 0 2 0;
+#X connect 4 0 30 0;
+#X connect 5 0 29 0;
+#X connect 6 0 29 4;
+#X connect 6 0 29 3;
+#X connect 7 0 9 0;
+#X connect 9 0 38 0;
+#X connect 10 0 19 0;
+#X connect 11 0 37 0;
+#X connect 12 0 36 0;
+#X connect 13 0 10 0;
+#X connect 15 0 11 0;
+#X connect 16 0 12 0;
+#X connect 19 0 34 0;
+#X connect 20 0 54 0;
+#X connect 23 0 31 0;
+#X connect 24 0 31 4;
+#X connect 29 0 28 0;
+#X connect 30 0 33 0;
+#X connect 31 0 32 0;
+#X connect 34 0 41 0;
+#X connect 34 0 54 1;
+#X connect 35 0 1 0;
+#X connect 36 0 34 1;
+#X connect 37 0 34 2;
+#X connect 38 0 22 0;
+#X connect 38 0 54 2;
+#X connect 40 0 47 0;
+#X connect 42 0 30 1;
+#X connect 43 0 31 1;
+#X connect 44 0 29 1;
+#X connect 47 0 39 0;
+#X connect 54 0 27 0;

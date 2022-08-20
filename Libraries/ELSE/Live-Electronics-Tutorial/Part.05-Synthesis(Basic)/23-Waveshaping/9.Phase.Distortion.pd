@@ -1,0 +1,181 @@
+#N canvas 108 31 1156 644 12;
+#X declare -path else;
+#X obj 90 460 cnv 15 298 148 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#X obj 414 461 cnv 15 298 148 empty empty empty 20 12 0 14 #b8b8b8
+#404040 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase 441 float 0;
+#X coords 0 1 440 0 300 150 1 0 0;
+#X restore 89 459 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-waveform 441 float 0;
+#X coords 0 1 440 -1 300 150 1 0 0;
+#X restore 413 460 graph;
+#X obj 451 235 nbx 5 17 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
+#dcdcdc #000000 #000000 0 256;
+#X obj 451 263 phasor~ 120;
+#X obj 648 376 hsl 128 17 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#N canvas 68 23 739 408 plot-out 0;
+#X obj 258 55 inlet~;
+#X obj 173 55 inlet~;
+#X obj 324 84 inlet;
+#X obj 324 111 pow 4;
+#X msg 324 138 \$1 10;
+#X obj 324 165 line~;
+#X obj 257 204 *~;
+#X obj 306 204 *~;
+#X obj 233 282 dac~;
+#X obj 503 189 catch~ \$0-phase;
+#X obj 433 149 catch~ \$0-waveform;
+#X obj 339 325 tabwrite~ \$0-waveform;
+#X obj 503 326 tabwrite~ \$0-phase;
+#X obj 581 283 metro 100;
+#X obj 581 222 loadbang;
+#X obj 581 254 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X connect 0 0 6 0;
+#X connect 1 0 7 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 5 0;
+#X connect 5 0 7 1;
+#X connect 5 0 6 1;
+#X connect 6 0 8 1;
+#X connect 6 0 8 0;
+#X connect 6 0 11 0;
+#X connect 7 0 12 0;
+#X connect 9 0 12 0;
+#X connect 10 0 11 0;
+#X connect 13 0 12 0;
+#X connect 13 0 11 0;
+#X connect 14 0 15 0;
+#X connect 15 0 13 0;
+#X restore 564 409 pd plot-out;
+#X floatatom 176 221 5 0 0 0 - - - 0;
+#X text 525 375 phase;
+#X obj 601 376 sin~;
+#X obj 228 244 rescale~ 0.15 0.85;
+#X obj 228 216 osc~ 0.2;
+#N canvas 68 23 489 355 plot-out 0;
+#X obj 187 74 inlet~;
+#X obj 103 75 inlet~;
+#X obj 328 67 inlet;
+#X obj 329 113 pow 4;
+#X msg 330 144 \$1 10;
+#X obj 328 171 line~;
+#X obj 197 204 *~;
+#X obj 306 209 *~;
+#X obj 223 253 dac~;
+#X obj 193 291 throw~ \$0-waveform;
+#X obj 306 246 throw~ \$0-phase;
+#X connect 0 0 6 0;
+#X connect 1 0 7 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 5 0;
+#X connect 5 0 7 1;
+#X connect 5 0 6 1;
+#X connect 6 0 8 1;
+#X connect 6 0 8 0;
+#X connect 6 0 9 0;
+#X connect 7 0 10 0;
+#X restore 208 401 pd plot-out;
+#X obj 285 373 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 245 339 sin~;
+#X obj 208 305 rescale~;
+#X text 70 595 0;
+#X text 70 451 1;
+#X obj 208 276 vsaw~ 150;
+#X text 164 335 phase;
+#X text 283 339 transfer function;
+#X text 39 139 The first example uses a modulated [vsaw~] as a phase
+signal going through a sine function. Other examples rely on [function~]
+as the phase signal and you can draw any kind of phase function.;
+#X msg 561 117 0 0.3 0.8 0.7 1;
+#X msg 575 146 0 0.1 0.9 0.9 1;
+#X msg 542 88 0 0.9 0.5 0.1 1;
+#X obj 564 332 function~;
+#X obj 515 28 loadbang;
+#X msg 589 176 0 0.2 1 0.3 0 0.3 0.05 0.15 1;
+#X msg 515 57 0 1 1;
+#X obj 564 212 function 200 100 empty empty 0 1 220 220 220 50 50 50
+0 0 0 0 0 1 1;
+#X obj 982 24 declare -path else;
+#X text 40 22 The Phase Distortion technique was developed by Casio
+and implemented in some of its synths. It's nothing but a kind of waveshaping
+as it consists in changing (or "distorting") the phase signal \, in
+order to generate other kinds of waveforms. Hence \, in the same way
+phase modulation is a type of waveshaping \, Phase Distortion also
+is because we have a signal going through a transfer function.;
+#X obj 81 279 setdsp~;
+#X text 833 61 You can also just use the phase input of oscillators
+that have a 0 hz frequency instead. We've seen examples like this before
+that show the relationship between phase modulation and waveshaping.
+, f 41;
+#N canvas 68 23 489 355 plot-out 0;
+#X obj 187 74 inlet~;
+#X obj 103 75 inlet~;
+#X obj 328 67 inlet;
+#X obj 329 113 pow 4;
+#X msg 330 144 \$1 10;
+#X obj 328 171 line~;
+#X obj 197 204 *~;
+#X obj 306 209 *~;
+#X obj 223 253 dac~;
+#X obj 193 291 throw~ \$0-waveform;
+#X obj 306 246 throw~ \$0-phase;
+#X connect 0 0 6 0;
+#X connect 1 0 7 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 5 0;
+#X connect 5 0 7 1;
+#X connect 5 0 6 1;
+#X connect 6 0 8 1;
+#X connect 6 0 8 0;
+#X connect 6 0 9 0;
+#X connect 7 0 10 0;
+#X restore 884 442 pd plot-out;
+#X obj 961 405 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 884 294 rescale~;
+#X obj 884 260 vsaw~ 150;
+#X obj 904 220 rescale~ 0.15 0.85;
+#X obj 904 192 osc~ 0.2;
+#X obj 921 362 bl.tri~;
+#X text 803 494 We could use a sine wave oscillator to have the same
+result as the examples to the left \, but we're using a triangular
+wave as an example of other possible waveforms. Note that this is also
+a band limited oscillator that has an anti aliasing filter so you don't
+have fold over distortion., f 43;
+#X connect 4 0 5 0;
+#X connect 5 0 26 0;
+#X connect 6 0 7 2;
+#X connect 8 0 19 0;
+#X connect 10 0 7 1;
+#X connect 11 0 19 1;
+#X connect 12 0 11 0;
+#X connect 14 0 13 2;
+#X connect 15 0 13 1;
+#X connect 16 0 13 0;
+#X connect 16 0 15 0;
+#X connect 19 0 16 0;
+#X connect 23 0 30 0;
+#X connect 24 0 30 0;
+#X connect 25 0 30 0;
+#X connect 26 0 7 0;
+#X connect 26 0 10 0;
+#X connect 27 0 29 0;
+#X connect 28 0 30 0;
+#X connect 29 0 30 0;
+#X connect 30 0 26 0;
+#X connect 36 0 35 2;
+#X connect 37 0 35 0;
+#X connect 37 0 41 2;
+#X connect 38 0 37 0;
+#X connect 39 0 38 1;
+#X connect 40 0 39 0;
+#X connect 41 0 35 1;

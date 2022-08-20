@@ -1,0 +1,37 @@
+#N canvas 497 160 687 449 12;
+#X declare -path else;
+#X obj 155 116 mtof;
+#X floatatom 125 329 0 0 0 0 - - -;
+#X floatatom 155 81 5 0 0 0 - - -;
+#X obj 125 290 env~;
+#X obj 79 208 bandpass~;
+#X obj 125 252 bandpass~;
+#X obj 155 148 f2s~ 10;
+#X obj 185 215 f2s~ 10;
+#X obj 79 42 inlet~;
+#X text 42 321 Amplitude analysis:, f 9;
+#X text 197 82 MIDI pitch, f 11;
+#X obj 125 364 s \$2-amp-\$1;
+#X obj 155 44 inlet;
+#X obj 185 188 r \$2-Q;
+#X text 278 300 The analysis is pretty trivial \, done with the [env~]
+object., f 45;
+#X text 321 138 This abstraction is used as part of the filterbank
+analysis example inside a [clone] object., f 39;
+#X text 279 220 Each of the 24 instances contain two bandpass filters
+in cascade with a different central frequency \, given by the [pd set-freq]
+subpatch in the parent patch., f 45;
+#X obj 413 70 declare -path else;
+#X connect 0 0 6 0;
+#X connect 1 0 11 0;
+#X connect 2 0 0 0;
+#X connect 3 0 1 0;
+#X connect 4 0 5 0;
+#X connect 5 0 3 0;
+#X connect 6 0 4 1;
+#X connect 6 0 5 1;
+#X connect 7 0 4 2;
+#X connect 7 0 5 2;
+#X connect 8 0 4 0;
+#X connect 12 0 2 0;
+#X connect 13 0 7 0;

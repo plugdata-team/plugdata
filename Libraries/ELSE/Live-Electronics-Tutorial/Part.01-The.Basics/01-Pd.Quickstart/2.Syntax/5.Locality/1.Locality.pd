@@ -1,0 +1,79 @@
+#N canvas 540 89 954 534 12;
+#X obj 71 169 float \$0;
+#X msg 71 140 bang;
+#X floatatom 71 196 5 0 0 0 - - - 0;
+#X text 118 197 <= this patch's ID number;
+#X text 113 140 <= get patch ID;
+#X floatatom 513 195 5 0 0 0 - - - 0;
+#X floatatom 610 266 5 0 0 0 - - - 0;
+#X floatatom 39 383 5 0 0 0 - - - 0;
+#X floatatom 39 464 5 0 0 0 - - - 0;
+#X floatatom 139 383 5 0 0 0 - - - 0;
+#X floatatom 139 464 5 0 0 0 - - - 0;
+#X floatatom 249 383 5 0 0 0 - - - 0;
+#X floatatom 249 464 5 0 0 0 - - - 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X array \$0-array 10 float 2;
+#X coords 0 1 10 -1 200 140 1;
+#X restore 703 175 graph;
+#X msg 610 206 bang;
+#X obj 501 166 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 #fcfcfc
+#000000 #000000 0 1;
+#X obj 498 301 send \$0-array;
+#X msg 498 271 const \$1;
+#X obj 513 225 value x_\$0;
+#X obj 610 237 value x_\$0;
+#X floatatom 655 497 5 0 0 0 - - - 0;
+#X msg 655 427 bang;
+#X obj 655 468 expr x_\$0;
+#X msg 283 135 \$0;
+#X floatatom 283 161 5 0 0 0 - - - 0;
+#X text 315 135 <= doesn't work;
+#X text 20 20 A "\$0" (dollar sign followed by a zero) is the third
+and last usage of dollar signs. It only works as such in objects (not
+messages) and loads a locality variable \, which is a patch ID number.
+Any patch you open is given a different number ID \, even if it's the
+same patch opened more than once \, which is the case when you load
+the same abstraction twice or more.;
+#X obj 39 422 local-abs-1;
+#X obj 139 422 local-abs-1;
+#X obj 249 422 local-abs-2 \$0;
+#X obj 365 422 r \$0-locally;
+#X floatatom 365 464 5 0 0 0 - - - 0;
+#X text 19 235 So if you use \$0 as part of the address symbol of [send]
+and [receive] objects in abstractions \, they have local address and
+this prevents data from one instance of an abstraction to go to another.
+Open the abstractions [local-abs-1] below and see how [send]/[receive]
+addresses contain “\$0” to operate locally. The [local-abs-2] abstraction
+gets the locality variable from this parent patch as an argument. Open
+to see how it works.;
+#X text 481 23 Note you can also use the locality variable in the audio
+objects [send~]/[receive~] and [throw~]/[catcth~] for their address
+names., f 62;
+#X text 481 78 Since you can't have more than one array with the same
+name \, using "\$0" as part of an array name is also useful when opening
+the same patch/abstraction multiple times. Another application is in
+variable names inside [value] objects., f 62;
+#X text 502 347 It's also worth checking the [expr] family of objects
+as they can deal with arrays and also variables set in [value] objects.
+But [expr] has restrictions on how to handles "\$0" in symbols. Check
+the help file of this object below for more details.;
+#X text 696 427 <= get the value of x_\$0 variable, f 17;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 5 0 18 0;
+#X connect 7 0 27 0;
+#X connect 9 0 28 0;
+#X connect 11 0 29 0;
+#X connect 14 0 19 0;
+#X connect 15 0 5 0;
+#X connect 15 0 17 0;
+#X connect 17 0 16 0;
+#X connect 19 0 6 0;
+#X connect 21 0 22 0;
+#X connect 22 0 20 0;
+#X connect 23 0 24 0;
+#X connect 27 0 8 0;
+#X connect 28 0 10 0;
+#X connect 29 0 12 0;
+#X connect 30 0 31 0;

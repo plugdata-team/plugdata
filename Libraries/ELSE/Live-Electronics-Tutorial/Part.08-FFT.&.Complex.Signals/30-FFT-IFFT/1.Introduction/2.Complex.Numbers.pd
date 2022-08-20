@@ -1,0 +1,88 @@
+#N canvas 497 54 974 718 12;
+#X declare -path else;
+#X floatatom 591 241 8 0 0 0 - - -;
+#X text 509 242 Amplitude;
+#X floatatom 625 340 5 0 0 0 - - -;
+#X floatatom 762 339 5 0 0 0 - - -;
+#X text 585 338 Real;
+#X floatatom 791 242 8 0 0 0 - - -;
+#X floatatom 791 153 5 0 0 0 - - -;
+#X floatatom 591 154 5 0 0 0 - - -;
+#X obj 625 286 expr cos($f2) * $f1 \; sin($f2) * $f1;
+#X floatatom 664 421 8 0 0 0 - - -;
+#X text 593 421 Amplitude;
+#X floatatom 728 421 8 0 0 0 - - -;
+#X floatatom 717 499 5 0 0 1 imaginary - -;
+#X floatatom 665 499 5 0 0 0 real - -;
+#X obj 591 191 expr sqrt($f1*$f1 + $f2*$f2) \; atan2($f2 \, $f1);
+#X obj 664 378 car2pol;
+#X obj 664 465 pol2car;
+#X obj 672 634 car2pol~;
+#X obj 751 634 pol2car~;
+#X text 43 25 A Complex number has a real and an imaginary part \,
+hence it's a bi dimensional number that can be represented in a cartesian
+plane as below \, where the real part is the horizontal axis and the
+imaginary the vertical axis. We can relate this to the last example
+\, where the Cosine amplitude is the real part and the Sine amplitude
+is the imaginary part., f 56;
+#X text 518 154 real part;
+#X text 681 152 imaginary part;
+#X text 517 190 Cartesian to Polar, f 9;
+#X text 856 249 (in radians);
+#X text 553 284 Polar to Cartesian, f 9;
+#X text 687 339 Imaginary;
+#X text 729 378 Cartesian to Polar;
+#X text 726 465 Polar to Cartesian;
+#X text 556 635 Audio versions:;
+#X text 788 421 Phase;
+#X text 854 227 Initial Phase;
+#X obj 665 534 mag;
+#X floatatom 665 571 8 0 0 0 - - -;
+#X text 594 571 Amplitude;
+#X text 746 549 [mag] returns the magnitude (amplitude) from real/imaginary
+parts., f 21;
+#X obj 831 633 mag~;
+#X obj 786 17 declare -path else;
+#X obj 58 149 pic 0 euler.gif empty empty 0 0;
+#X text 31 618 The cartesian representation of a complex number is
+by its (a \, b) coordinates \, but you can also represent it in the
+Polar form \, composed of the "magnitude" (amplitude) and "argument"
+(Initial Phase).;
+#X text 31 518 A complex number is defined as a + b*i \, where "a"
+is the real part \, and b is a real number mupltiplied by the imaginary
+unit "i" (which is the square root of -1). We use complex math for
+FFT \, but when dealing with it in Pd we just actually deal with the
+real numbers "a" and "b" \, though it is implied that b is multiplied
+by "i"., f 58;
+#X obj 791 277 rad2deg;
+#X floatatom 791 309 8 0 0 0 - - -;
+#X text 853 309 (in degrees);
+#X text 591 676 see also:;
+#X obj 670 676 deg2rad;
+#X obj 740 676 rad2deg;
+#X text 490 52 We actually already did the conversion from cartesian
+to polar in the last example. Let's see now how to converto to and
+back with [expr] and objects from the ELSE library. Note that the phase
+is now in radians \, but you can convert it from and to degrees with
+the [rad2deg] and [deg2rad] objects from ELSE., f 63;
+#X connect 0 0 8 0;
+#X connect 2 0 15 0;
+#X connect 3 0 15 1;
+#X connect 5 0 8 1;
+#X connect 5 0 40 0;
+#X connect 6 0 14 1;
+#X connect 7 0 14 0;
+#X connect 8 0 2 0;
+#X connect 8 1 3 0;
+#X connect 9 0 16 0;
+#X connect 11 0 16 1;
+#X connect 12 0 31 1;
+#X connect 13 0 31 0;
+#X connect 14 0 0 0;
+#X connect 14 1 5 0;
+#X connect 15 0 9 0;
+#X connect 15 1 11 0;
+#X connect 16 0 13 0;
+#X connect 16 1 12 0;
+#X connect 31 0 32 0;
+#X connect 40 0 41 0;

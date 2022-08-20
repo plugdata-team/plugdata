@@ -1,0 +1,168 @@
+#N canvas 331 25 903 548 12;
+#X declare -path else;
+#X obj 659 175 impseq~;
+#X obj 33 358 cnv 15 798 148 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-Amp 2048 float 0;
+#X coords 0 1 2048 0 800 150 1 0 0;
+#X restore 32 357 graph;
+#X obj 659 143 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#N canvas 363 130 687 574 IR 0;
+#X msg 279 185 stop;
+#X msg 219 187 start;
+#X obj 209 279 v length;
+#X obj 159 279 t f f;
+#X obj 158 152 select 1 0;
+#X obj 271 217 tabwrite~ \$0-IR;
+#X obj 158 123 change;
+#X obj 316 306 s \$0-IR;
+#X obj 159 223 timer;
+#X obj 271 32 inlet~;
+#X obj 158 77 env~ 2048 1024;
+#X obj 158 101 > 0;
+#X obj 159 308 log 2;
+#X obj 159 337 expr pow(2 \, $i1 + 1);
+#X text 355 56 Records IR \, find power of two larger than its length
+to resize the table., f 36;
+#X obj 159 253 ms2samps;
+#N canvas 81 160 548 498 FFT 0;
+#X obj 269 118 bang~;
+#X msg 332 181 1;
+#X obj 79 116 rfft~;
+#X msg 284 157 0;
+#X obj 269 178 f;
+#X obj 297 181 + 1;
+#X msg 283 229 0;
+#X obj 269 202 sel 1;
+#X obj 397 277 switch~;
+#X obj 248 86 trigger bang bang bang;
+#X msg 397 180 set \$1 1;
+#X obj 396 130 v w_size;
+#X obj 79 82 tabreceive~ \$0-IR;
+#X obj 79 217 tabwrite~ \$0-Amp;
+#X obj 248 17 inlet;
+#X obj 469 172 / 2;
+#X msg 469 195 resize \$1;
+#X obj 469 248 s \$0-Amp;
+#X obj 269 429 s \$0-Amp;
+#X obj 269 330 v w_size;
+#X obj 269 356 / 2;
+#X obj 269 381 pack;
+#X msg 269 404 bounds 0 \$2 \$1 0;
+#X obj 269 302 trigger bang float;
+#X obj 269 277 array max \$0-Amp;
+#X obj 79 143 mag~;
+#X connect 0 0 4 0;
+#X connect 1 0 8 0;
+#X connect 2 0 25 0;
+#X connect 2 1 25 1;
+#X connect 3 0 4 1;
+#X connect 4 0 5 0;
+#X connect 4 0 7 0;
+#X connect 5 0 4 1;
+#X connect 6 0 8 0;
+#X connect 7 0 6 0;
+#X connect 7 0 24 0;
+#X connect 9 0 13 0;
+#X connect 9 1 1 0;
+#X connect 9 2 3 0;
+#X connect 9 2 11 0;
+#X connect 10 0 8 0;
+#X connect 11 0 10 0;
+#X connect 11 0 15 0;
+#X connect 12 0 2 0;
+#X connect 14 0 9 0;
+#X connect 15 0 16 0;
+#X connect 16 0 17 0;
+#X connect 19 0 20 0;
+#X connect 20 0 21 0;
+#X connect 21 0 22 0;
+#X connect 22 0 18 0;
+#X connect 23 0 19 0;
+#X connect 23 1 21 1;
+#X connect 24 0 23 0;
+#X connect 25 0 13 0;
+#X restore 85 460 pd FFT;
+#X text 80 483 Analyze;
+#X obj 224 500 v w_size;
+#X floatatom 191 422 0 0 0 0 - - - 0;
+#X obj 209 523 s window-size;
+#X msg 230 449 resize \$1;
+#X obj 230 473 s \$0-IR;
+#X obj 191 393 change;
+#X obj 159 364 t b a;
+#X obj 85 428 del 50;
+#X obj 383 309 table \$0-IR 44100;
+#X msg 316 262 resize 44100 \, const 0, f 14;
+#X obj 138 187 t b b;
+#X obj 474 165 initmess \; \$0-n 2;
+#X obj 271 113 ffdelay~ -samps 1024;
+#X connect 0 0 5 0;
+#X connect 1 0 5 0;
+#X connect 3 0 12 0;
+#X connect 3 1 2 0;
+#X connect 4 0 28 0;
+#X connect 4 1 8 1;
+#X connect 4 1 0 0;
+#X connect 6 0 4 0;
+#X connect 8 0 15 0;
+#X connect 9 0 10 0;
+#X connect 9 0 30 0;
+#X connect 10 0 11 0;
+#X connect 11 0 6 0;
+#X connect 12 0 13 0;
+#X connect 13 0 24 0;
+#X connect 15 0 3 0;
+#X connect 19 0 20 0;
+#X connect 19 0 18 0;
+#X connect 19 0 21 0;
+#X connect 21 0 22 0;
+#X connect 23 0 19 0;
+#X connect 24 0 25 0;
+#X connect 24 1 23 0;
+#X connect 25 0 16 0;
+#X connect 27 0 7 0;
+#X connect 28 0 8 0;
+#X connect 28 1 1 0;
+#X connect 28 1 27 0;
+#X connect 30 0 5 0;
+#X restore 676 241 pd IR;
+#X obj 660 268 out~;
+#X floatatom 775 178 3 2 24 0 - \$0-n - 0;
+#X obj 735 23 declare -path else;
+#X obj 659 203 mov.avg~ -size 24;
+#X text 682 142 <= Record/Analyze;
+#X text 801 178 <= number of samples, f 10;
+#X text 64 16 Now we'll use the same technique of prforming a FFT of
+the Impulse Response to get the frequency response of the filer. We're
+now using the [mov \, avg~] object that we've also already used before
+to average up to 24 samples., f 76;
+#X text 656 86 Set the number of samples and analyze:, f 20;
+#X text 29 511 0 hz;
+#X text 822 510 Nyquist;
+#X text 426 511 1/2 Nyquist;
+#X text 64 167 So you hopefully see the pattern now. The number of
+zeros for an average of even samples are half that number \, whereas
+for an odd average of 'n' samples it's "n-1 / 2"!, f 76;
+#X text 64 64 See that for an average of two we get the same as before
+\, a dip at Nyquist. An average of three has a zero at 2/3 of Nyquist
+as we've also seen in the last example. An average of four samples
+has a Zero at half the Nyquist and another zero at Nyquist. Hence \,
+an even number of samples always have a zero at Nyquist. An average
+of five samples has a Zero at 2/5 of Nyquist and another at 4/5. An
+average of six have Zeros at 2/6 (or 1/3) \, 4/6 (or 2/3) and 6/6 (or
+1) times Nyquist., f 76;
+#X text 64 214 Zeros are placed at Nyquist and even divisions of Nyquist
+for averages of even numbers. For an 'n' odd number average \, Zeros
+are at fractions that go from 2/n \, 4/n \, 6/n and so on until reaching
+n-1/n., f 76;
+#X text 64 265 Try it on the right and see how the frequency response
+looks below. Note that the frequency response now is linearly rather
+than logarithmic., f 76;
+#X connect 0 0 8 0;
+#X connect 3 0 0 0;
+#X connect 6 0 8 1;
+#X connect 8 0 4 0;
+#X connect 8 0 5 0;

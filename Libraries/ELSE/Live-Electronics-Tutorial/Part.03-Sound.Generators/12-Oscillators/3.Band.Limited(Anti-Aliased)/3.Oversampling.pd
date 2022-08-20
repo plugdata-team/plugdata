@@ -1,0 +1,129 @@
+#N canvas 124 23 1109 572 12;
+#X declare -path else;
+#X obj 924 17 declare -path else;
+#N canvas 232 59 415 307 plot 0;
+#X obj 56 28 inlet~;
+#X obj 56 66 rfft~;
+#X obj 145 123 metro 100;
+#X obj 145 100 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 262 113 block~ 4096;
+#X obj 145 72 loadbang;
+#X obj 56 125 /~ 1024;
+#X obj 56 152 rmstodb~;
+#X obj 56 189 clip~ 40 100;
+#X obj 55 231 tabwrite~ \$0-fft-band-limited;
+#X obj 56 95 mag~;
+#X connect 0 0 1 0;
+#X connect 1 0 10 0;
+#X connect 1 1 10 1;
+#X connect 2 0 9 0;
+#X connect 3 0 2 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 9 0;
+#X connect 10 0 6 0;
+#X restore 871 138 pd plot;
+#X obj 708 59 nbx 5 20 -1e+37 1e+37 0 0 empty \$0-Hz empty 0 -8 0 15
+#dcdcdc #000000 #000000 0 256;
+#X obj 708 160 out~;
+#X obj 851 167 out~;
+#X obj 708 100 saw~;
+#N canvas 232 59 446 351 plot 0;
+#X obj 102 33 inlet~;
+#X obj 102 88 rfft~;
+#X obj 163 176 metro 100;
+#X obj 163 153 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 308 145 block~ 4096;
+#X obj 163 125 loadbang;
+#X obj 102 187 /~ 1024;
+#X obj 102 214 rmstodb~;
+#X obj 102 241 clip~ 40 100;
+#X obj 162 277 tabwrite~ \$0-fft-non-limited;
+#X obj 310 86 initmess \; \$0-Hz 2000;
+#X obj 102 157 mag~;
+#X connect 0 0 1 0;
+#X connect 1 0 11 0;
+#X connect 1 1 11 1;
+#X connect 2 0 9 0;
+#X connect 3 0 2 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 9 0;
+#X connect 11 0 6 0;
+#X restore 720 132 pd plot;
+#X obj 835 232 graph~;
+#X obj 600 232 graph~;
+#N canvas 756 56 532 501 bl.saw~ 0;
+#X obj 45 437 outlet~;
+#X obj 85 76 cnv 15 280 40 empty empty empty 20 12 0 14 #e0e0e0 #404040
+0;
+#X obj 241 86 block~ 64 1 16;
+#X obj 45 24 inlet~ lin;
+#X obj 45 208 brickwall~;
+#X obj 45 140 saw~;
+#X text 79 140 <= Sawtooth;
+#X text 109 86 16x Oversampling;
+#X text 125 208 <= Anti-Aliasing Filter (Lowpass) *;
+#X text 130 229 (cuttof frequency = 3/4 * Nyquist);
+#X text 69 315 What we need to know now is that the order of a filter
+determines the amplitude decay over the cutoff frequency and each order
+is responsible for 6dB loss per octave (hence \, a 10th order filter
+has a 60dB decay per octave \, which is quite steep)., f 59;
+#X text 69 267 * This object implements a 10th order lowpass butterworth
+filter \, which will be presented in depth only later in this tutorial
+\, in an advanced section on filters.;
+#X connect 3 0 5 0;
+#X connect 4 0 0 0;
+#X connect 5 0 4 0;
+#X restore 835 107 pd bl.saw~;
+#X obj 994 105 setdsp~ 1;
+#X text 484 530 Nyquist;
+#X text 10 532 0 Hz;
+#X text 1024 530 Nyquist;
+#X text 550 532 0 Hz;
+#X obj 13 408 cnv 15 510 118 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#X obj 553 408 cnv 15 510 118 empty empty empty 20 12 0 14 #dcdcdc
+#404040 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-fft-non-limited 2048 float 0;
+#X coords 0 100 2047 40 512 120 1 0 0;
+#X restore 12 407 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-fft-band-limited 2048 float 0;
+#X coords 0 100 2047 40 512 120 1 0 0;
+#X restore 552 407 graph;
+#X text 794 59 <-- try other frequencies;
+#X text 45 35 Besides DSF \, additive synthesis with many oscillators
+\, wavetables and other techniques we'll see right after \, there's
+the oversampling + filtering technique. This minimizes the aliasing
+and gives us a “quasi” band-limited oscillators \, meaning that
+some aliasing will happen but not enough to be significantly perceived.
+, f 68;
+#X text 46 117 By increasing the sample rate we have a much higher
+Nyquist frequency to deal with \, so partials have more room to exist
+without folding over. Then we filter frequencies over the original
+nyquist to remove them and prevent them from being aliased! After this
+simple process you can downsample to the original sample rate., f
+68;
+#X text 46 198 This needs to be done in a subpatch with [block~]. Open
+[pd bl.saw~] for more details! Then compare to the waveforms between
+the aliased and anti aliased outputs. Check also the spectrographs
+below., f 68;
+#X text 46 253 This is where using higher original rates than the usual
+44.1 Khz can also be quite useful \, for it gives us even more room
+to filter and prevent aliasing. The problem is that oversampling is
+quite CPU intensive! Nonetheless \, you can try this technique and
+cretae some abstractions for yourself., f 68;
+#X connect 2 0 9 0;
+#X connect 2 0 5 0;
+#X connect 5 0 3 0;
+#X connect 5 0 6 0;
+#X connect 5 0 8 0;
+#X connect 9 0 1 0;
+#X connect 9 0 4 0;
+#X connect 9 0 7 0;

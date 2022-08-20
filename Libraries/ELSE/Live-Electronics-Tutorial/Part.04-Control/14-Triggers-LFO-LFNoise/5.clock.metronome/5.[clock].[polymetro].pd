@@ -1,0 +1,71 @@
+#N canvas 296 48 954 317 12;
+#X declare -path else;
+#X obj 775 21 declare -path else;
+#X obj 118 209 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X floatatom 171 212 5 0 0 0 - - - 0;
+#X obj 278 279 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 345 212 display 4;
+#X msg 312 172 1/3;
+#X msg 280 171 4/3;
+#X msg 379 172 0.75;
+#X msg 345 171 1.5;
+#X obj 278 211 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 118 250 clock 60;
+#X obj 278 250 clock -s 2;
+#X text 211 213 bpm;
+#X obj 118 279 bng 18 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 621 185 tgl 17 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 621 222 polymetro 90 3/2;
+#X obj 675 184 display 4;
+#X msg 641 137 1/3;
+#X msg 609 137 4/3;
+#X msg 744 137 0.75;
+#X msg 710 137 1.5;
+#X floatatom 730 187 5 0 0 0 - - - 0;
+#X text 770 188 bpm;
+#X text 394 214 multiplier;
+#X text 25 22 ELSE has the [clock] object which is also an abstraction
+based on [metro] that sends bangs at regular time intervals (in bpm
+only). Several clock objects can be in sync to a main [clock]. The
+ones in sync have the '-s' flag and a multiplier parameter (which can
+also be a fraction) in relation to the main clock tempo. If you have
+two [tempo] or [metro] objects and change the divider/multiplier parameter
+of one of them \, it's quite easy to fall out of sync \, but [clock]
+objects are always in sync \, check below., f 64;
+#X text 361 249 synced clock;
+#X text 33 250 main clock;
+#X text 506 55 You can generate polyrhythms like this with synced clocks
+\, but ELSE also provides a [polymetro] abstraction based on [clock]
+objects for that whose main feature is that it outputs beat numbers.
+Check the help files.;
+#X obj 621 253 display;
+#X obj 730 252 display;
+#X text 779 136 multiplier;
+#X msg 675 137 2;
+#X text 716 283 multiplied;
+#X text 608 283 original;
+#X connect 1 0 10 0;
+#X connect 2 0 10 1;
+#X connect 4 0 11 1;
+#X connect 5 0 4 0;
+#X connect 6 0 4 0;
+#X connect 7 0 4 0;
+#X connect 8 0 4 0;
+#X connect 9 0 11 0;
+#X connect 10 0 13 0;
+#X connect 11 0 3 0;
+#X connect 14 0 15 0;
+#X connect 15 0 28 0;
+#X connect 15 1 29 0;
+#X connect 16 0 15 1;
+#X connect 17 0 16 0;
+#X connect 18 0 16 0;
+#X connect 19 0 16 0;
+#X connect 20 0 16 0;
+#X connect 21 0 15 2;
+#X connect 31 0 16 0;

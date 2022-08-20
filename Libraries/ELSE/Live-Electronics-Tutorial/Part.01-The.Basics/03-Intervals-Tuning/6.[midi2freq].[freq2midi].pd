@@ -1,0 +1,90 @@
+#N canvas 518 77 887 559 12;
+#X declare -path else;
+#X obj 76 239 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X obj 665 34 declare -path else;
+#X text 136 238 Hertz;
+#X text 24 87 We can adapt the [mtof] formula to take other tuning
+standards for A4 \, so instead of 440hz we can set other values \,
+such as 441 \, 442 or whatever., f 62;
+#X obj 76 206 expr pow(2 \, ($f1 - 69)/12) * $f2;
+#X floatatom 297 179 5 0 0 0 - - -;
+#X text 342 181 <= value of A4;
+#X obj 305 312 midi2freq 442;
+#X obj 305 347 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X text 365 346 Hertz;
+#X text 24 23 The concert pitch value for A4 = 440hz is the international
+standard pitch \, but some ensembles use variations like 441 \, 442
+and throughout the history we had other variations or simply the lack
+of a proper standard., f 62;
+#X floatatom 308 397 5 0 0 0 - - -;
+#X obj 308 424 / 440;
+#X obj 308 458 ratio2cents;
+#X obj 308 492 / 100;
+#X obj 242 456 +;
+#X obj 242 398 nbx 4 15 -1e+37 1e+37 0 0 empty empty empty 60 7 0 12
+-228856 -1 -1 0 256;
+#X obj 242 484 mtof;
+#X obj 242 525 nbx 4 15 -1e+37 1e+37 0 0 empty empty empty 60 7 0 12
+-228856 -1 -1 0 256;
+#X text 38 412 You can also adapt and use [mtof]. You just need to
+convert the interval from the new value of A4 and 440hz to midicents
+and include this value in the MIDI to frequency conversion., f 25
+;
+#X obj 297 149 initmess 440;
+#X text 353 424 <= get interval;
+#X text 395 457 <= convert to cents, f 10;
+#X text 354 492 <= convert to MIDI cents, f 13;
+#X text 44 289 The [midi2freq] object from ELSE is like [mtof] but
+allows you to set a different value for A4 and also convert lists.
+, f 32;
+#X text 504 82 Now for the other way around. We can also convert from
+frequency to MIDI with arbitrary reference values for A4 \,, f 49;
+#X obj 523 175 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 450 256;
+#X obj 523 239 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 69.3891 256;
+#X text 581 173 Hertz;
+#X floatatom 758 179 5 0 0 0 - - -;
+#X obj 758 149 initmess 440;
+#X text 715 180 A4 =>;
+#X obj 523 207 expr 12 * log($f1/$f2)/log(2) + 69;
+#X obj 76 169 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X text 136 168 MIDI;
+#X text 584 237 MIDI;
+#X text 517 286 The ELSE library also provides a [freq2midi] object
+\, the counterpart of [midi2freq]. It allows you to set a different
+value for A4 and also convert lists., f 45;
+#X obj 305 282 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X text 365 281 MIDI;
+#X obj 633 376 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X obj 633 440 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X text 691 374 Hertz;
+#X text 694 438 MIDI;
+#X obj 633 407 freq2midi;
+#X text 557 486 Check the help file of [midi2freq] and [freq2midi]
+for more details., f 38;
+#X connect 4 0 0 0;
+#X connect 5 0 4 1;
+#X connect 7 0 8 0;
+#X connect 11 0 12 0;
+#X connect 12 0 13 0;
+#X connect 13 0 14 0;
+#X connect 14 0 15 1;
+#X connect 15 0 17 0;
+#X connect 16 0 15 0;
+#X connect 17 0 18 0;
+#X connect 20 0 5 0;
+#X connect 26 0 32 0;
+#X connect 29 0 32 1;
+#X connect 30 0 29 0;
+#X connect 32 0 27 0;
+#X connect 33 0 4 0;
+#X connect 37 0 7 0;
+#X connect 39 0 43 0;
+#X connect 43 0 40 0;

@@ -1,0 +1,81 @@
+#N canvas 289 98 904 554 12;
+#X declare -path else;
+#X msg 531 181 0;
+#X obj 728 104 hsl 128 15 0 1000 0 0 empty grain grain-ms -2 -8 0 10
+-228856 -1 -1 1270 1;
+#X text 558 181 reset;
+#X obj 485 206 phasor~;
+#X obj 725 152 expr~ 1000 / $v1;
+#X obj 547 376 *~;
+#X obj 689 421 +~;
+#X obj 485 183 *~;
+#X text 463 59 buffer size (ms), f 9;
+#X obj 568 95 /~ 100;
+#X obj 568 120 expr~ 1 - $v1;
+#X obj 425 33 loadbang;
+#X obj 707 386 *~;
+#X obj 725 128 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 100 256;
+#X obj 568 70 nbx 5 14 -1e+37 1e+37 0 0 empty speed empty 0 -8 0 10
+-228856 -1 -1 100 256;
+#X msg 425 66 6000;
+#X obj 689 467 out~;
+#X obj 725 348 envelope~;
+#X obj 725 218 pimp~ 0 0.5;
+#X obj 651 309 sh~;
+#X obj 485 297 sh~;
+#X obj 565 239 pimp~;
+#X obj 565 337 envelope~;
+#X text 730 174 grain frequency, f 9;
+#X text 564 49 speed (%);
+#X obj 425 98 expr~ 1000 / $v1;
+#X text 450 123 <= frequency;
+#X obj 116 461 delwrite~ \$0-buffer 6000;
+#X obj 651 336 delread4~ \$0-buffer, f 9;
+#X obj 485 323 delread4~ \$0-buffer, f 9;
+#X text 42 149 The [pimp~] objects trigger [sh~] objects and get a
+read point from [phasor~]. The step increment from one grain to another
+depends on the speed parameter. We can make it shorter for a time stretch
+or larger for a time compress., f 47;
+#X obj 485 254 *~ 6000;
+#X obj 186 329 initmess \; speed 100 \; grain 100;
+#X obj 713 26 declare -path else;
+#X obj 116 431 play.file~ bubul.wav 1 1;
+#X text 41 47 For this Time Stretch/Compress example \, a grain size
+in ms provides the frequency of [pimp~] objects that drive overlapping
+envelopes. In the same way \, we calculate the frequency of a [phasor~]
+according to the buffer size. This [phasor~] gives us a compress/stretch
+step., f 47;
+#X text 42 233 The speed is adjusted to compensate for the read head
+speed as in the last example with [expr~ 1 - $v1]. By resetting the
+phase of [phasor~] \, you can jump back to the start of the buffer.
+, f 47;
+#X connect 0 0 3 1;
+#X connect 1 0 13 0;
+#X connect 3 0 31 0;
+#X connect 4 0 18 0;
+#X connect 4 0 21 0;
+#X connect 5 0 6 0;
+#X connect 6 0 16 0;
+#X connect 7 0 3 0;
+#X connect 9 0 10 0;
+#X connect 10 0 7 1;
+#X connect 11 0 15 0;
+#X connect 12 0 6 1;
+#X connect 13 0 4 0;
+#X connect 14 0 9 0;
+#X connect 15 0 25 0;
+#X connect 17 0 12 1;
+#X connect 18 0 17 0;
+#X connect 18 1 19 1;
+#X connect 19 0 28 0;
+#X connect 20 0 29 0;
+#X connect 21 0 22 0;
+#X connect 21 1 20 1;
+#X connect 22 0 5 1;
+#X connect 25 0 7 0;
+#X connect 28 0 12 0;
+#X connect 29 0 5 0;
+#X connect 31 0 19 0;
+#X connect 31 0 20 0;
+#X connect 34 0 27 0;

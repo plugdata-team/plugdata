@@ -10,7 +10,7 @@
 #X obj 192 354 r \$0-rate;
 #X obj 192 378 max 1;
 #N canvas 828 124 447 419 init 0;
-#X obj 98 73 loadbanger 2, f 24;
+#X obj 98 73 else/loadbanger 2, f 24;
 #X obj 297 329 s \$0-rate;
 #X msg 297 143 5;
 #X obj 263 363 s \$0-time;
@@ -18,11 +18,11 @@
 #X obj 334 297 v exp_\$0;
 #X msg 334 143 1;
 #X obj 17 193 list split 1;
-#X obj 17 234 swap2;
+#X obj 17 234 else/swap2;
 #X obj 111 193 list split 1;
-#X obj 111 234 swap2;
+#X obj 111 234 else/swap2;
 #X obj 98 143 route -rate -exp float;
-#X obj 98 110 args -;
+#X obj 98 110 else/args -;
 #X connect 0 0 12 0;
 #X connect 0 1 2 0;
 #X connect 0 1 4 0;
@@ -45,7 +45,7 @@
 #X restore 320 94 pd init;
 #X obj 165 125 unpack;
 #X msg 111 418 exp \$1;
-#X obj 166 453 rescale 0 0 0 0;
+#X obj 166 453 else/rescale 0 0 0 0;
 #X obj 165 286 pack, f 5;
 #X obj 181 485 v last_\$0;
 #X obj 246 262 expr copysign(exp_\$0 \, ($f1 - last_\$0));

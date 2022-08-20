@@ -103,8 +103,8 @@ need to give [table~] the actual index number.;
 #X text 29 89 When in index mode \, if you set it to guard mode \,
 it will behave exactly like [tabread4~] \, as it won't be able to read
 the first or last point of the table.;
-#X obj 158 300 else/display~;
-#X obj 178 234 else/display~;
+#X obj 158 300 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 178 234 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 0 0 3 0;
 #X connect 0 0 6 0;
 #X connect 1 0 0 0;
@@ -141,8 +141,8 @@ was generated with the "sinesum" method sent to an array. In this case
 mode \, you don't have access to them. It actually behaves exactly
 like [tabosc4~] \, where a phase input can be considered an index when
 its frequency is zero!;
-#X obj 261 261 else/display~;
-#X obj 115 264 else/display~;
+#X obj 261 264 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 115 264 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 0 0 2 0;
 #X connect 0 0 5 1;
 #X connect 1 0 0 0;
@@ -151,7 +151,7 @@ its frequency is zero!;
 #X connect 4 0 3 0;
 #X connect 5 0 9 0;
 #X restore 446 193 pd guard-points;
-#X obj 212 212 else/display~;
+#X obj 212 212 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 23 0 29 0;
 #X connect 28 0 23 0;
 #X connect 29 0 40 0;

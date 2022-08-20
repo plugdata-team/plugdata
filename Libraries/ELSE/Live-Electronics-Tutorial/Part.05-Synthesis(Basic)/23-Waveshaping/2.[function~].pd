@@ -1,0 +1,95 @@
+#N canvas 386 74 875 550 12;
+#X declare -path else;
+#X obj 568 341 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-function 441 float 1;
+#A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0;
+#X coords 0 1.1 440 -1.1 200 140 1 0 0;
+#X restore 567 340 graph;
+#X text 553 335 1;
+#X text 547 467 -1;
+#X text 553 402 0;
+#X msg 175 211 -1 1 1;
+#X msg 189 242 -0.75 0.25 -0.75 0.5 0.75 0.25 0.75, f 18;
+#X text 328 249 clipping;
+#X msg 203 288 -1 0.5 -1 0 1 0.5 1;
+#X obj 91 190 *~;
+#X obj 177 123 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 562 230 out~;
+#X obj 174 147 f2s~ 10;
+#X obj 91 351 rescale~;
+#X obj 91 137 osc~ 200;
+#X text 342 287 square;
+#X text 226 212 linear;
+#X text 492 72 Regarding the square function \, it's also possible
+to implement with [expr~] as below. Note that the input sound still
+maintains its tonal quality \, despite the harsh distortion., f 49
+;
+#X obj 265 464 hsl 128 15 0 1 0 0 empty empty empty -2 -6 0 10 -228856
+-1 -1 0 0;
+#X obj 175 458 function~;
+#X obj 678 25 declare -path else;
+#X obj 562 159 play.file~ bubul.wav 1 1;
+#X obj 175 323 function 200 100 empty empty -1 1 220 220 220 50 50
+50 1 0 0 0 -1 1 1;
+#X obj 175 184 loadbang;
+#N canvas 232 59 470 315 gain 0;
+#X obj 258 136 *~;
+#X obj 258 182 dac~;
+#X obj 276 63 pow 4;
+#X obj 276 36 inlet;
+#X obj 219 35 inlet~;
+#X obj 142 138 metro 441;
+#X obj 85 78 loadbang;
+#X obj 142 114 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 1
+1;
+#X msg 85 179 \; pd dsp 1;
+#X obj 220 222 tabwrite~ \$0-function;
+#X obj 276 95 f2s~ 10;
+#X connect 0 0 1 0;
+#X connect 0 0 1 1;
+#X connect 2 0 10 0;
+#X connect 3 0 2 0;
+#X connect 4 0 0 0;
+#X connect 4 0 9 0;
+#X connect 5 0 9 0;
+#X connect 6 0 7 0;
+#X connect 6 0 8 0;
+#X connect 7 0 5 0;
+#X connect 10 0 0 1;
+#X restore 216 499 pd gain;
+#X obj 562 192 expr~ if($v1 > 0 \, 1 \, -1);
+#X text 28 16 In this example we use [function~] as a transfer function.
+We just need to use [rescale~] to rescale the audio to the range between
+0 and 1 \, so it can read the transfer function table. Here we have
+a linear function \, a clipping function and a square function \, but
+you can create any sort of function and have fun with this.;
+#X connect 5 0 22 0;
+#X connect 6 0 22 0;
+#X connect 8 0 22 0;
+#X connect 9 0 13 0;
+#X connect 10 0 12 0;
+#X connect 12 0 9 1;
+#X connect 13 0 19 0;
+#X connect 14 0 9 0;
+#X connect 18 0 24 1;
+#X connect 19 0 24 0;
+#X connect 21 0 25 0;
+#X connect 22 0 19 0;
+#X connect 23 0 5 0;
+#X connect 25 0 11 0;

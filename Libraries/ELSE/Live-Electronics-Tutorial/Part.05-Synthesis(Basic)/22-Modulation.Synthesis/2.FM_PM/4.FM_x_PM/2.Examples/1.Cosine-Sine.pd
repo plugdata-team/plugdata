@@ -1,0 +1,101 @@
+#N canvas 374 48 901 563 12;
+#X declare -path else;
+#X obj 553 387 *~;
+#X obj 310 198 nbx 5 14 -1e+37 1e+37 0 0 empty moduladora empty 0 -8
+0 10 -228856 -1 -1 0 256;
+#X obj 434 205 nbx 8 14 -1e+37 1e+37 0 0 empty index_pm empty 0 -8
+0 10 -261682 -1 -1 5 256;
+#X obj 310 233 t b f;
+#X obj 360 238 v mod;
+#X obj 342 263 s \$0-mod;
+#X obj 553 315 r \$0-mod;
+#X obj 153 318 r \$0-mod;
+#X obj 535 421 +~;
+#X obj 200 207 nbx 5 14 -1e+37 1e+37 0 0 empty carrier empty 0 -8 0
+10 -228856 -1 -1 440 256;
+#X obj 200 236 s \$0-carrier;
+#X obj 457 315 r \$0-carrier;
+#X obj 56 319 r \$0-carrier;
+#X obj 153 404 *~;
+#X obj 531 206 nbx 8 14 -1e+37 1e+37 0 0 empty index_fm empty 0 -8
+0 10 -261234 -1 -1 31.4159 256;
+#X obj 273 344 r \$0-i_fm;
+#X obj 194 343 r \$0-i_pm;
+#X obj 691 346 expr $f1 * (mod * 2*pi);
+#X obj 691 321 r \$0-i_pm;
+#X obj 619 329 r \$0-i_fm;
+#X obj 273 369 expr $f1 / (mod * 2*pi);
+#X obj 153 370 sine~;
+#X obj 121 480 ouT~;
+#X obj 121 433 sine~;
+#X obj 535 482 out~;
+#X obj 434 231 s \$0-i_pm;
+#X obj 531 228 s \$0-i_fm;
+#X obj 273 397 nbx 5 14 -1e+37 1e+37 0 0 empty indice_pm empty 0 -8
+0 10 -228856 -1 -1 0 256;
+#X msg 273 427 \; index_pm set \$1;
+#X msg 691 400 \; index_fm set \$1;
+#X obj 691 374 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 31.4159 256;
+#X text 197 179 Carrier;
+#X text 307 175 Mod;
+#X text 437 184 PM index;
+#X text 535 183 FM index;
+#X obj 194 415 f2s~ 50;
+#X obj 619 385 f2s~ 50;
+#X text 78 286 PHASE MODULATION;
+#X text 468 287 FREQUENCY MODULATION;
+#X obj 535 448 cosine~;
+#N canvas 994 421 242 172 init 0;
+#X obj 155 56 pi;
+#X obj 155 85 v pi;
+#X obj 34 50 initmess \; carrier 440 \; mod 1 \; index_pm 1 \; pd dsp
+1;
+#X connect 0 0 1 0;
+#X restore 795 509 pd init;
+#X text 445 49 To convert the PM index to FM we need to multiply it
+by 2pi (since phase values from 0 a 1 correspond to a range of 0 to
+2pi in radians). Another adjustment is to multiply the index by the
+modulating frequency \, this is because if the phase runs faster \,
+the frequency deviation is also higher.;
+#X obj 553 345 sine~;
+#X obj 310 293 s index_pm;
+#X obj 708 15 declare -path else;
+#X text 32 50 It's time to show the relationship between FM and PM
+in practice \, not theory. If the phase modulation signal is a sine
+wave \, the frequency modulation signal needs to be a cosine wave.
+Another detail is that we need to adjust the value of the modulation
+index \, which is also done in this patch., f 55;
+#X text 445 127 This is a crucial diference \, that the modulating
+frequency affects the index \, so to speak \, in phase modulation.
+;
+#X connect 0 0 8 1;
+#X connect 1 0 3 0;
+#X connect 2 0 25 0;
+#X connect 3 0 43 0;
+#X connect 3 1 4 0;
+#X connect 3 1 5 0;
+#X connect 6 0 42 0;
+#X connect 7 0 21 0;
+#X connect 8 0 39 0;
+#X connect 9 0 10 0;
+#X connect 11 0 8 0;
+#X connect 12 0 23 0;
+#X connect 13 0 23 2;
+#X connect 14 0 26 0;
+#X connect 15 0 20 0;
+#X connect 16 0 35 0;
+#X connect 17 0 30 0;
+#X connect 17 0 36 0;
+#X connect 18 0 17 0;
+#X connect 19 0 36 0;
+#X connect 20 0 27 0;
+#X connect 20 0 35 0;
+#X connect 21 0 13 0;
+#X connect 23 0 22 0;
+#X connect 27 0 28 0;
+#X connect 30 0 29 0;
+#X connect 35 0 13 1;
+#X connect 36 0 0 1;
+#X connect 39 0 24 0;
+#X connect 42 0 0 0;

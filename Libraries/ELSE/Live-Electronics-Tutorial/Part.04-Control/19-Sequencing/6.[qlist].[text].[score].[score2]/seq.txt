@@ -1,0 +1,18 @@
+0 note 69;
+500 note 60;
+500 note 60;
+500 note 69;
+500 note 69;
+1500 note 60;
+500 note 60;
+500 note 69;
+500 note 69;
+500 note 60;
+500 note 62;
+500 note 60;
+500 note 59;
+500 note 59;
+500 note 59;
+500 note 68;
+500 note 68;
+3000;

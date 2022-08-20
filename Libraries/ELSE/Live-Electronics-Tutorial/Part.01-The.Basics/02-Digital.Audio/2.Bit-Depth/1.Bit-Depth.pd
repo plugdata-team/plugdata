@@ -1,0 +1,61 @@
+#N canvas 502 130 1132 555 12;
+#X declare -path else;
+#X msg 180 171 2;
+#X obj 617 148 nbx 10 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0
+12 -228856 -1 -1 0 256;
+#X obj 617 402 route sign exponent mantissa, f 33;
+#X msg 617 327 set \$1 \, split;
+#X text 708 434 mantissa;
+#X obj 631 185 float2bits;
+#X obj 617 364 float2bits;
+#X obj 180 148 loadbang;
+#X text 233 229 <= possible values in 16 bits;
+#X text 585 435 sign;
+#X obj 180 196 pow 16;
+#X text 606 72 The [float2bits] object from ELSE converts floats in
+Pd to a list of 32 bits \, that is the binary representation of this
+number., f 59;
+#X text 639 470 expoent;
+#X text 638 259 The object can also break this into different groups
+of bits. The sign (0 = positive \, 1 = negative) \, the expoent (8
+bits) and the mantissa (23 bits)., f 61;
+#X text 29 437 One way or another \, the final audio resolution depends
+on your sound card. If you have a cheap one that can only deal with
+16 bits \, then that's what you have. But anyway \, even though many
+professional audio cards say they operate with 24 bit precision \,
+it is a known fact they can't actually perform that task., f 75;
+#X obj 869 25 declare -path else;
+#X text 29 29 The sample rate regards a timing resolution. Now the
+amplitude resolution depends on the bit rate or bit depth. 1 bit is
+a binary unit \, which can be either 0 or 1 \, so only 2 possible values
+\, or 2^1 (two to the power of one). The MIDI protocol has 7 bits \,
+which gives us 2^7 = 128 possible values \, in the range of 0 - 127!
+CD's audio standard is 16 bits \, which gives us 2^16 (65.536) possible
+values., f 75;
+#X text 29 275 Audio signals \, suited to be output and heard \, need
+to be within the -1 and 1 range! Pd currently has 32 bits precision
+\, more precisely \, this is 32 bit float \, which means some of the
+bits are used to represent decimal values and not only inside the -1
+to 1 range \, but all numbers. Hence we do not have 2^32 possible values
+for audio signals., f 75;
+#X text 28 356 So what's the audio output resolution after all? How
+many possible values do we have between -1 and 1? This is tricky to
+answer. 32 bit float provides more resolution to represent very tiny
+values than bigger decimal ones. But we can make a rough assessment
+of a more or less 24 bit resolution for audio output!, f 75;
+#X obj 631 213 display;
+#X obj 769 432 display;
+#X obj 693 465 display;
+#X obj 617 432 display;
+#X obj 180 225 display;
+#X connect 0 0 10 0;
+#X connect 1 0 5 0;
+#X connect 1 0 3 0;
+#X connect 2 0 22 0;
+#X connect 2 1 21 0;
+#X connect 2 2 20 0;
+#X connect 3 0 6 0;
+#X connect 5 0 19 0;
+#X connect 6 0 2 0;
+#X connect 7 0 0 0;
+#X connect 10 0 23 0;

@@ -100,8 +100,8 @@
 #X obj 61 143 route float bang;
 #X obj 361 185 r pd;
 #X obj 361 250 change -1;
-#X obj 180 120 args;
-#X obj 180 90 lb;
+#X obj 180 120 else/args;
+#X obj 180 90 else/lb;
 #X connect 1 0 2 0;
 #X connect 3 0 0 0;
 #X connect 4 0 3 0;

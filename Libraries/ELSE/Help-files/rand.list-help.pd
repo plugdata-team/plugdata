@@ -1,4 +1,4 @@
-#N canvas 490 50 563 365 10;
+#N canvas 490 50 563 421 10;
 #X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -27,42 +27,84 @@
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 5 graph;
-#X obj 6 337 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 6 395 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 9 222 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 9 281 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 9 301 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 9 310 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 9 368 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 130 228 cnv 17 3 30 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 120 228 cnv 17 3 48 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 182 133 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 129 288 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 119 308 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 206 42 cnv 4 4 4 empty empty a 0 28 2 18 #e0e0e0 #000000 0;
 #X obj 226 42 cnv 4 4 4 empty empty list 0 28 2 18 #e0e0e0 #000000
 0;
 #X obj 182 189 else/display 4;
-#X text 197 229 bang -;
-#X text 240 229 choose an element from a given list randomly, f 46
+#X text 193 229 bang -;
+#X text 236 229 choose an element from a given list randomly, f 46
 ;
 #X text 75 88 [rand.list] takes a list of floats and randomly chooses
 from it., f 48;
 #X text 138 133 choose;
-#X text 161 244 set <list> -;
-#X text 240 244 sets a new list, f 46;
-#X obj 129 261 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 157 244 set <list> -;
+#X text 236 244 sets a new list, f 46;
+#X obj 119 281 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 197 260 list -;
-#X text 240 260 sets a new list, f 46;
-#X text 191 289 float -;
-#X text 240 289 random element from list, f 46;
-#X text 179 317 1) list - initial list (default 0);
+#X text 193 280 list -;
+#X text 236 280 sets a new list, f 46;
+#X text 187 309 float -;
+#X text 236 309 random element from list, f 46;
+#X text 175 375 1) list - initial list (default 0);
 #X msg 347 135 1 5 10 30 70 90;
 #X obj 182 163 else/rand.list 13 60 500 700;
 #X msg 214 135 set 11 23 35 47;
+#X obj 6 332 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 116 343 -seed <float>: sets seed (default: unique internal)
+, f 54;
+#X text 223 262 -;
+#X text 140 262 seed <float>;
+#X text 235 262 a float sets seed \, no float sets a unique internal
+;
+#N canvas 459 157 771 253 seed 0;
+#X text 30 19 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X text 31 165 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 52;
+#X text 30 98 Seeds are kept locally \, which means that if two [rand.list]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [rand.list] object twice with the same seed
+to repeat the output., f 52;
+#X msg 382 63 seed;
+#X text 622 62 <-- set seed;
+#X floatatom 382 168 10 0 0 0 - - - 12;
+#X floatatom 562 168 10 0 0 0 - - - 12;
+#X text 387 25 Sync [rand.list] objects with a seed value;
+#X obj 562 125 else/rand.list -seed 123 13 60 500 700 800 870 920,
+f 26;
+#X obj 382 125 else/rand.list -seed 123 13 60 500 700 800 870 920,
+f 25;
+#X obj 466 63 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000;
+#X msg 562 63 seed 123;
+#X connect 3 0 9 0;
+#X connect 3 0 8 0;
+#X connect 8 0 6 0;
+#X connect 9 0 5 0;
+#X connect 10 0 9 0;
+#X connect 10 0 8 0;
+#X connect 11 0 9 0;
+#X connect 11 0 8 0;
+#X restore 476 186 pd seed;
 #X connect 18 0 36 0;
 #X connect 35 0 36 1;
 #X connect 36 0 22 0;

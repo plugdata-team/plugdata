@@ -1,0 +1,80 @@
+#N canvas 201 23 1033 568 12;
+#X declare -path else;
+#X obj 762 202 noise~;
+#X obj 762 233 out~;
+#X obj 697 473 out~;
+#X obj 716 415 rms~ -db;
+#X obj 716 443 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#N canvas 497 142 485 309 White_Noise 0;
+#X obj 149 247 outlet~;
+#X obj 223 209 block~ 1;
+#X obj 149 166 expr~ random(-1000 \, 1001)/1000.;
+#X text 25 24 Here we have a random number generator in [expr~]. Since
+the current block size is just 1 \, a new random value is output for
+each sample. Initial values are from -1000 to 1000 and then divided
+by 1000 to fall within the -1 to 1 range.;
+#X text 25 94 The [expr] family of objects use the "rand()" function
+from the "stdlib" C Library and you can't set its seed.;
+#X connect 2 0 0 0;
+#X restore 697 370 pd White_Noise;
+#X obj 831 23 declare -path else;
+#X obj 808 410 meter~;
+#X obj 684 241 rms~ -db;
+#X obj 684 269 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 27 15 We've seen oscillators \, which are "Deterministic" generators
+whose output is periodic and defined by simple functions that produce
+simple waveforms. A deterministic system is a system in which no randomness
+is involved in the development of future states of the system and an
+implication is that you can easily predict the sate of the system.
+In other words \, you can easilly know the amplitude value of an oscillator
+by only knowing the initial phase and current time. On the other hand
+\, you have complex "indeterminate" systems that you can't predict
+the future state. In other words \, it's random and unpredictable.
+, f 70;
+#X text 27 154 "Noise" is a term used in various context. It can refer
+to undesired signals that are introduced in the process of recording
+\, storing \, reproduction \, processing or conversion. For instance
+\, when converting analog to digital you have quantization error \,
+or quantization "noise". However \, "noise" also means signals with
+apparent or actual lack of pattern \, periodicity or predictability
+- such phenomena is known as "randomness" and can be produced by a
+stochastic pattern., f 70;
+#X text 27 261 Stochastic patterns are described by a random probability
+distribution where you only know the probability of the occurance of
+an event or value \, but you can't predict what the value is. However
+\, in computers \, nothing is really "indeterminate" or "unpredictable"
+\, so what we have are algorithms that produce results that seem random.
+These are then called "pseudo random number generator" algorithms and
+the implication is that you get the same sequence of values if the
+initial state of the algorithm is determined \, that is if the first
+initial value is known. Such an initial value is known as the "seed"
+of the random number generator., f 70;
+#X text 27 416 White noise is a famous noise type widely used in music.
+It's a good source for audio testing \, filtering and modelling percussive
+sounds. White noise can be implemented with a simple random number
+generator \, whose probability function is 'flat' \, which means that
+the probablity function is equality distributed and any value has equal
+probabilities of occurances. The sound quality of white noise has energy
+equally distributed over the whole spectral range (from 0 Hz to Nyquist).
+Calling it white is an analogy to white light \, which is a combination
+of lights of different wavelengths in the visible spectrum., f 70
+;
+#X text 571 315 The subatch below uses a random function built in [expr~]
+to generate white noise. Open it and check it out.;
+#X text 565 59 The native [noise~] object is a White Noise generator.
+The quality of the pseudo random number generator is questioned by
+Miller Pukckette himself. It is the same algorithm from the [random]
+object and also found in [array random]. The 'seed' is always the same
+for the first creation of this object and also the subsequent ones
+\, but each gets a different seed. You can set different seeds \, which
+is useful for band limited noises as we'll see later. Check its help
+file., f 62;
+#X connect 0 0 1 0;
+#X connect 0 0 8 0;
+#X connect 3 0 4 0;
+#X connect 5 0 2 0;
+#X connect 5 0 3 0;
+#X connect 5 0 7 0;
+#X connect 8 0 9 0;

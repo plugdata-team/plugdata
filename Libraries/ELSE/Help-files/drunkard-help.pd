@@ -1,8 +1,7 @@
-#N canvas 545 23 561 614 10;
-#X text 149 532 1) float;
-#X text 149 550 2) float;
-#X text 205 566 - sets maximum value (default 127);
-#X text 205 550 - sets minimum value (default 0);
+#N canvas 366 24 561 629 10;
+#X text 149 551 1) float;
+#X text 149 567 2) float;
+#X text 205 567 - sets minimum value (default 0), f 34;
 #X obj 119 290 cnv 17 3 115 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c
 0;
 #X obj 119 410 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
@@ -22,16 +21,112 @@
 #X text 172 467 float;
 #X text 132 348 seed <float> -;
 #X text 138 369 set <float> -;
-#X text 225 348 seeds the internal random number generator, f 50;
-#X text 225 369 sets the current value (without output), f 50;
 #X text 225 290 triggers a random output, f 50;
 #X text 225 311 sets new current value and outputs it, f 50;
-#X text 149 566 3) float;
 #X text 210 467 - random number output as result of the random walk
 ;
 #X text 225 411 sets lower bound, f 50;
 #X text 225 433 sets upper bound, f 50;
 #X text 150 387 p <float> -;
+#X obj 22 40 cnv 4 4 4 empty empty Drunkard's 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 111 40 cnv 4 4 4 empty empty walk 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 3 3 cnv 15 301 42 empty empty drunkard 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 153 40 cnv 4 4 4 empty empty algorithm 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 4 603 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 6 281 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 455 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 5 541 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 6 490 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 225 387 sets probability of a positive step in %, f 50;
+#X text 205 551 - sets step range (default 1), f 34;
+#X obj 209 222 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 132 328 step <float> -;
+#X text 225 328 sets step range, f 50;
+#X obj 206 136 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X floatatom 206 249 10 0 0 0 - - - 12;
+#X text 66 91 [drunkard] generates random numbers within a given step
+range from the last output. When reaching the bounds \, the values
+get wrapped., f 68;
+#X obj 206 193 else/drunkard -p 100 0.1;
+#X text 31 187 see also;
+#X obj 32 241 else/brown;
+#X obj 32 214 else/drunkard~;
+#X text 119 501 -seed <float>: sets seed (default: unique internal)
+, f 54;
+#X text 137 518 -p <float>: sets probability (default 70), f 51;
+#N canvas 459 157 702 310 seed 0;
+#X text 30 19 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X floatatom 47 243 10 0 0 0 - - - 12;
+#X floatatom 207 243 10 0 0 0 - - - 12;
+#X obj 207 167 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 210 278 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X obj 50 278 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X msg 536 148 seed 507;
+#X msg 386 148 seed;
+#X text 596 147 <-- set seed;
+#X floatatom 386 243 10 0 0 0 - - - 12;
+#X floatatom 536 243 10 0 0 0 - - - 12;
+#X obj 389 278 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X obj 539 278 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X obj 460 148 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X text 367 42 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 52;
+#X obj 47 210 else/drunkard -seed 1039;
+#X obj 207 210 else/drunkard -seed 1039;
+#X obj 386 205 else/drunkard;
+#X obj 536 205 else/drunkard;
+#X text 30 98 Seeds are kept locally \, which means that if two [drunkard]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [drunkard] object twice with the same seed
+to repeat the output., f 52;
+#X text 379 107 Sync [drunkard] objects with a seed value;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 3 0 15 0;
+#X connect 3 0 16 0;
+#X connect 6 0 17 0;
+#X connect 6 0 18 0;
+#X connect 7 0 17 0;
+#X connect 7 0 18 0;
+#X connect 9 0 11 0;
+#X connect 10 0 12 0;
+#X connect 13 0 17 0;
+#X connect 13 0 18 0;
+#X connect 15 0 1 0;
+#X connect 16 0 2 0;
+#X connect 17 0 9 0;
+#X connect 18 0 10 0;
+#X restore 482 244 pd seed;
+#X text 149 583 3) float;
+#X text 205 583 - sets maximum value (default 127);
+#X text 225 349 a float sets seed \, no float sets a unique internal
+;
+#X text 225 369 sets the current value (without output);
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -49,44 +144,8 @@
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 305 3 graph;
-#X obj 22 40 cnv 4 4 4 empty empty Drunkard's 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 111 40 cnv 4 4 4 empty empty walk 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 3 3 cnv 15 301 42 empty empty drunkard 20 20 2 37 #e0e0e0 #000000
-0;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X coords 0 1 100 -1 302 42 1;
-#X restore 2 3 graph;
-#X obj 153 40 cnv 4 4 4 empty empty algorithm 0 28 2 18 #e0e0e0 #000000
-0;
-#X obj 4 586 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
-0;
-#X obj 6 281 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 6 455 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 5 521 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 6 490 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
-0;
-#X text 89 501 -seed <float> - sets seed | -p <float> - sets probability
-(default 70), f 70;
-#X text 225 387 sets probability of a positive step in %, f 50;
-#X text 205 532 - sets step range (default 1);
-#X obj 209 222 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X text 132 328 step <float> -;
-#X text 225 328 sets step range, f 50;
-#X obj 206 136 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
-#000000 0 1;
-#X floatatom 206 249 9 0 0 0 - - - 12;
-#X text 66 95 [drunkard] generates random numbers within a given step
-range from the last output. When reaching the bounds \, the values
-get wrapped., f 68;
-#X obj 206 193 else/drunkard -p 100 0.1;
-#X obj 206 164 metro 200;
-#X connect 49 0 53 0;
-#X connect 52 0 56 0;
-#X connect 55 0 49 0;
-#X connect 56 0 55 0;
+#X obj 206 164 metro 50;
+#X connect 36 0 40 0;
+#X connect 39 0 61 0;
+#X connect 42 0 36 0;
+#X connect 61 0 42 0;

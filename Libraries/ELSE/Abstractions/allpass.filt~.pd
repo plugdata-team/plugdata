@@ -13,7 +13,7 @@
 #X obj 63 118 clip~ 10;
 #X obj 199 29 inlet~;
 #X obj 199 135 max~ 0.1;
-#X obj 108 67 sr~;
+#X obj 108 67 else/sr~;
 #X connect 2 0 5 2;
 #X connect 4 0 5 0;
 #X connect 5 0 3 0;
@@ -49,12 +49,12 @@
 #X msg 258 95 1;
 #X msg 180 69 10;
 #X obj 47 72 route bang;
-#X obj 104 50 args;
-#X obj 176 238 loop;
-#X msg 233 358 obj 60 \$1 allpass_unit \$4 \, connect \$2 0 \$3
+#X obj 104 50 else/args;
+#X obj 176 238 else/loop;
+#X msg 233 358 obj 60 \$1 else/allpass_unit \$4 \, connect \$2 0 \$3
 0;
-#X msg 242 388 obj 60 50 allpass_unit \$1 \, connect 0 0 2 0;
-#X obj 104 22 lb 2;
+#X msg 242 388 obj 60 50 else/allpass_unit \$1 \, connect 0 0 2 0;
+#X obj 104 22 else/lb 2;
 #X connect 0 0 3 0;
 #X connect 0 1 20 0;
 #X connect 1 0 2 0;

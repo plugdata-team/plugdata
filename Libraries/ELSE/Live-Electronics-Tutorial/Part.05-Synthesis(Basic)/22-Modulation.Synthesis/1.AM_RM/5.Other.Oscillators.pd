@@ -1,0 +1,155 @@
+#N canvas 549 53 697 522 12;
+#X declare -path else;
+#N canvas 179 95 483 427 oscillator 0;
+#X obj 175 343 outlet~;
+#X obj 175 270 sine~;
+#X obj 221 200 sig~;
+#X obj 263 270 square~;
+#X obj 323 270 saw~;
+#X obj 221 270 tri~;
+#X obj 107 106 vradio 17 1 0 4 ehnjyr etaeg5 empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 107 196 + 1;
+#X obj 175 307 xselect~ 4 100 1;
+#X text 128 108 Sine;
+#X text 128 124 Triangular;
+#X text 128 141 Square;
+#X text 129 157 Sawtooth;
+#X obj 221 34 inlet;
+#X connect 1 0 8 0;
+#X connect 2 0 1 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X connect 2 0 5 0;
+#X connect 3 0 8 2;
+#X connect 4 0 8 3;
+#X connect 5 0 8 1;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 0 0;
+#X connect 13 0 2 0;
+#X coords 0 -1 1 1 108 80 2 100 100;
+#X restore 184 288 pd oscillator;
+#X text 266 255 Mod;
+#X obj 184 255 nbx 5 20 -1e+37 1e+37 0 0 empty \$0-mod empty 82 9 0
+15 #dcdcdc #000000 #000000 0 256;
+#X obj 166 431 out~;
+#X obj 166 389 *~;
+#X obj 357 351 cnv 15 298 138 empty empty empty 20 12 0 14 #dcdcdc
+#404040 0;
+#N canvas 0 22 478 328 (subpatch) 0;
+#X array \$0-Spectrum 128 float 0;
+#X coords 0 1024 127 0 300 140 1 0 0;
+#X restore 356 350 graph;
+#X text 448 490 500Hz;
+#X text 395 489 250Hz;
+#X text 355 489 50Hz;
+#X text 503 489 750Hz;
+#X text 562 489 1KHz;
+#X text 607 490 1.25KHz;
+#N canvas 280 227 368 208 plot 0;
+#X obj 33 21 inlet~;
+#X obj 33 56 rfft~;
+#X obj 80 60 block~ 4096;
+#X obj 33 135 tabwrite~ \$0-Spectrum;
+#X obj 33 94 mag~;
+#X obj 75 103 tempo 240 -on;
+#X obj 213 57 initmess \; \$0-carrier 250 \; \$0-mod 150.5 \; \$0-index
+90 \; \$0-menu-set 1;
+#X connect 0 0 1 0;
+#X connect 1 0 4 0;
+#X connect 1 1 4 1;
+#X connect 4 0 3 0;
+#X connect 5 0 3 0;
+#X restore 464 282 pd plot \; spectrum;
+#X obj 535 282 out~;
+#X obj 535 238 *~;
+#N canvas 179 95 483 427 oscillator 0;
+#X obj 175 343 outlet~;
+#X obj 175 270 sine~;
+#X obj 221 200 sig~;
+#X obj 263 270 square~;
+#X obj 323 270 saw~;
+#X obj 221 270 tri~;
+#X obj 107 106 vradio 17 1 0 4 ehnjyr etaeg5 empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 107 196 + 1;
+#X obj 175 307 xselect~ 4 100 1;
+#X text 128 108 Sine;
+#X text 128 124 Triangular;
+#X text 128 141 Square;
+#X text 129 157 Sawtooth;
+#X obj 221 34 inlet;
+#X connect 1 0 8 0;
+#X connect 2 0 1 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X connect 2 0 5 0;
+#X connect 3 0 8 2;
+#X connect 4 0 8 3;
+#X connect 5 0 8 1;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 0 0;
+#X connect 13 0 2 0;
+#X coords 0 -1 1 1 108 80 2 100 100;
+#X restore 412 123 pd oscillator;
+#X obj 412 90 nbx 5 20 -1e+37 1e+37 0 0 empty \$0-carrier empty 82
+9 0 15 #dcdcdc #000000 #000000 0 256;
+#N canvas 759 99 483 427 oscillator 0;
+#X obj 175 343 outlet~;
+#X obj 175 270 sine~;
+#X obj 221 200 sig~;
+#X obj 263 270 square~;
+#X obj 323 270 saw~;
+#X obj 221 270 tri~;
+#X obj 107 106 vradio 17 1 0 4 ehnjyr etaeg5 empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 107 196 + 1;
+#X obj 175 307 xselect~ 4 100 1;
+#X text 128 108 Sine;
+#X text 128 124 Triangular;
+#X text 128 141 Square;
+#X text 129 157 Sawtooth;
+#X obj 221 34 inlet;
+#X connect 1 0 8 0;
+#X connect 2 0 1 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X connect 2 0 5 0;
+#X connect 3 0 8 2;
+#X connect 4 0 8 3;
+#X connect 5 0 8 1;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 0 0;
+#X connect 13 0 2 0;
+#X coords 0 -1 1 1 108 80 2 100 100;
+#X restore 553 123 pd oscillator;
+#X obj 553 90 nbx 5 20 -1e+37 1e+37 0 0 empty \$0-mod empty 82 9 0
+15 #dcdcdc #000000 #000000 0 256;
+#X text 51 389 Ring Modulation;
+#X obj 553 211 rescale~;
+#X text 409 69 carrier;
+#X text 561 67 mod;
+#X text 569 234 Amplitude Modulation, f 10;
+#X obj 524 25 declare -path else;
+#X obj 58 178 play.file~ bubul.wav 1 1, f 25;
+#X text 23 18 More complex modulator signals will create more partials
+in any Amplitude Modulation patch (including Ring Modulation). We usually
+see just sine waves as the modulator signal because that is probably
+just enough \, specially as an effects processor. As for synthesis
+\, a more interesting and efficient technique to generating complex
+sounds is with frequency and phase modulation \, as we'll see next.
+, f 48;
+#X connect 0 0 4 1;
+#X connect 2 0 0 0;
+#X connect 4 0 3 0;
+#X connect 15 0 14 0;
+#X connect 15 0 13 0;
+#X connect 16 0 15 0;
+#X connect 17 0 16 0;
+#X connect 18 0 21 0;
+#X connect 19 0 18 0;
+#X connect 21 0 15 1;
+#X connect 26 0 4 0;

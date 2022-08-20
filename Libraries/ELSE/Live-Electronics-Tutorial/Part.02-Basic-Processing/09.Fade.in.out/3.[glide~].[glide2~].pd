@@ -1,0 +1,84 @@
+#N canvas 356 53 896 448 12;
+#X declare -path else;
+#X obj 58 281 *~;
+#X obj 57 219 osc~ 440;
+#X obj 58 331 out~;
+#X obj 170 329 vsl 15 90 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 170 293 s2f~;
+#X obj 708 34 declare -path else;
+#X obj 170 211 sig~;
+#X obj 281 295 *~;
+#X obj 281 245 osc~ 440;
+#X obj 281 345 out~;
+#X obj 393 313 vsl 15 90 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 393 178 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 393 287 s2f~;
+#X obj 393 207 sig~;
+#X obj 639 264 *~;
+#X obj 585 204 osc~ 440;
+#X obj 639 314 out~;
+#X obj 767 285 vsl 15 90 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 657 178 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 767 259 s2f~;
+#X text 176 263 linear;
+#X text 453 270 Quartic;
+#X obj 170 239 glide~ 1500;
+#X floatatom 244 213 5 0 0 0 - - - 0;
+#X text 243 192 time;
+#X floatatom 516 219 5 0 0 0 - - - 0;
+#X text 511 196 time;
+#X floatatom 718 181 5 0 0 0 - - - 0;
+#X floatatom 780 181 5 0 0 0 - - - 0;
+#X obj 657 214 glide2~ 2000 1000, f 18;
+#X text 700 160 time up;
+#X text 770 160 time down;
+#X text 569 81 [glide2~] is like [glide~] but offers different time
+period parameters in ms for the upwards (2000 in the example below)
+and downwards (1000) ramps., f 39;
+#X text 35 24 The [glide~] object is a line generator that can be somewhat
+related to [line~] and [float2sig~]. Its purpose is more to generate
+portamento as we'll see later \, but here we're using it as a way to
+generate fade in and out. Like [autofade~]/[autofade2~] \, it can take
+a float or a signal input to generate the ramp between zero and non
+zero values. By default \, it generates linear ramps \, but an exponential
+factor can be set \, which is a bit like using [line~] with [pow~]
+for a quartic fade \, for instance. Check its help file., f 72;
+#X obj 170 161 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 98 161 0.5;
+#X msg 135 161 0;
+#X floatatom 170 187 5 0 0 0 - - - 0;
+#X obj 643 452 graph~ 10000 3 -0.025 1.025 200 140;
+#X obj 393 245 glide~ -exp 4 1500;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 4 0 3 0;
+#X connect 6 0 22 0;
+#X connect 7 0 9 0;
+#X connect 8 0 7 0;
+#X connect 11 0 13 0;
+#X connect 12 0 10 0;
+#X connect 13 0 39 0;
+#X connect 14 0 16 0;
+#X connect 15 0 14 0;
+#X connect 18 0 29 0;
+#X connect 19 0 17 0;
+#X connect 22 0 0 1;
+#X connect 22 0 4 0;
+#X connect 23 0 22 1;
+#X connect 25 0 39 1;
+#X connect 27 0 29 1;
+#X connect 28 0 29 2;
+#X connect 29 0 14 1;
+#X connect 29 0 19 0;
+#X connect 34 0 37 0;
+#X connect 35 0 37 0;
+#X connect 36 0 37 0;
+#X connect 37 0 6 0;
+#X connect 39 0 7 1;
+#X connect 39 0 12 0;

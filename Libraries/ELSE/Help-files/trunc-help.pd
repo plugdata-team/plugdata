@@ -1,4 +1,4 @@
-#N canvas 659 112 562 375 10;
+#N canvas 456 63 562 375 10;
 #X obj 4 253 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 4 285 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
@@ -44,8 +44,6 @@
 0;
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X text 191 261 - input value(s) to floor function;
-#X text 191 294 - output value(s) of floor function;
 #X text 227 328 (none);
 #X text 193 167 input;
 #X text 185 225 output;
@@ -65,6 +63,8 @@
 #X text 74 86 [trunc] truncates floats and lists towards zero \, that
 means only the integer value is considered \, like in vanilla's [int].
 , f 63;
+#X text 191 261 - input value(s) to trunc function;
+#X text 191 294 - output value(s) of trunc function;
 #X connect 6 0 9 0;
-#X connect 9 0 25 0;
-#X connect 25 0 10 0;
+#X connect 9 0 23 0;
+#X connect 23 0 10 0;

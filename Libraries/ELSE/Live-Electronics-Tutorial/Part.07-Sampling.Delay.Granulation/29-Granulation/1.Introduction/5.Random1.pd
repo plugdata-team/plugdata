@@ -1,0 +1,154 @@
+#N canvas 565 23 656 608 12;
+#X declare -path else;
+#X obj 66 355 s~ \$0-pos;
+#X obj 449 210 nbx 5 14 -1e+37 1e+37 0 0 empty lfnoise-freq empty 0
+-8 0 10 -228856 -1 -1 2 256;
+#X obj 66 233 noise~;
+#X obj 493 273 nbx 5 14 -1e+37 1e+37 0 0 empty freq-offset empty 0
+-8 0 10 -228856 -1 -1 10 256;
+#X obj 179 256 nbx 5 14 -1e+37 1e+37 0 0 empty pos-amp empty 0 -8 0
+10 -228856 -1 -1 10000 256;
+#X obj 120 255 nbx 5 14 -1e+37 1e+37 0 0 empty pos-offset empty 0 -8
+0 10 -228856 -1 -1 0 256;
+#X obj 537 304 nbx 5 14 -1e+37 1e+37 0 0 empty freq-amp empty 0 -8
+0 10 -228856 -1 -1 8 256;
+#X obj 449 364 s~ \$0-freq;
+#X obj 449 236 stepnoise~;
+#X obj 66 323 ms2samps~;
+#X text 93 58 We expand now the last example and include some random
+controls for wilder granularing effects. Ten presets are provided with
+quite different results \, which shows how flexible and versatile this
+process can be., f 64;
+#X obj 66 286 rescale~ 0 10000;
+#N canvas 176 397 843 403 presets 0;
+#X obj 58 67 loadbang;
+#X msg 345 88 \; lfnoise-freq 2 \; freq-amp 60 \; freq-offset 0 \;
+grao-amp 50 \; grao-offset 0 \; pos-amp 10000 \; pos-offset 0;
+#X msg 197 90 \; lfnoise-freq 10 \; freq-amp 5 \; freq-offset 15 \;
+grao-amp 20 \; grao-offset 20 \; pos-amp 500 \; pos-offset 0;
+#X msg 345 212 \; lfnoise-freq 30 \; freq-amp 3 \; freq-offset 10 \;
+grao-amp 10 \; grao-offset 100 \; pos-amp 10000 \; pos-offset 0;
+#X msg 58 213 \; lfnoise-freq 0.5 \; freq-amp 1 \; freq-offset 1 \;
+grao-amp 700 \; grao-offset 100 \; pos-amp 100 \; pos-offset 200;
+#X msg 485 213 \; lfnoise-freq 25 \; freq-amp 0.5 \; freq-offset 0.5
+\; grao-amp 500 \; grao-offset 0 \; pos-amp 500 \; pos-offset 0;
+#X msg 637 213 \; lfnoise-freq 0.5 \; freq-amp 0.25 \; freq-offset
+0.25 \; grao-amp 100 \; grao-offset 2000 \; pos-amp 5000 \; pos-offset
+0;
+#X msg 58 90 \; lfnoise-freq 2 \; freq-amp 8 \; freq-offset 10 \; grao-amp
+100 \; grao-offset 100 \; pos-amp 10000 \; pos-offset 0;
+#X msg 637 87 \; lfnoise-freq 10 \; freq-amp 2 \; freq-offset -20 \;
+grao-amp 3 \; grao-offset 30 \; pos-amp 200 \; pos-offset 50;
+#X msg 197 213 \; lfnoise-freq 0.5 \; freq-amp 0.5 \; freq-offset -10
+\; grao-amp 1 \; grao-offset 50 \; pos-amp 500 \; pos-offset 500;
+#X msg 486 88 \; lfnoise-freq 0.25 \; freq-amp 1 \; freq-offset -1
+\; grao-amp 1500 \; grao-offset 0 \; pos-amp 10000 \; pos-offset 0
+;
+#X connect 0 0 7 0;
+#X restore 118 514 pd presets;
+#X obj 253 208 noise~;
+#X obj 363 242 nbx 5 14 -1e+37 1e+37 0 0 empty grao-amp empty 0 -8
+0 10 -228856 -1 -1 100 256;
+#X obj 300 243 nbx 5 14 -1e+37 1e+37 0 0 empty grao-offset empty 0
+-8 0 10 -228856 -1 -1 100 256;
+#X obj 253 325 ms2samps~;
+#X obj 253 357 s~ \$0-grain;
+#X obj 253 284 rescale~ 0 100;
+#X obj 449 335 rescale~ 10 8;
+#X text 93 128 The [noise~] objects generate random values \, which
+will be selected at period transitions with [sh~]. The frequency is
+controlled by [stepnoise~] \, but you can also try [rampnoise~] instead.
+, f 64;
+#X obj 259 482 +~;
+#X obj 259 523 out~;
+#N canvas 457 81 342 422 grain-1 0;
+#X obj 208 338 *~;
+#X obj 48 67 r~ \$0-grain;
+#X obj 73 164 *~;
+#X obj 104 250 +~;
+#X obj 97 195 r~ \$0-pos;
+#X obj 104 282 tabread4~ \$0-buffer, f 10;
+#X obj 208 375 outlet~;
+#X obj 141 32 inlet~;
+#X obj 141 67 pimp~;
+#X obj 115 161 sh~;
+#X obj 155 226 sh~;
+#X obj 226 301 envelope~;
+#X connect 0 0 6 0;
+#X connect 1 0 9 0;
+#X connect 2 0 3 0;
+#X connect 3 0 5 0;
+#X connect 4 0 10 0;
+#X connect 5 0 0 0;
+#X connect 7 0 8 0;
+#X connect 8 0 2 0;
+#X connect 8 0 11 0;
+#X connect 8 1 9 1;
+#X connect 8 1 10 1;
+#X connect 9 0 2 1;
+#X connect 10 0 3 1;
+#X connect 11 0 0 1;
+#X restore 191 445 pd grain-1;
+#N canvas 457 81 342 422 grain-2 0;
+#X obj 208 338 *~;
+#X obj 48 67 r~ \$0-grain;
+#X obj 73 164 *~;
+#X obj 104 250 +~;
+#X obj 97 195 r~ \$0-pos;
+#X obj 104 282 tabread4~ \$0-buffer, f 10;
+#X obj 208 375 outlet~;
+#X obj 141 32 inlet~;
+#X obj 115 161 sh~;
+#X obj 155 226 sh~;
+#X obj 226 301 envelope~;
+#X obj 141 67 pimp~ 0 0.5;
+#X connect 0 0 6 0;
+#X connect 1 0 8 0;
+#X connect 2 0 3 0;
+#X connect 3 0 5 0;
+#X connect 4 0 9 0;
+#X connect 5 0 0 0;
+#X connect 7 0 11 0;
+#X connect 8 0 2 1;
+#X connect 9 0 3 1;
+#X connect 10 0 0 1;
+#X connect 11 0 2 0;
+#X connect 11 0 10 0;
+#X connect 11 1 8 1;
+#X connect 11 1 9 1;
+#X restore 277 445 pd grain-2;
+#X obj 277 402 r~ \$0-freq;
+#X obj 427 14 declare -path else;
+#X obj 444 464 bng 20 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#N canvas 790 23 285 190 buffer 0;
+#X obj 41 60 openpanel;
+#X obj 41 29 inlet;
+#X obj 41 125 sample~ \$0-buffer bubul.wav;
+#X msg 41 89 load \$1;
+#X obj 137 51 initmess \; hz 1 \; grain 500;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 3 0 2 0;
+#X restore 444 493 pd buffer;
+#X connect 1 0 8 0;
+#X connect 2 0 11 0;
+#X connect 3 0 19 1;
+#X connect 4 0 11 2;
+#X connect 5 0 11 1;
+#X connect 6 0 19 2;
+#X connect 8 0 19 0;
+#X connect 9 0 0 0;
+#X connect 11 0 9 0;
+#X connect 13 0 18 0;
+#X connect 14 0 18 2;
+#X connect 15 0 18 1;
+#X connect 16 0 17 0;
+#X connect 18 0 16 0;
+#X connect 19 0 7 0;
+#X connect 21 0 22 0;
+#X connect 23 0 21 0;
+#X connect 24 0 21 1;
+#X connect 25 0 23 0;
+#X connect 25 0 24 0;
+#X connect 27 0 28 0;

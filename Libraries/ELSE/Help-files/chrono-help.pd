@@ -1,0 +1,91 @@
+#N canvas 553 23 560 455 10;
+#X obj 4 226 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 284 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 390 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 106 293 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 107 233 cnv 17 3 44 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 420 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 183 124 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 152 232 bang;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Chronometer/timer 0 28 2 18 #e0e0e0
+#000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 3 cnv 15 301 42 empty empty chrono 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 216 124 tgl 19 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X text 146 247 float;
+#X text 186 247 - non-zero starts or continues \, zero stops, f 47
+;
+#X obj 106 313 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 71 88 [chrono] is a stopwatch chronometer or a timer.;
+#X obj 216 163 else/chrono, f 12;
+#X listbox 216 189 11 0 0 0 - - - 0;
+#X text 137 125 rewind;
+#X text 240 126 start/stop/continue;
+#X text 186 232 - rewinds chronometer or timer, f 47;
+#X text 140 292 symbol;
+#X text 186 292 - current time, f 47;
+#X text 152 313 bang;
+#X text 186 313 - when timer function finishes, f 47;
+#X obj 4 338 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 154 348 -h: also outputs hours for the chronometer;
+#X text 154 366 -t: sets to timer function, f 42;
+#X text 152 262 list;
+#X text 186 262 - sets timer length in minutes / seconds, f 47;
+#X text 152 399 1) list - sets timer length in minutes / seconds;
+#N canvas 726 145 430 325 timer 0;
+#X obj 118 104 tgl 19 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X text 177 106 rewind;
+#X text 48 104 start/stop;
+#X symbolatom 118 243 11 0 0 0 - - - 12;
+#X obj 118 177 chrono -t 1 5;
+#X obj 193 205 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X msg 162 141 0 5;
+#X obj 152 104 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X text 211 177 <-- 1 minute and 5 seconds;
+#X text 192 141 <-- 0 minutes and 5 seconds;
+#X text 28 24 The '-t' flag sets to the timer function and a list input
+sets timer length in minutes/seconds. In this function you have a bang
+output in the right outlet when reaching the end.;
+#X connect 0 0 4 0;
+#X connect 4 0 3 0;
+#X connect 4 1 5 0;
+#X connect 6 0 4 0;
+#X connect 7 0 4 0;
+#X restore 464 190 pd timer;
+#X text 70 189 minutes / seconds / ms;
+#X connect 6 0 24 0;
+#X connect 19 0 24 0;
+#X connect 24 0 25 0;

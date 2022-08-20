@@ -1,0 +1,73 @@
+#N canvas 553 39 561 455 10;
+#X obj 194 184 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 4 281 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 336 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 393 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 94 345 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 93 290 cnv 17 3 38 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 426 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X text 164 291 bang;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty import\\\ 'scala'\\\ files 0 28
+2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 3 3 cnv 15 301 42 empty empty scala 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X obj 180 247 print scale;
+#X obj 315 247 print info;
+#X obj 415 144 else/openfile -h https://en.wikipedia.org/wiki/Scala_(software)
+About scala;
+#X obj 415 163 else/openfile -h https://www.huygens-fokker.org/scala/downloads.html?fbclid=IwAR1U9Nh8tTod4-6aTTksWaEjHBFSeEVPKirFgOH47r1FT_R0XFNNLCRFZgM
+Scala Downloads;
+#X text 414 181 (scale archive at the bottom), f 15;
+#X text 62 88 [scala] imports scales saved in the .scl format and outputs
+the scale as a list as understood by objects in ELSE. The Scala software
+is used to create and archive musical scales amongst other things.
+They provide a database of scales with over 5100 tunings. Check links:
+, f 70;
+#X msg 142 156 open;
+#X text 70 211 click to open -->;
+#X msg 180 157 open diamond7.scl;
+#X text 219 186 convert/reconvert;
+#X obj 180 214 else/scala diamond7.scl;
+#X text 196 291 - convert/reconvert;
+#X text 110 311 open <symbol>;
+#X text 196 311 - open .scl file and convert (no symbol opens dialog
+box);
+#X text 141 403 1) symbol - file name (default none);
+#X obj 94 368 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 164 345 list;
+#X text 197 345 - converted scale (in cents);
+#X text 140 366 anything;
+#X text 197 366 - info outlet (file name \, scale name);
+#X connect 0 0 29 0;
+#X connect 25 0 29 0;
+#X connect 27 0 29 0;
+#X connect 29 0 19 0;
+#X connect 29 1 20 0;

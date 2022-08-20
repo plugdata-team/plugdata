@@ -188,13 +188,11 @@ or "out", f 64;
 #X text 209 356 - output of a delay line, f 37;
 #N canvas 799 137 492 462 order 0;
 #X obj 102 362 -~;
-#X obj 103 167 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#X obj 103 162 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 102 402 else/display~;
 #X obj 103 194 else/ramp~;
-#X text 136 407 matches delay in samples;
-#X obj 103 141 else/tempo 10000 -ms -on;
-#X text 151 257 <= dummy outlet forces order of execution;
+#X text 174 403 matches delay in samples;
+#X obj 103 136 else/tempo 10000 -ms -on;
 #N canvas 707 219 468 219 out 0;
 #X obj 129 147 outlet~;
 #X obj 94 28 inlet~;
@@ -204,10 +202,8 @@ or "out", f 64;
 #X connect 2 0 4 0;
 #X connect 4 0 0 0;
 #X restore 142 321 pd out;
-#X obj 142 358 else/display~;
 #X floatatom 175 294 5 0 64 0 - - - 0;
 #X text 213 292 delay in samples;
-#X text 188 321 <= open;
 #X text 48 16 We can force the order of execution as this example shows.
 If we don't do this \, it's hard to guarantee we can read from the
 delay line without having a minimum delay of a block size. This is
@@ -216,15 +212,19 @@ like [send~]/[receive~]. But the [del~] object provides another structure
 \, because [del~ in] has a dummy outlet to force the order of execution.
 This way you only need a subpatch to include [del~ out] objects.;
 #X obj 142 235 del~ in -samps \$0-order 64;
-#X connect 0 0 2 0;
-#X connect 1 0 3 0;
-#X connect 3 0 0 0;
-#X connect 3 0 13 0;
-#X connect 5 0 1 0;
-#X connect 7 0 8 0;
-#X connect 7 0 0 1;
-#X connect 9 0 7 1;
-#X connect 13 0 7 0;
+#X obj 102 402 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 142 358 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X text 151 257 <-- dummy outlet forces order of execution;
+#X text 188 321 <-- open;
+#X connect 0 0 10 0;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 2 0 9 0;
+#X connect 4 0 1 0;
+#X connect 5 0 0 1;
+#X connect 5 0 11 0;
+#X connect 6 0 5 1;
+#X connect 9 0 5 0;
 #X restore 441 277 pd order;
 #X text 261 258 Note that the same "order of execution" issue also
 applies to [del~]:, f 39;

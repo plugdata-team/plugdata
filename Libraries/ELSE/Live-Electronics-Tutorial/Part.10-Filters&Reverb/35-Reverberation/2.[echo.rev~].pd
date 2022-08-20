@@ -1,0 +1,242 @@
+#N canvas 315 87 947 475 12;
+#X declare -path else;
+#X obj 54 152 bng 30 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 183 132 bng 30 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 54 239 out~;
+#X obj 183 249 out~;
+#N canvas 797 186 322 276 test 0;
+#X obj 63 116 osc~;
+#X obj 96 218 outlet~;
+#X obj 96 172 *~;
+#X obj 114 33 inlet;
+#X obj 114 127 envgen~ 50 1 450 1 50 0;
+#X obj 63 86 envgen~ 440 500 800;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 5 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 1;
+#X connect 5 0 0 0;
+#X restore 183 175 pd test;
+#N canvas 830 223 313 262 test 0;
+#X obj 60 114 osc~;
+#X obj 93 216 outlet~;
+#X obj 93 170 *~;
+#X obj 111 31 inlet;
+#X obj 111 125 envgen~ 50 1 450 1 50 0;
+#X obj 60 84 envgen~ 440 500 800;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 5 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 1;
+#X connect 5 0 0 0;
+#X restore 54 195 pd test;
+#X obj 325 132 bng 30 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 325 249 out~;
+#N canvas 797 186 322 276 test 0;
+#X obj 63 116 osc~;
+#X obj 96 218 outlet~;
+#X obj 96 172 *~;
+#X obj 114 33 inlet;
+#X obj 114 127 envgen~ 50 1 450 1 50 0;
+#X obj 63 86 envgen~ 440 500 800;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 5 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 1;
+#X connect 5 0 0 0;
+#X restore 325 175 pd test;
+#N canvas 730 71 491 773 echo(8-stages) 0;
+#X obj 114 91 inlet~;
+#X obj 115 178 +~;
+#X obj 294 180 -~;
+#X obj 115 246 +~;
+#X obj 276 245 -~;
+#X obj 115 319 +~;
+#X obj 258 319 -~;
+#X obj 116 395 +~;
+#X obj 240 394 -~;
+#X obj 116 464 +~;
+#X obj 222 464 -~;
+#X obj 116 704 outlet~;
+#X obj 186 704 outlet~;
+#X obj 116 534 +~;
+#X obj 204 534 -~;
+#X obj 116 604 +~;
+#X obj 186 604 -~;
+#X text 141 29 An eight stage delay chain., f 31;
+#X obj 116 673 /~ 16;
+#X obj 186 674 /~ 16;
+#X obj 312 140 ffdelay~ 5;
+#X obj 294 209 ffdelay~ 7;
+#X obj 276 278 ffdelay~ 11;
+#X obj 258 356 ffdelay~ 13;
+#X obj 240 427 ffdelay~ 17;
+#X obj 222 497 ffdelay~ 19;
+#X obj 204 567 ffdelay~ 23;
+#X obj 186 637 ffdelay~ 29;
+#X connect 0 0 1 0;
+#X connect 0 0 2 0;
+#X connect 0 0 20 0;
+#X connect 1 0 3 0;
+#X connect 1 0 4 0;
+#X connect 2 0 21 0;
+#X connect 3 0 5 0;
+#X connect 3 0 6 0;
+#X connect 4 0 22 0;
+#X connect 5 0 7 0;
+#X connect 5 0 8 0;
+#X connect 6 0 23 0;
+#X connect 7 0 9 0;
+#X connect 7 0 10 0;
+#X connect 8 0 24 0;
+#X connect 9 0 13 0;
+#X connect 9 0 14 0;
+#X connect 10 0 25 0;
+#X connect 13 0 15 0;
+#X connect 13 0 16 0;
+#X connect 14 0 26 0;
+#X connect 15 0 18 0;
+#X connect 16 0 27 0;
+#X connect 18 0 11 0;
+#X connect 19 0 12 0;
+#X connect 20 0 2 1;
+#X connect 20 0 1 1;
+#X connect 21 0 4 1;
+#X connect 21 0 3 1;
+#X connect 22 0 6 1;
+#X connect 22 0 5 1;
+#X connect 23 0 8 1;
+#X connect 23 0 7 1;
+#X connect 24 0 10 1;
+#X connect 24 0 9 1;
+#X connect 25 0 14 1;
+#X connect 25 0 13 1;
+#X connect 26 0 16 1;
+#X connect 26 0 15 1;
+#X connect 27 0 19 0;
+#X restore 325 212 pd echo(8-stages);
+#N canvas 698 23 458 651 echo(6-stages) 0;
+#X obj 251 92 inlet~;
+#X obj 113 575 outlet~;
+#X obj 179 575 outlet~;
+#X obj 112 179 +~;
+#X obj 251 181 -~;
+#X obj 112 247 +~;
+#X obj 233 246 -~;
+#X obj 112 320 +~;
+#X obj 215 320 -~;
+#X obj 113 396 +~;
+#X obj 197 395 -~;
+#X obj 113 465 +~;
+#X obj 179 465 -~;
+#X obj 269 141 ffdelay~ 5.123;
+#X obj 251 210 ffdelay~ 8.437;
+#X obj 233 279 ffdelay~ 13.321;
+#X obj 215 357 ffdelay~ 21.789;
+#X obj 197 428 ffdelay~ 34.987;
+#X obj 179 498 ffdelay~ 55.567;
+#X text 138 38 A six stage delay chain.;
+#X obj 113 536 /~ 12;
+#X obj 179 536 /~ 12;
+#X connect 0 0 3 0;
+#X connect 0 0 4 0;
+#X connect 0 0 13 0;
+#X connect 3 0 5 0;
+#X connect 3 0 6 0;
+#X connect 4 0 14 0;
+#X connect 5 0 7 0;
+#X connect 5 0 8 0;
+#X connect 6 0 15 0;
+#X connect 7 0 9 0;
+#X connect 7 0 10 0;
+#X connect 8 0 16 0;
+#X connect 9 0 11 0;
+#X connect 9 0 12 0;
+#X connect 10 0 17 0;
+#X connect 11 0 20 0;
+#X connect 12 0 18 0;
+#X connect 13 0 4 1;
+#X connect 13 0 3 1;
+#X connect 14 0 6 1;
+#X connect 14 0 5 1;
+#X connect 15 0 8 1;
+#X connect 15 0 7 1;
+#X connect 16 0 10 1;
+#X connect 16 0 9 1;
+#X connect 17 0 12 1;
+#X connect 17 0 11 1;
+#X connect 18 0 21 0;
+#X connect 20 0 1 0;
+#X connect 21 0 2 0;
+#X restore 183 212 pd echo(6-stages);
+#X text 32 324 At each stage the number of echoes of the input is doubled.
+So there are 64 reflections in the end of the chain of the 6-stages
+example \, and 256 in the 8-stages example. At the end we have a gain
+compensation for all the added signals., f 65;
+#X text 32 392 The output of each stage gets added using a rotation
+matrix. This means that the polarity of the signals get flipped and
+this is done with a simple [-~] object \, where the left signal gets
+summed with the inverted polarity of the signal of the right one.,
+f 65;
+#X text 511 46 The choice of the delay lines can be arbitrary \, but
+we need to be careful not to choose delay lines that are multiples
+of each other. The 6-stage example uses a fibonacci series to lay down
+the delay times. Furtherly \, arbitrary fractions are added in an attempt
+to produce even more complex reflection patterns. Alternatively \,
+you can try prime numbers as a basis instead as in the 8-stage example.
+, f 55;
+#X obj 690 313 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 599 289 bng 30 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#N canvas 830 223 313 262 test 0;
+#X obj 60 114 osc~;
+#X obj 93 216 outlet~;
+#X obj 93 170 *~;
+#X obj 111 31 inlet;
+#X obj 111 125 envgen~ 50 1 450 1 50 0;
+#X obj 60 84 envgen~ 440 500 800;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 5 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 1;
+#X connect 5 0 0 0;
+#X restore 599 332 pd test;
+#X obj 687 336 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 746 335 size;
+#X obj 599 364 echo.rev~ 8 1;
+#X obj 745 10 declare -path else;
+#X obj 599 397 out~;
+#X text 26 16 As a first reverberator example with delay lines \, we
+have a simple patch with only feedforward lines that emulates echoes
+with short delay times \, which can be used to produce early reflections
+in a reverb algorithm. Below to the left we have a test sound (a sine
+wave sweep) to be compared to the examples on the right. We have a
+mono input but a stereo output. Open the subpatches for implementation
+details., f 64;
+#X text 511 173 [echo.rev~] is an echo/reverb abstraction from ELSE
+based on this patch. You can set the number of echo stages with the
+first argument and the room size with the second argument/inlet. A
+typical value is the default. It uses a prime sequence and the size
+parameter expands the delay times., f 55;
+#X connect 0 0 5 0;
+#X connect 1 0 4 0;
+#X connect 4 0 10 0;
+#X connect 5 0 2 0;
+#X connect 6 0 8 0;
+#X connect 8 0 9 0;
+#X connect 9 0 7 0;
+#X connect 10 0 3 0;
+#X connect 14 0 17 0;
+#X connect 15 0 16 0;
+#X connect 16 0 19 0;
+#X connect 17 0 19 1;
+#X connect 19 0 21 0;

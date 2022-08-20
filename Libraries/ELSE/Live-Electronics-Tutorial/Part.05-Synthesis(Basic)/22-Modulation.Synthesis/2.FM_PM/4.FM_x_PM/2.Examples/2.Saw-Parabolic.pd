@@ -1,0 +1,111 @@
+#N canvas 333 37 893 572 12;
+#X declare -path else;
+#X obj 546 365 *~;
+#X obj 170 137 nbx 5 14 -1e+37 1e+37 0 0 empty mod empty 0 -8 0 10
+-228856 -1 -1 1 256;
+#X obj 314 163 nbx 8 14 -1e+37 1e+37 0 0 empty index_pm empty 0 -8
+0 10 -261682 -1 -1 5 256;
+#X obj 170 172 t b f;
+#X obj 224 190 v mod;
+#X obj 202 223 s \$0-mod;
+#X obj 528 399 +~;
+#X obj 60 156 nbx 5 14 -1e+37 1e+37 0 0 empty carrier empty 0 -8 0
+10 -228856 -1 -1 440 256;
+#X obj 60 186 s \$0-carrier;
+#X obj 452 340 r \$0-carrier;
+#X obj 72 350 r \$0-carrier;
+#X obj 314 191 s \$0-i_pm;
+#X obj 423 163 nbx 8 14 -1e+37 1e+37 0 0 empty index_fm empty 0 -8
+0 10 -261234 -1 -1 31.4159 256;
+#X obj 423 191 s \$0-i_fm;
+#X obj 270 328 r \$0-i_fm;
+#X floatatom 270 387 0 0 0 0 - - -;
+#X obj 188 348 r \$0-i_pm;
+#X obj 683 329 r \$0-i_pm;
+#X floatatom 683 380 0 0 0 0 - - -;
+#X obj 607 368 r \$0-i_fm;
+#X obj 541 153 r \$0-mod;
+#X obj 610 148 tgl 30 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 72 447 sine~;
+#X obj 72 485 out~;
+#X obj 528 483 out~;
+#X obj 188 393 f2s~ 50;
+#X obj 607 414 f2s~ 50;
+#X obj 528 446 sine~;
+#X text 318 138 PM index;
+#X text 427 138 FM index;
+#X text 167 114 Mod;
+#X text 57 131 Carrier;
+#X msg 683 409 \; index_fm set \$1;
+#N canvas 157 23 468 365 Parabola 0;
+#X obj 102 60 inlet~;
+#X obj 161 189 *~;
+#X obj 179 60 inlet~;
+#X obj 252 288 outlet~;
+#X obj 252 238 *~;
+#X text 182 38 index;
+#X obj 210 132 changed2~;
+#X text 281 226 change direction according to sawtooth's, f 16;
+#X text 36 132 Parabola;
+#X obj 102 132 pow~ 2;
+#X connect 0 0 6 0;
+#X connect 0 0 9 0;
+#X connect 1 0 4 0;
+#X connect 2 0 1 1;
+#X connect 4 0 3 0;
+#X connect 6 1 4 1;
+#X connect 9 0 1 0;
+#X restore 104 419 pd Parabola;
+#X msg 270 414 \; index_pm set \$1;
+#X obj 104 386 r~ \$0-saw;
+#X obj 546 326 r~ \$0-saw;
+#X obj 590 232 s~ \$0-saw;
+#X obj 590 201 vsaw~ 0 0;
+#X text 649 155 invert polatiry;
+#X text 85 302 Phase Modulation (Parabola), f 16;
+#X obj 170 252 s index_pm;
+#X obj 730 207 initmess \; carrier 440 \; mod 1 \; index_pm 10;
+#X text 448 288 Frequency Modulation (Sawtooth), f 20;
+#X obj 270 353 expr $f1 / (4*mod);
+#X obj 683 354 expr $f1 * (4*mod);
+#X text 37 32 A PM being modulated by a parabola is the same as an
+FM modulated by sawtooth. To adjust the index for the FM we also multiply
+by the modulator frequency. But we also need to multiply it by a factor
+of four.;
+#X obj 699 18 declare -path else;
+#X text 481 52 Rather than using an oscillator for the PM \, we just
+turn the saw wave into a parabola by raising to the power of two. You
+can invert the polarity of the sawtooth with the toggle. Test it.,
+f 51;
+#X connect 0 0 6 1;
+#X connect 1 0 3 0;
+#X connect 2 0 11 0;
+#X connect 3 0 41 0;
+#X connect 3 1 4 0;
+#X connect 3 1 5 0;
+#X connect 6 0 27 0;
+#X connect 7 0 8 0;
+#X connect 9 0 6 0;
+#X connect 10 0 22 0;
+#X connect 12 0 13 0;
+#X connect 14 0 44 0;
+#X connect 15 0 34 0;
+#X connect 16 0 25 0;
+#X connect 17 0 45 0;
+#X connect 18 0 32 0;
+#X connect 18 0 26 0;
+#X connect 19 0 26 0;
+#X connect 20 0 38 0;
+#X connect 21 0 38 1;
+#X connect 22 0 23 0;
+#X connect 25 0 33 1;
+#X connect 26 0 0 1;
+#X connect 27 0 24 0;
+#X connect 33 0 22 2;
+#X connect 35 0 33 0;
+#X connect 36 0 0 0;
+#X connect 38 0 37 0;
+#X connect 44 0 15 0;
+#X connect 44 0 25 0;
+#X connect 45 0 18 0;

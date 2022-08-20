@@ -70,7 +70,7 @@ b0 \;;
 #X obj 173 87 r \$0-Q;
 #X obj 87 54 loadbang;
 #X obj 87 156 outlet;
-#X obj 87 127 else/bicoeff eq 750 1 12;
+#X obj 87 127 else/bicoeff2 eq 750 1 12;
 #X obj 254 89 r \$0-G;
 #X connect 0 0 4 0;
 #X connect 1 0 4 1;

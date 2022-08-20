@@ -1,0 +1,40 @@
+#N canvas 588 65 552 540 12;
+#X declare -path else;
+#X obj 92 203 vsl 22 80 0 127 0 0 dsfsdgs sddfjhgj empty 0 -9 0 10
+-228856 -1 -1 3974 1;
+#X obj 309 301 mtof;
+#X obj 309 279 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 38.1119 256;
+#X obj 187 150 nbx 5 14 5 500 1 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 5 256;
+#X obj 309 160 vsl 22 80 0 127 0 0 dsfsdgs sddfjhgj empty 0 -9 0 10
+-228856 -1 -1 5340 1;
+#X obj 92 326 osc~;
+#X obj 92 177 lfo 0.25 0 250;
+#X obj 92 298 rescale 200 500;
+#X obj 309 328 bl.tri~;
+#X obj 309 254 rescale 30 42;
+#X obj 309 134 lfo 5.3 0 270 -tri;
+#X obj 92 355 plate.rev~ 50 0.6 0.5 0.8 0.6, f 18;
+#X obj 309 359 plate.rev~ 50 0.6 0.5 0.8 0.6, f 18;
+#X obj 357 31 declare -path else;
+#X obj 326 414 out~;
+#X obj 109 411 out~;
+#X text 51 74 The [lfo] object has a refresh rate which can also be
+considered as a sample and hold. These are examples taken from its
+help file. Open the help file for more details., f 66;
+#X connect 0 0 7 0;
+#X connect 1 0 8 0;
+#X connect 2 0 1 0;
+#X connect 3 0 6 2;
+#X connect 4 0 9 0;
+#X connect 5 0 11 0;
+#X connect 6 0 0 0;
+#X connect 7 0 5 0;
+#X connect 8 0 12 0;
+#X connect 9 0 2 0;
+#X connect 10 0 4 0;
+#X connect 11 0 15 0;
+#X connect 11 1 15 1;
+#X connect 12 0 14 0;
+#X connect 12 1 14 1;

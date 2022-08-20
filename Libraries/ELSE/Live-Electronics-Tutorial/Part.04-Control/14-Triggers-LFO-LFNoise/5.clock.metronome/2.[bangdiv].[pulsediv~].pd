@@ -1,0 +1,89 @@
+#N canvas 297 27 900 495 12;
+#X declare -path else;
+#X obj 665 26 declare -path else;
+#X obj 99 225 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X text 264 293 rest;
+#X msg 43 224 reset;
+#X obj 99 265 bangdiv 4;
+#X obj 99 189 metro 1 120 permin;
+#X obj 99 156 tgl 18 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 244 294 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 99 300 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 81 374 *~;
+#X obj 81 407 out~;
+#X obj 35 332 brown~;
+#X obj 244 343 decay~ 100;
+#X obj 226 377 *~;
+#X obj 187 341 noise~;
+#X obj 99 340 decay~ 300;
+#X obj 434 334 b;
+#X obj 347 291 display;
+#X obj 347 254 count 1 4;
+#X obj 347 222 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 347 186 metro 1 120 permin;
+#X obj 347 153 tgl 18 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 347 367 impseq~;
+#X obj 434 367 impseq~;
+#X obj 347 411 out~;
+#X obj 347 333 select 1;
+#X text 20 22 The [bangdiv] is a sort of 'clock divider'. As mentioned
+in the last example \, in the context of modular synthesizers \, clocks
+output triggers at a given rate. So we can consider bangs to be a clock
+source and then [bangdiv] will divide it. In the example below \, it
+only lets one at every 4 bangs to come out. The other bangs come out
+at a secondary outlet though and you can use this to create rhythymic
+patterns. One way to implement a bang divider is presented to the right
+with a counter and [select]., f 76;
+#X obj 572 367 out~;
+#X obj 728 200 imp~ 1;
+#X obj 728 260 pulsediv~ 4;
+#X obj 581 270 pulsecount~ 4;
+#X obj 581 330 match~ 1;
+#X obj 728 306 decay~ 100;
+#X obj 710 340 *~;
+#X obj 710 371 out~;
+#X text 601 66 The [pulsediv~] object is a signal counterpart that
+divides signal triggers (an impulse in the example below). The objects
+[pulsecount~] and [match~] also implement the same idea., f 31;
+#X obj 671 304 brown~;
+#X obj 581 299 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 1 0 4 0;
+#X connect 3 0 4 0;
+#X connect 4 0 8 0;
+#X connect 4 1 7 0;
+#X connect 5 0 1 0;
+#X connect 6 0 5 0;
+#X connect 7 0 12 0;
+#X connect 8 0 15 0;
+#X connect 9 0 10 0;
+#X connect 11 0 9 0;
+#X connect 12 0 13 1;
+#X connect 13 0 10 1;
+#X connect 14 0 13 0;
+#X connect 15 0 9 1;
+#X connect 16 0 23 0;
+#X connect 17 0 25 0;
+#X connect 18 0 17 0;
+#X connect 19 0 18 0;
+#X connect 20 0 19 0;
+#X connect 21 0 20 0;
+#X connect 22 0 24 0;
+#X connect 23 0 24 1;
+#X connect 25 0 22 0;
+#X connect 25 1 16 0;
+#X connect 28 0 29 0;
+#X connect 28 0 30 0;
+#X connect 29 0 32 0;
+#X connect 30 0 37 0;
+#X connect 31 0 27 0;
+#X connect 31 1 27 1;
+#X connect 32 0 33 1;
+#X connect 33 0 34 0;
+#X connect 36 0 33 0;
+#X connect 37 0 31 0;

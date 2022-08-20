@@ -1,0 +1,140 @@
+#N canvas 421 69 867 518 12;
+#X declare -path else;
+#X floatatom 557 194 0 0 0 0 - - -;
+#X floatatom 557 86 0 0 0 0 - - -;
+#X obj 560 63 hsl 200 15 0 7 0 0 empty slider empty -2 -8 0 10 -228856
+-1 -1 0 0;
+#X obj 557 170 tabread4 lagrange;
+#N canvas 316 50 432 348 tabread_larange 0;
+#X obj 71 114 t b f;
+#X obj 250 214 v frac;
+#X obj 136 214 v a;
+#X obj 164 214 v b;
+#X obj 193 214 v c;
+#X obj 222 214 v d;
+#X obj 301 214 v i;
+#X obj 136 121 expr lagrange[i - 1] \; lagrange[i] \; lagrange[i +
+1] \; lagrange[i + 2] \; $f1 - i \; int($f1);
+#X obj 144 97 s index;
+#X obj 136 72 clip 1 6;
+#X obj 71 22 inlet;
+#X obj 72 298 outlet;
+#X obj 72 252 expr b + frac * (c - b - 0.5 / 3 * (1-frac) * ((d - a
+- 3*(c-b)) * frac + (d + 2*a - 3*b))), f 45;
+#X connect 0 0 12 0;
+#X connect 0 1 9 0;
+#X connect 7 0 2 0;
+#X connect 7 1 3 0;
+#X connect 7 2 4 0;
+#X connect 7 3 5 0;
+#X connect 7 4 1 0;
+#X connect 7 5 6 0;
+#X connect 9 0 7 0;
+#X connect 9 0 8 0;
+#X connect 10 0 0 0;
+#X connect 12 0 11 0;
+#X restore 575 116 pd tabread_larange;
+#X floatatom 575 141 0 0 0 0 - - value4;
+#X obj 547 246 cnv 15 198 198 empty empty empty 20 12 0 14 -216373
+-66577 0;
+#X obj 571 246 cnv 15 124 198 empty \$0-dot . 3 132 0 40 -249661 -258113
+0;
+#X text 552 443 |;
+#X text 679 443 |;
+#X text 556 443 _____________________;
+#X text 576 453 |;
+#X text 703 453 |;
+#X text 576 449 |;
+#X text 576 443 |;
+#X text 703 449 |;
+#X text 703 444 |;
+#X text 730 453 |;
+#X text 730 449 |;
+#X text 730 444 |;
+#X text 603 453 |;
+#X text 603 449 |;
+#X text 603 443 |;
+#X text 510 462 0 = n-3;
+#X text 748 461 n-2 = 1;
+#X text 749 474 n-1 = 2;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array lagrange 8 float 2;
+#X coords 0 1 8 -1 200 200 1;
+#X restore 546 245 graph;
+#X text 512 447 copy:;
+#X text 744 446 copies:;
+#N canvas 632 229 387 369 plot 0;
+#X msg 76 273 label_pos \$2 \$1;
+#X obj 76 247 pack;
+#X obj 42 159 r value;
+#X obj 42 185 * -100;
+#X obj 107 167 / 7;
+#X obj 107 143 r index;
+#X obj 42 212 + 90;
+#X obj 106 221 - 13;
+#X obj 106 194 * 200;
+#X obj 76 301 s \$0-lin;
+#X msg 231 267 label_pos \$2 \$1;
+#X obj 231 241 pack;
+#X obj 271 161 / 7;
+#X obj 231 295 s \$0-dot;
+#X obj 197 179 * -100;
+#X obj 271 136 r index;
+#X obj 197 143 r value4;
+#X obj 197 206 + 87;
+#X obj 270 215 - 37;
+#X obj 270 187 * 176;
+#X obj 80 38 initmess \; lagrange 0 0.9 -0.1 -0.5 0.3 0.6 0.9 -0.1
+-0.5, f 24;
+#X connect 0 0 9 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 3 0 6 0;
+#X connect 4 0 8 0;
+#X connect 5 0 4 0;
+#X connect 6 0 1 0;
+#X connect 7 0 1 1;
+#X connect 8 0 7 0;
+#X connect 10 0 13 0;
+#X connect 11 0 10 0;
+#X connect 12 0 19 0;
+#X connect 14 0 17 0;
+#X connect 15 0 12 0;
+#X connect 16 0 14 0;
+#X connect 17 0 11 0;
+#X connect 18 0 11 1;
+#X connect 19 0 18 0;
+#X restore 693 226 pd plot;
+#X text 51 118 In this example we have 8 points (n = 8) \, where indexes
+are from 0 to 7 \, but the actual indexes are 1 to 5! The first (0)
+and last two (6-7) are used for interpolation and are also called "guard
+points"., f 60;
+#X text 580 453 ______________________;
+#X text 51 182 The index 0 needs to be a copy of the last actual index
+(5 or "n-3") \, whereas the last two (n-2 & n-1 \, "6" and "7" in this
+case) need to be copies of the first two (respectively \, index "1"
+and "2").;
+#X text 51 245 The idea is to be able to "loop" between the indexes
+1 and n-2 ("6"). Thus \, when you reach index 6 it is the same as index
+1 \, and in between index 5 and 6 the method looks ahead 2 points that
+are copies of the first two. On the other hand \, when in between index
+1 and 2 \, it looks 2 points back.;
+#X text 52 330 The array to the right is set to display in "points"
+\, but since it is quite a small table \, we see lines rather than
+points. The actual "points" would be in the beginning of the lines.
+Anyway \, move the slider and see the interpolation result in the red
+dot.;
+#X text 51 411 The [pd lagrange] subpatch calculates the interpolation.
+You can compare the result with the output of [tabread4] to see that
+they match.;
+#X obj 680 20 declare -path else;
+#X text 51 42 The native objects [tabread4] \, [tabread4~] and [tabosc4~]
+plus the [table~] and [tabplayer~] objects from ELSE use a 4-point
+polynomial method ("lagrange" to be more specific). When calculating
+a fractional index value \, it considers 2 points after and 2 points
+earlier., f 60;
+#X connect 1 0 3 0;
+#X connect 1 0 4 0;
+#X connect 2 0 1 0;
+#X connect 3 0 0 0;
+#X connect 4 0 5 0;

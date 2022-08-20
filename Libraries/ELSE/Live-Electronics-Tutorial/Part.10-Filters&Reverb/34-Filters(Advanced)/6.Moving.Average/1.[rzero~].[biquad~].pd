@@ -1,0 +1,49 @@
+#N canvas 384 23 982 723 12;
+#X declare -path else;
+#X obj 478 55 vsl 22 157 0 1.1 0 0 \$0-gain-send \$0-gain empty 0 -9
+0 10 #404040 #fc0400 #000000 0 1;
+#X obj 485 103 cnv 5 5 5 empty empty G 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 485 119 cnv 5 5 5 empty empty A 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 485 135 cnv 5 5 5 empty empty I 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 485 155 cnv 5 5 5 empty empty N 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 819 18 declare -path else;
+#X obj 54 441 s \$0-coeffs;
+#X msg 54 379 0 0 0.5 0.5 0;
+#X msg 73 409 0 0 0.333333 0.333333 0.333333;
+#X obj 52 505 biplot;
+#X obj 52 477 r \$0-coeffs;
+#X text 159 378 average of 2 samples;
+#X text 297 401 average of 3 samples, f 10;
+#X obj 125 218 *~ 0.5;
+#X obj 125 194 rzero~ 1;
+#X text 180 219 average of 2 samples.;
+#X text 192 194 input minus last sample;
+#X text 22 127 We can use then a [rzero~] object to get the difference
+between two samples with a coefficient of 1 \, then we get the average
+by dividing by 2 (or multiplying by 0.5)., f 62;
+#X obj 500 53 zbiplot;
+#X obj 500 8 r \$0-coeffs;
+#X obj 500 31 insert coeffs;
+#X msg 478 31 \$3, f 2;
+#X text 35 255 Below we can implement derive this filter with coefficients
+of a biquad filter and see how an average of 2 samples result in a
+single Zero at the nyquist frequency. We can also get the average of
+3 samples in a biquad system \, then we get a complex Zero at 2/3 of
+the nyquist (14.7Khz in 44.1Khz sample rate). We're using again [biplot]
+object from ELSE to plot the filer's response and [zbiplot] to plot
+the zeros., f 62;
+#X text 22 21 We've seen how to use [fexpr~] to implement a moving
+average filter. We've also seen a moving average filter of 2 samples
+in the first section on filters and used it in the feedback phase modulation
+sine. Here we'll see other ways to implement it. First \, it is important
+to note this filter has no feedback coefficients \, so it only has
+zeros (no poles). It's also a kind of lowpass filter as previously
+stated., f 62;
+#X connect 7 0 6 0;
+#X connect 8 0 6 0;
+#X connect 10 0 9 0;
+#X connect 14 0 13 0;
+#X connect 19 0 20 0;
+#X connect 19 0 21 0;
+#X connect 20 0 18 0;
+#X connect 21 0 0 0;

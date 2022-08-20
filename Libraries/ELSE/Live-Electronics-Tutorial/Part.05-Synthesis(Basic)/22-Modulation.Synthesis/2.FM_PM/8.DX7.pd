@@ -1,0 +1,79 @@
+#N canvas 338 23 969 482 12;
+#X declare -path else;
+#X floatatom 376 117 5 0 0 0 - freq5 -;
+#X text 414 117 freq_5;
+#X floatatom 386 138 5 0 1 0 - index_5 -;
+#X text 424 137 index_5;
+#X floatatom 397 160 5 0 0 0 - freq6 -;
+#X floatatom 408 182 5 0 1 0 - index_6 -;
+#X text 435 161 freq_6;
+#X text 447 182 index_6;
+#X obj 76 226 *~;
+#X floatatom 40 75 5 0 0 0 - freq1 -;
+#X floatatom 94 178 5 0 1 0 - index_1 -;
+#X text 76 75 freq_1;
+#X text 132 178 index_1;
+#X floatatom 53 102 5 0 0 0 - freq2 -;
+#X text 90 102 freq_2;
+#X text 103 128 index_2;
+#X obj 244 218 *~;
+#X floatatom 206 68 5 0 0 0 - freq3 -;
+#X floatatom 219 93 5 0 0 0 - freq4 -;
+#X text 244 68 freq_3;
+#X text 300 170 index_3;
+#X text 259 93 freq_4;
+#X text 270 118 index_4;
+#X floatatom 66 128 5 0 1 0 - index_2 -;
+#X floatatom 262 170 5 0 1 0 - index_3 -;
+#X floatatom 232 118 5 0 1 0 - index_4 -;
+#X obj 376 206 xmod~;
+#X obj 40 183 pmosc~;
+#X obj 206 170 pmosc~;
+#X obj 376 302 graph~ 500 8;
+#N canvas 214 45 908 644 DX7_patches 0;
+#X obj 21 10 pic 0 ./files/DX7.gif empty empty 0;
+#X restore 706 373 pd DX7_patches;
+#N canvas 382 430 267 286 init 0;
+#X obj 71 58 initmess \; freq1 100 \; index_1 0.3 \; freq2 200.1 \;
+index_2 0.2 \; freq3 149.7 \; index_3 0.3 \; freq4 300.2 \; index_4
+0.5 \; freq5 50 \; index_5 0.25 \; freq6 99.5 \; index_6 0.2 \;;
+#X restore 509 250 pd init;
+#X text 534 71 The DX7 was the first digital synth of great comercial
+success. Famous for being a FM synth \, it's actually implemented as
+phase modulation. It has 6 sine wave oscillators \, each has a frequency
+and amplitude (index) parameter. The oscillators are organized in 32
+patches (or presets). This example recreates patch number 6 \, from
+the diagram below., f 55;
+#X text 629 322 The subpatch below contain the diagrams for all DX7's
+32 patches!, f 34;
+#X obj 66 151 f2s~ 10;
+#X obj 94 201 f2s~ 10;
+#X obj 232 140 f2s~ 10;
+#X obj 262 192 f2s~ 10;
+#X obj 720 34 declare -path else;
+#X obj 244 326 out~;
+#X obj 711 171 pic 0 ./files/ex6.gif empty empty 0;
+#X connect 0 0 26 0;
+#X connect 2 0 26 1;
+#X connect 4 0 26 2;
+#X connect 5 0 26 3;
+#X connect 8 0 39 0;
+#X connect 8 0 29 0;
+#X connect 9 0 27 0;
+#X connect 10 0 35 0;
+#X connect 13 0 27 1;
+#X connect 16 0 39 0;
+#X connect 16 0 29 0;
+#X connect 17 0 28 0;
+#X connect 18 0 28 1;
+#X connect 23 0 34 0;
+#X connect 24 0 37 0;
+#X connect 25 0 36 0;
+#X connect 26 0 39 0;
+#X connect 26 0 29 0;
+#X connect 27 0 8 0;
+#X connect 28 0 16 0;
+#X connect 34 0 27 2;
+#X connect 35 0 8 1;
+#X connect 36 0 28 2;
+#X connect 37 0 16 1;

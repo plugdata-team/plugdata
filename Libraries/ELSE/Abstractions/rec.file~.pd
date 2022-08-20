@@ -18,11 +18,11 @@
 #X obj 29 123 != 0;
 #X obj 265 162 route bang;
 #X obj 304 224 savepanel;
-#X obj 353 157 click;
-#X obj 304 315 pack2;
+#X obj 353 157 else/click;
+#X obj 304 315 else/pack2;
 #X msg 331 278 set \$1;
 #X msg 397 282 set \$1;
-#X obj 412 257 sr~;
+#X obj 412 257 else/sr~;
 #X msg 304 342 open -rate \$1 \$2 \, start;
 #X obj 29 87 route float fade;
 #X msg 75 303 fade \$1;
@@ -105,7 +105,7 @@
 #X restore 65 89 pd messages;
 #X obj 65 54 inlet;
 #N canvas 582 257 784 489 dynamic-patching 0;
-#X obj 200 180 loop;
+#X obj 200 180 else/loop;
 #X obj 200 258 + 20;
 #X obj 200 203 t f f, f 6;
 #X obj 211 391 s \$0-sampler;
@@ -114,13 +114,13 @@
 #N canvas 626 174 570 538 load_args 0;
 #X obj 75 37 inlet;
 #X obj 311 192 s \$0-filename;
-#X obj 395 154 dir 1;
+#X obj 395 154 else/dir 1;
 #X msg 414 206 set \$1;
 #X obj 414 182 makefilename %s/%%s;
 #X obj 311 127 t s b;
 #X obj 414 233 s \$0-set-path;
-#X obj 75 141 args;
-#X obj 75 195 break -;
+#X obj 75 141 else/args;
+#X obj 75 195 else/break -;
 #X obj 249 191 v ch_\$0;
 #X msg 249 164 1;
 #X obj 75 169 trigger abything bang;
@@ -141,7 +141,7 @@
 #N canvas 47 74 450 300 check 0;
 #X obj 194 104 list split 1;
 #X obj 228 129 route bang;
-#X obj 194 162 swap2;
+#X obj 194 162 else/swap2;
 #X obj 131 76 route float;
 #X obj 131 39 inlet;
 #X obj 131 217 outlet;
@@ -159,7 +159,7 @@
 #N canvas 47 74 450 300 check 0;
 #X obj 194 104 list split 1;
 #X obj 228 129 route bang;
-#X obj 194 162 swap2;
+#X obj 194 162 else/swap2;
 #X obj 131 76 route float;
 #X obj 131 39 inlet;
 #X obj 131 217 outlet;
@@ -206,7 +206,7 @@
 #X connect 28 0 25 0;
 #X restore 268 87 pd load_args;
 #X obj 200 87 v ch_\$0;
-#X obj 133 57 loadbanger -init 3;
+#X obj 133 57 else/loadbanger -init 3;
 #X obj 129 384 s \$0-fade;
 #X msg 129 356 fade \$1;
 #X obj 102 292 v fade_\$0;
@@ -216,7 +216,7 @@
 #X obj 200 112 trigger float float;
 #X obj 269 256 + 1;
 #X obj 298 250 + 11;
-#X msg 354 312 obj 150 225 autofade~ 10 \$1 \, obj 150 280 writesf~
+#X msg 354 312 obj 150 225 else/autofade~ 10 \$1 \, obj 150 280 writesf~
 \$1 \, connect 2 0 8 0 \, connect 3 0 9 0 \, obj 5 50 inlet \, connect
 10 0 0 0, f 46;
 #X connect 0 0 2 0;

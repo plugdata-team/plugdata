@@ -1,0 +1,94 @@
+#N canvas 405 75 820 620 12;
+#X declare -path else;
+#X obj 129 480 *~;
+#X obj 84 418 osc~ 440;
+#X obj 262 402 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 319 401 ms;
+#X obj 160 389 tgl 25 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 553 473 *~;
+#X obj 481 386 osc~ 440;
+#X obj 673 216 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 648 214 ms;
+#X text 143 99 Fade In / Out;
+#X obj 571 208 tgl 25 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X msg 619 306 sin;
+#X msg 623 327 sqrt;
+#X msg 615 285 quartic;
+#X msg 627 347 hann;
+#X msg 630 367 lin;
+#X msg 633 388 hannsin;
+#X msg 636 408 linsin;
+#X obj 129 527 out~;
+#X obj 160 427 float2sig~ 2000;
+#X obj 160 454 pow~ 4;
+#X obj 240 527 vsl 15 70 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 553 510 out~;
+#X obj 571 243 float2sig~ 2000;
+#X obj 571 441 fader~ lin;
+#X obj 157 202 *~;
+#X obj 78 136 osc~ 440;
+#X obj 277 135 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 334 134 ms;
+#X obj 175 120 tgl 25 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 157 242 out~;
+#X obj 175 161 float2sig~ 2000;
+#X obj 271 240 vsl 15 70 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 677 521 vsl 15 70 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 376 472 setdsp~ 1;
+#X text 287 162 fade time;
+#X text 436 153 We'll see more about these fading functions later on
+\, but you can learn more by checking the "help" file., f 50;
+#X obj 271 214 s2f~;
+#X obj 240 500 s2f~;
+#X obj 677 491 s2f~;
+#X obj 610 35 declare -path else;
+#X text 23 19 We've seen short fade ins/outs to avoid clicks in the
+mute/unmute example. This can be done with [line~] or [float2sig~]
+and the examples here take longer for a proper fade in/out - but note
+these only provide linear fades., f 55;
+#X text 39 327 Below we generate a non linear quartic fade (by raising
+to the power of 4). This is the curve we normally use for gain adjustments.
+, f 48;
+#X text 436 84 The [fade~] object from ELSE provides seven fading functions
+including linear and quartic. The input values are from 0 to 1 and
+the argument specifies which function to use (linear by default).,
+f 50;
+#X connect 0 0 18 0;
+#X connect 1 0 0 0;
+#X connect 2 0 19 1;
+#X connect 4 0 19 0;
+#X connect 5 0 22 0;
+#X connect 6 0 5 0;
+#X connect 7 0 23 1;
+#X connect 10 0 23 0;
+#X connect 11 0 24 0;
+#X connect 12 0 24 0;
+#X connect 13 0 24 0;
+#X connect 14 0 24 0;
+#X connect 15 0 24 0;
+#X connect 16 0 24 0;
+#X connect 17 0 24 0;
+#X connect 19 0 20 0;
+#X connect 20 0 0 1;
+#X connect 20 0 38 0;
+#X connect 23 0 24 0;
+#X connect 24 0 5 1;
+#X connect 24 0 39 0;
+#X connect 25 0 30 0;
+#X connect 26 0 25 0;
+#X connect 27 0 31 1;
+#X connect 29 0 31 0;
+#X connect 31 0 25 1;
+#X connect 31 0 37 0;
+#X connect 37 0 32 0;
+#X connect 38 0 21 0;
+#X connect 39 0 33 0;

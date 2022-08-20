@@ -1,55 +1,56 @@
-#N canvas 515 62 558 511 10;
-#X obj 204 158 noise~;
+#N canvas 515 62 558 507 10;
+#X obj 205 148 noise~;
 #X obj 301 163 hsl 128 15 10 44100 1 0 empty empty empty -2 -8 0 10
--228856 -1 -1 0 1;
-#X obj 205 252 else/out~;
-#X obj 2 3 cnv 15 301 42 empty empty downsample~ 20 20 2 37 -233017
--1 0;
+#dcdcdc #000000 #000000 0 1;
+#X obj 205 242 else/out~;
+#X obj 2 3 cnv 15 301 42 empty empty downsample~ 20 20 2 37 #e0e0e0
+#000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 3 graph;
-#X obj 23 40 cnv 4 4 4 empty empty Downsample 0 28 2 18 -233017 -1
+#X obj 23 40 cnv 4 4 4 empty empty Downsample 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 125 40 cnv 4 4 4 empty empty a 0 28 2 18 -233017 -1 0;
-#X obj 140 40 cnv 4 4 4 empty empty signal 0 28 2 18 -233017 -1 0;
-#X obj 3 485 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+#X obj 125 40 cnv 4 4 4 empty empty a 0 28 2 18 #e0e0e0 #000000 0;
+#X obj 140 40 cnv 4 4 4 empty empty signal 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 320 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 3 397 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 3 434 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+#X obj 3 479 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 92 373 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+#X obj 3 310 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 391 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 3 428 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 92 367 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 160 329 signal;
-#X obj 93 406 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+#X text 169 317 signal;
+#X obj 93 400 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 92 329 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
+#X obj 92 319 cnv 17 3 42 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 124 375 float/signal;
-#X text 216 328 - signal to be downsampled;
-#X text 209 407 - downsampled signal;
-#X text 160 406 signal;
-#X text 148 443 1) float;
-#X text 215 376 - rate (in hertz) used to downsample the input signal
+#X text 133 369 float/signal;
+#X text 216 316 - signal to be downsampled;
+#X text 215 401 - downsampled signal;
+#X text 169 400 signal;
+#X text 157 437 1) float;
+#X text 215 370 - rate (in hertz) used to downsample the input signal
 ;
 #X obj 298 187 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #N canvas 357 108 802 350 example 0;
 #X obj 199 192 else/sh~;
 #X obj 147 109 noise~;
 #X obj 247 97 hsl 128 15 -44100 44100 0 0 empty empty empty -2 -8 0
-10 -228856 -1 -1 0 1;
+10 #dcdcdc #000000 #000000 0 1;
 #X obj 199 227 else/out~;
 #X obj 244 126 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X obj 518 141 noise~;
 #X obj 572 93 hsl 128 15 441 44100 1 0 empty empty empty -2 -8 0 10
--228856 -1 -1 0 1;
+#dcdcdc #000000 #000000 0 1;
 #X obj 518 229 else/out~;
 #X obj 569 122 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X obj 569 155 phasor~;
 #X obj 518 188 samphold~;
 #X obj 244 159 else/imp~;
@@ -73,40 +74,46 @@ use negative frequencies.;
 #X connect 10 0 7 0;
 #X connect 11 0 0 1;
 #X connect 15 0 14 0;
-#X restore 457 288 pd example;
+#X restore 457 278 pd example;
 #X text 382 188 frequency in Hz;
 #X text 84 95 [downsample~] samples a signal received in the left inlet
 at a frequency rate in hertz. It can operate with or without interpolation.
 ;
-#X text 148 463 1) float;
-#X text 215 463 - interpolation 0 (off \, default) or 1 (on);
+#X text 157 457 1) float;
+#X text 215 457 - interpolation 0 (off \, default) or 1 (on);
 #X msg 130 179 interp \$1;
-#X obj 130 152 tgl 16 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
-1;
-#X text 112 349 interp <float>;
-#X text 216 348 - interpolation 0 (off \, default) or 1 (on);
-#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+#X obj 130 152 tgl 16 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 121 348 interp <float>;
+#X text 216 347 - interpolation 0 (off \, default) or 1 (on);
+#X obj 305 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 304 3 pd;
-#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+#X obj 344 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
 0;
-#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+#X obj 457 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+#X obj 477 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+#X obj 514 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+#X obj 463 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+#X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #X obj 205 211 else/downsample~;
-#X text 215 443 - rate in hertz (default is Pd's sample rate);
+#X text 215 437 - rate in hertz (default is Pd's sample rate);
+#X obj 222 178 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X text 245 179 sync;
+#X text 181 332 bang;
+#X text 216 331 - restart cycle and sync output;
 #X connect 0 0 40 0;
 #X connect 1 0 22 0;
 #X connect 22 0 40 1;
 #X connect 28 0 40 0;
 #X connect 29 0 28 0;
 #X connect 40 0 2 0;
+#X connect 42 0 40 0;

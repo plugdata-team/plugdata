@@ -1,0 +1,118 @@
+#N canvas 227 51 1034 576 12;
+#X declare -path else;
+#X obj 231 495 random 100;
+#X obj 231 451 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 335 495 random 100;
+#X msg 335 445 seed 123;
+#X obj 231 526 display;
+#X obj 335 527 display;
+#X obj 103 492 noise~;
+#X obj 103 527 print~;
+#X obj 74 494 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X msg 103 459 seed 3e+06;
+#X text 433 178 <= set seed;
+#X obj 217 264 downsample~ 1;
+#X obj 366 264 downsample~ 1;
+#X obj 569 147 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 569 220 display;
+#X obj 569 189 rand.i 20 50;
+#X obj 676 188 rand.i~ 20 50;
+#X obj 794 147 bng 16 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 794 219 display;
+#X obj 794 188 rand.f 20 50;
+#X obj 902 187 rand.f~ 20 50;
+#X msg 676 147 seed 500;
+#X msg 902 147 seed 500;
+#X obj 815 17 declare -path else;
+#X obj 902 221 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 676 222 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 217 298 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 366 298 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 54 286 downsample~ 1;
+#X obj 54 200 downsample~ 1;
+#X obj 54 311 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 54 225 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 54 175 pink~ -seed 1039;
+#X obj 54 261 pink~ -seed 1039;
+#X msg 366 179 seed 507;
+#X msg 217 179 seed;
+#X obj 217 230 brown~ -seed 507;
+#X obj 366 230 brown~ -seed 507;
+#X text 46 16 Random generators usually have a "seed" parameter \,
+used to generate an initial random value. If two different instances
+of the same object have the same seed \, they can be synced together
+to generate the same sequence. As an example \, we set the seed of
+[pink~] and [brown~] \, which go through [downsample~] and become low
+frequency noise generators. We could also use [gray~] \, [noise~] and
+[white~] to downsample and use as low frequency noise (or random number)
+generators at audio rate. White noise is a true random generator \,
+where the output values are supposed to have the same probability.
+, f 67;
+#X text 42 346 The objects from ELSE generate a unique seed every time
+you open the patch \, unlike Vanilla objects. You can set the seed
+with a flag or a message \, a single "seed" message gets a unique seed
+again. The native objects [noise~] \, [random] and [array random] also
+take a seed value via a seed message:;
+#X msg 828 147 seed;
+#X msg 602 147 seed;
+#X text 559 56 These random generators from ELSE also take a seed parameter
+in the same way and can be used instead to generate random values at
+control or signal rate (which can be triggered by an impulse).;
+#X obj 806 498 gbman~;
+#X obj 755 499 henon~;
+#X obj 702 500 ikeda~;
+#X obj 756 417 latoocarfian~;
+#X obj 813 474 cusp~;
+#X obj 696 418 lorenz~;
+#X obj 696 440 standard~;
+#X obj 769 439 lincong~;
+#X obj 696 474 quad~;
+#X obj 741 474 logistic~;
+#X text 603 274 The chaotic generators do no have a seed \, but similarly
+you can set the initial state of the system by. Since they can also
+be set to generate output at a given rate in hertz \, we can relate
+them to the low frequency noise/random generators \, but it is important
+to note these aren't random generators and the initial state is just
+somewhat related then., f 45;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 1 0 2 0;
+#X connect 2 0 5 0;
+#X connect 3 0 0 0;
+#X connect 3 0 2 0;
+#X connect 6 0 7 0;
+#X connect 8 0 7 0;
+#X connect 9 0 6 0;
+#X connect 9 0 8 0;
+#X connect 11 0 26 0;
+#X connect 12 0 27 0;
+#X connect 13 0 15 0;
+#X connect 13 0 16 0;
+#X connect 15 0 14 0;
+#X connect 16 0 25 0;
+#X connect 17 0 19 0;
+#X connect 17 0 20 0;
+#X connect 19 0 18 0;
+#X connect 20 0 24 0;
+#X connect 21 0 15 0;
+#X connect 21 0 16 0;
+#X connect 22 0 19 0;
+#X connect 22 0 20 0;
+#X connect 28 0 30 0;
+#X connect 29 0 31 0;
+#X connect 32 0 29 0;
+#X connect 33 0 28 0;
+#X connect 34 0 36 0;
+#X connect 34 0 37 0;
+#X connect 35 0 36 0;
+#X connect 35 0 37 0;
+#X connect 36 0 11 0;
+#X connect 37 0 12 0;
+#X connect 40 0 19 0;
+#X connect 40 0 20 0;
+#X connect 41 0 15 0;
+#X connect 41 0 16 0;

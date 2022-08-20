@@ -13,14 +13,14 @@
 #X msg 96 134 size \$1;
 #X text 272 261 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 274 242 Alexandre Torres Porres (2018);
-#X obj 156 238 glide~ 10;
-#X obj 156 211 op~ >=;
-#X obj 76 170 mov.rms~ -db 256;
+#X obj 156 238 else/glide~ 10;
+#X obj 156 211 else/op~ >=;
+#X obj 76 170 else/mov.rms~ -db 256;
 #X obj 378 171 list split 1;
 #X obj 412 194 route bang;
 #X obj 380 81 declare -path else;
 #X obj 241 84 loadbang;
-#X obj 241 107 args -;
+#X obj 241 107 else/args -;
 #X connect 0 0 5 0;
 #X connect 1 0 14 1;
 #X connect 2 0 14 1;

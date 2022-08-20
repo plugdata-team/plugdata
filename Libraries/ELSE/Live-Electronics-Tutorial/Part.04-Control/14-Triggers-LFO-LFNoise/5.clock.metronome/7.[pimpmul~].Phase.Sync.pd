@@ -1,0 +1,88 @@
+#N canvas 361 28 901 552 12;
+#X declare -path else;
+#X obj 155 30 declare -path else;
+#X obj 473 215 pimp~ 1;
+#X obj 539 252 pimpmul~ 1;
+#X floatatom 606 221 5 0 0 0 - - - 0;
+#X msg 606 169 1;
+#X msg 638 169 1.5;
+#X msg 671 169 2;
+#X msg 573 169 0.5;
+#X obj 609 200 hsl 128 15 0.5 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 627 333 *~;
+#X obj 501 359 out~;
+#X obj 501 322 *~;
+#X obj 626 250 osc~ 440;
+#X obj 461 285 noise~;
+#X obj 519 298 decay~ 100;
+#X obj 645 309 decay~ 250;
+#X obj 608 471 phasor~;
+#X obj 608 495 sin~;
+#X obj 683 471 phasor~;
+#X text 130 453 Note that you can use [phasor~] in conjunction to [table~]
+and other objects to generate many wabveforms and also envelopes or
+even play samples as we'll see in the next sections. So don't think
+that this is only useful if you need impulses or phase ramps!, f 64
+;
+#X obj 683 494 table~;
+#X text 613 441 for instance:;
+#X msg 721 148 4/3;
+#X obj 721 172 frac2dec;
+#X floatatom 204 225 5 0 0 0 - - - 0;
+#X obj 92 213 sig~ 1;
+#X msg 204 187 1;
+#X obj 92 348 out~;
+#X obj 92 313 zerocross~;
+#X obj 179 313 zerocross~;
+#X obj 179 250 *~ 1;
+#X obj 92 281 sine~;
+#X obj 179 282 sine~;
+#X msg 236 187 1.5;
+#X msg 269 187 2;
+#X msg 171 187 0.5;
+#X text 39 70 Like two [metro] objects \, if you have 2 LFOs in sync
+and multiply the frequency of one by a factor \, it's just impossible
+to keep it in sync. If you change back it will also not work. Try it
+below., f 44;
+#X text 200 162 multiplier;
+#X text 384 14 One way to deal with this is to rely on the phase and
+manipulate it directly with [pimpmul~] (pimp~ multiplier) from ELSE
+that multiplies (or divides if the value is inverted) for phase and
+it works for either [phasor~] or [pimp~]. Like [pimp~] \, the [pimpmul~]
+object has a right outlet that outputs an impulse at period transitions.
+Since an impulse is a trigger \, you can think of this as a [clock]
+object at a signal rate and [pimpmul~] as a synced clock multiplier
+for signal rate. You can also generate polyrhythms with this. Check
+its help file., f 70;
+#X connect 1 0 2 0;
+#X connect 1 1 14 0;
+#X connect 2 1 15 0;
+#X connect 3 0 2 1;
+#X connect 4 0 8 0;
+#X connect 5 0 8 0;
+#X connect 6 0 8 0;
+#X connect 7 0 8 0;
+#X connect 8 0 3 0;
+#X connect 9 0 10 1;
+#X connect 11 0 10 0;
+#X connect 12 0 9 0;
+#X connect 13 0 11 0;
+#X connect 14 0 11 1;
+#X connect 15 0 9 1;
+#X connect 16 0 17 0;
+#X connect 18 0 20 0;
+#X connect 22 0 23 0;
+#X connect 23 0 8 0;
+#X connect 24 0 30 1;
+#X connect 25 0 30 0;
+#X connect 25 0 31 0;
+#X connect 26 0 24 0;
+#X connect 28 0 27 0;
+#X connect 29 0 27 1;
+#X connect 30 0 32 0;
+#X connect 31 0 28 0;
+#X connect 32 0 29 0;
+#X connect 33 0 24 0;
+#X connect 34 0 24 0;
+#X connect 35 0 24 0;

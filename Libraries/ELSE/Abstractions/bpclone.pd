@@ -6,11 +6,11 @@
 #X text 317 87 Alexandre Torres Porres (2017);
 #X text 319 151 This is an abstraction used on the [bpbank~] object
 , f 27;
-#X obj 49 129 bandpass~;
+#X obj 49 129 else/bandpass~;
 #X obj 49 35 inlet~ fwd;
-#X obj 161 94 f2s~;
-#X obj 89 94 f2s~;
-#X obj 236 94 f2s~;
+#X obj 161 94 else/f2s~;
+#X obj 89 94 else/f2s~;
+#X obj 236 94 else/f2s~;
 #X obj 131 57 route freq q amp ramp;
 #X obj 363 60 declare -path else;
 #X connect 1 0 0 0;

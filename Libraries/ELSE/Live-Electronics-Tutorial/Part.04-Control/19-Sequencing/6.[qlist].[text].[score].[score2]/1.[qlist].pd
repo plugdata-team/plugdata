@@ -1,0 +1,77 @@
+#N canvas 490 59 677 602 12;
+#X declare -path else;
+#X obj 440 377 mtof;
+#X obj 496 446 *~;
+#X obj 440 346 trigger f b;
+#X msg 75 434 tempo \$1;
+#X obj 121 519 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 188 529 spigot;
+#X obj 277 534 tgl 15 0 empty loop empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 295 533 loop;
+#X obj 440 292 r note;
+#X obj 514 382 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 156 502 qlist;
+#X obj 514 414 decay2~ 50 500;
+#X obj 496 478 out~;
+#X text 35 315 Check the help file of [qlist] for more information.
+, f 30;
+#X obj 440 407 bl.tri~;
+#X obj 474 41 declare -path else;
+#X obj 277 502 loadbang;
+#X msg 193 466 rewind;
+#X text 245 466 <= rewind and stop;
+#X obj 177 436 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 200 435 <= start;
+#X msg 42 373 0.5;
+#X msg 75 373 1;
+#X msg 107 373 2;
+#X text 135 372 change the tempo;
+#X floatatom 75 408 5 0.1 5 0 - - - 0;
+#X obj 440 321 nbx 3 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X text 34 167 Open "seq.txt" (in the "files" subfolder of this patch's
+folder) to check how it works. Note that there's also a time value
+at the end of the file with no message attached. This acts like a pause
+\, and [qlist] waits for it before sending a bang to tell us the sequence
+is done. We use this bang to loop the sequence. You can also click
+on the [qlist] object to see and edit its contents., f 50;
+#X text 198 503 <= click;
+#X obj 156 406 initmess read seq.txt;
+#X text 34 77 The [qlist] object can store sequences in a text. The
+text format starts with a number representing a time in ms. Then we
+need a "send" symbol \, and in the patch a [receive] object with this
+symbol to get the messages. Finally \, we have the message to be sent
+to this destination., f 50;
+#X text 425 104 The [qlist] object is also used in the audio examples
+of Pd Vanilla (D11.samplepoly.pd to D13.additive.qlist.pd), f 23;
+#X text 431 228 [r note] gets messages from [qlist]., f 13;
+#X text 34 15 In this section we'll look into [qlist] and [text] as
+vanilla solutions for sequencing. The [qlist] object is rather obsolete
+and one should just use [text sequence] now \, but let's check it out.
+, f 50;
+#X connect 0 0 14 0;
+#X connect 1 0 12 0;
+#X connect 2 0 0 0;
+#X connect 2 1 9 0;
+#X connect 3 0 10 0;
+#X connect 4 0 10 0;
+#X connect 5 0 4 0;
+#X connect 6 0 5 1;
+#X connect 8 0 26 0;
+#X connect 9 0 11 0;
+#X connect 10 1 5 0;
+#X connect 11 0 1 1;
+#X connect 14 0 1 0;
+#X connect 16 0 6 0;
+#X connect 17 0 10 0;
+#X connect 19 0 10 0;
+#X connect 21 0 25 0;
+#X connect 22 0 25 0;
+#X connect 23 0 25 0;
+#X connect 25 0 3 0;
+#X connect 26 0 2 0;
+#X connect 29 0 10 0;

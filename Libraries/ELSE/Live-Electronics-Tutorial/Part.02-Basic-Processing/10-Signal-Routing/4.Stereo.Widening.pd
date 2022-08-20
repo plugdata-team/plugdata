@@ -1,0 +1,63 @@
+#N canvas 378 23 913 587 12;
+#X declare -path else;
+#X obj 749 246 *~ -1;
+#X obj 97 391 s~ \$0-sample;
+#X obj 662 211 r~ \$0-sample;
+#X obj 98 436 r~ \$0-sample;
+#X obj 648 404 r~ \$0-sample;
+#X obj 561 277 out~;
+#X text 27 120 But first let's understand how we listen. We have two
+ears pointed to opposite direction. Our brain can perceive when a sound
+source reaches both of our ears \, and the delay from when it arrives
+to one ear and the other gives us a cue on where the sound source is
+located. A good stereo microphone recording places the microphones
+in a way to achieve this imaging effect., f 61;
+#X obj 262 403 hsl 128 15 7 21 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 259 425 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 185 470 ffdelay~ 21;
+#X text 27 234 Hass effect:;
+#X text 486 40 Polarity inversion:;
+#X text 486 71 While we're on the subject \, if you have a stereo track
+that you sum together into a mono source \, you can have cancelling
+issues. One way out is to invert or flip the polarity of one of the
+tracks. This is just multiplying by -1 and deals with cancelling issues.
+, f 55;
+#X text 485 148 Conversely \, we can also get one mono input and create
+a widened stereo effect by inverting the polarity of one of the tracks.
+See the difference below., f 55;
+#X obj 735 438 ffdelay~ 20;
+#X text 496 351 Now \, this is Pd and the crazy world of live electronic
+music \, why not do both? Have some fun!, f 39;
+#X obj 735 465 *~ -1;
+#X obj 259 445 f2s~ 10 7;
+#X obj 713 26 declare -path else;
+#X obj 97 365 play.file~ bubul.wav 1 1;
+#X obj 648 494 out~;
+#X obj 662 276 out~;
+#X obj 98 498 out~;
+#X text 27 42 Stereo widening is any technique that increases the perceived
+stereo width or spread of a signal into the stereo field. Panning is
+one such technique \, but this example shows you other cheap and dirty
+tricks to create stereo images from mono sources., f 61;
+#X text 27 258 This is a delay trick \, also known as the "Hass effect"
+\, implemented by simply duplicating a mono signal but delaying one
+of the outputs. Try delay values from 7 to 21 ms as in the example
+below \, which is a good range for the haas effect (but you go wilder
+if you want)., f 61;
+#X connect 0 0 21 1;
+#X connect 2 0 0 0;
+#X connect 2 0 5 0;
+#X connect 2 0 21 0;
+#X connect 3 0 9 0;
+#X connect 3 0 22 0;
+#X connect 4 0 14 0;
+#X connect 4 0 20 0;
+#X connect 7 0 8 0;
+#X connect 8 0 17 0;
+#X connect 9 0 22 1;
+#X connect 14 0 16 0;
+#X connect 16 0 20 1;
+#X connect 17 0 9 1;
+#X connect 19 0 1 0;

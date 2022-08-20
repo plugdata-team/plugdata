@@ -1,0 +1,103 @@
+#N canvas 331 70 943 632 12;
+#X obj 212 415 bng 15 250 50 0 empty empty empty 0 -6 0 8 -262144 -1
+-1;
+#X text 203 392 [bng];
+#X obj 73 261 vsl 15 80 0 127 0 0 empty empty empty 0 -8 0 8 -262144
+-1 -1 0 1;
+#X text 48 220 [vslider];
+#X obj 164 246 hsl 128 15 0 127 0 0 empty empty empty -2 -6 0 8 -262144
+-1 -1 0 1;
+#X obj 69 445 tgl 15 0 empty empty empty 0 -6 0 8 -262144 -1 -1 0 1
+;
+#X obj 76 533 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 0 256;
+#X text 85 509 [nbx];
+#X obj 164 333 hradio 15 1 0 8 empty empty empty 0 -6 0 10 -262144
+-1 -1 5;
+#X obj 337 243 vradio 15 1 0 8 empty empty empty 0 -6 0 10 -262144
+-1 -1 0;
+#X text 188 309 [hradio];
+#X text 320 219 [vradio];
+#X obj 325 444 vu 15 120 empty empty -1 -8 0 10 -66577 -1 1 0;
+#X text 321 421 [vu];
+#X obj 184 523 cnv 15 100 60 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 59 396 [toggle];
+#X text 31 176 iemguis from the PUT Menu and their object names:;
+#X text 50 238 or [vsl];
+#X text 168 225 [hslider] or [hsl];
+#X obj 73 357 print vsl;
+#X obj 161 270 print hsl;
+#X obj 164 358 print hradio;
+#X obj 69 468 print tgl;
+#X obj 76 557 print nbx;
+#X text 59 418 or [tgl];
+#X obj 212 441 print bng;
+#X obj 337 374 print vradio;
+#X obj 622 245 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 10
+10;
+#X obj 622 275 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+-1 -262144 -1 10 256;
+#X obj 622 213 bng 15 250 50 1 empty empty init 0 -6 0 12 -257070 -1
+-160712;
+#X floatatom 574 201 1 0 0 0 - - -;
+#X obj 737 251 hsl 128 15 1.27 127 1 0 empty empty logarhythmic 4 -12
+0 14 -228856 -1 -205449 0 1;
+#X obj 734 275 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+-1 -262144 -1 0 256;
+#X msg 734 202 -100;
+#X obj 539 412 cnv 15 290 200 empty empty empty 20 12 0 14 -99347 -66577
+0;
+#X obj 563 442 hsl 230 40 0 127 0 0 empty empty empty -2 -6 0 8 -228856
+-1 -1 0 1;
+#X obj 710 501 hradio 30 1 0 3 empty empty empty 0 -6 0 10 -196021
+-1 -1 2;
+#X obj 560 554 nbx 7 30 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 18
+-150 -262144 -1 0 256;
+#X obj 710 554 nbx 4 30 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 18
+-160 -262144 -1 0 256;
+#X text 186 481 [my_canvas];
+#X text 207 500 or [cnv];
+#X obj 507 287 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 1
+1;
+#X obj 507 256 loadbang;
+#X text 476 323 A canvas GUI ([my_canvas] or [cnv]) is useful for colorful
+backgrounds (see below). But note that the order it is created defines
+the layers \, so you need to create or recreate what you want to put
+in front of it. The [vu] is to be used with an object that reports
+rms and peak amplitude values., f 61;
+#X text 29 20 Besides atom number boxes \, Pd has more built-in graphical
+user interface (or “GUIs”) \, useful to develop interfaces. These
+are the second group of elements in the Put Menu and are also referred
+to as "iemguis" as they were originally externals developed at IEM
+(Institute for Electronic Music) in Graz. You can also create them
+from object boxes (unlike messages \, number/symbol atom boxes and
+comments). These GUIs have more properties setting like color and size.
+Right click for properties and also check their help files., f 57
+;
+#X text 774 202 outside range;
+#X text 457 19 Sliders and number boxes can behave logarithmically.
+A toggle can have a different value for an "on" state and its state
+changes when it receives a bang. Note that an atom number box with
+a width of only 1 digit behaves like a toggle. Incoming values are
+passed through even though they're outside the range. All of these
+objects but [cnv] and [vu] have a special "init" property \, in which
+it outputs the last saved value when the patch is loaded. For the bang
+GUI ([bng]) \, "init" sends a bang at initialization - which \, by
+the way \, is the same as using a [loadbang] object (as it sends a
+bang when the patch is loaded)., f 61;
+#X text 438 200 number atom box => with 1 digit width, f 19;
+#X connect 0 0 25 0;
+#X connect 2 0 19 0;
+#X connect 4 0 20 0;
+#X connect 5 0 22 0;
+#X connect 6 0 23 0;
+#X connect 8 0 21 0;
+#X connect 9 0 26 0;
+#X connect 27 0 28 0;
+#X connect 29 0 27 0;
+#X connect 31 0 32 0;
+#X connect 33 0 31 0;
+#X connect 35 0 37 0;
+#X connect 36 0 38 0;
+#X connect 42 0 41 0;

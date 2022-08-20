@@ -1,38 +1,40 @@
 #N canvas 570 53 562 476 10;
-#X obj 4 281 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 358 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 393 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+#X obj 4 281 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 115 367 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 116 290 cnv 17 3 35 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 4 426 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+#X obj 4 358 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+#X obj 4 393 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 115 367 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 116 290 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 426 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
 0;
-#X obj 23 40 cnv 4 4 4 empty empty Pulse 0 28 2 18 -233017 -1 0;
-#X obj 70 40 cnv 4 4 4 empty empty counter 0 28 2 18 -233017 -1 0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+#X obj 23 40 cnv 4 4 4 empty empty Pulse 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+#X obj 70 40 cnv 4 4 4 empty empty counter 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 -228856 -128992
--262144 0 1;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
 #N canvas 977 77 379 291 set_color 0;
@@ -101,7 +103,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 -228856 -128992
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -114,8 +116,8 @@
 #X obj 136 86 snapshot~;
 #X obj 91 52 del 5;
 #X obj 136 151 outlet;
-#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
 #X obj 74 126 switch~;
 #X connect 0 0 2 0;
 #X connect 1 0 3 0;
@@ -135,28 +137,26 @@
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 61 pd;
 #X obj 78 183 osc~ 1;
-#X obj 171 155 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#X obj 171 155 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
 #X text 174 289 signal;
-#X obj 116 332 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+#X obj 116 332 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 174 331 signal;
 #X text 218 289 - trigger signal to count;
 #X text 174 367 signal;
 #X text 218 367 - the trigger count;
-#X obj 3 3 cnv 15 301 42 empty empty pulsecount~ 20 20 2 37 -233017
--1 0;
+#X obj 3 3 cnv 15 301 42 empty empty pulsecount~ 20 20 2 37 #e0e0e0
+#000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 3 graph;
 #X text 218 331 - an impulse resets counter to zero;
 #X obj 171 183 else/impseq~;
-#X obj 78 246 else/display~;
 #X obj 78 214 else/pulsecount~;
-#X obj 429 156 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#X obj 429 156 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
 #X obj 429 184 else/impseq~;
-#X obj 324 247 else/display~;
 #X obj 324 184 else/imp~ 1;
 #X obj 324 215 else/pulsecount~ 4;
 #X text 64 86 [pulsecount~] counts pulse triggers. A trigger happens
@@ -167,16 +167,18 @@ value (if greater than 0).;
 ;
 #X msg 274 184 max \$1;
 #X obj 274 159 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X text 144 306 max <float>;
 #X text 218 306 - sets maximum count value;
-#X connect 17 0 30 0;
+#X obj 78 246 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 324 246 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 17 0 29 0;
 #X connect 18 0 28 0;
-#X connect 28 0 30 1;
-#X connect 30 0 29 0;
-#X connect 31 0 32 0;
-#X connect 32 0 35 1;
-#X connect 34 0 35 0;
-#X connect 35 0 33 0;
-#X connect 38 0 35 0;
-#X connect 39 0 38 0;
+#X connect 28 0 29 1;
+#X connect 29 0 40 0;
+#X connect 30 0 31 0;
+#X connect 31 0 33 1;
+#X connect 32 0 33 0;
+#X connect 33 0 41 0;
+#X connect 36 0 33 0;
+#X connect 37 0 36 0;

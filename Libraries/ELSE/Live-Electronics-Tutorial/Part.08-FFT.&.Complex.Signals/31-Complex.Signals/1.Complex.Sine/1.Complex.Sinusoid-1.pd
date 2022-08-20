@@ -1,0 +1,86 @@
+#N struct 1004-point float x0 float y0 float size float fg float in
+float grid;
+#N canvas 537 38 829 720 12;
+#X declare -path else;
+#X obj 209 196 hsl 128 15 0.05 1 1 1 empty amp empty -2 -8 0 10 -228856
+-1 -1 11480 1;
+#X text 241 179 Amplitude;
+#X obj 79 166 hsl 128 15 0.05 2.5 1 0 empty hz empty -2 -8 0 10 -228856
+-1 -1 5225 1;
+#X floatatom 90 190 5 0 0 0 - - -;
+#X text 106 145 Hertz;
+#X floatatom 221 219 5 0 0 0 - - -;
+#X text 380 70 To turn a real signal into a complex signal \, all we
+need to do is add the imaginary part \, which is a copy of the real
+signal \, but with a phase quadrature difference of (90 degrees). A
+complex sine is then composed of two sine waves with this phase difference.
+, f 54;
+#N canvas 752 208 347 379 Complex-Sinusoid 0;
+#X obj 170 46 inlet;
+#X text 177 25 Amp;
+#X obj 152 172 *~;
+#X obj 119 172 *~;
+#X msg 120 299 set \$1 \$2;
+#X obj 120 246 pack2;
+#X obj 120 272 changed;
+#X obj 120 327 outlet;
+#X obj 67 45 inlet;
+#X obj 68 87 phasor~;
+#X obj 68 123 cos~;
+#X obj 107 123 sin~;
+#X obj 119 197 s2f~ 10;
+#X obj 152 218 s2f~ 10;
+#X text 71 25 Hz;
+#X obj 210 107 initmess \; pd dsp 1 \; hz 0.25 \; amp 0.75;
+#X connect 0 0 2 1;
+#X connect 0 0 3 1;
+#X connect 2 0 13 0;
+#X connect 3 0 12 0;
+#X connect 4 0 7 0;
+#X connect 5 0 6 0;
+#X connect 6 0 4 0;
+#X connect 8 0 9 0;
+#X connect 9 0 10 0;
+#X connect 9 0 11 0;
+#X connect 10 0 3 0;
+#X connect 11 0 2 0;
+#X connect 12 0 5 0;
+#X connect 13 0 5 1;
+#X restore 76 219 pd Complex-Sinusoid;
+#X obj 600 31 declare -path else;
+#X obj 76 361 circle 127 -1 1 -1 1 2 225 225 225 230 230 230 1 0 0
+1 1 0 -0.0568445 0.747843 empty empty 1;
+#X obj 244 270 pic 0 gif/complex-sine.gif empty empty 0 0;
+#X text 329 563 === Projection in Time ===>;
+#X text 406 498 Cosine;
+#X text 426 369 Sine;
+#N canvas 782 158 606 667 animation 0;
+#X text 98 20 Here we have an animation of the projection of the complex
+sine in two dimensions. Note how they are out of phase by 90 degrees.
+, f 59;
+#N canvas 616 23 739 842 animation 0;
+#X obj 101 201 pic 0 ./gif/sc-frame29.gif empty \$0-pic 1 0;
+#X obj 101 134 count 1 29;
+#X obj 101 106 tempo 250 -ms -on;
+#X obj 101 163 format open ./gif/sc-frame%02d.gif;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X connect 3 0 0 0;
+#X coords 0 -1 1 1 502 535 2 100 200;
+#X restore 49 96 pd animation;
+#X restore 380 666 pd animation;
+#X text 255 627 Open this subpatch for a gif animation of the complex
+sinusoid, f 22;
+#X text 28 39 A complex signal has a real and imaginary part. The output
+of a FTT is a complex signal \, but in the frequency domain. Now we're
+talking about a complex signal in the time domain \, which is totally
+different., f 43;
+#X text 380 151 The [circle] GUI represents the complex sine in a cartesian
+plane \, with the real part in the horizontal axis and the imaginary
+part in the vertical axis. By adding a third dimension of time we have
+a helicoidal projection of this complex sinusoid., f 54;
+#X connect 0 0 7 1;
+#X connect 0 0 5 0;
+#X connect 2 0 3 0;
+#X connect 2 0 7 0;
+#X connect 7 0 9 0;

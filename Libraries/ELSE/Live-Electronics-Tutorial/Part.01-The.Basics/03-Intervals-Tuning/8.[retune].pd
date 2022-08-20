@@ -1,0 +1,93 @@
+#N canvas 434 112 932 576 12;
+#X declare -path else;
+#X obj 708 43 declare -path else;
+#X obj 100 303 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 225 356 2 13;
+#X msg 233 378 2 7;
+#X text 249 332 <= bohlen-pierce;
+#X text 259 356 octave divide by 13;
+#X text 263 378 octave divide by 7;
+#X obj 217 404 expr pow($f1 \, 1/$f2);
+#X msg 217 334 3 13;
+#X obj 100 386 - 60;
+#X obj 132 470 + 60;
+#X obj 217 453 / 100;
+#X obj 217 429 ratio2cents;
+#X floatatom 157 356 5 0 0 0 - - - 0;
+#X text 162 376 base;
+#X obj 132 502 display;
+#X obj 217 310 loadbang;
+#X obj 100 420 *;
+#X floatatom 217 478 8 0 0 0 - - - 0;
+#X text 214 500 step in MIDI cents, f 10;
+#X obj 100 327 rand.i 40 80;
+#X floatatom 100 356 5 0 0 0 - - - 0;
+#X text 30 100 Let's take again the example of the Bohlen-Pierce scale.
+Since its scale step (about 146 cents) is larger than a semitone (100
+cents) \, eventually two adjacent picthes will approximate to the same
+pitch. Another issue is if we divide an octave by 13 steps \, since
+the steps are smaller \, one steps eventually cannot be approximated.
+With [retune] \, each incoming pitch retunes to a corresponding scale
+step., f 59;
+#X text 30 24 The [retune] object from ELSE is a bit different than
+[autotune]. It just remaps the keyboard input from a base value to
+the values of a given scale. For instance \, with a base value of 63
+\, it remaps to the third step regardless if the MIDI pitch 63 is closer
+to that step than the others.;
+#X text 30 206 Anyway \, for starters \, let's also check a simpler
+algorithm for retuning for the cases of equal divisions. It's quite
+similar to the previous example but much simpler \, we just need to
+get the difference in number of steps and multiply by the new step
+size.;
+#X obj 614 184 keyboard 17 80 2 3 0 0 empty empty;
+#X floatatom 614 300 4 0 0 0 - - - 0;
+#X obj 614 275 stripnote;
+#X obj 614 360 display 6;
+#X floatatom 531 251 5 0 0 0 - - - 0;
+#X msg 531 275 base \$1;
+#X obj 614 392 mtof;
+#X obj 614 422 osc~;
+#X obj 614 452 out~;
+#X obj 728 302 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 728 275 loadbang;
+#X obj 614 331 retune;
+#X text 486 84 The [retune] object is a bit more complex and checks
+the step value in a table. It's also somewhat less efficient if you're
+just using equally divided scales.;
+#X obj 728 371 eqdiv 13 3;
+#X msg 760 301 13 3;
+#X msg 768 323 13 2;
+#X msg 776 345 7 2;
+#X connect 1 0 20 0;
+#X connect 2 0 7 0;
+#X connect 3 0 7 0;
+#X connect 7 0 12 0;
+#X connect 8 0 7 0;
+#X connect 9 0 17 0;
+#X connect 10 0 15 0;
+#X connect 11 0 17 1;
+#X connect 11 0 18 0;
+#X connect 12 0 11 0;
+#X connect 13 0 9 1;
+#X connect 13 0 10 1;
+#X connect 16 0 8 0;
+#X connect 17 0 10 0;
+#X connect 20 0 21 0;
+#X connect 21 0 9 0;
+#X connect 25 0 27 0;
+#X connect 26 0 36 0;
+#X connect 27 0 26 0;
+#X connect 28 0 31 0;
+#X connect 29 0 30 0;
+#X connect 30 0 36 0;
+#X connect 31 0 32 0;
+#X connect 32 0 33 0;
+#X connect 34 0 38 0;
+#X connect 35 0 34 0;
+#X connect 36 0 28 0;
+#X connect 38 0 36 1;
+#X connect 39 0 38 0;
+#X connect 40 0 38 0;
+#X connect 41 0 38 0;

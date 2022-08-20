@@ -1,0 +1,123 @@
+#N canvas 503 60 730 479 12;
+#X declare -path else;
+#X obj 464 176 hradio 15 1 0 10 empty \$0-window empty 0 -8 0 10 -228856
+-1 -1 4;
+#X obj 464 224 nbx 5 14 64 1e+37 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 2048 256;
+#N canvas 150 61 493 184 Window 0;
+#X obj 134 116 s \$0-set-block;
+#X obj 134 41 inlet;
+#X msg 134 89 set \$1 4;
+#X obj 278 79 initmess \; \$0-window 4;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X coords 0 0 1 1 120 60 0;
+#X restore 464 246 pd Window;
+#X obj 464 199 expr pow(2 \, $f1 + 7);
+#X obj 103 69 s~ \$0-Phase;
+#X obj 429 118 s~ \$0-Amp;
+#X text 501 119 (or "filter");
+#N canvas 800 317 694 514 xsynth 0;
+#X obj 110 301 rifft~;
+#X obj 110 438 outlet~;
+#X obj 65 54 inlet~;
+#X obj 65 160 rfft~;
+#X obj 162 53 inlet~;
+#X obj 162 157 rfft~;
+#X obj 221 273 r \$0-set-block;
+#X obj 221 298 block~;
+#X text 51 151 A;
+#X text 151 153 B;
+#X obj 110 350 hann~;
+#X obj 65 104 hann~;
+#X obj 162 100 hann~;
+#X obj 65 210 car2pol~;
+#X obj 165 389 expr 1 / ($f1 * 1.5);
+#X obj 110 390 *~;
+#X text 65 25 Phase;
+#X text 169 24 Amp;
+#X obj 165 362 blocksize~;
+#X obj 105 264 pol2car~;
+#X obj 162 210 mag~;
+#X obj 407 270 rfft~;
+#X obj 465 436 rifft~;
+#X obj 465 396 *~;
+#X obj 504 396 *~;
+#X obj 522 270 rfft~;
+#X obj 407 351 /~;
+#X obj 439 352 /~;
+#X obj 457 319 mag~;
+#X obj 522 317 mag~;
+#X text 392 269 A;
+#X text 505 271 B;
+#X text 360 136 The ampltidues get normalized to 1 as we did before.
+This removes the amplitude information so when we multiply by the amplitudes
+of the second source (B) \, those amplitudes get through with the phase
+information of the first source (A)., f 37;
+#X text 361 38 Check to the left how we did this. The alternative below
+avoids the phase computation with atan2 and [car2pol~] and [poltocar~]
+objects. This is a bit more efficient and accurate., f 37;
+#X connect 0 0 10 0;
+#X connect 2 0 11 0;
+#X connect 3 0 13 0;
+#X connect 3 1 13 1;
+#X connect 4 0 12 0;
+#X connect 5 0 20 0;
+#X connect 5 1 20 1;
+#X connect 6 0 7 0;
+#X connect 10 0 15 0;
+#X connect 11 0 3 0;
+#X connect 12 0 5 0;
+#X connect 13 1 19 1;
+#X connect 14 0 15 1;
+#X connect 15 0 1 0;
+#X connect 18 0 14 0;
+#X connect 19 0 0 0;
+#X connect 19 1 0 1;
+#X connect 20 0 19 0;
+#X connect 21 0 26 0;
+#X connect 21 0 28 0;
+#X connect 21 1 27 0;
+#X connect 21 1 28 1;
+#X connect 23 0 22 0;
+#X connect 24 0 22 1;
+#X connect 25 0 29 0;
+#X connect 25 1 29 1;
+#X connect 26 0 23 0;
+#X connect 27 0 24 0;
+#X connect 28 0 26 1;
+#X connect 28 0 27 1;
+#X connect 29 0 23 1;
+#X connect 29 0 24 1;
+#X restore 498 351 pd xsynth;
+#X obj 448 315 r~ \$0-Phase;
+#X obj 558 315 r~ \$0-Amp;
+#X obj 498 390 out~;
+#X obj 76 380 out~;
+#X obj 269 380 out~;
+#X obj 76 335 r~ \$0-Phase;
+#X obj 269 336 r~ \$0-Amp;
+#X text 28 216 Remember that the phase information codifies the tonal
+quality of the input. We then have a tonal source for the phase information
+and a noisy speech for the amplitude (or filter control). Listen to
+both below and the crossed synthesized to the right, f 47;
+#X text 522 221 window size;
+#X obj 529 20 declare -path else;
+#X obj 103 39 play.file~ 1 kantele.wav 1 1;
+#X obj 429 76 play.file~ numbers.wav 1 1;
+#X text 28 119 We've seen how to implement a Cross synthesis Vocoder
+with filters \, now we do it with FFT by combining the phase output
+of a sound source to the amplitude of another. In the same way as a
+Vocoder \, the amplitude envelope can be considered as an equalizer/filter.
+, f 47;
+#X text 574 352 <= click;
+#X connect 0 0 3 0;
+#X connect 1 0 2 0;
+#X connect 3 0 1 0;
+#X connect 7 0 10 0;
+#X connect 8 0 7 0;
+#X connect 9 0 7 1;
+#X connect 13 0 11 0;
+#X connect 14 0 12 0;
+#X connect 18 0 4 0;
+#X connect 19 0 5 0;

@@ -1,0 +1,36 @@
+#N canvas 376 23 698 602 12;
+#X declare -path else;
+#X obj 485 12 declare -path else;
+#X text 56 52 "Perlin noise" is a 1-dimensional perlin noise generator.
+Perlin noise is usually used in multiple dimensions with digital visual
+applications to generate interesting landscape. Even though the primary
+application is not generating audio \, like [gray~] \, why not use
+it \, right? But audio is one dimentional \, so we need to simplify
+this algorithm to a single dimenstion in order to generate audioble
+results., f 85;
+#X obj 133 536 out~;
+#X obj 56 376 meter~;
+#X text 550 350 [spectograph~];
+#X floatatom 133 263 9 0 0 0 - - - 0;
+#X obj 136 235 hsl 128 15 0 22050 0 0 empty empty empty -2 -8 0 10
+#dfdfdf #000000 #000000 0 1;
+#X obj 363 373 spectrograph~ 1024 1 0 300 140 100;
+#X obj 133 373 graph~ 441 10 -1 1 200 140 #dfdfdf 0 1;
+#X msg 363 332 log \$1;
+#X obj 363 305 tgl 19 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 133 295 perlin~;
+#X text 56 135 Basically \, at periodic intervals a new random slope
+is chosen for zero crossing. Hence \, this is a low frequency noise
+generator \, and it grants more periodic zero crossings \, unlike other
+low frequency noise gererators that can have many random values without
+crossing the positive/negative line. The [perlin~] object takes frequencies
+up to Nyquist. Check its help file., f 85;
+#X connect 5 0 11 0;
+#X connect 6 0 5 0;
+#X connect 8 0 2 0;
+#X connect 9 0 7 0;
+#X connect 10 0 9 0;
+#X connect 11 0 3 0;
+#X connect 11 0 8 0;
+#X connect 11 0 7 0;

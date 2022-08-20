@@ -1,0 +1,169 @@
+#N canvas 278 23 857 637 12;
+#X declare -path else;
+#X obj 519 152 samplerate~;
+#X obj 596 181 /;
+#X msg 215 434 \; speed 8 \; cents -4200 \; grain 400;
+#X msg 94 437 \; speed -36 \; cents 200 \; grain 1000;
+#X msg 94 509 \; speed 8 \; cents -3400 \; grain 400;
+#X msg 94 365 \; speed 50 \; cents -4200 \; grain 100;
+#X msg 215 507 \; speed 4 \; cents -2400 \; grain 14;
+#X text 111 338 presets:;
+#X obj 216 340 loadbang;
+#X msg 216 365 \; speed 100 \; grain 25 \; cents 0;
+#X obj 519 126 t b f, f 14;
+#X text 657 207 sample frequency;
+#X obj 634 167 s \$0-size;
+#X obj 596 206 s \$0-Hz;
+#X text 27 29 In this example we can choose any grain size and have
+a quite different approach. The buffer is read by [pimp~] and [phasor~]
+objects \, one affects the pitch and the other the speed., f 57;
+#X text 27 92 These two are combined and need to be compensated for
+the desired result. We do that by subtracting the speed ratio from
+the transposition ratio.;
+#X text 27 142 The speed frequency is calculated by the speed ratio
+and the sample frequency. The transposition frequency needs to correspond
+to the grain size \, so we multiply the resulting ratio by the grain
+frequency \, obtained by the grain size., f 57;
+#X obj 295 275 gran.player~;
+#X text 27 225 Open [pd grain-1] for more details. Below we have some
+presets. The [gran.player~] object \, from ELSE \, is based on this
+patch \, check its help file:;
+#X obj 731 291 nbx 5 18 -1e+37 1e+37 0 0 empty speed empty 0 -8 0 13
+#dcdcdc #000000 #000000 0 256;
+#X obj 646 508 +~;
+#X obj 638 291 nbx 4 18 -1e+37 1e+37 0 0 empty cents empty 0 -8 0 13
+#dcdcdc #000000 #000000 0 256;
+#X text 594 292 Cents;
+#X obj 491 288 nbx 4 18 3 1e+37 0 0 empty grain empty 0 -8 0 13 #b8b8b8
+#000000 #000000 0 256;
+#X obj 661 362 -~;
+#X obj 643 388 *~;
+#X obj 646 544 out~;
+#X text 789 413 Hz;
+#X obj 638 319 cents2ratio;
+#X obj 518 321 expr 1000 / $f1;
+#X obj 491 379 ms2samps;
+#X text 490 265 size (ms);
+#X text 596 270 Transposition;
+#N canvas 830 88 536 467 grain-2 0;
+#X obj 211 223 +~;
+#X obj 141 194 *~;
+#X obj 306 371 *~;
+#X obj 306 399 outlet~;
+#X obj 229 94 inlet~;
+#X obj 159 171 sh~;
+#X obj 141 93 inlet~;
+#X obj 229 123 phasor~;
+#X obj 229 191 *~;
+#X obj 211 308 tabread4~ \$0-buffer, f 9;
+#X obj 211 282 wrap2~;
+#X obj 301 143 r \$0-size;
+#X obj 54 123 r~ \$0-samps;
+#X text 91 45 Same thing \, but [pimp~] is out of phase.;
+#X obj 141 123 pimp~ 0 0.5;
+#X obj 324 204 envelope~;
+#X connect 0 0 10 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 4 0 7 0;
+#X connect 5 0 1 1;
+#X connect 6 0 14 0;
+#X connect 7 0 8 0;
+#X connect 8 0 0 1;
+#X connect 9 0 2 0;
+#X connect 10 0 9 0;
+#X connect 11 0 8 1;
+#X connect 11 0 10 2;
+#X connect 12 0 5 0;
+#X connect 14 0 1 0;
+#X connect 14 0 15 0;
+#X connect 14 1 5 1;
+#X connect 15 0 2 1;
+#X restore 664 474 pd grain-2;
+#N canvas 178 37 576 564 grain-1 0;
+#X obj 249 329 +~;
+#X obj 194 300 *~;
+#X obj 344 477 *~;
+#X obj 344 505 outlet~;
+#X obj 267 170 inlet~;
+#X obj 212 277 sh~;
+#X obj 362 310 envelope~;
+#X obj 194 169 inlet~;
+#X obj 267 229 phasor~;
+#X obj 267 297 *~;
+#X obj 249 414 tabread4~ \$0-buffer, f 9;
+#X obj 249 388 wrap2~;
+#X obj 194 229 pimp~;
+#X obj 339 249 r \$0-size;
+#X obj 104 229 r~ \$0-samps;
+#X text 191 143 transp;
+#X text 268 142 speed;
+#X text 75 29 The speed frequency is multiplied by the sample length
+in samples. The transposition frequency is sent to a [pimp~] object
+\, which also controls the envelope. Its output is multiplied by the
+grain size in samples and summed to the speed output. Now both frequencies
+are combined and the sample is accessed.;
+#X obj 194 197 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 267 197 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 11 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 4 0 19 0;
+#X connect 5 0 1 1;
+#X connect 6 0 2 1;
+#X connect 7 0 18 0;
+#X connect 8 0 9 0;
+#X connect 9 0 0 1;
+#X connect 10 0 2 0;
+#X connect 11 0 10 0;
+#X connect 12 0 1 0;
+#X connect 12 0 6 0;
+#X connect 12 1 5 1;
+#X connect 13 0 9 1;
+#X connect 13 0 11 2;
+#X connect 14 0 5 0;
+#X connect 18 0 12 0;
+#X connect 19 0 8 0;
+#X restore 573 473 pd grain-1;
+#X obj 491 405 s~ \$0-samps;
+#X floatatom 518 346 5 0 0 0 - - - 0;
+#X text 384 346 Grain Frequency =>;
+#X obj 731 378 *~;
+#X obj 749 353 r \$0-Hz;
+#X text 732 268 Speed (%);
+#X text 594 413 transp;
+#X text 702 413 Hz;
+#X text 770 379 speed;
+#X obj 731 323 / 100;
+#X obj 669 27 declare -path else;
+#X obj 519 96 sample~ \$0-buffer voice.wav;
+#X obj 643 414 numbox~ 5 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 731 414 numbox~ 5 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 0 0 1 0;
+#X connect 1 0 13 0;
+#X connect 8 0 9 0;
+#X connect 10 0 0 0;
+#X connect 10 1 1 1;
+#X connect 10 1 12 0;
+#X connect 19 0 44 0;
+#X connect 20 0 26 0;
+#X connect 21 0 28 0;
+#X connect 23 0 29 0;
+#X connect 23 0 30 0;
+#X connect 24 0 25 1;
+#X connect 25 0 47 0;
+#X connect 28 0 24 0;
+#X connect 29 0 36 0;
+#X connect 30 0 35 0;
+#X connect 33 0 20 1;
+#X connect 34 0 20 0;
+#X connect 36 0 25 0;
+#X connect 38 0 48 0;
+#X connect 39 0 38 1;
+#X connect 44 0 24 1;
+#X connect 44 0 38 0;
+#X connect 46 0 10 0;
+#X connect 47 0 33 0;
+#X connect 47 0 34 0;
+#X connect 48 0 33 1;
+#X connect 48 0 34 1;

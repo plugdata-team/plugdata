@@ -1,0 +1,65 @@
+#N canvas 565 61 546 438 12;
+#X declare -path else;
+#N canvas 899 361 694 425 Compressor 0;
+#X obj 56 33 inlet~;
+#X obj 56 370 outlet~;
+#X obj 56 118 rfft~;
+#X obj 56 279 rifft~;
+#X obj 56 243 /~;
+#X obj 88 243 /~;
+#X obj 106 204 clip~ 1 1;
+#X obj 195 33 inlet;
+#X floatatom 195 206 5 0 0 0 - - -;
+#X floatatom 381 201 5 0 0 0 - - -;
+#X floatatom 195 78 5 0 100 0 - - -;
+#X obj 195 139 expr 1 - ($f1 / 100) \; if ($f1 <= 1 \, 1 \, $f1 * $f1)
+;
+#X text 393 146 <==;
+#X obj 106 166 mag~;
+#X obj 56 78 hann~;
+#X obj 56 308 hann~;
+#X obj 56 340 *~;
+#X obj 119 304 blocksize~;
+#X text 423 145 clip values to 1 or lets them through, f 19;
+#X obj 308 86 block~ 2048 4;
+#X obj 119 336 expr 1 / ($f1 * 4 * 0.375);
+#X connect 0 0 14 0;
+#X connect 2 0 4 0;
+#X connect 2 0 13 0;
+#X connect 2 1 5 0;
+#X connect 2 1 13 1;
+#X connect 3 0 15 0;
+#X connect 4 0 3 0;
+#X connect 5 0 3 1;
+#X connect 6 0 5 1;
+#X connect 6 0 4 1;
+#X connect 7 0 10 0;
+#X connect 10 0 11 0;
+#X connect 11 0 6 1;
+#X connect 11 0 8 0;
+#X connect 11 1 6 2;
+#X connect 11 1 9 0;
+#X connect 13 0 6 0;
+#X connect 14 0 2 0;
+#X connect 15 0 16 0;
+#X connect 16 0 1 0;
+#X connect 17 0 20 0;
+#X connect 20 0 16 1;
+#X restore 163 260 pd Compressor;
+#X obj 301 220 vsl 15 100 0 100 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 301 337 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 321 312 Original;
+#X obj 163 314 out~;
+#X text 320 212 Compressed/Normalized;
+#X text 62 66 This is basically the same as last example but we have
+a slider control to morph between the original and normalized or "compressed"
+output. The math is simple and relies on the [clip~] object.;
+#X text 95 260 click =>;
+#X obj 338 24 declare -path else;
+#X obj 163 175 play.file~ bubul.wav 1 1;
+#X connect 0 0 4 0;
+#X connect 1 0 2 0;
+#X connect 1 0 0 1;
+#X connect 9 0 0 0;
