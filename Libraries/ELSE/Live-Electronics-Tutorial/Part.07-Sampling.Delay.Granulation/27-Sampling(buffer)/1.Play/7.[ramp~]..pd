@@ -1,0 +1,74 @@
+#N canvas 376 84 841 492 12;
+#X declare -path else;
+#X obj 214 285 table \$0-buffer;
+#X obj 84 282 soundfiler, f 12;
+#X msg 165 310 \$1;
+#X obj 95 378 s \$0-hz;
+#X obj 95 352 /;
+#X obj 95 313 swap;
+#X obj 84 418 s \$0-size;
+#X obj 165 361 /;
+#X floatatom 165 392 5 0 0 0 - - - 0;
+#X obj 165 421 s \$0-ratio;
+#X text 75 187 Let's just use [soundfiler] again for a change:, f
+30;
+#X obj 643 33 declare -path else;
+#X obj 84 238 initmess read -resize sax.wav \$0-buffer, f 22;
+#X obj 197 361 sr~;
+#X text 227 361 <= Pd's sample rate;
+#X text 208 389 <= compensation ratio;
+#X obj 533 256 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 477 256 restart;
+#X obj 576 293 f2s~ 100 1;
+#X obj 566 334 ramp~;
+#X obj 566 404 out~;
+#X obj 675 297 r \$0-size;
+#X obj 576 267 *;
+#X obj 609 268 r \$0-ratio;
+#X obj 579 217 hsl 128 15 -2 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 576 243 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 566 370 tabread4~ \$0-buffer;
+#X text 436 71 You can give [ramp~] an increment value and "1" plays
+the file at original speed \, but you can give it other values to play
+in different speeds as in this example. The values are given by a slider
+n the range of -2 to 2 A value of 0.5 would be half the speed and 2
+twice as fast. Negative values read the sound in reverse. Note how
+this value is multiplied by the sample rate compensation here., f
+54;
+#X obj 165 334 t f b;
+#X text 194 309 <=;
+#X text 212 309 sound file's sample rate, f 12;
+#X text 31 23 This example shows how to use [ramp~] to drive [tabread4~]
+(or [table~]) instead of [phasor~]. Note we have a ratio parameter
+that is a compensation from the ratio between the sound file's sample
+rate and Pd's., f 53;
+#X text 31 99 The [ramp~] object from the ELSE library is a quite low
+level object that can be used for different purposes \, but one of
+its main purposes is to be used to drive [tabread4~] and/or [table~].
+, f 53;
+#X connect 1 0 5 0;
+#X connect 1 0 6 0;
+#X connect 1 1 2 0;
+#X connect 2 0 5 1;
+#X connect 2 0 28 0;
+#X connect 4 0 3 0;
+#X connect 5 0 4 0;
+#X connect 5 1 4 1;
+#X connect 7 0 8 0;
+#X connect 8 0 9 0;
+#X connect 12 0 1 0;
+#X connect 13 0 7 1;
+#X connect 16 0 19 0;
+#X connect 18 0 19 1;
+#X connect 19 0 26 0;
+#X connect 21 0 19 3;
+#X connect 22 0 18 0;
+#X connect 23 0 22 1;
+#X connect 24 0 25 0;
+#X connect 25 0 22 0;
+#X connect 26 0 20 0;
+#X connect 28 0 7 0;
+#X connect 28 1 13 0;

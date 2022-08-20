@@ -1,18 +1,18 @@
-#N canvas 518 33 560 424 10;
+#N canvas 530 37 564 446 10;
 #X obj 4 304 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 336 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 353 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 369 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 386 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 399 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 4 416 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 109 345 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 109 362 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 109 312 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 109 312 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 181 312 signal;
-#X text 181 345 signal;
+#X text 181 362 signal;
 #X obj 23 41 cnv 4 4 4 empty empty Hold 0 28 2 18 #e0e0e0 #000000 0
 ;
 #X obj 86 41 cnv 4 4 4 empty empty trigger 0 28 2 18 #e0e0e0 #000000
@@ -43,14 +43,13 @@
 #X obj 502 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #X obj 58 204 else/trighold~;
-#X obj 58 232 else/display~ 7;
-#X text 232 376 (none);
-#X text 230 345 - held trigger;
+#X text 232 393 (none);
+#X text 230 362 - held trigger;
 #X text 61 91 [trighold~] holds a trigger value. A trigger happens
 when a transition from 0 to non-zero occurs.;
 #X text 230 312 - trigger signal to be held;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -120,7 +119,7 @@ when a transition from 0 to non-zero occurs.;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -154,7 +153,7 @@ when a transition from 0 to non-zero occurs.;
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 61 pd;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -224,7 +223,7 @@ when a transition from 0 to non-zero occurs.;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -260,21 +259,26 @@ when a transition from 0 to non-zero occurs.;
 #X obj 58 172 else/dust2~ 5;
 #X obj 379 140 noise~;
 #X obj 379 175 *~;
-#X obj 379 200 else/display~ 7;
-#X obj 379 266 else/display~ 7;
 #X obj 421 173 else/pulse~ 1;
 #X obj 379 236 else/trighold~;
-#X obj 207 196 else/display~ 7;
-#X obj 207 262 else/display~ 7;
-#X obj 207 232 else/trighold~;
-#X obj 207 163 else/randpulse~ 1;
-#X connect 22 0 23 0;
-#X connect 30 0 22 0;
-#X connect 31 0 32 0;
-#X connect 32 0 33 0;
+#X obj 207 239 else/trighold~;
+#X obj 207 170 else/randpulse~ 1;
+#X obj 379 266 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 207 269 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 379 200 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 207 203 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 58 232 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X text 187 330 clear;
+#X text 230 330 - clear and set output to zero;
+#X msg 168 139 clear;
+#X connect 22 0 40 0;
+#X connect 29 0 22 0;
+#X connect 30 0 31 0;
+#X connect 31 0 38 0;
+#X connect 32 0 31 1;
 #X connect 33 0 36 0;
-#X connect 35 0 32 1;
-#X connect 36 0 34 0;
-#X connect 37 0 39 0;
-#X connect 39 0 38 0;
-#X connect 40 0 37 0;
+#X connect 34 0 37 0;
+#X connect 35 0 39 0;
+#X connect 38 0 33 0;
+#X connect 39 0 34 0;
+#X connect 43 0 34 0;

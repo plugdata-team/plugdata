@@ -1,0 +1,20 @@
+#N canvas 858 50 495 450 12;
+#X text 69 33 Now we'll combine \, for didactic purposes \, commas
+and semicolons \, just so it's clear what happens., f 48;
+#X msg 106 100 1st message \, second \; test 1 2 3 \, testing \; midinote
+66;
+#X obj 277 116 r test;
+#X obj 106 159 print message-box;
+#X obj 277 149 print test-message;
+#X text 47 283 Before the semicolon \, the message(s) go out to the
+outlet first (above we have two messages split by a comma). Once you
+have a semicocolon \, the message can only behave as a send \, and
+you can only change to a new send address with a new semicolon - so
+no more output to the outlet. A comma here splits the messages to the
+address defined by the symbol after the semicolon. Hence \, we get
+'1 2 3' and 'testing' in [r test]!, f 57;
+#X obj 194 203 r midinote;
+#X obj 194 236 print midinote;
+#X connect 1 0 3 0;
+#X connect 2 0 4 0;
+#X connect 6 0 7 0;

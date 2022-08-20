@@ -1,0 +1,126 @@
+#N canvas 661 92 829 738 12;
+#X declare -path else;
+#X obj 89 658 ftom;
+#X obj 171 619 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0
+10 -228856 -1 -1 0 256;
+#X text 139 656 =;
+#X obj 89 697 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0 10
+-228856 -1 -1 0 256;
+#X obj 239 151 nbx 5 14 0 127 0 0 empty empty MIDI 60 7 0 10 -228856
+-1 -1 0 256;
+#X obj 239 173 mtof;
+#X obj 239 198 nbx 5 14 -1e+37 1e+37 0 0 empty empty Hz 60 7 0 10 -228856
+-1 -1 0 256;
+#X msg 239 98 60;
+#X msg 259 123 69;
+#X obj 180 492 + 69;
+#X obj 180 462 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 180 520 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 180 381 / 440;
+#X obj 180 356 nbx 5 14 20 1e+37 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 20 256;
+#X obj 529 129 nbx 5 14 -1e+37 1e+37 0 0 empty empty MIDI 60 7 0 10
+-228856 -1 -1 0 256;
+#X obj 457 165 mtof;
+#X obj 457 213 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X text 502 166 =;
+#X obj 529 213 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X obj 595 602 mtof;
+#X obj 595 631 osc~;
+#X obj 208 278 cnv 15 200 18 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#X obj 595 661 out~;
+#X obj 595 579 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0
+10 -228856 -1 -1 0 256;
+#X text 267 98 Middle C;
+#X text 287 124 Middle A;
+#X text 237 355 Frequency in Hertz;
+#X text 243 520 MIDI Pitch;
+#X text 227 381 Interval ratio to middle A;
+#X obj 620 527 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 564 519 / 100;
+#X obj 564 494 nbx 7 14 -1200 1200 0 0 empty cents empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 520 492 Cents;
+#X obj 567 469 hsl 128 15 0 1200 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 595 552 + 60;
+#X text 677 526 MIDI pitch;
+#X text 208 278 semitones = 12 * Log2(ratio);
+#X text 35 226 Now let's try to convert frequency to MIDI pitch \,
+we can start with the conversion from interval ratio to semitones given
+before \, where:, f 53;
+#X text 462 387 Below we have a MIDI pitch value added to an interval
+in cents. To adapt the cents value to MIDI cents \, we just need to
+divide it by 100!, f 46;
+#X text 35 310 Now we need a reference point \, like middle A (440Hz).
+So any frequency input becomes an interval ratio to 440Hz., f 53;
+#X text 238 454 semitones difference to middle A, f 20;
+#X text 217 492 sum to middle A in MIDI;
+#X obj 180 408 log 2;
+#X obj 180 436 * 12;
+#X obj 653 23 declare -path else;
+#X text 589 212 Hertz;
+#X obj 529 160 expr pow(2 \, ($f1 - 69)/12) * 440 \; mtof($f1);
+#X obj 757 214 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 60 7 0 10
+-228856 -1 -1 0 256;
+#X text 459 62 If we invert the formula \, we get the [mtof] expression
+(note [expr] also has a 'mtof' function by the way):, f 43;
+#X text 691 199 built in mtof ==>, f 8;
+#X obj 171 650 expr 12 * log($f1/440)/log(2) + 69 \; ftom(\$f1);
+#X text 37 554 This is the opposite conversion from [mtof] \, and we
+also have a native object for that: [ftom]. Note that [expr] also has
+a built in function to convert from hz to m ('ftom')., f 56;
+#X text 285 695 built in ftom ==>;
+#X text 35 22 The MIDI protocol has data with 7 bits. This gives us
+integer values from 0 to 127 and A MIDI pitch value is in this range
+\, where the number 60 represents middle C. The native object [mtof]
+("MIDI to Frequency") converts MIDI pitch data to hertz., f 56;
+#X text 462 261 MIDI data is only about integer values from 0 to 127
+\, but in Pd we have more resolution with floats. Therefore \, we have
+a finer resolution after the decimal point. You can also consider this
+extra resolution as "MIDI-Cents" \, where 0.01 is equal to one cent!
+Therefore \, in order to convert from cents to midicents \, all we
+need to do is divide by 100!, f 46;
+#X text 484 520 MIDI cents;
+#X text 228 617 Hz;
+#X text 51 695 MIDI;
+#X obj 171 696 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0
+10 -228856 -1 -1 0 256;
+#X obj 413 696 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0
+10 -228856 -1 -1 0 256;
+#X text 661 578 MIDI with MIDI-Cents;
+#X text 484 535 conversion;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 1 0 50 0;
+#X connect 4 0 5 0;
+#X connect 5 0 6 0;
+#X connect 7 0 4 0;
+#X connect 8 0 4 0;
+#X connect 9 0 11 0;
+#X connect 10 0 9 0;
+#X connect 12 0 42 0;
+#X connect 13 0 12 0;
+#X connect 14 0 15 0;
+#X connect 14 0 46 0;
+#X connect 15 0 16 0;
+#X connect 19 0 20 0;
+#X connect 20 0 22 0;
+#X connect 23 0 19 0;
+#X connect 29 0 34 1;
+#X connect 30 0 34 0;
+#X connect 31 0 30 0;
+#X connect 33 0 31 0;
+#X connect 34 0 23 0;
+#X connect 42 0 43 0;
+#X connect 43 0 10 0;
+#X connect 46 0 18 0;
+#X connect 46 1 47 0;
+#X connect 50 0 58 0;
+#X connect 50 1 59 0;

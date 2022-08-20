@@ -1,0 +1,59 @@
+#N canvas 560 56 607 457 12;
+#X declare -path else;
+#X obj 45 279 *~;
+#X obj 44 217 osc~ 440;
+#X obj 45 329 out~;
+#X obj 159 317 vsl 15 90 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 159 281 s2f~;
+#X obj 396 22 declare -path else;
+#X obj 159 198 sig~;
+#X obj 353 307 *~;
+#X obj 297 249 osc~ 440;
+#X obj 353 357 out~;
+#X obj 481 328 vsl 15 90 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 371 221 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 481 302 s2f~;
+#X text 176 250 linear;
+#X floatatom 219 201 5 0 0 0 - - -;
+#X text 219 179 time;
+#X floatatom 432 224 5 0 0 0 - - -;
+#X floatatom 494 224 5 0 0 0 - - -;
+#X text 414 203 time up;
+#X text 484 203 time down;
+#X obj 159 227 lag~ 1500;
+#X obj 371 257 lag2~ 2000 1000, f 18;
+#X text 47 53 The [lag~] object is a lowpass filter that can be used
+to smoothen changes in audio signals quite similar to [glide~]. Its
+purpose can also be to generate portamento curves or a fade in/out
+transition from an on/off switch. The difference is that it has a different
+curve when going up or down. We'll see more of it. Check its help file.
+, f 70;
+#X text 306 147 [lag2~] is a variation that takes different for the
+up/down ramps., f 33;
+#X obj 159 147 tgl 20 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X msg 87 147 0.5;
+#X msg 124 147 0;
+#X floatatom 159 173 5 0 0 0 - - -;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 4 0 3 0;
+#X connect 6 0 20 0;
+#X connect 7 0 9 0;
+#X connect 8 0 7 0;
+#X connect 11 0 21 0;
+#X connect 12 0 10 0;
+#X connect 14 0 20 1;
+#X connect 16 0 21 1;
+#X connect 17 0 21 2;
+#X connect 20 0 0 1;
+#X connect 20 0 4 0;
+#X connect 21 0 7 1;
+#X connect 21 0 12 0;
+#X connect 24 0 27 0;
+#X connect 25 0 27 0;
+#X connect 26 0 27 0;
+#X connect 27 0 6 0;

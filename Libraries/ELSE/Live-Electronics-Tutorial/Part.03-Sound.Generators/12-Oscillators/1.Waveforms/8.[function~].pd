@@ -1,0 +1,71 @@
+#N canvas 511 125 941 657 12;
+#X declare -path else;
+#X floatatom 55 267 5 0 0 0 - - -;
+#X obj 55 217 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 201 394 out~;
+#X obj 182 462 graph~ 800 10 -1.1 1.1;
+#X obj 55 292 phasor~ 100;
+#X obj 181 357 function~;
+#X obj 181 187 initmess 0 0.25 1 0.15 1 0.35 0 0.05 -1 0.1 -1 0.1 0
+, f 31;
+#X text 396 270 <= [function];
+#X obj 316 46 declare -path else;
+#X obj 181 232 function 200 100 empty empty -1 1 220 220 220 50 50
+50 0 0 0 0 0 0.25 1 0.15 1 0.35 0 0.05 -1 0.1 -1 0.1 0;
+#X obj 572 201 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 572 482 graph~ 441 8 -1.05 1.05 200 140;
+#X text 839 371 parabolic waveform, f 9;
+#X obj 674 196 expr -$f1 \; -$f1 \; $f1 \; $f1;
+#X obj 668 266 pack f f f f;
+#X obj 677 147 hsl 128 15 1 10 1 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 674 171 5 0 0 0 - - -;
+#X obj 572 223 phasor~ 100;
+#X obj 572 372 function~ 0 0.5 1 0.5 0 0.5 -1 0.5 0 -exp -2 -2 2 2
+, f 36;
+#X obj 587 417 out~;
+#X obj 601 332 display;
+#X text 56 86 The [function~] object from ELSE can be used to generate
+crazy and different waveforms. Check its help file. Here we also use
+the [function] object from ELSE that allows you to draw waveform functions
+on the fly.;
+#N canvas 212 77 267 219 sequencer 0;
+#X obj 44 94 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 44 70 tempo 240;
+#X obj 44 47 inlet;
+#X obj 44 147 outlet;
+#X obj 44 126 mtof;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 3 0;
+#X restore 55 240 pd sequencer;
+#X text 541 38 The [function~] object also allows to draw exponential
+curves. Check its help file for more details. Below \, we set an exponential
+value to all segments. A parameter of "2" is exactly the same waveform
+as the [parabolic~] object., f 49;
+#X obj 668 293 insert exp;
+#X connect 0 0 4 0;
+#X connect 1 0 22 0;
+#X connect 4 0 5 0;
+#X connect 5 0 2 0;
+#X connect 5 0 3 0;
+#X connect 6 0 9 0;
+#X connect 9 0 5 0;
+#X connect 10 0 17 0;
+#X connect 13 0 14 0;
+#X connect 13 1 14 1;
+#X connect 13 2 14 2;
+#X connect 13 3 14 3;
+#X connect 14 0 24 0;
+#X connect 15 0 16 0;
+#X connect 16 0 13 0;
+#X connect 17 0 18 0;
+#X connect 18 0 11 0;
+#X connect 18 0 19 0;
+#X connect 20 0 18 0;
+#X connect 22 0 0 0;
+#X connect 24 0 20 0;

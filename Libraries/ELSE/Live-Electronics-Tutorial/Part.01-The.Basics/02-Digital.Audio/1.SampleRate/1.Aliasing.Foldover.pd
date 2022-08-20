@@ -1,0 +1,55 @@
+#N canvas 791 96 942 549 12;
+#X declare -path else;
+#X obj 633 400 * 1000;
+#X obj 633 431 osc~;
+#X obj 633 468 out~;
+#X obj 201 135 display;
+#X obj 201 108 nyquist~;
+#X obj 731 399 fold;
+#X obj 731 428 nbx 5 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+#dcdcdc #000000 #000000 0 256;
+#X text 24 20 Nyquist's theorem says the highest frequency we can represent
+(also called "nyquist frequency") is half the sample rate. Higher frequencies
+generate "Aliasing" or "Foldover". The [nyquist~] object \, from ELSE
+\, reports the Nyquist Frequency.;
+#X text 25 183 Let's imagine an over exaggerated example \, where a
+digital sound has an extremely low rate of 20Hz. Well \, a middle A
+(with 440 hz) can never be represented in such a low rate.;
+#X text 34 452 Above we have an illustration where the original frequency
+signal (in red) is higher than the sample rate (which are represented
+by the blue dots). The resulting blue signal is what we end up representing
+and it has a lower frequency than the original.;
+#X text 519 124 Frequency = Nyquist - (Frequency - Nyquist);
+#X text 467 160 This calculus is performed in the [fold] object from
+ELSE. By default \, we're sending a frequency of 40 Khz to [osc~] \,
+but the resulting oscillation has a frequency of 4.1 Khz. Change the
+number values to try it out., f 63;
+#X text 794 427 <= Alias;
+#X text 407 382 <= [pic] object \, from ELSE, f 16;
+#X obj 633 340 trigger float bang;
+#X obj 756 370 nyquist~ -khz;
+#X obj 774 24 declare -path else;
+#X obj 77 251 pic 0 foldover.gif empty empty 0 0;
+#X text 467 59 If the frequency starts passing over the Nyquist \,
+it folds back and starts descending. For example \, in a Nyquist frequency
+of 22.05 Khz \, 23.1 Khz becomes 21 Khz. Mathematically speaking:,
+f 63;
+#X text 467 226 when the aliased frequency hits and passes 0 Hz \,
+it folds back again and starts raising up again., f 63;
+#X obj 330 95 setdsp~ 1;
+#X obj 633 309 nbx 3 19 0 100 0 0 empty empty empty 0 -8 0 14 #dcdcdc
+#000000 #000000 0 256;
+#X msg 633 278 40;
+#X text 507 278 Set frequency =>;
+#X text 662 278 (in KHz);
+#X text 800 440 (in KHz);
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 4 0 3 0;
+#X connect 5 0 6 0;
+#X connect 14 0 0 0;
+#X connect 14 0 5 0;
+#X connect 14 1 15 0;
+#X connect 15 0 5 2;
+#X connect 21 0 14 0;
+#X connect 22 0 21 0;

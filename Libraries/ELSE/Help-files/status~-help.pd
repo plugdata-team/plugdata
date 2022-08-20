@@ -55,7 +55,6 @@
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
 #X obj 221 139 else/randpulse~ 1;
-#X obj 221 164 else/display~;
 #X obj 221 196 else/status~;
 #X text 168 404 1) float - initial status value (default 0);
 #X text 61 86 [status~] is a signal version of [status]. It sends an
@@ -65,7 +64,8 @@ impulse in the right outlet for "non-zero to zero" transitions., f
 #X text 444 247 see also:;
 #X obj 437 269 else/status;
 #X obj 214 237 else/out~;
-#X connect 31 0 32 0;
-#X connect 32 0 33 0;
-#X connect 33 0 38 0;
-#X connect 33 1 38 1;
+#X obj 221 164 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 31 0 38 0;
+#X connect 32 0 37 0;
+#X connect 32 1 37 1;
+#X connect 38 0 32 0;

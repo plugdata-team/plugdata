@@ -1,0 +1,37 @@
+#N canvas 330 56 859 433 12;
+#X declare -path else;
+#X obj 187 194 pulse~ 0.5 0.5;
+#X obj 187 283 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 552 106 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 628 86 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X floatatom 625 113 5 0 0 0 - - - 0;
+#X text 531 105 Hz;
+#X obj 566 169 out~;
+#X obj 552 138 pulse~ 100 0.75;
+#X obj 552 240 graph~ 441 9 -1.1 1.1;
+#X text 655 85 Pulse width;
+#X text 42 45 A pulse train is when we have a chain of consecutive
+impulses. The [pulse~] object from ELSE is a pulse train oscillator
+\, which resembles a square wave \, but it alternates between 1 and
+0 \, and not 1 and -1 as in the square wave., f 61;
+#X text 67 320 Like the [square~] object \, [pulse~] also has a pulse
+width parameter. Similarly \, a 0.5 value (the default) is 50/50 \,
+a width of 0 is just one single impulse \, and a width of 1 is a waveform
+with only the last sample of the period equal to 0!, f 62;
+#X obj 187 253 s2f~;
+#X obj 656 31 declare -path else;
+#X text 41 126 Like the impulse \, a pulse train has applications as
+a trigger in electronic music. More precisely as a "gate" \, which
+is kind of an on/off switch (like a toggle)., f 61;
+#X obj 187 222 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 15 0;
+#X connect 2 0 7 0;
+#X connect 3 0 4 0;
+#X connect 4 0 7 1;
+#X connect 7 0 6 0;
+#X connect 7 0 8 0;
+#X connect 12 0 1 0;
+#X connect 15 0 12 0;

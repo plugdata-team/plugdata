@@ -162,7 +162,6 @@ and can be triggered with sample accuracy., f 51;
 #X text 140 487 signal;
 #X text 186 487 - output index we're recording into, f 58;
 #X text 391 266 done;
-#X obj 286 263 else/display~;
 #N canvas 768 64 469 543 more 0;
 #X text 84 336 1;
 #X text 77 449 -1;
@@ -178,7 +177,6 @@ and can be triggered with sample accuracy., f 51;
 #X array \$0-test 88200 float 0;
 #X coords 0 1 88199 -1 270 120 1 0 0;
 #X restore 99 342 graph;
-#X obj 108 278 else/display~;
 #X text 93 490 |---------------- time in ms ----------------|;
 #X text 21 28 You can change the start and end points in ms with the
 'start'/'end' messages. The range message sets end/start points proportionally.
@@ -194,15 +192,16 @@ The continue \, loop \, start and end can be indicated also as flags.
 #X text 276 181 sets to range 0-1;
 #X obj 108 236 else/tabwriter~ -loop 1 -start 500 -end 1500 -continue
 1 \$0-test, f 34;
-#X connect 5 0 20 1;
-#X connect 6 0 20 0;
-#X connect 12 0 20 0;
-#X connect 13 0 12 0;
-#X connect 14 0 15 0;
-#X connect 15 0 20 0;
-#X connect 16 0 20 0;
-#X connect 17 0 20 0;
-#X connect 20 0 9 0;
+#X obj 108 278 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 5 0 19 1;
+#X connect 6 0 19 0;
+#X connect 11 0 19 0;
+#X connect 12 0 11 0;
+#X connect 13 0 14 0;
+#X connect 14 0 19 0;
+#X connect 15 0 19 0;
+#X connect 16 0 19 0;
+#X connect 19 0 20 0;
 #X restore 503 260 pd more;
 #X text 104 394 range <f \, f>;
 #X text 184 394 - sets start and end point range proportionally (from
@@ -210,6 +209,7 @@ The continue \, loop \, start and end can be indicated also as flags.
 #X text 55 273 see also:;
 #X obj 121 273 else/tabplayer~;
 #X text 191 566 - array name (optional), f 57;
+#X obj 286 265 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 8 0 66 0;
 #X connect 9 0 8 0;
 #X connect 13 0 66 1;
@@ -219,5 +219,5 @@ The continue \, loop \, start and end can be indicated also as flags.
 #X connect 49 0 63 0;
 #X connect 56 0 66 0;
 #X connect 63 0 66 0;
-#X connect 66 0 74 0;
+#X connect 66 0 80 0;
 #X connect 66 1 65 0;

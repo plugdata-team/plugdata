@@ -1,0 +1,24 @@
+#N canvas 613 199 424 360 12;
+#X declare -path else;
+#X obj 61 203 osc~;
+#X obj 115 306 outlet~;
+#X obj 133 155 decay2~ 100 6000;
+#X obj 115 244 *~;
+#X obj 115 274 /~ \$2;
+#X obj 133 52 inlet;
+#X obj 133 87 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X text 205 198 This patch is used inside [clone] in one of the examples
+in this series., f 22;
+#X obj 257 62 declare -path else;
+#X obj 61 129 random 1500, f 6;
+#X obj 61 174 + 200;
+#X connect 0 0 3 0;
+#X connect 2 0 3 1;
+#X connect 3 0 4 0;
+#X connect 4 0 1 0;
+#X connect 5 0 6 0;
+#X connect 6 0 2 0;
+#X connect 6 0 9 0;
+#X connect 9 0 10 0;
+#X connect 10 0 0 0;

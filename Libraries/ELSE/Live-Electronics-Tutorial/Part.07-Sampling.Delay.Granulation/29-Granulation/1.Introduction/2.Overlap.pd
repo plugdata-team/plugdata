@@ -1,0 +1,128 @@
+#N canvas 373 23 930 554 12;
+#X declare -path else;
+#X obj 53 364 cnv 15 248 148 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-cos 441 float 0;
+#X array \$0-sin 441 float 0;
+#X coords 0 1 441 0 250 150 1 0 0;
+#X restore 52 363 graph;
+#X obj 555 385 *~;
+#X obj 445 315 +~;
+#X obj 487 316 samphold~;
+#X obj 593 245 samphold~;
+#X obj 445 280 *~;
+#X floatatom 576 58 6 0 1e+06 0 - grain - 0;
+#X floatatom 485 59 0 0 1e+06 0 - - - 0;
+#X floatatom 677 56 0 0 50 0 - hz - 0;
+#X text 675 37 Hz;
+#X obj 555 442 +~;
+#X obj 648 414 *~;
+#X obj 648 342 +~;
+#X obj 692 343 samphold~;
+#X obj 780 280 samphold~;
+#X obj 648 312 *~;
+#X obj 485 119 s~ \$0-pos;
+#X obj 680 320 r~ \$0-pos;
+#X obj 475 288 r~ \$0-pos;
+#X obj 555 475 out~;
+#X obj 677 119 s~ \$0-hz;
+#X obj 538 170 r~ \$0-hz;
+#X obj 538 197 pimp~;
+#X obj 743 201 pimp~ 0 0.5;
+#X obj 743 176 r~ \$0-hz;
+#X obj 337 415 setdsp~ 1;
+#X obj 782 390 envelope~;
+#X obj 573 350 envelope~;
+#N canvas 315 152 450 300 plot 0;
+#X obj 276 120 metro 300;
+#X obj 276 99 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 276 74 loadbang;
+#X obj 38 121 envelope~;
+#X obj 157 121 envelope~;
+#X obj 205 208 tabwrite~ \$0-sin;
+#X obj 74 208 tabwrite~ \$0-cos;
+#X obj 38 82 pimp~ 150;
+#X obj 157 82 pimp~ 150 0.5;
+#X connect 0 0 5 0;
+#X connect 0 0 6 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 3 0 6 0;
+#X connect 4 0 5 0;
+#X connect 7 0 3 0;
+#X connect 8 0 4 0;
+#X restore 250 344 pd plot;
+#X text 38 111 The envelopes need to be out of phase \, for that we
+use the [pimp~] object from ELSE. It combines a [phasor~] and an [imp~]
+object (alias of [impulse~]). As the impulse oscillator \, [pimp~]
+has a phase argument that can be used to drive a second grain out of
+phase., f 50;
+#X text 38 205 Since we're using a sine envelope \, when we have a
+phase opposition \, we superpose sine and cosine functions. In practical
+terms \, this means we have an equal power crossfade between grains.
+, f 50;
+#X obj 576 119 s~ \$0-size;
+#X obj 593 197 r~ \$0-size;
+#X obj 485 88 ms2samps;
+#X obj 576 93 ms2samps;
+#X text 559 35 size (ms);
+#X text 446 36 position (ms), f 8;
+#X text 831 197 out of phase, f 6;
+#X text 38 272 See the overlapping graphs below and the patch implementation
+with both grains to the right., f 50;
+#X obj 767 28 declare -path else;
+#X text 37 43 A single envelope as in the last example generates artifacts
+\, as it is basically just an amplitude modulation implementation.
+We avoid this and also the tremolo effect by overlapping two grains.
+, f 50;
+#X obj 784 83 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#N canvas 790 23 285 190 buffer 0;
+#X obj 41 60 openpanel;
+#X obj 41 29 inlet;
+#X obj 41 125 sample~ \$0-buffer bubul.wav;
+#X msg 41 89 load \$1;
+#X obj 137 51 initmess \; hz 1 \; grain 500;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 3 0 2 0;
+#X restore 784 112 pd buffer;
+#X obj 445 342 tabread4~ \$0-buffer, f 9;
+#X obj 648 370 tabread4~ \$0-buffer, f 9;
+#X connect 2 0 11 0;
+#X connect 3 0 44 0;
+#X connect 4 0 3 1;
+#X connect 5 0 6 1;
+#X connect 6 0 3 0;
+#X connect 7 0 35 0;
+#X connect 8 0 34 0;
+#X connect 9 0 21 0;
+#X connect 11 0 20 0;
+#X connect 12 0 11 1;
+#X connect 13 0 45 0;
+#X connect 14 0 13 1;
+#X connect 15 0 16 1;
+#X connect 16 0 13 0;
+#X connect 18 0 14 0;
+#X connect 19 0 4 0;
+#X connect 22 0 23 0;
+#X connect 23 0 6 0;
+#X connect 23 0 5 1;
+#X connect 23 0 4 1;
+#X connect 23 0 28 0;
+#X connect 24 0 16 0;
+#X connect 24 0 15 1;
+#X connect 24 0 14 1;
+#X connect 24 0 27 0;
+#X connect 25 0 24 0;
+#X connect 27 0 12 1;
+#X connect 28 0 2 1;
+#X connect 33 0 5 0;
+#X connect 33 0 15 0;
+#X connect 34 0 17 0;
+#X connect 35 0 32 0;
+#X connect 42 0 43 0;
+#X connect 44 0 2 0;
+#X connect 45 0 12 0;

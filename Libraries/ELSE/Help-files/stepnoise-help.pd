@@ -1,13 +1,13 @@
-#N canvas 540 79 561 435 10;
+#N canvas 574 34 563 474 10;
 #X obj 23 41 cnv 4 4 4 empty empty Control 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 410 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 446 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 3 299 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 3 349 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 381 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 3 417 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 99 356 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
@@ -48,7 +48,7 @@
 #dcdcdc #000000 #000000 0 1;
 #X text 197 309 - frequency in hertz up to 100 (negative values accepted)
 ;
-#X text 139 388 1) float;
+#X text 139 424 1) float;
 #N canvas 782 234 421 447 rescale 0;
 #X text 52 20 The output range if from 0 to 127 \, which is the whole
 MIDI default range. Use the [rescale] object if you want a different
@@ -73,17 +73,52 @@ range for the output., f 53;
 #X connect 6 0 3 0;
 #X connect 7 0 5 0;
 #X connect 8 0 1 0;
-#X restore 475 263 pd rescale;
-#X text 197 388 - frequency in hertz (default 0), f 55;
+#X restore 475 243 pd rescale;
+#X text 197 424 - frequency in hertz (default 0), f 55;
 #X text 114 326 seed <float>;
-#X text 197 326 - sets seed;
 #X text 197 358 - Step noise in the range from 0 - 127;
-#X obj 69 258 else/stepnoise~;
-#X text 68 234 see also:;
+#X obj 41 217 else/stepnoise~;
+#X text 40 193 see also:;
 #X obj 251 186 else/stepnoise 2;
 #X text 71 88 [stepoise] is a control rate stepnoise. It doesn't need
 the DSP on to function. Give it a seed value if you want a reproducible
 output., f 57;
+#X obj 6 380 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 120 391 -seed <float>: sets seed (default: unique internal)
+, f 54;
+#N canvas 459 157 702 244 seed 0;
+#X text 30 19 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X text 31 157 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 52;
+#X text 30 89 Seeds are kept locally \, which means that if two [stepnoise]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [stepnoise] object twice with the same seed
+to repeat the output., f 52;
+#X msg 393 80 seed;
+#X text 593 79 <-- set seed;
+#X floatatom 393 165 10 0 0 0 - - - 16;
+#X obj 393 127 else/stepnoise -seed 1039 1, f 14;
+#X obj 533 127 else/stepnoise -seed 1039 1, f 15;
+#X floatatom 533 165 10 0 0 0 - - - 16;
+#X text 383 40 Sync [stepnoise] objects with a seed value;
+#X msg 533 80 seed 1039;
+#X connect 3 0 6 0;
+#X connect 3 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 8 0;
+#X connect 10 0 6 0;
+#X connect 10 0 7 0;
+#X restore 493 267 pd seed;
+#X text 197 326 - a float sets seed \, no float sets a unique internal
+;
+#X obj 41 242 else/rampnoise;
+#X obj 41 266 else/lfnoise;
 #X connect 17 0 18 0;
-#X connect 18 0 33 0;
-#X connect 33 0 23 0;
+#X connect 18 0 32 0;
+#X connect 32 0 23 0;

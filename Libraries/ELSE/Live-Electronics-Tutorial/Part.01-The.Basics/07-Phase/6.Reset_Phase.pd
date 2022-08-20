@@ -1,0 +1,45 @@
+#N canvas 539 219 998 469 12;
+#X declare -path else;
+#X text 220 216 =;
+#X obj 159 219 cos~;
+#X msg 302 158 0;
+#X obj 159 288 vsl 15 128 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 767 1;
+#X obj 159 192 phasor~ 0.2;
+#X obj 249 218 osc~ 0.2;
+#X obj 249 288 vsl 15 128 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 761 1;
+#X msg 665 217 0;
+#X obj 635 308 vsl 15 128 -1 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 9365 1;
+#X text 128 140 Reset the oscillator to the initial phase of cosine:
+, f 28;
+#X obj 635 243 sine~ 0.2;
+#X text 500 137 The oscillator objects from the ELSE library also offers
+both options. For example \, the second inlet also resets the phase
+\, while the third inlet allows phase modulation., f 57;
+#X text 695 216 <= reset oscillator;
+#X obj 249 255 s2f~;
+#X obj 159 255 s2f~;
+#X obj 635 275 s2f~;
+#X obj 742 33 declare -path else;
+#X text 500 72 The [osc~] object does not allow phase modulation \,
+we did this with [phasor~] in the previous examples. Hence \, the structure
+with [phasor~] and [cos~] allows both processes of modulating the phase
+and resetting the oscillator., f 57;
+#X text 32 23 The native objects [phasor~] and [osc~] have a right
+inlet that accepts control data to reset the phase. This way \, every
+time the inlet receives a number from 0 to 1 \, the waveform is reset
+to that initial phase. Bear in mind that resetting the waveform to
+restart the cycle in a specific initial pahse is unrelated to the phase
+adjustments done previously with phase modulation., f 61;
+#X connect 1 0 14 0;
+#X connect 2 0 4 1;
+#X connect 2 0 5 1;
+#X connect 4 0 1 0;
+#X connect 5 0 13 0;
+#X connect 7 0 10 1;
+#X connect 10 0 15 0;
+#X connect 13 0 6 0;
+#X connect 14 0 3 0;
+#X connect 15 0 8 0;

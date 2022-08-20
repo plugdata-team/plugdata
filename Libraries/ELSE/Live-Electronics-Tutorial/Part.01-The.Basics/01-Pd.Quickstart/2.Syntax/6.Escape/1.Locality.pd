@@ -1,0 +1,57 @@
+#N canvas 529 107 814 560 12;
+#X msg 294 37 \$0-x;
+#X obj 294 78 print;
+#X text 43 39 It's been noted how "\$0" doesn't work in messages \,
+it actually becomes "0". As in this example:, f 32;
+#X msg 552 413 receive \\\$0-x;
+#X text 41 118 This means "\$0" doesn't get expanded into a patch ID
+number. So one can use something like this instead., f 43;
+#X obj 209 191 symbol \$0-x;
+#X obj 209 165 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X symbolatom 209 225 10 0 0 0 - - -;
+#X text 44 274 Note \, however \, that now "\$0" gets expanded \, and
+you don't have access to a literal "\$0"., f 47;
+#X obj 455 216 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 0 256;
+#X obj 521 463 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 0 256;
+#X msg 521 374 receive \$1;
+#X obj 521 316 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 521 343 symbol \\\$0-y;
+#X obj 602 216 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 0 256;
+#X obj 602 242 send \$0-y;
+#X obj 455 242 send \$0-x;
+#X obj 155 426 symbol \$0-x;
+#X obj 155 400 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 155 495 nbx 5 14 -1e+37 1e+37 0 0 empty 1019-x empty 0 -8 0
+10 -262144 -1 -1 0 256;
+#X msg 155 461 receive \$1;
+#X text 174 397 <= click;
+#X text 44 312 Say you want \, for instance \, to set and save a receive
+message as "\$0-x" in a GUI. The example below doesn't work. If you
+check properties \, you'll see that the expanded symbol gets stored
+and saved., f 47;
+#X text 214 492 <= check properties;
+#X text 580 460 <= check properties;
+#X text 417 59 Fortunately \, we can use a backslash to escape special
+characters such as "$". As such \, in order to have a literal "\$0"
+we can use a backslash to escape it. And since this prevents it from
+being expanded \, it actually even works inside message boxes. Hence
+\, the options below enable a literal "\$0" and the receive symbol
+gets saved unexpanded in the patch., f 49;
+#X connect 0 0 1 0;
+#X connect 3 0 10 0;
+#X connect 5 0 7 0;
+#X connect 6 0 5 0;
+#X connect 9 0 16 0;
+#X connect 11 0 10 0;
+#X connect 12 0 13 0;
+#X connect 13 0 11 0;
+#X connect 14 0 15 0;
+#X connect 17 0 20 0;
+#X connect 18 0 17 0;
+#X connect 20 0 19 0;

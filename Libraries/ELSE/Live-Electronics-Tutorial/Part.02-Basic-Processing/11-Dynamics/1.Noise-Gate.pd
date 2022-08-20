@@ -1,0 +1,58 @@
+#N canvas 385 123 936 497 12;
+#X declare -path else;
+#X obj 282 138 nbx 4 17 -100 0 0 0 empty empty empty 0 -8 0 13 #dcdcdc
+#000000 #000000 0 256;
+#X text 344 140 dB;
+#X obj 165 204 *~;
+#X obj 58 234 meter~;
+#X obj 165 236 meter~;
+#X obj 58 389 out~;
+#X obj 165 389 out~;
+#X obj 317 259 setdsp~ 1;
+#X obj 282 112 initmess -30;
+#X obj 558 380 vu~;
+#X obj 558 433 nbx 4 17 -100 0 0 0 empty empty empty 0 -8 0 13 #dcdcdc
+#000000 #000000 0 256;
+#X obj 577 409 nbx 4 17 -100 0 0 0 empty empty empty 0 -8 0 13 #dcdcdc
+#000000 #000000 0 256;
+#X obj 558 351 noisegate~ -30 -size 1024;
+#X text 274 161 threshold/floor;
+#X obj 183 176 glide~ 10;
+#X text 441 61 This is a noise gate example \, which lets the signal
+through if it is greater than a given threshold. We use [mov.rms~]
+to measure the running RMS and compare its value to a "threshold" or
+"floor" dB value., f 66;
+#X text 185 445 gated;
+#X text 81 445 original;
+#X text 442 226 Compare the result of the original and the gated signals.
+, f 65;
+#X text 462 262 the patch to the left is implemented inside the [noisgate~]
+abstraction from ELSE \, check it below \, open its help file.;
+#X obj 733 22 declare -path else;
+#X obj 79 34 play.file~ 1 MouthBow.wav 1 1;
+#X obj 558 323 play.file~ 1 MouthBow.wav 1 1;
+#X obj 183 112 op~ >;
+#X text 441 132 The comparison is done with [op~ >] \, where a higher
+value than the threshold will return "1" if true or "0" if false. These
+values are then used to open and close the gate with the [glide~] object.
+The [glide~] time here is set to 10 ms and can be thought of as the
+attack/release - [glide2~] can be used for different attack and release
+times., f 66;
+#X obj 183 80 mov.rms~ -db 512;
+#X obj 183 142 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 23 1;
+#X connect 2 0 4 0;
+#X connect 3 0 5 0;
+#X connect 4 0 6 0;
+#X connect 8 0 0 0;
+#X connect 9 0 10 0;
+#X connect 9 1 11 0;
+#X connect 12 0 9 0;
+#X connect 14 0 2 1;
+#X connect 21 0 3 0;
+#X connect 21 0 2 0;
+#X connect 21 0 25 0;
+#X connect 22 0 12 0;
+#X connect 23 0 26 0;
+#X connect 25 0 23 0;
+#X connect 26 0 14 0;

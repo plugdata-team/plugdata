@@ -1,0 +1,65 @@
+#N canvas 347 124 1014 484 12;
+#X declare -path else;
+#X obj 184 192 nbx 5 14 -1e+37 1e+37 0 0 empty hz empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X obj 204 244 *~;
+#X obj 186 276 +~;
+#X obj 187 168 hsl 128 15 200 2000 1 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 696 232 nbx 5 14 -1e+37 1e+37 0 0 empty hz empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X text 758 231 HZ;
+#X obj 699 207 hsl 128 15 200 2000 1 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 848 279 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 910 278 HZ;
+#X obj 629 239 noise~;
+#X obj 848 257 + 500;
+#X obj 117 215 crossover~;
+#X obj 186 309 out~;
+#X obj 629 275 crossover~;
+#X obj 739 301 crossover~, f 16;
+#X obj 849 335 out~;
+#X obj 739 336 out~;
+#X obj 629 336 out~;
+#X text 213 166 Hz (cutoff), f 12;
+#X text 40 23 Multiband processing consists in just having distinct
+FX chains for each frequency band. A crossover filter can be a basis
+for multiband processing by applying different FX in each output. For
+instance \, below we have an overdrive in the left output and Ring
+Modulation in the right output., f 66;
+#X obj 117 244 drive~ 20;
+#X obj 222 218 osc~ 200;
+#X text 58 387 This is a rather arbitrary example \, but good to illustrate
+how the "sky is the limit" \, you can just do about anything \, but
+the most common process is to have different gain adjustments for each
+frequency band \, such as different compression settings for each band.
+, f 66;
+#X text 511 130 In order to obtain more bands with [crossover~] filters
+\, just connect more than one in cascade like below \, where we now
+have a low \, a medium and a high band., f 62;
+#X text 655 389 Low;
+#X text 755 389 Medium;
+#X text 873 388 High;
+#X obj 797 39 declare -path else;
+#X obj 117 128 player~ bubul.wav 1 1;
+#X connect 0 0 11 1;
+#X connect 1 0 2 1;
+#X connect 2 0 12 0;
+#X connect 3 0 0 0;
+#X connect 4 0 10 0;
+#X connect 4 0 13 1;
+#X connect 6 0 4 0;
+#X connect 7 0 14 1;
+#X connect 9 0 13 0;
+#X connect 10 0 7 0;
+#X connect 11 0 20 0;
+#X connect 11 1 1 0;
+#X connect 13 0 17 0;
+#X connect 13 1 14 0;
+#X connect 14 0 16 0;
+#X connect 14 1 15 0;
+#X connect 20 0 2 0;
+#X connect 21 0 1 1;
+#X connect 28 0 11 0;

@@ -105,7 +105,7 @@ power crossfade between two adjacent channels.;
 0;
 #N canvas 899 163 467 356 example 0;
 #X obj 85 144 else/rand.i~ 0 3;
-#X obj 85 177 else/display~;
+#X obj 85 173 else/numbox~ 3 12 100 #c0c0c4 #440008 10 0 0 0;
 #X obj 85 282 else/out~;
 #X obj 144 195 noise~;
 #X text 106 38 An example on how to change the input channel at signal

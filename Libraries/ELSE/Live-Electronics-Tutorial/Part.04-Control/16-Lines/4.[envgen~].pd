@@ -1,0 +1,62 @@
+#N canvas 545 31 685 630 12;
+#X declare -path else;
+#X obj 278 509 vsl 18 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X msg 292 402 0 1000 1;
+#X obj 258 301 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 258 326 500 \$1;
+#X text 286 383 start \, duration \, target;
+#X text 305 325 duration \, target;
+#X obj 64 479 vsl 18 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 64 367 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X obj 64 401 envgen~ 0 1000 1 250 0.25 250 0.25 500 1 250 1 250 0
+, f 26;
+#X obj 278 473 s2f~;
+#X obj 64 443 s2f~;
+#X obj 470 19 declare -path else;
+#X obj 538 223 setdsp~;
+#X msg 278 353 0 0.5;
+#X obj 278 434 envgen~;
+#X text 320 352 jumps immediately;
+#X text 59 241 This object is very complex. Take a moment to study
+its help file and keep checking the documentation for the next examples.
+, f 63;
+#X text 60 59 The [envgen~] object from ELSE is similar to the [vline~]
+object as it generate multiple lines \, but it has a quite different
+syntax and also other features \, as it is an envelope generator after
+all. Let's present it here as a line generator before using it as a
+proper envelope generator in the next section., f 80;
+#X obj 484 497 vsl 18 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 495 365 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 495 390 500 \$1;
+#X text 551 387 duration \, target;
+#X obj 484 461 s2f~;
+#X text 527 459 Exponential;
+#X text 60 126 The line segments are set in pairs of duration and target
+value \, which is the opposite of the [line] family of objects from
+Pd Vanilla. But if you have an odd number of elements \, the first
+float sets a staring point. In the case of a single float \, this is
+also true \, but it's the start and end point \, so \, in practical
+terms \, it just jumps to that value (like [line]/[line~]/[vline~].
+See examples below., f 80;
+#X obj 484 422 envgen~;
+#X obj 482 338 initmess exp 4;
+#X connect 1 0 14 0;
+#X connect 2 0 3 0;
+#X connect 3 0 14 0;
+#X connect 7 0 8 0;
+#X connect 8 0 10 0;
+#X connect 9 0 0 0;
+#X connect 10 0 6 0;
+#X connect 13 0 14 0;
+#X connect 14 0 9 0;
+#X connect 19 0 20 0;
+#X connect 20 0 25 0;
+#X connect 22 0 18 0;
+#X connect 25 0 22 0;
+#X connect 26 0 25 0;

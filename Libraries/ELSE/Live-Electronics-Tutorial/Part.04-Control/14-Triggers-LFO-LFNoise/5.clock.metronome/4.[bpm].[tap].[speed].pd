@@ -1,0 +1,79 @@
+#N canvas 416 68 827 473 12;
+#X declare -path else;
+#X obj 636 35 declare -path else;
+#X obj 61 142 bpm;
+#X msg 61 113 60;
+#X floatatom 61 180 5 0 0 0 - - - 0;
+#X obj 130 142 bpm;
+#X floatatom 130 180 5 0 0 0 - - - 0;
+#X msg 130 113 1000;
+#X text 30 112 bpm;
+#X text 35 180 ms;
+#X text 174 110 ms;
+#X text 171 181 bpm;
+#X obj 252 129 tap;
+#X obj 252 95 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000;
+#X floatatom 252 175 7 0 0 0 - - - 0;
+#X text 38 83 click on the messages:;
+#X text 314 176 bpm by default;
+#X msg 128 329 90 4;
+#X obj 128 411 display 5;
+#X obj 181 411 display;
+#X msg 139 355 60 5;
+#X text 133 434 bpm;
+#X text 169 329 go to 90 bpm in 4 beats;
+#X obj 128 385 speed 60;
+#X text 178 353 go to 60 bpm in 5 beats;
+#X text 276 93 click twice;
+#X text 285 128 <== clicking on the object is also possible, f 23
+;
+#X text 12 20 These three objects from ELSE are useful tools for dealing
+with metronomes. You can convert from 'BPM' to ms and vice versa with
+[bpm] and [tap] to get tempo from "tapping" on a bang., f 64;
+#X msg 628 187 tempo \$1 permin;
+#X obj 529 191 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 529 233 metro 1 60 permin;
+#X obj 711 331 display;
+#X obj 529 263 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X msg 732 274 set 60 4;
+#X msg 723 251 set 90 4;
+#X msg 711 226 set 60 90 4;
+#X text 180 436 overal time in ms;
+#X obj 529 384 out~;
+#X text 537 79 Here we use [speed] to implement accellerando or ritardando
+with [metro]. We use the 'set' message to arm the object and wait for
+a bang to trigger it., f 34;
+#X obj 711 302 speed 60;
+#X text 33 243 The [speed] object can be used to implement speed change
+(ascellerando/ritardando) over a number of beats. bpm values are given
+for each beat until it reaches the target in the left outlet. Right
+outlet gives the overall duration.;
+#X obj 529 308 decay~ 100;
+#X obj 529 347 *~;
+#X obj 566 346 noise~;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X connect 4 0 5 0;
+#X connect 6 0 4 0;
+#X connect 11 0 13 0;
+#X connect 12 0 11 0;
+#X connect 16 0 22 0;
+#X connect 19 0 22 0;
+#X connect 22 0 17 0;
+#X connect 22 1 18 0;
+#X connect 27 0 29 0;
+#X connect 28 0 29 0;
+#X connect 29 0 31 0;
+#X connect 31 0 38 0;
+#X connect 31 0 40 0;
+#X connect 32 0 38 0;
+#X connect 33 0 38 0;
+#X connect 34 0 38 0;
+#X connect 38 0 30 0;
+#X connect 38 0 27 0;
+#X connect 40 0 41 0;
+#X connect 41 0 36 0;
+#X connect 42 0 41 1;

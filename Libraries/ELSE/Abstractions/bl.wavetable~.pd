@@ -10,8 +10,8 @@
 #X obj 188 161 outlet;
 #X obj 232 159 outlet;
 #X obj 151 122 unpack s f f;
-#X obj 147 84 args;
-#X obj 147 47 lb;
+#X obj 147 84 else/args;
+#X obj 147 47 else/lb;
 #X connect 2 1 0 0;
 #X connect 2 2 1 0;
 #X connect 3 0 2 0;
@@ -19,8 +19,8 @@
 #X restore 62 51 pd init;
 #X f 22;
 #X obj 62 79 inlet~ fwd;
-#X obj 119 156 brickwall~;
-#X obj 119 126 wavetable~ \$1;
+#X obj 119 156 else/brickwall~;
+#X obj 119 126 else/wavetable~ \$1;
 #X obj 276 86 declare -path else;
 #X connect 0 0 9 1;
 #X connect 1 0 9 2;

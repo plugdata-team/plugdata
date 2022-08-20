@@ -1,0 +1,66 @@
+#N canvas 254 23 1009 665 12;
+#X declare -path else;
+#X obj 786 48 declare -path else;
+#X obj 610 330 else/graph~ 441 13 -1 1 200 140 #dfdfdf 0 1;
+#X obj 610 484 else/spectrograph~ 1024 0 1 300 140 100;
+#X text 746 306 waveform;
+#X text 825 456 spectrograph;
+#X obj 631 236 out~;
+#X text 30 31 We studied how the most classic waveforms can be obtained
+with a sum of harmonic partials \, namely: Sawtooh \, Triangle \, Square
+and Impulse. Nonetheless \, they need an infinite sum of partials and
+we have aliasing for frequencies over the Nyquist \, which sounds bad!
+A Band Limited oscillator has only frequency components up to the nyquist
+\, which means that its frequency band is limited to the range from
+0 to the Nyquist frequency. Therefore it avoids aliasing!;
+#X text 30 154 We can design an oscillator with a limited number of
+partials via additive synthesis \, but having too many oscillators
+is unnecessarily computationally expensive. Instead \, we can have
+wavetables created with a limited number of partials as shown in previous
+examples here on this tutorial. One caveat is that one should probably
+have more than one wavetable for each waveform. Since aliasing only
+occurs at high frequencies \, you can have a waveform with more partials
+for lower frequencies and less partials for higher frequencies., f
+59;
+#X text 30 304 You can still generate aliasing if you have too many
+partials and a high enough fundamental. At 44.1khz \, Your partial
+limit is 10 For a fundamental of 2 Khz \, but for 200 hz it goes up
+to 100!;
+#X obj 610 23 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X msg 656 101 saw2;
+#X msg 648 80 saw;
+#X msg 640 58 tri;
+#X msg 661 124 square;
+#X msg 667 147 imp;
+#X msg 549 118 n \$1;
+#X floatatom 549 90 5 1 20 0 - - - 0;
+#X text 483 70 set number of partials, f 13;
+#X obj 610 191 bl.osc~ tri 20 200;
+#X text 30 425 It generates tables internally for each waveform and
+you can set and change them \, which happens without crossfading. You
+can also set and change the number of partials \, which rewrites all
+internal tables (whatch for clicks)., f 59;
+#X text 30 373 The [bl.osc~] object from ELSE is a band-limited impulse
+oscillator based on the [wavetable~] object and it includes bandlimited
+wavetables for these classic waveforms.;
+#X text 30 490 Morover \, the first argument sets the waveform \, the
+second sets the number of partials and the third sets the initial frequency
+(a 4th argument also sets initial phase). This object also has inlets
+for hard sync and phase modulation. Check its help file for more details.
+, f 59;
+#X text 30 570 Note \, however \, that hard sync also generates aliasing
+because it alters the waveform and generatres immediate jumps (discontinuitities).
+We'll see other options for hard syncing without aliasig.;
+#X text 726 104 <-- change waveforms;
+#X connect 1 0 2 0;
+#X connect 9 0 18 0;
+#X connect 10 0 18 0;
+#X connect 11 0 18 0;
+#X connect 12 0 18 0;
+#X connect 13 0 18 0;
+#X connect 14 0 18 0;
+#X connect 15 0 18 0;
+#X connect 16 0 15 0;
+#X connect 18 0 5 0;
+#X connect 18 0 1 0;

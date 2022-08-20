@@ -1,0 +1,37 @@
+#N canvas 645 77 552 452 12;
+#X msg 71 152 send x;
+#X obj 209 164 receive x;
+#X floatatom 209 196 5 0 0 0 - - - 0;
+#X obj 154 348 value x;
+#X floatatom 154 283 5 0 0 0 - - - 0;
+#X obj 116 307 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X floatatom 154 389 5 0 0 0 - - - 0;
+#X msg 179 314 send y;
+#X floatatom 307 196 5 0 0 0 - - - 0;
+#X obj 307 164 receive y;
+#X obj 288 300 list store 1 2 3;
+#X msg 288 266 send z;
+#X obj 288 349 receive z;
+#X listbox 288 380 20 0 0 0 - - - 0;
+#X floatatom 138 187 5 0 0 0 - - - 0;
+#X text 86 35 The [float] \, [int] \, [value] and [list store] objects
+can also communicate with receive objects via send messages.;
+#X text 86 77 Moreover \, [value] can receive values from [send] objects
+or the 'send' messages from other objects., f 56;
+#X obj 397 206 int 100;
+#X msg 397 150 send x;
+#X obj 71 215 float 10.5;
+#X floatatom 443 180 5 0 0 0 - - - 0;
+#X connect 0 0 19 0;
+#X connect 1 0 2 0;
+#X connect 3 0 6 0;
+#X connect 4 0 3 0;
+#X connect 5 0 3 0;
+#X connect 7 0 3 0;
+#X connect 9 0 8 0;
+#X connect 11 0 10 0;
+#X connect 12 0 13 0;
+#X connect 14 0 19 1;
+#X connect 18 0 17 0;
+#X connect 20 0 17 1;

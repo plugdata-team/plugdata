@@ -1,0 +1,26 @@
+#N canvas 601 234 727 394 12;
+#X obj 111 23 inlet;
+#X obj 107 348 outlet;
+#X obj 31 113 pdcontrol;
+#X msg 31 85 args;
+#X obj 31 58 loadbang;
+#X text 246 276 The properties window can also set the size of the
+graph in the “Range and Size” section.;
+#X text 246 183 This is an abstraction with "graph on parent". Right
+click into an empty spot on the patch and choose "properties" as one
+of the ways to access this option. Another way is right clicking on
+the abstraction in the parent window. Note that this abstraction is
+also set to hide its name and arguments in the parent patch.;
+#X listbox 107 196 8 0 0 0 - - - 16;
+#X text 246 85 Check the help file of [pdcontrol] object that offers
+an alternative way to load arguments. This abstraction has the arguments
+"17 1 hi" as you can see on the top of the patch window. The advantage
+is that this allows you to manage a variable number of arguments \,
+so it can get lists of any size.;
+#X text 102 112 <==================;
+#X text 120 156 Graph on parent, f 8;
+#X connect 2 0 7 0;
+#X connect 3 0 2 0;
+#X connect 4 0 3 0;
+#X connect 7 0 1 0;
+#X coords 0 -1 1 1 100 80 2 100 150;

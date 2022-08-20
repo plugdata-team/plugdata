@@ -1,0 +1,121 @@
+#N canvas 444 109 907 654 12;
+#X declare -path else;
+#X obj 59 216 nbx 5 14 1 100 0 1 empty empty empty 0 -8 0 10 -228856
+-1 -1 11 256;
+#X obj 163 441 tabosc4~ square;
+#X obj 163 412 nbx 5 14 -1e+37 1e+37 0 1 empty hz empty 0 -8 0 10 -228856
+-1 -1 164.814 256;
+#X obj 161 183 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 474 324 (subpatch) 0;
+#X array square 4099 float 0;
+#X coords 0 1 4098 -1 200 140 1;
+#X restore 160 182 graph;
+#X text 143 180 1;
+#X text 138 301 -1;
+#X obj 163 482 out~;
+#X obj 583 307 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 3000 1;
+#X obj 580 332 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.23622 256;
+#X obj 557 462 graph~ 950 5 -1.1 1.1;
+#N canvas 561 148 709 518 square 0;
+#X obj 61 30 inlet;
+#X floatatom 61 64 5 0 0 0 - - -;
+#X obj 93 275 list prepend;
+#X text 97 209 p;
+#X msg 68 434 normalize 1;
+#X obj 68 405 trigger bang anything;
+#X obj 213 473 send square;
+#X msg 235 156 1 0 0.333333 0 0.2 0 0.142857 0 0.111111 0 0.090909
+0 0.076923 0 0.0666667 0 0.0588235 0 0.0526315 0 0.047619 0 0.0434782
+0 0.04 0 0.037037 0 0.0344827 0 0.0322581 0;
+#X obj 93 232 expr if($f1 % 2 == 0 \, 0 \, 1 / $f1);
+#X obj 93 121 t float bang;
+#X obj 188 281 list;
+#X obj 68 313 list;
+#X obj 68 360 list prepend sinesum 4096;
+#X obj 67 383 list trim;
+#X obj 93 181 loop;
+#X msg 93 150 1 \$1;
+#X text 237 60 Square: partials decay at a "1/p" rate \, where "p"
+is the partial number. Even partials are zeroed.;
+#X text 328 125 Example with 32 partials.;
+#X obj 61 94 t b f;
+#X connect 0 0 1 0;
+#X connect 1 0 18 0;
+#X connect 2 0 10 0;
+#X connect 2 0 11 1;
+#X connect 4 0 6 0;
+#X connect 5 0 4 0;
+#X connect 5 1 6 0;
+#X connect 8 0 2 0;
+#X connect 9 0 15 0;
+#X connect 9 1 2 1;
+#X connect 10 0 2 1;
+#X connect 11 0 12 0;
+#X connect 12 0 13 0;
+#X connect 13 0 5 0;
+#X connect 14 0 8 0;
+#X connect 15 0 14 0;
+#X connect 18 0 11 0;
+#X connect 18 1 9 0;
+#X restore 59 246 pd square;
+#X obj 576 395 out~;
+#X obj 556 359 square~ 100;
+#X text 436 63 The [square~] object \, from ELSE \, is a perfect square
+wave oscillator which alternates between 1 and -1 values. Its second
+inlet or argument lets you also change the "pulse" width \, which is
+how much of the period we have a positive value (1)., f 62;
+#X text 436 144 The pulse width parameter is from 0 to 1 \, and the
+default width is 0.5 \, which means it is symmetric and that the first
+half of the period is "1" and the second is "-1" \, that is 50/50.
+A width of 0.3 gives us 30% positive and 70% negative values., f 62
+;
+#X text 436 225 A width of 0 makes it only one the first sample equal
+to one \, and a width of 1 makes only the last sample equal to -1!
+, f 62;
+#N canvas 212 77 267 219 sequencer 0;
+#X obj 44 94 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 44 70 tempo 240;
+#X obj 44 47 inlet;
+#X obj 44 147 outlet;
+#X obj 44 126 mtof;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 3 0;
+#X restore 163 382 pd sequencer;
+#X obj 163 359 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#N canvas 212 77 267 219 sequencer 0;
+#X obj 44 94 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 44 70 tempo 240;
+#X obj 44 47 inlet;
+#X obj 44 147 outlet;
+#X obj 44 126 mtof;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 3 0;
+#X restore 479 308 pd sequencer;
+#X obj 479 285 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 1
+1;
+#X obj 672 24 declare -path else;
+#X text 25 63 And yet again \, we can generate square waves with a
+sum of partials. See how it's done in [pd square]. As before \, enter
+the number of harmonics into the number box. Not surprisingly \, a perfect
+square wave needs an infinite sum of psrtials., f 54;
+#X connect 0 0 11 0;
+#X connect 1 0 7 0;
+#X connect 2 0 1 0;
+#X connect 8 0 9 0;
+#X connect 9 0 13 1;
+#X connect 13 0 10 0;
+#X connect 13 0 12 0;
+#X connect 17 0 2 0;
+#X connect 18 0 17 0;
+#X connect 19 0 13 0;
+#X connect 20 0 19 0;

@@ -1,5 +1,4 @@
 // oscope~'s properties dialog
-
 /*
 sys_gui("package provide dialog_scope 0.1\n");
 sys_gui("namespace eval ::dialog_scope:: {   \n");

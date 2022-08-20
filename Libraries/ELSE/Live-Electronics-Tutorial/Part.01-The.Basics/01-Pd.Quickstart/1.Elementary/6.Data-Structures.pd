@@ -1,0 +1,18 @@
+#N struct template1 float x float y float z;
+#N canvas 650 84 477 498 12;
+#X scalar template1 140 155 -43 \;;
+#X obj 97 232 struct template1 float x float y;
+#X obj 97 308 filledpolygon 350 220 4 0 0 20 -40 40 0;
+#X text 191 125 <= A data structure scalar;
+#X text 93 190 [struct]: declares the fields in a data structure.,
+f 27;
+#X text 95 271 drawing instructions for the data structure., f 24
+;
+#X text 53 24 One last element group of Pd is Data Structures \, which
+are graphical objects that store data and can be used in different
+ways \, from display to interaction. Below \, we have a simple data
+structure scalar as a graphical object., f 54;
+#X text 66 371 Data structures are not that simple to use and is more
+of a feature for advanced users. Therefore \, this is not treated as
+part of this quick start guide. Nonetheless \, this tutorial offers
+a data structures guide in an "Advanced Pd" section., f 49;

@@ -1,115 +1,122 @@
 #N canvas 569 78 558 424 10;
-#X obj 1 250 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 1 322 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 1 357 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+#X obj 1 250 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 106 331 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 1 397 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+#X obj 1 316 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#N canvas 751 101 836 506 examples 0;
+#X obj 1 351 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 106 325 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 1 391 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#N canvas 433 97 836 506 examples 0;
 #X text 52 149 float example;
 #X obj 55 171 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X msg 223 161 10.6;
-#X msg 473 177 87 65 82;
+#X msg 510 369 87 65 82;
 #X obj 69 455 print;
 #X msg 69 384 error;
-#X text 36 118 Examples with float:;
 #X text 259 159 (converted to int);
 #X obj 55 232 else/display;
 #X obj 223 229 else/display;
 #X obj 247 444 else/display;
-#X obj 473 233 else/display;
-#X msg 568 80 64 64;
-#X obj 568 140 else/display;
-#X text 34 26 The arguments in [format] are used to format a symbol
-message and can be floats or symbols. Inlets are created for any possible
-variables (like %d or %f) - note that symbol variables (%s and %d)
-are initialized empty and float variables (all the rest) are initialized
-as "0"., f 57;
+#X obj 510 435 else/display;
+#X obj 496 307 else/display;
 #X obj 55 200 else/format %.2fdB;
 #X obj 223 199 else/format a-%d;
-#X floatatom 247 380 5 0 0 0 - - -;
-#X text 463 28 A list input spreads the values to the inlets;
-#X obj 209 380 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
-#X text 30 283 A symbol may be received in any inlet that corresponds
-to a %s variable \, but if sent to another type \, a conversion error
-is given in Pd's window. A float will give an error only if no variables
-are given (which is useful if you just want to create a single symbol
-with spaces).;
-#X obj 568 112 else/format char %d = %c;
+#X floatatom 247 380 5 0 0 0 - - - 0;
+#X obj 209 380 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 496 279 else/format char %d = %c;
 #X obj 247 413 else/format no variables;
 #X obj 69 416 else/format %d;
-#X obj 513 378 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
-#X obj 543 440 else/display;
-#X obj 666 370 nbx 4 14 0 100 0 0 empty empty empty 0 -8 0 10 -228856
--1 -1 0 256;
-#X msg 554 374 B;
-#X obj 543 407 else/format %s-%d.wav;
-#X text 458 295 A bang in any inlet forces an output \, this can be
+#X obj 508 122 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 538 184 else/display;
+#X msg 549 118 B;
+#X obj 538 151 else/format %s-%d.wav;
+#X text 453 39 A bang in any inlet forces an output \, this can be
 used to emulate a hot inlet., f 50;
-#X obj 473 202 else/format %c%c%c: What is it good for?, f 46;
-#X msg 543 347 A 1;
-#X connect 1 0 15 0;
-#X connect 2 0 16 0;
-#X connect 3 0 30 0;
-#X connect 5 0 23 0;
-#X connect 12 0 21 0;
-#X connect 15 0 8 0;
-#X connect 16 0 9 0;
-#X connect 17 0 22 0;
+#X obj 510 404 else/format %c%c%c: What is it good for?, f 46;
+#X msg 538 91 A 1;
+#X text 28 33 The arguments in [format] are used to format a message
+and can be floats or symbols. Inlets are created for any possible variables
+(like %d or %f) - note that symbol variables (%s) are initialized empty
+and float variables (all of the rest) are initialized as "0"., f 65
+;
+#X text 36 118 Examples with float input:;
+#X text 30 288 A symbol may be received in any inlet that corresponds
+to a %s variable \, but if sent to another type \, a conversion error
+is given in Pd's window. A float will give an error only if no variables
+are given (which is probably an error since it makes the object useless).
+;
+#X msg 646 373 97 114 \, bang;
+#X msg 496 247 64 64 3;
+#X text 554 240 A list input spreads the values to the following inlets.
+, f 31;
+#X obj 661 97 nbx 4 14 0 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 661 119 t b f;
+#X connect 1 0 12 0;
+#X connect 2 0 13 0;
+#X connect 3 0 24 0;
+#X connect 5 0 18 0;
+#X connect 12 0 7 0;
+#X connect 13 0 8 0;
+#X connect 14 0 17 0;
+#X connect 15 0 17 0;
+#X connect 16 0 11 0;
+#X connect 17 0 9 0;
+#X connect 18 0 4 0;
 #X connect 19 0 22 0;
-#X connect 21 0 13 0;
-#X connect 22 0 10 0;
-#X connect 23 0 4 0;
-#X connect 24 0 28 0;
-#X connect 26 0 28 1;
-#X connect 27 0 28 0;
-#X connect 28 0 25 0;
-#X connect 30 0 11 0;
-#X connect 31 0 28 0;
+#X connect 21 0 22 0;
+#X connect 22 0 20 0;
+#X connect 24 0 10 0;
+#X connect 25 0 22 0;
+#X connect 29 0 24 1;
+#X connect 30 0 16 0;
+#X connect 32 0 33 0;
+#X connect 33 0 22 1;
+#X connect 33 1 22 1;
 #X restore 468 213 pd examples;
-#X obj 150 151 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#X obj 150 151 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
 #X text 170 258 bang;
-#X text 146 281 anything;
-#X text 203 280 -;
-#X text 203 366 -;
-#X obj 106 280 cnv 17 3 36 empty empty 0-n 5 9 0 16 -228856 -162280
+#X text 146 275 anything;
+#X text 203 274 -;
+#X text 203 360 -;
+#X obj 106 257 cnv 17 3 55 empty empty 0-n 5 9 0 16 #dcdcdc #9c9c9c
 0;
-#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+#X obj 305 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 304 4 pd;
-#X obj 344 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+#X obj 344 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
 0;
-#X obj 22 41 cnv 4 4 4 empty empty Format 0 28 2 18 -233017 -1 0;
-#X obj 457 12 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+#X obj 22 41 cnv 4 4 4 empty empty Format 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 477 12 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+#X obj 457 12 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 514 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+#X obj 477 12 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 463 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+#X obj 514 12 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 501 27 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+#X obj 463 27 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 84 41 cnv 4 4 4 empty empty messages 0 28 2 18 -233017 -1 0
-;
-#X obj 2 4 cnv 15 301 42 empty empty format 20 20 2 37 -233017 -1 0
-;
+#X obj 501 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 84 41 cnv 4 4 4 empty empty messages 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 2 4 cnv 15 301 42 empty empty format 20 20 2 37 #e0e0e0 #000000
+0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 4 graph;
 #X obj 180 213 else/display;
-#X text 125 366 1) anything;
-#N canvas 886 23 499 456 variables 0;
+#X text 125 360 1) anything;
+#N canvas 867 23 499 456 variables 0;
 #N canvas 470 23 383 282 %c 0;
 #X obj 141 177 else/display;
 #X msg 141 101 97;
@@ -127,7 +134,7 @@ ASCII table, f 35;
 is just any input here in Pd., f 35;
 #X obj 130 206 else/format %s;
 #X obj 130 112 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X connect 0 0 4 0;
 #X connect 2 0 4 0;
 #X connect 4 0 1 0;
@@ -136,8 +143,8 @@ is just any input here in Pd., f 35;
 #N canvas 847 23 409 705 %d 0;
 #X obj 74 176 else/display;
 #X obj 202 176 else/display;
-#X obj 159 327 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#X obj 159 327 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
 #X obj 159 355 expr -pow(2 \, 31);
 #X obj 159 418 else/display;
 #X text 75 247 The range of values of the signed 32 bits integers go
@@ -151,9 +158,9 @@ no differences., f 39;
 #X obj 179 586 else/format %+i;
 #X obj 179 621 else/display;
 #X obj 202 103 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X obj 179 552 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X text 105 482 The "+" flag can be used to force a "+" sign for positive
 values., f 29;
 #X connect 2 0 3 0;
@@ -173,14 +180,14 @@ of values go from 0 to 2ˆ32 - 1 (but since Pd uses 32 bit floats \,
 there's no enough precision for this)., f 52;
 #X obj 186 154 else/format %u;
 #X obj 186 120 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X connect 2 0 0 0;
 #X connect 3 0 2 0;
 #X restore 106 228 pd %u;
 #N canvas 470 23 447 600 %f 0;
 #X obj 85 186 else/display;
 #X obj 213 186 else/display;
-#X floatatom 93 330 5 0 0 0 - - -;
+#X floatatom 93 330 5 0 0 0 - - - 0;
 #X obj 93 396 else/display;
 #X obj 252 395 else/display;
 #X msg 252 329 1e-11;
@@ -192,13 +199,13 @@ number but does not use the scientific notation., f 39;
 #X obj 252 362 else/format %.11F;
 #X obj 170 521 else/display;
 #X obj 170 452 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X text 91 267 You can also set a precision after the decimal point
 \, and the "+" flag can be used to force a "+" sign for positive values.
 , f 47;
 #X obj 170 486 else/format %+.1f;
 #X obj 213 114 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X connect 2 0 9 0;
 #X connect 5 0 10 0;
 #X connect 7 0 0 0;
@@ -242,7 +249,7 @@ shorter (%G uses a capital "E")., f 47;
 #X obj 292 467 else/display;
 #X obj 292 434 else/format %g;
 #X obj 292 396 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
+#dcdcdc #000000 #000000 0 256;
 #X msg 292 332 1e-07;
 #X msg 306 365 0.1;
 #X obj 135 435 else/format %+#.3g;
@@ -265,7 +272,7 @@ precision., f 43;
 #X connect 15 0 9 0;
 #X restore 106 314 pd %g and %G;
 #N canvas 470 23 374 248 %o 0;
-#X floatatom 139 99 5 0 0 0 - - -;
+#X floatatom 139 99 5 0 0 0 - - - 0;
 #X text 82 46 %o: converts to an unsigned octal.;
 #X obj 139 163 else/display;
 #X obj 139 128 else/format %o;
@@ -302,8 +309,8 @@ and is preceded by "0x".;
 #X text 223 371 - Unsigned hexadecimal integer;
 #N canvas 643 80 374 280 %% 0;
 #X obj 146 180 else/display;
-#X obj 146 122 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
+#X obj 146 122 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
 #X text 54 45 %%: is converted to a literal "%". This prevents it from
 being interpreted as a pattern., f 39;
 #X obj 146 152 else/format %%c;
@@ -324,26 +331,24 @@ You can also use flags "+" and "#" \, plus a precision field. The modifiers
 #X text 223 119 - Literal "%" (symbol?);
 #X restore 462 191 pd variables;
 #X msg 180 150 file;
-#X obj 351 155 nbx 4 14 0 100 0 0 empty empty empty 0 -8 0 10 -228856
--1 -1 0 256;
-#X text 216 280 float/symbol atoms to format a symbol (the leftmost
-inlet takes messages with more than one item and sends the remaining
-items to the next inlets)., f 51;
-#X text 215 366 atoms that may contain '%' variables (obrigatory \,
+#X obj 351 155 nbx 4 14 0 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 215 360 atoms that may contain '%' variables (obrigatory \,
 no default), f 36;
-#X text 145 331 anything;
+#X text 145 325 anything;
 #X obj 180 180 else/format symbol %s\ %d.wav;
-#X text 80 88 [format] formats messages similarly to [makefilename]
+#X text 70 88 [format] formats messages similarly to [makefilename]
 \, but it accepts more than one variable where each corresponds to
 an inlet. It also allows you to generate messages with more than on
-element.;
-#X text 203 258 - outputs the formatted message;
-#X text 203 332 - the formatted message;
-#X obj 106 258 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X text 32 181 see also:;
-#X obj 31 205 else/unite;
-#X connect 6 0 32 0;
-#X connect 27 0 32 0;
-#X connect 28 0 32 1;
-#X connect 32 0 24 0;
+element., f 69;
+#X text 203 258 - outputs the formatted message, f 53;
+#X text 203 326 - the formatted message;
+#X text 30 185 see also:;
+#X obj 29 209 else/unite;
+#X text 215 274 float/symbol atoms to format variables (messages with
+more than one item and sends the remaining items to the next inlets).
+, f 51;
+#X connect 6 0 31 0;
+#X connect 27 0 31 0;
+#X connect 28 0 31 1;
+#X connect 31 0 24 0;

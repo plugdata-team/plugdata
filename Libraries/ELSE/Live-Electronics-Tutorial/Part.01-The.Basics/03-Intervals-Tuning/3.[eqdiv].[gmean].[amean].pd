@@ -1,0 +1,78 @@
+#N canvas 352 23 884 623 12;
+#X declare -path else;
+#X obj 689 49 declare -path else;
+#X text 28 31 The [eqdiv] object from ELSE gives us a full scale based
+on equal divisions of an interval. Remember we get a ratio value of
+one step of an equal division of an interval 'x' in 'y' parts if we
+raise the interval value (x) to the power of 1/y. Below \, instead
+of an octave \, we are dividing the interval of 3 \, which is an ovtave
+plus a fifth. The division is in 13 equal steps. This scale is known
+as the Bohlen-Pierce scale., f 65;
+#X obj 143 215 display;
+#X obj 143 283 display;
+#X obj 143 250 ratio2cents;
+#X text 98 216 ratio;
+#X obj 143 158 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 143 186 expr pow(3 \, 1./13);
+#X text 98 285 cents;
+#X text 166 158 <= click;
+#X obj 215 431 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 238 431 <= click;
+#X obj 348 257 display;
+#X obj 348 224 ratio2cents;
+#X obj 348 167 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 371 167 <= click;
+#X obj 348 195 float 3;
+#X text 304 285 value of 3 in cents;
+#X text 45 336 So \, instead of 100 cents \, each step of this scale
+increases about 146 cents. The [eqdiv] object returns the value in
+cents of all intervals in the scale \, for the bohlen-pierce we get
+values from 0 cents to 1901.95 cents.;
+#X obj 215 586 print CENTS;
+#X text 266 464 <= equal temperament;
+#X text 286 518 <= Bohlen-Perce;
+#X text 276 491 <= octave divided by 13;
+#X obj 570 202 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 570 231 gmean 1 3 13;
+#X obj 570 306 print CENTS;
+#X obj 570 267 ratio2cents;
+#X obj 623 438 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 623 542 print CENTS;
+#X obj 623 503 ratio2cents;
+#X text 703 222 Divide the range between 1 and 3 by 13 steps., f 16
+;
+#X text 534 89 The [gmean] object performs geometric mean divisions
+between two values. This relates to [eqdiv] as equal divisions of intervals
+are also geometric divisions. But [gmean] operates on the ratio values.
+Below we have a Bohlen-Pierce scale., f 42;
+#X obj 623 467 amean 1 2 13;
+#X text 535 355 The [amean] object s much like [gmean] \, but performs
+arithmetic divisions instead. It can also be used to generate exotic
+scales., f 43;
+#X msg 227 465 12 2;
+#X msg 237 493 13 2;
+#X msg 247 519 13 3;
+#X obj 215 551 eqdiv 13 3;
+#X connect 2 0 4 0;
+#X connect 4 0 3 0;
+#X connect 6 0 7 0;
+#X connect 7 0 2 0;
+#X connect 10 0 37 0;
+#X connect 13 0 12 0;
+#X connect 14 0 16 0;
+#X connect 16 0 13 0;
+#X connect 23 0 24 0;
+#X connect 24 0 26 0;
+#X connect 26 0 25 0;
+#X connect 27 0 32 0;
+#X connect 29 0 28 0;
+#X connect 32 0 29 0;
+#X connect 34 0 37 0;
+#X connect 35 0 37 0;
+#X connect 36 0 37 0;
+#X connect 37 0 19 0;

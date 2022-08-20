@@ -1,4 +1,4 @@
-#N canvas 470 23 559 491 10;
+#N canvas 455 65 560 534 10;
 #X obj 2 3 cnv 15 301 42 empty empty rand.f~ 20 20 2 37 #e0e0e0 #000000
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -10,47 +10,46 @@
 0;
 #X obj 213 39 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 466 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 501 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 4 378 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 415 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 450 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 111 388 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 101 388 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 181 389 signal;
-#X text 181 281 signal;
-#X obj 113 281 cnv 17 3 47 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 171 389 signal;
+#X text 171 281 signal;
+#X obj 103 281 cnv 17 3 47 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 4 271 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
 #X msg 134 173 seed \$1;
 #X obj 134 154 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X text 145 313 seed <float>;
-#X text 237 312 - sets seed value;
-#X text 237 389 - random values;
+#X text 135 313 seed <float>;
+#X text 220 389 - random values;
 #N canvas 869 227 392 406 example 0;
 #X obj 126 325 else/out~;
 #X text 50 28 Generating random resonant frequencies on impulse;
 #X obj 126 178 else/imp~ 2;
-#X obj 187 248 else/display~;
 #X obj 126 88 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000;
-#X obj 126 140 else/display~;
 #X obj 126 66 loadbang;
 #X obj 126 282 else/resonant~ 0 3000;
 #X obj 126 115 else/rand.f~ 1 3;
 #X obj 187 216 else/rand.f~ 200 500;
+#X obj 126 140 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 187 248 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 2 0 5 0;
 #X connect 2 0 7 0;
-#X connect 2 0 9 0;
-#X connect 3 0 7 1;
-#X connect 4 0 8 0;
-#X connect 5 0 2 0;
-#X connect 6 0 4 0;
-#X connect 7 0 0 0;
-#X connect 8 0 5 0;
-#X connect 9 0 3 0;
+#X connect 3 0 6 0;
+#X connect 4 0 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 8 0;
+#X connect 7 0 9 0;
+#X connect 8 0 2 0;
+#X connect 9 0 5 1;
 #X restore 460 237 pd example;
 #N canvas 207 34 366 264 (subpatch) 0;
 #X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
@@ -156,26 +155,25 @@
 #X connect 9 0 0 0;
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 61 pd;
-#X text 110 424 1) list -;
-#X text 175 423 floats set random's range \, 2 floats sets minimum
+#X text 110 459 1) list -;
+#X text 175 458 floats set random's range \, 2 floats sets minimum
 and maximum - no arguments loads default values (-1 and 1). 1 float
 sets maximum value (and lowest value is set to 0).;
-#X text 237 280 - trigger signal;
-#X obj 111 334 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 220 280 - trigger signal;
+#X obj 101 334 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 111 355 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 101 355 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 144 335 float/signal;
-#X text 144 356 float/signal;
-#X text 237 335 - lowest random value;
-#X text 236 356 - highest random value;
+#X text 134 335 float/signal;
+#X text 134 356 float/signal;
+#X text 220 335 - lowest random value;
+#X text 219 356 - highest random value;
 #X obj 290 178 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X obj 379 179 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X text 297 158 low;
 #X text 390 159 high;
-#X obj 202 236 else/display~;
 #X obj 202 174 else/imp~ 5;
 #X obj 98 40 cnv 4 4 4 empty empty float 0 28 2 18 #e0e0e0 #000000
 0;
@@ -196,16 +194,58 @@ sets maximum value (and lowest value is set to 0).;
 0;
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X text 193 296 bang;
-#X text 237 295 - control rate trigger;
+#X text 183 296 bang;
+#X text 220 295 - control rate trigger;
 #X obj 202 205 else/rand.f~, f 30;
 #X text 71 90 [rand.f~] generates random float values for a given range
 when triggered. A trigger happens at positive to negative or negative
 to positive transitions. Use the seed message if you want a reproducible
 output.;
-#X connect 13 0 46 0;
+#X obj 202 236 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#N canvas 529 124 603 329 seed 0;
+#X text 26 21 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X text 370 24 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 27;
+#X msg 466 194 seed;
+#X msg 456 165 seed 123;
+#X obj 481 221 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 33 221 else/rand.f~ -seed 123 -100 100;
+#X obj 243 221 else/rand.f~ -seed 123 -100 100;
+#X obj 33 187 r \$0-rand.f~;
+#X obj 243 187 r \$0-rand.f~;
+#X obj 456 257 s \$0-rand.f~;
+#X obj 33 258 else/numbox~ 6 14 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 243 258 else/numbox~ 6 14 100 #c0c0c4 #440008 10 0 0 0;
+#X text 26 100 Seeds are kept locally \, which means that if two [rand.f~]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [rand.f~] object twice with the same seed
+to repeat the output., f 52;
+#X connect 2 0 9 0;
+#X connect 3 0 9 0;
+#X connect 4 0 9 0;
+#X connect 5 0 10 0;
+#X connect 6 0 11 0;
+#X connect 7 0 5 0;
+#X connect 8 0 6 0;
+#X restore 477 212 pd seed;
+#X text 220 312 - a float sets seed \, no float sets a unique internal
+;
+#X obj 6 414 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 135 423 -seed <float>: seed value (default: unique internal)
+;
+#X text 14 193 see also:;
+#X obj 14 212 else/rand.f;
+#X obj 14 237 else/rand.i~;
+#X connect 13 0 44 0;
 #X connect 14 0 13 0;
-#X connect 29 0 46 1;
-#X connect 30 0 46 2;
-#X connect 34 0 46 0;
-#X connect 46 0 33 0;
+#X connect 28 0 44 1;
+#X connect 29 0 44 2;
+#X connect 32 0 44 0;
+#X connect 44 0 46 0;

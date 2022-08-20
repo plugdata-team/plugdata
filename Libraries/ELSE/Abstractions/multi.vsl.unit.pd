@@ -3,18 +3,18 @@
 #X obj 80 52 namecanvas \$0-this-patch;
 #N canvas 669 72 697 546 guts 0;
 #X obj 70 213 route \$1;
-#X obj 70 185 receiver;
+#X obj 70 185 else/receiver;
 #X msg 183 172 0;
 #X obj 231 482 s \$0-sl;
 #X msg 70 362 pos 101 \$1;
 #X obj 70 482 s \$0-value;
-#X obj 70 140 dollsym 1 \\\$0-slider, f 12;
+#X obj 70 140 else/dollsym 1 \\\$0-slider, f 12;
 #X obj 355 313 f \$2;
 #X obj 355 357 - 2;
 #X obj 231 349 pack;
 #X msg 231 377 vis_size \$2 \$1;
 #X msg 355 401 vis_size \$1 1;
-#X obj 350 105 message \; \$0-this-patch coords 0 127 8 0 \$2
+#X obj 350 105 else/message \; \$0-this-patch coords 0 127 8 0 \$2
 \$3 2 100 100;
 #X obj 295 159 f \$3;
 #X obj 70 336 expr $f2 - $f1;
@@ -26,8 +26,8 @@
 #X msg 61 328 symbol #\$1\$2\$3;
 #X obj 61 299 pack symbol symbol symbol;
 #X obj 57 175 unpack f f f;
-#X obj 57 146 receiver;
-#X obj 57 101 dollsym 1 \\\$0-slider-fgcolor, f 18;
+#X obj 57 146 else/receiver;
+#X obj 57 101 else/dollsym 1 \\\$0-slider-fgcolor, f 18;
 #X obj 56 66 inlet;
 #X msg 61 353 color \$1 #000000 #000000;
 #X obj 74 374 s \$0-sl;
@@ -53,9 +53,9 @@
 #X msg 61 328 symbol #\$1\$2\$3;
 #X obj 61 299 pack symbol symbol symbol;
 #X obj 57 175 unpack f f f;
-#X obj 57 146 receiver;
+#X obj 57 146 else/receiver;
 #X obj 56 66 inlet;
-#X obj 57 101 dollsym 1 \\\$0-slider-linecolor, f 20;
+#X obj 57 101 else/dollsym 1 \\\$0-slider-linecolor, f 20;
 #X obj 61 370 s \$0-value;
 #X msg 61 349 color \$1 #000000 #000000;
 #X connect 0 0 4 2;
@@ -83,7 +83,7 @@
 #X obj 460 378 - 1;
 #X floatatom 24 268 5 0 0 0 - - - 0;
 #X text 362 471 tá cagado isso;
-#X obj 70 64 loadbanger -init 3, f 38;
+#X obj 70 64 else/loadbanger -init 3, f 38;
 #X obj 373 70 declare -path else;
 #X connect 0 0 14 0;
 #X connect 0 0 9 0;

@@ -1,0 +1,126 @@
+#N canvas 460 51 566 448 10;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Pink 0 28 2 18 #e0e0e0 #000000 0
+;
+#X obj 69 40 cnv 4 4 4 empty empty noise 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 3 graph;
+#X obj 3 2 cnv 15 301 42 empty empty pink~ 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 3 3 graph;
+#X obj 209 194 else/out~;
+#X obj 6 419 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 209 164 else/pink~;
+#X obj 7 263 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 310 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 385 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 95 270 cnv 17 3 33 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 95 322 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 126 288 seed <float> - a float sets seed \, no float sets a
+unique internal, f 65;
+#X text 162 322 signal - pink noise;
+#N canvas 722 98 495 359 number 0;
+#X obj 199 279 else/out~;
+#X obj 199 249 else/pink~;
+#X obj 199 223 nbx 5 14 0 40 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 202 170 hsl 128 15 1 40 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 199 196 int;
+#X text 45 16 You can set the number of frequency bands in octaves.
+A value of 1 makes it a single band which is plain white noise. For
+each extra octave \, the bandwidth is split in half and the new octaves
+are 3dB lower than the next lower octave., f 68;
+#X text 45 69 The maximum number of octaves is 40 and the default depends
+on the sample rate \, and it is so that the lowest octave starts close
+to 20hz. For a sample rate of 44100 this gives us 12 octaves. The more
+octaves you have \, the less bright the overall sound is., f 68;
+#X text 49 124 You can set the number of octaves with the 2nd argument
+or a float input.;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 0;
+#X restore 411 224 pd number of octaves;
+#X text 63 86 [pink~] is a pink noise generator \, which sounds less
+hissy than white noise (but not as less as brown~). White noise has
+constant spectral power \, but pink noise has constant power per octave
+and it decrease 3dB per octave. Like other noise objects \, this is
+based on a pseudo random number generator algorithm., f 71;
+#X text 168 271 float - set number of octaves (minimum 1 \, max 31)
+, f 58;
+#X obj 7 350 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 144 361 -seed <float>: sets seed (default: unique internal)
+;
+#X text 145 399 1) float - number of octaves (default depends on sample
+rate), f 62;
+#N canvas 475 138 704 321 seed 0;
+#X obj 393 220 else/downsample~ 1;
+#X obj 548 220 else/downsample~ 1;
+#X obj 393 260 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 548 260 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X text 30 19 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X obj 57 220 else/downsample~ 1;
+#X obj 57 260 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 207 220 else/downsample~ 1;
+#X obj 207 260 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X text 365 24 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 52;
+#X msg 433 113 seed 507;
+#X msg 393 113 seed;
+#X text 495 114 <-- set seed;
+#X obj 393 142 trigger bang anything;
+#X text 30 98 Seeds are kept locally \, which means that if two [pink~]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [pink~] object twice with the same seed to
+repeat the output., f 52;
+#X obj 57 181 else/pink~ -seed 1039;
+#X obj 207 181 else/pink~ -seed 1039;
+#X obj 403 192 else/pink~;
+#X obj 548 192 else/pink~;
+#X text 387 79 Sync [pink~] objects with a seed value;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 5 0 6 0;
+#X connect 7 0 8 0;
+#X connect 10 0 13 0;
+#X connect 11 0 13 0;
+#X connect 13 0 1 0;
+#X connect 13 0 0 0;
+#X connect 13 1 17 0;
+#X connect 13 1 18 0;
+#X connect 15 0 5 0;
+#X connect 16 0 7 0;
+#X connect 17 0 0 0;
+#X connect 18 0 1 0;
+#X restore 489 201 pd seed;
+#X connect 14 0 12 0;

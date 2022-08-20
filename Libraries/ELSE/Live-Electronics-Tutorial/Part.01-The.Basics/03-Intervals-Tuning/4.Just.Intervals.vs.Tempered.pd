@@ -1,0 +1,66 @@
+#N canvas 538 61 766 597 12;
+#X declare -path else;
+#X text 562 299 Cents;
+#X obj 609 269 ratio2cents;
+#X obj 609 328 cents2ratio;
+#X obj 627 168 nbx 3 14 -1e+37 1e+37 0 0 empty y empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 609 189 hot;
+#X obj 609 143 nbx 3 14 -1e+37 1e+37 0 0 empty x empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 649 142 X;
+#X text 667 167 Y;
+#X obj 609 239 display;
+#X obj 609 296 display;
+#X obj 609 355 display;
+#X obj 609 213 /;
+#X obj 488 36 initmess \; x 3 \; y 2;
+#X text 25 24 Just Intervals are represented by the ratio of integers.
+In other words \, they are rational numbers. On the other hand \, a
+tempered interval such as the tritone (whose proportion is the square
+root of two) cannot be represented by an integer ratio \, and is therefore
+an irrational number., f 59;
+#X text 481 134 Enter a ratio in the X/Y format:, f 16;
+#X text 528 242 Ratio (X/Y);
+#X text 528 357 Ratio (X/Y);
+#X text 25 102 Just Intervals relate to the Harmonic Series \, which
+is a series of integers that represent the ratio of harmonics. This
+implies that all harmonics are multiples of a fundamental tone., f
+59;
+#X obj 600 39 declare -path else;
+#X text 25 165 As an example \, the just interval obtained with the
+3/2 ratio is that of a Just Perfect Fifth \, and corresponds to the
+relationship between the third and second elements in the harmonic
+series., f 59;
+#X text 25 228 Now we can compare this interval with the one from the
+equal temperament. See the default values to the right \, we load a
+3/2 ratio and see that it has about 702 cents. A perfect fifth in the
+equal temperament has 7 semitones and 700 cents. So we see a tiny difference
+where the just intonation interval is almost only 2 cents higher.,
+f 59;
+#X text 25 320 Again \, what's more interesting about cents \, being
+able to compare intervals to the equal temperament. Try now other just
+interval ratios such as major third (5/4) \, perfect fourth (4/3) \,
+minor seventh (7/4) and others. Note that if you invert the ratio \,
+you get the same interval but with a negative value in cents. For example
+\, 2/3 is a fifth below. Note also how in such cases the ratio is below
+1!;
+#X obj 76 542 display;
+#X msg 76 482 1 9/8 5/4 11/8 3/2 13/8 14/8 15/8 2;
+#X obj 76 453 loadbang;
+#X text 458 491 The [frac2ratio] object from ELSE takes a list of elements
+in fraction notation and converts to a list with cents intervals.,
+f 36;
+#X obj 76 512 frac2dec;
+#X connect 1 0 9 0;
+#X connect 2 0 10 0;
+#X connect 3 0 4 1;
+#X connect 4 0 11 0;
+#X connect 4 1 11 1;
+#X connect 5 0 4 0;
+#X connect 8 0 1 0;
+#X connect 9 0 2 0;
+#X connect 11 0 8 0;
+#X connect 23 0 26 0;
+#X connect 24 0 23 0;
+#X connect 26 0 22 0;

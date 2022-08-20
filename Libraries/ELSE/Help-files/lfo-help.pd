@@ -160,7 +160,7 @@ range for the output., f 53;
 #X obj 118 355 biquad~;
 #X obj 119 226 else/rescale 200 700;
 #X obj 118 384 else/plate.rev~ 50 0.9 0.9 0.9 0.7, f 18;
-#X obj 119 281 else/bicoeff lowpass 500 30;
+#X obj 119 281 else/bicoeff2 lowpass 500 30;
 #X obj 119 82 else/lfo 0.15 -tri;
 #X obj 129 431 else/out~;
 #X obj 145 321 else/bl.saw~ 35;

@@ -1,0 +1,110 @@
+#N canvas 364 58 893 602 12;
+#X declare -path else;
+#X obj 40 305 osc~ 400;
+#X obj 262 306 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 259 332 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+-228856 -1 -1 0 256;
+#X text 332 332 Posição (0-1);
+#X floatatom 596 218 5 0 0 0 - - -;
+#X obj 599 196 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 369 396 v pi;
+#X obj 532 200 noise~;
+#X obj 369 370 pi;
+#X obj 532 234 pan2~;
+#X obj 40 438 meter2~;
+#X obj 40 348 expr~ $v1 * cos($v2 * pi/2) \; $v1 * sin($v2 * pi/2)
+;
+#X obj 326 474 setdsp~ 1;
+#X text 22 53 "Panning" or just "pan" distributes a mono signal into
+a stereo field. The "pan" control allows you to distribute a sound
+source more to the right or to the left., f 57;
+#X text 225 306 left;
+#X text 397 305 right;
+#X text 21 197 Since we have a Sine/Coine function \, we have an "Equal
+Power Panning". Similarly than the equal power crossfade \, at the
+middle point \, we have a -3 dB attenuation for both channels., f
+57;
+#X text 677 170 middle point;
+#X obj 596 171 initmess 0;
+#X text 353 280 middle point;
+#X obj 259 281 initmess 0.5;
+#X floatatom 743 403 5 0 0 0 - - -;
+#X floatatom 812 402 5 0 0 0 - - -;
+#X obj 675 454 env~;
+#X obj 720 454 env~;
+#X obj 766 454 env~;
+#X obj 812 454 env~;
+#X obj 812 479 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 675 345 noise~;
+#X obj 766 479 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 720 478 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 675 478 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 719 495 left;
+#X text 719 509 front;
+#X text 765 508 front;
+#X text 765 494 right;
+#X text 673 495 left;
+#X text 812 494 right;
+#X text 674 509 back;
+#X text 813 508 back;
+#X text 728 401 X;
+#X text 792 402 Y;
+#X obj 743 378 unpack f f;
+#X obj 259 359 f2s~ 20;
+#X obj 596 241 f2s~ 20;
+#X obj 675 427 pan4~, f 20;
+#X text 515 437 see also:;
+#X obj 525 466 pan8~, f 13;
+#X obj 743 306 slider2d 64 64 -1 1 -1 1 0 210 210 210 0 0 0 1 0 1 32
+32 empty empty;
+#X obj 146 450 out~;
+#X obj 510 299 out~;
+#X text 22 104 This is rather similar to crossfading \, but instead
+of mixing two sound sources into an output \, we kinda do the opposite
+and distribute a single source into two outputs. Check the implementation
+below and see how the process depends on a same structure than the
+crossfading \, and how we also adopt the sine/cosine functions., f
+57;
+#X text 458 59 The [pan2~] object (from the ELSE library) is the same
+as the implementation below to the left \, but the pan parameter is
+from -1 to 1 (instead of 0 to 1). This makes it more suitable for controlling
+it with audio signals. Check also the [pan4~] object \, which is a
+4 speakers panning object and [pan8~] (octaphonic).;
+#X obj 674 24 declare -path else;
+#X connect 0 0 11 0;
+#X connect 1 0 2 0;
+#X connect 2 0 43 0;
+#X connect 4 0 44 0;
+#X connect 5 0 4 0;
+#X connect 7 0 9 0;
+#X connect 8 0 6 0;
+#X connect 9 0 50 0;
+#X connect 9 1 50 1;
+#X connect 11 0 10 0;
+#X connect 11 0 49 0;
+#X connect 11 1 10 1;
+#X connect 11 1 49 1;
+#X connect 18 0 5 0;
+#X connect 20 0 1 0;
+#X connect 21 0 45 1;
+#X connect 22 0 45 2;
+#X connect 23 0 31 0;
+#X connect 24 0 30 0;
+#X connect 25 0 29 0;
+#X connect 26 0 27 0;
+#X connect 28 0 45 0;
+#X connect 42 0 21 0;
+#X connect 42 1 22 0;
+#X connect 43 0 11 1;
+#X connect 44 0 9 1;
+#X connect 45 0 23 0;
+#X connect 45 1 24 0;
+#X connect 45 2 25 0;
+#X connect 45 3 26 0;
+#X connect 48 0 42 0;

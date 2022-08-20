@@ -36,7 +36,7 @@
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -106,7 +106,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -146,14 +146,10 @@
 #X text 134 270 signal;
 #X obj 305 150 osc~ 1;
 #X text 179 269 - any signal to trigger the object;
-#X obj 305 216 else/display~;
-#X obj 46 216 else/display~;
 #X obj 46 184 else/detect~;
 #X obj 305 184 else/detect~ ms;
-#X obj 432 216 else/display~;
 #X obj 432 150 osc~ 441;
 #X obj 432 184 else/detect~ hz;
-#X obj 164 216 else/display~;
 #X obj 164 184 else/detect~ bpm;
 #X text 73 93 [detect~] detects the frequency/period between trigger
 events. A trigger happens on a transition from non positive to positive.
@@ -163,11 +159,15 @@ events. A trigger happens on a transition from non positive to positive.
 #X text 191 341 detection type: <samps> (default) \, <bpm> \, <ms>
 and <hz>;
 #X obj 164 150 else/tempo~ -on 60;
-#X connect 18 0 26 0;
-#X connect 22 0 27 0;
-#X connect 26 0 25 0;
-#X connect 27 0 24 0;
-#X connect 29 0 30 0;
-#X connect 30 0 28 0;
-#X connect 32 0 31 0;
-#X connect 37 0 32 0;
+#X obj 305 216 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 46 216 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 432 216 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 164 216 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 18 0 24 0;
+#X connect 22 0 25 0;
+#X connect 24 0 35 0;
+#X connect 25 0 34 0;
+#X connect 26 0 27 0;
+#X connect 27 0 36 0;
+#X connect 28 0 37 0;
+#X connect 33 0 28 0;

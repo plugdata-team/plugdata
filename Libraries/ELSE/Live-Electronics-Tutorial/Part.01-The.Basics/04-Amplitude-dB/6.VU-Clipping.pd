@@ -1,0 +1,61 @@
+#N canvas 318 24 1029 580 12;
+#X declare -path else;
+#X obj 129 264 hsl 128 15 0 5 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 108 311 *~;
+#X obj 108 235 osc~ 200;
+#X floatatom 126 288 5 0 0 0 - - -;
+#X obj 613 353 meter~;
+#X obj 783 351 meter2~;
+#X obj 179 387 graph~ 349 14 -1.05 1.05 200 140;
+#X obj 108 353 vu~;
+#X obj 109 388 vu 15 120 empty empty -1 -8 0 10 -66577 -1 1 0;
+#X text 53 437 [vu] =>;
+#X text 694 417 [meter2~] =>;
+#X text 529 418 [meter~] =>;
+#X text 25 43 Setting a maximum value of 0 dB is a practice that comes
+from the usage of "Volume Meters" (VU) in analog audio. This device
+is calibrated so that 0 dB is the maximum value it can handle without
+distorting. In digital audio we have the same thing \, but digital
+distortion is a special type \, known as "clipping"., f 66;
+#X obj 848 319 noise~;
+#X obj 613 323 osc~ 440;
+#X obj 783 320 osc~ 440;
+#X obj 613 509 out~;
+#X obj 822 21 declare -path else;
+#X obj 766 506 out~;
+#X text 26 131 The maximum peak amplitude is 1 (0 dBFS). Greater values
+are "clipped" \, which means they become 1 as that's the maximum representable
+value. In practice \, we have resulting waves that are a bit square
+(see below the graphical representation of clipping \, with the [clip~]
+object and [graph~])., f 66;
+#X obj 179 356 clip~ -1 1;
+#X text 516 172 See below to the left how [vu] can still represent
+values over 0 dB \, but note also how they become red \, as a sign
+of "DANGER"! Or "warning \, this is being clipped"., f 66;
+#X text 516 64 Within Pd we can still have values outside the -1 to
+1 range. It is in the digital to analog conversion that the clipping
+occurs. Pd has a native [vu] GUI object that is a kind of VU Meter
+that displays RMS and Peak amplitudes \, but it doesn't really perform
+any signal analysys. Now the [vu~] object from ELSE analyses a signal
+and outputs both RMS (left outlet) and Peak (right outlet) so we can
+feed [vu]., f 66;
+#X text 516 225 Below \, to the right \, we have other objects from
+ELSE: [meter~] and [meter2~] \, which are convenient abstractions based
+on [vu~] and [vu] that automatically performs analysis on the input
+signals. ELSE also offers [meter4~] and [meter8~] \, which can be used
+for quadraphonic and octaphonic setups., f 66;
+#X connect 0 0 3 0;
+#X connect 1 0 7 0;
+#X connect 1 0 20 0;
+#X connect 2 0 1 0;
+#X connect 3 0 1 1;
+#X connect 4 0 16 0;
+#X connect 5 0 18 0;
+#X connect 5 1 18 1;
+#X connect 7 0 8 0;
+#X connect 7 1 8 1;
+#X connect 13 0 5 1;
+#X connect 14 0 4 0;
+#X connect 15 0 5 0;
+#X connect 20 0 6 0;

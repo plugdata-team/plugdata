@@ -1,0 +1,93 @@
+#N canvas 539 23 577 770 12;
+#X declare -path else;
+#X obj 217 332 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 283 570 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#N canvas 797 186 322 336 test 0;
+#X obj 36 155 osc~;
+#X obj 36 257 outlet~;
+#X obj 36 211 *~;
+#X obj 152 151 vline~;
+#X obj 36 37 inlet;
+#X obj 36 125 vline~;
+#X obj 36 68 trigger bang bang;
+#X msg 211 122 0 50;
+#X obj 211 84 delay 500;
+#X msg 36 97 440 \, 880 500;
+#X msg 152 111 0.5 50;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 1;
+#X connect 4 0 6 0;
+#X connect 5 0 0 0;
+#X connect 6 0 9 0;
+#X connect 6 1 10 0;
+#X connect 6 1 8 0;
+#X connect 7 0 3 0;
+#X connect 8 0 7 0;
+#X connect 9 0 5 0;
+#X connect 10 0 3 0;
+#X restore 206 597 pd test;
+#X obj 62 331 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#N canvas 797 186 322 336 test 0;
+#X obj 36 155 osc~;
+#X obj 36 257 outlet~;
+#X obj 36 211 *~;
+#X obj 152 151 vline~;
+#X obj 36 37 inlet;
+#X obj 36 125 vline~;
+#X obj 36 68 trigger bang bang;
+#X msg 211 122 0 50;
+#X obj 211 84 delay 500;
+#X msg 36 97 440 \, 880 500;
+#X msg 152 111 0.5 50;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 1;
+#X connect 4 0 6 0;
+#X connect 5 0 0 0;
+#X connect 6 0 9 0;
+#X connect 6 1 10 0;
+#X connect 6 1 8 0;
+#X connect 7 0 3 0;
+#X connect 8 0 7 0;
+#X connect 9 0 5 0;
+#X connect 10 0 3 0;
+#X restore 62 366 pd test;
+#X obj 283 607 impseq~;
+#X obj 206 561 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 84 491 Note that by sending it an impulse \, you should get
+the IR file as an output \, because that's how the room responds to
+an impulse.;
+#X text 58 57 Natural reverberation is a product of complex sound reflections
+patterns \, where a sound source keeps moving and bouncing around innumerous
+spots in a room/space. This can be digitally modeled with delay lines
+as we'll see later \, but before that let's recapitulate the convolution
+tecnhique. We've also seen how convolution can also act as a general
+filter \, but this is only to say and reinforce how filters and reverbs
+are intertwined concepts., f 64;
+#X obj 375 22 declare -path else;
+#X obj 206 677 out~;
+#X obj 62 406 out~;
+#X obj 217 408 out~;
+#X obj 217 371 play.file~ 1 church.wav;
+#X obj 206 643 conv~ 2048 church.wav;
+#X text 58 181 Convolution reverbs depends on "Impulse Responses" ("IR").
+These are sound recordings of an impulse in a reverberant space that
+capture the reverberation or colloration model of the space. It's easy
+to find "IR" sound file libraries for convolution reverbs out there
+in .wav and .aif files. That's all you need for a convolution reverb
+in Pd. Otherwise you can still record an IR from your bathroom or something.
+The example below uses an IR of a church., f 64;
+#X connect 0 0 13 0;
+#X connect 1 0 5 0;
+#X connect 2 0 14 0;
+#X connect 3 0 4 0;
+#X connect 4 0 11 0;
+#X connect 5 0 14 0;
+#X connect 6 0 2 0;
+#X connect 13 0 12 0;
+#X connect 14 0 10 0;

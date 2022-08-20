@@ -1,22 +1,22 @@
-#N canvas 605 123 559 499 10;
-#X obj 3 317 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#N canvas 605 123 559 483 10;
+#X obj 3 311 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 388 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 382 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 425 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 3 419 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 82 397 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 82 391 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 83 325 cnv 17 3 55 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 83 319 cnv 17 3 55 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 3 459 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 453 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 190 155 hsl 180 15 0 44100 0 0 empty empty empty -2 -8 0 10
+#X obj 223 142 hsl 180 15 0 44100 0 0 empty empty empty -2 -8 0 10
 #dcdcdc #000000 #000000 0 1;
-#X text 155 346 bang;
-#X text 161 364 set;
-#X text 119 327 float/list;
-#X obj 162 205 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#X text 155 340 bang;
+#X text 161 358 set;
+#X text 119 321 float/list;
+#X obj 195 192 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X obj 3 4 cnv 15 301 42 empty empty hz2rad 20 20 2 37 #e0e0e0 #000000
 0;
@@ -44,40 +44,41 @@
 0;
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X text 196 327 - hertz value(s);
-#X text 196 397 - converted radians per sample value(s);
-#X obj 187 282 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X text 196 321 - hertz value(s);
+#X text 196 391 - converted radians per sample value(s);
+#X obj 220 166 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X obj 187 179 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
-#X text 272 178 Hertz;
-#X text 272 281 Radians per sample;
-#N canvas 970 92 287 234 lists 0;
+#X text 305 165 Hertz;
+#X text 151 266 Radians per sample, f 10;
+#N canvas 983 191 287 234 lists 0;
 #X text 58 33 it also works with lists:;
 #X obj 50 100 else/hz2rad;
 #X obj 50 131 else/display;
 #X obj 50 70 else/initmess 1000 5000 11025;
 #X connect 1 0 2 0;
 #X connect 3 0 1 0;
-#X restore 476 281 pd lists;
-#X text 119 397 float/list;
-#X msg 207 208 set 44100;
-#X text 275 207 sets next value to be converted;
-#X text 106 199 convert;
-#X text 196 346 - convert or output the last converted value (only
+#X restore 476 275 pd lists;
+#X text 119 391 float/list;
+#X msg 240 195 set 44100;
+#X text 308 194 sets next value to be converted;
+#X text 139 186 convert;
+#X text 196 340 - convert or output the last converted value (only
 float);
-#X text 196 364 - sets next value to be converted via bang (only float)
+#X text 196 358 - sets next value to be converted via bang (only float)
 ;
-#X obj 187 248 else/hz2rad 22050;
-#X text 131 434 1) float;
-#X text 102 214 (or send;
-#X text 94 229 last output);
+#X obj 220 235 else/hz2rad 22050;
+#X text 131 428 1) float;
+#X text 135 201 (or send;
+#X text 127 216 last output);
+#X text 196 429 - initial frequency value (default 0);
+#X obj 220 269 else/display;
+#X text 25 250 see also;
+#X obj 27 270 else/rad2hz;
 #X text 71 88 [hz2rad] converts a frequency in Hertz to "Radians per
 Sample" - which depends on the patch's sample rate (sr). The conversion
-formula is \; rad = hz * 2*pi / sr;
-#X text 196 435 - initial frequency value (default 0);
-#X connect 6 0 26 0;
-#X connect 10 0 36 0;
-#X connect 26 0 36 0;
-#X connect 31 0 36 0;
-#X connect 36 0 25 0;
+formula is \; rad = (hz * 2*pi / sr)., f 71;
+#X connect 6 0 25 0;
+#X connect 10 0 35 0;
+#X connect 25 0 35 0;
+#X connect 30 0 35 0;
+#X connect 35 0 40 0;

@@ -1,0 +1,46 @@
+#N canvas 561 23 585 724 12;
+#X obj 318 147 struct;
+#X obj 158 211 drawcurve;
+#X obj 246 211 filledcurve;
+#X obj 158 185 drawpolygon;
+#X obj 246 185 filledpolygon;
+#X obj 194 290 plot;
+#X obj 192 253 drawnumber;
+#X obj 275 254 drawsymbol;
+#X obj 358 254 drawtext;
+#X obj 368 433 pointer;
+#X obj 368 517 get;
+#X obj 368 547 set;
+#X obj 366 480 element;
+#X obj 368 576 getsize;
+#X obj 368 606 setsize;
+#X obj 368 392 append;
+#X obj 369 665 text;
+#X obj 368 638 array;
+#X text 60 147 Declare a data structure template:;
+#X text 61 183 Draw shapes:;
+#X text 62 252 Draw data types:;
+#X text 347 183 - polygons;
+#X text 348 210 - curves;
+#X text 233 288 - draw an array;
+#X text 423 249 (actually these are the same), f 15;
+#X text 57 98 1) Data templates (objects to declare and draw Data Structures):
+, f 34;
+#X text 67 339 2) Data Access (objects that add \, access and edit
+Data Structures):, f 33;
+#X text 147 418 Get/store the location (pointer) of a Data Structure:
+, f 30;
+#X text 211 390 Add a Data Structure:;
+#X text 139 519 Get values of a Data Structure:;
+#X text 139 549 Set values of a Data Structure:;
+#X text 173 466 Get the location (pointer) to an element of an array:
+, f 27;
+#X text 234 577 Get an array size:;
+#X text 213 607 Change an array size:;
+#X text 186 637 Access/Manipulate arrays:;
+#X text 192 666 Access/Manipulate texts:;
+#X text 33 15 Here are all the objects that deal with Data Structures
+in Pd Vanilla \, all of which have been presented already \, except
+the [scalar] object \, which is experimental and doesn't really do
+much yet! anyway \, the objects can be divided into two categories:
+, f 66;

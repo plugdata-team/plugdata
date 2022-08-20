@@ -1,0 +1,71 @@
+#N canvas 252 53 945 534 12;
+#X declare -path else;
+#X obj 776 15 declare -path else;
+#X text 37 325 Like perlin noise and other similar things \, these
+are not primarily used to generate audio. But hey \, we're in Pd and
+we like audio so we use these to generate sound., f 49;
+#X obj 563 191 hsl 128 15 44.1 44100 1 0 empty empty empty -2 -8 0
+10 #dcdcdc #000000 #000000 0 1;
+#X obj 560 215 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 475 214 rate in Hz;
+#X msg 639 243 1.2 2.1;
+#X msg 632 217 0.3 -0.2;
+#X text 694 243 (default);
+#X text 698 217 initial feedback values;
+#X text 37 391 ELSE includes some chaotic audio generators that were
+stolen from SuperCollider. Many of these are "chaotic maps" \, which
+occur often in the study of dynamical systems and are an evolution
+function that exhibits some sort of chaotic behavior. One example is
+[gbman~] \, a "gingerbread man" chaotic map generator. Its output is
+from the difference equation => y[n] = 1 + abs(y[n-1]) - y[n-2].,
+f 49;
+#X obj 560 282 gbman~;
+#X obj 560 311 out~ 0.5;
+#X obj 719 342 standard~;
+#X obj 798 342 cusp~;
+#X obj 851 342 quad~;
+#X obj 715 371 henon~;
+#X obj 775 371 logistic~;
+#X text 703 282 Check its help file and also these other chaotic map
+generators:, f 28;
+#X text 37 230 Complex dynamical systems are usually described by difference
+equations \, whose output is fed back into the equation to calculate
+the next step. In Pd \, this is possible with the [fexpr~] object at
+audio rate and this is better explained in "34-Filters(Advanced)".
+, f 49;
+#X text 37 158 An underlying principle of chaos describes how a small
+change in one state can result in large differences in a later state
+(meaning that there is sensitive dependence on initial conditions)
+, f 49;
+#X text 37 21 Chaos theory focuses on underlying patterns of dynamical
+systems that are highly sensitive to initial conditions. This means
+that there is some degree of order in the chaos \, in other words \,
+it is not completely random. Hence \, within the apparent randomness
+of chaotic complex systems \, there are underlying patterns \, interconnection
+\, constant feedback loops \, repetition \, self-similarity \, fractals
+\, and self-organization., f 49;
+#X obj 753 482 crackle~;
+#X obj 850 371 ikeda~;
+#X obj 652 482 latoocarfian~;
+#X obj 504 483 lincong~;
+#X obj 591 482 lorenz~;
+#X text 406 47 The output rate of the equation is given in hertz \,
+and the initial value is the nyquist frequency. This is a standard
+for many other similar objects. By default \, the initial feedback
+values of y[n-1] and y[n-2] are 1.2 and 2.1 \, respectively \, but
+can be changed via arguments or as a list input., f 75;
+#X text 406 112 Since you can set the equation update rate in Hertz
+\, we can relate this to the "band limited" noise generators \, but
+it's something else. These chaotic map generators sound unstable \,
+but aren't really random and you can hear a more pitched output than
+a "noise"., f 75;
+#X text 430 414 These are other kinds of chaotic generators but that
+work in a similar way with a rate in hertz. The [lincong~] object sounds
+more like the chaotic map generators \, while the others sound more
+like "noise"., f 70;
+#X connect 2 0 3 0;
+#X connect 3 0 10 0;
+#X connect 5 0 10 0;
+#X connect 6 0 10 0;
+#X connect 10 0 11 0;

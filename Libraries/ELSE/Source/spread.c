@@ -5,63 +5,105 @@
 static t_class *spread_class;
 
 typedef struct _spread{
-    t_object    x_obj;
-    t_atom     *x_av;
-    int         x_ac;
-    int         x_bytes;
-    float       x_f;
-    t_outlet  **x_outs;
-    t_outlet   *x_out_unmatch;
+    t_object   x_obj;
+    t_atom    *x_av;
+    int        x_ac;
+    int        x_bytes;
+    int        x_mode;
+    float      x_f;
+    t_outlet **x_outs;
+    t_outlet  *x_out_unmatch;
 }t_spread;
+
+static void spread_args(t_spread *x, t_symbol *s, int ac, t_atom *av){
+    s = NULL;
+    if(ac > x->x_ac)
+        ac = x->x_ac;
+    int n = 0;
+    while(ac > 0){
+        if(av->a_type == A_FLOAT){
+            t_float aval = atom_getfloatarg(0, ac, av);
+            SETFLOAT(x->x_av+n, aval);
+        }
+        n++;
+        av++;
+        ac--;
+    }
+}
+    
+static void spread_mode(t_spread *x, t_floatarg f){
+    x->x_mode = (int)(f != 0);
+}
 
 static void spread_float(t_spread *x, t_floatarg f){
     for(int n = 0; n < x->x_ac; n++){
-        if(f < x->x_av[n].a_w.w_float){
-            outlet_float(x->x_outs[n], f);
-            return;
+        if(x->x_mode){
+            if(f <= x->x_av[n].a_w.w_float){
+                outlet_float(x->x_outs[n], f);
+                return;
+            }
+        }
+        else{
+            if(f < x->x_av[n].a_w.w_float){
+                outlet_float(x->x_outs[n], f);
+                return;
+            }
         }
     }
     outlet_float(x->x_out_unmatch, f);
 }
 
-static void *spread_new(t_symbol *s, int argc, t_atom *argv){
+static void *spread_new(t_symbol *s, int ac, t_atom *av){
     s = NULL;
     t_spread *x = (t_spread *)pd_new(spread_class);
-    if(!argc){
+    x->x_mode = 0;
+    if(ac >= 2 && av->a_type == A_SYMBOL){
+        t_symbol *sym = atom_getsymbolarg(0, ac, av);
+        if(sym == gensym("-mode")){
+            x->x_mode = (int)(atom_getfloatarg(1, ac, av) != 0);
+            ac-=2, av+=2;
+        }
+        else
+            goto errstate;
+    }
+    if(!ac){
         x->x_ac = 1;
         x->x_bytes = x->x_ac*sizeof(t_atom);
         x->x_av = (t_atom *)getbytes(x->x_bytes);
         SETFLOAT(x->x_av, 0);
     }
     else{
-        x->x_ac = argc;
+        x->x_ac = ac;
         x->x_bytes = x->x_ac*sizeof(t_atom);
         x->x_av = (t_atom *)getbytes(x->x_bytes);
         int n = 0;
-        while(argc > 0){
-            if(argv->a_type == A_FLOAT){
-                t_float argval = atom_getfloatarg(0, argc, argv);
-                SETFLOAT(x->x_av+n, argval);
+        while(ac > 0){
+            if(av->a_type == A_FLOAT){
+                t_float aval = atom_getfloatarg(0, ac, av);
+                SETFLOAT(x->x_av+n, aval);
             }
-            else if(argv->a_type == A_SYMBOL){
-                pd_error(x, "[spread]: takes only floats as arguments");
-                return (NULL);
-            }
+            else if(av->a_type == A_SYMBOL)
+                goto errstate;
             n++;
-            argv++;
-            argc--;
+            av++;
+            ac--;
         }
     }
     t_outlet **outs;
-    x->x_outs = (t_outlet **)getbytes(x->x_ac * sizeof(*outs));
+    x->x_outs = (t_outlet **)getbytes(x->x_ac*sizeof(*outs));
     for(int i = 0; i < x->x_ac; i++)
         x->x_outs[i] = outlet_new(&x->x_obj, &s_anything);
     x->x_out_unmatch = outlet_new(&x->x_obj, &s_anything);
     return(x);
+errstate:
+    pd_error(x, "[spread]: improper arguments");
+    return(NULL);
 }
 
 void spread_setup(void){
-    spread_class = class_new(gensym("spread"), (t_newmethod)spread_new,
-        0, sizeof(t_spread), 0, A_GIMME, 0);
+    spread_class = class_new(gensym("spread"), (t_newmethod)spread_new, 0,
+        sizeof(t_spread), 0, A_GIMME, 0);
     class_addfloat(spread_class, spread_float);
+    class_addmethod(spread_class, (t_method)spread_mode, gensym("mode"), A_FLOAT, 0);
+    class_addmethod(spread_class, (t_method)spread_args, gensym("args"), A_GIMME, 0);
 }

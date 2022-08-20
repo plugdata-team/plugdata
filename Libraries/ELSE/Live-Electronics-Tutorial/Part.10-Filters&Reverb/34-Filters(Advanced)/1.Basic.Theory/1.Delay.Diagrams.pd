@@ -1,0 +1,61 @@
+#N canvas 419 140 947 419 12;
+#X declare -path else;
+#X obj 537 268 +~;
+#X obj 537 292 *~ 0.5;
+#X obj 140 271 cnv 15 273 110 empty empty empty 20 12 0 14 #e0e0e0
+#404040 0;
+#X text 258 300 |;
+#X text 258 310 |;
+#X text 258 319 |;
+#X text 229 331 |;
+#X text 278 332 |;
+#X text 278 351 |;
+#X text 229 351 |;
+#X text 232 351 _______;
+#X text 193 323 |;
+#X text 193 333 |;
+#X text 193 303 |;
+#X text 193 313 |;
+#X text 258 294 ^;
+#X text 229 341 | z^-1 |;
+#X text 195 339 ---->;
+#X text 193 294 |;
+#X obj 537 328 out~;
+#X obj 726 323 out~;
+#X text 29 30 Let's look at filter diagram representations. Below \,
+"x" represents the input signal and "y" the output. The input and output
+are a function of "n" \, which is the sample number.;
+#X obj 139 90 cnv 15 200 30 empty empty empty 20 12 0 14 #e0e0e0 #404040
+0;
+#X text 149 94 x(n) => [filter] => y(n);
+#X text 232 321 _______;
+#X text 146 284 x(n) --------------(+)--(/2)--> y(n);
+#X text 30 153 Filters are usually implemented with delay lines \,
+mostly with very short delay times such as a few samples. Let's see
+a diagram with a feedforward delay line. This represents an average
+filter with two samples \, the input and the last input. Z raised to
+-1 indicates a one sample delay (this notation comes from the Z Transform).
+The diagram tells us we have a sum of the two samples divided by two
+(hence \, an average).;
+#X obj 754 21 declare -path else;
+#X obj 537 210 bl.saw~ 300;
+#X floatatom 856 254 5 1 20 0 - - - 0;
+#X text 840 218 number of samples, f 9;
+#X text 527 59 Here's this filter implemented with [ffdelay~] below.
+But we also have the average filter object [mov.avg~] performing an
+average on 2 samples. You can increase it though up to an average of
+20 samples (check its help file for more details). The average filter
+is a kind of lowpass filter that we've already seen in this tutorial
+and more information about it will be provided in this section., f
+53;
+#X obj 726 239 bl.saw~ 300;
+#X obj 555 240 ffdelay~ -samps 1;
+#X obj 726 281 mov.avg~ -size 20 2;
+#X connect 0 0 1 0;
+#X connect 1 0 19 0;
+#X connect 28 0 0 0;
+#X connect 28 0 33 0;
+#X connect 29 0 34 1;
+#X connect 32 0 34 0;
+#X connect 33 0 0 1;
+#X connect 34 0 20 0;

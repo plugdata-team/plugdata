@@ -2,28 +2,35 @@
 
 #include "m_pd.h"
 #include "math.h"
-#include <string.h>
+#include "random.h"
+
+typedef struct _tempo{
+    t_object       x_obj;
+    t_random_state x_rstate;
+    double         x_phase;
+    int            x_val;
+    t_inlet       *x_inlet_tempo;
+    t_inlet       *x_inlet_swing;
+    t_inlet       *x_inlet_sync;
+    t_float        x_sr;
+    t_float        x_gate;
+    t_float        x_mul;
+    t_float        x_current_mul;
+    t_float        x_deviation;
+    t_float        x_last_gate;
+    t_float        x_last_sync;
+    t_float        x_swing;
+    t_float        x_mode;
+}t_tempo;
 
 static t_class *tempo_class;
 
-typedef struct _tempo{
-    t_object    x_obj;
-    double      x_phase;
-    int         x_val;
-    t_inlet    *x_inlet_tempo;
-    t_inlet    *x_inlet_swing;
-    t_inlet    *x_inlet_sync;
-    t_outlet   *x_outlet_dsp_0;
-    t_float     x_sr;
-    t_float     x_gate;
-    t_float     x_mul;
-    t_float     x_current_mul;
-    t_float     x_deviation;
-    t_float     x_last_gate;
-    t_float     x_last_sync;
-    t_float     x_swing;
-    t_float     x_mode;
-} t_tempo;
+static unsigned int instanc_n = 0;
+
+static void tempo_seed(t_tempo *x, t_symbol *s, int ac, t_atom *av){
+    random_init(&x->x_rstate, get_seed(s, ac, av, ++instanc_n));
+    x->x_deviation = x->x_phase = 1;
+}
 
 static void tempo_bang(t_tempo *x){
     x->x_phase = 1;
@@ -31,19 +38,22 @@ static void tempo_bang(t_tempo *x){
 
 static t_int *tempo_perform(t_int *w){
     t_tempo *x = (t_tempo *)(w[1]);
-    int nblock = (t_int)(w[2]);
+    int n = (t_int)(w[2]);
     t_float *in1 = (t_float *)(w[3]); // gate
     t_float *in2 = (t_float *)(w[4]); // tempo
     t_float *in3 = (t_float *)(w[5]); // swing
     t_float *in4 = (t_float *)(w[6]); // sync
     t_float *out = (t_float *)(w[7]);
+    uint32_t *s1 = &x->x_rstate.s1;
+    uint32_t *s2 = &x->x_rstate.s2;
+    uint32_t *s3 = &x->x_rstate.s3;
     float last_gate = x->x_last_gate; // last gate state
     float last_sync = x->x_last_sync; // last gate state
     double phase = x->x_phase;
     double sr = x->x_sr;
     int val = x->x_val;
     float deviation = x->x_deviation;
-    while(nblock--){
+    while(n--){
         float gate = *in1++;
         double tempo = *in2++;
         float swing = *in3++;
@@ -72,8 +82,7 @@ static t_int *tempo_perform(t_int *w){
                 phase = phase - 1; // wrapped phase
 // update deviation/mul
                 x->x_current_mul = x->x_mul;
-                t_float random = ((float)((val & 0x7fffffff) - 0x40000000)) * (float)(1.0 / 0x40000000);
-                val = val * 435898247 + 382842987;
+                t_float random = (t_float)(random_frand(s1, s2, s3));
                 x->x_deviation = exp(log(ratio) * random);
             }
             phase += phase_step; // next phase
@@ -88,7 +97,7 @@ static t_int *tempo_perform(t_int *w){
     x->x_last_gate = last_gate;
     x->x_last_sync = last_sync;
     x->x_val = val;
-    return (w + 8);
+    return(w+8);
 }
 
 static void tempo_dsp(t_tempo *x, t_signal **sp){
@@ -101,32 +110,32 @@ static void tempo_mul(t_tempo *x, t_floatarg f){
     x->x_mul = f <= 0 ? 0.0000000000000001 : f;
 }
 
-static void tempo_bpm(t_tempo *x, t_symbol *s, int argc, t_atom *argv){
+static void tempo_bpm(t_tempo *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    if(argc){
-        pd_float((t_pd *)x->x_inlet_tempo, atom_getfloatarg(0, argc, argv));
-        if(argc == 2)
-            pd_float((t_pd *)x->x_inlet_swing, atom_getfloatarg(1, argc, argv));
+    if(ac){
+        pd_float((t_pd *)x->x_inlet_tempo, atom_getfloatarg(0, ac, av));
+        if(ac == 2)
+            pd_float((t_pd *)x->x_inlet_swing, atom_getfloatarg(1, ac, av));
     }
     x->x_mode = 0;
 }
 
-static void tempo_ms(t_tempo *x, t_symbol *s, int argc, t_atom *argv){
+static void tempo_ms(t_tempo *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    if(argc){
-        pd_float((t_pd *)x->x_inlet_tempo, atom_getfloatarg(0, argc, argv));
-        if(argc == 2)
-            pd_float((t_pd *)x->x_inlet_swing, atom_getfloatarg(1, argc, argv));
+    if(ac){
+        pd_float((t_pd *)x->x_inlet_tempo, atom_getfloatarg(0, ac, av));
+        if(ac == 2)
+            pd_float((t_pd *)x->x_inlet_swing, atom_getfloatarg(1, ac, av));
     }
     x->x_mode = 1;
 }
 
-static void tempo_hz(t_tempo *x, t_symbol *s, int argc, t_atom *argv){
+static void tempo_hz(t_tempo *x, t_symbol *s, int ac, t_atom *av){
     s = NULL;
-    if(argc){
-        pd_float((t_pd *)x->x_inlet_tempo, atom_getfloatarg(0, argc, argv));
-        if(argc == 2)
-            pd_float((t_pd *)x->x_inlet_swing, atom_getfloatarg(1, argc, argv));
+    if(ac){
+        pd_float((t_pd *)x->x_inlet_tempo, atom_getfloatarg(0, ac, av));
+        if(ac == 2)
+            pd_float((t_pd *)x->x_inlet_swing, atom_getfloatarg(1, ac, av));
     }
     x->x_mode = 2;
 }
@@ -135,66 +144,70 @@ static void *tempo_free(t_tempo *x){
     inlet_free(x->x_inlet_tempo);
     inlet_free(x->x_inlet_swing);
     inlet_free(x->x_inlet_sync);
-    outlet_free(x->x_outlet_dsp_0);
-    return (void *)x;
+    return(void *)x;
 }
 
-static void *tempo_new(t_symbol *s, int argc, t_atom *argv){
+static void *tempo_new(t_symbol *s, int ac, t_atom *av){
     t_tempo *x = (t_tempo *)pd_new(tempo_class);
-    t_symbol *dummy = s;
-    dummy = NULL;
-    t_float init_swing = 0;
-    t_float init_tempo = 0;
-    t_float on = 0;
-    t_float mode = 0;
-    t_float mul = 1;
+    s = NULL;
+    tempo_seed(x, s, 0, NULL);
+    t_float init_swing = 0, init_tempo = 0;
+    t_float on = 0, mode = 0, mul = 1;
     int flag_no_more = 0;
-    static int init_seed = 74599;
-    x->x_val = (init_seed *= 1319);
 /////////////////////////////////////////////////////////////////////////////////////
     int argnum = 0;
-    while(argc > 0){
-        if(argv->a_type == A_FLOAT){
+    while(ac > 0){
+        if(av->a_type == A_FLOAT){
             flag_no_more = 1;
-            t_float argval = atom_getfloatarg(0, argc, argv);
+            t_float aval = atom_getfloatarg(0, ac, av);
             switch(argnum){
                 case 0:
-                    init_tempo = argval;
+                    init_tempo = aval;
                     break;
                 case 1:
-                    init_swing = argval;
+                    init_swing = aval;
                     break;
                 default:
                     break;
             };
             argnum++;
-            argc--;
-            argv++;
+            ac--;
+            av++;
         }
-        else if(argv->a_type == A_SYMBOL){
+        else if(av->a_type == A_SYMBOL){
             if(flag_no_more)
                 goto errstate;
-            t_symbol *curarg = atom_getsymbolarg(0, argc, argv);
-            if(!strcmp(curarg->s_name, "-on")){
+            t_symbol *curarg = atom_getsymbol(av);
+            if(curarg == gensym("-on")){
                 on = 1;
-                argc--;
-                argv++;
+                ac--;
+                av++;
             }
-            else if(!strcmp(curarg->s_name, "-ms")){
+            else if(curarg == gensym("-ms")){
                 mode = 1;
-                argc--;
-                argv++;
+                ac--;
+                av++;
             }
-            else if(!strcmp(curarg->s_name, "-hz")){
+            else if(curarg == gensym("-hz")){
                 mode = 2;
-                argc--;
-                argv++;
+                ac--;
+                av++;
             }
-            else if(!strcmp(curarg->s_name, "-mul")){
-                if((argv+1)->a_type == A_FLOAT){
-                    mul = atom_getfloatarg(1, argc, argv);
-                    argc -= 2;
-                    argv += 2;
+            else if(curarg == gensym("-mul")){
+                if((av+1)->a_type == A_FLOAT){
+                    mul = atom_getfloatarg(1, ac, av);
+                    ac-=2;
+                    av+=2;
+                }
+                else
+                    goto errstate;
+            }
+            else if(curarg == gensym("-seed")){
+                if((av+1)->a_type == A_FLOAT){
+                    t_atom at[1];
+                    SETFLOAT(at, atom_getfloat(av+1));
+                    ac-=2, av+=2;
+                    tempo_seed(x, s, 1, at);
                 }
                 else
                     goto errstate;
@@ -223,7 +236,7 @@ static void *tempo_new(t_symbol *s, int argc, t_atom *argv){
     x->x_inlet_swing = inlet_new((t_object *)x, (t_pd *)x, &s_signal, &s_signal);
         pd_float((t_pd *)x->x_inlet_swing, init_swing);
     x->x_inlet_sync = inlet_new((t_object *)x, (t_pd *)x, &s_signal, &s_signal);
-    x->x_outlet_dsp_0 = outlet_new(&x->x_obj, &s_signal);
+    outlet_new(&x->x_obj, &s_signal);
     return(x);
 errstate:
     pd_error(x, "[tempo~]: improper args");
@@ -240,4 +253,5 @@ void tempo_tilde_setup(void){
     class_addmethod(tempo_class, (t_method)tempo_hz, gensym("hz"), A_GIMME, 0);
     class_addmethod(tempo_class, (t_method)tempo_bpm, gensym("bpm"), A_GIMME, 0);
     class_addmethod(tempo_class, (t_method)tempo_mul, gensym("mul"), A_DEFFLOAT, 0);
+    class_addmethod(tempo_class, (t_method)tempo_seed, gensym("seed"), A_GIMME, 0);
 }

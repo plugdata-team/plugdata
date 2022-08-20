@@ -1,0 +1,77 @@
+#N canvas 557 36 534 591 12;
+#X declare -path else;
+#X obj 162 252 noise~;
+#X obj 236 269 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 500 256;
+#N canvas 125 85 481 301 lowpass 0;
+#X obj 91 137 lop~;
+#X obj 104 163 lop~;
+#X obj 119 189 lop~;
+#X floatatom 144 101 5 0 0 0 - - -;
+#X obj 91 52 inlet~;
+#X obj 119 223 outlet~;
+#X obj 144 52 inlet;
+#X text 178 140 3 [lop~] filters in cascade;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 2 0 5 0;
+#X connect 3 0 0 1;
+#X connect 3 0 1 1;
+#X connect 3 0 2 1;
+#X connect 4 0 0 0;
+#X connect 6 0 3 0;
+#X restore 75 311 pd lowpass;
+#N canvas 125 85 440 317 highpass 0;
+#X floatatom 141 101 5 0 0 0 - - -;
+#X obj 91 52 inlet~;
+#X obj 120 226 outlet~;
+#X obj 141 52 inlet;
+#X obj 91 137 hip~;
+#X obj 104 164 hip~;
+#X obj 120 194 hip~;
+#X text 192 179 3 filtros [hip~] em cascata;
+#X connect 0 0 4 1;
+#X connect 0 0 5 1;
+#X connect 0 0 6 1;
+#X connect 1 0 4 0;
+#X connect 3 0 0 0;
+#X connect 4 0 5 0;
+#X connect 5 0 6 0;
+#X connect 6 0 2 0;
+#X restore 162 311 pd highpass;
+#X obj 236 243 initmess 500;
+#X obj 334 346 nbx 5 14 -1e+37 1e+37 0 0 empty hz empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X obj 337 319 hsl 128 15 200 2000 1 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 267 372 crossover~;
+#X obj 267 343 noise~;
+#X text 50 57 A crossover filter splits an audio in different frequency
+bands. It's used in audio for splitting and routing signals to different
+speakers (such as: woofer \, tweeter) \, so each gets a proper band
+of frequencies (low in woofer \, high in tweeter).;
+#X text 298 268 Hz (cutoff);
+#X text 371 317 Hz (cutoff);
+#X text 56 144 Below we have a crossover setting by parallel lowpass
+and highpass filters with the same cutoff. We use [lop~] and [hip~]
+filters in cascade \, open the subpatches for more details., f 58
+;
+#X text 61 494 We also have the [crossover~] object from ELSE \, a
+ready made crossover filter. But this is a 3rd order butterworth filter
+instead (we'll see more details on the butterworth filter topology
+later in this tutorial).;
+#X obj 356 18 declare -path else;
+#X obj 261 410 out~;
+#X obj 75 362 out~;
+#X connect 0 0 2 0;
+#X connect 0 0 3 0;
+#X connect 1 0 2 1;
+#X connect 1 0 3 1;
+#X connect 2 0 16 0;
+#X connect 3 0 16 1;
+#X connect 4 0 1 0;
+#X connect 5 0 7 1;
+#X connect 6 0 5 0;
+#X connect 7 0 15 0;
+#X connect 7 1 15 1;
+#X connect 8 0 7 0;

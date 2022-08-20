@@ -1,0 +1,74 @@
+#N canvas 428 33 868 507 12;
+#X declare -path else;
+#X obj 60 208 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 57 325 db2lin;
+#X obj 57 263 lin2db;
+#X text 128 293 dBFS;
+#X text 126 232 Linear Amp;
+#X text 127 357 Linear Amp;
+#X obj 665 29 declare -path else;
+#X text 17 18 In analog audio \, we have different dB scales with different
+reference values in Watts or Volts for 0 dB \, but in digital audio
+we have a scale that has no such reference point in Watts/Volts \,
+because this can't be defined in the digital domain \, as it only depends
+on the analog system it is connected to.;
+#X text 17 111 In digital audio we only consider that 0 dB is the maximum
+amplitude the system can generate. This is called "dB Full Scale" -
+or "dBFS" for short. The conversion between linear amplitude and dBFS
+is possible with the [lin2db] and [db2lin] objects from ELSE.;
+#X floatatom 57 233 9 0 0 0 - - - 12;
+#X floatatom 57 294 9 0 0 0 - - - 12;
+#X floatatom 57 358 9 0 0 0 - - - 12;
+#X obj 267 206 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 335 293 dBFS;
+#X text 333 232 Linear Amp;
+#X text 334 357 Linear Amp;
+#X floatatom 264 233 9 0 0 0 - - - 12;
+#X floatatom 264 294 9 0 0 0 - - - 12;
+#X floatatom 264 358 9 0 0 0 - - - 12;
+#X obj 264 325 expr pow(10 \, $f1/20);
+#X obj 264 263 expr 20*log10($f1);
+#X text 44 409 This is the scale used in all digital audio editors
+and workstations \, where minus infinite dB represents silence and
+0 dB a maximum peak linear amplitude of 1! The convrsion is pretty
+simple and the formula is given by the [expr] objects to the right.
+, f 56;
+#X obj 629 196 hsl 132 17 -100 0 0 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X text 698 300 Linear Amp;
+#X floatatom 626 301 9 0 0 0 - - - 12;
+#X floatatom 626 231 9 0 0 0 - - - 12;
+#X obj 626 267 db2lin;
+#X text 699 232 dBFS;
+#X text 476 68 A dynamic range of 100 dB is more than enough. The [db2lin]
+object \, by default \, actually considers "-100" db as the minimum
+possible value \, which gets rounded to 0 linear amplitude \, but it
+should convert to 1e-05 instead. This way you can have a slider going
+from -100 to 0 (that converts to linear amplitudes from 0 to 1).,
+f 50;
+#X floatatom 529 301 9 0 0 0 - - - 12;
+#X obj 529 267 db2lin -inf;
+#X obj 591 454 db2lin~;
+#X text 482 342 An argument allows you to set another minimum value
+and can be as low as minus infinity (-inf)., f 49;
+#X obj 686 454 lin2db~;
+#X text 484 385 ELSE also offers audio rate objects for these conversions
+that work exactly the same way. Check the help files of all of them.
+, f 49;
+#X connect 0 0 9 0;
+#X connect 1 0 11 0;
+#X connect 2 0 10 0;
+#X connect 9 0 2 0;
+#X connect 10 0 1 0;
+#X connect 12 0 16 0;
+#X connect 16 0 20 0;
+#X connect 17 0 19 0;
+#X connect 19 0 18 0;
+#X connect 20 0 17 0;
+#X connect 22 0 25 0;
+#X connect 22 0 30 0;
+#X connect 25 0 26 0;
+#X connect 26 0 24 0;
+#X connect 30 0 29 0;

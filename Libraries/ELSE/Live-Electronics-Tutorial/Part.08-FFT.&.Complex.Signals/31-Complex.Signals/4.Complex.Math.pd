@@ -1,0 +1,289 @@
+#N canvas 429 121 880 356 12;
+#X declare -path else;
+#X text 169 259 [(b * c) + (a * d)]i;
+#X text 34 29 Complex math has special properties from the imaginary
+unit \, which gives us -1 when squared. Let's see what happens when
+multiplying two complex numbers., f 47;
+#X text 37 164 In the first half we have: (a * c) + (b.i * d.i). The
+multiplication of the imaginary units (b.i * d.i) gives us "-1" \,
+so we end up with (a * c) - (b * d)., f 49;
+#X text 39 235 For the other half \, we have "i" as a common factor
+\, which gives us:, f 51;
+#X text 37 290 The first half of the equation is the real part and
+the second half is the imaginary part., f 51;
+#X text 427 48 The subpatch below implements this complex multiplication
+and shows us a mathematical property \, which is the fact that we get
+the same result by multiplying the amplitudes and summing the initial
+phases., f 57;
+#N canvas 293 23 878 562 Complex-Multiply 0;
+#X obj 314 91 v Re1;
+#X obj 374 91 v Im1;
+#X obj 472 90 v Re2;
+#X obj 532 91 v Im2;
+#X obj 127 242 *;
+#X obj 127 269 -;
+#X obj 168 241 *;
+#X obj 277 240 *;
+#X obj 245 240 *;
+#X obj 314 61 nbx 4 18 -1e+37 1e+37 0 0 \$0-Re1 Re1 Re1 0 -8 0 12 -262130
+-1 -1 30 256;
+#X obj 472 61 nbx 4 18 -1e+37 1e+37 0 0 \$0-Re2 Re2 Re2 0 -8 0 12 -257985
+-1 -1 45 256;
+#X obj 374 61 nbx 4 18 -1e+37 1e+37 0 0 \$0-Im1 Im1 Im1 0 -8 0 12 -204786
+-1 -1 44 256;
+#X obj 532 61 nbx 4 18 -1e+37 1e+37 0 0 \$0-Im2 Im2 Im2 0 -8 0 12 -4034
+-1 -1 33 256;
+#X obj 89 170 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re1 Re1 0 -8 0 12
+-262130 -1 -1 30 256;
+#X obj 247 170 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re2 Re2 0 -8 0 12
+-257985 -1 -1 45 256;
+#X obj 149 170 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im1 Im1 0 -8 0 12
+-204786 -1 -1 44 256;
+#X obj 307 170 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im2 Im2 0 -8 0 12
+-4034 -1 -1 33 256;
+#X obj 127 305 nbx 9 18 -1e+37 1e+37 0 0 empty empty Re -18 9 0 12
+-245290 -1 -1 -102 256;
+#X floatatom 679 347 8 0 0 0 - - -;
+#X floatatom 742 348 8 0 0 0 - - -;
+#X floatatom 510 348 8 0 0 0 - - -;
+#X floatatom 573 349 8 0 0 0 - - -;
+#X obj 603 414 *;
+#X obj 649 413 +;
+#X obj 513 283 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re1 Re1 0 -8 0 12
+-262130 -1 -1 30 256;
+#X obj 672 283 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re2 Re2 0 -8 0 12
+-257985 -1 -1 45 256;
+#X obj 573 283 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im1 Im1 0 -8 0 12
+-204786 -1 -1 44 256;
+#X obj 732 283 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im2 Im2 0 -8 0 12
+-4034 -1 -1 33 256;
+#X obj 550 495 nbx 9 18 -1e+37 1e+37 0 0 empty empty Re -18 9 0 12
+-245290 -1 -1 -102 256;
+#X obj 686 494 nbx 9 18 -1e+37 1e+37 0 0 empty empty Im -18 7 0 12
+-171620 -1 -1 2970 256;
+#X obj 260 271 +;
+#X obj 260 304 nbx 9 18 -1e+37 1e+37 0 0 empty empty Im -18 7 0 12
+-171620 -1 -1 2970 256;
+#X obj 119 432 nbx 9 18 -1e+37 1e+37 0 0 empty empty Re -18 9 0 12
+-245290 -1 -1 -102 256;
+#X obj 333 428 nbx 9 18 -1e+37 1e+37 0 0 empty empty Im -18 7 0 12
+-171620 -1 -1 2970 256;
+#X obj 265 91 s expr;
+#X obj 603 456 pol2car;
+#X obj 520 319 car2pol;
+#X obj 679 318 car2pol;
+#X text 47 128 Cartesian Form:;
+#X text 314 15 Insert values from right to left;
+#X obj 119 353 bng 25 250 50 0 empty expr empty 17 7 0 10 -262130 -1
+-1;
+#X obj 119 391 expr (Re1 * Re2) - (Im1 * Im2) \; (Im1 * Re2) + (Re1
+* Im2);
+#X text 456 159 Polar Form:;
+#X obj 685 82 initmess \; Im2 33 \; Re2 45 \; Im1 44 \; Re1 30;
+#X text 463 188 In the polar form we get the same result by multiplying
+the amplitudes and summing the initial phases., f 41;
+#X text 191 481 The Cartesian form is more accurate and CPU efficient.
+, f 27;
+#X obj 674 33 declare -path else;
+#X connect 4 0 5 0;
+#X connect 5 0 17 0;
+#X connect 6 0 5 1;
+#X connect 7 0 30 1;
+#X connect 8 0 30 0;
+#X connect 9 0 0 0;
+#X connect 9 0 34 0;
+#X connect 10 0 2 0;
+#X connect 11 0 1 0;
+#X connect 12 0 3 0;
+#X connect 13 0 4 0;
+#X connect 13 0 8 0;
+#X connect 14 0 7 1;
+#X connect 14 0 4 1;
+#X connect 15 0 6 0;
+#X connect 15 0 7 0;
+#X connect 16 0 8 1;
+#X connect 16 0 6 1;
+#X connect 18 0 22 1;
+#X connect 19 0 23 1;
+#X connect 20 0 22 0;
+#X connect 21 0 23 0;
+#X connect 22 0 35 0;
+#X connect 23 0 35 1;
+#X connect 24 0 36 0;
+#X connect 25 0 37 0;
+#X connect 26 0 36 1;
+#X connect 27 0 37 1;
+#X connect 30 0 31 0;
+#X connect 35 0 28 0;
+#X connect 35 1 29 0;
+#X connect 36 0 20 0;
+#X connect 36 1 21 0;
+#X connect 37 0 18 0;
+#X connect 37 1 19 0;
+#X connect 40 0 41 0;
+#X connect 41 0 32 0;
+#X connect 41 1 33 0;
+#X restore 584 132 pd Complex-Multiply;
+#N canvas 235 23 917 740 Complex-Division 0;
+#X text 470 198 Amplitudes;
+#X obj 494 109 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re1 Re1 0 -8 0 12
+-262130 -1 -1 30 256;
+#X obj 653 109 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re2 Re2 0 -8 0 12
+-257985 -1 -1 45 256;
+#X obj 554 109 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im1 Im1 0 -8 0 12
+-204786 -1 -1 44 256;
+#X obj 713 109 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im2 Im2 0 -8 0 12
+-4034 -1 -1 33 256;
+#X obj 548 193 /;
+#X obj 623 193 -;
+#X text 488 183 Divide;
+#X obj 157 385 *;
+#X obj 198 384 *;
+#X obj 279 383 *;
+#X obj 245 383 *;
+#X obj 277 316 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re2 Re2 0 -8 0 12
+-257985 -1 -1 45 256;
+#X obj 337 316 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im2 Im2 0 -8 0 12
+-4034 -1 -1 33 256;
+#X obj 157 436 +;
+#X obj 253 439 -;
+#X obj 157 523 nbx 5 18 -1e+37 1e+37 0 0 empty empty Re -18 9 0 12
+-245290 -1 -1 0.899807 256;
+#X obj 253 521 nbx 7 18 -1e+37 1e+37 0 0 empty empty Im -18 7 0 12
+-171620 -1 -1 0.317919 256;
+#X obj 157 494 /;
+#X obj 253 493 /;
+#X obj 317 392 *;
+#X obj 348 392 *;
+#X obj 317 443 +;
+#X obj 135 316 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Re1 Re1 0 -8 0 12
+-262130 -1 -1 30 256;
+#X obj 195 316 nbx 4 18 -1e+37 1e+37 0 0 empty \$0-Im1 Im1 0 -8 0 12
+-204786 -1 -1 44 256;
+#X obj 111 670 nbx 5 18 -1e+37 1e+37 0 0 empty empty Re -18 9 0 12
+-245290 -1 -1 0.899807 256;
+#X obj 249 669 nbx 7 18 -1e+37 1e+37 0 0 empty empty Im -18 7 0 12
+-171620 -1 -1 0.317919 256;
+#X obj 387 668 v norm;
+#X obj 111 583 bng 22 250 50 0 empty expr empty 17 7 0 10 -262130 -1
+-1;
+#X obj 114 238 v Re1;
+#X obj 276 200 nbx 4 18 -1e+37 1e+37 0 0 \$0-Re2 empty Re2 0 -8 0 12
+-257985 -1 -1 0 256;
+#X obj 177 199 nbx 4 18 -1e+37 1e+37 0 0 \$0-Im1 empty Im1 0 -8 0 12
+-204786 -1 -1 0 256;
+#X obj 336 200 nbx 4 18 -1e+37 1e+37 0 0 \$0-Im2 empty Im2 0 -8 0 12
+-4034 -1 -1 0 256;
+#X obj 114 198 nbx 4 18 -1e+37 1e+37 0 0 \$0-Re1 empty Re1 0 -8 0 12
+-262130 -1 -1 0 256;
+#X obj 177 236 v Im1;
+#X obj 276 236 v Re2;
+#X obj 336 236 v Im2;
+#X obj 251 412 swap;
+#X obj 535 533 nbx 5 18 -1e+37 1e+37 0 0 empty empty Re -18 9 0 12
+-245290 -1 -1 2802 256;
+#X obj 730 532 nbx 7 18 -1e+37 1e+37 0 0 empty empty Im -18 7 0 12
+-171620 -1 -1 990 256;
+#X obj 535 455 bng 22 250 50 0 empty expr empty 17 7 0 10 -262130 -1
+-1;
+#X obj 550 312 nbx 5 18 -1e+37 1e+37 0 0 empty empty Re -18 9 0 12
+-245290 -1 -1 0.899807 256;
+#X obj 641 313 nbx 7 18 -1e+37 1e+37 0 0 empty empty Im -18 7 0 12
+-171620 -1 -1 0.317919 256;
+#X obj 623 237 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
+-204800 -1 -1 0.339629 256;
+#X obj 684 618 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
+-204800 -1 -1 0.339629 256;
+#X obj 548 237 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
+-261234 -1 -1 0.95432 256;
+#X obj 610 618 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 13
+-259602 -1 -1 2971.75 256;
+#X obj 535 484 expr ((Re1 * Re2) + (Im1 * Im2)) \; ((Im1 * Re2) - (Re1
+* Im2));
+#X text 516 233 Amp;
+#X text 578 615 Amp;
+#X obj 111 609 expr ((Re1 * Re2) + (Im1 * Im2)) / norm \; ((Im1 * Re2)
+- (Re1 * Im2)) / norm \; (pow(Re2 \, 2) + pow(Im2 \, 2));
+#X obj 56 238 s expr;
+#X obj 631 573 car2pol;
+#X obj 578 273 pol2car;
+#X obj 501 145 car2pol;
+#X obj 661 144 car2pol;
+#X text 66 276 Cartesian:;
+#X text 658 207 Phases;
+#X text 655 191 Subtract;
+#X text 696 236 Phase;
+#X text 101 90 normalization = (Re2 * Re2) + (Im2 * Im2);
+#X text 64 9 Complex Division:;
+#X text 468 51 Polar:;
+#X text 505 382 The normalization factor only affects the amplitude
+\, the phase remains the same., f 41;
+#X text 115 154 insert values from right to left:;
+#X text 95 39 Re: (Re1 * Re2) + (Im1 * Im2) / normalization \; Im:
+(Im1 * Re2) - (Re1 * Im2) / normalization;
+#X text 606 637 different;
+#X text 689 637 the same;
+#X text 755 616 Phase;
+#X connect 1 0 54 0;
+#X connect 2 0 55 0;
+#X connect 3 0 54 1;
+#X connect 4 0 55 1;
+#X connect 5 0 45 0;
+#X connect 6 0 43 0;
+#X connect 8 0 14 0;
+#X connect 9 0 14 1;
+#X connect 10 0 37 1;
+#X connect 11 0 37 0;
+#X connect 12 0 8 1;
+#X connect 12 0 10 1;
+#X connect 12 0 20 1;
+#X connect 12 0 20 0;
+#X connect 13 0 11 1;
+#X connect 13 0 9 1;
+#X connect 13 0 21 1;
+#X connect 13 0 21 0;
+#X connect 14 0 18 0;
+#X connect 15 0 19 0;
+#X connect 18 0 16 0;
+#X connect 19 0 17 0;
+#X connect 20 0 22 0;
+#X connect 21 0 22 1;
+#X connect 22 0 19 1;
+#X connect 22 0 18 1;
+#X connect 23 0 8 0;
+#X connect 23 0 11 0;
+#X connect 24 0 9 0;
+#X connect 24 0 10 0;
+#X connect 28 0 50 0;
+#X connect 30 0 35 0;
+#X connect 31 0 34 0;
+#X connect 32 0 36 0;
+#X connect 33 0 29 0;
+#X connect 33 0 51 0;
+#X connect 37 0 15 0;
+#X connect 37 1 15 1;
+#X connect 38 0 52 0;
+#X connect 39 0 52 1;
+#X connect 40 0 47 0;
+#X connect 43 0 53 1;
+#X connect 45 0 53 0;
+#X connect 47 0 38 0;
+#X connect 47 1 39 0;
+#X connect 50 0 25 0;
+#X connect 50 1 26 0;
+#X connect 50 2 27 0;
+#X connect 52 0 46 0;
+#X connect 52 1 44 0;
+#X connect 53 0 41 0;
+#X connect 53 1 42 0;
+#X connect 54 0 5 0;
+#X connect 54 1 6 0;
+#X connect 55 0 5 1;
+#X connect 55 1 6 1;
+#X restore 573 272 pd Complex-Division;
+#X text 438 174 For complex division \, we have a similar property
+\, where we have the same result by dividing the amplitudes and subtracting
+the initial phases. We also need a normalization factor. Open the subpatch
+below for more details., f 55;
+#X text 44 99 - so we have: (a + b.i) * (c + d.i) \; - After the distributive
+property we get \; (a * c) + (b.i * d.i) + (b.i * c) + (a * d.i);

@@ -49,7 +49,6 @@
 #000000 #000000 0 256;
 #X obj 203 150 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
 #000000 #000000 0 1;
-#X obj 200 222 else/display~ 8;
 #N canvas 695 38 544 587 example 0;
 #X obj 172 357 else/out~;
 #X obj 59 246 phasor~ 200;
@@ -174,6 +173,7 @@ each segment, f 47;
 the first float indexed from 0, f 48;
 #X text 31 190 see also:;
 #X obj 31 216 else/envgen~;
-#X connect 25 0 28 0;
+#X obj 200 222 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 25 0 45 0;
 #X connect 26 0 25 0;
 #X connect 27 0 26 0;

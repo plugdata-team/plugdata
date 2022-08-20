@@ -1,0 +1,75 @@
+#N canvas 574 23 563 478 10;
+#X obj 4 287 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 367 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 402 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 126 376 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 127 296 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 449 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 382 141 749 319 (subpatch) 0;
+#X coords 0 -1 1 1 252 42 2 100 100;
+#X restore 305 3 pd;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Replace\ element\ from\ a\ message
+0 28 2 18 #e0e0e0 #000000 0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 257 196 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 3 3 cnv 15 301 42 empty empty replace 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1 0 0;
+#X restore 3 3 graph;
+#X msg 175 192 a b c d e;
+#X msg 149 168 10 20 30 40;
+#X obj 127 318 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 233 297 - input message;
+#X text 193 319 float;
+#X text 175 297 anything;
+#X msg 257 171 -2;
+#X msg 289 171 0;
+#X text 53 88 [replace] replaces an element from an input message according
+to an element number defined by the 1st argument or mid inlet. Elements
+are indexed from 1 \, a 0 value means no element is replaced and negative
+values count from last to the first element. Element numbers get cliped
+to the first and last items of the input message. The right inlet or
+2nd argument sets the new element., f 77;
+#X listbox 340 197 8 0 0 0 - - - 0;
+#X text 317 171 <-- set item index;
+#X text 393 198 <--- set new element value, f 13;
+#X obj 175 251 else/display;
+#X obj 127 341 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 233 319 - element index;
+#X text 233 342 - new element value;
+#X text 151 342 float/symbol;
+#X text 199 376 list;
+#X text 233 376 - list with replaced element;
+#X text 172 409 1) float - set item index to replace (default 0);
+#X text 130 427 2) float/symbol - number (default 0);
+#X obj 175 222 else/replace -2 x, f 28;
+#X connect 15 0 39 1;
+#X connect 18 0 39 0;
+#X connect 19 0 39 0;
+#X connect 24 0 15 0;
+#X connect 25 0 15 0;
+#X connect 27 0 39 2;
+#X connect 39 0 30 0;

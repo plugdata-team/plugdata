@@ -1,0 +1,88 @@
+#N canvas 481 63 1093 476 12;
+#X declare -path else;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-linear 1024 float 0;
+#X coords 0 1 1023 0 600 150 1;
+#X restore 432 85 graph;
+#X obj 433 86 cnv 15 598 148 empty empty empty 20 12 0 14 -191407 -66577
+0;
+#X text 1010 236 Nyquist;
+#X text 427 235 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-db 1024 float 0;
+#X coords 0 0 1023 -100 600 150 1 0 0;
+#X restore 433 284 graph;
+#X obj 434 285 cnv 15 598 148 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#X text 1011 435 Nyquist;
+#X text 428 434 0;
+#X text 420 79 1;
+#X text 417 223 0;
+#X text 419 426 0;
+#X text 406 278 100;
+#X obj 248 224 nbx 7 18 -1e+37 1e+37 0 0 empty freq empty 0 -8 0 14
+-228856 -1 -1 581.396 256;
+#X obj 94 236 + 1;
+#X obj 94 181 vradio 20 1 0 2 empty source empty 0 -8 0 10 -228856
+-1 -1 0;
+#X obj 139 224 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+-228856 -1 -1 843 256;
+#X obj 139 266 osc~ 843;
+#N canvas 262 23 537 469 FFT 0;
+#X obj 96 168 rfft~;
+#X obj 96 57 inlet~;
+#X obj 234 253 loadbang;
+#X obj 234 278 tgl 15 0 empty empty empty 0 -6 0 10 -228856 -1 -1 1
+1;
+#X obj 234 299 metro 205;
+#X obj 234 338 tabwrite~ \$0-linear;
+#X obj 162 380 tabwrite~ \$0-db;
+#X obj 96 240 /~ 512;
+#X obj 343 270 block~ 2048 4;
+#X obj 96 129 hann~;
+#X obj 96 200 mag~;
+#X text 201 104 The maximum amplitude value is the block size / 4 \,
+which is 512 in this example., f 36;
+#X obj 96 302 lin2db~;
+#X obj 96 326 max~ -100;
+#X text 201 155 After dividing by 512 \, we just need to convert to
+db with [lin2db~]. Values under -100 are ignored in our graph., f
+36;
+#X connect 0 0 10 0;
+#X connect 0 1 10 1;
+#X connect 1 0 9 0;
+#X connect 2 0 3 0;
+#X connect 3 0 4 0;
+#X connect 4 0 5 0;
+#X connect 4 0 6 0;
+#X connect 7 0 5 0;
+#X connect 7 0 12 0;
+#X connect 9 0 0 0;
+#X connect 10 0 7 0;
+#X connect 12 0 13 0;
+#X connect 13 0 6 0;
+#X restore 164 346 pd FFT;
+#X obj 248 266 bl.saw~;
+#X obj 139 301 xselect~ 2 100 1;
+#X obj 138 386 out~;
+#X text 216 345 <= open;
+#X obj 248 176 initmess 581.396, f 8;
+#X text 58 181 sine;
+#X text 64 201 saw;
+#X obj 139 176 initmess 843, f 8;
+#X text 33 36 Amplitude values in a FFT analysis are linear \, but
+we can convert them to a dB scale \, as it's better for visualizing
+the data (compare to the right). Check the analysis result of a sine
+wave and sawtooth wave. Note how it's easier to see the upper harmonics
+of a sawtooth wave when displaying in dB., f 48;
+#X obj 893 33 declare -path else;
+#X connect 12 0 18 0;
+#X connect 13 0 19 0;
+#X connect 14 0 13 0;
+#X connect 15 0 16 0;
+#X connect 16 0 19 0;
+#X connect 18 0 19 1;
+#X connect 19 0 17 0;
+#X connect 19 0 20 0;
+#X connect 22 0 12 0;
+#X connect 25 0 15 0;

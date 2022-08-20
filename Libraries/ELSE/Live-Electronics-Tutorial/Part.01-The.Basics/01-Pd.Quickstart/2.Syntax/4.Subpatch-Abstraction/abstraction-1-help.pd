@@ -1,0 +1,14 @@
+#N canvas 811 294 466 382 12;
+#X obj 191 290 abstraction-1;
+#X text 61 74 When you name a patch with the same name as the abstraction
+and add "-help" at the end \, this file works as a help file for the
+abstraction., f 50;
+#X text 61 36 This is an example on how to make help file for abstractions!
+, f 50;
+#X text 61 128 Same is usually true for compiled objects \, because
+by default \, Pd searches for a file with the same name as the object
+followed by "-help"., f 50;
+#X text 61 179 Since this is just a didactic example \, this file is
+not a proper help file. The abstraction is also for didactic purposes
+and doesn't really do much anyway..., f 50;
+#X coords 0 0 1 1 100 100 0;

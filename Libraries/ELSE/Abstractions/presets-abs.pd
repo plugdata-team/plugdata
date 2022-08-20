@@ -10,7 +10,7 @@
 #N canvas 356 221 694 431 shift 0;
 #X msg 137 214 save;
 #X msg 218 214 load;
-#X obj 106 264 insert;
+#X obj 106 264 else/insert;
 #X obj 218 293 s \$0-radio;
 #X obj 175 95 keyname;
 #X obj 214 117 select Shift_L;
@@ -48,11 +48,11 @@
 #dcdcdc #000000 #000000 0 256;
 #X obj 165 123 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
 #dcdcdc #000000 #000000 0 256;
-#X obj 87 197 pmosc~;
+#X obj 87 197 else/pmosc~;
 #X text 170 107 Index;
 #X text 123 107 Mod;
 #X text 55 107 Carrier;
-#X obj 382 250 presets \\\$0-A \\\$0-B \\\$0-C;
+#X obj 382 250 else/presets \\\$0-A \\\$0-B \\\$0-C;
 #A saved -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty-
 \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \;
 -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty-

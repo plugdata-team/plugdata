@@ -14,8 +14,8 @@
 #X msg 280 106 0 1 1;
 #X obj 181 134 unpack f f f;
 #X obj 90 98 route q wet;
-#X obj 181 76 loadbanger 2;
-#X obj 181 103 args;
+#X obj 181 76 else/loadbanger 2;
+#X obj 181 103 else/args;
 #X connect 0 0 5 0;
 #X connect 3 0 4 0;
 #X connect 4 1 1 0;
@@ -27,10 +27,10 @@
 #X connect 7 0 4 0;
 #X restore 211 91 pd set;
 #X obj 149 56 inlet~;
-#X obj 57 179 xfade~;
-#X obj 88 131 allpass.filt~ \$1;
-#X obj 244 143 f2s~ 10;
-#X obj 244 120 rescale -clip 0 1 -1 0;
+#X obj 57 179 else/xfade~;
+#X obj 88 131 else/allpass.filt~ \$1;
+#X obj 244 143 else/f2s~ 10;
+#X obj 244 120 else/rescale -clip 0 1 -1 0;
 #X connect 0 0 3 0;
 #X connect 1 0 5 0;
 #X connect 1 0 6 0;

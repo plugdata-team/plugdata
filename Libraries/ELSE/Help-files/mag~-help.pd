@@ -51,7 +51,6 @@
 0;
 #X obj 56 42 cnv 4 4 4 empty empty spectrum 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 263 241 else/display~;
 #X text 124 292 float/signal;
 #X text 124 320 float/signal;
 #X obj 490 82 else/setdsp~;
@@ -65,15 +64,15 @@
 #dcdcdc #000000 #000000 0 256;
 #X obj 245 77 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X obj 158 128 else/display~;
 #X text 97 16 the "power" argument gets the power magnitude result
 \, that is the sum of the squares of the real and imaginary part.;
 #X text 54 132 Power Amplitude;
 #X obj 447 74 else/setdsp~;
 #X obj 158 100 else/mag~ power;
-#X connect 2 0 8 0;
-#X connect 3 0 8 1;
-#X connect 8 0 4 0;
+#X obj 158 132 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 2 0 7 0;
+#X connect 3 0 7 1;
+#X connect 7 0 8 0;
 #X restore 465 253 pd power;
 #X text 69 91 [mag~] gets the spectrum magnitudes (amplitudes) from
 cartesian coordinates (real / imaginary). This is much like the amplitude
@@ -86,6 +85,7 @@ require the phase values., f 63;
 #X text 30 198 see also:;
 #X obj 263 213 else/mag~ norm;
 #X obj 33 223 else/mag;
-#X connect 10 0 39 0;
-#X connect 11 0 39 1;
-#X connect 39 0 27 0;
+#X obj 263 244 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 10 0 38 0;
+#X connect 11 0 38 1;
+#X connect 38 0 40 0;

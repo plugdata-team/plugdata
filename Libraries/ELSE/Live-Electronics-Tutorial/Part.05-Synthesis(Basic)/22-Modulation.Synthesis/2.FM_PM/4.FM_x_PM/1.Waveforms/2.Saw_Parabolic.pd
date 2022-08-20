@@ -1,0 +1,180 @@
+#N canvas 300 118 1069 538 12;
+#X declare -path else;
+#X text 286 480 0;
+#X obj 72 352 cnv 15 198 138 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 302 353 cnv 15 198 138 empty empty empty 20 12 0 14 -232822
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-freq2 882 float 0;
+#X coords 0 0 881 -100 200 140 1 0 0;
+#X restore 71 351 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase2 882 float 0;
+#X coords 0 1 881 0 200 140 1 0 0;
+#X restore 301 352 graph;
+#X text 287 345 1;
+#X text 147 497 20 ms;
+#X text 381 500 20 ms;
+#X text 33 342 0 hz;
+#X text 24 411 -50 Hz;
+#X text 18 478 -100 Hz;
+#X text 286 315 0;
+#X obj 72 187 cnv 15 198 138 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 302 188 cnv 15 198 138 empty empty empty 20 12 0 14 -232822
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-freq1 882 float 0;
+#X coords 0 100 881 0 200 140 1 0 0;
+#X restore 71 186 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase1 882 float 0;
+#X coords 0 1 881 0 200 140 1 0 0;
+#X restore 301 187 graph;
+#X text 287 180 1;
+#X text 36 316 0 Hz;
+#X text 24 180 100 hz;
+#X text 30 249 50 Hz;
+#X obj 528 93 cnv 15 505 400 empty empty empty 20 12 0 14 -224891 -66577
+0;
+#X obj 593 322 cnv 15 198 138 empty empty empty 20 12 0 14 -233017
+-66577 0;
+#X obj 820 322 cnv 15 198 138 empty empty empty 20 12 0 14 -232822
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-freq4 1764 float 0;
+#X coords 0 100 1763 -100 200 140 1 0 0;
+#X restore 592 321 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase4 1764 float 0;
+#X coords 0 1 1763 0 200 140 1 0 0;
+#X restore 819 321 graph;
+#X text 899 469 40 ms;
+#X text 804 267 0;
+#X obj 593 140 cnv 15 198 138 empty empty empty 20 12 0 14 -233017
+-66577 0;
+#X obj 820 140 cnv 15 198 138 empty empty empty 20 12 0 14 -232822
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-freq3 1764 float 0;
+#X coords 0 100 1763 -100 200 140 1 0 0;
+#X restore 592 139 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase3 1764 float 0;
+#X coords 0 1 1763 0 200 140 1 0 0;
+#X restore 819 139 graph;
+#X text 805 132 1;
+#X text 539 268 -100 Hz;
+#X text 557 200 0 Hz;
+#X text 544 134 100 Hz;
+#X text 537 447 -100 Hz;
+#X text 555 379 0 Hz;
+#X text 542 313 100 Hz;
+#X text 804 450 0;
+#X text 805 315 1;
+#X text 670 468 40 ms;
+#X text 45 17 Let's now analyze what happens with a sawtooth as the
+frequency input. This is nothing but a ramp \, and a ramp from 0 to
+100 hz is actually a constant ascelerating signal for the angular velocity.
+The phase output is then a parabolic function and a geometric curve.
+, f 64;
+#X text 536 27 Now we have the graphs below for the actual sawtooth
+waves with positive and negative sides. Note we also have the inverted
+polarity sawtooth and the resulting parabola.;
+#N canvas 339 93 538 600 plot 0;
+#N canvas 120 36 450 300 plot 0;
+#X obj 174 75 inlet~;
+#X obj 252 75 inlet~;
+#X obj 102 75 inlet;
+#X obj 252 192 tabwrite~ \$0-phase2;
+#X obj 99 193 tabwrite~ \$0-freq2;
+#X connect 0 0 4 0;
+#X connect 1 0 3 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X restore 90 498 pd plot;
+#N canvas 120 36 450 300 plot 0;
+#X obj 187 80 inlet~;
+#X obj 249 80 inlet~;
+#X obj 95 80 inlet;
+#X obj 249 194 tabwrite~ \$0-phase1;
+#X obj 95 194 tabwrite~ \$0-freq1;
+#X connect 0 0 4 0;
+#X connect 1 0 3 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X restore 91 293 pd plot;
+#N canvas 120 36 435 288 plot 0;
+#X obj 167 69 inlet~;
+#X obj 233 67 inlet~;
+#X obj 75 67 inlet;
+#X obj 232 178 tabwrite~ \$0-phase4;
+#X obj 77 177 tabwrite~ \$0-freq4;
+#X connect 0 0 4 0;
+#X connect 1 0 3 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X restore 268 508 pd plot;
+#N canvas 120 36 529 300 plot 0;
+#X obj 232 88 inlet~;
+#X obj 295 88 inlet~;
+#X obj 136 88 inlet;
+#X obj 294 202 tabwrite~ \$0-phase3;
+#X obj 136 202 tabwrite~ \$0-freq3;
+#X connect 0 0 4 0;
+#X connect 1 0 3 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X restore 269 284 pd plot;
+#X obj 173 56 setdsp~ 1;
+#X obj 136 450 phasor~;
+#X obj 113 412 vline~;
+#X msg 113 385 -100 \, 0 20;
+#X obj 87 346 loadbang;
+#X obj 137 252 phasor~;
+#X msg 114 197 0 \, 100 20;
+#X obj 114 224 vline~;
+#X obj 90 166 loadbang;
+#X obj 314 472 phasor~;
+#X obj 291 440 vline~;
+#X obj 315 247 phasor~;
+#X obj 292 219 vline~;
+#X obj 269 163 loadbang;
+#X obj 268 381 loadbang;
+#X msg 292 192 100 \, -100 40;
+#X msg 291 413 -100 \, 100 40;
+#X obj 323 56 declare -path else;
+#X connect 5 0 0 2;
+#X connect 6 0 5 0;
+#X connect 6 0 0 1;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X connect 8 0 0 0;
+#X connect 9 0 1 2;
+#X connect 10 0 11 0;
+#X connect 11 0 9 0;
+#X connect 11 0 1 1;
+#X connect 12 0 10 0;
+#X connect 12 0 1 0;
+#X connect 13 0 2 2;
+#X connect 14 0 13 0;
+#X connect 14 0 2 1;
+#X connect 15 0 3 2;
+#X connect 16 0 15 0;
+#X connect 16 0 3 1;
+#X connect 17 0 19 0;
+#X connect 17 0 3 0;
+#X connect 18 0 20 0;
+#X connect 18 0 2 0;
+#X connect 19 0 16 0;
+#X connect 20 0 14 0;
+#X restore 967 42 pd plot;
+#X text 664 296 inverted;
+#X text 879 104 Parabolas;
+#X text 664 103 Sawtooths;
+#X text 45 97 This is a function obtained by raising to the power of
+two. As for a signal from -100 Hz a 0 Hz \, we have a desceleration
+in the opposite direction. The phase output is also a parabola (but
+from 1 to 0). Check the graphs below for a period of 20 ms., f 64
+;

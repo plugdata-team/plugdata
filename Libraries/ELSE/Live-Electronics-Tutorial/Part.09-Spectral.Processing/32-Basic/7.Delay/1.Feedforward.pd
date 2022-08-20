@@ -1,0 +1,83 @@
+#N canvas 408 114 747 399 12;
+#X declare -path else;
+#X obj 445 292 out~;
+#N canvas 507 133 431 572 Spectral-Delay 0;
+#X obj 262 422 block~ 512 4;
+#X obj 78 32 inlet~;
+#X obj 78 201 rfft~;
+#X obj 148 403 rifft~;
+#X obj 148 506 outlet~;
+#X obj 148 433 /~ 768;
+#X obj 78 149 hann~;
+#X obj 148 468 hann~;
+#X obj 78 339 ffdelay~ 2322;
+#X obj 187 338 ffdelay~ 2322;
+#X text 239 251 window size in ms, f 13;
+#X obj 224 230 blocksize~ -ms;
+#X obj 164 221 rint~;
+#X obj 164 256 *~;
+#X obj 164 190 tabreceive~ \$0-deltime;
+#X text 145 69 We get the delay times table we generated with the envelope
+and depth parameter. The values are converted to integers and multiplied
+by the block size in ms \, because we need multiples of the block size.
+, f 31;
+#X connect 1 0 6 0;
+#X connect 2 0 8 0;
+#X connect 2 1 9 0;
+#X connect 3 0 5 0;
+#X connect 5 0 7 0;
+#X connect 6 0 2 0;
+#X connect 7 0 4 0;
+#X connect 8 0 3 0;
+#X connect 9 0 3 1;
+#X connect 11 0 13 1;
+#X connect 12 0 13 0;
+#X connect 13 0 9 1;
+#X connect 13 0 8 1;
+#X connect 14 0 12 0;
+#X coords 0 0 1 1 230 100 0;
+#X restore 445 252 pd Spectral-Delay;
+#X obj 104 297 hsl 180 23 0 200 0 0 \$0-del-depth \$0-del-depth-set
+Delay-Depth 40 11 0 19 -66577 -228856 -262144 0 0;
+#X obj 91 153 initmess 0 0.5 1 0.5 0;
+#N canvas 644 170 432 436 delay-time-table 0;
+#X obj 90 151 phasor~;
+#X obj 249 226 block~ 256 1 1;
+#X obj 67 184 function~;
+#X obj 90 121 blocksize~ -hz;
+#X obj 67 83 inlet;
+#X obj 138 233 *~;
+#X obj 156 156 r \$0-del-depth;
+#X obj 156 203 f2s~ 50;
+#X floatatom 156 179 0 0 0 0 - - -;
+#X obj 138 288 tabsend~ \$0-deltime;
+#X obj 133 327 table \$0-deltime 256;
+#X connect 0 0 2 0;
+#X connect 2 0 5 0;
+#X connect 3 0 0 0;
+#X connect 4 0 2 0;
+#X connect 5 0 9 0;
+#X connect 6 0 8 0;
+#X connect 7 0 5 1;
+#X connect 8 0 7 0;
+#X coords 0 436 1 435 213 184 0;
+#X restore 91 334 pd delay-time-table;
+#X text 408 65 For such \, we need a table for the delay times for
+each sample. We generate one with the [function] object \, where the
+horizontal axis represent the frequency points and the vertical axis
+the delay time. The delay depth controls the overall amplitude (that
+is the time parameter) of the envelope., f 43;
+#X obj 541 22 declare -path else;
+#X obj 445 201 play.file~ guitar.wav 1 1;
+#X obj 91 187 function 200 100 empty empty 0 1 220 220 220 50 50 50
+0 0 0 0 0 0.5 1 0.5 0;
+#X text 22 26 Applying a delay to the FFT can sort of scramble the
+FFT bins pretty much like bin shifting. To avoid it \, you can have
+delay times that are multiple of the block size. Not only that \, but
+you can have different delay times for each sample \, which means different
+frequency bins will have different delay times., f 48;
+#X connect 1 0 0 0;
+#X connect 3 0 8 0;
+#X connect 7 0 1 0;
+#X connect 8 0 4 0;
+#X coords 0 0 1 1 560 350 0;

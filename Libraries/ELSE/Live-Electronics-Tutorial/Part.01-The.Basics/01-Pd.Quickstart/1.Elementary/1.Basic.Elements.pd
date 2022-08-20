@@ -1,0 +1,81 @@
+#N canvas 218 50 945 613 12;
+#X obj 168 235 print;
+#X msg 168 156 Hello World;
+#X text 177 196 <== connection cord;
+#X text 254 155 <== message box;
+#X text 97 145 inlet ==>;
+#X text 90 167 outlet ==>;
+#X text 99 222 inlet ==>;
+#X msg 66 394 one;
+#X text 371 425 three-messages;
+#X text 341 393 one-message;
+#X msg 82 424 1 2 3;
+#X msg 297 394 a b c;
+#X msg 312 424 a \, b \, c;
+#X obj 650 94 float;
+#X floatatom 650 152 5 0 0 0 - - - 0;
+#X symbolatom 650 180 7 0 0 0 - - - 0;
+#X text 559 151 3) Number;
+#X text 559 122 2) Message;
+#X text 559 93 1) Object;
+#X text 713 93 Object Box;
+#X msg 650 122 bang;
+#X text 713 122 Message Box;
+#X text 712 151 "Number Atom Box";
+#X text 711 180 "Symbol Atom Box";
+#X floatatom 557 412 5 0 0 0 - - - 16;
+#X symbolatom 664 412 7 0 0 0 - - - 16;
+#X text 525 280 To ask for help: Right-Click on any box then go for
+"Help" - this works even for comments \, try it. You should check the
+help file of every object you see in this tutorial that you do not
+know! If you right click on an empty space in your patch and ask for
+help \, Pd gives you a list of all its built-in objects!, f 52;
+#X text 210 234 <== object box*;
+#X text 132 269 * The [print] object displays messages in the terminal
+window, f 31;
+#X text 47 319 A message may contain one or more elements \, which
+are called “atoms” and can be either a number or a symbol. A comma
+allows you to have more than one message in a message box.;
+#X text 648 240 just a textual display;
+#X text 39 18 Welcome to this tutorial on Live Electronics with Pd
+and the ELSE library. Let's jump right into it!, f 59;
+#X text 95 393 one element/atom;
+#X text 128 424 three elements/atoms;
+#X text 512 31 These are the basic types of boxes \, you can insert
+them from the Put Menu or their shortcuts:, f 50;
+#X text 43 513 Numbers in Pd are floating point (have decimal points
+\, such "1.2") with 32 bit resolution (more on this type/resolution
+later). Pd only represents 6 significant digits \, otherwise it uses
+an exponential format such as "1e+6". Anything that is not considered
+a number atom is treated as a symbol atom.;
+#X text 39 53 We program in Pd by connecting "boxes" from "outlets"
+to "inlets". Click on the box that says "Hello_World!" and see the
+result at Pd's terminal window (a.k.a. 'Pd Window'). To access the
+temial go to "Window" menu and then choose "Pd Window" or use the shortcut
+(command/control + R).;
+#X listbox 650 211 20 0 0 0 - - - 0;
+#X text 560 240 x) Comment;
+#X text 559 179 x) Symbol;
+#X text 559 211 x) Symbol;
+#X text 801 211 "list Box";
+#X obj 557 452 print number;
+#X obj 66 466 print ex1;
+#X obj 297 466 print ex2;
+#X text 143 466 <= print as 'ex1';
+#X text 369 467 <= print as 'ex2', f 8;
+#X obj 664 452 print symbol;
+#X listbox 772 412 10 0 0 0 - - - 16;
+#X obj 772 452 print list;
+#X text 519 500 The above boxes are interactive \, you can click \,
+type and hit enter (you can also click drag for numbers). These also
+have properties windows \, right click and select it to check it out.
+See how you can \, for instance \, change their font/size (16 above).
+Check also their help file., f 56;
+#X connect 1 0 0 0;
+#X connect 7 0 43 0;
+#X connect 10 0 43 0;
+#X connect 11 0 44 0;
+#X connect 12 0 44 0;
+#X connect 24 0 42 0;
+#X connect 25 0 47 0;
+#X connect 48 0 49 0;

@@ -1,0 +1,26 @@
+#N canvas 635 68 500 376 12;
+#X declare -path else;
+#X obj 305 31 declare -path else;
+#X obj 371 74 setdsp~;
+#X obj 71 149 rampnoise 1;
+#X obj 74 185 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 112 1;
+#X obj 245 192 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 12338 1;
+#X obj 242 128 rampnoise~ 1;
+#X obj 242 161 s2f~;
+#X obj 80 316 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 2564 1;
+#X obj 251 323 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 9158 1;
+#X obj 248 292 s2f~;
+#X obj 77 280 lfnoise 1 1;
+#X obj 248 259 lfnoise~ 1 1;
+#X text 75 28 We've seen this already \, but it's worth noting how
+ramp noise is just random line generation, f 26;
+#X connect 2 0 3 0;
+#X connect 5 0 6 0;
+#X connect 6 0 4 0;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 11 0 9 0;

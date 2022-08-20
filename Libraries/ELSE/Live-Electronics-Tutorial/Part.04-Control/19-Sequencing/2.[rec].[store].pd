@@ -1,0 +1,66 @@
+#N canvas 397 68 912 422 12;
+#X declare -path else;
+#X obj 332 37 declare -path else;
+#X msg 107 175 record;
+#X msg 162 175 stop \, play;
+#X text 33 189 recording;
+#X text 42 175 start =>;
+#X text 238 174 <= stop recording and start playing;
+#X obj 309 261 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 261 237 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 213 213 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 249 212 Track 1;
+#X text 303 236 Track 2;
+#X text 344 260 Track 3;
+#X floatatom 162 326 5 0 0 0 - - -;
+#X floatatom 233 326 5 0 0 0 - - -;
+#X floatatom 291 326 5 0 0 0 - - -;
+#X text 60 86 [rec] can record any messages in different tracks \,
+so it can be used to record and play a sequence. Check its help file.
+, f 57;
+#X obj 162 292 rec 3, f 21;
+#X text 518 24 The [rec] object can save to text files in a format
+that is also somewhat compatible to [text sequence] \, where the first
+float in a line represent a wait time. The thing is that tracks are
+separated subsequentially., f 52;
+#X obj 714 270 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 630 333 5 0 0 0 - - -;
+#X obj 630 299 store, f 12;
+#A saved;
+#X obj 630 264 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 630 197 tgl 17 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X msg 575 266 clear;
+#X obj 630 227 tempo 120 -div 4;
+#X obj 711 334 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 633 364 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 518 107 The [store] object stores messages sequentially and
+is an abstraction based on [text]. You can use it as a sequencer and
+a recorder because it takes bangs to output messages sequentially.
+Check its help file., f 52;
+#X connect 1 0 16 0;
+#X connect 2 0 16 0;
+#X connect 6 0 16 3;
+#X connect 7 0 16 2;
+#X connect 8 0 16 1;
+#X connect 12 0 8 0;
+#X connect 13 0 7 0;
+#X connect 14 0 6 0;
+#X connect 16 0 12 0;
+#X connect 16 1 13 0;
+#X connect 16 2 14 0;
+#X connect 18 0 20 1;
+#X connect 19 0 26 0;
+#X connect 20 0 19 0;
+#X connect 20 1 25 0;
+#X connect 21 0 20 0;
+#X connect 22 0 24 0;
+#X connect 23 0 20 0;
+#X connect 24 0 21 0;

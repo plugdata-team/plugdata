@@ -1,0 +1,106 @@
+#N canvas 307 73 851 497 12;
+#X declare -path else;
+#X obj 91 187 nbx 5 14 1 3000 0 1 empty empty empty 0 -8 0 10 -228856
+-1 -1 32 256;
+#X obj 251 169 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 474 324 (subpatch) 0;
+#X array saw 4099 float 0;
+#X coords 0 1 4098 -1 200 140 1;
+#X restore 250 168 graph;
+#X text 233 166 1;
+#X text 228 287 -1;
+#X obj 79 319 nbx 5 14 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10
+-228856 -1 -1 97.9989 256;
+#X text 52 318 Hz;
+#X obj 79 344 tabosc4~ saw;
+#N canvas 491 220 855 465 saw 0;
+#X text 130 140 p;
+#X obj 64 49 inlet;
+#X msg 364 170 1 0.5 0.333333 0.25 0.2 0.166667 0.142857 0.125 0.111111
+0.1 0.090909 0.0833333 0.076923 0.0714286 0.0666667 0.0625 0.0588235
+0.0555556 0.0526315 0.05 0.047619 0.0454545 0.0434782 0.0416667 0.04
+0.0384615 0.037037 0.0357143 0.0344827 0.0333333 0.0322581 0.03125
+;
+#X obj 142 246 list prepend sinesum 4096;
+#X msg 142 334 normalize 1;
+#X obj 286 374 send saw;
+#X obj 142 272 list trim;
+#X obj 142 295 trigger bang anything;
+#X text 548 147 Example with 32 partials:;
+#X obj 142 159 expr 1/$f1;
+#X obj 64 90 trigger bang float bang, f 32;
+#X obj 142 215 list store;
+#X obj 142 121 loop -offset 1;
+#X msg 142 186 append \$1;
+#X text 365 110 Sawtooth: partials decrease in an order of "1/p" \,
+where "p" is the partial number.;
+#X connect 1 0 10 0;
+#X connect 3 0 6 0;
+#X connect 4 0 5 0;
+#X connect 6 0 7 0;
+#X connect 7 0 4 0;
+#X connect 7 1 5 0;
+#X connect 9 0 13 0;
+#X connect 10 0 11 0;
+#X connect 10 1 12 0;
+#X connect 10 2 11 1;
+#X connect 11 0 3 0;
+#X connect 12 0 9 0;
+#X connect 13 0 11 0;
+#X restore 91 211 pd saw;
+#X obj 79 378 out~;
+#X text 72 168 # of harmonics;
+#N canvas 212 77 267 219 sequencer 0;
+#X obj 38 94 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 38 70 tempo 240;
+#X obj 38 45 inlet;
+#X obj 38 156 outlet;
+#X obj 38 132 mtof;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 3 0;
+#X restore 564 173 pd sequencer;
+#X obj 564 150 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 564 200 nbx 5 14 -1e+37 1e+37 0 1 empty empty empty 0 -8 0 10
+-228856 -1 -1 92.4986 256;
+#X obj 564 228 saw~;
+#X obj 576 264 out~;
+#X obj 564 331 graph~ 441 8;
+#N canvas 212 77 278 227 sequencer 0;
+#X obj 44 98 sequencer 42 40 40 45 40 49 52 52 45 43 43 47 50 54 55
+55, f 29;
+#X obj 44 74 tempo 240;
+#X obj 44 47 inlet;
+#X obj 44 160 outlet;
+#X obj 44 135 mtof;
+#X connect 0 0 4 0;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 4 0 3 0;
+#X restore 79 292 pd sequencer;
+#X obj 79 269 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X text 510 64 The [saw~] object \, from ELSE \, is a "perfect" sawtooth
+wave generator \, which is basically a descending ramp. Check its help
+file for more details., f 38;
+#X obj 647 20 declare -path else;
+#X text 23 13 You can generate a sawtooth waveform from a sum of harmonic
+partials \, which means we can use "sinesum" again and [tabosc4~].
+Open the [pd saw] subpatch to see how that works., f 61;
+#X text 24 67 Enter the number of harmonics and see the resulting waveform
+below. Realize that \, in order to generate a "perfect" sawtooth \,
+you need an infinite harmonic series., f 61;
+#X connect 0 0 8 0;
+#X connect 5 0 7 0;
+#X connect 7 0 9 0;
+#X connect 11 0 13 0;
+#X connect 12 0 11 0;
+#X connect 13 0 14 0;
+#X connect 14 0 15 0;
+#X connect 14 0 16 0;
+#X connect 17 0 5 0;
+#X connect 18 0 17 0;

@@ -1,0 +1,103 @@
+#N canvas 533 36 628 764 12;
+#X declare -path else;
+#X obj 6 175 cnv 15 614 584 empty empty empty 20 12 0 14 -33289 -66577
+0;
+#X obj 13 181 cnv 15 600 280 empty empty Cartesian 20 12 0 14 -262130
+-4160 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array Re 129 float 0;
+#X coords 0 128 128 -128 256 200 1;
+#X restore 45 233 graph;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array Im 129 float 0;
+#X coords 0 128 128 -128 256 200 1;
+#X restore 321 232 graph;
+#X obj 46 234 cnv 15 254 198 empty empty empty 20 12 0 14 -236717 -66577
+0;
+#X text 149 430 Nyquist;
+#X text 43 429 0;
+#X text 290 429 sr;
+#X text 425 431 Nyquist;
+#X text 319 430 0;
+#X text 562 429 sr;
+#X obj 322 233 cnv 15 254 198 empty empty empty 20 12 0 14 -257521
+-66577 0;
+#X text 30 321 0;
+#X text 308 323 0;
+#X text 150 207 Cosine;
+#X text 433 210 Sine;
+#X obj 13 469 cnv 15 600 280 empty empty Polar 20 12 0 14 -262130 -4160
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array Amplitude 129 float 0;
+#X coords 0 128 128 0 256 200 1;
+#X restore 44 514 graph;
+#X obj 45 513 cnv 15 254 200 empty empty empty 20 12 0 14 -204786 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array Phase 129 float 0;
+#X coords 0 3.14 128 -3.13 256 200 1;
+#X restore 321 514 graph;
+#X obj 322 515 cnv 15 254 198 empty empty empty 20 12 0 14 -203904
+-66577 0;
+#X text 425 713 Nyquist;
+#X text 319 712 0;
+#X text 562 711 sr;
+#X text 148 713 Nyquist;
+#X text 42 712 0;
+#X text 288 711 sr;
+#X text 308 604 0;
+#X obj 458 43 hilbert~;
+#X obj 469 87 fft~;
+#X obj 458 11 osc~ 5000;
+#X obj 205 116 block~ 128;
+#X text 45 36 The [fft~] object performs FFT on a complex signal. We
+saw how a real signal into [fft~] generates mirrored components over
+the Nyquist frequency \, this doesn't happen for a complex signal input.
+, f 46;
+#X text 423 67 Real;
+#X text 513 68 Imaginary;
+#X text 427 112 Real;
+#X text 511 110 Imaginary;
+#N canvas 504 23 687 487 plot 0;
+#X text 116 324 Amplitude;
+#X obj 270 289 tabwrite~ Im;
+#X obj 185 416 tabwrite~ Amplitude;
+#X obj 83 288 tabwrite~ Re;
+#X obj 245 387 tabwrite~ Phase;
+#X text 251 323 Initial Phase;
+#X obj 189 72 inlet~;
+#X obj 261 65 inlet~;
+#X obj 394 193 tgl 15 0 empty empty empty 0 -6 0 10 -262144 -1 -1 1
+1;
+#X obj 394 214 metro 205;
+#X obj 415 157 loadbang;
+#X obj 394 240 s bangue;
+#X obj 483 187 del 500;
+#X msg 483 217 \; pd dsp 1 \; Re xticks 0 32 1 \; Im xticks 0 32 1
+\; Phase xticks 0 32 1 \; Amplitude xticks 0 32 1;
+#X obj 185 302 car2pol~;
+#X obj 290 233 r bangue;
+#X obj 283 357 r bangue;
+#X obj 442 102 declare -path else;
+#X connect 6 0 3 0;
+#X connect 6 0 14 0;
+#X connect 7 0 1 0;
+#X connect 7 0 14 1;
+#X connect 8 0 9 0;
+#X connect 9 0 11 0;
+#X connect 10 0 8 0;
+#X connect 10 0 12 0;
+#X connect 12 0 13 0;
+#X connect 14 0 2 0;
+#X connect 14 1 4 0;
+#X connect 15 0 1 0;
+#X connect 15 0 3 0;
+#X connect 16 0 4 0;
+#X connect 16 0 2 0;
+#X restore 458 137 pd plot;
+#X connect 28 0 29 0;
+#X connect 28 1 29 1;
+#X connect 29 0 37 0;
+#X connect 29 1 37 1;
+#X connect 30 0 28 0;

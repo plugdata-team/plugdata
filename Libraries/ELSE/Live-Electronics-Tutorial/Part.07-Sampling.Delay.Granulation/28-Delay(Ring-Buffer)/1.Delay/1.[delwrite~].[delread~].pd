@@ -1,0 +1,39 @@
+#N canvas 637 48 594 636 12;
+#X declare -path else;
+#X obj 358 341 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 360 492 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 123 476 delwrite~ \$0-del 3000;
+#X obj 358 371 delread~ \$0-del 500;
+#X obj 360 522 delread~ \$0-del 1500;
+#X obj 102 511 out~;
+#X obj 358 407 out~;
+#X obj 360 558 out~;
+#X obj 409 18 declare -path else;
+#X obj 102 431 play.file~ bubul.wav 1 1;
+#X text 41 56 The "delay" is the basis of many processes and FX as
+we'll see throughout this tutorial \, such as flanger \, chorus \,
+echo/reverberation effects and pitch shifters. And we'll also see how
+they are the basis of filters., f 73;
+#X text 41 105 The native [delwrite~] object creates a "ring buffer"
+\, which is a buffer to continuously record to. Let's take the analog
+example of a magnetic tape delay \, which has the in a closed loop.
+This way \, when you record one cycle of the whole length of the tape
+you start recording again from the beginning. Then \, one head was
+used to write and another to read at a different length point (the
+further back \, the bigger the delay)., f 73;
+#X text 41 198 In the digital world it's the same. It records into
+a buffer/array and restarts recording to the beginning of the buffer
+in a loop. The [delwrite~] object is the write head and the [delread~]
+is the read head that can access the buffer at different lengths behind
+(set in ms with the second argument or inlet). Multiple [delread~]
+objects can read from the same line defined in [delwrite~] \, they
+only need to have the same delay line name. Check their help files
+for more information., f 73;
+#X connect 0 0 3 0;
+#X connect 1 0 4 0;
+#X connect 3 0 6 0;
+#X connect 4 0 7 0;
+#X connect 9 0 2 0;
+#X connect 9 0 5 0;

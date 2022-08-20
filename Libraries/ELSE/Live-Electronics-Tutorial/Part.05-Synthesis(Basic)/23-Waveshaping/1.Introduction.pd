@@ -1,0 +1,128 @@
+#N canvas 416 87 857 635 12;
+#X declare -path else;
+#X obj 101 246 nbx 5 19 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+-228856 -1 -1 0 256;
+#X obj 104 220 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 136 219 Clipping;
+#X msg 101 195 1;
+#N canvas 192 26 409 508 input 0;
+#X obj 107 404 outlet~;
+#X obj 107 200 + 1;
+#X obj 107 121 vradio 20 1 0 3 empty empty empty 0 -8 0 10 -228856
+-1 -1 0;
+#X text 132 164 [adc~];
+#X obj 107 48 loadbang;
+#X msg 107 75 0;
+#X obj 78 310 osc~ 440;
+#X obj 202 312 adc~ 1;
+#X text 131 142 Sample;
+#X obj 107 353 xselect~ 3 100;
+#X text 130 123 Sine;
+#X obj 154 255 sel 2;
+#X obj 154 284 player~ guitar.wav 1 1;
+#X connect 1 0 9 0;
+#X connect 1 0 11 0;
+#X connect 2 0 1 0;
+#X connect 4 0 5 0;
+#X connect 5 0 2 0;
+#X connect 6 0 9 0;
+#X connect 7 0 9 2;
+#X connect 9 0 0 0;
+#X connect 11 0 12 0;
+#X connect 12 0 9 1;
+#X coords 0 -1 1 1 80 90 1 100 100;
+#X restore 509 25 pd input;
+#X text 89 294 1;
+#X text 83 410 -1;
+#X text 90 353 0;
+#X text 200 433 0;
+#X text 94 435 -1;
+#X text 298 436 1;
+#N canvas 124 311 764 359 shape 0;
+#X msg 129 145 0;
+#X msg 114 73 \; pd dsp 1;
+#X obj 45 86 delay 500;
+#X obj 167 241 clip~ -1 1;
+#X obj 195 217 * -1;
+#X obj 185 104 t b f;
+#X obj 87 168 vsaw~ 100 1;
+#X obj 45 49 loadbanger 2;
+#X obj 185 20 inlet;
+#X obj 301 118 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-shape 441 float 0;
+#X coords 0 1.1 440 -1.1 200 140 1 0 0;
+#X restore 300 117 graph;
+#X obj 117 299 tabwrite~ \$0-shape;
+#X connect 0 0 6 2;
+#X connect 2 0 0 0;
+#X connect 2 0 11 0;
+#X connect 3 0 11 0;
+#X connect 4 0 3 1;
+#X connect 5 0 0 0;
+#X connect 5 0 11 0;
+#X connect 5 1 4 0;
+#X connect 5 1 3 2;
+#X connect 6 0 3 0;
+#X connect 7 0 2 0;
+#X connect 7 1 1 0;
+#X connect 8 0 5 0;
+#X coords 0 -1 1 1 200 157 2 300 100;
+#X restore 101 275 pd shape;
+#X text 73 357 p;
+#X text 73 306 |;
+#X text 73 296 |;
+#X text 73 403 |;
+#X text 73 393 |;
+#X obj 509 351 out~;
+#X obj 509 198 graph~ 268 5;
+#X obj 645 502 osc~ 100;
+#X obj 645 559 out~;
+#X obj 509 128 rescale~ 0 440;
+#X text 145 467 (table indices);
+#X text 96 452 ---- audio signal input -----;
+#X text 73 321 O;
+#X text 73 334 u;
+#X text 73 346 t;
+#X text 73 368 u;
+#X text 73 378 t;
+#X text 128 195 Reset;
+#X text 18 92 Here we use Waveshaping for a simple clipping distortion
+for didactical purposes \, as it makes it easy to visualize how it
+works. First we have a linear function that does not alter the input.
+But by moving the slider and setting a maximum amplitude value we can
+generate a clipping function.;
+#X text 442 159 transfer function, f 9;
+#X obj 509 164 tabread4~ \$0-shape;
+#X obj 645 530 shaper~ \$0-shape;
+#X text 29 499 Above to the right we have an input signal going through
+the transfer function. First we use [rescale~] to adjust the audio
+range from (-1 to 1) to the table indices (0 to 440) \, then use it
+to read the table with [tabread4~].;
+#X text 657 73 Like Ring Modulation \, Waveshaping can be used outside
+the context of synthesis as an effects processor. It's widely used
+as a distortion unit \, for example., f 23;
+#X obj 688 31 declare -path else;
+#X text 18 12 The Waveshaping technique is needs a transfer function
+for a signal to go through. We can use a table in Pd for that (see
+below). This way \, the audio input represents the indices and (horizontal
+axis) \, and the output are the values from the vertical axis.;
+#X text 29 571 You can also draw on the transfer function table and
+see the result. To reset \, just click the "1" message.;
+#X text 332 342 TRANSFER FUNCTION, f 8;
+#X text 307 348 <==;
+#X text 487 419 The [shaper~] object \, from ELSE \, is optimized for
+waveshaping and automatically rescales audio input signals (between
+-1 and 1) to the indices of a given table. Here it uses the same transfer
+function., f 48;
+#X connect 0 0 11 0;
+#X connect 1 0 0 0;
+#X connect 3 0 1 0;
+#X connect 4 0 21 0;
+#X connect 18 0 17 0;
+#X connect 19 0 33 0;
+#X connect 21 0 32 0;
+#X connect 32 0 18 0;
+#X connect 33 0 20 0;

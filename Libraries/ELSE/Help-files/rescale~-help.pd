@@ -13,7 +13,7 @@
 0;
 #X text 176 249 signal - value to perform the scaling function on;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -83,7 +83,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -145,11 +145,10 @@
 0;
 #X obj 242 178 else/rescale~;
 #X text 103 211 rescaled to 0-1 range;
-#X text 78 85 By default \, [rescale~] rescales input values from
--1 to 1 into another range of values (0-1 by default). You can also
-set an exponential factor (1 by default - linear). All these parameters
+#X text 78 85 By default \, [rescale~] rescales input values from -1
+to 1 into another range of values (0-1 by default). You can also set
+an exponential factor (1 by default - linear). All these parameters
 can be changed by arguments.;
-#X obj 242 206 else/display~;
 #X obj 242 148 osc~ 0.1;
 #X obj 113 311 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
@@ -187,8 +186,6 @@ can be changed by arguments.;
 #X text 375 157 max-in;
 #X obj 39 215 else/rescale~ -10 10;
 #X obj 270 203 else/rescale~ 0 1 -10 10, f 36;
-#X obj 270 233 else/display~;
-#X obj 39 250 else/display~;
 #X text 51 25 If you give [rescale~] up to 3 arguments \, it'll only
 have 3 inlets and you can set the minimum and maximum output via the
 rightmost inlets. But if you give 4 or more arguments \, [rescale~]
@@ -197,7 +194,7 @@ is initialized with more inlets so you can set all range parameters.
 #X obj 270 174 sig~;
 #X obj 39 191 sig~;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -267,7 +264,7 @@ is initialized with more inlets so you can set all range parameters.
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -310,7 +307,6 @@ is initialized with more inlets so you can set all range parameters.
 #dcdcdc #000000 #000000 0 256;
 #X text 159 423 min-out;
 #X text 237 423 max-out;
-#X obj 85 504 else/display~;
 #X obj 85 443 sig~;
 #X msg 330 408 clip \$1;
 #X obj 330 383 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
@@ -320,7 +316,6 @@ is initialized with more inlets so you can set all range parameters.
 #X obj 398 393 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X obj 398 458 else/rescale~ 0 1 -10 10;
-#X obj 398 488 else/display~;
 #X obj 398 429 sig~;
 #X obj 668 356 cnv 15 198 138 empty empty empty 20 12 0 14 #e0e0e0
 #404040 0;
@@ -349,41 +344,45 @@ the output range. By default \, [rescale~] will not clip the values
 to the output range but keep scaling outside that boundary with the
 same conversion parameters., f 71;
 #X obj 85 469 else/rescale~ -clip -10 10;
+#X obj 270 233 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 39 250 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 85 504 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 398 488 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 0 0 1 0;
-#X connect 1 0 22 0;
+#X connect 1 0 20 0;
 #X connect 2 0 16 1;
 #X connect 3 0 16 2;
 #X connect 6 0 7 0;
-#X connect 7 0 21 0;
+#X connect 7 0 19 0;
 #X connect 8 0 17 3;
 #X connect 9 0 17 4;
 #X connect 12 0 17 1;
 #X connect 13 0 17 2;
-#X connect 16 0 19 0;
-#X connect 17 0 18 0;
-#X connect 21 0 17 0;
-#X connect 22 0 16 0;
-#X connect 24 0 25 0;
-#X connect 25 0 31 0;
-#X connect 26 0 54 1;
-#X connect 27 0 54 2;
-#X connect 31 0 54 0;
-#X connect 32 0 36 0;
-#X connect 33 0 32 0;
-#X connect 34 0 35 0;
-#X connect 35 0 38 0;
-#X connect 36 0 37 0;
-#X connect 38 0 36 0;
-#X connect 44 0 43 0;
-#X connect 45 0 50 0;
-#X connect 46 0 49 0;
-#X connect 47 0 46 0;
-#X connect 49 0 45 0;
-#X connect 49 0 43 0;
-#X connect 49 1 52 0;
-#X connect 50 0 44 0;
-#X connect 52 0 44 0;
-#X connect 54 0 30 0;
+#X connect 16 0 52 0;
+#X connect 17 0 51 0;
+#X connect 19 0 17 0;
+#X connect 20 0 16 0;
+#X connect 22 0 23 0;
+#X connect 23 0 28 0;
+#X connect 24 0 50 1;
+#X connect 25 0 50 2;
+#X connect 28 0 50 0;
+#X connect 29 0 33 0;
+#X connect 30 0 29 0;
+#X connect 31 0 32 0;
+#X connect 32 0 34 0;
+#X connect 33 0 54 0;
+#X connect 34 0 33 0;
+#X connect 40 0 39 0;
+#X connect 41 0 46 0;
+#X connect 42 0 45 0;
+#X connect 43 0 42 0;
+#X connect 45 0 41 0;
+#X connect 45 0 39 0;
+#X connect 45 1 48 0;
+#X connect 46 0 40 0;
+#X connect 48 0 40 0;
+#X connect 50 0 53 0;
 #X restore 465 170 pd arguments;
 #X text 140 285 clip <float> -;
 #X text 230 285 <1> turns clipping on \, <0> off;
@@ -403,10 +402,8 @@ same conversion parameters., f 71;
 #X text 183 246 Inverted;
 #X obj 183 160 sig~;
 #X obj 62 188 else/rescale~ 0 1;
-#X obj 183 219 else/display~;
-#X obj 62 219 else/display~;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -476,7 +473,7 @@ same conversion parameters., f 71;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -510,18 +507,20 @@ same conversion parameters., f 71;
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 381 117 pd;
 #X obj 183 189 else/rescale~ 1 0;
+#X obj 183 219 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 62 219 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 0 0 1 0;
 #X connect 0 0 3 0;
 #X connect 1 0 6 0;
 #X connect 3 0 4 0;
 #X connect 4 0 7 0;
-#X connect 6 0 11 0;
-#X connect 7 0 9 0;
-#X connect 11 0 8 0;
+#X connect 6 0 9 0;
+#X connect 7 0 11 0;
+#X connect 9 0 10 0;
 #X restore 471 211 pd inverted;
 #N canvas 637 123 608 520 negative-exponential 0;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -591,7 +590,7 @@ same conversion parameters., f 71;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -682,5 +681,6 @@ it's like the curve shape has been mirrored in reverse.;
 \, exponential factor. 4 arguments set minimum input \, maximum input
 \, minimum output \, maximum output and 5 fifth argument sets the exponential
 factor - default (0 \, 127 \, 0 \, 1 \, 1);
-#X connect 21 0 24 0;
-#X connect 25 0 21 0;
+#X obj 242 211 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 21 0 39 0;
+#X connect 24 0 21 0;

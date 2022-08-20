@@ -1,0 +1,25 @@
+#N canvas 394 62 552 422 12;
+#X floatatom 274 313 5 0 0 0 - - - 0;
+#X symbolatom 103 293 15 0 0 0 - - - 0;
+#X msg 103 226 symbol nice;
+#X msg 103 257 symbol \$1!!!;
+#X msg 274 279 \$2;
+#X msg 274 216 13 12 11;
+#X msg 247 185 list one 2 three;
+#X msg 290 246 Midi Note 69;
+#X text 35 25 A dollar sign followed by a number behaves like a variable
+in messages. We'll also see other use cases for dollar signs in objects
+later on., f 70;
+#X text 35 72 In messages \, the dollar sign numbers correspond to
+elements of an incoming message (number or symbol) \, so "\$1" is the
+1st element \, \$2 the 2nd and so on. Note that the message selector
+does not count as a message element. You can use dollar, f 70;
+#X text 119 177 Examples:;
+#X text 78 362 see also the help file of message boxes:;
+#X msg 371 362 message;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X connect 4 0 0 0;
+#X connect 5 0 4 0;
+#X connect 6 0 4 0;
+#X connect 7 0 4 0;

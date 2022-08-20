@@ -1,0 +1,125 @@
+#N canvas 577 75 789 667 12;
+#X declare -path else;
+#X obj 294 406 envelope~;
+#X obj 294 374 envgen~;
+#X obj 406 360 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 406 387 switch~;
+#X obj 136 517 *~;
+#X obj 236 276 limit;
+#X obj 136 554 pan2~, f 10;
+#X obj 136 608 outlet~;
+#X obj 203 608 outlet~;
+#X obj 236 307 t b f b, f 17;
+#X msg 294 347 0 \$1 1;
+#X obj 385 436 rand.f 0.1 1;
+#X obj 202 398 rand.f -1 1;
+#X obj 294 438 *~ 0;
+#X text 272 540 This patch is used inside [clone] in one of the examples.
+;
+#X text 405 234 The [tabplayer~] object reads from the buffer \, whose
+name is passed via an argument to the instances in [clone]. Note the
+[tabplayer~] object is also set to loop \, in the case one of the grain
+starts too close to the boundaries., f 46;
+#X obj 210 41 inlet;
+#X obj 210 170 limit 1000 1;
+#N canvas 535 153 565 416 mode 0;
+#X obj 180 71 inlet;
+#X obj 304 362 outlet;
+#X obj 212 277 random 1000;
+#X obj 180 248 t b b;
+#X obj 247 71 inlet;
+#X obj 304 277 delay;
+#X floatatom 437 243 5 0 0 0 - - - 0;
+#X obj 286 166 loadbang;
+#X obj 180 277 del;
+#X obj 247 110 vradio 17 1 0 2 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X text 353 276 <= synchronous;
+#X text 271 126 synchronous, f 12;
+#X text 271 109 asynchronous;
+#X text 69 263 asynchronous =>;
+#X obj 286 195 expr (\$1 != 0) * 1000 \; \$1 * (1000./16);
+#X obj 180 196 router;
+#X connect 0 0 15 0;
+#X connect 2 0 8 1;
+#X connect 3 0 8 0;
+#X connect 3 1 2 0;
+#X connect 4 0 9 0;
+#X connect 5 0 1 0;
+#X connect 6 0 5 1;
+#X connect 7 0 14 0;
+#X connect 8 0 1 0;
+#X connect 9 0 15 1;
+#X connect 14 0 2 1;
+#X connect 14 1 6 0;
+#X connect 15 0 3 0;
+#X connect 15 1 5 0;
+#X restore 236 208 pd mode;
+#X obj 282 41 inlet;
+#X obj 236 245 rand.f 10 50;
+#N canvas 633 278 619 347 transp/pos/rev 0;
+#X obj 71 24 inlet;
+#X obj 71 184 rand.f 0 1;
+#X msg 167 217 speed \$1;
+#X obj 167 304 outlet;
+#X msg 71 217 pos \$1;
+#X obj 71 88 t b b;
+#X obj 138 127 t f b;
+#X obj 138 97 cents2ratio;
+#X obj 167 184 * 100;
+#X msg 199 155 -100;
+#X msg 259 155 100;
+#X obj 138 67 rand.f -1200 1200;
+#X obj 199 129 chance 50;
+#X text 328 144 The random transposition values are converted to ratio
+and then we have a 50% random chance of making the ratio nagetaive
+so it plays the file backwards., f 31;
+#X connect 0 0 5 0;
+#X connect 1 0 4 0;
+#X connect 2 0 3 0;
+#X connect 4 0 3 0;
+#X connect 5 0 1 0;
+#X connect 5 1 11 0;
+#X connect 6 0 8 0;
+#X connect 6 1 12 0;
+#X connect 7 0 6 0;
+#X connect 8 0 2 0;
+#X connect 9 0 8 1;
+#X connect 10 0 8 1;
+#X connect 11 0 7 0;
+#X connect 12 0 9 0;
+#X connect 12 1 10 0;
+#X restore 66 399 pd transp/pos/rev;
+#X text 405 108 The main difference from the last example is that now
+we use [tabplayer~] to play the samples. Instead of a pitch parameter
+\, we now have a random transposition range in cents (-1200 to 1200).
+We also have a random start position to start playing from and 50%
+of the times \, the sample is played backwards. See the [pd transp/pos/rev]
+subpatch for more details., f 46;
+#X obj 533 68 declare -path else;
+#X obj 66 454 tabplayer~ -loop \$2, f 11;
+#X connect 0 0 13 0;
+#X connect 1 0 0 0;
+#X connect 1 1 2 0;
+#X connect 2 0 3 0;
+#X connect 4 0 6 0;
+#X connect 5 0 9 0;
+#X connect 6 0 7 0;
+#X connect 6 1 8 0;
+#X connect 9 0 12 0;
+#X connect 9 0 21 0;
+#X connect 9 1 5 1;
+#X connect 9 1 10 0;
+#X connect 9 2 11 0;
+#X connect 10 0 1 0;
+#X connect 11 0 13 1;
+#X connect 12 0 6 1;
+#X connect 13 0 4 1;
+#X connect 16 0 17 0;
+#X connect 17 0 18 0;
+#X connect 18 0 20 0;
+#X connect 19 0 18 1;
+#X connect 20 0 5 0;
+#X connect 21 0 24 0;
+#X connect 24 0 4 0;

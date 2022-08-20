@@ -1,0 +1,59 @@
+#N canvas 388 28 488 544 12;
+#X declare -path else;
+#X obj 316 164 declare -path else;
+#X obj 132 203 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X floatatom 248 248 5 0 0 0 - - - 12;
+#X text 284 356 relative;
+#X text 162 355 base rhythm;
+#X text 292 249 tempo;
+#X msg 190 109 10/13;
+#X obj 190 173 display;
+#X msg 238 109 7/5;
+#X msg 156 109 9/7;
+#X msg 123 109 5/7;
+#X msg 271 109 8/13;
+#X msg 90 109 3/2;
+#X msg 57 109 2/3;
+#X text 300 213 <= try;
+#X msg 311 109 19/13;
+#X listbox 214 211 11 0 0 0 - - - 12;
+#X obj 262 324 trig2bang~;
+#X obj 262 356 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 141 322 trig2bang~;
+#X obj 141 354 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 132 394 resonant~ 600 200, f 9;
+#X obj 248 394 resonant~ 750 200, f 9;
+#X obj 161 463 out~;
+#X text 64 71 Test different multiplier fraction options:;
+#X text 76 204 on/off;
+#X text 24 19 This is the signal version of [polymetro] and outputs
+impulses instead. It is based on the [pimp~] and [pimpmul~] objects.
+, f 62;
+#X obj 132 282 polymetro~ 60 3/2;
+#X obj 103 243 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X text 66 242 sync;
+#X connect 1 0 27 0;
+#X connect 2 0 27 2;
+#X connect 6 0 7 0;
+#X connect 7 0 27 1;
+#X connect 8 0 7 0;
+#X connect 9 0 7 0;
+#X connect 10 0 7 0;
+#X connect 11 0 7 0;
+#X connect 12 0 7 0;
+#X connect 13 0 7 0;
+#X connect 15 0 7 0;
+#X connect 16 0 27 1;
+#X connect 17 0 18 0;
+#X connect 19 0 20 0;
+#X connect 21 0 23 0;
+#X connect 22 0 23 1;
+#X connect 27 0 19 0;
+#X connect 27 0 21 0;
+#X connect 27 1 17 0;
+#X connect 27 1 22 0;
+#X connect 28 0 27 0;

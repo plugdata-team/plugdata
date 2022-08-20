@@ -1,0 +1,79 @@
+#N canvas 515 97 1005 566 12;
+#X declare -path else;
+#X obj 47 258 osc~ 440;
+#X obj 125 424 *~;
+#X obj 125 466 out~;
+#X obj 143 265 envgen~;
+#X obj 175 168 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 -228856
+-1 -1 0 256;
+#X obj 143 160 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 143 198 f 500;
+#X text 178 146 ms;
+#X msg 143 229 0 \$1 1;
+#X msg 293 183 0 0.5 1 0.5 0;
+#X text 395 183 triangular;
+#X text 432 154 trapezoid;
+#X msg 276 154 0 0.25 1 0.5 1 0.25 0;
+#X obj 143 382 function~;
+#X obj 277 251 function 200 100 empty empty 0 1 220 220 220 50 50 50
+0 0 0 0 0 0.25 1 0.5 1 0.25 0;
+#X obj 276 128 loadbang;
+#X obj 778 103 declare -path else;
+#X obj 566 329 osc~ 440;
+#X obj 647 435 *~;
+#X obj 647 477 out~;
+#X obj 625 104 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 -228856
+-1 -1 0 256;
+#X obj 593 96 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 593 134 f 500;
+#X text 628 82 ms;
+#X msg 679 207 0 0.5 1 0.5 0;
+#X text 781 207 triangular;
+#X text 821 178 trapezoid;
+#X msg 665 178 0 0.25 1 0.5 1 0.25 0;
+#X obj 665 268 function 200 100 empty empty 0 1 220 220 220 50 50 50
+0 0 0 0 0 0.25 1 0.5 1 0.25 0;
+#X obj 665 152 loadbang;
+#X obj 593 201 line;
+#X msg 593 165 0 \, \$1 1;
+#X obj 665 393 f2s~ 10;
+#X text 532 22 Another option is to have a float input from a [line]
+object. In this way \, you can use [function] as a control rate envelope
+and we can convert it to a signal with [f2s~].;
+#X text 39 24 We've seen before how you can consider the [function]
+GUI as a table generator. You can trigger it as an envelope in the
+same way as the previous examples. Here we use [function~] to load
+the table from the [function] GUI and the [envgen~] object is used
+again to generate the ramp with the indexes (from 0 to 1)., f 64;
+#X msg 308 212 0 0.8 1 0.2 0;
+#X text 409 212 vsaw;
+#X msg 690 234 0 0.8 1 0.2 0;
+#X text 791 234 vsaw;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;
+#X connect 3 0 13 0;
+#X connect 4 0 6 1;
+#X connect 5 0 6 0;
+#X connect 6 0 8 0;
+#X connect 8 0 3 0;
+#X connect 9 0 14 0;
+#X connect 12 0 14 0;
+#X connect 13 0 1 1;
+#X connect 14 0 13 0;
+#X connect 15 0 12 0;
+#X connect 17 0 18 0;
+#X connect 18 0 19 0;
+#X connect 20 0 22 1;
+#X connect 21 0 22 0;
+#X connect 22 0 31 0;
+#X connect 24 0 28 0;
+#X connect 27 0 28 0;
+#X connect 28 0 32 0;
+#X connect 29 0 27 0;
+#X connect 30 0 28 0;
+#X connect 31 0 30 0;
+#X connect 32 0 18 1;
+#X connect 35 0 14 0;
+#X connect 37 0 28 0;

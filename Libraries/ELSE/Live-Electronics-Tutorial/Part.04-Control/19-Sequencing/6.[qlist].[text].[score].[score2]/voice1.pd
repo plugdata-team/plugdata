@@ -1,0 +1,31 @@
+#N canvas 656 192 546 313 12;
+#X obj 108 256 outlet~;
+#X obj 108 195 *~;
+#X obj 24 113 mtof;
+#X obj 24 21 inlet;
+#X obj 172 189 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 172 214 switch~;
+#X obj 126 159 envgen~;
+#X obj 24 52 list split 1, f 17;
+#X msg 126 126 30 \$1 \$2 \$1 \$3 0;
+#X obj 24 145 bl.square~;
+#X text 223 24 The list of values are treated as \; 1-MIDI Pitch \;
+2-Amplitude \; 3-Attack+Sustain Duration (ms) \; 4-Release duration
+(ms), f 35;
+#X text 30 88 <= pitch;
+#X text 267 115 \$1- Amplitude \; \$2- Attack+Sustain time \; \$3-
+Release time;
+#X text 245 125 <=;
+#X text 261 187 Check again the help file of [envgen~] if you need
+to recap its syntax, f 30;
+#X connect 1 0 0 0;
+#X connect 2 0 9 0;
+#X connect 3 0 7 0;
+#X connect 4 0 5 0;
+#X connect 6 0 1 1;
+#X connect 6 1 4 0;
+#X connect 7 0 2 0;
+#X connect 7 1 8 0;
+#X connect 8 0 6 0;
+#X connect 9 0 1 0;

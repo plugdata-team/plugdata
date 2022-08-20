@@ -1,0 +1,55 @@
+#N canvas 350 52 941 555 12;
+#X declare -path else;
+#X text 22 295 Note \, however \, that [tabread4~] has a second inlet
+to set an onset value and this is a hacky way for extending the precision
+of the input indexes., f 63;
+#X floatatom 215 370 3 0 10 0 - - - 0;
+#X obj 155 403 tabread4~;
+#X text 248 367 <= sets onset into table., f 13;
+#X obj 749 22 declare -path else;
+#X obj 592 409 tabplayer~;
+#X msg 592 379 speed \$1;
+#X floatatom 592 354 5 0 0 0 - - - 0;
+#X text 495 57 You can use check B15.tabread4~-onset.pd as part of
+the Pd's audio examples to see how this works. Check also the next
+example (B16.long-varispeed.pd) for a practical example on how to use
+this to play long files with a signal input.;
+#X text 494 127 This example is not so easy to understand \, but instead
+of reproducing the example in this tutorial in a simpler way and trying
+to better explain and deal with this \, I currently think is best just
+to wait until Pd 64 bits is more of a reality than it already is (be
+patient \, it's just around the corner) - then we can just forget about
+this.;
+#X text 494 225 Note this is more of a vanilla concern as the only
+way to perform variable speed in vanilla is via a signal input into
+[tabread4~]. The B16 example uses a [phasor~] to feed sample values
+into [tabread4~] and achieve that. With the ELSE library \, this is
+not needed because we have [tabplayer~] \, which provides variable
+speeds via control messages and this works fine for most cases.;
+#X text 693 377 with [tabplayer~] you can just set a variable speed
+and be done with it., f 26;
+#X text 664 377 <==;
+#X obj 512 503 player~;
+#X text 574 502 <= based on [tabplayer~], f 12;
+#X text 245 472 Note also that [player~] \, is based on [tabplayer~]
+\, so it also doesn't have this issue., f 51;
+#X text 22 16 Pd currently has a limitation for idexing big tables
+because of its 32-bit resolution. You can now compile Pd in 64 bits
+to overcome this issue \, but most won't know how to do that and have
+to wait unltil Pd is made readily available for download with 64 bits
+resolution. Until then (which should be nearby anyway) \, beware of
+this limitation when feeding indexes to [tabread4~] for that matter).
+, f 63;
+#X text 22 124 The reason this happens is because the maximum integer
+value that is possible with 32 bits might not be enough as an index
+sample. Not only that \, but the decimal fraction can also lose precision.
+For integers \, we have 2ˆ24 values and this is about 6:20 min of
+audio in 44.1khz (less the if sample rate is higher)., f 63;
+#X text 22 216 Note this is just an issue if you're feeding [tabread4~]
+or [table~] (which is also affected when using float indices between
+0 and 1) with audio signals to represent indexes. This means that it's
+fine if [tabplay~] or [tabplayer~] are just reading through an array
+on their own via control messages., f 63;
+#X connect 1 0 2 1;
+#X connect 6 0 5 0;
+#X connect 7 0 6 0;

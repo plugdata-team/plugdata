@@ -1,0 +1,85 @@
+#N canvas 415 38 790 567 12;
+#X declare -path else;
+#X obj 444 362 *~;
+#X obj 218 125 nbx 5 14 -1e+37 1e+37 0 0 empty mod empty 0 -8 0 10
+-228856 -1 -1 1 256;
+#X obj 383 167 nbx 8 14 -1e+37 1e+37 0 0 empty index_pm empty 0 -8
+0 10 -261682 -1 -1 1 256;
+#X obj 218 160 t b f;
+#X obj 271 157 v mod;
+#X obj 250 190 s \$0-mod;
+#X obj 444 294 r \$0-mod;
+#X obj 89 317 r \$0-mod;
+#X obj 426 396 +~;
+#X obj 108 134 nbx 5 14 -1e+37 1e+37 0 0 empty carrier empty 0 -8 0
+10 -228856 -1 -1 440 256;
+#X obj 108 163 s \$0-carrier;
+#X obj 426 250 r \$0-carrier;
+#X obj 57 289 r \$0-carrier;
+#X obj 383 195 s \$0-i_pm;
+#X obj 89 378 *~;
+#X obj 492 167 nbx 8 14 -1e+37 1e+37 0 0 empty index_fm empty 0 -8
+0 10 -261234 -1 -1 4 256;
+#X obj 492 195 s \$0-i_fm;
+#X obj 218 216 s indice_pm;
+#X obj 265 317 r \$0-i_fm;
+#X floatatom 265 376 0 0 0 0 - - -;
+#X obj 185 335 r \$0-i_pm;
+#X obj 585 289 r \$0-i_pm;
+#X floatatom 585 340 0 0 0 0 - - -;
+#X obj 511 317 r \$0-i_fm;
+#X obj 444 323 square~;
+#X obj 57 402 sine~;
+#X obj 57 447 out~;
+#X obj 426 470 out~;
+#X obj 426 423 sine~;
+#X obj 608 153 initmess \; carrier 440 \; mod 1 \; index_pm 5;
+#X text 105 106 Carrier;
+#X text 215 103 Mod;
+#X text 387 142 PM index;
+#X text 496 142 FM index;
+#X text 72 261 Phase Modulation (triangular);
+#X text 525 250 Frequency Modulation (square);
+#X obj 185 391 f2s~ 50;
+#X obj 511 374 f2s~ 50;
+#X msg 585 369 \; index_fm set \$1;
+#X msg 265 403 \; index_pm set \$1;
+#X obj 265 342 expr $f1 / (4*mod);
+#X obj 585 314 expr $f1 * 4*mod;
+#X text 54 33 Finally \, a square wave as the Frequency Modulation
+signal needs a triangular wave as the phase signal., f 41;
+#X obj 89 346 tri~ 0 0.75;
+#X obj 559 20 declare -path else;
+#X text 402 56 We also need a phase adjustment for the triangular wave.
+About the index \, it is also the same principle as the last couple
+of previous examples., f 41;
+#X connect 0 0 8 1;
+#X connect 1 0 3 0;
+#X connect 2 0 13 0;
+#X connect 3 0 17 0;
+#X connect 3 1 4 0;
+#X connect 3 1 5 0;
+#X connect 6 0 24 0;
+#X connect 7 0 43 0;
+#X connect 8 0 28 0;
+#X connect 9 0 10 0;
+#X connect 11 0 8 0;
+#X connect 12 0 25 0;
+#X connect 14 0 25 2;
+#X connect 15 0 16 0;
+#X connect 18 0 40 0;
+#X connect 19 0 39 0;
+#X connect 20 0 36 0;
+#X connect 21 0 41 0;
+#X connect 22 0 38 0;
+#X connect 22 0 37 0;
+#X connect 23 0 37 0;
+#X connect 24 0 0 0;
+#X connect 25 0 26 0;
+#X connect 28 0 27 0;
+#X connect 36 0 14 1;
+#X connect 37 0 0 1;
+#X connect 40 0 19 0;
+#X connect 40 0 36 0;
+#X connect 41 0 22 0;
+#X connect 43 0 14 0;

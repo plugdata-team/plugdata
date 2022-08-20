@@ -1,0 +1,84 @@
+#N canvas 355 43 960 562 12;
+#X declare -path else;
+#X obj 52 388 graph~ 230 48;
+#X obj 150 264 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 29 520 -1;
+#X text 34 450 0;
+#X text 34 384 1;
+#X obj 52 289 quantizer~ 0.1;
+#X obj 369 259 display;
+#X obj 369 290 / 2;
+#X obj 369 316 display;
+#X obj 369 209 nbx 3 16 1 16 0 0 empty empty empty 0 -8 0 11 -228856
+-1 -1 1 256;
+#X msg 369 174 8;
+#X msg 338 174 16;
+#X obj 65 327 out~;
+#X obj 52 257 osc~ 440;
+#X msg 402 174 4;
+#X text 417 210 bits;
+#X floatatom 640 190 0 1 10000 0 - - -;
+#X obj 643 169 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 4100 1;
+#X floatatom 705 222 0 1 10000 0 - - -;
+#X obj 708 201 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 634 258 out~;
+#X obj 560 183 osc~ 100;
+#X obj 613 324 graph~ 143 50;
+#X obj 560 161 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 614 224 crusher~;
+#X obj 369 234 expr pow(2 \, $f1);
+#X text 514 66 Another external from ELSE \, [crusher~] \, is an abstraction
+based on [quantizer~] and [downsample~] \, because it is common that
+a Bit Crushing effect is used in conjunction with decimation and vice
+versa.;
+#X text 661 167 crush (0-1);
+#X text 721 200 decimate (0-1);
+#X obj 792 24 declare -path else;
+#X text 21 29 With a simple rounding process \, we can simulate a bit
+depth reduction. This adds noise and reduces the dynamic range and
+is known as a "bit-crusher" effect \, used as a type of distortion.
+, f 64;
+#X obj 369 351 s \$0-steps;
+#X obj 147 202 expr 1 / $f1;
+#X obj 147 230 display;
+#X obj 147 174 r \$0-steps;
+#X obj 477 463 r \$0-steps;
+#X obj 319 490 expr~ rint($v1*$f2)/$f2;
+#X text 21 80 The [quantizer~] object \, from ELSE \, performs different
+types of rounding (check its help file) and can be used for this. It
+receives a step value and rounds to multiples of it. In this example
+\, we find a step value according to a bit depth resolution., f 64
+;
+#X text 602 481 The parameters vary from 0 to 1 \, where 0 is the original
+sound and the higher the parameter is \, the more crushing/decimation
+we have., f 42;
+#X text 336 418 And here's how to perform one type of signal rounding
+with [expr~]:, f 27;
+#X connect 1 0 5 1;
+#X connect 5 0 0 0;
+#X connect 5 0 12 0;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 31 0;
+#X connect 9 0 25 0;
+#X connect 10 0 9 0;
+#X connect 11 0 9 0;
+#X connect 13 0 5 0;
+#X connect 14 0 9 0;
+#X connect 16 0 24 1;
+#X connect 17 0 16 0;
+#X connect 18 0 24 2;
+#X connect 19 0 18 0;
+#X connect 21 0 24 0;
+#X connect 23 0 21 0;
+#X connect 24 0 20 0;
+#X connect 24 0 22 0;
+#X connect 25 0 6 0;
+#X connect 32 0 33 0;
+#X connect 33 0 1 0;
+#X connect 34 0 32 0;
+#X connect 35 0 36 1;

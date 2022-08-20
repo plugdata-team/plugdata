@@ -1,0 +1,103 @@
+#N canvas 593 23 594 674 12;
+#X declare -path else;
+#X obj 148 150 hsl 128 15 1 1000 1 0 empty index1 empty -2 -8 0 10
+-228856 -1 -1 8467 1;
+#X obj 145 177 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 100 256;
+#X obj 80 176 nbx 5 14 -1e+37 1e+37 0 0 empty freq1 empty 0 -8 0 10
+-228856 -1 -1 150 256;
+#X obj 371 150 hsl 128 15 1 1000 1 0 empty index2 empty -2 -8 0 10
+-191407 -1 -1 8467 1;
+#X obj 368 177 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-191407 -1 -1 100 256;
+#X obj 301 176 nbx 5 14 -1e+37 1e+37 0 0 empty freq2 empty 0 -8 0 10
+-191407 -1 -1 250 256;
+#X text 398 149 index 2;
+#X text 176 149 index 1;
+#X text 88 157 Freq 1;
+#X text 309 157 Freq 2;
+#N canvas 749 144 546 475 Cross_Freq_Modulation 0;
+#X obj 275 47 inlet~;
+#X obj 339 47 inlet~;
+#X obj 41 46 inlet~;
+#X obj 110 46 inlet~;
+#X obj 260 424 outlet~;
+#X obj 370 227 block~ 1;
+#X obj 95 230 *~;
+#X obj 324 333 *~;
+#X obj 127 96 cnv 15 145 33 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X text 140 75 feedback;
+#X obj 41 414 outlet~;
+#X text 108 25 index 1;
+#X text 335 21 index 2;
+#X text 278 22 freq 2;
+#X text 42 25 freq 1;
+#X obj 131 103 delread~ \$0-fm_fb 0;
+#X obj 260 262 +~;
+#X obj 41 139 +~;
+#X obj 318 363 cnv 15 155 33 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 324 370 delwrite~ \$0-fm_fb 1;
+#X obj 41 168 sine~;
+#X obj 260 289 sine~;
+#X connect 0 0 16 1;
+#X connect 1 0 7 1;
+#X connect 2 0 17 0;
+#X connect 3 0 6 1;
+#X connect 6 0 16 0;
+#X connect 7 0 19 0;
+#X connect 15 0 17 1;
+#X connect 16 0 21 0;
+#X connect 17 0 20 0;
+#X connect 20 0 6 0;
+#X connect 20 0 10 0;
+#X connect 21 0 7 0;
+#X connect 21 0 4 0;
+#X restore 90 256 pd Cross_Freq_Modulation;
+#X obj 452 231 initmess \; freq1 150 \; freq2 250 \; index1 100 \;
+index2 100;
+#X text 89 55 This is a variant that implements frequency modulation
+instead. The [xmod~] object from ELSE is also used for that and you
+can check its help file for more details., f 55;
+#X text 99 412 the [xmod2~] object from ELSE also implements cross
+freequency modulation \, but uses a different and cheap sine waveform
+that promotes more chaotic and cool sounds., f 53;
+#X obj 179 511 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 243 511 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 307 511 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 372 511 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 184 492 freq1;
+#X text 244 491 index1;
+#X text 312 491 freq2;
+#X text 376 491 index2;
+#X obj 179 545 xmod2~ 170 555 120 666, f 28;
+#X obj 312 256 xmod~;
+#X obj 370 17 declare -path else;
+#X obj 235 589 out~;
+#X obj 120 301 out~;
+#X obj 289 297 out~;
+#X connect 0 0 1 0;
+#X connect 1 0 10 1;
+#X connect 1 0 23 1;
+#X connect 2 0 10 0;
+#X connect 2 0 23 0;
+#X connect 3 0 4 0;
+#X connect 4 0 10 3;
+#X connect 4 0 23 3;
+#X connect 5 0 10 2;
+#X connect 5 0 23 2;
+#X connect 10 0 26 0;
+#X connect 10 1 26 1;
+#X connect 14 0 22 0;
+#X connect 15 0 22 1;
+#X connect 16 0 22 2;
+#X connect 17 0 22 3;
+#X connect 22 0 25 0;
+#X connect 22 1 25 1;
+#X connect 23 0 27 0;
+#X connect 23 1 27 1;

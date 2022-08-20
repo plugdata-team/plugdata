@@ -1,0 +1,73 @@
+#N struct 1003-DS float x float y symbol sym;
+#N canvas 385 30 577 616 12;
+#X declare -path else;
+#N canvas 440 166 535 580 template 0;
+#X obj 57 348 filledpolygon 999 0 5 5 5 105 5 105 55 5 55;
+#X text 194 231 The instruction is to draw the "sym" variable in the
+20/25 coordinates., f 36;
+#X text 60 297 We also have a [filledpolygon] as a frame around the
+symbol., f 31;
+#X obj 38 238 drawsymbol sym 20 25;
+#X obj 291 423 drawnumber x 115 10 900 x=;
+#X obj 290 456 drawnumber y 115 25 900 y=;
+#X text 80 423 For last \, we also draw and display the coordinates
+of the Data Structure., f 26;
+#X obj 66 98 struct \$0-DS float x float y symbol sym;
+#X text 64 33 Data Structure named "\$0-DS" holding coordinates floats
+"x/y" and a symbol named "sym"., f 37;
+#X text 111 512 You may drag the object around in the edit mode and
+see how the coordinates get updated., f 45;
+#X text 43 144 We now use the [drawsymbol] object \, which is actually
+the same as [dranumber]. There is literal no difference \, it is really
+the same object. Maybe in the future they will become actual different
+objects \, but so far is just an alias., f 57;
+#X restore 333 214 pd template;
+#X symbolatom 54 398 10 0 0 0 - - - 0;
+#X msg 54 332 symbol banana;
+#X msg 62 367 symbol apple;
+#X obj 307 371 pointer;
+#X text 64 60 This example shows how to add and set a symbol variable.
+See [pd template] for the declaration and drawing instructions., f
+61;
+#X text 48 489 When setting a symbol with [set] \, you need an extra
+"-symbol" argument. Unfortunately \, you cannot set floats and symbols
+with the same [set] object., f 37;
+#X text 47 298 set symbol:;
+#X obj 54 429 set -symbol \$0-DS sym;
+#X obj 198 399 append \$0-DS x y;
+#N canvas 1008 133 358 171 \$0-display 1;
+#X scalar 1003-DS 50 50 apple \;;
+#X restore 433 214 pd \$0-display;
+#X obj 416 284 s pd-\$0-display;
+#X msg 416 258 clear \, vis 1;
+#X obj 371 24 declare -path else;
+#X obj 307 330 message traverse pd-\$0-display \, bang, f 31;
+#X obj 197 198 initmess 50 50;
+#X listbox 197 234 10 0 0 0 - - - 0;
+#X text 64 98 We use [append] to add in [pd \$0-display] our Data Structure
+object. Note that you cannot set the symbol variable with [append]
+when adding the object \, neither ccan you edit and type it directly
+like a number. We need to use the [set] object for that., f 61;
+#X obj 197 276 trigger list bang bang;
+#X obj 346 521 get \$0-DS sym;
+#X listbox 346 562 20 0 0 0 - - - 0;
+#X obj 346 491 pointer;
+#X obj 346 436 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X text 371 436 get the symbol value;
+#X connect 1 0 8 0;
+#X connect 2 0 1 0;
+#X connect 3 0 1 0;
+#X connect 4 0 9 2;
+#X connect 9 0 8 1;
+#X connect 9 0 21 1;
+#X connect 12 0 11 0;
+#X connect 14 0 4 0;
+#X connect 15 0 16 0;
+#X connect 16 0 18 0;
+#X connect 18 0 9 0;
+#X connect 18 1 14 0;
+#X connect 18 2 12 0;
+#X connect 19 0 20 0;
+#X connect 21 0 19 0;
+#X connect 22 0 21 0;

@@ -1,0 +1,49 @@
+#N canvas 478 26 512 588 12;
+#X declare -path else;
+#N canvas 786 159 450 300 sequencer 0;
+#X obj 195 193 mtof;
+#X obj 72 132 metro 200;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array sequencer 16 float 3;
+#A 0 -6 -8 -8 -3 -8 1 4 4 -3 -5 -5 -1 2 6 7 7;
+#X coords 0 12 16 -12 100 70 1;
+#X restore 223 104 graph;
+#X obj 72 193 v i;
+#X obj 195 221 outlet;
+#X obj 72 107 inlet;
+#X obj 72 155 expr (i + 1) % 16 \; sequencer[i] + 46;
+#X connect 0 0 4 0;
+#X connect 1 0 6 0;
+#X connect 5 0 1 0;
+#X connect 6 0 3 0;
+#X connect 6 1 0 0;
+#X restore 82 258 pd sequencer;
+#X obj 82 229 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 184 232 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 181 257 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 159 412 graph~ 447 5;
+#X obj 159 315 vsaw~ 98.5;
+#X obj 174 348 out~;
+#X text 32 135 Its second inlet/argument changes the "width" and controls
+the waveform. Check its help file for more info., f 59;
+#X text 222 231 width;
+#X obj 181 282 f2s~ 10;
+#X obj 181 204 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X text 32 58 The ELSE library also provides the [vsaw~] object (from
+"variable saw"). This is an oscillator that can generate varied waveforms
+\, from sawtooths to triangular. Also note that a width of 0 and 1
+are the same \, but with the polarity inverted.;
+#X text 203 202 (0 and 1 invert the polarity);
+#X obj 311 19 declare -path else;
+#X connect 0 0 5 0;
+#X connect 1 0 0 0;
+#X connect 2 0 3 0;
+#X connect 3 0 9 0;
+#X connect 5 0 4 0;
+#X connect 5 0 6 0;
+#X connect 9 0 5 1;
+#X connect 10 0 2 0;

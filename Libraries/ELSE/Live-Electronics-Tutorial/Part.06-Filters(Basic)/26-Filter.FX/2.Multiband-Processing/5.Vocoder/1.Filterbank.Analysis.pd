@@ -1,0 +1,138 @@
+#N canvas 510 29 604 698 12;
+#X declare -path else;
+#N canvas 325 327 856 358 band-analyzer 0;
+#X obj 151 81 cnv 15 538 194 empty empty empty 20 12 0 14 #7c7c7c #404040
+0;
+#X obj 636 231 nbx 3 18 3 500 0 0 empty empty empty 47 9 0 12 #dcdcdc
+#000000 #000000 0 256;
+#X obj 156 87 vsl 15 180 20 100 0 0 empty \$0-amp-1 empty 0 -9 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 175 87 vsl 15 180 20 100 0 0 empty \$0-amp-2 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 195 87 vsl 15 180 20 100 0 0 empty \$0-amp-3 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 214 87 vsl 15 180 20 100 0 0 empty \$0-amp-4 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 234 87 vsl 15 180 20 100 0 0 empty \$0-amp-5 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 253 87 vsl 15 180 20 100 0 0 empty \$0-amp-6 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 273 87 vsl 15 180 20 100 0 0 empty \$0-amp-7 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 292 87 vsl 15 180 20 100 0 0 empty \$0-amp-8 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 312 87 vsl 15 180 20 100 0 0 empty \$0-amp-9 empty 0 -9 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 331 87 vsl 15 180 20 100 0 0 empty \$0-amp-10 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 351 87 vsl 15 180 20 100 0 0 empty \$0-amp-11 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 370 87 vsl 15 180 20 100 0 0 empty \$0-amp-12 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 390 87 vsl 15 180 20 100 0 0 empty \$0-amp-13 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 409 87 vsl 15 180 20 100 0 0 empty \$0-amp-14 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 429 87 vsl 15 180 20 100 0 0 empty \$0-amp-15 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 448 87 vsl 15 180 20 100 0 0 empty \$0-amp-16 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 468 87 vsl 15 180 20 100 0 0 empty \$0-amp-17 empty 0 -9 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 487 87 vsl 15 180 20 100 0 0 empty \$0-amp-18 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 507 87 vsl 15 180 20 100 0 0 empty \$0-amp-19 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 526 87 vsl 15 180 20 100 0 0 empty \$0-amp-20 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 546 87 vsl 15 180 20 100 0 0 empty \$0-amp-21 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 565 87 vsl 15 180 20 100 0 0 empty \$0-amp-22 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 584 87 vsl 15 180 20 100 0 0 empty \$0-amp-23 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 603 87 vsl 15 180 20 100 0 0 empty \$0-amp-24 empty 0 -9 0 10
+#bce0d4 #000000 #000000 0 1;
+#X obj 636 121 vsl 25 100 3 100 0 0 \$0-Q \$0-Q-set Q 5 -18 0 18 #dcdcdc
+#000000 #dcdcdc 0 1;
+#X obj 599 28 initmess \; \$0-Q-set 80 \; \$0-note-set 64;
+#X connect 26 0 1 0;
+#X coords 0 -1 1 1 540 196 2 150 80;
+#X restore 27 488 pd band-analyzer;
+#X obj 131 250 nbx 5 14 16 110 0 0 \$0-note \$0-note-set empty 0 -8
+0 10 #dcdcdc #000000 #000000 0 256;
+#N canvas 431 110 748 381 gate 0;
+#X obj 263 145 mtof;
+#X obj 263 167 nbx 5 14 -1e+37 1e+37 0 0 \$0-ramp_freq \$0-ramp_freq-set
+empty 0 -8 0 10 #dcdcdc #000000 #000000 0 256;
+#X text 238 166 Hz;
+#X obj 263 69 inlet;
+#X obj 219 205 osc~;
+#X obj 232 315 outlet~;
+#X obj 300 230 adc~ 1;
+#X obj 103 182 + 1;
+#X obj 263 205 bl.saw~;
+#X obj 232 267 xselect~ 4 200 1;
+#X obj 103 108 vradio 15 1 0 4 xxd ydyf empty 0 -8 0 10 #dcdcdc #000000
+#000000 0;
+#X text 121 154 Sample;
+#X text 120 138 Audio input;
+#X text 120 123 Sawtooth;
+#X text 120 108 Sine;
+#X obj 360 230 play.file~ numbers.wav 1 1;
+#X connect 0 0 1 0;
+#X connect 1 0 4 0;
+#X connect 1 0 8 0;
+#X connect 3 0 0 0;
+#X connect 4 0 9 0;
+#X connect 6 0 9 2;
+#X connect 7 0 9 0;
+#X connect 8 0 9 1;
+#X connect 9 0 5 0;
+#X connect 10 0 7 0;
+#X connect 15 0 9 3;
+#X coords 0 -1 1 1 105 75 2 100 100;
+#X restore 131 279 pd gate;
+#X obj 132 412 out~;
+#X obj 476 246 setdsp~ 1;
+#X text 72 46 This example is just a basis for the Vocoder example
+next. Here we have a bank with 24 bandpass filters and analyse the
+amplitude of each output - the dB values are shown in the sliders below.
+This is not far from a spectral analyser \, in which the energy of
+each frequency band is given., f 65;
+#X text 72 126 The central frequencies are spaced by intervals of minor
+thirds \, which divide the octave in 3 \, hence \, we have 3 filters
+by octave. The lowest frequency is MIDI pitch 20 (about 26Hz)., f
+65;
+#X text 73 180 This example uses [clone] to load 24 instances of a
+filter analisys. Click on the [clone] object to open it and check it
+out. You can select different audio inputs for the analysis., f 65
+;
+#X text 189 249 MIDI pitch (for oscillators);
+#X obj 146 372 clone -s 1 24 filter \$0;
+#N canvas 235 35 646 272 set-central-frequencies 0;
+#X obj 74 31 loadbanger 2;
+#X obj 76 172 pack;
+#X obj 62 90 t b f, f 6;
+#X obj 76 206 outlet;
+#X text 234 107 Here we have a logic to setup the initial central frequency
+values. The [loop] object generates MIDI pitch values and [count] generates
+numbers from 1 to 24 \, which is the instance number the value goes
+to inside [clone]., f 50;
+#X msg 155 99 reset;
+#X obj 62 136 count -reset 1;
+#X obj 62 61 loop -step 4 -offset 20 24;
+#X connect 0 0 7 0;
+#X connect 0 1 5 0;
+#X connect 1 0 3 0;
+#X connect 2 0 6 0;
+#X connect 2 1 1 1;
+#X connect 5 0 6 0;
+#X connect 6 0 1 0;
+#X connect 7 0 2 0;
+#X restore 304 343 pd set-central-frequencies;
+#X obj 407 8 declare -path else;
+#X connect 1 0 2 0;
+#X connect 2 0 3 0;
+#X connect 2 0 9 0;
+#X connect 10 0 9 1;

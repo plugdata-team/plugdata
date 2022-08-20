@@ -1,0 +1,298 @@
+#N canvas 596 37 563 629 10;
+#X obj 4 308 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 495 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 526 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 82 503 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 602 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 3 3 cnv 15 301 42 empty empty bicoeff2 20 20 2 37 #e0e0e0 #000000
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 3 graph;
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 40 cnv 4 4 4 empty empty Biquad 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 81 40 cnv 4 4 4 empty empty coefficient 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 207 34 366 264 (subpatch) 0;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#fcfcfc 0 1;
+#X obj 215 68 route dsp;
+#X obj 215 37 receive pd;
+#N canvas 977 77 379 291 set_color 0;
+#X obj 47 30 inlet;
+#X obj 147 200 s \$0-cnv;
+#X obj 47 83 select 0 1;
+#X obj 47 220 s \$0-tgl-r;
+#N canvas 0 22 712 637 off 0;
+#X obj 490 220 * -1;
+#X obj 424 300 +;
+#X obj 409 325 +;
+#X obj 347 219 * -65536;
+#X obj 424 220 * -256;
+#X obj 409 356 - 1;
+#X obj 390 189 unpack f f f;
+#X obj 225 295 +;
+#X obj 210 320 +;
+#X obj 148 214 * -65536;
+#X obj 225 215 * -256;
+#X obj 291 215 * -1;
+#X obj 210 351 - 1;
+#X obj 191 184 unpack f f f;
+#X obj 379 423 pack;
+#X msg 395 152 124 124 124;
+#X msg 203 154 220 220 220;
+#X obj 238 121 t b b;
+#X obj 238 81 inlet;
+#X obj 378 485 outlet;
+#X connect 0 0 1 1;
+#X connect 1 0 2 1;
+#X connect 2 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 1 0;
+#X connect 5 0 14 1;
+#X connect 6 0 3 0;
+#X connect 6 1 4 0;
+#X connect 6 2 0 0;
+#X connect 7 0 8 1;
+#X connect 8 0 12 0;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 11 0 7 1;
+#X connect 12 0 14 0;
+#X connect 13 0 9 0;
+#X connect 13 1 10 0;
+#X connect 13 2 11 0;
+#X connect 14 0 19 0;
+#X connect 15 0 6 0;
+#X connect 16 0 13 0;
+#X connect 17 0 16 0;
+#X connect 17 1 15 0;
+#X connect 18 0 17 0;
+#X restore 47 113 pd off;
+#X msg 47 180 color \$1 \$2 0;
+#X msg 147 131 -4.86997e+06 -1.34937e+07;
+#X msg 147 171 color \$1 0 \$2;
+#X connect 0 0 2 0;
+#X connect 2 0 4 0;
+#X connect 2 1 6 0;
+#X connect 4 0 5 0;
+#X connect 4 0 7 0;
+#X connect 5 0 3 0;
+#X connect 6 0 7 0;
+#X connect 6 0 5 0;
+#X connect 7 0 1 0;
+#X restore 215 165 pd set_color;
+#X obj 135 122 r \$0-tgl-s;
+#N canvas 121 482 450 300 (subpatch) 0;
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+0;
+#X coords 0 -1 1 1 42 27 1 100 100;
+#X restore 51 144 pd;
+#X obj 226 139 s \$0-tgl-r;
+#X msg 226 115 set \$1;
+#X msg 135 177 \; pd dsp \$1;
+#N canvas 256 32 278 194 load_check 0;
+#X obj 136 53 sig~ 1;
+#X obj 74 24 loadbang;
+#X obj 136 86 snapshot~;
+#X obj 91 52 del 5;
+#X obj 136 151 outlet;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 74 126 switch~;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 3 0 5 0;
+#X connect 5 0 6 0;
+#X restore 51 72 pd load_check;
+#X connect 1 0 3 0;
+#X connect 1 0 7 0;
+#X connect 2 0 1 0;
+#X connect 4 0 8 0;
+#X connect 4 0 3 0;
+#X connect 7 0 6 0;
+#X connect 9 0 0 0;
+#X coords 0 -1 1 1 44 72 2 50 100;
+#X restore 505 61 pd;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 3 graph;
+#X obj 168 40 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 82 316 cnv 17 3 130 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 82 452 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 82 473 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X text 145 453 float;
+#X text 145 474 float;
+#X text 187 316 - sets cutoff/center frequency, f 57;
+#X text 145 316 float;
+#X text 151 332 bang;
+#X text 187 332 - generates coefficients, f 57;
+#X text 151 504 list;
+#X text 122 533 1) symbol;
+#X text 128 549 2) float;
+#X text 128 565 3) float;
+#X text 186 401 -;
+#X text 127 401 anything;
+#X text 128 581 4) float;
+#X text 187 549 - sets cutoff/center frequency (default 0), f 53;
+#X text 187 565 - sets Q/Slope (default 1), f 53;
+#X obj 188 223 biquad~;
+#X obj 125 178 noise~;
+#X obj 188 248 else/out~;
+#X obj 188 148 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 264 148 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 341 148 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 121 131 loadbang;
+#X text 195 127 freq;
+#X text 347 129 gain;
+#X obj 210 198 print coefficients;
+#X text 262 129 Q/Slope;
+#X text 187 474 - sets gain in db, f 57;
+#X text 187 581 - sets gain in db (default 0), f 53;
+#X text 91 349 list <f \, f \, f>;
+#N canvas 399 107 917 580 details 0;
+#X floatatom 566 183 5 0 0 0 - - - 0;
+#X msg 466 95 lowpass;
+#X msg 474 115 highpass;
+#X obj 507 183 nbx 5 14 0.1 100 1 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X msg 436 35 bandpass;
+#X msg 458 75 bandstop;
+#X msg 449 55 resonant;
+#X text 490 184 Q;
+#X obj 487 138 hsl 128 15 20 15000 1 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X floatatom 484 159 0 0 0 0 - - - 0;
+#X obj 753 133 nbx 5 14 0.01 1 1 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 830 134 nbx 5 14 -24 24 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 677 134 nbx 5 14 20 20000 1 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 688 117 Freq;
+#X text 840 117 Gain;
+#X text 759 116 Q;
+#X text 546 25 The other filters take a Q resonance parameter. The
+"eq" type is the only amongst them which actually needs a gain parameter.
+The other have that as an extra option to set the overall gain., f
+57;
+#X text 600 182 gain;
+#X text 533 160 freq;
+#X obj 653 159 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 169 152 lowshelf 1000 0.01 24;
+#X msg 149 125 highshelf 500 1 12;
+#X msg 188 181 2000 0.5 -12;
+#X text 22 59 The lowshelf and highshelf filter types take a slope
+value instead of "Q" - which is a parameter that goes from 0 to 1!
+Change below from the two types and see the filter's response below.
+;
+#X text 21 10 [bcoeff] can take a list of up to 3 floats that set:
+freq \, q/slope and gain. It also takes a message that starts with
+the filter type and takes 3 more optional arguments.;
+#X text 272 175 sets: freq \, slope \, gain, f 12;
+#X obj 169 210 else/bicoeff2;
+#X obj 449 208 else/bicoeff2 500 10;
+#X obj 677 219 s \$0-bicoeff2;
+#X obj 677 188 else/bicoeff2 eq 500 10 24;
+#X obj 6 273 else/biplot;
+#X obj 449 239 s \$0-bicoeff2;
+#X obj 169 235 s \$0-bicoeff2;
+#X obj 6 246 r \$0-bicoeff2;
+#X msg 423 15 allpass;
+#X connect 0 0 27 2;
+#X connect 1 0 27 0;
+#X connect 2 0 27 0;
+#X connect 3 0 27 1;
+#X connect 4 0 27 0;
+#X connect 5 0 27 0;
+#X connect 6 0 27 0;
+#X connect 8 0 9 0;
+#X connect 9 0 27 0;
+#X connect 10 0 29 1;
+#X connect 11 0 29 2;
+#X connect 12 0 29 0;
+#X connect 19 0 29 0;
+#X connect 20 0 26 0;
+#X connect 21 0 26 0;
+#X connect 22 0 26 0;
+#X connect 26 0 32 0;
+#X connect 27 0 31 0;
+#X connect 29 0 28 0;
+#X connect 33 0 30 0;
+#X connect 34 0 27 0;
+#X restore 477 238 pd details;
+#X text 187 504 - 5 coefficients for the vanilla [biquad~] object;
+#X text 187 533 - (optional) sets type <higpass/etc> \, (default 'off')
+;
+#X text 70 86 [bicoeff2] generates coefficients for vanilla's [biquad~]
+according to different filter types. All inlets are hot!, f 61;
+#X obj 188 172 else/bicoeff2 eq 500 10 24;
+#N canvas 399 107 925 491 related 0;
+#X obj 627 55 else/bandpass~;
+#X obj 629 81 else/bandstop~;
+#X obj 724 55 else/lowpass~;
+#X obj 724 81 else/highpass~;
+#X obj 724 105 else/lowshelf~;
+#X obj 724 130 else/highshelf~;
+#X obj 629 105 else/resonant~;
+#X obj 629 130 else/eq~;
+#X text 387 49 The else library carries related objects with all the
+filter types \, and with the same name! These have signal inlets to
+control all the parameters. They are:, f 35;
+#X obj 17 173 else/biplot;
+#X text 40 89 The [else/biplot] object below is a great companion to
+[bicoeff2] as it plots the filter response from a list of biquad coefficients
+, f 50;
+#X obj 657 25 else/allpass.2nd~;
+#X restore 471 265 pd related \; objects;
+#X text 199 401 sets filter type: <allpass \, lowpass \, highpass \,
+bandpass \, resonant \, bandstop \, eq \, lowshelf \, highshelf \,
+off>. It takes 3 more optional arguments that set: frequency \, Q/Slope
+and gain, f 55;
+#X text 187 349 - sets frequency \, Q/Slope and gain and outputs coefficients
+;
+#X text 187 453 - sets "Q" or "Slope" and outputs coefficients, f
+57;
+#X text 115 366 qs <float>;
+#X text 187 366 - sets "Q" or "Slope" and outputs coefficients, f
+57;
+#X text 103 381 gain <float>;
+#X text 187 381 - sets gain in db and outputs coefficients, f 57;
+#X connect 37 0 39 0;
+#X connect 38 0 37 0;
+#X connect 40 0 55 0;
+#X connect 41 0 55 1;
+#X connect 42 0 55 2;
+#X connect 43 0 55 0;
+#X connect 55 0 37 0;
+#X connect 55 0 46 0;

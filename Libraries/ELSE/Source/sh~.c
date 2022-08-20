@@ -132,4 +132,3 @@ void sh_tilde_setup(void){
     class_addmethod(sh_class, (t_method)sh_gate, gensym("gate"), 0);
     class_addbang(sh_class,(t_method)sh_bang);
 }
-

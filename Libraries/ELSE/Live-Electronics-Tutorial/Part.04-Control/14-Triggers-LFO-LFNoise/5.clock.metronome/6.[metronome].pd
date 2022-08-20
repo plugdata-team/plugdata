@@ -1,0 +1,55 @@
+#N canvas 480 23 535 583 12;
+#X declare -path else;
+#X obj 345 123 declare -path else;
+#X text 45 14 Finally \, the [metronome] object from ELSE is a proper
+metronome \, which understands time signatures and even quite complex
+ones (default 4/4). This is a quite high level compiled object and
+it also syncs to [clock] objects. Check its help file. The [metronome~]
+object is used to get 'click' tracks \, check it out as well., f 64
+;
+#X obj 152 145 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X msg 227 171 timesig 7/8;
+#X msg 212 144 timesig 6/8;
+#X msg 242 197 timesig 4/4;
+#X msg 254 222 timesig 3/4;
+#X msg 322 344 1.5;
+#X msg 291 344 2;
+#X msg 354 344 0.5;
+#X obj 255 343 tgl 17 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 255 406 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X text 176 341 turn on =>;
+#X text 70 147 turn on =>;
+#X obj 152 302 bng 22 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 110 298 beat bang, f 4;
+#X obj 152 265 metronome, f 30;
+#X floatatom 358 232 4 0 0 0 - - - 12;
+#X text 359 209 tempo;
+#X text 288 319 multiplier values;
+#X obj 152 437 resonant~ 700 100, f 9;
+#X obj 152 403 impseq~;
+#X obj 255 379 clock -s 2;
+#X obj 255 435 impseq~;
+#X obj 255 462 resonant~ 1300 100, f 9;
+#X obj 168 507 out~;
+#X connect 2 0 16 0;
+#X connect 3 0 16 0;
+#X connect 4 0 16 0;
+#X connect 5 0 16 0;
+#X connect 6 0 16 0;
+#X connect 7 0 22 1;
+#X connect 8 0 22 1;
+#X connect 9 0 22 1;
+#X connect 10 0 22 0;
+#X connect 11 0 23 0;
+#X connect 14 0 21 0;
+#X connect 16 0 14 0;
+#X connect 17 0 16 1;
+#X connect 20 0 25 0;
+#X connect 21 0 20 0;
+#X connect 22 0 11 0;
+#X connect 23 0 24 0;
+#X connect 24 0 25 1;

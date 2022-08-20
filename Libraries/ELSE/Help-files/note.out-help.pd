@@ -90,10 +90,6 @@ on/off flag, f 46;
 #X obj 173 250 else/display;
 #X text 73 399 Release velocity is very rare in today's controllers
 \, but it used to be a real thing., f 54;
-#X text 29 18 With the -rel flag \, you can set a release velocity
-value and there's an extra inlet for the note on/off flag. The default
-behaviour is that a velocuty value of "0" represents a note off.,
-f 61;
 #X obj 103 356 print;
 #X obj 103 162 else/note.in -rel;
 #X obj 103 324 else/note.out -rel;
@@ -116,31 +112,35 @@ f 61;
 #X obj 540 350 else/note.out;
 #X obj 543 218 else/note.in;
 #X text 628 309 <== channel;
+#X text 29 18 With the -rel flag \, you can set a release velocity
+value and there's an extra inlet for the note on/off flag. The default
+behaviour is that a velocity value of "0" represents a note off.,
+f 61;
 #X text 448 50 Note that when we don't have the -rel flag \, raw input
-data that represents note off messages are converted to noteon messages
-with a velocity of 0 in [note.in]!, f 42;
-#X connect 0 0 11 0;
-#X connect 3 0 12 1;
-#X connect 4 0 12 0;
-#X connect 5 0 11 0;
-#X connect 6 0 12 3;
-#X connect 7 0 12 2;
-#X connect 11 0 4 0;
-#X connect 11 1 3 0;
-#X connect 11 2 7 0;
-#X connect 11 3 6 0;
+data that represents "note off" messages are converted to "note on"
+messages with a velocity of 0 in [note.in]!, f 47;
+#X connect 0 0 10 0;
+#X connect 3 0 11 1;
+#X connect 4 0 11 0;
+#X connect 5 0 10 0;
+#X connect 6 0 11 3;
+#X connect 7 0 11 2;
+#X connect 10 0 4 0;
+#X connect 10 1 3 0;
+#X connect 10 2 7 0;
+#X connect 10 3 6 0;
+#X connect 11 0 9 0;
 #X connect 12 0 10 0;
-#X connect 13 0 11 0;
-#X connect 18 0 30 0;
-#X connect 21 0 29 1;
+#X connect 17 0 29 0;
+#X connect 20 0 28 1;
+#X connect 21 0 28 0;
 #X connect 22 0 29 0;
-#X connect 23 0 30 0;
-#X connect 24 0 29 2;
-#X connect 26 0 30 0;
-#X connect 29 0 25 0;
-#X connect 30 0 22 0;
-#X connect 30 1 21 0;
-#X connect 30 2 24 0;
+#X connect 23 0 28 2;
+#X connect 25 0 29 0;
+#X connect 28 0 24 0;
+#X connect 29 0 21 0;
+#X connect 29 1 20 0;
+#X connect 29 2 23 0;
 #X restore 473 208 pd release;
 #X obj 32 203 else/note.in;
 #X obj 218 180 else/note.out 4;

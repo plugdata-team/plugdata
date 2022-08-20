@@ -1,0 +1,43 @@
+#N canvas 521 48 468 661 12;
+#X declare -path else;
+#X obj 258 284 vsl 16 80 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 142 263 *~;
+#X obj 142 207 osc~ 440;
+#X obj 142 312 out~;
+#X text 331 190 ASR;
+#X text 34 63 An "ASR" ("Attack / Sustain / Release") envelope has
+a sustain stage in the middle. So after the attack we have the amplitude
+being sustained before the release stage., f 56;
+#X obj 220 217 envgen~ 50 1 450 1 500 0;
+#X obj 220 190 bng 16 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 258 258 s2f~;
+#X obj 290 24 declare -path else;
+#X text 33 114 Below we use [envgen~] and give it a sustain stage by
+generating a line with a repeated destination of "1". The attack is
+then 50 ms \, the sustain stage takes 450 ms and the release is 500
+ms long., f 53;
+#X obj 246 540 vsl 16 80 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 130 519 *~;
+#X obj 130 463 osc~ 440;
+#X obj 130 568 out~;
+#X text 326 442 ASR;
+#X obj 246 514 s2f~;
+#X obj 208 473 vline~;
+#X msg 208 441 1 50 \, 0 450 500;
+#X text 43 391 The same thing \, now implemented with [vline~]., f
+47;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X connect 6 0 1 1;
+#X connect 6 0 8 0;
+#X connect 7 0 6 0;
+#X connect 8 0 0 0;
+#X connect 12 0 14 0;
+#X connect 13 0 12 0;
+#X connect 16 0 11 0;
+#X connect 17 0 12 1;
+#X connect 17 0 16 0;
+#X connect 18 0 17 0;

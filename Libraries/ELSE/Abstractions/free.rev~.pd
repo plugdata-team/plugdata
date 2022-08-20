@@ -1,4 +1,4 @@
-#N canvas 542 166 671 320 12;
+#N canvas 371 146 671 320 12;
 #X declare -path else;
 #X obj 171 55 inlet~;
 #X obj 96 258 outlet~;
@@ -13,7 +13,7 @@
 #X obj 64 70 inlet;
 #X obj 64 111 clip 0 1;
 #X obj 64 177 s~ \$0-damp;
-#X obj 64 145 f2s~ 10;
+#X obj 64 145 else/f2s~ 10;
 #X connect 0 0 1 0;
 #X connect 1 0 3 0;
 #X connect 3 0 2 0;
@@ -22,8 +22,8 @@
 #N canvas 308 52 369 302 wet/dry 0;
 #X obj 59 50 inlet;
 #X obj 59 164 s~ \$0-wet-dry;
-#X obj 59 131 f2s~ 10;
-#X obj 59 93 rescale -clip 0 1 -1 1;
+#X obj 59 131 else/f2s~ 10;
+#X obj 59 93 else/rescale -clip 0 1 -1 1;
 #X connect 0 0 3 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;
@@ -31,8 +31,8 @@
 #N canvas 308 52 301 251 stereo-width 0;
 #X obj 59 50 inlet;
 #X obj 59 160 s~ \$0-width;
-#X obj 60 127 f2s~ 10;
-#X obj 59 89 rescale -clip 0 1 -1 1;
+#X obj 60 127 else/f2s~ 10;
+#X obj 59 89 else/rescale -clip 0 1 -1 1;
 #X connect 0 0 3 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;
@@ -40,16 +40,16 @@
 #N canvas 173 167 324 193 liveness(feedback) 0;
 #X obj 42 40 inlet;
 #X obj 42 142 s~ \$0-fb;
-#X obj 42 111 f2s~ 10;
-#X obj 43 72 rescale -clip 0 1 0.7 0.99;
+#X obj 42 111 else/f2s~ 10;
+#X obj 42 74 else/rescale -clip 0 1 0 1 -2;
 #X connect 0 0 3 0;
 #X connect 2 0 1 0;
 #X connect 3 0 2 0;
 #X restore 266 446 pd liveness(feedback);
 #X msg 152 196 0.5 0 0.5 1;
-#X obj 53 196 args;
+#X obj 53 196 else/args;
 #X obj 266 192 route decay damp width wet clear;
-#X obj 52 166 lb 2;
+#X obj 52 166 else/lb 2;
 #X connect 0 0 1 0;
 #X connect 2 0 10 0;
 #X connect 4 0 7 0;
@@ -75,8 +75,8 @@
 #X obj 82 60 inlet~;
 #X obj 205 60 inlet~;
 #X obj 273 98 r~ \$0-width;
-#X obj 205 188 pan2~;
-#X obj 85 181 pan2~;
+#X obj 205 188 else/pan2~;
+#X obj 85 181 else/pan2~;
 #X connect 0 0 1 0;
 #X connect 0 0 2 0;
 #X connect 3 0 8 1;
@@ -856,7 +856,7 @@
 #X connect 7 0 6 0;
 #X restore 147 158 pd verb;
 #X obj 79 54 inlet~ fwd;
-#X obj 96 210 xfade~ 2, f 17;
+#X obj 96 210 else/xfade~ 2, f 17;
 #X obj 253 112 declare -path else;
 #X connect 0 0 7 1;
 #X connect 3 0 10 4;

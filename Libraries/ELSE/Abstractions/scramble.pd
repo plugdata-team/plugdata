@@ -16,7 +16,7 @@
 #X obj 194 58 t l b;
 #X obj 192 25 inlet;
 #X obj 162 230 outlet;
-#X obj 231 102 iterate;
+#X obj 231 102 else/iterate;
 #X connect 0 0 2 0;
 #X connect 1 0 0 0;
 #X connect 2 0 7 0;
@@ -41,7 +41,7 @@
 #X obj 194 58 t l b;
 #X obj 192 25 inlet;
 #X obj 164 230 outlet;
-#X obj 231 102 iterate;
+#X obj 231 102 else/iterate;
 #X connect 0 0 2 0;
 #X connect 1 0 0 0;
 #X connect 2 0 7 0;
@@ -55,11 +55,11 @@
 #X obj 296 316 list;
 #X text 452 262 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 454 243 Alexandre Torres Porres (2019);
-#X obj 360 153 rand.seq;
-#X obj 370 200 group;
-#X obj 121 214 rand.seq;
-#X obj 140 253 group;
-#X obj 66 82 routetype anything bang;
+#X obj 360 153 else/rand.seq;
+#X obj 370 200 else/group;
+#X obj 121 214 else/rand.seq;
+#X obj 140 253 else/group;
+#X obj 66 82 else/routetype anything bang;
 #X obj 512 196 declare -path else;
 #X connect 0 0 6 0;
 #X connect 1 0 7 0;

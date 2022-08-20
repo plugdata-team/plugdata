@@ -1,0 +1,56 @@
+#N canvas 794 60 612 631 12;
+#X declare -path else;
+#X obj 341 34 declare -path else;
+#X obj 133 379 decay2~ 50 500;
+#X obj 115 415 *~;
+#X obj 133 280 chance~ 30 60 20, f 42;
+#X obj 70 383 brown~;
+#X obj 371 428 *~;
+#X obj 425 403 decay2~ 50 500;
+#X obj 371 397 noise~;
+#X obj 260 479 spread~ 3 2;
+#X obj 253 523 out~;
+#X obj 314 349 decay2~ 50 500;
+#X obj 296 385 *~;
+#X obj 223 336 cusp~ 1500;
+#X obj 452 318 trig2bang~;
+#X obj 452 342 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 193 310 trig2bang~;
+#X obj 193 334 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 50 315 trig2bang~;
+#X obj 50 339 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144 -1
+-1;
+#X obj 133 214 chance~ 80;
+#X obj 232 213 trig2bang~;
+#X obj 232 237 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 133 179 randpulse~ 5;
+#X text 74 77 The [chance~] object is the signal rate version of [chance].
+When triggered \, the signal value is output as an impulse to the corresponding
+outlet according to the given probability.;
+#X connect 1 0 2 1;
+#X connect 2 0 8 0;
+#X connect 3 0 1 0;
+#X connect 3 0 17 0;
+#X connect 3 1 10 0;
+#X connect 3 1 15 0;
+#X connect 3 2 6 0;
+#X connect 3 2 13 0;
+#X connect 4 0 2 0;
+#X connect 5 0 8 2;
+#X connect 6 0 5 1;
+#X connect 7 0 5 0;
+#X connect 8 0 9 0;
+#X connect 8 1 9 1;
+#X connect 10 0 11 1;
+#X connect 11 0 8 1;
+#X connect 12 0 11 0;
+#X connect 13 0 14 0;
+#X connect 15 0 16 0;
+#X connect 17 0 18 0;
+#X connect 19 0 3 0;
+#X connect 19 1 20 0;
+#X connect 20 0 21 0;
+#X connect 22 0 19 0;

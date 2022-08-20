@@ -1,40 +1,34 @@
-#N canvas 432 23 562 536 10;
-#X obj 250 230 hsl 128 15 20 44100 1 0 empty empty empty -2 -8 0 10
+#N canvas 528 23 560 541 10;
+#X obj 210 210 hsl 128 15 20 44100 1 0 empty empty empty -2 -8 0 10
 #dcdcdc #000000 #000000 0 1;
-#X obj 247 318 else/out~;
+#X obj 207 298 else/out~;
 #X obj 23 41 cnv 4 4 4 empty empty Step 0 28 2 18 #e0e0e0 #000000 0
 ;
 #X obj 65 41 cnv 4 4 4 empty empty noise 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 2 508 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 413 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 442 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 3 479 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
-0;
-#X obj 91 452 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 91 423 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 159 453 signal;
-#X text 148 488 1) float;
-#X obj 247 259 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X text 159 424 signal;
+#X obj 207 239 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X text 263 229 frequency in Hz;
-#X text 216 488 - frequency in hertz (default 0);
-#X obj 91 399 cnv 17 3 37 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 223 209 frequency in Hz;
+#X obj 91 370 cnv 17 3 37 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 3 389 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 360 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 247 285 else/stepnoise~ 400;
-#X text 216 454 - bandlimited step noise;
-#X text 83 164 The [stepnoise~] object produces frequencies limited
+#X obj 207 265 else/stepnoise~ 400;
+#X text 216 425 - bandlimited step noise;
+#X text 61 151 The [stepnoise~] object produces frequencies limited
 to a band from 0 up to the frequency it is running. It can go up to
 the sample rate \, and when that happens \, it's basically a white
-noise generator.;
-#X text 33 299 see also:;
-#X obj 34 326 else/lfnoise~;
-#X text 123 399 float/signal;
-#X text 215 398 - frequency input in hertz;
-#X obj 34 350 else/rampnoise~;
+noise generator., f 73;
+#X text 33 269 see also:;
+#X obj 34 296 else/lfnoise~;
+#X text 123 370 float/signal;
+#X text 215 369 - frequency input in hertz;
+#X obj 34 320 else/rampnoise~;
 #N canvas 806 202 450 300 control 0;
 #X obj 153 163 osc~;
 #X obj 153 200 else/out~;
@@ -45,7 +39,7 @@ objects. Here we control the frequency of an oscillator.;
 #X connect 0 0 1 0;
 #X connect 2 0 0 0;
 #X connect 4 0 2 0;
-#X restore 467 343 pd control;
+#X restore 467 323 pd control;
 #X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -68,39 +62,55 @@ objects. Here we control the frequency of an oscillator.;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 4 graph;
-#N canvas 559 236 537 459 seed 0;
-#X text 305 100 <= set seed;
-#X obj 118 226 else/sig2float~;
-#X obj 268 229 else/sig2float~;
-#X obj 118 264 vsl 15 128 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X obj 268 264 vsl 15 128 -1 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
-#000000 #000000 0 1;
-#X msg 268 151 seed \$1;
-#X floatatom 268 127 5 0 0 0 - - - 0;
-#X msg 268 103 1023;
-#X obj 118 192 else/stepnoise~ 1;
-#X obj 268 192 else/stepnoise~ 1;
-#X text 132 27 Sync [stepnoise~] objects with a seed value. The default
-is a unique value for each instance based on the system time., f 43
-;
-#X obj 347 310 else/setdsp~;
-#X connect 1 0 3 0;
-#X connect 2 0 4 0;
-#X connect 5 0 8 0;
-#X connect 5 0 9 0;
-#X connect 6 0 5 0;
-#X connect 7 0 6 0;
-#X connect 8 0 1 0;
-#X connect 9 0 2 0;
-#X restore 484 319 pd seed;
-#X text 123 419 seed <float>;
-#X text 216 420 - sets seed;
-#X text 82 89 [stepnoise~] is a low frequency (band limited) noise
+#X text 123 390 seed <float>;
+#X text 61 89 [stepnoise~] is a low frequency (band limited) noise
 generator without interpolation \, therefore it holds at a random value
 \, resulting in random steps. Random values are between -1 and 1 at
 a rate in hertz (negative frequencies accepted). Use the seed message
-if you want a reproducible output.;
-#X connect 0 0 10 0;
-#X connect 10 0 15 0;
-#X connect 15 0 1 0;
+if you want a reproducible output., f 73;
+#N canvas 386 133 857 293 seed 0;
+#X text 30 41 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X text 613 22 Sync objects with a seed value;
+#X text 30 197 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 52;
+#X obj 600 134 else/graph~ 441 0 -1.05 1.05 200 140;
+#X obj 383 134 else/graph~ 441 0 -1.05 1.05 200 140;
+#X msg 539 21 seed 319;
+#X msg 496 22 seed;
+#X obj 383 98 else/numbox~ 6 14 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 600 98 else/numbox~ 6 14 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 383 72 else/stepnoise~ -seed 319 1;
+#X obj 600 71 else/stepnoise~ -seed 319 1;
+#X text 30 120 Seeds are kept locally \, which means that if two [stepnoise~]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [stepnoise~] object twice with the same seed
+to repeat the output., f 52;
+#X connect 5 0 9 0;
+#X connect 5 0 10 0;
+#X connect 6 0 9 0;
+#X connect 6 0 10 0;
+#X connect 7 0 4 0;
+#X connect 8 0 3 0;
+#X connect 9 0 7 0;
+#X connect 10 0 8 0;
+#X restore 484 299 pd seed;
+#X obj 2 513 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 3 483 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X text 151 492 1) float;
+#X text 213 492 - frequency in hertz (default 0);
+#X obj 7 452 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 128 461 -seed <float>: sets seed (default: unique internal)
+;
+#X text 216 391 - a float sets seed \, no float sets a unique internal
+;
+#X connect 0 0 7 0;
+#X connect 7 0 11 0;
+#X connect 11 0 1 0;

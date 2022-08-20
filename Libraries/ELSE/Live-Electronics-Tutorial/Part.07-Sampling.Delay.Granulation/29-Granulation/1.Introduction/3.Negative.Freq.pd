@@ -1,0 +1,138 @@
+#N canvas 298 38 915 569 12;
+#X declare -path else;
+#X text 781 247 Hz;
+#X obj 722 224 hsl 128 15 -5 5 0 0 empty hz empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 719 250 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 174 422 phasor~ -1;
+#X obj 114 437 noise~;
+#X obj 719 278 s \$0-freq;
+#X obj 76 125 sig2float~;
+#X obj 76 150 vsl 20 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 253 125 sig2float~;
+#X obj 253 150 vsl 20 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 253 99 phasor~ -0.5;
+#X obj 76 99 phasor~ 0.5;
+#X obj 174 449 fexpr~ abs($x1[0] - $x1[-1]) < 0.5;
+#X obj 114 479 samphold~;
+#X floatatom 615 218 0 0 1e+06 0 - grain - 0;
+#X floatatom 524 219 0 0 1e+06 0 - - - 0;
+#X obj 524 279 s~ \$0-pos;
+#X obj 615 279 s~ \$0-grain;
+#X obj 592 447 +~;
+#X obj 610 367 r \$0-freq;
+#X obj 592 488 out~;
+#X text 17 18 For now we only had positive frequencies examples. Negative
+frequencies on [phasor~] or [pimp~] will read the sample backwards
+\, as it runs in the opposite direction.;
+#X text 62 267 positive;
+#X text 244 266 negative;
+#X text 23 313 There's an issue though if you want to use the Pd native
+objects [phasor~] and [samphold~] because you won't be able to trigger
+[samphold~] when [phasor~] runs with a negative frequency. A solution
+would be turn the [phasor~] output into a flipped impulse as below.
+;
+#X text 471 63 The [pimp~] and [sh~] objects from ELSE offer a simpler
+solution as [pimp~] outputs impulses at period transitions and [sh~]
+can be triggered by them.;
+#X text 472 110 See the adaptation below and try negative frequencies
+as well. Now each grain is read in a different subpatch to make things
+cleaner.;
+#X obj 524 248 ms2samps;
+#X obj 615 253 ms2samps;
+#X text 739 204 frequency;
+#N canvas 457 81 342 422 grain-1 0;
+#X obj 208 338 *~;
+#X obj 48 67 r~ \$0-grain;
+#X obj 73 164 *~;
+#X obj 104 250 +~;
+#X obj 97 195 r~ \$0-pos;
+#X obj 104 282 tabread4~ \$0-buffer, f 10;
+#X obj 208 375 outlet~;
+#X obj 141 32 inlet~;
+#X obj 141 67 pimp~;
+#X obj 115 161 sh~;
+#X obj 155 226 sh~;
+#X obj 226 301 envelope~;
+#X connect 0 0 6 0;
+#X connect 1 0 9 0;
+#X connect 2 0 3 0;
+#X connect 3 0 5 0;
+#X connect 4 0 10 0;
+#X connect 5 0 0 0;
+#X connect 7 0 8 0;
+#X connect 8 0 2 0;
+#X connect 8 0 11 0;
+#X connect 8 1 9 1;
+#X connect 8 1 10 1;
+#X connect 9 0 2 1;
+#X connect 10 0 3 1;
+#X connect 11 0 0 1;
+#X restore 524 410 pd grain-1;
+#N canvas 457 81 342 422 grain-2 0;
+#X obj 208 338 *~;
+#X obj 48 67 r~ \$0-grain;
+#X obj 73 164 *~;
+#X obj 104 250 +~;
+#X obj 97 195 r~ \$0-pos;
+#X obj 104 282 tabread4~ \$0-buffer, f 10;
+#X obj 208 375 outlet~;
+#X obj 141 32 inlet~;
+#X obj 115 161 sh~;
+#X obj 155 226 sh~;
+#X obj 226 301 envelope~;
+#X obj 141 67 pimp~ 0 0.5;
+#X connect 0 0 6 0;
+#X connect 1 0 8 0;
+#X connect 2 0 3 0;
+#X connect 3 0 5 0;
+#X connect 4 0 9 0;
+#X connect 5 0 0 0;
+#X connect 7 0 11 0;
+#X connect 8 0 2 1;
+#X connect 9 0 3 1;
+#X connect 10 0 0 1;
+#X connect 11 0 2 0;
+#X connect 11 0 10 0;
+#X connect 11 1 8 1;
+#X connect 11 1 9 1;
+#X restore 610 410 pd grain-2;
+#X text 491 201 position (ms), f 8;
+#X text 593 194 grain (ms);
+#X obj 703 19 declare -path else;
+#X obj 744 411 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#N canvas 790 23 285 190 buffer 0;
+#X obj 41 60 openpanel;
+#X obj 41 29 inlet;
+#X obj 41 125 sample~ \$0-buffer bubul.wav;
+#X msg 41 89 load \$1;
+#X obj 137 51 initmess \; hz 1 \; grain 500;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 3 0 2 0;
+#X restore 744 440 pd buffer;
+#X obj 114 507 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 1 0 2 0;
+#X connect 2 0 5 0;
+#X connect 3 0 12 0;
+#X connect 4 0 13 0;
+#X connect 6 0 7 0;
+#X connect 8 0 9 0;
+#X connect 10 0 8 0;
+#X connect 11 0 6 0;
+#X connect 12 0 13 1;
+#X connect 13 0 37 0;
+#X connect 14 0 28 0;
+#X connect 15 0 27 0;
+#X connect 18 0 20 0;
+#X connect 19 0 30 0;
+#X connect 19 0 31 0;
+#X connect 27 0 16 0;
+#X connect 28 0 17 0;
+#X connect 30 0 18 0;
+#X connect 31 0 18 1;
+#X connect 35 0 36 0;

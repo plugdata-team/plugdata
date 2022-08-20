@@ -1,0 +1,47 @@
+#N canvas 396 23 786 576 12;
+#X declare -path else;
+#X obj 239 185 nbx 5 14 0 40 0 0 empty ganho empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X floatatom 239 231 7 0 0 0 - - - 0;
+#X obj 239 207 db2lin;
+#X obj 587 312 hsl 128 15 1 12 0 1 empty empty drive 45 9 1 12 #dcdcdc
+#000000 #000000 0 1;
+#X obj 507 365 drive~;
+#X obj 507 323 osc~ 440;
+#X msg 468 291 mode \$1;
+#X obj 468 269 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 95 284 expr~ tanh($v1 * $v2);
+#X obj 94 393 graph~ 185 25;
+#X obj 507 401 out~;
+#X obj 118 317 out~;
+#X obj 95 224 osc~ 440;
+#X text 42 27 It'd be ideal to address this in the waveshaping section
+\, but let's anticipate it briefly for now \, and further discuss it
+later on., f 49;
+#X text 42 82 The "tanh" function performs a "soft clipping" and non
+linear distortion. It always distorts the signal a bit \, and can act
+as a compressor \, but also end up quite close to a hard clipping.
+It all depends on the input signal boost., f 49;
+#X text 294 230 Ratio;
+#X text 300 185 Gain (dB);
+#X text 435 168 The [drive~] object \, from ELSE \, perofrms the same
+kind of soft clipping with the tanh function. It also has yet another
+mode \, based on another exponential function \, check its help file
+for more details., f 44;
+#X obj 239 255 f2s~ 10 1;
+#X obj 542 80 declare -path else;
+#X obj 584 339 numbox~ 5 12 100 #c0c0c4 #440008 50 0 0 1;
+#X connect 0 0 2 0;
+#X connect 1 0 18 0;
+#X connect 2 0 1 0;
+#X connect 3 0 20 0;
+#X connect 4 0 10 0;
+#X connect 5 0 4 0;
+#X connect 6 0 4 0;
+#X connect 7 0 6 0;
+#X connect 8 0 9 0;
+#X connect 8 0 11 0;
+#X connect 12 0 8 0;
+#X connect 18 0 8 1;
+#X connect 20 0 4 1;

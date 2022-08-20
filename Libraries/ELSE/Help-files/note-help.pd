@@ -1,4 +1,4 @@
-#N canvas 712 98 565 591 10;
+#N canvas 466 55 565 591 10;
 #X obj 2 419 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 2 444 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
@@ -49,7 +49,8 @@
 #X text 214 331 - non zero sets underline, f 54;
 #X text 104 373 bgcolor <f \, f \, f>;
 #X text 146 387 bg <float>;
-#X text 214 387 - background flag (0 suppresses background), f 54;
+#X text 214 387 - background flag (0 suppresses background), f 54
+;
 #X text 214 359 - sets RGB text color (values from 0 to 255), f 54
 ;
 #X text 214 373 - sets RGB background color (values from 0 to 255)
@@ -97,11 +98,11 @@ flag to turn it off or on again., f 62;
 #X msg 546 352 receive \\\$0-note;
 #X text 399 44 When in edit mode \, [note] shows its inlet and an outline.
 The [note] object below has a receive symbol \, so you can send messages
-to it via a [send] object. In this case \, the inlet is suppressed \,
-so we don't see it. Besides the properties window \, the receive symbol
-can be set with the receive message or the @receive attribute. If you
-set a receive name as "empty" then it it can't receive messages anymore
-and the inlet is show again., f 74;
+to it via a [send] object. In this case \, the inlet is suppressed
+\, so we don't see it. Besides the properties window \, the receive
+symbol can be set with the receive message or the @receive attribute.
+If you set a receive name as "empty" then it it can't receive messages
+anymore and the inlet is show again., f 74;
 #X msg 179 27 size 50;
 #X msg 187 47 size 30;
 #X msg 201 75 font times;
@@ -163,21 +164,21 @@ So just be sure you have the fonts you want properly installed., f
 #X connect 31 0 5 0;
 #X connect 33 0 0 0;
 #X restore 477 149 pd details;
-#N canvas 800 75 549 514 +details 0;
-#X obj 188 340 else/note 151 20 dejavu\ sans\ mono empty 0 0 0 0 0
-200 200 200 1 1 note can be justified in different ways;
-#X obj 188 223 vradio 15 1 0 3 empty empty empty 0 -8 0 10 #dcdcdc
+#N canvas 696 89 443 408 +details 0;
+#X obj 104 290 else/note 229 20 dejavu\ sans\ mono empty 0 0 0 0 0
+200 200 200 1 0 note can be justified in different ways;
+#X obj 104 173 vradio 15 1 0 3 empty empty empty 0 -8 0 10 #dcdcdc
 #000000 #000000 0;
-#X floatatom 188 280 3 0 0 0 - - - 0;
-#X text 206 222 left;
-#X text 206 237 center;
-#X text 206 253 right;
-#X text 79 128 And when you have more than one line \, you can set
+#X floatatom 104 230 3 0 0 0 - - - 0;
+#X text 122 172 left;
+#X text 122 187 center;
+#X text 122 203 right;
+#X text 32 106 And when you have more than one line \, you can set
 three kinds of justification parametrers: left (0: default) \, center
 (1) and right (2). This does not affect notes with just one line.,
 f 66;
-#X msg 188 305 just \$1;
-#X text 79 47 By default \, [note] has a maximum width limit of 425
+#X msg 104 255 just \$1;
+#X text 32 25 By default \, [note] has a maximum width limit of 425
 pixels (like Pd's comment). If it exceeds this limit \, the note will
 break into a new line with the last word that did not fit. But when
 in edit mode you can see a bar to the right that allows you to resize

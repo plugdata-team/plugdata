@@ -1,0 +1,115 @@
+#N canvas 404 125 842 507 12;
+#X declare -path else;
+#X obj 68 255 s~ \$0-sample;
+#X obj 108 325 r~ \$0-sample;
+#N canvas 134 154 414 468 phase-shift 0;
+#X obj 107 27 inlet~;
+#X obj 107 132 rfft~;
+#X obj 218 256 block~ 1024 4;
+#X obj 107 398 outlet~;
+#X obj 107 284 rifft~;
+#X obj 107 363 /~ 1536;
+#X obj 160 207 +~;
+#X obj 107 170 car2pol~;
+#X obj 107 242 pol2car~;
+#X obj 107 92 hann~;
+#X obj 187 29 inlet~;
+#X obj 107 328 hann~;
+#X connect 0 0 9 0;
+#X connect 1 0 7 0;
+#X connect 1 1 7 1;
+#X connect 4 0 11 0;
+#X connect 5 0 3 0;
+#X connect 6 0 8 1;
+#X connect 7 0 8 0;
+#X connect 7 1 6 0;
+#X connect 8 0 4 0;
+#X connect 8 1 4 1;
+#X connect 9 0 1 0;
+#X connect 10 0 6 1;
+#X connect 11 0 5 0;
+#X restore 122 368 pd phase-shift;
+#X obj 566 213 nbx 5 14 0.1 10 1 0 empty rate empty 0 -8 0 10 -228856
+-1 -1 0.5 256;
+#X obj 642 186 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 1 256;
+#X obj 645 163 hsl 128 15 0 5 0 0 empty depth empty -2 -8 0 10 -228856
+-1 -1 2540 1;
+#X text 571 190 Rate;
+#X text 686 161 Depth;
+#X obj 463 289 r~ \$0-sample;
+#X obj 566 247 osc~;
+#X obj 122 410 out~;
+#X obj 463 379 out~;
+#X obj 617 376 initmess \; rate 0.5 \; depth 1;
+#X obj 642 210 *;
+#X obj 642 241 f2s~ 50;
+#X obj 566 294 *~;
+#X obj 677 210 pi;
+#N canvas 880 194 408 483 phaser 0;
+#X obj 77 37 inlet~;
+#X obj 77 132 rfft~;
+#X obj 258 315 block~ 1024 4;
+#X obj 159 398 outlet~;
+#X obj 159 304 rifft~;
+#X obj 159 373 /~ 1536;
+#X obj 212 238 +~;
+#X obj 227 42 inlet~;
+#X obj 77 181 car2pol~;
+#X obj 159 273 pol2car~;
+#X obj 77 92 hann~;
+#X obj 159 348 hann~;
+#X connect 0 0 10 0;
+#X connect 1 0 8 0;
+#X connect 1 1 8 1;
+#X connect 4 0 11 0;
+#X connect 5 0 3 0;
+#X connect 6 0 9 1;
+#X connect 7 0 6 1;
+#X connect 8 0 9 0;
+#X connect 8 1 6 0;
+#X connect 9 0 4 0;
+#X connect 9 1 4 1;
+#X connect 10 0 1 0;
+#X connect 11 0 5 0;
+#X restore 506 329 pd phaser;
+#X text 42 29 A Phaser adds a signal to a copy of it with phase variations.
+The classic way to implement this process is with filters \, and we'll
+see how to implement it with allpass filters. But let's see first a
+FFT interpretation of this process., f 53;
+#X obj 220 263 hsl 128 15 5 30 1 0 empty depth empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 217 341 *~;
+#X obj 252 341 pi;
+#X obj 217 308 rampnoise~ 10;
+#X obj 217 286 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 1 256;
+#X text 41 117 Let's start by changing the phase of a signal by summing
+the initial phase information to random ramp values. Changing the phase
+to a fixed value does not alter the tonal quality. But a continuous
+shift is like phase modulation and changes the pitch., f 53;
+#X text 460 77 For the spectral phaser we have a sine wave oscillator
+for the modulation. Summing to the original input promotes phase canceling
+of some of the frequency points \, which is the key to the phaser effect.
+, f 47;
+#X obj 615 30 declare -path else;
+#X obj 68 219 play.file~ guitar.wav 1 1;
+#X connect 1 0 2 0;
+#X connect 2 0 10 0;
+#X connect 3 0 9 0;
+#X connect 4 0 13 0;
+#X connect 5 0 4 0;
+#X connect 8 0 17 0;
+#X connect 8 0 11 0;
+#X connect 9 0 15 0;
+#X connect 13 0 14 0;
+#X connect 14 0 15 1;
+#X connect 15 0 17 1;
+#X connect 16 0 13 1;
+#X connect 17 0 11 0;
+#X connect 19 0 23 0;
+#X connect 20 0 2 1;
+#X connect 21 0 20 1;
+#X connect 22 0 20 0;
+#X connect 23 0 22 0;
+#X connect 27 0 0 0;

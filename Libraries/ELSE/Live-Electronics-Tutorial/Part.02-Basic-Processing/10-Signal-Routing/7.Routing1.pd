@@ -1,0 +1,101 @@
+#N struct 1108-cell float x float y float cellsize float color;
+#N canvas 458 50 848 571 12;
+#X declare -path else;
+#X obj 39 33 vradio 15 1 0 5 empty empty empty 0 -8 0 10 -228856 -1
+-1 4;
+#X floatatom 39 139 5 0 0 0 - - -;
+#X text 58 47 inlet 1;
+#X text 58 62 inlet 2;
+#X text 58 77 inlet 3;
+#X text 58 92 inlet 4;
+#X obj 102 138 osc~ 300;
+#X obj 167 138 osc~ 350;
+#X obj 232 138 osc~ 400;
+#X obj 299 138 osc~ 450;
+#X text 101 115 inlet 1;
+#X text 170 116 inlet 2;
+#X text 235 115 inlet 3;
+#X text 301 115 inlet 4;
+#X obj 145 182 xselect~ 4 1000;
+#X obj 214 455 xgate~ 3 1000;
+#X obj 145 222 out~;
+#X obj 214 392 noise~;
+#X obj 274 348 vradio 15 1 0 4 empty empty empty 0 -8 0 10 -228856
+-1 -1 0;
+#X floatatom 274 422 5 0 0 0 - - -;
+#X text 293 346 nenhum;
+#X text 293 362 outlet 1;
+#X text 293 377 outlet 2;
+#X text 293 392 outlet 3;
+#X obj 102 404 setdsp~ 1;
+#X obj 312 517 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 258 517 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 206 517 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 312 490 rms~;
+#X obj 258 490 rms~;
+#X obj 206 490 rms~;
+#X text 58 31 none;
+#X text 261 182 check the help file for more details, f 19;
+#X text 32 293 The [xgate~] object \, from ELSE \, does the opposite.
+It receives one signal and routes to different outputs with crossfading.
+;
+#X text 543 310 0;
+#X text 558 310 1;
+#X text 572 310 2;
+#X text 587 310 3;
+#X obj 622 275 osc~ 300;
+#X obj 660 300 osc~ 400;
+#X obj 699 325 osc~ 500;
+#X obj 738 351 osc~ 600;
+#X text 598 409 0;
+#X text 626 372 0;
+#X text 664 372 1;
+#X text 703 372 2;
+#X text 744 373 3;
+#X text 479 278 output 0;
+#X text 479 293 output 1;
+#X text 496 307 input:;
+#X text 692 409 1;
+#X obj 540 329 display;
+#X obj 540 279 mtx.ctl 4 2 15;
+#X msg 604 246 clear;
+#X text 435 150 The [mtx~] object \, from ELSE \, performs more complex
+routings with equal power crossfades. It can have any number of inputs
+and outputs \, and you can map any input to one or more outputs. This
+is more conveniently done with the [mtx.ctl] (from "matrix control")
+\, also provided in ELSE., f 55;
+#X obj 622 390 mtx~ 4 2 100, f 17;
+#X obj 637 55 declare -path else;
+#X obj 604 434 out~;
+#X text 141 40 The [xselect~] object \, from ELSE \, receives different
+audio signals \, but only selects one of them. When changing from one
+source to another \, a crossfade is performed.;
+#X connect 0 0 1 0;
+#X connect 1 0 14 0;
+#X connect 6 0 14 0;
+#X connect 7 0 14 1;
+#X connect 8 0 14 2;
+#X connect 9 0 14 3;
+#X connect 14 0 16 0;
+#X connect 15 0 30 0;
+#X connect 15 1 29 0;
+#X connect 15 2 28 0;
+#X connect 17 0 15 0;
+#X connect 18 0 19 0;
+#X connect 19 0 15 0;
+#X connect 28 0 25 0;
+#X connect 29 0 26 0;
+#X connect 30 0 27 0;
+#X connect 38 0 55 0;
+#X connect 39 0 55 1;
+#X connect 40 0 55 2;
+#X connect 41 0 55 3;
+#X connect 51 0 55 0;
+#X connect 52 0 51 0;
+#X connect 53 0 52 0;
+#X connect 53 0 55 0;
+#X connect 55 0 57 0;
+#X connect 55 1 57 1;

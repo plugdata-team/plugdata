@@ -1,0 +1,63 @@
+#N canvas 560 56 628 597 12;
+#X declare -path else;
+#X obj 56 407 *~;
+#X obj 55 345 osc~ 440;
+#X obj 56 457 out~;
+#X obj 170 445 vsl 15 90 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 170 409 s2f~;
+#X obj 390 23 declare -path else;
+#X obj 170 322 sig~;
+#X obj 364 405 *~;
+#X obj 308 347 osc~ 440;
+#X obj 364 455 out~;
+#X obj 492 426 vsl 15 90 0 1 0 0 empty empty empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X obj 382 319 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 492 400 s2f~;
+#X text 187 378 linear;
+#X floatatom 230 329 5 0 0 0 - - -;
+#X floatatom 443 322 5 0 0 0 - - -;
+#X floatatom 505 322 5 0 0 0 - - -;
+#X obj 170 272 tgl 20 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X msg 98 272 0.5;
+#X msg 135 272 0;
+#X floatatom 170 298 5 0 0 0 - - -;
+#X text 425 300 limit up;
+#X text 495 300 limit down;
+#X obj 170 355 slew~ 1, f 9;
+#X obj 382 355 slew2~ 2 10, f 18;
+#X text 50 62 The [slew~] object is a slew limiter. Unlike the objects
+we've previously seen in this section \, it does not take a ramp time.
+Conversely \, its parameter defines a fixed ramp step (or 'limit')
+no matter what the target point is. This means it has a fixed speed
+\, whereas the previous ones have a fixed time., f 70;
+#X text 230 305 limit;
+#X text 295 246 [slew2~] is a variation that takes different for the
+up/down ramps., f 34;
+#X text 50 139 The step limit is not a step between two samples \,
+which would correspond to an amplitude step over the time period between
+two samples. Instead \, we have an ampltide step over the period of
+one second. Thus \, the actual step limit between two samples depends
+on the sample rate. Check its help file., f 70;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 4 0 3 0;
+#X connect 6 0 23 0;
+#X connect 7 0 9 0;
+#X connect 8 0 7 0;
+#X connect 11 0 24 0;
+#X connect 12 0 10 0;
+#X connect 14 0 23 1;
+#X connect 15 0 24 1;
+#X connect 16 0 24 2;
+#X connect 17 0 20 0;
+#X connect 18 0 20 0;
+#X connect 19 0 20 0;
+#X connect 20 0 6 0;
+#X connect 23 0 0 1;
+#X connect 23 0 4 0;
+#X connect 24 0 7 1;
+#X connect 24 0 12 0;

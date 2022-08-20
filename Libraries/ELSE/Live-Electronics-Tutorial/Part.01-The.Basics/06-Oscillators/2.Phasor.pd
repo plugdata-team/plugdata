@@ -1,0 +1,99 @@
+#N canvas 391 44 965 695 12;
+#X declare -path else;
+#X obj 99 116 cnv 15 300 290 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 132 286 cnv 15 248 110 empty empty empty 20 12 0 14 -220534
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-sine 441 float 0;
+#X coords 0 1 440 -1 250 112 1 0 0;
+#X restore 132 285 graph;
+#X text 119 278 1;
+#X text 113 386 -1;
+#X obj 135 138 cnv 15 248 110 empty empty empty 20 12 0 14 -220534
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase 441 float 0;
+#X coords 0 1 440 0 250 112 1 0 0;
+#X restore 134 137 graph;
+#X text 119 234 0;
+#X text 117 132 1;
+#X text 117 183 A;
+#X text 117 194 S;
+#X text 117 204 E;
+#X text 117 321 A;
+#X text 117 331 M;
+#X text 117 342 P;
+#X text 104 189 |;
+#X text 106 189 |;
+#X text 105 182 ^;
+#X text 104 332 |;
+#X text 106 332 |;
+#X text 105 325 ^;
+#N canvas 781 388 321 300 plot 0;
+#X obj 127 84 t b f;
+#X obj 143 168 sin~;
+#X obj 142 113 phasor~ 100;
+#X obj 46 103 setdsp~ 1;
+#X obj 127 63 initmess 0;
+#X obj 105 236 tabwrite~ \$0-phase;
+#X obj 127 214 tabwrite~ \$0-sine;
+#X connect 0 0 5 0;
+#X connect 0 0 6 0;
+#X connect 0 1 2 1;
+#X connect 1 0 6 0;
+#X connect 2 0 1 0;
+#X connect 2 0 5 0;
+#X connect 4 0 0 0;
+#X restore 329 266 pd plot;
+#X obj 533 436 cnv 15 344 84 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#X obj 691 215 sin~;
+#X obj 691 171 phasor~;
+#X obj 691 129 sig~ 200;
+#X obj 478 260 graph~ 430 17;
+#X obj 691 260 graph~ 430 17;
+#X text 18 50 In this example we'll implement an oscillator with the
+sine function (object [sin~]) and the native [phasor~] object., f
+54;
+#X text 226 261 time ===>;
+#X text 28 606 The [phasor~] input is a frequency in cycles per second
+(or "hertz"). This is a unit of angular velocity and determines how
+many times per second we have a full cycle from 0 to 1 \, see the patch
+to the right., f 60;
+#X text 701 149 <= angular velocity / frequency;
+#X text 700 238 <= waveform;
+#X text 484 51 The output of [phasor~] never really reaches "1" \,
+as it wraps back to "0" \, but note that its cyclical nature implies
+that "1" would be the same as 0 \, in the same way that 360° is the
+same as 0°, f 62;
+#X text 698 191 <= angle position (running phase*);
+#X text 28 436 Above we have two graphs where the horizontal axis represent
+time. In the upper one we have phase in the vertical axis \, which
+increases at a constant rate \, generating a linear ramp. The lower
+graph shows us the resulting sine output \, with amplitude in the vertical
+axis.;
+#X obj 762 17 declare -path else;
+#X text 117 158 P;
+#X text 117 171 H;
+#X text 28 523 The [phasor~] object generates a phase signal like the
+green graph above. Its output are angles in a linear scale from 0 to
+1 \, which represents a full cycle \, but that requires objects that
+take that linear input from 0 to 1 as a full cycle such as [cos~] and
+[sin~].;
+#X text 542 442 * The [phasor~] output can be referred to as "running
+phase". The object takes an angular velocity that defines an increment
+phase value for each sample \, which is the step that phase runs at.
+, f 46;
+#X obj 702 620 phasor~ 440;
+#X text 678 630 =;
+#X text 539 548 A [phasor~] connected to [sin~] is the same structure
+as the [sine~] object from the ELSE \, which is a sinusoidal oscillator.
+, f 46;
+#X obj 594 630 sine~ 440;
+#X obj 702 644 sin~;
+#X connect 23 0 27 0;
+#X connect 24 0 23 0;
+#X connect 24 0 26 0;
+#X connect 25 0 24 0;
+#X connect 41 0 45 0;

@@ -1,0 +1,74 @@
+#N canvas 288 71 948 501 12;
+#X declare -path else;
+#X obj 535 259 *~;
+#X obj 553 232 line~;
+#X msg 553 209 \$1 10;
+#X obj 510 361 dac~;
+#X obj 162 201 *~;
+#X obj 180 139 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 0.05;
+#X obj 106 161 osc~ 440;
+#X floatatom 180 172 5 0 0 0 - - - 0;
+#X obj 553 163 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 0.05;
+#X text 575 162 On/Off;
+#X text 597 224 Fade In/Out;
+#X obj 478 195 osc~ 440;
+#X obj 185 247 graph~ 1038 9;
+#X obj 137 265 dac~;
+#X obj 562 320 graph~ 1038 9;
+#X floatatom 553 187 5 0 0 0 - - - 0;
+#X obj 741 194 float2sig~ 10;
+#X obj 43 264 setdsp~ 1;
+#X obj 723 222 *~;
+#X obj 711 273 dac~;
+#X obj 670 180 osc~ 440;
+#X obj 741 167 tgl 18 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 0.05;
+#X text 762 167 On/Off;
+#X text 202 139 On/Off;
+#X text 41 143 oscillator at 440Hz, f 11;
+#X obj 787 230 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 844 257 abbreviation;
+#X obj 733 26 declare -path else;
+#X text 459 163 no clicks =>;
+#X text 67 425 The clicks happen by the fact that the speaker needs
+to jump abruptly when the sound comes in or out. In order to avoid
+clicks \, this needs to be smoothened., f 53;
+#X obj 787 257 f2s~ 10;
+#X text 597 208 Quick;
+#X text 12 32 Below \, we have [*~] \, which is multiplies to 0 by
+default and mutes the oscicllator. We use a toggle to turn the oscillator
+on (or "unmute" it) by multiplying it to "1". We can mute it back by
+multiplying it to "0". But note how this generates discontinuities
+in the signal that do not sound good \, we call these "clicks"., f
+61;
+#X text 481 57 The native [line~] object can be used to generate a
+quick smoothened ramp to avoid clicks when muting/unmuting. This is
+like very fast fade in/out (at 10 ms here). Another option is to use
+[float2sig~] (or [f2s~] for short) from ELSE \, which converts floats
+to signal but also generates linear ramps., f 61;
+#X obj 787 284 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 3 0;
+#X connect 0 0 3 1;
+#X connect 0 0 14 0;
+#X connect 1 0 0 1;
+#X connect 2 0 1 0;
+#X connect 4 0 12 0;
+#X connect 4 0 13 0;
+#X connect 4 0 13 1;
+#X connect 5 0 7 0;
+#X connect 6 0 4 0;
+#X connect 7 0 4 1;
+#X connect 8 0 15 0;
+#X connect 11 0 0 0;
+#X connect 15 0 2 0;
+#X connect 16 0 18 1;
+#X connect 18 0 19 0;
+#X connect 18 0 19 1;
+#X connect 18 0 14 0;
+#X connect 20 0 18 0;
+#X connect 21 0 16 0;
+#X connect 25 0 30 0;
+#X connect 30 0 34 0;

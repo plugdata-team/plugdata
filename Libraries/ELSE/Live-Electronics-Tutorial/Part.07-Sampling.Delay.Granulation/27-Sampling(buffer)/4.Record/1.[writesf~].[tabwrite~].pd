@@ -1,0 +1,99 @@
+#N canvas 328 23 923 701 12;
+#X declare -path else;
+#X obj 582 152 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 529 187 adc~ 1;
+#X obj 134 187 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 134 229 savepanel;
+#X msg 109 151 stop;
+#X obj 711 641 soundfiler;
+#X obj 711 542 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 711 564 savepanel;
+#X obj 582 281 tabwrite~ \$0-sample;
+#X msg 621 247 stop;
+#X msg 600 217 start \$1;
+#X obj 600 195 nbx 6 14 0 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X msg 711 616 write \$1 \$2;
+#X obj 711 590 list append \$0-sample;
+#X obj 761 287 send \$0-sample;
+#X floatatom 761 238 0 0 0 0 - - - 0;
+#X obj 761 164 nbx 5 14 100 1e+37 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X msg 761 262 resize \$1;
+#X obj 774 213 s size;
+#X obj 761 187 ms2samps;
+#X text 531 152 Record;
+#X text 755 144 set array size;
+#X text 818 162 in ms;
+#X text 601 177 index to record;
+#X text 731 540 <= choose where to save;
+#X obj 68 625 out~;
+#X obj 109 371 writesf~ 2;
+#X msg 134 255 open \$1 \, start;
+#X text 153 151 <= stop recording;
+#X obj 161 296 standard~ 700;
+#X obj 176 332 cusp~ 900;
+#X text 267 295 left input;
+#X text 250 332 right input;
+#X obj 91 583 readsf~ 2;
+#X text 163 186 <= choose where to record and filename, f 20;
+#X obj 120 486 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X msg 120 548 open \$1 \, start;
+#X obj 120 522 openpanel;
+#X text 149 485 <= choose file to play;
+#X text 549 78 You can use the native [tabwrite~] object to record
+to arrays. Check its help file., f 42;
+#X text 40 22 This example focuses on vanilla objects. Similarly to
+[readsf~] \, the native [writesf~] object records directly to your
+hard drive. The native [tabwrite~] object records into an array - check
+their help files for more information., f 65;
+#X text 437 180 record from mic input, f 11;
+#X obj 466 534 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 466 569 tabplay~ \$0-sample;
+#X obj 466 603 out~;
+#X text 498 534 Play the recording.;
+#X text 275 111 <= record to the same folder;
+#X text 541 464 You can also export/save an array into a sound file
+with the [soundfiler] object., f 42;
+#X obj 594 408 table \$0-sample 88200;
+#X text 557 344 The array to record to is defined in the table object
+below. You can then use [tabplay~] to play it., f 35;
+#X msg 77 112 open ./rec-test.wav \, start;
+#X msg 91 449 open ./rec-test.wav \, start;
+#X text 283 448 <= read recording from folder;
+#X obj 722 27 declare -path else;
+#X obj 433 290 setdsp~ 1;
+#X connect 0 0 8 0;
+#X connect 1 0 8 0;
+#X connect 2 0 3 0;
+#X connect 3 0 27 0;
+#X connect 4 0 26 0;
+#X connect 6 0 7 0;
+#X connect 7 0 13 0;
+#X connect 9 0 8 0;
+#X connect 10 0 8 0;
+#X connect 11 0 10 0;
+#X connect 12 0 5 0;
+#X connect 13 0 12 0;
+#X connect 15 0 17 0;
+#X connect 16 0 19 0;
+#X connect 17 0 14 0;
+#X connect 19 0 15 0;
+#X connect 19 0 18 0;
+#X connect 27 0 26 0;
+#X connect 29 0 26 0;
+#X connect 30 0 26 1;
+#X connect 33 0 25 0;
+#X connect 33 1 25 1;
+#X connect 35 0 37 0;
+#X connect 36 0 33 0;
+#X connect 37 0 36 0;
+#X connect 42 0 43 0;
+#X connect 43 0 44 0;
+#X connect 50 0 26 0;
+#X connect 51 0 33 0;

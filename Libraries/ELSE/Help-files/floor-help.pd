@@ -1,38 +1,16 @@
-#N canvas 570 53 559 417 10;
-#X obj 4 253 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 320 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 355 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+#N canvas 442 72 561 378 10;
+#X obj 4 349 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 86 329 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 87 262 cnv 17 3 50 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 4 388 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+#X obj 160 136 hsl 180 15 -10 10 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 157 164 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 157 222 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 157 190 else/floor;
+#X obj 3 3 cnv 15 301 42 empty empty floor 20 20 2 37 #e0e0e0 #000000
 0;
-#X obj 148 128 hsl 180 15 -10 10 0 0 empty empty empty -2 -8 0 10 -228856
--1 -1 0 1;
-#X obj 235 159 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
--1 -1;
-#X text 125 261 float/list;
-#N canvas 970 92 294 202 lists 0;
-#X text 64 27 it also works with lists:;
-#X obj 65 87 else/floor;
-#X obj 65 118 else/display;
-#X obj 65 60 else/initmess -3.2 4.1 7.9;
-#X connect 1 0 2 0;
-#X connect 3 0 1 0;
-#X restore 482 223 pd lists;
-#X obj 145 156 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 235 225 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X text 125 329 float/list;
-#X obj 235 193 else/floor;
-#X obj 3 3 cnv 15 301 42 empty empty floor 20 20 2 37 -233017 -1 0
-;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
@@ -40,35 +18,46 @@
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
 0;
-#X obj 23 40 cnv 4 4 4 empty empty Floor 0 28 2 18 -233017 -1 0;
-#X obj 73 40 cnv 4 4 4 empty empty function 0 28 2 18 -233017 -1 0
+#X obj 23 40 cnv 4 4 4 empty empty Floor 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 73 40 cnv 4 4 4 empty empty function 0 28 2 18 #e0e0e0 #000000
+0;
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 4 253 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 285 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 4 320 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 116 294 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
-0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
-0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
-0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
-0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
-0;
-#X text 191 261 - input value(s) to floor function;
-#X text 191 280 - perform function or output the last value (only floats)
+#X obj 117 262 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 191 329 - output value(s) of floor function;
-#X text 149 363 (none);
-#X text 68 89 [floor] is a floor math function.;
-#X text 103 155 input;
-#X text 185 225 output;
-#X text 191 299 - sets input value with no output (only floats);
-#X text 161 280 bang;
-#X text 119 298 set <float>;
-#X msg 260 158 set -1.9;
-#X connect 6 0 10 0;
-#X connect 7 0 13 0;
-#X connect 10 0 13 0;
-#X connect 13 0 11 0;
-#X connect 36 0 13 0;
+#X text 155 261 float/list;
+#X text 155 294 float/list;
+#X text 227 328 (none);
+#X text 221 261 - input value(s) to floor function;
+#X text 221 294 - output value(s) of floor function;
+#X text 68 91 [floor] is a floor math function.;
+#X text 368 126 it also works with lists:;
+#X obj 369 179 else/floor;
+#X obj 369 210 else/display;
+#X obj 369 152 else/initmess -3.2 4.1 7.9;
+#X text 34 193 see also:;
+#X obj 33 217 else/floor~;
+#X connect 1 0 2 0;
+#X connect 2 0 4 0;
+#X connect 4 0 3 0;
+#X connect 29 0 30 0;
+#X connect 31 0 29 0;
