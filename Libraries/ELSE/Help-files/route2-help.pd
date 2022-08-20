@@ -1,0 +1,82 @@
+#N canvas 396 23 567 563 10;
+#X obj 265 205 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 306 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
+0;
+#X obj 345 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
+0;
+#X obj 23 39 cnv 4 4 4 empty empty [route]\\\ variant 0 28 2 18 #e0e0e0
+#000000 0;
+#X obj 458 10 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 478 10 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 515 10 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 464 25 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 25 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 252 42 1 0 0;
+#X restore 305 2 graph;
+#X obj 3 2 cnv 15 301 42 empty empty route2 20 20 2 37 #e0e0e0 #000000
+0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X coords 0 1 100 -1 302 42 1;
+#X restore 2 2 graph;
+#X obj 7 535 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 7 409 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 443 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 7 501 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 103 452 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 103 417 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 247 183 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 133 510 1) anything -;
+#X obj 247 373 else/display;
+#X obj 370 312 else/display;
+#X msg 162 156 symbol x;
+#X msg 316 255 any other;
+#X msg 306 230 list x y;
+#X obj 308 342 else/display;
+#X msg 296 205 2 3 4;
+#X msg 226 156 x y z;
+#X text 127 417 anything - any message to be routed according to its
+1st element, f 64;
+#X text 152 453 list -;
+#X text 196 453 rest of message that corresponds to an argument, f
+51;
+#X obj 103 475 cnv 17 3 17 empty empty n+1 5 9 0 16 #dcdcdc #9c9c9c
+0;
+#X text 152 477 list -;
+#X text 196 477 input message if no match was found, f 51;
+#X obj 247 285 else/route2 x 2, f 21;
+#X obj 36 373 route;
+#X text 219 510 list of adrresses to route to (floats or symbols);
+#X text 64 84 [route2] is similar to route \, but it doesn't trim the
+list selector and always outputs messages with a proper selector. Another
+difference is that you can mix floats and symbols as arguments. Each
+argument creates a corresponding outlet and there's an extra rightmost
+outlet for messages that don't match the arguments., f 70;
+#X text 31 262 in order to route according to message type \, see:
+, f 20;
+#X obj 103 292 else/routetype;
+#X obj 36 346 else/routeall;
+#X text 33 323 and see also:;
+#X connect 0 0 34 0;
+#X connect 18 0 34 0;
+#X connect 22 0 34 0;
+#X connect 23 0 34 0;
+#X connect 24 0 34 0;
+#X connect 26 0 34 0;
+#X connect 27 0 34 0;
+#X connect 34 0 20 0;
+#X connect 34 1 25 0;
+#X connect 34 2 21 0;

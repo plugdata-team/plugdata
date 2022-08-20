@@ -1,0 +1,50 @@
+#N canvas 622 106 796 535 12;
+#X declare -path else;
+#X obj 230 24 declare -path else;
+#X floatatom 174 284 5 0 0 0 - - -;
+#X obj 86 350 graph~ 10000 3 -0.025 1.025 200 140;
+#X obj 86 262 pulse~ 4;
+#X obj 384 390 setdsp~;
+#X floatatom 587 292 4 0 0 0 - - -;
+#X obj 499 360 graph~ 10000 3 -0.025 1.025 200 140;
+#X obj 499 231 pulse~ 4;
+#X msg 587 259 16;
+#X msg 627 259 8;
+#X obj 499 323 slew~ 8, f 13;
+#X obj 86 315 lag~ 125, f 13;
+#X text 35 143 Below \, the pulse frequency is 4 Hz \, with a period
+of 250 ms (125 ms for on "1" and 125 ms for off "0"). We then use a
+lag time of 125 ms for an attack release envelope. A shorter time creates
+an ASR envelope., f 47;
+#X text 36 61 A pulse generator like [pulse~] can be thought of as
+a gate signal \, periodically switching on and off. Let's see an example
+with [lag~] \, but you could use [glide~] as well (or [lag2~] and [glide2~]
+for that matter., f 47;
+#X msg 214 251 125;
+#X msg 174 251 50;
+#X text 406 18 We can also use a slew limiter. To get a sense of the
+parameter value \, you can start with twice the value of the pulse
+frequency \, which corresponds to the period in which the gate is on
+and off \, generating an AR envelope. If higher \, then we have an
+ASR., f 49;
+#X obj 499 287 *~ 1;
+#X msg 524 258 1, f 2;
+#X msg 549 258 0.5;
+#X text 406 110 But the tricky part is that if the pulse gain changes
+to anything other than 1 \, then we have something else. This is because
+we can only guarantee a ramp speed (not period). So \, for a pulse
+frequency of 4 \, a gate of 0.5 and a speed of 8 is the same envelope
+shape than a gate of 1 and a sped of 16!, f 49;
+#X connect 1 0 11 1;
+#X connect 3 0 11 0;
+#X connect 5 0 10 1;
+#X connect 7 0 17 0;
+#X connect 8 0 5 0;
+#X connect 9 0 5 0;
+#X connect 10 0 6 0;
+#X connect 11 0 2 0;
+#X connect 14 0 1 0;
+#X connect 15 0 1 0;
+#X connect 17 0 10 0;
+#X connect 18 0 17 1;
+#X connect 19 0 17 1;

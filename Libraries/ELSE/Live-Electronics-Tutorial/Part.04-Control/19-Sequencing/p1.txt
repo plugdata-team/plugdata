@@ -1,0 +1,72 @@
+\$0-function 0 215 1 785 0 || \$0-float 44 || \$0-array -0.745099 -0.176453
+0.372585 0.274543 0.509845 0.411802 0.235326 -0.235278 -0.333321 -0.764708
+||;
+\$0-function 0 780 1 220 0 || \$0-float -30 || \$0-array 0.725489 0.254885
+0.274493 0.0784085 0.196059 0.470578 0.607838 0.745097 0.862748 0.882357
+||;
+\$0-function 0 170 1 315 0.05 295 1 220 0 || \$0-float 223 || \$0-array
+-0.686275 -0.725492 -0.705883 0.0196314 -0.7451 -0.666666 0.549061
+-0.0391941 -0.35293 -0.372539 ||;
+\$0-function 1 405 1 85 0 315 0 195 1 || \$0-float 1.453 || \$0-array
+0.882353 0.843136 0.725485 0.588225 0.411749 0.176447 -0.0392464 -0.352982
+-0.627501 -0.823586 ||;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;
+-empty-;

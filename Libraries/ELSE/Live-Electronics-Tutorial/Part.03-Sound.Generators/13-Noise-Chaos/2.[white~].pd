@@ -1,0 +1,50 @@
+#N canvas 312 45 903 576 12;
+#X declare -path else;
+#X obj 531 393 out~;
+#X obj 733 24 declare -path else;
+#X obj 531 246 meter~;
+#X obj 679 198 expr~ if($v1 > 0 \, 1 \, -1);
+#X obj 679 171 noise~;
+#X obj 679 377 out~;
+#X obj 679 230 meter~;
+#X text 546 486 While white noise has a RMS at about -5db \, "clip
+noise" has an RMS of 0 dB!, f 41;
+#X obj 531 210 white~ -clip;
+#X text 731 163 An implementation of a clippe [noise~], f 20;
+#X text 24 16 The [white~] object from ELSE is a white noise generator
+that has more flexibility \, like having a "clip" mode (whose output
+is either -1 or 1) and an internal seed that is based on the current
+time \, so every time you first create the object you get a different
+seed. Each copy of [white~] gets its own seed as well and besides setting
+a given seed you can also set it to a new seed based on the current
+system time at any point.;
+#X obj 91 259 white~;
+#X obj 91 361 spectrograph~ 1024 1 0 300 140 100;
+#X obj 108 296 out~;
+#X text 283 337 [spectograph~];
+#X text 35 513 You can see above in [spectograph~] that the spectral
+energy is in fact equally distributed over the whole spectral range.
+, f 63;
+#X text 508 65 The example below has the '-clip' flag set (so the output
+is either -1 or 1). Check that this doesn't affect the sound quality
+of the white noise \, it only reflects on a higher RMS of 0 dBFS!,
+f 53;
+#X msg 531 181 clip \$1;
+#X obj 531 154 tgl 19 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X text 25 140 The quality of the pseudo random number generator is
+also supposed to be better than vanilla's [noise~] \, but this has
+no real perceptual effect. Vanilla uses a "Linear Congruential Generator"
+technique for generating random numbers \, but not any standard/tested
+algorithm \, while [white~] uses a Tausworthe generator that is also
+used in SuperCollider. All pseudo random number generator objects in
+ELSE use this algorithm instead., f 63;
+#X connect 2 0 0 0;
+#X connect 3 0 6 0;
+#X connect 4 0 3 0;
+#X connect 6 0 5 0;
+#X connect 8 0 2 0;
+#X connect 11 0 13 0;
+#X connect 11 0 12 0;
+#X connect 17 0 8 0;
+#X connect 18 0 17 0;

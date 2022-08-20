@@ -1,0 +1,36 @@
+#N canvas 749 57 526 548 12;
+#X declare -path else;
+#X text 63 64 So far we're only seeing feed forward delay lines \,
+where the delay output is not fed back into the delay recording.,
+f 58;
+#X obj 147 363 bng 17 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 290 382 hsl 128 15 0 1000 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 287 404 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 295 381 delay time in ms;
+#X obj 147 391 impseq~;
+#X obj 234 426 ffdelay~;
+#X obj 337 24 declare -path else;
+#X obj 147 455 out~;
+#X text 63 105 The ELSE library provides the [ffdelay~] object \, which
+is a feedforward delay line. Though there are plans to allow multi
+tap output in this object soon \, you can now only have one delay output.
+So this is useful if you just need a single delayed output. If you
+want to read from the delay line multiple times \, it's best to use
+on single object to write to a buffer just once (saving memory and
+computation) and then use different read objects., f 58;
+#X text 63 224 For a single delay line \, this is quite convenience
+as we just use one single object instead of a write/read pair. You
+also don't need to bother with order of execution., f 58;
+#X text 63 277 The [ffdelay~] object accepts signals to specify the
+delay point and also uses the same interpolation as [delread4~]. Like
+[del~] \, it can resize the delay line and freeze it. Check the help
+file for more details.;
+#X connect 1 0 5 0;
+#X connect 2 0 3 0;
+#X connect 3 0 6 1;
+#X connect 5 0 6 0;
+#X connect 5 0 8 0;
+#X connect 6 0 8 1;

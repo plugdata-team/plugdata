@@ -1,0 +1,64 @@
+#N canvas 610 23 591 564 12;
+#X declare -path else;
+#X obj 332 37 declare -path else;
+#X obj 87 428 function 200 100 empty empty 0 1 220 220 220 50
+50 50 0 0 0 0 0 1000 0;
+#X obj 87 394 r \$0-function;
+#X obj 71 275 hradio 15 1 0 4 empty empty empty 0 -8 0 10 -228856 -1
+-1 1;
+#X text 133 274 load;
+#X obj 407 261 float;
+#X obj 407 203 r \$0-float;
+#X text 303 257 Getting values from objects:, f 14;
+#X obj 323 427 cnv 15 200 100 empty empty empty 20 12 0 14 -233017
+-66577 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X array \$0-buffer 10 float 2;
+#X coords 0 1 10 -1 202 102 1 0 0;
+#X restore 322 426 graph;
+#X obj 350 357 r \$0-array;
+#X obj 350 382 buffer \$0-buffer;
+#X obj 439 233 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+-228856 -1 -1 0 256;
+#X obj 407 292 display;
+#X obj 71 221 metro 1000;
+#X obj 71 194 tgl 17 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 71 248 count 0 3;
+#X obj 71 300 display 2;
+#X text 53 89 [presets] stores presets of your patch's parameters \,
+where each preset can be considered a step of a sequence. It is an
+abstraction based on [text] and takes receive addresses as arguments.
+Check its help file for more details. You can use a counter or random
+values to access the values of the 'sequence'., f 70;
+#X obj 71 335 presets -file p1.txt \\\$0-function \\\$0-float \\\$0-array
+, f 33;
+#A saved \\\$0-function 0 215 1 785 0 || \\\$0-float 44 || \\\$0-array
+-0.745099 -0.176453 0.372585 0.274543 0.509845 0.411802 0.235326 -0.235278
+-0.333321 -0.764708 || \; \\\$0-function 0 780 1 220 0 || \\\$0-float
+-30 || \\\$0-array 0.725489 0.254885 0.274493 0.0784085 0.196059 0.470578
+0.607838 0.745097 0.862748 0.882357 || \; \\\$0-function 0 170 1 315
+0.05 295 1 220 0 || \\\$0-float 223 || \\\$0-array -0.686275 -0.725492
+-0.705883 0.0196314 -0.7451 -0.666666 0.549061 -0.0391941 -0.35293
+-0.372539 || \; \\\$0-function 1 405 1 85 0 315 0 195 1 || \\\$0-float
+1.453 || \\\$0-array 0.882353 0.843136 0.725485 0.588225 0.411749 0.176447
+-0.0392464 -0.352982 -0.627501 -0.823586 || \; -empty- \; -empty- \;
+-empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty-
+\; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \;
+-empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty-
+\; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \;
+-empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty-
+\; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \;
+-empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty-
+\; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \;
+-empty- \; -empty- \; -empty- \; -empty- \; -empty- \; -empty- \;;
+#X connect 2 0 1 0;
+#X connect 3 0 17 0;
+#X connect 5 0 13 0;
+#X connect 6 0 5 0;
+#X connect 10 0 11 0;
+#X connect 12 0 5 1;
+#X connect 14 0 16 0;
+#X connect 15 0 14 0;
+#X connect 16 0 3 0;
+#X connect 17 0 19 0;

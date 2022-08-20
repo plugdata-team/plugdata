@@ -1,0 +1,192 @@
+#N canvas 468 115 621 549 12;
+#X declare -path else;
+#X obj 410 368 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+-228856 -1 -1 0 256;
+#X obj 413 342 hsl 128 15 0 0.9 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 443 341 Feedback;
+#X obj 82 333 bng 30 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X obj 82 420 out~;
+#N canvas 830 223 313 262 test 0;
+#X obj 60 114 osc~;
+#X obj 93 216 outlet~;
+#X obj 93 170 *~;
+#X obj 111 31 inlet;
+#X obj 111 125 envgen~ 50 1 450 1 50 0;
+#X obj 60 84 envgen~ 440 500 800;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 5 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 1;
+#X connect 5 0 0 0;
+#X restore 82 376 pd test;
+#X obj 295 287 bng 30 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#N canvas 830 223 313 262 test 0;
+#X obj 60 114 osc~;
+#X obj 93 216 outlet~;
+#X obj 93 170 *~;
+#X obj 111 31 inlet;
+#X obj 111 125 envgen~ 50 1 450 1 50 0;
+#X obj 60 84 envgen~ 440 500 800;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 5 0;
+#X connect 3 0 4 0;
+#X connect 4 0 2 1;
+#X connect 5 0 0 0;
+#X restore 295 330 pd test;
+#X text 429 404 <= click & open;
+#N canvas 327 59 864 691 FDN 0;
+#X obj 210 227 +~;
+#X obj 271 227 +~;
+#X obj 210 600 outlet~;
+#X obj 271 600 outlet~;
+#X obj 228 157 delread~ \$0-fb1 60;
+#X text 685 154 Feedback;
+#X obj 98 153 inlet~;
+#X obj 158 154 inlet~;
+#X obj 634 153 inlet;
+#X obj 634 236 / 2;
+#X obj 634 337 f2s~ 10;
+#X text 63 39 The stereo input is summed to two feedback delay lines
+\, but we have a total of 4 lines and the other two interfere by being
+summed in different ways in the matrix (also with polarity inevrsions
+by subtraction)., f 50;
+#X obj 291 299 +~;
+#X obj 400 300 +~;
+#X obj 333 299 -~;
+#X obj 440 299 -~;
+#X obj 291 355 +~;
+#X obj 333 356 +~;
+#X obj 378 357 -~;
+#X obj 417 357 -~;
+#X obj 293 538 delwrite~ \$0-fb1 60;
+#X obj 291 405 *~;
+#X obj 333 405 *~;
+#X obj 378 405 *~;
+#X obj 417 405 *~;
+#X text 449 42 Since the delay lines get summed up \, we need a gain
+compensation. This is actually done in the feedback coefficient \,
+which is divided by two (since the mixing stages have a combined gain
+of 2)., f 52;
+#X obj 334 510 delwrite~ \$0-fb2 71.9345;
+#X obj 378 484 delwrite~ \$0-fb3 86.7545;
+#X obj 417 457 delwrite~ \$0-fb4 95.945;
+#X obj 458 202 delread~ \$0-fb4 95.945;
+#X obj 440 172 delread~ \$0-fb3 86.7545;
+#X obj 289 182 delread~ \$0-fb2 71.9345, f 15;
+#X connect 0 0 2 0;
+#X connect 0 0 12 0;
+#X connect 0 0 14 0;
+#X connect 1 0 3 0;
+#X connect 1 0 12 1;
+#X connect 1 0 14 1;
+#X connect 4 0 0 1;
+#X connect 6 0 0 0;
+#X connect 7 0 1 0;
+#X connect 8 0 9 0;
+#X connect 9 0 10 0;
+#X connect 10 0 24 1;
+#X connect 10 0 23 1;
+#X connect 10 0 22 1;
+#X connect 10 0 21 1;
+#X connect 12 0 16 0;
+#X connect 12 0 18 0;
+#X connect 13 0 18 1;
+#X connect 13 0 16 1;
+#X connect 14 0 17 0;
+#X connect 14 0 19 0;
+#X connect 15 0 17 1;
+#X connect 15 0 19 1;
+#X connect 16 0 21 0;
+#X connect 17 0 22 0;
+#X connect 18 0 23 0;
+#X connect 19 0 24 0;
+#X connect 21 0 20 0;
+#X connect 22 0 26 0;
+#X connect 23 0 27 0;
+#X connect 24 0 28 0;
+#X connect 29 0 13 1;
+#X connect 29 0 15 1;
+#X connect 30 0 13 0;
+#X connect 30 0 15 0;
+#X connect 31 0 1 1;
+#X restore 371 405 pd FDN;
+#X text 181 354 early reflections ==>, f 16;
+#N canvas 698 23 458 587 6stage-echo 0;
+#X obj 251 92 inlet~;
+#X obj 113 535 outlet~;
+#X obj 179 535 outlet~;
+#X obj 112 179 +~;
+#X obj 251 181 -~;
+#X obj 112 247 +~;
+#X obj 233 246 -~;
+#X obj 112 320 +~;
+#X obj 215 320 -~;
+#X obj 113 396 +~;
+#X obj 197 395 -~;
+#X obj 113 465 +~;
+#X obj 179 465 -~;
+#X obj 269 141 ffdelay~ 5;
+#X obj 251 210 ffdelay~ 8;
+#X obj 233 279 ffdelay~ 13;
+#X obj 215 357 ffdelay~ 21;
+#X obj 197 428 ffdelay~ 34;
+#X obj 179 498 ffdelay~ 55;
+#X text 54 22 We have a six stage delay chain \, where an input is
+summed to each stage. Note that the [-~] object means the signal is
+summed to the inverted polarity signal., f 53;
+#X connect 0 0 3 0;
+#X connect 0 0 4 0;
+#X connect 0 0 13 0;
+#X connect 3 0 5 0;
+#X connect 3 0 6 0;
+#X connect 4 0 14 0;
+#X connect 5 0 7 0;
+#X connect 5 0 8 0;
+#X connect 6 0 15 0;
+#X connect 7 0 9 0;
+#X connect 7 0 10 0;
+#X connect 8 0 16 0;
+#X connect 9 0 11 0;
+#X connect 9 0 12 0;
+#X connect 10 0 17 0;
+#X connect 11 0 1 0;
+#X connect 12 0 18 0;
+#X connect 13 0 4 1;
+#X connect 13 0 3 1;
+#X connect 14 0 6 1;
+#X connect 14 0 5 1;
+#X connect 15 0 8 1;
+#X connect 15 0 7 1;
+#X connect 16 0 10 1;
+#X connect 16 0 9 1;
+#X connect 17 0 12 1;
+#X connect 17 0 11 1;
+#X connect 18 0 2 0;
+#X restore 295 366 pd 6stage-echo;
+#X text 90 176 This example is the same as the G08.reverb example from
+Miller's book. It uses the echoes example we've seen earlier with only
+feedforward lines as a way to model early reflections that will feed
+the network and increase the reflection complexity. Open and check
+it out.;
+#X text 90 74 Ideally \, we'd need thousands of delay lines to properly
+model every possible reflection in a reverberant space \, but there
+are efficient techniques that involve less delay lines with good results.
+One example is to use "FDN" - a Feedback delay network \, where we
+can have usually from 4 to 16 delay lines in a feedback matrix.;
+#X obj 376 29 declare -path else;
+#X obj 351 442 out~;
+#X connect 0 0 9 2;
+#X connect 1 0 0 0;
+#X connect 3 0 5 0;
+#X connect 5 0 4 0;
+#X connect 6 0 7 0;
+#X connect 7 0 11 0;
+#X connect 9 0 15 0;
+#X connect 9 1 15 1;
+#X connect 11 0 9 0;
+#X connect 11 1 9 1;

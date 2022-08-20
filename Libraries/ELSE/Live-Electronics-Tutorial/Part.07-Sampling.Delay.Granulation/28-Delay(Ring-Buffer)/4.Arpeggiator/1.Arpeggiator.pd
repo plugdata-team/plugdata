@@ -1,0 +1,45 @@
+#N canvas 586 23 568 725 12;
+#X declare -path else;
+#X floatatom 159 458 5 0 0 0 - - -;
+#X obj 159 555 *~;
+#X obj 245 519 hsl 128 15 10 500 0 0 empty depth empty -2 -8 0 10 -228856
+-1 -1 389 1;
+#X obj 242 547 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 25 256;
+#X text 305 545 depth;
+#X obj 78 640 out~;
+#X obj 159 482 phasor~;
+#X obj 242 571 f2s~ 50;
+#X obj 159 519 function~;
+#X obj 78 597 ffdelay~ 500;
+#X obj 159 343 vsl 24 100 0 5 0 0 empty LFO empty 0 -9 0 10 -228856
+-1 -1 4455 1;
+#X obj 372 612 initmess \; LFO 2.25 \; depth 25;
+#X text 120 457 rate;
+#X text 51 232 So we have a sort of arpeggio with three different pitches
+that depend on the rate and depth. Have fun., f 60;
+#X obj 354 13 declare -path else;
+#X obj 78 298 play.file~ 1 violin.wav 1 1;
+#X obj 234 401 function 200 100 empty empty 0 1 220 220 220 50 50 50
+1 0 0 0 0 0.3 1 0.4 1 0.3 0;
+#X text 51 58 This is another time variable delay effect and much like
+our vibrato example \, but we're using a different function than a
+sine wave as a LFO. Rather \, we have by defalult a trapezoid envelope
+function. But you can have fun and draw other functions instead.;
+#X text 51 138 Let's now understand how this affects pitch shiffting.
+The first upwards ramp adds delay time to our read head and slows it
+down \, hence there's a drop in pitch. When we reach and stay in the
+top of the ramp \, the original speed gets restored so we hear a higher
+pitch. For last the downwards ramp speeds the reading and generates
+yet a higher pitch., f 60;
+#X connect 0 0 6 0;
+#X connect 1 0 9 1;
+#X connect 2 0 3 0;
+#X connect 3 0 7 0;
+#X connect 6 0 8 0;
+#X connect 7 0 1 1;
+#X connect 8 0 1 0;
+#X connect 9 0 5 0;
+#X connect 10 0 0 0;
+#X connect 15 0 9 0;
+#X connect 16 0 8 0;

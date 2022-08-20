@@ -1,0 +1,131 @@
+#N canvas 490 92 760 566 12;
+#X declare -path else;
+#X text 486 382 1;
+#X text 480 516 -1;
+#X text 486 449 0;
+#X obj 502 389 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array Mix 441 float 1;
+#A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0;
+#X coords 0 1 440 -1 200 140 1;
+#X restore 501 388 graph;
+#X obj 101 307 hsl 128 15 0 0.5 0 0 empty empty empty -2 -6 0 10 -228856
+-1 -1 0 1;
+#X obj 80 365 *~;
+#X obj 237 427 +~;
+#X obj 276 307 hsl 128 15 0 0.5 0 0 empty empty empty -2 -6 0 10 -228856
+-1 -1 0 1;
+#X obj 255 366 *~;
+#X floatatom 80 248 5 0 0 0 - osc1 -;
+#X floatatom 255 248 5 0 0 0 - osc2 -;
+#X text 481 202 1;
+#X text 475 336 -1;
+#X text 481 269 0;
+#X obj 497 209 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array osc2 441 float 1;
+#A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0;
+#X coords 0 1 440 -1 200 140 1;
+#X restore 496 208 graph;
+#X text 480 25 1;
+#X text 474 159 -1;
+#X text 480 92 0;
+#X obj 496 32 cnv 15 198 138 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array osc1 441 float 1;
+#A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0;
+#X coords 0 1 440 -1 200 140 1;
+#X restore 495 31 graph;
+#X text 583 178 +;
+#X text 586 362 =;
+#X obj 237 481 out~;
+#X obj 387 384 setdsp~ 1;
+#N canvas 68 23 406 259 plot 0;
+#X obj 39 43 inlet~;
+#X obj 154 45 inlet~;
+#X obj 278 44 inlet~;
+#X obj 85 73 loadbang;
+#X obj 85 97 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 1 1
+;
+#X obj 278 173 tabwrite~ Mix;
+#X obj 40 170 tabwrite~ osc1;
+#X obj 154 174 tabwrite~ osc2;
+#X obj 85 118 metro 200;
+#X connect 0 0 6 0;
+#X connect 1 0 7 0;
+#X connect 2 0 5 0;
+#X connect 3 0 4 0;
+#X connect 4 0 8 0;
+#X connect 8 0 5 0;
+#X connect 8 0 6 0;
+#X connect 8 0 7 0;
+#X restore 151 470 pd plot;
+#X text 28 97 When we add oscillators with close frequencies it generates
+beatings.;
+#X obj 80 276 osc~ 400;
+#X obj 255 277 osc~ 401;
+#X obj 98 335 f2s~ 10;
+#X obj 273 334 f2s~ 10;
+#X obj 70 45 declare -path else;
+#X text 28 131 This is because they keep getting in and out of phase.
+That is \, at one point they sum and add up their amplitudes and in
+another they get cancelled out. The cycle in which this occurs has
+the same frequency as the frequency difference of the oscillators.
+In this example \, by default \, we have 400 hz and 401 hz \, so the
+beatings occur at 1 hz., f 59;
+#X connect 5 0 30 0;
+#X connect 6 0 7 0;
+#X connect 6 0 26 0;
+#X connect 7 0 26 2;
+#X connect 7 0 24 0;
+#X connect 8 0 31 0;
+#X connect 9 0 7 1;
+#X connect 9 0 26 1;
+#X connect 10 0 28 0;
+#X connect 11 0 29 0;
+#X connect 28 0 6 0;
+#X connect 29 0 9 0;
+#X connect 30 0 6 1;
+#X connect 31 0 9 1;

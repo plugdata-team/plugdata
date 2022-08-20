@@ -1,4 +1,4 @@
-#N canvas 475 24 563 463 10;
+#N canvas 475 24 563 498 10;
 #X obj 2 3 cnv 15 301 42 empty empty rand.i 20 20 2 37 #e0e0e0 #000000
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -10,11 +10,11 @@
 0;
 #X obj 223 39 cnv 4 4 4 empty empty generator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 434 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 465 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 4 346 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 383 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 413 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 111 356 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
@@ -25,34 +25,30 @@
 #X msg 141 167 seed \$1;
 #X obj 141 148 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X text 145 280 seed <float>;
-#X text 237 279 - sets seed value;
-#X text 237 357 - random values;
-#X text 99 392 1) list -;
+#X text 136 280 seed <float>;
+#X text 225 357 - random values;
+#X text 99 422 1) list -;
 #X obj 111 302 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 111 323 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 237 303 - lowest random value;
-#X text 236 324 - highest random value;
-#X obj 272 162 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X text 225 303 - lowest random value;
+#X text 224 324 - highest random value;
+#X obj 278 162 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X obj 338 163 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X obj 340 163 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X text 280 141 low;
-#X text 349 143 high;
-#X text 164 391 floats set random's range \, 2 floats sets minimum
-and maximum - no arguments loads default values (0 and 1). 1 float
-sets maximum value (and lowest value is set to 0).;
+#X text 286 141 low;
+#X text 351 141 high;
 #X obj 93 40 cnv 4 4 4 empty empty integer 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 217 148 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#X obj 217 148 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X text 201 260 bang;
-#X text 194 303 float;
-#X text 194 324 float;
-#X text 195 356 float;
-#X text 237 259 - generate random number;
+#X text 192 260 bang;
+#X text 185 303 float;
+#X text 185 324 float;
+#X text 186 356 float;
+#X text 225 259 - generate random number;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -70,14 +66,82 @@ sets maximum value (and lowest value is set to 0).;
 0;
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 217 194 else/rand.i 50 100, f 19;
+#X obj 217 192 else/rand.i 50 100, f 21;
 #X obj 217 219 else/display;
 #X text 75 87 [rand.i] generates random integer values for a given
 range when triggered with as bang.Use the seed message if you want
 a reproducible output.;
-#X connect 11 0 41 0;
+#N canvas 670 163 518 311 example 0;
+#X obj 174 140 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 174 256 else/display;
+#X text 199 140 generate a random series;
+#X msg 108 140 seed 123;
+#X msg 68 140 seed;
+#X text 93 15 The example below generates a sequence of 12 numbers.
+By default \, [rand.i] loads a unique seed value based on system every
+time you open the patch. Each copy of the object has its own unique
+seed. You can set a specific seed that reproduces the same sequence
+with the 'seed' message or third argument \, which can be any integer
+number. A 'seed' message without a float resets the seed to a unique
+value based on the system time., f 53;
+#X obj 174 202 else/rand.i 10 20 123;
+#X obj 174 169 else/loop -b 12;
+#X obj 174 229 else/group 12;
+#X connect 0 0 7 0;
+#X connect 3 0 6 0;
+#X connect 4 0 6 0;
+#X connect 6 0 8 0;
+#X connect 7 0 6 0;
+#X connect 8 0 1 0;
+#X restore 463 203 pd example;
+#N canvas 529 124 603 329 seed 0;
+#X text 26 21 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 52;
+#X text 370 24 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 27;
+#X msg 456 194 seed;
+#X obj 33 258 else/display;
+#X obj 233 258 else/display;
+#X obj 471 221 bng 19 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 33 187 r \$0-rand.i;
+#X obj 233 187 r \$0-rand.i;
+#X obj 446 257 s \$0-rand.i;
+#X text 26 100 Seeds are kept locally \, which means that if two [rand.i]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [rand.i] object twice with the same seed to
+repeat the output., f 52;
+#X msg 446 165 seed 1234;
+#X obj 33 221 else/rand.i -seed 1234 0 100;
+#X obj 233 221 else/rand.i -seed 1234 0 100;
+#X connect 2 0 8 0;
+#X connect 5 0 8 0;
+#X connect 6 0 11 0;
+#X connect 7 0 12 0;
+#X connect 10 0 8 0;
+#X connect 11 0 3 0;
+#X connect 12 0 4 0;
+#X restore 481 181 pd seed;
+#X text 225 279 - a float sets seed \, no float sets a unique internal
+;
+#X obj 6 379 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 135 388 -seed <float>: seed value (default: unique internal)
+;
+#X text 164 421 floats set random's range \, 2 floats sets minimum
+and maximum - no arguments loads default values (0 and 1). 1 float
+sets maximum value (and lowest value is set to 0).;
+#X text 15 168 see also:;
+#X obj 15 190 else/rand.i~;
+#X obj 15 215 else/rand.f;
+#X connect 11 0 39 0;
 #X connect 12 0 11 0;
-#X connect 21 0 41 1;
-#X connect 22 0 41 2;
-#X connect 27 0 41 0;
-#X connect 41 0 42 0;
+#X connect 20 0 39 1;
+#X connect 21 0 39 2;
+#X connect 25 0 39 0;
+#X connect 39 0 40 0;

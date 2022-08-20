@@ -1,0 +1,74 @@
+#N canvas 373 46 908 589 12;
+#X declare -path else;
+#X obj 267 243 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 112 198 s~ \$0-sample;
+#X obj 170 428 *~;
+#X obj 109 365 r~ \$0-sample;
+#X obj 193 253 nbx 4 14 0.01 20 1 1 empty \$0-LFO empty 0 -8 0 10 #dcdcdc
+#000000 #000000 1 256;
+#X text 313 242 Depth;
+#X text 157 252 LFO;
+#X obj 193 278 osc~;
+#X obj 170 475 out~;
+#X obj 559 200 r~ \$0-sample;
+#X obj 559 359 out~;
+#X obj 559 316 tremolo~ 5 0.75;
+#X obj 610 237 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 661 291 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 664 268 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 669 234 Hz;
+#X text 706 267 Depth;
+#X obj 224 368 rescale~ 0 1;
+#X obj 264 288 expr 1 - $f1;
+#X floatatom 264 314 5 0 0 0 - - - 0;
+#X obj 291 454 vsl 20 100 0 1 0 0 empty empty empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 264 266 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 316 546 0;
+#X text 315 447 1;
+#X text 425 461 In the example on left \, you could also try another
+waveform such as a triangular oscillator (such as [tri~]) for the modulating
+signal.;
+#X text 425 515 Note that if you increase the frequency you just have
+a plain "classic amplitude modulation" example and generate sided band
+partials., f 59;
+#X obj 264 340 f2s~ 10;
+#X obj 291 424 s2f~;
+#X text 462 53 The [tremolo~] object \, from ELSE \, is an abstraction
+based on this idea \, but the implementation is a bit different (without
+[rescale~]). It has an internal sine wave oscillator and you can set
+the frequency and depth. With a depth level of 1 \, it is basically
+performs Amplitude Modulation., f 57;
+#X text 463 150 A 0 Hz input \, like [rm~] \, is also treated as a
+bypass.;
+#X text 24 23 A tremolo effect is basically a low frequency amplitude
+modulation. What's new is a "depth" parameter that goes from 0 to 1
+and controls how much of the modulation we have., f 56;
+#X obj 711 20 declare -path else;
+#X obj 112 156 play.file~ violin.wav 1 1, f 26;
+#X text 24 87 Hence \, at "0" we have no tremolo and "1" gives us a
+full tremolo. This is done with a simple rescaling of the modulating
+signal \, below we use [rescale~] for that.;
+#X connect 0 0 21 0;
+#X connect 2 0 8 0;
+#X connect 3 0 2 0;
+#X connect 4 0 7 0;
+#X connect 7 0 17 0;
+#X connect 9 0 11 0;
+#X connect 11 0 10 0;
+#X connect 12 0 11 1;
+#X connect 13 0 11 2;
+#X connect 14 0 13 0;
+#X connect 17 0 2 1;
+#X connect 17 0 27 0;
+#X connect 18 0 19 0;
+#X connect 19 0 26 0;
+#X connect 21 0 18 0;
+#X connect 26 0 17 1;
+#X connect 27 0 20 0;
+#X connect 32 0 1 0;

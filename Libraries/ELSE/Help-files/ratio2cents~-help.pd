@@ -40,7 +40,7 @@
 #X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -110,7 +110,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -146,10 +146,8 @@
 #X text 221 60 (for signals);
 #X text 232 333 - converted cents value;
 #X text 184 245 Cents;
-#X obj 225 242 else/display~;
 #X obj 228 156 hsl 180 15 0.5 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc
 #000000 #000000 0 1;
-#X obj 225 181 else/display~;
 #X text 182 184 Ratio;
 #X obj 225 214 else/ratio2cents~;
 #X text 181 296 signal;
@@ -160,6 +158,8 @@ rational interval to an interval in cents. The conversion formula is
 #X text 29 189 see also:;
 #X obj 27 236 else/ratio2cents;
 #X obj 28 212 else/cents2ratio~;
-#X connect 25 0 26 0;
-#X connect 26 0 28 0;
-#X connect 28 0 24 0;
+#X obj 225 244 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 225 183 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 24 0 34 0;
+#X connect 26 0 33 0;
+#X connect 34 0 26 0;

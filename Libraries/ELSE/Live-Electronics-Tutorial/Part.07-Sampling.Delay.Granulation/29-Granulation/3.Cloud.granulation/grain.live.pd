@@ -1,0 +1,165 @@
+#N canvas 871 173 583 596 12;
+#X declare -path else;
+#X obj 339 344 envelope~;
+#X obj 339 312 envgen~;
+#X obj 451 298 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
+1;
+#X obj 451 325 switch~;
+#X obj 181 455 *~;
+#X obj 281 194 limit;
+#X obj 254 34 inlet;
+#X obj 181 492 pan2~, f 10;
+#X obj 181 546 outlet~;
+#X obj 248 546 outlet~;
+#X obj 281 225 t b f b, f 17;
+#X msg 339 285 0 \$1 1;
+#X obj 254 83 limit 1000 1;
+#X obj 430 374 rand.f 0.1 1;
+#X obj 247 336 rand.f -1 1;
+#X obj 339 376 *~ 0;
+#X obj 139 402 delread4~ \$2;
+#X obj 93 34 inlet~;
+#N canvas 864 297 711 572 transp 0;
+#X obj 101 65 inlet;
+#X obj 101 158 cents2ratio;
+#X obj 211 354 *;
+#X obj 211 388 t f b;
+#X obj 229 316 /;
+#X msg 130 275 1 \$1;
+#X msg 229 292 1000 \$1;
+#X obj 130 302 -;
+#X obj 275 459 *~ 0;
+#X obj 275 498 outlet~;
+#X obj 211 412 phasor~;
+#X msg 257 388 0;
+#X obj 300 55 inlet;
+#X text 308 33 ms;
+#X text 100 43 cents;
+#X obj 101 188 t f b;
+#X obj 130 245 * 1;
+#X msg 148 217 -1;
+#X msg 208 216 1;
+#X text 337 263 To alter the reading speed according to the transposition
+parameter \, we use the same structure from the pitch shifting example
+implemented with granulation. So we take the grain size in ms and use
+it to calculate the hertz input for [phasor~] \, whose output is rescaled
+to the grain size in ms like in the pitch shiffting example., f 42
+;
+#X obj 101 120 rand.f -1200 1200;
+#X obj 148 190 chance 50;
+#X text 337 196 The transposition parameter is in cents \, so we need
+to convert to ratio. We do the same as before and make it negative
+50% of the times so it plays backwards., f 42;
+#X connect 0 0 20 0;
+#X connect 1 0 15 0;
+#X connect 2 0 3 0;
+#X connect 3 0 10 0;
+#X connect 3 1 11 0;
+#X connect 4 0 2 1;
+#X connect 5 0 7 0;
+#X connect 6 0 4 0;
+#X connect 7 0 2 0;
+#X connect 8 0 9 0;
+#X connect 10 0 8 0;
+#X connect 11 0 10 1;
+#X connect 12 0 6 0;
+#X connect 12 0 8 1;
+#X connect 15 0 16 0;
+#X connect 15 1 21 0;
+#X connect 16 0 5 0;
+#X connect 17 0 16 1;
+#X connect 18 0 16 1;
+#X connect 20 0 1 0;
+#X connect 21 0 17 0;
+#X connect 21 1 18 0;
+#X restore 104 332 pd transp;
+#N canvas 546 388 755 331 pos 0;
+#X obj 114 167 +~ 0;
+#X obj 114 247 outlet~;
+#X obj 115 75 inlet~;
+#X obj 198 75 inlet;
+#X obj 198 127 rand.f 0 5000;
+#X obj 114 203 wrap2~ 0 5000;
+#X text 195 51 position;
+#X text 115 50 phasor~;
+#X text 323 102 now we get the output of [phasor~] and sum it to a
+random position parameter. The delay size is fixed to 5000 ms \, so
+the random position is within this range., f 48;
+#X text 323 170 The [wrap2~] object is here to loop in the case the
+random position is close to the delay limit (5000) and exceeds it.
+, f 48;
+#X connect 0 0 5 0;
+#X connect 2 0 0 0;
+#X connect 3 0 4 0;
+#X connect 4 0 0 1;
+#X connect 5 0 1 0;
+#X restore 139 369 pd pos;
+#X text 340 461 This patch is used inside [clone] in one of the examples.
+, f 20;
+#X text 46 173 The only differences are in [pd transp] and [pd pos]
+subpatches \, check it out., f 27;
+#X text 45 129 Now we have to read the ring buffer from [delread4~].
+, f 28;
+#N canvas 535 153 565 416 mode 0;
+#X obj 180 71 inlet;
+#X obj 304 362 outlet;
+#X obj 212 277 random 1000;
+#X obj 180 248 t b b;
+#X obj 247 71 inlet;
+#X obj 304 277 delay;
+#X floatatom 437 243 5 0 0 0 - - -;
+#X obj 286 166 loadbang;
+#X obj 180 277 del;
+#X obj 247 100 vradio 17 1 0 2 empty empty empty 0 -8 0 10 -228856
+-1 -1 1;
+#X text 353 276 <= synchronous;
+#X text 271 116 synchronous, f 12;
+#X text 271 99 asynchronous;
+#X text 69 263 asynchronous =>;
+#X obj 286 195 expr (\$1 != 0) * 1000 \; \$1 * (1000./16);
+#X obj 180 196 router;
+#X connect 0 0 15 0;
+#X connect 2 0 8 1;
+#X connect 3 0 8 0;
+#X connect 3 1 2 0;
+#X connect 4 0 9 0;
+#X connect 5 0 1 0;
+#X connect 6 0 5 1;
+#X connect 7 0 14 0;
+#X connect 8 0 1 0;
+#X connect 9 0 15 1;
+#X connect 14 0 2 1;
+#X connect 14 1 6 0;
+#X connect 15 0 3 0;
+#X connect 15 1 5 0;
+#X restore 280 121 pd mode;
+#X obj 326 34 inlet;
+#X obj 281 162 rand.f 10 50;
+#X obj 405 109 declare -path else;
+#X connect 0 0 15 0;
+#X connect 1 0 0 0;
+#X connect 1 1 2 0;
+#X connect 2 0 3 0;
+#X connect 4 0 7 0;
+#X connect 5 0 10 0;
+#X connect 6 0 12 0;
+#X connect 7 0 8 0;
+#X connect 7 1 9 0;
+#X connect 10 0 14 0;
+#X connect 10 0 19 1;
+#X connect 10 0 18 0;
+#X connect 10 1 5 1;
+#X connect 10 1 11 0;
+#X connect 10 1 18 1;
+#X connect 10 2 13 0;
+#X connect 11 0 1 0;
+#X connect 12 0 23 0;
+#X connect 13 0 15 1;
+#X connect 14 0 7 1;
+#X connect 15 0 4 1;
+#X connect 16 0 4 0;
+#X connect 18 0 19 0;
+#X connect 19 0 16 0;
+#X connect 23 0 25 0;
+#X connect 24 0 23 1;
+#X connect 25 0 5 0;

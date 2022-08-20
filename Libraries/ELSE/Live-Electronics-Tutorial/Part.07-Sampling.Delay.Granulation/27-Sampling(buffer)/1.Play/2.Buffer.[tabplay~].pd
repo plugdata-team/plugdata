@@ -1,0 +1,78 @@
+#N canvas 530 85 930 580 12;
+#X declare -path else;
+#X obj 620 288 tabplay~ \$0-sample;
+#X obj 55 244 soundfiler;
+#X floatatom 55 268 0 0 0 0 - - -;
+#X obj 292 271 soundfiler;
+#X floatatom 292 297 0 0 0 0 - - -;
+#X obj 292 195 openpanel;
+#X obj 292 173 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 620 199 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 639 241 nbx 4 16 0 1e+37 0 0 empty empty empty 0 -8 0 13 -228856
+-1 -1 0 256;
+#X obj 38 394 cnv 15 438 148 empty empty empty 20 12 0 14 -233017 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-sample 534167 float 2;
+#X coords 0 1 534167 -1 440 150 1 0 0;
+#X restore 37 393 graph;
+#X obj 729 184 metro 1000;
+#X obj 729 212 random;
+#X obj 729 162 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X text 585 198 play;
+#X floatatom 729 235 0 0 0 0 - - -;
+#X msg 729 257 \$1 44100;
+#X obj 292 218 list append \$0-sample;
+#X msg 572 240 stop;
+#X msg 292 243 read -resize \$1 \$2;
+#X obj 620 324 out~;
+#X text 102 270 # of samples;
+#X text 312 172 choose sound file;
+#X obj 55 292 s \$0-size;
+#X obj 292 323 s \$0-size;
+#X obj 785 211 r \$0-size;
+#X text 168 371 Array (or "buffer") with loaded sound file:;
+#X text 519 61 The simplest way of playing from an array in Pd Vanilla
+is with [tabplay~]. A bang plays the whole buffer \, but you can set
+a start point with a float or a start point and a number of samples
+to play from it as a list. Check help file for more details., f 52
+;
+#X text 544 408 This is already more flexible as it allows you to play
+parts and snippets (or even "grains" in a granular perspective).,
+f 47;
+#X obj 694 514 table;
+#X obj 754 513 array;
+#X text 40 22 For more playing flexibility \, we need to store the
+file in a "buffer" (term that indicates allocated memory). For such
+\, we load the file in an array with the native [soundfiler] object
+\, which needs a "read" message followed by a sound file. The -resize
+flag resizes the table according to the sound file's number of samples
+\, which is given in the left outlet (right outlet sends more information
+like number of channels and sample rate). Check help file for more
+details., f 61;
+#X obj 714 21 declare -path else;
+#X obj 55 188 initmess read -resize bubul.wav \$0-sample, f 21;
+#X text 544 466 You can also use the native [table] or [array] objects
+to create an array - check their help files., f 47;
+#X connect 0 0 20 0;
+#X connect 1 0 2 0;
+#X connect 2 0 23 0;
+#X connect 3 0 4 0;
+#X connect 4 0 24 0;
+#X connect 5 0 17 0;
+#X connect 6 0 5 0;
+#X connect 7 0 0 0;
+#X connect 8 0 0 0;
+#X connect 11 0 12 0;
+#X connect 12 0 15 0;
+#X connect 13 0 11 0;
+#X connect 15 0 16 0;
+#X connect 16 0 0 0;
+#X connect 17 0 19 0;
+#X connect 18 0 0 0;
+#X connect 19 0 3 0;
+#X connect 25 0 12 1;
+#X connect 33 0 1 0;

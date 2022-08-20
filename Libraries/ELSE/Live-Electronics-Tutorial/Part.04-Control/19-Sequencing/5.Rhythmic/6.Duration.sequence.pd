@@ -1,0 +1,58 @@
+#N canvas 459 23 804 373 12;
+#X declare -path else;
+#X obj 608 24 declare -path else;
+#X obj 108 212 sequencer 500 1000 1500 500 250 250 |;
+#X obj 79 178 bng 20 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000;
+#X obj 108 277 delay;
+#X obj 108 243 display;
+#X obj 108 305 spigot, f 8;
+#X obj 161 279 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 471 53 bng 20 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000;
+#X obj 500 290 delay;
+#X obj 500 118 display;
+#X obj 500 318 spigot, f 8;
+#X obj 574 292 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 500 155 frac2dec;
+#X obj 500 189 * 4;
+#X obj 585 217 bpm;
+#X floatatom 585 190 5 0 0 0 - - - 0;
+#X floatatom 585 248 5 0 0 0 - - - 0;
+#X msg 585 160 60;
+#X obj 574 134 loadbang;
+#X obj 500 218 *;
+#X obj 500 247 display;
+#X obj 500 87 sequencer 1/4 1/4 1/8 1/12 1/12 1/12 |;
+#X obj 161 248 loadbang;
+#X text 27 99 This idea is the basis of the [pattern] object from ELSE
+\, shown in the next example.;
+#X text 27 32 You can have a sequence of durations to specify rhythms
+with [delay]. Below the output is in ms but to the right we convert
+from fractions of a whole note to beat durations according to a bpm
+value., f 57;
+#X connect 1 0 4 0;
+#X connect 2 0 1 0;
+#X connect 3 0 5 0;
+#X connect 4 0 3 0;
+#X connect 5 0 2 0;
+#X connect 6 0 5 1;
+#X connect 7 0 21 0;
+#X connect 8 0 10 0;
+#X connect 9 0 12 0;
+#X connect 10 0 7 0;
+#X connect 11 0 10 1;
+#X connect 12 0 13 0;
+#X connect 13 0 19 0;
+#X connect 14 0 16 0;
+#X connect 14 0 19 1;
+#X connect 15 0 14 0;
+#X connect 17 0 15 0;
+#X connect 18 0 17 0;
+#X connect 18 0 11 0;
+#X connect 19 0 20 0;
+#X connect 20 0 8 0;
+#X connect 21 0 9 0;
+#X connect 22 0 6 0;

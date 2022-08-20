@@ -1,4 +1,4 @@
-#N canvas 524 59 561 509 10;
+#N canvas 520 23 559 442 10;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -20,13 +20,13 @@
 0;
 #X obj 193 40 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 424 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 3 363 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 485 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 414 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 229 190 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X obj 229 130 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X text 289 189 <= hz;
+#X text 289 129 <= hz;
 #X obj 3 3 cnv 15 301 42 empty empty bl.imp~ 20 20 2 37 #e0e0e0 #000000
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -34,40 +34,35 @@
 #X restore 2 3 graph;
 #X obj 22 40 cnv 4 4 4 empty empty Bandlimited 0 28 2 18 #e0e0e0 #000000
 0;
-#X text 60 140 Because this is an abstraction and Pd is still limited
-in the way it handles it \, this object does not have any arguments.
-, f 67;
-#X text 452 246 see also:;
-#X obj 452 268 else/imp~;
-#X obj 3 312 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X text 452 186 see also:;
+#X obj 452 208 else/imp~;
+#X obj 3 252 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 388 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 327 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 104 397 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 104 336 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 190 397 signal -;
-#X obj 105 322 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 190 336 signal -;
+#X obj 104 262 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 147 323 float/signal -;
-#X text 251 323 frequency in hz;
-#X obj 104 344 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 147 263 float/signal -;
+#X text 251 263 frequency in hz;
+#X obj 104 283 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 147 365 float/signal -;
-#X obj 104 364 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 147 304 float/signal -;
+#X obj 104 303 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 252 365 phase offset (modulation input);
-#X text 252 345 phase sync (ressets internal phase);
-#X text 147 345 float/signal -;
-#X text 251 397 impulse oscillator signal;
-#X obj 229 215 else/bl.imp~;
-#X obj 229 250 else/out~;
+#X text 252 304 phase offset (modulation input);
+#X text 252 284 phase sync (ressets internal phase);
+#X text 147 284 float/signal -;
+#X text 251 336 impulse oscillator signal;
+#X obj 229 155 else/bl.imp~;
+#X obj 229 186 else/out~;
+#X text 173 372 1) float;
+#X text 239 391 - initial phase offset (default 0);
+#X text 239 372 - frequency in hertz (default 0);
+#X text 173 391 2) float;
 #X text 60 87 [bl.imp~] is an impulse oscillator like [else/imp~] \,
-but it is bandlimited with the upsampling/filtering technique. This
-makes the object quite inefficient CPU wise \, but is an easy way to
-implement a bandlimited oscillator., f 67;
-#X text 173 439 1) float;
-#X text 239 458 - initial phase offset (default 0);
-#X text 239 439 - frequency in hertz (default 0);
-#X text 173 458 2) float;
-#X connect 12 0 34 0;
-#X connect 34 0 35 0;
+but it is bandlimited.;
+#X connect 12 0 33 0;
+#X connect 33 0 34 0;

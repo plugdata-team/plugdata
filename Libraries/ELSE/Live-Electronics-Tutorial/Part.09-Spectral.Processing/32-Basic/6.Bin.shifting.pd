@@ -1,0 +1,90 @@
+#N canvas 419 90 792 448 12;
+#X declare -path else;
+#X obj 558 273 r~ \$0-sample;
+#X obj 152 213 s~ \$0-sample;
+#X obj 558 343 out~;
+#X text 46 23 This example shifts the frequency bins of a FFT analysis.
+The result is that the frequency points are shifted \, but this does
+not implement a pitch shifter \, just shifts the harmonics of the FFT
+up or down. The effect actually sounds quite inharmonic as the original
+harmonic content is lost., f 60;
+#X text 490 307 click =>;
+#X obj 267 279 nbx 5 14 -64 64 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X obj 157 277 r~ \$0-sample;
+#N canvas 537 23 481 488 shift 0;
+#X obj 108 37 inlet~;
+#X obj 108 132 rfft~;
+#X obj 262 113 block~ 1024 4;
+#X obj 108 398 outlet~;
+#X obj 108 284 rifft~;
+#X obj 108 373 /~ 1536;
+#X obj 108 92 hann~;
+#X obj 108 348 hann~;
+#X obj 234 40 inlet;
+#X obj 79 212 bin.shift~;
+#X obj 167 213 bin.shift~;
+#X obj 273 222 print~;
+#X obj 229 277 print~;
+#X obj 274 167 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X connect 0 0 6 0;
+#X connect 1 0 9 0;
+#X connect 1 1 11 0;
+#X connect 1 1 10 0;
+#X connect 4 0 7 0;
+#X connect 5 0 3 0;
+#X connect 6 0 1 0;
+#X connect 7 0 5 0;
+#X connect 8 0 9 1;
+#X connect 8 0 10 1;
+#X connect 9 0 4 0;
+#X connect 10 0 4 1;
+#X connect 10 0 12 0;
+#X connect 13 0 11 0;
+#X connect 13 0 12 0;
+#X restore 214 312 pd shift;
+#X obj 214 350 out~;
+#X text 146 314 click =>;
+#X text 46 107 The ELSE library offers the [bin.shift~] object that
+can be used to shift spectral bins. check the abstraction below and
+its help file.;
+#X text 494 191 Alternatively \, you can also use the native [lrshift~]
+object \, which behaves similarly., f 32;
+#N canvas 537 23 678 457 lrshift 0;
+#X obj 77 37 inlet~;
+#X obj 77 132 rfft~;
+#X obj 140 123 block~ 1024 4;
+#X obj 77 398 outlet~;
+#X obj 77 284 rifft~;
+#X obj 77 373 /~ 1536;
+#X obj 48 212 lrshift~ 12;
+#X obj 136 213 lrshift~ 12;
+#X obj 77 92 hann~;
+#X obj 77 348 hann~;
+#X text 285 231 positive numbers shift to the left \; negative numbers
+shift to the right;
+#X text 269 148 One big difference is that you can't change the shift
+value \, so you can try other numbers., f 43;
+#X text 272 208 In the opposite way than [bin.shift~];
+#X text 270 289 The last difference is that in [lrshift~] \, you get
+zeroed out values \, whereas in [bin.shift~] you can also wrap them.
+, f 42;
+#X connect 0 0 8 0;
+#X connect 1 0 6 0;
+#X connect 1 1 7 0;
+#X connect 4 0 9 0;
+#X connect 5 0 3 0;
+#X connect 6 0 4 0;
+#X connect 7 0 4 1;
+#X connect 8 0 1 0;
+#X connect 9 0 5 0;
+#X restore 558 305 pd lrshift;
+#X obj 548 96 declare -path else;
+#X obj 152 178 play.file~ bubul.wav 1 1;
+#X connect 0 0 12 0;
+#X connect 5 0 7 1;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 12 0 2 0;
+#X connect 14 0 1 0;

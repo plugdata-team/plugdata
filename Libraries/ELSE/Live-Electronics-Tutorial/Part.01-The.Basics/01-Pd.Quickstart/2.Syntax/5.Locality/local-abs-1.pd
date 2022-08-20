@@ -1,0 +1,9 @@
+#N canvas 498 218 551 248 12;
+#X obj 72 45 inlet;
+#X obj 72 170 outlet;
+#X obj 72 84 send \$0-locally;
+#X obj 72 124 receive \$0-locally;
+#X text 240 96 This is an abstraction example with the locality (\$0)
+variable., f 32;
+#X connect 0 0 2 0;
+#X connect 3 0 1 0;

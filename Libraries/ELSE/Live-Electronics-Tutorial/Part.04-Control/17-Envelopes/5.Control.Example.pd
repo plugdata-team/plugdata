@@ -1,0 +1,20 @@
+#N canvas 723 23 503 397 12;
+#X declare -path else;
+#X obj 274 24 declare -path else;
+#X text 35 63 The idea here is to again stress that you can use these
+objects to control whatever you want besides amplitude.;
+#X obj 273 170 tgl 20 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 136 243 rotate~, f 20;
+#X obj 204 191 osc~ 440;
+#X obj 136 192 osc~ 330;
+#X obj 158 301 out~;
+#X obj 273 200 asr~ 1500 1000;
+#X text 35 102 Here we're using [asr~] control the rotation parameter
+of [rotate~], f 55;
+#X connect 2 0 7 0;
+#X connect 3 0 6 0;
+#X connect 3 1 6 1;
+#X connect 4 0 3 1;
+#X connect 5 0 3 0;
+#X connect 7 0 3 2;

@@ -1,0 +1,36 @@
+#N canvas 608 91 558 515 12;
+#X declare -path else;
+#X obj 65 307 envgen~;
+#X obj 104 210 nbx 5 17 0 2000 0 0 empty empty empty 0 -8 0 12 -228856
+-1 -1 0 256;
+#X obj 65 202 bng 25 250 50 0 empty empty empty 17 7 0 10 -228856 -1
+-1;
+#X text 107 188 ms;
+#X msg 65 271 0 \$1 1;
+#X obj 65 384 function~;
+#X text 38 44 You can also use [function] with [function~]. Actually
+\, this is its original goal. The [function~] object can be thought
+of as a table that you can from with audio signal input.;
+#X text 38 92 You can then plug into it a [phasor~] to read the function
+in a loop or \, as we're doing here \, use [envgen~] to generate a
+line from 0 to 1 that reads through the function table.;
+#X obj 65 240 f 1500;
+#X obj 189 222 function 200 100 empty empty 0 1 220 220 220 50 50 50
+0 0 0 0 0 1000 1 250 0.25 250 0.25 500 1 250 1 250 0;
+#X msg 189 189 0 1000 1 250 0.25 250 0.25 500 1 250 1 250 0;
+#X obj 189 161 loadbang;
+#X obj 327 12 declare -path else;
+#X obj 65 416 s2f~;
+#X obj 68 454 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 329 363 setdsp~;
+#X connect 0 0 5 0;
+#X connect 1 0 8 1;
+#X connect 2 0 8 0;
+#X connect 4 0 0 0;
+#X connect 5 0 13 0;
+#X connect 8 0 4 0;
+#X connect 9 0 5 0;
+#X connect 10 0 9 0;
+#X connect 11 0 10 0;
+#X connect 13 0 14 0;

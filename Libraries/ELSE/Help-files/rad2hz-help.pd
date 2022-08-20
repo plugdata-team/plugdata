@@ -1,19 +1,19 @@
-#N canvas 476 29 560 480 10;
-#X obj 3 307 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#N canvas 476 29 560 486 10;
+#X obj 3 310 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 385 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 388 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 422 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 3 425 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 82 394 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 82 397 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 83 315 cnv 17 3 60 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 83 318 cnv 17 3 60 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 3 455 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 458 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X text 161 336 bang;
-#X text 167 354 set;
-#X text 125 317 float/list;
+#X text 161 339 bang;
+#X text 167 357 set;
+#X text 125 320 float/list;
 #X obj 3 4 cnv 15 301 42 empty empty rad2hz 20 20 2 37 #e0e0e0 #000000
 0;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
@@ -50,33 +50,34 @@
 #X restore 478 278 pd lists;
 #X obj 234 148 hsl 180 15 0 6.28319 0 0 empty empty empty -2 -8 0 10
 #dcdcdc #000000 #000000 0 1;
-#X obj 231 278 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
-#dcdcdc #000000 #000000 0 256;
 #X obj 231 175 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X text 316 174 radians per sample;
-#X text 316 277 hertz;
-#X text 204 317 - radians per sample value(s);
-#X text 204 394 - converted hertz value(s);
+#X text 191 281 hertz;
+#X text 204 320 - radians per sample value(s);
+#X text 204 397 - converted hertz value(s);
 #X text 71 88 Use [rad2hz] to convert a signal representing a frequency
 in "Radians per Sample" to Hertz. This depends on the patch's sample
 rate (sr). The conversion formula is \; hz = rad * sr / 2pi;
 #X obj 205 208 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X text 125 394 float/list;
+#X text 125 397 float/list;
 #X obj 231 246 else/rad2hz 3.14159;
 #X msg 250 209 set 1.5708;
 #X text 321 202 sets next value to be converted;
 #X text 147 207 convert;
-#X text 204 336 - convert or output the last converted value (only
+#X text 204 339 - convert or output the last converted value (only
 float);
-#X text 204 354 - sets next value to be converted via bang (only float)
+#X text 204 357 - sets next value to be converted via bang (only float)
 ;
-#X text 137 430 1) float;
+#X text 137 433 1) float;
 #X text 141 223 (or send \; last output);
-#X text 203 431 - initial radians per sample value (default 0);
-#X connect 22 0 24 0;
-#X connect 24 0 32 0;
-#X connect 30 0 32 0;
-#X connect 32 0 23 0;
-#X connect 33 0 32 0;
+#X text 203 434 - initial radians per sample value (default 0);
+#X text 26 250 see also:;
+#X obj 28 274 else/hz2rad;
+#X obj 231 278 else/display;
+#X connect 22 0 23 0;
+#X connect 23 0 31 0;
+#X connect 29 0 31 0;
+#X connect 31 0 42 0;
+#X connect 32 0 31 0;

@@ -1,0 +1,44 @@
+#N canvas 513 23 582 634 12;
+#X declare -path else;
+#X obj 228 335 out~;
+#X obj 366 335 out~;
+#X obj 176 549 out~;
+#X obj 228 295 r~ \$0-A;
+#X obj 366 298 r~ \$0-B;
+#X obj 110 428 r~ \$0-A;
+#X obj 189 429 r~ \$0-B;
+#X obj 113 210 s~ \$0-A;
+#X obj 113 268 s~ \$0-B;
+#X obj 291 432 hsl 128 15 -1 1 0 0 empty \$0-xfade empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 288 459 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 270 430 A;
+#X obj 176 501 morph~;
+#X obj 303 494 hsl 128 15 -1 1 0 0 empty \$0-xfade empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X obj 300 521 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 282 492 A;
+#X text 424 430 B (amplitude);
+#X text 436 492 B (phase);
+#X obj 392 22 declare -path else;
+#X obj 113 242 play.file~ numbers.wav 1 1;
+#X obj 113 183 play.file~ 1 kantele.wav 1 1;
+#X text 68 58 The [morph~] object \, an abstraction from ELSE \, is
+yet another variant. It does a crossdade of both the spectral amplitudes
+and phases. This means you can perform cross synthesis in both ways
+and a full morph between the two sound sources. By default \, it performs
+a cross synthesis with amplitudes from "B" and initial phases from
+"A"., f 61;
+#X connect 3 0 0 0;
+#X connect 4 0 1 0;
+#X connect 5 0 12 0;
+#X connect 6 0 12 1;
+#X connect 9 0 10 0;
+#X connect 10 0 12 2;
+#X connect 12 0 2 0;
+#X connect 13 0 14 0;
+#X connect 14 0 12 3;
+#X connect 19 0 8 0;
+#X connect 20 0 7 0;

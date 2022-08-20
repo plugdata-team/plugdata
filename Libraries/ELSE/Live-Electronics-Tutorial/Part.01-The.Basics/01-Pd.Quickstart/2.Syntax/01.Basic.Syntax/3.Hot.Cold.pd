@@ -1,0 +1,62 @@
+#N canvas 452 23 615 663 12;
+#X obj 240 270 float 5.5;
+#X msg 240 229 bang;
+#X floatatom 240 303 5 0 0 0 - - - 0;
+#X text 110 228 hot inlet =>;
+#X msg 171 540 0;
+#X text 205 540 reset;
+#X obj 355 578 + 1;
+#X floatatom 355 622 5 0 0 0 - - - 0;
+#X text 339 540 Danger! Infinite Loop!;
+#X text 74 503 Counter:;
+#X text 391 573 See the Error at Pd's window, f 15;
+#X floatatom 197 601 5 0 0 0 - - - 0;
+#X obj 197 571 + 1;
+#X obj 139 571 float;
+#X obj 306 578 float;
+#X obj 139 504 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 166 502 <= bang GUI (same as "bang" message);
+#X obj 306 541 bng 18 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 340 226 <= cold inlet (updates argument), f 19;
+#X text 316 271 <= 5.5 is the argument;
+#X text 47 366 Now let's implement a counter. Below \, on the left
+\, we have a correct way of doing it. The [float] object outputs the
+stored value on bang messages \, which is added to “1” and stored
+back in the cold inlet. The example to the right is wrong as the added
+number goes back into the hot inlet \, creating an infinite loop \,
+where Pd would freeze if it didn’t have a mechanism to break it and
+report an error (see "stack overflow" error in terminal window). Click
+on the bangs and try it out., f 73;
+#X text 38 16 Most objects take creation "arguments" \, which are initializing
+parameters. If none are given \, default values are loaded. For instance
+\, the [float] object stores numbers it receives in its inlets \, but
+it can initially store a number given as an argument. If no argument
+is given \, [float] initially stores “0”. The Argument "5.5" is
+the initially stored value of the [float] object below. The inlet to
+the right stores a new value and overwrites the argument \, but note
+that it is not updated inside the object box and the given argument
+will still be there when the patch is reloaded., f 74;
+#X text 38 141 Usually the left inlet is the "hot inlet" \, which forces
+an output \, whereas the others don't and are called "cold inlets".
+This is only in respect to control data objects (audio objects generate
+data constantly and the hot/cold inlet concept isn't pertinent).,
+f 74;
+#X floatatom 300 229 4 0 0 0 - - - 0;
+#X floatatom 203 229 4 0 0 0 - - - 0;
+#X obj 240 336 print;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 2 0 25 0;
+#X connect 4 0 13 1;
+#X connect 6 0 7 0;
+#X connect 6 0 14 0;
+#X connect 12 0 11 0;
+#X connect 12 0 13 1;
+#X connect 13 0 12 0;
+#X connect 14 0 6 0;
+#X connect 15 0 13 0;
+#X connect 17 0 14 0;
+#X connect 23 0 0 1;
+#X connect 24 0 0 0;

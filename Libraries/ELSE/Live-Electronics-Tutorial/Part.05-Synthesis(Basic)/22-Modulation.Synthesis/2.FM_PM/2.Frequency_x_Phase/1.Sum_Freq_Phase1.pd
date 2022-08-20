@@ -1,0 +1,96 @@
+#N canvas 677 152 993 474 12;
+#X declare -path else;
+#X obj 778 299 +~;
+#X obj 750 246 phasor~;
+#X obj 778 353 cos~;
+#X obj 816 246 phasor~;
+#X obj 521 256 +~;
+#X obj 476 176 nbx 4 14 -1e+37 1e+37 0 1 empty \$0-carrier empty 0
+-8 0 10 #dcdcdc #000000 #000000 400 256;
+#X obj 539 190 osc~;
+#X obj 539 214 *~;
+#X obj 539 167 nbx 4 14 -1e+37 1e+37 0 1 empty \$0-mod empty 0 -8 0
+10 #dcdcdc #000000 #000000 1 256;
+#X obj 593 189 nbx 4 14 0 1e+37 0 1 empty \$0-index empty 0 -8 0 10
+#dcdcdc #000000 #000000 10 256;
+#X obj 521 337 cos~;
+#X obj 521 307 phasor~;
+#X obj 476 201 sig~;
+#X obj 816 216 *~;
+#X obj 750 203 sig~;
+#X obj 92 285 phasor~;
+#X obj 92 233 sig~ 50;
+#X obj 92 333 cos~;
+#X obj 778 391 out~;
+#X obj 521 378 out~;
+#X text 105 258 <= Angular Velocity (Frequency);
+#X text 24 121 In other words \, we can convert between each other
+\, and this is done with the integral and derivative of a function.
+Not that we need to know how to calculate these \, it's just good to
+know that the phase is the integral of frequency and the frequency
+is the derivative of the phase., f 54;
+#X text 425 322 oscillator =>;
+#X text 433 279 FM signal =>;
+#X text 690 327 PM signal =>;
+#X text 25 372 This relationship implies that the same result is possible
+with both Frequency Modulation (FM) and Phase Modulation (PM)! Another
+property is that you can either sum the frequency signals or the corresponding
+phase signals and you have the same result \, as shown in this example.
+, f 54;
+#X text 437 226 carrier signal =>, f 9;
+#X text 546 234 <= modulating signal;
+#X text 467 157 carrier;
+#X text 537 149 mod;
+#X text 592 168 index;
+#X text 702 265 carrier signal =>, f 9;
+#X text 811 277 <= modulating signal;
+#X text 459 60 To better visualize the relationship \, we have an oscillator
+formed by a [phasor~] and a [cos~] for the FM signal. For the PM signal
+\, the difference is that the modulating signal also goes through a
+[phasor~] object., f 66;
+#X obj 593 208 f2s~ 10;
+#X obj 869 208 f2s~ 10;
+#X obj 756 21 declare -path else;
+#X text 25 27 The [phasor~] object receives a frequency input and generates
+a phase signal. Therefore \, these signals are related \, where The
+frequency is the angular velocity and the phase is the angular position.
+This means that a specific frequency signal corresponds to a phase
+signal and vice-versa., f 54;
+#X text 105 309 <= Angle Position (Phase);
+#X obj 750 175 nbx 4 14 -1e+37 1e+37 0 1 empty \$0-carrier empty 0
+-8 0 10 #dcdcdc #000000 #000000 400 256;
+#X obj 816 189 osc~;
+#X obj 816 166 nbx 4 14 -1e+37 1e+37 0 1 empty \$0-mod empty 0 -8 0
+10 #dcdcdc #000000 #000000 1 256;
+#X obj 869 188 nbx 4 14 0 1e+37 0 1 empty \$0-index empty 0 -8 0 10
+#dcdcdc #000000 #000000 10 256;
+#X text 741 156 carrier;
+#X text 814 148 mod;
+#X text 868 167 index;
+#N canvas 1373 443 215 143 init 0;
+#X obj 37 28 initmess \; \$0-carrier 400 \; \$0-mod 1 \; \$0-index
+10;
+#X restore 683 21 pd init;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 2 0 18 0;
+#X connect 3 0 0 1;
+#X connect 4 0 11 0;
+#X connect 5 0 12 0;
+#X connect 6 0 7 0;
+#X connect 7 0 4 1;
+#X connect 8 0 6 0;
+#X connect 9 0 34 0;
+#X connect 10 0 19 0;
+#X connect 11 0 10 0;
+#X connect 12 0 4 0;
+#X connect 13 0 3 0;
+#X connect 14 0 1 0;
+#X connect 15 0 17 0;
+#X connect 16 0 15 0;
+#X connect 34 0 7 1;
+#X connect 35 0 13 1;
+#X connect 39 0 14 0;
+#X connect 40 0 13 0;
+#X connect 41 0 40 0;
+#X connect 42 0 35 0;

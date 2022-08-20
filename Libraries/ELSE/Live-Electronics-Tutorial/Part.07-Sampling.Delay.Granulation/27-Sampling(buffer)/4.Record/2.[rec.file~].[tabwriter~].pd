@@ -1,0 +1,60 @@
+#N canvas 609 23 615 723 12;
+#X declare -path else;
+#X obj 237 174 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 423 22 declare -path else;
+#X obj 121 239 setdsp~ 1;
+#X text 157 174 record =>;
+#X obj 240 254 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X text 123 696 <= click;
+#X obj 166 549 standard~ 300;
+#X msg 84 695 show;
+#X msg 49 560 rec;
+#X msg 90 560 stop;
+#X obj 242 640 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 84 755 sample~ \$0-record -ch 2 -ms 1000;
+#X obj 383 591 tabplayer~ \$0-record 2;
+#X obj 237 207 rec.file~ ./rec-test.wav 2;
+#X obj 416 172 cusp~ 1800;
+#X obj 326 172 osc~ 440;
+#X text 63 57 The [rec.file~] object \, from the ELSE library \, is
+an abstraction based on [writesf~] and makes things quite more convenient.
+One nice feature is that it has multi-channel support \, and it includes
+an [autofade~] object to avoid clicks when sampling live input. Record
+below and use [play.file~] to play back the result. Check its help
+file., f 71;
+#X obj 240 289 play.file~ 2 ./rec-test.wav;
+#X obj 242 578 bl.saw~ 50;
+#X msg 107 726 save;
+#X text 146 726 <= choose where to save;
+#X text 57 409 The [tabwriter~] from ELSE has advantages over [tabwrite~]
+\, like providing sample accuracy for triggering it and multi-channel
+support \, check its help file. The [sample~] object can also be used
+to record into by using something like [tabwrite~] or the [tabwriter~]
+object. The [sample~] object also exports and saves the recording \,
+check it below \, where we have a buffer size of 1000 ms. More info
+in the help file of these objects., f 70;
+#X obj 383 632 out~;
+#X obj 243 322 out~;
+#X text 150 641 when done =>;
+#X obj 91 609 tabwriter~ \$0-record 2;
+#X obj 383 554 tgl 17 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X connect 0 0 13 0;
+#X connect 4 0 17 0;
+#X connect 6 0 25 1;
+#X connect 7 0 11 0;
+#X connect 8 0 25 0;
+#X connect 9 0 25 0;
+#X connect 12 0 22 0;
+#X connect 12 1 22 1;
+#X connect 14 0 13 2;
+#X connect 15 0 13 1;
+#X connect 17 0 23 0;
+#X connect 17 1 23 1;
+#X connect 18 0 25 2;
+#X connect 19 0 11 0;
+#X connect 25 1 10 0;
+#X connect 26 0 12 0;

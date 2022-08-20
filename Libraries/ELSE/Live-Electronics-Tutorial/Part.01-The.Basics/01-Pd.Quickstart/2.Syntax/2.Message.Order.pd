@@ -1,0 +1,155 @@
+#N canvas 423 58 1054 873 12;
+#X msg 363 259 1;
+#X obj 212 231 trigger bang bang bang;
+#X msg 287 260 2;
+#X msg 212 260 3;
+#X obj 287 301 print ORDER;
+#X msg 133 274 1;
+#X msg 97 274 2;
+#X msg 61 274 3;
+#X obj 97 308 print ORDER;
+#X msg 97 227 bang;
+#X msg 212 192 bang;
+#X obj 115 511 swap;
+#X floatatom 146 482 3 0 0 0 - - - 0;
+#X floatatom 115 482 3 0 0 0 - - - 0;
+#X obj 115 587 /;
+#X floatatom 146 547 3 0 0 0 - - - 0;
+#X floatatom 115 546 3 0 0 0 - - - 0;
+#X floatatom 283 485 5 0 0 0 - - - 0;
+#X floatatom 221 485 5 0 0 0 - - - 0;
+#X floatatom 344 590 5 0 0 0 - - - 0;
+#X floatatom 221 591 5 0 0 0 - - - 0;
+#X obj 221 560 float;
+#X obj 221 517 trigger bang float;
+#X floatatom 115 620 0 0 0 0 - - - 0;
+#X text 203 620 The [swap] object implemented with [trigger] & [float]
+, f 29;
+#X text 21 498 swapping the output order:, f 13;
+#X msg 516 188 1;
+#X obj 516 214 trigger float float;
+#X obj 646 242 trigger float float;
+#X obj 646 274 + 1;
+#X obj 948 295 + 1;
+#X obj 948 319 + 1;
+#X obj 948 343 + 1;
+#X obj 948 367 + 1;
+#X obj 862 295 + 1;
+#X obj 862 319 + 1;
+#X obj 862 343 + 1;
+#X obj 776 295 + 1;
+#X obj 776 319 + 1;
+#X obj 776 426 print Sequence;
+#X obj 776 271 trigger float float float;
+#X msg 472 533 1 \, 2 \, 3 \, 4 \, five \, six \, 7, f 12;
+#X obj 472 597 print Several_Messages;
+#X text 56 193 Undefined order;
+#X text 510 24 The flow of data in Pd is executed in depth first fashion.
+This means that whenever there is a new branch of data \, Pd will reach
+the end of the branch before moving to the next. See the example below
+\, where the [trigger] object makes the input data (the number 1) go
+first to the rightmost outlet \, then to the next rightmost outlet
+of the next [trigger] object and then again to the last [trigger] rightmost
+outlet. Once it reaches that branch \, the data needs to go to the
+end of the chain and into the [print] object before it moves on to
+the next output of the [trigger] object and so on., f 69;
+#X text 406 459 Messages separated by commas are sent in the left to
+right order \, as common sense would predict., f 32;
+#X obj 723 600 +;
+#X msg 723 564 1 3;
+#X floatatom 723 634 5 0 0 0 - - - 0;
+#X msg 765 564 10 20;
+#X text 550 186 <= click (depth first);
+#X text 684 485 A list sent to an object may also spread the elements
+into different inlets. This happens when the left inlet doesn't take
+lists. The right to left order is respected \, of course., f 45;
+#X obj 860 601 pack f f f f;
+#X msg 860 565 1 3 5;
+#X obj 860 633 print;
+#X floatatom 941 567 5 0 0 0 - - - 0;
+#X text 32 20 Pd's Hot/Cold structure demands an order where things
+need to first reach the rightmost inlets (the "cold" ones) and then
+the leftmost (the "hot" one). Hence \, most objects output data via
+its outlets in a right to left order. The [trigger] object is crucial
+to control the order of messages in Pd and illustrate this. Below \,
+to the left \, a bang message activates three messages \, but the order
+is undefined. On the right we use [trigger] to define the order from
+right to left \, as its outlets output data in the right to left order.
+The arguments of [trigger] define the number of outlets and its data
+type., f 61;
+#X text 253 192 Order defined with [trigger];
+#X text 34 352 You may need to invert the data order in your patch
+with [swap] \, which also has a cold and hot inlet \, but the output
+is inverted - where the left (hot) input is sent out the right outlet
+first \, and the value sent to the right (cold) is sent out later to
+the left outlet.;
+#X obj 690 781 delay 5;
+#X obj 601 746 trigger bang bang bang, f 26;
+#X obj 601 717 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X obj 780 817 print one;
+#X obj 690 817 print two;
+#X obj 601 817 print three;
+#X text 54 681 ------------------------------------------------------------------------------------------------------------------------------------------
+, f 139;
+#X text 129 737 Note that "depth first" has an exception with a time
+object like [delay]. The delay object receives a bang and delays it
+for a given amount in milliseconds (ms). Hence \, the output of [delay]
+gets delayed for 5 ms and you can check that it is output later in
+the terminal window. Note this is also true if the [delay] time is
+0!;
+#X connect 0 0 4 0;
+#X connect 1 0 3 0;
+#X connect 1 1 2 0;
+#X connect 1 2 0 0;
+#X connect 2 0 4 0;
+#X connect 3 0 4 0;
+#X connect 5 0 8 0;
+#X connect 6 0 8 0;
+#X connect 7 0 8 0;
+#X connect 9 0 6 0;
+#X connect 9 0 5 0;
+#X connect 9 0 7 0;
+#X connect 10 0 1 0;
+#X connect 11 0 16 0;
+#X connect 11 1 15 0;
+#X connect 12 0 11 1;
+#X connect 13 0 11 0;
+#X connect 14 0 23 0;
+#X connect 15 0 14 1;
+#X connect 16 0 14 0;
+#X connect 17 0 21 1;
+#X connect 18 0 22 0;
+#X connect 21 0 20 0;
+#X connect 22 0 21 0;
+#X connect 22 1 19 0;
+#X connect 26 0 27 0;
+#X connect 27 0 39 0;
+#X connect 27 1 28 0;
+#X connect 28 0 29 0;
+#X connect 28 1 40 0;
+#X connect 29 0 39 0;
+#X connect 30 0 31 0;
+#X connect 31 0 32 0;
+#X connect 32 0 33 0;
+#X connect 33 0 39 0;
+#X connect 34 0 35 0;
+#X connect 35 0 36 0;
+#X connect 36 0 39 0;
+#X connect 37 0 38 0;
+#X connect 38 0 39 0;
+#X connect 40 0 37 0;
+#X connect 40 1 34 0;
+#X connect 40 2 30 0;
+#X connect 41 0 42 0;
+#X connect 46 0 48 0;
+#X connect 47 0 46 0;
+#X connect 49 0 46 0;
+#X connect 52 0 54 0;
+#X connect 53 0 52 0;
+#X connect 55 0 52 3;
+#X connect 59 0 63 0;
+#X connect 60 0 64 0;
+#X connect 60 1 59 0;
+#X connect 60 2 62 0;
+#X connect 61 0 60 0;

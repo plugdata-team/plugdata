@@ -1,0 +1,40 @@
+#N canvas 638 72 608 550 12;
+#X declare -path else;
+#X obj 170 342 bng 20 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 89 434 pan2~, f 12;
+#X obj 89 381 brown~;
+#X obj 401 22 declare -path else;
+#X obj 206 440 s2f~;
+#X obj 209 470 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 85 472 out~;
+#X obj 272 282 function 200 100 empty empty -1 1 220 220 220 50 50
+50 0 0 0 0 0 1500 1 1000 -1 1500 1 1500 0;
+#X obj 272 257 initmess 0 1500 1 1000 -1 1500 1 1500 0;
+#X obj 170 396 envgen~ -legato;
+#X text 288 396 <= legato means that it doesn't;
+#X text 309 412 restart from the start point;
+#X text 386 432 see the help file for more details, f 17;
+#X text 31 186 In this example \, we use [envgen~] to generate a custom
+line pattern to control the panning of a brown noise source., f 78
+;
+#X text 31 58 All the line generators we've seen here can be used to
+control any parameter you desire. You can use line generators as a
+control of amplitude (such as a classical amplitude envelope) or just
+about anything and this example is here to stress and reinforce this.
+, f 78;
+#X text 31 120 The next section will focus on envelopes as a way to
+control amplitude. But note that these classic amplitude envelope types
+we'll see (such as ADSR) are just one kind of line generation and that
+they can also be used to control whatever you want - and we'll see
+examples on that too., f 78;
+#X connect 0 0 9 0;
+#X connect 1 0 6 0;
+#X connect 1 1 6 1;
+#X connect 2 0 1 0;
+#X connect 4 0 5 0;
+#X connect 7 0 9 1;
+#X connect 8 0 7 0;
+#X connect 9 0 1 1;
+#X connect 9 0 4 0;

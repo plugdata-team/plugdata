@@ -1,0 +1,114 @@
+#N canvas 527 23 532 690 12;
+#X declare -path else;
+#X obj 273 308 rev2~ 100 90 3000 20;
+#X obj 273 236 bng 30 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#N canvas 797 186 322 336 test 0;
+#X obj 36 155 osc~;
+#X obj 36 257 outlet~;
+#X obj 36 211 *~;
+#X obj 152 151 vline~;
+#X obj 36 37 inlet;
+#X obj 36 125 vline~;
+#X obj 36 68 trigger bang bang;
+#X msg 211 122 0 50;
+#X obj 211 84 delay 500;
+#X msg 36 97 440 \, 880 500;
+#X msg 152 111 0.5 50;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 1;
+#X connect 4 0 6 0;
+#X connect 5 0 0 0;
+#X connect 6 0 9 0;
+#X connect 6 1 10 0;
+#X connect 6 1 8 0;
+#X connect 7 0 3 0;
+#X connect 8 0 7 0;
+#X connect 9 0 5 0;
+#X connect 10 0 3 0;
+#X restore 273 279 pd test;
+#X obj 210 569 rev3~ 100 90 3000 20;
+#X obj 210 498 bng 30 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#N canvas 797 186 322 336 test 0;
+#X obj 36 155 osc~;
+#X obj 36 257 outlet~;
+#X obj 36 211 *~;
+#X obj 152 151 vline~;
+#X obj 36 37 inlet;
+#X obj 36 125 vline~;
+#X obj 36 68 trigger bang bang;
+#X msg 211 122 0 50;
+#X obj 211 84 delay 500;
+#X msg 36 97 440 \, 880 500;
+#X msg 152 111 0.5 50;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 1;
+#X connect 4 0 6 0;
+#X connect 5 0 0 0;
+#X connect 6 0 9 0;
+#X connect 6 1 10 0;
+#X connect 6 1 8 0;
+#X connect 7 0 3 0;
+#X connect 8 0 7 0;
+#X connect 9 0 5 0;
+#X connect 10 0 3 0;
+#X restore 210 541 pd test;
+#X text 54 158 In this way \, we can set the crossover frequency and
+how much the high frequencies get damped. The 4 arguments are the parameters:
+output level \, decay \, crossover frequency and damping. Check its
+help file for more details.;
+#X obj 114 247 bng 30 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#N canvas 797 186 322 336 test 0;
+#X obj 36 155 osc~;
+#X obj 36 257 outlet~;
+#X obj 36 211 *~;
+#X obj 152 151 vline~;
+#X obj 36 37 inlet;
+#X obj 36 125 vline~;
+#X obj 36 68 trigger bang bang;
+#X msg 211 122 0 50;
+#X obj 211 84 delay 500;
+#X msg 36 97 440 \, 880 500;
+#X msg 152 111 0.5 50;
+#X connect 0 0 2 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 1;
+#X connect 4 0 6 0;
+#X connect 5 0 0 0;
+#X connect 6 0 9 0;
+#X connect 6 1 10 0;
+#X connect 6 1 8 0;
+#X connect 7 0 3 0;
+#X connect 8 0 7 0;
+#X connect 9 0 5 0;
+#X connect 10 0 3 0;
+#X restore 114 290 pd test;
+#X obj 114 338 out~;
+#X text 57 431 On the other hand \, [rev3~] is basically the same thing
+\, but it has more richness by adopting a more complex network of 16
+feedback delay lines! Check its help file., f 60;
+#X text 54 50 Pd Vanilla comes with a few native reverb abstractions.
+The [rev2~] object is quite similar to the last example as it uses
+the same echoes for early reflections and the same FDN for the late
+reflexions. The new addition is that we now have a lowpass filter in
+the feedback loop. This enables us to to atenuate higher frequencies.
+This is a usual parameter in reverb design called 'high frequency damping'.
+;
+#X obj 357 18 declare -path else;
+#X obj 210 602 out~;
+#X obj 296 354 out~;
+#X connect 0 0 14 0;
+#X connect 0 1 14 1;
+#X connect 0 2 14 0;
+#X connect 0 3 14 1;
+#X connect 1 0 2 0;
+#X connect 2 0 0 0;
+#X connect 3 0 13 0;
+#X connect 4 0 5 0;
+#X connect 5 0 3 0;
+#X connect 7 0 8 0;
+#X connect 8 0 9 0;

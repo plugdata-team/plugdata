@@ -38,7 +38,7 @@
 #X obj 137 289 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -108,7 +108,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -215,8 +215,8 @@ value (0 by default) \, so it is output when loading the object and
 before it is triggered by the right inlet. The set message can set
 the held output. The [sh~] can also be triggered by a bang., f 55
 ;
-#X obj 498 231 else/display~;
-#X obj 187 235 else/display~;
+#X obj 498 231 else/numbox~ 6 12 100 #c0c0c4 #440008 0 0 10 0;
+#X obj 187 235 else/numbox~ 6 12 100 #c0c0c4 #440008 0 0 10 0;
 #X connect 0 0 11 0;
 #X connect 1 0 11 0;
 #X connect 2 0 10 0;
@@ -261,11 +261,11 @@ than the threshold and its last value was equal or below it., f 55
 #X text 72 417 You can change the mode with the messages like above
 \, or set it with the third argument. Alternatively \, you can set
 it to trigger mode with the "-tr" flag as in:, f 55;
-#X obj 243 353 else/display~;
 #X obj 347 472 else/sh~ -tr;
+#X obj 243 353 else/numbox~ 6 12 100 #c0c0c4 #440008 0 0 10 0;
 #X connect 0 0 2 0;
 #X connect 2 0 1 0;
-#X connect 2 0 10 0;
+#X connect 2 0 11 0;
 #X connect 3 0 2 0;
 #X connect 4 0 2 0;
 #X connect 8 0 2 1;

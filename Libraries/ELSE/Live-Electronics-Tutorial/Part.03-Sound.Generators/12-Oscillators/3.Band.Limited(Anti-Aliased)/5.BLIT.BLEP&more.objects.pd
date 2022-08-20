@@ -1,0 +1,96 @@
+#N canvas 173 49 1032 568 12;
+#X text 28 15 There are yet many algorithms to reduce the audible level
+of aliasing. One main aspect in generating aliasing is discontinuity
+in waveforms \, be it via hard sync or plain drastic jumps because
+of the waveform itself (like in square and sawtooth). Therefore \,
+these algorithms focus on dealing with the discontinuities in the edges
+of the synthesized waveforms. Famous examples of such techniques are:
+, f 70;
+#X text 28 293 BLEP produces a 'step function' to deal with discontinuities.
+One possibility is to use a transition table as in the J09.bandlimited.pd
+example from Pd's audio examples. Instead of impulse trains \, miniBLEP
+uses a minimum-phase bandlimited step function that eliminates lookahead
+and integration like BLIT needs., f 70;
+#X text 47 108 - Band-limited Impulse Trains (BLIT) \; - Band-limited
+Step Functions (BLEP) \; - Polynomial Band-limited Step Functions (PolyBLEP)
+;
+#X text 28 377 PolyBLEP uses a polynomial instead of a table and is
+the most modern version of the BLEP technique. Instead of a table lookup
+it uses polynomials to draw a step functions to replace discontinuities.
+, f 70;
+#X obj 652 123 bl.saw~;
+#X obj 717 123 bl.vsaw~;
+#X obj 791 123 bl.tri~;
+#X obj 857 123 bl.square~;
+#X text 28 167 The 'BLIT' technique creates a stream of lowpass filtered
+impulses \, which become sinc functions in the filtering process (which
+are band limited). Usually we have sinc functions stored in wavetables
+and integrate them together over time. BLIT oscillators feature a ringing
+on the band edges of the waveforms to reduce aliasing. Integrating
+unipolar BLITs results in a sawtooth wave. Integrating bipolar BLITs
+results in a square wave and doubly integrating bipolar BLITs results
+in a triangle wave., f 70;
+#X obj 170 526 bl.imp~;
+#X obj 242 526 bl.imp2~;
+#X text 562 15 Poly BLEP is used for the band limited versions of [saw~]
+\, [vsaw~] \, [tri~] and [square~]. Note that these have the same inlets
+and functionalities as the non band limited versions \, with pulse
+width \, hard sync and phase modulation input. Check the help files.
+;
+#X text 28 432 ELSE offers some band-limited oscillators based on BLITs
+and the PolyBLEP. BLIT is used for the impulse oscilators: [bl.imp~]
+and [bl.imp2~]. Not that "bl" stands for "band limited" and these relate
+to the non band limited versions [imp~] and [imp2~]. Check the help
+files., f 70;
+#X obj 801 473 out~;
+#X obj 824 330 nbx 5 14 -1e+37 1e+37 0 0 empty Hz empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#N canvas 786 159 417 234 sequencer 0;
+#X obj 180 135 mtof;
+#X obj 75 74 metro 200;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array sequencer 16 float 3;
+#A 0 -6 -8 -8 -3 -8 1 4 4 -3 -5 -5 -1 2 6 7 7;
+#X coords 0 12 16 -12 100 70 1;
+#X restore 240 71 graph;
+#X obj 75 135 v i;
+#X obj 180 163 outlet;
+#X obj 75 49 inlet;
+#X obj 75 97 expr (i + 1) % 16 \; sequencer[i] + 41;
+#X connect 0 0 4 0;
+#X connect 1 0 6 0;
+#X connect 5 0 1 0;
+#X connect 6 0 3 0;
+#X connect 6 1 0 0;
+#X restore 824 297 pd sequencer;
+#X obj 824 263 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 633 269 tgl 15 0 empty metro empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 633 293 metro;
+#X text 702 389 slave;
+#X text 885 329 master;
+#X obj 633 318 expr random($f2 \, $f2*3) \; random (600 \, 1200);
+#X obj 824 394 impulse~;
+#X obj 633 363 glide~;
+#X obj 801 435 bl.saw~;
+#X obj 633 390 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X text 564 167 The example below uses [bl.saw~] and the hard sync
+technique. Note that we still need to use a regular non band limited
+impulse oscillator like [impulse~] to trigger the hard sync., f 62
+;
+#X text 844 261 <-- click;
+#X connect 14 0 21 1;
+#X connect 14 0 22 0;
+#X connect 15 0 14 0;
+#X connect 16 0 15 0;
+#X connect 16 0 17 0;
+#X connect 17 0 18 0;
+#X connect 18 0 21 0;
+#X connect 21 0 23 0;
+#X connect 21 1 18 1;
+#X connect 21 1 23 1;
+#X connect 22 0 24 1;
+#X connect 23 0 25 0;
+#X connect 24 0 13 0;
+#X connect 25 0 24 0;

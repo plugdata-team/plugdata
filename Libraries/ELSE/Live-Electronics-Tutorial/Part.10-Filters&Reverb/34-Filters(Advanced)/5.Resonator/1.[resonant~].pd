@@ -1,0 +1,135 @@
+#N canvas 430 23 959 766 12;
+#X declare -path else;
+#X obj 630 161 bng 20 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 630 198 impseq~;
+#N canvas 864 173 371 586 analyze 0;
+#X floatatom 100 104 0 0 0 0 - - -;
+#X obj 137 260 - 60;
+#X obj 113 162 >;
+#X obj 113 137 t f f f;
+#X obj 137 216 f;
+#X obj 113 183 sel 1;
+#X floatatom 137 237 5 0 0 0 - - -;
+#X obj 99 354 sel 1;
+#X obj 152 346 b;
+#X obj 100 328 change;
+#X floatatom 152 441 0 0 0 0 - - -;
+#X obj 152 392 realtime;
+#X obj 100 35 inlet~;
+#X obj 152 474 outlet;
+#X obj 100 81 env~ 128;
+#X obj 100 305 <;
+#X connect 0 0 3 0;
+#X connect 0 0 15 0;
+#X connect 1 0 8 0;
+#X connect 1 0 15 1;
+#X connect 2 0 5 0;
+#X connect 3 0 2 1;
+#X connect 3 1 2 0;
+#X connect 3 2 4 1;
+#X connect 4 0 6 0;
+#X connect 5 0 4 0;
+#X connect 6 0 1 0;
+#X connect 7 0 11 1;
+#X connect 8 0 11 0;
+#X connect 9 0 7 0;
+#X connect 10 0 13 0;
+#X connect 11 0 10 0;
+#X connect 12 0 14 0;
+#X connect 14 0 0 0;
+#X connect 15 0 9 0;
+#X restore 745 285 pd analyze;
+#X obj 630 238 resonant~ 1000 3000;
+#X obj 745 317 display 7;
+#X text 489 63 Let's put it to the test. The subpatch below analyzes
+the output of the filter and sends a value when it falls under 60 dB
+of the attack. The analysis isn't perfect \, but it gets pretty close
+indeed to the default settings. Try it \, and check its help file.
+;
+#X text 493 393 So this type of filter acts as a resonator \, which
+is a kind of reverberator. See also the [resonbank~] object \, which
+is a bank of resonators. Below \, it filters a brown noise with 4 resonators.
+;
+#X obj 619 460 brown~;
+#X obj 619 567 out~;
+#X obj 217 311 / 1000;
+#X obj 217 356 expr log(1000) / ($f1 * pi);
+#X obj 217 385 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 279 384 bandwidth in hertz;
+#X obj 199 414 /;
+#X obj 136 329 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 1000 256;
+#X obj 199 440 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 258 438 Q;
+#X obj 185 254 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 85 329 center;
+#X text 74 349 frequency;
+#X obj 181 467 /;
+#X obj 181 493 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 167 388 t f f;
+#X text 242 490 bandwidth in hertz;
+#X obj 181 521 expr log(1000) / ($f1 * pi);
+#X obj 181 564 * 1000;
+#X obj 181 589 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X msg 185 230 2000;
+#X obj 185 206 bng 17 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 325 454 v pi;
+#X obj 325 428 pi;
+#X obj 185 277 t b f;
+#X obj 104 268 initmess set 1000, f 8;
+#X text 243 253 t60 (decay time in ms);
+#X text 239 588 t60 (decay time in ms);
+#X text 228 332 <= seconds;
+#X text 189 542 <= seconds;
+#X text 25 98 The bandwidth and Q of a bandpass resonant filter also
+specifies a decay time (a.k.a "damping time" or "ring time"). The "t60"
+is a measure of the decay time \, and is the time it takes for the
+impulse signal to drop 60dB. You can convert bandwidth to t60 and back
+with the same formula (see below). We also convert bandwidth to Q with
+center frequency.;
+#X text 25 31 A resonator or reverberator filter is a type of resonant
+filter that has a decay time for an impulse excitation. For instance
+\, the [resonant~] object from ELSE can either take a resonance value
+as either Q or t60 (default).;
+#X text 255 665 Check also [resonant2~] and [resonbank2~] \, which
+also have an attack parameter rather than just a decay time., f 55
+;
+#X obj 654 663 resonant2~;
+#X obj 655 692 resonbank2~ 4;
+#X obj 619 500 resonbank~ 4 -freq 200 300 700 800 -decay 900 800 700
+900 -amp 0.4 0.3 0.2 0.2, f 28;
+#X obj 732 28 declare -path else;
+#X obj 630 306 out~;
+#X connect 0 0 1 0;
+#X connect 1 0 3 0;
+#X connect 2 0 4 0;
+#X connect 3 0 2 0;
+#X connect 3 0 44 0;
+#X connect 7 0 42 0;
+#X connect 9 0 10 0;
+#X connect 10 0 11 0;
+#X connect 11 0 13 1;
+#X connect 13 0 15 0;
+#X connect 14 0 22 0;
+#X connect 15 0 20 1;
+#X connect 17 0 31 0;
+#X connect 20 0 21 0;
+#X connect 21 0 24 0;
+#X connect 22 0 20 0;
+#X connect 22 1 13 0;
+#X connect 24 0 25 0;
+#X connect 25 0 26 0;
+#X connect 27 0 17 0;
+#X connect 28 0 27 0;
+#X connect 30 0 29 0;
+#X connect 31 0 14 0;
+#X connect 31 1 9 0;
+#X connect 32 0 14 0;
+#X connect 42 0 8 0;

@@ -1,0 +1,59 @@
+#N canvas 430 54 958 433 12;
+#X declare -path else;
+#X obj 634 219 +~;
+#X obj 576 108 nbx 4 14 -1e+37 1e+37 0 1 empty \$0-carrier empty 0
+-8 0 10 #dcdcdc #000000 #000000 400 256;
+#X obj 652 135 osc~;
+#X obj 652 161 *~;
+#X obj 652 102 nbx 4 14 -1e+37 1e+37 0 1 empty \$0-mod empty 0 -8 0
+10 #dcdcdc #000000 #000000 1 256;
+#X obj 705 136 nbx 4 14 0 1e+37 0 1 empty \$0-index empty 0 -8 0 10
+#dcdcdc #000000 #000000 100 256;
+#X obj 576 144 sig~;
+#X obj 634 284 osc~;
+#X obj 634 334 out~;
+#X text 569 70 Carrier Frequency, f 9;
+#X text 648 67 Modulator Frequency, f 9;
+#X text 659 189 <= modulating signal;
+#X text 545 181 carrier signal =>, f 9;
+#X text 538 283 oscillator =>;
+#X obj 705 162 f2s~ 10;
+#X obj 774 45 declare -path else;
+#X text 27 32 Generally speaking \, modulating a signal means applying
+any changes to it. But in the context of computer music and synthesis
+\, we're talking about a modulating signal that controls a parameter
+\, like the amplitude as we've seen. Let's check now the basic structure
+of Frequency Modulation with an oscillator as the modulating signal.
+, f 67;
+#X text 645 248 <= Frequency Modulated signal;
+#X text 705 113 Frequency deviation;
+#X text 756 133 (Modulation Index);
+#X text 27 262 The frequency modulation procedure is simple \, just
+add the carrier signal to the modulating signal - see the example to
+the right. By default \, we have a 400 Hz carrier signal \, a low frequency
+of 1 as the modulating frequency and an index of 100 - this means the
+modulating signal oscillates between -100 and 100 at every second \,
+and the resulting frequency modulating signal varies from 300 to 500
+hz. Note that a low frequency modulator generates vibrato like effects
+\, but try higher frequencies., f 67;
+#X text 27 111 The signal to be modulated is called the "Carrier" -
+in the case of frequency modulation \, this can also be called "Carrier
+Frequency". Conversely \, we also have a Modulator frequency \, which
+is the frequency of the modulating oscillator. The frequency deviation
+is controlled by the oscillator's amplitude and is also usually called
+"modulation index" but this is theoretically inaccurate. We'll see
+later how the index is actually the ratio between deviation and modulating
+frequency \, and how that relates to how the modulation index behaves
+in Phase Modulation. Just note that until then \, modulation index
+here actually means 'frequency deviation'., f 67;
+#X obj 811 323 initmess \; \$0-carrier 400 \; \$0-mod 1 \; \$0-index
+100;
+#X connect 0 0 7 0;
+#X connect 1 0 6 0;
+#X connect 2 0 3 0;
+#X connect 3 0 0 1;
+#X connect 4 0 2 0;
+#X connect 5 0 14 0;
+#X connect 6 0 0 0;
+#X connect 7 0 8 0;
+#X connect 14 0 3 1;

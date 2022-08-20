@@ -35,8 +35,8 @@
 #X restore 306 4 graph;
 #X obj 322 265 else/out~;
 #X obj 322 168 noise~;
-#X obj 57 236 else/bicoeff eq 500 10 24;
-#X obj 132 264 else/bicoeff eq 900 10 24;
+#X obj 57 236 else/bicoeff2 eq 500 10 24;
+#X obj 132 264 else/bicoeff2 eq 900 10 24;
 #X obj 57 293 send \$0-coeffs;
 #X obj 57 211 else/lb 2, f 13;
 #X obj 57 266 list;

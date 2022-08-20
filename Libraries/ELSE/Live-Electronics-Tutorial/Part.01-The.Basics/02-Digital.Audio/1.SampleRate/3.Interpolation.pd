@@ -1,0 +1,84 @@
+#N canvas 611 61 760 637 12;
+#X declare -path else;
+#X obj 409 40 osc~ 100;
+#X obj 451 77 graph~ 444 8;
+#X obj 409 468 graph~ 444 8;
+#X obj 428 269 graph~ 444 8;
+#X text 662 142 Original;
+#X text 617 525 Sample and Hold;
+#X obj 428 244 downsample~ 1000 1;
+#X obj 409 435 downsample~ 1000;
+#X obj 104 358 downsample~;
+#X obj 178 335 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 44100 256;
+#X obj 181 312 hsl 100 15 400 44099 1 0 empty \$0-sr empty -2 -8 0
+10 -228856 -1 -1 9900 1;
+#X text 236 336 Hertz;
+#X obj 104 394 out~;
+#X msg 28 296 interp \$1;
+#X obj 28 269 tgl 16 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 178 286 initmess 44100;
+#N canvas 669 119 544 609 vanila 0;
+#X obj 110 242 vsnapshot~;
+#X obj 110 294 vline~;
+#X obj 151 341 graph~ 441 20;
+#X obj 138 200 metro 1;
+#X obj 138 180 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 1
+1;
+#X obj 110 270 pack f 1;
+#X obj 61 193 osc~ 200;
+#X floatatom 207 198 5 0 0 0 - - -;
+#X obj 207 248 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 1 256;
+#X obj 207 224 expr 1000 / $f1;
+#X obj 138 130 loadbang;
+#X msg 207 176 1000;
+#X obj 112 501 out~;
+#X text 248 197 sample rate;
+#X text 267 248 period in ms;
+#X text 29 38 We use [vsnapshot~] to collect sample values and [vline~]
+to generate an interpolated audio line from a list of numbers (the
+first is the arrival point and the second is the time it takes to get
+there).;
+#X text 371 412 <= [graph~];
+#X connect 0 0 5 0;
+#X connect 1 0 2 0;
+#X connect 1 0 12 0;
+#X connect 3 0 0 0;
+#X connect 4 0 3 0;
+#X connect 5 0 1 0;
+#X connect 6 0 0 0;
+#X connect 7 0 9 0;
+#X connect 8 0 5 1;
+#X connect 8 0 3 1;
+#X connect 9 0 8 0;
+#X connect 10 0 4 0;
+#X connect 10 0 11 0;
+#X connect 11 0 7 0;
+#X restore 185 538 pd vanila;
+#X text 32 68 Besides just holding values \, another alternative when
+upsampling is to interpolate between two sample values. The [downsample~]
+object also performs a simple linear interpolation. Test it below and
+check the difference., f 51;
+#X text 636 324 Interpolated;
+#X obj 600 16 declare -path else;
+#X obj 102 228 play.file~ bubul.wav 1 1;
+#X text 33 490 The subpatch below shows how to implement downsampling
+with interpolation with just native Pd Vanilla objects, f 50;
+#X text 592 54 [graph~];
+#X text 32 146 To the right \, ELSE's [graph~] shows graphical representation
+of the resulting waveforms in both interpolated and sample and hold
+downsampling., f 51;
+#X connect 0 0 1 0;
+#X connect 0 0 6 0;
+#X connect 0 0 7 0;
+#X connect 6 0 3 0;
+#X connect 7 0 2 0;
+#X connect 8 0 12 0;
+#X connect 9 0 8 1;
+#X connect 10 0 9 0;
+#X connect 13 0 8 0;
+#X connect 14 0 13 0;
+#X connect 15 0 10 0;
+#X connect 20 0 8 0;

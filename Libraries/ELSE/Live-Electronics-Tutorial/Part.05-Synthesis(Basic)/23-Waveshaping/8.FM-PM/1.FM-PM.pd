@@ -1,0 +1,228 @@
+#N canvas 321 23 933 671 12;
+#X declare -path else;
+#X obj 133 357 +~;
+#X obj 81 319 phasor~;
+#X obj 133 388 cos~;
+#X obj 151 296 osc~;
+#N canvas 102 371 427 341 gain 0;
+#X obj 77 211 *~;
+#X obj 65 274 dac~;
+#X obj 106 181 line~;
+#X msg 106 155 \$1 10;
+#X obj 106 129 pow 4;
+#X obj 77 61 inlet~;
+#X obj 109 105 hsl 100 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 155 193 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 153 254 tabwrite~ waveshaping;
+#X obj 155 214 metro 220;
+#X obj 254 91 loadbang;
+#X obj 247 224 catch~ out;
+#X text 137 104 gain;
+#X msg 254 125 \; moduladora 200 \; portadora 0.1 \; indice 0.5 \;
+indice-fm 628.319 \; pd dsp 1;
+#X connect 0 0 1 0;
+#X connect 0 0 1 1;
+#X connect 0 0 8 0;
+#X connect 2 0 0 1;
+#X connect 3 0 2 0;
+#X connect 4 0 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 4 0;
+#X connect 7 0 9 0;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 10 0 13 0;
+#X connect 11 0 8 0;
+#X coords 0 -1 1 1 120 25 2 100 100;
+#X restore 133 416 pd gain;
+#X obj 203 493 cnv 15 198 138 empty empty empty 20 12 0 14 #dcdcdc
+#404040 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array waveshaping 700 float 1;
+#A 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+#X coords 0 1 699 -1 200 140 1;
+#X restore 202 492 graph;
+#X text 186 490 1;
+#X text 180 618 -1;
+#X text 185 555 0;
+#X obj 81 297 nbx 4 14 -1e+37 1e+37 0 1 empty portadora empty 0 -8
+0 10 #dcdcdc #000000 #000000 0.1 256;
+#X obj 151 270 nbx 4 14 -1e+37 1e+37 0 1 empty moduladora empty 0 -8
+0 10 #dcdcdc #000000 #000000 200 256;
+#X obj 310 345 +~;
+#N canvas 227 235 427 341 gain 0;
+#X obj 77 211 *~;
+#X obj 65 274 dac~;
+#X obj 106 181 line~;
+#X msg 106 155 \$1 10;
+#X obj 106 129 pow 4;
+#X obj 77 61 inlet~;
+#X obj 109 105 hsl 100 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 153 254 throw~ out;
+#X text 137 104 gain;
+#X connect 0 0 1 0;
+#X connect 0 0 1 1;
+#X connect 0 0 7 0;
+#X connect 2 0 0 1;
+#X connect 3 0 2 0;
+#X connect 4 0 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 4 0;
+#X coords 0 -1 1 1 120 25 2 100 100;
+#X restore 310 399 pd gain;
+#X obj 328 306 phasor~;
+#X obj 328 284 nbx 4 14 -1e+37 1e+37 0 1 empty portadora empty 0 -8
+0 10 #dcdcdc #000000 #000000 0.1 256;
+#X obj 270 302 osc~;
+#X obj 270 280 nbx 4 14 -1e+37 1e+37 0 1 empty moduladora empty 0 -8
+0 10 #dcdcdc #000000 #000000 200 256;
+#X text 266 248 Waveshaping;
+#X obj 310 371 cos~;
+#X text 471 172 0 Hz FM & PM:;
+#X text 345 372 Transfer Function;
+#X text 185 325 Index;
+#X text 201 269 Mod;
+#X text 73 276 Carrier;
+#X text 43 22 Frequency and Phase Modulation are a particular case
+of Waveshaping. This example makes this relationship clearer. Below
+to the left \, we have a modulation phase patch (with a carrier frequency
+of 0.1 Hz \, a modulation frequency of 50 Hz and a modulation index
+of 1)., f 56;
+#X obj 151 326 *~ 1;
+#X text 73 237 Phase Modulation;
+#X text 483 57 Further interpretations could consider the [phasor~]
+signal in the Waveshaping example as a "DC-Offset" modulation., f
+54;
+#X text 480 154 =======================================================
+;
+#N canvas 227 235 427 341 gain 0;
+#X obj 77 211 *~;
+#X obj 65 274 dac~;
+#X obj 106 181 line~;
+#X msg 106 155 \$1 10;
+#X obj 106 129 pow 4;
+#X obj 77 61 inlet~;
+#X obj 109 105 hsl 100 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 153 254 throw~ out;
+#X text 137 104 gain;
+#X connect 0 0 1 0;
+#X connect 0 0 1 1;
+#X connect 0 0 7 0;
+#X connect 2 0 0 1;
+#X connect 3 0 2 0;
+#X connect 4 0 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 4 0;
+#X coords 0 -1 1 1 120 25 2 100 100;
+#X restore 592 609 pd gain;
+#X obj 592 545 *~;
+#X obj 656 505 nbx 6 14 0 1e+37 0 1 empty indice empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0.5 256;
+#X obj 592 482 nbx 4 14 -1e+37 1e+37 0 1 empty moduladora empty 0 -8
+0 10 #dcdcdc #000000 #000000 200 256;
+#X obj 659 478 hsl 128 15 0 2 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 533 578 0 Hz PM;
+#X obj 656 535 f2s~ 10;
+#X text 629 578 Transfer Function;
+#X text 724 504 Index;
+#X obj 592 577 sin~;
+#X obj 592 509 sine~;
+#N canvas 227 235 427 341 gain 0;
+#X obj 77 211 *~;
+#X obj 65 274 dac~;
+#X obj 106 181 line~;
+#X msg 106 155 \$1 10;
+#X obj 106 129 pow 4;
+#X obj 77 61 inlet~;
+#X obj 109 105 hsl 100 15 0 1 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 153 254 throw~ out;
+#X text 137 104 gain;
+#X connect 0 0 1 0;
+#X connect 0 0 1 1;
+#X connect 0 0 7 0;
+#X connect 2 0 0 1;
+#X connect 3 0 2 0;
+#X connect 4 0 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 4 0;
+#X coords 0 -1 1 1 120 25 2 100 100;
+#X restore 598 424 pd gain;
+#X obj 598 313 nbx 4 14 -1e+37 1e+37 0 1 empty moduladora empty 0 -8
+0 10 #dcdcdc #000000 #000000 200 256;
+#X obj 598 361 *~;
+#X obj 662 330 nbx 8 14 0 1e+37 0 1 empty indice-fm empty 0 -8 0 10
+#dcdcdc #000000 #000000 628.319 256;
+#X text 535 392 0 Hz FM;
+#X obj 665 305 hsl 128 15 0 1260 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 662 358 f2s~ 10;
+#X text 748 330 Index;
+#X obj 598 337 sine~;
+#X obj 598 391 sine~;
+#X text 482 201 Now consider a FM patch with a carrier of 0 Hz \, we
+can just insert the oscillator signal into the frequency input as below.
+We then have the same structure for an equivalent PM patch and we can
+consider these cases as a straightforward waveshaping patch!, f 54
+;
+#X obj 695 22 declare -path else;
+#X text 43 105 Below to the right we have the same thing. We just get
+rid of the modulation index \, because multiplying by 1 doesn't do
+anything! It's a different interpretation \, where the oscillator waveform
+is considered as a transfer function. Conversely \, we can consider
+the audio that goes into the transfer function as a phase signal!,
+f 56;
+#X text 482 108 But however you interpret it \, the important thing
+is to realize how waveshaping relates to FM & PM!, f 54;
+#X connect 0 0 2 0;
+#X connect 1 0 0 0;
+#X connect 2 0 4 0;
+#X connect 3 0 26 0;
+#X connect 10 0 1 0;
+#X connect 11 0 3 0;
+#X connect 12 0 19 0;
+#X connect 14 0 12 1;
+#X connect 15 0 14 0;
+#X connect 16 0 12 0;
+#X connect 17 0 16 0;
+#X connect 19 0 13 0;
+#X connect 26 0 0 1;
+#X connect 31 0 39 0;
+#X connect 32 0 36 0;
+#X connect 33 0 40 0;
+#X connect 34 0 32 0;
+#X connect 36 0 31 1;
+#X connect 39 0 30 0;
+#X connect 40 0 31 0;
+#X connect 42 0 49 0;
+#X connect 43 0 50 0;
+#X connect 44 0 47 0;
+#X connect 46 0 44 0;
+#X connect 47 0 43 1;
+#X connect 49 0 43 0;
+#X connect 50 0 41 0;

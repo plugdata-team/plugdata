@@ -1,0 +1,34 @@
+#N canvas 568 59 513 489 12;
+#X declare -path else;
+#X obj 160 307 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 136 304 Hz;
+#X obj 101 225 bng 20 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#000000 #000000;
+#X obj 220 305 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 279 303 decay time (ms);
+#X obj 280 332 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 342 331 filter cutoff (hz);
+#X obj 101 407 out~;
+#X obj 101 359 pluck~ 0 4000 10000, f 26;
+#X obj 160 265 rand.f 50 300;
+#X obj 311 13 declare -path else;
+#X text 30 55 The ELSE library has the [pluck~] object \, which implements
+a Karplus Strong Algorithm. By default \, it uses an internal white
+noise generator as an excitation signal and can be triggered by impulses.
+A frequency value determines the delay period and the excitation signal
+gets automatically enveloped to that size. The feedback value is given
+as a decay time in ms (t60). Internally \, it has a 1st order lowpass
+filter in the feedback loop (just like [lop2~]). By default \, the
+cutoff frequency results in the original Karplus Strong algorithm \,
+since it corresponds to a two sample mean average filter. See its help
+file for more details., f 64;
+#X connect 0 0 8 1;
+#X connect 2 0 9 0;
+#X connect 2 0 8 0;
+#X connect 3 0 8 2;
+#X connect 5 0 8 3;
+#X connect 8 0 7 0;
+#X connect 9 0 0 0;

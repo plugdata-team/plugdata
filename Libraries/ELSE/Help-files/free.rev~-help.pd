@@ -58,10 +58,10 @@
 #X text 258 273 - left channel input signal, f 31;
 #X text 258 365 - right channel input signal, f 31;
 #X text 258 302 - high frequency damping (0-1), f 31;
-#N canvas 565 204 687 507 details 0;
-#X obj 335 210 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 #dcdcdc
-#000000 #000000 0 0;
-#X floatatom 332 236 5 0 0 0 - - - 0;
+#N canvas 492 154 687 507 details 0;
+#X obj 335 210 hsl 128 15 0 0.99 0 1 empty empty empty 20 8 0 10 #dcdcdc
+#000000 #000000 12700 0;
+#X floatatom 332 236 5 0 0.99 0 - - - 0;
 #X floatatom 395 260 5 0 0 0 - - - 0;
 #X obj 528 294 hsl 128 15 0 1 0 1 empty empty empty 20 8 0 10 #dcdcdc
 #000000 #000000 12700 0;
@@ -75,60 +75,64 @@
 #X floatatom 458 288 5 0 0 0 - - - 0;
 #X msg 458 311 width \$1;
 #X msg 533 369 clear;
-#X text 41 111 The 'damp' meessage controls the high frequency damping
-\, the higher the damping \, the less high frequencies are filtered
-out. A lowpass filter is included inside the feedback loop of each
-comb filter., f 49;
 #X text 381 38 The 'width' meessage controls how much both inputs are
 mixed or not. When this is set to 1 \, we have two independent channels.
 For a mono input \, a 0 parameter is suited to create a stereo image
 from a single channel source., f 45;
-#X obj 93 266 else/player~ stereo.wav 1 -loop;
-#X obj 93 302 else/free.rev~;
 #X msg 332 262 decay \$1;
 #X text 380 114 The 'wet' message controls the dry (0) and wet (1)
 mix and the clear message clears up the delay lines., f 44;
 #X obj 395 412 s \$0-set;
-#X obj 65 238 r \$0-set;
+#X obj 110 277 r \$0-set;
 #X obj 93 347 else/out~;
-#X text 41 22 The freeverb algorithm is a simple implementation of
+#X obj 93 302 else/free.rev~;
+#X obj 94 252 else/player~ stereo.wav 1 1;
+#X text 24 18 The freeverb algorithm is a simple implementation of
 the standard Schroeder/Moorer reverb model. It is composed of eight
 comb filters in parallel passing through four allpass filters in series.
-The 'decay' message controls the decay time and affects the feedback
-parameter of the comb filters., f 49;
+, f 52;
+#X text 24 69 The 'decay' message affects the decay time and controls
+the feedback parameter of the comb filters. A decay value of 1 is an
+infinite feedback loop (or infinite decay time)., f 52;
+#X text 24 120 The 'damp' meessage controls the high frequency damping
+\, the higher the damping \, the more high frequencies are filtered
+out. For this \, a lowpass filter is included inside the feedback loop
+of each comb filter and the damp message controls the cutoff frequency.
+The higher the damping \, the lower the cutoff frequency is., f 52
+;
 #X connect 0 0 1 0;
-#X connect 1 0 16 0;
+#X connect 1 0 13 0;
 #X connect 2 0 6 0;
 #X connect 3 0 4 0;
 #X connect 4 0 5 0;
-#X connect 5 0 18 0;
-#X connect 6 0 18 0;
+#X connect 5 0 15 0;
+#X connect 6 0 15 0;
 #X connect 7 0 2 0;
 #X connect 8 0 9 0;
 #X connect 9 0 10 0;
-#X connect 10 0 18 0;
-#X connect 11 0 18 0;
-#X connect 14 0 15 0;
-#X connect 14 1 15 1;
-#X connect 15 0 20 0;
-#X connect 15 1 20 1;
+#X connect 10 0 15 0;
+#X connect 11 0 15 0;
+#X connect 13 0 15 0;
 #X connect 16 0 18 0;
-#X connect 19 0 15 0;
+#X connect 18 0 17 0;
+#X connect 18 1 17 1;
+#X connect 19 0 18 0;
+#X connect 19 1 18 1;
 #X restore 464 230 pd details;
 #X text 78 88 [free.rev~] is a stereo reverb abstraction based on the
 widely known 'freeverb' algorithm.;
 #X text 258 331 - wet ratio (0-1), f 31;
 #X text 151 497 4) float - wet ratio (0-1) - default 1;
-#X text 151 466 2) float - high frequency damping (0-1) - default
-0;
+#X text 151 466 2) float - high frequency damping (0-1) - default 0
+;
 #X text 151 481 3) float - stereo width (0-1) - default 0.5;
 #X obj 192 167 else/free.rev~;
 #X text 149 287 decay <float>;
 #X text 258 287 - decay or 'liveness' (0-1), f 31;
+#X obj 190 199 else/out~;
 #X text 151 450 1) float - decay or 'liveness' (0-1) - default 0.5
 ;
-#X obj 190 199 else/out~;
 #X connect 32 0 43 0;
 #X connect 33 0 43 1;
-#X connect 43 0 47 0;
-#X connect 43 1 47 1;
+#X connect 43 0 46 0;
+#X connect 43 1 46 1;

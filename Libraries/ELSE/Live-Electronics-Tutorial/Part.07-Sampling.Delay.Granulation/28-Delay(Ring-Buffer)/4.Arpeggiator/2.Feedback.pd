@@ -1,0 +1,88 @@
+#N canvas 460 56 819 662 12;
+#X declare -path else;
+#X obj 246 430 hsl 128 15 10 500 0 0 empty depth empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 243 458 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 286 429 depth;
+#X obj 324 463 hsl 128 15 -0.999 0.999 0 0 empty empty empty -2 -8
+0 10 #dcdcdc #000000 #000000 0 1;
+#X text 360 462 Feedback;
+#X obj 126 199 s~ \$0-in;
+#X obj 549 441 *~;
+#X obj 570 302 hsl 128 15 10 500 0 0 empty depth empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 567 330 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 617 406 hsl 128 15 -0.999 0.999 0 0 empty empty empty -2 -8
+0 10 #dcdcdc #000000 #000000 0 1;
+#X text 651 405 Feedback;
+#X obj 614 427 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 607 301 Depth;
+#X obj 484 399 r~ \$0-in;
+#X floatatom 321 482 0 0 0 0 - - - 0;
+#X obj 96 579 out~;
+#X obj 484 523 out~;
+#X obj 549 260 rescale~;
+#X obj 549 230 rampnoise~ 1;
+#X obj 161 247 initmess 0 0.33 1 0.34 1 0.33 0 \; LFO 2.25 \; depth
+25;
+#X obj 161 500 *~;
+#X obj 161 431 function~;
+#X obj 86 503 r~ \$0-in;
+#X obj 321 507 f2s~ 10;
+#X floatatom 87 368 5 0 0 0 - - - 0;
+#X obj 87 392 phasor~;
+#X obj 87 253 vsl 24 100 0 5 0 0 empty LFO empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 48 367 rate;
+#X text 30 36 We expand the last example to include feedback. As the
+vibrato feedback example \, watch out for psychedelia because of pitch
+shiffting accumulation. Besides [function~] \, we can also use [rampnoise~]
+for random pitch shiffting., f 62;
+#X obj 614 452 f2s~ 10;
+#X obj 567 355 f2s~ 100;
+#X obj 243 484 f2s~ 100;
+#X floatatom 549 185 5 0 0 0 - - - 0;
+#X obj 549 70 vsl 24 100 0 5 0 0 empty LFO empty 0 -9 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X text 510 184 rate;
+#X obj 639 52 declare -path else;
+#X obj 126 170 play.file~ violin.wav 1 1;
+#X obj 161 313 function 200 100 empty empty 0 1 220 220 220 50 50 50
+0 0 0 0 0 0.33 1 0.34 1 0.33 0;
+#X text 30 99 Note that depending on the parameters you may reach a
+flanger like effect \, and it should be clear why since the implementation
+is very similar and dependent on a feedback delay., f 62;
+#X obj 484 484 fbdelay~ -gain 2000;
+#X obj 96 537 fbdelay~ -gain 2000;
+#X connect 0 0 1 0;
+#X connect 1 0 31 0;
+#X connect 3 0 14 0;
+#X connect 6 0 39 1;
+#X connect 7 0 8 0;
+#X connect 8 0 30 0;
+#X connect 9 0 11 0;
+#X connect 11 0 29 0;
+#X connect 13 0 39 0;
+#X connect 14 0 23 0;
+#X connect 17 0 6 0;
+#X connect 18 0 17 0;
+#X connect 19 0 37 0;
+#X connect 20 0 40 1;
+#X connect 21 0 20 0;
+#X connect 22 0 40 0;
+#X connect 23 0 40 2;
+#X connect 24 0 25 0;
+#X connect 25 0 21 0;
+#X connect 26 0 24 0;
+#X connect 29 0 39 2;
+#X connect 30 0 6 1;
+#X connect 31 0 20 1;
+#X connect 32 0 18 0;
+#X connect 33 0 32 0;
+#X connect 36 0 5 0;
+#X connect 37 0 21 0;
+#X connect 39 0 16 0;
+#X connect 40 0 15 0;

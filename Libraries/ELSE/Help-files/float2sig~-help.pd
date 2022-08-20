@@ -1,44 +1,47 @@
 #N canvas 447 77 565 434 10;
-#X obj 4 264 cnv 3 550 3 empty empty inlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 321 cnv 3 550 3 empty empty outlets 8 12 0 13 -228856 -1 0
-;
-#X obj 4 356 cnv 3 550 3 empty empty arguments 8 12 0 13 -228856 -1
+#X obj 4 264 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 106 330 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
-;
-#X obj 4 406 cnv 15 552 21 empty empty empty 20 12 0 14 -233017 -33289
+#X obj 4 321 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 -128992 -233080
+#X obj 4 356 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+0;
+#X obj 106 330 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X obj 4 406 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+0;
+#X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 100 100;
 #X restore 305 3 pd;
-#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 -128992 -233080
+#X obj 345 11 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
 0;
-#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 -233017 -1 0;
-#X obj 90 40 cnv 4 4 4 empty empty float 0 28 2 18 -233017 -1 0;
-#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 -128992 -233080
+#X obj 23 40 cnv 4 4 4 empty empty Convert 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 -128992 -233080
+#X obj 90 40 cnv 4 4 4 empty empty float 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 -128992 -233080
+#X obj 458 11 cnv 10 10 10 empty empty EL 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 -128992 -233080
+#X obj 478 11 cnv 10 10 10 empty empty Locus 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 -128992 -233080
+#X obj 515 11 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 132 40 cnv 4 4 4 empty empty to 0 28 2 18 -233017 -1 0;
+#X obj 464 26 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 502 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
+0;
+#X obj 132 40 cnv 4 4 4 empty empty to 0 28 2 18 #e0e0e0 #000000 0
+;
 #X obj 248 166 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 3 3 cnv 15 301 42 empty empty float2sig~ 20 20 2 37 -233017
--1 0;
+#dcdcdc #000000 #000000 0 256;
+#X obj 3 3 cnv 15 301 42 empty empty float2sig~ 20 20 2 37 #e0e0e0
+#000000 0;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1 0 0;
 #X restore 2 3 graph;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 -74965 -212593
--262144 1 1;
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
+#fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
 #N canvas 977 77 379 291 set_color 0;
@@ -107,7 +110,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 -74965 -212593
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -120,8 +123,8 @@
 #X obj 136 86 snapshot~;
 #X obj 91 52 del 5;
 #X obj 136 151 outlet;
-#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 -262144 -1 -1 0
-1;
+#X obj 74 103 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
 #X obj 74 126 switch~;
 #X connect 0 0 2 0;
 #X connect 1 0 3 0;
@@ -141,34 +144,35 @@
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 71 pd;
 #X text 145 330 signal;
-#X obj 106 273 cnv 17 3 17 empty empty 0 5 9 0 16 -228856 -162280 0
+#X obj 106 273 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 248 140 tgl 15 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
-1;
-#X obj 377 165 nbx 5 14 0 1000 0 0 empty empty empty 0 -8 0 10 -228856
--1 -1 0 256;
+#X obj 248 140 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X obj 377 165 nbx 5 14 0 1000 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
 #X text 145 273 float;
 #X text 191 330 - converted signal;
 #X text 191 273 - float value to convert to signal;
-#X obj 161 40 cnv 4 4 4 empty empty signal 0 28 2 18 -233017 -1 0;
+#X obj 161 40 cnv 4 4 4 empty empty signal 0 28 2 18 #e0e0e0 #000000
+0;
 #X text 376 143 ramp time;
 #X text 142 365 1) float - ramp time in ms (default 0);
 #X text 142 382 2) float - initial output value (default 0);
 #X obj 248 195 else/float2sig~ 1000 4;
-#X obj 248 225 else/display~;
 #X text 61 88 [float2sig~] (or [f2s~] for short) converts floats to
 signals. The conversion is smoothened by a ramp time in ms.;
-#X obj 111 189 else/f2s~ 100;
-#X obj 111 161 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
--228856 -1 -1 0 256;
-#X obj 111 220 else/display~;
-#X obj 106 295 cnv 17 3 17 empty empty 1 5 9 0 16 -228856 -162280 0
+#X obj 111 185 else/f2s~ 100;
+#X obj 111 157 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 106 295 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 145 295 float;
 #X text 191 295 - ramp time;
+#X obj 248 224 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 111 213 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 16 0 31 0;
 #X connect 22 0 16 0;
 #X connect 23 0 31 1;
-#X connect 31 0 32 0;
-#X connect 34 0 36 0;
-#X connect 35 0 34 0;
+#X connect 31 0 38 0;
+#X connect 33 0 39 0;
+#X connect 34 0 33 0;

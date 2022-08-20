@@ -28,8 +28,8 @@
 #X obj 135 71 t b f b;
 #X msg 298 129 reset;
 #X msg 77 258 set -1;
-#X obj 196 181 iterate;
-#X obj 298 244 count;
+#X obj 196 181 else/iterate;
+#X obj 298 244 else/count;
 #X connect 0 0 12 0;
 #X connect 1 0 15 0;
 #X connect 2 0 4 1;
@@ -59,8 +59,8 @@
 #X msg 190 106 0 100 200 300 400 500 600 700 800 900 1000 1100 1200
 , f 26;
 #X obj 60 107 route bang list;
-#X obj 60 37 lb 2, f 19;
-#X obj 60 71 args -;
+#X obj 60 37 else/lb 2, f 19;
+#X obj 60 71 else/args -;
 #X connect 1 0 0 0;
 #X connect 2 1 0 0;
 #X connect 3 0 4 0;
@@ -72,8 +72,8 @@
 #X text 266 394 Alexandre Torres Porres (2020);
 #X obj 47 73 route float bypass;
 #X obj 149 137 == 0;
-#X obj 47 177 router 2 1;
-#X obj 269 286 wrap2 0 1200;
+#X obj 47 177 else/router 2 1;
+#X obj 269 286 else/wrap2 0 1200;
 #X obj 442 76 declare -path else;
 #X connect 1 0 21 2;
 #X connect 2 0 1 0;

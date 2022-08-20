@@ -1,0 +1,57 @@
+#N canvas 551 79 987 440 12;
+#X floatatom 258 274 0 0 0 0 - - - 0;
+#X floatatom 261 181 0 0 0 0 - - - 0;
+#X obj 258 247 receive midinote;
+#X obj 517 53 hsl 128 15 0 1 0 0 slider empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 517 84 hsl 128 15 0 1 0 0 empty slider empty -2 -8 0 10 #fcc4c4
+#000000 #000000 0 1;
+#X obj 256 304 receive slider;
+#X floatatom 256 330 5 0 0 0 - - - 0;
+#X text 507 31 built-in send/receive;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X array array4 100 float 2;
+#X coords 0 1 100 -1 200 140 1 0 0;
+#X restore 687 196 graph;
+#X msg 514 114 const \$1;
+#X text 425 195 There are also audio object versions \, but besides
+[send~]/[receive~] and we also have [throw~]/[catch~]. Check their
+help files., f 28;
+#X obj 261 208 send midinote;
+#X msg 792 98 \; array4 const 0.5;
+#X text 583 113 <==========;
+#X text 667 84 send a constant value to all elements =======>, f 18
+;
+#X text 707 15 Arrays can also receive commands from a [send] object
+that has the array's name as the address., f 33;
+#X msg 37 195 \; slider 0.05 \; midinote 56;
+#X obj 458 381 s;
+#X obj 498 381 r;
+#X obj 542 381 s~;
+#X obj 591 381 r~;
+#X text 634 374 (note that [send] without an argument has a second
+inlet for you to set the send name), f 43;
+#X text 29 380 Abbreviations of [send] \, [receive] \, [send~] and
+[receive~]:;
+#X obj 514 143 send array4;
+#X obj 454 284 send~ x;
+#X obj 518 284 receive~ x;
+#X obj 456 316 throw~ y;
+#X obj 527 315 catch~ y;
+#X msg 143 195 \; slider 0.8 \; midinote 77;
+#X text 25 26 The objects [send] and [receive] with the same address
+argument allow cordless connections. They communicate anywhere in a
+patch and also to other patches!, f 64;
+#X text 52 264 By the way: \; Semicolons will always \; break lines
+\, this also \; happens on objects and \; comments!;
+#X text 25 75 A semicolon in messages behaves as a [send] object \,
+which is useful to send things to several places at one click. Native
+atom boxes and GUI objects in Pd also have built in send and receive
+functionalities (some external GUIs also have this feature). You can
+set them in the properties under “Messages”. Right click to get
+into the properties window., f 64;
+#X connect 1 0 11 0;
+#X connect 2 0 0 0;
+#X connect 4 0 9 0;
+#X connect 5 0 6 0;
+#X connect 9 0 23 0;

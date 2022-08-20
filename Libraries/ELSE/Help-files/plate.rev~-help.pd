@@ -1,4 +1,4 @@
-#N canvas 563 23 559 590 10;
+#N canvas 351 40 559 590 10;
 #X obj 3 280 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 3 418 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
@@ -38,7 +38,7 @@
 ;
 #X text 197 447 signal;
 #X text 252 447 - right channel output;
-#N canvas 465 87 935 566 example 0;
+#N canvas 431 87 935 566 example 0;
 #X obj 364 334 catch~ \$0-input;
 #X obj 698 181 throw~ \$0-input;
 #X obj 698 45 adc~ 1;
@@ -90,7 +90,6 @@
 #X obj 403 78 tgl 20 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000 0 1;
 #X text 428 80 play/stop;
-#X obj 403 114 else/play.file~ violin.wav -loop;
 #X obj 364 413 else/plate.rev~;
 #X obj 364 413 else/plate.rev~;
 #X obj 453 207 hsl 128 15 0 1000 0 0 empty \$0-predelayms empty -2
@@ -127,7 +126,8 @@
 #X obj 526 429 s \$0-set;
 #X obj 386 385 r \$0-set;
 #X obj 364 457 else/out~;
-#X connect 0 0 32 0;
+#X obj 403 114 else/play.file~ -loop violin.wav;
+#X connect 0 0 31 0;
 #X connect 2 0 11 0;
 #X connect 3 0 4 0;
 #X connect 5 0 6 0;
@@ -137,36 +137,36 @@
 #X connect 9 0 3 1;
 #X connect 10 0 3 0;
 #X connect 11 0 1 0;
-#X connect 13 0 30 0;
+#X connect 13 0 61 0;
 #X connect 14 0 19 0;
 #X connect 15 0 16 0;
 #X connect 17 0 15 1;
 #X connect 18 0 17 0;
-#X connect 18 0 58 0;
+#X connect 18 0 57 0;
 #X connect 19 0 15 0;
 #X connect 26 0 25 0;
-#X connect 28 0 30 0;
-#X connect 30 0 12 0;
-#X connect 32 0 61 0;
-#X connect 32 1 61 1;
-#X connect 33 0 34 0;
-#X connect 34 0 51 0;
-#X connect 35 0 36 0;
-#X connect 36 0 52 0;
-#X connect 37 0 38 0;
-#X connect 38 0 53 0;
-#X connect 39 0 40 0;
-#X connect 40 0 55 0;
-#X connect 41 0 42 0;
-#X connect 42 0 56 0;
-#X connect 51 0 59 0;
-#X connect 52 0 59 0;
-#X connect 53 0 59 0;
-#X connect 55 0 59 0;
-#X connect 56 0 59 0;
-#X connect 57 0 59 0;
-#X connect 58 0 19 1;
-#X connect 60 0 32 0;
+#X connect 28 0 61 0;
+#X connect 31 0 60 0;
+#X connect 31 1 60 1;
+#X connect 32 0 33 0;
+#X connect 33 0 50 0;
+#X connect 34 0 35 0;
+#X connect 35 0 51 0;
+#X connect 36 0 37 0;
+#X connect 37 0 52 0;
+#X connect 38 0 39 0;
+#X connect 39 0 54 0;
+#X connect 40 0 41 0;
+#X connect 41 0 55 0;
+#X connect 50 0 58 0;
+#X connect 51 0 58 0;
+#X connect 52 0 58 0;
+#X connect 54 0 58 0;
+#X connect 55 0 58 0;
+#X connect 56 0 58 0;
+#X connect 57 0 19 1;
+#X connect 59 0 31 0;
+#X connect 61 0 12 0;
 #X restore 457 242 pd example;
 #X obj 3 3 cnv 15 301 42 empty empty plate.rev~ 20 20 2 37 #e0e0e0
 #000000 0;
@@ -175,7 +175,6 @@
 #X restore 2 3 graph;
 #X obj 68 40 cnv 4 4 4 empty empty reverb 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 189 145 else/play.file~ vacuous.wav 1 1;
 #X text 167 312 pre <float>;
 #X text 149 329 cutoff <float>;
 #X text 161 345 damp <float>;
@@ -201,6 +200,7 @@ f 54;
 #X text 129 528 4) float - room size (0-1) - default 0.75, f 54;
 #X text 129 543 5) float - wet ratio (0-1) - default 0.75, f 54;
 #X obj 189 179 else/plate.rev~;
-#X connect 26 0 46 0;
-#X connect 46 0 40 0;
-#X connect 46 1 40 1;
+#X obj 189 145 else/play.file~ vacuous.wav 1 1;
+#X connect 45 0 39 0;
+#X connect 45 1 39 1;
+#X connect 46 0 45 0;

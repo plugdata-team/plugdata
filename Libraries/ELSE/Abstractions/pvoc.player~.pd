@@ -61,12 +61,12 @@
 #X obj 182 20 inlet;
 #X obj 238 547 outlet;
 #X text 195 548 start;
-#X obj 84 136 click;
-#X obj 521 245 canvas.file 1;
+#X obj 84 136 else/click;
+#X obj 521 245 else/canvas.file 1;
 #X obj 521 213 r \$0-file;
 #X obj 521 275 s \$0-found-file;
 #X obj 297 222 r \$0-found-file;
-#X obj 291 283 canvas.file 1;
+#X obj 291 283 else/canvas.file 1;
 #X msg 626 357 \$1 file not fount;
 #X obj 626 382 print [pvoc.player~];
 #X connect 0 0 8 0;
@@ -186,7 +186,7 @@
 #X obj 175 30 inlet;
 #X obj 130 255 outlet;
 #X obj 96 112 v speed_\$0;
-#X obj 130 189 hot;
+#X obj 130 189 else/hot;
 #X connect 0 0 8 0;
 #X connect 1 0 0 0;
 #X connect 1 0 7 0;
@@ -210,8 +210,8 @@
 #X obj 157 166 r \$0-loop;
 #X obj 161 237 s \$0-finished;
 #X obj 116 124 expr $f1 <= $f2 || $f1 >= $f3, f 15;
-#X obj 116 210 router;
-#X obj 33 124 wrap2;
+#X obj 116 210 else/router;
+#X obj 33 124 else/wrap2;
 #X connect 0 0 10 0;
 #X connect 0 0 12 0;
 #X connect 1 0 0 0;
@@ -228,9 +228,9 @@
 #X connect 11 1 9 0;
 #X connect 12 0 2 0;
 #X restore 131 290 pd +;
-#X obj 212 301 samps2ms;
-#X obj 332 169 cents2ratio;
-#X obj 332 221 hot;
+#X obj 212 301 else/samps2ms;
+#X obj 332 169 else/cents2ratio;
+#X obj 332 221 else/hot;
 #X connect 0 0 17 0;
 #X connect 1 0 7 0;
 #X connect 2 0 9 0;
@@ -304,7 +304,7 @@
 #X obj 70 287 pack symbol float;
 #X obj 169 212 expr 20 + 110 * $f1;
 #X msg 70 314 obj \$2 50 table \$1;
-#X obj 43 111 loop;
+#X obj 43 111 else/loop;
 #X connect 0 0 14 0;
 #X connect 1 0 2 0;
 #X connect 2 0 1 1;
@@ -356,7 +356,7 @@
 #X obj 121 316 != 0;
 #X obj 121 344 v autostart_\$0;
 #X obj 154 289 v loop_\$0;
-#X obj 205 206 routetype anything;
+#X obj 205 206 else/routetype anything;
 #X connect 0 0 11 0;
 #X connect 3 0 12 0;
 #X connect 3 1 14 0;
@@ -407,26 +407,26 @@
 #X obj 382 297 s \$0-set-range;
 #X msg 349 180 0 1;
 #X obj 99 226 route bang -loop -speed -transp -range;
-#X obj 99 179 break -;
-#X obj 99 117 args;
+#X obj 99 179 else/break -;
+#X obj 99 117 else/args;
 #X text 451 96 -speed <float>: sets playing speed (default 100);
 #X text 445 112 -transp <float>: sets transposition in cents (default
 0);
 #X text 504 129 -loop: turns loop mode on (default off), f 46;
-#X obj 325 274 rotate -2;
+#X obj 325 274 else/rotate -2;
 #X obj 325 297 slice -2;
 #X obj 325 318 s \$0-reroute;
 #X obj 111 202 r \$0-reroute;
 #X obj 320 387 s \$0-reroute;
-#X obj 320 343 rotate -1;
+#X obj 320 343 else/rotate -1;
 #X obj 320 366 slice -1;
 #X obj 198 370 s \$0-reroute;
-#X obj 198 326 rotate -1;
+#X obj 198 326 else/rotate -1;
 #X obj 198 349 slice -1;
 #X obj 102 362 route bang;
 #X obj 159 384 t a b;
 #X obj 72 148 t b a;
-#X obj 639 315 canvas.file 1;
+#X obj 639 315 else/canvas.file 1;
 #X msg 664 347 \$1 file not fount;
 #X obj 664 372 print [pvoc.player~];
 #X connect 0 0 7 0;
@@ -504,7 +504,7 @@
 #X obj 50 188 pack float float float float \$0;
 #X obj 68 60 v ch_\$0;
 #X obj 68 85 trigger float float float;
-#X obj 340 128 loop;
+#X obj 340 128 else/loop;
 #X obj 341 232 pack float float float float;
 #X obj 341 303 s \$0-patch;
 #X obj 396 205 + 4;
@@ -513,7 +513,7 @@
 #X obj 141 158 + 5;
 #X msg 50 215 obj \$4 175 r \$5-finished \, obj \$4 200 outlet \, connect
 \$2 0 \$3 0, f 44;
-#X msg 341 259 obj \$4 175 pvoc~ ch\$1 \, obj \$4 200 outlet~
+#X msg 341 259 obj \$4 175 else/pvoc~ ch\$1 \, obj \$4 200 outlet~
 \, connect \$2 0 \$3 0, f 47;
 #X obj 506 184 expr 20 + 100 * $f1;
 #X obj 187 140 expr 20 + 100 * $f1;
@@ -578,14 +578,14 @@
 #X connect 12 0 11 0;
 #X connect 13 0 14 0;
 #X restore 119 133 pd initialize;
-#X obj 72 31 loadbanger -init 2, f 24;
+#X obj 72 31 else/loadbanger -init 2, f 24;
 #X obj 119 106 loadbang;
 #X connect 3 0 1 0;
 #X connect 3 1 0 0;
 #X connect 4 0 2 0;
 #X restore 72 175 pd dynamic-patching;
 #X text 214 128 https://github.com/porres/pd-else, f 36;
-#X obj 228 175 canvas.setname \$0-patch 1;
+#X obj 228 175 else/canvas.setname \$0-patch 1;
 #X text 214 100 Alexandre Torres Porres (2018-2022) \; Part of ELSE:
 ;
 #X obj 254 79 declare -path else;

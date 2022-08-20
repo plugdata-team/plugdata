@@ -1,0 +1,35 @@
+#N canvas 392 42 748 638 12;
+#X declare -path else;
+#X obj 380 349 out~;
+#X obj 38 350 out~;
+#X obj 38 150 noise~;
+#X obj 585 16 declare -path else;
+#X text 92 529 The [pink~] object allows you to set the number of octaves
+\, where 1 makes it a single frequency band of noise \, which is plain
+white noise. For each extra octave \, the bandwidth is split in half
+and the new octaves are 3dB lower than the previous lower octave. The
+maximum number of extra octaves is 40 and the default depends on the
+sample rate \, and it is so that the lowest octave starts around 20hz
+(a sample rate of 44100 gives us 12 octaves)., f 82;
+#X floatatom 380 131 5 1 40 0 - - - 0;
+#X text 445 131 number of octaves;
+#X obj 380 161 pink~;
+#X text 92 430 [pink~] generating pink noise with the Voss-McCartney
+algorithm \, where you mix a bunch of band limited white noises (we'll
+see more about noise band limiting later). A frequancy band limited
+noise has all frequencies withing a frequency band from 0Hz to the
+bandwidth. By adding different band limitded noises with different
+bandwidths you end up adding more energy in the lower range and we
+do this so it decays 3dB per octave., f 82;
+#X obj 400 194 spectrograph~ 1024 1 0 300 140 100;
+#X text 438 156 ("1" is white noise);
+#X obj 60 194 spectrograph~ 1024 1 0 300 140 100;
+#X text 93 61 The [pink~] object is a pink noise generator. Unlike
+white noise \, pink noise has a decay of energy in the higher frequency
+range. It falls about 3 dB per octave. Compare both below \, check
+[pink~]'s help file., f 77;
+#X connect 2 0 1 0;
+#X connect 2 0 11 0;
+#X connect 5 0 7 0;
+#X connect 7 0 0 0;
+#X connect 7 0 9 0;

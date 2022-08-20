@@ -1,0 +1,75 @@
+#N canvas 425 91 941 481 12;
+#X declare -path else;
+#X obj 577 248 sine~;
+#X obj 626 248 *~;
+#X obj 664 234 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 608 324 *~;
+#X obj 577 146 *~;
+#X obj 624 116 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 553 60 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-carrier empty 0 -8
+0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 553 321 +~;
+#X obj 553 362 sine~;
+#X obj 553 399 out~;
+#X obj 667 210 hsl 128 15 1 10 0 0 empty \$0-index empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 627 87 hsl 128 15 0.5 2 0 0 empty \$0-ratio empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 328 29 declare -path else;
+#X obj 624 143 f2s~ 10 0.5;
+#X text 639 324 <= Deviation is the amplitude of the modulator oscillator.
+, f 30;
+#X obj 664 258 f2s~ 10;
+#X obj 553 97 f2s~ 10;
+#X text 40 63 We've seen how to generate FM patches that produce the
+same result as PM for didactical purposes only \, as it is not quite
+practical to do that (just use PM if that's what you want). But note
+that the 'classical' way to implement FM relates to how PM behaves
+\, let's check it out., f 64;
+#X text 40 146 As we've seen before \, if we want the FM to behave
+like PM with the same parameters \, we need to multiply the modulator
+frequency by the modulation index. We also need to do more things \,
+like multiply by 2pi in the case os sinusoids \, but nonetheless \,
+this alone makes FM behave more closely to PM., f 64;
+#X text 638 297 <= Peak Deviation (Index * ModFreq);
+#X text 40 225 And actually \, the proper definition of modulation
+index for FM (as noted before) is that it is the ratio between the
+Peak deviation and modulation frequency:, f 64;
+#X text 154 362 Peak Frequency Deviation = Index * ModFreq;
+#X text 39 308 It is the 'peak' deviation because this is the 'peak'
+or maximum amplitude of the modulator oscillator \, that we then multiply
+by the modulator oscillator. So \, on the other hand:, f 64;
+#X text 81 277 Modulation Index = Peak Frequency Deviation / ModFreq
+;
+#X text 40 397 Since the index for phase modulation is the same as
+the peak phase deviation. This is clearly a special case for FM so
+it relates to Phase Modulation., f 64;
+#X text 614 57 <= Carrier Frequency;
+#X text 684 113 <= Harmonic Ratio;
+#X text 650 177 <= Modulation Frequency;
+#X text 807 222 Deviation;
+#X text 816 243 ModFreq;
+#X text 805 227 __________;
+#X text 722 233 <== Index =;
+#X obj 728 383 initmess \; \$0-carrier 200 \; \$0-ratio 0.5 \; \$0-index
+5;
+#X obj 577 177 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 3 0;
+#X connect 1 0 3 1;
+#X connect 2 0 15 0;
+#X connect 3 0 7 1;
+#X connect 4 0 33 0;
+#X connect 5 0 13 0;
+#X connect 6 0 16 0;
+#X connect 7 0 8 0;
+#X connect 8 0 9 0;
+#X connect 10 0 2 0;
+#X connect 11 0 5 0;
+#X connect 13 0 4 1;
+#X connect 15 0 1 1;
+#X connect 16 0 4 0;
+#X connect 16 0 7 0;
+#X connect 33 0 0 0;
+#X connect 33 0 1 0;

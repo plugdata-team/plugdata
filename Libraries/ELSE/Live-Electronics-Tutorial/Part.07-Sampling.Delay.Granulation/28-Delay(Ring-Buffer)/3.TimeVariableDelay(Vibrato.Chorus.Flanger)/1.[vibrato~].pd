@@ -1,0 +1,61 @@
+#N canvas 504 23 638 639 12;
+#X declare -path else;
+#X obj 347 198 nbx 5 14 0.1 20 0 0 empty \$0-LFO empty 0 -8 0 10 -228856
+-1 -1 0.1 256;
+#X text 347 180 Rate;
+#X obj 428 198 nbx 5 14 0 200 0 0 empty \$0-depth empty 0 -8 0 10 -228856
+-1 -1 0 256;
+#X text 435 179 Depth;
+#X obj 266 287 ffdelay~ 200;
+#X obj 347 254 rescale~ 0, f 12;
+#X obj 347 226 osc~ 0.5;
+#X obj 428 226 f2s~ 10 10;
+#X obj 247 342 xfade~;
+#X obj 247 378 out~;
+#X obj 375 321 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X text 510 319 vibrato;
+#X text 305 319 original;
+#X text 406 319 dry/wet;
+#X obj 372 345 f2s~ 10 -1;
+#X obj 417 479 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 496 479 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 423 459 rate;
+#X text 503 459 depth;
+#X obj 75 307 s~ \$0-in;
+#X obj 338 466 r~ \$0-in;
+#X obj 338 505 vibrato~ 3 30, f 23;
+#X obj 338 545 out~;
+#X text 554 475 cents;
+#X text 59 483 The [vibrato~] object \, an abstraction from ELSE \,
+is actually based on a granular pitch shifter \, that we'll see later.
+Here it performs a vibrato where the depth is the pitch deviation in
+cents., f 35;
+#X obj 419 10 declare -path else;
+#X obj 75 217 play.file~ guitar.wav 1 1;
+#X text 88 53 Varying the delay time can be used for vibrato \, chorus
+and flanger effects. In this example a LFO controls the delay time
+\, which ascellerates and deascelerates the reading speed \, promoting
+a vibrato effect. The LFO's frequency is the vibrato "rate" \, and
+its amplitude the "depth". A crossfade allows you to mix between the
+original (or dry) and processed (or wet) output. When in the middle
+and summing both of them \, you get a bit of a chorus effect., f 62
+;
+#X connect 0 0 6 0;
+#X connect 2 0 7 0;
+#X connect 4 0 8 1;
+#X connect 5 0 4 1;
+#X connect 6 0 5 0;
+#X connect 7 0 5 2;
+#X connect 8 0 9 0;
+#X connect 10 0 14 0;
+#X connect 14 0 8 2;
+#X connect 15 0 21 1;
+#X connect 16 0 21 2;
+#X connect 20 0 21 0;
+#X connect 21 0 22 0;
+#X connect 26 0 4 0;
+#X connect 26 0 8 0;
+#X connect 26 0 19 0;

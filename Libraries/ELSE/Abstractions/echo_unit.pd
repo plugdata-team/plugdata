@@ -8,7 +8,7 @@
 #X obj 139 179 outlet~;
 #X obj 214 98 r \$2-size;
 #X obj 214 125 expr pow(\$1 \, $f1);
-#X obj 139 150 ffdelay~;
+#X obj 139 150 else/ffdelay~;
 #X obj 212 60 declare -path else;
 #X connect 0 0 4 0;
 #X connect 1 0 8 0;

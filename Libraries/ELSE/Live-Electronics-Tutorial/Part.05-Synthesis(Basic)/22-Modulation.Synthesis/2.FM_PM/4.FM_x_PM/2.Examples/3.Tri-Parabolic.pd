@@ -1,0 +1,87 @@
+#N canvas 373 49 823 615 12;
+#X declare -path else;
+#X obj 467 413 *~;
+#X obj 197 153 nbx 5 14 -1e+37 1e+37 0 0 empty moduladora empty 0 -8
+0 10 -228856 -1 -1 0 256;
+#X obj 351 180 nbx 8 14 -1e+37 1e+37 0 0 empty index_pm empty 0 -8
+0 10 -261682 -1 -1 0 256;
+#X obj 197 188 t b f;
+#X obj 250 185 v mod;
+#X obj 229 218 s \$0-mod;
+#X obj 467 361 r \$0-mod;
+#X obj 75 371 r \$0-mod;
+#X obj 449 439 +~;
+#X obj 78 181 nbx 5 14 -1e+37 1e+37 0 0 empty portadora empty 0 -8
+0 10 -228856 -1 -1 0 256;
+#X obj 78 210 s \$0-carrier;
+#X obj 449 334 r \$0-carrier;
+#X obj 43 344 r \$0-carrier;
+#X obj 351 208 s \$0-i_pm;
+#X obj 460 180 nbx 8 14 -1e+37 1e+37 0 0 empty index_fm empty 0 -8
+0 10 -261234 -1 -1 0 256;
+#X obj 460 208 s \$0-i_fm;
+#X obj 247 379 r \$0-i_fm;
+#X floatatom 247 438 0 0 0 0 - - -;
+#X obj 169 399 r \$0-i_pm;
+#X obj 614 353 r \$0-i_pm;
+#X floatatom 614 404 0 0 0 0 - - -;
+#X obj 531 399 r \$0-i_fm;
+#X obj 467 389 tri~;
+#X obj 449 466 sine~;
+#X obj 43 486 sine~;
+#X obj 43 528 out~;
+#X obj 449 503 out~;
+#X obj 169 441 f2s~ 50;
+#X obj 531 440 f2s~ 50;
+#X text 75 153 Carrier;
+#X text 194 130 Mod;
+#X text 355 155 PM index;
+#X text 464 155 FM index;
+#X obj 247 404 expr $f1 / (8 * mod);
+#X obj 614 378 expr $f1 * (8 * mod);
+#X obj 75 410 parabolic~ 0 0.75, f 10;
+#X obj 75 456 *~;
+#X text 31 307 Phase Modulation (Parabolic Modulator);
+#X obj 197 248 s index_pm;
+#X msg 247 465 \; index_pm set \$1;
+#X msg 614 433 \; index_fm set \$1;
+#X obj 611 174 initmess \; \$0-carrier 440 \; \$0-mod 1 \; \$0-index_pm
+5;
+#X text 44 58 For a triangular wave as the frequency modulation signal
+we need a parabolic wave as the PM signal for equivalency., f 38;
+#X obj 62 21 declare -path else;
+#X text 365 38 Instead of mathematically deriving a parabola from the
+input \, we're now using the [parabolic~] oscillator from ELSE. We
+need an initial phase adjustment besides an index adjustment. The index
+adjustment follows the same principle as the last example., f 55;
+#X text 436 305 Frequency Modulation (Triangular Modulator);
+#X connect 0 0 8 1;
+#X connect 1 0 3 0;
+#X connect 2 0 13 0;
+#X connect 3 0 38 0;
+#X connect 3 1 4 0;
+#X connect 3 1 5 0;
+#X connect 6 0 22 0;
+#X connect 7 0 35 0;
+#X connect 8 0 23 0;
+#X connect 9 0 10 0;
+#X connect 11 0 8 0;
+#X connect 12 0 24 0;
+#X connect 14 0 15 0;
+#X connect 16 0 33 0;
+#X connect 17 0 39 0;
+#X connect 18 0 27 0;
+#X connect 19 0 34 0;
+#X connect 20 0 40 0;
+#X connect 20 0 28 0;
+#X connect 21 0 28 0;
+#X connect 22 0 0 0;
+#X connect 23 0 26 0;
+#X connect 24 0 25 0;
+#X connect 27 0 36 1;
+#X connect 28 0 0 1;
+#X connect 33 0 17 0;
+#X connect 33 0 27 0;
+#X connect 34 0 20 0;
+#X connect 35 0 36 0;
+#X connect 36 0 24 2;

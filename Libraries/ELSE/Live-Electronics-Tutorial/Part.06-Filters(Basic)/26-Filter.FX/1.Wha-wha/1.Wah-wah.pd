@@ -1,0 +1,48 @@
+#N canvas 552 55 555 572 12;
+#X declare -path else;
+#X floatatom 324 391 5 0 0 0 - - -;
+#X obj 158 287 hsl 128 15 0.1 5 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 155 314 5 0 0 0 - - -;
+#X obj 228 313 hsl 128 15 50 500 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 272 335 hsl 128 15 1000 3000 1 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X floatatom 269 359 5 0 0 0 - - -;
+#X floatatom 225 339 5 0 0 0 - - -;
+#X obj 327 362 hsl 128 15 1 15 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 172 425 vcf~ 10;
+#X obj 155 336 osc~ 1.5;
+#X text 464 360 Q;
+#X text 295 286 LFO rate;
+#X text 133 312 Hz;
+#X obj 172 459 drive~;
+#X obj 172 498 out~;
+#X obj 195 362 rescale~ 500 2000, f 9;
+#X text 372 311 Min Freq.;
+#X text 412 332 Max Freq.;
+#X text 74 118 Here we have an LFO controlling this frequency instead
+of a pedal. You can try with other filters \, but here we use [vcf~]
+and also have a [drive~] unit \, cause it sounded alright like that.
+Besides an LFO rate/frequency and filter Q \, we also have controls
+for the minimum and maximum frequency in the filter sweep., f 57;
+#X obj 374 18 declare -path else;
+#X obj 59 250 play.file~ wha-guitar.wav 1 1;
+#X text 68 62 The Wah-wah effect stompbox is quite known around and
+used in psychodelic rock and stuff. In short \, it's nothing but a
+lowpass "filter sweep" where a pedal controls the cutoff.;
+#X connect 0 0 8 2;
+#X connect 1 0 2 0;
+#X connect 2 0 9 0;
+#X connect 3 0 6 0;
+#X connect 4 0 5 0;
+#X connect 5 0 15 2;
+#X connect 6 0 15 1;
+#X connect 7 0 0 0;
+#X connect 8 0 13 0;
+#X connect 8 1 13 0;
+#X connect 9 0 15 0;
+#X connect 13 0 14 0;
+#X connect 15 0 8 1;
+#X connect 20 0 8 0;

@@ -9,16 +9,12 @@
 0;
 #X obj 110 349 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X floatatom 186 187 5 0 0 0 - - - 0;
-#X floatatom 284 191 5 0 0 0 - - - 0;
-#X msg 239 136 list x y z;
-#X symbolatom 139 163 10 0 0 0 - - - 0;
-#X msg 207 135 a;
+#X floatatom 296 188 5 0 0 0 - - - 0;
 #X obj 110 292 cnv 17 3 36 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 132 293 anything;
 #X text 132 414 1) float;
-#X msg 263 168 symbol hi;
+#X msg 284 139 symbol hi;
 #X obj 308 3 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #X obj 347 10 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -52,26 +48,30 @@
 #X text 191 414 - 'n' number of inlets (default 2 \, min 2 / max 255)
 ;
 #X text 156 313 bang;
-#X obj 107 163 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#X obj 128 147 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X text 193 313 - outputs last composed message, f 42;
 #X msg 348 190 2 3 4;
 #X text 155 348 list;
 #X msg 333 163 cis boom bah;
-#X text 83 87 [merge] takes any type of messages in any inlet and combines
-them into a list., f 47;
 #X obj 5 377 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
 0;
 #X text 209 384 -trim: trims list selector;
 #X text 191 432 - non-zero makes all inlets hot (default 0);
 #X obj 186 219 else/merge -trim 4 1, f 25;
-#X connect 5 0 41 0;
-#X connect 6 0 41 2;
-#X connect 7 0 41 1;
-#X connect 8 0 41 0;
-#X connect 9 0 41 1;
-#X connect 13 0 41 2;
-#X connect 32 0 41 0;
-#X connect 34 0 41 3;
-#X connect 36 0 41 3;
-#X connect 41 0 26 0;
+#X text 83 87 [merge] takes any type of messages in any inlet and combines
+them into a message., f 52;
+#X symbolatom 201 174 10 0 0 0 - - - 0;
+#X msg 186 149 list x y z;
+#X msg 154 148 a;
+#X listbox 235 198 7 0 0 0 - - - 0;
+#X connect 5 0 36 2;
+#X connect 9 0 36 2;
+#X connect 28 0 36 0;
+#X connect 30 0 36 3;
+#X connect 32 0 36 3;
+#X connect 36 0 22 0;
+#X connect 38 0 36 0;
+#X connect 39 0 36 0;
+#X connect 40 0 36 0;
+#X connect 41 0 36 1;

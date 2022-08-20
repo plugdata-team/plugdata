@@ -1,0 +1,88 @@
+#N struct 1082-DS float x float y float n;
+#N canvas 494 76 872 563 12;
+#X declare -path else;
+#X obj 174 153 pointer;
+#X obj 51 27 loadbang;
+#N canvas 521 340 439 197 template 0;
+#X obj 91 74 struct \$0-DS float x float y float n;
+#X obj 87 127 drawnumber n;
+#X text 185 128 Drawing instruction for "n";
+#X text 61 31 Data Structure named "\$0-DS" holding a pair of coordinates
+"x/y" and float called "n", f 43;
+#X restore 338 181 pd template;
+#X obj 51 383 nbx 5 16 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X obj 179 443 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc
+#000000 #000000 0 256;
+#X obj 276 444 nbx 3 16 0 127 0 0 empty empty empty 0 -8 0 12 #dcdcdc
+#000000 #000000 0 256;
+#X obj 249 473 hot;
+#X msg 267 414 set \$1;
+#X text 153 441 "x";
+#X text 245 443 "y";
+#X obj 51 53 bng 17 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X msg 51 129 127 64 64;
+#X obj 51 350 get \$0-DS n;
+#X obj 51 416 set \$0-DS n;
+#X text 20 383 "n";
+#X obj 179 386 get \$0-DS x y;
+#X obj 249 506 set \$0-DS x y, f 15;
+#X obj 51 183 append \$0-DS n x y;
+#X obj 51 292 pointer;
+#X obj 68 260 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
+#000000;
+#X text 87 258 <= send pointer again;
+#X text 473 399 If you click on the data structure and edit the value
+of the float \, or also drag it around \, you can resend the pointer
+to get the new values by clicking on the bang connected to the [pointer]
+object., f 47;
+#X text 57 220 <= Added Data Structure's pointer;
+#X msg 308 51 clear \, vis 1;
+#X obj 308 78 s pd-\$0-display;
+#N canvas 306 221 161 169 \$0-display 1;
+#X scalar 1082-DS 64 64 127 \;;
+#X restore 338 206 pd \$0-display;
+#X text 476 232 Note that the [pointer] object can also be used as
+a storage object \, so it can store and resend a pointer it received
+earlier., f 47;
+#X obj 555 62 declare -path else;
+#X obj 174 110 message traverse pd-\$0-display \, bang, f 31;
+#X obj 51 79 trigger bang bang bang, f 33;
+#X obj 51 322 trigger pointer pointer pointer, f 37;
+#X text 475 295 The [trigger] object also deals with pointers and we
+use it to send the pointer to the [set] and [get] objects. Check how
+[get \$0-DS n] gets the value from "n" \, and how you can set the value
+of 'n' with [set \$0-DS n]. The same can be done for the x/y coordinates
+values., f 47;
+#X text 476 135 In this example we'll "get" and "set" the values of
+the Data Structure's template \, which is the float value and its coordinates.
+This is done with the [get] and [set] objects. They need a pointer
+to the data structure \, which is given by the outlet of [append].
+, f 47;
+#X connect 0 0 17 3;
+#X connect 1 0 10 0;
+#X connect 3 0 13 0;
+#X connect 4 0 6 0;
+#X connect 5 0 6 1;
+#X connect 6 0 16 0;
+#X connect 6 1 16 1;
+#X connect 7 0 5 0;
+#X connect 7 0 6 1;
+#X connect 10 0 29 0;
+#X connect 11 0 17 0;
+#X connect 12 0 3 0;
+#X connect 15 0 4 0;
+#X connect 15 1 7 0;
+#X connect 17 0 18 0;
+#X connect 18 0 30 0;
+#X connect 19 0 18 0;
+#X connect 23 0 24 0;
+#X connect 28 0 0 0;
+#X connect 29 0 11 0;
+#X connect 29 1 28 0;
+#X connect 29 2 23 0;
+#X connect 30 0 12 0;
+#X connect 30 1 13 1;
+#X connect 30 1 15 0;
+#X connect 30 2 16 2;

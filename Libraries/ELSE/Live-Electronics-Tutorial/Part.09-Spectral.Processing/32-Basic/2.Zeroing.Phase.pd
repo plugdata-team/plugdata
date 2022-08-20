@@ -1,0 +1,108 @@
+#N canvas 567 83 564 645 12;
+#X declare -path else;
+#X obj 206 318 osc~ 0.1;
+#X text 95 293 sample;
+#X text 97 314 synth;
+#X obj 283 394 noise~;
+#X obj 206 395 bl.saw~;
+#X obj 156 543 out~;
+#X obj 317 565 nbx 5 14 64 1e+37 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 2048 256;
+#X obj 317 517 hradio 15 1 0 8 empty \$0-set-window empty 0 -8 0 10
+-228856 -1 -1 5;
+#X obj 317 540 expr pow(2 \, $f1 + 6);
+#N canvas 344 26 427 302 Window 0;
+#X obj 102 160 s \$0-set-block;
+#X msg 102 133 set \$1 \$2;
+#X obj 175 102 v overlap_\$0;
+#X obj 79 51 inlet;
+#X obj 156 58 inlet;
+#X obj 102 104 pack2;
+#X obj 230 163 initmess \; \$0-set-window 5 \; \$0-overlap-set 4;
+#X connect 1 0 0 0;
+#X connect 3 0 5 0;
+#X connect 4 0 5 1;
+#X connect 4 0 2 0;
+#X connect 5 0 1 0;
+#X coords 0 0 1 1 120 60 0;
+#X restore 317 590 pd Window;
+#X obj 388 587 nbx 2 14 1 1e+37 0 1 \$0-overlap \$0-overlap-set empty
+0 -8 0 10 -228856 -1 -1 4 256;
+#X text 419 586 overlaps;
+#X text 375 562 window size;
+#N canvas 585 118 475 545 Zero-Phase 0;
+#X obj 64 452 outlet~;
+#X obj 64 47 inlet~;
+#X obj 227 137 block~;
+#X obj 227 110 r \$0-set-block;
+#X obj 64 351 hann~;
+#X obj 64 126 hann~;
+#X obj 64 408 *~;
+#X obj 125 373 expr 1 / ($f1 * overlap_\$0 * 0.375);
+#X obj 125 341 blocksize~;
+#X obj 64 164 rfft~;
+#X obj 64 311 rifft~;
+#X obj 64 220 car2pol~;
+#X obj 64 274 pol2car~;
+#X obj 142 48 inlet;
+#X obj 142 194 expr 1 - $f1;
+#X floatatom 142 222 5 0 0 0 - - -;
+#X obj 161 160 lb;
+#X obj 117 247 *~;
+#X text 150 248 <= phase information;
+#X connect 1 0 5 0;
+#X connect 3 0 2 0;
+#X connect 4 0 6 0;
+#X connect 5 0 9 0;
+#X connect 6 0 0 0;
+#X connect 7 0 6 1;
+#X connect 8 0 7 0;
+#X connect 9 0 11 0;
+#X connect 9 1 11 1;
+#X connect 10 0 4 0;
+#X connect 11 0 12 0;
+#X connect 11 1 17 0;
+#X connect 12 0 10 0;
+#X connect 12 1 10 1;
+#X connect 13 0 14 0;
+#X connect 14 0 15 0;
+#X connect 15 0 17 1;
+#X connect 16 0 14 0;
+#X connect 17 0 12 1;
+#X restore 156 496 pd Zero-Phase;
+#X text 96 333 noise;
+#X obj 206 354 rescale~ 40 800;
+#X text 72 61 This is a very simple spectral process that only removes
+the initial phase information. It's been noted that the initial phase
+codifies the tonal information and this example proves it.;
+#X text 72 126 Without the initial phase changes from one frame to
+another \, we just have the FFT's harmonic series as a result. This
+is why FFT resynthesis has more to do with granular synthesis than
+additive synthesis.;
+#X obj 244 468 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 75 294 vradio 18 1 0 3 empty empty empty 0 -8 0 10 -228856 -1
+-1 2;
+#X obj 75 362 + 1;
+#X obj 156 424 xselect~ 3 10 1;
+#X text 270 468 <= zero phase;
+#X text 76 193 Click the toggle to remove the phase information and
+see how the original tonal quality is lost and we just hear the same
+harmonic series as a result. Try different input sources.;
+#X text 85 497 click =>;
+#X obj 368 23 declare -path else;
+#X obj 156 282 play.file~ 1 kantele.wav 1 1;
+#X connect 0 0 15 0;
+#X connect 3 0 21 2;
+#X connect 4 0 21 1;
+#X connect 6 0 9 0;
+#X connect 7 0 8 0;
+#X connect 8 0 6 0;
+#X connect 10 0 9 1;
+#X connect 13 0 5 0;
+#X connect 15 0 4 0;
+#X connect 18 0 13 1;
+#X connect 19 0 20 0;
+#X connect 20 0 21 0;
+#X connect 21 0 13 0;
+#X connect 26 0 21 0;

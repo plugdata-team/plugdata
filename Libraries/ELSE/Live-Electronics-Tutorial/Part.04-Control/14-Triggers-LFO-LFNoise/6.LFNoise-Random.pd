@@ -1,0 +1,114 @@
+#N canvas 312 72 968 513 12;
+#X declare -path else;
+#X obj 89 253 *~;
+#X obj 59 214 osc~;
+#X obj 262 230 osc~;
+#X obj 59 141 rampnoise~ 5;
+#X obj 59 173 rescale~ 500 1500;
+#X obj 262 191 rescale~ 500 1500;
+#X obj 262 153 stepnoise~ 7;
+#X obj 107 217 rampnoise~ 3;
+#X obj 262 123 nbx 5 17 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X obj 59 112 nbx 5 17 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X obj 707 296 display;
+#X obj 807 296 display;
+#X obj 807 220 impulse 1;
+#X obj 808 366 impulse~ 1;
+#X obj 345 440 lfnoise~;
+#X text 143 432 [lfnoise~] can generate ==> both ramps or step values
+, f 27;
+#X obj 89 290 plate.rev~ 50 0.6 0.25 0.8 0.666, f 18;
+#X obj 262 268 plate.rev~ 50 0.6 0.25 0.8 0.666, f 18;
+#X obj 705 413 rand.i~ 10 20;
+#X obj 808 413 rand.f~ 10 20;
+#X obj 707 262 rand.i 10 20;
+#X obj 807 262 rand.f 10 20;
+#X text 21 22 Noise generators with low frequencies can be used as
+random controls in patches and replace random number generators. Below
+we have random ramps in the left and random steps in the right. And
+why not add some reverb so just it sounds cooler? See the [plate.rev~]
+object from ELSE., f 63;
+#X obj 792 20 declare -path else;
+#X floatatom 496 188 5 0.1 10 0 - - - 0;
+#X obj 499 238 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 496 260 rescale 500 1500;
+#X obj 470 309 bp~ 0 10;
+#X obj 442 238 noise~;
+#X obj 470 346 out~;
+#X obj 496 286 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 496 212 lfnoise 0.5 1;
+#N canvas 508 120 525 301 random 0;
+#X obj 92 81 metro 500;
+#X obj 92 54 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000 #000000
+0 1;
+#X obj 92 219 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 92 158 pack float 500;
+#X obj 92 27 loadbang;
+#X obj 95 246 hsl 128 15 0 127 0 0 empty empty empty -2 -8 0 10 #dcdcdc
+#000000 #000000 0 1;
+#X obj 92 112 random 128;
+#X obj 92 188 line 0 5;
+#X obj 187 52 nbx 3 14 -1e+37 1e+37 0 0 empty empty ms 0 -8 0 12 #dcdcdc
+#000000 #000000 0 256;
+#X obj 92 136 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 242 112 How to implement a "ramp noise" with [random] and [line].
+, f 31;
+#X connect 0 0 6 0;
+#X connect 1 0 0 0;
+#X connect 2 0 5 0;
+#X connect 3 0 7 0;
+#X connect 4 0 1 0;
+#X connect 6 0 9 0;
+#X connect 7 0 2 0;
+#X connect 8 0 3 1;
+#X connect 8 0 0 1;
+#X connect 9 0 3 0;
+#X restore 675 203 pd random;
+#X obj 554 421 stepnoise;
+#X obj 553 445 rampnoise;
+#X text 470 435 see also:;
+#X obj 281 321 out~;
+#X obj 104 343 out~;
+#X text 502 61 The native object [random] is a random number generator.
+You could use it to generate random control values and even random
+ramps (check [pd random] below). The ELSE library also has a [lfnoise]
+control object for both step and ramp noises - as well as [stepnoise]
+and [rampnoise]. The ELSE library also has [rand.i]/[rand.f] and [rand.i~]/[rand.f~]
+objects for random number generation., f 63;
+#X obj 808 449 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 705 449 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 16 0;
+#X connect 1 0 0 0;
+#X connect 2 0 17 0;
+#X connect 3 0 4 0;
+#X connect 4 0 1 0;
+#X connect 5 0 2 0;
+#X connect 6 0 5 0;
+#X connect 7 0 0 1;
+#X connect 8 0 6 0;
+#X connect 9 0 3 0;
+#X connect 12 0 20 0;
+#X connect 12 0 21 0;
+#X connect 13 0 18 0;
+#X connect 13 0 19 0;
+#X connect 16 0 37 0;
+#X connect 16 1 37 1;
+#X connect 17 0 36 0;
+#X connect 17 1 36 1;
+#X connect 18 0 40 0;
+#X connect 19 0 39 0;
+#X connect 20 0 10 0;
+#X connect 21 0 11 0;
+#X connect 24 0 31 0;
+#X connect 25 0 26 0;
+#X connect 26 0 30 0;
+#X connect 27 0 29 0;
+#X connect 28 0 27 0;
+#X connect 30 0 27 1;
+#X connect 31 0 25 0;

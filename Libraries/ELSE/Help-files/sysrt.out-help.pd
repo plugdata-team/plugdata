@@ -44,7 +44,7 @@
 #X obj 280 218 else/display;
 #X obj 280 252 midiout;
 #X obj 280 188 else/sysrt.out, f 15;
-#X msg 123 145 clock;
+#X msg 94 145 clock;
 #X msg 174 145 start;
 #X msg 219 145 continue;
 #X msg 280 145 stop;
@@ -56,8 +56,9 @@ messages., f 49;
 #X text 204 343 raw MIDI messages, f 31;
 #X text 125 303 anything;
 #X text 189 304 -;
-#X text 204 303 clock \, start \, continue \, stop \, sensing and reset
-generate MIDI messages, f 47;
+#X msg 137 145 tick;
+#X text 204 303 clock \, tick \, start \, continue \, stop \, sensing
+and reset: generate real time MIDI messages, f 47;
 #X connect 21 0 22 0;
 #X connect 23 0 21 0;
 #X connect 24 0 23 0;
@@ -66,3 +67,4 @@ generate MIDI messages, f 47;
 #X connect 27 0 23 0;
 #X connect 28 0 23 0;
 #X connect 29 0 23 0;
+#X connect 35 0 23 0;

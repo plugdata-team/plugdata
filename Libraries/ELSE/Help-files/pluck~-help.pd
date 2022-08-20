@@ -75,12 +75,12 @@ Atrigger happens when there is a 0 to non 0 transition \, and this
 values determines the amplitude., f 46;
 #X obj 415 98 else/rand.i 28 56, f 11;
 #X obj 337 98 else/rand.i 50 127, f 11;
-#X obj 95 180 else/display~;
 #X obj 67 101 else/tempo~ -on 120;
 #X text 331 22 Using MIDI or control data for triggering:, f 26;
+#X obj 95 180 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 1 0 2 0;
 #X connect 1 0 6 0;
-#X connect 2 0 13 0;
+#X connect 2 0 15 0;
 #X connect 3 0 8 0;
 #X connect 4 0 8 1;
 #X connect 5 0 11 0;
@@ -91,7 +91,7 @@ values determines the amplitude., f 46;
 #X connect 8 0 9 0;
 #X connect 11 0 4 0;
 #X connect 12 0 3 0;
-#X connect 14 0 1 0;
+#X connect 13 0 1 0;
 #X restore 483 272 pd trigger;
 #N canvas 722 196 419 314 negative 0;
 #X obj 180 152 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
@@ -215,7 +215,7 @@ only a zero at nyquist. This setting is the same as an average of two
 samples \, which was the original filter in the original Karplu-Strong
 Algorith. When reaching nyquist for the cutoff \, you have no fiter
 action. It's as if it's disabled., f 51;
-#X obj 200 224 else/display~;
+#X obj 200 224 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 1 0 0 0;
 #X connect 2 0 1 0;
 #X connect 2 0 3 0;

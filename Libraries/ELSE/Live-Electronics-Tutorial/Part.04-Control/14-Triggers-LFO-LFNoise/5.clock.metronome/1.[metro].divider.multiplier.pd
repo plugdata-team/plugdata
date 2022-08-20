@@ -1,0 +1,115 @@
+#N canvas 179 38 1122 562 12;
+#X declare -path else;
+#X obj 942 17 declare -path else;
+#X obj 210 136 metro 1000;
+#X obj 210 170 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 210 100 tgl 18 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X obj 68 132 impulse 1;
+#X obj 68 166 bng 17 250 50 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000;
+#X obj 583 364 bng 18 200 30 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 549 267 tgl 20 0 empty empty empty 17 7 0 10 #dfdfdf #000000
+#000000 0 1;
+#X floatatom 583 233 5 0 0 0 - - - 0;
+#X text 576 209 change tempo;
+#X floatatom 277 102 5 0 0 0 - - - 0;
+#X text 157 100 on/off;
+#X text 295 133 (default time unit is 1 ms), f 13;
+#X text 22 346 So in this sense \, a time unit of "1 ms" means that
+the period is 1 ms and \, therefore \, the frequency is 1000 Hz. A
+clock or frequency divider divides this frequency \, so dividing by
+"1000" gives us 1 Hz!, f 62;
+#X text 22 459 You can use other time units in [metro] like 'permin'
+(meaning "per minute") \, which is the same as 'BPM' (beats per minute).
+The right inlet can still be considered a "frequency divider" parameter
+\, where dividing by 2 makes it twice as slow and dividing it by "0.5"
+makes it twice as fast., f 62;
+#X msg 718 227 2;
+#X msg 706 200 1;
+#X msg 725 254 0.5;
+#X floatatom 706 288 5 0 0 0 - - - 0;
+#X text 749 290 frequency divider;
+#X msg 583 260 tempo \$1 permin;
+#X text 626 234 BPM;
+#X text 748 228 twice as slow;
+#X text 736 200 original speed;
+#X text 756 254 twice as fast;
+#X obj 583 338 metro 1 120 permin;
+#X obj 583 392 decay~ 100;
+#X obj 519 384 noise~;
+#X obj 565 426 *~;
+#X obj 692 479 out~;
+#X text 494 267 on/off;
+#X text 22 23 The [metro] object sends bangs at a regular time intervals.
+It's a trigger at control rate that relates to [impulse] \, but the
+difference is that it can be turned on and off., f 62;
+#X text 324 95 change time interval, f 11;
+#X text 22 408 Changing the time interval or frequency 'divider' in
+[metro] is possible via the right inlet \, but this only takes effect
+after the next bang output., f 62;
+#X text 22 211 By default [metro]'s time unit is "1 ms". The first
+argument sets the time interval according to the time unit \, so '1000'
+means "a thousand 1 milliseconds" \, which is the same as 1 second.
+But note that this parameter is also a "frequency divider" if we consider
+the metronome to be firing at a given frequency. This can also be thought
+of as a 'clock divider' if we apply the concept from modular synthesis
+where 'clocks' send triggers at a specific frequency \, just like [impulse
+1] sends bangs at a frequency of 1 Hz!, f 62;
+#X obj 797 383 bng 18 200 30 0 empty empty empty 17 7 0 10 #dfdfdf
+#000000 #000000;
+#X obj 797 352 metro 1 120 permin;
+#X obj 797 411 decay~ 100;
+#X obj 779 445 *~;
+#X msg 931 247 2;
+#X msg 919 220 1;
+#X msg 938 274 0.5;
+#X text 953 217 original speed;
+#X obj 919 309 expr 1/$f1;
+#X text 909 188 frequency multiplier;
+#X text 964 245 twice as fast;
+#X text 970 275 twice as slow;
+#X floatatom 938 350 5 0 0 0 - - - 0;
+#X text 494 60 Unlike changing the divider parameter \, tempo changes
+take effect right away in the middle of the period (for the remaining
+part of the period). We can also think about a 'clock multiplier' that
+speeds up the frequency. In modular synthesizers it's common to have
+different modules for a clock divider or multiplier \, this doesn't
+make sens in Pd because you can just invert the values as below and
+have the input as a clock multiplier instead. Another thing is that
+synth modules usually only multiply or divide by integer values and
+here you can have any float value., f 85;
+#X text 890 410 <== [decay~] is a simple envelope we'll see later in
+this section of the tutorial., f 25;
+#X text 981 351 (divider);
+#X obj 733 403 brown~;
+#X connect 1 0 2 0;
+#X connect 3 0 1 0;
+#X connect 4 0 5 0;
+#X connect 6 0 26 0;
+#X connect 7 0 25 0;
+#X connect 7 0 36 0;
+#X connect 8 0 20 0;
+#X connect 10 0 1 1;
+#X connect 15 0 18 0;
+#X connect 16 0 18 0;
+#X connect 17 0 18 0;
+#X connect 18 0 25 1;
+#X connect 20 0 25 0;
+#X connect 20 0 36 0;
+#X connect 25 0 6 0;
+#X connect 26 0 28 1;
+#X connect 27 0 28 0;
+#X connect 28 0 29 0;
+#X connect 35 0 37 0;
+#X connect 36 0 35 0;
+#X connect 37 0 38 1;
+#X connect 38 0 29 1;
+#X connect 39 0 43 0;
+#X connect 40 0 43 0;
+#X connect 41 0 43 0;
+#X connect 43 0 36 1;
+#X connect 43 0 47 0;
+#X connect 51 0 38 0;

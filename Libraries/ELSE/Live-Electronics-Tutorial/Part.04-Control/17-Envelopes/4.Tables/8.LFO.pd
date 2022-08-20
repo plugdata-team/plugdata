@@ -1,0 +1,73 @@
+#N canvas 310 71 1058 631 12;
+#X declare -path else;
+#X obj 490 142 hsl 128 15 0.1 0.9 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 0 1;
+#X floatatom 487 169 5 0 0 0 - - -;
+#X text 512 140 pulse width;
+#X obj 133 255 vsaw~ 2 0.5;
+#X obj 133 327 graph~ 20000 2 0 1;
+#X obj 133 290 rescale~;
+#X obj 115 493 *~;
+#X obj 46 364 osc~ 440;
+#X obj 115 539 out~;
+#X obj 160 169 hsl 128 15 0.1 0.9 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 1900 1;
+#X floatatom 157 196 5 0 0 0 - - -;
+#X text 182 167 pulse width;
+#X obj 157 226 f2s~ 10 0.5;
+#X obj 452 487 *~;
+#X obj 391 354 osc~ 440;
+#X obj 546 230 hsl 128 15 50 500 1 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X obj 470 240 pulse~ 2;
+#X obj 452 533 out~;
+#X obj 470 324 graph~ 20000 0 0 1;
+#X obj 543 252 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-262144 -1 -1 0 256;
+#X obj 487 200 f2s~ 10 0.5;
+#X text 406 48 Pulse signals are quite useful as envelopes. Here we
+also use [glide2~] as a smoothener for generating attack and release
+ramps., f 30;
+#X obj 844 44 declare -path else;
+#X text 46 50 So yeah \, why not use actual oscillators as LFOs and
+treat them as envelopes? Here are a few examples. First \, [vsaw~]
+is used for an attack release envelope (below \, the [rescale~] object
+rescales the output from o to 1)., f 43;
+#X obj 470 285 glide~ 150;
+#X obj 840 185 hsl 128 15 0.1 0.9 0 0 empty empty empty -2 -8 0 10
+-228856 -1 -1 12700 1;
+#X floatatom 837 212 5 0 0 0 - - -;
+#X text 862 183 pulse width;
+#X obj 795 475 *~;
+#X obj 734 342 osc~ 440;
+#X obj 795 521 out~;
+#X obj 813 312 graph~ 20000 0 0 1;
+#X obj 837 243 f2s~ 10 0.5;
+#X obj 813 276 gaussian~ 2;
+#X text 763 106 Another option is the [gaussian~] oscillator., f 34
+;
+#X connect 0 0 1 0;
+#X connect 1 0 20 0;
+#X connect 3 0 5 0;
+#X connect 4 0 6 1;
+#X connect 5 0 4 0;
+#X connect 6 0 8 0;
+#X connect 7 0 6 0;
+#X connect 9 0 10 0;
+#X connect 10 0 12 0;
+#X connect 12 0 3 1;
+#X connect 13 0 17 0;
+#X connect 14 0 13 0;
+#X connect 15 0 19 0;
+#X connect 16 0 24 0;
+#X connect 18 0 13 1;
+#X connect 19 0 24 1;
+#X connect 20 0 16 1;
+#X connect 24 0 18 0;
+#X connect 25 0 26 0;
+#X connect 26 0 32 0;
+#X connect 28 0 30 0;
+#X connect 29 0 28 0;
+#X connect 31 0 28 1;
+#X connect 32 0 33 1;
+#X connect 33 0 31 0;

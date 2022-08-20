@@ -1,0 +1,444 @@
+#N canvas 710 233 808 488 12;
+#X declare -path else;
+#X obj 395 317 vsl 25 135 -1 1 0 0 \$0-Min \$0-Min-set empty 0 -9 0
+10 #b8b8b8 #000000 #000000 0 1;
+#X obj 420 317 vsl 25 135 -1 1 0 0 \$0-DC \$0-DC-set empty 0 -9 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 445 317 vsl 25 135 -1 1 0 0 \$0-Max \$0-Max-set empty 0 -9 0
+10 #b8b8b8 #000000 #000000 0 1;
+#X obj 471 316 cnv 15 298 138 empty empty empty 20 12 0 14 #dcdcdc
+#404040 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-Mod 500 float 5;
+#A 0 0.768561 0.783411 0.797902 0.812012 0.825725 0.839026 0.851897
+0.864323 0.876286 0.887773 0.898768 0.909259 0.91923 0.928667 0.937558
+0.945895 0.953666 0.960863 0.967475 0.973496 0.978916 0.983729 0.98793
+0.99151 0.994462 0.996788 0.998484 0.999549 0.99998 0.999778 0.998943
+0.997475 0.995377 0.992651 0.989293 0.985316 0.980724 0.975523 0.969719
+0.96332 0.956334 0.948769 0.940636 0.931945 0.9227 0.912919 0.902616
+0.891802 0.880491 0.868699 0.856439 0.843727 0.83058 0.817014 0.803043
+0.788687 0.773965 0.758896 0.743498 0.727793 0.711798 0.695536 0.679025
+0.662287 0.645343 0.628213 0.610921 0.593489 0.575938 0.558291 0.54057
+0.522798 0.504997 0.487189 0.469397 0.451644 0.433953 0.416346 0.398845
+0.381472 0.364249 0.347198 0.330341 0.313699 0.297292 0.281145 0.265276
+0.249704 0.23445 0.219532 0.20497 0.190781 0.176984 0.163597 0.150635
+0.138119 0.126064 0.114483 0.103391 0.0928008 0.0827269 0.0731817 0.0641775
+0.0557253 0.047836 0.0405217 0.0337944 0.0276577 0.0221197 0.0171873
+0.0128666 0.0091632 0.00608176 0.0036262 0.00179952 0.000604689 4.94719e-05
+0.000127763 0.000839442 0.00218362 0.00415862 0.00676191 0.00999022
+0.0138395 0.0183047 0.0233805 0.0290659 0.0353493 0.0422213 0.0496734
+0.0576961 0.0662793 0.075412 0.0850828 0.0952795 0.105989 0.117201
+0.128901 0.141071 0.153695 0.166758 0.180244 0.194134 0.208413 0.22306
+0.238059 0.253392 0.269039 0.284978 0.30119 0.317654 0.334349 0.351253
+0.368346 0.385607 0.403012 0.42054 0.438171 0.455879 0.473643 0.49144
+0.509248 0.527045 0.544807 0.562513 0.580139 0.597664 0.615065 0.632319
+0.649405 0.666301 0.682987 0.699441 0.715643 0.731571 0.747206 0.762528
+0.777515 0.792148 0.806411 0.820286 0.833755 0.846801 0.859407 0.871559
+0.883239 0.894434 0.905127 0.915303 0.924953 0.934064 0.942625 0.950625
+0.958054 0.964902 0.971162 0.976825 0.981883 0.986324 0.990148 0.993352
+0.99593 0.99788 0.999199 0.999885 0.999938 0.999357 0.998144 0.996293
+0.993812 0.990706 0.986978 0.982632 0.977675 0.972113 0.965953 0.959202
+0.951869 0.94396 0.935485 0.926459 0.916892 0.906797 0.896187 0.885074
+0.873474 0.8614 0.848869 0.835893 0.822489 0.808676 0.794472 0.779895
+0.764963 0.749696 0.734112 0.718231 0.702074 0.68566 0.669009 0.652143
+0.635085 0.617856 0.600477 0.582971 0.56536 0.547666 0.529912 0.512119
+0.494311 0.476511 0.45874 0.441021 0.423378 0.405831 0.388404 0.371118
+0.353996 0.337058 0.320328 0.303826 0.287574 0.271591 0.255897 0.240513
+0.225457 0.21075 0.196409 0.182452 0.168898 0.155768 0.143075 0.130833
+0.11906 0.107769 0.0969755 0.0866925 0.0769331 0.0677097 0.0590339
+0.0509233 0.043382 0.0364193 0.030044 0.0242643 0.0190875 0.0145199
+0.0105676 0.00723538 0.00452754 0.00245279 0.00101054 0.000200599 2.39909e-05
+0.00048089 0.00157076 0.0032922 0.0056431 0.00862041 0.0122204 0.0164418
+0.0212798 0.0267243 0.0327684 0.0394046 0.0466244 0.0544187 0.0627776
+0.0716907 0.0811466 0.0911345 0.101645 0.112661 0.124167 0.136149 0.148593
+0.161481 0.174799 0.188529 0.202653 0.217155 0.232019 0.247222 0.262746
+0.27857 0.294675 0.311039 0.327644 0.344467 0.361487 0.378682 0.396033
+0.413516 0.431108 0.448788 0.466532 0.484319 0.502125 0.519929 0.537708
+0.555439 0.5731 0.590667 0.60812 0.625435 0.642591 0.659566 0.67634
+0.692889 0.709195 0.725236 0.74099 0.756437 0.771558 0.786335 0.80075
+0.814783 0.828417 0.841635 0.85442 0.866757 0.878629 0.890015 0.900907
+0.911291 0.921154 0.930483 0.939267 0.947494 0.955154 0.962237 0.968735
+0.974634 0.979929 0.984616 0.988689 0.992143 0.994973 0.997176 0.998749
+0.99969 0.999998 0.999669 0.998703 0.997104 0.994876 0.992021 0.988542
+0.984444 0.979733 0.974413 0.968493 0.961977 0.95487 0.947187 0.938938
+0.930132 0.920782 0.910898 0.900493 0.889581 0.878175 0.86629 0.853936
+0.841133 0.827898 0.814247 0.800198 0.785769 0.770978 0.755843 0.740384
+0.72462 0.70857 0.692254 0.675694 0.658913 0.641929 0.624766 0.607445
+0.589988 0.572417 0.554753 0.53702 0.51924 0.501435 0.483629 0.465843
+0.448101 0.430425 0.412837 0.395359 0.378013 0.360822 0.34381 0.326995
+0.3104 0.294045 0.277951 0.262139 0.246628 0.231438 0.216588 0.202097
+0.187987 0.174273 0.160972 0.148101 0.135676 0.123713 0.112226 0.101231
+0.0907404 0.0807687 0.071332 0.062441 0.0541045 0.046333 0.0391364
+0.0325239 0.0265037 0.0210834 0.01627 0.0120694 0.00848982 0.00553757
+0.00321189 0.00151575 0.000451237 1.97291e-05 0.000221789 0.00105712
+0.0025247 0.0046227 0.00734922 0.0107065 0.0146836 0.0192757 0.0244769
+0.0302807 0.0366796 0.0436656 0.05123 0.059363 0.0680546 0.0772989
+0.0870797 0.0973835 0.108197 0.119508 0.1313 0.14356 0.156271 0.169419
+0.182985 0.196956 0.211312 0.226034 0.241103 0.2565;
+#X coords 0 1.1 499 -1.1 300 140 1;
+#X restore 469 315 graph;
+#X text 397 454 min;
+#X text 425 455 DC;
+#X text 448 454 max;
+#X obj 155 117 nbx 5 14 0.01 1e+37 0 1 empty \$0-modulator Modulator
+0 -8 0 10 #dcdcdc #000000 #000000 250 256;
+#X msg 224 114 AM;
+#X msg 257 114 RM;
+#X obj 236 167 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 195 166 nbx 3 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 201 181 Amp;
+#X text 252 182 DC;
+#X text 383 376 0;
+#X text 382 308 1;
+#X text 376 445 -1;
+#X obj 137 198 *~;
+#X obj 68 151 osc~ 400;
+#X obj 68 117 nbx 5 14 0.01 1e+37 0 1 empty \$0-carrier Carrier 0 -8
+0 10 #dcdcdc #000000 #000000 500 256;
+#N canvas 1001 465 592 443 DC-Offset 0;
+#N canvas 251 23 729 630 Max-Min 0;
+#X obj 446 327 f;
+#X floatatom 446 383 5 0 0 0 - - - 0;
+#X msg 456 408 set \$1;
+#X text 489 384 Amax;
+#X obj 446 352 expr if($f1 > $f2 \, $f1 \, $f2);
+#X obj 456 437 s \$0-Max-set;
+#X obj 241 301 f;
+#X obj 241 328 expr if($f1 > $f2 \, $f2 \, $f1);
+#X floatatom 241 357 5 0 0 0 - - - 0;
+#X text 286 357 Amin;
+#X msg 261 382 set \$1;
+#X obj 261 411 s \$0-Min-set;
+#X obj 241 258 trigger bang float;
+#X obj 446 281 trigger bang float;
+#X obj 446 232 trigger float float;
+#X obj 459 193 r \$0-DC-Min;
+#X obj 249 189 r \$0-DC-Max;
+#X obj 241 221 trigger float float;
+#X obj 103 503 f;
+#X obj 223 497 f;
+#X obj 124 431 t f b;
+#X obj 103 560 send \$0-A-max;
+#X obj 223 560 send \$0-A-min;
+#X obj 191 432 t b f;
+#X obj 124 150 t f f;
+#X obj 113 532 outlet;
+#X obj 233 532 outlet;
+#X obj 194 153 trigger float float;
+#X obj 131 79 r \$0-Max;
+#X obj 205 78 r \$0-Min;
+#X text 250 496 Amin;
+#X text 133 502 Amax;
+#X obj 124 49 inlet;
+#X obj 194 46 inlet;
+#X connect 0 0 4 0;
+#X connect 1 0 0 1;
+#X connect 1 0 2 0;
+#X connect 1 0 18 1;
+#X connect 2 0 5 0;
+#X connect 4 0 1 0;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 10 0;
+#X connect 8 0 6 1;
+#X connect 8 0 19 1;
+#X connect 10 0 11 0;
+#X connect 12 0 6 0;
+#X connect 12 1 7 1;
+#X connect 13 0 0 0;
+#X connect 13 1 4 1;
+#X connect 14 0 13 0;
+#X connect 14 1 6 1;
+#X connect 15 0 14 0;
+#X connect 16 0 17 0;
+#X connect 17 0 12 0;
+#X connect 17 1 0 1;
+#X connect 18 0 21 0;
+#X connect 18 0 25 0;
+#X connect 19 0 22 0;
+#X connect 19 0 26 0;
+#X connect 20 0 18 0;
+#X connect 20 1 19 0;
+#X connect 23 0 18 0;
+#X connect 23 1 19 0;
+#X connect 24 0 20 0;
+#X connect 24 1 17 0;
+#X connect 27 0 23 0;
+#X connect 27 1 14 0;
+#X connect 28 0 24 0;
+#X connect 29 0 27 0;
+#X connect 32 0 24 0;
+#X connect 33 0 27 0;
+#X restore 83 154 pd Max-Min;
+#N canvas 370 149 355 372 AMP-DC 0;
+#X obj 42 100 expr ($f1 - $f2) / 2;
+#X obj 227 244 s \$0-DC-set;
+#X msg 227 207 set \$1;
+#X obj 172 169 +;
+#X obj 42 133 trigger float float;
+#X obj 42 58 inlet;
+#X obj 187 55 inlet;
+#X obj 172 291 outlet;
+#X obj 42 292 outlet;
+#X connect 0 0 4 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 0;
+#X connect 3 0 7 0;
+#X connect 4 0 8 0;
+#X connect 4 1 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 0 1;
+#X connect 6 0 3 1;
+#X restore 90 185 pd AMP-DC;
+#X floatatom 90 218 5 0 0 0 - - - 0;
+#X text 65 217 Amp;
+#X floatatom 150 219 5 0 0 0 - - - 0;
+#X text 188 219 DC;
+#X obj 50 69 inlet;
+#X obj 50 346 outlet~;
+#X obj 268 70 inlet;
+#X obj 268 164 symbol;
+#X msg 308 225 -1;
+#X msg 342 225 1;
+#X msg 268 225 1;
+#X msg 236 225 0;
+#X obj 308 277 s \$0-Min-set;
+#X obj 317 253 s \$0-Max-set;
+#X obj 277 346 outlet;
+#X obj 210 347 outlet;
+#N canvas 438 225 465 315 DC-Offset 0;
+#N canvas 165 22 321 576 DC-min 0;
+#X obj 137 181 +;
+#X obj 38 77 r \$0-A-min;
+#X obj 20 104 f;
+#X obj 175 238 s \$0-DC-Min;
+#X msg 169 437 set \$1;
+#X obj 169 466 s \$0-Min-set;
+#X floatatom 112 239 5 0 0 0 - - - 0;
+#X obj 112 266 max -1;
+#X obj 137 210 t f f;
+#X obj 112 303 t f f;
+#X obj 126 367 f;
+#X obj 96 334 sel -1;
+#X obj 155 129 -;
+#X floatatom 155 154 5 0 0 0 - - - 0;
+#X obj 143 76 t f b;
+#X obj 185 76 r \$0-DC-set;
+#X floatatom 170 104 5 0 0 0 - - - 0;
+#X obj 20 50 trigger bang float;
+#X obj 20 -10 inlet;
+#X obj 126 398 t f f;
+#X obj 126 516 outlet;
+#X connect 0 0 8 0;
+#X connect 1 0 2 1;
+#X connect 2 0 0 0;
+#X connect 4 0 5 0;
+#X connect 6 0 7 0;
+#X connect 7 0 9 0;
+#X connect 8 0 6 0;
+#X connect 8 1 3 0;
+#X connect 8 1 4 0;
+#X connect 9 0 11 0;
+#X connect 9 1 10 1;
+#X connect 10 0 19 0;
+#X connect 11 0 10 0;
+#X connect 12 0 13 0;
+#X connect 13 0 0 1;
+#X connect 14 0 12 0;
+#X connect 14 1 16 0;
+#X connect 15 0 16 0;
+#X connect 16 0 12 1;
+#X connect 17 0 2 0;
+#X connect 17 1 14 0;
+#X connect 18 0 17 0;
+#X connect 19 0 20 0;
+#X connect 19 1 4 0;
+#X restore 114 121 pd DC-min;
+#N canvas 101 32 362 594 DC-max 0;
+#X obj -122 170 +;
+#X obj -104 67 r \$0-A-max;
+#X obj -122 93 f;
+#X msg -48 457 set \$1;
+#X obj -48 486 s \$0-Max-set;
+#X floatatom -131 226 5 0 0 0 - - - 0;
+#X text -159 224 max;
+#X obj -131 262 min 1;
+#X obj -118 367 f;
+#X obj -131 324 sel 1;
+#X obj -37 227 s \$0-DC-Max;
+#X obj -118 397 t f f;
+#X obj 15 119 -;
+#X floatatom 15 144 5 0 0 0 - - - 0;
+#X obj 1 66 t f b;
+#X obj 52 67 r \$0-DC-set;
+#X floatatom 33 94 5 0 0 0 - - - 0;
+#X obj -122 36 trigger bang float;
+#X obj -122 -9 inlet;
+#X obj -118 543 outlet;
+#X obj -122 197 trigger f f;
+#X obj -131 293 trigger f f;
+#X connect 0 0 20 0;
+#X connect 1 0 2 1;
+#X connect 2 0 0 0;
+#X connect 3 0 4 0;
+#X connect 5 0 7 0;
+#X connect 7 0 21 0;
+#X connect 8 0 11 0;
+#X connect 9 0 8 0;
+#X connect 11 0 19 0;
+#X connect 11 1 3 0;
+#X connect 12 0 13 0;
+#X connect 13 0 0 1;
+#X connect 14 0 12 0;
+#X connect 14 1 16 0;
+#X connect 15 0 16 0;
+#X connect 16 0 12 1;
+#X connect 17 0 2 0;
+#X connect 17 1 14 0;
+#X connect 18 0 17 0;
+#X connect 20 0 5 0;
+#X connect 20 1 10 0;
+#X connect 20 1 3 0;
+#X connect 21 0 9 0;
+#X connect 21 1 8 1;
+#X restore 28 121 pd DC-max;
+#X obj 28 54 r \$0-DC;
+#X obj 28 88 trigger float float float;
+#X obj 200 164 outlet;
+#X obj 28 164 outlet;
+#X obj 114 164 outlet;
+#X connect 0 0 6 0;
+#X connect 1 0 5 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X connect 3 1 0 0;
+#X connect 3 2 4 0;
+#X restore 110 122 pd DC-Offset;
+#X obj 268 190 select AM RM;
+#N canvas 288 205 561 373 Oscillator 0;
+#X obj 134 226 expr~ ($v1 * $v2) + $v3;
+#X obj 213 197 line~;
+#X msg 213 169 \$1 10;
+#X obj 292 197 line~;
+#X msg 292 169 \$1 10;
+#X obj 134 193 osc~;
+#X obj 134 164 line~;
+#X msg 134 136 \$1 10;
+#X obj 134 89 inlet;
+#X obj 213 89 inlet;
+#X obj 292 89 inlet;
+#X obj 134 280 outlet~;
+#X text 217 61 amp;
+#X text 303 62 DC;
+#X text 143 63 Hz;
+#X connect 0 0 11 0;
+#X connect 1 0 0 1;
+#X connect 2 0 1 0;
+#X connect 3 0 0 2;
+#X connect 4 0 3 0;
+#X connect 5 0 0 0;
+#X connect 6 0 5 0;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X connect 9 0 2 0;
+#X connect 10 0 4 0;
+#X restore 50 291 pd Oscillator;
+#N canvas 4 23 450 300 tabwrite~ 0;
+#X obj 50 24 inlet~;
+#X obj 69 148 tabwrite~ \$0-Mod;
+#X obj 94 112 metro 100;
+#X obj 94 60 loadbang;
+#X obj 94 88 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000 #000000
+0 1;
+#X msg 166 104 \; pd dsp 1;
+#X connect 0 0 1 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 0;
+#X connect 3 0 5 0;
+#X connect 4 0 2 0;
+#X restore 67 320 pd tabwrite~;
+#X text 219 371 Amp;
+#X text 288 371 DC;
+#X obj 437 147 initmess \; \$0-carrier 500 \; \$0-modulator 250;
+#X connect 0 0 1 0;
+#X connect 0 1 1 1;
+#X connect 1 0 2 0;
+#X connect 1 1 4 0;
+#X connect 2 0 20 1;
+#X connect 2 0 17 0;
+#X connect 4 0 20 2;
+#X connect 4 0 16 0;
+#X connect 6 0 20 0;
+#X connect 8 0 9 0;
+#X connect 9 0 19 0;
+#X connect 10 0 14 0;
+#X connect 11 0 15 0;
+#X connect 12 0 15 0;
+#X connect 13 0 14 0;
+#X connect 18 0 0 0;
+#X connect 18 1 0 1;
+#X connect 18 2 4 0;
+#X connect 19 0 13 0;
+#X connect 19 0 12 0;
+#X connect 19 1 10 0;
+#X connect 19 1 11 0;
+#X connect 20 0 7 0;
+#X connect 20 0 21 0;
+#X restore 155 141 pd DC-Offset;
+#X obj 30 312 cnv 15 298 138 empty empty empty 20 12 0 14 #dcdcdc #404040
+0;
+#N canvas 0 22 478 328 (subpatch) 0;
+#X array \$0-Spectrum 128 float 0;
+#X coords 0 1024 127 0 300 140 1 0 0;
+#X restore 29 311 graph;
+#X text 121 451 500Hz;
+#X text 68 450 250Hz;
+#X text 28 450 50Hz;
+#X text 176 450 750Hz;
+#X text 235 450 1KHz;
+#X text 280 451 1.25KHz;
+#X obj 224 84 loadbang;
+#X obj 137 232 out~;
+#N canvas 307 226 449 198 plot 0;
+#X obj 33 21 inlet~;
+#X obj 33 56 rfft~;
+#X obj 89 60 block~ 4096;
+#X obj 33 135 tabwrite~ \$0-Spectrum;
+#X obj 33 94 mag~;
+#X obj 75 103 tempo 240 -on;
+#X text 193 80 We'll get to how this works in the FFT section of the
+tutorial., f 32;
+#X connect 0 0 1 0;
+#X connect 1 0 4 0;
+#X connect 1 1 4 1;
+#X connect 4 0 3 0;
+#X connect 5 0 3 0;
+#X restore 64 239 pd plot \; spectrum;
+#X text 21 15 Here we can have different options and adjustments of
+DC-Offset (not only AM/RM). There are presets for AM and RM \, but
+you can set the peaks and DC-Offset with sliders., f 50;
+#X text 392 53 Note how in the spectrum of the classic AM we have two
+frequency components upwards and downwards with half the amplitude
+of the carrier signals. These frequencies are spaced by a frequency
+band defined by the modulating frequency.;
+#X text 392 129 On the other hand \, in RM \, the carrier signal disappears
+and the side frequencies are still there with more energy when compared
+to the AM example., f 56;
+#X text 392 191 By changing the Amplitude & DC-Offset with the sliders
+below \, we can vary between AM and RM and control how much of the
+original frequency component is present \, as well as the side components.
+, f 56;
+#X obj 642 17 declare -path else;
+#X connect 8 0 21 0;
+#X connect 9 0 21 1;
+#X connect 10 0 21 1;
+#X connect 18 0 31 0;
+#X connect 18 0 32 0;
+#X connect 19 0 18 0;
+#X connect 20 0 19 0;
+#X connect 21 0 18 1;
+#X connect 21 1 12 0;
+#X connect 21 2 11 0;
+#X connect 30 0 9 0;

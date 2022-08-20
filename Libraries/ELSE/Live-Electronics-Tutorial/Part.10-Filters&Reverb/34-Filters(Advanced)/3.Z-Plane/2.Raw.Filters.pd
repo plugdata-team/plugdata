@@ -1,0 +1,55 @@
+#N canvas 424 23 527 668 12;
+#X obj 211 238 v a;
+#X obj 144 263 rzero_rev~;
+#X text 224 261 =;
+#X obj 243 262 fexpr~ -a * $x1 + $x1[-1];
+#X obj 165 339 fexpr~ $x1 + ar * $y1[-1] - ai * $y2[-1] \; $x2 + ai
+* $y1[-1] + ar * $y2[-1];
+#X obj 53 352 cpole~;
+#X obj 79 324 v ar;
+#X obj 118 324 v ai;
+#X text 142 350 =;
+#X text 218 127 =;
+#X obj 166 127 rpole~;
+#X obj 205 103 v a;
+#X obj 239 127 fexpr~ $x1 + a * $y1[-1];
+#X text 222 192 =;
+#X obj 209 166 v a;
+#X obj 170 193 rzero~;
+#X obj 243 193 fexpr~ $x1 - a * $x1[-1];
+#X obj 86 445 v ar;
+#X obj 125 445 v ai;
+#X text 139 471 =;
+#X obj 60 471 czero~;
+#X obj 171 460 fexpr~ $x1 - ar * $x1[-1] + ai * $x2[-1] \; $x2 - ai
+* $x1[-1] - ar * $x2[-1];
+#X obj 79 547 v ar;
+#X obj 123 547 v ai;
+#X obj 35 573 czero_rev~;
+#X obj 174 562 fexpr~ $x1[-1] - $x1 * ar - $x2 * ai \; $x2[-1] - $x1
+* ai + $x2 *ar;
+#X text 150 574 =;
+#X text 42 28 Here are the raw filters distributed natively in Pd.
+They are basically Poles and Zeroes \, in the real and complex versions.
+Here are the [fexpr~] implementation of all of them:, f 61;
+#X text 174 319 real;
+#X text 381 319 imaginary;
+#X text 175 373 real;
+#X text 379 372 imaginary;
+#X text 175 435 real;
+#X text 379 434 imaginary;
+#X text 174 497 real;
+#X text 378 496 imaginary;
+#X text 174 537 real;
+#X text 378 536 imaginary;
+#X text 174 597 real;
+#X text 378 596 imaginary;
+#X connect 0 0 1 1;
+#X connect 6 0 5 2;
+#X connect 7 0 5 3;
+#X connect 11 0 10 1;
+#X connect 14 0 15 1;
+#X connect 17 0 20 2;
+#X connect 18 0 20 3;
+#X connect 22 0 24 2;
+#X connect 23 0 24 3;

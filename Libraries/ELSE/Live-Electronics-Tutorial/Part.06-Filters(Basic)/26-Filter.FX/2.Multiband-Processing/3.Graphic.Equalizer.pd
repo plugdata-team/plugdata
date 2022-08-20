@@ -1,0 +1,72 @@
+#N canvas 648 25 481 613 12;
+#X declare -path else;
+#X obj 98 248 noise~;
+#N canvas 470 47 734 661 Equalizador_Gráfico(4_bandas) 0;
+#X obj 134 521 outlet~;
+#X obj 331 181 cnv 15 268 198 empty empty empty 20 12 0 14 -128992
+-66577 0;
+#X obj 338 325 nbx 5 14 -1e+37 1e+37 0 0 \$0-gain1 \$0-gain1-set empty
+0 -8 0 10 -228856 -1 -1 0 256;
+#X obj 134 202 inlet~;
+#X obj 349 190 vsl 30 128 -24 24 0 0 \$0-gain1-set init_gain empty
+0 -9 0 10 -228856 -1 -1 6350 1;
+#X obj 402 325 nbx 5 14 -1e+37 1e+37 0 0 \$0-gain2 \$0-gain2-set empty
+0 -8 0 10 -228856 -1 -1 0 256;
+#X obj 466 325 nbx 5 14 -1e+37 1e+37 0 0 \$0-gain3 \$0-gain3-set empty
+0 -8 0 10 -228856 -1 -1 0 256;
+#X obj 531 325 nbx 5 14 -1e+37 1e+37 0 0 \$0-gain4 \$0-gain4-set empty
+0 -8 0 10 -228856 -1 -1 0 256;
+#X obj 412 190 vsl 30 128 -24 24 0 0 \$0-gain2-set init_gain empty
+0 -9 0 10 -228856 -1 -1 6350 1;
+#X obj 476 190 vsl 30 128 -24 24 0 0 \$0-gain3-set init_gain empty
+0 -9 0 10 -228856 -1 -1 6350 1;
+#X obj 540 190 vsl 30 128 -24 24 0 0 \$0-gain4-set init_gain empty
+0 -9 0 10 -228856 -1 -1 6350 1;
+#X obj 353 354 cnv 5 5 5 empty empty low 0 0 0 14 -128992 -228856 0
+;
+#X obj 414 349 cnv 5 5 5 empty empty mid 0 0 0 14 -128992 -228856 0
+;
+#X obj 413 361 cnv 5 5 5 empty empty low 0 0 0 14 -128992 -228856 0
+;
+#X obj 478 349 cnv 5 5 5 empty empty mid 0 0 0 14 -128992 -228856 0
+;
+#X obj 476 361 cnv 5 5 5 empty empty high 0 0 0 14 -128992 -228856
+0;
+#X obj 539 354 cnv 5 5 5 empty empty high 0 0 0 14 -128992 -228856
+0;
+#X obj 53 438 lowshelf~ 300 0.5, f 9;
+#X obj 298 437 highshelf~ 5000 0.5, f 10;
+#X obj 211 438 eq~ 2000 1;
+#X obj 134 438 eq~ 600 1;
+#X obj 476 116 initmess 0;
+#X connect 2 0 17 3;
+#X connect 3 0 17 0;
+#X connect 3 0 20 0;
+#X connect 3 0 19 0;
+#X connect 3 0 18 0;
+#X connect 5 0 20 3;
+#X connect 6 0 19 3;
+#X connect 7 0 18 3;
+#X connect 17 0 0 0;
+#X connect 18 0 0 0;
+#X connect 19 0 0 0;
+#X connect 20 0 0 0;
+#X connect 21 0 4 0;
+#X connect 21 0 8 0;
+#X connect 21 0 9 0;
+#X connect 21 0 10 0;
+#X coords 0 -1 1 1 270 200 1 330 180;
+#X restore 98 287 pd Equalizador_Gráfico(4_bandas);
+#X obj 98 512 out~;
+#X text 38 116 Here we have a 4 band equalizer in this example. The
+first and last band are shelving filters ([lowshelf~] and [highshelf~]
+\, respectively). The two mid bands are obtained with [eq~] objects.
+, f 56;
+#X text 38 54 A graphic equalizer is a simple multiband processor that
+only relies on adjusting the gain of different frequency bands. This
+is done by summing the output of filters in parallel.;
+#X text 38 183 The gain adjustment is made with values in dB from the
+sliders below. Open the subpatch and check it out., f 56;
+#X obj 306 18 declare -path else;
+#X connect 0 0 1 0;
+#X connect 1 0 2 0;

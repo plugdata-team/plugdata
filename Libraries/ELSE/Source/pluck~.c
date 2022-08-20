@@ -18,7 +18,6 @@ typedef struct _pluck{
     t_inlet        *x_freq_inlet;
     t_inlet        *x_decay_inlet;
     t_inlet        *x_cutoff_inlet;
-    t_outlet       *x_outlet;
     float           x_sr;
     float           x_freq;
     float           x_float_trig;
@@ -226,24 +225,6 @@ static t_int *pluck_perform_noise_input(t_int *w){
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-static uint32_t random_trand(uint32_t* s1, uint32_t* s2, uint32_t* s3 ){
-    // This function is provided for speed in inner loops where the
-    // state variables are loaded into registers.
-    // Thus updating the instance variables can
-    // be postponed until the end of the loop.
-    *s1 = ((*s1 &  (uint32_t)- 2) << 12) ^ (((*s1 << 13) ^  *s1) >> 19);
-    *s2 = ((*s2 &  (uint32_t)- 8) <<  4) ^ (((*s2 <<  2) ^  *s2) >> 25);
-    *s3 = ((*s3 &  (uint32_t)-16) << 17) ^ (((*s3 <<  3) ^  *s3) >> 11);
-    return *s1 ^ *s2 ^ *s3;
-}
-
-static float random_frand(uint32_t* s1, uint32_t* s2, uint32_t* s3){
-    // return a float from -1.0 to +0.999...
-    union { uint32_t i; float f; } u;        // union for floating point conversion of result
-    u.i = 0x40000000 | (random_trand(s1, s2, s3) >> 9);
-    return u.f - 3.f;
-}
-
 static t_int *pluck_perform(t_int *w){
     t_pluck *x = (t_pluck *)(w[1]);
     int n = (int)(w[2]);
@@ -409,7 +390,7 @@ static void *pluck_new(t_symbol *s, int argc, t_atom *argv){
         pd_float((t_pd *)x->x_cutoff_inlet, cut_freq);
     if(x->x_noise_input)
         inlet_new((t_object *)x, (t_pd *)x, &s_signal, &s_signal);
-    x->x_outlet = outlet_new((t_object *)x, &s_signal);
+    outlet_new((t_object *)x, &s_signal);
     return(x);
 errstate:
     pd_error(x, "[pluck~]: improper args");
@@ -422,7 +403,6 @@ static void * pluck_free(t_pluck *x){
     inlet_free(x->x_freq_inlet);
     inlet_free(x->x_decay_inlet);
     inlet_free(x->x_cutoff_inlet);
-    outlet_free(x->x_outlet);
     return(void *)x;
 }
 

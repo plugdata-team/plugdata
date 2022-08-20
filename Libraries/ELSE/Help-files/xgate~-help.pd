@@ -28,7 +28,7 @@
 0;
 #X obj 187 127 noise~;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -98,7 +98,7 @@
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -172,7 +172,7 @@ crossfading.;
 0;
 #X text 164 495 list;
 #X text 194 495 - reports output number and off status;
-#N canvas 865 191 626 453 status 0;
+#N canvas 740 191 626 453 status 0;
 #X obj 182 44 vradio 15 1 0 3 empty empty empty 0 -8 0 10 #dcdcdc #000000
 #000000 0;
 #X floatatom 182 99 3 0 2 0 - - - 0;
@@ -233,26 +233,26 @@ f 43;
 #X obj 307 256 print off-status;
 #X obj 207 199 sig~ 1;
 #X obj 97 71 samps2ms;
-#X msg 98 42 8;
-#X obj 182 361 else/display~ 4;
+#X msg 97 42 8;
 #X obj 182 231 else/xgate~ 2 1000, f 20;
-#X obj 240 361 else/display~ 4;
 #X text 202 59 1: output 1;
 #X text 202 74 2: output 2;
+#X obj 182 361 else/numbox~ 4 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 240 361 else/numbox~ 4 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 0 0 1 0;
 #X connect 1 0 13 0;
-#X connect 3 0 20 0;
+#X connect 3 0 19 0;
 #X connect 5 0 3 0;
-#X connect 11 0 21 0;
-#X connect 12 0 19 0;
-#X connect 14 0 20 0;
-#X connect 16 0 20 0;
+#X connect 11 0 23 0;
+#X connect 12 0 22 0;
+#X connect 14 0 19 0;
+#X connect 16 0 19 0;
 #X connect 17 0 5 0;
 #X connect 18 0 17 0;
-#X connect 20 0 12 0;
-#X connect 20 1 11 0;
-#X connect 20 2 8 0;
-#X connect 20 2 15 0;
+#X connect 19 0 12 0;
+#X connect 19 1 11 0;
+#X connect 19 2 8 0;
+#X connect 19 2 15 0;
 #X restore 479 343 pd status \; switch;
 #X connect 13 0 15 0;
 #X connect 15 0 36 0;

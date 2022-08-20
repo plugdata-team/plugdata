@@ -1,0 +1,61 @@
+#N canvas 267 73 1055 373 12;
+#X declare -path else;
+#X obj 43 240 loadbang;
+#X obj 245 229 s~ \$0-in;
+#X text 41 213 Presets;
+#X floatatom 528 85 0 0 0 0 - - -;
+#X obj 531 60 hsl 128 15 0.01 3 0 0 empty rate empty -2 -8 0 10 -228856
+-1 -1 2931 1;
+#X obj 741 92 hsl 128 15 -1 0 0 0 empty feedback empty -2 -8 0 10 -228856
+-1 -1 3810 1;
+#X text 777 91 Feedback;
+#X floatatom 738 120 0 0 0 0 - - -;
+#X floatatom 670 84 0 0 0 0 - - -;
+#X obj 673 60 hsl 128 15 1 30 1 0 empty depth empty -2 -8 0 10 -228856
+-1 -1 8598 1;
+#X text 713 58 Depth;
+#X text 569 59 Rate;
+#X obj 670 110 f2s~ 10;
+#X obj 738 155 f2s~ 10;
+#X obj 603 155 rescale~ 0;
+#X obj 532 155 r~ \$0-in;
+#X obj 861 202 r~ \$0-in;
+#X obj 861 280 out~;
+#X obj 559 234 out~;
+#X obj 559 192 comb.rev~ 30 1 1 -0.7, f 26;
+#X msg 43 277 \; rate 0.7 \; depth 10 \; feedback -0.7;
+#X msg 400 277 \; rate 3 \; depth 1 \; feedback -0.6;
+#X msg 162 277 \; rate 0.1 \; depth 50 \; feedback -0.25;
+#X msg 284 277 \; rate 0.15 \; depth 10 \; feedback -0.8;
+#X obj 861 238 chorus~ 0.7 5 0.1;
+#X obj 528 115 osc~;
+#X text 836 132 The [chorus~] object from the ELSE is based on this
+patch. Check its help file., f 22;
+#X obj 865 27 declare -path else;
+#X obj 245 198 play.file~ guitar.wav 1 1;
+#X text 44 25 In the vibrato example \, we've seen how mixing a dry
+signal with a processed vibrato gives us a chorus like effect. Indeed
+\, a chorus adds an input to one or more copies with slight pitch deviations
+(vibratos). Here we do that with a comb reverberator that mixes the
+input to a pitch deviated feedforward line controlled by [osc~].,
+f 63;
+#X text 44 118 We also use the feedback delay line with negative coefficients.
+Let's note that it can cancel the feedforwars line \, so when this
+is at a -1 \, we only have the dry signal \, and this acts like a dry/wet
+parameter., f 63;
+#X connect 0 0 20 0;
+#X connect 3 0 25 0;
+#X connect 4 0 3 0;
+#X connect 5 0 7 0;
+#X connect 7 0 13 0;
+#X connect 8 0 12 0;
+#X connect 9 0 8 0;
+#X connect 12 0 14 2;
+#X connect 13 0 19 4;
+#X connect 14 0 19 1;
+#X connect 15 0 19 0;
+#X connect 16 0 24 0;
+#X connect 19 0 18 0;
+#X connect 24 0 17 0;
+#X connect 25 0 14 0;
+#X connect 28 0 1 0;

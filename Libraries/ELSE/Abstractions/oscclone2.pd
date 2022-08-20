@@ -6,10 +6,10 @@
 #X text 237 143 Alexandre Torres Porres (2017);
 #X text 239 207 This is an abstraction used on the [oscbank~] object
 , f 27;
-#X obj 72 196 sine~;
-#X obj 129 100 f2s~;
-#X obj 49 100 f2s~;
-#X obj 203 100 f2s~;
+#X obj 72 196 else/sine~;
+#X obj 129 100 else/f2s~;
+#X obj 49 100 else/f2s~;
+#X obj 203 100 else/f2s~;
 #X obj 91 50 route freq phase amp ramp;
 #X obj 90 21 inlet;
 #X obj 287 72 declare -path else;

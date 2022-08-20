@@ -1,0 +1,47 @@
+#N canvas 206 56 861 546 12;
+#X declare -path else;
+#X obj 686 105 declare -path else;
+#X obj 517 221 else/graph~ 441 13 -1 1 200 140 #dfdfdf 0 1;
+#X obj 517 375 else/spectrograph~ 1024 0 1 300 140 100;
+#X obj 601 34 hsl 150 17 0.01 1 1 0 empty empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X text 653 197 waveform;
+#X text 732 347 spectrograph;
+#X obj 538 141 out~;
+#X floatatom 598 64 10 0 0 0 - - - 12;
+#X floatatom 517 44 4 1 100 0 - - - 0;
+#X text 485 21 n partials;
+#X text 606 33 spectral multiplier;
+#X msg 517 70 n \$1;
+#X obj 517 101 blip~ 200 20;
+#X text 33 60 The [gbuzz~] object from ELSE is based on a CSound opcode
+and is a band-limited oscillator that can generate different waveforms
+\, incluing a band limited impulse just like you get with [bl.osc~
+imp]. This means it provides band limiting by limiting the number of
+partials \, so beware that you can still generate aliasing if you have
+too many partials and a high enough fundamental., f 63;
+#X text 33 166 Note \, however \, that [gbuzz~] is not based on tables
+generated via sum of partials. Instead \, it is based on the Discrete
+Summation Formulae (DSF) technique., f 63;
+#X text 33 218 DSF uses clever manipulation of trigonometry to express
+the sum of an arbitrary number of cosine waves (therefore \, additive
+synthesis in principle) as the quotient of two simpler signals \, making
+it more efficient than a set of oscillators \, but only relevant if
+the number of partials is high \, at least in this PD implementation
+as an abstraction., f 63;
+#X text 33 315 And just like a set of oscillators \, the convenience
+of [gbuzz~] is that you can control the spectral content of components
+with thespectral multiplier parameter. This parameter sets the brightness
+\, the highger the value \, the more harmonic content you have., f
+63;
+#X text 33 396 The spectral multiplier 'm' scales each successive harmonic.
+For m = 0.5 you get 1 \, 0.5 \, 0.25 \, 0.125 and so on as the amplitude
+list. A factor of 1 creates an impulse like waveform. Check the help
+file for more details., f 63;
+#X connect 1 0 2 0;
+#X connect 3 0 7 0;
+#X connect 7 0 12 1;
+#X connect 8 0 11 0;
+#X connect 11 0 12 0;
+#X connect 12 0 1 0;
+#X connect 12 0 6 0;

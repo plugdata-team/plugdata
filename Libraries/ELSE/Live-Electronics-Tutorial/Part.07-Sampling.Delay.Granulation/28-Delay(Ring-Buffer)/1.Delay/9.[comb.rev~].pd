@@ -1,0 +1,154 @@
+#N canvas 684 111 869 698 12;
+#X declare -path else;
+#X obj 546 296 +~;
+#X obj 546 322 +~;
+#X obj 676 290 *~;
+#X obj 564 267 *~;
+#X obj 469 253 *~;
+#X obj 469 161 r~ \$0-in;
+#X obj 43 165 s~ \$0-in;
+#X obj 560 359 delwrite~ \$0-fb 1000;
+#X obj 62 380 r~ \$0-in;
+#X obj 676 182 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 614.173 256;
+#X obj 599 279 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.464567 256;
+#X obj 716 311 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.631417 256;
+#X obj 487 234 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.291339 256;
+#X obj 133 194 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 614.173 256;
+#X obj 294 390 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.631417 256;
+#X obj 209 358 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.464567 256;
+#X text 734 180 del-time;
+#X text 583 234 feedforward;
+#X text 711 265 feedback;
+#X obj 136 172 hsl 128 15 0 1000 0 1 empty empty empty -2 -8 0 10 -228856
+-1 -1 7800 1;
+#X text 172 171 del-time;
+#X obj 171 277 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0.291339 256;
+#X obj 174 255 hsl 128 15 -1 1 0 1 empty empty empty -2 -8 0 10 -228856
+-1 -1 8200 1;
+#X obj 212 337 hsl 128 15 -1 1 0 1 empty empty empty -2 -8 0 10 -228856
+-1 -1 9300 1;
+#X text 243 336 feedforward;
+#X obj 298 372 hsl 128 15 -0.99 0.99 0 1 empty empty empty -2 -8 0
+10 -228856 -1 -1 10400 1;
+#X text 334 371 feedback;
+#X obj 96 491 out~;
+#X obj 546 390 out~;
+#X text 44 21 The [comb.rev~] object from ELSE is a comb reverberator.
+It'll be presented in more details later in this tutorial as a reverberator.
+What we need to know now is that it consists in two delay lines - a
+feedforward and feedback., f 50;
+#X obj 599 255 r \$0-ff;
+#X obj 716 285 r \$0-fb;
+#X obj 676 155 r \$0-ms;
+#X obj 487 211 r \$0-gain;
+#X obj 153 218 s \$0-ms;
+#X obj 184 301 s \$0-gain;
+#X obj 218 383 s \$0-ff;
+#X obj 294 424 s \$0-fb;
+#X obj 96 447 comb.rev~ 1000 1 1 0.9;
+#X text 424 47 Let's see how to implement it with native Pd objects
+to see how it works. Compare the two patches below and see how they
+are the same. The arguments for [comb.rev~] are: initial and maximum
+delay time in ms \, then we have a gain \, feedforward and feedback
+coefficients., f 52;
+#X obj 660 15 declare -path else;
+#X obj 43 131 play.file~ guitar.wav 1 1, f 26;
+#X obj 676 239 delread4~ \$0-fb;
+#N canvas 642 308 365 247 feedforward 0;
+#X obj 87 64 inlet~;
+#X obj 117 184 outlet~;
+#N canvas 261 307 450 300 delwrite~ 0;
+#X obj 140 36 inlet~;
+#X obj 144 180 outlet~;
+#X text 149 213 dummy;
+#X obj 140 95 delwrite~ \$0-ff 1000;
+#X connect 0 0 3 0;
+#X restore 87 103 pd delwrite~;
+#N canvas 261 307 450 300 delread~ 0;
+#X obj 141 43 inlet~;
+#X obj 144 180 outlet~;
+#X text 141 17 dummy;
+#X obj 141 120 delread4~ \$0-ff;
+#X obj 234 44 inlet;
+#X connect 3 0 1 0;
+#X connect 4 0 3 0;
+#X restore 117 138 pd delread~;
+#X obj 191 64 inlet;
+#X obj 191 94 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 252 91 del-time;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X connect 4 0 5 0;
+#X connect 5 0 3 1;
+#X restore 564 211 pd feedforward;
+#X obj 485 567 +~;
+#X obj 422 503 r \$0-gain;
+#X obj 404 528 *~;
+#X obj 503 499 ffdelay~ 1000;
+#X obj 485 595 fbdelay~ 1000 0 1;
+#X obj 591 471 r \$0-ms;
+#X obj 543 569 r \$0-ms;
+#X obj 503 535 *~;
+#X obj 533 535 r \$0-ff;
+#X obj 601 570 r \$0-fb;
+#X obj 404 458 r~ \$0-in;
+#X obj 485 628 out~;
+#X text 71 605 But to the right we can check how to implement this
+object with the [ffdelay~] and [fbdelay~] objects from ELSE., f 51
+;
+#X connect 0 0 1 0;
+#X connect 1 0 7 0;
+#X connect 1 0 28 0;
+#X connect 2 0 1 1;
+#X connect 3 0 0 1;
+#X connect 4 0 0 0;
+#X connect 5 0 4 0;
+#X connect 5 0 43 0;
+#X connect 8 0 38 0;
+#X connect 9 0 42 0;
+#X connect 9 0 43 1;
+#X connect 10 0 3 1;
+#X connect 11 0 2 1;
+#X connect 12 0 4 1;
+#X connect 13 0 34 0;
+#X connect 13 0 38 1;
+#X connect 14 0 37 0;
+#X connect 14 0 38 4;
+#X connect 15 0 36 0;
+#X connect 15 0 38 3;
+#X connect 19 0 13 0;
+#X connect 21 0 35 0;
+#X connect 21 0 38 2;
+#X connect 22 0 21 0;
+#X connect 23 0 15 0;
+#X connect 25 0 14 0;
+#X connect 30 0 10 0;
+#X connect 31 0 11 0;
+#X connect 32 0 9 0;
+#X connect 33 0 12 0;
+#X connect 38 0 27 0;
+#X connect 41 0 6 0;
+#X connect 42 0 2 0;
+#X connect 43 0 3 0;
+#X connect 44 0 48 0;
+#X connect 45 0 46 1;
+#X connect 46 0 44 0;
+#X connect 47 0 51 0;
+#X connect 48 0 55 0;
+#X connect 49 0 47 1;
+#X connect 50 0 48 1;
+#X connect 51 0 44 1;
+#X connect 52 0 51 1;
+#X connect 53 0 48 2;
+#X connect 54 0 46 0;
+#X connect 54 0 47 0;

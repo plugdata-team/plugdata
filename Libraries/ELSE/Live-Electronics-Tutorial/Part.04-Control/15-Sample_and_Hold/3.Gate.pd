@@ -1,0 +1,80 @@
+#N canvas 295 51 946 574 12;
+#X declare -path else;
+#X obj 174 266 sh~;
+#X obj 174 387 bl.saw~;
+#X obj 174 359 rescale~ 50 250;
+#X obj 192 211 pulse~ 0.33 0.6;
+#X obj 515 192 rampnoise~ 20.7;
+#X obj 561 228 pulse~ 0.33 0.6, f 8;
+#X obj 515 306 sh~ -tr;
+#X obj 515 412 bl.saw~;
+#X obj 515 384 rescale~ 50 250;
+#X obj 741 252 noise~;
+#X obj 741 284 sh~ -tr;
+#X obj 797 252 rampnoise~ 20;
+#X msg 665 252 thresh \$1;
+#X obj 665 232 nbx 5 14 -0.9 0.9 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 668 211 hsl 128 15 -0.9 0.9 0 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X obj 741 386 bl.saw~;
+#X obj 741 358 rescale~ 50 250;
+#X text 476 62 The [sh~] object also has another mode called "trigger"
+(set with the "-tr" flag). This allows it to be triggered by pulses
+in a way that if the trigger signal goes above the threshold \, then
+the input is sampled and held. The object will only be retriggered
+if the trigger signal falls below the threshold first. You can set
+a new threshold value with the "thresh" message. Check both examples
+below.;
+#X obj 174 419 plate.rev~ 50 0.6 0.25 0.8 0.6, f 18;
+#X obj 515 444 plate.rev~ 50 0.6 0.25 0.8 0.6, f 18;
+#X obj 741 418 plate.rev~ 50 0.6 0.25 0.8 0.6, f 18;
+#X obj 740 24 declare -path else;
+#X obj 174 471 out~;
+#X obj 515 496 out~;
+#X obj 741 470 out~;
+#X text 42 28 By default \, [sh~] operates in "gate" mode \, in which
+it lets the signal through if the trigger signal is above a threshold
+value (0 by default)., f 55;
+#X text 42 90 This works great with impulses \, but if you have a gate
+like a pulse \, you don't have a sample and hold behaviour. Let's check
+the patch below \, where we have a [rampnoise~] object that either
+is passed through or not. Down next \, [glide~] smoothens the values
+to avoid discontinuities when the gate is reopened., f 55;
+#X obj 174 328 glide2~ 100;
+#X obj 64 226 rampnoise~ 7;
+#X obj 174 293 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 561 269 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 741 315 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 515 343 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X obj 192 236 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 29 0;
+#X connect 1 0 18 0;
+#X connect 2 0 1 0;
+#X connect 3 0 33 0;
+#X connect 4 0 6 0;
+#X connect 5 0 30 0;
+#X connect 6 0 32 0;
+#X connect 7 0 19 0;
+#X connect 8 0 7 0;
+#X connect 9 0 10 0;
+#X connect 10 0 31 0;
+#X connect 11 0 10 1;
+#X connect 12 0 10 0;
+#X connect 13 0 12 0;
+#X connect 14 0 13 0;
+#X connect 15 0 20 0;
+#X connect 16 0 15 0;
+#X connect 18 0 22 0;
+#X connect 18 1 22 1;
+#X connect 19 0 23 0;
+#X connect 19 1 23 1;
+#X connect 20 0 24 0;
+#X connect 20 1 24 1;
+#X connect 27 0 2 0;
+#X connect 28 0 0 0;
+#X connect 29 0 27 0;
+#X connect 30 0 6 1;
+#X connect 31 0 16 0;
+#X connect 32 0 8 0;
+#X connect 33 0 0 1;

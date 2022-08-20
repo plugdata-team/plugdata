@@ -1,0 +1,55 @@
+#N canvas 365 48 821 555 12;
+#X declare -path else;
+#X obj 643 25 declare -path else;
+#X text 49 24 The vanilla object [biquad~] is a general filter that
+can act as several types depending on its coefficients. The "biquad"
+term is an abbreviation of "biquadratic" \, since the filter is described
+as a biquadratic polinomial., f 76;
+#X text 49 74 This is not a friendly filter and generating coefficients
+for [biquad~] is not trivial for musicians \, but the [bicoeff] object
+from ELSE generates coefficients for nine filter types from Robert
+Bristow-Johnson's "Cookbook formulae for audio EQ biquad filter coefficients".
+All these filter types have already been presented here. The [bicoeff]
+object is a GUI object and it plots the amplitude response., f 76
+;
+#X text 499 209 [bicoeff];
+#X msg 658 92 allpass;
+#X msg 675 134 bandpass;
+#X msg 696 197 highpass;
+#X msg 690 176 lowpass;
+#X msg 683 155 resonant;
+#X msg 667 113 bandstop;
+#X msg 717 252 highshelf;
+#X msg 706 229 lowshelf;
+#X msg 726 276 eq;
+#X obj 656 338 s \$0-type;
+#X obj 127 238 bicoeff;
+#X obj 127 208 r \$0-type;
+#X obj 47 329 noise~;
+#X obj 47 424 biquad~;
+#X obj 47 458 out~;
+#X text 649 61 set filter type;
+#X text 178 409 The range is logarithmic in MIDI pitch (horizontal
+axis) and dB (vertical axis). The horizontal line is for 0 dB and the
+vertical lines represent and set the bandwidth or slope (for the shelving
+filters). You can click anywhere on the object to set frequency by
+moving through the horizontal axis \, but if you click on the vertical
+lines you can set bandwidth instead. The Y axis sets gain for 3 filter
+types: "eq \, lowshelf and highshelf).;
+#X text 667 394 see also:;
+#X obj 675 421 bicoeff2;
+#X text 665 456 Same functionality as [bicoeff] but without the GUI.
+, f 18;
+#X connect 4 0 13 0;
+#X connect 5 0 13 0;
+#X connect 6 0 13 0;
+#X connect 7 0 13 0;
+#X connect 8 0 13 0;
+#X connect 9 0 13 0;
+#X connect 10 0 13 0;
+#X connect 11 0 13 0;
+#X connect 12 0 13 0;
+#X connect 14 0 17 0;
+#X connect 15 0 14 0;
+#X connect 16 0 17 0;
+#X connect 17 0 18 0;

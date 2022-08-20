@@ -1,0 +1,119 @@
+#N canvas 566 94 1016 643 12;
+#X declare -path else;
+#X floatatom 178 172 5 0 15 0 - - -;
+#X obj 151 470 sqrt;
+#X msg 151 441 2;
+#X floatatom 151 500 8 0 0 0 - - -;
+#X obj 151 531 pow 2;
+#X floatatom 151 563 5 0 0 0 - - -;
+#X floatatom 226 500 8 0 0 0 - - -;
+#X obj 226 469 expr pow(2 \, 0.5);
+#X obj 226 445 bng 15 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X floatatom 226 563 5 0 0 0 - - -;
+#X text 200 470 =;
+#X text 201 531 =;
+#X floatatom 178 233 5 0 0 0 - - -;
+#X floatatom 178 296 5 0 15 0 - - -;
+#X text 667 247 = 2;
+#X text 689 239 1/12;
+#X obj 710 470 sqrt;
+#X msg 710 439 2;
+#X msg 672 472 2;
+#X obj 842 208 expr pow(2 \, 1/$f1);
+#X obj 842 234 display;
+#X obj 842 184 nbx 3 14 1 100 0 0 empty empty empty 0 -8 0 10 -228856
+-1 -1 18 256;
+#X obj 710 535 display;
+#X obj 178 198 expr pow(2 \, $f1);
+#X text 124 171 octaves;
+#X text 88 232 power of two;
+#X text 124 296 octaves;
+#X text 224 231 intervals;
+#X text 66 469 Square root;
+#X text 70 550 Multiplied by itself =, f 11;
+#X text 47 501 geometric mean;
+#X text 294 494 This is the proportion of the tritone interval, f
+23;
+#X text 249 444 (another way to calculate);
+#X text 270 564 Proportion of the octave.;
+#X text 14 332 A tritone divides the octave in two equally proportional
+intervals. this is a geometric mean and is the same as getting the
+square root. One way to calculate the square root is to raise to the
+power of 1/2 (or just "0.5"). Below we have the proportion of the tritone
+obtained from the square root \, and obviously \, if you multiply the
+tritone to itself again \, you get the octave ratio again., f 68;
+#X obj 607 218 expr pow(2 \, 1/$f1);
+#X obj 607 162 initmess 12;
+#X obj 607 186 display;
+#X obj 607 242 display;
+#X text 485 188 Divide octave by:;
+#X text 503 244 Interval Ratio;
+#X text 783 237 Interval;
+#X text 762 152 Try other divisions of the octave:, f 13;
+#X obj 607 273 value semitone;
+#X text 546 327 Now let's have some more math fun \, and from the first
+formula \, which gives us the number of octaves \, we'll adapt and
+get the number of semitones by simply multiplying it by 12!, f 62
+;
+#X text 655 438 tritone;
+#X text 624 472 octave;
+#X text 656 537 Octaves;
+#X obj 710 594 display;
+#X text 641 597 Semitones;
+#X obj 710 568 * 12;
+#X obj 710 507 log 2;
+#X obj 178 265 log 2;
+#X obj 226 533 expr $f1*$f1;
+#X obj 839 19 declare -path else;
+#X text 26 17 A musical interval is a proportional relationship. For
+example \, an octave is a proportion (or ratio) of two to one (2/1)
+\, as in: 220Hz/110Hz. Therefore \, 220Hz is an octave above 110Hz
+\, and 440Hz an octave higher than 220Hz and so on. 330hz is not the
+octave of 220hz \, even though it has the same frequence difference
+from 220hz to 110hz., f 63;
+#X text 26 109 Hence \, the same linear frequency difference is not
+the same musical interval (330h) \, and music intervals are logarithmic!
+Also \, a power of 2 represents a scale of octaves \, see below:,
+f 63;
+#X text 136 264 Log2;
+#X text 521 59 You can divide the octave in "x" equal parts if you
+raise 2 to the power of 1/x - the result is the interval of this part.
+The equal temperament divides the octave in 12 parts \, this gives
+us about 1.05946 for each part \, which is the ratio/proportion of
+the semitone. Check it below:, f 64;
+#X obj 842 270 value division;
+#X obj 755 449 t b s;
+#X obj 755 475 value;
+#X msg 755 400 symbol semitone;
+#X msg 765 425 symbol division;
+#X connect 0 0 23 0;
+#X connect 1 0 3 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 0;
+#X connect 4 0 5 0;
+#X connect 6 0 53 0;
+#X connect 7 0 6 0;
+#X connect 8 0 7 0;
+#X connect 12 0 52 0;
+#X connect 16 0 51 0;
+#X connect 17 0 16 0;
+#X connect 18 0 51 0;
+#X connect 19 0 20 0;
+#X connect 20 0 59 0;
+#X connect 21 0 19 0;
+#X connect 22 0 50 0;
+#X connect 23 0 12 0;
+#X connect 35 0 38 0;
+#X connect 36 0 37 0;
+#X connect 37 0 35 0;
+#X connect 38 0 43 0;
+#X connect 50 0 48 0;
+#X connect 51 0 22 0;
+#X connect 52 0 13 0;
+#X connect 53 0 9 0;
+#X connect 60 0 61 0;
+#X connect 60 1 61 1;
+#X connect 61 0 51 0;
+#X connect 62 0 60 0;
+#X connect 63 0 60 0;

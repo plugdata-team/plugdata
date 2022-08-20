@@ -1,0 +1,58 @@
+#N canvas 471 90 741 599 12;
+#X msg 162 445 stop;
+#X obj 162 412 bng 15 250 50 0 empty empty empty 17 7 0 10 -262144
+-1 -1;
+#X obj 162 338 trigger float float bang, f 25;
+#X msg 248 419 fast-forward \$1;
+#X obj 248 452 send pd;
+#X obj 162 376 delay;
+#X msg 405 303 \; pd dsp 1;
+#X obj 405 271 loadbang;
+#X msg 162 275 1000;
+#X obj 334 523 writesf~;
+#X floatatom 162 307 5 0 1000 0 - - -;
+#X msg 334 369 open test.wav \, start;
+#X text 495 301 Turn DSP on when loading the patch, f 18;
+#X text 400 524 <= records to a sound file;
+#X obj 363 480 noise~;
+#X text 415 480 <= white noise generator;
+#X text 362 418 <=;
+#X text 483 369 <=;
+#X text 138 377 =>;
+#X text 472 309 <=;
+#X text 202 273 <= time amount to render;
+#X text 104 179 This is very useful if you want to process a pre recorded
+audio in a Pd patch or to generate an audio file with a generative
+(or automated) patch. You can also use [tabwrite~] to record to arrays
+used as audio buffers \, something we'll see in this tutorial later
+on., f 74;
+#X text 504 362 create 'test.wav' file and start recording, f 22;
+#X text 104 27 We've seen in the last example the "dsp" message to
+Pd to turn DSP on and off. Here we use this message with loadbang so
+the dsp is turned on when the patch is loaded., f 74;
+#X text 104 76 But anyway \, this example is dedicated to another message
+to Pd: - the "fast-forward" message. This is a very interestng feature
+because Pd is mostly used to generate and process things in realtime
+\, nonetheless \, this allows you to 'render' an amount of audio faster
+than realtime (and as fast as your process can handle). In this example
+we use it to record white noise into a sound file named 'test.wav'
+(check the generated audio in the same folder as this example)., f
+74;
+#X text 205 306 <= set other lengths;
+#X text 69 307 milliseconds:;
+#X text 51 376 sends a bang after the time amount, f 12;
+#X text 72 445 stops the => recording, f 12;
+#X text 383 411 tells pd to 'fast-forward' and render a given amount
+of time in ms, f 35;
+#X connect 0 0 9 0;
+#X connect 1 0 0 0;
+#X connect 2 0 5 0;
+#X connect 2 1 3 0;
+#X connect 2 2 11 0;
+#X connect 3 0 4 0;
+#X connect 5 0 1 0;
+#X connect 7 0 6 0;
+#X connect 8 0 10 0;
+#X connect 10 0 2 0;
+#X connect 11 0 9 0;
+#X connect 14 0 9 0;

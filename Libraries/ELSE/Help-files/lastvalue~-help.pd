@@ -1,5 +1,5 @@
-#N canvas 478 36 576 430 10;
-#X obj 4 293 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#N canvas 478 36 561 421 10;
+#X obj 4 272 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 4 329 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
@@ -32,7 +32,7 @@
 0;
 #X obj 112 40 cnv 4 4 4 empty empty value 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 212 117 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
+#X obj 217 124 bng 19 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
 #X text 61 88 [lastvalue~] reports the last value when the signal changes
 ;
@@ -146,21 +146,27 @@
 #X coords 0 -1 1 1 44 72 2 50 100;
 #X restore 505 71 pd;
 #X text 165 338 signal;
-#X obj 126 302 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 126 282 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 165 302 signal;
+#X text 165 282 signal;
 #X text 211 338 - last input value;
-#X text 211 302 - signal to detect the last value;
-#X obj 154 217 else/lastvalue~ 3;
+#X text 211 282 - signal to detect the last value;
+#X obj 217 214 else/lastvalue~ 3;
 #X text 158 373 1) float - initial last value (default 0);
-#X text 319 213 <= current value;
-#X obj 154 250 else/display~;
-#X obj 290 211 else/display~;
-#X text 179 253 <= last value;
-#X obj 212 141 random 100;
-#X obj 154 195 sig~;
-#X connect 16 0 32 0;
-#X connect 26 0 29 0;
-#X connect 32 0 30 0;
-#X connect 32 0 33 0;
-#X connect 33 0 26 0;
+#X obj 217 242 else/numbox~ 3 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 160 214 else/numbox~ 3 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 217 153 else/rand.i~ 0 100;
+#X text 45 215 current value -->;
+#X text 122 244 last value -->;
+#X floatatom 316 186 6 0 0 0 - - - 0;
+#X text 358 186 <-- new last value;
+#X text 241 125 <-- get random values;
+#X text 171 307 float;
+#X text 211 307 - set new last value;
+#X obj 126 304 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+;
+#X connect 16 0 30 0;
+#X connect 26 0 28 0;
+#X connect 30 0 29 0;
+#X connect 30 0 26 0;
+#X connect 33 0 26 1;

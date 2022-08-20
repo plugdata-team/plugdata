@@ -1,4 +1,4 @@
-#N canvas 502 58 562 538 10;
+#N canvas 502 58 562 479 10;
 #X obj 306 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -18,11 +18,11 @@
 0;
 #X obj 257 41 cnv 4 4 4 empty empty oscillator 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 3 509 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 449 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 229 189 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#X obj 229 129 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
-#X text 289 188 <= hz;
+#X text 289 128 <= hz;
 #X obj 3 5 cnv 15 301 42 empty empty bl.vsaw~ 20 20 2 37 #e0e0e0 #000000
 0;
 #N canvas 0 22 450 278 (subpatch) 0;
@@ -30,48 +30,43 @@
 #X restore 2 5 graph;
 #X obj 22 42 cnv 4 4 4 empty empty Bandlimited 0 28 2 18 #e0e0e0 #000000
 0;
-#X text 60 142 Because this is an abstraction and Pd is still limited
-in the way it handles it \, this object does not have any arguments.
-, f 74;
-#X text 452 245 see also:;
-#X obj 228 249 else/out~;
-#X obj 3 447 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X text 452 185 see also:;
+#X obj 229 189 else/out~;
+#X obj 3 387 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 452 267 else/vsaw~;
-#X obj 3 315 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 452 207 else/vsaw~;
+#X obj 3 255 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 411 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 3 351 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 122 420 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 122 360 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 200 420 signal -;
-#X text 261 420 variable sawtooth-triangle wave signal;
-#X obj 123 324 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X text 200 360 signal -;
+#X text 261 360 variable sawtooth-triangle wave signal;
+#X obj 123 264 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 122 346 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 122 286 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 122 366 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 122 306 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 122 387 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 122 327 cnv 17 3 17 empty empty 3 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 164 388 float/signal - phase offset (modulation input);
-#X text 164 325 float/signal - frequency in hz;
-#X text 164 368 float/signal - phase sync (ressets internal phase)
+#X text 164 328 float/signal - phase offset (modulation input);
+#X text 164 265 float/signal - frequency in hz;
+#X text 164 308 float/signal - phase sync (ressets internal phase)
 ;
-#X obj 229 214 else/bl.vsaw~;
+#X obj 229 154 else/bl.vsaw~;
 #X obj 121 41 cnv 4 4 4 empty empty sawtooth-triangle 0 28 2 18 #e0e0e0
 #000000 0;
+#X text 174 395 1) float;
+#X text 174 411 2) float;
+#X text 174 427 3) float;
+#X text 233 427 - initial phase offset (default 0);
+#X text 233 395 - frequency in hertz (default 0), f 34;
+#X text 233 411 - initial width (default 0), f 34;
+#X text 165 286 float/signal - pulse width (from 0 to 1);
 #X text 60 89 [bl.vsaw~] is a variable sawtooth waveform oscillator
 that also becomes a triangular osccilator just like [else/vsaw~] \,
-but it is bandlimited with the upsampling/filtering technique. This
-makes the object quite inefficient CPU wise \, but is an easy way to
-implement a bandlimited oscillator., f 74;
-#X text 174 455 1) float;
-#X text 174 471 2) float;
-#X text 174 487 3) float;
-#X text 233 487 - initial phase offset (default 0);
-#X text 233 455 - frequency in hertz (default 0), f 34;
-#X text 233 471 - initial width (default 0), f 34;
-#X text 165 346 float/signal - pulse width (from 0 to 1);
-#X connect 10 0 32 0;
-#X connect 32 0 17 0;
+but it is bandlimited., f 71;
+#X connect 10 0 31 0;
+#X connect 31 0 16 0;

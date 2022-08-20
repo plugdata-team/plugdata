@@ -157,12 +157,10 @@
 #X text 222 338 - an impulse resets the counter to the start value
 ;
 #X obj 165 213 else/pulsecount~;
-#X text 79 239 divided count;
-#X obj 165 236 else/display~;
+#X text 79 241 divided count;
 #X obj 165 152 else/imp~ 1;
 #X obj 165 182 else/pulsediv~ 4;
 #X obj 275 214 else/pulsecount~;
-#X obj 275 237 else/display~;
 #X obj 116 396 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 173 396 signal;
@@ -177,24 +175,24 @@ impulses for the other trigger inputs., f 70;
 #000000;
 #X obj 295 183 else/pulsecount~;
 #X obj 159 214 else/pulsecount~;
-#X text 73 240 divided count;
-#X text 340 211 whole count;
+#X text 73 242 divided count;
+#X text 368 211 whole count;
 #X msg 138 115 start \$1;
 #X msg 88 149 div \$1;
 #X floatatom 138 94 5 0 0 0 - - - 0;
 #X floatatom 88 129 5 0 0 0 - - - 0;
 #X obj 138 183 else/pulsediv~ 2;
 #X obj 252 121 else/impseq~;
-#X obj 295 209 else/display~;
-#X obj 159 237 else/display~;
 #X text 50 30 The first trigger in the count is output. A starting
 value lets you start in the middle of a count. If the start value is
 negative \, it adds that many counts to the first time the output is
 triggered., f 67;
+#X obj 159 241 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 295 211 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 0 0 2 0;
 #X connect 0 0 10 0;
 #X connect 1 0 11 0;
-#X connect 2 0 12 0;
+#X connect 2 0 14 0;
 #X connect 3 0 13 0;
 #X connect 6 0 10 0;
 #X connect 7 0 10 0;
@@ -205,8 +203,10 @@ triggered., f 67;
 #X connect 11 0 3 1;
 #X connect 11 0 10 1;
 #X restore 470 232 pd details;
-#X connect 32 0 34 0;
-#X connect 35 0 36 0;
-#X connect 36 0 32 0;
-#X connect 36 1 37 0;
-#X connect 37 0 38 0;
+#X obj 165 240 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 275 241 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X connect 32 0 42 0;
+#X connect 34 0 35 0;
+#X connect 35 0 32 0;
+#X connect 35 1 36 0;
+#X connect 36 0 43 0;

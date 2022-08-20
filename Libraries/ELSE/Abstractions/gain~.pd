@@ -121,7 +121,7 @@
 #X connect 8 0 2 0;
 #X restore 241 130 pd init;
 #X obj 74 107 route bang set mode gain ramp init;
-#X obj 124 66 canvas.setname \$0-cnv 2;
+#X obj 124 66 else/canvas.setname \$0-cnv 2;
 #X connect 0 0 6 0;
 #X connect 6 0 1 0;
 #X connect 6 1 1 1;
@@ -368,7 +368,7 @@
 #X obj 218 146 r \$0-set-value_arg;
 #X obj 187 124 r \$0-set-init_arg;
 #X obj 156 100 r \$0-set-ramp_arg;
-#X obj 95 183 pack2 1 0 20 0 0;
+#X obj 95 183 else/pack2 1 0 20 0 0;
 #X connect 0 0 6 1;
 #X connect 1 0 6 0;
 #X connect 3 0 6 4;
@@ -376,10 +376,10 @@
 #X connect 5 0 6 2;
 #X connect 6 0 2 0;
 #X restore 91 139 pd set-args;
-#X obj 70 167 args -;
-#X obj 121 69 message \; \$0-to-max 1 \; \$0-toramp 20 \; \$0-init
+#X obj 70 167 else/args -;
+#X obj 121 69 else/message \; \$0-to-max 1 \; \$0-toramp 20 \; \$0-init
 1;
-#X obj 70 46 lb 2;
+#X obj 70 46 else/lb 2;
 #X connect 1 0 2 0;
 #X connect 2 0 0 0;
 #X connect 4 0 2 0;

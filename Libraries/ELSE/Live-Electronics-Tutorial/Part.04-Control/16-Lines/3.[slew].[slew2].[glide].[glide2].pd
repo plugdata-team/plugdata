@@ -1,0 +1,48 @@
+#N canvas 886 53 679 380 12;
+#X declare -path else;
+#X obj 458 48 declare -path else;
+#X floatatom 141 202 6 0 0 0 - - -;
+#X obj 141 172 tgl 16 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 110 121 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 110 145 rand.f 0 1;
+#X text 70 202 target =>;
+#X obj 144 309 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 201 215 5 0 0 0 - - -;
+#X text 220 140 see also;
+#X text 242 210 amplitude per second, f 10;
+#X obj 141 252 slew 1, f 9;
+#X text 44 42 We also have in the ELSE library a control version of
+[slew] and [slew2] \, which can be used to generate lines in the control
+rate., f 44;
+#X obj 289 140 slew2;
+#X floatatom 426 226 6 0 0 0 - - -;
+#X obj 426 196 tgl 16 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 395 145 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 395 169 rand.f 0 1;
+#X text 355 226 target =>;
+#X obj 429 333 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 10907 1;
+#X floatatom 486 239 5 0 0 0 - - -;
+#X text 505 164 see also;
+#X obj 426 276 glide 500;
+#X text 527 233 glide time;
+#X obj 574 164 glide2;
+#X text 390 90 Likewise \, we also have [glide] and [glide2]., f 30
+;
+#X connect 1 0 10 0;
+#X connect 2 0 1 0;
+#X connect 3 0 4 0;
+#X connect 4 0 1 0;
+#X connect 7 0 10 1;
+#X connect 10 0 6 0;
+#X connect 13 0 21 0;
+#X connect 14 0 13 0;
+#X connect 15 0 16 0;
+#X connect 16 0 13 0;
+#X connect 19 0 21 1;
+#X connect 21 0 18 0;

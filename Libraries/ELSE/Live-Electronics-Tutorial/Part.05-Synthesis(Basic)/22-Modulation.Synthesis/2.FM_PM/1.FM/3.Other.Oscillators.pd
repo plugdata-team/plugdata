@@ -1,0 +1,92 @@
+#N canvas 827 51 552 562 12;
+#X declare -path else;
+#N canvas 179 95 483 427 oscillator 0;
+#X obj 175 343 outlet~;
+#X obj 175 270 sine~;
+#X obj 221 200 sig~;
+#X obj 263 270 square~;
+#X obj 323 270 saw~;
+#X obj 221 270 tri~;
+#X obj 107 106 vradio 17 1 0 4 ehnjyr etaeg5 empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 107 196 + 1;
+#X obj 175 307 xselect~ 4 100 1;
+#X text 128 108 Sine;
+#X text 128 124 Triangular;
+#X text 128 141 Square;
+#X text 129 157 Sawtooth;
+#X obj 221 34 inlet;
+#X obj 250 95 initmess \; \$0-carrier 200 \; \$0-mod 50.5 \; \$0-index
+90 \; \$0-menu-set 1;
+#X connect 1 0 8 0;
+#X connect 2 0 1 0;
+#X connect 2 0 3 0;
+#X connect 2 0 4 0;
+#X connect 2 0 5 0;
+#X connect 3 0 8 2;
+#X connect 4 0 8 3;
+#X connect 5 0 8 1;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 8 0 0 0;
+#X connect 13 0 2 0;
+#X coords 0 -1 1 1 108 80 2 100 100;
+#X restore 208 199 pd oscillator;
+#X obj 208 307 *~;
+#X obj 352 229 nbx 4 20 -1e+37 1e+37 0 0 empty \$0-index empty 0 -8
+0 16 #dcdcdc #000000 #000000 0 256;
+#X obj 107 290 +~;
+#X obj 107 234 nbx 5 20 -1e+37 1e+37 0 0 empty \$0-carrier empty 82
+9 0 15 #dcdcdc #000000 #000000 0 256;
+#X obj 107 461 out~;
+#N canvas 465 145 445 426 oscillator 0;
+#X obj 106 347 outlet~;
+#X obj 106 105 vradio 17 1 0 4 rgewgg5 sdsrvg2 empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X obj 106 195 + 1;
+#X obj 106 311 xselect~ 4 100 1;
+#X text 127 107 Sine;
+#X text 127 123 Triangular;
+#X text 127 140 Square;
+#X text 128 156 Sawtooth;
+#X obj 270 132 inlet~;
+#X obj 119 268 bl.sine~;
+#X obj 185 268 bl.tri~;
+#X obj 332 269 bl.saw~;
+#X obj 247 268 bl.square~;
+#X connect 1 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 0 0;
+#X connect 8 0 9 0;
+#X connect 8 0 10 0;
+#X connect 8 0 11 0;
+#X connect 8 0 12 0;
+#X connect 9 0 3 0;
+#X connect 10 0 3 1;
+#X connect 11 0 3 3;
+#X connect 12 0 3 2;
+#X coords 0 -1 1 1 104 80 2 100 100;
+#X restore 107 352 pd oscillator;
+#X text 358 209 Index;
+#X text 293 168 Mod;
+#X text 110 213 Carrier;
+#X obj 208 166 nbx 5 20 -1e+37 1e+37 0 0 empty \$0-mod empty 82 9 0
+15 #dcdcdc #000000 #000000 0 256;
+#X obj 352 270 f2s~ 10;
+#X obj 360 23 declare -path else;
+#X text 66 62 In this patch we can test different combinations of oscillators.
+Waveforms are ordered by spectral content from a simple sinewave to
+a richer sawtooth (the only which contains odd and even harmonics).
+The more complex the oscillator \, the more complex the result is.
+, f 57;
+#X text 237 363 For the modulating signal \, we have non bandlimited
+waveforms (that is 'perfect' shapes). But the oscillator that receives
+the frequency modulated signal is band limited., f 31;
+#X connect 0 0 1 0;
+#X connect 1 0 3 1;
+#X connect 2 0 11 0;
+#X connect 3 0 6 0;
+#X connect 4 0 3 0;
+#X connect 6 0 5 0;
+#X connect 10 0 0 0;
+#X connect 11 0 1 1;

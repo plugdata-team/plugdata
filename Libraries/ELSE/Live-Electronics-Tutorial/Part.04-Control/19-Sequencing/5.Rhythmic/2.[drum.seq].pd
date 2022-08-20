@@ -1,0 +1,52 @@
+#N struct 1007-slot float x float y float slotsize float color float
+width float bordercolor;
+#N canvas 551 59 634 469 12;
+#X declare -path else;
+#X obj 104 41 tgl 30 0 empty metro empty 17 7 0 10 #dcdcdc #000000
+#000000 0 1;
+#X text 169 24 TEMPO;
+#X obj 155 47 nbx 5 18 100 1000 0 0 empty empty empty 0 -8 0 15 #dcdcdc
+#000000 #000000 0 256;
+#X obj 42 83 moses 1;
+#X text 34 47 Play/Stop;
+#X obj 104 98 tempo 60 -div 4;
+#X obj 464 32 declare -path else;
+#X obj 104 194 drum.seq 2 16 20 0 0 0 0 0 0 0 0 0 0 0 0;
+#X obj 104 289 sel 1;
+#X obj 152 289 sel 1;
+#X text 430 193 <= track 0;
+#X text 430 216 <= track 1;
+#X text 37 242 route tracks =>, f 9;
+#X text 22 205 click on => the slots, f 11;
+#X text 256 76 The [drum.seq] object from ELSE provides a grid that
+you can use in a similar way as the previous example., f 41;
+#X text 252 263 It allows you to have multiple tracks treated as separate
+arrays. Click on the slots and change their state., f 45;
+#X text 270 334 It needs a float input to access the values of each
+slot. The output is the track number and slot value. So you need to
+route the value of each track. We then use select to trigger the sample.
+Check its help file for more info., f 46;
+#X text 503 150 <= preset;
+#X obj 65 389 out~;
+#X obj 104 141 count 1 16;
+#X msg 42 109 set 1;
+#X obj 104 255 route 1 2;
+#X obj 207 142 initmess import 1 0 1 0 1 1 1 0 1 0 0 1 0 1 0 1 || 1
+0 0 1 0 1 0 0 1 0 1 0 1 0 0 0, f 41;
+#X obj 56 336 player~ 1 dholak.aif, f 10;
+#X obj 152 337 player~ 1 bagal.aif, f 9;
+#X connect 0 0 3 0;
+#X connect 0 0 5 0;
+#X connect 2 0 5 1;
+#X connect 3 0 20 0;
+#X connect 5 0 19 0;
+#X connect 7 0 21 0;
+#X connect 8 0 23 0;
+#X connect 9 0 24 0;
+#X connect 19 0 7 0;
+#X connect 20 0 19 0;
+#X connect 21 0 8 0;
+#X connect 21 1 9 0;
+#X connect 22 0 7 0;
+#X connect 23 0 18 0;
+#X connect 24 0 18 1;

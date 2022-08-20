@@ -7,12 +7,12 @@
 #X text 310 211 This is an abstraction used on the [oscbank~] object
 , f 27;
 #X obj 105 166 *~;
-#X obj 143 200 sine~;
+#X obj 143 200 else/sine~;
 #X obj 105 29 inlet~ fwd;
 #X obj 162 54 route ratio phase amp ramp;
-#X obj 200 104 f2s~;
-#X obj 120 104 f2s~;
-#X obj 274 104 f2s~;
+#X obj 200 104 else/f2s~;
+#X obj 120 104 else/f2s~;
+#X obj 274 104 else/f2s~;
 #X obj 373 70 declare -path else;
 #X connect 1 0 0 0;
 #X connect 5 0 6 0;

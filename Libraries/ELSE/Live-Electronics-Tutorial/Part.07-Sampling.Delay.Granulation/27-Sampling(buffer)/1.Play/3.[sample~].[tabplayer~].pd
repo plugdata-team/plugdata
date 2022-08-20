@@ -1,0 +1,52 @@
+#N canvas 1029 23 529 643 12;
+#X declare -path else;
+#X msg 273 428 stop;
+#X obj 230 573 out~;
+#X msg 152 224 show;
+#X msg 104 224 hide;
+#X text 192 224 <= shows and hides internal buffer;
+#X obj 350 16 declare -path else;
+#X msg 280 454 pause;
+#X msg 287 481 resume;
+#X text 25 51 The [sample~] object from the ELSE library is a convenient
+abstraction based on [soundfiler] that can load a sample into an internal
+table. It can also be used to create an audio buffer that you can record
+into as we'll show later in this section of the tutorial. One advantage
+of [sample~] is that it can be used to load multi channel files. Check
+its help file for more details., f 66;
+#X msg 252 355 play;
+#X obj 230 355 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X obj 208 355 tgl 18 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X msg 260 380 play 2000 4000 50;
+#X msg 267 402 play 3000 6000 -150;
+#X obj 367 571 bng 18 250 50 0 empty empty empty 17 7 0 10 -228856
+-1 -1;
+#X text 388 572 done;
+#X msg 292 509 reset \, speed 100;
+#X text 391 380 set start \, end;
+#X text 414 397 and speed;
+#X text 32 468 The [tabplayer~] object from ELSE is also a much more
+powerful alternative to [tabplay~] that offers different reading speeds
+and also has multi-channel support. Check its help file., f 26;
+#X obj 230 537 tabplayer~ \$0-sample;
+#X obj 152 288 display;
+#X obj 152 258 sample~ \$0-sample bubul.wav;
+#X text 25 143 Below \, [sample~] loads a single channel file (the
+same as last example). Its outlet outputs the table size in samples
+\, sample rate and number of channels., f 66;
+#X connect 0 0 20 0;
+#X connect 2 0 22 0;
+#X connect 3 0 22 0;
+#X connect 6 0 20 0;
+#X connect 7 0 20 0;
+#X connect 9 0 20 0;
+#X connect 10 0 20 0;
+#X connect 11 0 20 0;
+#X connect 12 0 20 0;
+#X connect 13 0 20 0;
+#X connect 16 0 20 0;
+#X connect 20 0 1 0;
+#X connect 20 1 14 0;
+#X connect 22 0 21 0;

@@ -1,0 +1,22 @@
+#N canvas 215 293 515 419 12;
+#X obj 213 265 outlet~;
+#X obj 213 231 *~;
+#X obj 108 140 mtof;
+#X obj 108 69 inlet;
+#X obj 298 200 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X obj 298 225 switch~;
+#X text 44 120 pitch =>;
+#X obj 108 100 unpack float float;
+#X text 243 125 <= gate;
+#X obj 108 174 bl.square~;
+#X obj 231 172 asr~ 10 20;
+#X connect 1 0 0 0;
+#X connect 2 0 9 0;
+#X connect 3 0 7 0;
+#X connect 4 0 5 0;
+#X connect 7 0 2 0;
+#X connect 7 1 10 0;
+#X connect 9 0 1 0;
+#X connect 10 0 1 1;
+#X connect 10 1 4 0;

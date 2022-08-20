@@ -1,0 +1,129 @@
+#N canvas 469 42 950 883 12;
+#X declare -path else;
+#X obj 153 118 nbx 5 14 0.1 100 1 0 \$0-Q \$0-q_set empty 0 -8 0 10
+-228856 -1 -1 1.30975 256;
+#X obj 23 117 nbx 8 14 100 20000 1 0 \$0-freq-send \$0-freq empty 0
+-8 0 10 -228856 -1 -1 2090.49 100;
+#X text 105 116 Hz;
+#X floatatom 103 258 8 0 0 0 - - #0-gain;
+#N canvas 761 216 485 388 coefficients 0;
+#X obj 99 48 inlet;
+#X obj 50 48 inlet;
+#X obj 216 263 v r;
+#X obj 327 257 v omega;
+#X obj 272 288 v oneminusr;
+#X obj 99 87 t b f;
+#X obj 50 159 expr omega \; - r * r \; 2 * oneminusr * (oneminusr +
+r * omega) \; 1 - oneminusr \; min(omega / $f2 \, 1) \; $f1 * 2*pi
+/ sr;
+#N canvas 526 56 548 260 a1 0;
+#X obj 62 -35 inlet;
+#X obj 59 114 outlet;
+#X obj 365 47 v g;
+#X obj 59 5 expr (((g*g*g * (-1/720) + g*g*(1/24)) - g*0.5) + 1) \;
+$f1 * $f1;
+#X obj 59 67 expr max(2 * $f1 * r \, -1);
+#X connect 0 0 3 0;
+#X connect 3 0 4 0;
+#X connect 3 1 2 0;
+#X connect 4 0 1 0;
+#X restore 50 256 pd a1;
+#X text 59 21 Hz;
+#X text 106 21 Q;
+#X text 183 73 This is how we get the coefficients from the Hz and
+Q input. This is taken from [bp~]'s source code., f 38;
+#N canvas 1008 151 422 270 init 0;
+#X msg 76 150 500;
+#X obj 257 88 v pi;
+#X obj 260 149 v sr;
+#X obj 157 151 s \$0-q_set;
+#X obj 76 77 loadbanger 2;
+#X obj 76 174 s \$0-freq;
+#X obj 257 62 pi;
+#X obj 259 121 sr~;
+#X msg 157 119 set 1;
+#X connect 0 0 5 0;
+#X connect 4 0 0 0;
+#X connect 4 1 8 0;
+#X connect 4 1 6 0;
+#X connect 4 1 7 0;
+#X connect 6 0 1 0;
+#X connect 7 0 2 0;
+#X connect 8 0 3 0;
+#X restore 382 173 pd init;
+#X obj 73 315 outlet;
+#X obj 73 284 pack f f f 0 0;
+#X obj 50 131 pack float 1;
+#X connect 0 0 5 0;
+#X connect 1 0 14 0;
+#X connect 5 0 14 0;
+#X connect 5 1 14 1;
+#X connect 6 0 7 0;
+#X connect 6 1 13 1;
+#X connect 6 2 13 2;
+#X connect 6 3 2 0;
+#X connect 6 4 4 0;
+#X connect 6 5 3 0;
+#X connect 7 0 13 0;
+#X connect 13 0 12 0;
+#X connect 14 0 6 0;
+#X restore 23 144 pd coefficients;
+#X f 19;
+#X text 212 116 Q;
+#X obj 794 67 declare -path else;
+#X obj 43 232 coeff2pz, f 9;
+#X obj 23 194 display;
+#X obj 262 182 biquad~;
+#X obj 262 141 noise~;
+#X obj 262 212 out~;
+#X obj 469 109 zbiplot;
+#X obj 57 287 s \$0-poles;
+#X obj 469 24 r \$0-poles;
+#X text 126 236 gain;
+#X obj 469 66 display;
+#X obj 43 322 unpack;
+#X obj 43 352 car2pol;
+#X obj 89 381 rad2hz;
+#X floatatom 89 409 0 0 0 0 - - -;
+#X obj 22 561 biplot;
+#X text 145 284 [coeff2pz] outputs poles \, zeros and the overall gain
+coefficient, f 32;
+#X floatatom 39 410 6 0 0 0 - - -;
+#X text 578 17 This time we're taking the pole's coordinates directly
+into [zbiplot]., f 45;
+#X text 31 16 Now we're using the [coeff2pz] object from ELSE to converts
+biquad coefficients to poles and zeros based on the theory from the
+last example. We also have [biplot] and [zbiplot] to better visualize
+the action of this filter.;
+#X text 157 357 Here we take the coordinate of a single pole (which
+is in the cartesian form) and convert it to polar. We find the frequency
+from the angle in radians by converting from radians per sample to
+Hz!, f 39;
+#X text 60 466 See how Q controls the amplitude of the poles. Thus
+it controls a boost in this frequency! The gain parameter compensates
+the boost in order that the maximum amplitude value is 0 dB., f 51
+;
+#X obj 447 112 vsl 22 157 0 1.1 0 0 xxx \$0-gain empty 0 -9 0 10 -66577
+-258113 -1 2951 1;
+#X obj 454 160 cnv 5 5 5 empty empty G 0 0 0 14 -66577 -262144 0;
+#X obj 454 176 cnv 5 5 5 empty empty A 0 0 0 14 -66577 -262144 0;
+#X obj 454 192 cnv 5 5 5 empty empty I 0 0 0 14 -66577 -262144 0;
+#X obj 454 212 cnv 5 5 5 empty empty N 0 0 0 14 -66577 -262144 0;
+#X connect 0 0 4 1;
+#X connect 1 0 4 0;
+#X connect 4 0 8 0;
+#X connect 4 0 9 0;
+#X connect 7 0 13 0;
+#X connect 7 0 17 0;
+#X connect 7 2 3 0;
+#X connect 8 0 7 0;
+#X connect 8 0 21 0;
+#X connect 9 0 11 0;
+#X connect 10 0 9 0;
+#X connect 14 0 16 0;
+#X connect 16 0 12 0;
+#X connect 17 0 18 0;
+#X connect 17 1 18 1;
+#X connect 18 0 23 0;
+#X connect 18 1 19 0;
+#X connect 19 0 20 0;

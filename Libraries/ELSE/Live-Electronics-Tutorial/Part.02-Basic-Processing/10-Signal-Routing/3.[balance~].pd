@@ -1,0 +1,50 @@
+#N canvas 654 88 496 642 12;
+#X declare -path else;
+#X obj 280 160 hsl 128 15 0 1 0 0 empty pos1 empty -2 -8 0 10 -228856
+-1 -1 6350 1;
+#X obj 335 237 pi;
+#X obj 335 264 v pi;
+#X obj 58 152 osc~ 400;
+#X obj 154 152 osc~ 600;
+#X obj 58 184 expr~ $v1 * cos($v3 * pi/2) \; $v2 * sin($v3 * pi/2)
+;
+#X obj 58 242 meter2~;
+#X obj 277 133 initmess 0.5;
+#X obj 233 457 hsl 128 15 -1 1 0 0 empty empty empty -2 -8 0 10 -228856
+-1 -1 0 1;
+#X floatatom 230 476 0 0 0 0 - - -;
+#X obj 123 453 osc~ 440;
+#X text 215 456 L;
+#X text 365 456 R;
+#X obj 149 480 osc~ 880;
+#X obj 123 506 balance~;
+#X text 25 66 When a stereo signal is positioned in the same way as
+panning \, we call it "balance". The implementation below uses the
+now more than famous sin/cos equal power function., f 62;
+#X text 370 126 middle point, f 6;
+#X text 53 133 left;
+#X text 151 132 right;
+#X text 70 403 The [balance~] object \, from ELSE \, implements this
+kind of equal power balance., f 44;
+#X obj 277 190 f2s~ 10;
+#X obj 230 499 f2s~ 10;
+#X obj 292 25 declare -path else;
+#X obj 164 243 out~;
+#X obj 101 547 out~;
+#X connect 0 0 20 0;
+#X connect 1 0 2 0;
+#X connect 3 0 5 0;
+#X connect 4 0 5 1;
+#X connect 5 0 6 0;
+#X connect 5 0 23 0;
+#X connect 5 1 6 1;
+#X connect 5 1 23 1;
+#X connect 7 0 0 0;
+#X connect 8 0 9 0;
+#X connect 9 0 21 0;
+#X connect 10 0 14 0;
+#X connect 13 0 14 1;
+#X connect 14 0 24 0;
+#X connect 14 1 24 1;
+#X connect 20 0 5 2;
+#X connect 21 0 14 2;

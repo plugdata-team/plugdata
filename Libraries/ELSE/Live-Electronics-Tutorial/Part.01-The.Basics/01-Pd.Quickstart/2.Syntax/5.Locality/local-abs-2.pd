@@ -1,0 +1,12 @@
+#N canvas 779 251 551 248 12;
+#X obj 72 45 inlet;
+#X obj 72 170 outlet;
+#X text 247 48 This is an abstraction example with the locality (\$0)
+variable from the parent patch., f 32;
+#X obj 72 84 send \$1-locally;
+#X obj 72 124 receive \$1-locally;
+#X text 244 117 "\$0" is passed as an argument \, so you can see that
+the parent patch also gets the values with the [r \$0-locally] object.
+, f 32;
+#X connect 0 0 3 0;
+#X connect 4 0 1 0;

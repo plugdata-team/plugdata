@@ -1,0 +1,94 @@
+#N canvas 368 71 950 616 12;
+#X declare -path else;
+#X obj 165 210 vcf~ 10;
+#X text 256 121 LFO;
+#X text 167 177 Hz;
+#X obj 188 121 osc~ 0.2;
+#X obj 122 402 osc~ 0.1;
+#X obj 772 137 osc~ 0.5;
+#X obj 188 145 rescale~ 500 2500;
+#X obj 165 245 out~;
+#X obj 638 286 out~;
+#X obj 664 212 svfilter~;
+#X obj 638 248 xselect~ 4 100 1;
+#X obj 570 138 vradio 15 1 0 4 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0;
+#X text 513 137 lowpass;
+#X text 506 153 highpass;
+#X text 506 168 bandpass;
+#X obj 570 204 + 1;
+#X obj 772 163 rescale~ 0.1 0.9, f 8;
+#X obj 92 511 out~;
+#X obj 122 429 rescale~ 500 1500;
+#X obj 688 492 bob~;
+#X obj 688 528 out~;
+#X obj 788 469 rescale~ 1 3.5, f 9;
+#X obj 788 444 osc~ 0.33;
+#X obj 700 420 osc~ 0.22;
+#X obj 365 521 out~;
+#X obj 391 431 rescale~ 500 1500, f 9;
+#X obj 365 480 lowpass~;
+#X obj 467 437 rescale~ 1 10, f 9;
+#X obj 467 402 osc~ 0.22;
+#X obj 391 402 osc~ 0.13;
+#X obj 92 468 bandpass~;
+#X obj 188 457 osc~ 0.17;
+#X obj 188 481 rescale~ 1 10;
+#X text 38 24 A "filter sweep" is a common technique in Subtractive
+Synthesis and it consists of using an LFO to control the filter frequency.
+Below we have a sawtooth source being filtered by [vcf~]. The filter
+is controlled by a LFO at 0.2 Hz and the frequency range is from 500
+to 2500 hz., f 56;
+#X text 506 183 bandstop;
+#X obj 700 447 rescale~ 500 2500, f 9;
+#X obj 694 155 rescale~ 200 5000, f 9;
+#X obj 694 128 osc~ 0.17;
+#X obj 770 44 declare -path else;
+#X text 533 45 The [svfilter~] offers different kind of filters \,
+test them., f 22;
+#X text 584 367 The [bob~] filter is an extra from Pd Vanilla. It's
+also a lowpass resonant filter., f 45;
+#X obj 606 449 bl.saw~ 250;
+#X obj 31 429 bl.saw~ 100;
+#X obj 310 437 bl.saw~ 75;
+#X obj 603 155 bl.saw~ 50;
+#X obj 86 146 bl.saw~ 100;
+#X text 59 321 Next we have other examples with other filter objects
+\, also with LFOs controllng both the frequency and resonance of the
+filters. Below we have [bandpass~] and [lowpass~].;
+#X obj 188 178 numbox~ 6 12 100 #C0C0C4 #440008 10 0 0 0;
+#X connect 0 0 7 0;
+#X connect 3 0 6 0;
+#X connect 4 0 18 0;
+#X connect 5 0 16 0;
+#X connect 6 0 47 0;
+#X connect 9 0 10 0;
+#X connect 9 1 10 1;
+#X connect 9 2 10 2;
+#X connect 9 3 10 3;
+#X connect 10 0 8 0;
+#X connect 11 0 15 0;
+#X connect 15 0 10 0;
+#X connect 16 0 9 2;
+#X connect 18 0 30 1;
+#X connect 19 0 20 0;
+#X connect 21 0 19 2;
+#X connect 22 0 21 0;
+#X connect 23 0 35 0;
+#X connect 25 0 26 1;
+#X connect 26 0 24 0;
+#X connect 27 0 26 2;
+#X connect 28 0 27 0;
+#X connect 29 0 25 0;
+#X connect 30 0 17 0;
+#X connect 31 0 32 0;
+#X connect 32 0 30 2;
+#X connect 35 0 19 1;
+#X connect 36 0 9 1;
+#X connect 37 0 36 0;
+#X connect 41 0 19 0;
+#X connect 42 0 30 0;
+#X connect 43 0 26 0;
+#X connect 44 0 9 0;
+#X connect 45 0 0 0;
+#X connect 47 0 0 1;

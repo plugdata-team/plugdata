@@ -1,0 +1,205 @@
+#N canvas 291 74 1179 665 12;
+#X declare -path else;
+#X text 502 539 0;
+#X obj 518 479 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-sum 220 float 1;
+#A 0 1.22465e-16 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0
+0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0;
+#X coords 0 1 219 -1 200 140 1 0 0;
+#X restore 517 478 graph;
+#X text 499 292 1;
+#X text 493 426 -1;
+#X text 499 359 0;
+#X obj 515 299 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase2 220 float 1;
+#A 0 1.22465e-16 -0.0284913 -0.0569595 -0.0853814 -0.113734 -0.141994
+-0.170139 -0.198146 -0.225992 -0.253655 -0.281111 -0.308339 -0.335317
+-0.362023 -0.388435 -0.414531 -0.440291 -0.465693 -0.490718 -0.515343
+-0.539551 -0.56332 -0.586632 -0.609468 -0.631808 -0.653636 -0.674933
+-0.695683 -0.715867 -0.73547 -0.754476 -0.772869 -0.790635 -0.807759
+-0.824227 -0.840026 -0.855143 -0.869565 -0.883282 -0.896281 -0.908553
+-0.920087 -0.930874 -0.940905 -0.950172 -0.958668 -0.966385 -0.973318
+-0.97946 -0.984808 -0.989355 -0.9931 -0.996038 -0.998167 -0.999486
+-0.999994 -0.999689 -0.998573 -0.996646 -0.99391 -0.990367 -0.98602
+-0.980872 -0.974928 -0.968192 -0.96067 -0.952369 -0.943294 -0.933453
+-0.922854 -0.911506 -0.899418 -0.886599 -0.873061 -0.858814 -0.84387
+-0.82824 -0.811938 -0.794977 -0.77737 -0.759132 -0.740278 -0.720823
+-0.700782 -0.680173 -0.659011 -0.637314 -0.6151 -0.592386 -0.569192
+-0.545535 -0.521435 -0.496912 -0.471986 -0.446676 -0.421003 -0.394989
+-0.368654 -0.34202 -0.315108 -0.28794 -0.260539 -0.232926 -0.205124
+-0.177155 -0.149042 -0.120809 -0.092477 -0.0640702 -0.0356114 -0.00712373
+0.0213698 0.0498459 0.0782816 0.106654 0.134939 0.163115 0.191159 0.219047
+0.246757 0.274268 0.301555 0.328598 0.355373 0.381861 0.408038 0.433884
+0.459377 0.484498 0.509225 0.533539 0.55742 0.580848 0.603804 0.626271
+0.648228 0.66966 0.690548 0.710875 0.730624 0.749781 0.768329 0.786253
+0.803539 0.820172 0.83614 0.851428 0.866025 0.879919 0.893099 0.905554
+0.917273 0.928248 0.938468 0.947927 0.956617 0.964529 0.971659 0.977999
+0.983546 0.988294 0.992239 0.995379 0.997711 0.999233 0.999943 0.999841
+0.998928 0.997204 0.99467 0.991328 0.987182 0.982234 0.976488 0.96995
+0.962624 0.954517 0.945634 0.935984 0.925574 0.914413 0.902509 0.889872
+0.876513 0.862442 0.84767 0.832211 0.816076 0.799278 0.781832 0.76375
+0.745049 0.725742 0.705846 0.685378 0.664352 0.642788 0.620701 0.598111
+0.575034 0.551491 0.527501 0.503082 0.478254 0.453038 0.427454 0.401524
+0.375267 0.348706 0.321861 0.294755 0.26741 0.239848 0.212091 0.184161
+0.156083 0.127877 0.0995678 0.0711777 0.0427297;
+#X coords 0 1 219 -1 200 140 1 0 0;
+#X restore 514 298 graph;
+#X text 498 115 1;
+#X text 492 249 -1;
+#X text 498 182 0;
+#X obj 514 122 cnv 15 198 138 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-phase1 220 float 1;
+#A 0 0 0.0284913 0.0569595 0.0853814 0.113734 0.141994 0.170139 0.198146
+0.225992 0.253655 0.281111 0.308339 0.335317 0.362023 0.388435 0.414531
+0.440291 0.465693 0.490718 0.515343 0.539551 0.56332 0.586632 0.609468
+0.631808 0.653636 0.674933 0.695683 0.715867 0.73547 0.754476 0.772869
+0.790635 0.807759 0.824227 0.840026 0.855143 0.869565 0.883282 0.896281
+0.908553 0.920087 0.930874 0.940905 0.950172 0.958668 0.966385 0.973318
+0.97946 0.984808 0.989355 0.9931 0.996038 0.998167 0.999486 0.999994
+0.999689 0.998573 0.996646 0.99391 0.990367 0.98602 0.980872 0.974928
+0.968192 0.96067 0.952369 0.943294 0.933453 0.922854 0.911506 0.899418
+0.886599 0.873061 0.858814 0.84387 0.82824 0.811938 0.794977 0.77737
+0.759132 0.740278 0.720823 0.700782 0.680173 0.659011 0.637314 0.6151
+0.592386 0.569192 0.545535 0.521435 0.496912 0.471986 0.446676 0.421003
+0.394989 0.368654 0.34202 0.315108 0.28794 0.260539 0.232926 0.205124
+0.177155 0.149042 0.120809 0.092477 0.0640702 0.0356114 0.00712373
+-0.0213698 -0.0498459 -0.0782816 -0.106654 -0.134939 -0.163115 -0.191159
+-0.219047 -0.246757 -0.274268 -0.301555 -0.328598 -0.355373 -0.381861
+-0.408038 -0.433884 -0.459377 -0.484498 -0.509225 -0.533539 -0.55742
+-0.580848 -0.603804 -0.626271 -0.648228 -0.66966 -0.690548 -0.710875
+-0.730624 -0.749781 -0.768329 -0.786253 -0.803539 -0.820172 -0.83614
+-0.851428 -0.866025 -0.879919 -0.893099 -0.905554 -0.917273 -0.928248
+-0.938468 -0.947927 -0.956617 -0.964529 -0.971659 -0.977999 -0.983546
+-0.988294 -0.992239 -0.995379 -0.997711 -0.999233 -0.999943 -0.999841
+-0.998928 -0.997204 -0.99467 -0.991328 -0.987182 -0.982234 -0.976488
+-0.96995 -0.962624 -0.954517 -0.945634 -0.935984 -0.925574 -0.914413
+-0.902509 -0.889872 -0.876513 -0.862442 -0.84767 -0.832211 -0.816076
+-0.799278 -0.781832 -0.76375 -0.745049 -0.725742 -0.705846 -0.685378
+-0.664352 -0.642788 -0.620701 -0.598111 -0.575034 -0.551491 -0.527501
+-0.503082 -0.478254 -0.453038 -0.427454 -0.401524 -0.375267 -0.348706
+-0.321861 -0.294755 -0.26741 -0.239848 -0.212091 -0.184161 -0.156083
+-0.127877 -0.0995678 -0.0711777 -0.0427297;
+#X coords 0 1 219 -1 200 140 1 0 0;
+#X restore 513 121 graph;
+#X text 601 268 +;
+#X text 602 452 =;
+#X text 502 472 1;
+#X text 496 606 -1;
+#X obj 133 292 osc~ 200;
+#X obj 200 292 osc~ 200;
+#X obj 200 319 *~ -1;
+#X obj 182 345 +~;
+#X obj 848 161 cnv 15 223 110 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-sawtooth 4410 float 0;
+#X coords 0 1.1 4409 -1.1 225 112 1 0 0;
+#X restore 847 160 graph;
+#N canvas 688 461 417 252 plot 0;
+#X obj 188 65 saw~ 10 0.5;
+#X obj 163 127 saw~ -10 0;
+#X obj 87 158 saw~ 10 0;
+#X obj 188 98 tabwrite~ \$0-inverted-phase;
+#X obj 163 159 tabwrite~ \$0-inverted-polarity;
+#X obj 74 191 tabwrite~ \$0-sawtooth;
+#X obj 103 32 loadbang;
+#X connect 0 0 3 0;
+#X connect 1 0 4 0;
+#X connect 2 0 5 0;
+#X connect 6 0 3 0;
+#X connect 6 0 4 0;
+#X connect 6 0 5 0;
+#X restore 1021 534 pd plot;
+#X text 834 153 1;
+#X text 828 261 -1;
+#X text 834 208 0;
+#X obj 849 292 cnv 15 223 110 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-inverted-phase 4410 float 0;
+#X coords 0 1.1 4409 -1.1 225 112 1 0 0;
+#X restore 848 291 graph;
+#X text 835 284 1;
+#X text 829 392 -1;
+#X text 835 339 0;
+#X obj 850 423 cnv 15 223 110 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array \$0-inverted-polarity 4410 float 0;
+#X coords 0 1.1 4409 -1.1 225 112 1 0 0;
+#X restore 849 422 graph;
+#X text 836 415 1;
+#X text 830 523 -1;
+#X text 836 470 0;
+#X obj 208 121 sine~ 200 0;
+#X obj 254 146 sine~ 200 0.5;
+#N canvas 130 437 545 259 plot 0;
+#X obj 230 40 inlet~;
+#X obj 345 42 inlet~;
+#X obj 321 110 +~;
+#X msg 400 163 \; pd dsp 1;
+#X obj 291 174 tabwrite~ \$0-sum;
+#X obj 154 174 tabwrite~ \$0-phase2;
+#X obj 25 172 tabwrite~ \$0-phase1;
+#X obj 393 130 loadbang;
+#X connect 0 0 2 0;
+#X connect 0 0 6 0;
+#X connect 1 0 2 1;
+#X connect 1 0 5 0;
+#X connect 2 0 4 0;
+#X connect 7 0 3 0;
+#X connect 7 0 4 0;
+#X connect 7 0 5 0;
+#X connect 7 0 6 0;
+#X restore 208 171 pd plot;
+#X text 18 190 Polarity inversion:;
+#X text 242 319 <= polarity inversion, f 23;
+#X text 35 439 Yes \, this is very confusing and needs a lot of attention!
+This is why the term "polarity inversion" is preferred and used in
+this tutorial \, but you'll see many audio gear referring to a phase
+shift of 180 degrees \, when what it is doing is actually just a polarity
+inversion., f 60;
+#X text 35 520 Note that both phase and polarity inversion give the
+same result for a sine wave because of its waveform \, in which the
+second half of its cycle is symmetric and with the sign inverted. Other
+common waveforms with this characteristic are the triangular and regular
+square waves (with a pulse width of 0.5).;
+#X text 735 31 Sawtooth waveforms do not have this characteristic.
+Hence \, a phase opposition is not the same as inverting the polarity.
+And the only way to actually cancell the signal in this case is with
+a polarity inversion. See the graphs below and note that only the original
+sawtooth summed with its inverted polarity signal can cancell out.
+, f 58;
+#X text 786 589 By the way \, there's no difference in our perception
+when changing the polarity!!!, f 41;
+#X obj 539 41 declare -path else;
+#X text 27 16 Summing two waveforms with phase opposition promotes
+a cancelling of the signal \, but this depends on the waveform! It
+does happen with sine waves \, for instance \, but not all wave forms
+or signals. Anyway \, note to the right how we have a sign inversion
+for all amplitude values in this waveform. Hence they become 0 if summed
+together.;
+#X text 35 210 To invert the polarity means to change the sign \, or
+multipliply by -1! In the case of sine waves the result is the same
+of a phase opposition. But an actual phase shift requires a time shift.
+;
+#X text 35 373 Nonetheless \, most the term "phase inversion" is used
+as a \, misnomer \, by suggesting we're actually talking about a phase
+shift when in fact we're talking about polarity inversion \, which
+is actually neither a time shift nor a phase shift!;
+#X connect 17 0 20 0;
+#X connect 18 0 19 0;
+#X connect 19 0 20 1;
+#X connect 37 0 39 0;
+#X connect 38 0 39 1;

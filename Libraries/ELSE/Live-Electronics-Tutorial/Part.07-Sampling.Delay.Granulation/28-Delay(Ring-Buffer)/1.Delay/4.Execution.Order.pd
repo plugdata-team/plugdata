@@ -1,0 +1,41 @@
+#N canvas 699 57 532 508 12;
+#X declare -path else;
+#N canvas 395 114 349 226 delwrite~ 0;
+#X obj 57 40 inlet~;
+#X obj 103 149 outlet~;
+#X text 163 152 dummy outlet;
+#X obj 57 87 delwrite~ \$0-delay 100;
+#X connect 0 0 3 0;
+#X restore 184 304 pd delwrite~;
+#N canvas 294 164 380 221 delread4~ 0;
+#X obj 133 43 inlet~;
+#X obj 209 145 outlet~;
+#X text 33 43 dummy intlet;
+#X obj 209 110 delread4~ \$0-delay;
+#X obj 209 44 inlet~;
+#X connect 3 0 1 0;
+#X connect 4 0 3 0;
+#X restore 184 344 pd delread4~;
+#X obj 166 271 noise~;
+#X obj 290 295 osc~ 0.1;
+#X obj 166 380 +~;
+#X obj 166 417 out~;
+#X obj 290 320 rescale~ 0 10;
+#X text 53 152 This example implements a flanger type effect by summing
+a noise input to its delayed signal. By forcing an order of execution
+\, we can be assured the minimum delay can be less than a block of
+audio (1 sample in the case of [delread4~] and 0 samples in the case
+of [delread~]).;
+#X obj 337 15 declare -path else;
+#X text 53 58 The order of execution was presented in the beginning
+of this tutorial in the first chapter \, and it can define if there
+may be a block delay or not. Let's remind it because it's really important
+in the context of delay objects. The way to force an order of execution
+is by connecting subpatches with "dummy" inlets/outlets.;
+#X connect 0 0 1 0;
+#X connect 1 0 4 1;
+#X connect 2 0 0 0;
+#X connect 2 0 4 0;
+#X connect 3 0 6 0;
+#X connect 4 0 5 0;
+#X connect 6 0 1 1;

@@ -1,0 +1,47 @@
+#N canvas 658 79 653 451 12;
+#X declare -path else;
+#X obj 111 242 *~;
+#X obj 111 192 osc~ 440;
+#X obj 192 156 tgl 20 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 111 284 out~;
+#X obj 228 271 vsl 18 100 0 1 0 0 ewtwet wefwert empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X text 251 361 0;
+#X text 251 267 1;
+#X text 152 158 gate;
+#X obj 353 233 *~;
+#X obj 352 182 osc~ 440;
+#X obj 424 152 tgl 20 0 empty empty empty 17 7 0 10 -228856 -1 -1 0
+1;
+#X obj 353 280 out~;
+#X obj 471 258 vsl 18 100 0 1 0 0 ewtwet wefwert empty 0 -9 0 10 -228856
+-1 -1 0 1;
+#X text 494 348 0;
+#X text 494 254 1;
+#X text 448 152 gate;
+#X obj 471 230 s2f~;
+#X obj 228 243 s2f~;
+#X obj 391 48 declare -path else;
+#X obj 192 195 glide2~ 500 250;
+#X msg 254 156 exp \$1;
+#X msg 221 126 1;
+#X msg 254 126 4;
+#X obj 424 191 lag2~ 500 250;
+#X text 96 38 The [glide2~] and [lag2~] objects can also behave as
+a kind of ASR envelope generator triggered by a gate., f 38;
+#X connect 0 0 3 0;
+#X connect 1 0 0 0;
+#X connect 2 0 19 0;
+#X connect 8 0 11 0;
+#X connect 9 0 8 0;
+#X connect 10 0 23 0;
+#X connect 16 0 12 0;
+#X connect 17 0 4 0;
+#X connect 19 0 0 1;
+#X connect 19 0 17 0;
+#X connect 20 0 19 0;
+#X connect 21 0 20 0;
+#X connect 22 0 20 0;
+#X connect 23 0 8 1;
+#X connect 23 0 16 0;

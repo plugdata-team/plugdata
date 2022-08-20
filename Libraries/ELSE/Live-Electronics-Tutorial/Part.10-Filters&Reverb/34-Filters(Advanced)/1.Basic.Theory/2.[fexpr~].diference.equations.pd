@@ -1,0 +1,73 @@
+#N canvas 337 37 997 646 12;
+#X declare -path else;
+#X obj 121 325 fexpr~ ($x1[0] + $x1[-1] + $x1[-2] + $x1[-3] + $x1[-4]
++ $x1[-5] + $x1[-6] + $x1[-7]) * 0.125, f 46;
+#X obj 75 119 cnv 15 365 40 empty empty empty 5 12 0 14 -233017 -66577
+0;
+#X text 100 122 y[n] = x[n] + x[n-1] + x[n-2] + x[n-3] + x[n-4] + x[n-5]
++ x[n-6] + x[n-7]) * 0.125, f 43;
+#X text 59 295 x[n] ==>;
+#X text 58 368 y[n] ==>;
+#X obj 616 471 fexpr~ $x1[0] + $x2[0] * $y1[-1];
+#X obj 699 280 cnv 15 195 25 empty empty empty 5 12 0 14 -233017 -66577
+0;
+#X text 700 283 y[n] = x[n] + a[n] * y[n-1];
+#X obj 616 437 noise~;
+#X obj 634 115 cnv 15 210 110 empty empty empty 20 12 0 14 -233017
+-66577 0;
+#X text 765 138 |;
+#X text 765 150 |;
+#X text 765 160 |;
+#X text 740 177 |;
+#X text 789 176 |;
+#X text 789 196 |;
+#X text 740 196 |;
+#X text 743 166 _______;
+#X text 743 197 _______;
+#X text 765 163 v;
+#X text 707 184 -(*)-;
+#X text 705 164 |;
+#X text 705 178 |;
+#X text 705 140 |;
+#X text 705 152 |;
+#X text 705 137 ^;
+#X text 793 126 >;
+#X text 740 186 | z^-1 |;
+#X text 721 193 a;
+#X text 642 126 x(n) ---(+)----------- y(n);
+#X obj 837 445 sig~ 0.99;
+#X text 808 443 a =;
+#X obj 121 398 out~;
+#X obj 616 517 out~;
+#X text 70 333 filter:;
+#X text 759 520 check [fexpr~]'s help file for more info, f 21;
+#X obj 763 35 declare -path else;
+#X obj 121 270 bl.saw~ 300;
+#X text 29 40 As [expr~] \, the native [fexpr~] object belongs to the
+[expr] family of objects and may be used to implement filter equations
+(a.k.a. difference equations). So let's now implement an average filter
+of 8 samples. First \, here's its difference equation:, f 64;
+#X text 77 183 Where "y[n]" is the current output \, "x[n]" is the
+current input sample \, x[n-1] the last input sample and so on. Now
+let's check how this formula inside the [fexpr~] object and how similar
+it looks., f 51;
+#X text 72 475 The $x1 variable represents the input on the left inlet
+\, and the indexes represent a sample delay. for instance \, $x1[0]
+represents no delay (hence \, the current input) \, $x1[-1] a one sample
+delay \, $x1[-2] is a 2 sample delay and so on...;
+#X text 73 543 You can then see how we're summing 8 samples and getting
+an average by multiplying it by 1/8 (0.125)., f 60;
+#X text 536 70 Now let's see a diagram with feedback \, see how we
+have a delay line from the output y(n) fed back and summed to the input:
+;
+#X text 545 251 The difference equation then looks like this:;
+#X text 525 327 So we have a one sample feedback represented as "y[n-1]"
+multiplied by a feedback index called "a". This diagram is equivalent
+to a single sample feedback delay we've already seen. In [fexpr~] \,
+the $y1[-1] syntax represents this one sample feedback \, here's how
+it all looks inside [fexpr~].;
+#X connect 0 0 32 0;
+#X connect 5 0 33 0;
+#X connect 8 0 5 0;
+#X connect 30 0 5 1;
+#X connect 37 0 0 0;

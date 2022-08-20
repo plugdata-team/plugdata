@@ -1,0 +1,47 @@
+#N canvas 669 55 500 546 12;
+#X declare -path else;
+#X obj 142 440 out~;
+#X obj 142 397 sine~;
+#X obj 142 359 +~;
+#X obj 141 241 f2s~ 10;
+#X obj 189 330 sine~;
+#X obj 189 363 *~;
+#X obj 251 341 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-index empty 0 -8
+0 10 #dcdcdc #000000 #000000 0 256;
+#X text 308 339 Index;
+#X obj 189 278 *~;
+#X obj 207 247 f2s~ 10 1;
+#X obj 251 366 f2s~ 10;
+#X obj 207 224 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 141 218 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-carrier empty 0
+-8 0 10 #dcdcdc #000000 #000000 0 256;
+#X obj 286 427 initmess \; \$0-carrier 300 \; \$0-ratio 0.5 \; \$0-index
+100;
+#X obj 210 201 hsl 128 15 0.5 2 0 0 empty \$0-ratio empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X text 154 194 Hz;
+#X text 58 312 carrier =>;
+#X text 201 301 <= modulator;
+#X text 267 220 Ratio;
+#X text 30 59 It is common to set the modulator frequency as a ratio
+of the carrier frequency. By doing so \, you only have one frequency
+input. This structure also keeps the same sonority for different picthes
+as the ratio relationship is intact. After all \, it is this ratio
+that determines how the extra partials are spaced in the spectrum.
+Note that harmonic ratios (such as 0.5) produce harmonic sounds as
+a result.;
+#X obj 304 19 declare -path else;
+#X connect 1 0 0 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 0;
+#X connect 3 0 8 0;
+#X connect 4 0 5 0;
+#X connect 5 0 2 1;
+#X connect 6 0 10 0;
+#X connect 8 0 4 0;
+#X connect 9 0 8 1;
+#X connect 10 0 5 1;
+#X connect 11 0 9 0;
+#X connect 12 0 3 0;
+#X connect 14 0 11 0;

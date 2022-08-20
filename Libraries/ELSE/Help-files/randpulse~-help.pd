@@ -1,4 +1,4 @@
-#N canvas 472 23 567 493 10;
+#N canvas 489 25 561 500 10;
 #X obj 306 4 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
 #N canvas 382 141 749 319 (subpatch) 0;
@@ -24,15 +24,15 @@
 0;
 #X obj 3 355 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 3 391 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 3 423 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 122 364 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 102 364 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 3 462 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
+#X obj 3 474 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X text 206 364 signal -;
-#X text 187 400 1) float;
-#X text 187 419 2) float;
+#X text 186 364 signal -;
+#X text 167 432 1) float;
+#X text 167 451 2) float;
 #X obj 214 154 nbx 5 14 -50 50 0 0 empty empty empty 0 -8 0 10 #dcdcdc
 #000000 #000000 0 256;
 #X text 274 152 <= hz;
@@ -171,47 +171,26 @@ second inlet.;
 #N canvas 0 22 450 278 (subpatch) 0;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
-#X text 256 400 - frequency in hertz (default 0);
-#X text 256 419 - initial pulse width (default 0.5);
+#X text 236 432 - frequency in hertz (default 0);
+#X text 236 451 - initial pulse width (default 0.5);
 #X obj 3 259 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 123 267 cnv 17 3 37 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 103 267 cnv 17 3 37 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 122 309 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 102 309 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 122 329 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 102 329 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X text 165 309 float/signal - pulse width (from 0 to 1);
-#X text 164 268 float/signal - frequency in hz;
-#X text 164 331 float/signal - phase sync (ressets internal phase)
+#X text 145 309 float/signal - pulse width (from 0 to 1);
+#X text 144 268 float/signal - frequency in hz;
+#X text 144 331 float/signal - phase sync (ressets internal phase)
 ;
-#X obj 214 221 else/display~ 7;
 #X obj 214 184 else/randpulse~ 1;
 #X obj 24 40 cnv 4 4 4 empty empty Random 0 28 2 18 #e0e0e0 #000000
 0;
 #X text 60 87 [randpulse~] is a random pulse train oscillator (which
 alternates between a random value and 0 \, or on/off). It accepts negative
 frequencies \, has inlets for pulse width and sync.;
-#N canvas 726 168 554 446 seed 0;
-#X text 71 23 [randpulse~] objects that share the same seed will have
-the same random number generation. You can specify a seed value as
-the third argument or via the 'seed' message.;
-#X text 70 73 By default \, each instance of [randpulse~] has its own
-seed value.;
-#X obj 288 243 else/graph~ 441 0 -1.05 1.05 200 140;
-#X obj 71 243 else/graph~ 441 0 -1.05 1.05 200 140;
-#X msg 216 144 seed \$1;
-#X msg 182 118 319;
-#X obj 288 184 else/randpulse~ 1;
-#X obj 71 185 else/randpulse~ 1;
-#X msg 216 118 987345;
-#X connect 4 0 6 0;
-#X connect 4 0 7 0;
-#X connect 5 0 4 0;
-#X connect 6 0 2 0;
-#X connect 7 0 3 0;
-#X connect 8 0 4 0;
-#X restore 487 203 pd seed;
 #N canvas 801 184 450 409 sync 0;
 #X obj 124 182 else/sig2float~;
 #X obj 124 214 nbx 8 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
@@ -230,13 +209,45 @@ generate a new random value and restart the cycle.;
 #X connect 4 0 5 2;
 #X connect 5 0 0 0;
 #X restore 487 226 pd sync;
-#X text 163 287 seed <float>;
-#X text 255 286 - sets seed value;
-#X text 267 364 random pulse signal;
-#X text 254 440 - seed (default \, internal);
-#X text 186 440 3) float;
+#X text 143 287 seed <float>;
+#X text 247 364 random pulse signal;
 #X text 32 174 see also:;
-#X obj 32 197 else/randpulse;
-#X obj 32 221 else/randpulse2~;
-#X connect 18 0 34 0;
-#X connect 34 0 33 0;
+#X obj 32 225 else/randpulse;
+#X obj 32 199 else/randpulse2~;
+#X obj 214 221 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 6 391 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+0;
+#X text 135 400 -seed <float>: seed value (default: unique internal)
+;
+#N canvas 777 84 466 374 seed 0;
+#X text 64 15 Pseudo random number generators aren't true random number
+generators. Instead \, an algorithm is used to provide a sequence of
+numbers that seems random. The same sequence can be reproduced if you
+set a "seed" value \, which can be any integer number., f 57;
+#X text 64 139 You can set a seed with the '-seed' flag. If you don't
+supply it \, each object gets its own seed internal seed. If you send
+a 'seed' message without float \, the object also gets a unique seed
+value., f 57;
+#X msg 339 264 seed;
+#X msg 329 235 seed 123;
+#X obj 60 311 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 190 311 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
+#X obj 60 223 r \$0-randpulse~;
+#X obj 190 223 r \$0-randpulse~;
+#X obj 329 297 s \$0-randpulse~;
+#X obj 190 253 else/randpulse~ -seed 123 1, f 15;
+#X obj 60 253 else/randpulse~ -seed 123 1, f 15;
+#X text 64 78 Seeds are kept locally \, which means that if two [randpulse~]
+objects are seeded the same they will have the same output. Conversely
+\, you can seed the same [randpulse~] object twice with the same seed
+to repeat the output., f 57;
+#X connect 2 0 8 0;
+#X connect 3 0 8 0;
+#X connect 6 0 10 0;
+#X connect 7 0 9 0;
+#X connect 9 0 5 0;
+#X connect 10 0 4 0;
+#X restore 487 203 pd seed;
+#X text 222 286 - non zero sets to random gate value mode;
+#X connect 18 0 33 0;
+#X connect 33 0 42 0;

@@ -1,0 +1,82 @@
+#N canvas 357 106 918 586 12;
+#X declare -path else;
+#X obj 146 376 cos~;
+#X obj 424 429 cnv 15 448 110 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#X obj 214 283 t b f;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array wave 441 float 0;
+#X coords 0 1 440 -1 450 112 1 0 0;
+#X restore 423 428 graph;
+#X obj 227 388 tabwrite~ phasor;
+#X text 410 421 1;
+#X text 404 529 -1;
+#X obj 426 286 cnv 15 448 110 empty empty empty 20 12 0 14 -228856
+-66577 0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array phasor 441 float 0;
+#X coords 0 1 440 0 450 112 1;
+#X restore 425 285 graph;
+#X text 410 382 0;
+#X text 408 280 1;
+#X obj 56 24 cnv 15 300 98 empty empty empty 20 12 0 14 -228856 -66577
+0;
+#X obj 146 267 nbx 4 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 300 256;
+#X obj 146 291 t f b;
+#X msg 183 225 0;
+#X msg 214 225 0.25;
+#X msg 250 225 0.5;
+#X msg 281 225 0.75;
+#X obj 183 200 loadbang;
+#X floatatom 214 262 5 0 0 0 - - -;
+#X obj 204 535 cos~;
+#X obj 204 511 phasor~ 440;
+#X obj 121 521 osc~ 440;
+#X text 185 521 =;
+#X obj 281 282 setdsp~ 1;
+#X text 86 337 Running phase =>, f 8;
+#X text 83 369 waveform function, f 8;
+#X text 69 30 In Short \, we can define an oscillator with these parameters:
+, f 38;
+#X text 111 57 - Waveform function \; - Frequency \; - Initial Phase
+\; - Peak Amplitude;
+#X text 245 200 Initial phase;
+#X text 22 134 Here we have [phasor~] and [cos~] as an oscillator.
+The [cos~] object returns amplitude values between -1 and 1 \, so without
+a gain adjustment it has a peak amplitude of 1!, f 51;
+#X text 450 75 The waveform is a cosine! The [phasor~] object determines
+the frequency of oscillation but can also set different initial phases.
+Sine and Cosine are basically the same \, with an initial phase difference
+\, so we can achieve a sine function as well. But anyway \, the initial
+phase doesn't affect our perception of a pure tone., f 58;
+#X text 77 266 Frequency;
+#X msg 146 239 300;
+#X obj 146 321 phasor~;
+#X text 65 468 A [phasor~] connected to [cos~] is the same structure
+as the [osc~] object., f 39;
+#X obj 214 423 tabwrite~ wave;
+#X msg 104 240 -300;
+#X obj 731 31 declare -path else;
+#X text 450 176 Try this patch with different initial phases. Note
+that the phasor object also accepts negative frequencies \, which makes
+the phase run in the opposite direction.;
+#X connect 0 0 36 0;
+#X connect 2 0 4 0;
+#X connect 2 0 36 0;
+#X connect 2 1 34 1;
+#X connect 12 0 13 0;
+#X connect 13 0 34 0;
+#X connect 13 1 19 0;
+#X connect 14 0 19 0;
+#X connect 15 0 19 0;
+#X connect 16 0 19 0;
+#X connect 17 0 19 0;
+#X connect 18 0 14 0;
+#X connect 18 0 33 0;
+#X connect 19 0 2 0;
+#X connect 21 0 20 0;
+#X connect 33 0 12 0;
+#X connect 34 0 0 0;
+#X connect 34 0 4 0;
+#X connect 37 0 12 0;

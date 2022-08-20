@@ -1,0 +1,42 @@
+#N canvas 858 50 459 612 12;
+#X msg 86 129 dsp 1;
+#X msg 102 160 dsp 0;
+#X msg 231 138 \; pd dsp \$1;
+#X obj 231 111 tgl 18 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X text 255 110 On/Off;
+#X text 130 129 DSP On;
+#X text 146 159 DSP Off;
+#X obj 204 481 r slider;
+#X msg 204 510 \$1 10;
+#X obj 204 539 line~;
+#X obj 127 475 osc~ 440;
+#X obj 127 509 *~;
+#X obj 127 553 dac~;
+#X obj 86 202 s pd;
+#X text 57 379 Turn the DSP on \, so we can get values from the gray
+slider above and use it to control the volume of an oscillator by converting
+it to a signal with [line~] object, f 43;
+#X obj 219 187 r pd-dsp-started;
+#X obj 219 212 bng 15 250 50 0 empty empty empty 17 7 0 10 #fcfcfc
+#000000 #000000;
+#X text 47 14 You can also send messages to Pd \, like the “dsp 1”
+and “dsp 0” messages that \, respectively \, turn the DSP engine
+on and off. You can also receive messages from Pd \, such as a bag
+when you turn the DSP on with 'pd-dsp-started'., f 50;
+#X obj 159 349 hsl 128 15 0 0.1 0 0 slider empty empty -2 -8 0 10 #dfdfdf
+#000000 #000000 0 1;
+#X msg 156 311 send slider;
+#X text 58 253 Note you can also set receive and send names in iemgui
+objects with messages., f 39;
+#X connect 0 0 13 0;
+#X connect 1 0 13 0;
+#X connect 3 0 2 0;
+#X connect 7 0 8 0;
+#X connect 8 0 9 0;
+#X connect 9 0 11 1;
+#X connect 10 0 11 0;
+#X connect 11 0 12 0;
+#X connect 11 0 12 1;
+#X connect 15 0 16 0;
+#X connect 19 0 18 0;

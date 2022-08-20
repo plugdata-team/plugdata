@@ -1,0 +1,28 @@
+#N struct 1006-point float x0 float y0 float size float fg float in
+float grid;
+#N canvas 765 166 508 634 12;
+#X declare -path else;
+#X msg 125 179 mode 2;
+#X text 182 179 polar;
+#X text 195 217 cartesian;
+#X obj 125 477 display;
+#X obj 125 258 circle 200 -1 1 -1 1 2 225 225 225 0 0 0 1 1 0 1 1 0
+48 68 empty empty 1;
+#X obj 324 141 declare -path else;
+#X msg 138 217 mode 1;
+#X text 36 27 The [circle] object has been used in the first example.
+It has a default mode for cartesian display \, but you can also set
+it to polar mode - the output is still a cartesian coordinate though
+(so you need to use something like [car2pol] to convert it if you need
+it). Check its help file for more details.;
+#X obj 125 512 car2pol;
+#X obj 171 539 nbx 5 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+-228856 -1 -1 -2.58994 256;
+#X obj 171 569 nbx 5 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 11
+-228856 -1 -1 0.610573 256;
+#X connect 0 0 4 0;
+#X connect 3 0 8 0;
+#X connect 4 0 3 0;
+#X connect 6 0 4 0;
+#X connect 8 0 10 0;
+#X connect 8 1 9 0;

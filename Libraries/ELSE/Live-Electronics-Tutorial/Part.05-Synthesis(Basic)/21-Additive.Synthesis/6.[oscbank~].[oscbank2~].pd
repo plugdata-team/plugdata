@@ -1,0 +1,39 @@
+#N canvas 565 113 941 404 12;
+#X declare -path else;
+#X obj 192 143 loadbang;
+#X obj 97 170 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 97 333 out~;
+#X msg 192 168 ratio 1 2.2 3 3.9 4.8 5.6 6.1 6.9 \, phase 0 0.5 0.25
+0 0.1 0.9 0.75 0.1 \, amp 0.9 0.5 0.9 1 0.8 0.9 0.7 1, f 36;
+#X obj 97 197 sig~ 75;
+#X msg 210 226 ratio 1 1.7 2.4 3.1 3.8 4.5 5.2 5.9 \, phase 0.5 0 0.75
+0.4 0.7 0 0.25 0.5 \, amp 0.8 1 0.7 1 0.9 0.8 0.9 1, f 38;
+#X text 41 37 The [oscbank~] object from the ELSE library is a bank
+of oscillators made of [sine~] objects. It receives a frequency input
+and a list of ratio defines the partial's frequencies as in the last
+example. You can also set the amplitude and phase of each sine wave
+component. Click on the messages below.;
+#X text 102 145 Hz;
+#X obj 577 133 loadbang;
+#X msg 577 156 freq 200 280 360 440 520 550 630 680 \, phase 0 0.5
+0.25 0 0.1 0.9 0.75 0.1 \, amp 0.9 0.5 0.9 1 0.8 0.9 0.7 1, f 38;
+#X msg 616 216 freq 340 400 460 520 580 660 700 740 \, phase 0.5 0
+0.75 0.4 0.7 0 0.25 0.5 \, amp 0.8 1 0.7 1 0.9 0.8 0.9 1, f 38;
+#X obj 577 277 oscbank2~ 8 200;
+#X obj 97 297 oscbank~ 8 200;
+#X text 542 63 On the other hand \, [oscbank2~] from ELSE has an independent
+control for each partial's frequency. Check help file for more info.
+, f 49;
+#X obj 577 314 out~;
+#X obj 760 24 declare -path else;
+#X connect 0 0 3 0;
+#X connect 1 0 4 0;
+#X connect 3 0 12 0;
+#X connect 4 0 12 0;
+#X connect 5 0 12 0;
+#X connect 8 0 9 0;
+#X connect 9 0 11 0;
+#X connect 10 0 11 0;
+#X connect 11 0 14 0;
+#X connect 12 0 2 0;

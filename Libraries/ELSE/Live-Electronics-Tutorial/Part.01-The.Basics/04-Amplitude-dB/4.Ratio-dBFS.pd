@@ -1,0 +1,74 @@
+#N canvas 324 78 931 453 12;
+#X declare -path else;
+#X obj 177 178 expr pow(10 \, $f1 / 20);
+#X text 157 149 dB;
+#X msg 209 111 6.0206;
+#X msg 265 111 10;
+#X msg 137 111 -100;
+#X msg 300 111 100;
+#X obj 177 150 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X msg 98 111 -500;
+#X msg 177 111 0;
+#X obj 620 244 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0
+10 #dcdcdc #000000 #000000 0 256;
+#X obj 620 303 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 696 301 dB;
+#X obj 620 364 nbx 7 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0
+10 #dcdcdc #000000 #000000 0 256;
+#X obj 620 187 loadbang;
+#X obj 620 272 lin2db;
+#X obj 620 334 db2lin;
+#X msg 620 212 2;
+#X obj 177 255 nbx 8 14 -1e+37 1e+37 0 0 empty empty empty 18 -6 0
+10 #dcdcdc #000000 #000000 0 256;
+#X obj 177 284 expr log10($f1) * 20;
+#X text 149 313 dB;
+#X msg 185 214 1;
+#X msg 218 214 10;
+#X msg 254 214 20;
+#X msg 290 214 100;
+#X msg 149 214 0.5;
+#X msg 117 214 0;
+#X obj 177 310 display;
+#X text 30 24 This example emphasizes the relationship between dB and
+proportion. Let's not consider the reference amplitude from the formula
+from the first example in this series. Then we just convert dB to ratio
+and vice versa.;
+#X text 82 178 (dB to Ratio);
+#X text 81 284 (Ratio to dB);
+#X text 41 348 We can see from the patch above that \, for instance
+\, an amplitude which is 10 times greater represents an increase of
+20 dB. Or that 100 times greater is 40 dB. And how 100 dB increase
+represent a ratio of 100 thousand times.;
+#X text 483 89 We can now understand that this is the same formula
+used to convert to and from dBFS! This adds another interpretative
+dimension to this conversion \, instead of converting to and from linear
+\, we can also consider it a conversion to and from "ratio".;
+#X text 699 244 Ratio;
+#X text 699 364 Ratio;
+#X text 134 253 Ratio;
+#X obj 697 35 declare -path else;
+#X connect 0 0 17 0;
+#X connect 2 0 6 0;
+#X connect 3 0 6 0;
+#X connect 4 0 6 0;
+#X connect 5 0 6 0;
+#X connect 6 0 0 0;
+#X connect 7 0 6 0;
+#X connect 8 0 6 0;
+#X connect 9 0 14 0;
+#X connect 10 0 15 0;
+#X connect 13 0 16 0;
+#X connect 14 0 10 0;
+#X connect 15 0 12 0;
+#X connect 16 0 9 0;
+#X connect 17 0 18 0;
+#X connect 18 0 26 0;
+#X connect 20 0 17 0;
+#X connect 21 0 17 0;
+#X connect 22 0 17 0;
+#X connect 23 0 17 0;
+#X connect 24 0 17 0;
+#X connect 25 0 17 0;

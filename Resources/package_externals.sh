@@ -16,6 +16,7 @@ cp -R ../../Libraries/pure-data/doc ./Documentation
 cp -R ../pddp ./Documentation/pddp
 cp -R ../../Libraries/ELSE/Help-files/ ./Documentation/9.else
 cp -R ../../Libraries/cyclone/documentation/help_files ./Documentation/10.cyclone
+cp -R ../../Libraries/ELSE/Live-Electronics-Tutorial/ ./Documentation/11.live-electronics-tutorial
 
 
 # Remove else prefix in helpfiles

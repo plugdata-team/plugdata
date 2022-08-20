@@ -1,0 +1,510 @@
+#N canvas 312 23 939 723 12;
+#X declare -path else;
+#X obj 439 76 vsl 22 157 0 1.1 0 0 \$0-gain-send \$0-gain empty 0 -9
+0 10 #404040 #fc0400 #000000 0 1;
+#X obj 446 124 cnv 5 5 5 empty empty G 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 446 140 cnv 5 5 5 empty empty A 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 446 156 cnv 5 5 5 empty empty I 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 331 408 biquad~;
+#X obj 331 347 noise~;
+#X obj 331 440 out~;
+#X obj 446 176 cnv 5 5 5 empty empty N 0 0 0 14 #404040 #fcfcfc 0;
+#X obj 92 353 hsl 128 15 20 22050 1 0 empty empty empty -2 -8 0 10
+#dcdcdc #000000 #000000 0 1;
+#X floatatom 89 385 0 0 0 0 - - - 0;
+#X obj 89 454 s \$0-coeffs;
+#X obj 247 400 nbx 5 14 -24 24 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X text 118 351 frequency;
+#X text 166 375 Q/Slope;
+#X obj 89 423 bicoeff2 lowpass 500 10;
+#X obj 346 379 r \$0-coeffs;
+#X text 253 379 gain;
+#N canvas 552 206 746 448 menu 0;
+#X msg 32 101 lowpass;
+#X msg 44 125 highpass;
+#X msg 60 149 bandpass;
+#X msg 94 196 bandstop;
+#X msg 75 174 resonant;
+#X msg 151 299 allpass;
+#X msg 109 222 eq;
+#X msg 135 275 lowshelf;
+#X msg 118 250 highshelf;
+#X obj 62 373 outlet;
+#X text 32 44 choose filter type;
+#X obj 32 73 loadbang;
+#X obj 272 135 lowpass~;
+#X obj 337 135 highpass~;
+#X obj 481 135 highpass~;
+#X obj 409 135 resonant~;
+#X obj 555 135 bandstop~;
+#X obj 302 172 eq~, f 5;
+#X obj 347 172 highshelf~;
+#X obj 427 172 lowshelf~;
+#X obj 499 172 allpass.2nd~;
+#X text 261 27 Note that all of these filters are also implemented
+in single separate objects in the ELSE library \, and the main difference
+is that they take signal input to control the parameters. Another difference
+is that only [eq~] \, [lowshelf~] and [highshelf~] have a gain input.
+, f 54;
+#X text 273 228 see also: [bicoeff];
+#X obj 265 262 bicoeff;
+#X connect 0 0 9 0;
+#X connect 1 0 9 0;
+#X connect 2 0 9 0;
+#X connect 3 0 9 0;
+#X connect 4 0 9 0;
+#X connect 5 0 9 0;
+#X connect 6 0 9 0;
+#X connect 7 0 9 0;
+#X connect 8 0 9 0;
+#X connect 11 0 0 0;
+#X restore 32 316 pd menu;
+#X obj 168 400 nbx 5 14 0 100 0 0 empty empty empty 0 -8 0 10 #dcdcdc
+#000000 #000000 0 256;
+#X obj 777 32 declare -path else;
+#N canvas 345 23 1021 510 vanilla 0;
+#N canvas 114 184 549 267 lowpass 0;
+#X obj 39 165 pack f f f f f;
+#X obj 164 165 v b0;
+#X text 33 224 b1 b2 a0 a1 a2;
+#N canvas 76 96 259 188 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 128 outlet;
+#X obj 61 93 sel 0;
+#X obj 61 66 v type_\$0;
+#X connect 0 0 3 0;
+#X connect 2 0 1 0;
+#X connect 3 0 2 0;
+#X restore 39 21 pd get-coef;
+#X obj 206 165 v alphaQ;
+#X text 272 34 LPF \; - b1 = 2*cos(w) / b0 \; - b2 = (alphaQ - 1) /
+b0 \; - a0 = (1-cos(w)) / (2*b0) \; - a1 = (1-cos(w)) / b0 \; - a2
+= (1-cos(w)) / (2*b0) \; - b0 = alphaQ + 1 \; - alphaQ = sin(w) / (2*Q)
+;
+#X obj 39 47 expr 2*cos(w) / b0 \; (alphaQ - 1) / b0 \; (1 - cos(w))
+/ (2*b0) \; (1 - cos(w)) / b0 \; (1 - cos(w)) / (2*b0) \; alphaQ +
+1 \; sin(w) / (2*Q);
+#X obj 39 197 s \$0-coeffs;
+#X connect 0 0 7 0;
+#X connect 3 0 6 0;
+#X connect 6 0 0 0;
+#X connect 6 1 0 1;
+#X connect 6 2 0 2;
+#X connect 6 3 0 3;
+#X connect 6 4 0 4;
+#X connect 6 5 1 0;
+#X connect 6 6 4 0;
+#X restore 612 168 pd lowpass;
+#N canvas 75 99 452 300 highpass 0;
+#X obj 15 195 pack f f f f f;
+#X text 104 228 b1 b2 a0 a1 a2;
+#N canvas 76 96 254 201 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 135 outlet;
+#X obj 61 66 v type_\$0;
+#X obj 61 93 sel 1;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 15 40 pd get-coef;
+#X text 213 50 HPF \; - b1 = 2*cos(w) / b0 \; - b2 = (alphaQ - 1) /
+b0 \; - a0 = (1 + cos(w)) / (2*b0) \; - a1 = -(1 + cos(w)) / b0 \;
+- a2 = (1 + cos(w)) / (2*b0) \; - b0 = alphaQ + 1 \; - alphaQ = sin(w)
+/ (2*Q);
+#X obj 140 191 v b0;
+#X obj 191 191 v alphaQ;
+#X obj 15 76 expr 2*cos(w) / b0 \; (alphaQ - 1) / b0 \; (cos(w) + 1)
+/ (2*b0) \; -(cos(w) + 1) / b0 \; (cos(w) + 1) / (2*b0) \; alphaQ +
+1 \; sin(w) / (2*Q);
+#X obj 15 228 s \$0-coeffs;
+#X connect 0 0 7 0;
+#X connect 2 0 6 0;
+#X connect 6 0 0 0;
+#X connect 6 1 0 1;
+#X connect 6 2 0 2;
+#X connect 6 3 0 3;
+#X connect 6 4 0 4;
+#X connect 6 5 4 0;
+#X connect 6 6 5 0;
+#X restore 612 187 pd highpass;
+#N canvas 228 192 602 336 bandpass 0;
+#X obj 65 234 pack float float float 0 float;
+#X obj 294 234 v b0;
+#N canvas 76 96 259 263 get-coef 0;
+#X obj 61 83 r \$0-get-coeff;
+#X obj 61 175 outlet;
+#X obj 61 111 v type_\$0;
+#X obj 61 138 sel 2;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 186 48 pd get-coef;
+#X obj 344 232 v alphaQ;
+#X obj 186 96 expr 2*cos(w) / b0 \; (alphaQ - 1) / b0 \; alphaQ / b0
+\; 0 \; -alphaQ / b0 \; alphaQ + 1 \; sin(w) / (2*Q);
+#X text 366 70 BPF \; - b1 = 2*cos(w) / b0 \; - b2 = (alphaQ - 1) /
+b0 \; - a0 = alphaQ / b0 \; - a1 = 0 \; - a2 = -alphaQ / b0 \; - b0
+= alphaQ + 1 \; - alphaQ = sin(w) / (2*Q);
+#X obj 65 264 s \$0-coeffs;
+#X connect 0 0 6 0;
+#X connect 2 0 4 0;
+#X connect 4 0 0 0;
+#X connect 4 1 0 1;
+#X connect 4 2 0 2;
+#X connect 4 3 0 3;
+#X connect 4 4 0 4;
+#X connect 4 5 1 0;
+#X connect 4 6 3 0;
+#X restore 612 206 pd bandpass;
+#N canvas 96 66 495 278 resonant 0;
+#X obj 203 197 v b0;
+#X obj 85 190 pack f f f 0 f;
+#N canvas 76 96 259 263 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 162 outlet;
+#X obj 61 66 v type_\$0;
+#X obj 61 93 sel 3;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 92 33 pd get-coef;
+#X obj 222 174 v alphaQ;
+#X obj 92 67 expr 2*cos(w) / b0 \; (alphaQ - 1) / b0 \; alphaQ * Q
+/ b0 \; 0 \; -alphaQ * Q / b0 \; alphaQ + 1 \; sin(w) / (2*Q);
+#X text 272 51 Resonant \; - b1 = 2*cos(w) / b0 \; - b2 = (alphaQ -
+1) / b0 \; - a0 = alphaQ * Q / b0 \; - a1 = 0 \; - a2 = -alphaQ * Q
+/ b0 \; - b0 = alphaQ + 1 \; - alphaQ = sin(w) / (2*Q);
+#X obj 85 223 s \$0-coeffs;
+#X connect 1 0 6 0;
+#X connect 2 0 4 0;
+#X connect 4 0 1 0;
+#X connect 4 1 1 1;
+#X connect 4 2 1 2;
+#X connect 4 3 1 3;
+#X connect 4 4 1 4;
+#X connect 4 5 0 0;
+#X connect 4 6 3 0;
+#X restore 612 225 pd resonant;
+#N canvas 709 37 464 322 peaking 0;
+#X obj 60 215 pack f f f f f;
+#X obj 184 216 v b0;
+#N canvas 76 96 259 263 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 144 outlet;
+#X obj 61 66 v type_\$0;
+#X obj 61 93 sel 5;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 67 50 pd get-coef;
+#X obj 203 192 v alphaQ;
+#X obj 67 81 expr 2*cos(w) / b0 \; (alphaQ/G - 1) / b0 \; (1 + alphaQ*G)
+/ b0 \; -2*cos(w) / b0 \; (1 - alphaQ*G) / b0 \; alphaQ/G + 1 \; sin(w)
+/ (2*Q) \;;
+#X text 227 63 Peak \; - b1 = 2*cos(w) / bO \; - b2 = (alphaQ/G - 1)
+/ b0 \; - a0 = (1 + alphaQ*G) / b0 \; - a1 = -2*cos(w) / b0 \; - a2
+= (1 - alphaQ*G) / b0 \; - b0 = alphaQ/G + 1 \; - alphaQ = sin(w) /
+(2*Q);
+#X obj 60 249 s \$0-coeffs;
+#X connect 0 0 6 0;
+#X connect 2 0 4 0;
+#X connect 4 0 0 0;
+#X connect 4 1 0 1;
+#X connect 4 2 0 2;
+#X connect 4 3 0 3;
+#X connect 4 4 0 4;
+#X connect 4 5 1 0;
+#X connect 4 6 3 0;
+#X restore 707 187 pd peaking;
+#N canvas 43 98 789 274 lowshelf 0;
+#X obj 288 187 v b0;
+#X obj 120 194 pack f f f f f;
+#N canvas 76 96 259 263 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 148 outlet;
+#X obj 61 66 v type_\$0;
+#X obj 61 93 sel 6;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 46 42 pd get-coef;
+#X obj 337 187 v alphaS;
+#X obj 46 73 expr 2*(G-1 + (G+1)*cos(w)) / b0 \; -(G+1 + (G-1)*cos(w)
+- alphaS) / b0 \; G*(G+1 - (G-1)*cos(w) + alphaS) / b0 \; 2*G*(G-1
+- (G+1)*cos(w)) / b0 \; G*(G+1 - (G-1)*cos(w) - alphaS) / b0 \; G+1
++ (G-1)*cos(w) + alphaS \; sin(w) * sqrt((G*G + 1) * (1/S - 1) + 2*G)
+;
+#X text 378 49 LowShelf \; - b1 = 2*(G-1 + (G+1)*cos(w)) / b0 \; -
+b2 = -(G+1 + (G-1)*cos(w) - alphaS) / b0 \; - a0 = G*(G+1 - (G-1)*cos(w)
++ alphaS) / b0 \; - a1 = 2*G*(G-1 - (G+1)*cos(w)) / b0 \; - a2 = G*(G+1
+- (G-1)*cos(w) - alphaS) / b0 \; - b0 = G+1 + (G-1)*cos(w) + alphaS
+\; - alphaS = sin(w)*sqrt((G*G + 1) * (1/S - 1) + 2*G);
+#X obj 120 227 s \$0-coeffs;
+#X connect 1 0 6 0;
+#X connect 2 0 4 0;
+#X connect 4 0 1 0;
+#X connect 4 1 1 1;
+#X connect 4 2 1 2;
+#X connect 4 3 1 3;
+#X connect 4 4 1 4;
+#X connect 4 5 0 0;
+#X connect 4 6 3 0;
+#X restore 707 206 pd lowshelf;
+#N canvas 164 83 515 299 allpass 0;
+#X obj 25 172 pack f f f f 1;
+#N canvas 76 96 259 263 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 188 outlet;
+#X obj 61 66 v type_\$0;
+#X obj 61 93 sel 8;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 31 24 pd get-coef;
+#X obj 138 172 v b0;
+#X obj 176 172 v alphaQ;
+#X obj 31 61 expr 2*cos(w) / b0 \; (alphaQ - 1) / b0 \; (1 - alphaQ)
+/ b0 \; -2*cos(w) / b0 \; 1 \; alphaQ + 1 \; sin(w) / (2*Q);
+#X text 225 44 APF \; - b1 = 2*cos(w) / b0 \; - b2 = (alphaQ - 1) /
+b0 \; - a0 = (1 - alphaQ) / b0 \; - a1 = -2*cos(w) / b0 \; - a2 = 1
+\; - b0 = 1 + alphaQ \; - alphaQ = sin(w) / (2*Q);
+#X obj 25 203 s \$0-coeffs;
+#X connect 0 0 6 0;
+#X connect 1 0 4 0;
+#X connect 4 0 0 0;
+#X connect 4 1 0 1;
+#X connect 4 2 0 2;
+#X connect 4 3 0 3;
+#X connect 4 4 0 4;
+#X connect 4 5 2 0;
+#X connect 4 6 3 0;
+#X restore 707 244 pd allpass;
+#N canvas 28 209 798 296 highshelf 0;
+#N canvas 76 96 259 263 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 188 outlet;
+#X obj 61 66 v type_\$0;
+#X obj 61 93 sel 7;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 39 27 pd get-coef;
+#X obj 281 175 v b0;
+#X obj 113 180 pack f f f f f;
+#X obj 330 176 v alphaS;
+#X obj 39 57 expr -2*(G-1 - (G+1)*cos(w)) / b0 \; -(G+1 - (G-1)*cos(w)
+-alphaS) / b0 \; G*(G+1 + (G-1)*cos(w) + alphaS) / b0 \; -2*G*(G-1
++ (G+1)*cos(w)) / b0 \; G*(G+1 + (G-1)*cos(w) - alphaS) / b0 \; (G+1)
+- (G-1)*cos(w) + alphaS \; sin(w) * sqrt((G*G + 1) * (1/S - 1) + 2*G)
+;
+#X text 379 43 HighShelf \; - b1 = -2*(G-1 - (G+1)*cos(w)) / b0 \;
+- b2 = -(G+1 - (G-1)*cos(w) -alphaS) / b0 \; - a0 = G*(G+1 + (G-1)*cos(w)
++ alphaS) / b0 \; - a1 = -2*G*(G-1 + (G+1)*cos(w)) / b0 \; - a2 = G*(G+1
++ (G-1)*cos(w) - alphaS) / b0 \; - b0 = (G+1) - (G-1)*cos(w) + alphaS
+\; - alphaS = sin(w) * sqrt((G*G + 1) * (1/S - 1) + 2*G);
+#X obj 113 212 s \$0-coeffs;
+#X connect 0 0 4 0;
+#X connect 2 0 6 0;
+#X connect 4 0 2 0;
+#X connect 4 1 2 1;
+#X connect 4 2 2 2;
+#X connect 4 3 2 3;
+#X connect 4 4 2 4;
+#X connect 4 5 1 0;
+#X connect 4 6 3 0;
+#X restore 707 225 pd highshelf;
+#X obj 212 341 s \$0-get-coeff;
+#X obj 447 202 / 2;
+#X obj 326 230 t b f;
+#X obj 447 260 t b f;
+#X obj 479 284 v G;
+#X obj 376 257 v Q;
+#X obj 244 284 v w;
+#X obj 212 260 t b f;
+#X obj 326 341 s \$0-get-coeff;
+#X obj 447 311 s \$0-get-coeff;
+#X text 328 136 Q/S;
+#X text 208 136 Freq (Hz);
+#X text 448 136 Ganho (dB);
+#X obj 358 311 v S;
+#X obj 358 286 min 1;
+#X obj 326 197 max 0;
+#X obj 212 214 hz2rad;
+#X obj 447 232 db2lin;
+#X obj 380 423 / 2;
+#X obj 341 423 pi;
+#X obj 341 449 v pi;
+#X obj 409 423 v sr_\$0;
+#X obj 380 451 s \$0-nyquist;
+#X obj 380 390 sr~;
+#X text 330 391 init:;
+#X obj 212 164 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+#dcdcdc #000000 #000000 0 256;
+#X obj 447 164 nbx 5 18 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 14
+#dcdcdc #000000 #000000 0 256;
+#X obj 326 164 nbx 5 18 0 100 0 0 empty empty empty 0 -8 0 14 #dcdcdc
+#000000 #000000 0 256;
+#X text 44 74 First \, the frequency value in Hz is converted to radians
+per sample. The gain input value in dB is also converted to linear
+amplitude.;
+#X obj 595 304 display;
+#X text 66 172 Filter type;
+#X obj 67 201 vradio 18 1 0 9 empty empty empty 0 -8 0 10 #dcdcdc #000000
+#000000 0;
+#X obj 67 388 trigger bang float;
+#X obj 190 441 v type_\$0;
+#X obj 67 440 s \$0-get-coeff;
+#X text 91 200 lowpass;
+#X text 91 218 highpass;
+#X text 91 236 bandpass;
+#X text 91 254 resonant;
+#X text 91 290 peaking;
+#X text 91 308 lowshelf;
+#X text 91 326 highshelf;
+#X text 91 345 allpass;
+#X text 538 25 The calculation is done in the subpatches below. For
+a comparison of all formulas \, open the [pd formulas] subpatch below.
+To check the implementation of each filter \, open the corresponding
+subpatch., f 48;
+#N canvas 447 145 493 279 bandstop 0;
+#X obj 54 173 pack f f f f f;
+#X obj 162 174 v b0;
+#N canvas 76 96 259 263 get-coef 0;
+#X obj 61 38 r \$0-get-coeff;
+#X obj 61 158 outlet;
+#X obj 61 66 v type_\$0;
+#X obj 61 93 sel 4;
+#X connect 0 0 2 0;
+#X connect 2 0 3 0;
+#X connect 3 0 1 0;
+#X restore 54 25 pd get-coef;
+#X obj 202 174 v alphaQ;
+#X obj 54 61 expr 2*cos(w) / b0 \; (alphaQ - 1) / b0 \; 1 / b0 \; -2*cos(w)
+/ b0 \; 1 / b0 \; alphaQ + 1 \; sin(w) / (2*Q);
+#X text 235 43 Notch \; - b1 = 2*cos(w) / b0 \; - b2 = (alphaQ - 1)
+/ b0 \; - a0 = 1 / b0 \; - a1 = -2*cos(w) / b0 \; - a2 = 1 / b0 \;
+- b0 = alphaQ + 1 \; - alphaQ = sin(w) / (2*Q);
+#X obj 54 209 s \$0-coeffs;
+#X connect 0 0 6 0;
+#X connect 2 0 4 0;
+#X connect 4 0 0 0;
+#X connect 4 1 0 1;
+#X connect 4 2 0 2;
+#X connect 4 3 0 3;
+#X connect 4 4 0 4;
+#X connect 4 5 1 0;
+#X connect 4 6 3 0;
+#X restore 707 168 pd bandstop;
+#X text 91 272 bandstop;
+#X obj 610 336 noise~;
+#X obj 595 409 out~;
+#N canvas 304 125 874 502 all_formulas 0;
+#X text 503 136 LowShelf \; - b0 = G+1 + (G-1)*cos(w) + alphaS \; -
+b1 = 2*(G-1 + (G+1)*cos(w)) / b0 \; - b2 = -(G+1 + (G-1)*cos(w) - alphaS)
+/ b0 \; - a0 = G*(G+1 - (G-1)*cos(w) + alphaS) / b0 \; - a1 = 2*G*(G-1
+- (G+1)*cos(w)) / b0 \; - a2 = G*(G+1 - (G-1)*cos(w) - alphaS) / b0
+\;;
+#X text 272 355 Peak \; - b0 = alphaQ/G + 1 \; - b1 = 2*cos(w) / bO
+\; - b2 = (alphaQ/G - 1) / b0 \; - a0 = (1 + alphaQ*G) / b0 \; - a1
+= -2*cos(w) / b0 \; - a2 = (1 - alphaQ*G) / b0;
+#X text 506 247 HighShelf \; - b0 = (G+1) - (G-1)*cos(w) + alphaS \;
+- b1 = -2*(G-1 - (G+1)*cos(w)) / b0 \; - b2 = -(G+1 - (G-1)*cos(w)
+-alphaS) / b0 \; - a0 = G*(G+1 + (G-1)*cos(w) + alphaS) / b0 \; - a1
+= -2*G*(G-1 + (G+1)*cos(w)) / b0 \; - a2 = G*(G+1 + (G-1)*cos(w) -
+alphaS) / b0;
+#X text 63 244 Resonant \; - b0 = alphaQ + 1 \; - b1 = 2*cos(w) / b0
+\; - b2 = (alphaQ - 1) / b0 \; - a0 = alphaQ * Q / b0 \; - a1 = 0 \;
+- a2 = -alphaQ * Q / b0;
+#X text 56 133 Lowpass \; - b0 = alphaQ + 1 \; - b1 = 2*cos(w) / b0
+\; - b2 = (alphaQ - 1) / b0 \; - a0 = (1-cos(w)) / (2*b0) \; - a1 =
+(1-cos(w)) / b0 \; - a2 = (1-cos(w)) / (2*b0);
+#X text 265 132 Highpass \; - b0 = alphaQ + 1 \; - b1 = 2*cos(w) /
+b0 \; - b2 = (alphaQ - 1) / b0 \; - a0 = (1 + cos(w)) / (2*b0) \; -
+a1 = -(1 + cos(w)) / b0 \; - a2 = (1 + cos(w)) / (2*b0);
+#X text 66 356 Bandpass \; - b0 = alphaQ + 1 \; - b1 = 2*cos(w) / b0
+\; - b2 = (alphaQ - 1) / b0 \; - a0 = alphaQ / b0 \; - a1 = 0 \; -
+a2 = -alphaQ / b0;
+#X text 518 360 Allpass \; - b0 = 1 + alphaQ \; - b1 = 2*cos(w) / b0
+\; - b2 = (alphaQ - 1) / b0 \; - a0 = (1 - alphaQ) / b0 \; - a1 = -2*cos(w)
+/ b0 \; - a2 = 1;
+#X text 87 39 For all resonant filters \, "alphaQ" is calculated as:
+, f 34;
+#X text 92 74 - alphaQ = sin(w)/2*Q;
+#X text 415 73 - alphaS = sin(w) * sqrt((G*G + 1) * (1/S - 1) + 2*G)
+;
+#X text 411 37 For shelving filters \, we have an "alphaS" variable
+defined as:, f 41;
+#X text 271 241 Bandstop \; - b0 = alphaQ + 1 \; - b1 = 2*cos(w) /
+b0 \; - b2 = (alphaQ - 1) / b0 \; - a0 = 1 / b0 \; - a1 = -2*cos(w)
+/ b0 \; - a2 = 1 / b0;
+#X restore 646 129 pd all_formulas;
+#X obj 595 365 biquad~;
+#X obj 376 231 max 0.5;
+#X obj 595 274 r \$0-coeffs;
+#X text 44 26 With the parameters of: frequency \, Q (for resonant
+filters) or S (for shelving filters) and gain (for peak/shelving) we
+can calculate biquad coefficients., f 60;
+#X connect 9 0 25 0;
+#X connect 10 0 16 0;
+#X connect 10 1 22 0;
+#X connect 10 1 58 0;
+#X connect 11 0 17 0;
+#X connect 11 1 12 0;
+#X connect 15 0 8 0;
+#X connect 15 1 14 0;
+#X connect 22 0 21 0;
+#X connect 23 0 10 0;
+#X connect 24 0 15 0;
+#X connect 25 0 11 0;
+#X connect 26 0 30 0;
+#X connect 27 0 28 0;
+#X connect 31 0 26 0;
+#X connect 31 0 29 0;
+#X connect 33 0 24 0;
+#X connect 34 0 9 0;
+#X connect 35 0 23 0;
+#X connect 37 0 57 0;
+#X connect 39 0 40 0;
+#X connect 40 0 42 0;
+#X connect 40 1 41 0;
+#X connect 54 0 57 0;
+#X connect 57 0 55 0;
+#X connect 58 0 13 0;
+#X connect 59 0 37 0;
+#X restore 144 157 pd vanilla;
+#X obj 461 16 r \$0-coeffs;
+#X obj 461 45 insert coeff;
+#X msg 421 45 \$3;
+#X obj 461 74 zbiplot;
+#X obj 13 525 biplot;
+#X obj 13 497 r \$0-coeffs;
+#X text 29 104 Check this subpatch with a vanilla implementation of
+all these biquad coefficient calculations., f 50;
+#X text 28 188 Open [pd menu] to select the filter type. Lowshelf and
+highshelf take a slope value (between 0 and 1) instead of "Q". They
+also need a gain parameter (in dB). The "Eq" filter also needs a gain
+parameter \, but for others this is optional and only affects overall
+gain. Check the filters' response below and the poles/zeros to the
+right., f 53;
+#X text 90 317 <= open;
+#X floatatom 398 280 6 0 0 0 - - - 0;
+#X text 29 41 The filter equations from Robert Bristow-Johnson's "Cookbook
+formulae for audio EQ biquad filter coefficients" is the basis of the
+[bicoeff] and [bicoeff2] objects., f 50;
+#X text 226 158 <-- open;
+#X connect 0 0 30 0;
+#X connect 4 0 6 0;
+#X connect 5 0 4 0;
+#X connect 8 0 9 0;
+#X connect 9 0 14 0;
+#X connect 11 0 14 2;
+#X connect 14 0 10 0;
+#X connect 15 0 4 0;
+#X connect 17 0 14 0;
+#X connect 18 0 14 1;
+#X connect 21 0 22 0;
+#X connect 21 0 23 0;
+#X connect 22 0 24 0;
+#X connect 23 0 0 0;
+#X connect 26 0 25 0;

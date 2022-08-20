@@ -1,0 +1,74 @@
+#N canvas 317 75 1030 502 12;
+#X declare -path else;
+#X obj 621 163 cos~;
+#X text 579 162 Real;
+#X obj 621 220 *~;
+#X obj 674 220 *~;
+#X obj 695 196 hsl 128 15 0 1 0 0 empty amp Amplitude 35 8 0 10 -228856
+-1 -1 12700 1;
+#X obj 739 334 hsl 128 15 -3.14 3.14 0 0 empty empty empty -2 -8 0
+10 -191407 -1 -1 6816 1;
+#X text 550 332 Amplitude;
+#X obj 835 196 hsl 128 15 0 1 0 0 empty empty empty -2 -8 0 10 -191407
+-1 -1 466 1;
+#X text 798 349 0;
+#X text 860 348 pi;
+#X text 729 347 -pi;
+#X text 830 212 0;
+#X text 955 209 1;
+#X text 888 212 0.5;
+#X obj 674 104 phasor~ 0.5;
+#X obj 621 262 car2pol~;
+#X obj 674 163 sin~;
+#N canvas 707 447 445 233 plot 0;
+#X obj 63 41 inlet~;
+#X obj 165 40 inlet~;
+#X obj 63 138 tabwrite~ Re;
+#X obj 165 138 tabwrite~ Im;
+#X obj 267 71 loadbang;
+#X msg 267 122 \; amp 1 \; pd dsp 1;
+#X connect 0 0 2 0;
+#X connect 1 0 3 0;
+#X connect 4 0 2 0;
+#X connect 4 0 3 0;
+#X connect 4 0 5 0;
+#X restore 554 263 pd plot;
+#X text 709 163 Imaginary;
+#X obj 84 136 cnv 15 398 198 empty empty empty 20 12 0 14 -253822 -66577
+0;
+#N canvas 0 22 450 300 (subpatch) 0;
+#X array Im 88200 float 0;
+#X array Re 88200 float 0;
+#X coords 0 1 88199 -1 400 200 1 0 0;
+#X restore 83 135 graph;
+#X text 886 195 Phase;
+#X text 788 333 Phase;
+#X obj 621 335 nbx 7 15 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 12
+-228856 -1 -1 0.999988 256;
+#X text 80 39 A complex sinusoid can be created in Pd with [phasor~]
+connected to a [cos~] (representing the real part) and [sin~] (imaginary).
+Both parts are plotted below:;
+#X text 82 374 By converting to the polar form \, we have the complex
+sinusoid's maximum amplitude and phase. So this means we can query
+for this data \, which is impossible with a real sine wave. Complex
+math has also other properties we'll see soon.;
+#X obj 621 305 s2f~ 50;
+#X obj 736 304 s2f~;
+#X obj 832 166 s2f~;
+#X obj 822 45 declare -path else;
+#X connect 0 0 2 0;
+#X connect 2 0 17 0;
+#X connect 2 0 15 0;
+#X connect 3 0 17 1;
+#X connect 3 0 15 1;
+#X connect 4 0 3 1;
+#X connect 4 0 2 1;
+#X connect 14 0 0 0;
+#X connect 14 0 16 0;
+#X connect 14 0 28 0;
+#X connect 15 0 26 0;
+#X connect 15 1 27 0;
+#X connect 16 0 3 0;
+#X connect 26 0 23 0;
+#X connect 27 0 5 0;
+#X connect 28 0 7 0;

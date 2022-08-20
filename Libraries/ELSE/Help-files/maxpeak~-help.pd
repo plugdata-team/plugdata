@@ -41,7 +41,7 @@
 #X restore 3 3 graph;
 #X obj 271 165 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 196 227 else/display~;
+#X obj 196 231 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X obj 142 293 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 186 294 bang;

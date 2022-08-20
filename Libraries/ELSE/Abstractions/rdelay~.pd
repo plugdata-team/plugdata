@@ -14,8 +14,8 @@
 #X obj 199 215 phasor~ 1;
 #X text 339 185 Part of ELSE \; https://github.com/porres/pd-else;
 #X text 341 166 Alexandre Torres Porres (2020);
-#X obj 199 101 args;
-#X obj 61 300 ffdelay~ 2000;
+#X obj 199 101 else/args;
+#X obj 61 300 else/ffdelay~ 2000;
 #X obj 396 91 declare -path else;
 #X connect 0 0 1 0;
 #X connect 0 0 10 1;

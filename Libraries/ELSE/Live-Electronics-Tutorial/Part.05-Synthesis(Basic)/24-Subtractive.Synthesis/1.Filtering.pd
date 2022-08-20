@@ -1,0 +1,60 @@
+#N canvas 290 86 846 448 12;
+#X declare -path else;
+#X obj 258 310 nbx 5 14 0 10 0 0 \$0-reson \$0-reson-set empty 0 -8
+0 10 -228856 -1 -1 0 256;
+#X obj 166 260 nbx 5 14 20 20000 0 0 \$0-freq \$0-freq-set empty 0
+-8 0 10 -228856 -1 -1 20 256;
+#X obj 169 235 hsl 200 15 200 10000 1 0 empty \$0-freq-slider-set empty
+-2 -8 0 10 -228856 -1 -1 0 1;
+#X obj 261 288 hsl 150 15 0 10 0 0 empty \$0-reson-slider-set empty
+-2 -8 0 10 -228856 -1 -1 0 1;
+#X obj 506 182 noise~;
+#X obj 112 349 out~;
+#X obj 524 264 out~;
+#X obj 654 220 nbx 5 14 10 100 0 0 \$0-reson \$0-reson-set empty 0
+-8 0 10 -228856 -1 -1 10 256;
+#X obj 578 197 nbx 5 14 20 20000 0 0 \$0-freq \$0-freq-set empty 0
+-8 0 10 -228856 -1 -1 20 256;
+#X obj 581 172 hsl 200 15 200 10000 1 0 empty \$0-freq-slider-set empty
+-2 -8 0 10 -228856 -1 -1 0 1;
+#X obj 657 198 hsl 150 15 10 100 0 0 empty \$0-reson-slider-set empty
+-2 -8 0 10 -228856 -1 -1 0 1;
+#X text 204 234 Resonant Frequency;
+#X text 291 287 Q/Resonance;
+#X obj 524 221 bandpass~ 500 50;
+#X text 608 171 Resonant Frequency;
+#X text 684 197 Q/Resonance;
+#X obj 166 286 f2s~ 10 500;
+#X obj 112 312 lowpass~ 500 4.5;
+#X text 39 15 Subtractive Synthesis is a technique that can be generalized
+as simply applying filtering into a sound source \, preferably a rich
+and complex sound like a sawtooth oscillator., f 49;
+#X text 40 84 To filter a sound is to either attenuate or boost some
+of its frequency content. We'll see filters in details in the next
+section. Most commonly \, subtractive synthesis uses Lowpass Resonant
+filters \, such as [lowpass~] \, from ELSE. This filter "passes" frequencies
+below the resonant frequency and a resonance parameter boosts the resonant
+frequency., f 49;
+#X text 496 352 You can check the help files of these filters for more
+details \, before the next section where we have a deeper look into
+basic filters., f 38;
+#X obj 649 16 declare -path else;
+#X text 461 51 Noise sources are also suitable for filtering in subtractive
+synthesis. Here's [noise~] going through [bandpass~] \, a filter that
+only passes a band/range of frequency and whose resonance controls
+the width of this frequency band. For a vey high Q/Resonance \, note
+how we can perceive a clear pitch., f 48;
+#X obj 71 257 bl.saw~ 50;
+#X connect 0 0 17 2;
+#X connect 1 0 16 0;
+#X connect 2 0 1 0;
+#X connect 3 0 0 0;
+#X connect 4 0 13 0;
+#X connect 7 0 13 2;
+#X connect 8 0 13 1;
+#X connect 9 0 8 0;
+#X connect 10 0 7 0;
+#X connect 13 0 6 0;
+#X connect 16 0 17 1;
+#X connect 17 0 5 0;
+#X connect 23 0 17 0;

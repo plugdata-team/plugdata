@@ -1,0 +1,72 @@
+#N canvas 194 69 1059 472 12;
+#X declare -path else;
+#X obj 612 160 downsample~;
+#X obj 938 47 initmess \; \$0-sr 44100;
+#X obj 914 134 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X text 974 133 Hertz;
+#X obj 840 200 out~;
+#X obj 840 160 sh~;
+#X obj 914 158 impulse~;
+#X obj 686 139 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+#dcdcdc #000000 #000000 0 256;
+#X obj 689 116 hsl 100 15 400 44100 1 0 empty \$0-sr empty -2 -8 0
+10 #dcdcdc #000000 #000000 0 1;
+#X text 744 138 Hertz;
+#X obj 628 200 out~;
+#X obj 598 73 send~ \$0-audio;
+#X obj 840 109 receive~ \$0-audio, f 8;
+#X obj 612 109 receive~ \$0-audio, f 8;
+#X text 599 15 [play.file~] plays audio files;
+#X obj 889 14 declare -path else;
+#X obj 598 41 play.file~ bubul.wav 1 1;
+#X text 17 17 The "decimator" is an audio processing technique that
+consists in reducing the sample rate (also known as "downsampling").
+, f 79;
+#X text 17 134 The downsampling process collects an amplitude value
+from the signal. In the upsampling process \, one option is to hold
+this same value for all the new sample values. The [downsample~] object
+from ELSE can do this and just needs a downsampling frequency value.
+A more ellaborate way to implement this is with [sh~] \, from ELSE
+\, which is a "sample and hold" unit that collects a sample value when
+receiving impulses (given by [impulse~]) and holds such values until
+the next trigger. The frequency at which it receives impulses is the
+downsampled frequency., f 79;
+#X text 17 53 Depending on what you do \, downsampling doesn't really
+reduce the sample rate. One can \, for instance \, reduce the sample
+rate but perform an upsampling to go back to the original sample rate.
+This keeps the same sample rate but still counts as a "decimator" and
+creates aliasing artifacts. This makes sense because you want other
+things in your patch to run in the original sample rate., f 79;
+#X text 901 265 [spectrograph~];
+#X text 956 435 22.05 Khz;
+#X text 608 434 0 hz;
+#X obj 612 287 spectrograph~ 1024 1 0 400 140 100;
+#X obj 917 111 hsl 100 15 400 44100 1 0 empty \$0-sr empty -2 -8 0
+10 #dcdcdc #000000 #000000 0 1;
+#X text 17 256 This example plays a recording of a "bubul tarang" \,
+an indian string instrument (which sounds a bit like a guitar). You
+can clearly hear that the frequency content is now bounded to a new
+Nyquist frequency according to the downsampling frequency (half of
+it \, of course). In other words \, you hear aliasing in this process.
+But since we still have the same sample rate (44.1 Khz in this case)
+\, the nyquist frequency is still the same (22.05 Khz) and frequency
+content up to it is still present even though it doesn't seem so.,
+f 79;
+#X text 17 363 Check the spectral graph in [spectrograph~] from ELSE
+how the spectral energy is still present throughout the frequency range.
+This graph shows frequencies in the horizontal axis and amplitude values
+for the frequencies in the vertical axis. More details about this process
+will be described in chapter 13 \, when presenting bandlimiting of
+noise sources., f 79;
+#X connect 0 0 10 0;
+#X connect 0 0 23 0;
+#X connect 2 0 6 0;
+#X connect 5 0 4 0;
+#X connect 6 0 5 1;
+#X connect 7 0 0 1;
+#X connect 8 0 7 0;
+#X connect 12 0 5 0;
+#X connect 13 0 0 0;
+#X connect 16 0 11 0;
+#X connect 24 0 2 0;

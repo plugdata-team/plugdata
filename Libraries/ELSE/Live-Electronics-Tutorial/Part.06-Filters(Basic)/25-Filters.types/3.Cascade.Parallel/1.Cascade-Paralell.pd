@@ -1,0 +1,44 @@
+#N canvas 544 23 506 652 12;
+#X declare -path else;
+#X obj 97 441 noise~;
+#X obj 210 530 +~;
+#X obj 272 202 noise~;
+#X obj 272 256 hip~ 500;
+#X obj 272 229 lop~ 300;
+#X obj 119 199 noise~;
+#X obj 119 228 lop~ 300;
+#X obj 119 250 lop~ 300;
+#X obj 119 287 out~;
+#X obj 272 285 out~;
+#X text 38 56 We can combine filters in two ways \, in cascade or parallel.
+In cascade means the same as in series \, that is \, the output of
+a filter is fed into another.;
+#X text 38 106 Below to the left we have two [lop~] objects in cascade.
+Since the decay of the filter is 6 dB per octave \, two of them in
+cascade doubles the decay to 12 dB per octave. To the right \, we combine
+a [lop~] and a [hip~] \, which forms a kind of a bandpass filter.,
+f 59;
+#X obj 97 496 bandpass~ 400 20;
+#X obj 228 494 bandpass~ 1200 20;
+#X obj 191 451 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X obj 286 452 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 0 256;
+#X text 40 367 A parallel connection is when the input goes in parallel
+into different filters and then summed at the end. Here we have two
+bandpass filters in parallel.;
+#X obj 331 15 declare -path else;
+#X obj 210 564 out~;
+#X connect 0 0 12 0;
+#X connect 0 0 13 0;
+#X connect 1 0 18 0;
+#X connect 2 0 4 0;
+#X connect 3 0 9 0;
+#X connect 4 0 3 0;
+#X connect 5 0 6 0;
+#X connect 6 0 7 0;
+#X connect 7 0 8 0;
+#X connect 12 0 1 0;
+#X connect 13 0 1 1;
+#X connect 14 0 12 1;
+#X connect 15 0 13 1;

@@ -1,0 +1,111 @@
+#N canvas 472 23 631 792 12;
+#X declare -path else;
+#X msg 151 342 0;
+#X text 180 343 reset;
+#X obj 105 367 phasor~;
+#X obj 228 371 expr~ 1000 / $v1;
+#X obj 209 624 *~;
+#X obj 344 671 +~;
+#X obj 105 344 *~;
+#X obj 193 267 /~ 100;
+#X obj 193 292 expr~ 1 - $v1;
+#X obj 55 231 loadbang;
+#X obj 105 534 +~;
+#X obj 239 518 *~;
+#X obj 481 346 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-cents empty 0 -8
+0 10 -228856 -1 -1 0 256;
+#X text 542 342 Cents;
+#X obj 481 393 expr~ 1 - $v1;
+#X obj 362 640 *~;
+#X obj 434 520 *~;
+#X obj 301 563 +~;
+#X obj 239 557 *~;
+#X obj 463 551 *~;
+#X obj 193 243 nbx 5 14 -1e+37 1e+37 0 0 empty \$0-speed empty 0 -8
+0 10 -228856 -1 -1 100 256;
+#X text 94 255 buffer (ms);
+#X obj 408 278 hsl 128 15 0 1000 0 0 empty \$0-size grain-ms -2 -8
+0 10 -228856 -1 -1 1270 1;
+#X obj 405 302 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
+-228856 -1 -1 100 256;
+#X msg 55 255 6000;
+#X obj 344 710 out~;
+#X obj 310 218 delwrite~ \$0-buffer 6000;
+#X obj 105 563 delread4~ \$0-buffer, f 9;
+#X obj 301 589 delread4~ \$0-buffer, f 9;
+#X obj 380 601 envelope~;
+#X obj 301 530 sh~;
+#X obj 301 492 sh~;
+#X obj 228 421 pimp~;
+#X obj 380 466 pimp~ 0 0.5, f 6;
+#X obj 105 398 *~ 6000;
+#X obj 55 283 expr 1000 / $f1;
+#X obj 227 591 envelope~;
+#X obj 481 369 cents2ratio;
+#X obj 481 522 sh~;
+#X obj 105 499 sh~;
+#X obj 405 331 f2s~ 50;
+#X obj 467 653 initmess \; \$0-speed 100 \; \$0-size 100 \; \$0-cents
+0;
+#X text 190 221 speed (%);
+#X text 37 399 position;
+#X obj 139 162 stretch.shift~;
+#X text 30 162 Check it out =>;
+#X obj 435 137 declare -path else;
+#X obj 310 173 play.file~ bubul.wav 1 1;
+#X text 61 23 In this example we put together the last two for a pitch
+shift / time stretch patch! As in the first example \, we multiply
+a transposition ratio to the grain reading speed \, but to the phase
+\, not frequency. We do this to make this adjustment go through another
+sample and hold and only change at grain transitions. This is useful
+for not to make this adjustment change the reading speed. The [stretch.shift~]
+object \, from ELSE \, is based on this patch \, check its help file.
+, f 70;
+#X connect 0 0 2 1;
+#X connect 2 0 34 0;
+#X connect 3 0 32 0;
+#X connect 3 0 33 0;
+#X connect 4 0 5 0;
+#X connect 5 0 25 0;
+#X connect 6 0 2 0;
+#X connect 7 0 8 0;
+#X connect 8 0 6 1;
+#X connect 9 0 24 0;
+#X connect 10 0 27 0;
+#X connect 11 0 18 0;
+#X connect 12 0 37 0;
+#X connect 14 0 31 0;
+#X connect 14 0 38 0;
+#X connect 15 0 5 1;
+#X connect 16 0 19 0;
+#X connect 17 0 28 0;
+#X connect 18 0 10 1;
+#X connect 19 0 17 1;
+#X connect 20 0 7 0;
+#X connect 22 0 23 0;
+#X connect 23 0 40 0;
+#X connect 24 0 35 0;
+#X connect 27 0 4 0;
+#X connect 28 0 15 0;
+#X connect 29 0 15 1;
+#X connect 30 0 17 0;
+#X connect 31 0 18 1;
+#X connect 32 0 11 0;
+#X connect 32 0 36 0;
+#X connect 32 1 31 1;
+#X connect 32 1 39 1;
+#X connect 33 0 16 0;
+#X connect 33 0 29 0;
+#X connect 33 1 38 1;
+#X connect 33 1 30 1;
+#X connect 34 0 30 0;
+#X connect 34 0 39 0;
+#X connect 35 0 6 0;
+#X connect 36 0 4 1;
+#X connect 37 0 14 0;
+#X connect 38 0 19 1;
+#X connect 39 0 10 0;
+#X connect 40 0 11 1;
+#X connect 40 0 16 1;
+#X connect 40 0 3 0;
+#X connect 47 0 26 0;

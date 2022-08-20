@@ -1,0 +1,35 @@
+#N canvas 498 23 565 642 12;
+#X declare -path else;
+#X obj 312 32 declare -path else;
+#X obj 153 267 keyboard 17 80 2 4 0 0 empty empty;
+#X obj 153 389 mtof;
+#X obj 220 394 / 127;
+#X obj 220 510 tabread4~ \$0-sample;
+#X obj 220 548 out~;
+#X obj 153 361 unpack f f;
+#X obj 220 464 susloop~;
+#X obj 153 418 / 440;
+#X obj 220 422 tgl 15 0 empty empty empty 17 7 0 10 #fcfcfc #000000
+#000000 0 1;
+#X msg 272 408 size \$1 \, loop 112128 130067;
+#X obj 272 383 sample~ \$0-sample Nose_flute.wav;
+#X text 61 405 reference frequency =>, f 12;
+#X text 64 81 If you have a sample with defnied and known looping points
+that sustains a note \, you can use it as a sampler-synth. You also
+need to know it's frequency because that is used as a reference frequency.
+;
+#X text 64 149 All you need to do then is have a frequency input and
+divide it by the reference frequency. The result is a ratio that can
+be used as the reading rate in [susloop~]. Check the example below
+\, with a reference frequency of 440 hz.;
+#X connect 1 0 6 0;
+#X connect 2 0 8 0;
+#X connect 3 0 9 0;
+#X connect 4 0 5 0;
+#X connect 6 0 2 0;
+#X connect 6 1 3 0;
+#X connect 7 0 4 0;
+#X connect 8 0 7 1;
+#X connect 9 0 7 0;
+#X connect 10 0 7 0;
+#X connect 11 0 10 0;
