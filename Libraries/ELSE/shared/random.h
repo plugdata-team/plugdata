@@ -15,7 +15,7 @@ unsigned int get_seed(t_symbol *s, int ac, t_atom *av, int n);
 uint32_t random_trand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
 float random_frand(uint32_t* s1, uint32_t* s2, uint32_t* s3);
 int rand_int(unsigned int *statep, int range);
-
+void rand_seed(unsigned int *statep, unsigned int seed);
 // These are for [pink~]
 
 #if defined(__GNUC__)

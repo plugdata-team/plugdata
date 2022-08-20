@@ -28,6 +28,40 @@ int rand_int(unsigned int *statep, int range)
     return (result < range ? result : range - 1);
 }
 
+void rand_seed(unsigned int *statep, unsigned int seed)
+{
+    if (seed) *statep = (seed & 0x7fffffff);
+    else
+    {
+    /* LATER consider using time elapsed from system startup,
+       (or login -- in linux we might call getutent) */
+    static unsigned int failsafe = 1489853723;
+    static int shift = 0;
+    static unsigned int lastticks = 0;
+    /* LATER rethink -- it might fail on faster machine than mine
+       (but does it matter?) */
+    unsigned int newticks = (unsigned int)(sys_getrealtime() * 1000000.);
+    if (newticks == lastticks)
+    {
+        failsafe = failsafe * 435898247 + 938284287;
+        *statep = (failsafe & 0x7fffffff);
+#ifdef RAND_DEBUG
+        post("rand_seed failed (newticks %d)", newticks);
+#endif
+    }
+    else
+    {
+        if (!shift)
+        shift = (int)time(0);  /* LATER deal with error return (-1) */
+        *statep = ((newticks + shift) & 0x7fffffff);
+#if 0
+        post("rand_seed: newticks %d, shift %d", newticks, shift);
+#endif
+    }
+    lastticks = newticks;
+    }
+}
+
 int32_t random_hash(int32_t inKey){
     // Thomas Wang's integer hash (a faster hash for integers, also very good).
     // http://www.concentric.net/~Ttwang/tech/inthash.htm
