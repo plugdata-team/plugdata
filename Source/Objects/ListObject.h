@@ -8,9 +8,7 @@ struct ListObject final : public AtomObject {
         listLabel.setJustificationType(Justification::centredLeft);
         listLabel.setBorderSize(BorderSize<int>(2, 6, 2, 2));
         listLabel.setText(String(getValueOriginal()), dontSendNotification);
-        listLabel.setEditable(true, false);
 
-        setInterceptsMouseClicks(true, false);
         addAndMakeVisible(listLabel);
 
         listLabel.onEditorHide = [this]() {
@@ -22,8 +20,8 @@ struct ListObject final : public AtomObject {
         listLabel.onEditorShow = [this]() {
             auto* editor = listLabel.getCurrentTextEditor();
             if (editor != nullptr) {
-                editor->setIndents(1, 2);
-                editor->setBorder(BorderSize<int>(2, 6, 2, 2));
+                //editor->setIndents(1, 2);
+                editor->setBorder({1, 2, 0, 0});
             }
         };
 
@@ -33,6 +31,8 @@ struct ListObject final : public AtomObject {
 
         listLabel.dragEnd = [this]() { stopEdition(); };
 
+        listLabel.addMouseListener(this, false);
+        
         updateValue();
     }
 
@@ -123,6 +123,14 @@ struct ListObject final : public AtomObject {
     void setList(std::vector<pd::Atom> const& value)
     {
         cnv->pd->enqueueDirectMessages(ptr, value);
+    }
+    
+    void mouseUp(const MouseEvent& e) override
+    {
+        if (static_cast<bool>(box->locked.getValue()) && !e.mouseWasDraggedSinceMouseDown()) {
+            
+            listLabel.showEditor();
+        }
     }
 
 private:

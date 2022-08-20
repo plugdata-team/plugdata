@@ -237,7 +237,7 @@ struct DraggableListNumber : public DraggableNumber {
         setEditableOnClick(true);
     }
 
-    void mouseDown(MouseEvent const& e)
+    void mouseDown(MouseEvent const& e) override
     {
         if (isBeingEdited())
             return;
@@ -292,7 +292,7 @@ struct DraggableListNumber : public DraggableNumber {
         dragStart();
     }
 
-    void mouseDrag(MouseEvent const& e)
+    void mouseDrag(MouseEvent const& e) override
     {
         if (isBeingEdited() || !targetFound)
             return;
@@ -328,7 +328,7 @@ struct DraggableListNumber : public DraggableNumber {
         valueChanged(0);
     }
 
-    void mouseUp(MouseEvent const& e)
+    void mouseUp(MouseEvent const& e) override
     {
         if (isBeingEdited() || !targetFound)
             return;
@@ -342,5 +342,17 @@ struct DraggableListNumber : public DraggableNumber {
         mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
+    }
+    
+    void paint (Graphics& g) override
+    {
+        if (!isBeingEdited())
+        {
+            g.setColour(findColour(Label::textColourId));
+            g.setFont(getFont());
+            
+            auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
+            g.drawText(getText(), textArea, Justification::left, false);
+        }
     }
 };
