@@ -420,7 +420,7 @@ struct PackageManager : public Thread
         if (webstream)
             webstream->cancel();
         downloads.clear();
-        stopThread(-1);
+        stopThread(500);
         clearSingletonInstance();
     }
 
