@@ -44,6 +44,7 @@ struct DraggableNumber : public Label {
     
     bool keyPressed (const KeyPress &key) override
     {
+        if(isEditable()) return false;
         // Otherwise it might catch a shortcut
         if(key.getModifiers().isCommandDown()) return false;
         
@@ -233,6 +234,7 @@ struct DraggableListNumber : public DraggableNumber {
 
     explicit DraggableListNumber()
     {
+        setEditableOnClick(true);
     }
 
     void mouseDown(MouseEvent const& e)
