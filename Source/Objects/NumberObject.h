@@ -10,7 +10,7 @@ struct NumberObject final : public IEMObject {
             auto* editor = input.getCurrentTextEditor();
             startEdition();
 
-            editor->setBorder({ 0, 10, 0, 0 });
+            editor->setBorder({ 0, 11, 3, 0 });
 
             if (editor != nullptr) {
                 editor->setInputRestrictions(0, ".-0123456789");
