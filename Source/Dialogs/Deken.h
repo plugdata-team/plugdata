@@ -401,15 +401,7 @@ struct PackageManager : public Thread
             }
         }
 
-        if (cacheFile.existsAsFile()) {
-            auto newTree = ValueTree::fromXml(cacheFile.loadFileAsString());
-            if (newTree.isValid() && newTree.getType() == Identifier("cache")) {
-                cacheState = newTree;
-            }
-        }
-
         packageState.addListener(this);
-        cacheState.addListener(this);
 
         sendActionMessage("");
         startThread(3);
@@ -440,74 +432,17 @@ struct PackageManager : public Thread
         sendActionMessage("");
     }
 
-    StringArray getObjectInfo(String const& objectUrl)
-    {
-
-        StringArray result;
-
-        webstream = std::make_unique<WebInputStream>(URL("https://deken.puredata.info/info.json?url=" + objectUrl), false);
-        webstream->connect(nullptr);
-
-        if (webstream->isError()) {
-            sendActionMessage("Failed to connect to Deken server");
-            return {};
-        }
-
-        // Read json result
-        auto json = webstream->readString();
-
-        if (json.isEmpty()) {
-            sendActionMessage("Invalid response from Deken server");
-            return {};
-        }
-
-        try {
-            // Parse outer JSON layer
-            auto parsedJson = json::parse(json.toStdString());
-
-            // Read json
-            auto objects = (*((*(parsedJson["result"]["libraries"].begin())).begin())).at(0)["objects"];
-
-            for (auto obj : objects) {
-                result.add(obj["name"]);
-            }
-        } catch (json::parse_error& e) {
-            sendActionMessage("Invalid response from Deken server");
-            return {};
-        }
-
-        return result;
-    }
-
-    PackageList readFromCache()
-    {
-        PackageList result;
-
-        auto state = cacheState.getChildWithName("State");
-        for (auto package : state) {
-            auto name = package.getProperty("Name").toString();
-            auto author = package.getProperty("Author").toString();
-            auto timestamp = package.getProperty("Timestamp").toString();
-            auto url = package.getProperty("URL").toString();
-            auto description = package.getProperty("Description").toString();
-            auto version = package.getProperty("Version").toString();
-            StringArray objects;
-
-            for (auto object : package.getChildWithName("Objects")) {
-                objects.add(object.getProperty("Name").toString());
-            }
-
-            result.add(PackageInfo(name, author, timestamp, url, description, version, objects));
-        }
-
-        return result;
-    }
-
     PackageList getAvailablePackages()
     {
-        PackageList packages;
 
-        webstream = std::make_unique<WebInputStream>(URL("https://deken.puredata.info/search.json"), false);
+        // PlugData's deken servers, hosted on github
+        // This will pre-parse the deken repo information to a faster and smaller format
+        // This saves a lot of work that PlugData would have to do on startup!
+        
+        auto triplet = os + "-" + machine + "-" + floatsize;
+        auto repoForArchitecture =     "https://raw.githubusercontent.com/timothyschoen/PlugDataDekenServer/main/xml/" + triplet + ".xml";
+        
+        webstream = std::make_unique<WebInputStream>(URL(repoForArchitecture), false);
         webstream->connect(nullptr);
 
         if (webstream->isError()) {
@@ -516,135 +451,39 @@ struct PackageManager : public Thread
         }
 
         // Read json result
-        auto json = webstream->readString();
+        auto tree = ValueTree::fromXml(webstream->readString());
+        
+        PackageList packages;
 
-        if (json.isEmpty()) {
-            sendActionMessage("Invalid response from Deken server");
-            return {};
-        }
-
-        auto checksum = MD5::encode(json);
-
-        // Caching: don't update objects if the index file is the same!
-        // Getting all the objects from the packages takes a long time
-        auto cachedContent = cacheState.getProperty("Index").toString();
-        if (cachedContent.isNotEmpty() && cachedContent == checksum) {
-            return readFromCache();
-        }
-
-        cacheState.setProperty("Index", checksum, nullptr);
-
-        if (threadShouldExit())
-            return {};
-
-        // In case the JSON is invalid
-        try {
-            // JUCE json parsing unfortunately fails to parse deken's json...
-            auto parsedJson = json::parse(json.toStdString());
-
-            // Read json
-            auto object = parsedJson["result"]["libraries"];
-
-            // Valid result, go through the options
-            for (auto const versions : object) {
-                PackageList results;
-
-                if (threadShouldExit())
-                    return {};
-
-                // Loop through the different versions
-                for (auto v : versions) {
-                    // Loop through architectures
-                    for (auto arch : v) {
-                        auto archs = arch["archs"];
-                        // Look for matching platform
-                        String platform = archs[0].is_null() ? "" : archs[0];
-
-                        if (checkArchitecture(platform)) {
-                            // Extract info
-                            String name = arch["name"];
-                            String author = arch["author"];
-                            String timestamp = arch["timestamp"];
-
-                            String description = arch["description"];
-                            String url = arch["url"];
-                            String version = arch["version"];
-
-                            StringArray objects = getObjectInfo(url);
-
-                            // Add valid option
-                            results.add({ name, author, timestamp, url, description, version, objects });
-                        }
-                    }
+        for (auto package : tree) {
+            auto name = package.getProperty("Name").toString();
+            
+            for (auto version : package) {
+                auto author = version.getProperty("Author").toString();
+                auto timestamp = version.getProperty("Timestamp").toString();
+                auto url = version.getProperty("URL").toString();
+                auto description = version.getProperty("Description").toString();
+                auto versionNumber = version.getProperty("Version").toString();
+                
+                StringArray objects;
+                for (auto object : version.getChildWithName("Objects")) {
+                    objects.add(object.getProperty("Name").toString());
                 }
-
-                if (!results.isEmpty()) {
-                    // Sort by alphabetically by timestamp to get latest version
-                    // The timestamp format is yyyy:mm::dd hh::mm::ss so this should work
-                    std::sort(results.begin(), results.end(), [](auto const& result1, auto const& result2) { return result1.timestamp.compare(result2.timestamp) > 0; });
-
-                    auto info = results.getReference(0);
-                    packages.addIfNotAlreadyThere(info);
-                }
+                packages.add(PackageInfo(name, author, timestamp, url, description, versionNumber, objects));
+                break;
             }
-        } catch (json::parse_error& e) {
-            sendActionMessage("Invalid response from Deken server");
         }
-
-        ValueTree packageCache = ValueTree("State");
-
-        for (auto& package : packages) {
-            ValueTree pkgEntry = ValueTree("Package");
-            pkgEntry.setProperty("Name", package.name, nullptr);
-            pkgEntry.setProperty("ID", package.packageId, nullptr);
-            pkgEntry.setProperty("Author", package.author, nullptr);
-            pkgEntry.setProperty("Timestamp", package.timestamp, nullptr);
-            pkgEntry.setProperty("Description", package.description, nullptr);
-            pkgEntry.setProperty("Version", package.version, nullptr);
-            pkgEntry.setProperty("URL", package.url, nullptr);
-
-            ValueTree objects("Objects");
-            for (auto& object : package.objects) {
-                auto objectTree = ValueTree("Object");
-                objectTree.setProperty("Name", object, nullptr);
-                objects.appendChild(objectTree, nullptr);
-            }
-
-            pkgEntry.appendChild(objects, nullptr);
-            packageCache.appendChild(pkgEntry, nullptr);
-        }
-
-        cacheState.removeChild(cacheState.indexOf(cacheState.getChildWithName("State")), nullptr);
-        cacheState.appendChild(packageCache, nullptr);
 
         return packages;
     }
 
-    static bool checkArchitecture(String platform)
-    {
-        // Check OS
-        if (platform.upToFirstOccurrenceOf("-", false, false) != os)
-            return false;
-        platform = platform.fromFirstOccurrenceOf("-", false, false);
 
-        // Check floatsize
-        if (platform.fromLastOccurrenceOf("-", false, false) != floatsize)
-            return false;
-        platform = platform.upToLastOccurrenceOf("-", false, false);
-
-        if (machine.contains(platform))
-            return true;
-
-        return false;
-    }
 
     // When a property in our pkginfo changes, save it immediately
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
     {
         if (treeWhosePropertyHasChanged == packageState) {
             pkgInfo.replaceWithText(packageState.toXmlString());
-        } else if (treeWhosePropertyHasChanged == cacheState) {
-            cacheFile.replaceWithText(cacheState.toXmlString());
         }
     }
 
@@ -652,8 +491,6 @@ struct PackageManager : public Thread
     {
         if (parentTree == packageState) {
             pkgInfo.replaceWithText(packageState.toXmlString());
-        } else if (parentTree == cacheState) {
-            cacheFile.replaceWithText(cacheState.toXmlString());
         }
     }
 
@@ -661,8 +498,6 @@ struct PackageManager : public Thread
     {
         if (parentTree == packageState) {
             pkgInfo.replaceWithText(packageState.toXmlString());
-        } else if (parentTree == cacheState) {
-            cacheFile.replaceWithText(cacheState.toXmlString());
         }
     }
 
@@ -724,11 +559,9 @@ struct PackageManager : public Thread
 
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
-    File cacheFile = filesystem.getChildFile(".cache");
 
     // Package state tree, keeps track of which packages are installed and saves it to pkgInfo
     ValueTree packageState = ValueTree("pkg_info");
-    ValueTree cacheState = ValueTree("cache");
 
     // Thread for unzipping and installing packages
     OwnedArray<DownloadTask> downloads;
@@ -758,24 +591,24 @@ struct PackageManager : public Thread
 #endif
         ;
 
-    static inline const StringArray machine =
+    static inline const String machine =
 #if defined(__x86_64__) || defined(__amd64__) || defined(_M_X64) || defined(_M_AMD64)
-        { "amd64", "x86_64" }
+        "amd64"
 #elif defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) || defined(_M_IX86)
-        { "i386", "i686", "i586" }
+        "i386"
 #elif defined(__ppc__)
-        { "ppc", "PowerPC" }
+        "ppc"
 #elif defined(__aarch64__)
-        { "arm64" }
+        "arm64"
 #elif __ARM_ARCH == 6 || defined(__ARM_ARCH_6__)
-        { "armv6", "armv6l", "arm" }
+        "armv6"
 #elif __ARM_ARCH == 7 || defined(__ARM_ARCH_7__)
-        { "armv7l", "armv7", "armv6l", "armv6", "arm" }
+        "armv7"
 #else
 #    if defined(__GNUC__)
 #        warning unknown architecture
 #    endif
-        {}
+        ""
 #endif
     ;
 
