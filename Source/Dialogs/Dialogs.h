@@ -92,6 +92,4 @@ struct Dialogs {
     static Component* createSettingsDialog(AudioProcessor& processor, AudioDeviceManager* manager, ValueTree const& settingsTree);
 
     static void showObjectMenu(PlugDataPluginEditor* parent, Component* target);
-
-    static void initialiseDeken();
 };

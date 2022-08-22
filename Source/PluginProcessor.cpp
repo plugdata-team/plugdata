@@ -155,9 +155,6 @@ PlugDataAudioProcessor::PlugDataAudioProcessor()
     logMessage("Libraries:");
     logMessage(else_version);
     logMessage(cyclone_version);
-    
-    // Start package manager to download package info in the background
-    Dialogs::initialiseDeken();
 }
 
 PlugDataAudioProcessor::~PlugDataAudioProcessor()
@@ -434,6 +431,8 @@ void PlugDataAudioProcessor::processBlock(AudioBuffer<float>& buffer, MidiBuffer
     continuityChecker.setNonRealtime(isNonRealtime());
     continuityChecker.setTimer();
     
+    setThis();
+    sendParameters();
 
     for (int i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
     {
@@ -809,7 +808,6 @@ void PlugDataAudioProcessor::processInternal()
     // Dequeue messages
     sendMessagesFromQueue();
     sendPlayhead();
-    sendParameters();
     sendMidiBuffer();
 
     // Process audio
@@ -1120,6 +1118,7 @@ void PlugDataAudioProcessor::receiveParameter(int idx, float value)
     standaloneParams[idx - 1] = value;
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
+        // Why tho?
         editor->sidebar.updateParameters();
     }
 #else
