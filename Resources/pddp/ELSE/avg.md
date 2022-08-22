@@ -1,32 +1,33 @@
 ---
 title: avg
 
-description:
+description: Mean average
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Math
 
 arguments:
-- description:
+- description: none
   type:
   default:
 
 inlets:
   1st:
-  - type:
-    description:
-  2nd:
-  - type:
-    description:
-
+  - type: float
+    description: number to add to the moving average
+  - type: 
+    description: clears memory (previously received numbers)
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: the average so far
+  2nd:
+  - type: float
+    description: total count of values processed
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[avg] calculates the mean average of all received numbers so far. A clear message resets the object.
