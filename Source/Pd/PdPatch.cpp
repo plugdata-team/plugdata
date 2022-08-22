@@ -408,7 +408,7 @@ void Patch::copy()
         [this]() {
             int size;
             const char* text = libpd_copy(getPointer(), &size);
-            auto copied = String(CharPointer_UTF8(text), size);
+            auto copied = String::fromUTF8(text, size);
             MessageManager::callAsync([copied]() mutable { SystemClipboard::copyTextToClipboard(copied); });
         });
 }

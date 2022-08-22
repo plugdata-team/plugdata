@@ -123,7 +123,7 @@ struct pd::Instance::internal {
           concatenatedLine[length - 1] = '\0';
             
           // Send concatenated line to PlugData!
-          ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
+          ptr->enqueueFunctionAsync([ptr, mess = String::fromUTF8(concatenatedLine)]() mutable { ptr->processPrint(mess); });
             
           length = 0;
         }

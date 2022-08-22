@@ -38,7 +38,7 @@ public:
     String getUnexpandedName() const
     {
         libpd_set_instance(static_cast<t_pdinstance*>(instance));
-        return libpd_array_get_unexpanded_name(ptr);
+        return String::fromUTF8(libpd_array_get_unexpanded_name(ptr));
     }
 
     PdArray::DrawType getDrawType() const

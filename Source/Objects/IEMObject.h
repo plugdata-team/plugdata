@@ -17,7 +17,7 @@ struct IEMObject : public GUIObject {
 
         iemgui_all_dollar2raute(srlsym);
         iemgui_all_sym2dollararg(iemgui, srlsym);
-        String label = String(srlsym[2]->s_name).removeCharacters("\\");
+        String label = String::fromUTF8(srlsym[2]->s_name).removeCharacters("\\");
         iemgui->x_lab_unexpanded = gensym(label.toRawUTF8());
 
         labelText = getLabelText();
@@ -349,7 +349,7 @@ struct IEMObject : public GUIObject {
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab;
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -362,7 +362,7 @@ struct IEMObject : public GUIObject {
     {
         t_symbol const* sym = static_cast<t_iemgui*>(ptr)->x_lab_unexpanded;
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
