@@ -723,7 +723,7 @@ void Box::openHelpPatch() const
         if (ac < 1)
             return;
         atom_string(av, namebuf, MAXPDSTRING);
-        helpName = String(namebuf).fromLastOccurrenceOf("/", false, false);
+        helpName = String::fromUTF8(namebuf).fromLastOccurrenceOf("/", false, false);
     }
     else {
         helpName = class_gethelpname(pdclass);
@@ -795,7 +795,7 @@ void Box::openSubpatch() const
 
     if (abstraction)
     {
-        path = File(String(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String(glist->gl_name->s_name)).withFileExtension("pd");
+        path = File(String::fromUTF8(canvas_getdir(subpatch->getPointer())->s_name) + "/" + String::fromUTF8(glist->gl_name->s_name)).withFileExtension("pd");
     }
 
     for (int n = 0; n < cnv->main.tabbar.getNumTabs(); n++)

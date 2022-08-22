@@ -42,7 +42,7 @@ struct PictureObject final : public GUIObject {
         auto* pic = static_cast<t_pic*>(ptr);
 
         if (pic && pic->x_filename) {
-            auto filePath = String(pic->x_filename->s_name);
+            auto filePath = String::fromUTF8(pic->x_filename->s_name);
             if (File(filePath).existsAsFile()) {
                 path = filePath;
             }
@@ -123,7 +123,7 @@ struct PictureObject final : public GUIObject {
 
         String pathString = location;
 
-        auto searchPath = File(String(canvas_getdir(cnv->patch.getPointer())->s_name));
+        auto searchPath = File(String::fromUTF8(canvas_getdir(cnv->patch.getPointer())->s_name));
 
         if (searchPath.getChildFile(pathString).existsAsFile()) {
             imageFile = searchPath.getChildFile(pathString);

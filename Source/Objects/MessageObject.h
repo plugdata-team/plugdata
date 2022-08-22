@@ -137,7 +137,7 @@ struct MessageObject final : public GUIObject {
 
     void update() override
     {
-        input.setText(String(getSymbol()), sendNotification);
+        input.setText(getSymbol(), sendNotification);
     }
 
     void paintOverChildren(Graphics& g) override
@@ -207,7 +207,7 @@ struct MessageObject final : public GUIObject {
 
         binbuf_gettext(static_cast<t_message*>(ptr)->m_text.te_binbuf, &text, &size);
 
-        auto result = String(text, size);
+        auto result = String::fromUTF8(text, size);
         freebytes(text, size);
 
         return result;

@@ -50,7 +50,7 @@ struct SymbolAtomObject final : public AtomObject {
 
     void update() override
     {
-        input.setText(String(getSymbol()), sendNotification);
+        input.setText(getSymbol(), sendNotification);
     }
 
     void setSymbol(String const& value)
@@ -61,7 +61,7 @@ struct SymbolAtomObject final : public AtomObject {
     String getSymbol()
     {
         cnv->pd->setThis();
-        return atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name;
+        return String::fromUTF8(atom_getsymbol(fake_gatom_getatom(static_cast<t_fake_gatom*>(ptr)))->s_name);
     }
 
     void updateValue() override

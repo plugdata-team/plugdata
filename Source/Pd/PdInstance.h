@@ -51,7 +51,7 @@ public:
     inline Atom(char const* sym)
         : type(SYMBOL)
         , value(0)
-        , symbol(sym)
+        , symbol(String::fromUTF8(sym))
     {
     }
 

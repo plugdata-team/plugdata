@@ -37,7 +37,7 @@ Storage::Storage(t_glist* patch, Instance* inst)
 
             if (obj != nullptr && obj->g_next == nullptr) {
                 // Skip non-text object to prevent crash on libpd_get_object_text
-                if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text")
+                if (String::fromUTF8(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text")
                     continue;
 
                 // Get object text to return the content of the comment
@@ -269,12 +269,12 @@ bool Storage::isInfoParent(t_glist* glist)
         char* text;
         int size;
 
-        if (String(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text")
+        if (String::fromUTF8(libpd_get_object_class_name(&glist->gl_list->g_pd)) != "text")
             return false;
 
         libpd_get_object_text(glist->gl_list, &text, &size);
 
-        String name = String(CharPointer_UTF8(text), size);
+        String name = String::fromUTF8(text, size);
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
 
         if (name.startsWith("plugdatainfo")) {
