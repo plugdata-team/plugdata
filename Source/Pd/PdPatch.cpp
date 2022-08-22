@@ -67,7 +67,7 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)
 {
     if (auto* cnv = getPointer()) {
         parentInstance->enqueueFunction([this]() {
-            setZoom(1);
+            //setZoom(1);
         });
     }
 }
