@@ -49,7 +49,7 @@ struct TextDefineObject final : public TextBase {
             return;
         }
 
-        auto name = String(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
+        auto name = String::fromUTF8(static_cast<t_fake_text_define*>(ptr)->x_bindsym->s_name);
 
         textEditor.reset(
             Dialogs::showTextEditorDialog(getText(), name, [this](String lastText, bool hasChanged) {
@@ -117,6 +117,6 @@ struct TextDefineObject final : public TextBase {
         
         binbuf_gettext(binbuf, &bufp, &lenp);
         
-        return String(bufp, lenp);
+        return String::fromUTF8(bufp, lenp);
     }
 };

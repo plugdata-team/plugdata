@@ -66,7 +66,8 @@ String ObjectBase::getText()
 
     libpd_get_object_text(ptr, &text, &size);
     if (text && size) {
-        String txt(text, size);
+
+        auto txt = String::fromUTF8(text, size);
         freebytes(static_cast<void*>(text), static_cast<size_t>(size) * sizeof(char));
         return txt;
     }
@@ -393,7 +394,7 @@ ObjectBase* GUIObject::createGui(void* ptr, Box* parent)
     } else if (name == "canvas" || name == "graph") {
         if (static_cast<t_canvas*>(ptr)->gl_list) {
             t_class* c = static_cast<t_canvas*>(ptr)->gl_list->g_pd;
-            if (c && c->c_name && (String(c->c_name->s_name) == "array")) {
+            if (c && c->c_name && (String::fromUTF8(c->c_name->s_name) == "array")) {
                 return new ArrayObject(ptr, parent);
             } else if (static_cast<t_canvas*>(ptr)->gl_isgraph) {
                 return new GraphOnParent(ptr, parent);

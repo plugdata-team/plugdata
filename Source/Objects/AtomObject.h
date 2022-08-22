@@ -241,7 +241,7 @@ struct AtomObject : public GUIObject {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = canvas_realizedollar(gatom->a_glist, gatom->a_label);
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -255,7 +255,7 @@ struct AtomObject : public GUIObject {
         auto* gatom = static_cast<t_fake_gatom*>(ptr);
         t_symbol const* sym = gatom->a_label;
         if (sym) {
-            auto const text = String(sym->s_name);
+            auto const text = String::fromUTF8(sym->s_name);
             if (text.isNotEmpty() && text != "empty") {
                 return text;
             }
@@ -282,13 +282,13 @@ struct AtomObject : public GUIObject {
     String getSendSymbol()
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        return String(atom->a_symfrom->s_name);
+        return String::fromUTF8(atom->a_symfrom->s_name);
     }
 
     String getReceiveSymbol()
     {
         auto* atom = static_cast<t_fake_gatom*>(ptr);
-        return String(atom->a_symto->s_name);
+        return String::fromUTF8(atom->a_symto->s_name);
     }
 
     void setSendSymbol(String const& symbol) const

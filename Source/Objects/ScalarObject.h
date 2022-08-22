@@ -90,7 +90,7 @@ struct DrawableTemplate final : public DrawablePath {
 
     void update()
     {
-        if (String(object->x_obj.te_g.g_pd->c_name->s_name) == "drawtext") {
+        if (String::fromUTF8(object->x_obj.te_g.g_pd->c_name->s_name) == "drawtext") {
             return; // not supported yet
         }
 

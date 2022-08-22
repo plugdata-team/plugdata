@@ -97,9 +97,7 @@ struct TextBase : public ObjectBase
 
     void updateBounds() override
     {
-
         // If it's a text object, we need to handle the resizable width, which pd saves in amount of text characters
-
         pd->enqueueFunction([this, _this = SafePointer(this)]() {
             if (!_this)
                 return;
