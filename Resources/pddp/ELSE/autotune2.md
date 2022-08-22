@@ -1,32 +1,34 @@
 ---
 title: autotune2
 
-description:
+description: Retune to a close scale step
 
 categories:
 - object
 
-pdcategory:
+pdcategory: Audio Filters, General Audio Manipulation
 
 arguments:
-- description:
-  type:
-  default:
+- description: scale in cents
+  type: list
+  default: equal temperament
 
 inlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: pitch value in cents to be retuned
+  - type: bypass <float>
+    description: non zero sets to bypass mode
   2nd:
-  - type:
-    description:
+  - type: list
+    description: scale in cents
 
 outlets:
   1st:
-  - type:
-    description:
+  - type: float
+    description: retuned pitch in cents
 
 draft: false
 ---
 
-LONG DESCRIPTION HERE
+[autotune2] receives a scale as a list of steps in cents and then retunes incoming cents values to the closest step in the scale.

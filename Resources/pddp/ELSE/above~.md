@@ -1,20 +1,26 @@
 ---
 title: above~
-description:
+
+description: Threshold detection
+
 categories:
  - object
-pdcategory: General
+
+pdcategory: Audio Math
+
 arguments:
-- type: float
-  description:
-  default:
+- description: initial threshold value
+  type: float
+  default: 0
+
 inlets:
   1st:
-  - type: signal
-    description:
+  - type: float/signal
+    description: input signal
   2nd:
-  - type: signal
-    description:
+  - type: float/signal
+    description: threshold value
+
 outlets:
   1st:
   - type: signal
@@ -22,3 +28,8 @@ outlets:
   2nd:
   - type: signal
     description:
+
+draft: false
+---
+
+[above~] sends an impulse to the left outlet when the left inlet is above the threshold value. Conversely, it outputs an impulse to its right outlet when the left inlet falls back to the threshold value or below it. The threshold value can be set via the argument or the 2nd inlet.

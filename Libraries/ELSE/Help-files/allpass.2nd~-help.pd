@@ -1,22 +1,26 @@
 #N canvas 541 23 563 559 10;
-#X obj 4 277 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 277 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 427 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 427 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 484 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 484 cnv 3 550 4 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 4 531 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 109 436 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 109 436 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 109 285 cnv 17 3 88 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 109 285 cnv 17 4 88 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 181 285 signal;
 #X text 181 436 signal;
-#X obj 197 216 else/out~;
+#X obj 197 216 out~;
 #X obj 306 5 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
-#N canvas 382 141 749 319 (subpatch) 0;
+#N canvas 382 141 749 319 (subpatch) 1;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
 #X coords 0 -1 1 1 252 42 2 0 0;
 #X restore 305 4 pd;
 #X obj 345 12 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -38,14 +42,14 @@
 #000000 #000000 0 256;
 #X text 230 436 - filtered signal;
 #X text 230 285 - signal to be filtered;
-#X obj 109 380 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 109 380 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 109 403 cnv 17 3 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 109 403 cnv 17 4 17 empty empty 2 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 145 380 float/signal;
 #X text 145 403 float/signal;
 #X text 187 303 clear;
-#X msg 130 149 bypass \$1;
+#X msg 130 149 bypass \$1, f 13;
 #X obj 130 126 tgl 15 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000 0 1;
 #X text 133 321 bypass <float>;
@@ -56,7 +60,7 @@
 #X obj 662 83 hsl 128 15 20 20000 1 0 empty empty empty -2 -8 0 10
 #dcdcdc #000000 #000000 0 1;
 #X obj 592 119 noise~;
-#X obj 592 194 else/out~;
+#X obj 592 194 out~;
 #X obj 727 133 nbx 5 14 0.001 100 0 0 \$0-Q empty empty 0 -8 0 10 #dcdcdc
 #000000 #000000 0 256;
 #X obj 659 110 nbx 5 14 20 20000 0 0 \$0-Hz empty empty 0 -8 0 10 #dcdcdc
@@ -85,14 +89,14 @@ b2 * y[n-2];
 #X obj 173 87 r \$0-Q;
 #X obj 87 54 loadbang;
 #X obj 87 156 outlet;
-#X obj 87 127 else/bicoeff2 allpass 750 1;
+#X obj 87 127 bicoeff allpass 750 1;
 #X connect 0 0 4 0;
 #X connect 1 0 4 1;
 #X connect 2 0 4 0;
 #X connect 4 0 3 0;
 #X restore 12 281 pd coeff;
-#X obj 12 308 else/biplot;
-#X obj 592 158 else/allpass.2nd~ 750 1;
+#X obj 12 308 biplot;
+#X obj 592 158 allpass.2nd~ 750 1;
 #X connect 0 0 4 0;
 #X connect 1 0 5 0;
 #X connect 2 0 17 0;
@@ -102,14 +106,13 @@ b2 * y[n-2];
 #X connect 17 0 3 0;
 #X restore 429 238 pd filter formula \; and response;
 #X text 229 379 - central frequency in Hertz;
-#X text 118 490 1) float - central frequency in Hertz (default 0);
-#X msg 197 121 clear;
+#X msg 197 121 clear, f 8;
 #X text 230 303 - clears filter's memory if you blow it up;
 #X text 205 338 bw;
 #X text 230 338 - sets resonance parameter to bandwidth in octaves
 ;
 #X text 211 355 q;
-#X obj 3 461 cnv 3 550 3 empty empty flags 8 12 0 13 #dcdcdc #000000
+#X obj 3 461 cnv 3 550 4 empty empty flags 8 12 0 13 #dcdcdc #000000
 0;
 #X text 135 467 -bw;
 #X text 165 467 - sets resonance parameter to bandwidth in octaves
@@ -120,13 +123,13 @@ b2 * y[n-2];
 the -bw flag.;
 #X text 28 62 Alternatively \, you can switch from 'q' to 'bw' with
 the message methods.;
-#X obj 81 224 else/out~;
+#X obj 81 224 out~;
 #X obj 81 129 noise~;
 #X msg 147 155 q;
 #X msg 135 128 bw;
 #X text 175 156 resonance as 'q';
 #X text 163 128 resonance as bandwidth in octaves;
-#X obj 81 185 else/allpass.2nd~ -bw 500 0.5;
+#X obj 81 185 allpass.2nd~ -bw 500 0.5;
 #X connect 3 0 8 0;
 #X connect 4 0 8 0;
 #X connect 5 0 8 0;
@@ -139,11 +142,15 @@ or 'bw', f 65;
 #X text 264 119 resonant/center frequency;
 #X obj 2 4 cnv 15 301 42 empty empty allpass.2nd~ 20 20 2 37 #e0e0e0
 #000000 0;
+#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 4 graph;
 #X text 61 87 [allpass.2nd~] is a 2nd order allpass filter.;
-#X obj 197 185 else/allpass.2nd~ 1000 0.1;
+#X obj 197 185 allpass.2nd~ 1000 0.1;
 #X text 347 145 resonance;
 #N canvas 732 180 624 416 example 0;
 #X obj 66 229 +~;
@@ -188,7 +195,7 @@ or 'bw', f 65;
 -0.54307 -0.529232 -0.515821 -0.502835 -0.490253 -0.478065 -0.466256
 -0.454823 -0.443742 -0.433012 -0.42261 -0.412533 -0.402764 -0.393295
 -0.384112 -0.375207 -0.366569 -0.358185 -0.35005 -0.342153 -0.334484
--0.327037 -0.319799 -0.312767 -0.305932 -0.299285 -0.292821 -0.286533
+-0.327037 -0.319799 -0.312768 -0.305932 -0.299285 -0.292821 -0.286533
 -0.280414 -0.274457 -0.268658 -0.263011 -0.25751 -0.25215 -0.246928
 -0.241837 -0.236873 -0.232032 -0.227309 -0.222703 -0.218206 -0.213817
 -0.209533 -0.205349 -0.201263 -0.197271 -0.193371 -0.189561 -0.185835
@@ -332,8 +339,8 @@ or 'bw', f 65;
 #X obj 33 337 s \$0-Q_set;
 #X msg 33 286 1;
 #X obj 100 199 f 44100;
-#X obj 73 64 else/lb 3;
-#X obj 236 182 else/pi;
+#X obj 73 64 lb 3;
+#X obj 236 182 pi;
 #X connect 0 0 6 0;
 #X connect 3 0 2 0;
 #X connect 4 0 3 0;
@@ -363,9 +370,9 @@ or 'bw', f 65;
 \; ($f5 * sinW_\$0[$f1]) + ($f6 * sin2W_\$0[$f1]) \; 1 - ($f2 * cosW_\$0[$f1])
 - ($f3 * cos2W_\$0[$f1]) \; 0 - ($f2 * sinW_\$0[$f1]) - ($f3 * sin2W_\$0[$f1])
 ;
-#X obj 74 209 else/car2pol;
-#X obj 254 199 else/car2pol;
-#X obj 143 304 else/wrap2 -1 1;
+#X obj 74 209 car2pol;
+#X obj 254 199 car2pol;
+#X obj 143 304 wrap2 -1 1;
 #X connect 0 0 5 0;
 #X connect 1 0 5 1;
 #X connect 2 0 3 0;
@@ -425,7 +432,7 @@ or 'bw', f 65;
 #X connect 12 0 11 0;
 #X connect 13 0 8 0;
 #X restore 466 95 pd allpass_coeff;
-#X obj 466 163 else/loop 400;
+#X obj 466 163 loop 400;
 #X obj 526 254 tabwrite \$0-phase_response;
 #X connect 2 0 8 0;
 #X connect 3 0 8 1;
@@ -461,8 +468,8 @@ the original \, which cancels frequencies by phase opposition., f
 #X obj 130 175 nbx 4 14 -1e+37 1e+37 0 0 \$0-Freq empty empty 0 -8
 0 10 #dcdcdc #000000 #000000 0 256;
 #X text 112 345 frequency (hz):;
-#X obj 81 197 else/allpass.2nd~;
-#X obj 66 269 else/out~;
+#X obj 81 197 allpass.2nd~;
+#X obj 66 269 out~;
 #X text 105 35 In the [allpass.2nd~] object \, the phase is shifted
 from 0 (at 0 hz) to 360º (at the Nyquist frequency). The frequency
 at which it shifts to 180º is specified as the filter's frequency
@@ -477,10 +484,16 @@ graph below)., f 69;
 #X connect 22 0 24 1;
 #X connect 24 0 0 1;
 #X restore 476 195 pd example;
-#X connect 17 0 50 0;
-#X connect 18 0 50 1;
-#X connect 19 0 50 2;
-#X connect 27 0 50 0;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
+;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X text 118 490 1) float - central frequency in hz (default 0);
+#X connect 17 0 49 0;
+#X connect 18 0 49 1;
+#X connect 19 0 49 2;
+#X connect 27 0 49 0;
 #X connect 28 0 27 0;
-#X connect 34 0 50 0;
-#X connect 50 0 8 0;
+#X connect 33 0 49 0;
+#X connect 49 0 8 0;
