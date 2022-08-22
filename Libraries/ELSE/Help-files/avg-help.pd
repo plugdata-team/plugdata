@@ -1,29 +1,28 @@
 #N canvas 449 84 562 420 10;
-#X obj 2 243 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 2 243 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 2 295 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 2 295 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 2 355 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 2 355 cnv 3 550 4 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 123 252 cnv 17 3 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 123 252 cnv 17 4 35 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 123 328 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 123 328 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 152 364 (none);
-#X obj 123 305 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 123 305 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 2 410 cnv 1 550 1 empty empty empty 0 0 0 4 #fcfcfc #fcfcfc
+#X obj 2 410 cnv 1 550 4 empty empty empty 0 0 0 4 #fcfcfc #fcfcfc
 0;
 #X obj 2 389 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X msg 167 142 clear;
+#X msg 167 142 clear, f 8;
 #X text 198 253 -;
 #X text 158 253 float;
 #X text 198 307 -;
 #X text 158 307 float;
 #X text 198 329 -;
 #X text 158 329 float;
-#X text 213 329 total number of values processed, f 46;
 #X obj 217 141 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X obj 217 206 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
@@ -54,20 +53,34 @@
 0;
 #X obj 503 27 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
+#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 306 4 graph;
 #X obj 4 4 cnv 15 301 42 empty empty avg 20 20 2 37 #e0e0e0 #000000
 0;
+#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 4 graph;
 #X text 213 307 the average so far, f 45;
-#X text 51 91 [avg] calculates the mean average of all received numbers
-so far. A clear message resets the object.;
+#X text 51 92 [avg] calculates the mean average of all received numbers
+so far. A clear message resets the object., f 56;
 #X text 120 142 resets;
-#X obj 217 177 else/avg 4, f 12;
-#X connect 9 0 41 0;
-#X connect 17 0 41 0;
-#X connect 41 0 18 0;
-#X connect 41 1 19 0;
+#X obj 217 177 avg 4, f 12;
+#N canvas 0 22 450 278 (subpatch) 0;
+#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
+;
+#X coords 0 1 100 -1 1 1 1;
+#X restore 0 0 graph;
+#X text 213 329 total count of values processed, f 46;
+#X connect 9 0 40 0;
+#X connect 16 0 40 0;
+#X connect 40 0 17 0;
+#X connect 40 1 18 0;
