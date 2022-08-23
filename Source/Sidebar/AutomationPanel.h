@@ -53,9 +53,6 @@ struct AutomationComponent : public Component {
 #else
             auto* param = pd->parameters.getParameter("param" + String(p + 1));
             auto range = param->getNormalisableRange().getRange();
-
-            slider->setNormalisableRange(NormalisableRange<double>(range.getStart(), range.getEnd()));
-            slider->setValue(param->getValue());
             attachments.add(new SliderParameterAttachment(*param, *slider, nullptr));
 #endif
         }

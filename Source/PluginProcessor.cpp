@@ -616,8 +616,6 @@ void PlugDataAudioProcessor::sendParameters()
 #else
     for (int n = 0; n < numParameters; n++)
     {
-        //if(parameterTimers[n].isTimerRunning()) continue;
-        
         if (parameterValues[n]->load() != lastParameters[n])
         {
             lastParameters[n] = parameterValues[n]->load();
@@ -894,6 +892,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
     // By calling this asynchronously on the message thread and also suspending processing on the audio thread, we can make sure this is safe
     // The DAW can call this function from basically any thread, hence the need for this
+    // Audio will only be reactivated once this action is completed
     MessageManager::callAsync(
         [this, copy, sizeInBytes]() mutable
         {
@@ -947,8 +946,11 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
             std::unique_ptr<XmlElement> xmlState(getXmlFromBinary(xmlData, xmlSize));
 
-            if (xmlState)
-                if (xmlState->hasTagName(parameters.state.getType())) parameters.replaceState(ValueTree::fromXml(*xmlState));
+            if (xmlState) {
+                if (xmlState->hasTagName(parameters.state.getType())) {
+                    parameters.replaceState(ValueTree::fromXml(*xmlState));
+                }
+            }
 
             setLatencySamples(latency);
             setOversampling(oversampling);
@@ -956,6 +958,7 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
             suspendProcessing(false);
 
             freebytes(copy, sizeInBytes);
+            
         });
 }
 
@@ -1117,8 +1120,7 @@ void PlugDataAudioProcessor::receiveParameter(int idx, float value)
     standaloneParams[idx - 1] = value;
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
-        // Why tho?
-        editor->sidebar.updateParameters();
+        editor->sidebar.updateAutomationParameters();
     }
 #else
     auto* parameter = parameters.getParameter("param" + String(idx));

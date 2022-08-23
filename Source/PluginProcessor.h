@@ -226,7 +226,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
                 parameter = param;
                 parameter->beginChangeGesture();
             }
-            startTimer(500);
+            startTimer(300);
         }
 
         void timerCallback() override
@@ -238,7 +238,6 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     ParameterTimer parameterTimers[numParameters];
 
-    
 #endif
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(PlugDataAudioProcessor)
 };
