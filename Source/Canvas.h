@@ -149,7 +149,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     PopupMenu popupMenu;
 
     // Multi-dragger variables
-    const int minimumMovementToStartDrag = 10;
+    const int minimumMovementToStartDrag = 5;
     bool didStartDragging = false;
     Box* componentBeingDragged = nullptr;
 
