@@ -235,7 +235,9 @@ void Box::setType(const String& newType, void* existingObject)
 
             // Synchronise to make sure connections are preserved correctly
             // Asynchronous because it could possibly delete this object
-            MessageManager::callAsync([this]() { cnv->synchronise(false); });
+            MessageManager::callAsync([cnv = SafePointer(cnv)]() {
+                if(cnv) cnv->synchronise(false);
+            });
         }
         else
         {
@@ -478,7 +480,7 @@ void Box::mouseDown(const MouseEvent& e)
             createEditorOnMouseDown = false;
 
             // Prevent losing focus because of click event
-            MessageManager::callAsync([this]() { showEditor(); });
+            MessageManager::callAsync([_this = SafePointer(this)]() { _this->showEditor(); });
         }
 
         return;
@@ -526,9 +528,8 @@ void Box::mouseUp(const MouseEvent& e)
     {
         originalBounds.setBounds(0, 0, 0, 0);
 
-        auto box = SafePointer<Box>(this);
         cnv->pd->enqueueFunction(
-            [this, box, e]() mutable
+            [this, box = SafePointer<Box>(this), e]() mutable
             {
                 if (!box || !gui) return;
 
@@ -543,9 +544,9 @@ void Box::mouseUp(const MouseEvent& e)
                 if (!cnv->viewport->getViewArea().contains(getBounds()))
                 {
                     MessageManager::callAsync(
-                        [this]()
+                        [box]()
                         {
-                            cnv->checkBounds();
+                            if(box) box->cnv->checkBounds();
                         });
                 }
             });

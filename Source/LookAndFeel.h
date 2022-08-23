@@ -849,7 +849,7 @@ struct PlugDataLook : public LookAndFeel_V4
     static void setDefaultFont(String fontName)
     {
         auto& lnf = dynamic_cast<PlugDataLook&>(getDefaultLookAndFeel());
-        if (fontName == "Inter")
+        if (fontName.isEmpty() || fontName == "Inter")
         {
             lnf.setDefaultSansSerifTypeface(lnf.defaultFont.getTypefacePtr());
         }
