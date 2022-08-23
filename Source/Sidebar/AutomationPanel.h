@@ -19,7 +19,7 @@ struct AutomationComponent : public Component {
 
             button->setName("statusbar:createbutton");
 
-            String name = "param" + String(p + 1);
+            String name = "param " + String(p + 1);
             label->setText(name, dontSendNotification);
             // label->attachToComponent(slider, true);
 
@@ -38,7 +38,7 @@ struct AutomationComponent : public Component {
                     auto* cnv = editor->getCurrentCanvas();
                     if (cnv) {
                         cnv->attachNextObjectToMouse = true;
-                        cnv->boxes.add(new Box(cnv, "r " + name));
+                        cnv->boxes.add(new Box(cnv, name));
                     }
                 }
             };

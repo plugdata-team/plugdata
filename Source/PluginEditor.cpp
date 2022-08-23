@@ -557,12 +557,13 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
         MessageManager::callAsync(
             [this, deleteFunc, idx]() mutable
             {
-                auto* cnv = getCanvas(idx);
+                auto cnv = SafePointer(getCanvas(idx));
                 if (cnv && cnv->patch.isDirty())
                 {
                     Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
-                                            [this, deleteFunc](int result) mutable
+                                            [this, deleteFunc, cnv](int result) mutable
                                             {
+                                                if(cnv) return;
                                                 if (result == 2)
                                                 {
                                                     saveProject([deleteFunc]() mutable { deleteFunc(); });
@@ -573,7 +574,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                                                 }
                                             });
                 }
-                else
+                else if(cnv)
                 {
                     deleteFunc();
                 }

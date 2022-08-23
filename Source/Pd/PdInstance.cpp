@@ -431,7 +431,10 @@ void Instance::processMidiEvent(midievent event)
 void Instance::processPrint(String print)
 {
     print = print.trimEnd();
-    MessageManager::callAsync([this, print]() mutable { receivePrint(print); });
+    MessageManager::callAsync([this, _this = SafePointer(this), print]() mutable {
+        if(!_this) return;
+        receivePrint(print);
+    });
 }
 
 void Instance::processSend(dmessage mess)

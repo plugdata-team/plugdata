@@ -357,7 +357,6 @@ void PlugDataAudioProcessor::prepareToPlay(double sampleRate, int samplesPerBloc
     
     oversampler->initProcessing (samplesPerBlock);
     
-    
     audioAdvancement = 0;
     const auto blksize = static_cast<size_t>(Instance::getBlockSize());
     const auto numIn = std::max(static_cast<size_t>(getTotalNumInputChannels()), static_cast<size_t>(2));
