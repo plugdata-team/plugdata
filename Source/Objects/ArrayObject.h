@@ -479,12 +479,15 @@ public:
         int flags = arrSaveContents + 2 * static_cast<int>(arrDrawMode);
 
         cnv->pd->enqueueFunction(
-            [this, arrName, arrSize, flags]() mutable {
+            [this, _this = SafePointer(this), arrName, arrSize, flags]() mutable {
+                if(!_this) return;
+                
                 auto* garray = reinterpret_cast<t_garray*>(static_cast<t_canvas*>(ptr)->gl_list);
                 garray_arraydialog(garray, gensym(arrName.toRawUTF8()), arrSize, static_cast<float>(flags), 0.0f);
 
                 MessageManager::callAsync(
-                    [this]() {
+                    [this, _this]() {
+                        if(!_this) return;
                         array = getArray();
                         graph.setArray(array);
                         updateLabel();
