@@ -145,7 +145,7 @@ void Sidebar::showAutomationPanel(bool show)
 }
 
 #if PLUGDATA_STANDALONE
-void Sidebar::updateParameters()
+void Sidebar::updateAutomationParameters()
 {
     if (automationPanel) {
         // Might be called from audio thread
