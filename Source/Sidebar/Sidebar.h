@@ -107,7 +107,7 @@ struct Sidebar : public Component {
     void updateConsole();
 
 #if PLUGDATA_STANDALONE
-    void updateParameters();
+    void updateAutomationParameters();
 #endif
 
     static constexpr int dragbarWidth = 5;
