@@ -286,13 +286,13 @@ public:
         auto changed = std::vector<float>(vec.begin() + interpStart, vec.begin() + interpEnd + 1);
 
         pd->enqueueFunction(
-            [this, interpStart, changed]() mutable {
+            [_this = SafePointer(this), interpStart, changed]() mutable {
                 try {
                     for (int n = 0; n < changed.size(); n++) {
-                        array.write(interpStart + n, changed[n]);
+                        _this->array.write(interpStart + n, changed[n]);
                     }
                 } catch (...) {
-                    error = true;
+                    _this->error = true;
                 }
             });
 
