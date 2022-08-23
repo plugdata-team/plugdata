@@ -216,7 +216,7 @@ struct MessageObject final : public GUIObject {
     void setSymbol(String const& value)
     {
         cnv->pd->enqueueFunction(
-            [this, value]() mutable {
+            [ptr = this->ptr, value]() mutable {
                 auto* cstr = value.toRawUTF8();
                 auto* messobj = static_cast<t_message*>(ptr);
                 binbuf_clear(messobj->m_text.te_binbuf);

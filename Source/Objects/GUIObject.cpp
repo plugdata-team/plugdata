@@ -295,19 +295,18 @@ void GUIObject::stopEdition()
 void GUIObject::updateValue()
 {
     if (!edited) {
-        auto thisPtr = SafePointer<GUIObject>(this);
         pd->enqueueFunction(
-            [thisPtr]() {
-                if (!thisPtr)
+            [_this = SafePointer(this)]() {
+                if (!_this)
                     return;
 
-                float const v = thisPtr->getValue();
-                if (thisPtr->value != v) {
+                float const v = _this->getValue();
+                if (_this->value != v) {
                     MessageManager::callAsync(
-                        [thisPtr, v]() mutable {
-                            if (thisPtr) {
-                                thisPtr->value = v;
-                                thisPtr->update();
+                        [_this, v]() mutable {
+                            if (_this) {
+                                _this->value = v;
+                                _this->update();
                             }
                         });
                 }

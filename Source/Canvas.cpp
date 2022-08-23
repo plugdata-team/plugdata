@@ -285,6 +285,7 @@ void Canvas::synchronise(bool updatePosition)
     // Resize canvas to fit objects
     // By checking asynchronously, we make sure the boxes bounds have been updated
     MessageManager::callAsync([_this = SafePointer(this)](){
+        if(!_this) return;
         _this->pd->waitForStateUpdate();
         _this->checkBounds();
     });
