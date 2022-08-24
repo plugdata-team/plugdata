@@ -432,7 +432,7 @@ if(APPLE)
     DESTINATION "/Library/Audio/Plug-Ins/LV2"
     FILES_MATCHING PATTERN "*.lv2"
   )
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/Standalone.app
+  install(EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/Standalone.app
     DESTINATION "/Applications/"
   )
 elseif(WIN32)
@@ -454,11 +454,11 @@ elseif(WIN32)
   )
 elseif(UNIX AND NOT APPLE) # Linux or BSD
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "~/.vst3/"
+    DESTINATION "$ENV{HOME}/.vst3/"
     FILES_MATCHING PATTERN "*.vst3"
   )
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "~/.lv2/"
+    DESTINATION "$ENV{HOME}/.lv2/"
     FILES_MATCHING PATTERN "*.lv2"
   )
 endif()
