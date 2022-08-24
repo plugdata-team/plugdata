@@ -418,3 +418,47 @@ endif()
 if(MSVC)
 set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM_ALL 1 EXCLUDE_FROM_DEFAULT_BUILD 1)
 endif()
+
+if(APPLE)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
+    DESTINATION "/Library/Audio/Plug-Ins/VST3"
+    FILES_MATCHING PATTERN "*.vst3"
+  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Components/
+    DESTINATION "/Library/Audio/Plug-Ins/Components"
+    FILES_MATCHING PATTERN "*.component"
+  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
+    DESTINATION "/Library/Audio/Plug-Ins/LV2"
+    FILES_MATCHING PATTERN "*.lv2"
+  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/Standalone.app
+    DESTINATION "/Applications/"
+  )
+elseif(WIN32)
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
+    DESTINATION "/Program Files/Common Files/VST3/"
+    FILES_MATCHING PATTERN "*.vst3"
+  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
+    DESTINATION "/Program Files/Common Files/LV2/"
+    FILES_MATCHING PATTERN "*.lv2"
+  )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/
+    DESTINATION "/Program Files/PlugData/"
+    FILES_MATCHING PATTERN "*.exe"
+  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/
+    DESTINATION "/Program Files/PlugData/"
+    FILES_MATCHING PATTERN "*.dll"
+  )
+elseif(UNIX AND NOT APPLE) # Linux or BSD
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
+    DESTINATION "~/.vst3/"
+    FILES_MATCHING PATTERN "*.vst3"
+  )
+    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
+    DESTINATION "~/.lv2/"
+    FILES_MATCHING PATTERN "*.lv2"
+  )
+endif()
