@@ -214,7 +214,7 @@ void Library::initialiseLibrary()
 
         updateLibrary();
 
-        auto pddocPath = appDataDir.getChildFile("Library").getChildFile("Documentation").getChildFile("pddp").getFullPathName();
+        auto pddocPath = appDataDir.getChildFile(ProjectInfo::versionString).getChildFile("Documentation").getChildFile("pddp").getFullPathName();
 
         parseDocumentation(pddocPath);
 

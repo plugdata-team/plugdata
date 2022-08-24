@@ -647,8 +647,8 @@ bool Canvas::keyPressed(const KeyPress& key)
 void Canvas::deselectAll()
 {
     // Deselect boxes
-    for (auto* c : selectedComponents)
-        if (c) c->repaint();
+    for (auto c : selectedComponents)
+        if (!c.wasObjectDeleted()) c->repaint();
 
     selectedComponents.deselectAll();
     main.sidebar.hideParameters();
@@ -657,9 +657,9 @@ void Canvas::deselectAll()
 void Canvas::copySelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto* sel : getLassoSelection())
+    for (auto sel : getLassoSelection())
     {
-        if (auto* box = dynamic_cast<Box*>(sel))
+        if (auto* box = dynamic_cast<Box*>(sel.get()))
         {
             patch.selectObject(box->getPointer());
         }
@@ -692,9 +692,9 @@ void Canvas::pasteSelection()
 void Canvas::duplicateSelection()
 {
     // Tell pd to select all objects that are currently selected
-    for (auto* sel : getLassoSelection())
+    for (auto sel : getLassoSelection())
     {
-        if (auto* box = dynamic_cast<Box*>(sel))
+        if (auto* box = dynamic_cast<Box*>(sel.get()))
         {
             patch.selectObject(box->getPointer());
         }
@@ -728,9 +728,9 @@ void Canvas::removeSelection()
 
     // Find selected objects and make them selected in pd
     Array<void*> objects;
-    for (auto* sel : getLassoSelection())
+    for (auto sel : getLassoSelection())
     {
-        if (auto* box = dynamic_cast<Box*>(sel))
+        if (auto* box = dynamic_cast<Box*>(sel.get()))
         {
             if (box->getPointer())
             {
@@ -917,9 +917,9 @@ void Canvas::handleMouseDown(Component* component, const MouseEvent& e)
         if (!(e.mods.isShiftDown() || e.mods.isCommandDown()))  {
             
             // Deselect boxes and connections
-            for (auto* c : selectedComponents) {
-                if (c != this)  {
-                    setSelected(c, false);
+            for (auto c : selectedComponents) {
+                if (!c.wasObjectDeleted() || c.get() != this)  {
+                    setSelected(c.get(), false);
                     c->repaint();
                 }
             }
@@ -953,9 +953,9 @@ void Canvas::handleMouseUp(Component* component, const MouseEvent& e)
     {
         auto objects = std::vector<void*>();
 
-        for (auto* component : getLassoSelection())
+        for (auto component : getLassoSelection())
         {
-            if (auto* box = dynamic_cast<Box*>(component))
+            if (auto* box = dynamic_cast<Box*>(component.get()))
             {
                 if (box->getPointer()) objects.push_back(box->getPointer());
             }
@@ -1052,7 +1052,7 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     }
 }
 
-SelectedItemSet<Component*>& Canvas::getLassoSelection()
+SelectedItemSet<WeakReference<Component>>& Canvas::getLassoSelection()
 {
     return selectedComponents;
 }
@@ -1062,7 +1062,7 @@ void Canvas::removeSelectedComponent(Component* component)
     selectedComponents.deselect(component);
 }
 
-void Canvas::findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area)
+void Canvas::findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, const Rectangle<int>& area)
 {
     for (auto* element : boxes)
     {
