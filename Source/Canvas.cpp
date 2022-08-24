@@ -1006,7 +1006,10 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     /** Ensure tiny movements don't start a drag. */
     if (!didStartDragging && e.getDistanceFromDragStart() < minimumMovementToStartDrag) return;
 
-    didStartDragging = true;
+    if(!didStartDragging)  {
+        didStartDragging = true;
+        main.updateCommandStatus();
+    }
 
     auto dragDistance = e.getOffsetFromDragStart();
 
