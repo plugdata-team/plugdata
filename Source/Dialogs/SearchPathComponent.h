@@ -56,7 +56,7 @@ public:
             auto libraryDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile(ProjectInfo::versionString);
 
             auto abstractionsDir = libraryDir.getChildFile("Abstractions");
-            auto dekenDir = libraryDir.getChildFile("Deken").getLinkedTarget();
+            auto dekenDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Deken").getLinkedTarget();
 
             path = FileSearchPath();
             path.add(abstractionsDir);
