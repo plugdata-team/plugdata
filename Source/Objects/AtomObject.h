@@ -266,9 +266,6 @@ struct AtomObject : public GUIObject {
 
     void setLabelText(String newText)
     {
-        if (newText.isEmpty())
-            newText = "empty";
-
         auto* atom = static_cast<t_fake_gatom*>(ptr);
         atom->a_label = gensym(newText.toRawUTF8());
     }
