@@ -106,7 +106,7 @@ struct IEMObject : public GUIObject {
         } else if (v.refersToSameSourceAs(primaryColour)) {
             auto colour = Colour::fromString(primaryColour.toString());
             setForegroundColour(colour);
-            
+
             // TODO: move this!
             getLookAndFeel().setColour(TextButton::buttonOnColourId, colour);
             getLookAndFeel().setColour(Slider::thumbColourId, colour);

@@ -1020,4 +1020,3 @@ void gobj_setposition(t_gobj* x, t_glist* glist, int xpos, int ypos)
         (*x->g_pd->c_wb->w_displacefn)(x, glist, xpos - x1, ypos - y1);
     }
 }
-

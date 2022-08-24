@@ -21,7 +21,7 @@ extern "C" {
 
 extern "C" {
 struct pd::Instance::internal {
-    
+
     static void instance_multi_bang(pd::Instance* ptr, char const* recv)
     {
         ptr->enqueueFunctionAsync([ptr, recv]() { ptr->processMessage({ String("bang"), String(recv) }); });
@@ -103,29 +103,29 @@ struct pd::Instance::internal {
         static int length = 0;
         concatenatedLine[length] = '\0';
 
-        int len = (int) strlen(s);
+        int len = (int)strlen(s);
         while (length + len >= 2048) {
-          int d = 2048 - 1 - length;
-          strncat(concatenatedLine, s, d);
-            
-          // Send concatenated line to PlugData!
-          ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
-          s += d;
-          len -= d;
-          length = 0;
-          concatenatedLine[0] = '\0';
+            int d = 2048 - 1 - length;
+            strncat(concatenatedLine, s, d);
+
+            // Send concatenated line to PlugData!
+            ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
+            s += d;
+            len -= d;
+            length = 0;
+            concatenatedLine[0] = '\0';
         }
 
         strncat(concatenatedLine, s, len);
         length += len;
 
         if (length > 0 && concatenatedLine[length - 1] == '\n') {
-          concatenatedLine[length - 1] = '\0';
-            
-          // Send concatenated line to PlugData!
-          ptr->enqueueFunctionAsync([ptr, mess = String::fromUTF8(concatenatedLine)]() mutable { ptr->processPrint(mess); });
-            
-          length = 0;
+            concatenatedLine[length - 1] = '\0';
+
+            // Send concatenated line to PlugData!
+            ptr->enqueueFunctionAsync([ptr, mess = String::fromUTF8(concatenatedLine)]() mutable { ptr->processPrint(mess); });
+
+            length = 0;
         }
     }
 };
@@ -206,9 +206,9 @@ Instance::Instance(String const& symbol)
 
         if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~" || name == "del~")) {
             auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
-            
+
             std::cout << name << std::endl;
-            
+
             std::array<t_atomtype, 6> args;
             for (int n = 0; n < 6; n++) {
                 args[n] = static_cast<t_atomtype>(m->me_arg[n]);
@@ -392,7 +392,6 @@ void Instance::sendMessage(char const* receiver, char const* msg, std::vector<At
     libpd_message(receiver, msg, static_cast<int>(list.size()), argv);
 }
 
-
 void Instance::processMessage(Message mess)
 {
     if (mess.destination == "param") {
@@ -465,7 +464,6 @@ void Instance::processSend(dmessage mess)
             sys_lock();
             pd_symbol(static_cast<t_pd*>(mess.object), gensym(mess.list[0].getSymbol().toRawUTF8()));
             sys_unlock();
-            
         }
     } else {
         sendMessage(mess.destination.toRawUTF8(), mess.selector.toRawUTF8(), mess.list);

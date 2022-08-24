@@ -42,8 +42,8 @@ struct MessageObject final : public GUIObject {
 
             editor->setMultiLine(true, true);
             editor->setReturnKeyStartsNewLine(true);
-            editor->setBorder({0, 1, 3, 0});
-            
+            editor->setBorder({ 0, 1, 3, 0 });
+
             editor->onTextChange = [this, editor]() {
                 auto width = input.getFont().getStringWidth(editor->getText()) + 35;
 

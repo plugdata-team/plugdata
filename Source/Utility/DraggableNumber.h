@@ -23,7 +23,7 @@ struct DraggableNumber : public Label {
     ~DraggableNumber()
     {
     }
-    
+
     void setEditableOnClick(bool editable)
     {
         setEditable(true, false);
@@ -41,43 +41,43 @@ struct DraggableNumber : public Label {
         isMinLimited = true;
         min = minimum;
     }
-    
-    bool keyPressed (const KeyPress &key) override
+
+    bool keyPressed(KeyPress const& key) override
     {
-        if(isEditable()) return false;
+        if (isEditable())
+            return false;
         // Otherwise it might catch a shortcut
-        if(key.getModifiers().isCommandDown()) return false;
-        
+        if (key.getModifiers().isCommandDown())
+            return false;
+
         auto chr = key.getTextCharacter();
-        
-        if (!getCurrentTextEditor() && ((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.'))
-        {
+
+        if (!getCurrentTextEditor() && ((chr >= '0' && chr <= '9') || chr == '+' || chr == '-' || chr == '.')) {
             showEditor();
             auto* editor = getCurrentTextEditor();
-            
+
             auto text = String();
             text += chr;
             editor->setText(text);
             editor->moveCaretToEnd(false);
-            
+
             return true;
         }
-        
-        if(!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::upKey) {
+
+        if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::upKey) {
             auto newValue = getText().getFloatValue();
             setText(String(newValue + 1), sendNotification);
             return true;
         }
-        if(!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::downKey) {
+        if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::downKey) {
             auto newValue = getText().getFloatValue();
             setText(String(newValue - 1), sendNotification);
             return true;
         }
-        
+
         return false;
     }
-    
-    
+
     // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
     void mouseEnter(MouseEvent const& e) override
     {
@@ -138,22 +138,20 @@ struct DraggableNumber : public Label {
         }
 
         numDecimalsToShow = decimalDrag;
-        
+
         dragStart();
     }
 
-    void paint (Graphics& g) override
+    void paint(Graphics& g) override
     {
-        if (!isBeingEdited())
-        {
+        if (!isBeingEdited()) {
             g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
-            
+
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
             g.drawText(formatNumber(getText().getFloatValue(), decimalDrag), textArea, Justification::left, false);
         }
     }
-    
 
     void mouseDrag(MouseEvent const& e) override
     {
@@ -188,9 +186,9 @@ struct DraggableNumber : public Label {
             newValue = std::min(newValue, max);
 
         setText(String(newValue), dontSendNotification);
-        
+
         numDecimalsToShow = decimal;
-        
+
         valueChanged(newValue);
     }
 
@@ -208,14 +206,14 @@ struct DraggableNumber : public Label {
         mouseSource.setScreenPosition(e.getMouseDownScreenPosition().toFloat());
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
-        
+
         Label::mouseUp(e);
     }
 
     String formatNumber(float value, int precision = -1)
     {
         auto text = String(value, precision);
-        
+
         if (!text.containsChar('.'))
             text << '.';
 
@@ -301,7 +299,7 @@ struct DraggableListNumber : public DraggableNumber {
         auto mouseSource = Desktop::getInstance().getMainMouseSource();
         mouseSource.enableUnboundedMouseMovement(true, true);
 
-        const int decimal = decimalDrag + e.mods.isShiftDown();
+        int const decimal = decimalDrag + e.mods.isShiftDown();
         float const increment = 1.;
         float const deltaY = (e.y - e.mouseDownPosition.y) * 0.7f;
 
@@ -340,14 +338,13 @@ struct DraggableListNumber : public DraggableNumber {
         mouseSource.enableUnboundedMouseMovement(false);
         dragEnd();
     }
-    
-    void paint (Graphics& g) override
+
+    void paint(Graphics& g) override
     {
-        if (!isBeingEdited())
-        {
+        if (!isBeingEdited()) {
             g.setColour(findColour(Label::textColourId));
             g.setFont(getFont());
-            
+
             auto textArea = getBorderSize().subtractedFrom(getLocalBounds());
             g.drawText(getText(), textArea, Justification::left, false);
         }
