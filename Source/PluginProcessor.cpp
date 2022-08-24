@@ -1166,14 +1166,17 @@ void PlugDataAudioProcessor::receiveGuiUpdate(int type)
 {
     callbackType |= (1 << type);
     
+    if(callbackType & 4)
+    {
+        std::cout << "Drawable update!" << std::endl;
+    }
+    
     if(!isTimerRunning()) {
 
         startTimer(16);
     }
 }
 
-
-// TODO: Don't do this here!!!
 void PlugDataAudioProcessor::timerCallback()
 {
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))

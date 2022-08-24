@@ -1447,4 +1447,3 @@ int parse_startup_arguments(char const** argv, size_t argc)
 
     return (0);
 }
-

@@ -2,7 +2,7 @@
 
 struct NumberObject final : public IEMObject {
     DraggableNumber input;
-    
+
     NumberObject(void* obj, Box* parent)
         : IEMObject(obj, parent)
     {
@@ -30,7 +30,7 @@ struct NumberObject final : public IEMObject {
 
         min = getMinimum();
         max = getMaximum();
-        
+
         addMouseListener(this, true);
 
         input.dragStart = [this]() { startEdition(); };
@@ -61,7 +61,7 @@ struct NumberObject final : public IEMObject {
 
     void checkBounds() override
     {
-        const int widthIncrement = 9;
+        int const widthIncrement = 9;
         int width = jlimit(27, maxSize, (getWidth() / widthIncrement) * widthIncrement);
         int height = jlimit(18, maxSize, getHeight());
         if (getWidth() != width || getHeight() != height) {
@@ -77,34 +77,34 @@ struct NumberObject final : public IEMObject {
         int fontWidth = glist_fontwidth(cnv->patch.getPointer());
 
         auto* nbx = static_cast<t_my_numbox*>(ptr);
-        
+
         nbx->x_gui.x_w = b.getWidth();
         nbx->x_gui.x_h = b.getHeight();
-        
+
         nbx->x_numwidth = (b.getWidth() / 9) - 1;
     }
-    
+
     void resized() override
     {
         input.setBounds(getLocalBounds());
         input.setFont(getHeight() - 6);
     }
-    
+
     void focusGained(FocusChangeType cause) override
     {
         repaint();
     }
-    
+
     void focusLost(FocusChangeType cause) override
     {
         repaint();
     }
-    
-    void focusOfChildComponentChanged (FocusChangeType cause) override
+
+    void focusOfChildComponentChanged(FocusChangeType cause) override
     {
         repaint();
     }
-    
+
     void lock(bool isLocked) override
     {
         setInterceptsMouseClicks(isLocked, isLocked);
@@ -147,7 +147,7 @@ struct NumberObject final : public IEMObject {
         auto normalColour = Colour(getForegroundColour()).interpolatedWith(box->findColour(PlugDataColour::toolbarColourId), 0.5f);
         auto highlightColour = findColour(PlugDataColour::highlightColourId);
         bool highlighed = hasKeyboardFocus(true) && static_cast<bool>(box->locked.getValue());
-        
+
         g.setColour(highlighed ? highlightColour : normalColour);
         g.fillPath(triangle);
     }

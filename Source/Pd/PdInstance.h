@@ -137,9 +137,9 @@ struct ContinuityChecker : public Timer {
             if (isTimerRunning())
                 return;
 
-            //startTimer(intervalMs);
+                // startTimer(intervalMs);
 #if JUCE_DEBUG
-            //std::cout << "backup scheduler started" << std::endl;
+                // std::cout << "backup scheduler started" << std::endl;
 #endif
         }
 
@@ -148,10 +148,10 @@ struct ContinuityChecker : public Timer {
             if (!isTimerRunning())
                 return;
 
-            //stopTimer();
+                // stopTimer();
 
 #if JUCE_DEBUG
-            //std::cout << "backup scheduler stopped" << std::endl;
+                // std::cout << "backup scheduler stopped" << std::endl;
 #endif
         }
 
@@ -388,7 +388,7 @@ public:
     std::deque<std::tuple<String, int, int>> consoleHistory;
 
     char printConcatBuffer[2048];
-    
+
 private:
     moodycamel::ConcurrentQueue<std::function<void(void)>> m_function_queue = moodycamel::ConcurrentQueue<std::function<void(void)>>(4096);
 
