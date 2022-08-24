@@ -14,7 +14,7 @@ arguments:
     type: float
     default: 2
   2nd:
-  - description: frequency in hz
+  - description: frequency in Hz
     type: float
     default: 10
   3rd:
@@ -28,7 +28,7 @@ inlets:
     description: signal to be filtered
   2nd:
   - type: float/signal
-    description: central frequency in hz
+    description: central frequency in Hz
   3rd:
   - type: float/signal
     description: filter resonance (Q)
