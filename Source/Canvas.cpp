@@ -299,6 +299,8 @@ void Canvas::mouseDown(const MouseEvent& e)
 {
     auto* source = e.originalComponent;
     
+    PopupMenu::dismissAllActiveMenus();
+    
     // Middle mouse click
     if(viewport && ModifierKeys::getCurrentModifiers().isMiddleButtonDown()) {
         setMouseCursor(MouseCursor::UpDownLeftRightResizeCursor);
@@ -347,8 +349,14 @@ void Canvas::mouseDown(const MouseEvent& e)
         Box* box = nullptr;
         if (hasSelection && !multiple) box = selectedBoxes.getFirst();
         
-        if (auto* b = source->findParentComponentOfClass<Box>())  {
-            box = b;
+        Array<Box*> parents;
+        for (auto* p = source->getParentComponent(); p != nullptr; p = p->getParentComponent()) {
+            if (auto* target = dynamic_cast<Box*> (p)) parents.add(target);
+        }
+        
+        // Get top-level parent box... A bit clumsy but otherwise it will open subpatchers deeper down the chain
+        if (parents.size() && !hasSelection)  {
+            box = parents.getLast();
             hasSelection = true;
         }
         
