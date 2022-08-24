@@ -9,6 +9,7 @@ mkdir Abstractions/else
 cp ../../Libraries/pure-data/extra/*.pd ./Abstractions
 cp ../../Libraries/ELSE/Abstractions/*.pd ./Abstractions/else
 cp ../playhead.pd ./Abstractions
+cp ../param.pd ./Abstractions
 
 rm ./Abstractions/else/All_objects.pd
 
