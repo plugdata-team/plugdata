@@ -346,7 +346,12 @@ void Canvas::mouseDown(const MouseEvent& e)
 
         Box* box = nullptr;
         if (hasSelection && !multiple) box = selectedBoxes.getFirst();
-
+        
+        if (auto* b = source->findParentComponentOfClass<Box>())  {
+            box = b;
+            hasSelection = true;
+        }
+        
         bool isSubpatch = box && box->gui && box->gui->getPatch();
 
         // Create popup menu
