@@ -207,8 +207,6 @@ Instance::Instance(String const& symbol)
         if ((insideCyclone || insideElse) && !(name.contains("cyclone") || name.contains("else") || name == "Pow~" || name == "del~")) {
             auto newName = insideCyclone ? "cyclone/" + name : "else/" + name;
 
-            std::cout << name << std::endl;
-
             std::array<t_atomtype, 6> args;
             for (int n = 0; n < 6; n++) {
                 args[n] = static_cast<t_atomtype>(m->me_arg[n]);
@@ -229,7 +227,6 @@ Instance::Instance(String const& symbol)
     // Then create aliases for all these objects
     // We seperate this process in two parts because adding new objects while looping through objects causes problems
     for (auto [name, method, args] : newMethods) {
-        std::cout << name << std::endl;
         class_addcreator(method, gensym(name.toRawUTF8()), args[0], args[1], args[2], args[3], args[4], args[5]);
     }
 
