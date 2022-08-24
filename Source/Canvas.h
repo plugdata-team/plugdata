@@ -138,7 +138,12 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     pd::Storage storage;
 
     bool attachNextObjectToMouse = false;
-
+    
+    // Multi-dragger variables
+    bool didStartDragging = false;
+    const int minimumMovementToStartDrag = 5;
+    Box* componentBeingDragged = nullptr;
+    
    private:
     
     SafePointer<Box> boxSnappingInbetween;
@@ -147,11 +152,6 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     LassoComponent<WeakReference<Component>> lasso;
     PopupMenu popupMenu;
-
-    // Multi-dragger variables
-    const int minimumMovementToStartDrag = 5;
-    bool didStartDragging = false;
-    Box* componentBeingDragged = nullptr;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
     ObjectParameters parameters = {{"Is graph", tBool, cGeneral, &isGraphChild, {"No", "Yes"}}, {"Hide name and arguments", tBool, cGeneral, &hideNameAndArgs, {"No", "Yes"}}};
