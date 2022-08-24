@@ -874,8 +874,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewComment:
         {
             result.setInfo("New Comment", "Create new comment", "Objects", 0);
-            result.addDefaultKeypress(67, ModifierKeys::noModifiers);
             result.addDefaultKeypress(53, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(67, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -889,8 +889,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewMessage:
         {
             result.setInfo("New Message", "Create new message", "Objects", 0);
-            result.addDefaultKeypress(77, ModifierKeys::noModifiers);
             result.addDefaultKeypress(50, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(77, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
@@ -904,9 +904,10 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewNumbox:
         {
             result.setInfo("New Number", "Create new number box", "Objects", 0);
+            result.addDefaultKeypress(51, ModifierKeys::commandModifier);
             result.addDefaultKeypress(73, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
-            result.addDefaultKeypress(51, ModifierKeys::commandModifier);
+            
             break;
         }
         case CommandIDs::NewFloatAtom:
@@ -925,8 +926,8 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewListAtom:
         {
             result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
-            result.addDefaultKeypress(76, ModifierKeys::noModifiers);
             result.addDefaultKeypress(52, ModifierKeys::commandModifier);
+            result.addDefaultKeypress(76, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }

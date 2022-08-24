@@ -223,10 +223,10 @@ struct PackageManager : public Thread
         // PlugData's deken servers, hosted on github
         // This will pre-parse the deken repo information to a faster and smaller format
         // This saves a lot of work that PlugData would have to do on startup!
-        
+
         auto triplet = os + "-" + machine + "-" + floatsize;
-        auto repoForArchitecture =     "https://raw.githubusercontent.com/timothyschoen/PlugDataDekenServer/main/bin/" + triplet + ".bin";
-        
+        auto repoForArchitecture = "https://raw.githubusercontent.com/timothyschoen/PlugDataDekenServer/main/bin/" + triplet + ".bin";
+
         webstream = std::make_unique<WebInputStream>(URL(repoForArchitecture), false);
         webstream->connect(nullptr);
 
@@ -234,25 +234,25 @@ struct PackageManager : public Thread
             sendActionMessage("Failed to connect to server");
             return {};
         }
-        
+
         MemoryBlock block;
         webstream->readIntoMemoryBlock(block);
-        
+
         // Parse tree that was downloaded
         auto tree = ValueTree::readFromData(block.getData(), block.getSize());
-        
+
         PackageList packages;
 
         for (auto package : tree) {
             auto name = package.getProperty("Name").toString();
-            
+
             for (auto version : package) {
                 auto author = version.getProperty("Author").toString();
                 auto timestamp = version.getProperty("Timestamp").toString();
                 auto url = version.getProperty("URL").toString();
                 auto description = version.getProperty("Description").toString();
                 auto versionNumber = version.getProperty("Version").toString();
-                
+
                 StringArray objects;
                 for (auto object : version.getChildWithName("Objects")) {
                     objects.add(object.getProperty("Name").toString());
@@ -264,8 +264,6 @@ struct PackageManager : public Thread
 
         return packages;
     }
-
-
 
     // When a property in our pkginfo changes, save it immediately
     void valueTreePropertyChanged(ValueTree& treeWhosePropertyHasChanged, Identifier const& property) override
@@ -345,7 +343,6 @@ struct PackageManager : public Thread
 
     inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Deken");
 
-        
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
 
@@ -399,7 +396,7 @@ struct PackageManager : public Thread
 #    endif
         ""
 #endif
-    ;
+        ;
 
     // Create a single package manager that exists even when the dialog is not open
     // This allows more efficient pre-fetching of packages, and also makes it easy to
@@ -493,8 +490,7 @@ public:
             input.setEnabled(false);
             updateSpinner.stopSpinning();
             return;
-        }
-        else {
+        } else {
             showError("");
         }
 

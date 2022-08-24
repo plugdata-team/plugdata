@@ -150,7 +150,7 @@ void register_gui_triggers(t_pdinstance* instance, void* target, pd_gui_callback
 
 void update_gui_parameters()
 {
-    if (pd_this->pd_inter->gui_callback) {
+    if (pd_this->pd_inter->parameter_callback) {
         pd_this->pd_inter->parameter_callback(pd_this->pd_inter->callback_target);
     }
 }

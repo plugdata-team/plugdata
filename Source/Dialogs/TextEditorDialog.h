@@ -2115,15 +2115,15 @@ struct TextEditorDialog : public Component {
 
     void paintOverChildren(Graphics& g)
     {
-        //g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
-        //g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 6.0f, 1.0f);
+        // g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
+        // g.drawRoundedRectangle(getLocalBounds().toFloat().reduced(0.5f), 6.0f, 1.0f);
     }
 
     void paint(Graphics& g)
     {
         g.setColour(findColour(PlugDataColour::toolbarColourId));
         g.fillRoundedRectangle(getLocalBounds().toFloat(), 6.0f);
-        
+
         g.setColour(findColour(PlugDataColour::toolbarOutlineColourId));
         g.drawHorizontalLine(39, 48, getWidth());
         g.drawHorizontalLine(getHeight() - 20, 48, getWidth());

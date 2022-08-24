@@ -67,7 +67,7 @@ Patch::Patch(void* patchPtr, Instance* parentInstance, File patchFile)
 {
     if (auto* cnv = getPointer()) {
         parentInstance->enqueueFunction([this]() {
-            //setZoom(1);
+            // setZoom(1);
         });
     }
 }
@@ -137,7 +137,6 @@ void Patch::setCurrent(bool lock)
     if (lock)
         instance->getCallbackLock()->enter();
 
-    
     auto* cnv = canvas_getcurrent();
 
     if (cnv) {
