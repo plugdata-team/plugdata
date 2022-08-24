@@ -127,7 +127,7 @@ to [zerocross~];
 #X text 134 374 float/signal - threshold value, f 37;
 #X text 176 406 signal - when left inlet value rises above the threshold
 value;
-#X text 176 430 signal -when left inlet falls back or below a threshold
+#X text 176 430 signal - when left inlet falls back below the threshold
 ;
 #X text 155 464 1) float - initial threshold value (default 0), f
 49;
