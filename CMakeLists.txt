@@ -419,6 +419,11 @@ set_target_properties(pthreadVC3 pthreadVSE3 pthreadVCE3 PROPERTIES EXCLUDE_FROM
 endif()
 
 
+set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
+  WORLD_READ
+  WORLD_WRITE
+  WORLD_EXECUTE
+)
 
 if(APPLE)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
@@ -455,11 +460,11 @@ elseif(WIN32)
   )
 elseif(UNIX AND NOT APPLE) # Linux or BSD
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "~/.vst3"
+    DESTINATION "$ENV{HOME}/.vst3/"
     FILES_MATCHING PATTERN "*.vst3"
   )
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "~/.lv2"
+    DESTINATION "$ENV{HOME}/.lv2/"
     FILES_MATCHING PATTERN "*.lv2"
   )
 endif()
