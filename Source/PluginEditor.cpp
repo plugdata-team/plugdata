@@ -645,7 +645,8 @@ void PlugDataPluginEditor::updateCommandStatus()
         bool allNotSegmented = true;
         bool hasSelection = false;
         
-        bool isDragging = cnv->isMouseButtonDown(true) && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        
+        bool isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
         for (auto& connection : cnv->getSelectionOfType<Connection>())
         {
             allSegmented = allSegmented && connection->isSegmented();
@@ -718,7 +719,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
 
         hasBoxSelection = !selectedBoxes.isEmpty();
         hasSelection = hasBoxSelection || !selectedConnections.isEmpty();
-        isDragging = cnv->isMouseButtonDown(true) && !cnv->isDraggingLasso && statusbar.locked == var(false);
+        isDragging = cnv->didStartDragging && !cnv->isDraggingLasso && statusbar.locked == var(false);
     }
 
     switch (commandID)
@@ -813,24 +814,22 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         {
             result.setInfo("Copy", "Copy", "Edit", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false) && hasBoxSelection);
-            result.setActive(!isDragging);
-            break;
-        }
-        case CommandIDs::Paste:
-        {
-            result.setInfo("Paste", "Paste", "Edit", 0);
-            result.addDefaultKeypress(86, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false));
-            result.setActive(!isDragging);
+            result.setActive(pd.locked == var(false) && hasBoxSelection && !isDragging);
+            std::cout << "Can Copy" << (pd.locked == var(false)) << hasBoxSelection << !isDragging << std::endl;
             break;
         }
         case CommandIDs::Cut:
         {
             result.setInfo("Cut", "Cut selection", "Edit", 0);
             result.addDefaultKeypress(88, ModifierKeys::commandModifier);
-            result.setActive(pd.locked == var(false) && hasSelection);
-            result.setActive(!isDragging);
+            result.setActive(pd.locked == var(false) && hasSelection && !isDragging);
+            break;
+        }
+        case CommandIDs::Paste:
+        {
+            result.setInfo("Paste", "Paste", "Edit", 0);
+            result.addDefaultKeypress(86, ModifierKeys::commandModifier);
+            result.setActive(pd.locked == var(false) && !isDragging);
             break;
         }
         case CommandIDs::Delete:
@@ -923,6 +922,7 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
         case CommandIDs::NewListAtom:
         {
             result.setInfo("New Listatom", "Create new listatom", "Objects", 0);
+            result.addDefaultKeypress(76, ModifierKeys::noModifiers);
             result.setActive(!isDragging && pd.locked == var(false));
             break;
         }
