@@ -455,11 +455,11 @@ elseif(WIN32)
   )
 elseif(UNIX AND NOT APPLE) # Linux or BSD
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "$ENV{HOME}/.vst3/"
+    DESTINATION "/usr/lib/vst3"
     FILES_MATCHING PATTERN "*.vst3"
   )
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "$ENV{HOME}/.lv2/"
+    DESTINATION "/usr/lib/lv2"
     FILES_MATCHING PATTERN "*.lv2"
   )
 endif()
