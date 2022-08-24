@@ -443,15 +443,15 @@ if(APPLE)
   )
 elseif(WIN32)
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "/Program Files/Common Files/VST3/"
+    DESTINATION "/Program Files/Common Files/VST3"
     FILES_MATCHING PATTERN "*.vst3"
   )
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "/Program Files/Common Files/LV2/"
+    DESTINATION "/Program Files/Common Files/LV2"
     FILES_MATCHING PATTERN "*.lv2"
   )
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/
-    DESTINATION "/Program Files/PlugData/"
+    DESTINATION "/Program Files/PlugData"
     FILES_MATCHING PATTERN "*.exe"
   )
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/
@@ -460,11 +460,11 @@ elseif(WIN32)
   )
 elseif(UNIX AND NOT APPLE) # Linux or BSD
   install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "$ENV{HOME}/.vst3/"
+    DESTINATION "$ENV{HOME}/.vst3"
     FILES_MATCHING PATTERN "*.vst3"
   )
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "$ENV{HOME}/.lv2/"
+    DESTINATION "$ENV{HOME}/.lv2"
     FILES_MATCHING PATTERN "*.lv2"
   )
 endif()
