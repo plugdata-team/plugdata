@@ -153,7 +153,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
     pd::Library objectLibrary;
 
     File homeDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData");
-    File appDir = homeDir.getChildFile("Library");
+    File appDir = homeDir.getChildFile(ProjectInfo::versionString);
 
     File settingsFile = homeDir.getChildFile("Settings.xml");
     File abstractions = appDir.getChildFile("Abstractions");
@@ -209,7 +209,7 @@ class PlugDataAudioProcessor : public AudioProcessor, public pd::Instance, publi
 
     const CriticalSection* audioLock;
     
-    static inline const String else_version = "ELSE v1.0-rc2";
+    static inline const String else_version = "ELSE v1.0-rc3";
     static inline const String cyclone_version = "cyclone v0.6-1";
 
 #if !PLUGDATA_STANDALONE

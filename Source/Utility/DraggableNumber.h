@@ -216,9 +216,6 @@ struct DraggableNumber : public Label {
     {
         auto text = String(value, precision);
         
-        while (text.length() > 1 && getFont().getStringWidth(text) > getWidth() - 5) {
-            text = text.dropLastCharacters(1);
-        }
         if (!text.containsChar('.'))
             text << '.';
 

@@ -1,21 +1,17 @@
-#N canvas 605 23 565 511 10;
-#X obj 4 334 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#N canvas 461 23 565 511 10;
+#X obj 4 334 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 395 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 395 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 454 cnv 3 550 4 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 454 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 108 406 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 108 406 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 4 484 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
 #X obj 307 6 cnv 15 250 40 empty empty empty 12 13 0 18 #7c7c7c #e0e4dc
 0;
-#N canvas 382 141 749 319 (subpatch) 1;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
+#N canvas 382 141 749 319 (subpatch) 0;
 #X coords 0 -1 1 1 252 42 2 0 0;
 #X restore 306 5 pd;
 #X obj 346 13 cnv 10 10 10 empty empty ELSE 0 15 2 30 #7c7c7c #e0e4dc
@@ -30,58 +26,56 @@
 0;
 #X obj 465 28 cnv 10 10 10 empty empty ELSE 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 108 373 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 108 373 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X obj 516 13 cnv 10 10 10 empty empty Solus' 0 6 2 13 #7c7c7c #e0e4dc
 0;
 #X obj 503 28 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#X obj 108 347 cnv 17 4 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 108 347 cnv 17 3 17 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
+#X text 155 464 1) float - initial threshold (default 0), f 49;
 #X text 134 346 float/signal - input signal, f 37;
+#X text 134 374 float/signal - set threshold, f 37;
 #X obj 4 5 cnv 15 301 42 empty empty above~ 20 20 2 37 #e0e0e0 #000000
 0;
-#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 3 5 graph;
 #N canvas 480 305 867 309 examples 0;
-#X obj 211 54 sine~ 0.5;
-#X obj 59 176 trig2bang~;
+#X obj 211 54 else/sine~ 0.5;
+#X obj 59 176 else/trig2bang~;
 #X obj 59 207 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000;
-#X obj 83 203 trig2bang~;
+#X obj 83 203 else/trig2bang~;
 #X obj 83 234 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000;
-#X obj 346 183 trig2bang~;
+#X obj 346 183 else/trig2bang~;
 #X obj 346 214 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 322 152 trig2bang~;
+#X obj 322 152 else/trig2bang~;
 #X obj 322 190 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 619 94 sine~ 0.5;
-#X obj 619 144 zerocross~;
-#X obj 493 187 trig2bang~;
+#X obj 619 94 else/sine~ 0.5;
+#X obj 619 144 else/zerocross~;
+#X obj 493 187 else/trig2bang~;
 #X obj 493 218 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 517 214 trig2bang~;
+#X obj 517 214 else/trig2bang~;
 #X obj 517 245 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 634 185 trig2bang~;
+#X obj 634 185 else/trig2bang~;
 #X obj 634 216 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 658 212 trig2bang~;
+#X obj 658 212 else/trig2bang~;
 #X obj 658 243 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 111 105 above~;
-#X obj 211 107 above~ 0.25;
-#X obj 524 143 above~;
+#X obj 111 105 else/above~;
+#X obj 211 107 else/above~ 0.25;
+#X obj 524 143 else/above~;
 #X text 453 51 with no threshold set \, [above~] behaves similarly
 to [zerocross~];
-#X obj 214 179 out~;
+#X obj 214 179 else/out~;
 #X connect 0 0 19 0;
 #X connect 0 0 20 0;
 #X connect 1 0 2 0;
@@ -107,40 +101,31 @@ to [zerocross~];
 #X connect 21 0 11 0;
 #X connect 21 1 13 0;
 #X restore 459 304 pd examples;
-#X obj 89 272 trig2bang~;
+#X obj 89 272 else/trig2bang~;
 #X obj 89 301 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000;
-#X obj 321 272 trig2bang~;
+#X obj 321 272 else/trig2bang~;
 #X obj 321 301 bng 15 250 50 0 empty empty empty 17 7 0 10 #dcdcdc
 #000000 #000000;
-#X obj 108 430 cnv 17 4 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 108 430 cnv 17 3 17 empty empty 1 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
-#X obj 210 195 display~;
-#X obj 210 168 randpulse~ 1;
-#X obj 210 230 above~ 0.1;
-#X obj 210 271 out~;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
+#X obj 210 168 else/randpulse~ 1;
+#X obj 210 230 else/above~ 0.1;
+#X text 57 95 [above~] sends an impulse on its left output when it
+detects a signal raising above and over a threshold. Conversely \,
+it outputs an impulse in its right outlet when the signal falling back
+to the threshold or past it. You can set the threshold value with the
+argument or the 2nd inlet., f 69;
+#X text 176 406 signal - impulse when raises above a threshold;
+#X text 176 430 signal - impulse when falls back or below a threshold
 ;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
-#X text 134 374 float/signal - threshold value, f 37;
-#X text 176 406 signal - when left inlet value rises above the threshold
-value;
-#X text 176 430 signal -when left inlet falls back or below a threshold
-;
-#X text 155 464 1) float - initial threshold value (default 0), f
-49;
-#X text 57 95 [above~] sends an impulse to the left outlet when the
-left inlet is above the threshold value. Conversely \, it outputs an
-impulse to its right outlet when the left inlet falls back to the threshold
-value or below it. The threshold value can be set via the argument
-or the 2nd inlet., f 69;
-#X connect 21 0 22 0;
+#X obj 210 271 else/out~;
+#X obj 210 195 else/numbox~ 6 12 100 #c0c0c4 #440008 10 0 0 0;
 #X connect 23 0 24 0;
-#X connect 26 0 28 0;
-#X connect 27 0 26 0;
-#X connect 28 0 21 0;
-#X connect 28 0 29 0;
-#X connect 28 1 23 0;
-#X connect 28 1 29 1;
+#X connect 25 0 26 0;
+#X connect 28 0 34 0;
+#X connect 29 0 23 0;
+#X connect 29 0 33 0;
+#X connect 29 1 25 0;
+#X connect 29 1 33 1;
+#X connect 34 0 29 0;

@@ -1,13 +1,13 @@
 #N canvas 483 31 561 547 10;
-#X obj 4 292 cnv 3 550 4 empty empty inlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 292 cnv 3 550 3 empty empty inlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 398 cnv 3 550 4 empty empty outlets 8 12 0 13 #dcdcdc #000000
+#X obj 4 398 cnv 3 550 3 empty empty outlets 8 12 0 13 #dcdcdc #000000
 0;
-#X obj 4 451 cnv 3 550 4 empty empty arguments 8 12 0 13 #dcdcdc #000000
+#X obj 4 451 cnv 3 550 3 empty empty arguments 8 12 0 13 #dcdcdc #000000
 0;
 #X obj 4 521 cnv 15 552 21 empty empty empty 20 12 0 14 #e0e0e0 #202020
 0;
-#X obj 105 407 cnv 17 4 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 105 407 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 169 373 signal;
 #X text 171 407 signal;
@@ -15,31 +15,27 @@
 0;
 #X obj 110 40 cnv 4 4 4 empty empty fade-in/out 0 28 2 18 #e0e0e0 #000000
 0;
-#X obj 105 373 cnv 17 4 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 105 373 cnv 17 3 17 empty empty n 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 133 303 float/signal;
 #X obj 2 3 cnv 15 301 42 empty empty autofade~ 20 20 2 37 #e0e0e0 #000000
 0;
-#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 1 100 -1 302 42 1;
 #X restore 2 3 graph;
 #X text 112 180 fade time;
 #X obj 178 159 nbx 5 14 -1e+37 1e+37 0 0 empty empty empty 0 -8 0 10
 #dcdcdc #000000 #000000 0 256;
 #X text 225 407 - autofaded signal;
-#X obj 307 161 brown~;
+#X obj 307 161 else/brown~;
 #X text 157 321 anything;
 #X text 225 321 -;
 #X text 237 321 fade types <quartic \, sin \, sqrt \, hann \, lin \,
 hannsin \, linsin>, f 42;
-#X obj 106 302 cnv 17 4 65 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
+#X obj 106 302 cnv 17 3 65 empty empty 0 5 9 0 16 #dcdcdc #9c9c9c 0
 ;
 #X text 226 373 - input signal to be faded in/out, f 44;
-#X obj 42 237 fader~;
+#X obj 42 237 else/fader~;
 #X text 49 219 see also:;
 #N canvas 717 143 540 389 curves 0;
 #N canvas 135 30 735 535 constant-power(3db) 0;
@@ -70,10 +66,10 @@ hannsin \, linsin>, f 42;
 #X obj 246 156 tabwrite~ \$0-sqrt_in;
 #X obj 54 334 tabwrite~ \$0-sin_out;
 #X obj 246 334 tabwrite~ \$0-sin_in;
-#X obj 55 93 fader~ sqrt;
-#X obj 55 271 fader~ sin;
-#X obj 247 271 fader~ sin;
-#X obj 247 92 fader~ sqrt;
+#X obj 55 93 else/fader~ sqrt;
+#X obj 55 271 else/fader~ sin;
+#X obj 247 271 else/fader~ sin;
+#X obj 247 92 else/fader~ sqrt;
 #X connect 0 0 9 0;
 #X connect 1 0 15 0;
 #X connect 2 0 8 0;
@@ -113,10 +109,10 @@ root of the input., f 33;
 #X obj 247 226 phasor~ 100;
 #X obj 82 303 loadbang;
 #X obj 55 227 phasor~ -100;
-#X obj 55 93 fader~ hannsin;
-#X obj 247 92 fader~ hannsin;
-#X obj 55 271 fader~ linsin;
-#X obj 247 271 fader~ linsin;
+#X obj 55 93 else/fader~ hannsin;
+#X obj 247 92 else/fader~ hannsin;
+#X obj 55 271 else/fader~ linsin;
+#X obj 247 271 else/fader~ linsin;
 #X obj 54 156 tabwrite~ \$0-hannsin_out;
 #X obj 246 156 tabwrite~ \$0-hannsin_in;
 #X obj 54 334 tabwrite~ \$0-linsin_out;
@@ -163,14 +159,14 @@ function above \, and a mean between the "lin" and "sin" function below.
 #X obj 55 48 phasor~ -100;
 #X obj 54 155 tabwrite~ \$0-hann_out;
 #X obj 246 155 tabwrite~ \$0-hann_in;
-#X obj 247 91 fader~ hann;
-#X obj 55 92 fader~ hann;
+#X obj 247 91 else/fader~ hann;
+#X obj 55 92 else/fader~ hann;
 #X obj 274 301 loadbang;
 #X obj 247 225 phasor~ 100;
 #X obj 82 302 loadbang;
 #X obj 55 226 phasor~ -100;
-#X obj 247 270 fader~ lin;
-#X obj 55 270 fader~ lin;
+#X obj 247 270 else/fader~ lin;
+#X obj 55 270 else/fader~ lin;
 #X obj 246 333 tabwrite~ \$0-lin_in;
 #X obj 54 333 tabwrite~ \$0-lin_out;
 #X connect 0 0 5 0;
@@ -213,10 +209,10 @@ the input., f 33;
 #N canvas 404 51 478 244 plot 0;
 #X obj 274 123 loadbang;
 #X obj 247 47 phasor~ 100;
-#X obj 247 91 fader~ quartic;
+#X obj 247 91 else/fader~ quartic;
 #X obj 246 155 tabwrite~ \$0-quartic_in;
 #X obj 82 124 loadbang;
-#X obj 55 92 fader~ quartic;
+#X obj 55 92 else/fader~ quartic;
 #X obj 55 48 phasor~ -100;
 #X obj 54 155 tabwrite~ \$0-quartic_out;
 #X connect 0 0 3 0;
@@ -232,7 +228,7 @@ as raising the input to the power of 4, f 31;
 #X obj 572 176 pow~ 4;
 #X restore 298 31 pd quartic;
 #N canvas 207 34 366 264 (subpatch) 0;
-#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #4a4f51 #cde5c3
+#X obj 51 101 tgl 42 0 \$0-tgl-s \$0-tgl-r empty 1 8 1 9 #dcdcdc #7c7c7c
 #fcfcfc 0 1;
 #X obj 215 68 route dsp;
 #X obj 215 37 receive pd;
@@ -302,7 +298,7 @@ as raising the input to the power of 4, f 31;
 #X restore 215 165 pd set_color;
 #X obj 135 122 r \$0-tgl-s;
 #N canvas 121 482 450 300 (subpatch) 0;
-#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #4a4f51 #cde5c3
+#X obj 101 101 cnv 25 40 25 empty \$0-cnv DSP 3 13 0 20 #dcdcdc #7c7c7c
 0;
 #X coords 0 -1 1 1 42 27 1 100 100;
 #X restore 51 144 pd;
@@ -337,7 +333,7 @@ as raising the input to the power of 4, f 31;
 #X restore 329 269 pd;
 #X text 412 269 be sure audio is on, f 7;
 #X text 380 283 <===;
-#X obj 139 300 out~;
+#X obj 139 300 else/out~;
 #X msg 117 112 sin;
 #X msg 125 133 sqrt;
 #X msg 108 93 quartic;
@@ -347,12 +343,12 @@ as raising the input to the power of 4, f 31;
 #X msg 151 214 linsin;
 #X text 41 30 Open the subpatches on the right for more details on
 the fading curves available, f 32;
-#X obj 268 230 brown~;
+#X obj 268 230 else/brown~;
 #X text 48 182 gate;
 #X obj 83 182 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000 0 1;
 #X obj 83 206 sig~;
-#X obj 139 261 autofade~ sin 500;
+#X obj 139 261 else/autofade~ sin 500;
 #X connect 8 0 20 0;
 #X connect 9 0 20 0;
 #X connect 10 0 20 0;
@@ -384,44 +380,35 @@ the fading curves available, f 32;
 0;
 #X obj 501 26 cnv 10 10 10 empty empty library 0 6 2 13 #7c7c7c #e0e4dc
 0;
-#N canvas 0 22 450 278 (subpatch) 1;
 #N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
 #X coords 0 1 100 -1 252 42 1 0 0;
 #X restore 304 3 graph;
 #X text 226 500 - number of channels (default 1), f 49;
-#X msg 178 179 fade \$1, f 10;
+#X msg 178 179 fade \$1;
 #X text 241 159 gate;
 #X obj 246 177 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000 0 1;
 #X text 226 348 - fade time in ms, f 44;
 #X text 133 348 fade <float>;
 #X text 225 303 - gate: "fade in" if != 0 \, "fade out" otherwise;
-#X obj 369 182 gray~;
+#X obj 369 182 else/gray~;
 #X text 154 485 2) float;
 #X text 154 500 3) float;
-#X obj 105 429 cnv 17 4 17 empty empty n+1 5 9 0 16 #dcdcdc #9c9c9c
+#X obj 105 429 cnv 17 3 17 empty empty n+1 5 9 0 16 #dcdcdc #9c9c9c
 0;
-#X obj 246 206 autofade~ 1000 2;
-#X obj 30 262 autofade2~;
+#X obj 246 206 else/autofade~ 1000 2;
+#X obj 30 262 else/autofade2~;
 #X text 176 428 float;
 #X obj 369 232 tgl 17 0 empty empty empty 17 7 0 10 #dcdcdc #000000
 #000000 0 1;
 #X text 392 233 <= status;
 #X text 225 428 - a 1 or 0 is sent when the fade in/out is finished
 ;
-#X obj 233 232 out~;
-#N canvas 0 22 450 278 (subpatch) 0;
-#X text 0 0 plugdatainfo <?xml version="1.0" encoding="UTF-8"?> <PlugDataInfo/>
-;
-#X coords 0 1 100 -1 1 1 1;
-#X restore 0 0 graph;
+#X obj 233 232 else/out~;
 #X text 35 82 [autofade~] is an automatic fade in/out for multichannel
 inputs. It responds to a gate control and uses internal lookup tables
-for 7 different fading curves. A gate-on happens when the last input
-value was zero and the incoming value isn't. A gate-off happens when
+for 7 different fading curves. A gate on happens when the last input
+value was zero and the incoming value isn't. A gate off happens when
 the last value was a non-zero value and the incoming value is 0! The
 maximum gain depends on the gate on level., f 80;
 #X connect 14 0 38 0;
