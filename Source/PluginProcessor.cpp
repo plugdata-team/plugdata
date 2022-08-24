@@ -168,13 +168,34 @@ void PlugDataAudioProcessor::initialiseFilesystem()
     // Check if the abstractions directory exists, if not, unzip it from binaryData
     if (!homeDir.exists() || !abstractions.exists())
     {
-        homeDir.createDirectory();
-
-        MemoryInputStream binaryAbstractions(BinaryData::Library_zip, BinaryData::Library_zipSize, false);
-        auto file = ZipFile(binaryAbstractions);
+        MemoryInputStream binaryFilesystem(BinaryData::Filesystem_zip, BinaryData::Filesystem_zipSize, false);
+        auto file = ZipFile(binaryFilesystem);
         file.uncompressTo(homeDir);
+        
+        // Create filesystem for this specific version
+        homeDir.getChildFile("plugdata_version").moveFileTo(appDir);
+        
+        auto library = homeDir.getChildFile("Library");
+        auto deken = homeDir.getChildFile("Deken");
+        
+        // For transitioning between v0.5.3 -> v0.6.0
+        auto library_backup = homeDir.getChildFile("Library_backup");
+        if(!library.exists()) {
+            library.createDirectory();
+        }
+        else if(library.getChildFile("Deken").isDirectory() &&
+                !library.getChildFile("Deken").isSymbolicLink()){
+            library.moveFileTo(library_backup);
+            library.createDirectory();
+        }
+        
+        deken.createDirectory();
+        
+        appDir.getChildFile("Abstractions").createSymbolicLink(library.getChildFile("Abstractions"), true);
+        appDir.getChildFile("Documentation").createSymbolicLink(library.getChildFile("Documentation"), true);
+        deken.createSymbolicLink(library.getChildFile("Deken"), true);
     }
-
+    
     // Check if settings file exists, if not, create the default
     if (!settingsFile.existsAsFile())
     {

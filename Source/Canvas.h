@@ -18,7 +18,7 @@ class SuggestionComponent;
 struct GraphArea;
 class Edge;
 class PlugDataPluginEditor;
-class Canvas : public Component, public Value::Listener, public LassoSource<Component*>
+class Canvas : public Component, public Value::Listener, public LassoSource<WeakReference<Component>>
 {    
    public:
     
@@ -70,10 +70,10 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     void handleMouseUp(Component* component, const MouseEvent& e);
     void handleMouseDrag(const MouseEvent& e);
 
-    SelectedItemSet<Component*>& getLassoSelection() override;
+    SelectedItemSet<WeakReference<Component>>& getLassoSelection() override;
 
     void removeSelectedComponent(Component* component);
-    void findLassoItemsInArea(Array<Component*>& itemsFound, const Rectangle<int>& area) override;
+    void findLassoItemsInArea(Array<WeakReference<Component>>& itemsFound, const Rectangle<int>& area) override;
 
     void updateSidebarSelection();
 
@@ -85,9 +85,9 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     {
         Array<T*> result;
 
-        for (auto* obj : selectedComponents)
+        for (auto obj : selectedComponents)
         {
-            if (auto* objOfType = dynamic_cast<T*>(obj))
+            if (auto* objOfType = dynamic_cast<T*>(obj.get()))
             {
                 result.add(objOfType);
             }
@@ -107,7 +107,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     pd::Patch& patch;
 
     // Needs to be allocated before box and connection so they can deselect themselves in the destructor
-    SelectedItemSet<Component*> selectedComponents;
+    SelectedItemSet<WeakReference<Component>> selectedComponents;
     
     OwnedArray<Box> boxes;
     OwnedArray<Connection> connections;
@@ -145,7 +145,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Comp
     SafePointer<Connection> connectionToSnapInbetween;
     SafePointer<TabbedComponent> tabbar;
 
-    LassoComponent<Component*> lasso;
+    LassoComponent<WeakReference<Component>> lasso;
     PopupMenu popupMenu;
 
     // Multi-dragger variables

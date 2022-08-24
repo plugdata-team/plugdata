@@ -705,7 +705,7 @@ void Box::openHelpPatch() const
     cnv->pd->setThis();
     
     // Find name of help file
-    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+    static File appDir = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile(ProjectInfo::versionString);
 
     auto* ptr = getPointer();
     if (!ptr)  {

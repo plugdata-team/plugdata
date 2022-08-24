@@ -343,8 +343,9 @@ struct PackageManager : public Thread
 
     PackageList allPackages;
 
-    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library").getChildFile("Deken");
+    inline static File filesystem = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Deken");
 
+        
     // Package info file
     File pkgInfo = filesystem.getChildFile(".pkg_info");
 
@@ -821,9 +822,9 @@ private:
                 g.setColour(findColour(PlugDataColour::highlightColourId));
                 g.strokePath(downloadPath, PathStrokeType(8.0f, PathStrokeType::JointStyle::curved, PathStrokeType::EndCapStyle::rounded));
             } else {
-                g.drawFittedText(packageInfo.version, 90, 0, 150, getHeight(), Justification::centredLeft, 1, 0.8f);
-                g.drawFittedText(packageInfo.author, 250, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
-                g.drawFittedText(packageInfo.timestamp, 440, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
+                g.drawFittedText(packageInfo.version, 150, 0, 150, getHeight(), Justification::centredLeft, 1, 0.8f);
+                g.drawFittedText(packageInfo.author, 330, 0, 110, getHeight(), Justification::centredLeft, 1, 0.8f);
+                g.drawFittedText(packageInfo.timestamp, 455, 0, 200, getHeight(), Justification::centredLeft, 1, 0.8f);
             }
         }
 

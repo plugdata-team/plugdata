@@ -434,9 +434,6 @@ void PlugDataPluginEditor::updateValues()
             box->gui->updateValue();
         }
     }
-
-    // Maybe don't do this?
-    updateCommandStatus();
 }
 
 void PlugDataPluginEditor::updateDrawables()
@@ -563,7 +560,7 @@ void PlugDataPluginEditor::addTab(Canvas* cnv, bool deleteWhenClosed)
                     Dialogs::showSaveDialog(getParentComponent(), cnv->patch.getTitle(),
                                             [this, deleteFunc, cnv](int result) mutable
                                             {
-                                                if(cnv) return;
+                                                if(!cnv) return;
                                                 if (result == 2)
                                                 {
                                                     saveProject([deleteFunc]() mutable { deleteFunc(); });

@@ -641,7 +641,7 @@ struct DocumentBrowser : public DocumentBrowserBase
         , fileList(directory, this)
         , searchComponent(directory)
     {
-        auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile("Library");
+        auto location = File::getSpecialLocation(File::SpecialLocationType::userApplicationDataDirectory).getChildFile("PlugData").getChildFile(ProjectInfo::versionString);
 
         if (pd->settingsTree.hasProperty("BrowserPath")) {
             auto customLocation = File(pd->settingsTree.getProperty("BrowserPath"));
