@@ -39,8 +39,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS YES)
 
 project(PlugData VERSION 0.6.0 LANGUAGES C CXX)
 
-
-add_subdirectory(Libraries/)
+add_subdirectory(Libraries/ EXCLUDE_FROM_ALL)
 
 set(PLUGDATA_VERSION                    "0.6.0")
 set(PLUGDATA_COMPANY_NAME               "PlugData")
