@@ -11,7 +11,7 @@ pdcategory: General
 arguments:
   1st:
   - type: float
-    description: central frequency in hz
+    description: central frequency in Hz
     default: 0
   2nd:
   - type: float
@@ -29,10 +29,10 @@ inlets:
   - type: bw
     description: sets resonance parameter to bandwidth in octaves
   - type: q
-    description: sets resonance parameter to Q (default)resonance (Q or bandwidth)
+    description: sets resonance parameter to Q (default)
   2nd:
   - type: float/signal
-    description: central frequency in Hertz
+    description: central frequency in Hz
   3rd:
   - type: float/signal
     description: filter resonance (Q or bandwidth)
