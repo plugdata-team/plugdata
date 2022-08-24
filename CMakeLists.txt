@@ -426,45 +426,24 @@ set(CMAKE_INSTALL_DEFAULT_DIRECTORY_PERMISSIONS
 )
 
 if(APPLE)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "/Library/Audio/Plug-Ins/VST3"
-    FILES_MATCHING PATTERN "*.vst3"
-  )
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Components/
-    DESTINATION "/Library/Audio/Plug-Ins/Components"
-    FILES_MATCHING PATTERN "*.component"
-  )
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "/Library/Audio/Plug-Ins/LV2"
-    FILES_MATCHING PATTERN "*.lv2"
-  )
-  install(EXECUTABLE ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/Standalone.app
-    DESTINATION "/Applications/"
-  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugData.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugDataFx.vst3 DESTINATION "/Library/Audio/Plug-ins/VST3/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugData.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugDataFx.lv2 DESTINATION "/Library/Audio/Plug-ins/LV2/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/AU/PlugData.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/AU/PlugDataFx.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/AU/PlugDataMidi.component DESTINATION "/Library/Audio/Plug-ins/Components/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/PlugData.aoo DESTINATION "/Applications")
 elseif(WIN32)
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "/Program Files/Common Files/VST3"
-    FILES_MATCHING PATTERN "*.vst3"
-  )
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "/Program Files/Common Files/LV2"
-    FILES_MATCHING PATTERN "*.lv2"
-  )
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/
-    DESTINATION "/Program Files/PlugData"
-    FILES_MATCHING PATTERN "*.exe"
-  )
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/
-    DESTINATION "/Program Files/PlugData/"
-    FILES_MATCHING PATTERN "*.dll"
-  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugData.vst3 DESTINATION "/Program Files/Common Files/VST3")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugDataFx.vst3 DESTINATION "/Program Files/Common Files/VST3")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugData.lv2 DESTINATION "/Program Files/Common Files/LV2")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugDataFx.lv2 DESTINATION "/Program Files/Common Files/LV2")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/Standalone/PlugData.exe DESTINATION "/Program Files/PlugData/")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/pd.dll DESTINATION "/Program Files/PlugData/")
 elseif(UNIX AND NOT APPLE) # Linux or BSD
-  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/
-    DESTINATION "$ENV{HOME}/.vst3"
-    FILES_MATCHING PATTERN "*.vst3"
-  )
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/
-    DESTINATION "$ENV{HOME}/.lv2"
-    FILES_MATCHING PATTERN "*.lv2"
-  )
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugData.vst3 DESTINATION "$ENV{HOME}/.vst3")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/VST3/PlugDataFx.vst3 DESTINATION "$ENV{HOME}/.vst3")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugData.lv2 DESTINATION "$ENV{HOME}/.lv2")
+  install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/Plugins/LV2/PlugDataFx.lv2 DESTINATION "$ENV{HOME}/.lv2")
 endif()
