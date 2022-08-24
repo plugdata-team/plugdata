@@ -33,6 +33,8 @@ struct TextBase : public ObjectBase
         int width = textObjectWidth * fontWidth + textWidthOffset;
         numLines = getNumLines(currentText, width);
         int height = numLines * 15 + 6;
+        
+        width = std::max(width, 25);
 
         if (getWidth() != width || getHeight() != height) {
             box->setSize(width + Box::doubleMargin, height + Box::doubleMargin);

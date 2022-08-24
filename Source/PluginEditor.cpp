@@ -815,7 +815,6 @@ void PlugDataPluginEditor::getCommandInfo(const CommandID commandID, Application
             result.setInfo("Copy", "Copy", "Edit", 0);
             result.addDefaultKeypress(67, ModifierKeys::commandModifier);
             result.setActive(pd.locked == var(false) && hasBoxSelection && !isDragging);
-            std::cout << "Can Copy" << (pd.locked == var(false)) << hasBoxSelection << !isDragging << std::endl;
             break;
         }
         case CommandIDs::Cut:
