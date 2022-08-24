@@ -151,6 +151,8 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
     SafePointer<TabbedComponent> tabbar;
 
     LassoComponent<WeakReference<Component>> lasso;
+    
+    // Static makes sure there can only be one
     PopupMenu popupMenu;
 
     // Properties that can be shown in the inspector by right-clicking on canvas
