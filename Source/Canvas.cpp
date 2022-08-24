@@ -366,7 +366,6 @@ void Canvas::mouseDown(const MouseEvent& e)
         popupMenu.clear();
 
         popupMenu.addItem(1, "Open", hasSelection && !multiple && isSubpatch);  // for opening subpatches
-        // popupMenu.addItem(10, "Edit", isGui);
         popupMenu.addSeparator();
 
         popupMenu.addCommandItem(&main, CommandIDs::Cut);
