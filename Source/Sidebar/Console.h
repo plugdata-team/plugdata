@@ -71,13 +71,14 @@ struct Console : public Component, public Timer {
     }
     
     void timerCallback() override {
-        console->update();
+        
         stopTimer();
     }
     
     void update()
     {
         if(!isTimerRunning()) {
+            console->update();
             startTimer(50);
         }
     }
