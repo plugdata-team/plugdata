@@ -26,6 +26,7 @@ struct FastStringWidth {
             totalWidth += widths[(int)utf8[i]];
         }
         
-        return totalWidth;
+        // In real text, letters are slightly closer together
+        return totalWidth * 0.8f;
     }
 };

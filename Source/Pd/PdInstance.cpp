@@ -109,7 +109,8 @@ struct pd::Instance::internal {
             strncat(concatenatedLine, s, d);
 
             // Send concatenated line to PlugData!
-            ptr->enqueueFunctionAsync([ptr, mess = String(concatenatedLine)]() mutable { ptr->processPrint(mess); });
+            ptr->processPrint(String::fromUTF8(concatenatedLine));
+            
             s += d;
             len -= d;
             length = 0;
@@ -123,7 +124,7 @@ struct pd::Instance::internal {
             concatenatedLine[length - 1] = '\0';
 
             // Send concatenated line to PlugData!
-            ptr->enqueueFunctionAsync([ptr, mess = String::fromUTF8(concatenatedLine)]() mutable { ptr->processPrint(mess); });
+            ptr->processPrint(String::fromUTF8(concatenatedLine));
 
             length = 0;
         }
@@ -429,7 +430,6 @@ void Instance::processMidiEvent(midievent event)
 
 void Instance::processPrint(String print)
 {
-    print = print.trimEnd();
     MessageManager::callAsync([this, print]() mutable {
         receivePrint(print);
     });
