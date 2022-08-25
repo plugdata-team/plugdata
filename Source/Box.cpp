@@ -757,13 +757,15 @@ void Box::openHelpPatch() const
         if (file.existsAsFile())
         {
             auto fullPath = file.getFullPathName();
-
+            int i = 0;
             for(auto* patch : cnv->pd->patches) {
                 if(patch->getCurrentFile() == file)
                 {
+                    cnv->main.tabbar.setCurrentTabIndex(i);
                     // Helpfile is already opened
                     return;
                 }
+                i++;
             }
             
             cnv->pd->enqueueFunction([this, fullPath]() mutable {
