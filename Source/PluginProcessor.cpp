@@ -1001,7 +1001,7 @@ pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
             }
         
             // Patch is already opened
-            return;
+            return nullptr;
         }
         i++;
     }
