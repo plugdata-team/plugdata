@@ -750,33 +750,31 @@ void Box::openHelpPatch() const
     // Paths to search
     // First, only search vanilla, then search all documentation
     std::vector<File> paths = {appDir.getChildFile("Documentation").getChildFile("5.reference"), appDir.getChildFile("Documentation")};
-
-    pd::Patch helpPatch = {nullptr, nullptr};
     
     for (auto& path : paths)
     {
         auto file = findHelpPatch(path);
         if (file.existsAsFile())
         {
-            auto name = file.getFileName();
-            auto fullPath = file.getParentDirectory().getFullPathName();
-            sys_lock();
-            auto* pdPatch = glob_evalfile(nullptr, gensym(name.toRawUTF8()), gensym(fullPath.toRawUTF8()));
-            sys_unlock();
-            helpPatch = {pdPatch, cnv->pd, file.getChildFile(secondName)};
-        }
-    }
+            auto fullPath = file.getFullPathName();
 
-    if (!helpPatch.getPointer())
-    {
-        cnv->pd->logMessage("Couldn't find help file");
+            for(auto* patch : cnv->pd->patches) {
+                if(patch->getCurrentFile() == file)
+                {
+                    // Helpfile is already opened
+                    return;
+                }
+            }
+            
+            cnv->pd->enqueueFunction([this, fullPath]() mutable {
+                cnv->pd->loadPatch(File(fullPath));
+            });
+        }
+        
         return;
     }
-
-    auto* patch = cnv->main.pd.patches.add(new pd::Patch(helpPatch));
-    auto* newCnv = cnv->main.canvases.add(new Canvas(cnv->main, *patch));
-
-    cnv->main.addTab(newCnv, true);
+    
+    cnv->pd->logMessage("Couldn't find help file");
 }
 
 void Box::openSubpatch() const
