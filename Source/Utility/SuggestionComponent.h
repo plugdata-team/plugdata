@@ -255,6 +255,15 @@ private:
 
     bool keyPressed(KeyPress const& key, Component* originatingComponent) override
     {
+        if (!currentBox) {
+            return false;
+        }
+        
+        if (key == KeyPress::rightKey) {
+            openedEditor->moveCaretToEnd();
+            return true;
+        }
+        
         if (state != ShowingObjects)
             return false;
 
