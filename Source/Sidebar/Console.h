@@ -224,25 +224,11 @@ struct Console : public Component, public Timer {
                 messages.push_back(std::make_unique<ConsoleMessage>(messages.size(), *this));
             }
             
-            bool showMessages = buttons[2].getToggleState();
-            bool showErrors = buttons[3].getToggleState();
-
-            int totalHeight = 0;
             for (int row = 0; row < static_cast<int>(pd->consoleMessages.size()); row++) {
-                auto [message, type, length] = pd->consoleMessages[row];
-                int numLines = getNumLines(getWidth(), length);
-                int height = numLines * 22 + 2;
-                
                 if (messages[row]->idx != row) {
                     messages[row]->idx = row;
-                    //messages[row]->setBounds(0, totalHeight, getWidth(), height);
                     messages[row]->repaint();
                 }
-                
-                if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
-                    continue;
-                
-                totalHeight += std::max(0, height);
             }
 
             setSize(viewport.getWidth(), std::max<int>(getTotalHeight(), viewport.getHeight()));
@@ -276,19 +262,15 @@ struct Console : public Component, public Timer {
             auto font = Font(Font::getDefaultSansSerifFontName(), 13, 0);
             int totalHeight = 0;
 
-            int numEmpty = 0;
-
             for (auto& [message, type, length] : pd->consoleMessages) {
-                int numLines = getNumLines(getWidth(), length);
+                int numLines = message.containsNonWhitespaceChars() ? getNumLines(getWidth(), length) : 1;
                 int height = numLines * 22 + 2;
 
                 if ((type == 1 && !showMessages) || (length == 0 && !showErrors))
                     continue;
-
+                
                 totalHeight += std::max(0, height);
             }
-
-            totalHeight -= numEmpty * 24;
 
             return totalHeight;
         }

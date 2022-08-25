@@ -177,6 +177,8 @@ Instance::Instance(String const& symbol) : fastStringWidth(Font(14))
     register_gui_triggers(static_cast<t_pdinstance*>(m_instance), this, gui_trigger, panel_trigger, synchronise_trigger, parameter_trigger);
 
     // HACK: create full path names for c-coded externals
+    // Temporarily disabled because bugs
+    /*
     int i;
     t_class* o = pd_objectmaker;
 
@@ -231,8 +233,9 @@ Instance::Instance(String const& symbol) : fastStringWidth(Font(14))
         class_addcreator(method, gensym(name.toRawUTF8()), args[0], args[1], args[2], args[3], args[4], args[5]);
     }
 
+     */
+    
     libpd_set_verbose(0);
-
     setThis();
 }
 
