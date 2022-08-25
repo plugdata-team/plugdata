@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct Console : public Component, public Timer {
+struct Console : public Component {
     explicit Console(pd::Instance* instance)
     {
         // Viewport takes ownership
@@ -70,15 +70,9 @@ struct Console : public Component, public Timer {
         console->setSize(viewport.getWidth(), std::max<int>(console->getTotalHeight(), viewport.getHeight()));
     }
     
-    void timerCallback() override
-    {
-        //console->update();
-        stopTimer();
-    }
-
     void update()
     {
-        startTimer(50);
+        console->update();
     }
 
     void deselect()
