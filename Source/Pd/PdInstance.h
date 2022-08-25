@@ -18,6 +18,8 @@ extern "C" {
 
 #include "PdPatch.h"
 #include "concurrentqueue.h"
+#include "../Utility/FastStringWidth.h"
+
 
 namespace pd {
 
@@ -399,6 +401,7 @@ private:
 
 protected:
     ContinuityChecker continuityChecker;
+    FastStringWidth fastStringWidth; // For formatting console messages more quickly
 
     struct internal;
 };
