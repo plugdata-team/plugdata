@@ -133,7 +133,7 @@ struct pd::Instance::internal {
 
 namespace pd {
 
-Instance::Instance(String const& symbol)
+Instance::Instance(String const& symbol) : fastStringWidth(Font(14))
 {
     libpd_multi_init();
 
@@ -614,7 +614,8 @@ void Instance::createPanel(int type, char const* snd, char const* location)
 
 void Instance::logMessage(String const& message)
 {
-    consoleMessages.emplace_back(message, 0, Font(14).getStringWidth(message) + 12);
+    
+    consoleMessages.emplace_back(message, 0, fastStringWidth.getStringWidth(message) + 12);
 
     if (consoleMessages.size() > 800)
         consoleMessages.pop_front();
@@ -624,7 +625,7 @@ void Instance::logMessage(String const& message)
 
 void Instance::logError(String const& error)
 {
-    consoleMessages.emplace_back(error, 1, Font(14).getStringWidth(error) + 12);
+    consoleMessages.emplace_back(error, 1, fastStringWidth.getStringWidth(error) + 12);
 
     if (consoleMessages.size() > 800)
         consoleMessages.pop_front();

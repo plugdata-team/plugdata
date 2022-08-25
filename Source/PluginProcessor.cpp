@@ -985,21 +985,44 @@ void PlugDataAudioProcessor::setStateInformation(const void* data, int sizeInByt
 
 pd::Patch* PlugDataAudioProcessor::loadPatch(const File& patchFile)
 {
-    auto newPatch = openPatch(patchFile);
 
+    // First, check if patch is already opened
+    
+    int i = 0;
+    for(auto* patch : patches) {
+        if(patch->getCurrentFile() == patchFile)
+        {
+            if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
+            {
+                MessageManager::callAsync([i, _editor = Component::SafePointer(editor)]() mutable {
+                    if(!_editor) return;
+                    _editor->tabbar.setCurrentTabIndex(i);
+                });
+            }
+        
+            // Patch is already opened
+            return;
+        }
+        i++;
+    }
+
+    auto newPatch = openPatch(patchFile);
+    
     if (!newPatch.getPointer())
     {
         logError("Couldn't open patch");
         return nullptr;
     }
-
+    
     auto* patch = patches.add(new pd::Patch(newPatch));
 
     if (auto* editor = dynamic_cast<PlugDataPluginEditor*>(getActiveEditor()))
     {
-        const MessageManagerLock mmLock;
-        auto* cnv = editor->canvases.add(new Canvas(*editor, *patch, nullptr));
-        editor->addTab(cnv, true);
+        MessageManager::callAsync([i, patch, _editor = Component::SafePointer(editor)]() mutable {
+            if(!_editor) return;
+            auto* cnv = _editor->canvases.add(new Canvas(*_editor, *patch, nullptr));
+            _editor->addTab(cnv, true);
+        });
     }
 
     patch->setCurrentFile(patchFile);
