@@ -7,6 +7,8 @@ struct DraggableNumber : public Label {
     bool shift = false;
     int decimalDrag = 0;
     int numDecimalsToShow = 0;
+    
+    float lastValue = 0.0f;
 
     bool isMinLimited = false, isMaxLimited = false;
     float min, max;
@@ -60,22 +62,28 @@ struct DraggableNumber : public Label {
             text += chr;
             editor->setText(text);
             editor->moveCaretToEnd(false);
-
             return true;
         }
 
         if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::upKey) {
-            auto newValue = getText().getFloatValue();
-            setText(String(newValue + 1), sendNotification);
+            setValue(getText().getFloatValue() + 1.0f);
             return true;
         }
         if (!isEditableOnSingleClick() && !getCurrentTextEditor() && key.getKeyCode() == KeyPress::downKey) {
-            auto newValue = getText().getFloatValue();
-            setText(String(newValue - 1), sendNotification);
+            setValue(getText().getFloatValue() - 1.0f);
             return true;
         }
 
         return false;
+    }
+    
+    void setValue(float newValue)
+    {
+        if(lastValue != newValue) {
+            lastValue = newValue;
+            setText(String(newValue), sendNotification);
+            valueChanged(newValue);
+        }
     }
 
     // Make sure mouse cursor gets reset, sometimes this doesn't happen automatically
@@ -189,7 +197,7 @@ struct DraggableNumber : public Label {
 
         numDecimalsToShow = decimal;
 
-        valueChanged(newValue);
+        setValue(newValue);
     }
 
     void mouseUp(MouseEvent const& e) override
