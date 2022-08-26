@@ -4,7 +4,7 @@
  // WARRANTIES, see the file, "LICENSE.txt," in this distribution.
  */
 
-struct CommentObject final : public TextBase {
+struct CommentObject final : public TextBase, public KeyListener {
     CommentObject(void* obj, Box* box)
         : TextBase(obj, box)
     {
@@ -114,6 +114,7 @@ struct CommentObject final : public TextBase {
 
             editor->setText(currentText, false);
             editor->addListener(this);
+            editor->addKeyListener(this);
 
             if (editor == nullptr) // may be deleted by a callback
                 return;
@@ -129,6 +130,17 @@ struct CommentObject final : public TextBase {
 
     bool hideInGraph() override
     {
+        return false;
+    }
+    
+    bool keyPressed(const KeyPress& key, Component* component) override
+    {
+        if (key == KeyPress::rightKey) {
+            if(editor){
+                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                return true;
+            }
+        }
         return false;
     }
 };

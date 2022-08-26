@@ -1047,15 +1047,38 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     if(e.mods.isShiftDown() && selection.size() == 1) {
         auto* box = selection.getFirst();
         if(box->numInputs >= 1 && box->numOutputs >= 1) {
+            
+            /*
+            std::vector<Connection*> start;
+            std::vector<Connection*> end;
+            for(auto* connection : connections) {
+                if(connection->outlet == box->edges[box->numOutputs]) start.push_back(connection);
+                if(connection->inlet == box->edges[0])                end.push_back(connection);
+            }
+            
+            // Don't handle ambiguous cases
+            if(start.size() == 1 && end.size() == 1)
+            {
+                patch.removeConnection(start->outbox->getPointer(), start->outIdx, start->inbox->getPointer(), start->inIdx);
+                patch.removeConnection(end->outbox->getPointer(), end->outIdx, end->inbox->getPointer(), end->inIdx);
+                patch.createConnection(start->outbox->getPointer(), start->outIdx, end->outbox->getPointer(), end->outIdx);
+                synchronise();
+            } */
+            
             for(auto* connection : connections) {
                 if(connection->intersectsObject(box)) {
                     box->edges[0]->isTargeted = true;
                     box->edges[box->numInputs]->isTargeted = true;
                     connectionToSnapInbetween = connection;
                     boxSnappingInbetween = box;
+                    break;
                 }
             }
+            
+            
         }
+        
+        
     }
 }
 

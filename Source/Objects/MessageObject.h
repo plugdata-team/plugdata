@@ -11,7 +11,7 @@ typedef struct _message {
     t_clock* m_clock;
 } t_message;
 
-struct MessageObject final : public GUIObject {
+struct MessageObject final : public GUIObject, public KeyListener {
     bool isDown = false;
     bool isLocked = false;
 
@@ -22,8 +22,8 @@ struct MessageObject final : public GUIObject {
     {
         addAndMakeVisible(input);
 
-        input.setInterceptsMouseClicks(false, false);
-
+        input.addMouseListener(this, false);
+        
         input.onTextChange = [this]() {
             startEdition();
             setSymbol(input.getText().toStdString());
@@ -51,6 +51,13 @@ struct MessageObject final : public GUIObject {
                     box->setSize(width, box->getHeight());
                 }
             };
+            
+            editor->addKeyListener(this);
+        };
+        
+        input.onEditorHide = [this]() {
+            auto* editor = input.getCurrentTextEditor();
+            editor->removeKeyListener(this);
         };
 
         input.setMinimumHorizontalScale(0.9f);
@@ -102,12 +109,12 @@ struct MessageObject final : public GUIObject {
         input.setColour(TextEditor::textColourId, box->findColour(PlugDataColour::textColourId));
 
         input.showEditor();
+        input.getCurrentTextEditor()->addKeyListener(this);
     }
 
     void lock(bool locked) override
     {
         isLocked = locked;
-        setInterceptsMouseClicks(isLocked, isLocked);
     }
 
     void applyBounds() override
@@ -179,10 +186,13 @@ struct MessageObject final : public GUIObject {
         cnv->pd->enqueueDirectMessages(ptr, 0);
     }
 
+    
     void mouseUp(MouseEvent const& e) override
     {
         isDown = false;
         repaint();
+        
+        std::cout << "he" << std::endl;
     }
 
     void valueChanged(Value& v) override
@@ -215,6 +225,17 @@ struct MessageObject final : public GUIObject {
                 binbuf_text(messobj->m_text.te_binbuf, cstr, value.getNumBytesAsUTF8());
                 glist_retext(messobj->m_glist, &messobj->m_text);
             });
+    }
+    
+    bool keyPressed(const KeyPress& key, Component* originalComponent) override
+    {
+        if (key == KeyPress::rightKey) {
+            if(auto* editor = input.getCurrentTextEditor()){
+                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                return true;
+            }
+        }
+        return false;
     }
 
     bool hideInGraph() override

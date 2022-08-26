@@ -260,7 +260,7 @@ private:
         }
         
         if (key == KeyPress::rightKey) {
-            openedEditor->moveCaretToEnd();
+            openedEditor->setCaretPosition(openedEditor->getHighlightedRegion().getEnd());
             return true;
         }
         

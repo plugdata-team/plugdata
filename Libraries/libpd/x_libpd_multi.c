@@ -486,6 +486,7 @@ void setup_bl0x2eimp2_tilde();
 void setup_bl0x2esquare_tilde();
 void setup_bl0x2etri_tilde();
 void setup_bl0x2evsaw_tilde();
+void setup_bl0x2eosc_tilde();
 void bicoeff_setup();
 void bicoeff2_setup();
 void bitnormal_tilde_setup();
@@ -970,6 +971,7 @@ void libpd_multi_init(void)
         setup_bl0x2esquare_tilde();
         setup_bl0x2etri_tilde();
         setup_bl0x2evsaw_tilde();
+        setup_bl0x2eosc_tilde();
         bicoeff_setup();
         bicoeff2_setup();
         bitnormal_tilde_setup();
