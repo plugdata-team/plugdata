@@ -1,5 +1,5 @@
 
-struct SymbolAtomObject final : public AtomObject {
+struct SymbolAtomObject final : public AtomObject, public KeyListener {
     bool isDown = false;
     bool isLocked = false;
 
@@ -10,7 +10,7 @@ struct SymbolAtomObject final : public AtomObject {
     {
         addAndMakeVisible(input);
 
-        input.setInterceptsMouseClicks(false, false);
+        input.addMouseListener(this, false);
 
         input.onTextChange = [this]() {
             startEdition();
@@ -27,6 +27,12 @@ struct SymbolAtomObject final : public AtomObject {
         input.onEditorShow = [this]() {
             auto* editor = input.getCurrentTextEditor();
             editor->setBorder({ 1, 1, 0, 0 });
+            editor->addKeyListener(this);
+        };
+        
+        input.onEditorHide = [this]() {
+            auto* editor = input.getCurrentTextEditor();
+            editor->removeKeyListener(this);
         };
 
         input.setMinimumHorizontalScale(0.9f);
@@ -98,6 +104,18 @@ struct SymbolAtomObject final : public AtomObject {
             AtomObject::valueChanged(v);
         }
     }
+    
+    bool keyPressed(const KeyPress& key, Component* originalComponent) override
+    {
+        if (key == KeyPress::rightKey) {
+            if(auto* editor = input.getCurrentTextEditor()) {
+                editor->setCaretPosition(editor->getHighlightedRegion().getEnd());
+                return true;
+            }
+        }
+        return false;
+    }
+
 
     Label input;
 };
