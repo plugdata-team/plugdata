@@ -35,7 +35,12 @@ struct NumberObject final : public IEMObject {
 
         input.dragStart = [this]() { startEdition(); };
 
-        input.valueChanged = [this](float value) { setValueOriginal(value); };
+        input.valueChanged = [this](float value) {
+            if(value != getValueOriginal()) {
+                setValueOriginal(value);
+            }
+            
+        };
 
         input.dragEnd = [this]() { stopEdition(); };
     }
