@@ -1046,13 +1046,14 @@ void Canvas::handleMouseDrag(const MouseEvent& e)
     
     if(e.mods.isShiftDown() && selection.size() == 1) {
         auto* box = selection.getFirst();
-        if(box->numInputs >= 1 && box->numOutputs >= 0)
-        for(auto* connection : connections) {
-            if(connection->intersectsObject(box)) {
-                box->edges[0]->isTargeted = true;
-                box->edges[box->numInputs]->isTargeted = true;
-                connectionToSnapInbetween = connection;
-                boxSnappingInbetween = box;
+        if(box->numInputs >= 1 && box->numOutputs >= 1) {
+            for(auto* connection : connections) {
+                if(connection->intersectsObject(box)) {
+                    box->edges[0]->isTargeted = true;
+                    box->edges[box->numInputs]->isTargeted = true;
+                    connectionToSnapInbetween = connection;
+                    boxSnappingInbetween = box;
+                }
             }
         }
     }
