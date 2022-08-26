@@ -10,6 +10,8 @@
 #include <array>
 #include <vector>
 
+#include "PdStorage.h"
+
 extern "C" {
 #include "x_libpd_mod_utils.h"
 }
@@ -18,6 +20,7 @@ namespace pd {
 
 using Connections = std::vector<std::tuple<int, t_object*, int, t_object*>>;
 class Instance;
+class Storage;
 
 // The Pd patch.
 //! @details The class is a wrapper around a Pd patch. The lifetime of the internal patch\n
@@ -69,7 +72,7 @@ public:
         Remove = 0,
         Move
     };
-
+    
     void setCurrent(bool lock = false);
 
     bool isDirty() const;
@@ -108,9 +111,20 @@ public:
         char* buf;
         int bufsize;
         libpd_getcontent(static_cast<t_canvas*>(ptr), &buf, &bufsize);
-        return { buf, static_cast<size_t>(bufsize) };
+        
+        auto content = String(buf, static_cast<size_t>(bufsize));
+        // This canvas will not be restored, and therefore ignored by Pd
+        // This allows us to append more info to the patch
+        
+        
+        content +=
+        String("#N canvas 0 22 450 278 (_plugdatainfo_) 0;\n") +
+        "#X text [INFOSTART]" + Storage::getContent(getPointer()).toXmlString() + "[INFOEND]\n" +
+        "#X coords 0 1 100 -1 200 140 0;\n";
+        
+        return content;
     }
-
+    
     int getIndex(void* obj);
 
     static t_object* checkObject(void* obj);
@@ -123,6 +137,7 @@ public:
     Instance* instance = nullptr;
 
 private:
+    
     File currentFile;
 
     void* ptr = nullptr;

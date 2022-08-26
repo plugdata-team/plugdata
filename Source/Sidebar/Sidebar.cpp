@@ -8,6 +8,7 @@
 #include "Pd/PdInstance.h"
 #include "LookAndFeel.h"
 #include "PluginProcessor.h"
+#include "Canvas.h"
 
 #include "Sidebar.h"
 #include "Console.h"

@@ -132,23 +132,17 @@ struct KeyboardObject final : public GUIObject, public Timer
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
+        pd->getCallbackLock()->enter();
 
-            int x, y, w, h;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        int x, y, w, h;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            auto* keyboard = static_cast<t_keyboard*>(ptr);
+        auto* keyboard = static_cast<t_keyboard*>(ptr);
+        auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
 
-            auto bounds = Rectangle<int>(x, y, keyboard->x_width, keyboard->x_height);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->exit();
+    
+        box->setObjectBounds(bounds);
     }
 
     void checkBounds() override

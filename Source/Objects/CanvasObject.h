@@ -8,20 +8,16 @@ struct CanvasObject final : public IEMObject {
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        pd->getCallbackLock()->enter();
+        
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
 
-            auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w, static_cast<t_my_canvas*>(ptr)->x_vis_h);
+        auto bounds = Rectangle<int>(x, y, static_cast<t_my_canvas*>(ptr)->x_vis_w, static_cast<t_my_canvas*>(ptr)->x_vis_h);
 
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() {
-                if (!_this)
-                    return;
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->exit();
+        
+        box->setObjectBounds(bounds);
     }
 
     void resized() override

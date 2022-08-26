@@ -394,23 +394,15 @@ public:
 
     void updateBounds() override
     {
-        pd->enqueueFunction([this, _this = SafePointer(this)]() {
-            if (!_this)
-                return;
-
-            int x = 0, y = 0, w = 0, h = 0;
-            libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
-
-            auto* glist = static_cast<_glist*>(ptr);
-            auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
-
-            MessageManager::callAsync([this, _this = SafePointer(this), bounds]() mutable {
-                if (!_this)
-                    return;
-
-                box->setObjectBounds(bounds);
-            });
-        });
+        pd->getCallbackLock()->enter();
+        
+        int x = 0, y = 0, w = 0, h = 0;
+        libpd_get_object_bounds(cnv->patch.getPointer(), ptr, &x, &y, &w, &h);
+        
+        auto* glist = static_cast<_glist*>(ptr);
+        auto bounds = Rectangle<int>(x, y, glist->gl_pixwidth, glist->gl_pixheight);
+        
+        pd->getCallbackLock()->exit();
     }
 
     void checkBounds() override

@@ -532,6 +532,16 @@ void Instance::sendMessagesFromQueue()
     }
 }
 
+String Instance::getExtraInfo(File const& toOpen)
+{
+    String content = toOpen.loadFileAsString();
+    if(content.contains("_plugdatainfo_")) {
+        return content.fromFirstOccurrenceOf("_plugdatainfo_", false, false).fromFirstOccurrenceOf("[INFOSTART]", false, false).upToFirstOccurrenceOf("[INFOEND]", false, false);
+    }
+    
+    return String();
+}
+
 Patch Instance::openPatch(File const& toOpen)
 {
     t_canvas* cnv = nullptr;
@@ -555,7 +565,10 @@ Patch Instance::openPatch(File const& toOpen)
         waitForStateUpdate();
     }
 
-    return Patch(cnv, this, toOpen);
+    auto patch = Patch(cnv, this, toOpen);
+    Storage::setContent(cnv, getExtraInfo(toOpen));
+
+    return patch;
 }
 
 void Instance::setThis()

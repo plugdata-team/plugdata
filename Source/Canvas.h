@@ -134,9 +134,7 @@ class Canvas : public Component, public Value::Listener, public LassoSource<Weak
 
     GraphArea* graphArea = nullptr;
     SuggestionComponent* suggestor = nullptr;
-
-    pd::Storage storage;
-
+    
     bool attachNextObjectToMouse = false;
     
     // Multi-dragger variables
